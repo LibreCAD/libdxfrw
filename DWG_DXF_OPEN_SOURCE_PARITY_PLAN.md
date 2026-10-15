@@ -32,7 +32,12 @@ unknown-object preservation.
 The latest 3D cross-implementation review keeps the same counts and sharpens
 Slice 8's completion rule: carrier integrity, handle/owner association, and
 independent shape semantics are separate proofs. A surviving `3DSOLID` record
-or entity-count match cannot conceal a lost solid-only block.
+or entity-count match cannot conceal a lost solid-only block. The deeper
+carrier audit also records ODA §20.4.41's explicit ACIS decryption limit,
+separates DXF-inline SAT/SAB from DWG AcDs and polygonal MESH, and rechecks live
+peer writer-loss reports. ODA remains authoritative for documented DWG
+framing, not complete ACIS grammar or kernel-valid shape semantics; no new
+finding or support claim is added.
 The newest Autodesk DXF cross-check sharpens 7G.3e/7BG: LAYOUT 345 is the
 optional named-UCS edge; 346 is conditional on orthographic layout group 76,
 and an omitted base handle means WORLD. A UCS table record's own 346 is governed
@@ -3033,7 +3038,11 @@ status:
 1. **Normative byte-layout reference:** the repository's ODA Open Design
    Specification is the byte-layout authority for DWG changes. It determines
    field ordering/widths, not whether a produced file is accepted by a CAD
-   application.
+   application. Respect explicit limits in the specification: for example,
+   ODA §20.4.41 says the ACIS entity body is not completely decrypted. In that
+   case ODA is authoritative for the documented DWG envelope, version fields,
+   declared bounds, and handle framing, but it is not a complete SAT/SAB
+   grammar or a B-rep/kernel semantics oracle.
 2. **Producer-authored input:** an exact, provenance-eligible drawing generated
    by a known producer tests real-world encoding. It does not independently
    validate output unless that producer also reopens or audits the output.
@@ -9287,6 +9296,10 @@ order, table order and destination transactionality.
   and group350 history handle separately from DWG links. For output downgrades,
   require an explicit supported SAT/SAB conversion policy; otherwise report a
   bounded unsupported/loss outcome and keep the format claim out of scope.
+  ODA §20.4.41 explicitly says its ACIS body decoding is incomplete; use its
+  documented envelope and bounds as normative, but do not infer a complete
+  ACIS entity grammar or shape validity from the spec's ability to step/write
+  entities. Use an independent eligible reader/kernel for geometry semantics.
   Do not confuse an emitted entity shell with preserved geometry. Add an
   R2004/R2007 boundary vector for the `AcDb3dSolid` subclass/history link:
   resolve the exact version introduction against ODA and producer/consumer
@@ -11120,3 +11133,32 @@ do not use a DXF raw-net pass to claim DWG semantic support. Keep
 `J256`, `J260`, `J268`, `J284`, `J293`, and `J295` `DEFERRED_EXTERNAL`; none of
 this research promotes them or any format-support row. No files, fixtures,
 dependencies, registrations, findings, or top-level subplans were added.
+
+## Cross-implementation 3D carrier and semantics audit (2026-10-15; research update)
+
+This deeper pass rechecked the 3D comparison boundary against ODA §20.4.41,
+Autodesk's DXF contracts, ezdxf's published ACIS limits, and live LibreDWG and
+ACadSharp reports/branches, then matched those boundaries to the local
+`DRW_ModelerGeometry`, MESH and writer paths. It found no new locally reproduced
+defect and does not add a PAR ID or top-level subplan. No peer executable,
+customer drawing, proprietary producer, or native CAD application was run.
+
+| Evidence | Cross-check and confidence boundary | Plan/readiness refinement |
+| --- | --- | --- |
+| ODA [Open Design Specification §20.4.41](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf), local `DRW_ModelerGeometry::parseDwg` and `decodeWireframe` | ODA explicitly says REGION/3DSOLID/BODY are ACIS entities whose contents are not completely decrypted, while documenting the DWG modeler envelope and the version-1 SAT block / version-2 ACIS-file carriers. Local code retains qualified SAT/SAB carriers and decodes only a bounded SAB wireframe; neither successful DWG parsing nor retained bytes imply complete ACIS entity interpretation or a valid B-rep. | Scope the ODA authority claim to the documented DWG frame, fields, lengths, version deltas and handles. Keep payload-boundary/extraction assertions independent from SAT/SAB record grammar, wireframe projection, kernel construction, and native shape acceptance. Report those as separate result columns; a carrier pass cannot promote a geometry-semantic claim. |
+| Autodesk [3DSOLID DXF reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm), ezdxf [ACIS Tools 1.4.4](https://ezdxf.readthedocs.io/en/stable/acis.html), and [DXF entity-record contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm) | Autodesk specifies a DXF ModelerGeometry marker/version (group 70), proprietary data in group 1 with optional group 3 continuation lines, and a 3DSOLID history soft-owner handle (group 350). ezdxf documents SAT ACIS v700 for R2000–R2010 and SAB v21800 for R2013/R2018, but says its parser handles only a limited set of structures, maps unsupported entities to `NONE_ENTITY` with data loss, and has no ACIS kernel. These are useful exact carrier profiles and candid implementation limits, not universal version rules or independent geometry truth. | Keep DXF-inline SAT/SAB and DWG AcDs records as separate versioned routes; assert group1/group3 reconstruction, target-version/profile, and group350 history closure independently of DWG handle/index association. Do not convert SAT↔SAB or rewrite an unqualified target profile implicitly. ezdxf may generate a scratch-authored control and inspect/extract carriers, but its own output/parser or planar-face projection cannot satisfy the independent semantic gate. Respect the Autodesk per-line payload limit and continuation contract. |
+| LibreDWG open [#1411](https://github.com/LibreDWG/libredwg/issues/1411), ACadSharp open [#1195](https://github.com/DomCR/ACadSharp/issues/1195), [#1150](https://github.com/DomCR/ACadSharp/pull/1150), and maintainer [#1240](https://github.com/DomCR/ACadSharp/pull/1240) | Live status checked 2026-10-15: the LibreDWG issue reports an AC1027+ REGION shell with its AcDs/SAB body lost in build `8a1ae764`; ACadSharp #1195 reports 3DSOLID/REGION omitted by its 3.4.9 DWG→DXF writer, including solid-only blocks. ACadSharp #1150 and #1240 are distinct unmerged writer branches; #1240 is undeployed, has no review recorded, and depends on ACDS/schema work. These reports identify different pipeline failure stages; they are not current-release qualification or local repros. | Keep every 3D result stage-attributed: parsed source object → retained inline/AcDs carrier → entity/handle association → block/owner retention → writer disposition → emitted target carrier → independent reopen → semantic body. Add per-block/per-type sentinels so exact total entity counts cannot hide empty solid-only blocks. Pin any future peer binary/revision and record skipped/unknown/error counts; README matrices and unmerged patches never promote support. |
+| Autodesk [MESH DXF reference](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm), local `DRW_Mesh` parser/writer and generated control `c28da26`; ACadSharp [#1038](https://github.com/DomCR/ACadSharp/issues/1038) / [#1067](https://github.com/DomCR/ACadSharp/pull/1067) | MESH is an explicit subdivision-cage representation with version, crease, level, vertex, face, edge, and per-subentity override counts/codes. It is not an ACIS solid carrier. The local generated ASCII/binary control verifies stored field order and self-read; ACadSharp's reported/fixed edge-crease path is a peer calibration, not independent surface evaluation. | Keep MESH, POLYFACE/3DFACE and ACIS 3DSOLID/REGION/BODY as disjoint rows and test denominators. For MESH, validate count-delimited topology/crease/override closure and a semantic vertex/face/edge projection; do not use exact tag equality as a tessellation or rendering pass. For DXF parsers, add at most one generated scalar-tag order variant where the group semantics permit it; never reorder count-delimited arrays or group1/group3 SAT continuation payloads. |
+| Autodesk [object/entity-code guidance](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm), current local DXF read/write tests and LibreCAD compatibility targets | Autodesk warns that code-table presentation order is typical rather than a guaranteed serialization order and that new releases can add codes. This supports tolerant, table-driven input parsing, but it does not make ordered/repeated subrecords interchangeable. Existing compatibility remains the LibreCAD/LibreCAD_3 2D gate; FreeCAD's stock DXF path is not a general ACIS importer. | Add a narrow order-independence control for non-repeated fields to the current fast fixture generator only if it hits a concrete stateful parser; preserve sequence for arrays, chunks, and link-bearing payloads. Run `-Werror` builds, the touched fixture/parser test and `lc3_compat_check` per committed slice; reserve one composed CLI checkpoint for the settled boundary, then perform the deferred Linux/Windows FreeCAD and independent-reader/kernel qualification. Generate test drawings at runtime from scratch; do not download or commit peer/vendor DWG/DXF fixtures. |
+
+**Readiness delta:** prioritize finishing the in-flight DXF VisualStyle closure/remap
+slice, then continue the already-staged Slice 8 carrier sequence. The cheapest
+next checks are generated ASCII/binary tag and graph assertions plus the
+existing focused CTests; do not wait for proprietary/native qualification to
+implement locally verifiable bounded fixes. After each implementation commit,
+refresh this plan's completed/open ledger and show slice progress, then proceed
+to the next ready item even when an external qualification gate is deferred.
+No issue count or top-level subplan count changes (122/70); no downloaded or
+checked-in fixture, dependency, or test registration is added. `J256`, `J260`,
+`J268`, `J284`, `J293`, and `J295` remain `DEFERRED_EXTERNAL` and cannot promote
+support claims.
