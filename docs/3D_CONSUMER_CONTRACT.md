@@ -170,6 +170,14 @@ absent/default value, so explicit all-zero tangent presence is not retained
 by the writer. This state fix does not qualify associative boundary remapping,
 MPOLYGON feature support, or a DWG spline layout.
 
+HATCH source-boundary references now use the caller's final-identity resolver
+once, or a known/preallocated source-to-emitted map when no resolver is set.
+A resolver's zero result rejects a declared nonzero boundary reference
+transactionally. Forward references require preplanning; the CLI adapter's
+inventory, ownership and reciprocal-reference integration remains open under
+parity7R.2. Per-path counts/flags and rational spline field ordering have local
+ASCII/binary controls, with no native automatic-update or rendering claim.
+
 MPOLYGON keeps DXF group 70 in its distinct `dxfVersion` field (default 1)
 and maps group 71 to the existing inherited `solid` fill state. It does not
 read group 71 as HATCH associativity. Bounded unknown source versions remain

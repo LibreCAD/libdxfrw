@@ -33,6 +33,9 @@
 #include "xrecord_test_helpers.h"
 
 bool runModelerDxfWriterMatrix(const std::filesystem::path& parent, bool keepOutputs);
+bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutputs);
+bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary);
+bool verifyHatchReferenceFile(const std::filesystem::path& path);
 
 namespace {
 
@@ -15047,7 +15050,14 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--modeler-dxf-matrix") {
+    if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--hatch-references") {
+        return runHatchReferenceTests(argc == 3 ? argv[2] : directory, argc == 3) ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-hatch-references"
+                         || std::string(argv[1]) == "--generate-hatch-references-binary")) {
+        return writeHatchReferenceFile(argv[2], std::string(argv[1]) == "--generate-hatch-references-binary") ? 0 : 1;
+    } else if (argc == 3 && std::string(argv[1]) == "--verify-hatch-references") {
+        return verifyHatchReferenceFile(argv[2]) ? 0 : 1;
+    } else if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--modeler-dxf-matrix") {
         return runModelerDxfWriterMatrix(argc == 3 ? argv[2] : directory, argc == 3) ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--hatch-pattern-preservation") {
         const bool passed = runHatchPatternPredicateControls()
@@ -15111,6 +15121,9 @@ int main(int argc, char** argv) {
         std::cerr << "usage: " << argv[0]
                   << " [--keep-dir DIRECTORY]"
                      " [--modeler-dxf-matrix [DIRECTORY]]"
+                     " [--hatch-references [DIRECTORY]]"
+                     " [--generate-hatch-references[-binary] DXF]"
+                     " [--verify-hatch-references DXF]"
                      " [--hatch-pattern-preservation]"
                      " [--generate-hatch-pattern[-binary] DXF]"
                      " [--verify-hatch-pattern DXF]"
@@ -16243,6 +16256,9 @@ int main(int argc, char** argv) {
            failures);
     expect(runModelerDxfWriterMatrix(directory, keepOutputs),
            "DXF modeler version/entity schema, SAT boundary and history matrix",
+           failures);
+    expect(runHatchReferenceTests(directory, keepOutputs),
+           "HATCH source-reference remap and multi-path wire ordering",
            failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";

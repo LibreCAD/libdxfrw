@@ -85,9 +85,11 @@ S5.19/7Y.2a's ASCII precision repair is committed at `291858e`. S2.2.5a's
 modeler schema repair and generated matrix are implemented: version-matched
 ODA retains the actual writer's 12 legacy ASCII and six R2013 ASCII/binary
 controls. S2.2.5b still needs qualified legacy binary-SAT acceptance and the
-long-token/chunk-policy decision. Next local slices are S5.18's multi-path
-HATCH vector with parity7R's existing reference-identity repair, and
-S2.3.9.4.29's independent generated block census. Neither waits on
+long-token/chunk-policy decision. Parity7R.1 now implements the HATCH writer
+reference map and S5.18's low-level multi-path controls; the actual CLI still
+has the separately reproduced 7R.2 preplanning/ownership gap. Next local
+slices are 7R.2's adapter integration and S2.3.9.4.29's independent generated
+block census. Neither waits on
 external customer DWGs, native FreeCAD or a new oracle. S4.5 remains gated
 by S3's verified DataStorage layout. Keep focused modes in the existing
 round-trip executable; no new fixture or CTest registration is needed.
@@ -208,6 +210,71 @@ is inferred from their coexistence. Reopen this S8.13 reader checkpoint with
 the ODA layout/trace gate; do not weaken CRC validation or attribute it to
 this DXF-only schema repair.
 
+**Parity7R.1 / S5.18 writer progress (2026-10-15; Plan-Slice:7R.1):** HATCH group-330 source
+arrays now consume a configured reference resolver's final identity exactly
+once, or use an existing/preallocated source-to-emitted binding when no
+resolver is installed. A resolver's null result rejects the entity and output
+transaction. The per-loop group-97 counts and source arrays remain unchanged;
+MPOLYGON and the CLI's broader graph policy are separate. The new focused
+`--hatch-references` mode covers ASCII/binary, HATCH before/after its sources,
+reserved-handle collision and numeric source/output aliases, implicit mapped
+references versus resolver-produced final IDs, reciprocal reactors when a
+resolver is supplied, two read/write passes, and explicit detached geometry.
+Three paths have source counts 1/2/0 and different derived flags. A rational
+spline uses asymmetric knots and weights, and exact ordered tags plus typed
+readback verify their control association and the distinct spline-fit/loop
+group-97 fields. A following LINE catches binary stream misalignment. Four
+null-input/resolver-rejection cases preserve the old destination and pass a
+corrected retry on the same writer. The current focused mode and local CTest
+pass; strict test TU and lc3 source checks pass. A harness linked to clean
+`291858e` fails the same reference controls.
+
+The generated CLI source passes its verifier, and both actual ASCII/binary
+`dwg2dxf input -o output` conversions return zero, but the output checker
+finds the first loop's 330 still `32` while its emitted boundary is `3A`.
+This is the ready 7R.2 adapter reproduction, not a completed end-to-end
+association fix. Preserve the full requirement: preplan referenced identities
+before table/entity callbacks, translate existing reciprocal reactors once,
+check unique published targets and same-layout ownership, and reject missing,
+ambiguous or other-layout targets transactionally. Keep an explicitly
+detached input's geometry and flag; never detach it automatically to pass.
+The [source/artifact and CLI observations](docs/research/hatch-reference-writer-2026-10-15.json)
+bind these bounded controls. No fixture, native hatch update/rendering, DWG,
+support-claim or external-J transition follows.
+
+**Deeper/broader readiness refresh (2026-10-15; plan-only):** the current
+source/test WIP is not a commit or an end-to-end compatibility result. Fresh
+direct HATCH controls pass and both retained CLI output checks still fail;
+the input/output verifiers and source/artifact hashes reproduce the recorded
+boundary. Parity plan 7R.2a–d now specifies bounded target/owner admission,
+preallocation after codec reset but before incoming-reference callbacks,
+exactly-once resolution plus final publication proof, and operation-owned
+same-data adapter retry. The existing low-level retries use fresh caller
+data, so they do not already establish that last guarantee. Keep the
+same-owner gate as a deliberate strict-converter policy supported by
+[ezdxf's implementation](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/hatch.py),
+not a byte-layout rule inferred from Autodesk's source-ID API. No automatic
+detachment, contour synthesis or native geometric update is part of this fix.
+
+The ODA v5.4.1 §20.4.41 tables on printed pp.144–145 were visually rechecked
+against current modeler reading and ACadSharp's reader. Inline carrier,
+wire/transform/silhouette tail, handle framing and SAB-derived projection
+remain separate contracts. A peer's different silhouette-ID width is not
+permission to change this parser; local code does not currently decode that
+array. Any expansion remains behind S3.2's exact-version ODA/trace gate.
+[ACadRust #129](https://github.com/hakanaktt/acadrust/issues/129) now includes
+a reporter's successful 0.6.4 retest of six private 2004/2018 modeler files,
+despite remaining open. Record that released-fix evidence accurately, without
+treating counts/payload sizes as geometry proof or importing the private files.
+
+For faster implementation, continue 7R.2 and independent S2.3.9.4.29 locally.
+S2.2.5b first needs a same-profile legacy binary-SAT positive in the actual
+reader. An optional already-installed GDAL 3.12+ direct binary-to-ASCII
+translation may isolate tags; it is distinct from an OGR geometry rewrite
+and cannot qualify acceptance of the original binary file. Reuse the existing
+focused modes and only one integration/compatibility checkpoint; no new
+registration, install, external fixture, full-suite rerun or J promotion.
+
 **Broader upstream regression audit (2026-10-15; tests prioritized, no
 production diagnosis):** the pinned [ezdxf 1.4.4 ACIS writer](https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/acis.py)
 and its [ACIS browser documentation](https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst#L429-L438)
@@ -229,7 +296,8 @@ These are not findings against libdxfrw. Existing local coverage checks one
 patterned HATCH path and one rational spline path, while MESH already has
 ASCII/binary typed readback; the missing high-value fast case is multiple
 HATCH paths with different association lists and derived flags. S5.18 adds
-that runtime-generated case. Keep SAT/SAB final-chunk and multiple-of-limit
+that runtime-generated case through parity7R.1's committed direct-writer controls;
+its actual CLI acceptance remains open under7R.2. Keep SAT/SAB final-chunk and multiple-of-limit
 boundaries in S2.2.5, and verify byte-exact binary section chunks in the
 existing ACDSDATA gate rather than treating peer release notes as an oracle.
 
@@ -3532,6 +3600,39 @@ production loss, correct the smallest adapter/writer boundary and update this
 item after its separate slice commit; otherwise record the exact negative
 condition and leave the external report advisory.
 
+**Readiness split / anti-permutation controls:** keep this item independent
+of HATCH and external qualification. Implement in the existing target:
+
+1. Generate two distinguishable, valid bounded modeler payloads, a modeler-only
+   block, a mixed block, nested INSERTs with two instances and a direct entity.
+   Start with the established legacy SAT profile. Never use fake SAB
+   signature/terminal filler to attest geometry or bypass unsupported output.
+2. Record each stored definition/entity once, then separately record INSERT
+   reachability and logical owner. Include non-monotonic handles and permute
+   callback/handle/payload order independently. Distinguish intentionally
+   unreachable definitions from dropped reachable geometry.
+3. Verify entity→owner/block→reconstructed payload→INSERT identity rather than
+   only counts/names/order. Compare SAT under a stated text-normalization rule;
+   compare SAB bytes only when its carrier route is already admitted. An
+   unchanged total with swapped bodies is a failure.
+4. Calibrate the exact generated codec input before actual CLI conversion in
+   both encodings. The HATCH control now shows that this CLI can read a
+   generated binary DXF; do not blanket-skip binary modeler checks because an
+   earlier, different TABLES fixture failed. If this particular generated
+   modeler control hits a prerequisite, report that exact stage separately.
+5. Inject missing block/required target and unsupported carrier negatives.
+   Require an explicit failed conversion and preserved/absent destination,
+   not success with an empty block. If a production loss is reproduced, fix
+   only its smallest dispatch/storage/writer boundary and commit separately;
+   otherwise record a regression guard without inventing a new defect.
+
+Run the narrow existing round-trip/CLI mode while editing, then its integration
+CTest and `lc3_compat_check` once. Do not run native FreeCAD, a full suite or a
+peer corpus to close this local no-silent-loss gate. After each committed
+sub-slice, update its exact implementation/evidence state in both plans and
+show progress plus the next dependency-ready action. External qualification
+cannot be self-unblocked by changing support-claim criteria.
+
 Positive gate: a recognized AC1027 source yields a complete version-correct
 DXF via FreeCAD's exact converter contract; handle/schema associations survive
 the libdxfrw reader and ODA checkpoint; supported adjacent entities remain
@@ -3588,6 +3689,14 @@ Steps:
    those modern classes. Keep each such DWG subtype
    `BLOCKED_ON_PRIMARY_LAYOUT_EVIDENCE` until an applicable authority and
    independently checked witness are available; proceed with DXF lanes.
+   **Tail inventory before expansion:** classify stored wire/transform and
+   silhouette fields separately from the extracted carrier and the optional
+   SAB-derived projection. Determine whether each is an opaque field,
+   regenerable display cache or required semantic field, and name its output
+   disposition. Do not infer preservation from a whole-frame capture when
+   the destination is a typed DXF, or label optional cache omission as proven
+   ACIS-body loss. Use exact-version body/handle/next-record sentinels; current
+   peer parser widths and private-corpus retests are leads, not layout authority.
    **Completed sub-slice S3.2.1:** AC1024/R2010 non-empty version-2 inline SAB
    starts immediately after the modeler-version field, has the exact
    `ACIS BinaryFile` signature, and is bounded by the unique tagged
@@ -3828,8 +3937,9 @@ an orphan record.
 ### S5 — DXF topology, coordinates, and finite-value semantics
 
 State: planned DXF topology, placement, flags, and conversion-boundary fixes
-are implemented in S5.1-S5.17 and S5.19; S5.18 is the ready multi-path HATCH
-regression. S8.15.18.3 additionally closes the 3DFACE DXF
+are implemented in S5.1-S5.17 and S5.19. S5.18's writer-field/reference
+controls pass with parity7R.1; its CLI identity/ownership gate remains in
+progress under7R.2. S8.15.18.3 additionally closes the 3DFACE DXF
 input flag-range guard. Their evidence remains vector/family-specific; S7/S8
 independently gate broader semantic claims and blocked DWG lanes.
 
@@ -6342,8 +6452,8 @@ degenerate, other-knot, other-scenario, target-authored, or other-version
 splines.
 
 Current implementation-item ledger (update in every corresponding slice
-commit; 149 items: 126 committed, 6 explicitly blocked, 3 in progress,
-12 other bounded evidence states, and 2 ready):
+commit; 149 items: 126 committed, 6 explicitly blocked, 4 in progress,
+12 other bounded evidence states, and 1 ready):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,
@@ -6654,7 +6764,7 @@ Latest implementation-item ledger addition:
 | --- | --- | --- |
 | S5.17.1–.2 | COMMITTED / RESEARCHED | Added separate archival GEODATA v1 fields and modern field routing in `DRW_GeoData::parseCode`, with in-memory ASCII/binary v1 and modern controls, copy/reset coverage, and generated-reader checks; commits `8b15424`, `f666dc5`, and `35c57cd` record research, tests, and parser/model work. Research reconciles Autodesk 2009's legacy map with Autodesk 2016/2020 and ezdxf's modern R2010 map without treating peer semantics as normative. Exact values are locally-authored vectors only; no external drawing is admitted, and no reprojection/Civil/DWG support claim follows. |
 | S5.17.3 | COMMITTED | Added version-aware GEODATA DXF output for documented v1/v2, preserving the previous modern-v2 group order and emitting the full archival/Civil v1 map. Group 90 defaults to documented v2; typed v3 rejects before output/state changes. ASCII/binary vectors lock the code order, all v1/Civil values after typed readback, and modern v2 parity. Transactional negatives cover signed group-70 overflow, non-finite values, >255-byte v1 text, oversized mesh counts, nonzero 2D mesh Z, Civil fields without their marker, the DWG-only Civil tail, unsafe modern text, and mixing schema-exclusive fields; every rejection leaves a same-writer retry usable. Focused `libdxfrw_wave1`, `libdxfrw_dwg_local_roundtrip`, and `libdxfrw_dxf_fixtures` pass 3/3 in 5.33s; `lc3_compat_check` builds; `git diff --check` passes. These are locally-authored DXF controls only; no independent producer/reader, CRS transform, Civil 3D, DWG, or geometry support is claimed. |
-| S5.18 | READY_LOCAL_WITH_7R | The per-path identity assertion overlaps already reproduced PAR-35/parity7R: current typed HATCH groups330 write source handles directly. Combine the new multi-path vector with 7R's preplanned forward identities, same-layout target check, reciprocal reactors, missing/different-layout negatives and both callback orders; do not preserve source handles or detach associativity merely to make the vector pass. New peer-derived field/order regression: generated ASCII/binary AC1027 HATCH with multiple paths, different source-handle lists, differing per-path derived bits, and one rational spline edge with asymmetric knot/weight values. Isolate as one focused CTest mode in the existing round-trip target; assert exact ordered tag stream, each path's group-97 count/330 handles after output-handle remap, per-path group-92 flags, and rational 40/42 association through two read/write passes. Optionally run LibreDWG 0.14 against the same runtime files when already installed, but do not make it normative or gate local correctness on external setup. No fixture, renderer/fill claim, or DWG claim; only address a production path if this case reproduces data loss. |
+| S5.18 | IN_PROGRESS / WRITER_COMMITTED | Parity7R.1's committed writer maps HATCH source references once. Fresh direct controls pass in both encodings: two passes, per-path source counts1/2/0 and derived flags, asymmetric rational spline wire order, reserved aliases, resolver and mapped fallback, four rejected writes/corrected same-codec retries with fresh data. Source-bound JSON is `docs/research/hatch-reference-writer-2026-10-15.json`. Actual ASCII/binary CLI inputs verify but outputs still fail at source330/32 versus emitted3A after conversion exit0. Complete parity7R.2a–d's bounded owner/identity census, early planning, actual publication and same-data adapter retries before closing this item. No native edit/update, rendering/fill, DWG or support promotion; no external fixture or new CTest registration. |
 | S5.19 / parity7Y.2a | COMMITTED | `291858e`: ASCII DXF now defaults to binary64 `max_digits10`; the old `nextafter(1.0, 2.0) -> 1` precision loss is repaired. Eight runtime tag controls cover adversarial XYZ, adjacent negative values, maximum/minimum normal, finite subnormal and signed zero; exact reader equality/sign, caller locale/stream state and explicit little-endian binary bytes pass. Actual generated ASCII/binary CLI conversions retain the difficult XYZ fields exactly. `cmake --build build --target libdxfrw_numeric_locale_tests dwg2dxf --parallel 2` and four focused numeric CTests pass (4/4, 0.63s); `git diff --check` passes. No fixture or registration added. Explicit ARCALIGNEDTEXT six-digit string conversion and raw/typed ERANGE policy remain separate; no DWG, native/platform or geometry-support claim. |
 | S8.15.8 | COMMITTED | Added locally-authored `tests/fixtures/dxf/ac1015_helix_freecad_control.dxf` and opt-in ODA CTest `dwg2dxf_freecad_3d_helix_cli`; generated DWG/DXF outputs remain under `build/`. The source contains a nonplanar rational HELIX (13 ordered controls/weights, 17 knots, axis `(0,0,1)`, radius 1, one turn, height 4) and a separate nonplanar weighted cubic SPLINE. The exact FreeCAD argv test and public DXF readback preserve rational group-70 flag `0x04`, degree/counts, ordered WCS controls/weights, absent planar normals, and HELIX trailer; it caught and fixed weighted DWG SPLINE output incorrectly using linear bit `0x10`. Focused internal round-trip and ODA Spline/HELIX route tests pass; no generated files enter source. Current FreeCAD `main` C++ `dxf.cpp` maps SPLINE to `ReadSpline()` and falls through to `ReadUnknownEntity()` for HELIX, so classify this as converter-supported/preserved but downstream-unsupported in that importer. Do not rewrite the entity; a positive FreeCAD HELIX shape claim requires a separate upstream importer change. Target-authored DWGs and other versions remain unqualified. |
 | S8.15.9.1 | COMMITTED | Added locally authored `tests/fixtures/dwg/ac1015_ellipse_freecad_control.dwgadd`, `tests/fixtures/dxf/ac1015_ellipse_freecad_control.dxf`, and opt-in `dwg2dxf_freecad_3d_ellipse_cli`. The DWGADD recipe emits only two planar AC1015 ELLIPSE controls (full and partial) because LibreDWG `dwgadd` cannot faithfully express the elevated/tilted vectors needed by `.9.2`. In a build-tree path containing spaces, the CTest invokes exact FreeCAD argv `dwg2dxf input -o output`, verifies the AC1015 signature/header and both entity field sequences (center, WCS major axis, ratio, parameters, omitted default extrusion), then repeats the checks after public DXF readback. Focused CTest passes 1/1. The locally authored elevated/tilted DXF source is reserved for an independent writer; it is not exercised by this DWGADD test. This is self-generated planar conversion/readback evidence only, not independent DWG interoperability, FreeCAD shape support, or general ELLIPSE support. All generated DWG/DXF outputs stay under `build/`; no generated drawing fixture is tracked. |

@@ -5310,6 +5310,19 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
             m_writeError = true;
             return false;
         }
+        const auto writeBoundaryHandles = [this](const DRW_HatchLoop& loop) {
+            if (!writer->writeInt32(97, static_cast<int>(loop.m_boundaryHandles.size())))
+                return failDxfWrite();
+            for (const std::uint32_t source : loop.m_boundaryHandles) {
+                // A consumer resolver returns final output identity. Applying
+                // the source map again can redirect a numeric handle alias.
+                const std::uint32_t emitted = m_referenceResolver
+                    ? resolveReference(source) : remapObjectHandle(source);
+                if (emitted == 0 || !writer->writeString(330, toHexStr(emitted)))
+                    return failDxfWrite();
+            }
+            return true;
+        };
         EntityRecordScope scope(*this, ent);
         writer->writeString(0, "HATCH");
         if (!writeEntity(ent))
@@ -5349,14 +5362,8 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
                     if (hasBulge)
                         writer->writeDouble(42, vtx->bulge);
                 }
-                // Emit source boundary handles (associative hatch) or 0.
-                if (!loop->m_boundaryHandles.empty()) {
-                    writer->writeInt32(97, static_cast<int>(loop->m_boundaryHandles.size()));
-                    for (std::uint32_t h : loop->m_boundaryHandles)
-                        writer->writeString(330, toHexStr(h));
-                } else {
-                    writer->writeInt32(97, 0);
-                }
+                if (!writeBoundaryHandles(*loop))
+                    return false;
             } else {
                 //boundary path
                 const int edgeCount = static_cast<int>(loop->objlist.size());
@@ -5446,14 +5453,8 @@ bool dxfRW::writeHatch(DRW_Hatch *ent){
                             break;
                     }
                 }
-                // Emit source boundary handles (associative hatch) or 0.
-                if (!loop->m_boundaryHandles.empty()) {
-                    writer->writeInt32(97, static_cast<int>(loop->m_boundaryHandles.size()));
-                    for (std::uint32_t h : loop->m_boundaryHandles)
-                        writer->writeString(330, toHexStr(h));
-                } else {
-                    writer->writeInt32(97, 0);
-                }
+                if (!writeBoundaryHandles(*loop))
+                    return false;
             }
         }
         writer->writeInt16(75, ent->hstyle);

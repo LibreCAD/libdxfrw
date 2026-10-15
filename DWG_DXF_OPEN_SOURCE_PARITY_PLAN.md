@@ -1,6 +1,25 @@
 # DWG/DXF open-source implementation comparison and fix plan
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
+
+**Current handoff (2026-10-15, `bfbdb83` plus existing HATCH worktree):**
+this queue supersedes the historical “next” actions below. This research pass
+changes plans only; it does not commit or extend the existing source/test WIP.
+
+| Order | Bounded item | Actual state and next gate |
+| --- | --- | --- |
+| 1 | PAR-35 / 7R.1 / S5.18 direct HATCH writer | COMMITTED in Plan-Slice:7R.1. Fresh `--hatch-references` passes; retain its literal tags, resolver-alias and failed-write controls during review/integration. This is not CLI associativity support. |
+| 2 | 7R.2 HATCH adapter graph | REPRODUCED / READY_LOCAL. The current generated ASCII and binary CLI outputs still contain `330/32` instead of boundary self-handle `3A`; both inputs verify, and conversion had returned zero. Implement the four ordered sub-slices in 7R before closing PAR-35. |
+| 3 | S2.3.9.4.29 block-path modeler census | READY_LOCAL / INDEPENDENT. Add distinct payload-to-owner/INSERT correlations, not just totals. No native CAD, downloaded drawing, or HATCH fix is a prerequisite. |
+| 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | SOURCE_READY / VERSION_WITNESS_REQUIRED as applicable. Reuse the existing codec vectors and ODA/trace gates; do not substitute a peer's width or recovery heuristic. |
+
+7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
+GEODATA reader or writer from an older research queue. The new research
+crosswalk and bounded readiness decisions are in the final section of this
+plan. No new finding/top-level subplan, external fixture, dependency, or
+support claim is introduced; all six external J items remain deferred.
+
 The ODA-backed 7BP DWG GEODATA CIVIL-tail reader and writer are now locally
 implemented for AC1021/AC1024/AC1027, with AC1032 as the no-tail control.
 Generated vectors and whole-DWG round-trips pass; producer/native acceptance is
@@ -10,9 +29,8 @@ The latest 3D cross-project refresh confirms a LibreDWG SAT final-block fix,
 reproducible-but-peer-only R2013+ AcDs/SAB loss, and FreeCAD's explicit stock
 ACIS limitation. Existing local SAT and carrier tests already cover the
 identified structural failure shapes; no parallel finding or duplicate test
-suite is needed. 7BR.1 and the versioned v1 GEODATA reader/model slice 7BR.2
-are now committed; the next ready source-local item is 7BR.3 writer symmetry or
-fail-closed rejection with retry/rollback controls.
+suite is needed. The versioned v1 GEODATA reader and writer are now committed;
+the current HATCH and block-census queue above replaces the earlier 7BR handoff.
 The 2026-10-15 broader parser/kernel survey adds `dwg-rs` as an optional
 container-only DWG comparator and `cq-acis`/`acis-core` as a potentially useful
 bounded SAT/SAB parser-plus-OCCT probe. Neither is a production-complete peer
@@ -291,7 +309,19 @@ reader/package work does not wait for external qualification.
 
 **Research snapshot:** 2026-10-15
 
-**Latest research boundary:** the full format/semantic source review used
+**Latest focused research boundary:** `bfbdb83` plus the pre-existing,
+uncommitted HATCH writer/test changes. Current code and output hashes match
+`docs/research/hatch-reference-writer-2026-10-15.json`. Fresh direct-writer and
+input/output verifier runs distinguish passing writer controls from the still
+failing actual CLI outputs in both encodings. The ODA v5.4.1 local PDF is now
+located at `/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf`,
+SHA-256 `1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7`;
+modeler tables on printed pp.144–145 were extracted and visually inspected.
+Mutable peer sources are source-review evidence, not executable pins. No
+external reader/application, broad suite, or native platform matrix was run
+in this research pass.
+
+**Historical research boundary:** the full format/semantic source review used
 implementation HEAD `c090d70` (2026-10-14); the newest focused cross-project
 resource-profile refresh is documented at the end of this plan and was checked
 against implementation HEAD `6a388d6`. Earlier review inputs include the
@@ -541,6 +571,8 @@ Its historical binary diff SHA-256 is
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| PAR-35 / 7R.1 / S5.18 HATCH writer | COMMITTED / WRITER_VERIFIED | Plan-Slice:7R.1 maps path references once through a final resolver or the preallocated map. Fresh focused writer controls pass. The durable source-bound report records the previous 1/1 local CTest, strict/lc3 checks and baseline red proof; those broader checks were not repeated in this plan-only pass. Both retained CLI input verifiers pass and both retained CLI output verifiers freshly fail at `330/32` versus `330/3A`. Next: 7R.2a–d; do not close PAR-35/S5.18 or claim same-data retry/native associativity from this writer test. |
+| Broader association/modeler/comparator readiness research | PLAN_UPDATED / NONPROMOTING | Cross-checked Autodesk's association API, ezdxf's owner/reactor checks, archived netDxf's separate contour/edge model, ODA §20.4.41, current ACadSharp modeler reading, ACadRust 0.6.4/#129 released-fix and retest evidence, and GDAL's separate binary tag/geometry routes. Refines existing 7R, S2.2.5b, S2.3.9.4.29, S3.2 and Slice 3, corrects stale GEODATA/current HATCH states, and keeps existing fixture/fast-gate/J policies. No new PAR ID, implementation, commit, installation, or support promotion. |
 | 7BP.1 GEODATA CIVIL-tail reader | COMMITTED / READER_VECTOR_VERIFIED | `90aa131`: `DRW_GeoData` now retains the DWG-only CIVIL values separately, consuming the fixed ODA §20.4.78 order for AC1021/1024/1027 regardless of the first data bit; AC1032 remains the no-tail control. Generated vectors cover v1/v2/v3 where applicable, zero/one mesh arrays, distinct v2/v3 units, exact body cursor, owner/host references, false-flag continuation, truncation without partial publication, and same-instance retry. `libdxfrw_dwg_object_vectors` and `libdxfrw_hardening` pass 2/2; `lc3_compat_check` and strict library/test builds pass. No DWG fixture, callback change, or support promotion. Public model layout changed, so downstream consumers must rebuild; no binary-ABI claim. Next: add target-gated writer emission/preflight and independent literal-wire plus output-preservation controls. |
 | 7BP.2 GEODATA CIVIL-tail writer | COMMITTED / LOCAL_MATRIX_VERIFIED / EXTERNAL_ACCEPTANCE_PENDING | `564372e`: emits the exact fixed tail only for AC1021/1024/1027; AC1032 and legacy controls omit it. Preflight rejects a false data bit, nonzero fixed-reserved fields, invalid scale enum, or non-finite tail values without touching destination buffers. Literal bit vectors compare the emitted tail independently to the ODA order and prove strings/handles unchanged; full generated DWG round-trips assert v1/v2 tail semantics and target presence over AC1015/1018/1021/1024/1027/1032. Object-vector, hardening, and local-roundtrip CTests pass 3/3; `lc3_compat_check` builds; ASan/UBSan object-vector CTest passes 1/1 (Apple runtime requires leak detection disabled). No external DWG fixture, new test registration, full suite, or support promotion. Public layout change requires downstream rebuild; no binary-ABI claim. Next ready subplan: 7BR DXF GEODATA v1 grammar. Native/producer GEODATA acceptance remains separate and non-blocking. |
 | Peer-source guard: DataStorage multi-value schema | COMMITTED / LOCAL_FAST_TESTED | `c47622b`: a locally authored raw DataStorage section asserts two distinct `AcDbDs::ID` values survive parsing, the following property remains aligned, and an over-count crossing the schema bound is rejected. `cmake --build build --target libdxfrw_graph_preservation_tests -j4`, focused CTest `libdxfrw_graph_preservation` (1/1, 0.22s), and `git diff --check` pass. The ACadSharp report motivated a guard only; source audit found no matching assignment defect. No DWG/DXF fixture, production change, CTest registration, or support promotion. The next ready production item is 7BR DXF GEODATA v1 grammar; unrelated peer leads do not block it. |
@@ -3260,7 +3292,7 @@ revision unless a live-upstream correction is named explicitly.
 | **PAR-32** | P1 | Source/oracle-confirmed common-data placement gap: table writers call `writeTableEntryAppData` after subclass/body tags. ezdxf does not recognize the linetype extension dictionary there. New LINE control also loses independently recognized appData because `writeEntity` emits it after `AcDbEntity`; PLOTSETTINGS has an analogous helper placement. | Move common 102 metadata into the base scope, once, before subclasses; keep trailing XDATA and XRECORD application-body 102 distinct. Expand 7P.2 beyond table writers and preserve already-correct paths. |
 | **PAR-33** | P1 | Reproduced table ownership and source-confirmed resource loss: STYLE and VPORT entries write owner 2, but their TABLE identities are 3 and 8. `writeLayer` hardcodes plotstyle 390=F and omits retained material 347; the control has no object F, yet ezdxf audit reports no errors/fixes. | Bind entries to their actual emitted table identities; preserve/remap supported layer resource references with complete targets or explicit unsupported outcomes. Check raw tags and target type/existence rather than relying on audit or reader-created defaults. Implement 7P; expand 7G's roots to table resources. |
 | **PAR-34** | P1 | Source-confirmed wire-type conflict: HATCH and MPOLYGON writers call `writeInt32(431, colorMethod)` although 430–439 are strings; HATCH reads 431 as int despite the shared reader decoding it as string. Binary output therefore uses a width inconsistent with the classifier. Gradient emission also lacks the documented peer R2004 boundary guard. | Resolve DXF gradient colors versus DWG CMC metadata against the specification; never make 431 an integer globally to fit a mirrored bug. Add ASCII/binary field/type controls, per-target gradient policy and low-level writer mismatch checks where compatible. Implement 7Q; track HELIX/MESH/SURFACE minimum-version questions as separate evidence, not inferred product-introduction dates. |
-| **PAR-35** | P1 | Source-confirmed/reproduced HATCH typed-reference gap: boundary entity B0 is reminted but the HATCH source-boundary 330 stays B0. Generic raw/XRECORD 7A does not translate these arrays. MPOLYGON has a separate grammar and documented comparator limitations, not assumed HATCH associativity. | Plan identities before emitting forward references, translate HATCH boundary links/reactors consistently, and verify same-layout association. Keep MPOLYGON feature policy in 7Z, not an invented association acceptance gate. Implement 7R with both callback orders and reserved-handle collisions. |
+| **PAR-35** | P1 | Reproduced HATCH typed-reference gap, now split: 7R.1 maps boundary 330 through preallocated/final identities in the committed writer slice, whose focused controls pass. Actual ASCII and binary CLI outputs still preserve source 330/32 while the referenced entity is emitted as 3A; both input verifiers pass and conversion returned zero. MPOLYGON remains a separate grammar/policy. | Retain 7R.1 without claiming full closure; implement 7R.2a–d: bounded target/owner census, planning before incoming references, exactly-once identity translation and publication proof, same-data adapter repeat/retry. Preserve declared reactors and detached geometry; reject missing/ambiguous/different-owner required targets transactionally. |
 | **PAR-36** | P2 | Source-confirmed explicit-skip gap: unknown TABLES branches consume records through ENDTAB without a retention callback (`processTables`), unlike unknown whole sections/entities/objects. Safe terminator checks are present; retaining raw sections does not preserve an unknown table nested inside TABLES. | Inventory discarded scopes, then provide bounded same-version retention or an observable unsupported/loss outcome. Do not claim universal unknown-data preservation or replay a nested TABLE as a new top-level section. Implement 7U after the preservation policy decision; respect unknown binary-width rules. |
 | **PAR-37** | P2 | Source-confirmed topology validation gap: POLYFACE paths validate scalar face-index ranges but do not clearly validate every signed one-based face index against the completed actual coordinate pool. Autodesk explicitly permits stale declared counts and unusual vertex/face order. | Add a completed-pool validation gate without rejecting valid interleaved/forward-index files or trusting header counts. Preserve signed visibility and winding, canonicalize writer order where required, and reject dangling indices before output. Implement 7V using valid stale-count controls plus one out-of-range index. |
 | **PAR-38** | P2 | Source-confirmed route-loss lead: `DRW_Mesh::propertyOverrides` is represented/validated for DXF, but `DRW_Mesh::encodeDwg` only validates/emits base-cage geometry and ignores the override vector. The compatibility-only `subdivVertices` field is separately documented as nonserialized. | Reproduce an override-bearing model, then reject unsupported DWG override conversion explicitly while preserving the base-cage positive control; add typed DWG encoding only with specification/sample evidence. Do not impose closed-solid/manifold restrictions on all surface meshes. Implement 7W. |
@@ -3541,7 +3573,7 @@ failure does not prevent completing them:
 | 7O.1/2/3 — dimension frames/placement | COMMITTED / REPRO_PENDING | normal/CLI subtype retention integrated; common clone elevation and picture scale/rotation still separate | local/DXF/3D/repeat CLI, raw-only peer-excluded fields; DWG red vectors for2/3 |
 | 7P — common scope/owners/resources | COMMITTED / ADMISSION_ONLY / GRAPH_PARTIAL | 7P.1/2/4 and narrow authored-key/owning-target admission committed; image/per-entry-role/full reciprocal graph remain | main DXF/graph/strict/lc3 and modes pass; complete ordered tags then closed graphs |
 | 7Q — gradient DXF types/versions | REPRO_READY | Slice 2 classifier as guard, not disputed-range resolution | `libdxfrw_wave1`, `libdxfrw_dwg_local_roundtrip` |
-| 7R — associative boundary references | REPRO_READY | 7A/7G, planned entity identities | `libdxfrw_graph_preservation`, CLI graph vector |
+| 7R — associative boundary references | WRITER_COMMITTED / CLI_REPRO_READY | 7R.1 integrated; 7R.2a–d reuse 7A/7G identities and existing finalization, bounded owner census and retry lifetime | Existing `--hatch-references` plus generated ASCII/binary actual CLI verifier; graph/lc3 checkpoint once integrated |
 | 7S — token/aggregate byte budgets | COMMITTED_1 / ACCOUNTING_2_3 |1 bounded acquisition and explicit corrected failure policy integrated;2 DXF copies/3 DWG live/work owners remain independent | main3/3 plus composed b4 ASan3/3; two-STL component rows historical; no native app/exhaustion prerequisite |
 | 7T — wide identity boundary | REPRODUCED / DESIGN | checked narrowing first; additive API decision before widening | `libdxfrw_wave1`, `libdxfrw_dwg_object_vectors` |
 | 7U — unknown nested tables | POLICY_READY | explicit skip vs bounded retention; Slice 2 unknown widths | `libdxfrw_hardening`, `libdxfrw_dxf_fixtures` |
@@ -5290,6 +5322,71 @@ HATCH local-roundtrip cases. HELIX/MESH/SURFACE version discrepancies require
 their own producer/spec evidence; product introduction dates are not wire gates.
 
 ### 7R — Remap associative boundary references end to end
+
+**Current state:** 7R.1 writer mapping and S5.18 field controls are committed
+in Plan-Slice:7R.1;
+7R.2 CLI identity preplanning/ownership/publication remains ready and open.
+The current low-level writer passes in both encodings, with reserved numeric
+aliases, forward/backward callback order, final-identity resolver versus
+existing preallocated map, two passes and four failed-then-corrected writer
+attempts. Per-path counts1/2/0, derived flags and asymmetric rational spline
+knot/control/weight order are exact in tags and typed readback. Direct callers
+must preplan forward identities or supply their final-identity resolver;
+fallback to an unbound source is not publication evidence. A zero result for
+a declared nonzero HATCH boundary rejects instead of dropping the link.
+
+The generated actual CLI controls still fail after exit0: first-loop source
+330 remains32 while the boundary's emitted self-handle is3A, in ASCII and
+binary. Both generated inputs pass the checker. Use
+`--generate-hatch-references[-binary]` / `--verify-hatch-references` in the
+existing local-roundtrip target for 7R.2; no native/tool download or new
+registration is required. The retained report is
+`docs/research/hatch-reference-writer-2026-10-15.json`. Existing local CTest
+passes1/1 in2.74s; strict test TU/lc3 checks pass. Clean291858e static-library
+link fails the same writer controls. This verifies only the 7R.1 writer slice, not the full
+acceptance gate below or native geometric updates after boundary edits.
+
+**7R.2 next implementation:** inventory unique referenced entities and their
+logical emitted owners before publication; reuse the codec's preallocation
+and final-reference resolver without double mapping. Allocate before any
+callback that can emit an incoming reactor, not only when HATCH is reached.
+Prove every planned target was actually emitted and reject missing,
+ambiguous/different-layout targets. Keep null rejection and explicit detached
+geometry; preserve caller source identities across adapter retries. Verify
+both callback orders, reserved collisions, reciprocal reactor roles, same-data
+repeat/retry and no-output failure with the existing CLI generator/checker.
+MPOLYGON policy remains7Z.
+
+**7R.2 implementation-ready split (ordered, no external prerequisite):**
+
+| Slice | Implementation boundary | Required focused evidence |
+| --- | --- | --- |
+| 7R.2a census and owner admission | In `dx_iface::fileExport`, collect only HATCH identities and declared path targets, then scan `dx_data::mBlock` and named/fixed block entity containers with bounded source-record/node/edge accounting. Detect duplicate identities, duplicate publication through multiple containers, missing targets, and cross-kind collisions, including compound-child identities. Resolve logical owner using the same explicit BLOCK_RECORD mapping, named-block context and fixed model/paper-space rules as the writer; `space` alone and physical ENTITIES/BLOCKS placement are insufficient. Admit only unambiguous emitted entity targets with the same logical owner. Do not invent curve evaluation, rewrite the path, or require every OBJECTS record to be part of this selected graph. | Same modelspace, same named block and same paper layout positives; missing/ambiguous/wrong-kind/different-owner negatives, implicit-owner controls, small exact/over budgets, and a sentinel destination unchanged on failure. References to unsupported compound children must have an explicit rejection until their publication route is supported. |
+| 7R.2b early identity planning | Retain an operation-owned plan, configure any resolver during setup, and call existing `preallocateEntityHandle` after `write()` resets derived state but before TABLES/incoming-reference callbacks. `writeHeader` is an available early callback; `writeBlocks`/`writeEntities` are too late for preceding reactors. Honor explicit structural remaps and reserved/fixed handles. A resolver returns a final identity: never feed it back through another source map. Audit its effects on all existing table/entity appData, reactors and extension dictionaries; do not install a HATCH-only lookup that returns zero for unrelated valid references and silently erases them. | Both callback orders; numeric source/output aliases; fixed/reserved collisions; reciprocal reactor in typed and known-102 form; one composed non-HATCH dictionary/XRECORD or table-reference control unchanged. A preallocated or unchanged fallback number is not an emitted-target proof. |
+| 7R.2c emission and publication proof | Track the selected source identities actually accepted by `dx_iface::writeEntity`, not merely attempted dispatches. Its current default arm emits nothing. Before atomic output publication, use the existing `finalizeDxfWrite` callback to reject any required target not emitted exactly once with its planned identity/owner. Preserve declared reciprocal references; do not synthesize absent reactors, detach associativity or reinterpret MPOLYGON to satisfy this gate. A finalized graph is still not a native hatch evaluator. | Planned-but-unsupported dispatch, writer rejection and duplicate publication all reject without creating/replacing the final output. Positive tags resolve each loop's 330 and declared reciprocal reactor to the correct emitted record, with a following LINE/EOF and distinct path counts. |
+| 7R.2d adapter retry and actual CLI closure | Public codec record writers may mutate successful caller handles before a later whole-file failure. Make any adapter restoration/journal operation-owned and bounded, valid only while `fileExport` owns the borrowed drawing lifetime; include relevant POLYLINE/VERTEX and INSERT/ATTRIB child identities. Never retain caller pointers after return or mutate reference arrays to match reminted numbers. Clear derived identity/publication state on every export. | Repeat export of the same `dx_data`, late failure then corrected retry of that same data, and fresh-data control. Verify every source identity/reference is unchanged under the chosen adapter contract. Run generated ASCII and binary inputs through the actual CLI and existing verifier; require both output checks to turn green, not merely the low-level test or exit code. |
+
+The scope above is source-local and testable now. The existing direct-writer
+negative tests retry the same codec with **fresh caller data**; they do not
+already prove 7R.2d's same-data adapter guarantee. Keep that distinction in
+completion receipts. Compose new controls inside existing targets/modes;
+add no per-case CTest registrations, generic graph framework or runtime
+dependency. Run the focused mode for each edit and one existing round-trip
+CTest plus `lc3_compat_check` when adapter integration settles; full suites,
+native boundary-edit/update and unrelated external qualification remain phase
+gates.
+
+**Normative versus implementation policy:** Autodesk's
+[appendLoop contract](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbHatch__appendLoop_Adesk__Int32_AcDbObjectIdArray_.html)
+maintains source entity IDs for associative boundaries. The reviewed
+[ezdxf implementation](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/hatch.py)
+checks document/owner identity and adds reciprocal reactors; its
+[tutorial](https://ezdxf.readthedocs.io/en/stable/tutorials/hatch.html)
+explicitly does not verify boundary geometry or update it after edits.
+The same-owner gate is our deliberate strict-conversion policy, corroborated
+by peer implementations, not a clause established by that Autodesk API page.
+Do not turn ezdxf acceptance into evidence of native associativity or copy its
+explicit detachment behavior into a lossless conversion path.
 
 **Scope:** PAR-35 and PAR-40's relevant edges; HATCH typed 330 arrays, planned entity identities and
 reactors. Depends on 7A and the relevant 7G graph slice, not arbitrary handles.
@@ -11380,7 +11477,7 @@ application, binary, or downloaded drawing was run or added.
 | Evidence | Cross-implementation finding and boundary | Plan/readiness refinement |
 | --- | --- | --- |
 | Autodesk [3DSOLID DXF reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm), ezdxf [ACIS DXF routing](https://ezdxf.readthedocs.io/en/stable/faq.html) and [ACIS API](https://ezdxf.readthedocs.io/en/stable/acis.html) | DXF `3DSOLID` has a modeler-geometry subclass, group 70 modeler-format version (documented as currently 1), legacy proprietary SAT text in repeated groups 1/3, then a 3DSOLID subclass with group 350 history-object handle. ezdxf documents the format-era carrier split: SAT inline for R2000–R2010, SAB in ACDSDATA for R2013+. Its SAT/SAB object parser and polyhedron extraction are not a general ACIS kernel: flat polygonal faces can become meshes, but curved/spline surfaces require a kernel and are not represented by that projection. | Keep three version fields distinct in 7B/Slice 8: drawing/DXF target version, DXF modeler-carrier version (group 70), and inner SAT/SAB stream version. Add or retain focused assertions for ordered groups 1/3, group-350 history reference/closure, AC1024 inline SAT and AC1027+ SAB section routing. Parsing records or validating links is structural preservation only; mesh extraction is an explicitly lossy projection, never a B-rep-semantic pass. Fail closed or report loss for unsupported inner profiles rather than relabeling one version as another. |
-| LibreDWG [current object reference](https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html), [0.14.1 release notes](https://github.com/LibreDWG/libredwg/blob/master/NEWS), and [DWG/DXF project scope](https://github.com/LibreDWG/libredwg) | LibreDWG exposes rich entity/object fields, including 3DSOLID SAT/SAB payload fields and GEODATA, but its own project status says advanced R2010+ objects may still fail or be skipped; its release notes describe AcDsPrototype_1b as incomplete and historical SAB extraction as brute-force. A release-note fix for losing the final SAT block is useful as a regression class, not evidence that every current release/profile is fully correct. LibreDWG's GPL-3+ license also makes it an evidence-only comparator for this GPL-2+-or-later project, not code to port. | Keep it as a pinned, opt-in peer check only for named object/carrier cases. Record exact release/commit, build options, diagnostics, input/output hash and per-object disposition. Do not infer semantic completeness from API field presence, project-wide version claims, successful conversion, or peer round-trip. Do not port code or copy fixtures; author scratch vectors locally and preserve the current no-external-fixture rule. |
+| LibreDWG [current object reference](https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html), [0.14.1 release notes](https://github.com/LibreDWG/libredwg/blob/master/NEWS), and [DWG/DXF project scope](https://github.com/LibreDWG/libredwg) | LibreDWG exposes rich entity/object fields, including 3DSOLID SAT/SAB payload fields and GEODATA, but its own project status says advanced R2010+ objects may still fail or be skipped; its release notes describe AcDsPrototype_1b as incomplete and historical SAB extraction as brute-force. A release-note fix for losing the final SAT block is useful as a regression class, not evidence that every current release/profile is fully correct. This plan keeps LibreDWG evidence-only to preserve its current release/provenance policy; GPL version compatibility is a separate, explicit review, not an automatic prohibition arising from GPL-2.0-or-later. | Keep it as a pinned, opt-in peer check only for named object/carrier cases. Record exact release/commit, build options, diagnostics, input/output hash and per-object disposition. Do not infer semantic completeness from API field presence, project-wide version claims, successful conversion, or peer round-trip. Do not port code or copy fixtures; author scratch vectors locally and preserve the current no-external-fixture rule. |
 | GDAL [DXF reader and 3D extensibility documentation](https://gdal.org/en/stable/drivers/vector/dxf.html) | GDAL gives an independent consumer boundary: it supports explicit 3D geometry such as 3DFACE/polyface as polygon/polyhedral-surface projections, while 3DSOLID/REGION/BODY/SURFACE are skipped by default because their proprietary ASM payload cannot be converted to OGR geometry. Its opt-in AC1027+ extensible mode surfaces raw ASM bytes and an affine transform, not a parsed solid. It also offers a block-preserving mode; default INSERT expansion has a 10,000-feature-per-block cap. | Add GDAL only as an optional consumer-level check with its version/options pinned. For 2D/mesh claims, compare typed entities and retain blocks/references (`INLINE_BLOCKS=NO`); if expanding blocks, set and report the cap. For 3DSOLID/REGION, a raw-payload match proves carrier exposure only, and a skipped entity is `NOT_APPLICABLE` for geometry rather than a successful empty result. Keep this distinct from LibreCAD/LibreCAD_3 API compatibility and native CAD acceptance. |
 | FreeCAD [DXF/DWG preferences](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md) and [format guide](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md) | FreeCAD's DWG route is a configured external converter followed by the DXF importer; its documentation warns that LibreDWG can omit entities and describes ODA results as more reliable. Its stock DXF importer/exporter feature and performance profiles are distinct from the optional legacy Python importer/exporter. Opening a produced DXF does not establish what the upstream converter retained, and stock FreeCAD does not supply the ACIS-kernel gate required for exact solid semantics. | Keep native Linux/Windows FreeCAD qualification scoped to the exact converter, FreeCAD build, importer mode and observed 2D/mesh document properties. Capture process status and diagnostics before import; assert each required entity/property and output document rather than file existence. Mark stock FreeCAD ACIS B-rep evaluation `NOT_APPLICABLE`; if a named external ACIS plugin is tested, make it a separately pinned consumer profile with its own evidence. |
 
@@ -11396,10 +11493,11 @@ and raw carrier retention stay available, and every unsupported 3D object must
 be preserved or explicitly reported as skipped/rejected rather than silently
 turning into an empty drawing.
 
-**Implementation delta:** no new PAR finding or top-level subplan is needed;
-these controls refine the existing 7B/Slice 8 carrier and semantic gates. 7BR.1
-is committed; the next source-local task is 7BR.2 model/lifecycle and
-version-aware reading, followed by 7BR.3 writer/rejection/retry. Continue using
+**Implementation delta (current handoff supersedes the original queue):** no
+new PAR finding or top-level subplan is needed; these controls refine the
+existing 7B/Slice 8 carrier and semantic gates. 7BR.1/2/3 are now committed.
+Continue with the current 7R writer/adapter handoff and independent block-path
+census at the top of this plan, using
 generated ASCII/binary DXF only. Validate each slice with the focused existing
 target and compatibility check; retain the slower complete test suite and
 native/peer matrix for the already-planned phase gates. Add no runtime
@@ -11409,3 +11507,73 @@ completed slice plus the next ready action; continue with the next ready
 source-local slice if an external gate is unavailable. `J256`, `J260`, `J268`,
 `J284`, `J293`, and `J295` remain
 `DEFERRED_EXTERNAL` and non-promoting; counts remain 122/70.
+
+## Association, modeler-envelope and comparator-readiness deep review (2026-10-15)
+
+This pass updates existing owners instead of adding another parity epic.
+Local source inspection covers `writeHatch`, allocator/reset/finalization,
+`dx_iface::fileExport`/callbacks/dispatch, modeler `parseDwg`, and codec page
+normalization. Existing source/test WIP was preserved. The primary-source
+crosswalk below records what actually changes the implementation plan.
+
+| Source reviewed | Evidence and limitation | Disposition in the existing plan |
+| --- | --- | --- |
+| Autodesk [HATCH source-ID API](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbHatch__appendLoop_Adesk__Int32_AcDbObjectIdArray_.html), ezdxf [association implementation](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/hatch.py) / [tutorial](https://ezdxf.readthedocs.io/en/stable/tutorials/hatch.html) | Autodesk maintains source IDs for associative loops. ezdxf checks document/owner, attaches reciprocal reactors, but does not maintain or verify matching geometry. A parser accepting boundary tags cannot prove associative editing. | 7R.2 now names four ordered local sub-slices and a separate native edit/update gate. Same-owner admission is the strict converter policy, not a newly discovered Autodesk byte-layout rule. Preserve literal detached geometry and declared references; do not silently detach or synthesize missing reciprocity. |
+| Archived netDxf [Hatch.cs](https://github.com/haplokuon/netDxf/blob/master/netDxf/Entities/Hatch.cs), [HatchBoundaryPath.cs](https://github.com/haplokuon/netDxf/blob/master/netDxf/Entities/HatchBoundaryPath.cs), and [DxfDocument.cs](https://github.com/haplokuon/netDxf/blob/master/netDxf/DxfDocument.cs) | Its model separates boundary contour entities from stored edges; it can create/link contours, add them to the hatch's layout and attach reactors. That is a higher-level document/geometry mutation policy. The repository was archived in 2023; it is a design cross-check, not a current-maintenance or native oracle. | Do not port automatic entity creation into this streaming converter. Keep source identity, stored path geometry, owner closure and regeneration separate. Exercise same named-block and same paper-layout positives, not only modelspace. No new geometry engine or dependency is needed for 7R. |
+| ODA [v5.4.1 §20.4.41, printed pp.144–145](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf), visually checked local copy, and ACadSharp [current reader](https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs) | ODA separates inline SAT/SAB, subsequent wire/transform/silhouette fields, common handles and the R2007+ history edge. Its table gives wire color as BS and silhouette viewport ID as BL. The reviewed peer uses `ReadBitLongLong` for that ID and skips a version-2 remainder after trimming the payload; peer code is not a replacement for the ODA layout or complete tail evidence. Local modeler reading does not decode those wire/silhouette arrays, so this is not a reproduced local wrong-width read. | Under S3.2/7AP, inventory opaque tails, display caches, independently required fields and optional projections before adding decoding. Keep DWG envelope/wire caches distinct from the SAB-derived `m_wireframe`. Require version-specific trace/cursor/handle and neighboring-record controls before parser changes, plus an explicit preservation/omission policy. Do not invent a parser from peer widths or claim complete modeler semantics. |
+| ACadRust [v0.6.4 / `8d5c46d` release](https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4) and [#129](https://github.com/hakanaktt/acadrust/issues/129) | The 0.6.3 report concerns privately supplied 2004/2018 modeler records skipped after count failures. The author reports all six reading strictly in 0.6.4, with ODA retaining solids and matching payload sizes on resave. The issue remains open despite that retest. This is reporter/release evidence, not local execution, public fixtures or measured B-rep equivalence. | Record released fix/retest and issue state separately; do not present the old failure as current peer behavior. Use its generation/color/silhouette cases as S3.2 trace-selection leads, with a real executable pin if later compared. Matching counts/sizes cannot close ACIS semantics or the six J items. |
+| GDAL [binary DXF direct-translation contract](https://gdal.org/en/stable/drivers/vector/dxf.html#binary-dxf-to-ascii-dxf-direct-translation), Autodesk [binary DXF contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm), and the existing ODA syntax report | GDAL 3.12+ documents a direct binary-to-ASCII path distinct from its lossy OGR geometry path. Both libdxfrw legacy binary-SAT output and ezdxf baselines fail the existing ODA screen. Agreement on rejection does not localize the cause. | S2.2.5b first calibrates a same-version/modeler-profile positive in the exact reader. If GDAL is already installed, direct translation can isolate physical tags; no installation is required. Preserve the binary subject and compare reconstructed groups1/3 and subclass/history roles. A readable translated ASCII copy does not qualify original binary acceptance, B-rep geometry, or an OGR rewrite. |
+| ACadRust [v0.6.4 codepage release note](https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4), Unicode [Microsoft PC maps](https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/PC/) / [Apple Roman map](https://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/ROMAN.TXT), local `correctCodePage` | The release claims DOS/OEM, Mac Roman and Johab fixes; this is comparator eligibility, not proof about libdxfrw. Local recognized-page aliases/fallbacks remain the existing Slice 3 concern, including IBM850→1252 and IBM866→1251. | Reuse existing byte-to-scalar codec controls. Separate spelling aliases, actual mapping, unavailable-decoder literal retention and unknown-page diagnostic policy. Do not add automatic detection, change UTF-8/TU rules, install a charset framework or rerun a corpus per mapping. No duplicate finding is needed. |
+
+### Current local evidence and closure rules
+
+Fresh checks in this pass: `build/libdxfrw_dwg_local_roundtrip
+--hatch-references` passes; both retained generated CLI inputs pass
+`--verify-hatch-references`; both retained outputs fail at ordered tag23,
+expected `330/3A`, observed `330/32`. Source and executable SHA-256 values
+match `docs/research/hatch-reference-writer-2026-10-15.json`. These verifier
+runs do not rerun the converter or replace the report's recorded conversion
+exit status. No full suite, native CAD, peer binary or platform qualification
+was run. Existing successful writer controls remain uncommitted worktree
+evidence until their separate integration commit.
+
+For S2.3.9.4.29, strengthen the existing scratch block census with at least two
+**different** body payloads and non-monotonic source identities. Permute
+entity callback order independently of handle order and payload-record order;
+an equal global count must not conceal swapped bodies or an empty definition.
+Correlate source entity → emitted owner/block → exact reconstructed carrier →
+INSERT target, including two instances of a nested definition. Count each
+stored definition once; keep instance reachability separate from stored-body
+count. Distinguish unreachable definitions from omitted reachable geometry.
+SAT compares reconstructed text under an explicitly stated normalization;
+SAB compares bytes. Artificial signature/terminal filler can test routing,
+not ACIS validity. Do not replace a valid payload with filler just to get a
+writer to accept it. Invalid-graph and unsupported-carrier cases remain
+transactional negatives; no silent success with missing bodies.
+
+### Faster execution and self-updating handoff
+
+Use the exact focused mode for an edited boundary, then the existing touched
+target plus one source-compatibility gate at integration. Full suites and
+native/independent geometry checks stay at phase gates. Cache comparator
+eligibility by executable hash/version/options/profile; rerun only a changed
+or invalidated scope. Do not repeat unchanged binary-SAT rejections or
+reacquire private-corpus reports. Failed local checks are ready implementation
+work; unavailable external lanes do not block the next independent local item.
+
+After each implementation commit, replace the relevant WIP state with the
+actual commit, exact focused outcome and remaining gate, update both plans,
+and show the completed slice plus next action. “Implemented,” “committed,”
+“CLI verified,” and “externally qualified” are separate states. Historical
+research paragraphs do not override the current queue. The six J items stay
+`DEFERRED_EXTERNAL`; counts remain122 findings/70 top-level subplans.
+
+**Provenance correction:** LibreDWG remains an evidence-only comparator by
+this plan's deliberate scope/release policy, not an automatic claim that
+GPL-2.0-or-later and GPL-3.0 code are inherently incompatible. GNU's
+[license guidance](https://www.gnu.org/licenses/license-list.en.html#GNUGPLv3)
+distinguishes GPLv2-only from GPLv2-or-later and the GPLv3 terms of a combined
+work. Any code transfer still needs separate provenance, notices and full
+downstream/release-license review; none is authorized or performed here.
+Fixture permission and oracle independence are separate from code licensing;
+no outside drawing is admitted by this research.

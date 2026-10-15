@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "scope": "parity7R.1 low-level HATCH writer identity and S5.18 field controls; full CLI association integration remains 7R.2",
+  "date": "2026-10-15",
+  "repositoryBase": "bfbdb83",
+  "targetVersion": "AC1027",
+  "supportClaimsPromoted": false,
+  "externalJDispositionsChanged": false,
+  "sourceHashes": {
+    "src/libdxfrw.cpp": "0a6bdd9d1559a2cfba73d1606284f5734742ed2a6458707de9b27e92bd3a59b7",
+    "tests/hatch_reference_tests.cpp": "e1abcd909033c611ab1a9b5b0bde1321482b941e76f40dfb2444041f7fc35d74"
+  },
+  "artifactHashes": {
+    "build/libdxfrw_dwg_local_roundtrip": "cc1a6bf2164373bb9337cacfb76419d82a866f5d452e8c02ab95bc143a0c3a46",
+    "build/dwg2dxf/dwg2dxf": "91ca0c0701d361d61123751365a0c1d08418a1435e519f2f78e6bfd9d3c18bdc"
+  },
+  "directWriter": {
+    "focusedCommand": "build/libdxfrw_dwg_local_roundtrip --hatch-references",
+    "focusedExitStatus": 0,
+    "ctestCommand": "ctest --test-dir build -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "ctestPassed": 1,
+    "ctestFailed": 0,
+    "ctestSeconds": 2.74,
+    "strictTestTranslationUnitPassed": true,
+    "lc3SourceCheckPassed": true,
+    "successfulWrites": 24,
+    "rejectedWrites": 4,
+    "sameWriterCorrectedRetries": 4,
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "controls": [
+      "HATCH before/after sources",
+      "existing/preallocated mapping without resolver",
+      "resolver returns final identity with numeric source/output aliases",
+      "reciprocal reactors through resolver",
+      "two read/write passes",
+      "per-path source counts 1/2/0",
+      "per-path derived bit retained",
+      "rational spline knots and weights associated with controls in exact wire order",
+      "spline fit-count versus loop-source-count group97",
+      "following LINE data retained",
+      "explicit detached geometry",
+      "zero source input and resolver-zero reject while preserving destination"
+    ],
+    "reservedHandle": "30",
+    "geometryScope": "field/reference preservation only; no native update, filling, rendering, DWG or independent geometry qualification"
+  },
+  "baseline": {
+    "librarySourceCommit": "291858e",
+    "libraryPath": "/private/tmp/libdxfrw-schema-baseline.z15D2z/build/libdxfrw.a",
+    "librarySha256": "d8ac4b1ad5d73a8ba12c7707d2210e211950f8fb8e25574d37b099cc38f2d75b",
+    "harnessPath": "/private/tmp/libdxfrw-schema-baseline.z15D2z/hatch-before",
+    "harnessSha256": "b83c682ad2dfd99c3e788180cbcf172af64fde6416cb886d1f0e0f64eabc5e48",
+    "exitStatus": 1,
+    "firstMismatch": {
+      "tagIndex": 23,
+      "code": 330,
+      "expected": "32",
+      "observed": "31"
+    },
+    "logPath": "/private/tmp/libdxfrw-schema-baseline.z15D2z/hatch-before-result.log",
+    "logSha256": "62c5e4f57ece1af8ae46abe8f09dddc1c30dc783eab7dd56c2f7c9ba58dffc88"
+  },
+  "cliCases": [
+    {
+      "encoding": "ASCII",
+      "generatorMode": "--generate-hatch-references",
+      "input": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/input-ascii.dxf",
+      "inputSha256": "95e3ba8c05a803dda24bbc2192ac0d3a2c6cfe9e6836f97db2802662dcde8d4b",
+      "output": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/output-ascii.dxf",
+      "outputSha256": "d22dd2aad29cd7f2fe61a6f3921983f76a3e33b91345c5629bddf713659c294d",
+      "inputVerifierExitStatus": 0,
+      "converterExitStatus": 0,
+      "outputVerifierExitStatus": 1,
+      "firstMismatch": {
+        "tagIndex": 23,
+        "code": 330,
+        "expectedEmittedBoundary": "3A",
+        "observedSource": "32"
+      }
+    },
+    {
+      "encoding": "binary",
+      "generatorMode": "--generate-hatch-references-binary",
+      "input": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/input-binary.dxf",
+      "inputSha256": "8d4637418feefe5c2ee2a5652049f1cb11b0fae99c82321f764cec83c927d810",
+      "output": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/output-binary.dxf",
+      "outputSha256": "6a1b987b9997b71b5e9e45da9bc451f960ee2844cf3a0f4e26201ccb0cef4a98",
+      "inputVerifierExitStatus": 0,
+      "converterExitStatus": 0,
+      "outputVerifierExitStatus": 1,
+      "firstMismatch": {
+        "tagIndex": 23,
+        "code": 330,
+        "expectedEmittedBoundary": "3A",
+        "observedSource": "32"
+      }
+    }
+  ],
+  "cliVerifierMode": "--verify-hatch-references",
+  "fixturePolicy": "all drawings generated locally from scratch in temporary directories; no DWG/DXF fixture added",
+  "next": "7R.2: preplan unique referenced identities before incoming-reference callbacks; validate same-layout ownership and actual target publication; remap existing reciprocal reactors once; preserve source identities across adapter retries; reject missing/ambiguous/different-layout targets without output"
+}
