@@ -54,6 +54,91 @@ constexpr unsigned char dxfAsciiUpper(unsigned char value) {
         ? static_cast<unsigned char>(value - 'a' + 'A') : value;
 }
 
+class DxfTableRowCounterScope final {
+public:
+    DxfTableRowCounterScope(std::size_t& count, bool& active) noexcept
+        : m_count(count), m_active(active) {
+        m_count = 0;
+        m_active = true;
+    }
+
+    ~DxfTableRowCounterScope() {
+        m_active = false;
+        m_count = 0;
+    }
+
+    void reset() noexcept { m_count = 0; }
+    std::size_t value() const noexcept { return m_count; }
+
+    DxfTableRowCounterScope(const DxfTableRowCounterScope&) = delete;
+    DxfTableRowCounterScope& operator=(const DxfTableRowCounterScope&) = delete;
+
+private:
+    std::size_t& m_count;
+    bool& m_active;
+};
+
+bool writeDxfTableCapacityPlaceholder(dxfWriter& writer,
+                                      std::streampos& groupOffset) {
+    std::ostringstream* stream =
+        dynamic_cast<std::ostringstream*>(writer.stream());
+    if (stream == nullptr)
+        return false;
+    groupOffset = stream->tellp();
+    return groupOffset != std::streampos(-1)
+        && writer.writeInt16(70, 0);
+}
+
+bool backpatchDxfTableCapacity(dxfWriter& writer,
+                               std::streampos groupOffset,
+                               std::size_t count, bool binary,
+                               bool r12Binary) {
+    if (count > static_cast<std::size_t>(
+                    (std::numeric_limits<std::int16_t>::max)()))
+        return false;
+    std::ostringstream* stream =
+        dynamic_cast<std::ostringstream*>(writer.stream());
+    if (stream == nullptr || groupOffset == std::streampos(-1))
+        return false;
+
+    const std::streampos endPosition = stream->tellp();
+    if (endPosition == std::streampos(-1))
+        return false;
+    const std::streamoff groupStart = groupOffset - std::streampos(0);
+    const std::streamoff endOffset = endPosition - std::streampos(0);
+    const std::streamoff codeWidth = !binary ? 4 : (r12Binary ? 1 : 2);
+    const std::streamoff valueWidth = binary ? 2 : 6;
+    const std::streamoff valueOffset = groupStart + codeWidth;
+    if (groupStart < 0 || valueOffset < groupStart
+        || endOffset < valueOffset + valueWidth)
+        return false;
+
+    stream->seekp(valueOffset, std::ios::beg);
+    if (!stream->good())
+        return false;
+    if (binary) {
+        const std::uint16_t value = static_cast<std::uint16_t>(count);
+        const char bytes[] = {
+            static_cast<char>(value & 0xFFU),
+            static_cast<char>((value >> 8U) & 0xFFU)
+        };
+        stream->write(bytes, sizeof(bytes));
+    } else {
+        const std::string digits = std::to_string(count);
+        if (digits.size() > 5u)
+            return false;
+        const std::string padded(5u - digits.size(), ' ');
+        stream->write(padded.data(),
+                      static_cast<std::streamsize>(padded.size()));
+        stream->write(digits.data(),
+                      static_cast<std::streamsize>(digits.size()));
+    }
+    if (!stream->good())
+        return false;
+    stream->seekp(endPosition);
+    return stream->good();
+}
+
 struct OperationErrorMapping {
     DRW::OperationPhase phase;
     DRW::OperationCause cause;
@@ -3593,6 +3678,18 @@ bool dxfRW::writeLineType(DRW_LType *ent){
     return true;
 }
 
+bool dxfRW::recordDxfTableRow() noexcept {
+    if (!m_dxfTableRowCountActive)
+        return true;
+    if (m_dxfTableRowCount >= static_cast<std::size_t>(
+            (std::numeric_limits<std::int16_t>::max)())) {
+        m_writeError = true;
+        return false;
+    }
+    ++m_dxfTableRowCount;
+    return true;
+}
+
 bool dxfRW::writeLayer(DRW_Layer *ent){
     if (!preflightTableEntry(ent)
         || !ent->validateDxf()) {
@@ -3664,7 +3761,7 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
         m_writeError = true;
     if (!result || writer->hasWriteError())
         return false;
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -4206,7 +4303,7 @@ bool dxfRW::writeView(DRW_View *ent){
         m_writeError = true;
     if (!result || writer->hasWriteError())
         return false;
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -4268,7 +4365,7 @@ bool dxfRW::writeUCS(DRW_UCS *ent){
         m_writeError = true;
     if (!result || writer->hasWriteError())
         return false;
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -8772,8 +8869,28 @@ bool dxfRW::writeTables() {
     }
     RecordStateScope state(*this);
     DxfWriterRecordScope record(*writer);
+    DxfTableRowCounterScope tableRows(m_dxfTableRowCount,
+                                      m_dxfTableRowCountActive);
     const auto hasWriteFailure = [this]() {
         return m_writeError || writer == nullptr || writer->hasWriteError();
+    };
+    const auto writeCapacityPlaceholder = [this](std::streampos& offset) {
+        if (writer == nullptr
+            || !writeDxfTableCapacityPlaceholder(*writer, offset)) {
+            m_writeError = true;
+            return false;
+        }
+        return true;
+    };
+    const auto patchCapacity = [this, &tableRows](std::streampos offset) {
+        if (writer == nullptr
+            || !backpatchDxfTableCapacity(
+                *writer, offset, tableRows.value(), binFile,
+                binFile && version <= DRW::AC1009)) {
+            m_writeError = true;
+            return false;
+        }
+        return true;
     };
     const auto writeEndTable = [&]() {
         writer->writeString(0, "ENDTAB");
@@ -8943,7 +9060,10 @@ bool dxfRW::writeTables() {
         }
         writer->writeString(100, "AcDbSymbolTable");
     }
-    writer->writeInt16(70, 1); //end table def
+    std::streampos layerCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(layerCountOffset))
+        return false;
     if (hasWriteFailure())
         return false;
     wlayer0 = false;
@@ -8956,7 +9076,7 @@ bool dxfRW::writeTables() {
         if (!writeLayer(&lay0))
             return false;
     }
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(layerCountOffset))
         return false;
     if (!writeEndTable())
         return false;
@@ -8997,11 +9117,14 @@ bool dxfRW::writeTables() {
 }
         writer->writeString(100, "AcDbSymbolTable");
     }
-    writer->writeInt16(70, 0);
+    std::streampos viewCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(viewCountOffset))
+        return false;
     if (hasWriteFailure())
         return false;
     iface->writeViews();
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(viewCountOffset))
         return false;
     if (!writeEndTable())
         return false;
@@ -9015,11 +9138,14 @@ bool dxfRW::writeTables() {
         }
         writer->writeString(100, "AcDbSymbolTable");
     }
-    writer->writeInt16(70, 0);
+    std::streampos ucsCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(ucsCountOffset))
+        return false;
     if (hasWriteFailure())
         return false;
     iface->writeUCSs();
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(ucsCountOffset))
         return false;
     if (!writeEndTable())
         return false;

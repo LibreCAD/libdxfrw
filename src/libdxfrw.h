@@ -841,10 +841,13 @@ private:
 private:
     void beginDxfReadRetainedBudget();
     bool appendDxfReadHeaderComment(const std::string& comment);
+    bool recordDxfTableRow() noexcept;
     DRW::Version version { DRW::UNKNOWNV };
     DRW::Version m_sourceVersion { DRW::UNKNOWNV };
     DRW::error error {DRW::BAD_NONE};
     bool m_writeError {false};
+    std::size_t m_dxfTableRowCount {0};
+    bool m_dxfTableRowCountActive {false};
     // Internal compatibility-probe switch. The standalone-safe classifier
     // remains the default for all public read/write calls.
     bool m_useTargetLegacyClassifier {false};

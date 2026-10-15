@@ -296,6 +296,82 @@ bool literalMeshWireFieldsMatch(const std::filesystem::path& path,
         && actualFields == expected;
 }
 
+struct DxfTableSnapshot {
+    int declaredCapacity {-1};
+    std::vector<std::string> rowKinds;
+    std::vector<std::string> rowNames;
+    bool ended {false};
+};
+
+bool readDxfTableSnapshot(const std::filesystem::path& path, bool binary,
+                          const std::string& wanted,
+                          DxfTableSnapshot& snapshot) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader;
+    if (binary) {
+        constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a\0";
+        std::array<char, 22> actual{};
+        stream.read(actual.data(), static_cast<std::streamsize>(actual.size()));
+        if (!stream || !std::equal(actual.begin(), actual.end(), signature))
+            return false;
+        reader = std::make_unique<dxfReaderBinary>(&stream);
+    } else {
+        reader = std::make_unique<dxfReaderAscii>(&stream);
+    }
+
+    bool inTableHead = false;
+    bool inTableRows = false;
+    bool matchesWanted = false;
+    bool captureRowName = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const std::string name = reader->getString();
+            if (name == "EOF")
+                break;
+            if (name == "TABLE") {
+                inTableHead = true;
+                inTableRows = false;
+                matchesWanted = false;
+                captureRowName = false;
+                continue;
+            }
+            if (inTableHead) {
+                inTableHead = false;
+                inTableRows = true;
+                if (matchesWanted && name == "ENDTAB") {
+                    snapshot.ended = true;
+                    return true;
+                }
+                if (matchesWanted) {
+                    snapshot.rowKinds.push_back(name);
+                    captureRowName = true;
+                }
+                continue;
+            }
+            if (inTableRows && matchesWanted) {
+                if (name == "ENDTAB") {
+                    snapshot.ended = true;
+                    return true;
+                }
+                snapshot.rowKinds.push_back(name);
+                captureRowName = true;
+            }
+            continue;
+        }
+        if (inTableHead && code == 2)
+            matchesWanted = reader->getString() == wanted;
+        else if (inTableHead && code == 70 && matchesWanted)
+            snapshot.declaredCapacity = reader->getInt32();
+        else if (inTableRows && matchesWanted
+                 && captureRowName && code == 2)
+            snapshot.rowNames.push_back(reader->getString());
+    }
+    return false;
+}
+
 std::string groupValue(const std::vector<std::pair<int, std::string>>& groups,
                        int code);
 
@@ -3567,6 +3643,72 @@ void testMeshRawFieldTags(TestContext& t) {
                         : "ASCII MESH reader publishes following LINE");
         std::filesystem::remove(path, error);
     }
+}
+
+void testDynamicTableCapacityBasics(TestContext& t) {
+    class CapacityInterface final : public dx_iface {
+    public:
+        void writeViews() override {
+            ++viewCalls;
+            DRW_View first;
+            first.name = "CAPACITY_VIEW_A";
+            firstViewWritten = dxfW->writeView(&first);
+            DRW_View second;
+            second.name = "CAPACITY_VIEW_B";
+            secondViewWritten = dxfW->writeView(&second);
+        }
+
+        void writeUCSs() override {
+            ++ucsCalls;
+            DRW_UCS ucs;
+            ucs.name = "CAPACITY_UCS_A";
+            ucsWritten = dxfW->writeUCS(&ucs);
+        }
+
+        int viewCalls {0};
+        int ucsCalls {0};
+        bool firstViewWritten {false};
+        bool secondViewWritten {false};
+        bool ucsWritten {false};
+    } interface_;
+
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    const std::filesystem::path path =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-table-capacity-basics-" + std::to_string(nonce)
+           + ".dxf");
+    std::error_code error;
+    std::filesystem::remove(path, error);
+    dx_data data;
+    const bool exported = interface_.fileExport(
+        path.string(), DRW::AC1021, false, &data, false);
+    t.expect(exported && interface_.viewCalls == 1
+                 && interface_.ucsCalls == 1
+                 && interface_.firstViewWritten && interface_.secondViewWritten
+                 && interface_.ucsWritten,
+             "dynamic VIEW/UCS callbacks execute once and emit all requested rows");
+
+    DxfTableSnapshot views;
+    DxfTableSnapshot ucs;
+    DxfTableSnapshot layers;
+    t.expect(exported && readDxfTableSnapshot(path, false, "VIEW", views)
+                 && views.declaredCapacity == 2
+                 && views.rowKinds == std::vector<std::string>{"VIEW", "VIEW"}
+                 && views.rowNames == std::vector<std::string>{
+                     "CAPACITY_VIEW_A", "CAPACITY_VIEW_B"},
+             "VIEW group70 matches both emitted callback records");
+    t.expect(exported && readDxfTableSnapshot(path, false, "UCS", ucs)
+                 && ucs.declaredCapacity == 1
+                 && ucs.rowKinds == std::vector<std::string>{"UCS"}
+                 && ucs.rowNames == std::vector<std::string>{"CAPACITY_UCS_A"},
+             "UCS group70 matches its emitted callback record");
+    t.expect(exported && readDxfTableSnapshot(path, false, "LAYER", layers)
+                 && layers.declaredCapacity == 1
+                 && layers.rowKinds == std::vector<std::string>{"LAYER"}
+                 && layers.rowNames == std::vector<std::string>{"0"},
+             "implicit default LAYER is included in its capacity");
+    std::filesystem::remove(path, error);
 }
 
 std::string headerOrderBytes(
@@ -8781,6 +8923,7 @@ int main(int argc, char** argv) {
     testLegacyDimensionPointOrder(context);
     testHiddenZeroHeightAttrib(context);
     testMeshRawFieldTags(context);
+    testDynamicTableCapacityBasics(context);
     testHeaderMetadataOrder(context);
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
