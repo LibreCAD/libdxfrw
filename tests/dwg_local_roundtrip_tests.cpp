@@ -34,6 +34,7 @@
 
 bool runModelerDxfWriterMatrix(const std::filesystem::path& parent, bool keepOutputs);
 bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutputs);
+bool runHatchAdmissionTests(const std::filesystem::path& parent);
 bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary);
 bool verifyHatchReferenceFile(const std::filesystem::path& path);
 
@@ -15050,7 +15051,9 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--hatch-references") {
+    if (argc == 2 && std::string(argv[1]) == "--hatch-admission") {
+        return runHatchAdmissionTests(directory) ? 0 : 1;
+    } else if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--hatch-references") {
         return runHatchReferenceTests(argc == 3 ? argv[2] : directory, argc == 3) ? 0 : 1;
     } else if (argc == 3 && (std::string(argv[1]) == "--generate-hatch-references"
                          || std::string(argv[1]) == "--generate-hatch-references-binary")) {
@@ -15122,6 +15125,7 @@ int main(int argc, char** argv) {
                   << " [--keep-dir DIRECTORY]"
                      " [--modeler-dxf-matrix [DIRECTORY]]"
                      " [--hatch-references [DIRECTORY]]"
+                     " [--hatch-admission]"
                      " [--generate-hatch-references[-binary] DXF]"
                      " [--verify-hatch-references DXF]"
                      " [--hatch-pattern-preservation]"
@@ -16259,6 +16263,9 @@ int main(int argc, char** argv) {
            failures);
     expect(runHatchReferenceTests(directory, keepOutputs),
            "HATCH source-reference remap and multi-path wire ordering",
+           failures);
+    expect(runHatchAdmissionTests(directory),
+           "HATCH adapter boundary identity and logical-owner admission",
            failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";

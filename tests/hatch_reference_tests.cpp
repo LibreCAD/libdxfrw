@@ -297,6 +297,233 @@ bool verifyHatchReferenceFile(const std::filesystem::path& path) {
     return verify(path, true, false);
 }
 
+bool runHatchAdmissionTests(const std::filesystem::path& parent) {
+    const auto directory = parent / ("libdxfrw-hatch-admission-" + std::to_string(
+        std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    const auto find = [](dx_data& data, const char* layer) -> DRW_Entity* {
+        for (DRW_Entity* entity : data.mBlock->ent)
+            if (entity->layer == layer)
+                return entity;
+        return nullptr;
+    };
+    const auto hatchOf = [&find](dx_data& data) {
+        return static_cast<DRW_Hatch*>(find(data, "HATCH_CONTROL"));
+    };
+    bool passed = true;
+    std::size_t accepted = 0, rejected = 0;
+    for (bool binary : {false, true}) {
+        const auto path = directory / (binary ? "binary.dxf" : "ascii.dxf");
+        dx_iface iface;
+        const auto accept = [&](dx_data& data) {
+            const bool success = iface.fileExport(path.string(), DRW::AC1027, binary, &data, false);
+            if (success) ++accepted;
+            std::map<std::string, Record> records;
+            bool ownersMatch = success && readRecords(path, records) && records.size() == 5;
+            if (ownersMatch) {
+                const std::string owner = records.at("HATCH_CONTROL").owner;
+                ownersMatch = !owner.empty() && owner != "0";
+                for (const char* layer : {"BOUNDARY_1", "BOUNDARY_2", "BOUNDARY_3"})
+                    ownersMatch = records.at(layer).owner == owner && ownersMatch;
+            }
+            passed = success && ownersMatch
+                && iface.hatchGraphFailure() == dx_iface::ExtensionGraphFailure::None && passed;
+            return success;
+        };
+        auto baseline = drawing(false, false);
+        accept(*baseline);
+        const auto stats = iface.hatchGraphStats();
+        passed = stats.visitedNodes == 4 && stats.stagedHandles == 4
+            && stats.examinedEdges == 3 && stats.sourceRecords > 0 && passed;
+
+        // Explicit owners are source identities, not output fixed literals.
+        for (bool paper : {false, true}) {
+            auto data = drawing(false, false);
+            DRW_Block_Record record;
+            record.handle = 0xA0;
+            record.name = paper ? "*Paper_Space" : "*Model_Space";
+            data->blockRecords.push_back(record);
+            for (DRW_Entity* entity : data->mBlock->ent) {
+                entity->parentHandle = record.handle;
+                entity->space = paper ? DRW::PaperSpace : DRW::ModelSpace;
+            }
+            accept(*data);
+        }
+        for (const char* name : {"BoundaryBlock", "*Paper_Space0", "*Model_Space"}) {
+            auto data = drawing(false, false);
+            auto* block = new dx_ifaceBlock();
+            block->name = name;
+            block->handle = 0x80;
+            block->parentHandle = 0x81;
+            block->ent.splice(block->ent.end(), data->mBlock->ent);
+            data->blocks.push_back(block);
+            accept(*data);
+        }
+        const auto reject = [&](dx_data& data, dx_iface::ExtensionGraphFailure reason) {
+            const std::string sentinel = "HATCH admission destination\n";
+            { std::ofstream stream(path, std::ios::binary); stream << sentinel; }
+            const auto* hatch = hatchOf(data);
+            const std::uint32_t source = hatch->handle;
+            const auto references = hatch->looplist.front()->m_boundaryHandles;
+            std::vector<std::pair<const DRW_Entity*, std::uint32_t>> identities;
+            const auto remember = [&identities](const dx_ifaceBlock& block) {
+                for (const DRW_Entity* entity : block.ent) {
+                    identities.emplace_back(entity, entity->handle);
+                    if (const auto* poly = dynamic_cast<const DRW_Polyline*>(entity))
+                        for (const auto& vertex : poly->vertlist)
+                            identities.emplace_back(vertex.get(), vertex->handle);
+                    if (const auto* insert = dynamic_cast<const DRW_Insert*>(entity))
+                        for (const auto& attribute : insert->attlist)
+                            identities.emplace_back(attribute.get(), attribute->handle);
+                }
+            };
+            remember(*data.mBlock);
+            for (const auto* block : data.blocks) remember(*block);
+            const bool success = iface.fileExport(path.string(), DRW::AC1027, binary, &data, false);
+            std::ifstream input(path, std::ios::binary);
+            const std::string bytes((std::istreambuf_iterator<char>(input)), {});
+            bool identitiesMatch = true;
+            for (const auto& identity : identities)
+                identitiesMatch = identity.first->handle == identity.second && identitiesMatch;
+            const bool valid = !success && bytes == sentinel && identitiesMatch
+                && iface.hatchGraphFailure() == reason && hatch->handle == source
+                && hatch->looplist.front()->m_boundaryHandles == references;
+            if (valid) ++rejected;
+            passed = valid && passed;
+            return valid;
+        };
+        for (int mutation = 0; mutation < 16; ++mutation) {
+            auto data = drawing(false, false);
+            DRW_Hatch* hatch = hatchOf(*data);
+            switch (mutation) {
+            case 0: hatch->looplist[0]->m_boundaryHandles = {0x777}; break;
+            case 1: hatch->looplist[0]->m_boundaryHandles = {0}; break;
+            case 2: hatch->looplist[0]->m_boundaryHandles = {hatch->handle}; break;
+            case 3: find(*data, "BOUNDARY_1")->space = DRW::PaperSpace; break;
+            case 4: find(*data, "BOUNDARY_1")->parentHandle = 0x777; break;
+            case 5: {
+                auto* duplicate = new DRW_Line();
+                duplicate->handle = 0x31;
+                data->mBlock->ent.push_back(duplicate);
+                break;
+            }
+            case 6: data->layers.front().handle = 0x31; break;
+            case 7: {
+                auto* poly = new DRW_Polyline();
+                poly->handle = 0x90;
+                auto vertex = std::make_shared<DRW_Vertex>();
+                vertex->handle = 0x31;
+                poly->vertlist.push_back(vertex);
+                data->mBlock->ent.push_back(poly);
+                break;
+            }
+            case 8: {
+                auto* insert = new DRW_Insert();
+                insert->handle = 0x90;
+                auto attribute = std::make_shared<DRW_Attrib>();
+                attribute->handle = 0x31;
+                insert->attlist.push_back(attribute);
+                data->mBlock->ent.push_back(insert);
+                break;
+            }
+            case 9:
+            case 10: {
+                auto* block = new dx_ifaceBlock();
+                block->name = mutation == 9 ? "OtherBlock" : "*Paper_Space1";
+                block->handle = 0x80;
+                block->parentHandle = 0x81;
+                if (mutation == 10)
+                    for (DRW_Entity* entity : data->mBlock->ent)
+                        entity->space = DRW::PaperSpace;
+                DRW_Entity* boundary = find(*data, "BOUNDARY_1");
+                data->mBlock->ent.remove(boundary);
+                block->ent.push_back(boundary);
+                data->blocks.push_back(block);
+                break;
+            }
+            case 11: {
+                hatch->looplist[0]->m_boundaryHandles = {0x92};
+                auto* poly = new DRW_Polyline();
+                poly->handle = 0x90;
+                auto vertex = std::make_shared<DRW_Vertex>();
+                vertex->handle = 0x92;
+                poly->vertlist.push_back(vertex);
+                data->mBlock->ent.push_back(poly);
+                break;
+            }
+            case 12: hatch->handle = 0; break;
+            case 13: {
+                DRW_Block_Record record;
+                record.handle = 0x31;
+                record.name = "*Model_Space";
+                data->blockRecords.push_back(record);
+                break;
+            }
+            case 14: {
+                auto* poly = new DRW_Polyline();
+                poly->handle = 0x90;
+                poly->setDwgSeqEndHandle(0x31);
+                data->mBlock->ent.push_back(poly);
+                break;
+            }
+            case 15: {
+                auto* insert = new DRW_Insert();
+                insert->handle = 0x90;
+                insert->seqendH.ref = 0x31;
+                data->mBlock->ent.push_back(insert);
+                break;
+            }
+            }
+            reject(*data, dx_iface::ExtensionGraphFailure::InvalidGraph);
+        }
+        auto absent = drawing(false, false);
+        hatchOf(*absent)->looplist[0]->m_boundaryHandles = {0x777};
+        const auto absentPath = directory / (binary ? "absent-binary.dxf" : "absent-ascii.dxf");
+        const bool noPublication = !iface.fileExport(absentPath.string(), DRW::AC1027,
+                                                     binary, absent.get(), false)
+            && !std::filesystem::exists(absentPath)
+            && iface.hatchGraphFailure() == dx_iface::ExtensionGraphFailure::InvalidGraph;
+        if (noPublication) ++rejected;
+        passed = noPublication && passed;
+        // The same caller data survives an early rejection and is usable after
+        // correcting the reference. Successful export handle restoration is a
+        // separate later adapter slice, not asserted by this admission test.
+        auto retry = drawing(false, false);
+        hatchOf(*retry)->looplist[0]->m_boundaryHandles = {0x777};
+        reject(*retry, dx_iface::ExtensionGraphFailure::InvalidGraph);
+        hatchOf(*retry)->looplist[0]->m_boundaryHandles = {0x31};
+        accept(*retry);
+
+        dx_iface::ExtensionGraphLimits exact;
+        exact.maxNodes = exact.maxStagedHandles = 4;
+        exact.maxEdges = 3;
+        exact.maxSourceRecords = stats.sourceRecords;
+        iface.setHatchGraphLimits(exact);
+        auto data = drawing(false, false);
+        accept(*data);
+        for (int budget = 0; budget < 4; ++budget) {
+            auto limits = exact;
+            auto reason = dx_iface::ExtensionGraphFailure::NodeLimit;
+            if (budget == 0) --limits.maxNodes;
+            if (budget == 1) { --limits.maxEdges; reason = dx_iface::ExtensionGraphFailure::EdgeLimit; }
+            if (budget == 2) { --limits.maxStagedHandles; reason = dx_iface::ExtensionGraphFailure::StagedHandleLimit; }
+            if (budget == 3) { --limits.maxSourceRecords; reason = dx_iface::ExtensionGraphFailure::SourceRecordLimit; }
+            iface.setHatchGraphLimits(limits);
+            data = drawing(false, false);
+            reject(*data, reason);
+        }
+        iface.setHatchGraphLimits({});
+        data = drawing(false, false, true);
+        accept(*data);
+        passed = iface.hatchGraphStats().visitedNodes == 0 && passed;
+    }
+    std::cout << "HATCH graph admission controls: " << (passed ? "PASS" : "FAIL")
+              << " (accepted=" << accepted << ", rejected=" << rejected << ")\n";
+    if (passed) std::filesystem::remove_all(directory);
+    else std::cout << "HATCH admission evidence: " << directory << '\n';
+    return passed;
+}
+
 bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutputs) {
     const auto directory = parent / ("libdxfrw-hatch-references-" + std::to_string(
         std::chrono::steady_clock::now().time_since_epoch().count()));

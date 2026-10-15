@@ -79,6 +79,18 @@ public:
         return "invalid-graph";
     }
 
+    // Separate selected HATCH graph admission from the OBJECTS closure. These
+    // budgets count examined source records/edges, not geometry evaluation.
+    void setHatchGraphLimits(const ExtensionGraphLimits& limits) noexcept {
+        m_hatchGraphLimits = limits;
+    }
+    ExtensionGraphStats hatchGraphStats() const noexcept {
+        return m_hatchGraphStats;
+    }
+    ExtensionGraphFailure hatchGraphFailure() const noexcept {
+        return m_hatchGraphFailure;
+    }
+
 //reimplement virtual DRW_Interface functions
 
 //reader part, stores all in class dx_data
@@ -646,6 +658,7 @@ private:
     }
     bool prepareExtensionObjectGraph(dx_data* data,
                                      bool includeNamedObjectRoot);
+    bool validateHatchBoundaryGraph(const dx_data& data);
     bool validateVisualStyleReferences(const dx_data& data,
                                        const char** failure) const;
     static bool collectAcdsHistoryProxyObjects(
@@ -666,6 +679,9 @@ private:
     ExtensionGraphLimits m_extensionGraphLimits;
     ExtensionGraphStats m_extensionGraphStats;
     ExtensionGraphFailure m_extensionGraphFailure{ExtensionGraphFailure::None};
+    ExtensionGraphLimits m_hatchGraphLimits;
+    ExtensionGraphStats m_hatchGraphStats;
+    ExtensionGraphFailure m_hatchGraphFailure{ExtensionGraphFailure::None};
 
     static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
         if (block == nullptr)

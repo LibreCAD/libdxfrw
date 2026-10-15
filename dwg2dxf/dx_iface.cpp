@@ -2483,6 +2483,201 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
 
 } // namespace
 
+bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
+    m_hatchGraphStats = {};
+    m_hatchGraphFailure = ExtensionGraphFailure::None;
+    const auto reject = [this](ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph) {
+        if (m_hatchGraphFailure == ExtensionGraphFailure::None)
+            m_hatchGraphFailure = reason;
+        return false;
+    };
+    const auto sourceRecord = [this, &reject]() {
+        if (m_hatchGraphStats.sourceRecords >= m_hatchGraphLimits.maxSourceRecords)
+            return reject(ExtensionGraphFailure::SourceRecordLimit);
+        ++m_hatchGraphStats.sourceRecords;
+        return true;
+    };
+    const auto edge = [this, &reject]() {
+        if (m_hatchGraphStats.examinedEdges >= m_hatchGraphLimits.maxEdges)
+            return reject(ExtensionGraphFailure::EdgeLimit);
+        ++m_hatchGraphStats.examinedEdges;
+        return true;
+    };
+    // Never retain borrowed entity pointers after this preflight returns.
+    struct Candidate {
+        const DRW_Entity* entity{nullptr};
+        std::string owner;
+    };
+    try {
+        std::unordered_map<std::uint32_t, Candidate> selected;
+        const auto select = [this, &selected, &reject](std::uint32_t handle) {
+            if (handle == DRW::NoHandle)
+                return reject();
+            if (selected.count(handle) != 0)
+                return true;
+            if (m_hatchGraphStats.visitedNodes >= m_hatchGraphLimits.maxNodes)
+                return reject(ExtensionGraphFailure::NodeLimit);
+            if (m_hatchGraphStats.stagedHandles >= m_hatchGraphLimits.maxStagedHandles)
+                return reject(ExtensionGraphFailure::StagedHandleLimit);
+            selected.emplace(handle, Candidate{});
+            ++m_hatchGraphStats.visitedNodes;
+            ++m_hatchGraphStats.stagedHandles;
+            return true;
+        };
+        const auto inspectBlocks = [&data, &sourceRecord](const auto& inspect) {
+            if (data.mBlock == nullptr || !sourceRecord() || !inspect(*data.mBlock, true))
+                return false;
+            for (const dx_ifaceBlock* block : data.blocks) {
+                if (!sourceRecord() || block == nullptr || !inspect(*block, false))
+                    return false;
+            }
+            return true;
+        };
+        const auto gather = [&sourceRecord, &edge, &select, &reject](
+                                const dx_ifaceBlock& block, bool) {
+            for (const DRW_Entity* entity : block.ent) {
+                if (!sourceRecord() || entity == nullptr)
+                    return reject();
+                const auto* hatch = dynamic_cast<const DRW_Hatch*>(entity);
+                if (hatch == nullptr || entity->eType != DRW::HATCH)
+                    continue;
+                for (const auto& loop : hatch->looplist) {
+                    if (!sourceRecord() || !loop)
+                        return reject();
+                    for (std::uint32_t handle : loop->m_boundaryHandles) {
+                        if (!edge() || !select(hatch->handle) || !select(handle))
+                            return false;
+                    }
+                }
+            }
+            return true;
+        };
+        if (!inspectBlocks(gather))
+            return m_hatchGraphFailure == ExtensionGraphFailure::None ? reject() : false;
+        if (selected.empty())
+            return true; // Detached/no-reference HATCH and unrelated drawings.
+
+        // Match the codec's source BLOCK_RECORD aliases and ASCII symbol key.
+        // Explicit entity parentHandle wins over physical container/space.
+        std::unordered_map<std::uint32_t, std::string> owners;
+        std::unordered_map<std::string, std::uint32_t> ownerNames;
+        std::unordered_set<std::string> emittedBlocks{"*MODEL_SPACE", "*PAPER_SPACE"};
+        const auto ownerRecord = [&](std::uint32_t handle, const std::string& name) {
+            if (handle == DRW::NoHandle || name.empty())
+                return reject();
+            const std::string key = layoutSymbolKey(name);
+            const auto identity = owners.emplace(handle, key);
+            const auto symbol = ownerNames.emplace(key, handle);
+            if ((!identity.second && identity.first->second != key)
+                || (!symbol.second && symbol.first->second != handle)
+                || selected.count(handle) != 0)
+                return reject();
+            return true;
+        };
+        for (const DRW_Block_Record& record : data.blockRecords) {
+            if (!sourceRecord() || !ownerRecord(record.handle, record.name))
+                return false;
+        }
+        for (const dx_ifaceBlock* block : data.blocks) {
+            if (!sourceRecord())
+                return false;
+            if (!isFixedSpaceBlock(block))
+                emittedBlocks.insert(layoutSymbolKey(block->name));
+            if (selected.count(block->handle) != 0
+                || (block->parentHandle != DRW::NoHandle
+                    && !ownerRecord(block->parentHandle, block->name)))
+                return reject();
+        }
+        const auto otherIdentity = [&](std::uint32_t handle) {
+            return sourceRecord() && (selected.count(handle) == 0 || reject());
+        };
+        const auto otherEntries = [&otherIdentity](const auto& entries) {
+            for (const auto& entry : entries)
+                if (!otherIdentity(entry.handle))
+                    return false;
+            return true;
+        };
+        if (!otherEntries(data.lineTypes) || !otherEntries(data.layers)
+            || !otherEntries(data.dimStyles) || !otherEntries(data.VPorts)
+            || !otherEntries(data.views) || !otherEntries(data.ucsList)
+            || !otherEntries(data.textStyles) || !otherEntries(data.appIds)
+            || !otherEntries(data.layouts) || !otherEntries(data.dictionaries)
+            || !otherEntries(data.xRecords) || !otherEntries(data.materials)
+            || !otherEntries(data.visualStyles) || !otherEntries(data.rawVisualStyleObjects)
+            || !otherEntries(data.proxyObjects) || !otherEntries(data.rawProxyObjects)
+            || !otherEntries(data.evaluationGraphs) || !otherEntries(data.acshHistoryObjects)
+            || !otherEntries(data.dynamicBlockObjects)
+            || (data.hasNamedObjectDictionary
+                && !otherIdentity(data.namedObjectDictionary.handle)))
+            return false;
+
+        const auto inventory = [&](const dx_ifaceBlock& block, bool mainContainer) {
+            for (const DRW_Entity* entity : block.ent) {
+                if (!sourceRecord())
+                    return false;
+                const auto found = selected.find(entity->handle);
+                if (found != selected.end()) {
+                    Candidate& candidate = found->second;
+                    if (candidate.entity != nullptr)
+                        return reject(); // Duplicate identity or publication.
+                    if (entity->parentHandle != DRW::NoHandle) {
+                        const auto owner = owners.find(entity->parentHandle);
+                        if (owner == owners.end() || emittedBlocks.count(owner->second) == 0)
+                            return reject();
+                        candidate.owner = owner->second;
+                    } else if (!mainContainer && !isFixedSpaceBlock(&block)) {
+                        candidate.owner = layoutSymbolKey(block.name);
+                    } else {
+                        candidate.owner = entity->space == DRW::PaperSpace
+                            ? "*PAPER_SPACE" : "*MODEL_SPACE";
+                    }
+                    candidate.entity = entity;
+                }
+                // Children/terminators are not independently dispatched top-
+                // level HATCH boundaries. Also catch collisions with parents.
+                if (const auto* polyline = dynamic_cast<const DRW_Polyline*>(entity)) {
+                    for (const auto& vertex : polyline->vertlist)
+                        if (!vertex || !otherIdentity(vertex->handle))
+                            return reject();
+                    if (!otherIdentity(polyline->dwgSeqEndHandle()))
+                        return false;
+                }
+                if (const auto* insert = dynamic_cast<const DRW_Insert*>(entity)) {
+                    for (const auto& attribute : insert->attlist)
+                        if (!attribute || !otherIdentity(attribute->handle))
+                            return reject();
+                    if (!otherIdentity(insert->seqendH.ref))
+                        return false;
+                }
+            }
+            return true;
+        };
+        if (!inspectBlocks(inventory))
+            return m_hatchGraphFailure == ExtensionGraphFailure::None ? reject() : false;
+        for (const auto& entry : selected) {
+            if (entry.second.entity == nullptr)
+                return reject();
+            const auto* hatch = dynamic_cast<const DRW_Hatch*>(entry.second.entity);
+            if (hatch == nullptr || hatch->eType != DRW::HATCH)
+                continue;
+            for (const auto& loop : hatch->looplist) {
+                if (!sourceRecord())
+                    return false;
+                for (std::uint32_t handle : loop->m_boundaryHandles) {
+                    const auto target = selected.find(handle);
+                    if (target == selected.end() || target->second.entity == nullptr
+                        || target->second.owner != entry.second.owner
+                        || target->second.entity == hatch)
+                        return reject();
+                }
+            }
+        }
+        return true;
+    } catch (...) {
+        return reject();
+    }
+}
+
 bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           dx_data *fData, bool debug, bool requireResolvedOwners){
     cData = fData;
@@ -2495,6 +2690,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             std::cerr << "DXF export preflight failed: " << stage << '\n';
         }
     };
+    if (cData == nullptr) {
+        m_hatchGraphStats = {};
+        m_hatchGraphFailure = ExtensionGraphFailure::InvalidGraph;
+        reportPreflightFailure("HATCH graph source drawing is null");
+        return false;
+    }
+    if (!validateHatchBoundaryGraph(*cData)) {
+        reportPreflightFailure("HATCH boundary identity/owner graph validation");
+        return false;
+    }
     const char* layoutGraphFailure = nullptr;
     if (!validateLayoutGraph(*cData, layoutGraphFailure)) {
         reportPreflightFailure(layoutGraphFailure);
