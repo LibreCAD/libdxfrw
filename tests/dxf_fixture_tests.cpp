@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "drw_entities.h"
+#include "drw_classes.h"
 #include "drw_objects.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
@@ -1403,6 +1404,78 @@ void testNodRootOrdering(TestContext& t) {
                      && *directRecord->m_dataEntries.front().content.s
                          == "direct-nod-record",
                  "strict export remaps a lower-handle NOD child and closes direct and nested XRECORDs");
+
+        dx_data proxySource;
+        proxySource.hasNamedObjectDictionary = true;
+        proxySource.namedObjectDictionary.handle = 0xB0u;
+        proxySource.namedObjectDictionary.m_entries.push_back(
+            {"CUSTOM_PROXY", 0x730u});
+        DRW_RawDxfObject rawProxy;
+        rawProxy.name = "ACAD_PROXY_OBJECT";
+        rawProxy.handle = 0x730u;
+        rawProxy.parentHandle = 0xB0u;
+        rawProxy.groups.emplace_back(5, UTF8STRING("730"));
+        rawProxy.groups.emplace_back(330, UTF8STRING("B0"));
+        rawProxy.groups.emplace_back(100, UTF8STRING("AcDbProxyObject"));
+        rawProxy.groups.emplace_back(90, std::int32_t{499});
+        rawProxy.groups.emplace_back(91, std::int32_t{500});
+        rawProxy.groups.emplace_back(93, std::int32_t{0});
+        rawProxy.groups.emplace_back(94, std::int32_t{0});
+        rawProxy.groups.emplace_back(95, std::int32_t{0});
+        rawProxy.groups.emplace_back(70, std::int32_t{0});
+        proxySource.rawProxyObjects.push_back(rawProxy);
+        DRW_Class proxyClass;
+        proxyClass.recName = "LOCAL_CUSTOM_OBJECT";
+        proxyClass.className = "LocalCustomObject";
+        proxyClass.appName = "LocalTest";
+        proxyClass.instanceCount = 1;
+        proxyClass.wasaProxyFlag = 1;
+        proxySource.dxfClasses.push_back(proxyClass);
+        const auto strictProxyOutput = directory
+            / (binary ? "strict-proxy-nod-binary.dxf"
+                      : "strict-proxy-nod-ascii.dxf");
+        {
+            std::ofstream sentinel(strictProxyOutput,
+                                   std::ios::binary | std::ios::trunc);
+            sentinel << "untyped-root-sentinel";
+        }
+        dx_iface strictProxyWriter;
+        const bool strictProxyWritten = strictProxyWriter.fileExport(
+            strictProxyOutput.string(), DRW::AC1027, binary, &proxySource,
+            false, true);
+        std::ifstream strictProxyStream(strictProxyOutput, std::ios::binary);
+        const std::string strictProxyBytes(
+            (std::istreambuf_iterator<char>(strictProxyStream)),
+            std::istreambuf_iterator<char>());
+        t.expect(!strictProxyWritten
+                     && strictProxyBytes == "untyped-root-sentinel",
+                 "strict export rejects a NOD edge to a raw proxy before publication");
+
+        const auto tolerantProxyOutput = directory
+            / (binary ? "tolerant-proxy-nod-binary.dxf"
+                      : "tolerant-proxy-nod-ascii.dxf");
+        dx_iface tolerantProxyWriter;
+        const bool tolerantProxyWritten = tolerantProxyWriter.fileExport(
+            tolerantProxyOutput.string(), DRW::AC1027, binary, &proxySource,
+            false);
+        dx_data tolerantProxyReadback;
+        dx_iface tolerantProxyReader;
+        const bool tolerantProxyRead = tolerantProxyWritten
+            && tolerantProxyReader.fileImport(tolerantProxyOutput.string(),
+                                              &tolerantProxyReadback, false);
+        t.expect(tolerantProxyRead
+                     && std::none_of(
+                         tolerantProxyReadback.namedObjectDictionary.m_entries.begin(),
+                         tolerantProxyReadback.namedObjectDictionary.m_entries.end(),
+                         [](const DRW_Dictionary::Entry& entry) {
+                             return entry.m_name == "CUSTOM_PROXY";
+                         })
+                     && tolerantProxyReadback.rawProxyObjects.size() == 1u
+                     && tolerantProxyReadback.rawProxyObjects.front().handle
+                         == 0x730u
+                     && tolerantProxyReadback.rawProxyObjects.front().parentHandle
+                         == 0xCu,
+                 "tolerant export omits an unsupported NOD edge but preserves its raw proxy object");
     }
 }
 
