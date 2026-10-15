@@ -3409,7 +3409,7 @@ failure does not prevent completing them:
 | 7D — MTEXT height | COMMITTED | main/context heights remain distinct; next 7E/7M | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_dxf_fixtures` |
 | 7E.1/2 — MTEXT columns/orientation | ISOLATED_WIP / COMMITTED | active orientation integrated; full columns/canonical attributes remain7E.1/7M | DXF/local tests, literal/public orientation; peer blind spot explicit |
 | 7F — CLI callback retention | COMMITTED_1a / SCHEMA_PENDING |1a integrated with main4/4;1b typed contract/producer/eligibility migration after7AG inventory repair; remaining retention routes separate | six dependency-free schema negatives, then tiny partial/opaque/clean read and readback controls |
-| 7G — CLI graph/layout closure | PARTIAL / BLOCK_OWNERSHIP_AND_NOD_IDENTITY_SCOPED (`5a86b1a`) | 7G.0/1 and per-definition census; `*D` identity, unresolved-owner/suffix rejection, positional NOD identity with non-monotonic handles, owner spelling controls and pre-callback rejection of an owned first DICTIONARY are committed. Full root-entry read/write/read closure, remaining roots/reciprocity and effective order remain open. | `libdxfrw_dxf_fixtures` plus block-owner cohort pass5/5 unique tests; the existing rejection CLI CTest now checks no publication/destination replacement for malformed ASCII/binary NOD. Continue with root-entry serialization/reciprocity and the composed graph checkpoint. |
+| 7G — CLI graph/layout closure | PARTIAL / BLOCK_OWNERSHIP_AND_NOD_IDENTITY_SCOPED (`5a86b1a`, writer-order assertion `db9d234`) | 7G.0/1 and per-definition census; `*D` identity, unresolved-owner/suffix rejection, positional NOD identity with non-monotonic handles, owner spelling controls, pre-callback rejection of an owned first DICTIONARY, and regenerated NOD-before-ACAD_GROUP output are covered. Full root-entry read/write/read closure, remaining roots/reciprocity and effective order remain open. | `libdxfrw_dxf_fixtures` plus block-owner cohort pass5/5 unique tests; the existing rejection CLI CTest checks no publication/destination replacement for malformed ASCII/binary NOD. Continue with root-entry serialization/reciprocity and the composed graph checkpoint. |
 | 7H — geometry gate/input policy | COMMITTED / SCOPED_GEOMETRY | scaled/unit/reflected/real-mode and7H.4 direction admission integrated; caller geometry/tolerant readers retained | main DXF/strict/lc3 and four ordinary direction projections pass; no broad/native geometry claim |
 | 7I — implicit spline weights | COMMITTED | preservation commit before upstream integration; retain focused controls | `libdxfrw_dwg_local_roundtrip`, one independent curve point |
 | 7J — dimension overrides | REPRO_READY | 7K; 7G for picture-block closure | DXF fixture plus independent override dictionary |
@@ -10401,6 +10401,12 @@ pre-existing destination bytes under overwrite mode. `libdxfrw_dxf_fixtures`
 and the four-test block-owner cohort pass (five unique CTests); `-Werror` target
 build and `git diff --check` pass. No full suite, peer runtime, external
 qualification, new fixture payload, or support metadata changed.
+
+The follow-up `db9d234` extends the same generated test with empty-drawing
+ASCII/binary writer output and public readback, asserting reserved NOD handle C
+is the first dictionary and precedes reserved `ACAD_GROUP` handle D. This
+verifies output order only; it does not retain or prove arbitrary source NOD
+entries through the `dx_iface` conversion graph.
 
 **Implementation-readiness result:** the positive anonymous `*D` identity
 case (`0cc564f`), distinct unresolved-owner/orphan-suffix negative
