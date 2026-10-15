@@ -3,6 +3,33 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
+**Latest research-only handoff (baseline`91d0a88`):** the
+[typed-readback and whole-root readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15)
+reproduces48 typed style-type collisions across two captured modern DXF
+profiles, with24 older-profile controls unaffected. Three tracked DWGs each
+publish29 selected callbacks inherited as CLI no-ops: DICTIONARYWDFLT and its
+required PLACEHOLDER plus27 children in seven other families. Two LAYOUTs and
+three MATERIALs are retained but outside the extension planner. A typed style
+writer alone therefore cannot close full CLI9d.
+
+Two audit-disabled ODA27.1 saves of12 locally authored controls expose the
+profile boundary:177=0/1/2 with a58-property tail changes six property slots
+and type7→58 while reporting success. Nine corrected177=3 controls preserve
+all58 operations/non-ACI values, including explicit RGB black420=0; fallback
+ACI may normalize. ODA also adds24 standard styles (12→36). This is scoped
+profile preservation/mutation evidence, not general177 meaning, arbitrary
+palette/renderer/native/ACIS qualification or a successful libdxfrw conversion.
+
+Parity7G.3f.3a–c and4a–c now specify typed-readback repair, reuse of existing
+import-origin state, descriptor/color admission, owned family retention,
+type-preserving graph emitters and one composed CLI checkpoint. Start with
+ready f.3a/f.4a, or the independent f.2b writer root fix; do not repeat full
+suites/ODA batches or wait on external-only cells. f.1/f.2 remain separately
+locally accepted; full9d and all six J gates stay open/non-promoting. Receipt:
+`docs/research/broader-style-closure-readiness-2026-10-15.json`.
+No drawing fixture, dependency, registration, top-level subplan or ledger
+item is added. Keep LibreCAD/LC3 optional callbacks and tolerant2D defaults.
+
 **Current parity7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE (baseline `49427d0`):**
 DWG HEADER retains the complete source NOD H; absent/null/wrong-role/wide
 states are distinct. Only its matching complete zero-parent DICTIONARY
@@ -14,7 +41,7 @@ offsets are explicitly absent. Authored HEADER/OBJECTS lifecycle/negative
 controls and four tracked files pass: main4/4 in4.83s, strict four-TU/build/lc3,
 ASan/UBSan2/2 in1.49s. Six authored style component streams remain unchanged.
 Receipt: `docs/research/dwg-nod-identity-7g-3f-2-2026-10-15.json`.
-Next typed same-version style serializer and composed full CLI9d, which stays
+Next f.3a readback/f.4a retention, typed same-version serialization and composed full CLI9d, which stays
 open (one actual RTEXT FreeCAD-form conversion still exits1/no output).
 Separate writer f.2b must bind its regenerated HEADER NOD to its emitted root;
 the current null placeholder cannot be repaired by reader inference. Rebuild

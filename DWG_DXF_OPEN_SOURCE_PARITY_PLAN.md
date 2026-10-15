@@ -2,7 +2,23 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
-**Latest research delta (2026-10-15, committed baseline `6c5666c`; plan-only):**
+**Latest research delta (2026-10-15, committed baseline `91d0a88`; plan-only):**
+the [typed-readback and whole-root readiness review](#typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15)
+adds a reproduced current-code packet and12 locally authored producer controls.
+All24 styles in each modern ODA DXF profile read back with typed type58 instead
+of their literal style type; the2010 control does not. Each of three tracked
+DWGs exposes29 selected CLI inherited-default callbacks; root closure also
+needs retained LAYOUT/MATERIAL families, not only a style serializer. ODA
+audit0 accepts incompatible177/58-property combinations while changing six
+property slots and type7→58. Nine177=3 controls preserve the admitted property
+profile (RGB fallback ACI may normalize); no arbitrary palette rule is inferred.
+Existing7G.3f.3/4 now have implementation-ready readback, origin, retention,
+family-writer and composed-CLI children. f.2 is separately committed at91d0a88;
+its acceptance is not inferred from this research. No new finding/top-level
+subplan, dependency/fixture/CTest, native run or support/J promotion. Receipt:
+`docs/research/broader-style-closure-readiness-2026-10-15.json`.
+
+**Prior source-fidelity research delta (2026-10-15, committed baseline `6c5666c`; plan-only):**
 the [source-fidelity and graph-oracle review](#source-fidelity-versioned-visualstyle-and-graph-oracle-review-2026-10-15)
 rechecks eight upstream heads and adds eight authored ezdxf component controls,
 reproduced in a bounded second run, plus three audit-disabled ODA27.1
@@ -98,7 +114,9 @@ and four tracked-file integration rows pass. Main4/4 in4.83s, strict four-TU/
 build/lc3 and ASan/UBSan2/2 in1.49s pass; six authored style component streams
 remain byte-identical to49427d0. Receipt:
 `docs/research/dwg-nod-identity-7g-3f-2-2026-10-15.json`.
-Next f.3 typed same-version serializer, then f.4 full graph/CLI9d. A separate
+Next f.3a typed-readback repair and f.4a owned family handoff, then f.3b/c
+source-profile serialization and f.4b/c graph/CLI9d under the latest readiness
+review. A separate
 f.2b writer task must replace its null target HEADER NOD placeholder using
 preplanned emitted identity, not captured source or reader inference. A single
 actual FreeCAD-form tracked RTEXT conversion still exits1/no output; do not
@@ -5283,7 +5301,8 @@ weaken raw-owner checks or count source repair as a converter success.
 #### 7G.3f — DWG VISUALSTYLE source fidelity and rooted DXF bridge
 
 **Owners:** existing PAR-20/7G.3,7F.1b and7BE.9d; no new PAR/top-level subplan.
-**Baseline:** `6c5666c`; HEADER repair remains closed locally, full CLI9d open.
+**Initial baseline:** `6c5666c`; current implementation baseline`91d0a88`.
+HEADER repair and f.1/f.2 are locally complete; full CLI9d remains open.
 The initial3-file metadata WIP is now locally accepted under f.1, with the
 separate receipt and permanent reader controls recorded in the current handoff.
 This sequence supersedes the generic “implement a typed serializer” handoff.
@@ -5294,7 +5313,13 @@ This sequence supersedes the generic “implement a typed serializer” handoff.
 | **7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE** | Retain validated DWG HEADER NOD identity and publish the matching complete dictionary through the existing optional root callback, without guessing a root. | Authored HEADER/OBJECTS role/null/wide/non-monotonic/missing/wrong-type/owner/count/retry controls, reused duplicate-map gate and four tracked rows; main4/4, strict/build/lc3, sanitizer2/2 pass. |
 | **7G.3f.2b / READY_LOCAL; INDEPENDENT_WRITER_FOLLOWUP** | Bind regenerated DWG HEADER NOD H to the writer's preplanned actual root, not the retained source identity or null placeholder. | Literal code3/nonzero H, existing reserved-identity/sealing controls, full authored writer→reader root/child callback counts across applicable targets; no reader guessing. |
 | **7G.3f.3 / TAG_PROFILE_CAPTURED; MAPPING_REVIEW_REQUIRED** | Implement a typed-DWG-to-DXF serializer for the smallest witnessed version/property/color profile. Keep DXF-origin raw replay separate. | Exact literal tags/property groups/colors/companions and following record; unsupported-profile no-publication and corrected same-model retry. |
+| **7G.3f.3a / READY_LOCAL** | Scope DXF style-type70 before291; a following property-count70 must not overwrite the public type. | ASCII/binary distinct type/count, raw-tail equality, reset/copy/next-record and older-profile controls; no full DXF property decode claim. |
+| **7G.3f.3b / READY_LOCAL** | Reuse existing import format/version/outcome state and bind the admitted style carrier to a successful import profile. | DWG/DXF/unknown/failed/reused-or-mixed context, missing raw and partial metadata; no heuristic or stale-source-version admission. |
+| **7G.3f.3c / PROFILE_DISCRIMINATOR_CALIBRATED; COLOR_POLICY_REVIEW_REQUIRED** | Emit58-property modern profile with witnessed177=3; keep source DWG fields separate and qualify RGB fallback/name/method policy. | Literal property descriptor crosswalk, true-color zero, three bad177 profiles, exact companions and atomic unsupported-profile refusal/retry. |
 | **7G.3f.4 / DEPENDS_ON_1_2_3** | Compose root, target types, remapping and source-format dispatch, then rerun the unchanged full FreeCAD-form CLI harness. | Existing extension-graph/adapter tests and one composed CLI gate, retaining RTEXT/ARCALIGNEDTEXT/MPOLYGON assertions and warnings. |
+| **7G.3f.4a / READY_LOCAL_RETENTION** | Own presently ignored root-resource callbacks, including DICTIONARYWDFLT/default PLACEHOLDER and the seven observed descendant families. | One tiny rooted graph per family, owned copies, exact type/identity/default edge, no duplicate callback/raw count. Retention is not emission. |
+| **7G.3f.4b / FAMILY_MAPPING_REVIEW_REQUIRED** | Extend the existing graph plan to all admitted retained root targets, including LAYOUT/MATERIAL; qualify missing typed DXF emitters individually. | Per-family owner/reactor/xDict/default-pointer closure, identity collisions, cap/cap+1 and missing-target no-publication/retry. No orphan rehoming or pruning. |
+| **7G.3f.4c / DEPENDS_ON_3_4ab** | Compose one unchanged full FreeCAD-form CLI gate after focused controls pass. | RTEXT/ARCALIGNEDTEXT/MPOLYGON retention, source-version/default routes and existing warning predicates, then one shared safety gate. Native qualification remains separate. |
 
 **f.1 source-fidelity contract.** Review the existing candidate rather than
 write a second representation. A BS companion is a preserved16-bit source
@@ -13639,3 +13664,167 @@ support matrix or acceptance count is promoted. `J256`, `J260`, `J268`, `J284`,
 Linux/Windows FreeCAD qualification, independent known-dimension ACIS/AcDs
 semantics, nor J268's missing historical membership. New drawing outputs remain
 temporary; no DWG/DXF/SAB fixture is added to the repository.
+
+## Typed-readback, whole-root and profile-discriminator readiness review (2026-10-15)
+
+Research at`91d0a8831318aaf01e66fc2ce72410e1fab6011e`; no fetch/rebase or
+remote mutation. The preceding f.2 code is committed and separately accepted.
+This pass changes planning/evidence only. Reproduction recipes, literal
+observations, executable/source/input/output hashes and negative results are
+in [the durable receipt](docs/research/broader-style-closure-readiness-2026-10-15.json).
+This section supersedes generic “style serializer, then CLI” instructions.
+
+### Newly executed completeness/correctness evidence
+
+1. **Typed DXF readback is not raw preservation.** An exact-handle join of
+   each captured ODA2018/2013 DXF's24 literal styles against the current
+   concrete adapter finds24/24 type mismatches in each: the post291 count70=58
+   overwrites the pre291 style type. The2010 profile's24 types remain correct.
+   All72 carry raw styles; DXF bodies remain explicitly not DWG-decoded.
+   For example a literal type4 becomes typed58. This is a local parser/public
+   metadata issue under existing7G.3, not a new renderer or DWG layout defect.
+   The six-read code/graph packet reproduces identically in a second bounded
+   run. Do not dismiss incorrect typed metadata because raw re-export succeeds.
+2. **Root publication is necessary but not sufficient.** Each of the three
+   tracked advanced DWGs has13 exact handle/name-joined NOD entries. The CLI
+   inherits no-op callbacks for29 observed objects: one DICTIONARYWDFLT, its
+   default PLACEHOLDER, and27 ordinary dictionary children. The latter are
+   MLINESTYLE1, SCALE17, TABLESTYLE1, MLEADERSTYLE1, DETAILVIEWSTYLE1,
+   SECTIONVIEWSTYLE1 and DICTIONARYVAR5. These are decoded callback handoff
+   losses, not29 parser failures. The default target is131076, its owner is
+   DICTIONARYWDFLT131075 and the independent source default pointer has role5.
+   Two LAYOUTs/three MATERIALs are already retained but not admitted to the
+   current DICTIONARY/XRECORD/VISUALSTYLE extension planner. Count only this
+   root/one-level inventory; shared default resource profiles are not three
+   diverse full-graph qualifications.
+3. **Actual target-profile controls constrain177 emission.** Author a new
+   rooted document/LINE/12 styles using the durably retained Flat property bag
+   from the already tracked-input ODA conversion; regenerate identities.
+   Save AC1032→AC1032 with installed ARM64 ODA27.1, audit0/recursion0 and exact
+   filename filter. Both bounded commands exit0/empty logs and add24 standard
+   styles, producing36. Initial RGB tests incorrectly mixed177=2 with the
+   generic58-property grammar; freeze that packet, then correct only RGB
+   controls to177=3. In the final packet, three deliberately incompatible
+   177=0/1/2 controls change slots1,2,4,7,8,25 and public type7→58. The nine
+   177=3 controls retain type7, all58 operations and all non-ACI property values.
+   Eight RGB variations preserve explicit420 (including0); only fallback62
+   may normalize. Red retains1; custom RGB0x123456 yields148, black/near-black18,
+   gray127/128 yield8, white7 and blue5. This is not a general palette algorithm.
+   A successful audit-disabled save is demonstrably not a preservation check.
+
+The field is called `extLightingModel` in current DWG model/peer naming, but
+these experiments establish a target-profile boundary, not its universal
+semantic meaning. Do not copy the source value2 into modern DXF177 merely
+because the names look similar; do not mutate the retained DWG value to3.
+Bind target177=3 to this independently witnessed58-property grammar and keep
+other profiles explicitly unqualified/refused. No original source modeler,
+independent kernel, visual appearance or native consumer is exercised here.
+
+### Broader source/oracle constraints
+
+- [Autodesk object ownership](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm)
+  requires the DXF NOD first. Local ODA5.4.1 p81/p103 instead gives the DWG
+  HEADER hard-owner root and allows arbitrary object order/unused records.
+  Keep these two format rules distinct. Fresh API metadata keeps
+  [LibreDWG#1413](https://github.com/LibreDWG/libredwg/issues/1413) open. The
+  [pinned DXF writer](https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/out_dxf.c#L4161-L4183)
+  still selects its first DICTIONARY; `dwg_find_dictionary` uses the same
+  positional assumption. Its private affected corpus is not reproduced here.
+  Exclude that route as a root-order oracle for non-monotonic graphs.
+- [Autodesk color methods](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_Colors_ColorMethod.html)
+  distinguish C0–C8; [closest-ACI lookup](https://help.autodesk.com/cloudhelp/2020/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_Colors_EntityColor_LookUpAci_byte_byte_byte.html)
+  documents no distance/palette/tie implementation. The inspected LibreDWG
+  `dwg_find_color_index` returns the first exact palette match or256, not
+  closest RGB. Source-evaluating that predicate disagrees with three of five
+  tracked ODA fallback pairs (black and two grays); this is not peer runtime
+  execution. Preserve exact420 and its presence separately from fallback ACI;
+  do not copy a source palette helper or hardcode drawing-specific colors.
+- [Pinned ezdxf drawing limits](https://github.com/mozman/ezdxf/blob/7c64bce52c9d60b9db2dad4d2793c1168c8d3f64/docs/source/addons/drawing.rst)
+  explicitly exclude VISUALSTYLE/3D/ACIS rendering. It remains a calibrated
+  transport/raw-tag component, not a shader/solid oracle. ACadSharp's writer
+  omission and the other same-day source pins retain their previous scoped
+  exclusions; no second lineage or fresh peer execution is invented.
+
+### Implementation-ready children and fast execution order
+
+**First f.3a — repair typed style-type readback.** Add record/subclass/291-scoped
+state so only the basic pre-tail70 updates `DRW_VisualStyle::type`. Reset at
+new-record/failed-parse boundaries and preserve existing older-profile behavior.
+Do not implement or claim a full DXF58-property body decoder in this slice.
+Use locally authored ASCII/binary records with type8/count58 (deliberately
+distinct), count2/wrong-count/missing-final176 raw-preservation negatives,
+copy/reset and a following sentinel object. Assert both typed8 and exact raw
+tail before/after conversion; keep grammar admission separate from preserving
+invalid raw tags. Touch only the DXF parse path/header state and existing
+fixture tests; run strict touched-TU compile plus the focused DXF fixture gate.
+
+**f.3b — reuse, then bind import context.** `dx_data` already has explicit
+`sourceFormat`, accepted `sourceVersion` and DWG/DXF read outcomes. Reuse them;
+do not introduce a second extension-based detector or infer DWG from absent
+raw style. Version is assigned after successful reading, and the container can
+retain older data on reuse: document-wide flags alone do not certify every
+carrier. Bind the appended/imported style range to its successful generation
+and version (or reject mixed/reused unsupported models), with owned copying
+and bounded lookup. Require source-profile metadata/completeness, not editable
+`m_bodyDecoded` alone. Fast negatives: unknown/authored context, failed import,
+mixed/reused generation, DWG claiming raw DXF and DXF missing a raw companion;
+corrected same-model retry must not retain stale staging. Preserve the existing
+DXF-origin raw replay lane and ordinary manual/2D controls.
+
+**f.3c — descriptor-driven typed serializer.** Freeze one slot table of value
+kind/width,58 operations,8 CMCs, output groups and target177=3 profile. Retain
+source extLightingModel separately; runtime mutation controls now show why
+directly emitting it can change type/properties. Start same-version AC1032,
+with explicit source2/profile58 admission rather than silently extending all
+versions. Keep exact signed16 companion bits, numeric/text fields, explicit
+zero RGB420 and owner/reactor/xDict identity mapping. General RGB fallback,
+name/book flags, unsupported methods and partial/clamped metadata require an
+explicit policy/qualified witness or pre-publication refusal. C0/C2/C3/C8
+method witnesses do not qualify C1/C4–C7 or arbitrary named colors. Do not
+patch around uncertainty by dropping420, using peer normalized ACI or pruning
+properties. The58→28 round-trip-XRECORD migration remains a separate refused
+downgrade; do not put it on the minimal modern critical path.
+
+**f.4a — owned adapter handoff before emission.** Add narrow typed collections/
+optional callback overrides for the observed missing resource families. In
+particular retain `DRW_DictionaryWithDefault` without slicing its default
+pointer or changing it into plain DICTIONARY; retain its PLACEHOLDER target
+and common handles. Retain SCALE/DICTIONARYVAR first where existing typed DXF
+emitters can be reused, then MLINESTYLE/MLEADERSTYLE and table/model-document
+styles under their existing owners. One authored root/child per family,
+copy/lifetime/reset, exact callback count and following record are sufficient
+first gates. Do not alter the optional no-op defaults of LibreCAD/LC3 clients.
+Collection membership is not proof an emitter is present or semantically safe.
+
+**f.4b — whole-root type-preserving graph/emitter readiness.** Extend the
+existing bounded identity/DFS plan, not a parallel graph service. Include
+retained LAYOUT/MATERIAL and all admitted rooted families; preserve reciprocal
+layout/block relations and dictionary-default pointer roles. Existing emitters
+may be reused only for their represented payload/target profile. DICTIONARYWDFLT,
+PLACEHOLDER and table/model-document style DXF emission need individual
+mapping/capability review; absent public writers are not automatically solved
+by adding callback storage. Raw DWG bodies are not raw DXF carriers. Reject
+missing/wrong-kind targets, duplicate identities, cycles and budget overages
+before publication; preserve old destination and allow corrected retry.
+Do not silently delete unsupported named-root keys, rehome objects or treat
+unused-in-this-view resources as permission for loss. Keep typed retention,
+safe emission and full graph closure as separate per-family statuses.
+
+**Then f.4c — one composed checkpoint.** After f.3 and4a/b fast gates pass,
+run unchanged `dwg2dxf_freecad_cli_compat` once, retaining its default source
+revision and RTEXT/ARCALIGNEDTEXT/MPOLYGON assertions. Then run one shared
+reader/graph/lc3 safety selection and affected sanitizer gate. Do not run the
+full suite or native applications after each field/doc change. If a composed
+gate reveals another family, record its exact owner/status and continue that
+bounded slice; do not close9d from a subset or alter the test to make it green.
+The independent f.2b writer HEADER root fix and7AH/7AQ report negatives are
+ready work while color/family mappings are researched. Avoid repeated unchanged
+full peer/ODA batches; use the stored literals/hashes and deliberate mutations.
+
+After each implemented child update acceptance/residual dependencies and show
+the commit hash/progress immediately. External cells remain refusals while
+ready local work proceeds; new accounts/trials/costs/remote writes still need
+authority. No findings/70-subplan/149-ledger count changes. `J256`, `J260`,
+`J268`, `J284`, `J293`, `J295` stay `DEFERRED_EXTERNAL` and cannot promote
+support. No DWG/DXF/SAB fixture, package, registered test or native qualification
+is added by this research; all new drawings remain temporary.

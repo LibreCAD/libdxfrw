@@ -1,0 +1,5434 @@
+{
+  "schema": "libdxfrw-broader-readiness-research-v1",
+  "date": "2026-10-15",
+  "baseline": "91d0a8831318aaf01e66fc2ce72410e1fab6011e",
+  "localOriginMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "scope": "Plan-only broadening after scoped f.2 implementation. Fresh bounded current-code DXF/adapter observations, pinned peer source/oracle limits and locally authored audit0 ODA profile mutations. No new production edit, full suite, fixture or support promotion.",
+  "owners": [
+    "PAR-20/7G.3f",
+    "7F.1b",
+    "7BE.9d",
+    "7AH",
+    "7AQ"
+  ],
+  "qualificationEligible": false,
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149
+  },
+  "existingImplementation": "91d0a88 separately commits f.2 reader NOD handoff; its tests and acceptance receipt remain separate, not inferred from this research.",
+  "executedCurrentCode": {
+    "schema": "libdxfrw-serializer-graph-readiness-research-v1",
+    "qualificationEligible": false,
+    "styleRows": [
+      {
+        "year": 2018,
+        "source": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018/rtext_arctext.dxf",
+        "sourceSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15",
+        "styleCount": 24,
+        "typedTypeMismatches": 24,
+        "rows": [
+          {
+            "handle": 131107,
+            "sourceStyleType": 4,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131110,
+            "sourceStyleType": 7,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131114,
+            "sourceStyleType": 12,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131118,
+            "sourceStyleType": 16,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131112,
+            "sourceStyleType": 9,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131113,
+            "sourceStyleType": 11,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131121,
+            "sourceStyleType": 22,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131117,
+            "sourceStyleType": 15,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131103,
+            "sourceStyleType": 0,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131104,
+            "sourceStyleType": 1,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131105,
+            "sourceStyleType": 2,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131106,
+            "sourceStyleType": 3,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131109,
+            "sourceStyleType": 6,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131119,
+            "sourceStyleType": 20,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131116,
+            "sourceStyleType": 14,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131120,
+            "sourceStyleType": 21,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131111,
+            "sourceStyleType": 8,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131126,
+            "sourceStyleType": 27,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131125,
+            "sourceStyleType": 26,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131122,
+            "sourceStyleType": 23,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131123,
+            "sourceStyleType": 24,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131115,
+            "sourceStyleType": 13,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131108,
+            "sourceStyleType": 5,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131124,
+            "sourceStyleType": 25,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          }
+        ],
+        "literalTrueColorFallbackPairs": [
+          [
+            0,
+            18
+          ],
+          [
+            255,
+            5
+          ],
+          [
+            7895160,
+            8
+          ],
+          [
+            8421504,
+            8
+          ],
+          [
+            16777215,
+            7
+          ]
+        ],
+        "rawStyleCompanions": 24,
+        "conclusion": "Raw carrier presence/read success does not certify typed style-type or expanded-property decode"
+      },
+      {
+        "year": 2013,
+        "source": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2013/rtext_arctext.dxf",
+        "sourceSha256": "1c1760ea856a5aa1e294ae3a0d9d3e491742d1dc821b6dc5674392d627e4a28e",
+        "styleCount": 24,
+        "typedTypeMismatches": 24,
+        "rows": [
+          {
+            "handle": 131107,
+            "sourceStyleType": 4,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131110,
+            "sourceStyleType": 7,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131114,
+            "sourceStyleType": 12,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131118,
+            "sourceStyleType": 16,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131112,
+            "sourceStyleType": 9,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131113,
+            "sourceStyleType": 11,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131121,
+            "sourceStyleType": 22,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131117,
+            "sourceStyleType": 15,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131103,
+            "sourceStyleType": 0,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131104,
+            "sourceStyleType": 1,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131105,
+            "sourceStyleType": 2,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131106,
+            "sourceStyleType": 3,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131109,
+            "sourceStyleType": 6,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131119,
+            "sourceStyleType": 20,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131116,
+            "sourceStyleType": 14,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131120,
+            "sourceStyleType": 21,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131111,
+            "sourceStyleType": 8,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131126,
+            "sourceStyleType": 27,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131125,
+            "sourceStyleType": 26,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131122,
+            "sourceStyleType": 23,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131123,
+            "sourceStyleType": 24,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131115,
+            "sourceStyleType": 13,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131108,
+            "sourceStyleType": 5,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          },
+          {
+            "handle": 131124,
+            "sourceStyleType": 25,
+            "propertyCounts": [
+              58
+            ],
+            "sourceCompanions": 58,
+            "typedType": 58
+          }
+        ],
+        "literalTrueColorFallbackPairs": [
+          [
+            0,
+            18
+          ],
+          [
+            255,
+            5
+          ],
+          [
+            7895160,
+            8
+          ],
+          [
+            8421504,
+            8
+          ],
+          [
+            16777215,
+            7
+          ]
+        ],
+        "rawStyleCompanions": 24,
+        "conclusion": "Raw carrier presence/read success does not certify typed style-type or expanded-property decode"
+      },
+      {
+        "year": 2010,
+        "source": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2010/rtext_arctext.dxf",
+        "sourceSha256": "878ccc71d94f777f9e73b108800eaa8b0678627a34635a54610b25738cf67552",
+        "styleCount": 24,
+        "typedTypeMismatches": 0,
+        "rows": [],
+        "literalTrueColorFallbackPairs": [],
+        "rawStyleCompanions": 24,
+        "conclusion": "Raw carrier presence/read success does not certify typed style-type or expanded-property decode"
+      }
+    ],
+    "graphRows": [
+      {
+        "source": "tests/fixtures/dwg/rtext_arctext.dwg",
+        "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+        "peerSha256": "3dfd7797e92bb05bd3603fb6edaee511b02104d14d203a4464d642d87566199f",
+        "rootEntryCount": 13,
+        "exactRootEntryJoin": true,
+        "directRootTargets": [
+          {
+            "key": "ACAD_GROUP",
+            "handle": 13,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MLINESTYLE",
+            "handle": 131072,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_PLOTSETTINGS",
+            "handle": 131074,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_PLOTSTYLENAME",
+            "handle": 131075,
+            "peerFamily": "DICTIONARYWDFLT",
+            "retainedFamily": null,
+            "inheritedDefault": "DICTIONARYWDFLT"
+          },
+          {
+            "key": "ACAD_LAYOUT",
+            "handle": 131077,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_SCALELIST",
+            "handle": 131080,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MATERIAL",
+            "handle": 131098,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_VISUALSTYLE",
+            "handle": 131102,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_TABLESTYLE",
+            "handle": 131127,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MLEADERSTYLE",
+            "handle": 131129,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_DETAILVIEWSTYLE",
+            "handle": 131131,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_SECTIONVIEWSTYLE",
+            "handle": 131133,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "AcDbVariableDictionary",
+            "handle": 131135,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          }
+        ],
+        "inheritedDefaultCounts": {
+          "MLINESTYLE": 1,
+          "ACDBPLACEHOLDER": 1,
+          "DETAILVIEWSTYLE": 1,
+          "DICTIONARYVAR": 5,
+          "DICTIONARYWDFLT": 1,
+          "MLEADERSTYLE": 1,
+          "SCALE": 17,
+          "SECTIONVIEWSTYLE": 1,
+          "TABLESTYLE": 1
+        },
+        "unretainedDictionaryDefaultReferences": [
+          {
+            "handle": 131075,
+            "defaultTarget": 131076,
+            "peerFamily": "PLACEHOLDER",
+            "sourceDefaultRole": 5,
+            "targetOwner": 131075,
+            "targetRetained": false
+          }
+        ],
+        "oneLevelMissingRetained": [
+          {
+            "rootKey": "ACAD_MLINESTYLE",
+            "dictionary": 131072,
+            "childKey": "Standard",
+            "target": 131073,
+            "peerFamily": "MLINESTYLE",
+            "inheritedDefault": "MLINESTYLE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A0",
+            "target": 131081,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A1",
+            "target": 131082,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A2",
+            "target": 131083,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A3",
+            "target": 131084,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A4",
+            "target": 131085,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A5",
+            "target": 131086,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A6",
+            "target": 131087,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A7",
+            "target": 131088,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A8",
+            "target": 131089,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A9",
+            "target": 131090,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B0",
+            "target": 131091,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B1",
+            "target": 131092,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B2",
+            "target": 131093,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B3",
+            "target": 131094,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B4",
+            "target": 131095,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B5",
+            "target": 131096,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B6",
+            "target": 131097,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_TABLESTYLE",
+            "dictionary": 131127,
+            "childKey": "Standard",
+            "target": 131128,
+            "peerFamily": "TABLESTYLE",
+            "inheritedDefault": "TABLESTYLE"
+          },
+          {
+            "rootKey": "ACAD_MLEADERSTYLE",
+            "dictionary": 131129,
+            "childKey": "Standard",
+            "target": 131130,
+            "peerFamily": "MLEADERSTYLE",
+            "inheritedDefault": "MLEADERSTYLE"
+          },
+          {
+            "rootKey": "ACAD_DETAILVIEWSTYLE",
+            "dictionary": 131131,
+            "childKey": "Metric50",
+            "target": 131132,
+            "peerFamily": "DETAILVIEWSTYLE",
+            "inheritedDefault": "DETAILVIEWSTYLE"
+          },
+          {
+            "rootKey": "ACAD_SECTIONVIEWSTYLE",
+            "dictionary": 131133,
+            "childKey": "Metric50",
+            "target": 131134,
+            "peerFamily": "SECTIONVIEWSTYLE",
+            "inheritedDefault": "SECTIONVIEWSTYLE"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CANNOSCALE",
+            "target": 131136,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CTABLESTYLE",
+            "target": 131137,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CMLEADERSTYLE",
+            "target": 131138,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CVIEWDETAILSTYLE",
+            "target": 131139,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CVIEWSECTIONSTYLE",
+            "target": 131140,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          }
+        ],
+        "oneLevelRetainedButNotExtensionPlannerFamilies": [
+          {
+            "rootKey": "ACAD_LAYOUT",
+            "dictionary": 131077,
+            "childKey": "Model",
+            "target": 131078,
+            "peerFamily": "LAYOUT",
+            "inheritedDefault": null,
+            "retainedFamily": "LAYOUT"
+          },
+          {
+            "rootKey": "ACAD_LAYOUT",
+            "dictionary": 131077,
+            "childKey": "Layout1",
+            "target": 131079,
+            "peerFamily": "LAYOUT",
+            "inheritedDefault": null,
+            "retainedFamily": "LAYOUT"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "ByLayer",
+            "target": 131099,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "ByBlock",
+            "target": 131100,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "Global",
+            "target": 131101,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          }
+        ],
+        "cmcMethods": {
+          "0xc2": 74,
+          "0xc3": 64,
+          "0xc8": 30,
+          "0xc0": 24
+        },
+        "distinctRgbValues": [
+          0,
+          255,
+          7895160,
+          8421504,
+          16777215
+        ],
+        "scope": "Root and one-level dictionary descendants only; selected adapter collections/default callbacks, not all objects or full transitive closure"
+      },
+      {
+        "source": "tests/fixtures/dwg/mpolygon_solid.dwg",
+        "sha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+        "peerSha256": "b1ed4ce8e0cbb12badd89208f80d9a1f4908410046470b6c756f4f9d7202349e",
+        "rootEntryCount": 13,
+        "exactRootEntryJoin": true,
+        "directRootTargets": [
+          {
+            "key": "ACAD_GROUP",
+            "handle": 13,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MLINESTYLE",
+            "handle": 131072,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_PLOTSETTINGS",
+            "handle": 131074,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_PLOTSTYLENAME",
+            "handle": 131075,
+            "peerFamily": "DICTIONARYWDFLT",
+            "retainedFamily": null,
+            "inheritedDefault": "DICTIONARYWDFLT"
+          },
+          {
+            "key": "ACAD_LAYOUT",
+            "handle": 131077,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_SCALELIST",
+            "handle": 131080,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MATERIAL",
+            "handle": 131098,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_VISUALSTYLE",
+            "handle": 131102,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_TABLESTYLE",
+            "handle": 131127,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MLEADERSTYLE",
+            "handle": 131129,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_DETAILVIEWSTYLE",
+            "handle": 131131,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_SECTIONVIEWSTYLE",
+            "handle": 131133,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "AcDbVariableDictionary",
+            "handle": 131135,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          }
+        ],
+        "inheritedDefaultCounts": {
+          "MLINESTYLE": 1,
+          "ACDBPLACEHOLDER": 1,
+          "DETAILVIEWSTYLE": 1,
+          "DICTIONARYVAR": 5,
+          "DICTIONARYWDFLT": 1,
+          "MLEADERSTYLE": 1,
+          "SCALE": 17,
+          "SECTIONVIEWSTYLE": 1,
+          "TABLESTYLE": 1
+        },
+        "unretainedDictionaryDefaultReferences": [
+          {
+            "handle": 131075,
+            "defaultTarget": 131076,
+            "peerFamily": "PLACEHOLDER",
+            "sourceDefaultRole": 5,
+            "targetOwner": 131075,
+            "targetRetained": false
+          }
+        ],
+        "oneLevelMissingRetained": [
+          {
+            "rootKey": "ACAD_MLINESTYLE",
+            "dictionary": 131072,
+            "childKey": "Standard",
+            "target": 131073,
+            "peerFamily": "MLINESTYLE",
+            "inheritedDefault": "MLINESTYLE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A0",
+            "target": 131081,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A1",
+            "target": 131082,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A2",
+            "target": 131083,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A3",
+            "target": 131084,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A4",
+            "target": 131085,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A5",
+            "target": 131086,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A6",
+            "target": 131087,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A7",
+            "target": 131088,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A8",
+            "target": 131089,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A9",
+            "target": 131090,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B1",
+            "target": 131091,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B2",
+            "target": 131092,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B3",
+            "target": 131093,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B4",
+            "target": 131094,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B5",
+            "target": 131095,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B6",
+            "target": 131096,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B7",
+            "target": 131097,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_TABLESTYLE",
+            "dictionary": 131127,
+            "childKey": "Standard",
+            "target": 131128,
+            "peerFamily": "TABLESTYLE",
+            "inheritedDefault": "TABLESTYLE"
+          },
+          {
+            "rootKey": "ACAD_MLEADERSTYLE",
+            "dictionary": 131129,
+            "childKey": "Standard",
+            "target": 131130,
+            "peerFamily": "MLEADERSTYLE",
+            "inheritedDefault": "MLEADERSTYLE"
+          },
+          {
+            "rootKey": "ACAD_DETAILVIEWSTYLE",
+            "dictionary": 131131,
+            "childKey": "Imperial24",
+            "target": 131132,
+            "peerFamily": "DETAILVIEWSTYLE",
+            "inheritedDefault": "DETAILVIEWSTYLE"
+          },
+          {
+            "rootKey": "ACAD_SECTIONVIEWSTYLE",
+            "dictionary": 131133,
+            "childKey": "Imperial24",
+            "target": 131134,
+            "peerFamily": "SECTIONVIEWSTYLE",
+            "inheritedDefault": "SECTIONVIEWSTYLE"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CANNOSCALE",
+            "target": 131136,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CTABLESTYLE",
+            "target": 131137,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CMLEADERSTYLE",
+            "target": 131138,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CVIEWDETAILSTYLE",
+            "target": 131139,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131135,
+            "childKey": "CVIEWSECTIONSTYLE",
+            "target": 131140,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          }
+        ],
+        "oneLevelRetainedButNotExtensionPlannerFamilies": [
+          {
+            "rootKey": "ACAD_LAYOUT",
+            "dictionary": 131077,
+            "childKey": "Model",
+            "target": 131078,
+            "peerFamily": "LAYOUT",
+            "inheritedDefault": null,
+            "retainedFamily": "LAYOUT"
+          },
+          {
+            "rootKey": "ACAD_LAYOUT",
+            "dictionary": 131077,
+            "childKey": "Layout1",
+            "target": 131079,
+            "peerFamily": "LAYOUT",
+            "inheritedDefault": null,
+            "retainedFamily": "LAYOUT"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "ByLayer",
+            "target": 131099,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "ByBlock",
+            "target": 131100,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "Global",
+            "target": 131101,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          }
+        ],
+        "cmcMethods": {
+          "0xc2": 74,
+          "0xc3": 64,
+          "0xc8": 30,
+          "0xc0": 24
+        },
+        "distinctRgbValues": [
+          0,
+          255,
+          7895160,
+          8421504,
+          16777215
+        ],
+        "scope": "Root and one-level dictionary descendants only; selected adapter collections/default callbacks, not all objects or full transitive closure"
+      },
+      {
+        "source": "tests/fixtures/dwg/large_radial.dwg",
+        "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+        "peerSha256": "0e074d8f8462fb00733a263ad6c34096c2055eb810edc9459f88f6b0433f6ec4",
+        "rootEntryCount": 13,
+        "exactRootEntryJoin": true,
+        "directRootTargets": [
+          {
+            "key": "ACAD_GROUP",
+            "handle": 13,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MLINESTYLE",
+            "handle": 131072,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_PLOTSETTINGS",
+            "handle": 131074,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_PLOTSTYLENAME",
+            "handle": 131075,
+            "peerFamily": "DICTIONARYWDFLT",
+            "retainedFamily": null,
+            "inheritedDefault": "DICTIONARYWDFLT"
+          },
+          {
+            "key": "ACAD_LAYOUT",
+            "handle": 131077,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_SCALELIST",
+            "handle": 131080,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MATERIAL",
+            "handle": 131098,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_VISUALSTYLE",
+            "handle": 131102,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_TABLESTYLE",
+            "handle": 131127,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_MLEADERSTYLE",
+            "handle": 131129,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_DETAILVIEWSTYLE",
+            "handle": 131131,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "ACAD_SECTIONVIEWSTYLE",
+            "handle": 131133,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          },
+          {
+            "key": "AcDbVariableDictionary",
+            "handle": 131147,
+            "peerFamily": "DICTIONARY",
+            "retainedFamily": "DICTIONARY",
+            "inheritedDefault": null
+          }
+        ],
+        "inheritedDefaultCounts": {
+          "MLINESTYLE": 1,
+          "ACDBPLACEHOLDER": 1,
+          "DETAILVIEWSTYLE": 1,
+          "DICTIONARYVAR": 5,
+          "DICTIONARYWDFLT": 1,
+          "MLEADERSTYLE": 1,
+          "SCALE": 17,
+          "SECTIONVIEWSTYLE": 1,
+          "TABLESTYLE": 1
+        },
+        "unretainedDictionaryDefaultReferences": [
+          {
+            "handle": 131075,
+            "defaultTarget": 131076,
+            "peerFamily": "PLACEHOLDER",
+            "sourceDefaultRole": 5,
+            "targetOwner": 131075,
+            "targetRetained": false
+          }
+        ],
+        "oneLevelMissingRetained": [
+          {
+            "rootKey": "ACAD_MLINESTYLE",
+            "dictionary": 131072,
+            "childKey": "Standard",
+            "target": 131073,
+            "peerFamily": "MLINESTYLE",
+            "inheritedDefault": "MLINESTYLE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A0",
+            "target": 131081,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A1",
+            "target": 131082,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A2",
+            "target": 131083,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A3",
+            "target": 131084,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A4",
+            "target": 131085,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A5",
+            "target": 131086,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A6",
+            "target": 131087,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A7",
+            "target": 131088,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A8",
+            "target": 131089,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "A9",
+            "target": 131090,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B1",
+            "target": 131091,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B2",
+            "target": 131092,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B3",
+            "target": 131093,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B4",
+            "target": 131094,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B5",
+            "target": 131095,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B6",
+            "target": 131096,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_SCALELIST",
+            "dictionary": 131080,
+            "childKey": "B7",
+            "target": 131097,
+            "peerFamily": "SCALE",
+            "inheritedDefault": "SCALE"
+          },
+          {
+            "rootKey": "ACAD_TABLESTYLE",
+            "dictionary": 131127,
+            "childKey": "Standard",
+            "target": 131128,
+            "peerFamily": "TABLESTYLE",
+            "inheritedDefault": "TABLESTYLE"
+          },
+          {
+            "rootKey": "ACAD_MLEADERSTYLE",
+            "dictionary": 131129,
+            "childKey": "Standard",
+            "target": 131130,
+            "peerFamily": "MLEADERSTYLE",
+            "inheritedDefault": "MLEADERSTYLE"
+          },
+          {
+            "rootKey": "ACAD_DETAILVIEWSTYLE",
+            "dictionary": 131131,
+            "childKey": "Imperial24",
+            "target": 131132,
+            "peerFamily": "DETAILVIEWSTYLE",
+            "inheritedDefault": "DETAILVIEWSTYLE"
+          },
+          {
+            "rootKey": "ACAD_SECTIONVIEWSTYLE",
+            "dictionary": 131133,
+            "childKey": "Imperial24",
+            "target": 131134,
+            "peerFamily": "SECTIONVIEWSTYLE",
+            "inheritedDefault": "SECTIONVIEWSTYLE"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131147,
+            "childKey": "CANNOSCALE",
+            "target": 131148,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131147,
+            "childKey": "CTABLESTYLE",
+            "target": 131149,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131147,
+            "childKey": "CMLEADERSTYLE",
+            "target": 131150,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131147,
+            "childKey": "CVIEWDETAILSTYLE",
+            "target": 131151,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          },
+          {
+            "rootKey": "AcDbVariableDictionary",
+            "dictionary": 131147,
+            "childKey": "CVIEWSECTIONSTYLE",
+            "target": 131152,
+            "peerFamily": "DICTIONARYVAR",
+            "inheritedDefault": "DICTIONARYVAR"
+          }
+        ],
+        "oneLevelRetainedButNotExtensionPlannerFamilies": [
+          {
+            "rootKey": "ACAD_LAYOUT",
+            "dictionary": 131077,
+            "childKey": "Model",
+            "target": 131078,
+            "peerFamily": "LAYOUT",
+            "inheritedDefault": null,
+            "retainedFamily": "LAYOUT"
+          },
+          {
+            "rootKey": "ACAD_LAYOUT",
+            "dictionary": 131077,
+            "childKey": "Layout1",
+            "target": 131079,
+            "peerFamily": "LAYOUT",
+            "inheritedDefault": null,
+            "retainedFamily": "LAYOUT"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "ByLayer",
+            "target": 131099,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "ByBlock",
+            "target": 131100,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          },
+          {
+            "rootKey": "ACAD_MATERIAL",
+            "dictionary": 131098,
+            "childKey": "Global",
+            "target": 131101,
+            "peerFamily": "MATERIAL",
+            "inheritedDefault": null,
+            "retainedFamily": "MATERIAL"
+          }
+        ],
+        "cmcMethods": {
+          "0xc2": 74,
+          "0xc3": 64,
+          "0xc8": 30,
+          "0xc0": 24
+        },
+        "distinctRgbValues": [
+          0,
+          255,
+          7895160,
+          8421504,
+          16777215
+        ],
+        "scope": "Root and one-level dictionary descendants only; selected adapter collections/default callbacks, not all objects or full transitive closure"
+      }
+    ],
+    "sourceSha256": {
+      "/Users/dli/dev/libdxfrw/src/drw_objects.cpp": "5a5a4e0600f15ab7da91eed1aa655fb96112e36c98f0cec68be63ecbe062b477",
+      "/Users/dli/dev/libdxfrw/src/drw_objects.h": "003f7f5db5a152267d69285486800106a2dc27bac168809d23b9c6998e3f125d",
+      "/Users/dli/dev/libdxfrw/dwg2dxf/dx_data.h": "59a2052a45978e1a9e96ddcbbf437cab38513ef70f6bf48d692eeea58bff7547",
+      "/Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.h": "6928d97836cfdc089336bb03f6ae04b15e2aab0abe8fc03794e026a7f67d4c8c",
+      "/Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp": "463d7faf9e7fd1ce77e137a38f3141a72e3700d01d9a5cbe6b71d173c93c4a4b"
+    },
+    "artifactSha256": {
+      "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/readiness_probe": "b453ef5c36320494e1660c120eaeb8a0c3ff5f2299a5308cad773646b1f84005",
+      "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/readiness_probe.cpp": "20b676404f944988c127e84d6b4920e14c50d82fc5821f6bd324e38ab32efd48",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "ac02da1a01d112c3d9f8347fbf0d634c2f2a5bebd5db81be5e72d4c8bc9bab29"
+    },
+    "probeRecipe": "#include \"dx_iface.h\"\n#include <iomanip>\n#include <iostream>\n#include <string>\n#include <utility>\n#include <vector>\n\nstd::string hex(const std::string& value) {\n    static const char* digits = \"0123456789abcdef\";\n    std::string result;\n    for (unsigned char c : value) {\n        result += digits[c >> 4]; result += digits[c & 15];\n    }\n    return result;\n}\n\nclass Probe final : public dx_iface {\npublic:\n    std::vector<std::pair<const char*, std::uint32_t>> inheritedDefaults;\n    std::vector<DRW_DictionaryWithDefault> dictionaryDefaults;\n    void addDictionaryWithDefault(const DRW_DictionaryWithDefault& o) override {\n        inheritedDefaults.emplace_back(\"DICTIONARYWDFLT\", o.handle);\n        dictionaryDefaults.push_back(o);\n        dx_iface::addDictionaryWithDefault(o);\n    }\n    void addAcDbPlaceholder(const DRW_AcDbPlaceholder& o) override {\n        inheritedDefaults.emplace_back(\"ACDBPLACEHOLDER\", o.handle);\n        dx_iface::addAcDbPlaceholder(o);\n    }\n    void addDetailViewStyle(const DRW_DetailViewStyle& o) override {\n        inheritedDefaults.emplace_back(\"DETAILVIEWSTYLE\", o.handle);\n        dx_iface::addDetailViewStyle(o);\n    }\n    void addSectionViewStyle(const DRW_SectionViewStyle& o) override {\n        inheritedDefaults.emplace_back(\"SECTIONVIEWSTYLE\", o.handle);\n        dx_iface::addSectionViewStyle(o);\n    }\n    void addRenderSettings(const DRW_RenderSettings& o) override {\n        inheritedDefaults.emplace_back(\"RENDERSETTINGS\", o.handle);\n        dx_iface::addRenderSettings(o);\n    }\n    void addMLineStyle(const DRW_MLineStyle& o) override {\n        inheritedDefaults.emplace_back(\"MLINESTYLE\", o.handle);\n        dx_iface::addMLineStyle(o);\n    }\n    void addMLeaderStyle(const DRW_MLeaderStyle* o) override {\n        if (o) inheritedDefaults.emplace_back(\"MLEADERSTYLE\", o->handle);\n        dx_iface::addMLeaderStyle(o);\n    }\n    void addScale(const DRW_Scale& o) override {\n        inheritedDefaults.emplace_back(\"SCALE\", o.handle);\n        dx_iface::addScale(o);\n    }\n    void addDbColor(const DRW_DbColor& o) override {\n        inheritedDefaults.emplace_back(\"DBCOLOR\", o.handle);\n        dx_iface::addDbColor(o);\n    }\n    void addTableStyle(const DRW_TableStyle& o) override {\n        inheritedDefaults.emplace_back(\"TABLESTYLE\", o.handle);\n        dx_iface::addTableStyle(o);\n    }\n    void addDictionaryVar(const DRW_DictionaryVar& o) override {\n        inheritedDefaults.emplace_back(\"DICTIONARYVAR\", o.handle);\n        dx_iface::addDictionaryVar(o);\n    }\n    void addGroup(const DRW_Group& o) override {\n        inheritedDefaults.emplace_back(\"GROUP\", o.handle);\n        dx_iface::addGroup(o);\n    }\n    void addLightList(const DRW_LightList& o) override {\n        inheritedDefaults.emplace_back(\"LIGHTLIST\", o.handle);\n        dx_iface::addLightList(o);\n    }\n};\n\nint main(int argc, char** argv) {\n    if (argc != 2) return 2;\n    Probe input;\n    dx_data data;\n    if (!input.fileImport(argv[1], &data, false)) return 1;\n    std::cout << \"{\\\"sourceVersion\\\":\" << int(data.sourceVersion)\n              << \",\\\"sourceFormat\\\":\" << int(data.sourceFormat)\n              << \",\\\"rawStyles\\\":\" << data.rawVisualStyleObjects.size()\n              << \",\\\"hasRoot\\\":\" << data.hasNamedObjectDictionary\n              << \",\\\"root\\\":\" << data.namedObjectDictionary.handle\n              << \",\\\"styles\\\":[\";\n    bool comma = false;\n    for (const auto& s : data.visualStyles) {\n        if (comma) std::cout << ',';\n        comma = true;\n        std::cout << \"{\\\"handle\\\":\" << s.handle << \",\\\"descriptionHex\\\":\\\"\"\n                  << hex(s.desc) << \"\\\",\\\"type\\\":\" << s.type\n                  << \",\\\"bodyDecoded\\\":\" << s.m_bodyDecoded\n                  << \",\\\"sourceCompanions\\\":\" << unsigned(s.m_body.m_encoding.companionCount) << '}';\n    }\n    std::cout << \"],\\\"nodes\\\":[\";\n    comma = false;\n    const auto nodes = [&comma](const auto& items, const char* family) {\n        for (const auto& object : items) {\n            if (comma) std::cout << ',';\n            comma = true;\n            std::cout << \"{\\\"handle\\\":\" << object.handle << \",\\\"family\\\":\\\"\" << family << \"\\\"}\";\n        }\n    };\n    nodes(data.dictionaries, \"DICTIONARY\"); nodes(data.xRecords, \"XRECORD\");\n    nodes(data.materials, \"MATERIAL\"); nodes(data.visualStyles, \"VISUALSTYLE\");\n    nodes(data.layouts, \"LAYOUT\");\n    std::cout << \"],\\\"dictionaries\\\":[\";\n    comma = false;\n    const auto dictionary = [&comma](const DRW_Dictionary& d) {\n        if (comma) std::cout << ',';\n        comma = true;\n        std::cout << \"{\\\"handle\\\":\" << d.handle << \",\\\"entries\\\":[\";\n        bool entryComma = false;\n        for (const auto& e : d.m_entries) {\n            if (entryComma) std::cout << ',';\n            entryComma = true;\n            std::cout << \"{\\\"keyHex\\\":\\\"\" << hex(e.m_name) << \"\\\",\\\"target\\\":\" << e.m_handle << '}';\n        }\n        std::cout << \"]}\";\n    };\n    if (data.hasNamedObjectDictionary) dictionary(data.namedObjectDictionary);\n    for (const auto& d : data.dictionaries) dictionary(d);\n    std::cout << \"],\\\"dictionaryDefaultReferences\\\":[\";\n    comma = false;\n    for (const auto& d : input.dictionaryDefaults) {\n        if (comma) std::cout << ',';\n        comma = true;\n        std::cout << \"{\\\"handle\\\":\" << d.handle << \",\\\"defaultTarget\\\":\" << d.m_defaultEntryHandle << '}';\n    }\n    std::cout << \"],\\\"inheritedDefaultCallbacks\\\":[\";\n    comma = false;\n    for (const auto& e : input.inheritedDefaults) {\n        if (comma) std::cout << ',';\n        comma = true;\n        std::cout << \"{\\\"family\\\":\\\"\" << e.first << \"\\\",\\\"handle\\\":\" << e.second << '}';\n    }\n    std::cout << \"]}\\n\";\n}\n",
+    "recipe": "\"\"\"Literal pre-load style/graph comparison; no renderer or support vote.\"\"\"\nimport collections\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\n\nrepo = Path('/Users/dli/dev/libdxfrw')\nroot = Path(__file__).resolve().parent\nsys.path.insert(0, str(repo / 'tools'))\nfrom bounded_process import run_bounded\n\ndef sha(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\ndef probe(path):\n    p = run_bounded([str(root / 'readiness_probe'), str(path)], timeout=15, output_limit=65536)\n    assert p.returncode == 0, p.stderr\n    return json.loads(p.stdout)\n\ndef styles(path):\n    lines = Path(path).read_text().splitlines()\n    assert len(lines) % 2 == 0\n    records, current = [], []\n    for i in range(0, len(lines), 2):\n        pair = (int(lines[i]), lines[i + 1])\n        if pair[0] == 0:\n            if current and current[0] == (0, 'VISUALSTYLE'):\n                records.append(current)\n            current = [pair]\n        else:\n            current.append(pair)\n    rows, fallbacks = {}, set()\n    for rec in records:\n        marker = next(i for i, (c, v) in enumerate(rec) if c == 291)\n        before, after = rec[:marker], rec[marker + 1:]\n        group = []\n        for code, value in after:\n            if code == 176:\n                true_colors = [int(v) for c, v in group if c == 420]\n                if true_colors:\n                    assert len(true_colors) == 1\n                    index = next(int(v) for c, v in group if c == 62)\n                    fallbacks.add((true_colors[0], index))\n                group = []\n            else:\n                group.append((code, value))\n        handle = int(next(v for c, v in rec if c == 5), 16)\n        rows[handle] = dict(handle=handle,\n            sourceStyleType=int(next(v for c, v in before if c == 70)),\n            propertyCounts=[int(v) for c, v in after if c == 70],\n            sourceCompanions=sum(c == 176 for c, v in after))\n    return rows, sorted(fallbacks)\n\nstyle_rows = []\nfor year in (2018, 2013, 2010):\n    source = Path(f'/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-{year}/rtext_arctext.dxf')\n    (expected, fallbacks), observed = styles(source), probe(source)\n    actual = {o['handle']: o for o in observed['styles']}\n    assert actual.keys() == expected.keys() and len(actual) == 24\n    mismatches = []\n    for handle, before in expected.items():\n        value = actual[handle]\n        assert not value['bodyDecoded'] and value['sourceCompanions'] == 0\n        assert value['type'] == (58 if year >= 2013 else before['sourceStyleType'])\n        if value['type'] != before['sourceStyleType']:\n            mismatches.append(dict(before, typedType=value['type']))\n    assert len(mismatches) == (24 if year >= 2013 else 0)\n    assert observed['rawStyles'] == 24 and observed['sourceFormat'] == 1\n    style_rows.append(dict(year=year, source=str(source), sourceSha256=sha(source),\n        styleCount=24, typedTypeMismatches=len(mismatches), rows=mismatches,\n        literalTrueColorFallbackPairs=fallbacks,\n        rawStyleCompanions=observed['rawStyles'],\n        conclusion='Raw carrier presence/read success does not certify typed style-type or expanded-property decode'))\n\ngraph_rows = []\nfor stem in ('rtext_arctext', 'mpolygon_solid', 'large_radial'):\n    source = repo / f'tests/fixtures/dwg/{stem}.dwg'\n    peer_path = Path(f'/private/tmp/libdxfrw-broader-boundaries.eCaIDz/{stem}-peer.json')\n    peer = json.loads(peer_path.read_text())\n    by_handle = {o['handle'][2]: o for o in peer['OBJECTS'] if 'handle' in o}\n    observed = probe(source)\n    assert observed['sourceFormat'] == 2 and observed['hasRoot'] == 1 and observed['root'] == 12\n    root_dict = next(o for o in observed['dictionaries'] if o['handle'] == observed['root'])\n    source_root = by_handle[observed['root']]\n    entries = [(bytes.fromhex(e['keyHex']).decode(), e['target']) for e in root_dict['entries']]\n    assert entries == [(k, v[-1]) for k, v in source_root['items'].items()]\n    retained = {o['handle']: o['family'] for o in observed['nodes']}\n    defaulted = {o['handle']: o['family'] for o in observed['inheritedDefaultCallbacks']}\n    assert not (set(defaulted) & set(retained))\n    dictionary_defaults = []\n    for value in observed['dictionaryDefaultReferences']:\n        target = value['defaultTarget']\n        peer_dictionary = by_handle[value['handle']]\n        assert target == peer_dictionary['defaultid'][-1]\n        assert defaulted.get(target) == 'ACDBPLACEHOLDER'\n        dictionary_defaults.append(dict(value, peerFamily=by_handle[target]['object'],\n            sourceDefaultRole=peer_dictionary['defaultid'][0],\n            targetOwner=by_handle[target]['ownerhandle'][-1],\n            targetRetained=target in retained))\n    direct, missing_descendants, planner_excluded = [], [], []\n    dictionaries = {o['handle']: o for o in observed['dictionaries']}\n    for key, handle in entries:\n        direct.append(dict(key=key, handle=handle, peerFamily=by_handle[handle]['object'],\n                           retainedFamily=retained.get(handle), inheritedDefault=defaulted.get(handle)))\n        if handle not in dictionaries:\n            continue\n        for child in dictionaries[handle]['entries']:\n            target = child['target']\n            family = by_handle.get(target, {}).get('object', 'UNKNOWN')\n            item = dict(rootKey=key, dictionary=handle,\n                        childKey=bytes.fromhex(child['keyHex']).decode(), target=target,\n                        peerFamily=family, inheritedDefault=defaulted.get(target))\n            if target not in retained:\n                missing_descendants.append(item)\n            elif retained[target] not in ('DICTIONARY', 'XRECORD', 'VISUALSTYLE'):\n                planner_excluded.append(dict(item, retainedFamily=retained[target]))\n    cmc = collections.Counter()\n    rgb_fallback = set()\n    for style in (o for o in peer['OBJECTS'] if o.get('object') == 'VISUALSTYLE'):\n        for key in ('face_mono_color', 'edge_intersection_color', 'edge_obscured_color',\n                    'edge_color', 'edge_silhouette_color', 'c_prop29', 'c_prop2c', 'c_prop33'):\n            raw = int(style[key]['rgb'], 16)\n            cmc[hex(raw >> 24)] += 1\n            if raw >> 24 == 0xc2:\n                rgb_fallback.add(raw & 0xffffff)\n    graph_rows.append(dict(source=str(source.relative_to(repo)), sha256=sha(source),\n        peerSha256=sha(peer_path), rootEntryCount=len(entries), exactRootEntryJoin=True,\n        directRootTargets=direct, inheritedDefaultCounts=dict(collections.Counter(defaulted.values())),\n        unretainedDictionaryDefaultReferences=dictionary_defaults,\n        oneLevelMissingRetained=missing_descendants,\n        oneLevelRetainedButNotExtensionPlannerFamilies=planner_excluded,\n        cmcMethods=dict(cmc), distinctRgbValues=sorted(rgb_fallback),\n        scope='Root and one-level dictionary descendants only; selected adapter collections/default callbacks, not all objects or full transitive closure'))\n\nprint(json.dumps(dict(schema='libdxfrw-serializer-graph-readiness-research-v1',\n    qualificationEligible=False, styleRows=style_rows, graphRows=graph_rows,\n    sourceSha256={str(repo / p): sha(repo / p) for p in\n        ('src/drw_objects.cpp', 'src/drw_objects.h', 'dwg2dxf/dx_data.h',\n         'dwg2dxf/dx_iface.h', 'dwg2dxf/dx_iface.cpp')},\n    artifactSha256={str(p): sha(p) for p in (root / 'readiness_probe', root / 'readiness_probe.cpp', repo / 'build/libdxfrw.a')},\n    probeRecipe=(root / 'readiness_probe.cpp').read_text(), recipe=Path(__file__).read_text())))\n"
+  },
+  "identicalReadOnlySecondPacket": true,
+  "authoredProducerCalibration": {
+    "package": "Installed ezdxf1.4.4 with C extensions disabled; new rooted document/identities/LINE, property bag from already tracked-input conversion, not a downloaded corpus.",
+    "firstInput": {
+      "source": "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-input/local_profiles.dxf",
+      "sourceSha256": "a004d11b993464128962c69e99bcbee38fba1e52cae803be66ca3820c2c8aa62",
+      "template": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018/rtext_arctext.dxf",
+      "templateSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15",
+      "inputStyleCount": 12,
+      "cases": [
+        {
+          "description": "LOCAL_LIGHT0",
+          "handle": "30",
+          "lighting": 0,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_LIGHT1",
+          "handle": "31",
+          "lighting": 1,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_LIGHT2",
+          "handle": "32",
+          "lighting": 2,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_LIGHT3",
+          "handle": "33",
+          "lighting": 3,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_RGB_BLACK",
+          "handle": "34",
+          "lighting": 2,
+          "rgb": 0,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_NEAR_BLACK",
+          "handle": "35",
+          "lighting": 2,
+          "rgb": 65793,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_CUSTOM",
+          "handle": "36",
+          "lighting": 2,
+          "rgb": 1193046,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_GRAY127",
+          "handle": "37",
+          "lighting": 2,
+          "rgb": 8355711,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_GRAY128",
+          "handle": "38",
+          "lighting": 2,
+          "rgb": 8421504,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_WHITE",
+          "handle": "39",
+          "lighting": 2,
+          "rgb": 16777215,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_BLUE",
+          "handle": "3A",
+          "lighting": 2,
+          "rgb": 255,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_RED",
+          "handle": "3B",
+          "lighting": 2,
+          "rgb": 16711680,
+          "fallback": 1
+        }
+      ],
+      "ezdxfVersion": "1.4.4",
+      "provenance": "New rooted document/handles/LINE; style property bag derives from the audit0 conversion of already tracked rtext_arctext.dwg. No downloaded fixture is admitted.",
+      "qualificationEligible": false,
+      "recipe": "\"\"\"Author disposable rooted style controls from a tracked-input property profile.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport ezdxf\nfrom ezdxf.entities import VisualStyle\nfrom ezdxf.lldxf.tags import Tags\nfrom ezdxf.lldxf.types import DXFTag\n\nroot = Path(__file__).resolve().parent\ntemplate_path = Path('/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018/rtext_arctext.dxf')\nlines = template_path.read_text().splitlines()\nrecords, current = [], []\nfor i in range(0, len(lines), 2):\n    tag = (int(lines[i]), lines[i + 1])\n    if tag[0] == 0:\n        if current and current[0] == (0, 'VISUALSTYLE'):\n            records.append(current)\n        current = [tag]\n    else:\n        current.append(tag)\nrecord = next(r for r in records if (2, 'Flat') in r)\ntemplate = VisualStyle.from_text(''.join(f'{c}\\n{v}\\n' for c, v in record))\nassert template.acad_xdata[0] == (70, 58)\ngroups, group = [], []\nfor tag in template.acad_xdata[1:]:\n    group.append((tag.code, tag.value))\n    if tag.code == 176:\n        groups.append(group)\n        group = []\nassert len(groups) == 58 and not group\nassert groups[6][0][0] == 62 and groups[6][1][0] == 420\n\ndoc = ezdxf.new('R2018')\ndictionary = doc.rootdict.get_required_dict('ACAD_VISUALSTYLE')\ndoc.modelspace().add_line((1, 2, 3), (4, 6, 8))\ncases = []\nfor label, lighting, rgb, fallback in (\n    ('LIGHT0', 0, 0xffffff, 7), ('LIGHT1', 1, 0xffffff, 7),\n    ('LIGHT2', 2, 0xffffff, 7), ('LIGHT3', 3, 0xffffff, 7),\n    ('RGB_BLACK', 2, 0x000000, 1), ('RGB_NEAR_BLACK', 2, 0x010101, 1),\n    ('RGB_CUSTOM', 2, 0x123456, 1), ('RGB_GRAY127', 2, 0x7f7f7f, 1),\n    ('RGB_GRAY128', 2, 0x808080, 1), ('RGB_WHITE', 2, 0xffffff, 1),\n    ('RGB_BLUE', 2, 0x0000ff, 1), ('RGB_RED', 2, 0xff0000, 1),\n):\n    attribs = template.dxfattribs()\n    for key in ('handle', 'owner'):\n        attribs.pop(key, None)\n    attribs.update(description='LOCAL_' + label, style_type=7, unknown1=lighting,\n                   internal_use_only_flag=0, owner=dictionary.dxf.handle)\n    entity = doc.objects.new_entity('VISUALSTYLE', dxfattribs=attribs)\n    values = [[(c, v) for c, v in g] for g in groups]\n    values[6][0] = (62, fallback)\n    values[6][1] = (420, rgb)\n    entity.acad_xdata = Tags([DXFTag(c, v) for c, v in [(70, 58)] + [t for g in values for t in g]])\n    dictionary['LOCAL_' + label] = entity\n    cases.append(dict(description=entity.dxf.description, handle=entity.dxf.handle,\n                      lighting=lighting, rgb=rgb, fallback=fallback))\noutdir = root / 'authored-input'\noutdir.mkdir(exist_ok=True)\npath = outdir / 'local_profiles.dxf'\ndoc.saveas(path)\nprint(json.dumps(dict(source=str(path), sourceSha256=hashlib.sha256(path.read_bytes()).hexdigest(),\n    template=str(template_path), templateSha256=hashlib.sha256(template_path.read_bytes()).hexdigest(),\n    inputStyleCount=len(cases), cases=cases, ezdxfVersion=ezdxf.__version__,\n    provenance='New rooted document/handles/LINE; style property bag derives from the audit0 conversion of already tracked rtext_arctext.dwg. No downloaded fixture is admitted.',\n    qualificationEligible=False, recipe=Path(__file__).read_text())))\n"
+    },
+    "firstConversion": {
+      "argv": [
+        "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+        "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-input",
+        "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-output",
+        "ACAD2018",
+        "DXF",
+        "0",
+        "0",
+        "local_profiles.dxf"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputExists": true,
+      "outputSha256": "c8faacb41c87c9ebb33225d274e482a80caa1ef8ef229f385c1fbea4cdf5c76f",
+      "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "timeoutSeconds": 20,
+      "outputLimitPerStream": 65536,
+      "auditRequested": false,
+      "qualificationEligible": false,
+      "buildIdentity": "27.1.0.0 ARM64, same binary as prior receipt"
+    },
+    "firstLiteralObservations": {
+      "sourceSha256": "a004d11b993464128962c69e99bcbee38fba1e52cae803be66ca3820c2c8aa62",
+      "outputSha256": "c8faacb41c87c9ebb33225d274e482a80caa1ef8ef229f385c1fbea4cdf5c76f",
+      "sourceStyles": 12,
+      "targetStyles": 36,
+      "localStylesRetained": 12,
+      "lineCounts": [
+        1,
+        1
+      ],
+      "rows": [
+        {
+          "name": "LOCAL_LIGHT0",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 0,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_LIGHT1",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 1,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_LIGHT2",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_LIGHT3",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_BLACK",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                0
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_NEAR_BLACK",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    65793
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                65793
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_CUSTOM",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    1193046
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                1193046
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_GRAY127",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    8355711
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                8355711
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_GRAY128",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    8421504
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                8421504
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_WHITE",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_BLUE",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    255
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                255
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_RED",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    16711680
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                16711680
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        }
+      ],
+      "qualificationEligible": false,
+      "scope": "Literal tags/counts only; LINE presence is not geometric/kernel acceptance; source profile derived from tracked-input producer output",
+      "recipe": "\"\"\"Inspect authored/ODA literal tags before a loader/auditor can repair them.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\n\nroot = Path(__file__).resolve().parent\n\ndef records(path):\n    lines = path.read_text().splitlines()\n    groups, current = [], []\n    for i in range(0, len(lines), 2):\n        pair = (int(lines[i]), lines[i + 1])\n        if pair[0] == 0:\n            if current:\n                groups.append(current)\n            current = [pair]\n        else:\n            current.append(pair)\n    local = {}\n    styles = 0\n    for tags in groups:\n        if tags[0] != (0, 'VISUALSTYLE'):\n            continue\n        styles += 1\n        name = next(v for c, v in tags if c == 2)\n        if not name.startswith('LOCAL_'):\n            continue\n        marker = next(i for i, (c, v) in enumerate(tags) if c == 291)\n        prefix, tail = tags[:marker], tags[marker + 1:]\n        assert int(tail[0][1]) == 58 and tail[0][0] == 70\n        properties, prop = [], []\n        for code, value in tail[1:]:\n            if code == 176:\n                properties.append(dict(values=prop, operation=int(value)))\n                prop = []\n            else:\n                parsed = value if code == 1 else float(value) if code == 40 else int(value)\n                prop.append((code, parsed))\n        assert not prop and len(properties) == 58\n        local[name] = dict(styleType=int(next(v for c, v in prefix if c == 70)),\n            lighting=int(next(v for c, v in prefix if c == 177)), properties=properties)\n    return local, styles, groups\n\nbefore_path = root / 'authored-input/local_profiles.dxf'\nafter_path = root / 'authored-output/local_profiles.dxf'\nbefore, before_total, source_records = records(before_path)\nafter, after_total, target_records = records(after_path)\nassert before.keys() == after.keys() and len(before) == 12\nrows = []\nfor name, expected in before.items():\n    actual = after[name]\n    changes = []\n    for i, (left, right) in enumerate(zip(expected['properties'], actual['properties'])):\n        if left != right:\n            changes.append(dict(slot=i, before=left, after=right))\n    rows.append(dict(name=name, sourceType=expected['styleType'], targetType=actual['styleType'],\n        source177=expected['lighting'], target177=actual['lighting'], changedProperties=changes,\n        sourceMono=expected['properties'][6], targetMono=actual['properties'][6]))\nline_counts = [sum(r[0] == (0, 'LINE') for r in items) for items in (source_records, target_records)]\nassert line_counts == [1, 1]\nprint(json.dumps(dict(sourceSha256=hashlib.sha256(before_path.read_bytes()).hexdigest(),\n    outputSha256=hashlib.sha256(after_path.read_bytes()).hexdigest(),\n    sourceStyles=before_total, targetStyles=after_total, localStylesRetained=len(after),\n    lineCounts=line_counts, rows=rows, qualificationEligible=False,\n    scope='Literal tags/counts only; LINE presence is not geometric/kernel acceptance; source profile derived from tracked-input producer output',\n    recipe=Path(__file__).read_text())))\n"
+    },
+    "finalInput": {
+      "source": "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-input/local_profiles.dxf",
+      "sourceSha256": "a9bc72cb818a6dfa2002facaf42588ee78c652eff85e99c364f12f0be567743d",
+      "template": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018/rtext_arctext.dxf",
+      "templateSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15",
+      "inputStyleCount": 12,
+      "cases": [
+        {
+          "description": "LOCAL_LIGHT0",
+          "handle": "30",
+          "lighting": 0,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_LIGHT1",
+          "handle": "31",
+          "lighting": 1,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_LIGHT2",
+          "handle": "32",
+          "lighting": 2,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_LIGHT3",
+          "handle": "33",
+          "lighting": 3,
+          "rgb": 16777215,
+          "fallback": 7
+        },
+        {
+          "description": "LOCAL_RGB_BLACK",
+          "handle": "34",
+          "lighting": 3,
+          "rgb": 0,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_NEAR_BLACK",
+          "handle": "35",
+          "lighting": 3,
+          "rgb": 65793,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_CUSTOM",
+          "handle": "36",
+          "lighting": 3,
+          "rgb": 1193046,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_GRAY127",
+          "handle": "37",
+          "lighting": 3,
+          "rgb": 8355711,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_GRAY128",
+          "handle": "38",
+          "lighting": 3,
+          "rgb": 8421504,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_WHITE",
+          "handle": "39",
+          "lighting": 3,
+          "rgb": 16777215,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_BLUE",
+          "handle": "3A",
+          "lighting": 3,
+          "rgb": 255,
+          "fallback": 1
+        },
+        {
+          "description": "LOCAL_RGB_RED",
+          "handle": "3B",
+          "lighting": 3,
+          "rgb": 16711680,
+          "fallback": 1
+        }
+      ],
+      "ezdxfVersion": "1.4.4",
+      "provenance": "New rooted document/handles/LINE; style property bag derives from the audit0 conversion of already tracked rtext_arctext.dwg. No downloaded fixture is admitted.",
+      "qualificationEligible": false,
+      "recipe": "\"\"\"Author disposable rooted style controls from a tracked-input property profile.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport ezdxf\nfrom ezdxf.entities import VisualStyle\nfrom ezdxf.lldxf.tags import Tags\nfrom ezdxf.lldxf.types import DXFTag\n\nroot = Path(__file__).resolve().parent\ntemplate_path = Path('/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018/rtext_arctext.dxf')\nlines = template_path.read_text().splitlines()\nrecords, current = [], []\nfor i in range(0, len(lines), 2):\n    tag = (int(lines[i]), lines[i + 1])\n    if tag[0] == 0:\n        if current and current[0] == (0, 'VISUALSTYLE'):\n            records.append(current)\n        current = [tag]\n    else:\n        current.append(tag)\nrecord = next(r for r in records if (2, 'Flat') in r)\ntemplate = VisualStyle.from_text(''.join(f'{c}\\n{v}\\n' for c, v in record))\nassert template.acad_xdata[0] == (70, 58)\ngroups, group = [], []\nfor tag in template.acad_xdata[1:]:\n    group.append((tag.code, tag.value))\n    if tag.code == 176:\n        groups.append(group)\n        group = []\nassert len(groups) == 58 and not group\nassert groups[6][0][0] == 62 and groups[6][1][0] == 420\n\ndoc = ezdxf.new('R2018')\ndictionary = doc.rootdict.get_required_dict('ACAD_VISUALSTYLE')\ndoc.modelspace().add_line((1, 2, 3), (4, 6, 8))\ncases = []\nfor label, lighting, rgb, fallback in (\n    ('LIGHT0', 0, 0xffffff, 7), ('LIGHT1', 1, 0xffffff, 7),\n    ('LIGHT2', 2, 0xffffff, 7), ('LIGHT3', 3, 0xffffff, 7),\n    ('RGB_BLACK', 3, 0x000000, 1), ('RGB_NEAR_BLACK', 3, 0x010101, 1),\n    ('RGB_CUSTOM', 3, 0x123456, 1), ('RGB_GRAY127', 3, 0x7f7f7f, 1),\n    ('RGB_GRAY128', 3, 0x808080, 1), ('RGB_WHITE', 3, 0xffffff, 1),\n    ('RGB_BLUE', 3, 0x0000ff, 1), ('RGB_RED', 3, 0xff0000, 1),\n):\n    attribs = template.dxfattribs()\n    for key in ('handle', 'owner'):\n        attribs.pop(key, None)\n    attribs.update(description='LOCAL_' + label, style_type=7, unknown1=lighting,\n                   internal_use_only_flag=0, owner=dictionary.dxf.handle)\n    entity = doc.objects.new_entity('VISUALSTYLE', dxfattribs=attribs)\n    values = [[(c, v) for c, v in g] for g in groups]\n    values[6][0] = (62, fallback)\n    values[6][1] = (420, rgb)\n    entity.acad_xdata = Tags([DXFTag(c, v) for c, v in [(70, 58)] + [t for g in values for t in g]])\n    dictionary['LOCAL_' + label] = entity\n    cases.append(dict(description=entity.dxf.description, handle=entity.dxf.handle,\n                      lighting=lighting, rgb=rgb, fallback=fallback))\noutdir = root / 'authored-input'\noutdir.mkdir(exist_ok=True)\npath = outdir / 'local_profiles.dxf'\ndoc.saveas(path)\nprint(json.dumps(dict(source=str(path), sourceSha256=hashlib.sha256(path.read_bytes()).hexdigest(),\n    template=str(template_path), templateSha256=hashlib.sha256(template_path.read_bytes()).hexdigest(),\n    inputStyleCount=len(cases), cases=cases, ezdxfVersion=ezdxf.__version__,\n    provenance='New rooted document/handles/LINE; style property bag derives from the audit0 conversion of already tracked rtext_arctext.dwg. No downloaded fixture is admitted.',\n    qualificationEligible=False, recipe=Path(__file__).read_text())))\n"
+    },
+    "finalConversion": {
+      "argv": [
+        "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+        "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-input",
+        "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-output",
+        "ACAD2018",
+        "DXF",
+        "0",
+        "0",
+        "local_profiles.dxf"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "outputExists": true,
+      "outputSha256": "19c33c9d6105c46da0635d18162da813888975b2d94175a3250cde4231d6c4aa",
+      "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "timeoutSeconds": 20,
+      "outputLimitPerStream": 65536,
+      "auditRequested": false,
+      "qualificationEligible": false,
+      "recipe": "\"\"\"One bounded audit-disabled ODA save, no native renderer qualification.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\nsys.path.insert(0, '/Users/dli/dev/libdxfrw/tools')\nfrom bounded_process import run_bounded\nroot = Path(__file__).resolve().parent\nbinary = Path('/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter')\nout = root / 'authored-output'\nout.mkdir(exist_ok=True)\nargv = [str(binary), str(root / 'authored-input'), str(out), 'ACAD2018', 'DXF', '0', '0', 'local_profiles.dxf']\nresult = run_bounded(argv, timeout=20, output_limit=65536)\npath = out / 'local_profiles.dxf'\nprint(json.dumps(dict(argv=argv, returncode=result.returncode,\n    stdout=result.stdout.decode('utf8', 'replace'), stderr=result.stderr.decode('utf8', 'replace'),\n    outputExists=path.is_file(), outputSha256=hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None,\n    binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest(),\n    timeoutSeconds=20, outputLimitPerStream=65536, auditRequested=False,\n    qualificationEligible=False, recipe=Path(__file__).read_text())))\n"
+    },
+    "finalLiteralObservations": {
+      "sourceSha256": "a9bc72cb818a6dfa2002facaf42588ee78c652eff85e99c364f12f0be567743d",
+      "outputSha256": "19c33c9d6105c46da0635d18162da813888975b2d94175a3250cde4231d6c4aa",
+      "sourceStyles": 12,
+      "targetStyles": 36,
+      "localStylesRetained": 12,
+      "lineCounts": [
+        1,
+        1
+      ],
+      "rows": [
+        {
+          "name": "LOCAL_LIGHT0",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 0,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_LIGHT1",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 1,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_LIGHT2",
+          "sourceType": 7,
+          "targetType": 58,
+          "source177": 2,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 1,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    2
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 2,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 4,
+              "before": {
+                "values": [
+                  [
+                    40,
+                    0.6
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    40,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 7,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 8,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    4
+                  ]
+                ],
+                "operation": 1
+              }
+            },
+            {
+              "slot": 25,
+              "before": {
+                "values": [
+                  [
+                    90,
+                    13
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    90,
+                    1
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_LIGHT3",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_BLACK",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    0
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    18
+                  ],
+                  [
+                    420,
+                    0
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                0
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                18
+              ],
+              [
+                420,
+                0
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_NEAR_BLACK",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    65793
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    18
+                  ],
+                  [
+                    420,
+                    65793
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                65793
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                18
+              ],
+              [
+                420,
+                65793
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_CUSTOM",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    1193046
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    148
+                  ],
+                  [
+                    420,
+                    1193046
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                1193046
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                148
+              ],
+              [
+                420,
+                1193046
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_GRAY127",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    8355711
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    8
+                  ],
+                  [
+                    420,
+                    8355711
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                8355711
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                8
+              ],
+              [
+                420,
+                8355711
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_GRAY128",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    8421504
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    8
+                  ],
+                  [
+                    420,
+                    8421504
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                8421504
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                8
+              ],
+              [
+                420,
+                8421504
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_WHITE",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    7
+                  ],
+                  [
+                    420,
+                    16777215
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                7
+              ],
+              [
+                420,
+                16777215
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_BLUE",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [
+            {
+              "slot": 6,
+              "before": {
+                "values": [
+                  [
+                    62,
+                    1
+                  ],
+                  [
+                    420,
+                    255
+                  ]
+                ],
+                "operation": 1
+              },
+              "after": {
+                "values": [
+                  [
+                    62,
+                    5
+                  ],
+                  [
+                    420,
+                    255
+                  ]
+                ],
+                "operation": 1
+              }
+            }
+          ],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                255
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                5
+              ],
+              [
+                420,
+                255
+              ]
+            ],
+            "operation": 1
+          }
+        },
+        {
+          "name": "LOCAL_RGB_RED",
+          "sourceType": 7,
+          "targetType": 7,
+          "source177": 3,
+          "target177": 3,
+          "changedProperties": [],
+          "sourceMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                16711680
+              ]
+            ],
+            "operation": 1
+          },
+          "targetMono": {
+            "values": [
+              [
+                62,
+                1
+              ],
+              [
+                420,
+                16711680
+              ]
+            ],
+            "operation": 1
+          }
+        }
+      ],
+      "qualificationEligible": false,
+      "scope": "Literal tags/counts only; LINE presence is not geometric/kernel acceptance; source profile derived from tracked-input producer output",
+      "recipe": "\"\"\"Inspect authored/ODA literal tags before a loader/auditor can repair them.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\n\nroot = Path(__file__).resolve().parent\n\ndef records(path):\n    lines = path.read_text().splitlines()\n    groups, current = [], []\n    for i in range(0, len(lines), 2):\n        pair = (int(lines[i]), lines[i + 1])\n        if pair[0] == 0:\n            if current:\n                groups.append(current)\n            current = [pair]\n        else:\n            current.append(pair)\n    local = {}\n    styles = 0\n    for tags in groups:\n        if tags[0] != (0, 'VISUALSTYLE'):\n            continue\n        styles += 1\n        name = next(v for c, v in tags if c == 2)\n        if not name.startswith('LOCAL_'):\n            continue\n        marker = next(i for i, (c, v) in enumerate(tags) if c == 291)\n        prefix, tail = tags[:marker], tags[marker + 1:]\n        assert int(tail[0][1]) == 58 and tail[0][0] == 70\n        properties, prop = [], []\n        for code, value in tail[1:]:\n            if code == 176:\n                properties.append(dict(values=prop, operation=int(value)))\n                prop = []\n            else:\n                parsed = value if code == 1 else float(value) if code == 40 else int(value)\n                prop.append((code, parsed))\n        assert not prop and len(properties) == 58\n        local[name] = dict(styleType=int(next(v for c, v in prefix if c == 70)),\n            lighting=int(next(v for c, v in prefix if c == 177)), properties=properties)\n    return local, styles, groups\n\nbefore_path = root / 'authored-input/local_profiles.dxf'\nafter_path = root / 'authored-output/local_profiles.dxf'\nbefore, before_total, source_records = records(before_path)\nafter, after_total, target_records = records(after_path)\nassert before.keys() == after.keys() and len(before) == 12\nrows = []\nfor name, expected in before.items():\n    actual = after[name]\n    changes = []\n    for i, (left, right) in enumerate(zip(expected['properties'], actual['properties'])):\n        if left != right:\n            changes.append(dict(slot=i, before=left, after=right))\n    assert expected['styleType'] == 7\n    assert actual['lighting'] == 3\n    if name in ('LOCAL_LIGHT0', 'LOCAL_LIGHT1', 'LOCAL_LIGHT2'):\n        assert actual['styleType'] == 58\n        assert [c['slot'] for c in changes] == [1, 2, 4, 7, 8, 25]\n    else:\n        assert actual['styleType'] == 7\n        assert all(c['slot'] == 6 for c in changes)\n        for left, right in zip(expected['properties'], actual['properties']):\n            assert left['operation'] == right['operation']\n            assert [(c, v) for c, v in left['values'] if c != 62] == [(c, v) for c, v in right['values'] if c != 62]\n    rows.append(dict(name=name, sourceType=expected['styleType'], targetType=actual['styleType'],\n        source177=expected['lighting'], target177=actual['lighting'], changedProperties=changes,\n        sourceMono=expected['properties'][6], targetMono=actual['properties'][6]))\nline_counts = [sum(r[0] == (0, 'LINE') for r in items) for items in (source_records, target_records)]\nassert line_counts == [1, 1]\nprint(json.dumps(dict(sourceSha256=hashlib.sha256(before_path.read_bytes()).hexdigest(),\n    outputSha256=hashlib.sha256(after_path.read_bytes()).hexdigest(),\n    sourceStyles=before_total, targetStyles=after_total, localStylesRetained=len(after),\n    lineCounts=line_counts, rows=rows, qualificationEligible=False,\n    scope='Literal tags/counts only; LINE presence is not geometric/kernel acceptance; source profile derived from tracked-input producer output',\n    recipe=Path(__file__).read_text())))\n"
+    },
+    "correction": "Initial RGB cases used177=2 with a58-property tail; the producer reset properties and type. Frozen first input/output are retained under local_profiles-first.dxf. Corrected RGB cases use177=3 while retaining three deliberately incompatible177 controls. An added assertion that all12 types survive was disproved: the three negative profiles become type58; corrected assertions require only the nine admitted-profile types to remain7. None of these initial/corrected probes proves full/native format support.",
+    "sourceDefinition": "Names LIGHT0–3 are only test labels. group177's universal semantic meaning is not established; do not assert it is a lighting value or rename DWG source fields from this experiment.",
+    "importantResults": "Both audit0 saves exit0/empty logs and add24 standard styles (12→36). Final nine177=3 controls retain58 operations and all non-ACI property values, including explicit420=0; only intended RGB fallback62 may change. Three177=0/1/2 controls change six property slots and type7→58 while succeeding. These are profile-preservation and checker-negative observations, not twelve valid native drawings.",
+    "outputRgbFallbacks": [
+      {
+        "name": "LOCAL_RGB_BLACK",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              0
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              18
+            ],
+            [
+              420,
+              0
+            ]
+          ],
+          "operation": 1
+        }
+      },
+      {
+        "name": "LOCAL_RGB_NEAR_BLACK",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              65793
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              18
+            ],
+            [
+              420,
+              65793
+            ]
+          ],
+          "operation": 1
+        }
+      },
+      {
+        "name": "LOCAL_RGB_CUSTOM",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              1193046
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              148
+            ],
+            [
+              420,
+              1193046
+            ]
+          ],
+          "operation": 1
+        }
+      },
+      {
+        "name": "LOCAL_RGB_GRAY127",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              8355711
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              8
+            ],
+            [
+              420,
+              8355711
+            ]
+          ],
+          "operation": 1
+        }
+      },
+      {
+        "name": "LOCAL_RGB_GRAY128",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              8421504
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              8
+            ],
+            [
+              420,
+              8421504
+            ]
+          ],
+          "operation": 1
+        }
+      },
+      {
+        "name": "LOCAL_RGB_WHITE",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              16777215
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              7
+            ],
+            [
+              420,
+              16777215
+            ]
+          ],
+          "operation": 1
+        }
+      },
+      {
+        "name": "LOCAL_RGB_BLUE",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              255
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              5
+            ],
+            [
+              420,
+              255
+            ]
+          ],
+          "operation": 1
+        }
+      },
+      {
+        "name": "LOCAL_RGB_RED",
+        "source": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              16711680
+            ]
+          ],
+          "operation": 1
+        },
+        "target": {
+          "values": [
+            [
+              62,
+              1
+            ],
+            [
+              420,
+              16711680
+            ]
+          ],
+          "operation": 1
+        }
+      }
+    ],
+    "durableTemplateAlternative": {
+      "path": "docs/research/broader-visualstyle-graph-readiness-2026-10-15.json",
+      "jsonPointer": "/odaConversionCalibration/rows/0/flatLiteralRecord",
+      "scope": "The literal Flat profile is durably retained here; reconstruct the template from these code/value pairs if temporary full DXF output expires. This does not require a new downloaded fixture or another ODA run."
+    }
+  },
+  "primarySources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm",
+      "scope": "DXF NOD first OBJECTS record; application object/class association; not DWG physical-order rule"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "scope": "Basic style-type70 and291; no full modern generic-property-tail or177 meaning"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_Colors_ColorMethod.html",
+      "scope": "0xC0..0xC8 source method distinctions; None=200; not expanded DXF group257 mapping"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_Colors_EntityColor_LookUpAci_byte_byte_byte.html",
+      "scope": "RGB-to-closest-ACI contract; no palette/tie/distance algorithm or executed native API.2026 search result agrees, direct2026 fetch unavailable; use successfully read2020 page."
+    }
+  ],
+  "authoritativePdf": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "version": "5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "pages": [
+      81,
+      103
+    ],
+    "renderedReviewedPage": 81,
+    "scope": "Root H hard-owner role, objects unordered/possibly unused. No VISUALSTYLE177 or full58-property-body authority."
+  },
+  "pinnedPeerSources": [
+    {
+      "repository": "LibreDWG/libredwg",
+      "ref": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+      "path": "src/out_dxf.c",
+      "gitBlobSha": "cb5dd4c742d04bee5770095a33bcd0f2723a2257",
+      "lines": "4161–4183",
+      "finding": "DXF OBJECTS writer still selects dwg_get_first_object(DICTIONARY), not HEADER root. No peer executable or private affected corpus run."
+    },
+    {
+      "repository": "LibreDWG/libredwg",
+      "ref": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+      "path": "src/dwg.c",
+      "gitBlobSha": "b7e2eb9ca999ed64af7be9c345a774363b370632",
+      "lines": "1680–1690,2340–2378,3153–3263,3281–3297",
+      "finding": "First-object/lookup route is positional; color-index routine is exact first palette match or256, not a closest-color algorithm."
+    },
+    {
+      "repository": "LibreDWG/libredwg",
+      "ref": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+      "path": "src/bits.c",
+      "gitBlobSha": "36c764900f0762e5f842daa4dace069ff02e0ea3",
+      "lines": "3986–4135",
+      "finding": "CMC read/convert/write has distinct method/index/RGB and version normalization. No direct code transplant or runtime qualification."
+    },
+    {
+      "repository": "mozman/ezdxf",
+      "ref": "7c64bce52c9d60b9db2dad4d2793c1168c8d3f64",
+      "path": "docs/source/addons/drawing.rst",
+      "gitBlobSha": "786e0369ae911a3e173512c133f1175f04f7b865",
+      "finding": "Drawing addon has no VISUALSTYLE/3D renderer and no ACIS render support; top-view/clipping/profile restrictions remain. Transport parser and visual oracle are distinct."
+    }
+  ],
+  "upstreamIssue": {
+    "repository": "LibreDWG/libredwg",
+    "number": 1413,
+    "state": "open",
+    "updatedAt": "2026-09-08T15:20:15Z",
+    "checked": "2026-10-15",
+    "scope": "Fresh API metadata and pinned source corroborate limitation; reporter's private drawings/layout-loss claims not executed. No issue/comment/PR mutation."
+  },
+  "sourceEvaluatedPaletteComparison": {
+    "observations": [
+      {
+        "rgb": 0,
+        "odaAci": 18,
+        "sourceEvaluatedPeerExactMatch": 0
+      },
+      {
+        "rgb": 255,
+        "odaAci": 5,
+        "sourceEvaluatedPeerExactMatch": 5
+      },
+      {
+        "rgb": 7895160,
+        "odaAci": 8,
+        "sourceEvaluatedPeerExactMatch": 256
+      },
+      {
+        "rgb": 8421504,
+        "odaAci": 8,
+        "sourceEvaluatedPeerExactMatch": 9
+      },
+      {
+        "rgb": 16777215,
+        "odaAci": 7,
+        "sourceEvaluatedPeerExactMatch": 7
+      }
+    ],
+    "paletteEntries": 256,
+    "executedPeerRuntime": false,
+    "scope": "Evaluate the inspected exact-match predicate over its source palette, not a native palette/closest-ACI semantic vote. Three of five tracked RGB fallback pairs differ from ODA output. All generated RGB colors retain explicit true-color; fallback is separately compared."
+  },
+  "implementationDecisions": [
+    "f.3a READY_LOCAL: marker-scoped DXF style-type fix and ASCII/binary basic-type/raw-tail controls; do not infer full typed rendering-property decode.",
+    "f.3b reuse existing dx_data sourceFormat/sourceVersion/read outcomes, then bind per-carrier import origin/version where needed. Success/freshness/mixed-reuse checks; no missing-raw/bodyDecoded heuristic or duplicate format detector.",
+    "f.3c descriptor/mapping review: modern58-property target177=3 profile is materially required by controls; keep original DWG source field separate. C0/C2/C3/C8 only when metadata and target profile are admitted; unknown/name/book/partial/downgrade stay refused. Generic closest-ACI algorithm is unresolved, no guessed palette fallback.",
+    "f.4a retain currently defaulted named-root families in typed owned CLI collections, including DICTIONARYWDFLT and its default PLACEHOLDER. Default optional callback policy for other2D clients stays unchanged.",
+    "f.4b adapt root closure/remapping to LAYOUT/MATERIAL and additional typed families, qualify missing DXF emitters per family. Do not slice derived dictionary to plain DICTIONARY, fake raw DXF for DWG bodies or prune unknown root keys to turn CLI green.",
+    "f.4c one unchanged full FreeCAD-form CLI gate only after focused serializer/closure gates are ready. Full9d remains open; no external-only gate is a reason to block independent ready f.3a/f.2b/report slices."
+  ],
+  "scopeLimits": [
+    "48 typed mismatches are24 styles in each of two producer revision profiles, not48 independent source scenes.",
+    "Graph inventory is13 direct root entries and one dictionary level in three tracked inputs sharing the same default-style/resource profile; not arbitrary/transitive closure.",
+    "29 selected inherited-default callbacks per tracked input are observable non-retention boundaries, not parser failures.27 ordinary-dictionary children, the direct DICTIONARYWDFLT and its required placeholder remain unretained; two layouts/three materials are retained outside the current extension planner.",
+    "Authoring and literal inspection scripts required constructor/byte-count formatting fixes; only final source/artifact-bound successful packets count. Scratch profile labels do not confer semantics.",
+    "No full suite, fresh sanitizer/native Linux/Windows FreeCAD/independent known-dimension ACIS/AcDs semantics, new CTest/dependency/drawing fixture, remote write or support promotion."
+  ],
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "scratchDirectory": "/private/tmp/libdxfrw-serializer-readiness.b6n1lg",
+  "frozenFirstPacketPaths": {"input":"/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-input/local_profiles-first.dxf","output":"/private/tmp/libdxfrw-serializer-readiness.b6n1lg/authored-output/local_profiles-first.dxf","scope":"Historical first packet retains its original command paths/hashes; these copies preserve the bytes after corrected final regeneration."},
+  "planValidation": {"status":"PASS","hashBindings":18,"pythonRecipes":5,"durableTemplate58Companions":true,"gateStatesUnchanged":true,"sourceAndArtifactReusedNotRebuilt":true,"noFullSuiteOrConverterRerun":true,"recipe":"\"\"\"Verify durable evidence bindings without rerunning a CAD converter/suite.\"\"\"\nimport ast\nimport hashlib\nimport json\nfrom pathlib import Path\n\nrepo = Path('/Users/dli/dev/libdxfrw')\nreceipt = json.loads((repo / 'docs/research/broader-style-closure-readiness-2026-10-15.json').read_text())\nscratch = Path(receipt['scratchDirectory'])\npacket = receipt['executedCurrentCode']\nchecks = 0\n\ndef bound(path, expected):\n    global checks\n    assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == expected, path\n    checks += 1\n\nfor path, value in packet['sourceSha256'].items(): bound(path, value)\nfor path, value in packet['artifactSha256'].items(): bound(path, value)\nfor row in packet['styleRows']: bound(row['source'], row['sourceSha256'])\nfor row in packet['graphRows']:\n    bound(repo / row['source'], row['sha256'])\n    assert sum(row['inheritedDefaultCounts'].values()) == 29\n    assert len(row['oneLevelMissingRetained']) == 27\n    assert len(row['oneLevelRetainedButNotExtensionPlannerFamilies']) == 5\nassert [x['typedTypeMismatches'] for x in packet['styleRows']] == [24, 24, 0]\nassert receipt['identicalReadOnlySecondPacket']\ncalibration = receipt['authoredProducerCalibration']\nbound(scratch / 'authored-input/local_profiles-first.dxf', calibration['firstInput']['sourceSha256'])\nbound(scratch / 'authored-output/local_profiles-first.dxf', calibration['firstConversion']['outputSha256'])\nbound(calibration['finalInput']['source'], calibration['finalInput']['sourceSha256'])\nbound(scratch / 'authored-output/local_profiles.dxf', calibration['finalConversion']['outputSha256'])\nassert calibration['finalLiteralObservations']['sourceSha256'] == calibration['finalInput']['sourceSha256']\nassert calibration['finalLiteralObservations']['outputSha256'] == calibration['finalConversion']['outputSha256']\nfor value in (packet['recipe'], calibration['firstInput']['recipe'], calibration['finalInput']['recipe'],\n              calibration['finalConversion']['recipe'], calibration['finalLiteralObservations']['recipe']):\n    ast.parse(value)\nprior = json.loads((repo / 'docs/research/broader-visualstyle-graph-readiness-2026-10-15.json').read_text())\nflat = prior['odaConversionCalibration']['rows'][0]['flatLiteralRecord']\nassert [2, 'Flat'] in flat and any(c == 291 for c, v in flat)\nassert sum(c == 176 for c, v in flat) == 58\nassert all(v == 'DEFERRED_EXTERNAL' for v in receipt['externalGates'].values())\nfor path in ('DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md', 'DWG_DXF_3D_SUPPORT_PLAN.md'):\n    text = (repo / path).read_text()\n    assert 'broader-style-closure-readiness-2026-10-15.json' in text\n    assert 'typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15' in text\nprint(json.dumps(dict(status='PASS', hashBindings=checks, pythonRecipes=5,\n    durableTemplate58Companions=True, gateStatesUnchanged=True,\n    sourceAndArtifactReusedNotRebuilt=True, noFullSuiteOrConverterRerun=True,\n    recipe=Path(__file__).read_text())))\n"}
+}
