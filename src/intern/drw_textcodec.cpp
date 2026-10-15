@@ -12,6 +12,17 @@
 #include "drw_cptable950.h"
 
 namespace {
+bool codePageNameEquals(std::string_view source, std::string_view key) noexcept {
+    if (source.size() != key.size()) return false;
+    for (std::size_t i = 0; i < source.size(); ++i) {
+        const auto byte = static_cast<unsigned char>(source[i]);
+        const auto folded = byte >= 'a' && byte <= 'z'
+            ? static_cast<unsigned char>(byte - 'a' + 'A') : byte;
+        if (folded != static_cast<unsigned char>(key[i])) return false;
+    }
+    return true;
+}
+
 // Share the existing UTF8 scalar rules with input observations, without a
 // substring allocation. Malformed input consumes one byte, as before.
 int decodeUtf8Scalar(std::string_view text, int* consumed) noexcept {
@@ -161,7 +172,7 @@ void DRW_TextCodec::setCodePage(const std::string &c, bool dxfFormat){
 
 void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
                                     bool explicitDeclaration) {
-    const DRW_CodePageSelection selection = classifyCodePage(c);
+    const auto selection = resolveCodePage(c, DRW_CodePageMappingPolicy::Compatible).declaration;
     cp = selection.selectedName;
     // Internal version defaults do not erase an earlier explicit non-1252
     // declaration. HEADER finalization reapplies the final declared page.
@@ -956,22 +967,78 @@ DRW_CodePageSelection DRW_TextCodec::classifyCodePage(std::string_view name) noe
         {"ISO8859-14", "ANSI_1252", DRW_CodePageKind::Unavailable},
         {"TSCII", "ANSI_1252", DRW_CodePageKind::Unavailable},
     };
-    const auto equalsAscii = [](std::string_view source, std::string_view key) {
-        if (source.size() != key.size())
-            return false;
-        for (std::size_t i = 0; i < source.size(); ++i) {
-            const unsigned char byte = static_cast<unsigned char>(source[i]);
-            const unsigned char folded = byte >= 'a' && byte <= 'z'
-                ? static_cast<unsigned char>(byte - 'a' + 'A') : byte;
-            if (folded != static_cast<unsigned char>(key[i]))
-                return false;
-        }
-        return true;
-    };
     for (const Entry& entry : entries) {
-        if (equalsAscii(name, entry.name))
+        if (codePageNameEquals(name, entry.name))
             return {entry.kind, entry.selected};
     }
     // An explicit empty declaration is unknown, not an absent declaration.
     return {DRW_CodePageKind::Unknown, "ANSI_1252"};
+}
+
+DRW_CodePageResolution DRW_TextCodec::resolveCodePage(
+    std::string_view name, DRW_CodePageMappingPolicy policy) noexcept {
+    const auto declaration = classifyCodePage(name);
+    const bool implementedName = declaration.kind == DRW_CodePageKind::Canonical
+        || declaration.kind == DRW_CodePageKind::ExactAlias;
+    const char* requested = implementedName ? declaration.selectedName : nullptr;
+    // Family identity only: none of these missing exact mappings is made
+    // available by recognizing its spelling or historical approximation.
+    struct Family { std::string_view spelling; const char* name; };
+    static constexpr Family families[] = {
+        {"ISO8859-1", "ISO8859-1"}, {"ISO-8859-1", "ISO8859-1"},
+        {"ISO_8859-1", "ISO8859-1"}, {"LATIN1", "ISO8859-1"},
+        {"CP819", "ISO8859-1"}, {"IBM819", "ISO8859-1"},
+        {"ISO-IR-100", "ISO8859-1"}, {"L1", "ISO8859-1"},
+        {"ISO8859-2", "ISO8859-2"}, {"ISO-8859-2", "ISO8859-2"},
+        {"ISO8859-3", "ISO8859-3"}, {"ISO-8859-3", "ISO8859-3"},
+        {"ISO8859-4", "ISO8859-4"}, {"ISO-8859-4", "ISO8859-4"},
+        {"ISO8859-5", "ISO8859-5"}, {"ISO-8859-5", "ISO8859-5"},
+        {"ISO8859-6", "ISO8859-6"}, {"ISO-8859-6", "ISO8859-6"},
+        {"ISO8859-7", "ISO8859-7"}, {"ISO-8859-7", "ISO8859-7"},
+        {"ISO8859-8", "ISO8859-8"}, {"ISO-8859-8", "ISO8859-8"},
+        {"ISO8859-9", "ISO8859-9"}, {"ISO-8859-9", "ISO8859-9"},
+        {"ISO8859-10", "ISO8859-10"}, {"ISO-8859-10", "ISO8859-10"},
+        {"ISO8859-11", "ISO8859-11"},
+        {"ISO8859-13", "ISO8859-13"}, {"ISO-8859-13", "ISO8859-13"},
+        {"ISO8859-14", "ISO8859-14"},
+        {"ISO8859-15", "ISO8859-15"}, {"ISO-8859-15", "ISO8859-15"},
+        {"KOI8-R", "KOI8-R"}, {"KOI8-U", "KOI8-U"},
+        {"CP437", "IBM437"},
+        {"CP850", "IBM850"}, {"IBM 850", "IBM850"},
+        {"CP866", "IBM866"}, {"IBM 866", "IBM866"},
+        {"APPLE ROMAN", "MACINTOSH"}, {"MACINTOSH", "MACINTOSH"},
+        {"TIS-620", "TIS-620"}, {"TSCII", "TSCII"},
+        {"EUCJP", "EUC-JP"}, {"EUC-JP", "EUC-JP"},
+        {"CSEUCPKDFMTJAPANESE", "EUC-JP"},
+        {"SHIFT-JIS", "SHIFT_JIS"}, {"SHIFT_JIS", "SHIFT_JIS"},
+        {"CSSHIFTJIS", "SHIFT_JIS"}, {"MS_KANJI", "SHIFT_JIS"},
+        {"GBK", "GBK"}, {"GB2312", "GB2312"}, {"CN-GB", "GB2312"},
+        {"CSGB2312", "GB2312"}, {"CSGB231280", "GB2312"},
+        {"CSISO58BG231280", "GB2312"}, {"GB_2312-80", "GB2312"},
+        {"GB231280", "GB2312"}, {"GB2312-80", "GB2312"},
+        {"ISO-IR-58", "GB2312"}, {"GB18030", "GB18030"},
+        {"EUCKR", "EUC-KR"},
+        {"BIG5", "BIG5"}, {"CN-BIG5", "BIG5"}, {"CSBIG5", "BIG5"},
+        {"BIG5-HKSCS", "BIG5-HKSCS"},
+        {"JOHAB", "JOHAB"}, {"ANSI_1361", "JOHAB"},
+    };
+    if (!implementedName) {
+        for (const auto& family : families) {
+            if (codePageNameEquals(name, family.spelling)) {
+                requested = family.name;
+                break;
+            }
+        }
+    }
+    if (policy == DRW_CodePageMappingPolicy::Compatible)
+        return {declaration, requested, declaration.selectedName,
+                DRW_CodePageMappingStatus::CompatibleSelection};
+    if (policy != DRW_CodePageMappingPolicy::ExactNamed)
+        return {declaration, requested, nullptr, DRW_CodePageMappingStatus::Unknown};
+    if (implementedName)
+        return {declaration, requested, declaration.selectedName,
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    return {declaration, requested, nullptr,
+            declaration.kind == DRW_CodePageKind::Unknown && requested == nullptr
+                ? DRW_CodePageMappingStatus::Unknown : DRW_CodePageMappingStatus::Unavailable};
 }

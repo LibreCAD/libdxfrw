@@ -612,6 +612,107 @@ void testCodePageSelectionMetadata(TestContext& t) {
     std::cout << "Codec selection metadata: legacy selection cases=" << compatibilityCases << '\n';
 }
 
+void testExactCodePageResolution(TestContext& t) {
+    using Policy = DRW_CodePageMappingPolicy;
+    using Status = DRW_CodePageMappingStatus;
+    using Kind = DRW_CodePageKind;
+    struct Row { const char* spelling; const char* requested; const char* historical; Kind kind; };
+    const Row available[] = {
+        {"ANSI_1252", "ANSI_1252", "ANSI_1252", Kind::Canonical},
+        {"cp1252", "ANSI_1252", "ANSI_1252", Kind::ExactAlias},
+        {"ANSI_1257", "ANSI_1257", "ANSI_1257", Kind::Canonical},
+        {"CP1257", "ANSI_1257", "ANSI_1257", Kind::ExactAlias},
+        {"ansi_949", "ANSI_949", "ANSI_949", Kind::Canonical},
+        {"CSWINDOWS31J", "ANSI_932", "ANSI_932", Kind::ExactAlias},
+        {"X-MS-CP932", "ANSI_932", "ANSI_932", Kind::ExactAlias},
+        {"UTF8", "UTF-8", "UTF-8", Kind::ExactAlias},
+        {"UTF-16", "UTF-16", "UTF-16", Kind::Canonical}
+    };
+    const Row unavailable[] = {
+        {"ISO8859-4", "ISO8859-4", "ANSI_1257", Kind::CompatibilityAlias},
+        {"iso-8859-4", "ISO8859-4", "ANSI_1252", Kind::Unavailable},
+        {"ISO8859-10", "ISO8859-10", "ANSI_1257", Kind::CompatibilityAlias},
+        {"ISO-8859-10", "ISO8859-10", "ANSI_1252", Kind::Unavailable},
+        {"ISO8859-13", "ISO8859-13", "ANSI_1257", Kind::CompatibilityAlias},
+        {"ISO-8859-13", "ISO8859-13", "ANSI_1252", Kind::Unavailable},
+        {"LATIN1", "ISO8859-1", "ANSI_1252", Kind::CompatibilityAlias},
+        {"ISO_8859-1", "ISO8859-1", "ANSI_1252", Kind::CompatibilityAlias},
+        {"ISO8859-11", "ISO8859-11", "ANSI_874", Kind::CompatibilityAlias},
+        {"TIS-620", "TIS-620", "ANSI_874", Kind::CompatibilityAlias},
+        {"KOI8-R", "KOI8-R", "ANSI_1251", Kind::CompatibilityAlias},
+        {"KOI8-U", "KOI8-U", "ANSI_1251", Kind::CompatibilityAlias},
+        {"IBM 866", "IBM866", "ANSI_1251", Kind::CompatibilityAlias},
+        {"CP866", "IBM866", "ANSI_1252", Kind::Unavailable},
+        {"IBM 850", "IBM850", "ANSI_1252", Kind::CompatibilityAlias},
+        {"CP850", "IBM850", "ANSI_1252", Kind::Unavailable},
+        {"MACINTOSH", "MACINTOSH", "ANSI_1252", Kind::Unavailable},
+        {"APPLE ROMAN", "MACINTOSH", "ANSI_1252", Kind::CompatibilityAlias},
+        {"EUC-JP", "EUC-JP", "ANSI_932", Kind::CompatibilityAlias},
+        {"csEUCPkdFmtJapanese", "EUC-JP", "ANSI_932", Kind::CompatibilityAlias},
+        {"SHIFT_JIS", "SHIFT_JIS", "ANSI_932", Kind::CompatibilityAlias},
+        {"MS_KANJI", "SHIFT_JIS", "ANSI_932", Kind::CompatibilityAlias},
+        {"GB18030", "GB18030", "ANSI_936", Kind::CompatibilityAlias},
+        {"GBK", "GBK", "ANSI_936", Kind::CompatibilityAlias},
+        {"GB2312", "GB2312", "ANSI_936", Kind::CompatibilityAlias},
+        {"EUCKR", "EUC-KR", "ANSI_949", Kind::CompatibilityAlias},
+        {"BIG5", "BIG5", "ANSI_950", Kind::CompatibilityAlias},
+        {"BIG5-HKSCS", "BIG5-HKSCS", "ANSI_950", Kind::CompatibilityAlias},
+        {"ANSI_1361", "JOHAB", "ANSI_1252", Kind::Unavailable},
+        {"TSCII", "TSCII", "ANSI_1252", Kind::Unavailable},
+        // Historical accepted but ambiguous/vendor-only labels retain their
+        // selection without inventing a qualified requested mapping family.
+        {"CSISO", nullptr, "ANSI_1252", Kind::CompatibilityAlias},
+        {"X-EUC", nullptr, "ANSI_932", Kind::CompatibilityAlias},
+        {"X-X-BIG5", nullptr, "ANSI_950", Kind::CompatibilityAlias}
+    };
+    const auto matches = [](const char* value, const char* expected) {
+        return value == nullptr || expected == nullptr ? value == expected
+            : std::string_view(value) == expected;
+    };
+    std::size_t selections = 0;
+    const auto check = [&](const Row& row, bool exactAvailable) {
+        for (auto policy : {Policy::Compatible, Policy::ExactNamed}) {
+            const auto result = DRW_TextCodec::resolveCodePage(row.spelling, policy);
+            const auto expectedStatus = policy == Policy::Compatible ? Status::CompatibleSelection
+                : exactAvailable ? Status::ExactImplementationAvailable : Status::Unavailable;
+            t.expect(matches(result.requestedName, row.requested)
+                         && matches(result.declaration.selectedName, row.historical)
+                         && result.declaration.kind == row.kind && result.status == expectedStatus
+                         && matches(result.decoderName,
+                             policy == Policy::Compatible || exactAvailable ? row.historical : nullptr),
+                     "exact resolution preserves provenance and never substitutes a similar Windows mapping");
+            ++selections;
+        }
+    };
+    for (const auto& row : available) check(row, true);
+    for (const auto& row : unavailable) check(row, false);
+    const std::string names[] = {"", "unknown-authored-page", "ANSI_1252 ",
+        "ISO8859-4/UTF8", "\xE9", std::string("ISO8859-4\0X", 11)};
+    for (const auto& name : names) {
+        const auto result = DRW_TextCodec::resolveCodePage(name, Policy::ExactNamed);
+        t.expect(result.status == Status::Unknown && result.requestedName == nullptr
+                     && result.decoderName == nullptr && result.declaration.kind == Kind::Unknown
+                     && matches(result.declaration.selectedName, "ANSI_1252"),
+                 "unknown empty contaminated or NUL-containing declarations cannot become exact prefixes");
+    }
+    const auto invalidPolicy = DRW_TextCodec::resolveCodePage("ANSI_1252", static_cast<Policy>(255));
+    t.expect(invalidPolicy.decoderName == nullptr && invalidPolicy.status == Status::Unknown,
+             "an unknown policy cannot silently select a decoder");
+    const auto owned = DRW_TextCodec::resolveCodePage(std::string("iso-8859-4"), Policy::ExactNamed);
+    t.expect(matches(owned.requestedName, "ISO8859-4") && owned.decoderName == nullptr,
+             "resolved identity survives destruction of the caller spelling without borrowed storage");
+    bool allocationFree = true;
+    failImportObservationAllocations = true;
+    for (const auto& row : available) for (auto policy : {Policy::Compatible, Policy::ExactNamed})
+        allocationFree &= DRW_TextCodec::resolveCodePage(row.spelling, policy).decoderName != nullptr;
+    for (const auto& row : unavailable)
+        allocationFree &= DRW_TextCodec::resolveCodePage(row.spelling, Policy::ExactNamed).decoderName == nullptr;
+    failImportObservationAllocations = false;
+    t.expect(allocationFree, "resolution remains allocation-free even under forced allocator failure");
+    std::cout << "Exact codepage resolution: selections=" << selections
+              << ", unknown controls=6, invalid-policy/ownership/allocation controls=3\n";
+}
+
 std::string makeCodePageDiagnosticDrawing(const char* declaration, bool modern,
                                           bool pageFirst, bool binary,
                                           int headerRepeats = 1) {
@@ -2739,6 +2840,11 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--codepage-resolution") {
+        testExactCodePageResolution(context);
+        testCodePageSelectionMetadata(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 3 && std::string(argv[1]) == "--target-dwg-control") {
         writeTargetDwgControl(context, std::filesystem::u8path(argv[2]));
         return context.failures == 0 ? 0 : 1;
@@ -2795,6 +2901,7 @@ int main(int argc, char** argv) {
     testCodePageAliases(context);
     testCodePagePolicyAnchors(context);
     testCodePageSelectionMetadata(context);
+    testExactCodePageResolution(context);
     testCodePageDiagnosticHandoff(context);
     testCodePageProvenanceBudget(context);
     testCodePageDeclarationProvenance(context);

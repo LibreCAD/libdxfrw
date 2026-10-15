@@ -41,7 +41,7 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `5886b48`; Plan-Slice:Slice3.2b.2d):**
+**Current handoff (2026-10-15, provenance `7c677bc`; Plan-Slice:Slice3.3a.1):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
@@ -86,10 +86,25 @@ Receipt: docs/research/codec-target-transport-3-2b-2d-2026-10-15.json.
 Sticky failures preserve destinations/caller state; scalar/CIF atoms are not
 split. Missing high-byte raw102 provenance is refused, not guessed. Fixed
 public policy state requires consumer rebuild; no pure callback is added.
-Parent3.2 remains IN_PROGRESS. Next3.3a exact-named mapping identity/policy,
+Parent3.2 remains IN_PROGRESS. That checkpoint hands off to3.3a identity/policy,
 then3.3b offline ISO8859-4 and3.3c HEADER/CLI handoff. Caret/native rendering,
 Compatible-default7AR behavior, full102 migration and DWG numeric metadata
 remain separate. Prior research receipts retain their original WIP boundary.
+
+3.3a.1 now implements the internal explicit resolution contract: historical
+declaration/selection, requested family, eligible decoder and availability are
+separate. Compatible production selection remains unchanged; exact missing
+families return no decoder instead of a similar Windows mapping.84 policy
+selections/six unknown/three invalid-policy-ownership-allocation controls and
+178 historical selections pass. Fresh codec/CLI2/2 in9.40s, strict two-TU and
+affected/lc3 build pass; all140 frozen compatibility outputs remain identical
+across both format flags/two locales. Receipt:
+docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json.
+This closes only the resolution contract, not parent3.3a or actual ISO decoding.
+No installed setter ships before the table and reader handoff are functional.
+Next3.3b fixed ISO8859-4 table/exact factory, then3.3c input snapshot/HEADER/
+observation/converter handoff. Public policy delivery stays open under3.3a/c;
+no format, native or support claim changes.
 
 | Order | Bounded item | Actual state and next gate |
 | --- | --- | --- |
@@ -97,7 +112,7 @@ remain separate. Prior research receipts retain their original WIP boundary.
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
 | 3 | S2.3.9.4.29 block-path modeler census | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:S2.3.9.4.29.B3. The strict writer now rejects unresolved modern INSERT targets using its existing BLOCK_RECORD index. B3 passes28 genuine rejection/destination checks,28 corrected fresh-data retries and four default/R12 compatibility controls. Actual CLI passes four missing-target rejection cells/two R12 refusals plus four valid two-pass conversions/verifiers; positive bytes remain stable. Strict source/TU/lc3 and retained final-source focused CTests2/2 pass. Durable B3 report: docs/research/modeler-block-failures-b3-2026-10-15.json. B1/B2 receipts remain frozen; no nested DWG AcDs/SAB/native/B-rep/J promotion. Codec3.1 is also committed; next independent local slice is3.2. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
-| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Slice3.2b.2d LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_TARGET_TRANSPORT: retained10/10 gate and fresh focused/CLI/DWG/sanitizer/strict checks pass; receipt docs/research/codec-target-transport-3-2b-2d-2026-10-15.json. Next3.3a exact-mapping policy, then3.3b/c; raw102/default7AR/native semantics remain open.3.4 stays version-witness-gated. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Slice3.2b.2d LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_TARGET_TRANSPORT: retained10/10 gate and fresh focused/CLI/DWG/sanitizer/strict checks pass; receipt docs/research/codec-target-transport-3-2b-2d-2026-10-15.json. 3.3a.1 resolution contract is locally implemented:84 selection/six unknown/three lifecycle controls,178 frozen selections,140 unchanged outputs and focused2/2 pass; receipt docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json. Parent3.3a remains open for functional public input policy. Next3.3b table/factory, then3.3c handoff; raw102/default7AR/native semantics remain open.3.4 stays version-witness-gated. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
 
 7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
 GEODATA reader or writer from an older research queue. The new research
@@ -12560,7 +12575,8 @@ scalar-transport gate with the separate
 [acceptance receipt](docs/research/codec-target-transport-3-2b-2d-2026-10-15.json).
 The research JSON's uncommitted-candidate state is historical and unchanged,
 not current implementation status. The current handoff above is authoritative;
-next new work is3.3a. Exact mapping, caret/native semantics and full102 migration
+3.3a.1's subsequent internal resolution checkpoint is recorded there; next new
+work is3.3b. Exact mapping, caret/native semantics and full102 migration
 are not closed by that integration.
 
 ### Exhaustive evidence, not another overlap anchor
@@ -12645,7 +12661,16 @@ without weakening an assertion.
    actual CLI/DWG, sanitizer and strict-source checks. Do not relabel the
    earlier selected suite as a new run, close caret/native semantics, or count
    ordinary Compatible behavior as fixed by an explicit policy. Next3.3a.
-2. **3.3a exact mapping policy and identity (`POLICY_GATE`, first new code).**
+2. **3.3a exact mapping policy and identity (`IN_PROGRESS`; resolution contract complete).**
+   Slice3.3a.1 implements internal Compatible/ExactNamed resolution and separates
+   declaration, requested mapping family, eligible implementation and status.
+   The current handoff/receipt binds84 selection/six unknown/three lifecycle-
+   allocation controls,178 historical selections, unchanged140 outputs and
+   focused2/2. ISO8859-4 remains explicitly unavailable until3.3b; no table is
+   fabricated. Ambiguous CSISO/X-EUC/X-X-BIG5 keep an unknown requested family
+   rather than invented identity. Existing production configuration explicitly
+   uses Compatible. Public input policy/snapshots are deliberately introduced
+   only with functional3.3b/c; they are not claimed complete by this substep.
    Recommend a separate explicit exact-named input selection contract; ordinary
    compatible/default alias interpretation stays frozen. Do not overload the
    input-only LibreCAD UTF8 recovery option, source-validity policy, target

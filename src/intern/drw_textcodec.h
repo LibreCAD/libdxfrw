@@ -28,6 +28,29 @@ struct DRW_CodePageSelection {
     const char* selectedName {nullptr};
 };
 
+// Internal input-selection contract. Neither policy is format admission or
+// exhaustive table qualification. Existing readers/writers use Compatible;
+// ExactNamed must never substitute a merely similar Windows mapping.
+enum class DRW_CodePageMappingPolicy { Compatible, ExactNamed };
+enum class DRW_CodePageMappingStatus {
+    CompatibleSelection,
+    ExactImplementationAvailable,
+    Unavailable,
+    Unknown
+};
+
+struct DRW_CodePageResolution {
+    // Preserve the historical declaration classification/selection separately
+    // from requested mapping identity and a future explicitly chosen decoder.
+    DRW_CodePageSelection declaration;
+    // Static family spelling, or null when this resolver cannot identify it.
+    // The full original declaration remains the separate HEADER provenance.
+    const char* requestedName {nullptr};
+    // Static implementation name; null means no eligible exact decoder.
+    const char* decoderName {nullptr};
+    DRW_CodePageMappingStatus status {DRW_CodePageMappingStatus::Unknown};
+};
+
 struct DRW_TextDecodeObservation {
     std::uint32_t issues {0};
     bool nonAsciiBytes {false};
@@ -64,6 +87,8 @@ public:
     void setVersion(DRW::Version v, bool dxfFormat);
     void setCodePage(const std::string &c, bool dxfFormat);
     static DRW_CodePageSelection classifyCodePage(std::string_view name) noexcept;
+    static DRW_CodePageResolution resolveCodePage(
+        std::string_view name, DRW_CodePageMappingPolicy policy) noexcept;
     DRW_CodePageSelection declaredCodePageSelection() const noexcept {
         return m_declaredCodePageSelection;
     }

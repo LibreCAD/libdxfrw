@@ -66,6 +66,20 @@ mapping identity/policy, then3.3b offline table/3.3c HEADER/CLI handoff. The
 scalar guard does not close caret/native semantics, Compatible-default7AR,
 full102 migration or DWG numeric metadata. No3D ledger/support count changes.
 
+Parity3.3a.1 now implements allocation-free internal mapping resolution,
+separating original classification, requested family, eligible decoder and
+availability. Missing exact ISO/DBCS families have no decoder, not a Windows
+approximation; production configuration still explicitly uses Compatible.
+84 policy selections/six unknown/three invalid-policy-ownership-allocation and
+178 historical selection controls pass. Fresh codec/CLI2/2 in9.40s,
+strict two-TU/affected/lc3 build pass; all140 frozen output observations remain
+unchanged across two format flags/two locales. Receipt:
+docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json.
+This is an internal resolution contract only: parent3.3a remains IN_PROGRESS,
+with the usable public input policy/HEADER/observation handoff reserved for
+functional3.3b/c. Next3.3b offline ISO8859-4 table and exact factory; no installed
+API, parser layout, callback, support or3D ledger change in this substep.
+
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
 adds140 current-source codec observations and a bounded3.1–3.5 implementation
@@ -6749,7 +6763,8 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is policy-gated parity3.3a exact mapping identity, then3.3b/c;
+local work is parity3.3b offline ISO8859-4/exact factory, then3.3c source handoff;
+3.3a public-policy delivery remains open while its internal resolution is implemented;
 3.2b.2d target transport is locally implemented):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
