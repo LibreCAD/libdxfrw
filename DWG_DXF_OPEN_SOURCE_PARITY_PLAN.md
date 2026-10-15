@@ -2,6 +2,14 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
+**Latest research delta (2026-10-15, baseline `5c3c76e`):** the
+[codec-policy and peer-horizon refresh](#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
+adds140 source-bound unit-codec observations, a concrete Slice3.1–3.5
+implementation sequence and calibrated comparator/consumer gates. It is
+research, not integration: existing B3 production/test WIP is untouched and
+must not be marked committed from this receipt. No finding/subplan or support
+claim is added; all six external J gates retain their disposition.
+
 **Current handoff (2026-10-15, HATCH `cf2c3b6`, census `620a349`; Plan-Slice:S2.3.9.4.29.B2):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
@@ -14,9 +22,9 @@ associativity claims. S5.18 is locally complete; external semantics stay open.
 | --- | --- | --- |
 | 1 | PAR-35 / 7R.1 / S5.18 direct HATCH writer | COMMITTED `57b98cd`. Retain the passing literal tags, resolver-alias and failed-write controls; this is not CLI associativity support. |
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
-| 3 | S2.3.9.4.29 block-path modeler census | B1/B2 COMMITTED / B3 READY_LOCAL. The source census passes8 positive/14 negative checks. Generated AC1024 ASCII/binary codec passes16 handoffs; raw/typed checks bind25 entity/BLOCK/BLOCK_RECORD identities with exact owner/carrier/INSERT closure. Twelve physical-graph checker mutations reject, separately from converter negatives. Actual CLI passes twice per encoding, with byte-stable second output. Durable B2 report: docs/research/modeler-block-codec-b2-2026-10-15.json. Next B3 genuine no-output rejection/corrected reuse; no native/external prerequisite or support promotion. |
+| 3 | S2.3.9.4.29 block-path modeler census | B1/B2 COMMITTED / B3 UNCOMMITTED_CANDIDATE. The source census passes8 positive/14 negative checks. Generated AC1024 ASCII/binary codec passes16 handoffs; raw/typed checks bind25 entity/BLOCK/BLOCK_RECORD identities with exact owner/carrier/INSERT closure. Twelve physical-graph checker mutations reject, separately from converter negatives. Actual CLI passes twice per encoding, with byte-stable second output. Durable B2 report: docs/research/modeler-block-codec-b2-2026-10-15.json. Review/bind B3 genuine no-output rejection/corrected reuse before integration; this research neither edits nor closes that candidate. No native/external prerequisite or support promotion. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
-| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | SOURCE_READY / VERSION_WITNESS_REQUIRED as applicable. Reuse the existing codec vectors and ODA/trace gates; do not substitute a peer's width or recovery heuristic. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.1 local regression/classification work is READY_LOCAL after the existing B3 WIP boundary;3.2–3.5 have explicit policy/mapping/integration gates below. S3.2 remains VERSION_WITNESS_REQUIRED. Reuse codec vectors and ODA/trace gates; do not substitute a peer's width or recovery heuristic. |
 
 7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
 GEODATA reader or writer from an older research queue. The new research
@@ -3810,6 +3818,12 @@ decoder/regex framework to the implementation critical path.
   anchors. Distinguish canonical DWG codepage identifiers from extra accepted
   spelling aliases. Preserve legacy behavior only in an explicit compatibility
   policy; do not silently reinterpret a recognized, different encoding.
+- The new source-bound140-cell calibration broadens this to ISO/DOS/Mac,
+  multibyte and two-scalar profiles. Its exact results, compatibility limits
+  and implementation-ready3.1–3.5 steps are in the final research section.
+  ISO8859-4/10/13 A1 and ISO8859-8 DF currently vanish under substituted
+  Windows tables; successful byte round-trips can also retain the wrong
+  Unicode interpretation. These refine PAR-05, not new finding IDs.
 - Add focused tests for all currently supported page families and each newly
   added one, including round-trip text, unrepresentable characters, and
   unsupported identifiers.
@@ -3875,8 +3889,12 @@ text changes settle, not a second encoding framework or automatic heuristic.
 
 - Known identifiers map deterministically and unknown identifiers are
   observable; valid names do not silently become mojibake.
-- DXF `$DWGCODEPAGE` behavior is checked against ezdxf for the supported
-  pre-AC1021 range, and UTF-8 behavior is tested for AC1021+.
+- DXF `$DWGCODEPAGE` behavior is checked against an explicitly selected,
+  independently anchored codec for the supported pre-AC1021 range, and UTF-8
+  behavior is tested for AC1021+. ezdxf's default suffix/fallback lookup is
+  not an oracle for unknown or extra aliases. Assert source bytes, expected
+  Unicode scalars, declared/emitted page and output bytes separately;
+  byte stability or a same-codec reread alone cannot pass this gate.
 
 **Fast validation**
 
@@ -7836,6 +7854,14 @@ counts distinct, using7F.1b's typed unknowns. These are source-only contracts;
 no acadrust execution/install is required now. Add dependency-free report
 mutations first and one optional clean/unknown-record runtime control only
 when this lane is introduced, not a new mandatory oracle prerequisite.
+
+For the optional GDAL lane, record effective ENCODING/DXF_ENCODING and escape
+translation separately from block expansion/merging and polygon projection.
+`RawCodeValues` contains only unhandled groups, not a complete physical tag
+stream. A missing entry there is not proof of source omission. Calibrate one
+handled field, one unhandled tag and one escaped text value before enabling
+that projection; use the existing scanner for profile-scoped physical tag claims.
+See the final research section for the bounded profile and source links.
 
 **Fast gate:** option-policy self-tests plus the already-generated proxy control
 and four current thin families; no C++ rebuild/full format suite. Native worker
@@ -11839,3 +11865,148 @@ No new CTest registration, dependency, downloaded/committed drawing or remote
 write is part of this refresh. Counts remain122 findings/70 top-level subplans.
 `J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
 `DEFERRED_EXTERNAL`, and none of this evidence can promote their support claims.
+
+## Executable codec-policy and peer-horizon refresh (2026-10-15)
+
+This is a research/plan update at committed baseline`5c3c76e`, not a production
+integration. Existing changes in`src/libdxfrw.{cpp,h}` and the two modeler-test
+TUs were inspected, left unchanged and remain uncommitted. No B3 outcome is
+promoted or historical B1/B2 receipt rewritten. The durable, reproducible
+unit-probe receipt is
+[`docs/research/broader-codec-policy-research-2026-10-15.json`](docs/research/broader-codec-policy-research-2026-10-15.json).
+It includes source/table/compiler/probe hashes, authored probe source, literal
+vectors and execution limits. No external drawing was downloaded or added.
+
+### What the broader evidence actually changes
+
+| Primary evidence | Observation and limit | Existing owner / decision |
+| --- | --- | --- |
+| Unicode [ISO8859-4](https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-4.TXT), [ISO8859-10](https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-10.TXT), [ISO8859-13](https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-13.TXT) and [CP1257](https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT), plus executed current-source probe | A1 denotes U+0104/U+0104/U+201D respectively, but is undefined in CP1257. Local accepted compact ISO aliases select that Windows table and return an empty string. ISO8859-8 DF similarly disappears under CP1255. These are codec-level observations, not whole-DWG reproductions or proof every accepted alias is canonical DXF metadata. | PAR-05/Slice3: retain distinguishing scalar expectations and explicit undefined-byte policy. Do not fix this by replacing one guessed Windows table with another or by asserting all ISO/Windows aliases are equivalent. |
+| ezdxf [codepage helper at7c64bce](https://github.com/mozman/ezdxf/blob/7c64bce52c9d60b9db2dad4d2793c1168c8d3f64/src/ezdxf/tools/codepage.py), blob50488318; [document input contract](https://ezdxf.readthedocs.io/en/stable/drawing/management.html) | Its helper uses suffix matching over a Windows-page set and falls back to CP1252. Default reader errors are surrogateescape; an explicit ordinary ASCII-DXF encoding override is available, but documented as ignored for binary DXF. Shared fallback can make two implementations agree on the wrong interpretation. | Slice3/7AQ: use strict, explicitly named standard-codec byte/scalar anchors before optional ordinary DXF reopen. Record effective codec/error mode; do not claim a binary override was applied or use recovery/default fallback as mapping authority. |
+| LibreDWG [codepages.c atf860b0f](https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/codepages.c), blob8a707e01 | Its inventory distinguishes ISO, DOS, Mac and Windows names. Local`dwgCodePageName()` deliberately admits only its implemented subset and retains unsupported raw IDs separately. A text alias and a DWG numeric identifier are different admission routes. | Slice3.4: keep ID recognition, raw provenance, chosen decoder and writer canonicalization separate. Read the authoritative local ODA codepage layout and obtain version-scoped TV/TU/EED traces before changing the numeric map. Do not copy peer tables or infer support from peer identifiers. |
+| LibreDWG [PR#1453](https://github.com/LibreDWG/libredwg/pull/1453), head62715b2296e66718dea92ec15064e06ebce0f748; open/unmerged | The report reproduces a size_t scan-length underflow in a copied AcDs marker/recovery loop, rather than providing a crafted triggering DWG. The local DataStorage marker loop and ACIS signature helper use bounded comparisons and do not contain that memmem/recovery-advance pattern. This inspection is not a sanitizer or whole-parser safety proof. | 7S.3/S3.2: retain the report as a peer-only safety lead. Reuse tiny signature-at-end/truncated-header/next-property controls when this path changes; a marker alone must not publish a semantic body. No speculative local patch or repeated full safety corpus from this report. |
+| ACadSharp [PR#1301](https://github.com/DomCR/ACadSharp/pull/1301), headd01351ee; open/unmerged, and Autodesk [FIELD](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm) | Peer reports separately missing nested FIELD records and unresolved handle-valued data. Autodesk distinguishes child360 hard ownership, object331 soft pointers and contextual value330 IDs. Local typed FIELD reader/writer code exists; that alone does not establish converter graph publication, remapping or native reevaluation. | 7F/7G/7AH: use a generated two-child FIELD plus a referenced geometric object; verify every child is actually emitted and both pointer roles reach the intended reminted target. Assert contextual330 is not mistaken for the object's own owner. Cached display text is not evaluated-field correctness; native reevaluation remains separate. |
+| ACadSharp [PR#1302](https://github.com/DomCR/ACadSharp/pull/1302), head8a7704b5, and [PR#1304](https://github.com/DomCR/ACadSharp/pull/1304), headf921817e; both open/unmerged | The multi-topic conversion PR also depends on a CSUtilities matrix change. The arrow-flag PR cites DWG common-dimension layout for a DXF version condition. Local DXF already reads/writes74/75. Neither report proves a current local transform bug or that a DWG version boundary governs the DXF tags. | 7H/7O/7AA/7AQ: pin effective math dependency and handedness before a peer-transform comparison; use asymmetric points/normal/mirror controls. Do not copy the peer's version condition or add duplicate flip-flag support. Any DXF gate needs DXF/producer evidence; any DWG edit retains the ODA/trace prerequisite. |
+| GDAL [DXF driver contract](https://gdal.org/en/stable/drivers/vector/dxf.html) | RawCodeValues contains unhandled tags only. Text escape translation, codec overrides, block merging/expansion and closed-line polygon conversion affect projected results; encoding availability also depends on the build. These are distinct from its documented binary-DXF input capability. | 7AQ/7AH: calibrate actual available driver/options before using projections. Bind ENCODING, TRANSLATE_ESCAPE_SEQUENCES, INLINE_BLOCKS, MERGE_BLOCK_GEOMETRIES and CLOSED_LINE_AS_POLYGON with supported version syntax. Missing raw entries or merged entities are not source-loss denominators. No installation/new mandatory lane. |
+| FreeCAD [current importDWG.py](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py), blob8ceba7eaf31234c891621652cca414f102b495a0, lines265–320 | The LibreDWG-style import invocation uses input plus`-o`; this wrapper accepts an existing result after process completion without checking its return code. Thus output publication is part of consumer correctness, not just CLI cosmetics. This is source review, not a new FreeCAD run. | B3/S8/7F: preserve strict converter no-output/no-replacement guarantees. Native packets must bind the actual converter process result, fresh file and exact generated bytes before FreeCAD open/insert. Mocked wrappers or file existence cannot close Linux/Windows/native qualification. |
+| ezdxf [XClip API](https://ezdxf.readthedocs.io/en/stable/tools/xclip.html), contrasted with [open report#1305](https://github.com/mozman/ezdxf/issues/1305) | The API is explicitly2D and returns WCS paths projected to XY; it also has named inverted-path limitations. The report alone does not provide verified raw transform expectations. | 7G/7H/7AQ: separate stored SPATIAL_FILTER path/matrices from clipped display geometry. One nonzero block-base/rotated/reflected analytic2D control calibrates a future comparison; arbitrary tilted3D or inverted clipping remains not-applicable unless independently qualified. Do not project away Z and then claim3D agreement. |
+
+The survey retrieved12 recently updated open issue/PR entries per repository
+for LibreDWG, ACadSharp, ACadRust and ezdxf. This is a bounded horizon check,
+not an exhaustive issue review or a claim that submitted fixes are deployed.
+No peer attachment, binary or AI-generated explanation supplied format truth.
+Source revisions/blob IDs and the unmerged states above are retrieval-time
+facts; recheck only the peer lane being used at its implementation checkpoint.
+
+### Executed calibration: bytes, meaning and escape transport are different
+
+The authored probe compiled the current codec directly with C++17 and
+`-Wall -Wextra -Werror`; it did not link a stale library or touch the main
+build.35 literal vectors × DWG-style/legacy-DXF-style unit configurations ×
+C/tr_TR.ISO8859-9 child locales yielded140 cells. The independent Python3.9.6
+strict standard-codec anchors match48 cells;92 differ, of which72 still
+round-trip to identical original bytes.16 cells decode to empty. These are
+selected discriminating probes, not a failure rate, exhaustive mapping audit,
+DWG-file test or family-level support score. Every profile's outputs are
+identical on this macOS arm64 runtime; lowercase`ansi_949` passes in both
+locales, so no local Turkish-locale failure is asserted.
+
+Examples with different standard meanings include KOI8-R E1, ISO8859-5 B0,
+IBM86680, AppleRoman80, EUC-JP A4A2 and GB18030 81308130. Compact and canonical
+spellings must be tested independently: accepted`IBM 866` selects CP1251,
+while`CP866` falls through to CP1252. Coinciding anchors do not establish
+codec equivalence: ISO8859-8 E0 and ISO8859-9 D0 initially agreed with the
+substituted Windows tables; additional DF/80 controls discriminate them.
+
+All four Big5-HKSCS two-scalar sequences decode correctly. Their output uses
+a representable character plus a CIF escape, so raw byte identity changes
+while the local DXF-aware reread retains both scalars. This is not loss and
+does not justify a speculative reverse-index rewrite. Separately qualify
+raw carrier identity, scalar preservation and target-valid escape transport;
+do not interpret a standard-codec-only reread of literal escape bytes as DXF
+text loss. Keep combining sequences exact; no Unicode normalization to make
+the oracle agree.
+
+### Slice3.1–3.5: bounded implementation-ready sequence
+
+1. **3.1 — freeze the discriminators (`READY_LOCAL`).** Reuse
+   `tests/gbk_codepage_tests.cpp` and its existing executable. Add a focused
+   alias-policy mode, literal independently expected scalar rows and controls
+   proving that equal source/output bytes can still mean the wrong text.
+   Separate canonical labels, accepted extra aliases, unsupported labels,
+   undefined bytes and escape-preserving output. The embedded scratch recipe
+   and35-vector receipt make regeneration possible without Python/Unicode
+   downloads in normal C++ tests. Keep matching ANSI/Chinese/Korean/Japanese,
+   two-scalar, MIF and current input-only recovery controls. Record the actual
+   red baseline before changing a decoder; do not encode today's mojibake as
+   the future expected success. Keep intentionally red probes opt-in until
+   their corresponding fix; existing mandatory CTests must remain green.
+2. **3.2 — classify before changing behavior (`POLICY_GATE`, local).** Make a
+   small internal table of canonical IDs, exact aliases, historical inexact
+   aliases, recognized-but-unavailable encodings and unknown names. Preserve
+   original declaration, selected codec and fallback reason independently;
+   distinguish “not declared” from “declared but unavailable.” Use ASCII-only
+   byte-safe normalization, without global locale changes. Existing2D facade
+   defaults remain compatible; do not silently reinterpret historical aliases
+   or turn every unsupported declaration into a new fatal read. Record bounded
+   fallback diagnostics through the existing operation mechanism. A strict
+   complete-conversion policy must refuse unrepresented required text rather
+   than publish corrupted text as complete. Resolve the exact policy boundary
+   against current consumer calls before changing it; if that decision is
+   pending, complete classification/diagnostic work and continue an independent
+   ready slice instead of broadening defaults.
+3. **3.3 — repair one evidenced mapping family per commit (`AFTER3.2`).** Start
+   with ISO8859-4's local codec mapping, not a DWG numeric-ID change, using
+   Unicode's exact mapping and its redistribution terms. Prefer generated fixed tables
+   with source/hash provenance; no iconv/ICU runtime dependency. Test decode,
+   encode, undefined-byte behavior, actual declared/emitted codec and all
+   relevant distinguishing bytes, not one overlap anchor. Keep ISO8859-4/10/13,
+   KOI/DOS/Mac and multibyte grammars as separate closures. EUC-JP is not CP932,
+   and four-byte GB18030 is not implemented by accepting the GBK subset. Until
+   a grammar is implemented, classify it unavailable/compatibility-only under
+   the chosen policy, not supported because its name normalizes successfully.
+4. **3.4 — join real metadata paths (`VERSION_EVIDENCE_GATE`).** After the
+   codec is correct, separately review numeric DWG ID→name, DXF name→codec,
+   canonical writer ID and per-field EED codepage. Do not conflate file TV,
+   primary TU and EED-local encoding. Reuse committed source-codepage snapshot,
+   HEADER-finalization and input-only recovery tests; do not restart7L.5/7AL.
+   Before any DWG map/parser change, read the relevant local ODA chapter and
+   trace a real eligible version/field. Unsupported ID provenance and retry
+   reset must remain truthful, not become a fabricated recognized CP1252.
+5. **3.5 — compose once (`INTEGRATION_GATE`).** Generate one small TEXT/MTEXT
+   drawing with a distinct following LINE, one selected legacy target and
+   ASCII/binary modes. Check independently expected Unicode, physical emitted
+   bytes/declaration, repeated handoff and strict-failure destination preservation
+   where the policy requires it. Exercise modern DXF UTF-8 and modern DWG TU
+   as unchanged controls only where touched; do not multiply every page by the
+   entire format/version matrix. Run the existing codec CTest plus the affected
+   fixture/HEADER tests and LibreCAD/LibreCAD_3 source checks once. A policy or
+   mapping change invalidates only evidence bound to those inputs; it does not
+   require native platform/ACIS runs or the whole suite per commit.
+
+### Faster execution, self-unblocking and honest closure
+
+Keep the current B3 WIP separate from this research. Its next gate is source
+review plus genuine converter/destination/reuse evidence and a durable receipt,
+not another peer scan. Research alone cannot close its parent. Next independent
+local work is3.1;3.2's compatibility decision and3.4's DWG witness remain named
+gates rather than hidden implementation assumptions.
+
+For optional comparators, run only a tiny projection calibration when enabling
+that route: GDAL handled/unhandled/escaped text, FIELD child and value-target
+closure, or analytic XCLIP coordinates. Reuse existing scanners/targets;
+do not add a second framework, required dependency or per-edit full suite.
+DWG envelope/ACIS safety controls remain separate from native solid semantics.
+
+After each implementation item, update actual status, bound source/evidence,
+remaining scope and next ready item. After each slice commit, show its hash and
+progress. A failed external gate retains its packet and redirects to local
+work without weakening acceptance. Fixture provenance remains restricted to
+already-admitted LibreCAD/libdxfrw repository data or locally authored scratch
+drawings; locating an external sample is not permission to commit it.
+
+No production/test source, CTest registration, dependency, support matrix,
+fixture payload or remote state was changed in this research pass. Findings/
+top-level subplans remain122/70. `J256`, `J260`, `J268`, `J284`, `J293` and
+`J295` remain `DEFERRED_EXTERNAL`; only new independent semantic/native evidence
+can satisfy their respective gates, not these codec observations or peer PRs.

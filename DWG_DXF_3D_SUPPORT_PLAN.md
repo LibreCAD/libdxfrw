@@ -3,6 +3,15 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
+**Latest research-only handoff (baseline `5c3c76e`):** the
+[parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
+adds140 current-source codec observations and a bounded3.1–3.5 implementation
+sequence. It also sharpens FIELD graph, GDAL/XClip projection, peer AcDs safety
+and FreeCAD fresh-output gates. None is native ACIS/3D evidence. Existing B3
+source/test changes were left untouched and uncommitted; review and bind them
+before closing the local block-path parent. The six external J gates remain
+`DEFERRED_EXTERNAL`; no support status changes follow from this research.
+
 **Current consumer readiness:** canonical declared-codec/XDATA repair,
 HEADER finalization/alias provenance and accepted-source CLI authority are
 committed. The reviewed input-only `DRW::DxfTextEncoding`/
@@ -95,8 +104,9 @@ focused sanitizer, integration2/2, strict/lc3 and two-pass actual ASCII/binary
 CLI verification. S5.18's scoped local implementation closes, not native
 associativity/fill/render or DWG. S2.3.9.4.29.B1 now implements the independent
 stored-graph oracle (8 positives/14 negatives), and B2 now passes16 raw/typed
-ASCII/binary handoffs plus two-pass actual CLI checks. Next is B3's genuine
-no-output rejection/corrected-reuse gate. This does not wait on
+ASCII/binary handoffs plus two-pass actual CLI checks. B3 is now an uncommitted
+candidate, awaiting its genuine no-output rejection/corrected-reuse receipt
+and review/integration gate. This does not wait on
 external customer DWGs, native FreeCAD or a new oracle. S4.5 remains gated
 by S3's verified DataStorage layout. Keep focused modes in the existing
 round-trip executable; no new fixture or CTest registration is needed.
@@ -3696,7 +3706,7 @@ publish the existing progress update before advancing; do not batch progress
 updates until the whole ACIS lane finishes.
 
 **S2.3.9.4.29 — block-path modeler omission census (`IN_PROGRESS`, B1/B2 committed;
-B3 ready, local-only
+B3 uncommitted candidate, local-only
 reproduction first):** ACadSharp issue #1195 reports another converter
 silently dropping 3DSOLID/REGION entities inside block definitions and leaving
 solid-only INSERTs empty; the customer DWGs are not available and this is not
