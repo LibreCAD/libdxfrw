@@ -10857,12 +10857,14 @@ list projection, composed CLI, and native consumer qualification remain open.
 
 **Implementation progress — 7G.3e unrelated NOD root edge (committed):**
 Commit `5a23829` retains a directly root-owned, typed empty child DICTIONARY
-and its root key through the existing generated ASCII/binary matrix. Strict
-export rejects a missing, multiply-matched, wrongly-owned, or populated child
-dictionary before publication because that child-content graph is not yet
-typed/emitted; tolerant export retains its previous omission behavior for
-those unsupported entries. The focused `libdxfrw_dxf_fixture_tests` build/run
-and `libdxfrw_dxf_fixtures` CTest pass; the `dwg2dxf` CLI,
+and its root key through the existing generated ASCII/binary matrix; `19835b0`
+adds strict rejection vectors for missing, multiply-matched, wrongly-owned,
+and populated child dictionaries, each preserving a sentinel destination.
+Those targets are rejected before publication because their child-content
+graphs are not yet typed/emitted; tolerant export retains its previous
+omission behavior for unsupported entries. The focused
+`libdxfrw_dxf_fixture_tests` build/run and `libdxfrw_dxf_fixtures` CTest pass;
+the `dwg2dxf` CLI,
 `libdxfrw_dwg2dxf_adapter_tests`, and `lc3_compat_check` targets build; no full
 suite or composed CLI checkpoint was run. This is a narrow closure checkpoint,
 not preservation of arbitrary NOD entries or a support claim.
