@@ -10831,7 +10831,10 @@ bool DRW_LWPolyline::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
 bool DRW_MLine::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 2:
-        styleName = reader->getString();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedStyleNameBytes, styleName,
+                reader->getString()))
+            return false;
         break;
     case 340:
         styleHandle = static_cast<std::uint32_t>(reader->getHandleString());
@@ -11074,6 +11077,7 @@ void DRW_MLine::resetDwgState() {
     numLines = 0;
     numVerts = 0;
     styleName.clear();
+    m_dxfRetainedStyleNameBytes = 0u;
     styleHandle = 0;
     vertlist.clear();
     m_currentVertexIdx = -1;

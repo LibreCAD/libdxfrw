@@ -4206,6 +4206,74 @@ void testDxfBlockNameOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfMLineStyleNameOwnerBudget(TestContext& t) {
+    class MLineParseProbe final : public DRW_MLine {
+    public:
+        using DRW_MLine::parseCode;
+        using DRW_MLine::resetDwgState;
+    };
+
+    const std::string source = "2\nOLD\n2\nDIMNAME\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        MLineParseProbe line;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!line.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && line.styleName == "DIMNAME"
+                     && budget->used() == 7u,
+                 "MLINE style-name replacement retains only its live value at the exact transient peak");
+        MLineParseProbe copy(line);
+        MLineParseProbe assigned;
+        assigned = line;
+        line.resetDwgState();
+        t.expect(budget->used() == 7u && copy.styleName == "DIMNAME"
+                     && assigned.styleName == "DIMNAME",
+                 "MLINE style-name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "MLINE assignment copy keeps the style-name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final MLINE reset releases its style-name lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        MLineParseProbe line;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!line.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && line.styleName == "OLD" && budget->used() == 3u,
+                 "one-byte-under MLINE style-name replacement preserves the prior value and charge");
+        line.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected MLINE style-name replacement releases its lease on reset");
+    }
+}
+
 void testDxfLeaderStyleOwnerBudget(TestContext& t) {
     class LeaderParseProbe final : public DRW_Leader {
     public:
@@ -6484,6 +6552,7 @@ int main() {
     testDxfToleranceStyleNameOwnerBudget(context);
     testDxfBlockXrefPathOwnerBudget(context);
     testDxfBlockNameOwnerBudget(context);
+    testDxfMLineStyleNameOwnerBudget(context);
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);

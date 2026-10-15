@@ -1868,7 +1868,8 @@ public:
         basePoint(o.basePoint), extPoint(o.extPoint),
         openClosed(o.openClosed), numLines(o.numLines), numVerts(o.numVerts),
         styleName(o.styleName), styleHandle(o.styleHandle),
-        vertlist(o.vertlist) {
+        vertlist(o.vertlist),
+        m_dxfRetainedStyleNameBytes(o.m_dxfRetainedStyleNameBytes) {
         eType = DRW::MLINE;
         resetDxfParserState();
     }
@@ -1884,6 +1885,7 @@ public:
             numVerts = o.numVerts;
             styleName = o.styleName;
             styleHandle = o.styleHandle;
+            m_dxfRetainedStyleNameBytes = o.m_dxfRetainedStyleNameBytes;
             vertlist = o.vertlist;
             eType = DRW::MLINE;
             resetDxfParserState();
@@ -1908,6 +1910,7 @@ public:
     std::uint32_t styleHandle;           /*!< H / DXF 340 */
     std::vector<DRW_MLineVertex> vertlist;
 private:
+    std::size_t m_dxfRetainedStyleNameBytes{0};
     static constexpr std::int32_t kMaxDxfVertices = 5000;
     static constexpr std::int32_t kMaxDxfLines = 255;
     static constexpr std::int32_t kMaxDxfParameters = 5000;
