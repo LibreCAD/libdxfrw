@@ -2091,6 +2091,17 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         reportPreflightFailure(layoutGraphFailure);
         return false;
     }
+    if (v < DRW::AC1015
+        && (!cData->layouts.empty()
+            || std::any_of(cData->blockRecords.begin(),
+                           cData->blockRecords.end(),
+                           [](const DRW_Block_Record& record) {
+                               return record.layoutHandle != 0;
+                           }))) {
+        reportPreflightFailure(
+            "LAYOUT graph cannot be represented by a pre-R2000 DXF target");
+        return false;
+    }
     if (!cData->dynamicBlockObjects.empty()) {
         reportPreflightFailure(
             "dynamic-block objects have no qualified DXF serializer");
@@ -2177,7 +2188,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
         dxfW->setNamedDictObjects(materialDictionaries);
-        dxfW->setRootDictEntries(materialRootEntries);
 
         if (!m_acdsTypedHistoryObjects.empty()) {
             // Native custom objects use their record names directly. They do
@@ -2393,6 +2403,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
+    for (const DRW_Layout& layout : cData->layouts) {
+        if (layout.handle != 0 && !dxfW->reserveHandle(layout.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
     for (const DRW_XRecord& record : cData->xRecords) {
         if (record.handle != 0 && !dxfW->reserveHandle(record.handle)) {
             delete dxfW;
@@ -2456,29 +2473,84 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         }
     }
     std::map<std::uint32_t, std::uint32_t> handleRemap;
-    for (std::uint32_t handle : m_extensionDictionaryHandles) {
-        if (fixedHandles.count(handle) == 0)
-            continue;
-        const std::uint32_t replacement = dxfW->allocHandle();
-        if (replacement == 0 || !dxfW->reserveHandle(replacement)) {
-            delete dxfW;
-            dxfW = nullptr;
+    const auto registerRemap = [&handleRemap](std::uint32_t source,
+                                               std::uint32_t emitted) {
+        if (source == 0 || emitted == 0)
             return false;
-        }
-        handleRemap.emplace(handle, replacement);
+        const auto inserted = handleRemap.emplace(source, emitted);
+        return inserted.second || inserted.first->second == emitted;
+    };
+    if (cData->hasNamedObjectDictionary
+        && cData->namedObjectDictionary.handle != 0
+        && cData->namedObjectDictionary.handle != 0xCu
+        && !registerRemap(cData->namedObjectDictionary.handle, 0xCu)) {
+        delete dxfW;
+        dxfW = nullptr;
+        return false;
     }
-    for (std::uint32_t handle : m_extensionXRecordHandles) {
+    const auto remapFixedCollision = [&](std::uint32_t handle) {
         if (fixedHandles.count(handle) == 0)
-            continue;
+            return true;
+        const auto existing = handleRemap.find(handle);
+        if (existing != handleRemap.end())
+            return true;
         const std::uint32_t replacement = dxfW->allocHandle();
-        if (replacement == 0 || !dxfW->reserveHandle(replacement)) {
+        if (replacement == 0 || !dxfW->reserveHandle(replacement)
+            || !registerRemap(handle, replacement))
+            return false;
+        return true;
+    };
+    for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+        if (!remapFixedCollision(dictionary.handle)) {
             delete dxfW;
             dxfW = nullptr;
             return false;
         }
-        handleRemap.emplace(handle, replacement);
+    }
+    for (const DRW_Layout& layout : cData->layouts) {
+        if (!remapFixedCollision(layout.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
+    for (const std::uint32_t handle : m_extensionDictionaryHandles) {
+        if (!remapFixedCollision(handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
+    for (const std::uint32_t handle : m_extensionXRecordHandles) {
+        if (!remapFixedCollision(handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
     }
     dxfW->setHandleRemap(handleRemap);
+    std::vector<std::pair<std::string, std::string>> rootEntries =
+        materialRootEntries;
+    if (cData->hasNamedObjectDictionary && !cData->layouts.empty()) {
+        const auto layoutEntry = std::find_if(
+            cData->namedObjectDictionary.m_entries.begin(),
+            cData->namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return layoutSymbolKey(entry.m_name) == "ACAD_LAYOUT";
+            });
+        if (layoutEntry == cData->namedObjectDictionary.m_entries.end()) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+        std::uint32_t emittedHandle = layoutEntry->m_handle;
+        const auto remapped = handleRemap.find(emittedHandle);
+        if (remapped != handleRemap.end())
+            emittedHandle = remapped->second;
+        rootEntries.emplace_back("ACAD_LAYOUT",
+                                 dxfW->toHexStrHandle(emittedHandle));
+    }
+    dxfW->setRootDictEntries(rootEntries);
     bool success = dxfW->write(this, v, binary);
     if (!success && (debug || requireResolvedOwners)) {
         const DRW_OperationDiagnostic diagnostic = dxfW->getLastDiagnostic();

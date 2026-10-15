@@ -757,6 +757,11 @@ public:
     };
     bool emitBlockRecord(const PendingDxfBlockRecord& record);
     bool planSourceBlockRecordHandles();
+    bool sourceBlockRecordLayoutHandle(
+        std::uint32_t emittedBlockRecord,
+        std::uint32_t& sourceLayoutHandle) const noexcept;
+    bool writeSourceBlockRecordLayoutLink(
+        std::uint32_t emittedBlockRecord);
     // captureSourceHandle=false on the VERTEX/SEQEND parent re-entries
     // (writePolyline/writeInsert) so they do not pollute the source->minted map.
     // recordName is supplied only for a known target-version limitation; the

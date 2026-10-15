@@ -475,13 +475,48 @@ public:
             dxfW->writeDimstyle(&(*it));
     }
     virtual void writeObjects() override {
+        std::uint32_t layoutDictionaryHandle = 0;
+        if (cData->hasNamedObjectDictionary) {
+            for (const DRW_Dictionary::Entry& entry :
+                 cData->namedObjectDictionary.m_entries) {
+                std::string key = entry.m_name;
+                for (char& character : key) {
+                    if (character >= 'a' && character <= 'z')
+                        character = static_cast<char>(character - 'a' + 'A');
+                }
+                if (key == "ACAD_LAYOUT") {
+                    layoutDictionaryHandle = entry.m_handle;
+                    break;
+                }
+            }
+        }
         for (std::uint32_t handle : m_extensionDictionaryHandles) {
+            if (handle == layoutDictionaryHandle)
+                continue;
             for (DRW_Dictionary& dictionary : cData->dictionaries) {
                 if (dictionary.handle != handle)
                     continue;
                 if (!dxfW->writeDictionary(&dictionary))
                     return;
                 break;
+            }
+        }
+        if (layoutDictionaryHandle != 0) {
+            std::size_t matchingDictionaries = 0;
+            for (DRW_Dictionary& dictionary : cData->dictionaries) {
+                if (dictionary.handle != layoutDictionaryHandle)
+                    continue;
+                ++matchingDictionaries;
+                if (!dxfW->writeDictionary(&dictionary))
+                    return;
+            }
+            if (matchingDictionaries != 1u) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
+            }
+            for (DRW_Layout& layout : cData->layouts) {
+                if (!dxfW->writeLayout(&layout))
+                    return;
             }
         }
         for (std::uint32_t handle : m_extensionXRecordHandles) {

@@ -265,6 +265,22 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
             && (baseUcsHandle == nullptr || string(346, baseUcsHandle))
             && (shadePlotHandle == nullptr || string(333, shadePlotHandle));
     };
+    const auto blockDefinition = [&string, &integer, &writer](const char* name,
+                                                                const char* recordHandle,
+                                                                const char* blockHandle,
+                                                                const char* endHandle) {
+        return string(0, "BLOCK") && string(5, blockHandle)
+            && string(330, recordHandle) && string(100, "AcDbEntity")
+            && string(8, "0") && string(100, "AcDbBlockBegin")
+            && string(2, name) && integer(70, 0)
+            && writer->writeDouble(10, 0.0)
+            && writer->writeDouble(20, 0.0)
+            && writer->writeDouble(30, 0.0)
+            && string(3, name) && string(1, "")
+            && string(0, "ENDBLK") && string(5, endHandle)
+            && string(330, recordHandle) && string(100, "AcDbEntity")
+            && string(8, "0") && string(100, "AcDbBlockEnd");
+    };
 
     bool written = string(0, "SECTION") && string(2, "HEADER")
         && string(9, "$ACADVER") && string(1, "AC1027")
@@ -276,6 +292,11 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
         && blockRecord("602", "*Model_Space", "202")
         && blockRecord("603", "*Paper_Space0", "201")
         && string(0, "ENDTAB") && string(0, "ENDSEC")
+        && string(0, "SECTION") && string(2, "BLOCKS")
+        && blockDefinition("*Paper_Space", "601", "611", "612")
+        && blockDefinition("*Model_Space", "602", "621", "622")
+        && blockDefinition("*Paper_Space0", "603", "631", "632")
+        && string(0, "ENDSEC")
         && string(0, "SECTION") && string(2, "OBJECTS")
         // The required root is first, but all graph targets deliberately cross
         // physical order: named LAYOUT objects precede their dictionary.
@@ -370,16 +391,17 @@ void testLayoutGraphReadContract(TestContext& t) {
         const auto rejectedOutput = directory
             / (binary ? "invalid-layout-output-binary.dxf"
                       : "invalid-layout-output-ascii.dxf");
-        const auto expectRejectedWithoutPublication = [&](const char* label) {
+        const auto expectRejectedWithoutPublication = [
+            &adapterData, &rejectedOutput, &binary, &t
+        ](const char* label, DRW::Version targetVersion) {
             {
                 std::ofstream sentinel(rejectedOutput,
                                        std::ios::binary | std::ios::trunc);
                 sentinel << "layout-graph-sentinel";
             }
             dx_iface exporter;
-            dx_data* exportData = &adapterData;
             const bool exported = exporter.fileExport(
-                rejectedOutput.string(), DRW::AC1027, binary, exportData,
+                rejectedOutput.string(), targetVersion, binary, &adapterData,
                 false);
             std::ifstream preserved(rejectedOutput, std::ios::binary);
             const std::string contents(
@@ -387,11 +409,15 @@ void testLayoutGraphReadContract(TestContext& t) {
                 std::istreambuf_iterator<char>());
             t.expect(!exported && contents == "layout-graph-sentinel", label);
         };
+        expectRejectedWithoutPublication(
+            "modern LAYOUT graph is rejected before pre-R2000 output publication",
+            DRW::AC1014);
         const std::uint32_t originalBlockRecordHandle =
             adapterData.layouts.front().paperSpaceBlockRecordHandle.ref;
         adapterData.layouts.front().paperSpaceBlockRecordHandle.ref = 0;
         expectRejectedWithoutPublication(
-            "dangling LAYOUT-to-BLOCK_RECORD edge is rejected before replacing output");
+            "dangling LAYOUT-to-BLOCK_RECORD edge is rejected before replacing output",
+            DRW::AC1027);
         adapterData.layouts.front().paperSpaceBlockRecordHandle.ref =
             originalBlockRecordHandle;
 
@@ -399,7 +425,8 @@ void testLayoutGraphReadContract(TestContext& t) {
             adapterData.namedObjectDictionary.m_entries.front().m_handle;
         adapterData.namedObjectDictionary.m_entries.front().m_handle = 0x200u;
         expectRejectedWithoutPublication(
-            "NOD ACAD_LAYOUT edge to the wrong object type is rejected before output");
+            "NOD ACAD_LAYOUT edge to the wrong object type is rejected before output",
+            DRW::AC1027);
         adapterData.namedObjectDictionary.m_entries.front().m_handle =
             originalLayoutDictionaryTarget;
 
@@ -407,7 +434,8 @@ void testLayoutGraphReadContract(TestContext& t) {
             adapterData.layouts[1].handle;
         adapterData.layouts[1].handle = adapterData.layouts[0].handle;
         expectRejectedWithoutPublication(
-            "duplicate LAYOUT source handles are rejected before output");
+            "duplicate LAYOUT source handles are rejected before output",
+            DRW::AC1027);
         adapterData.layouts[1].handle = secondLayoutHandle;
 
         const auto findLayout = [&interface_](std::uint32_t handle) {
@@ -468,6 +496,138 @@ void testLayoutGraphReadContract(TestContext& t) {
                              && layoutRecord->tabOrder == expectedTab,
                          "layout dictionary names resolve independently of physical object order");
             }
+        }
+
+        // The source vector intentionally tests typed handle roles above;
+        // these targets are omitted from this small graph fixture. Clear them
+        // for the writer integration control so this case measures the core
+        // NOD/LAYOUT/BLOCK_RECORD closure, not auxiliary VIEWPORT/UCS objects.
+        for (DRW_Layout& layout : adapterData.layouts) {
+            layout.lastActiveViewportHandle.ref = 0;
+            layout.namedUcsHandle.ref = 0;
+            layout.baseUcsHandle.ref = 0;
+            layout.shadePlotHandle.ref = 0;
+        }
+        // Force two source identities through fixed DXF structural handles:
+        // the layout dictionary collides with BLOCK (*Paper_Space), and one
+        // LAYOUT collides with BLOCK (*Model_Space). Every inbound and
+        // reciprocal edge must follow those remaps in the emitted graph.
+        auto sourceLayoutDictionary = std::find_if(
+            adapterData.dictionaries.begin(), adapterData.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == 0x500u;
+            });
+        auto sourceLayoutEntry = std::find_if(
+            adapterData.namedObjectDictionary.m_entries.begin(),
+            adapterData.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYOUT";
+            });
+        auto sourceSheetA = std::find_if(
+            adapterData.layouts.begin(), adapterData.layouts.end(),
+            [](const DRW_Layout& layout) { return layout.name == "Sheet A"; });
+        auto sourceBlockRecord = std::find_if(
+            adapterData.blockRecords.begin(), adapterData.blockRecords.end(),
+            [](const DRW_Block_Record& record) {
+                return record.handle == 0x601u;
+            });
+        t.expect(sourceLayoutDictionary != adapterData.dictionaries.end()
+                     && sourceLayoutEntry
+                         != adapterData.namedObjectDictionary.m_entries.end()
+                     && sourceSheetA != adapterData.layouts.end()
+                     && sourceBlockRecord != adapterData.blockRecords.end(),
+                 "generated remap collision source objects are present");
+        if (sourceLayoutDictionary != adapterData.dictionaries.end()
+            && sourceLayoutEntry
+                != adapterData.namedObjectDictionary.m_entries.end()
+            && sourceSheetA != adapterData.layouts.end()
+            && sourceBlockRecord != adapterData.blockRecords.end()) {
+            sourceLayoutDictionary->handle = 0x1Cu;
+            sourceLayoutEntry->m_handle = 0x1Cu;
+            sourceSheetA->handle = 0x20u;
+            sourceLayoutDictionary->m_entries.front().m_handle = 0x20u;
+            for (DRW_Layout& layout : adapterData.layouts)
+                layout.parentHandle = 0x1Cu;
+            sourceBlockRecord->layoutHandle = 0x20u;
+        }
+        const std::array<std::pair<DRW::Version, const char*>, 5>
+            layoutOutputVersions{{
+                {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
+                {DRW::AC1021, "AC1021"}, {DRW::AC1024, "AC1024"},
+                {DRW::AC1027, "AC1027"}
+            }};
+        for (const auto& target : layoutOutputVersions) {
+            const std::string outputName = std::string("layout-graph-export-")
+                + target.second + (binary ? "-binary.dxf" : "-ascii.dxf");
+            const auto exportedPath = directory / outputName;
+            dx_iface exporter;
+            const bool exported = exporter.fileExport(
+                exportedPath.string(), target.first, binary, &adapterData,
+                false);
+            const std::string exportLabel =
+                std::string("validated NOD/LAYOUT graph exports for ")
+                + target.second;
+            t.expect(exported, exportLabel.c_str());
+            if (!exported)
+                continue;
+            dx_data exportedData;
+            dx_iface imported;
+            const std::string importLabel = std::string("exported ")
+                + target.second + " layout graph reads back through the adapter";
+            t.expect(imported.fileImport(exportedPath.string(), &exportedData,
+                                        false), importLabel.c_str());
+            const auto rootLayout = std::find_if(
+                exportedData.namedObjectDictionary.m_entries.begin(),
+                exportedData.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_LAYOUT";
+                });
+            const DRW_Dictionary* exportedDictionary = nullptr;
+            if (rootLayout
+                != exportedData.namedObjectDictionary.m_entries.end()) {
+                for (const DRW_Dictionary& dictionary :
+                     exportedData.dictionaries) {
+                    if (dictionary.handle == rootLayout->m_handle) {
+                        exportedDictionary = &dictionary;
+                        break;
+                    }
+                }
+            }
+            bool exportedGraphClosed = exportedData.hasNamedObjectDictionary
+                && exportedData.layouts.size() == 3u
+                && exportedData.blockRecords.size() == 3u
+                && rootLayout
+                    != exportedData.namedObjectDictionary.m_entries.end()
+                && exportedDictionary != nullptr
+                && exportedDictionary->parentHandle
+                    == exportedData.namedObjectDictionary.handle;
+            for (const DRW_Layout& layout : exportedData.layouts) {
+                const auto record = std::find_if(
+                    exportedData.blockRecords.begin(),
+                    exportedData.blockRecords.end(),
+                    [&layout](const DRW_Block_Record& candidate) {
+                        return candidate.handle
+                            == layout.paperSpaceBlockRecordHandle.ref;
+                    });
+                bool hasDictionaryEntry = false;
+                if (exportedDictionary != nullptr) {
+                    hasDictionaryEntry = std::any_of(
+                        exportedDictionary->m_entries.begin(),
+                        exportedDictionary->m_entries.end(),
+                        [&layout](const DRW_Dictionary::Entry& candidate) {
+                            return candidate.m_name == layout.name
+                                && candidate.m_handle == layout.handle;
+                        });
+                }
+                exportedGraphClosed = exportedGraphClosed
+                    && record != exportedData.blockRecords.end()
+                    && record->layoutHandle == layout.handle
+                    && hasDictionaryEntry;
+            }
+            const std::string closureLabel = std::string("exported ")
+                + target.second
+                + " layout dictionary and reciprocal block links close after remapping";
+            t.expect(exportedGraphClosed, closureLabel.c_str());
         }
     }
 }

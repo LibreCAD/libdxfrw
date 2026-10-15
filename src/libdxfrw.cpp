@@ -2846,6 +2846,38 @@ bool dxfRW::planSourceBlockRecordHandles() {
     return true;
 }
 
+bool dxfRW::sourceBlockRecordLayoutHandle(
+    std::uint32_t emittedBlockRecord,
+    std::uint32_t& sourceLayoutHandle) const noexcept {
+    sourceLayoutHandle = 0;
+    for (const DRW_Block_Record& record : m_sourceBlockRecords) {
+        const auto emitted = m_sourceBlockRecordHandles.find(record.handle);
+        if (emitted == m_sourceBlockRecordHandles.end()
+            || emitted->second != emittedBlockRecord
+            || record.layoutHandle == 0)
+            continue;
+        if (sourceLayoutHandle != 0
+            && sourceLayoutHandle != record.layoutHandle)
+            return false;
+        sourceLayoutHandle = record.layoutHandle;
+    }
+    return true;
+}
+
+bool dxfRW::writeSourceBlockRecordLayoutLink(
+    std::uint32_t emittedBlockRecord) {
+    if (version < DRW::AC1015)
+        return true;
+    std::uint32_t sourceLayoutHandle = 0;
+    if (!sourceBlockRecordLayoutHandle(emittedBlockRecord,
+                                       sourceLayoutHandle))
+        return failDxfWrite();
+    if (sourceLayoutHandle != 0)
+        writer->writeString(
+            340, toHexStr(remapObjectHandle(sourceLayoutHandle)));
+    return !writer->hasWriteError();
+}
+
 bool dxfRW::validateHatchPayload(const DRW_Hatch *ent) const {
     const auto validInt16 = [](std::size_t value) {
         return value <= static_cast<std::size_t>(
@@ -4432,6 +4464,9 @@ std::uint32_t dxfRW::remapObjectHandle(std::uint32_t handle) const noexcept {
     const auto structural = m_handleRemap.find(handle);
     if (structural != m_handleRemap.end())
         return structural->second;
+    const auto sourceBlockRecord = m_sourceBlockRecordHandles.find(handle);
+    if (sourceBlockRecord != m_sourceBlockRecordHandles.end())
+        return sourceBlockRecord->second;
     const auto blockRecord = m_dxfWriteHandleRemap.find(handle);
     if (blockRecord != m_dxfWriteHandleRemap.end())
         return blockRecord->second;
@@ -8755,6 +8790,9 @@ bool dxfRW::emitBlockRecord(const PendingDxfBlockRecord& record) {
     writer->writeString(100, "AcDbSymbolTableRecord");
     writer->writeString(100, "AcDbBlockTableRecord");
     writer->writeUtf8String(2, record.name);
+    if (version >= DRW::AC1015
+        && !writeSourceBlockRecordLayoutLink(record.handle))
+        return false;
     if (version > DRW::AC1018) {
         writer->writeInt16(70, record.insUnits);
         writer->writeInt16(280, 1);
@@ -9253,6 +9291,10 @@ bool dxfRW::writeTables() {
         writer->writeString(100, "AcDbSymbolTableRecord");
         writer->writeString(100, "AcDbBlockTableRecord");
         writer->writeString(2, "*Model_Space");
+        if (version >= DRW::AC1015
+            && !writeSourceBlockRecordLayoutLink(
+                DRW::DxfModelSpaceBlockRecordHandle))
+            return false;
         if (version > DRW::AC1018) {
             //    writer->writeInt16(340, 22);
             writer->writeInt16(70, 0);
@@ -9267,6 +9309,10 @@ bool dxfRW::writeTables() {
         writer->writeString(100, "AcDbSymbolTableRecord");
         writer->writeString(100, "AcDbBlockTableRecord");
         writer->writeString(2, "*Paper_Space");
+        if (version >= DRW::AC1015
+            && !writeSourceBlockRecordLayoutLink(
+                DRW::DxfPaperSpaceBlockRecordHandle))
+            return false;
         if (version > DRW::AC1018) {
             //    writer->writeInt16(340, 22);
             writer->writeInt16(70, 0);
@@ -9575,8 +9621,16 @@ bool dxfRW::writeObjects() {
     //makes them exist as reachable objects with a valid owner, clearing the
     //INVALID_OWNER_HANDLE fixes ezdxf otherwise applies to the dangling 350s.
     for (const DRW_Dictionary &dict : m_namedDictObjects) {
+        const std::uint32_t dictionaryHandle =
+            remapObjectHandle(dict.handle);
+        if (dictionaryHandle == 0
+            || isDxfFixedOutputHandle(dictionaryHandle)
+            || !reserveHandle(dictionaryHandle)) {
+            m_writeError = true;
+            return false;
+        }
         writer->writeString(0, "DICTIONARY");
-        writer->writeString(5, toHexStr(dict.handle));
+        writer->writeString(5, toHexStr(dictionaryHandle));
         if (!writeTableEntryAppData(dict))
             return false;
         writeObjectOwner(dict.parentHandle != 0
@@ -9589,7 +9643,8 @@ bool dxfRW::writeObjects() {
         writer->writeInt16(281, dict.cloning);
         for (const DRW_Dictionary::Entry &entry : dict.m_entries) {
             writer->writeUtf8String(3, entry.m_name);
-            writer->writeString(350, toHexStr(entry.m_handle));
+            writer->writeString(
+                350, toHexStr(remapObjectHandle(entry.m_handle)));
         }
         if (!dict.extData.empty() && !writeExtData(dict.extData))
             return false;
@@ -17506,8 +17561,10 @@ void dxfRW::writePlotSettingsFields(const DRW_PlotSettings *ent) {
 // LAYOUT is a fixed built-in OBJECT. It embeds the same AcDbPlotSettings prefix
 // as PLOTSETTINGS, followed by AcDbLayout fields.
 bool dxfRW::writeLayout(DRW_Layout *ent) {
-    if (!preflightTableEntry(ent))
+    if (version < DRW::AC1015 || !preflightTableEntry(ent)) {
+        m_writeError = true;
         return false;
+    }
     if (!isValidDxfPlotCustomDpi(version, ent->shadePlotResLevel,
                                ent->shadePlotCustomDPI))
         return failDxfWrite();
@@ -17516,7 +17573,8 @@ bool dxfRW::writeLayout(DRW_Layout *ent) {
         m_writeError = true;
         return false;
     }
-    std::uint32_t handle = static_cast<std::uint32_t>(ent->handle);
+    std::uint32_t handle = remapObjectHandle(
+        static_cast<std::uint32_t>(ent->handle));
     if (handle != 0) {
         if (!reserveHandle(handle))
             return false;
