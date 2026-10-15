@@ -44,7 +44,8 @@ ownerless dictionary is not promoted when an older/minimal OBJECTS stream has
 no leading NOD. The narrow strict rejection leaves those legacy streams on
 their tolerant path. Neither peer report alone establishes a support claim.
 The 2026-10-15 LAYOUT crosswalk grounds the next 7G slice in Autodesk's
-reciprocal graph: NOD `ACAD_LAYOUT` entry→LAYOUT and BLOCK_RECORD 340→LAYOUT,
+reciprocal graph: NOD `ACAD_LAYOUT` entry→ACAD_LAYOUT dictionary→named LAYOUT
+entries and BLOCK_RECORD 340→LAYOUT,
 alongside LAYOUT owner/object/block-record 330, viewport 331, UCS 345/346 and
 shade-plot 333 edges. A deeper local source audit confirms the end-to-end
 PAR-20 gap: core parses the fields and exposes `writeLayout`, but `dx_iface`
@@ -4357,7 +4358,8 @@ Split implementation to keep a small critical path:
    **LAYOUT/NOD reciprocal closure ([Autodesk LAYOUT codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm),
    [BLOCK_RECORD codes](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm),
    and [OBJECTS root example](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm)):** model the
-   object roles separately: NOD `ACAD_LAYOUT` entry name→LAYOUT handle; LAYOUT
+   object roles separately: root NOD `ACAD_LAYOUT` entry→the ACAD_LAYOUT
+   dictionary; that dictionary's layout-name entry→LAYOUT handle; LAYOUT
    owner-dictionary 330 and owner-object 330; its post-`AcDbLayout` 330 to the
    associated paper-space BLOCK_RECORD; 331 last-active VIEWPORT; 345 named
    UCS; 346 base UCS; and 333 shade-plot object. The BLOCK_RECORD's layout
@@ -4387,8 +4389,9 @@ Split implementation to keep a small critical path:
    collapsed: LAYOUT's owner-dictionary link inside its `{ACAD_REACTORS}`
    group, its common owner-object 330, and its later AcDbLayout 330 to the
    associated paper-space BLOCK_RECORD; BLOCK_RECORD 340 is the reciprocal
-   hard pointer to that LAYOUT. The NOD's `ACAD_LAYOUT` dictionary entry is a
-   separate name→LAYOUT edge. ezdxf's documented load architecture resolves
+   hard pointer to that LAYOUT. The root NOD `ACAD_LAYOUT` entry points to the
+   ACAD_LAYOUT DICTIONARY; that dictionary maps each layout name to its LAYOUT
+   object. ezdxf's documented load architecture resolves
    this as a second-stage create-layouts/link-owners pass, after structural
    entities exist; follow that ordering principle without importing ezdxf's
    repair policy. LibreDWG's DWG route resolves model/paper space from DWG
@@ -4415,7 +4418,8 @@ Split implementation to keep a small critical path:
 
    1. **Read contract and generated oracle:** use existing
       `libdxfrw_dxf_fixture_tests` to construct a two-paper-tab plus model-space
-      DXF. Assert NOD key and handle, layout name/tab order, owner-dictionary
+      DXF. Assert root NOD key→layout dictionary→layout-name entry→LAYOUT
+      handle, layout name/tab order, owner-dictionary
       app group, common owner, associated BLOCK_RECORD, reciprocal code340,
       331 viewport and optional 345/346/333 targets independently. Vary
       physical record order and forward/backward references. This must pass
@@ -10553,18 +10557,51 @@ subplan, dependency, fixture payload, CTest registration or support claim.
 
 | Evidence | Cross-project result and limits | Plan update |
 | --- | --- | --- |
-| Autodesk [LAYOUT](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm), [BLOCK_RECORD](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm), [object ownership](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm), and [OBJECTS example](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm) | Normative DXF structure requires separate identities: the NOD is first in OBJECTS; dictionary key `ACAD_LAYOUT` names a LAYOUT handle; LAYOUT has owner-dictionary reference in its persistent-reactor group, common owner-object 330, and an AcDbLayout 330 to its associated paper-space BLOCK_RECORD; BLOCK_RECORD code340 points back to LAYOUT. Other LAYOUT handles (331, 345, 346, 333) have distinct viewport/UCS/shade-plot roles. | Extend current 7G.3 vector with exact role assertions and reciprocal graph closure. Do not merge these links into a generic reference list or validate only that a numeric target exists. Keep the NOD positional identity rule and the DWG header/control root identity as separate route-specific rules. |
+| Autodesk [LAYOUT](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm), [BLOCK_RECORD](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm), [object ownership](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm), [OBJECTS example](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm), and Autodesk [LayoutDictionaryId](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_LayoutDictionaryId.html) / [Layout Objects](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-AC55D3A0-62BE-4C3E-87C4-953C309C954F.htm) | Corrected hierarchy: NOD is first in OBJECTS; its `ACAD_LAYOUT` entry points to a DICTIONARY; that layout dictionary's entries map layout names to LAYOUT objects. Autodesk API docs identify `ACAD_LAYOUT` as a dictionary containing Layout objects. Each LAYOUT has owner-dictionary reference in its persistent-reactor group, common owner-object 330, and an AcDbLayout 330 to its associated paper-space BLOCK_RECORD; BLOCK_RECORD code340 points back to LAYOUT. Other LAYOUT handles (331, 345, 346, 333) have distinct viewport/UCS/shade-plot roles. | Correct all generated roots to use both dictionary levels. Extend current 7G.3 vector with exact role assertions and reciprocal graph closure. Do not merge these links into a generic reference list or validate only that a numeric target exists. Keep the NOD positional identity rule and the DWG header/control root identity as separate route-specific rules. |
 | ezdxf [layout-management structures](https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html), [package design](https://ezdxf.readthedocs.io/en/stable/develop/pkg-design.html), and [layout containers](https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html) | ezdxf treats BLOCK_RECORD as the entity-space owner, creates layout objects after parsing structural records, then links object references in a second stage. Its docs distinguish modelspace, paperspace and reusable blocks; its behavior is a peer implementation contract, not a normative parser oracle or permission to silently repair malformed references. | Use order-independent preplanning: collect records first, resolve typed graph edges second, emit only after whole-graph admission. Generate forward/backward reference and cross-layout controls. Do not require targets to arrive before their references, and do not copy ezdxf's repair/recovery policy as a libdxfrw default. |
 | LibreDWG [DWG object/space model](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi) and [space accessors](https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c) | LibreDWG resolves model/paper BLOCK_HEADERs through decoded DWG header variables and BLOCK_CONTROL references, not by sorting DXF layout handles. Its manual also describes pre-R2004 VX control/table records as a legacy VIEWPORT association that is synthesized from DXF VIEWPORT entities on DXF import. This provides useful route separation, not evidence that every libdxfrw reader version currently decodes all layout/viewport semantics. | Keep DWG's decoded model/paper-space ownership and pre-R2004 VX behavior in the DWG reader lane; keep DXF's NOD/ACAD_LAYOUT/BLOCK_RECORD graph in the DXF graph lane. Run common entity/owner checks in both lanes, but do not infer one representation from the other. |
 | Local source audit at current HEAD (`processLayout`, `processBlockRecord`, `DRW_Layout`, `DRW_Block_Record`, `dx_data`, `dx_iface`, and `dxfRW::writeLayout`/`emitBlockRecord`) | Source-confirmed `dx_iface` loss chain: `processLayout()` invokes a callback that `dx_iface` does not override; `dx_data` has no layout collection; adapter `writeObjects()` does not emit LAYOUT; source BLOCK_RECORD code340 is read into `layoutHandle`, but adapter forwards only name/units/preview to a writer that emits no code340; the positional NOD is stored as an undifferentiated dictionary and general NOD entries are not supplied to `setRootDictEntries()` (currently used for the ACDS material path); direct `writeLayout()` reserves the object handle but does not remap its typed reference fields. Core-level parse/write availability therefore does not imply `dwg2dxf` round-trip support. | Keep this as PAR-20/7G.3 implementation work, not PAR-56's distinct LibreCAD_3 downstream retention gap. Apply the five ordered 7G.3e slices: public read oracle; explicit source-root callback/handoff; adapter retention and graph census; all-handles/root-edge remapping preflight; atomic emit/readback closure. New non-pure callback is source-compatible by existing project convention but is not a binary-ABI promise; rebuild LibreCAD and LibreCAD_3 compatibility targets. |
 
-**Readiness and speed decision:** next executable step is slice 1 in 7G.3e,
-not a broad writer rewrite. It locks the typed read contract with the smallest
-generated graph before public API/storage changes. Then implement root handoff
-and retention independently, followed by the shared remap/preflight boundary
-and one composed writer checkpoint. Reuse `libdxfrw_dxf_fixture_tests`, the
-existing block-owner CLI tests, and `lc3_compat_check`; no downloaded or
-checked-in DWG/DXF fixtures, no new CTest target, and no full suite per graph
-case. The historical six external-only items (`J256`, `J260`, `J268`, `J284`,
-`J293`, `J295`) remain `DEFERRED_EXTERNAL` and non-promoting. Findings and
-top-level subplan counts remain121/70.
+**Readiness and speed decision:** the first generated read-contract slice is
+now exercised in `libdxfrw_dxf_fixture_tests`: ASCII and binary vectors contain
+the NOD→ACAD_LAYOUT dictionary→three named layouts path, one model and two
+paper layouts, plus reciprocal BLOCK_RECORD 340/LAYOUT 330 links in deliberately
+crossed object order. The next step remains a bounded extension of that read
+contract for optional 331/345/346/333 roles, then root handoff and adapter
+retention independently, followed by shared remap/preflight and one composed
+writer checkpoint—not a broad writer rewrite. Reuse
+`libdxfrw_dxf_fixture_tests`, the existing block-owner CLI tests, and
+`lc3_compat_check`; no downloaded or checked-in DWG/DXF fixtures, no new CTest
+target, and no full suite per graph case. The historical six external-only
+items (`J256`, `J260`, `J268`, `J284`, `J293`, `J295`) remain
+`DEFERRED_EXTERNAL` and non-promoting. Findings and top-level subplan counts
+remain121/70.
+
+## Broader implementation-landscape crosswalk (2026-10-15; plan-only)
+
+This research broadens the comparison beyond layout internals to the differing
+roles of mature DXF libraries, multi-format DWG/DXF libraries, and downstream
+CAD consumers. The implementation status pages and issue trackers are
+calibration signals—not format oracles. No peer-reported gap is promoted to a
+libdxfrw defect without a local route-specific reproduction, and no product
+support matrix is used as semantic conformance evidence.
+
+| Evidence | Cross-project result and limit | Concrete plan refinement |
+| --- | --- | --- |
+| ezdxf [supported-version overview](https://ezdxf.readthedocs.io/en/stable/introduction.html) and [document-management/version table](https://ezdxf.readthedocs.io/en/stable/drawing/management.html) | ezdxf is a DXF implementation, not a DWG oracle. Its read-version and create/write-version sets are not identical; older input can be read but saved as R12. Its docs also describe retaining third-party application data in a structure-preserving form with a substantial memory cost. These are explicit API tradeoffs, not evidence of lossless DWG conversion. | Make every implementation claim directional and versioned: source DXF version/encoding and ASCII-vs-binary; target version and conversion/downgrade route; typed, opaque-preserved, intentionally projected, rejected, or lost fields. Add read→write→read semantic checks at existing 7F/7G/7AG gates. Keep bounded raw-carrier limits and memory behavior explicit; do not solve unknown-data preservation with unbounded buffering. |
+| ACadSharp [published DWG/DXF compatibility matrix](https://github.com/DomCR/ACadSharp/wiki/) and its [test-sample discussion](https://github.com/DomCR/ACadSharp/discussions/520) | Its own matrix advertises different DXF reader/writer and DWG reader/writer availability by AC version (including gaps such as AC1021 DWG writing); maintainers describe repository samples as reader test inputs. This is a useful project-level surface map, not a claim that each listed version passes every entity, object, metadata, ownership, or solid semantic. | Keep route/version gates independent in the current plan and require semantic witnesses per feature family. Do not turn an advertised peer version row, successful open, or self-round-trip into a capability promotion. When referencing peer samples, inspect their provenance and semantics; never import them into this repository without the existing fixture policy. |
+| LibreDWG [manual and API documentation](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi) | LibreDWG exposes an independently developed DWG/DXF object model and retrieves model/paper space through decoded header/control references. Its manual explicitly says not all dynamic classes are supported; unstable classes may become UNKNOWN objects and then PLACEHOLDER/DUMMY/POINT on DWG output, and same-version rewrite preservation depends on retaining the complete unknown-bits blob. This is valuable route/outcome evidence, not general opaque-object semantic preservation. | Use LibreDWG for differential witnesses only where both implementations expose comparable typed data. Keep DWG header/control space resolution separate from DXF NOD/ACAD_LAYOUT dictionary traversal (7G.3e). Model typed, same-version opaque-preserved, converted-to-placeholder, unsupported, and rejected outcomes separately; compare entity/object identity and graph edges, not only counts, generated DXF bytes, or CLI exit status. |
+| FreeCAD [DWG import documentation](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md), [import/export matrix](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md), [converter/importer preferences](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md), and [ACIS issue #18454](https://github.com/FreeCAD/FreeCAD/issues/18454) | FreeCAD documents DWG as an external-converter-to-DXF path followed by its DXF importer; its general import/export matrix describes only 2D geometry for DWG/DXF, its preferences distinguish a faster-but-less-featured C++ DXF route from legacy Python, and issue #18454 says proprietary ACIS blobs in DXF are not read. Consumer success/failure is therefore a projection boundary, not proof of general DXF or 3D-solid support. | Preserve the existing LibreCAD/LibreCAD_3 2D compatibility gate while adding 3D consumer capability separately. Test direct DXF 3D carriers and DWG→DXF→consumer paths as different routes. Keep FreeCAD's converter/importer/native qualification outside local parser claims; retain independent SAT/SAB/ACDS evidence and the six external J gates as distinct non-promoting work. |
+| ezdxf [testing overview](https://ezdxf.readthedocs.io/en/stable/introduction.html) | The project reports that rights prevent publishing its stress/audit DXF corpus. This reinforces the general evidence-provenance constraint; it does not license copying those files or treating non-public tests as reproducible evidence. | Generate narrowly scoped control files from scratch at test runtime, as the current fixture executable does. Do not download/commit peer or vendor DWG/DXF test files; use only existing repository fixtures or locally authored vectors, and record the provenance of any future external qualification sample outside the checked-in test corpus. |
+
+**Implementation and speed consequences:** no new finding, top-level subplan,
+dependency, fixture payload, CTest registration, external peer runtime, or
+full-suite cadence is added. The current focused NOD/layout tests now include
+both dictionary levels and a three-layout reciprocal graph in ASCII and
+binary; optional LAYOUT target roles 331/345/346/333 and writer-side whole-graph
+remapping remain explicit follow-ups in 7G.3e. Keep quick tests on each changed
+slice, one composed graph checkpoint at the completed writer boundary, and
+full reader/writer matrices at their existing phase gates. Findings and
+top-level subplans remain121/70. `J256`, `J260`, `J268`, `J284`, `J293`, and
+`J295` remain `DEFERRED_EXTERNAL`; none of this research or the local generated
+controls can promote their support claims.

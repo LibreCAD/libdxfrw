@@ -171,7 +171,7 @@ bool writeNodOrderControl(const std::filesystem::path& path, bool binary,
             && string(100, "AcDbDictionary") && writer->writeInt16(280, 1)
             && writer->writeInt16(281, 1)
             && (!root || (string(3, "ACAD_LAYOUT")
-                          && string(350, "200")))
+                          && string(350, "500")))
             && (!root || (string(3, "TEST_ROOT") && string(350, "300")))
             && (root || (string(3, "TEST_EXTENSION") && string(350, "400")));
     };
@@ -182,9 +182,17 @@ bool writeNodOrderControl(const std::filesystem::path& path, bool binary,
     };
     const auto layout = [&string, &writer]() {
         return string(0, "LAYOUT") && string(5, "200")
+            && string(102, "{ACAD_REACTORS") && string(330, "500")
+            && string(102, "}") && string(330, "500")
             && string(100, "AcDbPlotSettings") && string(1, "")
             && string(100, "AcDbLayout") && writer->writeInt16(71, 2)
-            && string(1, "NOD_ORDER_LAYOUT");
+            && string(1, "NOD_ORDER_LAYOUT") && string(330, "600");
+    };
+    const auto layoutDictionary = [&string, &writer]() {
+        return string(0, "DICTIONARY") && string(5, "500")
+            && string(330, "B0") && string(100, "AcDbDictionary")
+            && writer->writeInt16(280, 1) && writer->writeInt16(281, 1)
+            && string(3, "NOD_ORDER_LAYOUT") && string(350, "200");
     };
     bool written = string(0, "SECTION") && string(2, "HEADER")
         && string(9, "$ACADVER") && string(1, "AC1027")
@@ -202,9 +210,178 @@ bool writeNodOrderControl(const std::filesystem::path& path, bool binary,
     }
     written = written && placeholder("2", nullptr, false)
         && placeholder("300", "B0", true)
-        && placeholder("400", "3", true) && layout()
+        && placeholder("400", "3", true) && layoutDictionary() && layout()
         && string(0, "ENDSEC") && string(0, "EOF");
     return written && !writer->hasWriteError() && output.good();
+}
+
+bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output)
+        return false;
+    if (binary)
+        output.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+    writer->setVersion("AC1027", true);
+    const auto string = [&writer](int code, const char* value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const auto blockRecord = [&string, &integer](const char* handle,
+                                                  const char* name,
+                                                  const char* layoutHandle) {
+        return string(0, "BLOCK_RECORD") && string(5, handle)
+            && string(330, "1") && string(100, "AcDbSymbolTableRecord")
+            && string(100, "AcDbBlockTableRecord") && string(2, name)
+            && integer(70, 0) && integer(280, 1) && integer(281, 0)
+            && string(340, layoutHandle);
+    };
+    const auto layout = [&string, &integer](const char* handle,
+                                             const char* name,
+                                             const char* blockRecordHandle,
+                                             int tabOrder) {
+        return string(0, "LAYOUT") && string(5, handle)
+            && string(102, "{ACAD_REACTORS") && string(330, "500")
+            && string(102, "}") && string(330, "500")
+            && string(100, "AcDbPlotSettings") && string(1, "")
+            && string(100, "AcDbLayout") && integer(71, tabOrder)
+            && string(1, name) && string(330, blockRecordHandle);
+    };
+
+    bool written = string(0, "SECTION") && string(2, "HEADER")
+        && string(9, "$ACADVER") && string(1, "AC1027")
+        && string(0, "ENDSEC") && string(0, "SECTION")
+        && string(2, "TABLES") && string(0, "TABLE")
+        && string(2, "BLOCK_RECORD") && string(5, "1")
+        && string(100, "AcDbSymbolTable") && integer(70, 3)
+        && blockRecord("601", "*Paper_Space", "200")
+        && blockRecord("602", "*Model_Space", "202")
+        && blockRecord("603", "*Paper_Space0", "201")
+        && string(0, "ENDTAB") && string(0, "ENDSEC")
+        && string(0, "SECTION") && string(2, "OBJECTS")
+        // The required root is first, but all graph targets deliberately cross
+        // physical order: named LAYOUT objects precede their dictionary.
+        && string(0, "DICTIONARY") && string(5, "B0")
+        && string(330, "0") && string(100, "AcDbDictionary")
+        && integer(280, 1) && integer(281, 1)
+        && string(3, "ACAD_LAYOUT") && string(350, "500")
+        && layout("200", "Sheet A", "601", 1)
+        && layout("201", "Sheet B", "603", 2)
+        && layout("202", "Model", "602", 0)
+        && string(0, "DICTIONARY") && string(5, "500")
+        && string(330, "B0") && string(100, "AcDbDictionary")
+        && integer(280, 1) && integer(281, 1)
+        && string(3, "Sheet A") && string(350, "200")
+        && string(3, "Sheet B") && string(350, "201")
+        && string(3, "Model") && string(350, "202")
+        && string(0, "ENDSEC") && string(0, "EOF");
+    return written && !writer->hasWriteError() && output.good();
+}
+
+void testLayoutGraphReadContract(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-layout-graph-" + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "temporary LAYOUT graph directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    for (const bool binary : {false, true}) {
+        const auto path = directory
+            / (binary ? "layout-graph-binary.dxf" : "layout-graph-ascii.dxf");
+        t.expect(writeLayoutGraphControl(path, binary),
+                 "generated two-level, reciprocal LAYOUT graph control is complete");
+        FixtureInterface interface_;
+        dx_data data;
+        interface_.cData = &data;
+        interface_.currentBlock = data.mBlock;
+        dxfRW reader(path.string().c_str());
+        t.expect(reader.read(&interface_, false),
+                 "ASCII and binary multi-layout graph controls import");
+
+        const auto root = std::find_if(interface_.dictionaries.begin(),
+            interface_.dictionaries.end(), [](const DRW_Dictionary& value) {
+                return value.handle == 0xB0u;
+            });
+        const auto layoutDictionary = std::find_if(interface_.dictionaries.begin(),
+            interface_.dictionaries.end(), [](const DRW_Dictionary& value) {
+                return value.handle == 0x500u;
+            });
+        t.expect(root != interface_.dictionaries.end()
+                     && root->m_entries.size() == 1
+                     && root->m_entries.front().m_name == "ACAD_LAYOUT"
+                     && root->m_entries.front().m_handle == 0x500u
+                     && layoutDictionary != interface_.dictionaries.end()
+                     && layoutDictionary->parentHandle == 0xB0u
+                     && layoutDictionary->m_entries.size() == 3,
+                 "root ACAD_LAYOUT dictionary and inner named-layout mapping stay distinct");
+
+        const auto findLayout = [&interface_](std::uint32_t handle) {
+            return std::find_if(interface_.layouts.begin(), interface_.layouts.end(),
+                [handle](const DRW_Layout& value) { return value.handle == handle; });
+        };
+        const auto findBlockRecord = [&interface_](std::uint32_t handle) {
+            return std::find_if(interface_.blockRecords.begin(),
+                                interface_.blockRecords.end(),
+                [handle](const DRW_Block_Record& value) {
+                    return value.handle == handle;
+                });
+        };
+        bool reciprocalGraph = interface_.layouts.size() == 3
+            && interface_.blockRecords.size() == 3
+            && layoutDictionary != interface_.dictionaries.end();
+        for (const auto& pair : std::array<std::pair<std::uint32_t,
+                                                      std::uint32_t>, 3>{
+                 std::make_pair(0x200u, 0x601u),
+                 std::make_pair(0x201u, 0x603u),
+                 std::make_pair(0x202u, 0x602u)}) {
+            const auto layoutRecord = findLayout(pair.first);
+            const auto blockRecord = findBlockRecord(pair.second);
+            reciprocalGraph = reciprocalGraph
+                && layoutRecord != interface_.layouts.end()
+                && blockRecord != interface_.blockRecords.end()
+                && layoutRecord->parentHandle == 0x500u
+                && layoutRecord->paperSpaceBlockRecordHandle.ref == pair.second
+                && blockRecord->layoutHandle == pair.first;
+        }
+        t.expect(reciprocalGraph,
+                 "each model/paper LAYOUT and BLOCK_RECORD preserve reciprocal typed handles");
+        if (layoutDictionary != interface_.dictionaries.end()) {
+            const std::array<std::pair<const char*, std::uint32_t>, 3> expected{{
+                {"Sheet A", 0x200u}, {"Sheet B", 0x201u}, {"Model", 0x202u}
+            }};
+            for (const auto& entry : expected) {
+                const auto dictionaryEntry = std::find_if(
+                    layoutDictionary->m_entries.begin(),
+                    layoutDictionary->m_entries.end(),
+                    [&entry](const DRW_Dictionary::Entry& value) {
+                        return value.m_name == entry.first
+                            && value.m_handle == entry.second;
+                    });
+                const auto layoutRecord = findLayout(entry.second);
+                const int expectedTab = entry.second == 0x202u ? 0
+                    : entry.second == 0x200u ? 1 : 2;
+                t.expect(dictionaryEntry != layoutDictionary->m_entries.end()
+                             && layoutRecord != interface_.layouts.end()
+                             && layoutRecord->name == entry.first
+                             && layoutRecord->tabOrder == expectedTab,
+                         "layout dictionary names resolve independently of physical object order");
+            }
+        }
+    }
 }
 
 void testNodRootOrdering(TestContext& t) {
@@ -252,18 +429,30 @@ void testNodRootOrdering(TestContext& t) {
                     interface_.dictionaries.end(), [](const DRW_Dictionary& value) {
                         return value.handle == 3u;
                     });
-                t.expect(interface_.dictionaries.size() == 2
+                const auto layoutDictionary = std::find_if(
+                    interface_.dictionaries.begin(), interface_.dictionaries.end(),
+                    [](const DRW_Dictionary& value) {
+                        return value.handle == 0x500u;
+                    });
+                t.expect(interface_.dictionaries.size() == 3
                              && root != interface_.dictionaries.end()
                              && root->m_entries.size() == 2
                              && root->m_entries[0].m_name == "ACAD_LAYOUT"
-                             && root->m_entries[0].m_handle == 0x200u
+                             && root->m_entries[0].m_handle == 0x500u
                              && root->m_entries[1].m_name == "TEST_ROOT"
                              && root->m_entries[1].m_handle == 0x300u
                              && extension != interface_.dictionaries.end()
                              && extension->m_entries.size() == 1
                              && extension->m_entries.front().m_name == "TEST_EXTENSION"
-                             && extension->m_entries.front().m_handle == 0x400u,
-                         "root and lower-handle extension dictionaries retain distinct entries");
+                             && extension->m_entries.front().m_handle == 0x400u
+                             && layoutDictionary != interface_.dictionaries.end()
+                             && layoutDictionary->parentHandle == 0xB0u
+                             && layoutDictionary->m_entries.size() == 1
+                             && layoutDictionary->m_entries.front().m_name
+                                    == "NOD_ORDER_LAYOUT"
+                             && layoutDictionary->m_entries.front().m_handle
+                                    == 0x200u,
+                         "root NOD, ACAD_LAYOUT dictionary and extension dictionary retain separate graph roles");
                 const auto rawExtension = std::find_if(interface_.rawObjects.begin(),
                     interface_.rawObjects.end(), [](const DRW_RawDxfObject& value) {
                         return value.name == "DICTIONARY" && value.handle == 3u;
@@ -281,8 +470,11 @@ void testNodRootOrdering(TestContext& t) {
                          "only the positional root is suppressed from raw dictionary replay");
                 t.expect(interface_.layouts.size() == 1
                              && interface_.layouts.front().handle == 0x200u
-                             && interface_.layouts.front().name == "NOD_ORDER_LAYOUT",
-                         "ACAD_LAYOUT target is delivered under its original handle");
+                             && interface_.layouts.front().name == "NOD_ORDER_LAYOUT"
+                             && interface_.layouts.front().parentHandle == 0x500u
+                             && interface_.layouts.front()
+                                    .paperSpaceBlockRecordHandle.ref == 0x600u,
+                         "named ACAD_LAYOUT dictionary entry targets a typed layout with distinct owner and block-record links");
             }
         }
 
@@ -9665,6 +9857,7 @@ int main(int argc, char** argv) {
     testRawControls(context);
     testDictionaryWithoutOwner(context);
     testNodRootOrdering(context);
+    testLayoutGraphReadContract(context);
     testXRecordDataOrder(context);
     testXRecordCoordinateTuples(context);
     testXRecordCoordinateBoundaries(context);
