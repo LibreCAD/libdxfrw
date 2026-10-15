@@ -10674,3 +10674,30 @@ CTest registration, dependency, peer-runtime build, or full-suite-per-case is
 needed. Findings/top-level subplans are 122/70. `J256`, `J260`, `J268`,
 `J284`, `J293`, and `J295` remain `DEFERRED_EXTERNAL`; nothing in this pass
 promotes their claims.
+
+## Broader 3D consumer and ACIS producer-profile cross-check (2026-10-15; plan-only)
+
+This follow-up narrows the boundary between a DXF carrier being structurally
+correct, a downstream importer accepting it, and a kernel constructing the
+intended shape. It cross-checks current FreeCAD documentation and preferences,
+ezdxf's detailed ACIS API contract, the already-reviewed ACadSharp MESH writer
+resolution, and the active Slice 8 route plan. No peer binary or native CAD
+application was run; no drawing payload was downloaded or added. Documentation
+profiles remain discovery evidence until the exact runtime and generated
+carrier are bound.
+
+| Evidence | Deeper result and limit | Plan refinement |
+| --- | --- | --- |
+| FreeCAD [import/export preferences](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md), [format matrix](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md), [manual](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md), and [ACIS issue #18454](https://github.com/FreeCAD/FreeCAD/issues/18454) | Current docs distinguish a faster, less feature-complete built-in C++ DXF importer from an optional legacy Python importer; the DWG route additionally depends on a selected external converter. The format manual describes DXF/DWG support as 2D-only because the 3D carrier is proprietary ACIS/ASM, and issue #18454 says the stock importer cannot consume those blobs. The preference to export 3D objects as polyface meshes creates a distinct polygonal representation, not an ACIS/B-rep-preserving route. | Split the existing FreeCAD evidence row into explicit `CXX_DXF`, `LEGACY_DXF` (only if its optional module is actually available), and `DWG_CONVERTER_TO_DXF` profiles. Capture the effective preference, add-on/runtime identity, converter identity, DXF version/encoding, options, process status, and resulting document semantics. Score only feature/profile intersections documented or directly observed; an unsupported entity is `CONSUMER_NOT_APPLICABLE`, not a libdxfrw loss. Keep FreeCAD useful for the existing 2D consumer gate and never count it as ACIS geometry evidence. Treat polyface export as a separately labelled mesh projection. |
+| ezdxf [ACIS tools](https://ezdxf.readthedocs.io/en/stable/acis.html), [3DSOLID entity](https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html), and [v1.4.4 API](https://ezdxf.readthedocs.io/en/stable/acis.html) | The detailed API documents a generator path from a cube mesh to SAT/SAB, with SAT ACIS v700 sufficient for DXF R2000/R2004/R2007/R2010 and SAB v21800 for R2013/R2018. Its loader supports only a limited set of ACIS entities; unsupported entities become `NONE_ENTITY` and lose data, so arbitrary load-and-re-export is not promised. `mesh_from_body()` tessellates only flat polygonal faces; curved/spline surfaces require a capable kernel. These are generator/parser boundaries, not normative carrier rules or independent shape truth. | Make the existing Slice 8 scratch-generator preflight an explicit profile matrix: pin ezdxf 1.4.4 (or a new exact version), generate a locally authored cube with SAT v700 for pre-R2013 DXF and SAB v21800 for R2013/R2018, inspect the generated DXF version marker and group1/3 carrier, then test extraction. If that DXF is subsequently converted through libdxfrw to DWG, inspect the AcDs carrier and handle/index association as a separate route; ezdxf itself is not the DWG AcDs generator. Assert entity/history links and bounded payload identity, and separately report typed, raw/unsupported, and lost ACIS records. Use only planar-cube expectations for ezdxf's own mesh projection. Do not count this generator, its own parser, or its round-trip as independent ACIS semantics; keep J-gate promotion dependent on the already-defined independent reader/kernel conditions. |
+| ACadSharp [issue #1038](https://github.com/DomCR/ACadSharp/issues/1038), merged [PR #1067](https://github.com/DomCR/ACadSharp/pull/1067), and [v3.6.12 release](https://github.com/DomCR/ACadSharp/releases/tag/v3.6.12); local MESH control `c28da26` | The former peer MESH-to-DXF proxy regression was fixed in the cited release with MESH-version assertions and edge-crease handling. This reinforces that MESH topology/crease fields are a separate native DXF entity route from opaque ACIS solids. The local ASCII/binary test checks raw field order and typed self-read, not rendered/native surface behavior. | Keep MESH, POLYFACE/3DFACE, and ACIS `3DSOLID`/`REGION` in distinct feature rows and evidence denominators. Reuse the committed MESH wire control; do not add MESH work to Slice 8 or count its exact tags as surface-evaluation evidence. Any external MESH comparison must pin the release and check a semantic topology projection, while native/rendered acceptance stays at its own gate. |
+
+**Readiness and speed delta:** no new PAR ID, top-level subplan, dependency,
+fixture payload, CTest, or full-suite run is needed. Implement source-local
+carrier tests first with temporary, locally generated files in existing fast
+targets. At the FreeCAD milestone, run only the explicitly selected importer
+profile(s) and an appropriate 2D semantic sentinel; leave ACIS/ACDS shape
+semantics to the separate independent-kernel gate. Retain LibreCAD and
+LibreCAD_3 2D compatibility checks unchanged. Findings and top-level subplans
+remain 122/70. `J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
+`DEFERRED_EXTERNAL`, and none of this research promotes their support claims.
