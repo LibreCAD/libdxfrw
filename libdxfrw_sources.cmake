@@ -42,6 +42,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/drw_cptable936.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/drw_cptable949.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/drw_cptable950.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/drw_cptable_iso8859_4.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/drw_cptables.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/drw_dbg.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/drw_reserve.h"

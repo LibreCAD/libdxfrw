@@ -10,6 +10,7 @@
 #include "drw_cptable936.h"
 #include "drw_cptable949.h"
 #include "drw_cptable950.h"
+#include "drw_cptable_iso8859_4.h"
 
 namespace {
 bool codePageNameEquals(std::string_view source, std::string_view key) noexcept {
@@ -981,8 +982,8 @@ DRW_CodePageResolution DRW_TextCodec::resolveCodePage(
     const bool implementedName = declaration.kind == DRW_CodePageKind::Canonical
         || declaration.kind == DRW_CodePageKind::ExactAlias;
     const char* requested = implementedName ? declaration.selectedName : nullptr;
-    // Family identity only: none of these missing exact mappings is made
-    // available by recognizing its spelling or historical approximation.
+    // Family identity is independent of implementation availability below;
+    // spelling or historical approximation alone does not supply a decoder.
     struct Family { std::string_view spelling; const char* name; };
     static constexpr Family families[] = {
         {"ISO8859-1", "ISO8859-1"}, {"ISO-8859-1", "ISO8859-1"},
@@ -1038,7 +1039,23 @@ DRW_CodePageResolution DRW_TextCodec::resolveCodePage(
     if (implementedName)
         return {declaration, requested, declaration.selectedName,
                 DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-4")
+        return {declaration, requested, "ISO8859-4",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
     return {declaration, requested, nullptr,
             declaration.kind == DRW_CodePageKind::Unknown && requested == nullptr
                 ? DRW_CodePageMappingStatus::Unknown : DRW_CodePageMappingStatus::Unavailable};
+}
+
+std::unique_ptr<DRW_Converter> DRW_TextCodec::createExactCodePageConverter(std::string_view name) {
+    const auto resolved = resolveCodePage(name, DRW_CodePageMappingPolicy::ExactNamed);
+    if (resolved.status != DRW_CodePageMappingStatus::ExactImplementationAvailable
+        || resolved.decoderName == nullptr) return nullptr;
+    if (std::string_view(resolved.decoderName) == "ISO8859-4")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_4, CPLENGTHCOMMON);
+    // Reuse the existing canonical converter construction, without changing
+    // any caller's codec, DXF metadata, version or future input policy.
+    DRW_TextCodec canonical;
+    canonical.setCodePage(resolved.decoderName, false);
+    return std::move(canonical.conv);
 }

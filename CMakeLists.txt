@@ -873,6 +873,7 @@ set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/libdxfrw)
 # Package license material is required for runtime-only installs too. Conan's
 # package() calls cmake.install(), so it follows this same delivery policy.
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/COPYING"
+    "${CMAKE_CURRENT_SOURCE_DIR}/LICENSES/Unicode-3.0.txt"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/libdxfrw")
 
 # A .pc file must resolve the install it lives in, including --install --prefix

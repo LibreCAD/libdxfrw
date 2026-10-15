@@ -29,6 +29,8 @@ PUBLIC_HEADERS = (
 
 LICENSE_RELATIVE = Path("licenses") / "libdxfrw" / "COPYING"
 LICENSE_SOURCE = Path(__file__).resolve().parents[1] / "COPYING"
+UNICODE_LICENSE_RELATIVE = LICENSE_RELATIVE.with_name("Unicode-3.0.txt")
+UNICODE_LICENSE_SOURCE = LICENSE_SOURCE.parent / "LICENSES" / "Unicode-3.0.txt"
 
 FAST_FORBIDDEN_COMMANDS = frozenset({
     "ctest", "curl", "wget", "git", "pip", "pip3", "brew", "apt", "apt-get",
@@ -89,18 +91,24 @@ def layout_root(prefix: Path, destination: str) -> Path:
 
 
 def assert_installed_license(prefix: Path, datadir: str = "share") -> str:
-    license_path = layout_root(prefix.resolve(), datadir) / LICENSE_RELATIVE
+    digest = _assert_installed_notice(prefix, datadir, LICENSE_RELATIVE, LICENSE_SOURCE)
+    _assert_installed_notice(prefix, datadir, UNICODE_LICENSE_RELATIVE, UNICODE_LICENSE_SOURCE)
+    return digest  # Preserve the existing GPL digest/report contract.
+
+
+def _assert_installed_notice(prefix: Path, datadir: str, relative: Path, source: Path) -> str:
+    license_path = layout_root(prefix.resolve(), datadir) / relative
     if not license_path.is_file():
-        raise RuntimeError("installed COPYING is missing: %s" % license_path)
+        raise RuntimeError("installed %s is missing: %s" % (relative.name, license_path))
     try:
         license_path.resolve().relative_to(prefix.resolve())
     except ValueError as error:
-        raise RuntimeError("installed COPYING resolves outside staged prefix") from error
-    expected = LICENSE_SOURCE.read_bytes()
+        raise RuntimeError("installed %s resolves outside staged prefix" % relative.name) from error
+    expected = source.read_bytes()
     actual = license_path.read_bytes()
     expected_digest = hashlib.sha256(expected).hexdigest()
     if actual != expected or hashlib.sha256(actual).hexdigest() != expected_digest:
-        raise RuntimeError("installed COPYING differs from source content: %s" % license_path)
+        raise RuntimeError("installed %s differs from source content: %s" % (relative.name, license_path))
     return expected_digest
 
 
@@ -110,6 +118,7 @@ def assert_install_manifest(manifest: Path, prefix: Path, datadir: str = "share"
     prefix = prefix.resolve()
     recorded = (recorded_prefix or prefix).resolve()
     expected_license = layout_root(prefix, datadir) / LICENSE_RELATIVE
+    expected_unicode = layout_root(prefix, datadir) / UNICODE_LICENSE_RELATIVE
     paths = []
     for entry in manifest.read_text(encoding="utf-8").splitlines():
         path = Path(entry)
@@ -128,6 +137,8 @@ def assert_install_manifest(manifest: Path, prefix: Path, datadir: str = "share"
         paths.append(installed)
     if expected_license not in paths:
         raise RuntimeError("install manifest omits installed COPYING")
+    if expected_unicode not in paths:
+        raise RuntimeError("install manifest omits installed Unicode-3.0.txt")
 
 
 def assert_runtime_only_package(prefix: Path, libdir: str, includedir: str) -> None:
@@ -1168,8 +1179,11 @@ def self_test_installed_license() -> None:
         prefix = root / "original prefix"
         license_path = prefix / "share" / LICENSE_RELATIVE
         license_path.parent.mkdir(parents=True)
+        unicode_path = prefix / "share" / UNICODE_LICENSE_RELATIVE
+        unicode_expected = UNICODE_LICENSE_SOURCE.read_bytes()
+        unicode_path.write_bytes(unicode_expected)
         manifest = root / "install_manifest.txt"
-        manifest.write_text(str(license_path) + "\n", encoding="utf-8")
+        manifest.write_text(str(license_path) + "\n" + str(unicode_path) + "\n", encoding="utf-8")
         for bad_content in (None, expected[:-1], expected + b"\n",
                             expected.replace(b"\n", b"\r\n")):
             if bad_content is not None:
@@ -1182,13 +1196,27 @@ def self_test_installed_license() -> None:
                 raise RuntimeError("license checker accepted missing/modified COPYING")
         license_path.write_bytes(expected)
         assert assert_installed_license(prefix) == hashlib.sha256(expected).hexdigest()
+        for bad_content in (None, unicode_expected[:-1], unicode_expected + b"\n",
+                            unicode_expected.replace(b"\n", b"\r\n")):
+            if bad_content is None:
+                unicode_path.unlink()
+            else:
+                unicode_path.write_bytes(bad_content)
+            try:
+                assert_installed_license(prefix)
+            except RuntimeError:
+                pass
+            else:
+                raise RuntimeError("license checker accepted missing/modified Unicode notice")
+        unicode_path.write_bytes(unicode_expected)
         assert_install_manifest(manifest, prefix)
         assert_runtime_only_package(prefix, "lib", "include")
         moved = root / "moved prefix"
         shutil.copytree(prefix, moved)
         assert_installed_license(moved)
         assert_install_manifest(manifest, moved, recorded_prefix=prefix)
-        for invalid in ("", "relative/COPYING\n", str(root / "outside") + "\n"):
+        for invalid in ("", "relative/COPYING\n", str(root / "outside") + "\n",
+                        str(license_path) + "\n"):
             manifest.write_text(invalid, encoding="utf-8")
             try:
                 assert_install_manifest(manifest, prefix)

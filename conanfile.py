@@ -30,6 +30,7 @@ class LibdxfrwConan(ConanFile):
         "libdxfrw_sources.cmake",
         "libdxfrw.pc.in",
         "COPYING",
+        "LICENSES/**",
     )
 
     def layout(self):

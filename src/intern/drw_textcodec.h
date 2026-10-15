@@ -89,6 +89,10 @@ public:
     static DRW_CodePageSelection classifyCodePage(std::string_view name) noexcept;
     static DRW_CodePageResolution resolveCodePage(
         std::string_view name, DRW_CodePageMappingPolicy policy) noexcept;
+    // Internal input-side converter, independent of version/wire profile.
+    // Null for unavailable/unknown exact mappings; never changes Compatible
+    // state. Encode availability is separate (existing UTF16 is read-only).
+    static std::unique_ptr<DRW_Converter> createExactCodePageConverter(std::string_view name);
     DRW_CodePageSelection declaredCodePageSelection() const noexcept {
         return m_declaredCodePageSelection;
     }

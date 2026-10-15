@@ -80,6 +80,24 @@ with the usable public input policy/HEADER/observation handoff reserved for
 functional3.3b/c. Next3.3b offline ISO8859-4 table and exact factory; no installed
 API, parser layout, callback, support or3D ledger change in this substep.
 
+Parity3.3b now adds the actual ISO8859-4 exact input-side factory and fixed table
+from a hash-pinned Unicode source, with offline deterministic generation and
+associated Unicode notice.1,024 byte/inverse pairs across four spellings,
+244 defined/12 undefined Windows controls, mixed CIF/batch/lifecycle and nine
+canonical input-factory controls pass. All256 Unicode/CPython/table/test scalar
+expectations agree independently; generator source/header negatives pass.
+Focused codec/CLI2/2 in9.20s, strict/build/lc3 and focused ASan/UBSan pass;
+all140 frozen compatibility outputs remain unchanged. CMake/Automake manifests,
+notice installation and Conan source exports are complete locally; scratch
+install/package self-tests verify source-identical notices, manifest omission,
+modified-content refusals and relocation. Receipt:
+docs/research/codec-iso8859-4-3-3b-2026-10-15.json.
+The existing UTF16 converter remains read-only; a mistaken new inverse-smoke
+premise was corrected to its actual input contract, not a DWG write expansion.
+Default codecs/installed API/native/3D qualification are unchanged. Next3.3c
+functional public input snapshot, HEADER/observation and owned converter handoff;
+parent3.3a/3.2 and all six external J dispositions remain open.
+
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
 adds140 current-source codec observations and a bounded3.1–3.5 implementation
@@ -6763,7 +6781,7 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity3.3b offline ISO8859-4/exact factory, then3.3c source handoff;
+local work is parity3.3c functional input/HEADER/observation/converter handoff;
 3.3a public-policy delivery remains open while its internal resolution is implemented;
 3.2b.2d target transport is locally implemented):
 

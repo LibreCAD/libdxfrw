@@ -41,7 +41,7 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `7c677bc`; Plan-Slice:Slice3.3a.1):**
+**Current handoff (2026-10-15, provenance `ec67117`; Plan-Slice:Slice3.3b):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
@@ -106,13 +106,33 @@ Next3.3b fixed ISO8859-4 table/exact factory, then3.3c input snapshot/HEADER/
 observation/converter handoff. Public policy delivery stays open under3.3a/c;
 no format, native or support claim changes.
 
+3.3b now implements the hash-pinned fixed ISO8859-4 table and a real internal
+input-side exact converter factory. Compact/hyphen/case spellings share the
+ISO decoder while historical declaration categories/default Windows selections
+remain unchanged.1,024 complete byte/inverse pairs, all244 defined/12 undefined
+Windows1257 controls,84 resolution/178 legacy selection controls, mixed batch/
+CIF/suffix/failure-retry checks and nine canonical input-factory controls pass.
+Generator QA independently agrees with Unicode/CPython for all256 scalars and
+rejects wrong source/header inputs. Focused codec/CLI2/2 in9.20s, strict two-TU,
+affected/lc3 build and focused ASan/UBSan pass; all140 frozen outputs remain
+unchanged. Source manifests, Conan exports and CMake/Automake notice delivery
+are updated. A scratch CMake install and package-checker self-tests verify both
+source-identical notices/manifest entries, omission/alteration and relocation.
+Receipt: docs/research/codec-iso8859-4-3-3b-2026-10-15.json.
+An overbroad new factory smoke assumption exposed the existing UTF16 encoder
+stub; the final input-side control verifies its actual read-only boundary,
+without modifying DWG/TU writing or claiming new UTF16 output support.
+This closes local3.3b, not public policy, actual DXF HEADER/observation handoff
+or parent3.3a/3.2. Next3.3c functional input snapshot/source admission; exact
+factory availability is not DXF producer-profile or native support admission.
+
 | Order | Bounded item | Actual state and next gate |
 | --- | --- | --- |
 | 1 | PAR-35 / 7R.1 / S5.18 direct HATCH writer | COMMITTED `57b98cd`. Retain the passing literal tags, resolver-alias and failed-write controls; this is not CLI associativity support. |
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
 | 3 | S2.3.9.4.29 block-path modeler census | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:S2.3.9.4.29.B3. The strict writer now rejects unresolved modern INSERT targets using its existing BLOCK_RECORD index. B3 passes28 genuine rejection/destination checks,28 corrected fresh-data retries and four default/R12 compatibility controls. Actual CLI passes four missing-target rejection cells/two R12 refusals plus four valid two-pass conversions/verifiers; positive bytes remain stable. Strict source/TU/lc3 and retained final-source focused CTests2/2 pass. Durable B3 report: docs/research/modeler-block-failures-b3-2026-10-15.json. B1/B2 receipts remain frozen; no nested DWG AcDs/SAB/native/B-rep/J promotion. Codec3.1 is also committed; next independent local slice is3.2. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
-| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Slice3.2b.2d LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_TARGET_TRANSPORT: retained10/10 gate and fresh focused/CLI/DWG/sanitizer/strict checks pass; receipt docs/research/codec-target-transport-3-2b-2d-2026-10-15.json. 3.3a.1 resolution contract is locally implemented:84 selection/six unknown/three lifecycle controls,178 frozen selections,140 unchanged outputs and focused2/2 pass; receipt docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json. Parent3.3a remains open for functional public input policy. Next3.3b table/factory, then3.3c handoff; raw102/default7AR/native semantics remain open.3.4 stays version-witness-gated. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Slice3.2b.2d LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_TARGET_TRANSPORT: retained10/10 gate and fresh focused/CLI/DWG/sanitizer/strict checks pass; receipt docs/research/codec-target-transport-3-2b-2d-2026-10-15.json. 3.3a.1 resolution contract is locally implemented:84 selection/six unknown/three lifecycle controls,178 frozen selections,140 unchanged outputs and focused2/2 pass; receipt docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json. Parent3.3a remains open for functional public input policy. 3.3b local table/input-factory is implemented:1024 byte/inverse pairs, canonical controls, focused2/2, strict/build/lc3/sanitizer, generator/license/package checks pass; receipt docs/research/codec-iso8859-4-3-3b-2026-10-15.json. Next3.3c functional input/HEADER/observation handoff; raw102/default7AR/native semantics remain open.3.4 stays version-witness-gated. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
 
 7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
 GEODATA reader or writer from an older research queue. The new research
@@ -12666,8 +12686,8 @@ without weakening an assertion.
    declaration, requested mapping family, eligible implementation and status.
    The current handoff/receipt binds84 selection/six unknown/three lifecycle-
    allocation controls,178 historical selections, unchanged140 outputs and
-   focused2/2. ISO8859-4 remains explicitly unavailable until3.3b; no table is
-   fabricated. Ambiguous CSISO/X-EUC/X-X-BIG5 keep an unknown requested family
+   focused2/2. At that checkpoint ISO8859-4 was explicitly unavailable;3.3b
+   now supplies the evidenced table/factory. Ambiguous CSISO/X-EUC/X-X-BIG5 keep an unknown requested family
    rather than invented identity. Existing production configuration explicitly
    uses Compatible. Public input policy/snapshots are deliberately introduced
    only with functional3.3b/c; they are not claimed complete by this substep.
@@ -12683,7 +12703,11 @@ without weakening an assertion.
    and format-profile admission are not the classifier's naming category.
    Review installed API/consumer migration and no-new-pure-callback rules;
    require downstream rebuild if layouts change, not binary-ABI claims.
-3. **3.3b first ISO8859-4 table (`READY_LOCAL` after3.3a decision).**
+3. **3.3b first ISO8859-4 table (`LOCAL_IMPLEMENTATION_COMPLETE`).**
+   The current handoff and separate3.3b receipt bind the real input-side exact
+   factory,1,024 byte/inverse pairs, canonical controls, independent generator
+   and packaging/license verification. This is not actual reader-policy or
+   producer-profile admission, which remains3.3c. Original scope follows:
    Generate a fixed128-entry80–FF table from the hash-pinned256-row Unicode
    source, with the applicable source notice and [permission provenance](https://www.unicode.org/license.txt)
    retained in generated file/associated documentation. No iconv/ICU runtime

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <chrono>
@@ -628,9 +629,11 @@ void testExactCodePageResolution(TestContext& t) {
         {"UTF8", "UTF-8", "UTF-8", Kind::ExactAlias},
         {"UTF-16", "UTF-16", "UTF-16", Kind::Canonical}
     };
-    const Row unavailable[] = {
+    const Row isoAvailable[] = {
         {"ISO8859-4", "ISO8859-4", "ANSI_1257", Kind::CompatibilityAlias},
         {"iso-8859-4", "ISO8859-4", "ANSI_1252", Kind::Unavailable},
+    };
+    const Row unavailable[] = {
         {"ISO8859-10", "ISO8859-10", "ANSI_1257", Kind::CompatibilityAlias},
         {"ISO-8859-10", "ISO8859-10", "ANSI_1252", Kind::Unavailable},
         {"ISO8859-13", "ISO8859-13", "ANSI_1257", Kind::CompatibilityAlias},
@@ -670,7 +673,7 @@ void testExactCodePageResolution(TestContext& t) {
             : std::string_view(value) == expected;
     };
     std::size_t selections = 0;
-    const auto check = [&](const Row& row, bool exactAvailable) {
+    const auto check = [&](const Row& row, bool exactAvailable, const char* exactName = nullptr) {
         for (auto policy : {Policy::Compatible, Policy::ExactNamed}) {
             const auto result = DRW_TextCodec::resolveCodePage(row.spelling, policy);
             const auto expectedStatus = policy == Policy::Compatible ? Status::CompatibleSelection
@@ -679,12 +682,14 @@ void testExactCodePageResolution(TestContext& t) {
                          && matches(result.declaration.selectedName, row.historical)
                          && result.declaration.kind == row.kind && result.status == expectedStatus
                          && matches(result.decoderName,
-                             policy == Policy::Compatible || exactAvailable ? row.historical : nullptr),
+                             policy == Policy::Compatible ? row.historical
+                                 : exactAvailable ? (exactName == nullptr ? row.historical : exactName) : nullptr),
                      "exact resolution preserves provenance and never substitutes a similar Windows mapping");
             ++selections;
         }
     };
     for (const auto& row : available) check(row, true);
+    for (const auto& row : isoAvailable) check(row, true, "ISO8859-4");
     for (const auto& row : unavailable) check(row, false);
     const std::string names[] = {"", "unknown-authored-page", "ANSI_1252 ",
         "ISO8859-4/UTF8", "\xE9", std::string("ISO8859-4\0X", 11)};
@@ -699,18 +704,152 @@ void testExactCodePageResolution(TestContext& t) {
     t.expect(invalidPolicy.decoderName == nullptr && invalidPolicy.status == Status::Unknown,
              "an unknown policy cannot silently select a decoder");
     const auto owned = DRW_TextCodec::resolveCodePage(std::string("iso-8859-4"), Policy::ExactNamed);
-    t.expect(matches(owned.requestedName, "ISO8859-4") && owned.decoderName == nullptr,
+    t.expect(matches(owned.requestedName, "ISO8859-4") && matches(owned.decoderName, "ISO8859-4"),
              "resolved identity survives destruction of the caller spelling without borrowed storage");
     bool allocationFree = true;
     failImportObservationAllocations = true;
     for (const auto& row : available) for (auto policy : {Policy::Compatible, Policy::ExactNamed})
         allocationFree &= DRW_TextCodec::resolveCodePage(row.spelling, policy).decoderName != nullptr;
+    for (const auto& row : isoAvailable)
+        allocationFree &= DRW_TextCodec::resolveCodePage(row.spelling, Policy::ExactNamed).decoderName != nullptr;
     for (const auto& row : unavailable)
         allocationFree &= DRW_TextCodec::resolveCodePage(row.spelling, Policy::ExactNamed).decoderName == nullptr;
     failImportObservationAllocations = false;
     t.expect(allocationFree, "resolution remains allocation-free even under forced allocator failure");
     std::cout << "Exact codepage resolution: selections=" << selections
               << ", unknown controls=6, invalid-policy/ownership/allocation controls=3\n";
+}
+
+std::string iso8859_4ExpectedUtf8(int scalar) {
+    if (scalar < 0x80) return std::string(1, static_cast<char>(scalar));
+    // Every scalar in the independently transcribed ISO8859-4/CP1257
+    // expectations fits two/three UTF8 bytes; no production encoder is used.
+    if (scalar < 0x800)
+        return {static_cast<char>(0xC0 | (scalar >> 6)), static_cast<char>(0x80 | (scalar & 0x3F))};
+    return {static_cast<char>(0xE0 | (scalar >> 12)), static_cast<char>(0x80 | ((scalar >> 6) & 0x3F)),
+            static_cast<char>(0x80 | (scalar & 0x3F))};
+}
+
+void testExactIso8859_4(TestContext& t) {
+    // Independent CPython3.9 strict-codec expectations, checked against the
+    // pinned Unicode tables by the optional research gate. Do not include or
+    // derive expected values from the production generated header.
+    static constexpr int graphic[] = {
+        0x00A0, 0x0104, 0x0138, 0x0156, 0x00A4, 0x0128, 0x013B, 0x00A7,
+        0x00A8, 0x0160, 0x0112, 0x0122, 0x0166, 0x00AD, 0x017D, 0x00AF,
+        0x00B0, 0x0105, 0x02DB, 0x0157, 0x00B4, 0x0129, 0x013C, 0x02C7,
+        0x00B8, 0x0161, 0x0113, 0x0123, 0x0167, 0x014A, 0x017E, 0x014B,
+        0x0100, 0x00C1, 0x00C2, 0x00C3, 0x00C4, 0x00C5, 0x00C6, 0x012E,
+        0x010C, 0x00C9, 0x0118, 0x00CB, 0x0116, 0x00CD, 0x00CE, 0x012A,
+        0x0110, 0x0145, 0x014C, 0x0136, 0x00D4, 0x00D5, 0x00D6, 0x00D7,
+        0x00D8, 0x0172, 0x00DA, 0x00DB, 0x00DC, 0x0168, 0x016A, 0x00DF,
+        0x0101, 0x00E1, 0x00E2, 0x00E3, 0x00E4, 0x00E5, 0x00E6, 0x012F,
+        0x010D, 0x00E9, 0x0119, 0x00EB, 0x0117, 0x00ED, 0x00EE, 0x012B,
+        0x0111, 0x0146, 0x014D, 0x0137, 0x00F4, 0x00F5, 0x00F6, 0x00F7,
+        0x00F8, 0x0173, 0x00FA, 0x00FB, 0x00FC, 0x0169, 0x016B, 0x02D9,
+    };
+    static constexpr int windows[] = {
+        0x20AC, 0x0000, 0x201A, 0x0000, 0x201E, 0x2026, 0x2020, 0x2021,
+        0x0000, 0x2030, 0x0000, 0x2039, 0x0000, 0x00A8, 0x02C7, 0x00B8,
+        0x0000, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
+        0x0000, 0x2122, 0x0000, 0x203A, 0x0000, 0x00AF, 0x02DB, 0x0000,
+        0x00A0, 0x0000, 0x00A2, 0x00A3, 0x00A4, 0x0000, 0x00A6, 0x00A7,
+        0x00D8, 0x00A9, 0x0156, 0x00AB, 0x00AC, 0x00AD, 0x00AE, 0x00C6,
+        0x00B0, 0x00B1, 0x00B2, 0x00B3, 0x00B4, 0x00B5, 0x00B6, 0x00B7,
+        0x00F8, 0x00B9, 0x0157, 0x00BB, 0x00BC, 0x00BD, 0x00BE, 0x00E6,
+        0x0104, 0x012E, 0x0100, 0x0106, 0x00C4, 0x00C5, 0x0118, 0x0112,
+        0x010C, 0x00C9, 0x0179, 0x0116, 0x0122, 0x0136, 0x012A, 0x013B,
+        0x0160, 0x0143, 0x0145, 0x00D3, 0x014C, 0x00D5, 0x00D6, 0x00D7,
+        0x0172, 0x0141, 0x015A, 0x016A, 0x00DC, 0x017B, 0x017D, 0x00DF,
+        0x0105, 0x012F, 0x0101, 0x0107, 0x00E4, 0x00E5, 0x0119, 0x0113,
+        0x010D, 0x00E9, 0x017A, 0x0117, 0x0123, 0x0137, 0x012B, 0x013C,
+        0x0161, 0x0144, 0x0146, 0x00F3, 0x014D, 0x00F5, 0x00F6, 0x00F7,
+        0x0173, 0x0142, 0x015B, 0x016B, 0x00FC, 0x017C, 0x017E, 0x02D9,
+    };
+    static_assert(sizeof(graphic) / sizeof(graphic[0]) == 96, "complete ISO graphic expectations");
+    static_assert(sizeof(windows) / sizeof(windows[0]) == 128, "complete Windows upper expectations");
+    std::size_t pairs = 0;
+    for (const char* name : {"ISO8859-4", "ISO-8859-4", "iso8859-4", "iso-8859-4"}) {
+        auto converter = DRW_TextCodec::createExactCodePageConverter(name);
+        t.expect(converter != nullptr, "both exact ISO spellings and case variants have a real converter");
+        if (!converter) continue;
+        std::string allBytes, allExpected;
+        for (int byte = 0; byte < 256; ++byte) {
+            const std::string wire(1, static_cast<char>(byte));
+            const int scalar = byte < 160 ? byte : graphic[byte - 160];
+            const auto expected = iso8859_4ExpectedUtf8(scalar);
+            t.expect(converter->toUtf8(wire) == expected
+                         && converter->decodeObservation().issues == 0
+                         && converter->decodeObservation().nonAsciiBytes == (byte >= 128)
+                         && converter->decodeObservation().legacyBytes,
+                     "every defined ISO byte decodes to its independent scalar with truthful observations");
+            t.expect(converter->fromUtf8(expected) == wire,
+                     "every independent ISO scalar inverse-encodes to the original byte");
+            allBytes += wire; allExpected += expected; ++pairs;
+        }
+        t.expect(converter->toUtf8(allBytes) == allExpected
+                     && converter->fromUtf8(allExpected) == allBytes,
+                 "mixed full-range ISO input including NUL/C1 preserves all table bytes without record-framing claims");
+        t.expect(converter->toUtf8("\xA1\\U+4E2D\xA2Z") == "\xC4\x84\xE4\xB8\xAD\xC4\xB8Z"
+                     && converter->fromUtf8("\xE4\xB8\xAD") == "\\U+4E2D",
+                 "adjacent ISO byte/CIF and unmapped BMP fallback retain exact scalar/suffix semantics");
+        t.expect(converter->fromUtf8("\x80Z") == "?Z",
+                 "malformed UTF8 retains existing converter fallback and suffix, not a supported-format pass");
+    }
+    auto canonical = DRW_TextCodec::createExactCodePageConverter("ANSI_1257");
+    t.expect(canonical != nullptr, "existing canonical Windows factory is available independently");
+    for (const char* name : {"ANSI_1252", "cp1252", "ANSI_1257", "CP1257", "ansi_949",
+             "CSWINDOWS31J", "X-MS-CP932", "UTF8", "UTF-16"}) {
+        auto factory = DRW_TextCodec::createExactCodePageConverter(name);
+        const bool utf16 = std::string_view(name) == "UTF-16";
+        const auto wire = utf16 ? std::string("A\0", 2) : "A";
+        t.expect(factory && factory->toUtf8(wire) == "A"
+                     && (utf16 ? factory->fromUtf8("A").empty() : factory->fromUtf8("A") == wire),
+                 "input-side factory preserves canonical byte grammar and the existing UTF16 read-only boundary");
+    }
+    std::size_t validWindows = 0, undefinedWindows = 0;
+    if (canonical) for (int byte = 0; byte < 256; ++byte) {
+        const auto wire = std::string(1, static_cast<char>(byte));
+        const int scalar = byte < 128 ? byte : windows[byte - 128];
+        const auto decoded = canonical->toUtf8(wire);
+        if (byte >= 128 && scalar == 0) {
+            const auto expectedIssues = DRW::dxfTextIssueMask(DRW::DxfTextIssue::UndefinedByteSequence)
+                | DRW::dxfTextIssueMask(DRW::DxfTextIssue::DiscardedSource);
+            t.expect(decoded.empty() && canonical->decodeObservation().issues == expectedIssues,
+                     "undefined Windows bytes remain separate from the fully defined ISO table");
+            ++undefinedWindows;
+        } else {
+            const auto expected = iso8859_4ExpectedUtf8(scalar);
+            t.expect(decoded == expected && canonical->decodeObservation().issues == 0
+                         && canonical->fromUtf8(expected) == wire,
+                     "all defined canonical Windows bytes and inverse mappings remain unchanged");
+            ++validWindows;
+        }
+    }
+    for (const char* unsupported : {"ISO8859-10", "ISO-8859-13", "EUC-JP", "GB18030",
+             "BIG5-HKSCS", "CSISO", "unknown-authored-page", ""})
+        t.expect(DRW_TextCodec::createExactCodePageConverter(unsupported) == nullptr,
+                 "unimplemented exact families never acquire the neighboring Windows converter");
+    auto retained = DRW_TextCodec::createExactCodePageConverter("ISO8859-4");
+    bool allocationFailed = false;
+    failImportObservationAllocations = true;
+    try { auto rejected = DRW_TextCodec::createExactCodePageConverter("ISO8859-4"); }
+    catch (const std::bad_alloc&) { allocationFailed = true; }
+    failImportObservationAllocations = false;
+    t.expect(allocationFailed && retained && retained->toUtf8("\xA1") == "\xC4\x84"
+                 && DRW_TextCodec::createExactCodePageConverter("ISO8859-4") != nullptr,
+             "failed factory allocation preserves an existing converter and a later retry");
+    t.expect(DRW_TextCodec::createExactCodePageConverter(std::string("ISO8859-4\0X", 11)) == nullptr,
+             "factory does not truncate an exact mapping name at embedded NUL");
+    DRW_TextCodec compatible;
+    compatible.setVersion(DRW::AC1015, true); compatible.setCodePage("ISO8859-4", true);
+    auto exact = DRW_TextCodec::createExactCodePageConverter("ISO8859-4");
+    t.expect(exact && exact->toUtf8("\xA1\xA2\xFF") == "\xC4\x84\xC4\xB8\xCB\x99"
+                 && compatible.getCodePage() == "ANSI_1257" && compatible.toUtf8("\xA1").empty(),
+             "literal independent ISO anchors do not change the caller's historical codec/metadata");
+    std::cout << "Exact ISO8859-4: byte/inverse pairs=" << pairs << ", aliases=4, Windows defined="
+              << validWindows << ", Windows undefined=" << undefinedWindows
+              << "; batch/CIF/malformed/factory lifecycle controls pass\n";
 }
 
 std::string makeCodePageDiagnosticDrawing(const char* declaration, bool modern,
@@ -2840,6 +2979,12 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--iso8859-4") {
+        testExactIso8859_4(context);
+        testExactCodePageResolution(context);
+        testCodePageSelectionMetadata(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--codepage-resolution") {
         testExactCodePageResolution(context);
         testCodePageSelectionMetadata(context);
@@ -2902,6 +3047,7 @@ int main(int argc, char** argv) {
     testCodePagePolicyAnchors(context);
     testCodePageSelectionMetadata(context);
     testExactCodePageResolution(context);
+    testExactIso8859_4(context);
     testCodePageDiagnosticHandoff(context);
     testCodePageProvenanceBudget(context);
     testCodePageDeclarationProvenance(context);
