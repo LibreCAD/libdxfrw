@@ -613,7 +613,8 @@ private:
         else
             cData->dwgReadOutcome.callbackCountsSaturated = true;
     }
-    bool prepareExtensionObjectGraph(dx_data* data);
+    bool prepareExtensionObjectGraph(dx_data* data,
+                                     bool includeNamedObjectRoot);
     static bool collectAcdsHistoryProxyObjects(
         const dx_data& data, std::vector<DRW_RawDxfObject>& objects,
         std::vector<std::uint32_t>& materialHandles, bool debug);

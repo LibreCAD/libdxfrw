@@ -381,14 +381,20 @@ bool extensionGraphLimits() {
         }
         dx_data shared;
         populateExtensionChain(shared, 2u, true);
-        shared.dictionaries.front().m_entries.push_back({"SHARED", 0x202u});
+        shared.dictionaries.front().reactorHandles.push_back(0x202u);
         dx_iface interface_;
         interface_.setExtensionGraphLimits({2u, 5u, 2u});
         const auto path = directory / "shared.dxf";
-        expect(interface_.fileExport(path.string(), DRW::AC1021, binary, &shared, false)
-                   && interface_.extensionGraphStats().visitedNodes == 2u
-                   && interface_.extensionGraphStats().examinedEdges == 5u,
-               "shared dictionary target consumes one node but each reference slot");
+        const bool sharedAccepted = interface_.fileExport(
+            path.string(), DRW::AC1021, binary, &shared, false);
+        const auto sharedStats = interface_.extensionGraphStats();
+        expect(sharedAccepted && sharedStats.visitedNodes == 2u
+                   && sharedStats.examinedEdges == 5u,
+               "shared dictionary target consumes one node but each reference slot (accepted="
+                   + std::to_string(sharedAccepted) + ", nodes="
+                   + std::to_string(sharedStats.visitedNodes) + ", edges="
+                   + std::to_string(sharedStats.examinedEdges) + ", failure="
+                   + interface_.extensionGraphFailureName() + ")");
 
         dx_data reactors;
         populateExtensionChain(reactors, 1u);
@@ -521,10 +527,21 @@ bool generateExtensionCycle(const std::string& path, bool binary) {
     writer->writeString(0, "ENDSEC");
     writer->writeString(0, "SECTION");
     writer->writeString(2, "OBJECTS");
+    // The first OBJECTS record must be the ownerless NOD. The remaining
+    // owned dictionaries form the intentionally invalid extension cycle which
+    // the CLI preflight, rather than the DXF parser, is meant to reject.
+    writer->writeString(0, "DICTIONARY");
+    writer->writeString(5, "C");
+    writer->writeString(330, "0");
+    writer->writeString(100, "AcDbDictionary");
+    writer->writeInt16(280, 1);
+    writer->writeInt16(281, 1);
+    writer->writeString(3, "TEST_EXTENSION");
+    writer->writeString(350, "201");
     for (const bool root : {true, false}) {
         writer->writeString(0, "DICTIONARY");
         writer->writeString(5, root ? "201" : "202");
-        writer->writeString(330, root ? "101" : "201");
+        writer->writeString(330, root ? "C" : "201");
         writer->writeString(100, "AcDbDictionary");
         writer->writeInt16(280, 1);
         writer->writeInt16(281, 1);

@@ -1506,7 +1506,8 @@ bool dx_iface::collectAcdsTypedBoxHistoryObjects(
     return true;
 }
 
-bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
+bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
+                                           bool includeNamedObjectRoot) {
     m_extensionDictionaryHandles.clear();
     m_extensionXRecordHandles.clear();
     m_extensionGraphStats = {};
@@ -1539,6 +1540,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
         std::unordered_map<std::uint32_t, const DRW_XRecord*> xrecords;
         std::unordered_set<std::uint32_t> sourceHandles;
         std::unordered_set<std::uint32_t> linetypeHandles;
+        if (includeNamedObjectRoot && data->hasNamedObjectDictionary) {
+            const std::uint32_t rootHandle =
+                data->namedObjectDictionary.handle;
+            if (rootHandle == 0 || rootHandle == DRW::NoHandle
+                || !sourceHandles.insert(rootHandle).second)
+                return reject();
+        }
         for (const DRW_LType& lineType : data->lineTypes) {
             if (!examineSourceRecord())
                 return false;
@@ -1716,14 +1724,46 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data) {
         }
 
         const auto hasParent = [&dictionaries, &visitedDictionaries,
-                                &visitedXRecords, &linetypeHandles](
+                                &visitedXRecords, &linetypeHandles, data,
+                                includeNamedObjectRoot](
                                    std::uint32_t parent) {
             return parent == 0 || parent == 0xCu || parent == 0xDu
+                || (includeNamedObjectRoot
+                    && data->hasNamedObjectDictionary
+                    && parent == data->namedObjectDictionary.handle)
                 || linetypeHandles.count(parent) != 0
                 || (dictionaries.count(parent) != 0
                     && visitedDictionaries.count(parent) != 0)
                 || visitedXRecords.count(parent) != 0;
         };
+
+        if (includeNamedObjectRoot && data->hasNamedObjectDictionary) {
+            for (const DRW_Dictionary::Entry& entry :
+                 data->namedObjectDictionary.m_entries) {
+                std::string key = entry.m_name;
+                for (char& character : key) {
+                    if (character >= 'a' && character <= 'z')
+                        character = static_cast<char>(
+                            character - 'a' + 'A');
+                }
+                if (key == "ACAD_LAYOUT" || key == "ACAD_GROUP"
+                    || (key == "ACAD_IMAGE_DICT"
+                        && !data->images.empty())
+                    || (key == "ACAD_MATERIAL"
+                        && !data->dataStorageSections.empty()))
+                    continue;
+                if (entry.m_handle == 0 || entry.m_handle == DRW::NoHandle
+                    || !examineEdge())
+                    return reject();
+                std::size_t matches = 0;
+                if (dictionaries.count(entry.m_handle) != 0)
+                    ++matches;
+                if (xrecords.count(entry.m_handle) != 0)
+                    ++matches;
+                if (matches != 1u || !visit(entry.m_handle, false))
+                    return false;
+            }
+        }
         for (std::uint32_t handle : m_extensionDictionaryHandles) {
             const DRW_Dictionary* dictionary = dictionaries.at(handle);
             if (!examineEdge())
@@ -2204,7 +2244,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "dynamic-block objects have no qualified DXF serializer");
         return false;
     }
-    if (!prepareExtensionObjectGraph(cData)) {
+    if (!prepareExtensionObjectGraph(cData, requireResolvedOwners)) {
         reportPreflightFailure("extension-object graph validation");
         if (debug) {
             std::cerr << "Extension graph diagnostic: " << extensionGraphFailureName()
@@ -2683,6 +2723,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             }
 
             const DRW_Dictionary* targetDictionary = nullptr;
+            const DRW_XRecord* targetXRecord = nullptr;
             std::size_t targetMatches = 0;
             for (const DRW_Dictionary& dictionary : cData->dictionaries) {
                 if (dictionary.handle == sourceEntry.m_handle) {
@@ -2690,14 +2731,32 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     ++targetMatches;
                 }
             }
-            // The first retention slice is intentionally limited to empty,
-            // directly-owned dictionaries. Never recreate a dangling root
-            // edge or claim closure for dictionary contents the adapter does
-            // not yet serialize as a typed object graph.
-            if (targetMatches != 1u || targetDictionary == nullptr
-                || targetDictionary->parentHandle
-                       != cData->namedObjectDictionary.handle
-                || !targetDictionary->m_entries.empty()) {
+            for (const DRW_XRecord& record : cData->xRecords) {
+                if (record.handle == sourceEntry.m_handle) {
+                    targetXRecord = &record;
+                    ++targetMatches;
+                }
+            }
+            const bool dictionaryQueued = std::find(
+                m_extensionDictionaryHandles.begin(),
+                m_extensionDictionaryHandles.end(), sourceEntry.m_handle)
+                    != m_extensionDictionaryHandles.end();
+            const bool xRecordQueued = std::find(
+                m_extensionXRecordHandles.begin(),
+                m_extensionXRecordHandles.end(), sourceEntry.m_handle)
+                    != m_extensionXRecordHandles.end();
+            const bool closedDictionary = targetDictionary != nullptr
+                && targetDictionary->parentHandle
+                    == cData->namedObjectDictionary.handle
+                && (dictionaryQueued
+                    || (!requireResolvedOwners
+                        && targetDictionary->m_entries.empty()));
+            const bool closedXRecord = targetXRecord != nullptr
+                && targetXRecord->parentHandle
+                    == cData->namedObjectDictionary.handle
+                && xRecordQueued;
+            if (targetMatches != 1u
+                || (!closedDictionary && !closedXRecord)) {
                 if (requireResolvedOwners) {
                     delete dxfW;
                     dxfW = nullptr;
@@ -2706,13 +2765,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 continue;
             }
 
-            const bool alreadyQueued = std::any_of(
-                materialDictionaries.begin(), materialDictionaries.end(),
-                [sourceEntry](const DRW_Dictionary& dictionary) {
-                    return dictionary.handle == sourceEntry.m_handle;
-                });
-            if (!alreadyQueued)
-                materialDictionaries.push_back(*targetDictionary);
+            if (closedDictionary && !dictionaryQueued) {
+                const bool alreadyQueued = std::any_of(
+                    materialDictionaries.begin(), materialDictionaries.end(),
+                    [sourceEntry](const DRW_Dictionary& dictionary) {
+                        return dictionary.handle == sourceEntry.m_handle;
+                    });
+                if (!alreadyQueued)
+                    materialDictionaries.push_back(*targetDictionary);
+            }
 
             std::uint32_t emittedHandle = sourceEntry.m_handle;
             const auto remapped = handleRemap.find(emittedHandle);

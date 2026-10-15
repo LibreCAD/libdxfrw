@@ -511,7 +511,7 @@ void testLayoutGraphReadContract(TestContext& t) {
                      && adapterData.blockRecords.size() == 3,
                  "dx_iface retains the positional NOD, named UCS rows and typed layout graph");
 
-        const auto addEmptyRootDictionary = [](dx_data& data) {
+        const auto addTypedRootDictionary = [](dx_data& data) {
             if (!data.hasNamedObjectDictionary
                 || data.namedObjectDictionary.handle == 0
                 || data.namedObjectDictionary.handle == DRW::NoHandle)
@@ -520,15 +520,22 @@ void testLayoutGraphReadContract(TestContext& t) {
             child.handle = 0x720u;
             child.parentHandle = data.namedObjectDictionary.handle;
             child.cloning = 1;
+            child.m_entries.push_back({"CUSTOM_RECORD", 0x721u});
+            DRW_XRecord record;
+            record.handle = 0x721u;
+            record.parentHandle = child.handle;
+            record.m_dataEntries.emplace_back(
+                1, UTF8STRING("typed-nod-root-payload"));
+            data.xRecords.push_back(std::move(record));
             DRW_Dictionary::Entry entry;
-            entry.m_name = "CUSTOM_EMPTY";
+            entry.m_name = "CUSTOM_TYPED";
             entry.m_handle = child.handle;
             data.namedObjectDictionary.m_entries.push_back(entry);
             data.dictionaries.push_back(std::move(child));
             return true;
         };
-        t.expect(addEmptyRootDictionary(adapterData),
-                 "generated NOD graph adds one typed, directly-owned empty dictionary");
+        t.expect(addTypedRootDictionary(adapterData),
+                 "generated NOD graph adds a directly-owned dictionary with a typed XRECORD child");
 
         const auto rejectedOutput = directory
             / (binary ? "invalid-layout-output-binary.dxf"
@@ -563,7 +570,7 @@ void testLayoutGraphReadContract(TestContext& t) {
         adapterData.layouts.front().paperSpaceBlockRecordHandle.ref =
             originalBlockRecordHandle;
 
-        auto emptyRootDictionary = std::find_if(
+        auto rootChildDictionary = std::find_if(
             adapterData.dictionaries.begin(), adapterData.dictionaries.end(),
             [](const DRW_Dictionary& dictionary) {
                 return dictionary.handle == 0x720u;
@@ -572,9 +579,9 @@ void testLayoutGraphReadContract(TestContext& t) {
             adapterData.namedObjectDictionary.m_entries.begin(),
             adapterData.namedObjectDictionary.m_entries.end(),
             [](const DRW_Dictionary::Entry& entry) {
-                return entry.m_name == "CUSTOM_EMPTY";
+                return entry.m_name == "CUSTOM_TYPED";
             });
-        if (emptyRootDictionary != adapterData.dictionaries.end()
+        if (rootChildDictionary != adapterData.dictionaries.end()
             && customRootEntry
                 != adapterData.namedObjectDictionary.m_entries.end()) {
             const auto expectStrictNodRejected = [&]() {
@@ -601,13 +608,13 @@ void testLayoutGraphReadContract(TestContext& t) {
             customRootEntry->m_handle = originalTarget;
 
             const std::uint32_t originalOwner =
-                emptyRootDictionary->parentHandle;
-            emptyRootDictionary->parentHandle = 0x7FFu;
+                rootChildDictionary->parentHandle;
+            rootChildDictionary->parentHandle = 0x7FFu;
             t.expect(expectStrictNodRejected(),
                      "wrongly-owned unrelated NOD dictionary is rejected before strict publication");
-            emptyRootDictionary->parentHandle = originalOwner;
+            rootChildDictionary->parentHandle = originalOwner;
 
-            adapterData.dictionaries.push_back(*emptyRootDictionary);
+            adapterData.dictionaries.push_back(*rootChildDictionary);
             t.expect(expectStrictNodRejected(),
                      "multiply-matched unrelated NOD target is rejected before strict publication");
             adapterData.dictionaries.pop_back();
@@ -615,10 +622,10 @@ void testLayoutGraphReadContract(TestContext& t) {
             DRW_Dictionary::Entry unresolved;
             unresolved.m_name = "UNRESOLVED_CHILD";
             unresolved.m_handle = 0x7FEu;
-            emptyRootDictionary->m_entries.push_back(unresolved);
+            rootChildDictionary->m_entries.push_back(unresolved);
             t.expect(expectStrictNodRejected(),
                      "unclosed unrelated NOD child dictionary is rejected before strict publication");
-            emptyRootDictionary->m_entries.clear();
+            rootChildDictionary->m_entries.clear();
         }
 
         const std::uint32_t originalLayoutDictionaryTarget =
@@ -961,8 +968,8 @@ void testLayoutGraphReadContract(TestContext& t) {
             for (DRW_Layout& layout : exportSource.layouts) {
                 layout.shadePlotHandle.ref = 0;
             }
-            t.expect(addEmptyRootDictionary(exportSource),
-                     "versioned graph source contains the generated unrelated root dictionary");
+            t.expect(addTypedRootDictionary(exportSource),
+                     "versioned graph source contains a typed unrelated root dictionary graph");
             applyCollisionRemap(exportSource);
             const std::string outputName = std::string("layout-graph-export-")
                 + target.second + (binary ? "-binary.dxf" : "-ascii.dxf");
@@ -970,7 +977,7 @@ void testLayoutGraphReadContract(TestContext& t) {
             dx_iface exporter;
             const bool exported = exporter.fileExport(
                 exportedPath.string(), target.first, binary, &exportSource,
-                false);
+                false, true);
             const std::string exportLabel =
                 std::string("validated NOD/LAYOUT graph exports for ")
                 + target.second;
@@ -993,7 +1000,7 @@ void testLayoutGraphReadContract(TestContext& t) {
                 exportedData.namedObjectDictionary.m_entries.begin(),
                 exportedData.namedObjectDictionary.m_entries.end(),
                 [](const DRW_Dictionary::Entry& entry) {
-                    return entry.m_name == "CUSTOM_EMPTY";
+                    return entry.m_name == "CUSTOM_TYPED";
                 });
             const DRW_Dictionary* exportedCustomDictionary = nullptr;
             if (rootCustomDictionary
@@ -1052,16 +1059,33 @@ void testLayoutGraphReadContract(TestContext& t) {
                 + target.second
                 + " layout dictionary and reciprocal block links close after remapping";
             t.expect(exportedGraphClosed, closureLabel.c_str());
+            const auto exportedCustomRecord = std::find_if(
+                exportedData.xRecords.begin(), exportedData.xRecords.end(),
+                [](const DRW_XRecord& record) {
+                    return record.handle == 0x721u;
+                });
             const bool unrelatedRootEntryClosed =
                 rootCustomDictionary
                     != exportedData.namedObjectDictionary.m_entries.end()
                 && exportedCustomDictionary != nullptr
                 && exportedCustomDictionary->parentHandle
                     == exportedData.namedObjectDictionary.handle
-                && exportedCustomDictionary->m_entries.empty();
+                && exportedCustomDictionary->m_entries.size() == 1u
+                && exportedCustomDictionary->m_entries.front().m_name
+                    == "CUSTOM_RECORD"
+                && exportedCustomRecord != exportedData.xRecords.end()
+                && exportedCustomRecord->parentHandle
+                    == exportedCustomDictionary->handle
+                && exportedCustomRecord->m_dataEntries.size() == 1u
+                && exportedCustomRecord->m_dataEntries.front().type()
+                    == DRW_Variant::STRING
+                && exportedCustomRecord->m_dataEntries.front().content.s
+                    != nullptr
+                && *exportedCustomRecord->m_dataEntries.front().content.s
+                    == "typed-nod-root-payload";
             const std::string rootEntryLabel = std::string("exported ")
                 + target.second
-                + " retains the unrelated typed empty NOD child dictionary";
+                + " retains the populated NOD dictionary-to-XRECORD closure";
             t.expect(unrelatedRootEntryClosed, rootEntryLabel.c_str());
 
             const auto exportedInactivePaper = std::find_if(
