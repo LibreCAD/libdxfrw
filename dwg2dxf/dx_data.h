@@ -55,6 +55,11 @@ public:
     std::list<DRW_Entity*>ent; //stores the entities list
 };
 
+enum class dx_source_format : std::uint8_t {
+    Unknown,
+    DXF,
+    DWG
+};
 
 //container class to store full dwg/dxf data.
 class dx_data {
@@ -72,6 +77,7 @@ public:
 
     DRW_Header headerC;                 //stores a copy of the header vars
     DRW::Version sourceVersion;          //detected source DXF/DWG revision
+    dx_source_format sourceFormat {dx_source_format::Unknown};
     dx_dwgReadOutcome dwgReadOutcome;     //bounded most-recent-import evidence
     std::list<DRW_LType>lineTypes;      //stores a copy of all line types
     std::list<DRW_Layer>layers;         //stores a copy of all layers

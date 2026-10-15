@@ -345,6 +345,7 @@ void testLayoutGraphReadContract(TestContext& t) {
 
         dx_iface adapter;
         dx_data adapterData;
+        adapterData.sourceFormat = dx_source_format::DXF;
         adapter.cData = &adapterData;
         adapter.currentBlock = adapterData.mBlock;
         dxfRW adapterReader(path.string().c_str());
@@ -365,6 +366,49 @@ void testLayoutGraphReadContract(TestContext& t) {
                      && adapterData.layouts.size() == 3
                      && adapterData.blockRecords.size() == 3,
                  "dx_iface retains the positional NOD separately and keeps the typed layout graph");
+
+        const auto rejectedOutput = directory
+            / (binary ? "invalid-layout-output-binary.dxf"
+                      : "invalid-layout-output-ascii.dxf");
+        const auto expectRejectedWithoutPublication = [&](const char* label) {
+            {
+                std::ofstream sentinel(rejectedOutput,
+                                       std::ios::binary | std::ios::trunc);
+                sentinel << "layout-graph-sentinel";
+            }
+            dx_iface exporter;
+            dx_data* exportData = &adapterData;
+            const bool exported = exporter.fileExport(
+                rejectedOutput.string(), DRW::AC1027, binary, exportData,
+                false);
+            std::ifstream preserved(rejectedOutput, std::ios::binary);
+            const std::string contents(
+                (std::istreambuf_iterator<char>(preserved)),
+                std::istreambuf_iterator<char>());
+            t.expect(!exported && contents == "layout-graph-sentinel", label);
+        };
+        const std::uint32_t originalBlockRecordHandle =
+            adapterData.layouts.front().paperSpaceBlockRecordHandle.ref;
+        adapterData.layouts.front().paperSpaceBlockRecordHandle.ref = 0;
+        expectRejectedWithoutPublication(
+            "dangling LAYOUT-to-BLOCK_RECORD edge is rejected before replacing output");
+        adapterData.layouts.front().paperSpaceBlockRecordHandle.ref =
+            originalBlockRecordHandle;
+
+        const std::uint32_t originalLayoutDictionaryTarget =
+            adapterData.namedObjectDictionary.m_entries.front().m_handle;
+        adapterData.namedObjectDictionary.m_entries.front().m_handle = 0x200u;
+        expectRejectedWithoutPublication(
+            "NOD ACAD_LAYOUT edge to the wrong object type is rejected before output");
+        adapterData.namedObjectDictionary.m_entries.front().m_handle =
+            originalLayoutDictionaryTarget;
+
+        const std::uint32_t secondLayoutHandle =
+            adapterData.layouts[1].handle;
+        adapterData.layouts[1].handle = adapterData.layouts[0].handle;
+        expectRejectedWithoutPublication(
+            "duplicate LAYOUT source handles are rejected before output");
+        adapterData.layouts[1].handle = secondLayoutHandle;
 
         const auto findLayout = [&interface_](std::uint32_t handle) {
             return std::find_if(interface_.layouts.begin(), interface_.layouts.end(),

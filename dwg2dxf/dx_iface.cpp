@@ -1894,6 +1894,7 @@ void dx_iface::reportDwgReadOutcome(std::ostream& output,
 
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
     fData->dwgReadOutcome = {};
+    fData->sourceFormat = dx_source_format::Unknown;
     unsigned int found = fileI.find_last_of(".");
     std::string fileExt = fileI.substr(found+1);
     std::transform(fileExt.begin(), fileExt.end(),fileExt.begin(), ::toupper);
@@ -1901,6 +1902,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
     currentBlock = cData->mBlock;
 
     if (fileExt == "DXF"){
+        fData->sourceFormat = dx_source_format::DXF;
         //loads dxf
         dxfRW* dxf = new dxfRW(fileI.c_str());
         if (debug) {
@@ -1916,6 +1918,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
         delete dxf;
         return success;
     } else if (fileExt == "DWG"){
+        fData->sourceFormat = dx_source_format::DWG;
         //loads dwg
         dwgRW dwg(fileI.c_str());
         fData->dwgReadOutcome.attempted = true;
@@ -1940,6 +1943,137 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
     return false;
 }
 
+namespace {
+
+std::string layoutSymbolKey(std::string value) {
+    for (char& character : value) {
+        const unsigned char byte = static_cast<unsigned char>(character);
+        if (byte >= 'a' && byte <= 'z')
+            character = static_cast<char>(byte - 'a' + 'A');
+    }
+    return value;
+}
+
+bool validateLayoutGraph(const dx_data& data, const char*& failure) {
+    failure = "layout graph is incomplete or ambiguous";
+    // DWG space ownership is encoded through DWG header/control references,
+    // not the DXF NOD/ACAD_LAYOUT dictionary. Keep that route on its own
+    // decoder/adapter lane unless it explicitly supplies the DXF graph.
+    if (data.sourceFormat == dx_source_format::DWG
+        && !data.hasNamedObjectDictionary)
+        return true;
+    const bool hasLayoutBacklink = std::any_of(
+        data.blockRecords.begin(), data.blockRecords.end(),
+        [](const DRW_Block_Record& record) { return record.layoutHandle != 0; });
+    bool hasRootEntry = false;
+    if (data.hasNamedObjectDictionary) {
+        hasRootEntry = std::any_of(
+            data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return layoutSymbolKey(entry.m_name) == "ACAD_LAYOUT";
+            });
+    }
+    if (data.layouts.empty() && !hasLayoutBacklink && !hasRootEntry)
+        return true;
+
+    if (!data.hasNamedObjectDictionary
+        || data.namedObjectDictionary.handle == 0
+        || data.layouts.empty())
+        return false;
+
+    std::unordered_set<std::uint32_t> structuralHandles;
+    if (!structuralHandles.insert(data.namedObjectDictionary.handle).second)
+        return false;
+
+    std::size_t rootLayoutEntryCount = 0;
+    std::uint32_t layoutDictionaryHandle = 0;
+    std::unordered_set<std::string> rootNames;
+    for (const DRW_Dictionary::Entry& entry :
+         data.namedObjectDictionary.m_entries) {
+        const std::string key = layoutSymbolKey(entry.m_name);
+        if (key.empty() || !rootNames.insert(key).second)
+            return false;
+        if (key == "ACAD_LAYOUT") {
+            ++rootLayoutEntryCount;
+            layoutDictionaryHandle = entry.m_handle;
+        }
+    }
+    if (rootLayoutEntryCount != 1 || layoutDictionaryHandle == 0)
+        return false;
+
+    const DRW_Dictionary* layoutDictionary = nullptr;
+    std::unordered_set<std::uint32_t> dictionaryHandles;
+    for (const DRW_Dictionary& dictionary : data.dictionaries) {
+        if (dictionary.handle == 0
+            || !dictionaryHandles.insert(dictionary.handle).second
+            || !structuralHandles.insert(dictionary.handle).second)
+            return false;
+        if (dictionary.handle == layoutDictionaryHandle)
+            layoutDictionary = &dictionary;
+    }
+    if (layoutDictionary == nullptr
+        || layoutDictionary->parentHandle != data.namedObjectDictionary.handle)
+        return false;
+
+    std::unordered_map<std::uint32_t, const DRW_Layout*> layoutsByHandle;
+    std::unordered_map<std::string, std::uint32_t> layoutsByName;
+    for (const DRW_Layout& layout : data.layouts) {
+        const std::string key = layoutSymbolKey(layout.name);
+        if (layout.handle == 0 || key.empty()
+            || layout.parentHandle != layoutDictionaryHandle
+            || !structuralHandles.insert(layout.handle).second
+            || !layoutsByHandle.emplace(layout.handle, &layout).second
+            || !layoutsByName.emplace(key, layout.handle).second)
+            return false;
+    }
+    if (layoutDictionary->m_entries.size() != data.layouts.size())
+        return false;
+    std::unordered_set<std::uint32_t> dictionaryTargets;
+    std::unordered_set<std::string> dictionaryNames;
+    for (const DRW_Dictionary::Entry& entry : layoutDictionary->m_entries) {
+        const std::string key = layoutSymbolKey(entry.m_name);
+        const auto layout = layoutsByHandle.find(entry.m_handle);
+        if (key.empty() || layout == layoutsByHandle.end()
+            || layoutSymbolKey(layout->second->name) != key
+            || !dictionaryTargets.insert(entry.m_handle).second
+            || !dictionaryNames.insert(key).second)
+            return false;
+    }
+
+    std::unordered_map<std::uint32_t, const DRW_Block_Record*> recordsByHandle;
+    std::unordered_map<std::string, std::uint32_t> recordsByName;
+    for (const DRW_Block_Record& record : data.blockRecords) {
+        if (record.handle == 0 || record.name.empty()
+            || !structuralHandles.insert(record.handle).second
+            || !recordsByHandle.emplace(record.handle, &record).second
+            || !recordsByName.emplace(layoutSymbolKey(record.name),
+                                      record.handle).second)
+            return false;
+    }
+    std::unordered_set<std::uint32_t> associatedRecords;
+    for (const DRW_Layout& layout : data.layouts) {
+        const std::uint32_t blockRecordHandle =
+            layout.paperSpaceBlockRecordHandle.ref;
+        const auto record = recordsByHandle.find(blockRecordHandle);
+        if (blockRecordHandle == 0 || record == recordsByHandle.end()
+            || record->second->layoutHandle != layout.handle
+            || !associatedRecords.insert(blockRecordHandle).second)
+            return false;
+    }
+    for (const DRW_Block_Record& record : data.blockRecords) {
+        if (record.layoutHandle == 0)
+            continue;
+        const auto layout = layoutsByHandle.find(record.layoutHandle);
+        if (layout == layoutsByHandle.end()
+            || layout->second->paperSpaceBlockRecordHandle.ref != record.handle)
+            return false;
+    }
+    return associatedRecords.size() == data.layouts.size();
+}
+
+} // namespace
+
 bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           dx_data *fData, bool debug, bool requireResolvedOwners){
     cData = fData;
@@ -1952,6 +2086,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             std::cerr << "DXF export preflight failed: " << stage << '\n';
         }
     };
+    const char* layoutGraphFailure = nullptr;
+    if (!validateLayoutGraph(*cData, layoutGraphFailure)) {
+        reportPreflightFailure(layoutGraphFailure);
+        return false;
+    }
     if (!cData->dynamicBlockObjects.empty()) {
         reportPreflightFailure(
             "dynamic-block objects have no qualified DXF serializer");
