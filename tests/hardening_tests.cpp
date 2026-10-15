@@ -3399,6 +3399,118 @@ void testDxfAppDataRetentionBudget(TestContext& t) {
     }
 }
 
+void testDxfCommonStringOwnerBudget(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    const std::string entitySource =
+        "8\nFIRST\n8\nGEOM\n6\nDASHED\n430\nBOOK$ENTRY\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(80u);
+        LineParseProbe line;
+        bool parsed = true;
+        {
+            std::istringstream input(entitySource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code))
+                parsed = parsed && line.parseCode(code, reader);
+        }
+        t.expect(parsed && line.layer == "GEOM" && line.lineType == "DASHED"
+                     && line.colorName == "BOOK$ENTRY" && budget->used() == 20u,
+                 "common entity text replacement retains only the live layer/linetype/color-book values at the exact peak");
+        LineParseProbe copy(line);
+        line.reset();
+        t.expect(budget->used() == 20u,
+                 "copied entity common strings keep their source-read lease after the source resets");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "entity reset releases common parsed-string ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(79u);
+        LineParseProbe line;
+        bool parsed = true;
+        {
+            std::istringstream input(entitySource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!line.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && line.layer == "GEOM"
+                     && line.lineType == "DASHED" && line.colorName.empty()
+                     && budget->used() == 10u,
+                 "one-byte-under common-field replacement rejects the new destination and preserves prior fields/charges");
+        line.reset();
+        t.expect(budget->used() == 0u,
+                 "failed common-field replacement releases its remaining owner lease on reset");
+    }
+
+    const std::string tableSource = "2\nOLD\n2\nNAME\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        LayerParseProbe layer;
+        bool parsed = true;
+        {
+            std::istringstream input(tableSource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code))
+                parsed = parsed && layer.parseCode(code, reader);
+        }
+        t.expect(parsed && layer.name == "NAME" && budget->used() == 4u,
+                 "table-entry name replacement retains only the live value at the exact peak");
+        LayerParseProbe copy(layer);
+        layer.reset();
+        t.expect(budget->used() == 4u,
+                 "copied table entry keeps its parsed name lease after source reset");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry reset releases common name ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(30u);
+        LayerParseProbe layer;
+        bool parsed = true;
+        {
+            std::istringstream input(tableSource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!layer.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && layer.name == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under table-name replacement keeps the previous value intact on quota refusal");
+        layer.reset();
+        t.expect(budget->used() == 0u,
+                 "table-name replacement refusal releases its lease on reset");
+    }
+}
+
 void testDxfRawCarrierRetentionBudget(TestContext& t) {
     const std::string sectionSource =
         "0\nSECTION\n2\nUNKNOWN\n1\npayload\n0\nENDSEC\n0\nEOF\n";
@@ -5498,6 +5610,7 @@ int main() {
     testDxfReaderRecordTextBudget(context);
     testDxfMTextAssemblyBudget(context);
     testDxfAppDataRetentionBudget(context);
+    testDxfCommonStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);

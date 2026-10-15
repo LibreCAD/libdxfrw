@@ -2300,7 +2300,10 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         parentHandle = reader->getHandleString();
         break;
     case 2:
-        name = reader->getUtf8String();
+        if (!replaceDxfReadRetainedString(reader, m_dxfRetainedStringLease,
+                                          m_dxfRetainedNameBytes, name,
+                                          reader->getUtf8String()))
+            return false;
         break;
     case 70:
         flags = reader->getInt32();
@@ -2389,10 +2392,10 @@ bool DRW_TableEntry::parseDxfGroups(int code,
     if (appData.size() >= DRW::kMaxDxfApplicationGroups)
         return false;
     DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
-        m_dxfAppDataRetainedLease);
+        m_dxfRetainedStringLease);
     const auto retainedBudget = reader->retainedByteBudget();
     const auto retainText = [this, &reader](std::size_t bytes) {
-        return retainDxfReadBytes(m_dxfAppDataRetainedLease,
+        return retainDxfReadBytes(m_dxfRetainedStringLease,
                                   reader->retainedByteBudget(), bytes);
     };
     std::list<DRW_Variant> parsedGroup;
@@ -2412,9 +2415,9 @@ bool DRW_TableEntry::parseDxfGroups(int code,
     std::string openerText = appName.substr(1);
     opener.addString(code, std::move(openerText));
     parsedGroup.push_back(std::move(opener));
-    if (retainedBudget != nullptr && m_dxfAppDataRetainedLease != nullptr
-        && !m_dxfAppDataRetainedLease->resizeTo(
-            m_dxfAppDataRetainedLease->bytes() - openerSize))
+    if (retainedBudget != nullptr && m_dxfRetainedStringLease != nullptr
+        && !m_dxfRetainedStringLease->resizeTo(
+            m_dxfRetainedStringLease->bytes() - openerSize))
         return false;
     appName.clear();
     int depth = 1;

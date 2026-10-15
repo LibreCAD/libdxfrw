@@ -3350,7 +3350,8 @@ void DRW_Entity::init(DRW_Entity const& rhs) {
     eType = rhs.eType;
     handle = rhs.handle;
     appData = rhs.appData;
-    m_dxfAppDataRetainedLease = rhs.m_dxfAppDataRetainedLease;
+    m_dxfRetainedStringLease = rhs.m_dxfRetainedStringLease;
+    m_dxfRetainedCommonStringBytes = rhs.m_dxfRetainedCommonStringBytes;
     parentHandle = rhs.parentHandle;
     space = rhs.space;
     layer = rhs.layer;
@@ -3510,10 +3511,20 @@ bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         parentHandle = reader->getHandleString();
         break;
     case DRW::dxfCode::LAYER:
-        layer = reader->getUtf8String();
+        if (!replaceDxfReadRetainedString(
+                reader, m_dxfRetainedStringLease,
+                m_dxfRetainedCommonStringBytes[static_cast<std::size_t>(
+                    DxfRetainedCommonString::Layer)],
+                layer, reader->getUtf8String()))
+            return false;
         break;
     case 6:
-        lineType = reader->getUtf8String();
+        if (!replaceDxfReadRetainedString(
+                reader, m_dxfRetainedStringLease,
+                m_dxfRetainedCommonStringBytes[static_cast<std::size_t>(
+                    DxfRetainedCommonString::LineType)],
+                lineType, reader->getUtf8String()))
+            return false;
         break;
     case DRW::dxfCode::COLOR:
         color = reader->getInt32();
@@ -3531,7 +3542,12 @@ bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         color24 = reader->getInt32();
         break;
     case 430:
-        colorName = reader->getString();
+        if (!replaceDxfReadRetainedString(
+                reader, m_dxfRetainedStringLease,
+                m_dxfRetainedCommonStringBytes[static_cast<std::size_t>(
+                    DxfRetainedCommonString::ColorName)],
+                colorName, reader->getString()))
+            return false;
         break;
     case 67:
         {
@@ -3686,10 +3702,10 @@ bool DRW_Entity::parseDxfGroups(int code, const std::unique_ptr<dxfReader>& read
     if (appData.size() >= DRW::kMaxDxfApplicationGroups)
         return false;
     DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
-        m_dxfAppDataRetainedLease);
+        m_dxfRetainedStringLease);
     const auto retainedBudget = reader->retainedByteBudget();
     const auto retainText = [this, &reader](std::size_t bytes) {
-        return retainDxfReadBytes(m_dxfAppDataRetainedLease,
+        return retainDxfReadBytes(m_dxfRetainedStringLease,
                                   reader->retainedByteBudget(), bytes);
     };
     std::list<DRW_Variant> ls;
@@ -3710,9 +3726,9 @@ bool DRW_Entity::parseDxfGroups(int code, const std::unique_ptr<dxfReader>& read
     std::string opener = appName.substr(1);
     curr.addString(code, std::move(opener));
     ls.push_back(std::move(curr));
-    if (retainedBudget != nullptr && m_dxfAppDataRetainedLease != nullptr
-        && !m_dxfAppDataRetainedLease->resizeTo(
-            m_dxfAppDataRetainedLease->bytes() - openerSize))
+    if (retainedBudget != nullptr && m_dxfRetainedStringLease != nullptr
+        && !m_dxfRetainedStringLease->resizeTo(
+            m_dxfRetainedStringLease->bytes() - openerSize))
         return false;
     // The opener text is now owned by the parsed variant. Do not keep the
     // complete marker alive while the nested reader advances through groups.

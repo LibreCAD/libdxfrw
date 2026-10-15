@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <string>
 #include <unordered_set>
 #include <utility>
 
@@ -505,6 +506,35 @@ private:
         releaseCurrentRecordBytes(m_currentRecordRetainedBytes);
     }
 };
+
+// Replace one parsed string field while charging its current logical value.
+// The record's getter-output reservation covers the by-value decode result;
+// this function separately admits the destination before assignment, then
+// releases the old field charge only after replacement succeeds.
+inline bool replaceDxfReadRetainedString(
+    const std::unique_ptr<dxfReader>& reader,
+    std::shared_ptr<DxfReadRetainedLease>& lease,
+    std::size_t& ownerBytes, std::string& destination, std::string value) {
+    if (reader == nullptr)
+        return false;
+    DxfReadRetainedLeaseCheckpoint checkpoint(lease);
+    const auto budget = reader->retainedByteBudget();
+    if (!retainDxfReadBytes(lease, budget, value.size()))
+        return false;
+    destination = std::move(value);
+    if (ownerBytes != 0u && lease != nullptr) {
+        if (ownerBytes > lease->bytes()) {
+            if (budget != nullptr)
+                budget->reject();
+            return false;
+        }
+        if (!lease->resizeTo(lease->bytes() - ownerBytes))
+            return false;
+    }
+    ownerBytes = budget != nullptr ? destination.size() : 0u;
+    checkpoint.commit();
+    return true;
+}
 
 class dxfReaderBinary : public dxfReader {
 public:
