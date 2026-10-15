@@ -20153,7 +20153,10 @@ bool DRW_Surface::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t
 bool DRW_Dimension::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 1:
-        text = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes, text,
+                reader->getUtf8String()))
+            return false;
         break;
     case 2:
         name = reader->getString();
@@ -20338,6 +20341,7 @@ void DRW_Dimension::resetDwgState() {
     defPoint = DRW_Coord{0.0, 0.0, 0.0};
     textPoint = DRW_Coord{0.0, 0.0, 0.0};
     text.clear();
+    m_dxfRetainedTextBytes = 0u;
     style = "STANDARD";
     m_dxfRetainedStyleBytes = 0u;
     align = 5;

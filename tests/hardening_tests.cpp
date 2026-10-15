@@ -3860,6 +3860,79 @@ void testDxfDimensionStyleOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfDimensionTextOwnerBudget(TestContext& t) {
+    class DimensionParseProbe final : public DRW_Dimension {
+    public:
+        using DRW_Dimension::parseCode;
+        using DRW_Dimension::resetDwgState;
+    };
+
+    const std::string source = "1\nOLD\n1\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && dimension.getText() == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "DIMENSION custom text replacement retains only its live value at the exact transient peak");
+        DimensionParseProbe copy(dimension);
+        DimensionParseProbe assigned;
+        assigned = dimension;
+        dimension.resetDwgState();
+        t.expect(budget->used() == 7u && copy.getText() == "DIMTEXT"
+                     && assigned.getText() == "DIMTEXT",
+                 "DIMENSION custom text lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "DIMENSION assignment copy keeps the text charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final DIMENSION reset releases its custom text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        DimensionParseProbe dimension;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!dimension.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed,
+                 "under-cap DIMENSION text replacement is rejected");
+        t.expect(budget->exceeded(),
+                 "under-cap DIMENSION text replacement latches the budget failure");
+        t.expect(dimension.getText() == "OLD",
+                 "under-cap DIMENSION text replacement preserves the previous value");
+        t.expect(budget->used() == 3u,
+                 "under-cap DIMENSION text replacement preserves only the previous field charge");
+        dimension.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected DIMENSION text replacement releases its lease on reset");
+    }
+}
+
 void testDxfLeaderStyleOwnerBudget(TestContext& t) {
     class LeaderParseProbe final : public DRW_Leader {
     public:
@@ -6133,6 +6206,7 @@ int main() {
     testDxfAttribTagOwnerBudget(context);
     testDxfAttdefPromptOwnerBudget(context);
     testDxfDimensionStyleOwnerBudget(context);
+    testDxfDimensionTextOwnerBudget(context);
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);

@@ -4196,6 +4196,7 @@ public:
         textPoint = d.textPoint;
         text = d.text;
         style = d.style;
+        m_dxfRetainedTextBytes = d.m_dxfRetainedTextBytes;
         m_dxfRetainedStyleBytes = d.m_dxfRetainedStyleBytes;
         align = d.align;
         linesty = d.linesty;
@@ -4303,6 +4304,7 @@ private:
     DRW_Coord textPoint;       /*!< Middle point of text, code 11, 21 & 31 (OCS) */
     UTF8STRING text;           /*!< Dimension text explicitly entered by the user, code 1 */
     UTF8STRING style;          /*!< Dimension style, code 3 */
+    std::size_t m_dxfRetainedTextBytes{0};
     std::size_t m_dxfRetainedStyleBytes{0};
     int align;                 /*!< attachment point, code 71 */
     int linesty;               /*!< Dimension text line spacing style, code 72, default 1 */
