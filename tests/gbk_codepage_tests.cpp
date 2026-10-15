@@ -1536,7 +1536,10 @@ std::string makeTextObservationDrawing(const char* page, bool modern,
 
 bool sameTextObservations(const DRW_DxfTextReadObservations& a,
                           const DRW_DxfTextReadObservations& b) {
-    return a.semanticDecodeCalls == b.semanticDecodeCalls
+    return a.codePagePolicy == b.codePagePolicy
+        && a.exactNamedDecodeCalls == b.exactNamedDecodeCalls
+        && a.unavailableNamedDecodeCalls == b.unavailableNamedDecodeCalls
+        && a.semanticDecodeCalls == b.semanticDecodeCalls
         && a.nonAsciiDecodeCalls == b.nonAsciiDecodeCalls
         && a.legacyByteDecodeCalls == b.legacyByteDecodeCalls
         && a.recoveryDecodeCalls == b.recoveryDecodeCalls
@@ -1546,6 +1549,218 @@ bool sameTextObservations(const DRW_DxfTextReadObservations& a,
         && a.firstValueEndOffset == b.firstValueEndOffset
         && a.hasFirstValueEndOffset == b.hasFirstValueEndOffset
         && a.hasFirstRecord == b.hasFirstRecord && a.counterSaturated == b.counterSaturated;
+}
+
+void testExactCodePageReader(TestContext& t) {
+    using Policy = DRW::DxfCodePagePolicy;
+    using Issue = DRW::DxfTextIssue;
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-exact-reader-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    const std::string expected = "L\xC4\x84\xC4\xB8\xCB\x99Z";
+    std::size_t handoffs = 0;
+    for (const char* page : {"ISO8859-4", "iso-8859-4"}) for (bool modern : {false, true})
+        for (bool pageFirst : {false, true}) for (int route = 0; route < 3; ++route) {
+        auto bytes = makeTextObservationDrawing(page, modern, pageFirst, route == 2,
+            modern ? expected : "L\xA1\xA2\xFFZ");
+        // A raw semantic HEADER field precedes both declarations and must be
+        // decoded only after version/page discovery, not through a default.
+        std::ostringstream prefix(std::ios::binary), field(std::ios::binary);
+        std::unique_ptr<dxfWriter> prefixWriter = route == 2
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&prefix))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&prefix));
+        std::unique_ptr<dxfWriter> fieldWriter = route == 2
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&field))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&field));
+        prefixWriter->writeString(0, "SECTION"); prefixWriter->writeString(2, "HEADER");
+        fieldWriter->writeString(9, "$DIMPOST");
+        fieldWriter->writeString(1, modern ? "HDR\xC4\x84Z" : "HDR\xA1Z");
+        const auto headerAt = bytes.find(prefix.str());
+        t.expect(headerAt != std::string::npos, "authored HEADER prefix is present before inserting its deferred text");
+        if (headerAt != std::string::npos) bytes.insert(headerAt + prefix.str().size(), field.str());
+        const auto path = directory / (std::to_string(handoffs) + ".dxf");
+        if (route != 0) { std::ofstream file(path, std::ios::binary); file.write(bytes.data(), bytes.size()); }
+        dx_data data; PreparedDxInterface sink; sink.attach(&data);
+        dxfRW reader(path.string().c_str());
+        t.expect(reader.dxfCodePagePolicy() == Policy::Compatible, "ordinary facade input mapping default stays compatible");
+        reader.setDxfCodePagePolicy(Policy::ExactNamed);
+        const bool read = route == 0 ? reader.readAscii(&sink, false, bytes) : reader.read(&sink, false);
+        const auto* text = data.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_Text*>(data.mBlock->ent.front());
+        const auto* line = data.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_Line*>(data.mBlock->ent.back());
+        const auto seen = reader.getTextReadObservations();
+        const auto normalized = std::string_view(page) == "ISO8859-4" ? "ANSI_1257" : "ANSI_1252";
+        t.expect(read && text && text->text == expected && line && line->eType == DRW::LINE
+                     && line->basePoint.x == 1 && line->basePoint.y == 2 && line->basePoint.z == 3
+                     && line->secPoint.x == 4 && line->secPoint.y == 5 && line->secPoint.z == 6
+                     && data.mBlock->ent.size() == 2 && seen.codePagePolicy == Policy::ExactNamed
+                     && !seen.hasIssues() && (seen.exactNamedDecodeCalls > 0) == !modern
+                     && seen.unavailableNamedDecodeCalls == 0
+                     && data.headerC.dxfCodePageDeclaration() == page
+                     && headerString(data.headerC, "$DIMPOST") == "HDR\xC4\x84Z"
+                     && headerString(data.headerC, "$DWGCODEPAGE") == normalized,
+                 "exact input reaches typed callbacks across HEADER order/file/memory/binary while modern UTF8 and source history remain distinct");
+        ++handoffs;
+    }
+    std::size_t mtextRoutes = 0;
+    for (const char* page : {"ISO8859-4", "ISO-8859-4"}) for (bool binary : {false,true}) {
+        auto bytes = makeTextObservationDrawing(page, false, false, binary, "L\xA1\xA2\xFFZ");
+        const auto marker = bytes.find("TEXT");
+        t.expect(marker != std::string::npos, "authored entity token is present before making the MTEXT control");
+        if (marker != std::string::npos) bytes.replace(marker, 4, "MTEXT");
+        const auto path = directory / ("mtext-" + std::to_string(mtextRoutes) + ".dxf");
+        { std::ofstream file(path,std::ios::binary); file.write(bytes.data(),bytes.size()); }
+        dx_data data; PreparedDxInterface sink; sink.attach(&data); dxfRW reader(path.string().c_str());
+        reader.setDxfCodePagePolicy(Policy::ExactNamed);
+        const bool read = reader.read(&sink,false);
+        const auto* text = data.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_MText*>(data.mBlock->ent.front());
+        t.expect(read && text && text->text == expected && !reader.getTextReadObservations().hasIssues()
+                     && reader.getTextReadObservations().exactNamedDecodeCalls > 0 && data.mBlock->ent.size() == 2,
+                 "assembled MTEXT uses the original exact mapping once in both file framings");
+        ++mtextRoutes;
+    }
+    std::size_t unsupported = 0;
+    const std::string unknownPage = std::string("ANSI_1252") + '\x81';
+    for (const std::string& page : {std::string("EUC-JP"), std::string("ISO8859-10"), unknownPage})
+        for (bool binary : {false, true}) {
+        const auto path = directory / ("unavailable-" + std::to_string(unsupported) + ".dxf");
+        const auto bytes = makeTextObservationDrawing(page.c_str(), false, false, binary, "L\xA1\\U+0041Z");
+        { std::ofstream file(path, std::ios::binary); file.write(bytes.data(), bytes.size()); }
+        dx_data data; PreparedDxInterface sink; sink.attach(&data); dxfRW reader(path.string().c_str());
+        reader.setDxfCodePagePolicy(Policy::ExactNamed);
+        const bool read = reader.read(&sink, false);
+        const auto* text = data.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_Text*>(data.mBlock->ent.front());
+        const auto seen = reader.getTextReadObservations();
+        t.expect(read && text && text->text == "L\xEF\xBF\xBD\\U+0041Z"
+                     && seen.issueCount(Issue::UnavailableCodePage) > 0
+                     && seen.issueCount(Issue::ReplacedSource) > 0 && seen.unavailableNamedDecodeCalls > 0
+                     && data.headerC.dxfCodePageDeclaration() == page,
+                 "unavailable exact mappings replace and observe high bytes without guessing or metadata-prefix collapse");
+        ++unsupported;
+    }
+    for (const char* page : {"UTF8", "UTF16"}) for (bool modern : {false,true}) {
+        const bool utf16 = std::string_view(page) == "UTF16";
+        auto bytes = makeTextObservationDrawing(page, modern, false, false,
+            !modern && utf16 ? "AB" : "\xC3\xA9");
+        dx_data data; PreparedDxInterface sink; sink.attach(&data);
+        dxfRW reader((directory / "unicode-profile.dxf").string().c_str());
+        reader.setDxfCodePagePolicy(Policy::ExactNamed);
+        t.expect(reader.readAscii(&sink, false, bytes)
+                     && (reader.getTextReadObservations().issueCount(Issue::UnsupportedEncodingProfile) > 0) == !modern,
+                 "an available Unicode decoder does not admit a legacy Unicode wire profile; modern metadata remains inert");
+    }
+    auto good = makeTextObservationDrawing("ISO8859-4", false, true, false, "L\xA1Z");
+    {
+        dx_data data; dxfRW reader((directory / "snapshot.dxf").string().c_str());
+        class ChangingSink final : public dx_iface {
+        public:
+            explicit ChangingSink(dxfRW& reader) : reader(reader) {}
+            void attach(dx_data* data) { cData = data; currentBlock = data->mBlock; }
+            void attachWriter(dxfRW* writer) { dxfW = writer; }
+            void addText(const DRW_Text& value) override {
+                reader.setDxfCodePagePolicy(Policy::Compatible);
+                dx_iface::addText(value);
+            }
+            dxfRW& reader;
+        } sink(reader);
+        sink.attach(&data); reader.setDxfCodePagePolicy(Policy::ExactNamed);
+        t.expect(reader.readAscii(&sink, false, good), "exact snapshot callback read succeeds");
+        const auto retained = reader.getTextReadObservations();
+        const auto* first = dynamic_cast<const DRW_Text*>(data.mBlock->ent.front());
+        t.expect(first && first->text == "L\xC4\x84Z" && retained.codePagePolicy == Policy::ExactNamed
+                     && reader.dxfCodePagePolicy() == Policy::Compatible && retained.exactNamedDecodeCalls > 0,
+                 "callback policy mutation does not alter the admitted reader or its owned policy snapshot");
+        t.expect(!reader.readAscii(nullptr, false, good)
+                     && sameTextObservations(retained, reader.getTextReadObservations()),
+                 "rejected null-interface memory reads preserve the previous policy snapshot");
+        sink.attachWriter(&reader);
+        t.expect(reader.write(&sink, DRW::AC1018, false)
+                     && sameTextObservations(retained, reader.getTextReadObservations()),
+                 "input mapping policy does not alter writer policy or the retained read observations");
+        sink.attachWriter(nullptr);
+        dx_data next; sink.attach(&next);
+        t.expect(reader.readAscii(&sink, false, good)
+                     && reader.getTextReadObservations().codePagePolicy == Policy::Compatible
+                     && reader.getTextReadObservations().exactNamedDecodeCalls == 0
+                     && reader.getTextReadObservations().hasIssues() && !retained.hasIssues(),
+                 "next admitted read uses the changed policy while copied previous evidence remains exact");
+    }
+    {
+        auto first = makeTextObservationDrawing("EUC-JP", false, false, false, "\xA1");
+        auto second = makeTextObservationDrawing("ISO8859-4", false, false, false, "\xA1");
+        for (const auto& pair : {std::pair<std::string,std::string>{"\nA\n","\nC\n"}, {"\nB\n","\nD\n"}}) {
+            const auto at = second.find(pair.first); if (at != std::string::npos) second.replace(at, pair.first.size(), pair.second);
+        }
+        first.resize(first.rfind("0\nEOF\n")); first += second;
+        dx_data data; PreparedDxInterface sink; sink.attach(&data);
+        dxfRW reader((directory / "cumulative.dxf").string().c_str()); reader.setDxfCodePagePolicy(Policy::ExactNamed);
+        t.expect(reader.readAscii(&sink, false, first)
+                     && reader.getTextReadObservations().unavailableNamedDecodeCalls > 0
+                     && reader.getTextReadObservations().exactNamedDecodeCalls > 0
+                     && reader.getTextReadObservations().hasIssues()
+                     && data.headerC.dxfCodePageDeclaration() == "ISO8859-4" && data.mBlock->ent.size() == 4,
+                 "later exact metadata cannot wash earlier unavailable decoding out of cumulative evidence");
+    }
+    {
+        auto invalid = good; const auto at = invalid.find("\nB\n");
+        t.expect(at != std::string::npos, "late-failure source has its distinct LINE handle");
+        if (at != std::string::npos) invalid.replace(at + 1, 1, "INVALID_HANDLE");
+        dxfRW reader((directory / "retry.dxf").string().c_str()); reader.setDxfCodePagePolicy(Policy::ExactNamed);
+        dx_data bad, fresh; PreparedDxInterface sink; sink.attach(&bad);
+        t.expect(!reader.readAscii(&sink, false, invalid) && reader.getTextReadObservations().exactNamedDecodeCalls > 0,
+                 "late record failure retains completed exact-prefix observations");
+        sink.attach(&fresh);
+        t.expect(reader.readAscii(&sink, false, good) && !reader.getTextReadObservations().hasIssues(),
+                 "same facade corrected retry resets observations and still uses the explicit mapping policy");
+    }
+    {
+        DRW_TextCodec codec; codec.setDxfCodePagePolicy(Policy::ExactNamed);
+        codec.setDxfTextEncoding(DRW::DxfTextEncoding::LegacyLibreCadUtf8);
+        codec.setCodePage("ISO-8859-4", true); codec.setVersion(DRW::AC1015, true); codec.reapplyCodePage("ANSI_1252", true);
+        t.expect(codec.toUtf8("\xA1") == "\xC4\x84" && codec.lastDecodeObservation().exactNamedMapping
+                     && !codec.lastDecodeObservation().recovery && codec.fromUtf8("\xC4\x84") == "\\U+0104",
+                 "original exact ISO mapping survives normalized reapplication and cannot become CP1252 recovery/output encoding");
+        codec.setCodePage("CP1252", true);
+        t.expect(codec.toUtf8("\xC3\xA9") == "\xC3\xA9" && codec.lastDecodeObservation().recovery,
+                 "explicit input-only recovery remains available for an actual CP1252 mapping");
+        codec.setCodePage("EUC-JP", true);
+        t.expect(codec.toUtf8("\\U+0104Z") == "\xC4\x84Z" && codec.lastDecodeObservation().issues == 0,
+                 "decoder-independent ASCII and represented CIF do not require an unavailable byte mapping");
+        DRW_TextCodec other; other.setCodePage("ISO8859-4", true); other.setVersion(DRW::AC1015, true);
+        codec.swap(other);
+        t.expect(other.dxfCodePagePolicy() == Policy::ExactNamed && other.toUtf8("\xA1") == "\xEF\xBF\xBD",
+                 "swap transfers exact policy and unavailable resolution with their codec state");
+        DRW_TextCodec moved(std::move(other));
+        t.expect(moved.toUtf8("\xA1") == "\xEF\xBF\xBD" && moved.lastDecodeObservation().unavailableNamedMapping,
+                 "move retains exact policy state without borrowing declaration bytes");
+        moved.setVersion(DRW::AC1015, false); moved.setCodePage("ISO8859-4", false);
+        t.expect(moved.toUtf8("\xA1").empty() && !moved.lastDecodeObservation().exactNamedMapping,
+                 "DXF input mapping policy does not change a DWG byte-codec channel");
+    }
+    {
+        dxfRW missing((directory / "never-created.dxf").string().c_str());
+        missing.setDxfCodePagePolicy(Policy::ExactNamed);
+        dx_data data; PreparedDxInterface sink; sink.attach(&data);
+        t.expect(!missing.read(&sink, false) && missing.getTextReadObservations().codePagePolicy == Policy::ExactNamed
+                     && missing.getTextReadObservations().semanticDecodeCalls == 0,
+                 "admitted early file failure records its requested policy without inventing decode events");
+        DRW_DxfTextReadObservations oldPrefix {1,2,3,4,5};
+        t.expect(oldPrefix.semanticDecodeCalls == 1 && oldPrefix.nonAsciiDecodeCalls == 2
+                     && oldPrefix.legacyByteDecodeCalls == 3 && oldPrefix.recoveryDecodeCalls == 4
+                     && oldPrefix.issueDecodeCalls == 5 && oldPrefix.exactNamedDecodeCalls == 0
+                     && oldPrefix.codePagePolicy == Policy::Compatible,
+                 "appended observation fields preserve the original aggregate initialization prefix");
+        DRW_DxfTextReadObservations saturated;
+        saturated.exactNamedDecodeCalls = saturated.unavailableNamedDecodeCalls = (std::numeric_limits<std::uint64_t>::max)();
+        DRW_TextDecodeObservation value; value.exactNamedMapping = value.unavailableNamedMapping = true;
+        dxfReader::appendTextReadObservation(saturated, value, 1, 0, false);
+        t.expect(saturated.counterSaturated && saturated.exactNamedDecodeCalls == (std::numeric_limits<std::uint64_t>::max)()
+                     && saturated.unavailableNamedDecodeCalls == (std::numeric_limits<std::uint64_t>::max)(),
+                 "new mapping observation counters saturate without rollover or clearing existing evidence");
+    }
+    std::cout << "Exact reader policy: handoffs=" << handoffs << ", MTEXT routes=" << mtextRoutes << ", unavailable routes=" << unsupported
+              << ", Unicode profile controls=4; callback/write/reuse/cumulative/failure/recovery/move/saturation controls pass\n";
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Exact reader evidence: " << directory << '\n';
 }
 
 void testTextObservationHandoff(TestContext& t) {
@@ -2979,6 +3194,10 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--exact-codepage-reader") {
+        testExactCodePageReader(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--iso8859-4") {
         testExactIso8859_4(context);
         testExactCodePageResolution(context);
@@ -3054,6 +3273,7 @@ int main(int argc, char** argv) {
     testTextDecodeObservations(context);
     testTextObservationReaderRoles(context);
     testTextObservationHandoff(context);
+    testExactCodePageReader(context);
     testConverterDxfReadOutcome(context);
     testDxfSourceTextAdmission(context);
     testTargetTextTransport(context);

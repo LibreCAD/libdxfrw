@@ -480,6 +480,11 @@ public:
     void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
         decoder.setDxfTextEncoding(encoding);
     }
+    void setDxfCodePagePolicy(DRW::DxfCodePagePolicy policy) noexcept {
+        decoder.setDxfCodePagePolicy(policy);
+        m_textReadObservations.codePagePolicy = policy;
+    }
+    DRW::DxfCodePagePolicy dxfCodePagePolicy() const noexcept { return decoder.dxfCodePagePolicy(); }
     std::string getCodePage(){ return decoder.getCodePage();}
     DRW::Version getSourceVersion() const { return decoder.getSourceVersion(); }
     bool hasSourceVersion() const { return decoder.hasSourceVersion(); }

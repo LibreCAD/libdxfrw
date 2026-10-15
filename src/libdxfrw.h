@@ -133,6 +133,16 @@ public:
     void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
         m_dxfTextEncoding = encoding;
     }
+    /** Select input declaration mapping for subsequent DXF reads. Compatible
+     * preserves historical aliases. ExactNamed uses an available exact mapping;
+     * unknown/unimplemented high-byte text is replaced and observed, never
+     * guessed through another page. Modern UTF8, output and raw carriers are
+     * unchanged. Admitted reads snapshot this setting before callbacks.
+     * Inspect getTextReadObservations(), including the snapped policy.
+     * This is not format admission or complete-conversion qualification.
+     * Consumer rebuild required; no new pure callback. */
+    void setDxfCodePagePolicy(DRW::DxfCodePagePolicy policy) noexcept { m_dxfCodePagePolicy = policy; }
+    DRW::DxfCodePagePolicy dxfCodePagePolicy() const noexcept { return m_dxfCodePagePolicy; }
     /** Select semantic-text output policy for subsequent writes. The admitted
      * write snapshots it; callback changes affect only the next write. Ordinary
      * Compatible output/raw carriers remain unchanged. RequireLossless rejects
@@ -876,6 +886,7 @@ private:
     // remains the default for all public read/write calls.
     bool m_useTargetLegacyClassifier {false};
     DRW::DxfTextEncoding m_dxfTextEncoding {DRW::DxfTextEncoding::Declared};
+    DRW::DxfCodePagePolicy m_dxfCodePagePolicy {DRW::DxfCodePagePolicy::Compatible};
     std::string fileName;
     std::string codePage;
     bool binFile {false};

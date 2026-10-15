@@ -146,6 +146,45 @@ Neither advisories nor provenance establish complete charset support. Existing
 inexact aliases/fallback decoding remain compatibility behavior; strict
 CLI source admission does not repair those mappings or change tolerant reads.
 
+### Explicit named input mappings
+
+DXF reads default to `DRW::DxfCodePagePolicy::Compatible`. To decode a declared
+name using an available exact mapping, select
+`dxfRW::setDxfCodePagePolicy(DRW::DxfCodePagePolicy::ExactNamed)` before reading.
+`dxfCodePagePolicy()` reports the persistent setting. Each admitted file or
+memory read snapshots it before callbacks, including early file failure;
+callback changes affect the next read. `getTextReadObservations().codePagePolicy`
+reports the applied snapshot, which copies independently of later settings.
+Writes and rejected nested/null-interface memory reads preserve the last-read
+snapshot. Rebuild consumers for the added public/facade state; no new pure
+callback or binary-ABI guarantee is introduced.
+
+For example, explicit legacy input named `ISO8859-4` or `ISO-8859-4` decodes
+byte A1 as U+0104, using the fixed ISO table rather than a similar Windows
+page. This is input-only: normalized HEADER values and the writer's selected
+output codec remain unchanged; physical declaration bytes remain provenance.
+Modern DXF remains UTF-8 regardless of this legacy metadata, and DWG byte/TU
+channels are unaffected. Missing declarations retain the existing default and
+ambiguity behavior. Explicit LibreCAD UTF8 recovery still applies only to its
+eligible actual CP1252 input, not ISO names whose compatibility fallback was1252.
+
+For unknown or unimplemented exact names, fields containing high bytes retain
+ASCII lexemes and replace each uninterpretable byte with U+FFFD, recording
+`UnavailableCodePage`/`ReplacedSource`; escape-looking ASCII in that mixed field
+is not guessed through an unknown multibyte grammar. ASCII-only represented
+CIF/MIF can remain decoder-independent. Reads stay tolerant: inspect cumulative
+observations, not just the Boolean result. `exactNamedDecodeCalls` and
+`unavailableNamedDecodeCalls` are overlapping, saturating semantic-call counts,
+not character/record coverage or producer qualification. Available exact
+decoding does not suppress malformed-sequence/escape observations.
+
+The CLI and default converter adapter still import with `Compatible`; explicit
+adapter/CLI selection and producer-profile admission are separate planned work.
+This library option does not certify native rendering, wire-profile conformance,
+all named mappings or complete conversion. Source admission, UTF8 recovery and
+target-text transport remain independent policies; legacy Unicode profiles are
+not admitted merely because a decoder exists.
+
 `dxfRW::getTextReadObservations()` separately returns a fixed-size owned
 snapshot of completed semantic decode calls. `issueMask` and
 `issueCount(DRW::DxfTextIssue)` expose observed undefined/malformed input,

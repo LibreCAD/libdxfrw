@@ -168,7 +168,8 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
             // normalized public HEADER entry and its semantic decoder.
             if (!captureDxfCodePageDeclaration(reader))
                 return false;
-            reader->setCodePage(*curr->content.s);
+            reader->setCodePage(reader->dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed
+                ? reader->getRawValue() : *curr->content.s);
             curr->addString(code, reader->getCodePage());
         }
         break;

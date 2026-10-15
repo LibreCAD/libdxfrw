@@ -2055,6 +2055,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         return false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
     m_textReadObservations = {};
+    m_textReadObservations.codePagePolicy = m_dxfCodePagePolicy;
     drw_assert(fileName.empty() == false);
     version = DRW::UNKNOWNV;
     m_sourceVersion = DRW::UNKNOWNV;
@@ -2134,6 +2135,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     reader->setTypedVariantNodeBudget(m_dxfReadTypedVariantNodeBudget);
     reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
+    reader->setDxfCodePagePolicy(m_textReadObservations.codePagePolicy);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy
@@ -2173,6 +2175,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
         return setError(DRW::BAD_UNKNOWN);
     }
     m_textReadObservations = {};
+    m_textReadObservations.codePagePolicy = m_dxfCodePagePolicy;
     beginDxfReadRetainedBudget();
     // readAscii is an explicit ASCII entry point.  A caller may reuse one
     // dxfRW instance after a binary write/read operation; leaving binFile set
@@ -2211,6 +2214,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     reader->setDecodeWorkBudget(m_dxfReadDecodeWorkBudget);
     reader->setTypedVariantNodeBudget(m_dxfReadTypedVariantNodeBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
+    reader->setDxfCodePagePolicy(m_textReadObservations.codePagePolicy);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy
@@ -10241,13 +10245,19 @@ bool dxfRW::processHeader() {
                     const char* diagnosticMessage = nullptr;
                     if (selection.kind == DRW_CodePageKind::CompatibilityAlias) {
                         diagnosticCode = "compatibility-codepage-alias";
-                        diagnosticMessage = "legacy codepage alias uses a historical compatibility decoder; byte equivalence is not assured";
+                        diagnosticMessage = reader->dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed
+                            ? "declared name is a historical compatibility alias; explicit exact input selection is separate"
+                            : "legacy codepage alias uses a historical compatibility decoder; byte equivalence is not assured";
                     } else if (selection.kind == DRW_CodePageKind::Unavailable) {
                         diagnosticCode = "unavailable-codepage";
-                        diagnosticMessage = "recognized codepage has no implemented selection route; compatibility fallback retained";
+                        diagnosticMessage = reader->dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed
+                            ? "declared spelling lacks a historical selection route; explicit exact input selection is separate"
+                            : "recognized codepage has no implemented selection route; compatibility fallback retained";
                     } else if (selection.kind == DRW_CodePageKind::Unknown) {
                         diagnosticCode = "unknown-codepage";
-                        diagnosticMessage = "unrecognized codepage uses the compatibility fallback";
+                        diagnosticMessage = reader->dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed
+                            ? "unrecognized declaration is ineligible for exact named decoding"
+                            : "unrecognized codepage uses the compatibility fallback";
                     } else if (selection.selectedName != nullptr
                                && std::string_view(selection.selectedName) != reader->getCodePage()) {
                         diagnosticCode = "reapplied-codepage";

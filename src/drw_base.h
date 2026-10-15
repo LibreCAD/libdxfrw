@@ -148,6 +148,11 @@ enum class DxfTextEncoding {
 // RequireLossless validates semantic UTF8, target scalar transport and quoting.
 enum class DxfTextWritePolicy { Compatible, RequireLossless };
 
+// Input declaration selection only. Compatible preserves historical aliases;
+// ExactNamed uses an available exact mapping, never a similar byte codepage.
+// It is independent of UTF8 recovery, output policy and DXF profile admission.
+enum class DxfCodePagePolicy { Compatible, ExactNamed };
+
 //! Version numbers for the DXF Format.
 enum Version {
     UNKNOWNV,     //!< UNKNOWN VERSION.
@@ -331,7 +336,7 @@ enum class DxfTextIssue : std::uint8_t {
     MalformedUtf16,
     // DXF field interpretation had no accepted source revision at decode time.
     UnspecifiedSourceVersion,
-    // A semantic field used a UTF16 declaration outside modern inert metadata.
+    // Unsupported legacy Unicode interpretation; modern metadata stays inert.
     UnsupportedEncodingProfile,
     Count
 };
@@ -360,6 +365,10 @@ struct DxfTextReadObservations {
     bool hasFirstRecord {false};
     bool hasFirstValueEndOffset {false};
     bool counterSaturated {false};
+    // Appended so older aggregate-initialization prefixes keep their order.
+    DxfCodePagePolicy codePagePolicy {DxfCodePagePolicy::Compatible};
+    std::uint64_t exactNamedDecodeCalls {0};
+    std::uint64_t unavailableNamedDecodeCalls {0};
 
     bool hasIssues() const noexcept { return issueMask != 0u; }
     std::uint64_t issueCount(DxfTextIssue issue) const noexcept {

@@ -3,7 +3,24 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
-**Latest research-only handoff (committed baseline `5886b48`):** the
+**Latest research-only handoff (committed baseline `a06447c`):** the
+[consumer-semantics and executable-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-consumer-semantics-and-executable-oracle-readiness-review-2026-10-15)
+adds eight authored Assimp6.0.5 runtime controls, ten exact extracted FreeCAD
+helper observations and140 unchanged Compatible-codec observations, with
+separate source/master/runtime bindings. Rotation, nested/later-sibling loss,
+polyline segments, unsupported entities and binary input now have explicit
+optional-oracle eligibility controls. FreeCAD C++/legacy text projections and
+full non-XY text placement are not interchangeable qualification profiles.
+At that research boundary the nine-file3.3c.1 reader/API candidate was uncommitted;
+retained6/6 and later1/1 codec/MTEXT checks were candidate context, not a
+research-time full suite or integration. Subsequent acceptance is recorded below.
+Parity3.3c splits reader/API acceptance,
+default-Compatible explicit adapter handoff and separately reviewed profile/CLI
+admission. No3D count, native tuple, fixture/dependency or support status changes;
+all six J items stay`DEFERRED_EXTERNAL`. Durable evidence:
+`docs/research/broader-consumer-oracle-readiness-2026-10-15.json`.
+
+**Prior exact-mapping research handoff (committed baseline `5886b48`):** the
 [exact-mapping, text-carrier and comparator-readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-exact-mapping-text-carrier-and-comparator-readiness-review-2026-10-15)
 adds2,560 exhaustive byte-codec observations,28 authored CLI command-carrier
 calibrations and a pinned Rust-DXF source comparison. It provides3.3a policy,
@@ -97,6 +114,22 @@ premise was corrected to its actual input contract, not a DWG write expansion.
 Default codecs/installed API/native/3D qualification are unchanged. Next3.3c
 functional public input snapshot, HEADER/observation and owned converter handoff;
 parent3.3a/3.2 and all six external J dispositions remain open.
+
+Parity Slice3.3c.1 now implements explicit Compatible/ExactNamed DXF input
+selection, raw declaration handoff and functional exact typed text decoding.
+Applied policy and appended saturating mapping counters are owned read-entry
+snapshots; callback changes affect only later reads.24 HEADER/TEXT handoffs,
+four MTEXT routes, six unavailable-name/four Unicode-profile controls and
+lifecycle/recovery/move/saturation checks pass. Retained6/6 in22.50s precedes
+test-only MTEXT expansion; final codec1/1 in0.36s, fresh focused ASan/UBSan,
+strict six-TU and affected/lc3 build pass. All140 frozen Compatible outputs
+remain identical. README/consumer contracts document rebuild/no ABI, tolerant
+replacement, raw/normalized metadata and modern/DWG/output noninterference.
+Receipt: docs/research/codec-exact-reader-3-3c-1-2026-10-15.json.
+This closes only local reader/API delivery. Next3.3c.2a adapter input/outcome
+handoff, then3.3c.2b separately reviewed source-profile/CLI admission; default
+adapter/CLI input remains Compatible. No3D ledger, native qualification, fixture,
+registration, dependency, DWG layout or six deferred J/support status changes.
 
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
@@ -1951,6 +1984,18 @@ attribution, and preserve the converter's nonzero-Z/entity semantics rather
 than changing output to hide limitations in FreeCAD's importer. A failed
 conversion must not leave a partial final DXF that FreeCAD's file-existence
 check could mistake for success.
+
+**Current source/calibration constraint:** FreeCAD4a1904f8's native C++ text
+path and optional legacy Python importer are different profiles. The extracted
+legacy `deformat` helper's ten research observations are not a native document
+run. The C++ UTF8 fast path itself does not validate scalars, and text callback
+parameters do not preserve full non-XY orientation; later native/Python stages
+may still reject or transform content. For any new text/tilted-geometry tuple,
+record effective importer/annotation options and assert final Unicode and
+object placement against asymmetric analytic expectations. Do not extend a
+LINE/open/insert receipt to those fields or alter output to conceal an importer
+limitation. See the parity plan's pinned consumer/oracle review and durable
+research receipt; existing native Linux/Windows requirements are unchanged.
 
 This is qualified by a specific tuple—FreeCAD revision, OS/architecture,
 launch/discovery route, importer mode, operation, DWG version, and tested entity
@@ -4715,6 +4760,18 @@ blocked. No support claim is promoted by the adapter alone.
 Dependencies: S1 public typed-field inventory; S5/S6 DXF entity paths; S7.5
 LibreCAD callback-boundary audit. DWG coverage additionally depends on the
 relevant S3/S4 reader/writer slice and its authentic per-version evidence.
+
+**Optional comparator eligibility:** the parity7AQ/7AH review now executes
+eight authored Assimp6.0.5 controls. Successful loads can ignore rotation,
+nested content/later siblings, polyline segments and unsupported entities;
+binary input is explicitly unsupported. Its master source has newer POINT/
+polyline paths, but was not executed. Use only calibrated release/runtime/
+encoding/frame cells and explicit source coverage; never substitute this mesh
+projection for modeler topology, B-rep or ACIS/AcDs semantics. No new mandatory
+peer/dependency or native gate is added. The existing reader/API policy
+candidate and explicit adapter/profile substeps remain owned by parity3.3c;
+Compatible2D defaults and the consumer rebuild/no-new-pure-callback contract
+remain required.
 
 Steps:
 

@@ -52,6 +52,20 @@ static_assert(noexcept(std::declval<dxfRW&>().setDxfTextEncoding(
     return reader.readAscii(adapter, true, content);
 }
 
+// New opt-in library API, not an assertion that current consumers select it.
+// Their existing declared/Compatible input remains available unchanged.
+static_assert(noexcept(std::declval<dxfRW&>().setDxfCodePagePolicy(
+                  DRW::DxfCodePagePolicy::ExactNamed)),
+              "explicit DXF input mapping setter must remain noexcept");
+static_assert(std::is_same<decltype(std::declval<const dxfRW&>().dxfCodePagePolicy()),
+                  DRW::DxfCodePagePolicy>::value,
+              "persistent DXF input policy query must retain its public type");
+static_assert(noexcept(std::declval<const dxfRW&>().dxfCodePagePolicy()),
+              "persistent DXF input policy query must remain noexcept");
+static_assert(std::is_same<decltype(DRW_DxfTextReadObservations{}.codePagePolicy),
+                  DRW::DxfCodePagePolicy>::value,
+              "owned read snapshot must expose the applied input policy");
+
 // Additional unconditional calls in the same current consumer source. These
 // three signatures are source coverage only; the other two facade gaps and a
 // full external adapter build remain separate acceptance work.

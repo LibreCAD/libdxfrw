@@ -51,6 +51,34 @@ and default adapter exports preserve their 2D/3D tolerant/projection behavior.
 The fixed observation array grows; consumer rebuild is required, not a binary
 ABI guarantee.
 
+DXF input mapping has its own explicit `DRW::DxfCodePagePolicy`.
+`setDxfCodePagePolicy(ExactNamed)` selects an available exact named decoder;
+ordinary reads remain `Compatible`. `dxfCodePagePolicy()` reports the persistent
+setting, while `getTextReadObservations().codePagePolicy` reports the read-entry
+snapshot, including an admitted early file failure. Callback mutation changes
+only the next read; copied snapshots, writes and rejected nested/null-interface
+memory reads preserve previous evidence. The new policy/counters are appended
+to observations; public/facade layout changes require a rebuild, not a binary
+ABI claim. No pure virtual, projection option or callback lifetime is changed.
+
+Explicit ISO8859-4 input uses its fixed mapping, including A1→U+0104; normalized
+HEADER/output codec selection does not change. The physical source declaration
+remains separate. Modern DXF UTF8, raw carriers and DWG byte/TU channels are
+unaffected. Missing declarations retain prior defaults/ambiguity. Eligible
+actual CP1252 recovery remains input-only; an ISO compatibility fallback is
+not recovery eligibility. Unavailable exact high-byte fields replace those
+bytes with U+FFFD and accumulate unavailable/replaced observations without
+guessing mixed-field escapes. ASCII-only represented CIF/MIF can be independent
+of the byte decoder. Tolerant read success is not a clean-conversion result.
+
+The appended `exactNamedDecodeCalls`/`unavailableNamedDecodeCalls` overlap and
+saturate like other semantic-call counters, not source entity/character counts.
+Exact decoder availability does not remove malformed input/escape issues or
+qualify legacy Unicode wire profiles. CLI/default adapter import still uses
+Compatible; explicit adapter handoff and closed source-profile admission remain
+separate work. This option is not a producer/native text or3D support claim,
+and does not turn stored TEXT/MTEXT commands into a plain-text promise.
+
 DXF output has a separate `DRW::DxfTextWritePolicy`: library/default adapter
 writes retain `Compatible`, while explicit `RequireLossless` validates UTF-8
 scalars, lossless target encoding and safe record framing. Select it with

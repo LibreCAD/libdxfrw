@@ -82,6 +82,10 @@ void DRW_TextCodec::swap(DRW_TextCodec& other) noexcept {
     swap(sourceVersion, other.sourceVersion);
     swap(m_sourceVersionSet, other.m_sourceVersionSet);
     swap(m_dxfTextEncoding, other.m_dxfTextEncoding);
+    swap(m_dxfCodePagePolicy, other.m_dxfCodePagePolicy);
+    swap(m_dxfFormat, other.m_dxfFormat);
+    swap(m_dxfInputResolution, other.m_dxfInputResolution);
+    swap(m_exactDxfInputConverter, other.m_exactDxfInputConverter);
     swap(m_legacyDxfInputEligible, other.m_legacyDxfInputEligible);
     swap(m_legacyDxfCodePageAllowed, other.m_legacyDxfCodePageAllowed);
     swap(m_declaredCodePageSelection, other.m_declaredCodePageSelection);
@@ -93,6 +97,7 @@ void DRW_TextCodec::swap(DRW_TextCodec& other) noexcept {
 }
 
 void DRW_TextCodec::setVersion(DRW::Version v, bool dxfFormat){
+    m_dxfFormat = dxfFormat;
     sourceVersion = v;
     m_sourceVersionSet = v != DRW::UNKNOWNV;
     m_legacyDxfInputEligible = false;
@@ -153,6 +158,7 @@ void DRW_TextCodec::setVersion(DRW::Version v, bool dxfFormat){
 }
 
 void DRW_TextCodec::setVersion(const std::string &v, bool dxfFormat){
+    m_dxfFormat = dxfFormat;
     version = DRW::UNKNOWNV;
     sourceVersion = DRW::UNKNOWNV;
     m_sourceVersionSet = false;
@@ -173,6 +179,8 @@ void DRW_TextCodec::setCodePage(const std::string &c, bool dxfFormat){
 
 void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
                                     bool explicitDeclaration) {
+    m_dxfFormat = dxfFormat;
+    m_exactDxfInputConverter.reset();
     const auto selection = resolveCodePage(c, DRW_CodePageMappingPolicy::Compatible).declaration;
     cp = selection.selectedName;
     // Internal version defaults do not erase an earlier explicit non-1252
@@ -232,12 +240,57 @@ void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
     } else {
         conv.reset( new DRW_ConvTable(DRW_Table1252, CPLENGTHCOMMON) );
     }
-    if (explicitDeclaration)
+    if (explicitDeclaration) {
         m_declaredCodePageSelection = selection;
+        m_dxfInputResolution = resolveCodePage(c, DRW_CodePageMappingPolicy::ExactNamed);
+    }
 }
 
 std::string DRW_TextCodec::toUtf8(std::string_view s) {
     m_lastDecodeObservation = {};
+    const bool exactPolicy = m_dxfFormat
+        && m_dxfCodePagePolicy != DRW::DxfCodePagePolicy::Compatible
+        && (!m_sourceVersionSet || sourceVersion < DRW::AC1021);
+    if (exactPolicy && (m_declaredCodePageSelection.kind != DRW_CodePageKind::Unspecified
+                       || m_dxfCodePagePolicy != DRW::DxfCodePagePolicy::ExactNamed)) {
+        const bool available = m_dxfCodePagePolicy == DRW::DxfCodePagePolicy::ExactNamed
+            && m_dxfInputResolution.status == DRW_CodePageMappingStatus::ExactImplementationAvailable;
+        const bool recovering1252 = available && m_dxfInputResolution.decoderName != nullptr
+            && std::string_view(m_dxfInputResolution.decoderName) == "ANSI_1252"
+            && m_dxfTextEncoding == DRW::DxfTextEncoding::LegacyLibreCadUtf8 && m_legacyDxfInputEligible;
+        if (available && !recovering1252) {
+            if (!m_exactDxfInputConverter)
+                m_exactDxfInputConverter = createExactCodePageConverter(m_dxfInputResolution.decoderName);
+            auto result = m_exactDxfInputConverter->toUtf8(s);
+            m_lastDecodeObservation = m_exactDxfInputConverter->decodeObservation();
+            m_lastDecodeObservation.exactNamedMapping = true;
+            return result;
+        }
+        if (!available) {
+            const bool high = std::any_of(s.begin(), s.end(), [](unsigned char byte) { return byte >= 0x80u; });
+            if (high || m_dxfCodePagePolicy != DRW::DxfCodePagePolicy::ExactNamed) {
+                // No guessed decoder: retain ASCII lexemes and replace each
+                // uninterpretable high byte with U+FFFD. Do not parse escapes
+                // across bytes of an unknown multibyte grammar. This tolerant
+                // result is explicitly ineligible for complete conversion.
+                std::string result;
+                for (unsigned char byte : s) {
+                    if (byte >= 0x80u) result += "\xEF\xBF\xBD";
+                    else result.push_back(static_cast<char>(byte));
+                }
+                m_lastDecodeObservation.nonAsciiBytes = high;
+                m_lastDecodeObservation.legacyBytes = true;
+                m_lastDecodeObservation.unavailableNamedMapping = true;
+                m_lastDecodeObservation.issues = DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnavailableCodePage);
+                if (high) m_lastDecodeObservation.issues |= DRW::dxfTextIssueMask(DRW::DxfTextIssue::ReplacedSource);
+                return result;
+            }
+            DRW_Converter independent(nullptr, 0);
+            auto result = independent.toUtf8(s); // ASCII/represented CIF/MIF only
+            m_lastDecodeObservation = independent.decodeObservation();
+            return result;
+        }
+    }
     if (m_dxfTextEncoding == DRW::DxfTextEncoding::LegacyLibreCadUtf8
         && m_legacyDxfInputEligible) {
         // Preserve UTF-8 input bytes while retaining Unicode/MIF escapes.

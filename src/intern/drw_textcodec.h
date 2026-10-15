@@ -56,6 +56,8 @@ struct DRW_TextDecodeObservation {
     bool nonAsciiBytes {false};
     bool legacyBytes {false};
     bool recovery {false};
+    bool exactNamedMapping {false};
+    bool unavailableNamedMapping {false};
 };
 
 enum class DRW_TextSourceKind : std::uint8_t { Utf8, LegacyBytes, Utf16 };
@@ -103,14 +105,20 @@ public:
     // discovery without relabeling the original selection as canonical.
     void reapplyCodePage(const std::string& c, bool dxfFormat) {
         const auto declaration = m_declaredCodePageSelection;
+        const auto inputResolution = m_dxfInputResolution;
         // Preserve the historical reapplication's recovery-eligibility
         // updates as well as its converter. Only provenance is restored.
         configureCodePage(c, dxfFormat, true);
         m_declaredCodePageSelection = declaration;
+        m_dxfInputResolution = inputResolution;
     }
     void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
         m_dxfTextEncoding = encoding;
     }
+    void setDxfCodePagePolicy(DRW::DxfCodePagePolicy policy) noexcept {
+        m_dxfCodePagePolicy = policy;
+    }
+    DRW::DxfCodePagePolicy dxfCodePagePolicy() const noexcept { return m_dxfCodePagePolicy; }
     void setByteCodePage(const std::string &c);
     std::string getCodePage(){return cp;}
     void swap(DRW_TextCodec& other) noexcept;
@@ -134,6 +142,10 @@ private:
     DRW::Version sourceVersion{DRW::UNKNOWNV};
     bool m_sourceVersionSet { false };
     DRW::DxfTextEncoding m_dxfTextEncoding {DRW::DxfTextEncoding::Declared};
+    DRW::DxfCodePagePolicy m_dxfCodePagePolicy {DRW::DxfCodePagePolicy::Compatible};
+    bool m_dxfFormat {false};
+    DRW_CodePageResolution m_dxfInputResolution;
+    std::unique_ptr<DRW_Converter> m_exactDxfInputConverter;
     bool m_legacyDxfInputEligible {false};
     bool m_legacyDxfCodePageAllowed {true};
     DRW_CodePageSelection m_declaredCodePageSelection;

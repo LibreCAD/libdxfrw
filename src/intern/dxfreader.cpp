@@ -87,6 +87,8 @@ void dxfReader::appendTextReadObservation(DRW_DxfTextReadObservations& target,
     if (value.nonAsciiBytes) increment(target.nonAsciiDecodeCalls);
     if (value.legacyBytes) increment(target.legacyByteDecodeCalls);
     if (value.recovery) increment(target.recoveryDecodeCalls);
+    if (value.exactNamedMapping) increment(target.exactNamedDecodeCalls);
+    if (value.unavailableNamedMapping) increment(target.unavailableNamedDecodeCalls);
     if (value.issues == 0u) return;
     if (target.issueMask == 0u) {
         target.firstIssueMask = value.issues;
@@ -122,7 +124,10 @@ std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
         // at each semantic decode, not just the last delivered HEADER. Modern
         // DXF ignores this legacy metadata and still decodes UTF8 normally.
         if (!text.empty() && (!decoder.hasSourceVersion() || decoder.getSourceVersion() < DRW::AC1021)
-            && selection.selectedName != nullptr && std::string_view(selection.selectedName) == "UTF-16")
+            && selection.selectedName != nullptr
+            && (std::string_view(selection.selectedName) == "UTF-16"
+                || (decoder.dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed
+                    && std::string_view(selection.selectedName) == "UTF-8" && observation.nonAsciiBytes)))
             observation.issues |= DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnsupportedEncodingProfile);
         appendTextReadObservation(m_textReadObservations, observation,
                                  sourceCode, m_recordCount, physicalRecord,
