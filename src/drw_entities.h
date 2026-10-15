@@ -2137,6 +2137,9 @@ protected:
 */
 class DRW_Attdef : public DRW_Attrib {
     SETENTFRIENDS
+private:
+    std::size_t m_dxfRetainedPromptBytes{0};
+
 public:
     DRW_Attdef() {
         eType = DRW::ATTDEF;

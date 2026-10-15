@@ -13314,7 +13314,10 @@ bool DRW_Attdef::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         // attribute-definition subclass starts, group 3 is the ATTDEF prompt.
         if (mtext && !dxfInAttributeSubclass)
             return DRW_Attrib::parseCode(code, reader);
-        prompt = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedPromptBytes, prompt,
+                reader->getUtf8String()))
+            return false;
         break;
     default:
         return DRW_Attrib::parseCode(code, reader);
@@ -13322,19 +13325,23 @@ bool DRW_Attdef::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     return true;
 }
 
+void DRW_Attdef::resetDwgState() {
+    resetAttribDwgState();
+    prompt.clear();
+    m_dxfRetainedPromptBytes = 0u;
+}
+
 bool DRW_Attdef::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
     // ATTDEF mirrors ATTRIB layout but adds a prompt string after the tag.
     // Implementation duplicates ATTRIB::parseDwg in order to inject the
     // prompt read at the correct offset; refactor opportunity if a third
     // sibling appears.
-    resetAttribDwgState();
-    prompt.clear();
+    resetDwgState();
     dwgBuffer *sourceBuf = buf;
     auto fail = [this, sourceBuf]() {
         if (sourceBuf != nullptr)
             sourceBuf->invalidate();
-        resetAttribDwgState();
-        prompt.clear();
+        resetDwgState();
         return false;
     };
     if (sourceBuf == nullptr)

@@ -3696,6 +3696,102 @@ void testDxfAttribTagOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfAttdefPromptOwnerBudget(TestContext& t) {
+    class AttdefParseProbe final : public DRW_Attdef {
+    public:
+        using DRW_Attdef::parseCode;
+        using DRW_Attdef::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nPROMPT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(45u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && definition.prompt == "PROMPT"
+                     && budget->used() == 6u,
+                 "ATTDEF prompt replacement retains only the live value at the exact transient peak");
+        AttdefParseProbe copy(definition);
+        AttdefParseProbe assigned;
+        assigned = definition;
+        definition.resetDwgState();
+        t.expect(budget->used() == 6u && copy.prompt == "PROMPT"
+                     && assigned.prompt == "PROMPT",
+                 "ATTDEF prompt lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 6u,
+                 "ATTDEF assignment copy keeps the prompt charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final ATTDEF reset releases its prompt lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && definition.prompt == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under ATTDEF prompt replacement preserves its prior value and charge");
+        definition.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected ATTDEF prompt replacement releases its lease on reset");
+    }
+    {
+        const std::string nestedSource =
+            "100\nEmbedded Object\n3\nCONT\n"
+            "100\nAcDbAttributeDefinition\n3\nPROMPT\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(1024u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(nestedSource);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && definition.mtext != nullptr
+                     && definition.mtext->text == "CONT"
+                     && definition.prompt == "PROMPT" && budget->used() == 10u,
+                 "embedded MTEXT code-3 continuation and later ATTDEF prompt keep separate owners");
+        definition.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ATTDEF reset releases both prompt and embedded-MTEXT text leases");
+    }
+}
+
 void testDxfXDataStringOwnerBudget(TestContext& t) {
     class LineParseProbe final : public DRW_Line {
     public:
@@ -5900,6 +5996,7 @@ int main() {
     testDxfCommonStringOwnerBudget(context);
     testDxfTextStyleOwnerBudget(context);
     testDxfAttribTagOwnerBudget(context);
+    testDxfAttdefPromptOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
