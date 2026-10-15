@@ -2084,6 +2084,9 @@ public:
 */
 class DRW_Attrib : public DRW_Text {
     SETENTFRIENDS
+private:
+    std::size_t m_dxfRetainedTagBytes{0};
+
 public:
     DRW_Attrib() {
         eType = DRW::ATTRIB;

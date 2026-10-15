@@ -3601,6 +3601,101 @@ void testDxfTextStyleOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfAttribTagOwnerBudget(TestContext& t) {
+    class AttribParseProbe final : public DRW_Attrib {
+    public:
+        using DRW_Attrib::parseCode;
+        using DRW_Attrib::resetAttribDwgState;
+    };
+    class AttdefParseProbe final : public DRW_Attdef {
+    public:
+        using DRW_Attdef::parseCode;
+        using DRW_Attrib::resetAttribDwgState;
+    };
+
+    const std::string source = "2\nOLD\n2\nTAG\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(24u);
+        AttribParseProbe attribute;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!attribute.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && attribute.tag == "TAG" && budget->used() == 3u,
+                 "ATTRIB tag replacement fits the exact peak and retains only the live tag");
+        AttribParseProbe copy(attribute);
+        AttribParseProbe assigned;
+        assigned = attribute;
+        attribute.resetAttribDwgState();
+        t.expect(budget->used() == 3u && copy.tag == "TAG"
+                     && assigned.tag == "TAG",
+                 "ATTRIB copy construction and assignment preserve the source-read tag lease");
+        copy.resetAttribDwgState();
+        t.expect(budget->used() == 3u,
+                 "ATTRIB assignment copy keeps the shared tag lease after sibling reset");
+        assigned.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "final ATTRIB copy reset releases the tag lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(23u);
+        AttribParseProbe attribute;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!attribute.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && attribute.tag == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under ATTRIB tag replacement preserves its old value and charge");
+        attribute.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected ATTRIB tag replacement releases its remaining lease on reset");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(24u);
+        AttdefParseProbe definition;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!definition.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && definition.tag == "TAG" && budget->used() == 3u,
+                 "ATTDEF code-2 delegation uses the inherited ATTRIB tag owner");
+        definition.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "ATTDEF reset path releases the inherited tag lease");
+    }
+}
+
 void testDxfXDataStringOwnerBudget(TestContext& t) {
     class LineParseProbe final : public DRW_Line {
     public:
@@ -5804,6 +5899,7 @@ int main() {
     testDxfAppDataRetentionBudget(context);
     testDxfCommonStringOwnerBudget(context);
     testDxfTextStyleOwnerBudget(context);
+    testDxfAttribTagOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);

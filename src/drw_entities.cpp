@@ -12271,7 +12271,8 @@ bool DRW_ArcAlignedText::parseDwg(DRW::Version version, dwgBuffer *buf, std::uin
 // declared with a forward-declared element type in the header.
 DRW_Attrib::~DRW_Attrib() = default;
 DRW_Attrib::DRW_Attrib(const DRW_Attrib& o)
-    : DRW_Text(o), tag(o.tag), attribFlags(o.attribFlags),
+    : DRW_Text(o), m_dxfRetainedTagBytes(o.m_dxfRetainedTagBytes),
+      tag(o.tag), attribFlags(o.attribFlags),
       m_fieldLength(o.m_fieldLength),
       lockPosition(o.lockPosition), attVersion(o.attVersion),
       m_attributeType(o.m_attributeType),
@@ -12285,6 +12286,7 @@ DRW_Attrib::DRW_Attrib(const DRW_Attrib& o)
 DRW_Attrib& DRW_Attrib::operator=(const DRW_Attrib& o) {
     if (this != &o) {
         DRW_Text::operator=(o);
+        m_dxfRetainedTagBytes = o.m_dxfRetainedTagBytes;
         tag = o.tag;
         attribFlags = o.attribFlags;
         m_fieldLength = o.m_fieldLength;
@@ -13047,7 +13049,10 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     }
     switch (code) {
     case 2:
-        tag = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTagBytes, tag,
+                reader->getUtf8String()))
+            return false;
         break;
     case 70:
         attribFlags = reader->getInt32();
@@ -13075,6 +13080,7 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 void DRW_Attrib::resetAttribDwgState() {
     resetDwgState();
     tag.clear();
+    m_dxfRetainedTagBytes = 0u;
     attribFlags = 0;
     m_fieldLength = 0;
     lockPosition = false;
