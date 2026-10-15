@@ -9451,7 +9451,10 @@ bool DRW_Block::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             return false;
         break;
     case 2:
-        name = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedNameBytes, name,
+                reader->getUtf8String()))
+            return false;
         break;
     case 70:
         flags = reader->getInt32();
@@ -9467,6 +9470,7 @@ void DRW_Block::resetDwgState() {
     const bool endBlock = isEnd;
     DRW_Point::resetDwgState();
     m_dxfRetainedXrefPathBytes = 0u;
+    m_dxfRetainedNameBytes = 0u;
     name = endBlock ? UTF8STRING() : UTF8STRING("*U0");
     flags = 0;
     insUnits = 0;

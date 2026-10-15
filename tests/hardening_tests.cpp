@@ -4138,6 +4138,74 @@ void testDxfBlockXrefPathOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfBlockNameOwnerBudget(TestContext& t) {
+    class BlockParseProbe final : public DRW_Block {
+    public:
+        using DRW_Block::parseCode;
+        using DRW_Block::resetDwgState;
+    };
+
+    const std::string source = "2\nOLD\n2\nDIMNAME\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && block.name == "DIMNAME"
+                     && budget->used() == 7u,
+                 "BLOCK name replacement retains only its live value at the exact transient peak");
+        BlockParseProbe copy(block);
+        BlockParseProbe assigned;
+        assigned = block;
+        block.resetDwgState();
+        t.expect(budget->used() == 7u && copy.name == "DIMNAME"
+                     && assigned.name == "DIMNAME",
+                 "BLOCK name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "BLOCK assignment copy keeps the name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final BLOCK reset releases its name lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && block.name == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under BLOCK name replacement preserves the prior value and charge");
+        block.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected BLOCK name replacement releases its lease on reset");
+    }
+}
+
 void testDxfLeaderStyleOwnerBudget(TestContext& t) {
     class LeaderParseProbe final : public DRW_Leader {
     public:
@@ -6415,6 +6483,7 @@ int main() {
     testDxfToleranceTextOwnerBudget(context);
     testDxfToleranceStyleNameOwnerBudget(context);
     testDxfBlockXrefPathOwnerBudget(context);
+    testDxfBlockNameOwnerBudget(context);
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);

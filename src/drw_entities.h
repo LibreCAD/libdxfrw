@@ -1467,6 +1467,7 @@ class DRW_Block : public DRW_Point {
     SETENTFRIENDS
 private:
     std::size_t m_dxfRetainedXrefPathBytes{0};
+    std::size_t m_dxfRetainedNameBytes{0};
 
 public:
     DRW_Block() {
