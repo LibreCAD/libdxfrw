@@ -3,6 +3,21 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
+**Current parity7G.3f.3a / LOCAL_IMPLEMENTATION_COMPLETE (baseline`7b753cf`):**
+Typed DXF VISUALSTYLE description/type respect subclass and291 boundaries;
+post-tail70 no longer aliases type, even across repeated markers. Markerless
+older controls, ordinary tolerance and raw tag preservation remain intact;
+no full property-body decode or grammar validator is added. Eight authored
+ASCII/binary profiles plus copy/reset/suffix and failed same-facade retry pass.
+Current probe matches72 literal producer types, repairing the48 modern
+collisions while leaving24 older types/other observed fields unchanged.
+Focused fixture/reader/object gates3/3 in5.15s and strict two-TU/build/lc3 pass.
+Receipt: `docs/research/visualstyle-type-scope-7g-3f-3a-2026-10-15.json`.
+Next f.4a owned family handoff/f.3b origin binding, then serializer/whole-root
+CLI closure;9d and six external J gates remain open/non-promoting. No new
+fixture/dependency/registration, full suite/sanitizer/ODA/native qualification.
+Private public-class state requires rebuild; no callback/default2D policy change.
+
 **Latest research-only handoff (baseline`91d0a88`):** the
 [typed-readback and whole-root readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15)
 reproduces48 typed style-type collisions across two captured modern DXF
@@ -30,7 +45,7 @@ locally accepted; full9d and all six J gates stay open/non-promoting. Receipt:
 No drawing fixture, dependency, registration, top-level subplan or ledger
 item is added. Keep LibreCAD/LC3 optional callbacks and tolerant2D defaults.
 
-**Current parity7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE (baseline `49427d0`):**
+**Prior parity7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE (baseline `49427d0`):**
 DWG HEADER retains the complete source NOD H; absent/null/wrong-role/wide
 states are distinct. Only its matching complete zero-parent DICTIONARY
 publishes the existing optional root callback once. Ordinary failures warn;

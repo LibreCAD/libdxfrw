@@ -6687,6 +6687,8 @@ public:
     type = 0;
     m_body = DRW_VisualStyleBody{};
     m_bodyDecoded = false;
+    m_dxfInVisualStyle = true;
+    m_dxfInPropertyTail = false;
   }
 
 protected:
@@ -6705,6 +6707,14 @@ public:
       m_body; /*!< decoded body (DWG); empty on DXF/failed parse */
   bool m_bodyDecoded =
       false; /*!< true only after body, strings, and handles validate */
+
+private:
+  // Markerless older DXF records begin in the basic field scope. A real
+  // subclass marker scopes description/type;291 latches the opaque property
+  // tail until reset, including across repeated subclass markers. These are
+  // parser state, not a property-grammar or source-profile certificate.
+  bool m_dxfInVisualStyle = true;
+  bool m_dxfInPropertyTail = false;
 };
 
 //! Class to handle UNDERLAYDEFINITION (AcDb*Definition) — custom-class object.

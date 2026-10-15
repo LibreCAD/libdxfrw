@@ -272,6 +272,62 @@ bool writeVisualStyleRetentionControl(const std::filesystem::path& path,
     return written && !writer->hasWriteError() && output.good();
 }
 
+// Authored parser/raw-carrier controls, not renderer-valid property profiles.
+bool writeVisualStyleScopedControl(
+        const std::filesystem::path& path, bool binary, const char* version,
+        const std::vector<DRW_Variant>& body, bool complete = true) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output) return false;
+    if (binary) output.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+    writer->setVersion(version, true);
+    const auto string = [&writer](int code, const char* value) {
+        return writer->writeString(code, value);
+    };
+    const auto dictionary = [&string, &writer](const char* handle, const char* owner) {
+        return string(0, "DICTIONARY") && string(5, handle)
+            && string(330, owner) && string(100, "AcDbDictionary")
+            && writer->writeInt16(280, 1) && writer->writeInt16(281, 1);
+    };
+    bool written = string(0, "SECTION") && string(2, "HEADER")
+        && string(9, "$ACADVER") && string(1, version)
+        && string(0, "ENDSEC") && string(0, "SECTION") && string(2, "OBJECTS")
+        && dictionary("B0", "0")
+        && string(3, "ACAD_VISUALSTYLE") && string(350, "700")
+        && string(3, "LOCAL_SUFFIX") && string(350, "703")
+        && dictionary("700", "B0")
+        && string(3, "ScopedStyle") && string(350, "701")
+        && string(3, "FollowingStyle") && string(350, "702")
+        && string(0, "VISUALSTYLE") && string(5, "701") && string(330, "700");
+    for (const auto& tag : body) {
+        if (!written) break;
+        const int code = tag.code();
+        if (tag.type() == DRW_Variant::STRING)
+            written = writer->writeString(code, tag.c_str());
+        else if (code == 291)
+            written = writer->writeBool(code, tag.i_val() != 0);
+        else if (code == 70 || code == 176 || code == 177 || code == 62)
+            written = writer->writeInt16(code, tag.i_val());
+        else if (tag.type() == DRW_Variant::INTEGER)
+            written = writer->writeInt32(code, tag.i_val());
+        else
+            return false;
+    }
+    if (complete) {
+        written = written
+            && string(0, "VISUALSTYLE") && string(5, "702") && string(330, "700")
+            && string(100, "AcDbVisualStyle") && string(2, "FollowingStyle")
+            && writer->writeInt16(70, 12)
+            && string(0, "XRECORD") && string(5, "703") && string(330, "B0")
+            && string(100, "AcDbXrecord") && writer->writeInt16(280, 1)
+            && string(1, "SCOPED_STYLE_SUFFIX")
+            && string(0, "ENDSEC") && string(0, "EOF");
+    }
+    return written && !writer->hasWriteError() && output.good();
+}
+
 bool writeGeoDataVersionControl(const std::filesystem::path& path, bool binary,
                                 const char* targetVersion,
                                 std::int32_t objectVersion,
@@ -1720,6 +1776,183 @@ void testVisualStyleRetention(TestContext& t) {
                      ? "binary no-VisualStyle control does not fabricate style callbacks"
                      : "ASCII no-VisualStyle control does not fabricate style callbacks");
     }
+}
+
+void testVisualStyleTypeScope(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-style-type-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    if (!std::filesystem::create_directory(directory)) {
+        t.expect(false, "style-type test owns a fresh scratch directory");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove_all(path, error); }
+    } cleanup{directory};
+    const auto basic = [] {
+        return std::vector<DRW_Variant>{
+            {100, UTF8STRING("AcDbVisualStyle")}, {2, UTF8STRING("ScopedStyle")},
+            {70, 8}, {177, 3}, {291, 0}};
+    };
+    struct Case {
+        const char* name;
+        const char* version;
+        std::vector<DRW_Variant> body;
+    };
+    std::vector<Case> cases;
+    auto two = basic();
+    two.insert(two.end(), {{70, 2}, {62, 7}, {420, 0}, {176, -1},
+                           {90, 123456}, {176, 2}});
+    cases.push_back({"two", "AC1032", two});
+    auto flag = two;
+    flag[4] = DRW_Variant(291, 1);
+    cases.push_back({"internal-flag", "AC1032", flag});
+    auto many = basic();
+    many.emplace_back(70, 58);
+    for (int i = 0; i < 58; ++i) {
+        many.emplace_back(90, i);
+        many.emplace_back(176, i % 4);
+    }
+    cases.push_back({"count58", "AC1032", many});
+    auto wrong = two;
+    wrong[5] = DRW_Variant(70, 3);
+    cases.push_back({"wrong-count", "AC1032", wrong});
+    auto missing = two;
+    missing.pop_back();
+    cases.push_back({"missing-companion", "AC1032", missing});
+    auto legacy = basic();
+    legacy.insert(legacy.end(), {{90, 123456}, {176, 1}});
+    cases.push_back({"older-profile", "AC1024", legacy});
+    cases.push_back({"markerless", "AC1024", {{4, UTF8STRING("ScopedStyle")}, {70, 8}}});
+    auto subclass = two;
+    subclass.insert(subclass.begin(), {{100, UTF8STRING("AcDbObject")},
+        {70, 99}, {2, UTF8STRING("ForeignDescription")}, {291, 1}});
+    subclass.insert(subclass.end(), {{100, UTF8STRING("ForeignSubclass")},
+        {70, 101}, {2, UTF8STRING("ForeignTail")},
+        {100, UTF8STRING("AcDbVisualStyle")}, {70, 59},
+        {4, UTF8STRING("RepeatedSubclassTail")}});
+    cases.push_back({"subclass-scopes", "AC1032", subclass});
+
+    const auto findStyle = [](const auto& styles, const char* desc) {
+        return std::find_if(styles.begin(), styles.end(), [desc](const auto& value) {
+            return value.desc == desc;
+        });
+    };
+    const auto bodyMatches = [](const DRW_RawDxfObject& left, const DRW_RawDxfObject& right) {
+        if (left.groups.size() != right.groups.size()
+            || left.rawValues.size() != left.groups.size()
+            || right.rawValues.size() != right.groups.size()) return false;
+        for (std::size_t i = 0; i < left.groups.size(); ++i) {
+            const auto& a = left.groups[i]; const auto& b = right.groups[i];
+            if (a.code() != b.code() || a.type() != b.type()) return false;
+            if (a.code() == 5 || a.code() == 330) continue; // Regenerated identities.
+            if (a.type() == DRW_Variant::STRING) {
+                if (std::string(a.c_str()) != b.c_str()
+                    || left.rawValues[i] != right.rawValues[i]) return false;
+            } else if (a.type() == DRW_Variant::INTEGER) {
+                if (a.i_val() != b.i_val()) return false;
+            } else return false;
+        }
+        return true;
+    };
+    for (const bool binary : {false, true}) {
+        for (const auto& row : cases) {
+            const auto path = directory / (std::string(row.name) + (binary ? "-b.dxf" : "-a.dxf"));
+            t.expect(writeVisualStyleScopedControl(path, binary, row.version, row.body),
+                     "authored scoped style record and independent suffix are complete");
+            dx_data data;
+            dx_iface importer;
+            const bool read = importer.fileImport(path.string(), &data, false);
+            const auto main = findStyle(data.visualStyles, "ScopedStyle");
+            const auto following = findStyle(data.visualStyles, "FollowingStyle");
+            const auto raw = std::find_if(data.rawVisualStyleObjects.begin(), data.rawVisualStyleObjects.end(),
+                [](const auto& value) { return value.handle == 0x701u; });
+            t.expect(read && data.visualStyles.size() == 2u
+                         && main != data.visualStyles.end() && main->type == 8
+                         && !main->m_bodyDecoded && main->m_body.m_encoding.companionCount == 0u
+                         && following != data.visualStyles.end() && following->type == 12
+                         && data.xRecords.size() == 1u
+                         && !data.xRecords.front().m_values.empty()
+                         && std::string(data.xRecords.front().m_values.front().c_str()) == "SCOPED_STYLE_SUFFIX",
+                     "style type is basic70, not tail count; new object and suffix remain independent");
+            if (!read || raw == data.rawVisualStyleObjects.end()) continue;
+            t.expect(raw->groups.size() == row.body.size() + 2u,
+                     "type guard does not discard any raw style group");
+            const auto original = *raw;
+            const auto output = directory / (std::string(row.name) + (binary ? "-out-b.dxf" : "-out-a.dxf"));
+            dx_iface converter;
+            const auto target = std::string(row.version) == "AC1024" ? DRW::AC1024 : DRW::AC1032;
+            for (int pass = 0; pass < 2; ++pass) {
+                t.expect(converter.fileExport(output.string(), target, binary, &data, false, true),
+                         "scoped raw style can be converted without claiming property validation");
+                dx_data reopened;
+                dx_iface input;
+                const bool reopenedOk = input.fileImport(output.string(), &reopened, false);
+                const auto style = findStyle(reopened.visualStyles, "ScopedStyle");
+                const auto nextStyle = findStyle(reopened.visualStyles, "FollowingStyle");
+                const auto retained = std::find_if(reopened.rawVisualStyleObjects.begin(), reopened.rawVisualStyleObjects.end(),
+                    [&original, &bodyMatches](const auto& value) { return bodyMatches(original, value); });
+                t.expect(reopenedOk && style != reopened.visualStyles.end() && style->type == 8
+                             && retained != reopened.rawVisualStyleObjects.end()
+                             && reopened.visualStyles.size() == 2u && reopened.xRecords.size() == 1u
+                             && nextStyle != reopened.visualStyles.end() && nextStyle->type == 12
+                             && !reopened.xRecords.front().m_values.empty()
+                             && std::string(reopened.xRecords.front().m_values.front().c_str()) == "SCOPED_STYLE_SUFFIX"
+                             && main != data.visualStyles.end() && main->handle == 0x701u
+                             && bodyMatches(original, *raw),
+                         "ASCII/binary repeat conversion retains typed type, exact raw body and caller identities");
+            }
+        }
+        // Failed object input must not publish partial typed/raw state. Reuse
+        // the same facade after replacing only this locally authored input.
+        const auto path = directory / (binary ? "retry-b.dxf" : "retry-a.dxf");
+        t.expect(writeVisualStyleScopedControl(path, binary, "AC1032", many, false),
+                 "truncated control omits the object boundary");
+        dx_data incomplete;
+        dx_iface sink;
+        sink.cData = &incomplete; sink.currentBlock = incomplete.mBlock;
+        dxfRW codec(path.string().c_str());
+        t.expect(!codec.read(&sink, false) && incomplete.visualStyles.empty()
+                     && incomplete.rawVisualStyleObjects.empty(),
+                 "truncated style publishes neither partial typed data nor its raw companion");
+        t.expect(writeVisualStyleScopedControl(path, binary, "AC1032", many),
+                 "same input identity receives the corrected complete control");
+        dx_data corrected;
+        sink.cData = &corrected; sink.currentBlock = corrected.mBlock;
+        t.expect(codec.read(&sink, false) && corrected.visualStyles.size() == 2u
+                     && corrected.visualStyles.front().type == 8,
+                 "same reader facade retries with fresh scoped style state");
+    }
+
+    class Parser final : public DRW_VisualStyle { public: using DRW_VisualStyle::parseCode; };
+    const auto parse = [&t](Parser& target, const char* pairs) {
+        std::istringstream bytes(pairs);
+        std::unique_ptr<dxfReader> reader = std::make_unique<dxfReaderAscii>(&bytes);
+        int code = 0;
+        while (reader->readRec(&code))
+            t.expect(target.parseCode(code, reader), "direct style parser accepts controlled group");
+    };
+    Parser source;
+    parse(source, "100\nAcDbVisualStyle\n2\nOriginal\n70\n8\n291\n0\n");
+    Parser copied(source), assigned;
+    assigned = source;
+    for (Parser* clone : {&copied, &assigned}) {
+        parse(*clone, "70\n58\n4\nTail\n100\nAcDbVisualStyle\n70\n2\n");
+        t.expect(clone->type == 8 && clone->desc == "Original",
+                 "copy and assignment own the latched tail scope without reopening on a repeated subclass");
+        clone->reset();
+        parse(*clone, "4\nLegacy\n70\n12\n");
+        t.expect(clone->type == 12 && clone->desc == "Legacy",
+                 "explicit reset restores markerless older basic parsing");
+    }
+    source.reset();
+    parse(source, "100\nForeign\n70\n99\n2\nForeignName\n291\n1\n");
+    t.expect(source.type == 0 && source.desc.empty(),
+             "foreign subclass alone cannot assign visual-style basic metadata");
+    parse(source, "100\nAcDbVisualStyle\n2\nNew\n70\n6\n");
+    t.expect(source.type == 6 && source.desc == "New",
+             "foreign subclass fields cannot trigger the visual-style property-tail latch");
 }
 
 void testGeoDataVersionedMappings(TestContext& t) {
@@ -11233,6 +11466,7 @@ int main(int argc, char** argv) {
     testDictionaryWithoutOwner(context);
     testNodRootOrdering(context);
     testVisualStyleRetention(context);
+    testVisualStyleTypeScope(context);
     testGeoDataVersionedMappings(context);
     testLayoutGraphReadContract(context);
     testXRecordDataOrder(context);

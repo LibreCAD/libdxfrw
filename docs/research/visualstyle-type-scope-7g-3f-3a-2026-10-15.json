@@ -1,0 +1,162 @@
+{
+  "schema": "libdxfrw-scoped-implementation-acceptance-v1",
+  "date": "2026-10-15",
+  "planSlice": "7G.3f.3a",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "baseline": "7b753cfa9702ce7e57d05541e365807a3ab73a51",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "qualificationEligible": false,
+  "scope": "DXF VISUALSTYLE basic type/description scoping only. No new typed property-body decoder, DWG byte-layout or writer change, source-origin handoff, whole-root emission, full CLI9d or native/ACIS qualification.",
+  "implementation": {
+    "parser": "Only basic2/4/70 in the VisualStyle subclass (or markerless legacy scope) update public description/type. Presence of291, including false, latches the opaque property tail through repeated/foreign subclass markers until reset. Foreign291 cannot trigger it.",
+    "common": "Common object/XDATA handling continues through DRW_TableEntry; captureAndParseRawDxfGroup and raw-tail emission unchanged. No new grammar/type-range rejection or declaration-count validation.",
+    "lifetime": "Two appended private bools reset with the object, copy/assign by value, and cannot reopen the tail on a repeated subclass. New object and corrected facade retry use fresh state.",
+    "compatibility": "Existing older markerless/basic controls remain supported; no new callbacks or projection policy. Rebuild public consumers; binary ABI not promised."
+  },
+  "permanentControls": {
+    "input": "Eight locally authored profiles ×ASCII/binary: two groups, internal flag1, count58, wrong count, missing final companion, older profile, markerless4 description and foreign/repeated subclasses. Explicit type8 differs from property counts2/3/58/59.",
+    "raw": "Raw group count, code/type/value and exact string spellings preserved through two repeat exports/readbacks from the same model; regenerated self/owner values compared separately. Invalid counted/missing-companion tails are opaque-preservation controls, not admitted render profiles.",
+    "suffix": "Independent following style type12 and XRECORD sentinel payload verified on initial read and every readback.",
+    "failureAndLifecycle": "Two truncated object-boundary reads publish no partial typed/raw style; replacing only the authored input permits same dxfRW facade retry. Direct copy/assignment preserve latched tail; reset restores legacy parsing; foreign-only basic fields stay absent and foreign291 does not latch."
+  },
+  "regressionBeforeFix": {
+    "observedConsoleAssertionFailures": 40,
+    "ctestExitCode": 8,
+    "productionBaseline": "7b753cf unchanged production; new authored test overlay",
+    "testOverlayFrozen": false,
+    "limitation": "The old fixture executable/source overlay was not frozen. Baseline JUnit is hash-bound, but final test hash includes later safe-vector/suffix/foreign-only strengthening. Do not assert an identical full baseline test artifact.",
+    "initialNewTestBuild": "Corrected a missing capture of the bodyMatches lambda before the regression run; no production warning bypass."
+  },
+  "sourceAcceptance": {
+    "literalProducerReadback": [
+      {
+        "year": 2018,
+        "source": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018/rtext_arctext.dxf",
+        "sourceSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15",
+        "styles": 24,
+        "baselineTypeMismatches": 24,
+        "currentTypeMismatches": 0,
+        "otherObservedFieldsUnchanged": true,
+        "qualificationEligible": false
+      },
+      {
+        "year": 2013,
+        "source": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2013/rtext_arctext.dxf",
+        "sourceSha256": "1c1760ea856a5aa1e294ae3a0d9d3e491742d1dc821b6dc5674392d627e4a28e",
+        "styles": 24,
+        "baselineTypeMismatches": 24,
+        "currentTypeMismatches": 0,
+        "otherObservedFieldsUnchanged": true,
+        "qualificationEligible": false
+      },
+      {
+        "year": 2010,
+        "source": "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2010/rtext_arctext.dxf",
+        "sourceSha256": "878ccc71d94f777f9e73b108800eaa8b0678627a34635a54610b25738cf67552",
+        "styles": 24,
+        "baselineTypeMismatches": 0,
+        "currentTypeMismatches": 0,
+        "otherObservedFieldsUnchanged": true,
+        "qualificationEligible": false
+      }
+    ],
+    "focusedJUnit": [
+      {
+        "path": "/private/tmp/libdxfrw-style-type.0IZWzI/baseline.xml",
+        "sha256": "f948fdc1ad521b504d641236973ed92e865f25d9beaec51dd9e6464134937538",
+        "suite": {
+          "name": "(empty)",
+          "tests": "1",
+          "failures": "1",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "3",
+          "timestamp": "2026-10-15T19:44:34"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_dxf_fixtures",
+            "classname": "libdxfrw_dxf_fixtures",
+            "time": "3.42583",
+            "status": "fail"
+          }
+        ],
+        "summedCaseSeconds": 3.42583
+      },
+      {
+        "path": "/private/tmp/libdxfrw-style-type.0IZWzI/composed.xml",
+        "sha256": "d53e716da421df745d3690ff2dcc03e7627e8a25a91862ab754f6d2d297e6efd",
+        "suite": {
+          "name": "(empty)",
+          "tests": "3",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "5",
+          "timestamp": "2026-10-15T19:47:13"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_dwg_reader_matrix",
+            "classname": "libdxfrw_dwg_reader_matrix",
+            "time": "1.57481",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dwg_object_vectors",
+            "classname": "libdxfrw_dwg_object_vectors",
+            "time": "0.150681",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dxf_fixtures",
+            "classname": "libdxfrw_dxf_fixtures",
+            "time": "3.42006",
+            "status": "run"
+          }
+        ],
+        "summedCaseSeconds": 5.145551
+      }
+    ],
+    "sourceSha256": {
+      "src/drw_objects.cpp": "a13ea4f02b4eb335c5179402493da37f011fc2e10e78b62c676694247917707e",
+      "src/drw_objects.h": "84013a41a793c0085056060b54f253d71494a0108aa87c9a6d1da7e0def061c1",
+      "tests/dxf_fixture_tests.cpp": "ad2cbdbc2a18573cd1205967e839592eb2c27bb4b2858f30f1ce28f20143a616"
+    },
+    "artifactSha256": {
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "ed4136f5136fc7a528223bf96ee7a3563551b2e6f4590b1e1466e86985cd61f7",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests": "c3e7f4f2035f0aa7e3159cb2e36b9fc6dd4134fedef6568e3578084f927b836b",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_reader_matrix_tests": "b63a2f32edda1ac89c555096541ad11846eff71ae575f7191af84f07d4abb638",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_object_vectors_tests": "7029a2c862278b0d8dd5597c6fcc948061815a99b2ffa38bf991a9e36f5b3d83",
+      "/private/tmp/libdxfrw-style-type.0IZWzI/readiness_probe": "34a28170b86da1eeee43eda134b25f6c8dfd0f3d8c9f768c04c95e663e274afe",
+      "/private/tmp/libdxfrw-serializer-readiness.b6n1lg/readiness_probe": "b453ef5c36320494e1660c120eaeb8a0c3ff5f2299a5308cad773646b1f84005"
+    },
+    "recipe": "\"\"\"Literal producer tag vs typed style readback; no new converter run.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\nimport xml.etree.ElementTree as ET\n\nrepo = Path('/Users/dli/dev/libdxfrw')\nroot = Path(__file__).resolve().parent\nsys.path.insert(0, str(repo / 'tools'))\nfrom bounded_process import run_bounded\n\ndef digest(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\ndef run(probe, path):\n    p = run_bounded([str(probe), str(path)], timeout=15, output_limit=65536)\n    assert p.returncode == 0, p.stderr\n    return json.loads(p.stdout)\n\nprior = json.loads((repo / 'docs/research/broader-style-closure-readiness-2026-10-15.json').read_text())\nold_probe = Path('/private/tmp/libdxfrw-serializer-readiness.b6n1lg/readiness_probe')\nassert digest(old_probe) == prior['executedCurrentCode']['artifactSha256'][str(old_probe)]\nrows = []\nfor year in (2018, 2013, 2010):\n    path = Path(f'/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-{year}/rtext_arctext.dxf')\n    lines = path.read_text().splitlines()\n    expected, current = {}, []\n    for i in range(0, len(lines), 2):\n        code, value = int(lines[i]), lines[i + 1]\n        if code == 0:\n            if current and current[0] == (0, 'VISUALSTYLE'):\n                marker = next(j for j, (c, v) in enumerate(current) if c == 291)\n                handle = int(next(v for c, v in current if c == 5), 16)\n                expected[handle] = int(next(v for c, v in current[:marker] if c == 70))\n            current = [(code, value)]\n        else:\n            current.append((code, value))\n    before = run(old_probe, path)\n    after = run(root / 'readiness_probe', path)\n    assert len(expected) == len(after['styles']) == 24\n    old_mismatches = sum(s['type'] != expected[s['handle']] for s in before['styles'])\n    assert old_mismatches == (24 if year >= 2013 else 0)\n    assert all(s['type'] == expected[s['handle']] and not s['bodyDecoded'] for s in after['styles'])\n    assert after['rawStyles'] == 24\n    # Only the incorrect typed field changes; raw counts, basic descriptions,\n    # source version/origin and all observed graph/callback data stay equal.\n    adjusted = json.loads(json.dumps(after))\n    by_handle = {s['handle']: s['type'] for s in before['styles']}\n    for s in adjusted['styles']: s['type'] = by_handle[s['handle']]\n    assert adjusted == before\n    rows.append(dict(year=year, source=str(path), sourceSha256=digest(path),\n        styles=24, baselineTypeMismatches=old_mismatches, currentTypeMismatches=0,\n        otherObservedFieldsUnchanged=True, qualificationEligible=False))\n\npackets = []\nfor filename, passing in (('baseline.xml', False), ('composed.xml', True)):\n    path = root / filename\n    suite = ET.parse(path).getroot()\n    assert int(suite.attrib['failures']) == (0 if passing else 1)\n    assert int(suite.attrib['tests']) == (3 if passing else 1)\n    cases = [dict(c.attrib) for c in suite.findall('testcase')]\n    packets.append(dict(path=str(path), sha256=digest(path), suite=suite.attrib,\n        cases=cases, summedCaseSeconds=sum(float(c['time']) for c in cases)))\n\nsources = ('src/drw_objects.cpp', 'src/drw_objects.h', 'tests/dxf_fixture_tests.cpp')\nartifacts = (repo / 'build/libdxfrw.a', repo / 'build/libdxfrw_dxf_fixture_tests',\n             repo / 'build/libdxfrw_dwg_reader_matrix_tests',\n             repo / 'build/libdxfrw_dwg_object_vectors_tests',\n             root / 'readiness_probe', old_probe)\nprint(json.dumps(dict(literalProducerReadback=rows, focusedJUnit=packets,\n    sourceSha256={p: digest(repo / p) for p in sources},\n    artifactSha256={str(p): digest(p) for p in artifacts},\n    recipe=Path(__file__).read_text(), qualificationEligible=False)))\n",
+    "qualificationEligible": false
+  },
+  "commands": [
+    "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+    "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Isrc/intern -I. -Idwg2dxf -DLIBDXFRW_DXF_FIXTURE_DIR='\"/Users/dli/dev/libdxfrw/tests/fixtures/dxf\"' -fsyntax-only src/drw_objects.cpp tests/dxf_fixture_tests.cpp",
+    "cmake --build build --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+    "ctest --test-dir build -R '^libdxfrw_(dxf_fixtures|dwg_reader_matrix|dwg_object_vectors)$' --output-on-failure --output-junit /private/tmp/libdxfrw-style-type.0IZWzI/composed.xml",
+    "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Idwg2dxf /private/tmp/libdxfrw-serializer-readiness.b6n1lg/readiness_probe.cpp dwg2dxf/dx_iface.cpp build/libdxfrw.a -o /private/tmp/libdxfrw-style-type.0IZWzI/readiness_probe",
+    "python3 -B /private/tmp/libdxfrw-style-type.0IZWzI/acceptance.py"
+  ],
+  "evidenceScope": "Frozen pre-fix standalone probe is bound to the previous research receipt; fresh probe is rebuilt with current headers/core.72 literal pre291 types now match current typed readback;48 formerly mismatched and24 older types stay correct. All other exposed graph/source/basic/raw-count fields match. These are3 producer-target profiles of one tracked source, not72 diverse scene qualifications.",
+  "residual": {
+    "next": "7G.3f.4a owned root-resource callback handoff and f.3b import-origin/generation binding, then f.3c qualified property/color emission and f.4b/c graph/full CLI.",
+    "parentState": "7G.3/7F.1b/7BE.9d remain open; f.2b writer target HEADER NOD remains separately ready.",
+    "notRun": "No full suite, new sanitizer, new ODA save or native application run. Existing opaque grammar tolerance deliberately unchanged.",
+    "fixtures": "All permanent controls create scratch drawings at runtime. No DWG/DXF fixture, dependency or CTest registration added.",
+    "gates": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

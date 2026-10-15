@@ -54,6 +54,15 @@ metadata is not a complete format/profile certificate. This prerequisite does
 not implement typed DWG→DXF style emission, named-color target
 mapping or renderer/ACIS semantics; full CLI acceptance remains separate.
 
+DXF VISUALSTYLE description/type are basic fields scoped to AcDbVisualStyle
+(or markerless older records). Group291's presence, including a false value,
+latches the opaque property tail: a later70 is a property count, not `type`.
+Foreign/repeated subclasses cannot overwrite those fields or reopen that
+tail. Copies own the parser scope and reset restores fresh basic parsing.
+Raw groups remain preserved; DXF `m_bodyDecoded` stays false. This does not
+validate property counts/companions or imply typed render-property coverage.
+Private state extends public class layout; consumers must rebuild.
+
 `DRW_Header::dwgNamedObjectDictionaryReference()` returns an owned optional
 source H value (role, encoded size, full64-bit reference and legacy low32 view).
 Absent/fresh/DXF/failed HEADER is distinct from explicit absolute null. The

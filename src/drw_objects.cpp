@@ -24312,16 +24312,24 @@ bool DRW_BreakPointRef::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
 }
 
 bool DRW_VisualStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
-    // AcDbVisualStyle DXF: description (2 / 4) + style type (70).  Matches
-    // dwgTs's VISUALSTYLE decode; the per-property render settings (face/edge/
-    // display) stay round-tripped raw only on the DXF path.
+    // The modern opaque tail repeats70 as a property count, not the style
+    // type. Its values must remain raw without aliasing basic metadata.
     switch (code) {
+    case 100:
+        m_dxfInVisualStyle = reader->getString() == "AcDbVisualStyle";
+        return DRW_TableEntry::parseCode(code, reader);
+    case 291:
+        if (m_dxfInVisualStyle)
+            m_dxfInPropertyTail = true; // Presence matters, including false.
+        return DRW_TableEntry::parseCode(code, reader);
     case 2:
     case 4:
-        desc = reader->getUtf8String();
+        if (m_dxfInVisualStyle && !m_dxfInPropertyTail)
+            desc = reader->getUtf8String();
         break;
     case 70:
-        type = reader->getInt32();
+        if (m_dxfInVisualStyle && !m_dxfInPropertyTail)
+            type = reader->getInt32();
         break;
     default:
         return DRW_TableEntry::parseCode(code, reader);

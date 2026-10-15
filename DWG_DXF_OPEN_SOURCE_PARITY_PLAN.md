@@ -100,7 +100,26 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `49427d0`;
+**Current handoff (2026-10-15, provenance`7b753cf`;
+Plan-Slice:7G.3f.3a / LOCAL_IMPLEMENTATION_COMPLETE):**
+VISUALSTYLE basic description/type now respect subclass/291 boundaries;
+post291 property counts do not overwrite type and repeated markers cannot
+reopen the tail. Markerless/older parsing and raw-carrier behavior remain
+tolerant; no typed DXF property decoder or grammar validator is added. Eight
+authored ASCII/binary profiles cover distinct type/count, malformed opaque
+tails, common/subclass state, independent suffixes, copy/reset and truncated
+same-facade retry. The pre-fix run reports40 assertion failures; final focused
+fixture/reader/object gates pass3/3 in5.15s, strict two-TU/build/lc3 pass.
+Freshly rebuilt probe readback matches72 literal producer types (48 repaired,
+24 older unaffected), with all other exposed fields unchanged. Receipt:
+`docs/research/visualstyle-type-scope-7g-3f-3a-2026-10-15.json`.
+Next f.4a owned root-resource handoff and f.3b import origin/generation, then
+f.3c property/color mapping and f.4b/c whole-root/full CLI9d. f.2b writer root
+remains separately ready. No fixture/dependency/CTest, full suite/new sanitizer/
+ODA/native or support/J promotion; source consumers must rebuild. Historical
+research's48 mismatches are now locally repaired, not erased from its receipt.
+
+**Prior7G.3f.2 handoff (2026-10-15, provenance `49427d0`;
 Plan-Slice:7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE):**
 HEADER now owns the full source NOD H, including role/size/ref64, with absent,
 explicit-null and invalid/unrepresentable identities kept separate. Only its
@@ -5313,7 +5332,7 @@ This sequence supersedes the generic “implement a typed serializer” handoff.
 | **7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE** | Retain validated DWG HEADER NOD identity and publish the matching complete dictionary through the existing optional root callback, without guessing a root. | Authored HEADER/OBJECTS role/null/wide/non-monotonic/missing/wrong-type/owner/count/retry controls, reused duplicate-map gate and four tracked rows; main4/4, strict/build/lc3, sanitizer2/2 pass. |
 | **7G.3f.2b / READY_LOCAL; INDEPENDENT_WRITER_FOLLOWUP** | Bind regenerated DWG HEADER NOD H to the writer's preplanned actual root, not the retained source identity or null placeholder. | Literal code3/nonzero H, existing reserved-identity/sealing controls, full authored writer→reader root/child callback counts across applicable targets; no reader guessing. |
 | **7G.3f.3 / TAG_PROFILE_CAPTURED; MAPPING_REVIEW_REQUIRED** | Implement a typed-DWG-to-DXF serializer for the smallest witnessed version/property/color profile. Keep DXF-origin raw replay separate. | Exact literal tags/property groups/colors/companions and following record; unsupported-profile no-publication and corrected same-model retry. |
-| **7G.3f.3a / READY_LOCAL** | Scope DXF style-type70 before291; a following property-count70 must not overwrite the public type. | ASCII/binary distinct type/count, raw-tail equality, reset/copy/next-record and older-profile controls; no full DXF property decode claim. |
+| **7G.3f.3a / LOCAL_IMPLEMENTATION_COMPLETE** | Scope DXF style-type70 before291; a following property-count70 must not overwrite the public type. | Eight ASCII/binary controls, repeated raw replay, copy/reset/next-record/truncation retry;72 literal producer types match (48 repaired). Main3/3 in5.15s, strict/build/lc3 pass; no full DXF property decode claim. |
 | **7G.3f.3b / READY_LOCAL** | Reuse existing import format/version/outcome state and bind the admitted style carrier to a successful import profile. | DWG/DXF/unknown/failed/reused-or-mixed context, missing raw and partial metadata; no heuristic or stale-source-version admission. |
 | **7G.3f.3c / PROFILE_DISCRIMINATOR_CALIBRATED; COLOR_POLICY_REVIEW_REQUIRED** | Emit58-property modern profile with witnessed177=3; keep source DWG fields separate and qualify RGB fallback/name/method policy. | Literal property descriptor crosswalk, true-color zero, three bad177 profiles, exact companions and atomic unsupported-profile refusal/retry. |
 | **7G.3f.4 / DEPENDS_ON_1_2_3** | Compose root, target types, remapping and source-format dispatch, then rerun the unchanged full FreeCAD-form CLI harness. | Existing extension-graph/adapter tests and one composed CLI gate, retaining RTEXT/ARCALIGNEDTEXT/MPOLYGON assertions and warnings. |
@@ -13747,7 +13766,10 @@ independent kernel, visual appearance or native consumer is exercised here.
 
 ### Implementation-ready children and fast execution order
 
-**First f.3a — repair typed style-type readback.** Add record/subclass/291-scoped
+**f.3a — locally implemented; acceptance supersedes this readiness checkpoint.**
+The separate current receipt binds main3/3 and72 corrected producer types.
+The following requirements remain regression obligations, not remaining work.
+Add record/subclass/291-scoped
 state so only the basic pre-tail70 updates `DRW_VisualStyle::type`. Reset at
 new-record/failed-parse boundaries and preserve existing older-profile behavior.
 Do not implement or claim a full DXF58-property body decoder in this slice.
