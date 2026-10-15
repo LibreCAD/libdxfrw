@@ -676,7 +676,7 @@ Its historical binary diff SHA-256 is
 | PAR-120 / 7BQ dynamic symbol-table capacities | IMPLEMENTED / EXTERNAL_ACCEPTANCE_PENDING | Broadened the DIMSTYLE candidate to VPORT/LTYPE/LAYER/STYLE/VIEW/UCS/APPID plus DIMSTYLE; BLOCK_RECORD remains the computed-count control. Autodesk's current DXF contract was checked against local `6d76a34`; ezdxf exact-count output and netDxf's contrary “obsolete in practice” interpretation were reconciled. `a1e81bc`, `a30e46c` and `cb1bc47` commit the generated backpatch helper, all eight dynamic-table writer paths, mandatory/fallback accounting, four-profile exact row vectors, signed-16-bit boundary and late-failure rollback. No strict-reader rejection was established and no native CAD acceptance was run; report this as a local metadata/conformance correction, not a promoted output-acceptance claim. No fixture/CTest, full suite or support promotion. Next ready item: 7BP GEODATA target-version/objectVersion separation. |
 | Broader peer output / legacy semantic audit | PLAN_UPDATED / NONPROMOTING | Cross-checked ACadSharp #1074/#1077, #1180, #1194/#1201, #1038/#1067, #1133/#1151, open #1217/#1247, and LibreDWG #1351/#1357 against Autodesk DXF contracts and local `6d76a34`. Corrects the #1074 diagnosis to the active-VPORT ambient-color default; finds no corresponding local default defect. Adds field-level fast-test refinements to existing writer/reader/table routes, including explicit zero-height hidden ATTRIB, LEADER metrics, unordered AC1009 DIMENSION groups and raw MESH tags. Confirms local INSERT sequence handling is already structurally paired. No new PAR/subplan, source/test edit, peer execution, sample admission, CTest, dependency, support claim or J promotion; counts remain120/69. |
 | 7G.3e typed LAYOUT reference remapping | COMMITTED / TYPED-WRITER-SCOPED | `55056aa` routes LAYOUT's structural owner, shade-plot, paper-space BLOCK_RECORD, last-active VIEWPORT, named UCS and base UCS handles through the existing source-handle remap table. The new generated Wave 1 case checks exact remapped groups 330/333/331/345/346, both distinct 330 roles, ASCII/binary equality, and the following-record boundary. `cmake --build build --target libdxfrw_wave1_tests -j4` and `build/libdxfrw_wave1_tests` pass. This closes only the low-level typed writer edge remapper; `dx_iface` graph emission, NOD entry merge, source BLOCK_RECORD 340 links, layout-local VIEWPORT 68/69 derivation and composed graph readback remain queued under 7G.3e. No fixture, new test registration or support promotion. |
-| 7G.3e core layout graph emission and version boundary | COMMITTED / CORE_GRAPH_ONLY | `f911b4f` emits the source ACAD_LAYOUT dictionary and LAYOUT records, remaps layout/dictionary handles around fixed DXF identities, and emits reciprocal BLOCK_RECORD group340 links on AC1015+ including canonical model/paper rows. The generated ASCII/binary fixture forces two collisions and reads back the root→dictionary→layout and layout↔BLOCK_RECORD links across AC1015/1018/1021/1024/1027. `5a23829` additionally retains one directly-owned empty NOD child dictionary and rejects an unclosed populated child on strict output; arbitrary populated/untyped roots remain open. A retained graph targeting AC1014 is rejected before replacing a sentinel destination. Focused DXF fixture, Wave1 and `lc3_compat_check` gates pass; `git diff --check` is clean. Autodesk defines code340's role; ezdxf's layout docs describe the R12 single-active-paperspace exception and R2000+ page-layout features, so implementation policy is AC1015+ and fail-closed downgrade below it. Auxiliary target census/emission, paper-space entity ownership, PAR-122 derivation, composed CLI/native acceptance and LibreCAD_3 runtime behavior remain open. No fixture payload, CTest registration or support promotion. |
+| 7G.3e core layout graph emission and version boundary | COMMITTED / CORE_GRAPH_AND_TYPED_NOD_CLOSURE_SCOPED | `f911b4f` emits source ACAD_LAYOUT/LAYOUT records, remaps fixed-handle collisions and writes reciprocal BLOCK_RECORD 340 links on AC1015+; generated ASCII/binary round trips cover AC1015/1018/1021/1024/1027. `5a23829` retains directly root-owned empty child dictionaries; `35fdecd` extends strict output to fully typed/populated DICTIONARY→XRECORD closures, with generated descendant-payload readback across the same matrix. Direct root-owned XRECORD is implemented by the traversal/emitter but still needs its own positive control. Strict rejection covers missing, ambiguous, wrongly-owned or untyped descendants; tolerant output keeps its narrower prior behavior. AC1014 downgrade rejection preserves a sentinel destination. The focused DXF-fixture and extension-graph CTests pass; `lc3_compat_check` builds. Auxiliary VIEWPORT/UCS/shade target census, paper-space entity ownership, PAR-122 derivation, composed CLI/native acceptance and LibreCAD_3 runtime behavior remain open. No external fixture payload, new CTest registration or support promotion. |
 
 **API source checkpoint before integration:** reviewed
 ca7db684/90319104/2f7cc65 formed the eight-path patch on736ae70 bound above.
@@ -4508,20 +4508,28 @@ Split implementation to keep a small critical path:
       with LAYOUT records targeting before AC1015 are refused before output
       publication; the R12 one-active-paperspace compatibility model is not
       represented as a modern multi-layout graph. Follow-up `5a23829` retains
-      only a directly-owned empty typed NOD child dictionary; strict output
-      rejects populated or untyped root targets until their contained graph is
-      closed, while tolerant output keeps its prior omission behavior.
-      Remaining admission work: extend typed/populated unrelated NOD closure
-      and resolve auxiliary VIEWPORT/UCS/shade targets by type. Do not fall
-      back to tab order, fixed handles or names.
+      directly-owned empty typed NOD child dictionaries. Commit `35fdecd`
+      extends strict output through populated DICTIONARY and XRECORD nodes,
+      validating bounded descendants, owner closure, and translated handle
+      targets before preserving the root key. Generated ASCII/binary output
+      reads back a dictionary→XRECORD string payload across
+      AC1015/1018/1021/1024/1027; strict rejection controls still cover
+      missing, multiply-matched, wrongly-owned, and unresolved child targets
+      with sentinel preservation. Tolerant output intentionally retains its
+      previous narrow empty-dictionary behavior. Remaining NOD admission work
+      is direct root-owned XRECORD coverage and explicitly unsupported/raw
+      object disposition; auxiliary VIEWPORT/UCS/shade target census remains
+      separate. Do not fall back to tab order, fixed handles or names.
    5. **Core emit/readback closure (COMMITTED `f911b4f`; FULL 7G.3e STILL
       OPEN):** the generated two-paper-layout plus Model graph now verifies
       root key→dictionary→named layout and reciprocal layout/BLOCK_RECORD
       links after remapping, in ASCII/binary across AC1015/1018/1021/1024/1027.
-      The AC1014 negative proves fail-closed destination preservation. This
-      A follow-up generated ASCII/binary vector also reads back a directly-owned
-      empty unrelated NOD dictionary (`5a23829`); arbitrary populated NOD
-      closure remains open. The layout-graph vector still does not close
+      The AC1014 negative proves fail-closed destination preservation. Follow-up
+      generated ASCII/binary vectors retain an empty NOD child (`5a23829`) and
+      a populated dictionary→XRECORD closure (`35fdecd`), including exact
+      string-payload readback across AC1015/1018/1021/1024/1027. Direct
+      root-owned XRECORD output and raw/untyped NOD object disposition still
+      need targeted controls. The layout-graph vector still does not close
       entity/viewport ownership, auxiliary target-type resolution, or PAR-122
       output derivation. Next extend only the existing generated fixture with those
       specific targets and one paper-space entity; then run a single composed
@@ -10855,29 +10863,30 @@ options (7BG), populated/untyped NOD entries, VisualStyle/RenderSettings/
 standalone PlotSettings closure and mode-gated LAYOUT 333, DWG viewport-count/
 list projection, composed CLI, and native consumer qualification remain open.
 
-**Implementation progress — 7G.3e unrelated NOD root edge (committed):**
-Commit `5a23829` retains a directly root-owned, typed empty child DICTIONARY
-and its root key through the existing generated ASCII/binary matrix; `19835b0`
-adds strict rejection vectors for missing, multiply-matched, wrongly-owned,
-and populated child dictionaries, each preserving a sentinel destination.
-Those targets are rejected before publication because their child-content
-graphs are not yet typed/emitted; tolerant export retains its previous
-omission behavior for unsupported entries. The focused
-`libdxfrw_dxf_fixture_tests` build/run and `libdxfrw_dxf_fixtures` CTest pass;
-the `dwg2dxf` CLI,
-`libdxfrw_dwg2dxf_adapter_tests`, and `lc3_compat_check` targets build; no full
-suite or composed CLI checkpoint was run. This is a narrow closure checkpoint,
-not preservation of arbitrary NOD entries or a support claim.
+**Implementation progress — 7G.3e unrelated NOD root closure (committed):**
+`5a23829` retained directly root-owned empty child dictionaries;
+`19835b0` added strict missing, duplicate, wrong-owner and unresolved-child
+negatives with destination-sentinel preservation. Commit `35fdecd` reused the
+existing bounded object-graph walk for strict NOD closure and added typed
+DICTIONARY→XRECORD payload round trips in generated ASCII/binary DXF across
+AC1015/1018/1021/1024/1027. The extension-graph regression fixture was also
+corrected to model a shared target through a non-owning reactor edge, not two
+owning keys to one child; its standalone graph-resource CTest and the DXF
+fixture CTest pass. The `-Werror` targets `libdxfrw_dxf_fixture_tests`,
+`libdxfrw_dwg2dxf_adapter_tests`, `dwg2dxf`, and `lc3_compat_check` build.
+No full suite, external drawing payload, peer runtime, or native application
+was run. This establishes a typed graph-retention slice only, not arbitrary
+NOD/extension-object completeness or a support claim.
 
-Next, extend NOD closure by typed child-object kind and populated dictionary
-edge, preserving unrelated entries only when all targets/owners are resolvable;
-do not promote positional dictionaries or weaken source-root validation. Then
-implement the confirmed VisualStyle edge and producer-confirmed RenderSettings
-container before closing any required shade-plot target. Keep standalone
-PLOTSETTINGS separate from LAYOUT's embedded fields. After that, implement
-PAR-122 DWG→DXF viewport 68/69 derivation only for resolved layout owners,
-preserve DXF literals, and leave ordinary-block policy gated on producer
-evidence; then run one composed CLI checkpoint.
+Next, add the direct NOD→XRECORD generated control and define strict versus
+tolerant disposition for untyped/raw targets; do not weaken positional NOD
+identity or silently infer support from the root key. Then preserve the
+confirmed VisualStyle edge and resolve a producer-specific RenderSettings
+container before closing any mode-required shade target. Keep standalone
+PLOTSETTINGS separate from LAYOUT's embedded fields. Continue with PAR-122
+DWG→DXF viewport 68/69 derivation only after layout ownership resolves,
+preserve literal DXF values, and leave ordinary-block policy gated on producer
+evidence. Run one composed CLI checkpoint after these graph changes settle.
 In parallel, apply the entity-specific WCS/OCS matrix to existing 7H/7O/7AG
 slices without a broad geometry-kernel or transformed-bounds rewrite. No
 finding, subplan, fixture payload, registration, dependency, or support claim
@@ -10996,3 +11005,22 @@ the changed `-Werror` target and `lc3_compat_check`; reserve reader matrices,
 sanitizers, full suites, and native/oracle checks for their named composition
 gates. Findings/subplans remain 122/70; `J256`, `J260`, `J268`, `J284`, `J293`,
 and `J295` remain `DEFERRED_EXTERNAL` and cannot be promoted by this research.
+
+## DICTIONARY ownership and NOD-root cross-check (2026-10-15; research update)
+
+This pass rechecked the existing NOD/extension-object implementation against
+Autodesk's primary DXF object contracts and the still-open LibreDWG #1413
+report. It refines PAR-49/7G.3e's current graph work rather than creating a
+second root-order finding. No peer executable, external drawing, or native CAD
+application was run.
+
+| Evidence | Cross-check and confidence boundary | Plan/readiness refinement |
+| --- | --- | --- |
+| Autodesk [DICTIONARY DXF](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm), [common object codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm), [extension dictionaries and persistent reactors](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A55D4A3D-67CF-417E-B63F-3124CD8027FD.htm), and [OBJECTS example](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm) | The DXF NOD is identified by its first-OBJECTS position; an object's optional extension dictionary is a distinct dictionary reached through `{ACAD_XDICTIONARY}`/360 ownership, while persistent reactors are a separate reference class. DICTIONARY code280 controls hard-owner treatment, 281 controls duplicate-record cloning, and entries map names to child objects. Autodesk explicitly permits application-defined dictionaries, so a whitelist of `ACAD_*` names is not a complete graph strategy. These contracts define edge roles, not the bodies of every custom object. | Keep DXF positional-root identity distinct from DWG's decoded `DICTIONARY_NAMED_OBJECT` handle. Retain a custom root edge only when its target has a supported typed serializer, the full descendant/owner/handle graph closes, and the target identity is remapped consistently. Count owning entries and non-owning reactor/pointer edges by their actual roles. Strict conversion rejects unsupported or unresolved descendants before publication; tolerant omission cannot be called complete support. |
+| LibreDWG still-open [#1413](https://github.com/LibreDWG/libredwg/issues/1413) (opened 2026-09-08; no linked PR as of this review) | The reporter says a lower-handle extension dictionary (`0x3`) precedes the true NOD (`0xB`) in two of 43 private R2018 DWGs, and reports silent loss of layout names; the proposed DWG-side selector uses the header's NOD handle. Its files, corpus counts, ODA comparison, and patch results remain contributor-reported and unreplicated here. No customer DWG was retrieved or added. | Treat this as an external lead, not a local reproduction. Add a generated source with noncanonical NOD identity and a numerically lower extension dictionary, then assert exact root/custom/ACAD_LAYOUT identity and regenerated NOD-first output. Keep the DWG header-handle route separate from the DXF position rule. Do not use handle sorting or a guessed later ownerless dictionary as fallback; the existing owned-first malformed-DXF rejection remains unchanged. |
+| Local bounded-graph implementation at `35fdecd` and generated controls | Strict conversion now traverses non-generated NOD entries through the existing bounded DICTIONARY/XRECORD DFS, then checks owner closure and translated XRECORD handle targets before preserving the root key. The generated positive case verifies a populated dictionary→XRECORD string payload across AC1015/1018/1021/1024/1027 in ASCII/binary; negative cases preserve an existing destination on missing, multiply-matched, wrongly-owned, and unresolved-child inputs. Direct NOD→XRECORD and low-root-handle-order positives remain untested. | First add those two generated positives to the existing fast fixture target; next define and test raw/untyped target disposition for strict and tolerant paths. Preserve bounded source-record/node/edge/staged-handle accounting. The graph-limit regression uses a non-owning reactor edge to exercise shared reference slots; it must not use two owning dictionary keys to alias a child. Run focused fixture/graph CTests on each edit and one composed CLI checkpoint at the graph boundary; no per-version full suite is needed. |
+
+This update changes implementation readiness only: findings and top-level
+subplans remain 122/70. It adds no dependency, CTest registration, downloaded or
+checked-in fixture payload, and no support promotion. `J256`, `J260`, `J268`,
+`J284`, `J293`, and `J295` remain `DEFERRED_EXTERNAL` and non-promoting.
