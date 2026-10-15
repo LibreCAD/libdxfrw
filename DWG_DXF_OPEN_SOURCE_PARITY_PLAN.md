@@ -387,6 +387,7 @@ Its historical binary diff SHA-256 is
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| PAR-119 / 7BP GEODATA CIVIL-tail spec audit | PLAN_UPDATED / SPEC_PATH_PINNED | Read the repository-authoritative ODA v5.4.1 §20.4.78 at printed pp.201–203 in the available `OpenDesign_Specification_for_.dwg_files (1).pdf` copy (the no-suffix path named by `AGENTS.md` is absent). The specification places a CIVIL tail after mesh faces for DWG R21 and earlier and separately says AutoCAD 2010 always writes it; this is a target-file-version axis, independent of objectVersion 1/2/3. Its ordered fields begin with a `has civil data` bit, then a second bit, four raw doubles, two longs, two 2RDs, another bit, north angles in degrees/radians, scale method/factor, sea-level flag/elevation and projection radius. Current `DRW_GeoData::parseDwg` and `encodeDwg` stop after mesh faces, confirming the source/spec candidate. The local AC1024 `civil_example-imperial.dwg` read completes but exposes no `parsing GEODATA` trace and conversion then stops at the dynamic-block preflight gate; it is not a tail sample or producer qualification. No input was copied/admitted or committed. Next: a generated wire model must keep these fields separate from main-body sea-level fields, prove the target-version gate across AC1018/AC1021/AC1024/AC1027/AC1032 independently of objectVersion, then exercise both leading-bit states before native/producer promotion. |
 | 7BQ.3 four-profile completion | COMMITTED / LOCAL_MATRIX_VERIFIED | `cb1bc47`: generated wire snapshots cover all eight dynamic symbol tables under R12 ASCII, R12 binary, AC1021 ASCII and AC1021 binary; binary R12 uses its one-byte code reader, while modern BLOCK_RECORD remains a two-row positive control. A small internal helper accepts 0/32767 and rejects 32768. A late invalid LAYER after a successful row preserves a pre-existing destination; retrying on the same writer emits exact rows and the same handles as a fresh writer. `cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2`, `build/libdxfrw_dxf_fixture_tests`, and `git diff --check` pass; LibreCAD_3 target needed no rebuild. No external drawing, fixture, CTest registration, full suite or support promotion. No strict AutoCAD/native acceptance was run, so this is a locally implemented metadata/conformance correction rather than a consumer-acceptance claim. Earlier private `dxfRW` layout change still requires downstream rebuild; no binary ABI claim. Next ready item: 7BP GEODATA target-version/objectVersion separation, beginning with ODA §20.4.78. |
 | 7BQ.2 complete dynamic table accounting | COMMITTED / ASCII_MATRIX_VERIFIED | `a30e46c`: successful row commits now increment the active count for VPORT/LTYPE/STYLE/APPID/DIMSTYLE in addition to LAYER/VIEW/UCS; the three manual LTYPE rows and mandatory ACAD APPID count explicitly, while canonical duplicates remain suppressed and implicit VPORT/LAYER/STYLE/DIMSTYLE defaults count through their normal writer paths. Generated ASCII AC1021 controls assert all eight capacities against exact row kinds/names: empty-callback fallbacks, multiple rows, explicit defaults, one callback invocation, mandatory rows and canonical duplicate suppression. `cmake --build build --target libdxfrw_dxf_fixture_tests -j2`, `build/libdxfrw_dxf_fixture_tests`, `cmake --build build --target lc3_compat_check -j2`, and `git diff --check` pass. This history slice was extended by the four-profile completion in `cb1bc47`; no user fixture, CTest registration, full suite or support promotion. |
 | 7BQ.1 VIEW/UCS and implicit LAYER capacity | COMMITTED / ASCII_PATH_VERIFIED | `a1e81bc`: the TABLES transaction writes a group70 placeholder, tracks only successfully committed LAYER/VIEW/UCS records during their single callback pass, includes implicit layer `0`, then backpatches the private TABLES `ostringstream`. The generated ASCII AC1021 control first failed on legacy `VIEW=0`/`UCS=0`, then verifies exact capacities, exact names/row inventory, ENDTAB, and once-only callbacks; the empty-layer fallback remains `1/1`. The expanded fallback assertions in `a30e46c` also cover VPORT, mandatory LTYPE/APPID, STYLE and DIMSTYLE. Binary R12/modern backpatching, boundary handling and rollback are now covered by `cb1bc47`. Private `dxfRW` layout changed, so downstream consumers must rebuild; no binary ABI claim. |
@@ -8708,7 +8709,8 @@ callback contract unchanged. This is a source/spec candidate, not yet a
 producer-reproduced failure.
 
 1. **Settle the version axes before editing bytes.** Read ODA v5.4.1
-   §20.4.78 pp.193–196. Keep the DWG file version (AC code / target release)
+   §20.4.78 pp.193–196 (printed pages 201–203 in the locally available PDF
+   copy). Keep the DWG file version (AC code / target release)
    distinct from the GEODATA object's internal `m_version` (1=2009, 2=2010,
    3=2013). ODA describes CIVIL data after geo-mesh faces for DWG R21 and
    earlier and separately says AutoCAD 2010 always writes it. ACadSharp
@@ -8717,11 +8719,19 @@ producer-reproduced failure.
    ODA. Obtain a shareable producer trace or an existing permitted repository
    input if available; otherwise record the contradiction and implement only
    what the normative target gate supports. Do not infer the tail from
-   `m_version == 1` alone.
+   `m_version == 1` alone. For the test matrix, AC1021 (R17), AC1024 (R18),
+   and AC1027 (R21) lie at or below the stated target gate; AC1032 (R24) is
+   above it. AC1018 is retained only as an extension/legacy-vector control;
+   GEODATA itself was introduced in AutoCAD 2009, so no product-valid
+   AC1018 presence claim follows from testing its current generic encoder.
 2. **Freeze the bounded wire contract.** Tabulate target file version ×
    objectVersion × tail-present flag, including AC1018/AC1021/AC1024/AC1027
-   targets as relevant to the writer matrix. Record the expected body-bit
-   endpoint and handle-stream start for each cell. Use the ODA field list and
+   targets as relevant to the writer matrix, plus AC1032 as a no-tail control.
+   The ODA order is: leading `has civil data` bit; second bit; four RD values;
+   two BL values; two 2RD pairs; a third bit; north-angle degrees and radians;
+   scale method and user factor; sea-level correction bit, elevation and
+   projection radius. Record the expected body-bit endpoint and handle-stream
+   start for each cell. Use the ODA field list and
    only ODA-admitted canonical values; keep the CIVIL-tail flags distinct from
    `DRW_GeoData`'s existing sea-level-correction flag. If an unmodeled field
    cannot be safely regenerated, choose bounded source-version-preserving
