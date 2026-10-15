@@ -265,10 +265,37 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
             && (baseUcsHandle == nullptr || string(346, baseUcsHandle))
             && (shadePlotHandle == nullptr || string(333, shadePlotHandle));
     };
-    const auto blockDefinition = [&string, &integer, &writer](const char* name,
+    const auto line = [&string, &integer, &writer](const char* handle,
+                                          const char* ownerHandle,
+                                          int space,
+                                          double xOffset) {
+        return string(0, "LINE") && string(5, handle)
+            && string(330, ownerHandle) && string(100, "AcDbEntity")
+            && integer(67, space) && string(8, "0")
+            && string(100, "AcDbLine")
+            && writer->writeDouble(10, xOffset)
+            && writer->writeDouble(20, 0.0)
+            && writer->writeDouble(11, xOffset + 1.0)
+            && writer->writeDouble(21, 1.0);
+    };
+    const auto viewport = [&string, &integer, &writer](const char* handle,
+                                                        const char* ownerHandle) {
+        return string(0, "VIEWPORT") && string(5, handle)
+            && string(330, ownerHandle) && string(100, "AcDbEntity")
+            && integer(67, 1) && string(8, "0")
+            && string(100, "AcDbViewport")
+            && writer->writeDouble(10, 0.0)
+            && writer->writeDouble(20, 0.0)
+            && writer->writeDouble(40, 10.0)
+            && writer->writeDouble(41, 8.0)
+            && integer(68, -1) && integer(69, 1);
+    };
+    const auto blockDefinition = [&string, &integer, &writer, &line, &viewport](
+                                                                const char* name,
                                                                 const char* recordHandle,
                                                                 const char* blockHandle,
-                                                                const char* endHandle) {
+                                                                const char* endHandle,
+                                                                bool withPaperEntities) {
         return string(0, "BLOCK") && string(5, blockHandle)
             && string(330, recordHandle) && string(100, "AcDbEntity")
             && string(8, "0") && string(100, "AcDbBlockBegin")
@@ -277,6 +304,9 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
             && writer->writeDouble(20, 0.0)
             && writer->writeDouble(30, 0.0)
             && string(3, name) && string(1, "")
+            && (!withPaperEntities
+                || (line("711", "603", 1, 10.0)
+                    && viewport("704", "603")))
             && string(0, "ENDBLK") && string(5, endHandle)
             && string(330, recordHandle) && string(100, "AcDbEntity")
             && string(8, "0") && string(100, "AcDbBlockEnd");
@@ -284,6 +314,8 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
 
     bool written = string(0, "SECTION") && string(2, "HEADER")
         && string(9, "$ACADVER") && string(1, "AC1027")
+        && string(9, "$TILEMODE") && integer(70, 0)
+        && string(9, "$CTAB") && string(1, "Sheet A")
         && string(0, "ENDSEC") && string(0, "SECTION")
         && string(2, "TABLES") && string(0, "TABLE")
         && string(2, "BLOCK_RECORD") && string(5, "1")
@@ -293,9 +325,14 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
         && blockRecord("603", "*Paper_Space0", "201")
         && string(0, "ENDTAB") && string(0, "ENDSEC")
         && string(0, "SECTION") && string(2, "BLOCKS")
-        && blockDefinition("*Paper_Space", "601", "611", "612")
-        && blockDefinition("*Model_Space", "602", "621", "622")
-        && blockDefinition("*Paper_Space0", "603", "631", "632")
+        && blockDefinition("*Paper_Space", "601", "611", "612", false)
+        && blockDefinition("*Model_Space", "602", "621", "622", false)
+        && blockDefinition("*Paper_Space0", "603", "631", "632", true)
+        && string(0, "ENDSEC")
+        && string(0, "SECTION") && string(2, "ENTITIES")
+        && line("712", "602", 0, 0.0)
+        && line("710", "601", 1, 5.0)
+        && viewport("700", "601")
         && string(0, "ENDSEC")
         && string(0, "SECTION") && string(2, "OBJECTS")
         // The required root is first, but all graph targets deliberately cross
@@ -305,7 +342,7 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
         && integer(280, 1) && integer(281, 1)
         && string(3, "ACAD_LAYOUT") && string(350, "500")
         && layout("200", "Sheet A", "601", 1, "700", "701", "702", "703")
-        && layout("201", "Sheet B", "603", 2)
+        && layout("201", "Sheet B", "603", 2, "704")
         && layout("202", "Model", "602", 0)
         && string(0, "DICTIONARY") && string(5, "500")
         && string(330, "B0") && string(100, "AcDbDictionary")
@@ -449,6 +486,27 @@ void testLayoutGraphReadContract(TestContext& t) {
                     return value.handle == handle;
                 });
         };
+        const auto findEntity = [](const dx_data& source,
+                                   std::uint32_t handle) {
+            const DRW_Entity* found = nullptr;
+            std::size_t matches = 0;
+            const auto inspect = [handle, &found, &matches](
+                                     const std::list<DRW_Entity*>& entities) {
+                for (const DRW_Entity* entity : entities) {
+                    if (entity != nullptr && entity->handle == handle) {
+                        found = entity;
+                        ++matches;
+                    }
+                }
+            };
+            if (source.mBlock != nullptr)
+                inspect(source.mBlock->ent);
+            for (const dx_ifaceBlock* block : source.blocks) {
+                if (block != nullptr)
+                    inspect(block->ent);
+            }
+            return matches == 1 ? found : nullptr;
+        };
         bool reciprocalGraph = interface_.layouts.size() == 3
             && interface_.blockRecords.size() == 3
             && layoutDictionary != interface_.dictionaries.end();
@@ -475,6 +533,53 @@ void testLayoutGraphReadContract(TestContext& t) {
                      && layoutWithViewTargets->baseUcsHandle.ref == 0x702u
                      && layoutWithViewTargets->shadePlotHandle.ref == 0x703u,
                  "distinct VIEWPORT, named UCS, base UCS and shade-plot handles retain their own typed roles");
+        const auto layoutSheetB = findLayout(0x201u);
+        const DRW_Entity* activePaperLine = findEntity(adapterData, 0x710u);
+        const DRW_Entity* activePaperViewport = findEntity(adapterData, 0x700u);
+        const DRW_Entity* inactivePaperLine = findEntity(adapterData, 0x711u);
+        const DRW_Entity* inactivePaperViewport = findEntity(adapterData, 0x704u);
+        const DRW_Entity* modelLine = findEntity(adapterData, 0x712u);
+        const auto* activeViewport =
+            dynamic_cast<const DRW_Viewport*>(activePaperViewport);
+        const auto* inactiveViewport =
+            dynamic_cast<const DRW_Viewport*>(inactivePaperViewport);
+        const bool activePaperOwnership = adapterData.mBlock != nullptr
+            && adapterData.mBlock->ent.size() == 3u
+            && dynamic_cast<const DRW_Line*>(activePaperLine) != nullptr
+            && activePaperLine->space == DRW::PaperSpace
+            && activePaperLine->parentHandle == 0x601u
+            && activeViewport != nullptr
+            && activeViewport->space == DRW::PaperSpace
+            && activeViewport->parentHandle == 0x601u
+            && activeViewport->vpstatus == -1 && activeViewport->vpID == 1
+            && dynamic_cast<const DRW_Line*>(modelLine) != nullptr
+            && modelLine->space == DRW::ModelSpace
+            && modelLine->parentHandle == 0x602u;
+        const auto inactivePaperBlock = std::find_if(
+            adapterData.blocks.begin(), adapterData.blocks.end(),
+            [](const dx_ifaceBlock* block) {
+                return block != nullptr && block->name == "*Paper_Space0";
+            });
+        const bool inactivePaperOwnership =
+            inactivePaperBlock != adapterData.blocks.end()
+            && (*inactivePaperBlock)->ent.size() == 2u
+            && dynamic_cast<const DRW_Line*>(inactivePaperLine) != nullptr
+            && inactivePaperLine->space == DRW::PaperSpace
+            && inactivePaperLine->parentHandle == 0x603u
+            && inactiveViewport != nullptr
+            && inactiveViewport->space == DRW::PaperSpace
+            && inactiveViewport->parentHandle == 0x603u;
+        t.expect(activePaperOwnership && inactivePaperOwnership,
+                 "active ENTITIES and inactive BLOCKS paper content retain BLOCK_RECORD ownership exactly once");
+        t.expect(layoutWithViewTargets != interface_.layouts.end()
+                     && activeViewport != nullptr
+                     && activeViewport->handle
+                         == layoutWithViewTargets->lastActiveViewportHandle.ref
+                     && layoutSheetB != interface_.layouts.end()
+                     && inactiveViewport != nullptr
+                     && inactiveViewport->handle
+                         == layoutSheetB->lastActiveViewportHandle.ref,
+                 "each LAYOUT 331 resolves to its own layout-owned VIEWPORT entity");
         if (layoutDictionary != interface_.dictionaries.end()) {
             const std::array<std::pair<const char*, std::uint32_t>, 3> expected{{
                 {"Sheet A", 0x200u}, {"Sheet B", 0x201u}, {"Model", 0x202u}
@@ -498,58 +603,81 @@ void testLayoutGraphReadContract(TestContext& t) {
             }
         }
 
-        // The source vector intentionally tests typed handle roles above;
-        // these targets are omitted from this small graph fixture. Clear them
-        // for the writer integration control so this case measures the core
-        // NOD/LAYOUT/BLOCK_RECORD closure, not auxiliary VIEWPORT/UCS objects.
+        // The source vector intentionally tests typed handle roles above.
+        // VIEWPORT targets are present and form part of this writer closure;
+        // auxiliary UCS and shade-plot targets are outside this fixture.
         for (DRW_Layout& layout : adapterData.layouts) {
-            layout.lastActiveViewportHandle.ref = 0;
             layout.namedUcsHandle.ref = 0;
             layout.baseUcsHandle.ref = 0;
             layout.shadePlotHandle.ref = 0;
         }
+
+        const auto sheetAForValidation = std::find_if(
+            adapterData.layouts.begin(), adapterData.layouts.end(),
+            [](const DRW_Layout& value) { return value.name == "Sheet A"; });
+        t.expect(sheetAForValidation != adapterData.layouts.end(),
+                 "Sheet A source layout is available for viewport preflight controls");
+        if (sheetAForValidation != adapterData.layouts.end()) {
+            const std::uint32_t originalViewportHandle =
+                sheetAForValidation->lastActiveViewportHandle.ref;
+            sheetAForValidation->lastActiveViewportHandle.ref = 0x777u;
+            expectRejectedWithoutPublication(
+                "missing LAYOUT 331 target is rejected before replacing output",
+                DRW::AC1027);
+            sheetAForValidation->lastActiveViewportHandle.ref = 0x710u;
+            expectRejectedWithoutPublication(
+                "LAYOUT 331 pointing to a LINE is rejected before replacing output",
+                DRW::AC1027);
+            sheetAForValidation->lastActiveViewportHandle.ref = 0x704u;
+            expectRejectedWithoutPublication(
+                "LAYOUT 331 pointing to another paper tab is rejected before replacing output",
+                DRW::AC1027);
+            sheetAForValidation->lastActiveViewportHandle.ref =
+                originalViewportHandle;
+        }
         // Force two source identities through fixed DXF structural handles:
         // the layout dictionary collides with BLOCK (*Paper_Space), and one
-        // LAYOUT collides with BLOCK (*Model_Space). Every inbound and
-        // reciprocal edge must follow those remaps in the emitted graph.
-        auto sourceLayoutDictionary = std::find_if(
-            adapterData.dictionaries.begin(), adapterData.dictionaries.end(),
-            [](const DRW_Dictionary& dictionary) {
-                return dictionary.handle == 0x500u;
-            });
-        auto sourceLayoutEntry = std::find_if(
-            adapterData.namedObjectDictionary.m_entries.begin(),
-            adapterData.namedObjectDictionary.m_entries.end(),
-            [](const DRW_Dictionary::Entry& entry) {
-                return entry.m_name == "ACAD_LAYOUT";
-            });
-        auto sourceSheetA = std::find_if(
-            adapterData.layouts.begin(), adapterData.layouts.end(),
-            [](const DRW_Layout& layout) { return layout.name == "Sheet A"; });
-        auto sourceBlockRecord = std::find_if(
-            adapterData.blockRecords.begin(), adapterData.blockRecords.end(),
-            [](const DRW_Block_Record& record) {
-                return record.handle == 0x601u;
-            });
-        t.expect(sourceLayoutDictionary != adapterData.dictionaries.end()
-                     && sourceLayoutEntry
-                         != adapterData.namedObjectDictionary.m_entries.end()
-                     && sourceSheetA != adapterData.layouts.end()
-                     && sourceBlockRecord != adapterData.blockRecords.end(),
-                 "generated remap collision source objects are present");
-        if (sourceLayoutDictionary != adapterData.dictionaries.end()
-            && sourceLayoutEntry
-                != adapterData.namedObjectDictionary.m_entries.end()
-            && sourceSheetA != adapterData.layouts.end()
-            && sourceBlockRecord != adapterData.blockRecords.end()) {
+        // LAYOUT collides with BLOCK (*Model_Space). Re-import for each target
+        // version because a successful write assigns output handles in-place.
+        const auto applyCollisionRemap = [&t](dx_data& source) {
+            auto sourceLayoutDictionary = std::find_if(
+                source.dictionaries.begin(), source.dictionaries.end(),
+                [](const DRW_Dictionary& dictionary) {
+                    return dictionary.handle == 0x500u;
+                });
+            auto sourceLayoutEntry = std::find_if(
+                source.namedObjectDictionary.m_entries.begin(),
+                source.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_LAYOUT";
+                });
+            auto sourceSheetA = std::find_if(
+                source.layouts.begin(), source.layouts.end(),
+                [](const DRW_Layout& layout) {
+                    return layout.name == "Sheet A";
+                });
+            auto sourceBlockRecord = std::find_if(
+                source.blockRecords.begin(), source.blockRecords.end(),
+                [](const DRW_Block_Record& record) {
+                    return record.handle == 0x601u;
+                });
+            const bool found = sourceLayoutDictionary != source.dictionaries.end()
+                && sourceLayoutEntry
+                    != source.namedObjectDictionary.m_entries.end()
+                && sourceSheetA != source.layouts.end()
+                && sourceBlockRecord != source.blockRecords.end();
+            t.expect(found,
+                     "generated remap collision source objects are present");
+            if (!found)
+                return;
             sourceLayoutDictionary->handle = 0x1Cu;
             sourceLayoutEntry->m_handle = 0x1Cu;
             sourceSheetA->handle = 0x20u;
             sourceLayoutDictionary->m_entries.front().m_handle = 0x20u;
-            for (DRW_Layout& layout : adapterData.layouts)
+            for (DRW_Layout& layout : source.layouts)
                 layout.parentHandle = 0x1Cu;
             sourceBlockRecord->layoutHandle = 0x20u;
-        }
+        };
         const std::array<std::pair<DRW::Version, const char*>, 5>
             layoutOutputVersions{{
                 {DRW::AC1015, "AC1015"}, {DRW::AC1018, "AC1018"},
@@ -557,12 +685,26 @@ void testLayoutGraphReadContract(TestContext& t) {
                 {DRW::AC1027, "AC1027"}
             }};
         for (const auto& target : layoutOutputVersions) {
+            dx_data exportSource;
+            dx_iface sourceReader;
+            const bool sourceRead = sourceReader.fileImport(
+                path.string(), &exportSource, false);
+            t.expect(sourceRead,
+                     "reusable generated LAYOUT source imports for each version target");
+            if (!sourceRead)
+                continue;
+            for (DRW_Layout& layout : exportSource.layouts) {
+                layout.namedUcsHandle.ref = 0;
+                layout.baseUcsHandle.ref = 0;
+                layout.shadePlotHandle.ref = 0;
+            }
+            applyCollisionRemap(exportSource);
             const std::string outputName = std::string("layout-graph-export-")
                 + target.second + (binary ? "-binary.dxf" : "-ascii.dxf");
             const auto exportedPath = directory / outputName;
             dx_iface exporter;
             const bool exported = exporter.fileExport(
-                exportedPath.string(), target.first, binary, &adapterData,
+                exportedPath.string(), target.first, binary, &exportSource,
                 false);
             const std::string exportLabel =
                 std::string("validated NOD/LAYOUT graph exports for ")
@@ -628,6 +770,35 @@ void testLayoutGraphReadContract(TestContext& t) {
                 + target.second
                 + " layout dictionary and reciprocal block links close after remapping";
             t.expect(exportedGraphClosed, closureLabel.c_str());
+
+            const auto exportedInactivePaper = std::find_if(
+                exportedData.blocks.begin(), exportedData.blocks.end(),
+                [](const dx_ifaceBlock* block) {
+                    return block != nullptr
+                        && block->name == "*Paper_Space0";
+                });
+            bool exportedEntitySpacesClosed =
+                exportedData.mBlock != nullptr
+                && exportedData.mBlock->ent.size() == 3u
+                && exportedInactivePaper != exportedData.blocks.end()
+                && (*exportedInactivePaper)->ent.size() == 2u;
+            for (const DRW_Layout& layout : exportedData.layouts) {
+                if (layout.lastActiveViewportHandle.ref == 0)
+                    continue;
+                const DRW_Entity* entity = findEntity(
+                    exportedData, layout.lastActiveViewportHandle.ref);
+                const auto* viewport =
+                    dynamic_cast<const DRW_Viewport*>(entity);
+                exportedEntitySpacesClosed = exportedEntitySpacesClosed
+                    && viewport != nullptr
+                    && viewport->space == DRW::PaperSpace
+                    && viewport->parentHandle
+                        == layout.paperSpaceBlockRecordHandle.ref;
+            }
+            const std::string entitySpaceLabel = std::string("exported ")
+                + target.second
+                + " keeps active ENTITIES and inactive BLOCKS ownership with closed LAYOUT 331 targets";
+            t.expect(exportedEntitySpacesClosed, entitySpaceLabel.c_str());
         }
     }
 }

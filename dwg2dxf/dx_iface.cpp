@@ -2061,12 +2061,52 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
             || !associatedRecords.insert(blockRecordHandle).second)
             return false;
     }
+
+    // A non-null LAYOUT 331 is a last-active paper-space VIEWPORT entity,
+    // not a VPORT table row or an arbitrary existing handle. Resolve it only
+    // after the layout's BLOCK_RECORD association is known, and require the
+    // viewport's logical owner/space to agree with that association. Entities
+    // in the active paperspace arrive through ENTITIES (mBlock); inactive
+    // paperspaces arrive in their *Paper_Spacennnn block containers.
+    const auto hasOwnedViewport = [&data](std::uint32_t handle,
+                                          std::uint32_t blockRecordHandle) {
+        const DRW_Entity* target = nullptr;
+        std::size_t matches = 0;
+        const auto inspect = [handle, &target, &matches](
+                                 const std::list<DRW_Entity*>& entities) {
+            for (const DRW_Entity* entity : entities) {
+                if (entity != nullptr && entity->handle == handle) {
+                    target = entity;
+                    ++matches;
+                }
+            }
+        };
+        if (data.mBlock != nullptr)
+            inspect(data.mBlock->ent);
+        for (const dx_ifaceBlock* block : data.blocks) {
+            if (block != nullptr)
+                inspect(block->ent);
+        }
+        const auto* viewport = dynamic_cast<const DRW_Viewport*>(target);
+        return matches == 1 && viewport != nullptr
+            && viewport->space == DRW::PaperSpace
+            && viewport->parentHandle == blockRecordHandle;
+    };
     for (const DRW_Block_Record& record : data.blockRecords) {
         if (record.layoutHandle == 0)
             continue;
         const auto layout = layoutsByHandle.find(record.layoutHandle);
         if (layout == layoutsByHandle.end()
             || layout->second->paperSpaceBlockRecordHandle.ref != record.handle)
+            return false;
+    }
+    for (const DRW_Layout& layout : data.layouts) {
+        const std::uint32_t viewportHandle =
+            layout.lastActiveViewportHandle.ref;
+        if (viewportHandle != 0
+            && !hasOwnedViewport(
+                viewportHandle,
+                layout.paperSpaceBlockRecordHandle.ref))
             return false;
     }
     return associatedRecords.size() == data.layouts.size();
