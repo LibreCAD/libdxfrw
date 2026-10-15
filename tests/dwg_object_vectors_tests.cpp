@@ -57,6 +57,12 @@ public:
     using DRW_GeoData::parseDwg;
 };
 
+class VisualStyleCodecProbe final : public DRW_VisualStyle {
+public:
+    using DRW_VisualStyle::encodeDwg;
+    using DRW_VisualStyle::parseDwg;
+};
+
 struct GeoDataFrame {
     std::vector<std::uint8_t> bytes;
     std::uint32_t handleBits {0};
@@ -256,6 +262,263 @@ bool makeLiteralGeoDataFrame(DRW::Version targetVersion,
 const std::vector<DRW::Version> kVersions {
     DRW::AC1015, DRW::AC1018, DRW::AC1021,
     DRW::AC1024, DRW::AC1027, DRW::AC1032};
+
+enum class StyleField { Long, Short, Double, Color, Bit, Text };
+const std::array<StyleField, 58> kStyleFields{{
+    StyleField::Long, StyleField::Long, StyleField::Long, StyleField::Short,
+    StyleField::Double, StyleField::Double, StyleField::Color,
+    StyleField::Long, StyleField::Long, StyleField::Color, StyleField::Color,
+    StyleField::Long, StyleField::Long, StyleField::Double, StyleField::Long,
+    StyleField::Color, StyleField::Double, StyleField::Long, StyleField::Long,
+    StyleField::Long, StyleField::Color, StyleField::Long, StyleField::Long,
+    StyleField::Long, StyleField::Bit, StyleField::Long, StyleField::Double,
+    StyleField::Long,
+    StyleField::Bit, StyleField::Bit, StyleField::Bit, StyleField::Bit,
+    StyleField::Bit, StyleField::Bit, StyleField::Bit, StyleField::Bit,
+    StyleField::Bit, StyleField::Long, StyleField::Double, StyleField::Double,
+    StyleField::Long, StyleField::Color, StyleField::Long, StyleField::Long,
+    StyleField::Color, StyleField::Bit, StyleField::Long, StyleField::Long,
+    StyleField::Long, StyleField::Bit, StyleField::Long, StyleField::Color,
+    StyleField::Double, StyleField::Long, StyleField::Text, StyleField::Bit,
+    StyleField::Double, StyleField::Double
+}};
+const std::array<std::uint16_t, 8> kStyleColorIndexes{{7, 256, 0, 0, 0, 5, 0, 7}};
+const std::array<std::uint32_t, 8> kStyleColorWords{{
+    0xC2FFFFFFu, 0xC3000007u, 0xC8000000u, 0xC2000000u,
+    0xC0000000u, 0xC20000FFu, 0xC1000000u, 0xC3000005u}};
+
+std::uint16_t styleCompanion(std::size_t index) {
+    return index == 57u ? 0xFFFFu : static_cast<std::uint16_t>(index % 3u);
+}
+
+void literalStyleBody(DRW::Version version, dwgBufferW& body,
+                       dwgBufferW& strings, bool truncatedCompanion = false,
+                       std::int32_t isolines = 3) {
+    // An authored field/type vector for the existing decoder order, not a
+    // claim that every deliberately distinctive property is producer-valid.
+    strings.putVariableText(version, "literal-visual-style");
+    body.putBitLong(1);
+    body.putBitShort(2);
+    body.putBit(1u);
+    const auto count = version >= DRW::AC1027 ? 58u : 28u;
+    std::size_t color = 0;
+    for (std::size_t i = 0; i < count; ++i) {
+        switch (kStyleFields[i]) {
+        case StyleField::Long: body.putBitLong(i == 23u ? isolines : static_cast<int>(i + 17u)); break;
+        case StyleField::Short: body.putBitShort(static_cast<std::uint16_t>(i + 17u)); break;
+        case StyleField::Double: body.putBitDouble(static_cast<double>(i + 1u) / 8.0); break;
+        case StyleField::Bit: body.putBit(static_cast<std::uint8_t>(i & 1u)); break;
+        case StyleField::Text: strings.putVariableText(version, "local-strokes.tif"); break;
+        case StyleField::Color:
+            body.putBitShort(kStyleColorIndexes[color]);
+            body.putBitLong(static_cast<std::int32_t>(kStyleColorWords[color]));
+            body.putRawChar8(color == 0u ? 3u : 0u);
+            if (color == 0u) {
+                strings.putVariableText(version, "STYLE-\xCE\xA9");
+                strings.putVariableText(version, "LOCAL_BOOK");
+            }
+            ++color;
+            break;
+        }
+        if (truncatedCompanion && i + 1u == count) {
+            body.putBit(0u); body.putBit(0u); body.putRawChar8(0x34u);
+        } else {
+            body.putBitShort(styleCompanion(i));
+        }
+    }
+}
+
+struct VisualStyleFrame {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t handleBits{0};
+};
+
+VisualStyleFrame styleFrame(DRW::Version version, const dwgBufferW& body,
+                         const dwgBufferW& strings, const dwgBufferW& handles) {
+    dwgBufferW full;
+    full.putObjType(version, DRW_VisualStyle::kDwgClassNum);
+    dwgHandle own;
+    own.ref = 0xA100u;
+    full.putHandle(own);
+    full.putBitShort(0u);
+    full.putBitLong(1);
+    full.putBit(0u); // An extension dictionary follows the reactor.
+    if (version > DRW::AC1024) full.putBit(0u);
+    appendBits(full, body);
+    full.alignToByte();
+    dwgBufferW text = strings;
+    text.alignToByte();
+    full.putBytes(text.data().data(), text.size());
+    for (int i = 0; i < 7; ++i) full.putBit(0u);
+    full.putRawShort16(static_cast<std::uint16_t>(text.size() * 8u + 7u));
+    full.putBit(1u);
+    dwgBufferW links = handles;
+    links.alignToByte();
+    VisualStyleFrame result;
+    result.handleBits = static_cast<std::uint32_t>(links.bitCount());
+    full.putBytes(links.data().data(), links.size());
+    result.bytes = full.data();
+    return result;
+}
+
+void testVisualStyleSourceMetadata(TestContext& t) {
+    for (const auto version : {DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        dwgBufferW literal, text, links;
+        literalStyleBody(version, literal, text);
+        for (std::uint32_t ref : {0xA200u, 0xA201u, 0xA202u}) {
+            dwgHandle h;
+            h.code = ref == 0xA202u ? DRW::DwgHardOwnership : DRW::DwgSoftPointer;
+            h.ref = ref;
+            links.putHandle(h);
+        }
+        auto frame = styleFrame(version, literal, text, links);
+        DRW_TextCodec codec;
+        codec.setVersion(version, false);
+        dwgBuffer input(frame.bytes.data(), frame.bytes.size(), &codec);
+        VisualStyleCodecProbe parsed;
+        const bool read = parsed.parseDwg(version, &input, frame.handleBits);
+        t.expect(read && parsed.m_bodyDecoded && parsed.parentHandle == 0xA200u
+                     && parsed.reactorHandles == std::vector<std::uint32_t>{0xA201u}
+                     && parsed.xDictHandle == 0xA202u,
+                 "literal VISUALSTYLE preserves bounded body and common links");
+        if (!read) continue;
+        const auto& source = parsed.m_body.m_encoding;
+        const auto properties = version >= DRW::AC1027 ? 58u : 28u;
+        const auto colors = version >= DRW::AC1027 ? 8u : 5u;
+        t.expect(source.companionCount == properties && source.colorCount == colors,
+                 "VISUALSTYLE source metadata has exact versioned counts");
+        for (std::size_t i = 0; i < properties; ++i)
+            t.expect(source.companions[i] == styleCompanion(i),
+                     "VISUALSTYLE retains each nonconstant BS companion");
+        for (std::size_t i = 0; i < colors; ++i)
+            t.expect(source.colors[i].present && source.colors[i].modern
+                         && source.colors[i].rawIndex == kStyleColorIndexes[i]
+                         && source.colors[i].rawRgb == kStyleColorWords[i]
+                         && source.colors[i].flags == (i == 0u ? 3u : 0u),
+                     "VISUALSTYLE retains CMC index, method/RGB and flags");
+        t.expect(source.colors[0].name == "STYLE-\xCE\xA9"
+                     && source.colors[0].bookName == "LOCAL_BOOK"
+                     && parsed.m_body.faceMonoColor == 256
+                     && parsed.m_body.edgeObscuredColor == 256
+                     && source.hasSourceIsolines && source.sourceIsolines == 3,
+                 "owned CMC names/raw methods coexist with unchanged normalized views");
+        dwgBufferW encoded, encodedText, encodedLinks;
+        t.expect(parsed.encodeDwg(version, &encoded, &encodedText, &encodedLinks)
+                     && encoded.bitCount() == literal.bitCount()
+                     && encoded.data() == literal.data()
+                     && encodedText.bitCount() == text.bitCount()
+                     && encodedText.data() == text.data()
+                     && encodedLinks.data() == links.data(),
+                 "VISUALSTYLE encoder preserves literal property/color/string bits");
+        for (const std::string name : {"count", "stale-companions", "stale-colors", "name-flags"}) {
+            auto invalid = parsed;
+            if (name == "count") invalid.m_body.m_encoding.companionCount = 27u;
+            if (name == "stale-companions") invalid.m_body.m_encoding.companionCount = 0u;
+            if (name == "stale-colors") invalid.m_body.m_encoding.colorCount = 0u;
+            if (name == "name-flags") invalid.m_body.m_encoding.colors[0].flags = 0u;
+            dwgBufferW rejected, rejectedText, rejectedLinks;
+            rejected.putRawChar8(0xA5u);
+            t.expect(!invalid.encodeDwg(version, &rejected, &rejectedText, &rejectedLinks)
+                         && rejected.data() == std::vector<std::uint8_t>{0xA5u}
+                         && rejectedText.data().empty() && rejectedLinks.data().empty(),
+                     "invalid VISUALSTYLE metadata refuses before buffer mutation: " + name);
+        }
+        if (version >= DRW::AC1027) {
+            dwgBufferW rejected, rejectedText, rejectedLinks;
+            t.expect(!parsed.encodeDwg(DRW::AC1024, &rejected, &rejectedText, &rejectedLinks)
+                         && rejected.data().empty() && rejectedText.data().empty()
+                         && rejectedLinks.data().empty(),
+                     "VISUALSTYLE downgrade cannot discard captured expansion metadata");
+        } else {
+            dwgBufferW upgradedBody, upgradedText, upgradedLinks;
+            const bool upgraded = parsed.encodeDwg(DRW::AC1027, &upgradedBody,
+                                                    &upgradedText, &upgradedLinks);
+            t.expect(upgraded, "VISUALSTYLE explicit 28-to58 upgrade keeps the source prefix");
+            if (upgraded) {
+                auto upgradedFrame = styleFrame(DRW::AC1027, upgradedBody,
+                                                upgradedText, upgradedLinks);
+                DRW_TextCodec modernCodec;
+                modernCodec.setVersion(DRW::AC1027, false);
+                dwgBuffer upgradedInput(upgradedFrame.bytes.data(),
+                                        upgradedFrame.bytes.size(), &modernCodec);
+                VisualStyleCodecProbe readback;
+                const bool reopened = readback.parseDwg(DRW::AC1027, &upgradedInput,
+                                                        upgradedFrame.handleBits);
+                t.expect(reopened && readback.m_body.m_encoding.companionCount == 58u
+                             && readback.m_body.m_encoding.colorCount == 8u,
+                         "VISUALSTYLE upgraded source has a complete modern metadata profile");
+                if (reopened) {
+                    for (std::size_t i = 0; i < 58u; ++i)
+                        t.expect(readback.m_body.m_encoding.companions[i]
+                                     == (i < 28u ? styleCompanion(i) : 0u),
+                                 "VISUALSTYLE upgrade retains operations and authors only new defaults");
+                    t.expect(readback.m_body.m_encoding.colors[0].rawRgb == kStyleColorWords[0]
+                                 && readback.m_body.m_encoding.colors[0].name == "STYLE-\xCE\xA9"
+                                 && readback.m_body.m_encoding.colors[2].rawRgb == kStyleColorWords[2],
+                             "VISUALSTYLE upgrade cannot replace captured RGB/names/unknown CMC");
+                }
+            }
+        }
+        for (const bool sameValue : {false, true}) {
+            auto changed = parsed;
+            if (sameValue) changed.m_body.m_encoding.colors[0].present = false;
+            else changed.m_body.faceMonoColor = 42;
+            dwgBufferW newBody, newText, newLinks;
+            const bool written = changed.encodeDwg(version, &newBody, &newText, &newLinks);
+            t.expect(written, "explicit legacy color edit is representable");
+            if (written) {
+                auto updated = styleFrame(version, newBody, newText, newLinks);
+                dwgBuffer updatedInput(updated.bytes.data(), updated.bytes.size(), &codec);
+                VisualStyleCodecProbe readback;
+                t.expect(readback.parseDwg(version, &updatedInput, updated.handleBits)
+                             && readback.m_body.faceMonoColor == (sameValue ? 256 : 42)
+                             && readback.m_body.m_encoding.colors[0].rawRgb
+                                  == (sameValue ? 0xC0000000u : 0xC300002Au)
+                             && readback.m_body.m_encoding.colors[0].name.empty()
+                             && changed.m_body.m_encoding.colors[0].name == "STYLE-\xCE\xA9",
+                         "color replacement neither replays stale RGB nor mutates caller metadata");
+            }
+        }
+        auto copied = parsed;
+        parsed.reset();
+        t.expect(parsed.m_body.m_encoding.colorCount == 0u
+                     && parsed.m_body.m_encoding.companionCount == 0u
+                     && copied.m_body.m_encoding.colors[0].name == "STYLE-\xCE\xA9",
+                 "VISUALSTYLE source metadata copies own strings and reset detaches state");
+        dwgBufferW shortBody, shortText;
+        literalStyleBody(version, shortBody, shortText, true);
+        auto shortFrame = styleFrame(version, shortBody, shortText, links);
+        dwgBuffer shortInput(shortFrame.bytes.data(), shortFrame.bytes.size(), &codec);
+        t.expect(!copied.parseDwg(version, &shortInput, shortFrame.handleBits)
+                     && !copied.m_bodyDecoded
+                     && copied.m_body.m_encoding.companionCount == 0u
+                     && copied.m_body.m_encoding.colorCount == 0u,
+                 "truncated final companion cannot borrow string/handle bytes or publish metadata");
+        dwgBuffer retry(frame.bytes.data(), frame.bytes.size(), &codec);
+        t.expect(copied.parseDwg(version, &retry, frame.handleBits)
+                     && copied.m_body.m_encoding.companionCount == properties,
+                 "VISUALSTYLE parser accepts corrected same-object retry");
+
+        dwgBufferW cappedBody, cappedText;
+        literalStyleBody(version, cappedBody, cappedText, false, 6001);
+        auto capped = styleFrame(version, cappedBody, cappedText, links);
+        dwgBuffer cappedInput(capped.bytes.data(), capped.bytes.size(), &codec);
+        VisualStyleCodecProbe cappedStyle;
+        const bool cappedRead = cappedStyle.parseDwg(version, &cappedInput, capped.handleBits);
+        dwgBufferW refused, refusedText, refusedLinks;
+        t.expect(cappedRead && cappedStyle.m_body.edgeIsolines == 5000
+                     && cappedStyle.m_body.m_encoding.sourceIsolines == 6001
+                     && !cappedStyle.encodeDwg(version, &refused, &refusedText, &refusedLinks)
+                     && refused.data().empty() && refusedText.data().empty()
+                     && refusedLinks.data().empty(),
+                 "bounded legacy isoline view retains source value and refuses silent clamp export");
+        if (cappedRead) {
+            cappedStyle.m_body.edgeIsolines = 3;
+            t.expect(cappedStyle.encodeDwg(version, &refused, &refusedText, &refusedLinks),
+                     "explicit safe isoline replacement permits corrected same-object retry");
+        }
+    }
+}
 
 void setCommonLinks(DRW_TableEntry& object, std::uint32_t parent,
                     std::uint32_t reactor, std::uint32_t xdict) {
@@ -1242,6 +1505,7 @@ int main() {
     testGeoDataCivilTailWriterVectors(context);
     testOptionalStreamFallbacks(context);
     testLtypeTextAreaVectors(context);
+    testVisualStyleSourceMetadata(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG object vector assertion(s) failed\n";
         return 1;

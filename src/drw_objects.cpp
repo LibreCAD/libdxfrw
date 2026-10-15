@@ -24396,11 +24396,27 @@ bool DRW_VisualStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32
         return true;
     };
     const auto readColor = [&](int& value) {
+        auto& encoding = m_body.m_encoding;
+        if (encoding.colorCount >= encoding.colors.size())
+            return false;
+        DRW_VisualStyleColor source;
+        source.modern = version >= DRW::AC1018;
+        auto prefix = bodyBuf->forkIndependent();
+        source.rawIndex = prefix.getBitShort();
+        if (source.modern) {
+            source.rawRgb = prefix.getBitLong();
+            source.flags = prefix.getRawChar8();
+        }
         std::uint32_t parsed = 0;
         if (!readCmColorWithinBounds(bodyBuf, bodySBuf, version, bodyEnd,
-                                     stringEnd, parsed))
+                                     stringEnd, parsed, nullptr, &source.name,
+                                     &source.bookName)
+            || !prefix.isGood())
             return false;
         value = static_cast<int>(parsed);
+        source.normalizedIndex = value;
+        source.present = true;
+        encoding.colors[encoding.colorCount++] = std::move(source);
         return true;
     };
     const auto readText = [&](UTF8STRING& value) {
@@ -24408,8 +24424,14 @@ bool DRW_VisualStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32
                                             bodyEnd, stringEnd, value);
     };
     const auto readCompanion = [&]() {
-        std::int32_t ignored = 0;
-        return readShort(ignored);
+        auto& encoding = m_body.m_encoding;
+        std::int32_t value = 0;
+        if (encoding.companionCount >= encoding.companions.size()
+            || !readShort(value))
+            return false;
+        encoding.companions[encoding.companionCount++] =
+            static_cast<std::uint16_t>(value);
+        return true;
     };
 
     if (bodyBytesRemaining() && !readText(desc))
@@ -24488,6 +24510,8 @@ bool DRW_VisualStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32
         std::int32_t isolines = 0;
         if (!readLong(isolines) || !readCompanion())
             return fail();
+        m_body.m_encoding.hasSourceIsolines = true;
+        m_body.m_encoding.sourceIsolines = isolines;
         m_body.edgeIsolines = isolines > DRW_VisualStyleBody::kMaxEdgeIsolines
             ? DRW_VisualStyleBody::kMaxEdgeIsolines : isolines;
         if (!readBit(m_body.edgeDoHidePrecision) || !readCompanion()
@@ -24617,12 +24641,66 @@ bool DRW_VisualStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
         )
         return false;
 
+    const auto& encoding = m_body.m_encoding;
+    const std::size_t propertyCount = version < DRW::AC1024 ? 0u
+        : version < DRW::AC1027 ? 28u : 58u;
+    const std::size_t colorCount = version < DRW::AC1027 ? 5u : 8u;
+    if ((encoding.companionCount != 0u && encoding.companionCount != 28u
+            && encoding.companionCount != 58u)
+        || encoding.companionCount > propertyCount
+        || (encoding.colorCount != 0u && encoding.colorCount != 5u
+            && encoding.colorCount != 8u)
+        || encoding.colorCount > colorCount)
+        return false;
+    for (std::size_t i = encoding.companionCount;
+         i < encoding.companions.size(); ++i)
+        if (encoding.companions[i] != 0u)
+            return false;
+    for (std::size_t i = 0; i < encoding.colors.size(); ++i) {
+        const auto& source = encoding.colors[i];
+        if (!source.present)
+            continue;
+        if (i >= encoding.colorCount
+            || (source.modern && version < DRW::AC1018)
+            || (!source.modern && (source.flags != 0u
+                || !source.name.empty() || !source.bookName.empty()))
+            || ((source.flags & 1u) == 0u && !source.name.empty())
+            || ((source.flags & 2u) == 0u && !source.bookName.empty()))
+            return false;
+    }
+    if (encoding.hasSourceIsolines
+        && encoding.sourceIsolines > DRW_VisualStyleBody::kMaxEdgeIsolines
+        && m_body.edgeIsolines == DRW_VisualStyleBody::kMaxEdgeIsolines)
+        return false; // Do not silently emit the unchanged clamped view.
+
     dwgBufferW *sb = strBuf != nullptr && version > DRW::AC1018
         ? strBuf : buf;
     dwgBufferW *hb = handleBuf != nullptr && version > DRW::AC1014
         ? handleBuf : buf;
-    const auto putColor = [version](dwgBufferW *target, int color) {
-        target->putCmColor(version, static_cast<std::uint16_t>(color));
+    std::size_t nextColor = 0;
+    const auto putColor = [&](dwgBufferW *target, int color) {
+        const auto& source = encoding.colors[nextColor++];
+        // A changed legacy scalar is an explicit replacement. A same-value
+        // replacement can clear source.present (or reset all m_encoding).
+        if (!source.present || !source.modern
+            || source.normalizedIndex != color) {
+            target->putCmColor(version, static_cast<std::uint16_t>(color));
+            return;
+        }
+        target->putBitShort(source.rawIndex);
+        target->putBitLong(static_cast<std::int32_t>(source.rawRgb));
+        target->putRawChar8(source.flags);
+        if ((source.flags & 1u) != 0u)
+            sb->putVariableText(version, source.name);
+        if ((source.flags & 2u) != 0u)
+            sb->putVariableText(version, source.bookName);
+    };
+    std::size_t nextCompanion = 0;
+    const auto putCompanion = [&]() {
+        const auto value = nextCompanion < encoding.companionCount
+            ? encoding.companions[nextCompanion] : 0u;
+        ++nextCompanion;
+        buf->putBitShort(static_cast<std::uint16_t>(value));
     };
     const auto putShort = [](dwgBufferW *target, int value) {
         target->putBitShort(static_cast<std::uint16_t>(value));
@@ -24676,68 +24754,68 @@ bool DRW_VisualStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
         putShort(buf, m_body.extLightingModel);
         buf->putBit(m_body.internalOnly ? 1 : 0);
 
-        buf->putBitLong(m_body.faceLightingModel); putShort(buf, 0);
-        buf->putBitLong(m_body.faceLightingQuality); putShort(buf, 0);
-        buf->putBitLong(m_body.faceColorMode); putShort(buf, 0);
-        putShort(buf, m_body.faceModifier); putShort(buf, 0);
-        buf->putBitDouble(m_body.faceOpacity); putShort(buf, 0);
-        buf->putBitDouble(m_body.faceSpecular); putShort(buf, 0);
-        putColor(buf, m_body.faceMonoColor); putShort(buf, 0);
+        buf->putBitLong(m_body.faceLightingModel); putCompanion();
+        buf->putBitLong(m_body.faceLightingQuality); putCompanion();
+        buf->putBitLong(m_body.faceColorMode); putCompanion();
+        putShort(buf, m_body.faceModifier); putCompanion();
+        buf->putBitDouble(m_body.faceOpacity); putCompanion();
+        buf->putBitDouble(m_body.faceSpecular); putCompanion();
+        putColor(buf, m_body.faceMonoColor); putCompanion();
 
-        buf->putBitLong(m_body.edgeModel); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeStyle); putShort(buf, 0);
-        putColor(buf, m_body.edgeIntersectionColor); putShort(buf, 0);
-        putColor(buf, m_body.edgeObscuredColor); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeObscuredLtype); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeIntersectionLtype); putShort(buf, 0);
-        buf->putBitDouble(m_body.edgeCreaseAngle); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeModifier); putShort(buf, 0);
-        putColor(buf, m_body.edgeColor); putShort(buf, 0);
-        buf->putBitDouble(m_body.edgeOpacity); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeWidth); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeOverhang); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeJitter); putShort(buf, 0);
-        putColor(buf, m_body.edgeSilhouetteColor); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeSilhouetteWidth); putShort(buf, 0);
-        buf->putBitLong(m_body.edgeHaloGap); putShort(buf, 0);
-        putIsolines(buf, m_body.edgeIsolines); putShort(buf, 0);
-        buf->putBit(m_body.edgeDoHidePrecision ? 1 : 0); putShort(buf, 0);
+        buf->putBitLong(m_body.edgeModel); putCompanion();
+        buf->putBitLong(m_body.edgeStyle); putCompanion();
+        putColor(buf, m_body.edgeIntersectionColor); putCompanion();
+        putColor(buf, m_body.edgeObscuredColor); putCompanion();
+        buf->putBitLong(m_body.edgeObscuredLtype); putCompanion();
+        buf->putBitLong(m_body.edgeIntersectionLtype); putCompanion();
+        buf->putBitDouble(m_body.edgeCreaseAngle); putCompanion();
+        buf->putBitLong(m_body.edgeModifier); putCompanion();
+        putColor(buf, m_body.edgeColor); putCompanion();
+        buf->putBitDouble(m_body.edgeOpacity); putCompanion();
+        buf->putBitLong(m_body.edgeWidth); putCompanion();
+        buf->putBitLong(m_body.edgeOverhang); putCompanion();
+        buf->putBitLong(m_body.edgeJitter); putCompanion();
+        putColor(buf, m_body.edgeSilhouetteColor); putCompanion();
+        buf->putBitLong(m_body.edgeSilhouetteWidth); putCompanion();
+        buf->putBitLong(m_body.edgeHaloGap); putCompanion();
+        putIsolines(buf, m_body.edgeIsolines); putCompanion();
+        buf->putBit(m_body.edgeDoHidePrecision ? 1 : 0); putCompanion();
 
-        buf->putBitLong(m_body.displaySettings); putShort(buf, 0);
-        buf->putBitDouble(m_body.displayBrightness); putShort(buf, 0);
-        buf->putBitLong(m_body.displayShadowType); putShort(buf, 0);
+        buf->putBitLong(m_body.displaySettings); putCompanion();
+        buf->putBitDouble(m_body.displayBrightness); putCompanion();
+        buf->putBitLong(m_body.displayShadowType); putCompanion();
 
         if (version >= DRW::AC1027) {
-            buf->putBit(m_body.bProp1c ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp1d ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp1e ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp1f ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp20 ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp21 ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp22 ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp23 ? 1 : 0); putShort(buf, 0);
-            buf->putBit(m_body.bProp24 ? 1 : 0); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp25); putShort(buf, 0);
-            buf->putBitDouble(m_body.bdProp26); putShort(buf, 0);
-            buf->putBitDouble(m_body.bdProp27); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp28); putShort(buf, 0);
-            putColor(buf, m_body.cProp29); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp2a); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp2b); putShort(buf, 0);
-            putColor(buf, m_body.cProp2c); putShort(buf, 0);
-            buf->putBit(m_body.bProp2d ? 1 : 0); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp2e); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp2f); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp30); putShort(buf, 0);
-            buf->putBit(m_body.bProp31 ? 1 : 0); putShort(buf, 0);
-            buf->putBitLong(m_body.blProp32); putShort(buf, 0);
-            putColor(buf, m_body.cProp33); putShort(buf, 0);
-            buf->putBitDouble(m_body.bdProp34); putShort(buf, 0);
-            buf->putBitLong(m_body.edgeWiggle); putShort(buf, 0);
-            sb->putVariableText(version, m_body.strokes); putShort(buf, 0);
-            buf->putBit(m_body.bProp37 ? 1 : 0); putShort(buf, 0);
-            buf->putBitDouble(m_body.bdProp38); putShort(buf, 0);
-            buf->putBitDouble(m_body.bdProp39); putShort(buf, 0);
+            buf->putBit(m_body.bProp1c ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp1d ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp1e ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp1f ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp20 ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp21 ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp22 ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp23 ? 1 : 0); putCompanion();
+            buf->putBit(m_body.bProp24 ? 1 : 0); putCompanion();
+            buf->putBitLong(m_body.blProp25); putCompanion();
+            buf->putBitDouble(m_body.bdProp26); putCompanion();
+            buf->putBitDouble(m_body.bdProp27); putCompanion();
+            buf->putBitLong(m_body.blProp28); putCompanion();
+            putColor(buf, m_body.cProp29); putCompanion();
+            buf->putBitLong(m_body.blProp2a); putCompanion();
+            buf->putBitLong(m_body.blProp2b); putCompanion();
+            putColor(buf, m_body.cProp2c); putCompanion();
+            buf->putBit(m_body.bProp2d ? 1 : 0); putCompanion();
+            buf->putBitLong(m_body.blProp2e); putCompanion();
+            buf->putBitLong(m_body.blProp2f); putCompanion();
+            buf->putBitLong(m_body.blProp30); putCompanion();
+            buf->putBit(m_body.bProp31 ? 1 : 0); putCompanion();
+            buf->putBitLong(m_body.blProp32); putCompanion();
+            putColor(buf, m_body.cProp33); putCompanion();
+            buf->putBitDouble(m_body.bdProp34); putCompanion();
+            buf->putBitLong(m_body.edgeWiggle); putCompanion();
+            sb->putVariableText(version, m_body.strokes); putCompanion();
+            buf->putBit(m_body.bProp37 ? 1 : 0); putCompanion();
+            buf->putBitDouble(m_body.bdProp38); putCompanion();
+            buf->putBitDouble(m_body.bdProp39); putCompanion();
         }
     }
 

@@ -3,7 +3,52 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
-**Latest research-only handoff (committed baseline `2063b50`):** the
+**Latest research-only handoff (committed baseline `6c5666c`):** the
+[source-fidelity and graph-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#source-fidelity-versioned-visualstyle-and-graph-oracle-review-2026-10-15)
+adds eight authored ezdxf component controls, reproduced with bounded capture,
+and three actual audit-disabled ODA27.1 conversions of the existing tracked
+RTEXT DWG. Each output has24 styles:58-property AC1032/AC1027 profiles versus
+28-property AC1024 plus a witnessed round-trip extension XRECORD for Flat's
+additional properties. Literal C8→257, explicit RGB-black zero and changed
+ext-lighting metadata show why normalized scalars/property truncation are not
+an exact serializer. These are scoped conversion/tag observations, not native
+appearance or independent ACIS semantics. Current ACadSharp skips VISUALSTYLE
+DXF output; ezdxf preserves malformed property tails and can repair away a
+dangling dictionary entry with zero remaining errors. Do not use either result
+as whole-conversion qualification.
+A separate all24-style handle join passes3,456 companion,2,952 non-color and
+384 modern-color observations against the retained LibreDWG0.14 source fields;
+its explicit exclusions and extended-lighting normalization stay in the receipt.
+
+Existing parity7G.3f.1–4 now separates source-metadata acceptance, validated DWG
+HEADER NOD retention/publication, witnessed typed DXF serialization and composed
+graph/CLI acceptance. The three existing production/test WIP files are left
+unchanged and uncommitted. HEADER7BE.9bc stays locally complete;9d remains open.
+Use focused object/reader/graph targets, then one composed CLI/lc3 checkpoint;
+no new fixture, comparator dependency, registration, top-level subplan or3D
+ledger item. Native Linux/Windows FreeCAD, independent known-dimension ACIS/
+AcDs association and the six `DEFERRED_EXTERNAL` J gates remain separate and
+non-promoting. Durable receipt:
+`docs/research/broader-visualstyle-graph-readiness-2026-10-15.json`.
+
+**Subsequent parity7G.3f.1 / LOCAL_IMPLEMENTATION_COMPLETE:** owned VISUALSTYLE
+source companions, complete CMC prefixes/decoded color-book names and raw
+isolines now coexist with unchanged legacy normalized views. Literal three-
+version vectors cover exact bits, copy/reset, truncation/retry, explicit color
+replacement, metadata guards, upgrade and downgrade refusal.72 tracked styles
+retain4,176 operation fields/576 packed colors; their576 raw CMC shorts are
+zero, unlike342 interpreted peer JSON indices. This corrects the earlier raw-
+index comparison premise, not the parser or recorded peer values. Six authored
+writer profiles remain byte-identical to the parent. Focused main3/3 in4.58s,
+strict three-TU/build/lc3 and ASan/UBSan2/2 in1.50s pass. Public layout requires
+consumer rebuild, with no new pure callback or binary-ABI promise. The receipt
+is `docs/research/visualstyle-source-metadata-7g-3f-1-2026-10-15.json`.
+Next f.2 DWG NOD identity, then typed DXF serialization/closure; full CLI9d,
+native/ACIS semantics and all six external J gates remain open/non-promoting.
+The preceding research candidate/WIP statements describe that checkpoint,
+not current acceptance. No drawing fixture or CTest registration was added.
+
+**Prior HEADER research-only handoff (committed baseline `2063b50`):** the
 [HEADER, AcDs and projection-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#header-acds-and-projection-oracle-readiness-review-2026-10-15)
 adds a source/artifact-bound12-cell packet over four already tracked drawings.
 All three archived ODA-converted AC1032 fixtures fail first HEADER admission;

@@ -2,7 +2,23 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
-**Latest research delta (2026-10-15, committed baseline `2063b50`):** the
+**Latest research delta (2026-10-15, committed baseline `6c5666c`; plan-only):**
+the [source-fidelity and graph-oracle review](#source-fidelity-versioned-visualstyle-and-graph-oracle-review-2026-10-15)
+rechecks eight upstream heads and adds eight authored ezdxf component controls,
+reproduced in a bounded second run, plus three audit-disabled ODA27.1
+conversions of one already tracked drawing (24 styles per target profile).
+AC1024 uses a round-trip XRECORD for expanded properties, not plain truncation.
+Preservation, grammar validation, repair
+and semantic acceptance are distinct. ACadSharp's current DXF writer explicitly
+skips VISUALSTYLE; ACadRust supplies a versioned property-map lead, not a
+qualified writer oracle. Existing7G.3 now has bounded7G.3f.1–4 substeps for
+source metadata, DWG root identity, typed DXF serialization and composed CLI
+closure. The three existing production/test WIP files are preserved unchanged
+and are not relabeled committed or accepted. No new finding/top-level subplan,
+fixture, dependency, registered test, native run or support/J promotion.
+Receipt: `docs/research/broader-visualstyle-graph-readiness-2026-10-15.json`.
+
+**Prior HEADER research delta (2026-10-15, committed baseline `2063b50`):** the
 [HEADER, AcDs and projection-oracle readiness review](#header-acds-and-projection-oracle-readiness-review-2026-10-15)
 replaces the generic RTEXT investigation with bounded7BE.9 substeps. A final
 12-cell tracked-fixture packet retains three local AC1032 HEADER failures,
@@ -68,9 +84,27 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `2063b50`;
-Plan-Slice:7BE.9bc / LOCAL_IMPLEMENTATION_COMPLETE):**
+**Current handoff (2026-10-15, provenance `6c5666c`;
+Plan-Slice:7G.3f.1 / LOCAL_IMPLEMENTATION_COMPLETE):**
 this queue supersedes historical “next” actions and plan-only research states.
+VISUALSTYLE now owns its28/58 source companions,5/8 complete CMC prefixes/
+decoded names and pre-clamp isolines while preserving legacy scalar views.
+Captured metadata survives DWG encoding; stale metadata, unsafe downgrade and
+unchanged clamped output refuse before buffers change. Explicit color edits
+and28-to58 prefix upgrade retain caller ownership and prior authored defaults.
+Literal three-version vectors and72 already-tracked styles pass;4,176
+companions/576 packed colors agree with retained peer fields. All576 actual
+raw CMC shorts are zero, while342 peer JSON indices differ: the latter are
+interpreted values, not raw-prefix evidence. Fresh-authored bodies/strings/
+handles are byte-identical to the parent across six targets. Focused main3/3
+in4.58s, strict three-TU/build/lc3 and ASan/UBSan2/2 in1.50s pass. Receipt:
+`docs/research/visualstyle-source-metadata-7g-3f-1-2026-10-15.json`.
+This closes only metadata preservation, not typed DXF serialization or full
+CLI9d. Next7G.3f.2 retain/validate DWG NOD identity through the existing optional
+callback, then f.3 mapping and f.4 graph composition. No fixture, callback,
+native, binary-ABI or support/J promotion; public consumers must rebuild.
+
+**Prior7BE.9bc local implementation:**
 The HEADER profile/stream repair is locally implemented with a separate
 receipt: `docs/research/header-compatibility-7be-9bc-2026-10-15.json`.
 Both fixed-offset size profiles preserve exact sentinel/CRC bounds; only the
@@ -90,6 +124,11 @@ serialization/closure;9d full CLI acceptance remains open, with class-CRC and
 unclaimed-suffix warnings still observable. No fixture, callback, support/J
 promotion or full-suite/native result follows. Historical research remains
 frozen at its pre-repair observations.
+The research handoff below originally preserved the three-file source-metadata
+candidate uncommitted; f.1 now supplies separate acceptance above and permanent
+tracked-reader controls. Its frozen research receipt is not relabeled as an
+implementation pass. Do not restart HEADER or infer typed DXF coverage from
+metadata/reader acceptance.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
 The final same-data identity/retry slice is integrated separately as7R.2d.
@@ -5219,6 +5258,148 @@ use it for raw structural checks only. The complete 7G.3 generator must be
 valid before conversion, retain two distinct paper layouts including
 `*Paper_Space0`, and have no unexplained source/output audit repair. Do not
 weaken raw-owner checks or count source repair as a converter success.
+
+#### 7G.3f — DWG VISUALSTYLE source fidelity and rooted DXF bridge
+
+**Owners:** existing PAR-20/7G.3,7F.1b and7BE.9d; no new PAR/top-level subplan.
+**Baseline:** `6c5666c`; HEADER repair remains closed locally, full CLI9d open.
+The initial3-file metadata WIP is now locally accepted under f.1, with the
+separate receipt and permanent reader controls recorded in the current handoff.
+This sequence supersedes the generic “implement a typed serializer” handoff.
+
+| Child / readiness | Implementation boundary | Smallest acceptance gate |
+| --- | --- | --- |
+| **7G.3f.1 / LOCAL_IMPLEMENTATION_COMPLETE** | Preserve source property companions, complete CMC prefixes/decoded names and pre-clamp isolines in the existing owned VISUALSTYLE body; retain legacy convenience fields. | Three-version literal and72 tracked-style controls; six unchanged authored byte profiles; main3/3, strict/build/lc3 and ASan/UBSan2/2 pass. |
+| **7G.3f.2 / READY_LOCAL** | Retain validated DWG HEADER NOD identity and publish the matching complete dictionary through the existing optional root callback, without guessing a root. | HEADER/reader object vectors plus non-monotonic root/child, missing/wrong-type/duplicate root and callback-count controls. |
+| **7G.3f.3 / TAG_PROFILE_CAPTURED; MAPPING_REVIEW_REQUIRED** | Implement a typed-DWG-to-DXF serializer for the smallest witnessed version/property/color profile. Keep DXF-origin raw replay separate. | Exact literal tags/property groups/colors/companions and following record; unsupported-profile no-publication and corrected same-model retry. |
+| **7G.3f.4 / DEPENDS_ON_1_2_3** | Compose root, target types, remapping and source-format dispatch, then rerun the unchanged full FreeCAD-form CLI harness. | Existing extension-graph/adapter tests and one composed CLI gate, retaining RTEXT/ARCALIGNEDTEXT/MPOLYGON assertions and warnings. |
+
+**f.1 source-fidelity contract.** Review the existing candidate rather than
+write a second representation. A BS companion is a preserved16-bit source
+value, not an assumed Boolean or constant sentinel. Preserve signed-bit
+patterns deliberately at DXF176 emission; do not narrow an arbitrary source
+value without a representability check. Keep CMC method/index/packed value,
+flags, color/book names and normalized ACI separate; RGB white, RGB black,
+ByLayer/ByBlock, named colors and unrecognized methods must not collapse into
+one scalar256. Source names are decoded strings, not proof of original bytes.
+Captured over-limit isolines must not silently serialize the convenience
+clamp. Explicit edits/replacement must have an unambiguous policy, with stale
+metadata and unsafe downgrade refused before buffer/caller mutation.
+
+The existing parser can accept shorter legacy/description-only forms; its
+`m_bodyDecoded` flag alone is not a complete source profile. A bridge must
+require the applicable complete property/color metadata and retained import
+origin, not trust an editable flag or infer source format from a missing raw
+companion. Add28-to58 upgrade and58-to28 refusal controls only under a declared
+conversion policy, not a claim the omitted properties were semantically inert.
+For new authored records with no source metadata, require byte-identical
+parent/default DWG output across the existing six writer targets. Join the
+three tracked files'24 styles by source handle against recorded independent
+fields; do not count typed+raw callbacks as two source objects. Rebuild
+consumers after public layout changes; optional virtuals are source-compatible,
+not a guarantee of binary ABI stability.
+
+**f.2 root identity and publication.** Current HEADER code reads then discards
+the `DICT NAMED OBJS` handle; the DWG DICTIONARY dispatcher calls only
+`addDictionary`. Retain the source root identity with explicit absent/invalid
+state, reset/copy/read-entry lifetime and bounds inherited from HEADER. Check
+ODA§9 and§20 before parser edits. Do not fabricate a HEADER variable, hardcode
+handle0xC, select the first/lowest ownerless object, or reuse DXF's positional
+root rule. Validate the referenced frame is one complete DICTIONARY with
+matching identity before root publication. Use the existing
+`addNamedObjectDictionary` callback, whose default forwards to `addDictionary`:
+dispatch one notification path, not both and thus duplicate historical calls.
+Update its DXF-only documentation if expanding its contract. Missing/ambiguous
+root remains observable; ordinary tolerant record handling is not globally
+made fatal merely to enforce complete converter output.
+
+Include higher-handle root/lower-handle child, dictionary callback order,
+explicit null versus absent root, wrong target kind, repeated identity,
+incomplete counted entries, same-reader retry and following-object controls.
+Do not silently substitute another root after failure. Once selected, every
+`ACAD_VISUALSTYLE` entry, style owner, reactor and extension-dictionary edge
+must share the preplanned identity map and existing work caps.
+
+**f.3 exact versioned serializer.** Start with the same-version AC1032 profile
+needed by the retained advanced CLI witnesses; admit other source/target
+versions only after their own profile controls. The ordinary LINE fixture's
+separate explicit `-v2010` CLI control is not permission to downgrade a
+58-property style to28 properties. Public Autodesk DXF documentation covers
+the basic fields, but does not specify the complete expanded property tail;
+ODA5.4.1 lists VISUALSTYLE without a full class-body chapter. Use those sources
+for their actual scope, then exact producer-conversion tags plus independently
+decoded fields to decide each additional mapping. Peer annotations/defaults
+and same-library round trips alone cannot authorize emission.
+
+The latest research now captures24 styles each in actual audit-disabled ODA
+27.1.0.0 AC1032/AC1027/AC1024 outputs from the tracked RTEXT input. The first
+two profiles contain58 companions; AC1024 contains28. The inspected Flat
+record maps source C8 to257, retains RGB black with an explicit zero true-color
+tag, and changes ext-lighting2 to3 for modern output. These are witnessed
+conversion decisions, not a universal permission to normalize source values.
+AC1024 adds a hard-owned extension DICTIONARY→`ACAD_XREC_ROUNDTRIP` XRECORD
+holding `RTVSPost2010Prop28` through57 and their operation fields. Therefore a
+58-to28 downgrade needs this independently qualified graph/mapping or an
+explicit refusal; plain truncation is not the demonstrated ODA behavior.
+Reuse the captured literal records and hashes before running another converter
+batch. Retain the existing source ext-lighting value and review the target
+meaning separately; do not silently replace every2 by3 from this single input.
+
+Freeze a compact descriptor crosswalk: source version/profile, property slot,
+value kind/width, output group(s), source companion, CMC/name handling and
+unsupported disposition. Separate style-type70 before291 from property-count70
+after291. Verify28/58 group counts, per-property176 placement, ext-lighting177,
+internal291, repeated90/40/62 groups and trailing strokes text. These are
+internal property groups, not ordinary APPID/1001 XDATA. Legacy/code-specific
+and modern generic-group encodings are not interchangeable. Never inject
+unknown DWG method bits into DXF true-color integers or replace C8 with ACI256
+without a witnessed mapping. Preserve filenames as data; do not fetch textures
+or color books to validate them.
+
+Inspect producer output before any audit; audit-disabled saving may still
+canonicalize values. Compare exact self/owner/reactor/xDict roles, strings,
+companion bits and color semantics, not whole-file byte identity across CAD
+saves. Require explicit refusal for unrepresentable flags, unknown color
+methods, truncated/partial body, incompatible revision and retained fields
+with no target mapping. For DXF-origin records retain the existing exact raw
+identity/cardinality checks; a generated target tag stream is never inserted
+as supposed source raw evidence. Preflight all styles before publication and
+leave caller data/source snapshots unchanged on rejection and corrected retry.
+
+**f.4 composition and later blockers.** Extend the bounded graph planner to
+select raw-DXF replay or the qualified typed-DWG serializer by retained
+origin/profile. Do not simply remove the raw/typed cardinality check. Verify
+NOD→style dictionary→style membership and owner closure; resolve VPORT, VIEW
+and VIEWPORT targets independently. Audit common entity full/face/edge-style
+references as distinct DWG relationships; the existing common DXF emitter
+writes only the full-style348 field, so no complete face/edge conversion claim
+follows from viewport tests. Resolve unsupported relations explicitly from
+specification/producer evidence rather than inventing DXF group numbers.
+Keep RenderSettings, MATERIAL, shade-plot333 and standalone PLOTSETTINGS as
+separate typed-capability gates, not unconditionally admitted style aliases.
+
+Use two styles, non-monotonic/colliding source handles, model space plus a
+paper/named block, forward references and a valid reactor back-edge. Require
+wrong-type, cross-root, missing/duplicate style, mixed-origin/mismatched raw,
+budget exhaustion and target-write failures to preserve an absent/existing
+destination. Include same-data and same-converter corrected retries; whole
+model mutation is not justified by output failure. Then run the unchanged
+full `dwg2dxf_freecad_cli_compat` gate once. The actual FreeCAD source only
+checks output existence after invoking `dwg2dxf input -o output`; that is not
+the library's semantic acceptance standard. Record every newly surfaced stage
+under its existing owner. Do not close9d after only the first special record.
+
+**Fast delivery/self-updating rule.** Iterate one existing focused executable
+and touched-TU `-Werror` checks per child. Run reader-matrix for f.2,
+object-vectors for f.1/f.3, and extension-graph/adapter for f.4; run the composed
+shared selection and `lc3_compat_check` after these changes meet. Full suites
+remain phase/release gates. No per-field full matrix, peer install, downloaded
+fixture or new CTest. Reuse source/artifact/profile-matching evidence only.
+After each accepted item update status, exact evidence, residual scope and next
+dependency; after each slice commit immediately show hash and focused result.
+If f.3's producer profile is unavailable, keep output refusal and continue f.2
+or7AH/7AQ checker negatives; do not repeat unchanged searches or stop the local
+queue. External/platform gates retain their dispositions and authority limits.
 
 ### 7H — Repair geometry validation and define accepted-normal behavior
 
@@ -13299,3 +13480,126 @@ Counts remain122 findings/70 top-level subplans and1493D ledger items;
 `DEFERRED_EXTERNAL`, non-promoting. This pass supplies no native Linux/Windows
 FreeCAD run, independent known-dimension ACIS/AcDs semantics, converter-build
 qualification or reconstruction of J268's missing historical membership.
+
+## Source-fidelity, versioned VISUALSTYLE and graph-oracle review (2026-10-15)
+
+Research/planning at committed HEAD`6c5666cceb8e5d7a4e9eba41ffb8a7800f84770c`;
+local `origin/master` remains`d68fb1e` (not fetched/rebased in this pass).
+The existing three-file source/test candidate is preserved byte-for-byte,
+uncommitted; no C++ build/test result is inferred from this research. Evidence,
+literal record observations, executable/module/input hashes, bounded commands
+and reproduction recipes are in
+[the research receipt](docs/research/broader-visualstyle-graph-readiness-2026-10-15.json).
+This section and7G.3f supersede historical generic serializer-next instructions,
+not prior committed acceptance receipts.
+
+### Broader primary-source crosswalk
+
+| Source / exact scope | Decision for this repository |
+| --- | --- |
+| [Autodesk2026 VISUALSTYLE](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm), [VisualStyleDictionaryId](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_VisualStyleDictionaryId.html), local ODA5.4.1§2.11/§20.1–3 | Basic DXF fields, named typed target and common DWG stream primitives/bounds have primary authority. The public DXF page does not specify the58-property expansion; ODA lists this non-fixed class but has no complete body layout. §20.4.95 is SPATIAL_INDEX, not VISUALSTYLE. Do not present peer-derived property order or undocumented color mappings as an ODA class-body specification. |
+| ezdxf[v1.4.4 VISUALSTYLE](https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/visualstyle.py), blob07bf9df; current master7c64bce has the same blob | It copies the tail after291 and re-emits it without checking declared count or176 grammar. Its R2000 minimum-export declaration is broader than its “official R2007” comment and IxMilia's R2007 minimum; none alone licenses a downgrade. Use raw tags for preservation, a separate checker for grammar and producer evidence for version admission. Its internal `acad_xdata` is not ordinary APPID XDATA. |
+| [ACadSharp9bd47f48 objects writer](https://github.com/DomCR/ACadSharp/blob/9bd47f48766a371c441e8d1ab80733e21f62b711/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs#L729-L756), blobbc55b50 | `isObjectSupported` explicitly notifies and skips VisualStyle, Material, DimensionAssociation and some other objects. Its public model/overall DWG-DXF version matrix does not qualify those writer families. Exclude this route as the VISUALSTYLE writer oracle; require per-family notification/skipped counts when using it elsewhere. No ACadSharp runtime was executed here. |
+| [ACadRusta1a216d DXF serializer](https://github.com/hakanaktt/acadrust/blob/a1a216d642d09c7548cc26ac6d3db6f79bd5a667/src/io/dxf/writer/section_writer.rs#L8178-L8299), blob796a13d; [owned property model](https://github.com/hakanaktt/acadrust/blob/a1a216d642d09c7548cc26ac6d3db6f79bd5a667/src/objects/stub_objects.rs), blobac987d3 | Versioned28/58 property groups and source operation values are useful mapping leads. The model also synthesizes missing properties and transforms legacy magnitudes; these defaults are not source fidelity. The writer narrows longs in short-code contexts, so independently check range/width before using it as a comparator. Source-only review, no Rust build/runtime, no code transplant. HakanSeven12's API redirects to the canonical hakanaktt repository; do not invent a new independent lineage. |
+| [LibreDWGf860b0f VISUALSTYLE spec implementation](https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/dwg2.spec#L2118-L2288), blob3a44d45 | Source corroborates28/58 companions and distinct CMC fields but also normalizes ext-lighting defaults, bounds isolines and contains group0 annotations on two expansion companions. Do not mechanically copy a macro listing or use peer agreement as an undocumented format rule. Existing installed0.14 JSON is a separately bound runtime, not asserted built from this master pin. |
+| [IxMilia3ab0f9d object schema](https://github.com/ixmilia/dxf/blob/3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567/src/IxMilia.Dxf.Generator/Specs/ObjectsSpec.xml), blob85eb46d; [DICTIONARY](https://github.com/ixmilia/dxf/blob/3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567/src/IxMilia.Dxf/Objects/DxfDictionary.cs), blobdcf5c98 | Basic VISUALSTYLE attributes do not model the full property tail. Dictionary emission selects350/360 from one hard-owner flag and sorts keys; it cannot establish per-entry source-code/order fidelity. Use only the demonstrated field profile and literal pre-load edges. No .NET runtime is added/run. |
+| [ezdxf dictionary](https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/dictionary.py), blobfc901ea; [audit contract](https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html#ezdxf.document.Drawing.audit) | Mixed edge-code inputs use the last observed350/360 code for all exported entries; duplicate keys overwrite, and audit removes missing targets. These are robustness/comparator limitations, not proof such malformed/mixed source data is valid. A zero remaining-error count is not a lossless graph certificate. Capture literal edges, multiplicity and pre/post-repair snapshots. |
+| [FreeCAD4a1904f importDWG](https://github.com/FreeCAD/FreeCAD/blob/4a1904f8db57d4a31e44cdb1dd984d4c98447c10/src/Mod/Draft/importDWG.py#L291-L306), blob8ceba7e; [LC3 filter header](https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h), blob0ef8c52; [LibreCAD filter header](https://github.com/LibreCAD/LibreCAD/blob/bdb757804e3014b022f732d1f4d148f81e1fc724/librecad/src/lib/filters/rs_filterdxfrw.h), blob38c8756 | FreeCAD's converter branch accepts output existence; later DXF import is a distinct stage. Current LC declares a VisualStyle callback; LC3 inherits the optional default instead. Preserve2D defaults and rebuild/source compatibility, but do not claim both consumers retain3D metadata or native solid semantics. Existing source checks are not Linux/Windows application execution. |
+
+All eight upstream heads were freshly read. Unchanged heads do not justify
+rerunning entire prior corpora. There is no new mandatory comparator, package
+installation, new branch/PR, remote write, proprietary SDK or trial activation.
+
+### Executed evidence that changes implementation readiness
+
+Eight authored in-memory ezdxf1.4.4 controls pass their observation assertions
+and reproduce identically in a second10s/65536-byte bounded run, with C
+extensions disabled and private config. Three preserve a proper/miscounted/
+missing-final-companion style tail unchanged; one proves deep-copy ownership.
+Two mixed dictionary edge-code orders normalize to the last code, one duplicate
+key keeps its last value, and one dangling entry disappears with errors0/fixes1.
+These are component-calibration observations, not eight valid drawings,
+whole-file reader passes or native semantic tests.
+
+The already installed ARM64 ODA File Converter27.1.0.0 was run with audit0,
+recursion0 and an exact filename filter against a disposable copy of tracked
+`rtext_arctext.dwg` (SHA256db5663cd). All three retained final commands exit0
+with empty stdout/stderr and produce24 VISUALSTYLEs each. Output inspection is
+literal, before any ezdxf load/audit. Original fixture/production files are
+not modified. The current website advertises a newer release; the executed
+build remains27.1, and the original fixture-producing ODA build is unknown.
+
+| Target | Literal observed profile | Scope-changing detail |
+| --- | --- | --- |
+| AC1032 / ACAD2018 |58 property groups and58 companions for each of24 styles|Flat's white uses62=7 +420=16777215; C8 maps to62=257; black retains420=0. ext-lighting becomes3 although the installed independent source reader reports2. All58 companions, including the two group0 peer annotations, appear as176 in this captured output.|
+| AC1027 / ACAD2013 |58 property groups and58 companions for each of24 styles|Flat has the same witnessed group structure as AC1032. This one input/profile is not all-AC1027 semantic qualification.|
+| AC1024 / ACAD2010 |28 code-specific properties/companions for each of24 styles; no post291 property-count70|Flat gains extension dictionary20045 and hard-owned XRECORD20046 under `ACAD_XREC_ROUNDTRIP`; named `RTVSPost2010Prop28`–57 fields plus operation values carry the extra properties. Downgrade is a graph transformation, not simply truncation.|
+
+**Subsequent f.1 raw-prefix correction:** a peer JSON color index is not the
+raw CMC BS. The72 tracked styles'576 directly captured shorts are all0;
+342 differ from the peer's interpreted index. The witnessed black fallback
+is18, but the peer's absent/default0 index alone was not raw-byte evidence.
+Presence of420=0 is material. Do not derive exact output from normalized ACI
+alone or omit a zero true-color field. ext-lighting2→3 and the round-trip
+XRECORD show that even audit-disabled ODA save performs version conversion;
+these outputs calibrate mappings, not byte-for-byte preservation or renderer
+appearance. Named/book colors and other CMC methods still need their own
+profile evidence and explicit refusal when unavailable.
+
+Initial sandboxed converter attempts abort at macOS pasteboard/service
+initialization and create no outputs. Approved macOS-service access unblocks
+the same scoped conversions. An oversized first diagnostic capture is not the
+retained packet: the compact final run has complete results and output hashes,
+independently rechecked by the literal graph inspector. Save-generated file
+bytes may vary between runs; no repeat whole-file byte equality is claimed.
+
+A separate handle-joined literal crosswalk over all24 styles/profile compares
+3,456 source operation companions,2,952 non-color primary values and384 modern
+color observations against the retained installed LibreDWG0.14 JSON. All
+assertions pass: numeric/text values and operation fields agree; the scoped
+C0/C2/C3/C8 color rules match the modern outputs. Extended lighting changes2→3
+for all24 styles in each modern target and remains2 for AC1024. Color-name/book
+flags, other methods, old-profile color fidelity and restored downgrade
+properties are deliberately not covered. This is a source/tag crosswalk, not
+an independently measured style appearance or an ACIS/native support vote.
+
+### Prioritized delivery and wider residual scope
+
+1. **P0 /7G.3f.1–4:** review/accept existing source-metadata WIP; independently
+   retain DWG NOD identity; use the captured modern profile to implement the
+   smallest exact typed serializer; compose graph closure and the unchanged
+   full CLI test. Keep AC1024 round-trip-property migration deferred/refused
+   until its graph, operation fields, restore lifecycle and type/color mappings
+   are independently qualified. Do not make downgrade part of the minimal
+   same-version AC1032 critical path.
+2. **P1 /7AH/7AQ:** add report-only negatives for wrong property count/missing
+   companion, repair-pruned dictionary targets, duplicate-key collapse,
+   synthesized/defaulted properties and family-specific peer omissions. These
+   are ready Python/checker slices and need no C++ rebuild or new CAD install.
+   Preserve semantic identity/typed roles and distinguish before/after repair;
+   do not normalize away precisely the field being compared.
+3. **P1 /existing7G.3e/7F/7G.2:** after style closure, audit common full/face/edge
+   references, shade-plot333/RenderSettings/PlotSettings and untyped root
+   targets independently. TABLE merged-cell/style and anonymous-block owner
+   requirements stay with their existing owners; fixing style transport does
+   not close those families or authorize orphan rehoming.
+4. **Independent S3.2/Slice8:** retain the previously planned tiny multi-page
+   AcDs blob/second-record/suffix calibration. Structural assembly, entity/owner
+   association, inline versus AcDs carrier, block placement, units and actual
+   B-rep semantics remain separate gates. Converter/tool availability or an
+   exact payload hash cannot substitute for independent known-dimension
+   geometry/kernel and native consumer receipts.
+
+Use existing fast targets per7G.3f, then one composed boundary selection. No
+full suite, sanitizer, native app or C++ acceptance run was performed by this
+plan-only pass. Reconcile each implemented item into current status/evidence/
+remaining dependencies and show progress immediately after each slice commit.
+Unavailable external evidence retains that cell's refusal while another ready
+local slice proceeds; persistence does not authorize account/trial/cost changes.
+
+Counts remain122 findings/70 top-level subplans and1493D ledger items. No
+support matrix or acceptance count is promoted. `J256`, `J260`, `J268`, `J284`,
+`J293`, and `J295` remain`DEFERRED_EXTERNAL`: this pass supplies neither native
+Linux/Windows FreeCAD qualification, independent known-dimension ACIS/AcDs
+semantics, nor J268's missing historical membership. New drawing outputs remain
+temporary; no DWG/DXF/SAB fixture is added to the repository.

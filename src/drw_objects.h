@@ -6585,15 +6585,40 @@ protected:
                 std::uint32_t bs = 0) override;
 };
 
+//! Owned CMC source fields; the legacy scalar color is only a normalized view.
+struct DRW_VisualStyleColor {
+  bool present = false;
+  bool modern = false; // R2004+ BS/BL/RC rather than an index-only BS.
+  std::uint16_t rawIndex = 0;
+  std::uint32_t rawRgb = 0; // Includes the method byte, even if unrecognized.
+  std::uint8_t flags = 0;
+  int normalizedIndex = 0;
+  UTF8STRING name, bookName; // Decoded strings; not raw text bytes.
+};
+
+//! Source property metadata, not a DXF tag stream or a conformance receipt.
+struct DRW_VisualStyleEncoding {
+  static constexpr std::size_t kPropertyCount = 58;
+  static constexpr std::size_t kColorCount = 8;
+  std::array<std::uint16_t, kPropertyCount> companions{};
+  std::uint8_t companionCount = 0;
+  // face mono, intersection, obscured, edge, silhouette, prop29/2c/33.
+  std::array<DRW_VisualStyleColor, kColorCount> colors{};
+  std::uint8_t colorCount = 0;
+  bool hasSourceIsolines = false;
+  std::int32_t sourceIsolines = 0;
+};
+
 //! AcDbVisualStyle body — face/edge/display property groups + r2013b expansion.
 /*!
- *  Primary values only (named); the interleaved BS "_int" companions from the
- *  r2010b/r2013b layout are consumed for bit-alignment and discarded (they are
- *  near-constant 0/1 sentinels). Disjoint subsets populate per version:
+ *  Named primary values retain their legacy meanings. Interleaved BS values
+ *  and CMC source fields are owned in m_encoding without interpreting them as
+ *  ignorable sentinels or normalizing unknown color methods. Subsets per version:
  *  legacy (< AC1024) fills face/edge/display; r2010b (>= AC1024) fills those
  *  plus extLightingModel; r2013b (>= AC1027) additionally fills the b/bl/bd/c
- *  prop* expansion. Colors are stored as the CMC index returned by
- *  readObjectCmColor (matches the DRW_TableStyle color-as-int convention).
+ *  prop* expansion. Scalar colors retain the existing normalized convenience
+ *  index; m_encoding preserves the distinct source representation. Consumers
+ *  must rebuild; this adds no callback or binary-ABI guarantee.
  */
 struct DRW_VisualStyleBody {
   static constexpr int kMaxEdgeIsolines = 5000;
@@ -6636,10 +6661,12 @@ struct DRW_VisualStyleBody {
   UTF8STRING strokes;
   bool bProp37 = false;
   double bdProp38 = 0.0, bdProp39 = 0.0;
+  // Assign {} explicitly when replacing source metadata with authored values.
+  DRW_VisualStyleEncoding m_encoding;
 };
 
 //! Class to handle VISUALSTYLE (AcDbVisualStyle) — custom-class object
-//! §20.4.95.
+//! Non-fixed class; ODA 5.4.1 lists it but does not specify its complete body.
 /*!
  *  Decodes the full AcDbVisualStyle body (legacy < AC1024 / r2010b >= AC1024 /
  *  r2013b expansion >= AC1027) into m_body for structured-metadata parity with

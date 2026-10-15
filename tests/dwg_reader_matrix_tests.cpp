@@ -1661,6 +1661,25 @@ void testTrackedHeaderRead(TestContext& t) {
         t.expect(layouts == (row.compatible ? 1u : 0u)
                      && tails == (row.compatible ? 1u : 0u),
                  "tracked HEADER compatibility evidence survives facade snapshot");
+        t.expect(sink.data.visualStyles.size() == (row.compatible ? 24u : 0u),
+                 "tracked VISUALSTYLE source cardinality survives bounded decoding");
+        for (const auto& style : sink.data.visualStyles) {
+            const auto& metadata = style.m_body.m_encoding;
+            t.expect(style.m_bodyDecoded && metadata.companionCount == 58u
+                         && metadata.colorCount == 8u && metadata.hasSourceIsolines,
+                     "tracked modern VISUALSTYLE publishes complete source metadata");
+            if (style.desc == "Flat") {
+                t.expect(metadata.colors[0].rawIndex == 0u
+                             && metadata.colors[0].rawRgb == 0xC2FFFFFFu
+                             && metadata.colors[2].rawRgb == 0xC8000000u
+                             && metadata.colors[5].rawRgb == 0xC2000000u
+                             && metadata.companions[51] == 0u
+                             && metadata.companions[52] == 0u
+                             && style.m_body.faceMonoColor == 256
+                             && style.m_body.edgeObscuredColor == 256,
+                         "tracked Flat style retains RGB white/black/C8 and source operation zeros");
+            }
+        }
         if (std::string(row.name) == "rtext_arctext.dwg")
             t.expect(sink.rtext == 1u && sink.arcText == 1u,
                      "tracked RTEXT/ARCTEXT concrete callbacks survive HEADER admission");

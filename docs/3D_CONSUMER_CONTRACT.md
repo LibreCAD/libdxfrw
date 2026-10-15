@@ -29,6 +29,31 @@ their existing warn-only contract. Compatible read success does not certify
 CLI graph/export, native acceptance or format support. No callback/projection
 policy is changed; rebuild source consumers and do not infer binary ABI.
 
+DWG `DRW_VisualStyleBody::m_encoding` owns the source BS property companions,
+CMC index/packed method-RGB/flags and decoded color/book names separately from
+the historical scalar color fields. The fixed arrays carry explicit counts:
+28/58 modern companions and5/8 colors for complete applicable profiles.
+Legacy scalar colors remain normalized convenience views; for example RGB and
+unrecognized methods may still present256. A peer JSON color index is not
+necessarily the raw CMC BS. Names are decoded strings, not original text bytes.
+Copy/reset preserves ownership and clears source state on failed parsing.
+
+DWG writing reuses captured metadata while its scalar view is unchanged;
+changing a legacy scalar explicitly replaces that color. For same-value
+replacement clear the color's `present` flag, or reset `m_encoding` when
+authoring a replacement body. Stale/inconsistent metadata, a captured expansion
+that cannot fit the requested target, and an unchanged clamped source isoline
+value refuse before body buffers change. The supported28-to58 encoder upgrade
+retains source-prefix metadata and authors the existing defaults for new
+properties; it is not semantic version/renderer qualification. Fresh-authored
+records with no source metadata keep their previous DWG bytes.
+
+The appended public data requires a consumer rebuild; no pure callback is
+added and binary ABI is not promised. A decoded body flag or retained raw
+metadata is not a complete format/profile certificate. This prerequisite does
+not implement typed DWG→DXF style emission, NOD discovery, named-color target
+mapping or renderer/ACIS semantics; full CLI acceptance remains separate.
+
 DXF HEADER codepage provenance is separate from semantic text and the normalized
 `vars["$DWGCODEPAGE"]` used by writers. `hasDxfCodePageDeclaration()` distinguishes
 absent/empty; `dxfCodePageDeclaration()` returns the last complete group-3 source
