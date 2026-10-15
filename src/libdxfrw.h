@@ -687,6 +687,8 @@ public:
                                        DRW_TableEntry &entry);
     bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                                        DRW_Entity &entity);
+    bool copyRawDxfCarrierName(DRW_RawDxfObject &obj,
+                               const std::string& name);
     bool captureAndParseRawDxfGroup(DRW_RawDxfObject &obj, int code,
                                     DRW_TableEntry &entry);
     bool captureAndParseRawDxfGroup(DRW_RawDxfObject &obj, int code,

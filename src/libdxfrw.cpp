@@ -16337,11 +16337,32 @@ bool dxfRW::captureAndParseRawDxfGroup(DRW_RawDxfObject &obj, int code,
         && entity.parseCode(code, reader);
 }
 
+bool dxfRW::copyRawDxfCarrierName(DRW_RawDxfObject& obj,
+                                  const std::string& name) {
+    if (reader == nullptr || reader->retainedByteBudget() == nullptr) {
+        obj.name = name;
+        return true;
+    }
+
+    // The generic raw fallback can publish an empty record without ever
+    // calling captureRawGroup(). Reserve the callback-owned name before making
+    // its copy so the no-group path obeys the same retained-byte ceiling as
+    // carriers whose first group initializes the lease.
+    auto lease = std::make_shared<DxfReadRetainedLease>(
+        reader->retainedByteBudget());
+    if (!lease->add(name.size()))
+        return false;
+    obj.name = name;
+    obj.m_retainedTextLease = std::move(lease);
+    return true;
+}
+
 bool dxfRW::processRawObject() {
     DRW_DBG("dxfRW::processRawObject");
     int code;
     DRW_RawDxfObject obj;
-    obj.name = nextentity;
+    if (!copyRawDxfCarrierName(obj, nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
     DxfRawHandleLexemeScope handleLexemes(*reader);
     int applicationDepth = 0;
     std::size_t pairCount = 0;
@@ -16379,7 +16400,8 @@ bool dxfRW::processRawEntity() {
     DRW_DBG("dxfRW::processRawEntity");
     int code;
     DRW_RawDxfObject ent;
-    ent.name = nextentity;
+    if (!copyRawDxfCarrierName(ent, nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
     DxfRawHandleLexemeScope handleLexemes(*reader);
     // Accumulate any cached proxy graphics (codes 92/160 + 310) via the common
     // entity parser so we can decode it into render primitives — same path as

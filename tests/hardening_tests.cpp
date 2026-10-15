@@ -2140,6 +2140,10 @@ public:
 
 class RawCarrierRetentionSink final : public FuzzInterface {
 public:
+    void addRawDxfEntity(const DRW_RawDxfObject& value) override {
+        ++entityCount;
+        entity = value;
+    }
     void addRawDxfSection(const DRW_RawDxfSection& value) override {
         ++sectionCount;
         section = value;
@@ -2149,8 +2153,10 @@ public:
         object = value;
     }
 
+    DRW_RawDxfObject entity;
     DRW_RawDxfSection section;
     DRW_RawDxfObject object;
+    std::size_t entityCount {0u};
     std::size_t sectionCount {0u};
     std::size_t objectCount {0u};
 };
@@ -4826,6 +4832,47 @@ void testDxfRawCarrierRetentionBudget(TestContext& t) {
     }
 }
 
+void testEmptyRawCarrierNameRetention(TestContext& t) {
+    const auto verify = [&t](const std::string& content, bool entity,
+                             std::size_t nameBytes) {
+        // At the empty record's code-0 token, the reader retains strData and
+        // rawData (2x) plus the 4x text-getter bound. The carrier name is a
+        // separate retained destination, so this is the exact admission peak.
+        const std::size_t exactPeak = content.size() + 7u * nameBytes;
+        dxfRW exact(nullptr);
+        exact.setDxfReadRetainedByteBudget(exactPeak);
+        RawCarrierRetentionSink admitted;
+        std::string input = content;
+        const bool exactRead = exact.readAscii(&admitted, false, input);
+        const DRW_RawDxfObject& carrier = entity ? admitted.entity : admitted.object;
+        t.expect(exactRead
+                     && (entity ? admitted.entityCount : admitted.objectCount) == 1u
+                     && carrier.groups.empty()
+                     && carrier.m_retainedTextLease != nullptr
+                     && carrier.m_retainedTextLease->bytes() == nameBytes
+                     && exact.m_activeDxfReadRetainedBudget->used() == nameBytes,
+                 entity ? "empty raw-entity name lease fits the exact generated peak"
+                        : "empty raw-object name lease fits the exact generated peak");
+
+        dxfRW under(nullptr);
+        under.setDxfReadRetainedByteBudget(exactPeak - 1u);
+        RawCarrierRetentionSink rejected;
+        input = content;
+        t.expect(!under.readAscii(&rejected, false, input)
+                     && (entity ? rejected.entityCount : rejected.objectCount) == 0u
+                     && under.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && under.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget",
+                 "one-byte-under empty raw-carrier admission rejects before callback publication");
+    };
+
+    verify("0\nSECTION\n2\nOBJECTS\n0\nEMPTY123\n"
+           "0\nENDSEC\n0\nEOF\n", false, 8u);
+    verify("0\nSECTION\n2\nENTITIES\n0\nEMPTY123\n"
+           "0\nENDSEC\n0\nEOF\n", true, 8u);
+}
+
 void testDxfHeaderCommentRetentionBudget(TestContext& t) {
     const std::string plainDrawing = admissionDrawing();
     const std::string source = "999\nalpha\n999\nbeta\n" + plainDrawing;
@@ -7058,6 +7105,7 @@ int main() {
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
+    testEmptyRawCarrierNameRetention(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);
