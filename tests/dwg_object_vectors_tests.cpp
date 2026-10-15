@@ -8,6 +8,7 @@
 #include "drw_objects.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "intern/drw_textcodec.h"
 #include "ltype_string_area_test_helpers.h"
 #include "xrecord_test_helpers.h"
 
@@ -49,6 +50,169 @@ class LayoutEncodeProbe final : public DRW_Layout {
 public:
     using DRW_Layout::encodeDwg;
 };
+
+class GeoDataCodecProbe final : public DRW_GeoData {
+public:
+    using DRW_GeoData::encodeDwg;
+    using DRW_GeoData::parseDwg;
+};
+
+struct GeoDataFrame {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t handleBits {0};
+    std::uint64_t bodyEndBit {0};
+    std::uint64_t civilTailStartBit {0};
+};
+
+void appendBits(dwgBufferW& destination, const dwgBufferW& source) {
+    for (std::uint64_t bit = 0; bit < source.bitCount(); ++bit) {
+        const std::uint8_t value = static_cast<std::uint8_t>(
+            (source.data()[static_cast<std::size_t>(bit / 8u)]
+             >> (7u - static_cast<unsigned>(bit & 7u))) & 1u);
+        destination.putBit(value);
+    }
+}
+
+void appendLiteralGeoCivilTail(dwgBufferW& tail, bool hasCivilData,
+                               bool truncateLastValue) {
+    // Literal ODA §20.4.78 field order. Values are deliberately distinctive
+    // while the reserved vectors retain their documented zero controls.
+    tail.putBit(hasCivilData ? 1u : 0u);
+    tail.putBit(0u);
+    for (const double value : {11.25, 22.5, 33.75, 44.125})
+        tail.putRawDouble(value);
+    tail.putBitLong(0);
+    tail.putBitLong(0);
+    for (int i = 0; i < 4; ++i)
+        tail.putRawDouble(0.0);
+    tail.putBit(0u);
+    tail.putBitDouble(30.0);
+    tail.putBitDouble(M_PI / 6.0);
+    tail.putBitLong(3);
+    tail.putBitDouble(2.75);
+    tail.putBit(1u);
+    tail.putBitDouble(123.5);
+    if (!truncateLastValue)
+        tail.putBitDouble(456.75);
+}
+
+bool makeLiteralGeoDataFrame(DRW::Version targetVersion,
+                             std::int32_t objectVersion, bool includeMesh,
+                             bool includeCivilTail, bool hasCivilData,
+                             bool truncateLastTailValue, GeoDataFrame& frame) {
+    GeoDataCodecProbe geoData;
+    geoData.handle = 0xA100u;
+    geoData.parentHandle = 0xA200u;
+    geoData.setDwgCommonObjectState(0, 1, false);
+    geoData.m_version = objectVersion;
+    geoData.m_hostBlockHandle = 0xA300u;
+    geoData.m_coordinatesType = 2;
+    geoData.m_designPoint = DRW_Coord{101.25, 202.5, 303.75};
+    geoData.m_referencePoint = DRW_Coord{10.5, 20.25, 30.75};
+    geoData.m_upDirection = DRW_Coord{0.0, 0.0, 1.0};
+    geoData.m_northDirection = DRW_Coord{0.25, 0.75, 0.0};
+    geoData.m_horizontalUnitScale = 1.125;
+    geoData.m_horizontalUnits = 4;
+    geoData.m_verticalUnitScale = 2.25;
+    geoData.m_verticalUnits = 7;
+    geoData.m_scaleEstimationMethod = 2;
+    geoData.m_userSpecifiedScaleFactor = 1.75;
+    geoData.m_enableSeaLevelCorrection = true;
+    geoData.m_seaLevelElevation = 8.5;
+    geoData.m_coordinateProjectionRadius = 16.25;
+    geoData.m_coordinateSystemDefinition = "LOCAL_COORD_SYS";
+    geoData.m_geoRssTag = "LOCAL_GEO_TAG";
+    geoData.m_observationFromTag = "FROM_TAG";
+    geoData.m_observationToTag = "TO_TAG";
+    geoData.m_observationCoverageTag = "COVERAGE_TAG";
+    if (includeMesh) {
+        geoData.m_points.push_back({DRW_Coord{1.5, 2.5, 0.0},
+                                    DRW_Coord{3.5, 4.5, 0.0}});
+        geoData.m_faces.push_back({0, 1, 2});
+    }
+
+    // Use the production encoder only for the common GEODATA prefix and
+    // pre-tail body. The literal tail below is separately authored, making
+    // this a reader control rather than a writer/readback tautology.
+    dwgBufferW baseBody;
+    dwgBufferW strings;
+    dwgBufferW handles;
+    if (!geoData.encodeDwg(DRW::AC1032, &baseBody, &strings, &handles))
+        return false;
+
+    dwgBufferW full;
+    full.putObjType(targetVersion, DRW_GeoData::kDwgClassNum);
+    std::size_t objectSizeBit = 0;
+    const bool hasLegacyObjectSize =
+        targetVersion > DRW::AC1014 && targetVersion < DRW::AC1024;
+    if (hasLegacyObjectSize) {
+        objectSizeBit = full.bitCount();
+        full.putRawLong32(0u);
+    }
+    dwgHandle ownHandle;
+    ownHandle.code = 0;
+    ownHandle.size = 2;
+    ownHandle.ref = geoData.handle;
+    ownHandle.ref64 = geoData.handle;
+    full.putHandle(ownHandle);
+    full.putBitShort(0u); // no EED
+    full.putBitLong(0);   // no persistent reactors
+    if (targetVersion > DRW::AC1015)
+        full.putBit(1u); // no extension-dictionary handle follows
+    if (targetVersion > DRW::AC1024)
+        full.putBit(0u); // no data-storage payload
+
+    appendBits(full, baseBody);
+    frame.civilTailStartBit = full.bitCount();
+    dwgBufferW literalTail;
+    if (includeCivilTail)
+        appendLiteralGeoCivilTail(literalTail, hasCivilData,
+                                  truncateLastTailValue);
+    appendBits(full, literalTail);
+    frame.bodyEndBit = full.bitCount();
+
+    full.alignToByte();
+    strings.alignToByte();
+    if (targetVersion > DRW::AC1018) {
+        if (!strings.data().empty()) {
+            full.putBytes(strings.data().data(), strings.size());
+            for (int bit = 0; bit < 7; ++bit)
+                full.putBit(0u);
+            const std::uint64_t stringBitSize =
+                static_cast<std::uint64_t>(strings.size()) * 8u + 7u;
+            if (stringBitSize > 0x7fffu)
+                return false;
+            full.putRawShort16(static_cast<std::uint16_t>(stringBitSize));
+            full.putBit(1u);
+        } else if (targetVersion >= DRW::AC1024) {
+            for (int bit = 0; bit < 7; ++bit)
+                full.putBit(0u);
+            full.putRawShort16(0u);
+            full.putBit(0u);
+        }
+    }
+    full.alignToByte();
+    if (!full.isGood())
+        return false;
+    if (hasLegacyObjectSize)
+        full.patchRawLong32AtBit(objectSizeBit,
+                                 static_cast<std::uint32_t>(full.bitCount()));
+
+    dwgHandle followingHandle;
+    followingHandle.code = DRW::DwgSoftPointer;
+    followingHandle.size = 2;
+    followingHandle.ref = 0xA400u;
+    followingHandle.ref64 = followingHandle.ref;
+    handles.putHandle(followingHandle);
+    handles.alignToByte();
+    frame.handleBits = targetVersion >= DRW::AC1024
+        ? static_cast<std::uint32_t>(handles.bitCount()) : 0u;
+    full.putBytes(handles.data().data(), handles.size());
+    if (!full.isGood())
+        return false;
+    frame.bytes = full.data();
+    return true;
+}
 
 const std::vector<DRW::Version> kVersions {
     DRW::AC1015, DRW::AC1018, DRW::AC1021,
@@ -532,6 +696,144 @@ void testLayoutVectors(TestContext& t) {
              "LAYOUT preflight preserves sentinel buffers and state");
 }
 
+void testGeoDataCivilTailReaderVectors(TestContext& t) {
+    struct Case {
+        DRW::Version targetVersion;
+        std::int32_t objectVersion;
+        bool includeMesh;
+        bool includeCivilTail;
+    };
+    const std::array<Case, 5> cases{{
+        {DRW::AC1021, 1, false, true},
+        {DRW::AC1024, 2, true, true},
+        {DRW::AC1027, 2, false, true},
+        {DRW::AC1027, 3, true, true},
+        {DRW::AC1032, 2, true, false}}};
+
+    for (const Case& item : cases) {
+        GeoDataFrame frame;
+        const bool built = makeLiteralGeoDataFrame(
+            item.targetVersion, item.objectVersion, item.includeMesh,
+            item.includeCivilTail, true, false, frame);
+        t.expect(built, "GEODATA literal frame builds for target-version control");
+        if (!built)
+            continue;
+
+        DRW_TextCodec codec;
+        codec.setVersion(item.targetVersion, false);
+        dwgBuffer input(frame.bytes.data(), frame.bytes.size(), &codec);
+        GeoDataCodecProbe parsed;
+        const bool read = parsed.parseDwg(item.targetVersion, &input,
+                                          frame.handleBits);
+        const std::uint64_t cursorBit = input.getPosition() * 8u
+            + input.getBitPos();
+        t.expect(read && cursorBit == frame.bodyEndBit,
+                 "GEODATA reader consumes exactly through the target-gated body tail");
+        if (!read)
+            continue;
+
+        t.expect(parsed.m_version == item.objectVersion
+                     && parsed.handle == 0xA100u
+                     && parsed.parentHandle == 0xA200u
+                     && parsed.m_hostBlockHandle == 0xA300u
+                     && parsed.m_coordinatesType == 2
+                     && parsed.m_designPoint.x == 101.25
+                     && parsed.m_referencePoint.y == 20.25
+                     && parsed.m_horizontalUnitScale == 1.125
+                     && parsed.m_horizontalUnits == 4
+                     && parsed.m_enableSeaLevelCorrection
+                         == (item.objectVersion >= 2)
+                     && parsed.m_seaLevelElevation
+                         == (item.objectVersion >= 2 ? 8.5 : 0.0),
+                 "GEODATA main-body fields and deferred handle references survive tail parsing");
+        t.expect(parsed.m_points.size() == (item.includeMesh ? 1u : 0u)
+                     && parsed.m_faces.size() == (item.includeMesh ? 1u : 0u),
+                 "GEODATA tail follows both empty and populated mesh arrays");
+        if (item.objectVersion >= 2) {
+            t.expect(parsed.m_verticalUnitScale == 2.25
+                         && parsed.m_verticalUnits == 7,
+                     "GEODATA v2/v3 keep distinct horizontal and vertical units");
+        } else {
+            t.expect(parsed.m_verticalUnitScale == parsed.m_horizontalUnitScale
+                         && parsed.m_verticalUnits == parsed.m_horizontalUnits,
+                     "GEODATA v1 retains its single-unit semantics");
+        }
+
+        t.expect(parsed.m_civilTail.m_present == item.includeCivilTail,
+                 "GEODATA CIVIL-tail physical presence follows the DWG target version");
+        if (item.includeCivilTail) {
+            t.expect(parsed.m_civilTail.m_hasCivilData
+                         && !parsed.m_civilTail.m_reservedFlag1
+                         && parsed.m_civilTail.m_referenceCoordinates
+                             == std::array<double, 4>{{11.25, 22.5, 33.75, 44.125}}
+                         && parsed.m_civilTail.m_reservedLongs
+                             == std::array<std::int32_t, 2>{{0, 0}}
+                         && parsed.m_civilTail.m_reservedCoordinates
+                             == std::array<double, 4>{{0.0, 0.0, 0.0, 0.0}}
+                         && !parsed.m_civilTail.m_reservedFlag2
+                         && parsed.m_civilTail.m_northDirectionDegrees == 30.0
+                         && std::abs(parsed.m_civilTail.m_northDirectionRadians
+                                     - M_PI / 6.0) < 1e-14
+                         && parsed.m_civilTail.m_scaleEstimationMethod == 3
+                         && parsed.m_civilTail.m_userSpecifiedScaleFactor == 2.75
+                         && parsed.m_civilTail.m_enableSeaLevelCorrection
+                         && parsed.m_civilTail.m_seaLevelElevation == 123.5
+                         && parsed.m_civilTail.m_coordinateProjectionRadius == 456.75,
+                     "GEODATA CIVIL values retain ODA order and remain distinct from main-body values");
+        }
+    }
+
+    GeoDataFrame falseFlagFrame;
+    const bool falseFlagBuilt = makeLiteralGeoDataFrame(
+        DRW::AC1027, 2, true, true, false, false, falseFlagFrame);
+    t.expect(falseFlagBuilt,
+             "GEODATA false-first-bit diagnostic frame is locally generated");
+    if (falseFlagBuilt) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1027, false);
+        dwgBuffer input(falseFlagFrame.bytes.data(), falseFlagFrame.bytes.size(),
+                        &codec);
+        GeoDataCodecProbe parsed;
+        const bool read = parsed.parseDwg(DRW::AC1027, &input,
+                                          falseFlagFrame.handleBits);
+        t.expect(read && parsed.m_civilTail.m_present
+                     && !parsed.m_civilTail.m_hasCivilData
+                     && parsed.m_civilTail.m_coordinateProjectionRadius == 456.75,
+                 "false CIVIL data bit does not suppress or shift the fixed tail");
+    }
+
+    GeoDataFrame truncatedFrame;
+    const bool truncatedBuilt = makeLiteralGeoDataFrame(
+        DRW::AC1027, 2, true, true, true, true, truncatedFrame);
+    t.expect(truncatedBuilt, "GEODATA truncated-tail frame builds locally");
+    if (truncatedBuilt) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1027, false);
+        dwgBuffer truncatedInput(truncatedFrame.bytes.data(),
+                                 truncatedFrame.bytes.size(), &codec);
+        GeoDataCodecProbe reused;
+        const bool rejected = !reused.parseDwg(
+            DRW::AC1027, &truncatedInput, truncatedFrame.handleBits);
+        t.expect(rejected && reused.m_version == 0
+                     && !reused.m_civilTail.m_present
+                     && reused.m_points.empty() && reused.m_faces.empty(),
+                 "truncated CIVIL tail fails without publishing partial GEODATA");
+
+        GeoDataFrame retryFrame;
+        const bool retryBuilt = makeLiteralGeoDataFrame(
+            DRW::AC1027, 2, true, true, true, false, retryFrame);
+        DRW_TextCodec retryCodec;
+        retryCodec.setVersion(DRW::AC1027, false);
+        dwgBuffer retryInput(retryFrame.bytes.data(), retryFrame.bytes.size(),
+                             &retryCodec);
+        const bool retried = retryBuilt && reused.parseDwg(
+            DRW::AC1027, &retryInput, retryFrame.handleBits);
+        t.expect(retried && reused.m_civilTail.m_present
+                     && reused.m_civilTail.m_coordinateProjectionRadius == 456.75,
+                 "the same GEODATA parser instance succeeds after a rejected truncated frame");
+    }
+}
+
 void testOptionalStreamFallbacks(TestContext& t) {
     for (DRW::Version version : kVersions) {
         PlotSettingsEncodeProbe plotSettings;
@@ -733,6 +1035,7 @@ int main() {
     testOpaqueXRecordReplayGuards(context);
     testPlotSettingsVectors(context);
     testLayoutVectors(context);
+    testGeoDataCivilTailReaderVectors(context);
     testOptionalStreamFallbacks(context);
     testLtypeTextAreaVectors(context);
     if (context.failures != 0) {

@@ -18706,6 +18706,7 @@ void DRW_GeoData::reset() {
     m_observationCoverageTag.clear();
     m_points.clear();
     m_faces.clear();
+    m_civilTail = DRW_GeoCivilTail{};
 }
 
 bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -18880,6 +18881,41 @@ bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
         parsedFaces.push_back(face);
     }
 
+    // ODA §20.4.78 gates this fixed-length block on the target DWG release,
+    // not the GEODATA object version.  The leading bit is data, not a tail
+    // presence discriminator; consume every field whenever the target gate
+    // says the block exists, even when that bit is false.
+    DRW_GeoCivilTail parsedCivilTail;
+    if (version >= DRW::AC1021 && version <= DRW::AC1027) {
+        parsedCivilTail.m_present = true;
+        if (!readBit(parsedCivilTail.m_hasCivilData)
+            || !readBit(parsedCivilTail.m_reservedFlag1))
+            return fail();
+        for (double& value : parsedCivilTail.m_referenceCoordinates) {
+            if (!readRawDoubleWithinBody(bodyBuf, version, bodyEnd, value)
+                || !std::isfinite(value))
+                return fail();
+        }
+        for (std::int32_t& value : parsedCivilTail.m_reservedLongs) {
+            if (!readLong(value))
+                return fail();
+        }
+        for (double& value : parsedCivilTail.m_reservedCoordinates) {
+            if (!readRawDoubleWithinBody(bodyBuf, version, bodyEnd, value)
+                || !std::isfinite(value))
+                return fail();
+        }
+        if (!readBit(parsedCivilTail.m_reservedFlag2)
+            || !readDouble(parsedCivilTail.m_northDirectionDegrees)
+            || !readDouble(parsedCivilTail.m_northDirectionRadians)
+            || !readLong(parsedCivilTail.m_scaleEstimationMethod)
+            || !readDouble(parsedCivilTail.m_userSpecifiedScaleFactor)
+            || !readBit(parsedCivilTail.m_enableSeaLevelCorrection)
+            || !readDouble(parsedCivilTail.m_seaLevelElevation)
+            || !readDouble(parsedCivilTail.m_coordinateProjectionRadius))
+            return fail();
+    }
+
     const std::uint64_t bodyBitOffset = currentObjectDwgBit(bodyBuf);
     if (!bodyBuf->isGood() || !bodyStringBuf->isGood()
         || !objectBodyFitsSize(bodyBitOffset, bodyEnd)
@@ -18945,6 +18981,7 @@ bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
     m_observationCoverageTag = parsedObservationCoverageTag;
     m_points = std::move(parsedPoints);
     m_faces = std::move(parsedFaces);
+    m_civilTail = parsedCivilTail;
     parentHandle = parsedParentHandle;
     reactorHandles = std::move(parsedReactors);
     xDictHandle = parsedXDictHandle;

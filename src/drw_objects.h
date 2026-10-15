@@ -1482,6 +1482,28 @@ struct DRW_GeoMeshFace {
   std::int32_t m_index3 = 0;
 };
 
+//! DWG-only CIVIL tail carried by GEODATA in AC1021 through AC1027.
+//! The fields are retained in wire order; several are undocumented reserved
+//! values and are deliberately not interpreted or folded into the main body.
+struct DRW_GeoCivilTail {
+  bool m_present = false;
+  bool m_hasCivilData = true;
+  bool m_reservedFlag1 = false;
+  // ODA §20.4.78 order: Reference Y, Reference X, Reference Y, Reference X.
+  std::array<double, 4> m_referenceCoordinates{{0.0, 0.0, 0.0, 0.0}};
+  std::array<std::int32_t, 2> m_reservedLongs{{0, 0}};
+  // Two 2RD pairs, retained as X/Y scalar slots in their original order.
+  std::array<double, 4> m_reservedCoordinates{{0.0, 0.0, 0.0, 0.0}};
+  bool m_reservedFlag2 = false;
+  double m_northDirectionDegrees = 0.0;
+  double m_northDirectionRadians = 0.0;
+  std::int32_t m_scaleEstimationMethod = 1;
+  double m_userSpecifiedScaleFactor = 1.0;
+  bool m_enableSeaLevelCorrection = false;
+  double m_seaLevelElevation = 0.0;
+  double m_coordinateProjectionRadius = 0.0;
+};
+
 //! GEODATA object carrying drawing geolocation metadata.
 class DRW_GeoData : public DRW_TableEntry {
   SETOBJFRIENDS
@@ -1510,7 +1532,7 @@ public:
       m_geoRssTag(o.m_geoRssTag), m_observationFromTag(o.m_observationFromTag),
       m_observationToTag(o.m_observationToTag),
       m_observationCoverageTag(o.m_observationCoverageTag),
-      m_points(o.m_points), m_faces(o.m_faces) {
+      m_points(o.m_points), m_faces(o.m_faces), m_civilTail(o.m_civilTail) {
     tType = o.tType;
   }
   DRW_GeoData& operator=(const DRW_GeoData& o) {
@@ -1543,6 +1565,7 @@ public:
       m_observationCoverageTag = o.m_observationCoverageTag;
       m_points = o.m_points;
       m_faces = o.m_faces;
+      m_civilTail = o.m_civilTail;
       tType = o.tType;
     }
     return *this;
@@ -1585,6 +1608,7 @@ public:
   UTF8STRING m_observationCoverageTag;
   std::vector<DRW_GeoMeshPoint> m_points;
   std::vector<DRW_GeoMeshFace> m_faces;
+  DRW_GeoCivilTail m_civilTail;
 };
 
 struct DRW_TableGeometryContent {
