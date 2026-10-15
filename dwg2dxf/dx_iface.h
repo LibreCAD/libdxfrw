@@ -106,6 +106,9 @@ public:
     virtual void addVport(const DRW_Vport& data) override{
         cData->VPorts.push_back(data);
     }
+    virtual void addUCS(const DRW_UCS& data) override{
+        cData->ucsList.push_back(data);
+    }
     virtual void addTextStyle(const DRW_Textstyle& data) override{
         cData->textStyles.push_back(data);
     }
@@ -469,6 +472,10 @@ public:
     virtual void writeVports() override{
         for (std::list<DRW_Vport>::iterator it=cData->VPorts.begin(); it != cData->VPorts.end(); ++it)
             dxfW->writeVport(&(*it));
+    }
+    virtual void writeUCSs() override{
+        for (std::list<DRW_UCS>::iterator it=cData->ucsList.begin(); it != cData->ucsList.end(); ++it)
+            dxfW->writeUCS(&(*it));
     }
     virtual void writeDimstyles() override{
         for (std::list<DRW_Dimstyle>::iterator it=cData->dimStyles.begin(); it != cData->dimStyles.end(); ++it)

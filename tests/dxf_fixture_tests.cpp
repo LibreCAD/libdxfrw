@@ -246,6 +246,28 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
             && integer(70, 0) && integer(280, 1) && integer(281, 0)
             && string(340, layoutHandle);
     };
+    const auto ucs = [&string, &integer, &writer](const char* handle,
+                                                   const char* name,
+                                                   double x, double y,
+                                                   double z) {
+        return string(0, "UCS") && string(5, handle)
+            && string(330, "7") && string(100, "AcDbSymbolTableRecord")
+            && string(100, "AcDbUCSTableRecord") && string(2, name)
+            && integer(70, 0)
+            && writer->writeDouble(10, x)
+            && writer->writeDouble(20, y)
+            && writer->writeDouble(30, z)
+            && writer->writeDouble(11, 1.0)
+            && writer->writeDouble(21, 0.0)
+            && writer->writeDouble(31, 0.0)
+            && writer->writeDouble(12, 0.0)
+            && writer->writeDouble(22, 1.0)
+            && writer->writeDouble(32, 0.0)
+            && writer->writeDouble(13, 0.0)
+            && writer->writeDouble(23, 0.0)
+            && writer->writeDouble(33, 0.0)
+            && integer(79, 0) && writer->writeDouble(146, 0.0);
+    };
     const auto layout = [&string, &integer](const char* handle,
                                              const char* name,
                                              const char* blockRecordHandle,
@@ -253,12 +275,14 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
                                              const char* viewportHandle = nullptr,
                                              const char* namedUcsHandle = nullptr,
                                              const char* baseUcsHandle = nullptr,
-                                             const char* shadePlotHandle = nullptr) {
+                                             const char* shadePlotHandle = nullptr,
+                                             int orthoViewType = 0) {
         return string(0, "LAYOUT") && string(5, handle)
             && string(102, "{ACAD_REACTORS") && string(330, "500")
             && string(102, "}") && string(330, "500")
             && string(100, "AcDbPlotSettings") && string(1, "")
             && string(100, "AcDbLayout") && integer(71, tabOrder)
+            && integer(76, orthoViewType)
             && string(1, name) && string(330, blockRecordHandle)
             && (viewportHandle == nullptr || string(331, viewportHandle))
             && (namedUcsHandle == nullptr || string(345, namedUcsHandle))
@@ -323,6 +347,12 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
         && blockRecord("601", "*Paper_Space", "200")
         && blockRecord("602", "*Model_Space", "202")
         && blockRecord("603", "*Paper_Space0", "201")
+        && string(0, "ENDTAB") && string(0, "TABLE")
+        && string(2, "UCS") && string(5, "7")
+        && string(330, "0") && string(100, "AcDbSymbolTable")
+        && integer(70, 2)
+        && ucs("701", "Sheet_UCS", 10.0, 20.0, 30.0)
+        && ucs("702", "Base_UCS", 1.0, 2.0, 3.0)
         && string(0, "ENDTAB") && string(0, "ENDSEC")
         && string(0, "SECTION") && string(2, "BLOCKS")
         && blockDefinition("*Paper_Space", "601", "611", "612", false)
@@ -341,8 +371,9 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
         && string(330, "0") && string(100, "AcDbDictionary")
         && integer(280, 1) && integer(281, 1)
         && string(3, "ACAD_LAYOUT") && string(350, "500")
-        && layout("200", "Sheet A", "601", 1, "700", "701", "702", "703")
-        && layout("201", "Sheet B", "603", 2, "704")
+        && layout("200", "Sheet A", "601", 1, "700", "701", "702", "703", 1)
+        && layout("201", "Sheet B", "603", 2, "704", nullptr, nullptr,
+                  nullptr, 2)
         && layout("202", "Model", "602", 0)
         && string(0, "DICTIONARY") && string(5, "500")
         && string(330, "B0") && string(100, "AcDbDictionary")
@@ -352,6 +383,44 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
         && string(3, "Model") && string(350, "202")
         && string(0, "ENDSEC") && string(0, "EOF");
     return written && !writer->hasWriteError() && output.good();
+}
+
+bool ucsTableRecordsOmitGroup345(const std::filesystem::path& path,
+                                 bool binary, std::size_t expectedCount) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input)
+        return false;
+    std::unique_ptr<dxfReader> reader;
+    if (binary) {
+        input.seekg(22);
+        reader = std::make_unique<dxfReaderBinary>(&input);
+    } else {
+        reader = std::make_unique<dxfReaderAscii>(&input);
+    }
+
+    std::vector<std::vector<int>> ucsCodes;
+    std::vector<int>* currentUcs = nullptr;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const std::string recordType = reader->getString();
+            currentUcs = nullptr;
+            if (recordType == "UCS") {
+                ucsCodes.emplace_back();
+                currentUcs = &ucsCodes.back();
+            } else if (recordType == "EOF") {
+                break;
+            }
+        }
+        if (currentUcs != nullptr)
+            currentUcs->push_back(code);
+    }
+    return ucsCodes.size() == expectedCount
+        && std::all_of(ucsCodes.begin(), ucsCodes.end(),
+                       [](const std::vector<int>& codes) {
+                           return std::find(codes.begin(), codes.end(), 345)
+                               == codes.end();
+                       });
 }
 
 void testLayoutGraphReadContract(TestContext& t) {
@@ -400,6 +469,22 @@ void testLayoutGraphReadContract(TestContext& t) {
                      && layoutDictionary->parentHandle == 0xB0u
                      && layoutDictionary->m_entries.size() == 3,
                  "root ACAD_LAYOUT dictionary and inner named-layout mapping stay distinct");
+        const auto parsedSheetUcs = std::find_if(
+            data.ucsList.begin(), data.ucsList.end(),
+            [](const DRW_UCS& value) { return value.handle == 0x701u; });
+        const auto parsedBaseUcs = std::find_if(
+            data.ucsList.begin(), data.ucsList.end(),
+            [](const DRW_UCS& value) { return value.handle == 0x702u; });
+        t.expect(data.ucsList.size() == 2u
+                     && parsedSheetUcs != data.ucsList.end()
+                     && parsedSheetUcs->name == "Sheet_UCS"
+                     && parsedSheetUcs->origin.x == 10.0
+                     && parsedSheetUcs->origin.y == 20.0
+                     && parsedSheetUcs->origin.z == 30.0
+                     && parsedBaseUcs != data.ucsList.end()
+                     && parsedBaseUcs->name == "Base_UCS"
+                     && parsedBaseUcs->origin.x == 1.0,
+                 "ASCII and binary UCS table callbacks retain typed records and identities");
 
         dx_iface adapter;
         dx_data adapterData;
@@ -421,9 +506,10 @@ void testLayoutGraphReadContract(TestContext& t) {
                          [](const DRW_Dictionary& value) {
                              return value.handle == 0x500u;
                          })
+                     && adapterData.ucsList.size() == 2u
                      && adapterData.layouts.size() == 3
                      && adapterData.blockRecords.size() == 3,
-                 "dx_iface retains the positional NOD separately and keeps the typed layout graph");
+                 "dx_iface retains the positional NOD, named UCS rows and typed layout graph");
 
         const auto rejectedOutput = directory
             / (binary ? "invalid-layout-output-binary.dxf"
@@ -527,13 +613,31 @@ void testLayoutGraphReadContract(TestContext& t) {
         t.expect(reciprocalGraph,
                  "each model/paper LAYOUT and BLOCK_RECORD preserve reciprocal typed handles");
         const auto layoutWithViewTargets = findLayout(0x200u);
+        const auto findUcs = [&adapterData](std::uint32_t handle) {
+            return std::find_if(adapterData.ucsList.begin(),
+                adapterData.ucsList.end(), [handle](const DRW_UCS& value) {
+                    return value.handle == handle;
+                });
+        };
+        const auto sheetUcs = findUcs(0x701u);
+        const auto baseUcs = findUcs(0x702u);
         t.expect(layoutWithViewTargets != interface_.layouts.end()
                      && layoutWithViewTargets->lastActiveViewportHandle.ref == 0x700u
                      && layoutWithViewTargets->namedUcsHandle.ref == 0x701u
                      && layoutWithViewTargets->baseUcsHandle.ref == 0x702u
+                     && layoutWithViewTargets->orthoViewType == 1
                      && layoutWithViewTargets->shadePlotHandle.ref == 0x703u,
-                 "distinct VIEWPORT, named UCS, base UCS and shade-plot handles retain their own typed roles");
+                 "LAYOUT VIEWPORT/UCS/shade handles retain typed roles with a valid orthographic base");
+        t.expect(sheetUcs != adapterData.ucsList.end()
+                     && sheetUcs->name == "Sheet_UCS"
+                     && baseUcs != adapterData.ucsList.end()
+                     && baseUcs->name == "Base_UCS",
+                 "LAYOUT 345 and 346 resolve to retained UCS table records by handle");
         const auto layoutSheetB = findLayout(0x201u);
+        t.expect(layoutSheetB != interface_.layouts.end()
+                     && layoutSheetB->orthoViewType == 2
+                     && layoutSheetB->baseUcsHandle.ref == 0,
+                 "orthographic LAYOUT without group 346 uses the implicit WORLD base");
         const DRW_Entity* activePaperLine = findEntity(adapterData, 0x710u);
         const DRW_Entity* activePaperViewport = findEntity(adapterData, 0x700u);
         const DRW_Entity* inactivePaperLine = findEntity(adapterData, 0x711u);
@@ -604,11 +708,9 @@ void testLayoutGraphReadContract(TestContext& t) {
         }
 
         // The source vector intentionally tests typed handle roles above.
-        // VIEWPORT targets are present and form part of this writer closure;
-        // auxiliary UCS and shade-plot targets are outside this fixture.
+        // VIEWPORT and UCS targets form part of this writer closure; the
+        // unresolved shade-plot target remains outside this fixture.
         for (DRW_Layout& layout : adapterData.layouts) {
-            layout.namedUcsHandle.ref = 0;
-            layout.baseUcsHandle.ref = 0;
             layout.shadePlotHandle.ref = 0;
         }
 
@@ -634,11 +736,91 @@ void testLayoutGraphReadContract(TestContext& t) {
                 DRW::AC1027);
             sheetAForValidation->lastActiveViewportHandle.ref =
                 originalViewportHandle;
+
+            const std::uint32_t originalNamedUcsHandle =
+                sheetAForValidation->namedUcsHandle.ref;
+            sheetAForValidation->namedUcsHandle.ref = 0x777u;
+            expectRejectedWithoutPublication(
+                "missing LAYOUT 345 UCS target is rejected before replacing output",
+                DRW::AC1027);
+            sheetAForValidation->namedUcsHandle.ref = 0x601u;
+            expectRejectedWithoutPublication(
+                "LAYOUT 345 pointing to a BLOCK_RECORD is rejected before output",
+                DRW::AC1027);
+            sheetAForValidation->namedUcsHandle.ref = originalNamedUcsHandle;
+
+            const std::uint32_t originalBaseUcsHandle =
+                sheetAForValidation->baseUcsHandle.ref;
+            sheetAForValidation->baseUcsHandle.ref = 0x778u;
+            expectRejectedWithoutPublication(
+                "missing LAYOUT 346 base UCS target is rejected before replacing output",
+                DRW::AC1027);
+            sheetAForValidation->baseUcsHandle.ref = 0x700u;
+            expectRejectedWithoutPublication(
+                "LAYOUT 346 pointing to a VIEWPORT is rejected before output",
+                DRW::AC1027);
+            sheetAForValidation->baseUcsHandle.ref = originalBaseUcsHandle;
+
+            const int originalOrthoViewType =
+                sheetAForValidation->orthoViewType;
+            sheetAForValidation->orthoViewType = 0;
+            expectRejectedWithoutPublication(
+                "non-orthographic LAYOUT cannot retain a group 346 base UCS",
+                DRW::AC1027);
+            sheetAForValidation->orthoViewType = 7;
+            expectRejectedWithoutPublication(
+                "LAYOUT orthographic type outside the documented range is rejected",
+                DRW::AC1027);
+            sheetAForValidation->orthoViewType = originalOrthoViewType;
         }
-        // Force two source identities through fixed DXF structural handles:
-        // the layout dictionary collides with BLOCK (*Paper_Space), and one
-        // LAYOUT collides with BLOCK (*Model_Space). Re-import for each target
-        // version because a successful write assigns output handles in-place.
+
+        if (sheetUcs != adapterData.ucsList.end()
+            && baseUcs != adapterData.ucsList.end()) {
+            const std::uint32_t originalSheetUcsHandle = sheetUcs->handle;
+            const std::string originalBaseUcsName = baseUcs->name;
+            baseUcs->name = "sheet_ucs";
+            expectRejectedWithoutPublication(
+                "case-insensitive duplicate UCS table names are rejected before output",
+                DRW::AC1027);
+            baseUcs->name = originalBaseUcsName;
+
+            baseUcs->handle = originalSheetUcsHandle;
+            expectRejectedWithoutPublication(
+                "duplicate UCS table handles are rejected before output",
+                DRW::AC1027);
+            baseUcs->handle = 0x702u;
+
+            sheetUcs->handle = 0x700u;
+            expectRejectedWithoutPublication(
+                "UCS table handle collision with an entity is rejected before output",
+                DRW::AC1027);
+            sheetUcs->handle = originalSheetUcsHandle;
+
+            const std::uint32_t originalUcsBaseRef =
+                sheetUcs->baseUcsHandle.ref;
+            sheetUcs->baseUcsHandle.ref = 0x779u;
+            expectRejectedWithoutPublication(
+                "unresolved UCS table-record base reference is rejected before output",
+                DRW::AC1027);
+            sheetUcs->baseUcsHandle.ref = 0x700u;
+            expectRejectedWithoutPublication(
+                "UCS table-record base reference to a VIEWPORT is rejected",
+                DRW::AC1027);
+            sheetUcs->baseUcsHandle.ref = originalUcsBaseRef;
+
+            const std::uint32_t originalUnsupportedNamedRef =
+                sheetUcs->namedUcsHandle.ref;
+            sheetUcs->namedUcsHandle.ref = 0x702u;
+            expectRejectedWithoutPublication(
+                "undocumented UCS table-record group 345 is rejected before output",
+                DRW::AC1027);
+            sheetUcs->namedUcsHandle.ref = originalUnsupportedNamedRef;
+        }
+        // Force source identities through fixed DXF structural handles: the
+        // layout dictionary collides with BLOCK (*Paper_Space), one LAYOUT
+        // collides with BLOCK (*Model_Space), and the named UCS collides with
+        // fixed handle 8. Re-import per target because successful writes assign
+        // output handles in-place.
         const auto applyCollisionRemap = [&t](dx_data& source) {
             auto sourceLayoutDictionary = std::find_if(
                 source.dictionaries.begin(), source.dictionaries.end(),
@@ -661,19 +843,25 @@ void testLayoutGraphReadContract(TestContext& t) {
                 [](const DRW_Block_Record& record) {
                     return record.handle == 0x601u;
                 });
+            auto sourceSheetUcs = std::find_if(
+                source.ucsList.begin(), source.ucsList.end(),
+                [](const DRW_UCS& ucs) { return ucs.name == "Sheet_UCS"; });
             const bool found = sourceLayoutDictionary != source.dictionaries.end()
                 && sourceLayoutEntry
                     != source.namedObjectDictionary.m_entries.end()
                 && sourceSheetA != source.layouts.end()
-                && sourceBlockRecord != source.blockRecords.end();
+                && sourceBlockRecord != source.blockRecords.end()
+                && sourceSheetUcs != source.ucsList.end();
             t.expect(found,
-                     "generated remap collision source objects are present");
+                     "generated layout/UCS remap collision source objects are present");
             if (!found)
                 return;
             sourceLayoutDictionary->handle = 0x1Cu;
             sourceLayoutEntry->m_handle = 0x1Cu;
             sourceSheetA->handle = 0x20u;
             sourceLayoutDictionary->m_entries.front().m_handle = 0x20u;
+            sourceSheetUcs->handle = 0x8u;
+            sourceSheetA->namedUcsHandle.ref = 0x8u;
             for (DRW_Layout& layout : source.layouts)
                 layout.parentHandle = 0x1Cu;
             sourceBlockRecord->layoutHandle = 0x20u;
@@ -694,8 +882,6 @@ void testLayoutGraphReadContract(TestContext& t) {
             if (!sourceRead)
                 continue;
             for (DRW_Layout& layout : exportSource.layouts) {
-                layout.namedUcsHandle.ref = 0;
-                layout.baseUcsHandle.ref = 0;
                 layout.shadePlotHandle.ref = 0;
             }
             applyCollisionRemap(exportSource);
@@ -799,6 +985,46 @@ void testLayoutGraphReadContract(TestContext& t) {
                 + target.second
                 + " keeps active ENTITIES and inactive BLOCKS ownership with closed LAYOUT 331 targets";
             t.expect(exportedEntitySpacesClosed, entitySpaceLabel.c_str());
+
+            const auto findExportedUcs = [&exportedData](const char* name) {
+                return std::find_if(
+                    exportedData.ucsList.begin(), exportedData.ucsList.end(),
+                    [name](const DRW_UCS& ucs) {
+                        return ucs.name == name;
+                    });
+            };
+            const auto exportedSheetUcs = findExportedUcs("Sheet_UCS");
+            const auto exportedBaseUcs = findExportedUcs("Base_UCS");
+            const auto exportedSheetA = std::find_if(
+                exportedData.layouts.begin(), exportedData.layouts.end(),
+                [](const DRW_Layout& layout) {
+                    return layout.name == "Sheet A";
+                });
+            const auto exportedSheetB = std::find_if(
+                exportedData.layouts.begin(), exportedData.layouts.end(),
+                [](const DRW_Layout& layout) {
+                    return layout.name == "Sheet B";
+                });
+            const bool exportedUcsGraphClosed =
+                exportedData.ucsList.size() == 2u
+                && exportedSheetUcs != exportedData.ucsList.end()
+                && exportedSheetUcs->handle != 0x8u
+                && exportedBaseUcs != exportedData.ucsList.end()
+                && exportedBaseUcs->name == "Base_UCS"
+                && exportedSheetA != exportedData.layouts.end()
+                && exportedSheetA->namedUcsHandle.ref
+                    == exportedSheetUcs->handle
+                && exportedSheetA->baseUcsHandle.ref == 0x702u
+                && exportedSheetA->orthoViewType == 1
+                && exportedSheetB != exportedData.layouts.end()
+                && exportedSheetB->orthoViewType == 2
+                && exportedSheetB->baseUcsHandle.ref == 0;
+            const std::string ucsGraphLabel = std::string("exported ")
+                + target.second
+                + " retains named/base UCS links and the implicit WORLD base";
+            t.expect(exportedUcsGraphClosed, ucsGraphLabel.c_str());
+            t.expect(ucsTableRecordsOmitGroup345(exportedPath, binary, 2u),
+                     "UCS table writer omits the undocumented group 345");
         }
     }
 }

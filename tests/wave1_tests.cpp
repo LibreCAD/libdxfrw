@@ -1769,6 +1769,7 @@ void testLayoutStyleNumericWireKinds(TestContext& t) {
         layout.handle = 0xA706u;
         layout.parentHandle = 0xA700u;
         layout.name = "WIRE_LAYOUT_LINKS";
+        layout.orthoViewType = 1;
         layout.shadePlotHandle.ref = 0xA702u;
         layout.paperSpaceBlockRecordHandle.ref = 0xA701u;
         layout.lastActiveViewportHandle.ref = 0xA703u;

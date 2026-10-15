@@ -1956,12 +1956,67 @@ std::string layoutSymbolKey(std::string value) {
 
 bool validateLayoutGraph(const dx_data& data, const char*& failure) {
     failure = "layout graph is incomplete or ambiguous";
+    const auto validateUcsTargets = [&data](
+            std::unordered_set<std::uint32_t>* structuralHandles) {
+        std::unordered_map<std::uint32_t, const DRW_UCS*> ucsByHandle;
+        std::unordered_set<std::string> ucsNames;
+        for (const DRW_UCS& ucs : data.ucsList) {
+            const std::string key = layoutSymbolKey(ucs.name);
+            if (ucs.handle == 0 || ucs.handle == DRW::NoHandle
+                || ucs.namedUcsHandle.ref != 0 || key.empty()
+                || !ucsNames.insert(key).second
+                || !ucsByHandle.emplace(ucs.handle, &ucs).second
+                || (structuralHandles != nullptr
+                    && !structuralHandles->insert(ucs.handle).second))
+                return false;
+        }
+
+        std::unordered_set<std::uint32_t> entityHandles;
+        const auto collectEntityHandles = [&entityHandles](
+                const std::list<DRW_Entity*>& entities) {
+            for (const DRW_Entity* entity : entities) {
+                if (entity != nullptr && entity->handle != 0
+                    && entity->handle != DRW::NoHandle)
+                    entityHandles.insert(entity->handle);
+            }
+        };
+        if (data.mBlock != nullptr)
+            collectEntityHandles(data.mBlock->ent);
+        for (const dx_ifaceBlock* block : data.blocks) {
+            if (block != nullptr)
+                collectEntityHandles(block->ent);
+        }
+        for (const auto& ucs : ucsByHandle) {
+            if (entityHandles.count(ucs.first) != 0)
+                return false;
+        }
+
+        for (const DRW_UCS& ucs : data.ucsList) {
+            if (ucs.baseUcsHandle.ref != 0
+                && ucsByHandle.count(ucs.baseUcsHandle.ref) != 1u)
+                return false;
+        }
+        for (const DRW_Layout& layout : data.layouts) {
+            if (layout.orthoViewType < 0 || layout.orthoViewType > 6
+                || (layout.baseUcsHandle.ref != 0
+                    && layout.orthoViewType == 0))
+                return false;
+            const std::uint32_t refs[] = {
+                layout.namedUcsHandle.ref, layout.baseUcsHandle.ref
+            };
+            for (const std::uint32_t handle : refs) {
+                if (handle != 0 && ucsByHandle.count(handle) != 1u)
+                    return false;
+            }
+        }
+        return true;
+    };
     // DWG space ownership is encoded through DWG header/control references,
     // not the DXF NOD/ACAD_LAYOUT dictionary. Keep that route on its own
     // decoder/adapter lane unless it explicitly supplies the DXF graph.
     if (data.sourceFormat == dx_source_format::DWG
         && !data.hasNamedObjectDictionary)
-        return true;
+        return validateUcsTargets(nullptr);
     const bool hasLayoutBacklink = std::any_of(
         data.blockRecords.begin(), data.blockRecords.end(),
         [](const DRW_Block_Record& record) { return record.layoutHandle != 0; });
@@ -1975,7 +2030,7 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
             });
     }
     if (data.layouts.empty() && !hasLayoutBacklink && !hasRootEntry)
-        return true;
+        return validateUcsTargets(nullptr);
 
     if (!data.hasNamedObjectDictionary
         || data.namedObjectDictionary.handle == 0
@@ -2051,6 +2106,8 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
                                       record.handle).second)
             return false;
     }
+    if (!validateUcsTargets(&structuralHandles))
+        return false;
     std::unordered_set<std::uint32_t> associatedRecords;
     for (const DRW_Layout& layout : data.layouts) {
         const std::uint32_t blockRecordHandle =
@@ -2450,6 +2507,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
+    for (const DRW_UCS& ucs : cData->ucsList) {
+        if (ucs.handle != 0 && ucs.handle != DRW::NoHandle
+            && !dxfW->reserveHandle(ucs.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
     for (const DRW_XRecord& record : cData->xRecords) {
         if (record.handle != 0 && !dxfW->reserveHandle(record.handle)) {
             delete dxfW;
@@ -2549,6 +2614,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     for (const DRW_Layout& layout : cData->layouts) {
         if (!remapFixedCollision(layout.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
+    for (const DRW_UCS& ucs : cData->ucsList) {
+        if (!remapFixedCollision(ucs.handle)) {
             delete dxfW;
             dxfW = nullptr;
             return false;

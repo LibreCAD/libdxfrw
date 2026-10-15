@@ -5760,7 +5760,12 @@ bool DRW_UCS::validatePayloadFields() const {
 bool DRW_UCS::validateDxf() const {
     return validatePayloadFields()
         && flags <= std::numeric_limits<std::int16_t>::max()
-        && orthoType <= std::numeric_limits<std::int16_t>::max();
+        && orthoType <= std::numeric_limits<std::int16_t>::max()
+        // Autodesk's UCS table-record DXF contract defines 346 as the
+        // optional base-UCS reference but does not define a 345 field here.
+        // namedUcsHandle is retained for the DWG handle stream only; do not
+        // serialize it as an undocumented UCS table tag.
+        && namedUcsHandle.ref == 0;
 }
 
 bool DRW_UCS::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){

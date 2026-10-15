@@ -4354,8 +4354,16 @@ bool dxfRW::writeUCS(DRW_UCS *ent){
     bool result = true;
     const auto write = [&result](bool ok) { result = ok && result; };
     std::uint32_t allocatedHandle = 0;
-    if (version > DRW::AC1009 && !allocateDxfHandle(allocatedHandle))
-        return false;
+    if (version > DRW::AC1009) {
+        allocatedHandle = remapObjectHandle(ent->handle);
+        if (allocatedHandle != 0) {
+            if (isDxfFixedOutputHandle(allocatedHandle)
+                || !reserveHandle(allocatedHandle))
+                return false;
+        } else if (!allocateDxfHandle(allocatedHandle)) {
+            return false;
+        }
+    }
     write(writer->writeString(0, "UCS"));
     if (version > DRW::AC1009) {
         write(writer->writeString(5, toHexStr(allocatedHandle)));
@@ -4387,9 +4395,8 @@ bool dxfRW::writeUCS(DRW_UCS *ent){
         write(writer->writeInt16(79, ent->orthoType));
         write(writer->writeDouble(146, ent->elevation));
         if (ent->baseUcsHandle.ref != 0)
-            write(writer->writeString(346, toHexStr(ent->baseUcsHandle.ref)));
-        if (ent->namedUcsHandle.ref != 0)
-            write(writer->writeString(345, toHexStr(ent->namedUcsHandle.ref)));
+            write(writer->writeString(
+                346, toHexStr(remapObjectHandle(ent->baseUcsHandle.ref))));
     }
     if (!ent->extData.empty())
         result = writeExtData(ent->extData) && result;
@@ -17565,6 +17572,9 @@ bool dxfRW::writeLayout(DRW_Layout *ent) {
         m_writeError = true;
         return false;
     }
+    if (ent->orthoViewType < 0 || ent->orthoViewType > 6
+        || (ent->orthoViewType == 0 && ent->baseUcsHandle.ref != 0))
+        return failDxfWrite();
     if (!isValidDxfPlotCustomDpi(version, ent->shadePlotResLevel,
                                ent->shadePlotCustomDPI))
         return failDxfWrite();
