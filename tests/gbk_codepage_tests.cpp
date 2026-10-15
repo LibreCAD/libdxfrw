@@ -250,6 +250,153 @@ void testCodePageAliases(TestContext& t) {
              "valid supplementary codepoint keeps documented fallback");
 }
 
+
+struct CodePageAnchor {
+    const char* name;
+    const char* bytes;
+    const char* utf8;
+};
+
+void testCodePagePolicyAnchors(TestContext& t) {
+    // Literal Unicode anchors, independently checked with the standard
+    // codecs and Unicode vendor mapping references. No peer fallback or
+    // local table is used to derive the expected text.
+    const CodePageAnchor canonical[] = {
+        {"ANSI_874", "\xA1", "\xE0\xB8\x81"},
+        {"ANSI_932", "\x82\xA0", "\xE3\x81\x82"},
+        {"ANSI_936", "\xD6\xD0", "\xE4\xB8\xAD"},
+        {"ANSI_949", "\xB0\xA1", "\xEA\xB0\x80"},
+        {"ANSI_950", "\xA4\xA4", "\xE4\xB8\xAD"},
+        {"ANSI_1250", "\xA5", "\xC4\x84"},
+        {"ANSI_1251", "\xC0", "\xD0\x90"},
+        {"ANSI_1252", "\xE9", "\xC3\xA9"},
+        {"ANSI_1253", "\xC1", "\xCE\x91"},
+        {"ANSI_1254", "\xD0", "\xC4\x9E"},
+        {"ANSI_1255", "\xE0", "\xD7\x90"},
+        {"ANSI_1256", "\xC7", "\xD8\xA7"},
+        {"ANSI_1257", "\xC0", "\xC4\x84"},
+        {"ANSI_1258", "\xD5", "\xC6\xA0"}
+    };
+    std::size_t canonicalCases = 0, escapeCases = 0, modernCases = 0;
+    for (bool dxf : {false, true}) {
+        for (const auto& row : canonical) {
+            DRW_TextCodec codec;
+            codec.setVersion(DRW::AC1015, dxf);
+            codec.setCodePage(row.name, dxf);
+            const std::string bytes = std::string("L") + row.bytes + "R";
+            const std::string utf8 = std::string("L") + row.utf8 + "R";
+            const std::string label = std::string("canonical codec byte/scalar/encode anchor: ") + row.name;
+            t.expect(codec.getCodePage() == row.name
+                         && codec.toUtf8(bytes) == utf8
+                         && codec.fromUtf8(utf8) == bytes, label.c_str());
+            ++canonicalCases;
+        }
+        struct EscapeAnchor {
+            const char* bytes;
+            const char* utf8;
+            const char* emitted;
+        };
+        const EscapeAnchor hkscs[] = {
+            {"\x88\x62", "\xC3\x8A\xCC\x84", "\x88\x66" R"(\U+0304)"},
+            {"\x88\x64", "\xC3\x8A\xCC\x8C", "\x88\x66" R"(\U+030C)"},
+            {"\x88\xA3", "\xC3\xAA\xCC\x84", "\x88\xA7" R"(\U+0304)"},
+            {"\x88\xA5", "\xC3\xAA\xCC\x8C", "\x88\xA7" R"(\U+030C)"}
+        };
+        for (const auto& row : hkscs) {
+            DRW_TextCodec codec;
+            codec.setVersion(DRW::AC1015, dxf);
+            codec.setCodePage("BIG5-HKSCS", dxf);
+            const std::string decoded = codec.toUtf8(row.bytes);
+            const std::string emitted = codec.fromUtf8(row.utf8);
+            t.expect(decoded == row.utf8 && emitted == row.emitted
+                         && emitted != row.bytes && codec.toUtf8(emitted) == row.utf8,
+                     "HKSCS two-scalar CIF transport preserves meaning without byte identity");
+            ++escapeCases;
+        }
+    }
+    for (DRW::Version version : {DRW::AC1021, DRW::AC1032}) {
+        for (const char* declaration : {"ANSI_1252", "ANSI_949", "unknown-local-test-codepage"}) {
+            DRW_TextCodec codec;
+            codec.setVersion(version, true);
+            codec.setCodePage(declaration, true);
+            const std::string utf8 = "\xC3\xA9\xE4\xB8\xAD";
+            t.expect(codec.toUtf8(utf8) == utf8 && codec.fromUtf8(utf8) == utf8,
+                     "modern DXF stays UTF8 independently of legacy codepage metadata");
+            ++modernCases;
+        }
+    }
+    std::cout << "Codepage policy anchors: canonical=" << canonicalCases
+              << ", two-scalar escapes=" << escapeCases
+              << ", modern UTF8=" << modernCases << '\n';
+}
+
+std::size_t auditNamedCodePageAliases(TestContext& t, const std::string& filter) {
+    // Opt-in discriminating audit, not a mandatory test or a claim that
+    // every historical/extra alias is a supported format declaration.
+    // Expected standard-codec meaning is frozen independently of this codec.
+    // Keep this mode red until the corresponding mapping/policy is resolved.
+    const CodePageAnchor rows[] = {
+        {"ANSI_1252", "\x80", "\xE2\x82\xAC"},
+        {"LATIN1", "\x80", "\xC2\x80"},
+        {"ISO-8859-1", "\x80", "\xC2\x80"},
+        {"ISO8859-2", "\xA1", "\xC4\x84"},
+        {"ISO8859-3", "\xA1", "\xC4\xA6"},
+        {"ISO8859-4", "\xA1", "\xC4\x84"},
+        {"ISO8859-5", "\xB0", "\xD0\x90"},
+        {"KOI8-R", "\xE1", "\xD0\x90"},
+        {"KOI8-U", "\xE1", "\xD0\x90"},
+        {"IBM 866", "\x80", "\xD0\x90"},
+        {"CP866", "\x80", "\xD0\x90"},
+        {"IBM 850", "\x80", "\xC3\x87"},
+        {"CP850", "\x80", "\xC3\x87"},
+        {"APPLE ROMAN", "\x80", "\xC3\x84"},
+        {"MACINTOSH", "\x80", "\xC3\x84"},
+        {"ISO8859-6", "\xAC", "\xD8\x8C"},
+        {"ISO8859-7", "\xA1", "\xE2\x80\x98"},
+        {"ISO8859-8", "\xE0", "\xD7\x90"},
+        {"ISO8859-9", "\xD0", "\xC4\x9E"},
+        {"ISO8859-10", "\xA1", "\xC4\x84"},
+        {"ISO8859-13", "\xA1", "\xE2\x80\x9D"},
+        {"ISO8859-15", "\xA4", "\xE2\x82\xAC"},
+        {"ISO8859-8", "\xDF", "\xE2\x80\x97"},
+        {"ISO8859-9", "\x80", "\xC2\x80"},
+        {"EUC-JP", "\xA4\xA2", "\xE3\x81\x82"},
+        {"ANSI_932", "\x82\xA0", "\xE3\x81\x82"},
+        {"GB18030", "\x81\x30\x81\x30", "\xC2\x80"},
+        {"ANSI_936", "\xD6\xD0", "\xE4\xB8\xAD"},
+        {"ANSI_949", "\xB0\xA1", "\xEA\xB0\x80"},
+        {"ansi_949", "\xB0\xA1", "\xEA\xB0\x80"},
+        {"BIG5-HKSCS", "\x88\x62", "\xC3\x8A\xCC\x84"},
+        {"ANSI_950", "\xA4\xA4", "\xE4\xB8\xAD"},
+        {"BIG5-HKSCS", "\x88\x64", "\xC3\x8A\xCC\x8C"},
+        {"BIG5-HKSCS", "\x88\xA3", "\xC3\xAA\xCC\x84"},
+        {"BIG5-HKSCS", "\x88\xA5", "\xC3\xAA\xCC\x8C"},
+    };
+    std::size_t cases = 0, byteStableWrong = 0, empty = 0;
+    for (bool dxf : {false, true}) {
+        for (const auto& row : rows) {
+            if (!filter.empty() && filter != row.name)
+                continue;
+            DRW_TextCodec codec;
+            codec.setVersion(DRW::AC1015, dxf);
+            codec.setCodePage(row.name, dxf);
+            const std::string decoded = codec.toUtf8(row.bytes);
+            const std::string label = std::string("named-codec semantics: ") + row.name;
+            t.expect(decoded == row.utf8, label.c_str());
+            if (decoded != row.utf8 && codec.fromUtf8(decoded) == row.bytes)
+                ++byteStableWrong;
+            if (decoded.empty())
+                ++empty;
+            ++cases;
+        }
+    }
+    std::cout << "Named-codec alias audit: cases=" << cases
+              << ", mismatches=" << t.failures
+              << ", byte-stable wrong=" << byteStableWrong
+              << ", empty=" << empty << '\n';
+    return cases;
+}
+
 void testMifEscapePolicy(TestContext& t) {
     struct MifCase { const char* source; const char* expected; };
     const std::vector<MifCase> cases{
@@ -801,6 +948,14 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--codepage-policy") {
+        testCodePagePolicyAnchors(context);
+        return context.failures == 0 ? 0 : 1;
+    }
+    if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--codepage-alias-audit") {
+        const auto cases = auditNamedCodePageAliases(context, argc == 3 ? argv[2] : "");
+        return cases == 0 ? 2 : context.failures == 0 ? 0 : 1;
+    }
     testMifEscapePolicy(context);
     testMifLiteralModelRoundTrip(context);
     if (argc == 2 && std::string(argv[1]) == "--mif-policy") {
@@ -810,6 +965,7 @@ int main(int argc, char** argv) {
     if (argc != 1)
         return 2;
     testCodePageAliases(context);
+    testCodePagePolicyAnchors(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);
     testDxfWriters(context);
