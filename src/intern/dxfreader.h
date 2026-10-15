@@ -154,13 +154,20 @@ public:
     // this record's reader buffers. The charge ends when readRec invalidates
     // this record or the reader is destroyed.
     bool retainCurrentRecordBytes(std::size_t bytes) noexcept {
-        if (bytes == 0)
+        if (bytes == 0 || m_retainedByteBudget == nullptr)
             return true;
-        if (m_retainedByteBudget == nullptr
-            || !m_retainedByteBudget->reserve(bytes))
+        if (!m_retainedByteBudget->reserve(bytes))
             return false;
         m_currentRecordRetainedBytes += bytes;
         return true;
+    }
+    void releaseCurrentRecordBytes(std::size_t bytes) noexcept {
+        const std::size_t released =
+            bytes < m_currentRecordRetainedBytes
+                ? bytes : m_currentRecordRetainedBytes;
+        if (released != 0 && m_retainedByteBudget != nullptr)
+            m_retainedByteBudget->release(released);
+        m_currentRecordRetainedBytes -= released;
     }
     // A derived parser may consume a non-XDATA field without calling its
     // base. Coordinate assembly must still stop at that physical boundary.
@@ -246,10 +253,22 @@ protected:
     // exposing getline's partial failed prefix. Zero-byte returned I/O/EOF
     // failure adds failbit; an original badbit-mask exception is rethrown first.
     bool readDelimitedToken(std::string& text, char delimiter,
-                            bool allowFinalAsciiValue);
+                            bool allowFinalAsciiValue,
+                            bool retainText = true);
     bool canConsumeInputBytes(std::size_t count) noexcept;
     void accountInputBytes(std::size_t count) noexcept;
     bool readInputBytes(char* destination, std::size_t count);
+    bool copyRawValue(const std::string& value) {
+        if (!retainCurrentRecordBytes(value.size()))
+            return false;
+        try {
+            rawData = value;
+        } catch (...) {
+            releaseCurrentRecordBytes(value.size());
+            throw;
+        }
+        return true;
+    }
     virtual bool readCode(int *code) = 0; //return true if successful (not EOF)
     virtual bool readString(std::string *text) = 0;
     virtual bool readString() = 0;
@@ -296,9 +315,7 @@ private:
     int m_previousCode {0};
 
     void releaseCurrentRecordRetainedBytes() noexcept {
-        if (m_currentRecordRetainedBytes != 0 && m_retainedByteBudget != nullptr)
-            m_retainedByteBudget->release(m_currentRecordRetainedBytes);
-        m_currentRecordRetainedBytes = 0;
+        releaseCurrentRecordBytes(m_currentRecordRetainedBytes);
     }
 };
 

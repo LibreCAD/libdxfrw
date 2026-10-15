@@ -2088,6 +2088,11 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     m_readTokenBudgetActive = true;
     m_readInputByteBudgetActive = true;
     bool isOk {processDxf()};
+    if (reader->retainedByteBudget() != nullptr
+        && reader->retainedByteBudget()->exceeded()) {
+        failDxfReadRetainedBudget();
+        isOk = false;
+    }
     if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
@@ -2150,6 +2155,11 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     m_readTokenBudgetActive = true;
     m_readInputByteBudgetActive = true;
     bool isOk {processDxf()};
+    if (reader->retainedByteBudget() != nullptr
+        && reader->retainedByteBudget()->exceeded()) {
+        failDxfReadRetainedBudget();
+        isOk = false;
+    }
     if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
@@ -18803,11 +18813,8 @@ bool dxfRW::appendDxfReadHeaderComment(const std::string& comment) {
         return failDxfReadRetainedBudget();
     const std::size_t newSize = oldSize + separator + comment.size();
 
-    // readRec retains both the decoded value and original spelling until the
-    // next physical record. Charge those current-record strings before making
-    // a second, persistent header-comment copy.
-    if (!reader->retainCurrentRecordBytes(comment.size() * 2u))
-        return failDxfReadRetainedBudget();
+    // readRec has already charged the decoded value and original spelling.
+    // Reserve the separately accumulated header copy before constructing it.
     if (!m_activeDxfReadRetainedBudget->reserve(newSize))
         return failDxfReadRetainedBudget();
     try {

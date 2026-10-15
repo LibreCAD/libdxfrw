@@ -120,16 +120,26 @@ bool dxfReader::readInputBytes(char* destination, std::size_t count) {
 }
 
 bool dxfReader::readDelimitedToken(std::string& text, char delimiter,
-                                    bool allowFinalAsciiValue) {
+                                    bool allowFinalAsciiValue,
+                                    bool retainText) {
     text.clear();
     // Failed tokens are unusable, including when an exception mask rethrows.
     // Deliberately differ from getline's retained partial failed prefix. This
     // rollback allocates nothing and preserves the original throw.
     struct TokenTextScope {
+        dxfReader& reader;
         std::string& text;
+        bool retainsText {false};
+        std::size_t retainedBytes {0};
         bool accepted {false};
-        ~TokenTextScope() noexcept { if (!accepted) text.clear(); }
-    } token {text};
+        ~TokenTextScope() noexcept {
+            if (!accepted) {
+                text.clear();
+                if (retainsText)
+                    reader.releaseCurrentRecordBytes(retainedBytes);
+            }
+        }
+    } token {*this, text, retainText || &text == &strData};
     if (filestr == nullptr || m_tokenByteBudgetExceeded
         || m_inputByteBudgetExceeded)
         return false;
@@ -199,6 +209,12 @@ bool dxfReader::readDelimitedToken(std::string& text, char delimiter,
         }
         if (extracted > 0) {
             accountInputBytes(static_cast<std::size_t>(extracted));
+            if (token.retainsText) {
+                const std::size_t retained = static_cast<std::size_t>(extracted);
+                if (!retainCurrentRecordBytes(retained))
+                    return false;
+                token.retainedBytes += retained;
+            }
             try {
                 text.append(scratch.data(), static_cast<std::size_t>(extracted));
             } catch (...) {
@@ -388,7 +404,8 @@ bool dxfReaderBinary::readString() {
     type = STRING;
     if (!readDelimitedToken(strData, '\0', false))
         return false;
-    rawData = strData;
+    if (!copyRawValue(strData))
+        return false;
     DRW_DBG(strData); DRW_DBG("\n");
     return (filestr->good());
 }
@@ -397,7 +414,8 @@ bool dxfReaderBinary::readString(std::string *text) {
     type = STRING;
     if (text == nullptr || !readDelimitedToken(*text, '\0', false))
         return false;
-    rawData = *text;
+    if (!copyRawValue(*text))
+        return false;
     DRW_DBG(*text); DRW_DBG("\n");
     return (filestr->good());
 }
@@ -420,6 +438,9 @@ bool dxfReaderBinary::readBinary() {
     if (!canConsumeInputBytes(chunklen))
         return false;
     strData.clear();
+    const std::size_t hexSize = static_cast<std::size_t>(chunklen) * 2u;
+    if (!retainCurrentRecordBytes(hexSize))
+        return false;
     if (!DRW::reserve(strData, static_cast<int>(chunklen) * 2))
         return false;
     std::array<unsigned char, 127> chunk{};
@@ -431,7 +452,8 @@ bool dxfReaderBinary::readBinary() {
         strData.push_back(hex[(u >> 4) & 0xF]);
         strData.push_back(hex[u & 0xF]);
     }
-    rawData = strData;
+    if (!copyRawValue(strData))
+        return false;
     DRW_DBG( chunklen); DRW_DBG( " byte(s) binary data read\n");
 
     return (filestr->good());
@@ -501,7 +523,7 @@ bool dxfReaderBinary::readBool() {
 
 bool dxfReaderAscii::readCode(int *code) {
     std::string text;
-    if (!readDelimitedToken(text, '\n', true))
+    if (!readDelimitedToken(text, '\n', true, false))
         return false;
     if (!text.empty() && text.at(text.size()-1) == '\r')
         text.erase(text.size()-1);
@@ -526,7 +548,8 @@ bool dxfReaderAscii::readString(std::string *text) {
         return false;
     if (!text->empty() && text->at(text->size()-1) == '\r')
         text->erase(text->size()-1);
-    rawData = *text;
+    if (!copyRawValue(*text))
+        return false;
     return (!filestr->fail());
 }
 
@@ -534,9 +557,12 @@ bool dxfReaderAscii::readString() {
     type = STRING;
     if (!readDelimitedToken(strData, '\n', true))
         return false;
-    if (!strData.empty() && strData.at(strData.size()-1) == '\r')
+    if (!strData.empty() && strData.at(strData.size()-1) == '\r') {
         strData.erase(strData.size()-1);
-    rawData = strData;
+        releaseCurrentRecordBytes(1u);
+    }
+    if (!copyRawValue(strData))
+        return false;
     DRW_DBG(strData); DRW_DBG("\n");
     return (!filestr->fail());
 }
