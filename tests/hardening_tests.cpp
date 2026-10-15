@@ -3702,6 +3702,68 @@ void testDxfTextValueOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfArcAlignedFontOwnerBudget(TestContext& t) {
+    class ArcTextParseProbe final : public DRW_ArcAlignedText {
+    public:
+        using DRW_ArcAlignedText::parseCode;
+        using DRW_ArcAlignedText::resetDwgState;
+    };
+    const auto parse = [](ArcTextParseProbe& entity, const std::string& source,
+                          const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!entity.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+    {
+        const std::string source = "2\nOLD\n2\nFONT\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, source, budget) && text.m_fontName == "FONT"
+                     && budget->used() == 4u,
+                 "ARCALIGNEDTEXT code-2 font replacement fits its exact peak");
+        ArcTextParseProbe copy(text);
+        ArcTextParseProbe assigned;
+        assigned = text;
+        text.resetDwgState();
+        t.expect(budget->used() == 4u && copy.m_fontName == "FONT"
+                     && assigned.m_fontName == "FONT",
+                 "ARCALIGNEDTEXT font-name copy/assignment preserve the shared lease");
+        copy.resetDwgState();
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "last copied ARCALIGNEDTEXT font owner releases its charge");
+    }
+    {
+        const std::string source = "2\nOLD\n2\nFONT\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(30u);
+        ArcTextParseProbe text;
+        t.expect(!parse(text, source, budget) && budget->exceeded()
+                     && text.m_fontName == "OLD" && budget->used() == 3u,
+                 "one-byte-under font replacement preserves the previous font name");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected font replacement releases its retained lease on reset");
+    }
+    {
+        const std::string source = "3\nOLD\n3\nBIGF\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, source, budget) && text.m_bigFontName == "BIGF"
+                     && budget->used() == 4u,
+                 "ARCALIGNEDTEXT code-3 big-font replacement fits its exact peak");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases the retained big-font name");
+    }
+}
+
 void testDxfAttribTagOwnerBudget(TestContext& t) {
     class AttribParseProbe final : public DRW_Attrib {
     public:
@@ -6714,6 +6776,7 @@ int main() {
     testDxfCommonStringOwnerBudget(context);
     testDxfTextStyleOwnerBudget(context);
     testDxfTextValueOwnerBudget(context);
+    testDxfArcAlignedFontOwnerBudget(context);
     testDxfAttribTagOwnerBudget(context);
     testDxfAttdefPromptOwnerBudget(context);
     testDxfDimensionStyleOwnerBudget(context);

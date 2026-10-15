@@ -12051,8 +12051,18 @@ bool DRW_ArcAlignedText::parseCode(int code, const std::unique_ptr<dxfReader>& r
                 reader->getUtf8String()))
             return false;
         break;
-    case 2:   m_fontName = reader->getUtf8String(); break;
-    case 3:   m_bigFontName = reader->getUtf8String(); break;
+    case 2:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedFontNameBytes, m_fontName,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 3:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedBigFontNameBytes, m_bigFontName,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 7:
         if (!replaceDxfRetainedStringField(
                 reader, m_dxfRetainedStyleBytes, style,
@@ -12105,6 +12115,8 @@ void DRW_ArcAlignedText::resetDwgState() {
     m_leftOffset.clear();
     m_fontName.clear();
     m_bigFontName.clear();
+    m_dxfRetainedFontNameBytes = 0u;
+    m_dxfRetainedBigFontNameBytes = 0u;
     m_rawColor = 0;
     m_characterSet = 0;
     m_pitchAndFamily = 0;

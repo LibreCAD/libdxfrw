@@ -2384,6 +2384,10 @@ public:
     int m_textPosition;          /*!< code 73 */
     int m_textDirection;         /*!< code 71 */
     std::uint32_t m_arcHandle;   /*!< handle of the followed arc, code 330 */
+
+private:
+    std::size_t m_dxfRetainedFontNameBytes{0};
+    std::size_t m_dxfRetainedBigFontNameBytes{0};
 };
 
 //! Class to handle vertex
