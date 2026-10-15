@@ -1791,12 +1791,14 @@ public:
         if (m_admitted) {
             m_owner.m_wholeOperationActive = true;
             m_owner.m_readTokenBudgetActive = false;
+            m_owner.m_readInputByteBudgetActive = false;
         }
     }
     ~WholeOperationScope() noexcept {
         if (m_admitted) {
             m_owner.m_dxfWriteFinalizing = false;
             m_owner.m_readTokenBudgetActive = false;
+            m_owner.m_readInputByteBudgetActive = false;
             m_owner.m_wholeOperationActive = false;
         }
     }
@@ -2054,12 +2056,14 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         // first group is always code 0 (SECTION): R12 => bytes 00 'S' (byte[1]
         // != 0); R13+ => bytes 00 00. So a non-zero second byte selects the
         // 1-byte reader.
-        if (static_cast<unsigned char>(line[23]) != 0)
+        if (static_cast<unsigned char>(line[23]) != 0) {
             reader = std::make_unique<dxfReaderBinaryR12>(&filestr);
-        else
+        } else {
             reader = std::make_unique<dxfReaderBinary>(&filestr);
+        }
         reader->setRecordBudget(m_dxfReadRecordBudget);
         reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
+        reader->setInputByteBudget(m_dxfReadInputByteBudget, 22u);
         DRW_DBG("dxfRW::read binary file\n");
     } else {
         binFile = false;
@@ -2071,6 +2075,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         reader = std::make_unique<dxfReaderAscii>(&filestr);
         reader->setRecordBudget(m_dxfReadRecordBudget);
         reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
+        reader->setInputByteBudget(m_dxfReadInputByteBudget);
     }
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
@@ -2079,8 +2084,9 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
             : DxfClassifierProfile::StandaloneSafe);
 
     m_readTokenBudgetActive = true;
+    m_readInputByteBudgetActive = true;
     bool isOk {processDxf()};
-    if (reader->tokenByteBudgetExceeded()) {
+    if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
     }
@@ -2123,14 +2129,16 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     reader = std::make_unique<dxfReaderAscii>(&strstream);
     reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
+    reader->setInputByteBudget(m_dxfReadInputByteBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
             ? DxfClassifierProfile::LibreCadMasterLegacy
             : DxfClassifierProfile::StandaloneSafe);
     m_readTokenBudgetActive = true;
+    m_readInputByteBudgetActive = true;
     bool isOk {processDxf()};
-    if (reader->tokenByteBudgetExceeded()) {
+    if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
     }
@@ -18708,6 +18716,13 @@ bool dxfRW::setError(const DRW::error lastError){
             DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,
             "dxf-token-byte-budget", "a DXF token exceeded its raw-byte budget");
         error = DRW::BAD_CODE_PARSED;
+    } else if (m_readInputByteBudgetActive && reader != nullptr
+               && reader->inputByteBudgetExceeded()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,
+            "dxf-input-byte-budget",
+            "the aggregate DXF logical-input byte budget was exhausted");
+        error = DRW::BAD_CODE_PARSED;
     } else {
         error = lastError;
     }
@@ -18719,6 +18734,10 @@ bool dxfRW::failDxfReadBudget() {
     if (reader == nullptr)
         return false;
     if (m_readTokenBudgetActive && reader->tokenByteBudgetExceeded()) {
+        setError(DRW::BAD_CODE_PARSED);
+        return true;
+    }
+    if (m_readInputByteBudgetActive && reader->inputByteBudgetExceeded()) {
         setError(DRW::BAD_CODE_PARSED);
         return true;
     }

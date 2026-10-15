@@ -74,6 +74,51 @@ bool isUnambiguousDxfHandleCode(int code) {
 
 }  // namespace
 
+bool dxfReader::canConsumeInputBytes(std::size_t count) noexcept {
+    if (m_inputByteBudgetExceeded)
+        return false;
+    if (m_inputByteCount > m_inputByteBudget
+        || count > m_inputByteBudget - m_inputByteCount) {
+        m_inputByteBudgetExceeded = true;
+        return false;
+    }
+    return true;
+}
+
+void dxfReader::accountInputBytes(std::size_t count) noexcept {
+    if (count > (std::numeric_limits<std::size_t>::max)() - m_inputByteCount) {
+        m_inputByteCount = (std::numeric_limits<std::size_t>::max)();
+        m_inputByteBudgetExceeded = true;
+        return;
+    }
+    m_inputByteCount += count;
+    if (m_inputByteCount > m_inputByteBudget)
+        m_inputByteBudgetExceeded = true;
+}
+
+bool dxfReader::readInputBytes(char* destination, std::size_t count) {
+    if (filestr == nullptr || (count != 0u && destination == nullptr)
+        || count > static_cast<std::size_t>(
+               (std::numeric_limits<std::streamsize>::max)())
+        || !canConsumeInputBytes(count))
+        return false;
+    if (count == 0u)
+        return true;
+
+    try {
+        filestr->read(destination, static_cast<std::streamsize>(count));
+    } catch (...) {
+        const auto extracted = filestr->gcount();
+        if (extracted > 0)
+            accountInputBytes(static_cast<std::size_t>(extracted));
+        throw;
+    }
+    const auto extracted = filestr->gcount();
+    if (extracted > 0)
+        accountInputBytes(static_cast<std::size_t>(extracted));
+    return filestr->good();
+}
+
 bool dxfReader::readDelimitedToken(std::string& text, char delimiter,
                                     bool allowFinalAsciiValue) {
     text.clear();
@@ -85,7 +130,8 @@ bool dxfReader::readDelimitedToken(std::string& text, char delimiter,
         bool accepted {false};
         ~TokenTextScope() noexcept { if (!accepted) text.clear(); }
     } token {text};
-    if (filestr == nullptr || m_tokenByteBudgetExceeded)
+    if (filestr == nullptr || m_tokenByteBudgetExceeded
+        || m_inputByteBudgetExceeded)
         return false;
     // Unformatted get performs one sentry per chunk, not per source byte.
     // Its gcount preserves embedded NUL bytes in ASCII tokens. The extra
@@ -124,8 +170,8 @@ bool dxfReader::readDelimitedToken(std::string& text, char delimiter,
         if (next == std::char_traits<char>::eof())
             return finishAtEof();
         if (next == std::char_traits<char>::to_int_type(delimiter)) {
-            filestr->get();
-            token.accepted = !filestr->fail();
+            char consumedDelimiter = 0;
+            token.accepted = readInputBytes(&consumedDelimiter, 1u);
             return token.accepted;
         }
         // Delimiter and EOF take precedence at the exact cap. An overflow
@@ -135,10 +181,24 @@ bool dxfReader::readDelimitedToken(std::string& text, char delimiter,
             return false;
         }
         const std::size_t remaining = m_tokenByteBudget - text.size();
-        const std::size_t chunk = std::min(remaining, scratch.size() - 1u);
-        filestr->get(scratch.data(), static_cast<std::streamsize>(chunk + 1u), delimiter);
-        const auto extracted = filestr->gcount();
+        const std::size_t chunk = std::min(
+            {remaining, inputByteBudgetRemaining(), scratch.size() - 1u});
+        if (chunk == 0u) {
+            (void)canConsumeInputBytes(1u);
+            return false;
+        }
+        std::streamsize extracted = 0;
+        try {
+            filestr->get(scratch.data(), static_cast<std::streamsize>(chunk + 1u), delimiter);
+            extracted = filestr->gcount();
+        } catch (...) {
+            extracted = filestr->gcount();
+            if (extracted > 0)
+                accountInputBytes(static_cast<std::size_t>(extracted));
+            throw;
+        }
         if (extracted > 0) {
+            accountInputBytes(static_cast<std::size_t>(extracted));
             try {
                 text.append(scratch.data(), static_cast<std::size_t>(extracted));
             } catch (...) {
@@ -181,7 +241,7 @@ bool dxfReader::readRec(int *codeData) {
     m_lastInvalidHandleCode = 0;
     m_previousCode = m_currentCode;
     invalidateRecord();
-    if (m_tokenByteBudgetExceeded)
+    if (m_tokenByteBudgetExceeded || m_inputByteBudgetExceeded)
         return false;
 
     // Comments are ignored only after the first SECTION marker. Skip a run
@@ -293,8 +353,7 @@ bool dxfReader::registerSelfHandle() {
 
 bool dxfReaderBinary::readCode(int *code) {
     unsigned char buffer[2] = {};
-    filestr->read(reinterpret_cast<char*>(buffer), 2);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(buffer), sizeof(buffer)))
         return false;
     *code = static_cast<int>(buffer[0])
         | (static_cast<int>(buffer[1]) << 8);
@@ -305,16 +364,14 @@ bool dxfReaderBinary::readCode(int *code) {
 
 bool dxfReaderBinaryR12::readCode(int *code) {
     unsigned char b = 0;
-    filestr->read(reinterpret_cast<char*>(&b), 1);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(&b), 1u))
         return false;
     if (b == 255) {
         // 0xFF is the extended-data escape: the real 16-bit LE group code
         // follows in the next two bytes (R12 carries xdata codes >= 255 this
         // way). Matches ezdxf binary_tags_loader.
         unsigned char buffer[2] = {};
-        filestr->read(reinterpret_cast<char*>(buffer), 2);
-        if (!filestr->good())
+        if (!readInputBytes(reinterpret_cast<char*>(buffer), sizeof(buffer)))
             return false;
         *code = static_cast<int>(buffer[0])
             | (static_cast<int>(buffer[1]) << 8);
@@ -348,8 +405,7 @@ bool dxfReaderBinary::readBinary() {
     type = BINARY;
     unsigned char chunklen {0};
 
-    filestr->read( reinterpret_cast<char *>(&chunklen), 1);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(&chunklen), 1u))
         return false;
     // Binary DXF stores binary chunks as a one-byte length, but the DXF
     // format limits each 310-319/1004 chunk to 127 bytes.
@@ -360,14 +416,17 @@ bool dxfReaderBinary::readBinary() {
     // Previously this seeked past the chunk and never wrote strData, so any
     // binary group on a binary read (typed entity OR raw-net object) re-emitted
     // a STALE strData (the previous record's value). Same net stream advance.
+    if (!canConsumeInputBytes(chunklen))
+        return false;
     strData.clear();
     if (!DRW::reserve(strData, static_cast<int>(chunklen) * 2))
         return false;
+    std::array<unsigned char, 127> chunk{};
+    if (!readInputBytes(reinterpret_cast<char*>(chunk.data()), chunklen))
+        return false;
     static const char hex[] = "0123456789ABCDEF";
     for (unsigned i = 0; i < chunklen; ++i) {
-        char b = 0;
-        filestr->read(&b, 1);
-        const unsigned char u = static_cast<unsigned char>(b);
+        const unsigned char u = chunk[i];
         strData.push_back(hex[(u >> 4) & 0xF]);
         strData.push_back(hex[u & 0xF]);
     }
@@ -380,8 +439,7 @@ bool dxfReaderBinary::readBinary() {
 bool dxfReaderBinary::readInt16() {
     type = INT32;
     unsigned char buffer[2] = {};
-    filestr->read(reinterpret_cast<char*>(buffer), 2);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(buffer), sizeof(buffer)))
         return false;
     intData = static_cast<std::int16_t>((static_cast<unsigned char>(buffer[1]) << 8)
                                   | static_cast<unsigned char>(buffer[0]));
@@ -392,8 +450,7 @@ bool dxfReaderBinary::readInt16() {
 bool dxfReaderBinary::readInt32() {
     type = INT32;
     unsigned char buffer[4] = {};
-    filestr->read(reinterpret_cast<char*>(buffer), 4);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(buffer), sizeof(buffer)))
         return false;
     std::uint32_t value = static_cast<std::uint32_t>(buffer[0])
         | (static_cast<std::uint32_t>(buffer[1]) << 8)
@@ -407,8 +464,7 @@ bool dxfReaderBinary::readInt32() {
 bool dxfReaderBinary::readInt64() {
     type = INT64;
     unsigned char buffer[8] = {};
-    filestr->read(reinterpret_cast<char*>(buffer), 8);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(buffer), sizeof(buffer)))
         return false;
     std::uint64_t value = 0;
     for (int i = 0; i < 8; ++i)
@@ -421,8 +477,7 @@ bool dxfReaderBinary::readInt64() {
 bool dxfReaderBinary::readDouble() {
     type = DOUBLE;
     unsigned char buffer[8] = {};
-    filestr->read(reinterpret_cast<char*>(buffer), 8);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(buffer), sizeof(buffer)))
         return false;
     std::uint64_t value = 0;
     for (int i = 0; i < 8; ++i)
@@ -436,8 +491,7 @@ bool dxfReaderBinary::readDouble() {
 bool dxfReaderBinary::readBool() {
     type = BOOL;
     unsigned char buffer[1] = {};
-    filestr->read(reinterpret_cast<char*>(buffer), 1);
-    if (!filestr->good())
+    if (!readInputBytes(reinterpret_cast<char*>(buffer), sizeof(buffer)))
         return false;
     intData = static_cast<int>(buffer[0]);
     DRW_DBG(intData); DRW_DBG("\n");

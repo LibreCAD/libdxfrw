@@ -58,6 +58,25 @@ public:
     bool tokenByteBudgetExceeded() const noexcept {
         return m_tokenByteBudgetExceeded;
     }
+    /// Set a cumulative logical-input ceiling for this read session. The
+    /// initial count accounts bytes consumed by bounded format detection (the
+    /// binary DXF sentinel); re-reading those bytes through a reopened stream
+    /// is not charged a second time.
+    void setInputByteBudget(std::size_t budget,
+                            std::size_t initiallyConsumed = 0) noexcept {
+        m_inputByteBudget = budget;
+        m_inputByteCount = initiallyConsumed;
+        m_inputByteBudgetExceeded = initiallyConsumed > budget;
+    }
+    std::size_t inputByteCount() const noexcept { return m_inputByteCount; }
+    std::size_t inputByteBudget() const noexcept { return m_inputByteBudget; }
+    std::size_t inputByteBudgetRemaining() const noexcept {
+        return m_inputByteBudgetExceeded || m_inputByteCount >= m_inputByteBudget
+            ? 0 : m_inputByteBudget - m_inputByteCount;
+    }
+    bool inputByteBudgetExceeded() const noexcept {
+        return m_inputByteBudgetExceeded;
+    }
     // A derived parser may consume a non-XDATA field without calling its
     // base. Coordinate assembly must still stop at that physical boundary.
     bool followsXdataPointComponent() const noexcept {
@@ -143,6 +162,9 @@ protected:
     // failure adds failbit; an original badbit-mask exception is rethrown first.
     bool readDelimitedToken(std::string& text, char delimiter,
                             bool allowFinalAsciiValue);
+    bool canConsumeInputBytes(std::size_t count) noexcept;
+    void accountInputBytes(std::size_t count) noexcept;
+    bool readInputBytes(char* destination, std::size_t count);
     virtual bool readCode(int *code) = 0; //return true if successful (not EOF)
     virtual bool readString(std::string *text) = 0;
     virtual bool readString() = 0;
@@ -180,6 +202,9 @@ private:
     bool m_recordBudgetExceeded {false};
     std::size_t m_tokenByteBudget {DRW::kDefaultDxfReadTokenByteBudget};
     bool m_tokenByteBudgetExceeded {false};
+    std::size_t m_inputByteBudget {DRW::kDefaultDxfReadInputByteBudget};
+    std::size_t m_inputByteCount {0};
+    bool m_inputByteBudgetExceeded {false};
     int m_currentCode {0};
     int m_previousCode {0};
 };

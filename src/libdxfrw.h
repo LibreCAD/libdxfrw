@@ -157,6 +157,18 @@ public:
     std::size_t dxfReadTokenByteBudget() const noexcept {
         return m_dxfReadTokenByteBudget;
     }
+    /** Set a cumulative logical-input byte ceiling for each subsequent DXF
+     * read. This counts DXF delimiters/group codes, fixed-width values,
+     * binary chunks and the binary sentinel, but not file sniff read-ahead,
+     * retained copies or stream-buffer capacity. The 1 GiB default is a
+     * caller-raiseable resource limit, not a file-format maximum; zero rejects
+     * the first consumed byte. Rebuild consumers using this additive API. */
+    void setDxfReadInputByteBudget(std::size_t maxBytes) noexcept {
+        m_dxfReadInputByteBudget = maxBytes;
+    }
+    std::size_t dxfReadInputByteBudget() const noexcept {
+        return m_dxfReadInputByteBudget;
+    }
     /// Whole-document read/readAscii/write operations are not reentrant on one
     /// instance. A nested call returns false without changing the active
     /// operation, including its error/diagnostic snapshot or destination. Use
@@ -796,9 +808,11 @@ private:
     std::size_t m_dxfReadRecordBudget {
         4u * 1024u * 1024u};
     std::size_t m_dxfReadTokenByteBudget {1024u * 1024u};
+    std::size_t m_dxfReadInputByteBudget {1024u * 1024u * 1024u};
     // Armed only after this operation constructs its reader. Early argument
     // failure must not report a token flag left by a previous interrupted read.
     bool m_readTokenBudgetActive {false};
+    bool m_readInputByteBudgetActive {false};
     std::unique_ptr<dxfReader> reader;
     std::unique_ptr<dxfWriter> writer;
     DRW_Interface *iface {nullptr};

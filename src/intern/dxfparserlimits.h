@@ -34,6 +34,12 @@ namespace DRW {
 //! documents may raise it explicitly through dxfRW::setDxfReadRecordBudget().
 constexpr std::size_t kDefaultDxfReadRecordBudget = 4u * 1024u * 1024u;
 
+//! Aggregate logical bytes consumed by one DXF read operation, including
+//! group delimiters/codes, fixed-width values, binary chunks and the binary
+//! DXF sentinel. This is a resource ceiling, not a file-format maximum;
+//! callers with larger documents may raise it through dxfRW.
+constexpr std::size_t kDefaultDxfReadInputByteBudget = 1024u * 1024u * 1024u;
+
 //! Raw bytes before one ASCII LF or binary string NUL, including ASCII CR.
 //! This is a caller-raiseable acquisition ceiling, not a DXF format maximum
 //! or a bound on string capacity, retained copies or stream-buffer read-ahead.
