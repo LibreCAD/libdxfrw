@@ -9,6 +9,7 @@
 #include <limits>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -173,7 +174,7 @@ bool readRecords(const std::filesystem::path& path, std::map<std::string, Record
 }
 
 bool verify(const std::filesystem::path& path, bool reactors, bool detached,
-            bool reservedHandle = true) {
+            bool reservedHandle = true, std::size_t modelEntities = 5) {
     std::map<std::string, Record> records;
     if (!readRecords(path, records) || records.size() != 5) return false;
     for (const char* name : {"HATCH_CONTROL", "BOUNDARY_1", "BOUNDARY_2", "BOUNDARY_3", "FOLLOWING_CONTROL"})
@@ -236,7 +237,7 @@ bool verify(const std::filesystem::path& path, bool reactors, bool detached,
     }
     dx_data imported;
     dx_iface reader;
-    if (!reader.fileImport(path.string(), &imported, false) || imported.mBlock->ent.size() != 5)
+    if (!reader.fileImport(path.string(), &imported, false) || imported.mBlock->ent.size() != modelEntities)
         return false;
     std::map<std::string, std::uint32_t> typedHandles;
     for (const DRW_Entity* entity : imported.mBlock->ent)
@@ -297,6 +298,181 @@ bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary) {
 
 bool verifyHatchReferenceFile(const std::filesystem::path& path) {
     return verify(path, true, false, false);
+}
+
+bool runHatchSameDataTests(const std::filesystem::path& parent) {
+    const auto directory = parent / ("libdxfrw-hatch-same-data-" + std::to_string(
+        std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    const auto drawingWithChildren = []() {
+        auto data = drawing(true, true);
+        auto* block = new dx_ifaceBlock();
+        block->name = "RetryBlock";
+        block->handle = 0x70;
+        block->parentHandle = 0x71;
+        auto* primitive = new DRW_Line();
+        primitive->handle = 0x72;
+        primitive->secPoint = {1, 0, 0};
+        block->ent.push_back(primitive);
+        data->blocks.push_back(block);
+        auto* poly = new DRW_Polyline();
+        poly->handle = 0x80;
+        poly->extPoint = {0, 0, 1};
+        poly->vertexcount = 2;
+        for (std::uint32_t handle : {0x81u, 0x82u}) {
+            auto vertex = std::make_shared<DRW_Vertex>(handle == 0x81 ? 20 : 22, 2, 0, 0);
+            vertex->handle = handle;
+            poly->vertlist.push_back(vertex);
+        }
+        poly->setDwgSeqEndHandle(0x83);
+        data->mBlock->ent.push_back(poly);
+        auto* insert = new DRW_Insert();
+        insert->handle = 0x90;
+        insert->name = block->name;
+        insert->seqendH.ref = 0x92;
+        auto attribute = std::make_shared<DRW_Attrib>();
+        attribute->handle = 0x91;
+        attribute->height = 1;
+        attribute->tag = "TAG";
+        attribute->text = "VALUE";
+        insert->attlist.push_back(attribute);
+        data->mBlock->ent.push_back(insert);
+        return data;
+    };
+    using Identities = std::vector<std::pair<const DRW_Entity*, std::uint32_t>>;
+    const auto capture = [](const dx_data& data) {
+        Identities identities;
+        const auto remember = [&identities](const dx_ifaceBlock& block) {
+            identities.emplace_back(&block, block.handle);
+            for (const DRW_Entity* entity : block.ent) {
+                identities.emplace_back(entity, entity->handle);
+                if (const auto* poly = dynamic_cast<const DRW_Polyline*>(entity))
+                    for (const auto& vertex : poly->vertlist)
+                        identities.emplace_back(vertex.get(), vertex->handle);
+                if (const auto* insert = dynamic_cast<const DRW_Insert*>(entity))
+                    for (const auto& attribute : insert->attlist)
+                        identities.emplace_back(attribute.get(), attribute->handle);
+            }
+        };
+        remember(*data.mBlock);
+        for (const auto* block : data.blocks) remember(*block);
+        return identities;
+    };
+    const auto unchanged = [](const Identities& identities, const dx_data& data) {
+        for (const auto& identity : identities)
+            if (identity.first->handle != identity.second) return false;
+        const auto* hatch = static_cast<const DRW_Hatch*>(data.mBlock->ent.front());
+        const auto* poly = dynamic_cast<const DRW_Polyline*>(*std::next(data.mBlock->ent.begin(), 5));
+        const auto* insert = dynamic_cast<const DRW_Insert*>(data.mBlock->ent.back());
+        return hatch->associative == 1
+            && hatch->looplist[0]->m_boundaryHandles == std::vector<std::uint32_t>{0x31}
+            && hatch->looplist[1]->m_boundaryHandles == std::vector<std::uint32_t>({0x32, 0x33})
+            && hatch->looplist[2]->m_boundaryHandles.empty()
+            && poly != nullptr && poly->dwgSeqEndHandle() == 0x83
+            && insert != nullptr && insert->seqendH.ref == 0x92
+            && insert->attlist.front()->text == "VALUE";
+    };
+    class LateFailure final : public dx_iface {
+    public:
+        bool rejectFinal{false}, throwAfterEntities{false}, growCompound{false};
+        void writeEntities() override {
+            if (growCompound)
+                for (DRW_Entity* entity : cData->mBlock->ent)
+                    if (auto* poly = dynamic_cast<DRW_Polyline*>(entity))
+                        poly->vertlist.resize(100, poly->vertlist.front());
+            dx_iface::writeEntities();
+            if (throwAfterEntities) throw std::runtime_error("local late HATCH callback failure");
+        }
+        bool finalizeDxfWrite() override {
+            return dx_iface::finalizeDxfWrite() && !rejectFinal;
+        }
+    } adapter;
+    bool passed = true;
+    std::size_t successful = 0, rejected = 0;
+    for (bool binary : {false, true}) {
+        auto data = drawingWithChildren();
+        const Identities identities = capture(*data);
+        const auto first = directory / (binary ? "first-binary.dxf" : "first-ascii.dxf");
+        const auto second = directory / (binary ? "second-binary.dxf" : "second-ascii.dxf");
+        const auto accept = [&](const std::filesystem::path& path) {
+            const bool exported = adapter.fileExport(path.string(), DRW::AC1027, binary, data.get(), false);
+            const bool verified = exported && verify(path, true, false, false, 7);
+            const bool sourceUnchanged = unchanged(identities, *data);
+            const bool success = exported && verified && sourceUnchanged;
+            if (!success) std::cerr << "HATCH same-data acceptance failed: exported=" << exported
+                                    << " verified=" << verified << " identities-unchanged=" << sourceUnchanged << '\n';
+            if (success) ++successful;
+            passed = success && passed;
+            return success;
+        };
+        accept(first);
+        accept(second); // The same drawing, not a readback or fresh clone.
+        std::map<std::string, Record> a, b;
+        bool identical = readRecords(first, a) && readRecords(second, b) && a.size() == b.size();
+        for (const auto& entry : a) {
+            const auto found = b.find(entry.first);
+            identical = found != b.end() && found->second.handle == entry.second.handle
+                && found->second.owner == entry.second.owner
+                && found->second.reactors == entry.second.reactors
+                && found->second.body == entry.second.body && identical;
+        }
+        passed = identical && passed;
+        for (int failure = 0; failure < 3; ++failure) {
+            const auto path = directory / (std::to_string(binary) + '-' + std::to_string(failure) + ".dxf");
+            const std::string sentinel = "same-data HATCH destination\n";
+            { std::ofstream stream(path, std::ios::binary); stream << sentinel; }
+            adapter.rejectFinal = failure == 0;
+            adapter.throwAfterEntities = failure == 1;
+            auto* boundary = static_cast<DRW_LWPolyline*>(*std::next(data->mBlock->ent.begin()));
+            const double x = boundary->vertlist.front()->x;
+            if (failure == 2) boundary->vertlist.front()->x = std::numeric_limits<double>::quiet_NaN();
+            const bool failed = !adapter.fileExport(path.string(), DRW::AC1027, binary, data.get(), false);
+            std::ifstream input(path, std::ios::binary);
+            const std::string bytes((std::istreambuf_iterator<char>(input)), {});
+            input.close();
+            const bool valid = failed && bytes == sentinel && unchanged(identities, *data);
+            if (valid) ++rejected;
+            passed = valid && passed;
+            adapter.rejectFinal = adapter.throwAfterEntities = false;
+            boundary->vertlist.front()->x = x;
+            accept(path); // Correct and retry the original data on the same adapter.
+        }
+        dx_iface::ExtensionGraphLimits limits;
+        limits.maxSourceRecords = 100;
+        adapter.setHatchGraphLimits(limits);
+        adapter.growCompound = true;
+        const std::string sentinel = "bounded identity snapshot\n";
+        { std::ofstream stream(second, std::ios::binary); stream << sentinel; }
+        const bool bounded = !adapter.fileExport(second.string(), DRW::AC1027, binary, data.get(), false)
+            && adapter.hatchGraphFailure() == dx_iface::ExtensionGraphFailure::SourceRecordLimit
+            && unchanged(identities, *data);
+        std::ifstream input(second, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)), {});
+        input.close();
+        if (bounded && bytes == sentinel) ++rejected;
+        passed = bounded && bytes == sentinel && passed;
+        adapter.growCompound = false;
+        static_cast<DRW_Polyline*>(*std::next(data->mBlock->ent.begin(), 5))->vertlist.resize(2);
+        adapter.setHatchGraphLimits({});
+        accept(second);
+        auto detached = drawing(true, false, true);
+        detached->mBlock->ent.front()->handle = 0;
+        const Identities detachedIds = capture(*detached);
+        for (int pass = 0; pass < 2; ++pass) {
+            bool success = adapter.fileExport(second.string(), DRW::AC1027, binary,
+                                               detached.get(), false)
+                && verify(second, false, true, false);
+            for (const auto& identity : detachedIds)
+                success = identity.first->handle == identity.second && success;
+            if (success) ++successful;
+            passed = success && passed;
+        }
+    }
+    std::cout << "HATCH same-data identity/retry controls: " << (passed ? "PASS" : "FAIL")
+              << " (successful=" << successful << ", rejected=" << rejected << ")\n";
+    if (passed) std::filesystem::remove_all(directory);
+    else std::cout << "HATCH same-data evidence: " << directory << '\n';
+    return passed;
 }
 
 bool runHatchPublicationTests(const std::filesystem::path& parent) {

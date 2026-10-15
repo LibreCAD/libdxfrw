@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -2490,6 +2491,7 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
     m_hatchTargets.clear();
     m_hatchOwnerAliases.clear();
     m_hatchOwnerBlocks.clear();
+    m_preserveHatchSourceIdentities = false;
     const auto reject = [this](ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph) {
         if (m_hatchGraphFailure == ExtensionGraphFailure::None)
             m_hatchGraphFailure = reason;
@@ -2497,6 +2499,7 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
         m_hatchTargets.clear();
         m_hatchOwnerAliases.clear();
         m_hatchOwnerBlocks.clear();
+        m_preserveHatchSourceIdentities = false;
         return false;
     };
     const auto sourceRecord = [this, &reject]() {
@@ -2542,7 +2545,7 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
             }
             return true;
         };
-        const auto gather = [&sourceRecord, &edge, &select, &reject](
+        const auto gather = [this, &sourceRecord, &edge, &select, &reject](
                                 const dx_ifaceBlock& block, bool) {
             for (const DRW_Entity* entity : block.ent) {
                 if (!sourceRecord() || entity == nullptr)
@@ -2550,6 +2553,7 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
                 const auto* hatch = dynamic_cast<const DRW_Hatch*>(entity);
                 if (hatch == nullptr || entity->eType != DRW::HATCH)
                     continue;
+                m_preserveHatchSourceIdentities = true;
                 for (const auto& loop : hatch->looplist) {
                     if (!sourceRecord() || !loop)
                         return reject();
@@ -2753,6 +2757,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_hatchOwnerBlocks.clear();
     m_hatchOwnerContext.clear();
     m_hatchPlanningFailed = false;
+    m_preserveHatchSourceIdentities = false;
     struct HatchPlanScope {
         std::vector<std::uint32_t>& handles;
         std::unordered_map<std::uint32_t, HatchPublication>& targets;
@@ -2760,12 +2765,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         std::unordered_map<std::string, bool>& blocks;
         std::string& context;
         bool& failed;
+        bool& preserveIdentities;
         ~HatchPlanScope() {
             handles.clear(); targets.clear(); aliases.clear(); blocks.clear();
-            context.clear(); failed = false;
+            context.clear(); failed = false; preserveIdentities = false;
         }
     } hatchPlanScope{m_hatchSourceHandles, m_hatchTargets, m_hatchOwnerAliases,
-                     m_hatchOwnerBlocks, m_hatchOwnerContext, m_hatchPlanningFailed};
+                     m_hatchOwnerBlocks, m_hatchOwnerContext, m_hatchPlanningFailed,
+                     m_preserveHatchSourceIdentities};
     cData = fData;
     m_acdsHistoryObjects.clear();
     m_acdsTypedHistoryObjects.clear();
@@ -3459,6 +3466,51 @@ void dx_iface::writeEntity(DRW_Entity* e){
             || dxfW->getWritingContext()->writtenSourceEntityHandles.count(sourceHandle) != 0) {
             failHatchPublication();
             return;
+        }
+    }
+    // Scope restoration to this one borrowed-record call. Child shared_ptrs
+    // keep their objects alive; no pointer journal survives a callback.
+    struct EntityIdentityScope {
+        DRW_Entity& entity;
+        std::uint32_t source;
+        bool active;
+        std::vector<std::pair<std::shared_ptr<DRW_Vertex>, std::uint32_t>> vertices;
+        std::vector<std::pair<std::shared_ptr<DRW_Attrib>, std::uint32_t>> attributes;
+        ~EntityIdentityScope() {
+            if (!active) return;
+            for (const auto& vertex : vertices) vertex.first->handle = vertex.second;
+            for (const auto& attribute : attributes) attribute.first->handle = attribute.second;
+            entity.handle = source;
+        }
+    } identities{*e, sourceHandle, m_preserveHatchSourceIdentities, {}, {}};
+    if (identities.active) {
+        std::size_t snapshots = 1;
+        const auto admit = [this, &snapshots](std::size_t children) {
+            if (snapshots > m_hatchGraphLimits.maxSourceRecords
+                || children > m_hatchGraphLimits.maxSourceRecords - snapshots) {
+                failHatchPublication();
+                m_hatchGraphFailure = ExtensionGraphFailure::SourceRecordLimit;
+                return false;
+            }
+            snapshots += children;
+            return true;
+        };
+        if (!admit(0)) return;
+        if (const auto* polyline = dynamic_cast<const DRW_Polyline*>(e)) {
+            if (!admit(polyline->vertlist.size())) return;
+            identities.vertices.reserve(polyline->vertlist.size());
+            for (const auto& vertex : polyline->vertlist) {
+                if (!vertex) { failHatchPublication(); return; }
+                identities.vertices.emplace_back(vertex, vertex->handle);
+            }
+        }
+        if (const auto* insert = dynamic_cast<const DRW_Insert*>(e)) {
+            if (!admit(insert->attlist.size())) return;
+            identities.attributes.reserve(insert->attlist.size());
+            for (const auto& attribute : insert->attlist) {
+                if (!attribute) { failHatchPublication(); return; }
+                identities.attributes.emplace_back(attribute, attribute->handle);
+            }
         }
     }
     bool written = false;

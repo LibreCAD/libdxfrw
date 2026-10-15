@@ -178,8 +178,17 @@ performs bounded identity/owner admission and preplans its selected HATCH
 graph before incoming table/entity references; typed and known-102 reciprocal
 links pass generated ASCII/binary CLI controls. Finalization requires actual
 adapter dispatch plus the codec's written-source ledger, matching identity,
-type and owner, and publication of named owner BLOCK definitions. Successful-
-export same-data retry remains open under parity7R.2d.
+type and owner, and publication of named owner BLOCK definitions.
+HATCH-containing CLI adapter exports preserve root and POLYLINE/VERTEX /
+INSERT/ATTRIB source handles through success, failure and corrected same-data
+retry, including detached HATCH with source handle zero. Restoration is scoped
+to each write call, with owning child references; no borrowed-pointer journal
+survives a callback. The configured source-record limit also bounds each
+identity snapshot before allocation; reported graph stats exclude temporary
+snapshot slots and RSS. Caller geometry edits are not undone. This does not
+change direct codec writers' or no-HATCH adapter exports' mutation contract.
+The focused controls and generated two-pass ASCII/binary CLI handoff close
+parity7R.2d's local implementation gate only.
 Per-path counts/flags and rational spline field ordering have local
 ASCII/binary controls, with no native automatic-update or rendering claim.
 

@@ -2,17 +2,19 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
-**Current handoff (2026-10-15, writer `57b98cd`, admission `daf6a0f`, planning `1c85111`, Plan-Slice:7R.2c):**
+**Current handoff (2026-10-15, through Plan-Slice:7R.2d):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
-integrated separately. Successful-export same-data retry remains open;
-generated actual CLI references verify, without native associativity claims.
+integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
+The final same-data identity/retry slice is integrated separately as7R.2d.
+Generated actual CLI references verify on two passes, without native
+associativity claims. S5.18 is locally complete; external semantics stay open.
 
 | Order | Bounded item | Actual state and next gate |
 | --- | --- | --- |
 | 1 | PAR-35 / 7R.1 / S5.18 direct HATCH writer | COMMITTED `57b98cd`. Retain the passing literal tags, resolver-alias and failed-write controls; this is not CLI associativity support. |
-| 2 | 7R.2 HATCH adapter graph | 7R.2a/b/c COMMITTED / 7R.2d READY_LOCAL. Admission passes18 accepted/44 rejected checks; planning passes18 exports/two rejection checks; publication passes22 rejection/fresh-data-retry checks. Actual ASCII/binary CLI output verifies. Next: successful-export same-data repeat and late-failure corrected retry without borrowed-pointer lifetime leaks. |
-| 3 | S2.3.9.4.29 block-path modeler census | READY_LOCAL / INDEPENDENT. Add distinct payload-to-owner/INSERT correlations, not just totals. No native CAD, downloaded drawing, or HATCH fix is a prerequisite. |
+| 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
+| 3 | S2.3.9.4.29 block-path modeler census | READY_LOCAL / INDEPENDENT. Capture definition/entity/owner/INSERT identities before any virtual projection. Distinct payloads, shared definitions and bounded reachability must discriminate swapped/missing bodies. Use the B1–B3 readiness split in the final research section; no native CAD, downloaded drawing, or HATCH fix is a prerequisite. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
 | 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | SOURCE_READY / VERSION_WITNESS_REQUIRED as applicable. Reuse the existing codec vectors and ODA/trace gates; do not substitute a peer's width or recovery heuristic. |
 
@@ -21,6 +23,16 @@ GEODATA reader or writer from an older research queue. The new research
 crosswalk and bounded readiness decisions are in the final section of this
 plan. No new finding/top-level subplan, external fixture, dependency, or
 support claim is introduced; all six external J items remain deferred.
+
+This broader refresh retrieves the full ACadSharp #1297/#1299/#1282/#1283
+reports instead of relying on their titles, separates GDAL's DXF, libopencad
+`CAD`, and ODA `DWG` drivers, and adds small projection/complexity controls
+under existing owners. The authoritative EED review distinguishes physical
+per-application bytes, signed numeric fields, aggregate database XDATA and
+resource ceilings. It does not prescribe a new 32,767-byte format limit.
+See **Broader evidence, block-census and serialized-size readiness refresh**
+at the end for sources, confidence limits and executable substeps. No new
+finding or top-level subplan is added; findings/subplans remain122/70.
 
 The ODA-backed 7BP DWG GEODATA CIVIL-tail reader and writer are now locally
 implemented for AC1021/AC1024/AC1027, with AC1032 as the no-tail control.
@@ -573,6 +585,7 @@ Its historical binary diff SHA-256 is
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| PAR-35 / 7R.2d / S5.18 same-data retry | COMMITTED / LOCAL_IMPLEMENTATION_COMPLETE | Plan-Slice:7R.2d restores entity/compound-child source handles at each adapter write-call exit with owning child references, not a cross-callback pointer journal. Bounds snapshots before allocation; includes detached HATCH handle0, leaves direct codec/no-HATCH behavior and caller edits unchanged. Focused16 successful/eight rejected checks, same-data corrected late-veto/exception/record/limit retry, ASan/UBSan16/8, strict adapter/test TUs and lc3 pass. Existing local/fixture CTests pass2/2 in5.27s. Actual generated ASCII/binary CLI conversions and exact verifiers pass twice with identical per-encoding output hashes. Parent98f0eae adapter/new harness reproduces first successful export with mutated IDs and failed subsequent reuse. Report docs/research/hatch-same-data-retry-2026-10-15.json binds sources/binaries/baseline/CLI. Closes scoped S5.18 local implementation only; no native/fill/render/DWG/ABI/J promotion. NextS2.3.9.4.29 B1. |
 | PAR-35 / 7R.2c actual publication proof | COMMITTED / IDENTITY_TYPE_OWNER_PUBLICATION_VERIFIED | Plan-Slice:7R.2c retains bounded identity/type/logical-owner snapshots, not borrowed entity pointers. Adapter dispatch checks owner/type/expected final identity, exactly-once publication, the codec's actual written-source ledger and final bindings/ambiguity. Named owner BLOCK definitions must actually be emitted. No-op success or preallocation alone cannot close the gate. `--hatch-publication` passes22 rejection checks/22 corrected fresh-data retries across both encodings: skip/default dispatch, changed type/space/parent/source identity, duplicate dispatch, codec-only bypass, missing owner BLOCK, writer rejection and an unsupported R12 no-op classification control. Parent1c85111 source/header compiled with this new harness and the unchanged parent library reproduces18 successful invalid publications; four other attempts already fail atomically but lack the new graph classification. Baseline executable `e713ec34c2c46a2ad608b902b370e3e53366db059653964ae78d25f9778c6c3b` at `/private/tmp/libdxfrw-hatch-publication-baseline.dPWToN/before` fails the new gate while22 fresh-data retries pass. Current integration CTest passes1/1 in2.15s; focused admission/planning/publication and strict/lc3 checks pass. Next7R.2d: successful-export same-data and late-failure identity retry; no whole7R/S5.18 or native/support promotion. |
 | PAR-35 / 7R.2b early planning and reference composition | COMMITTED / GENERATED_CLI_REFERENCES_VERIFIED | Plan-Slice:7R.2b retains bounded source IDs only for the export lifetime and preallocates after codec reset/BLOCK_RECORD planning but before TABLES. Typed entity reactors/xDictionary now use the existing mapped fallback, as table/known-102 references already do; no global HATCH-only resolver is installed and final resolver values still map once. Planning failure rejects final publication and clears state for retry. `--hatch-adapter` passes18 exports/two rejection checks across both orders/encodings/two passes, typed/known-102 reactors, an incoming layer-table reactor and an unrelated LTYPE extension dictionary. Direct mapped-reactor controls pass. Three focused CTests pass3/3 in5.61s; strict adapter/test TUs and lc3 build pass. Fresh actual CLI ASCII/binary conversions and verifiers exit0. Durable hashes/commands are `docs/research/hatch-adapter-planning-2026-10-15.json`. Prior red receipts remain unchanged. Next7R.2c/d publication identity/type/owner proof and successful-export same-data retries; no full PAR-35/S5.18 or support closure. |
 | PAR-35 / 7R.2a HATCH adapter admission | COMMITTED / BOUNDED_IDENTITY_OWNER_ADMISSION | Plan-Slice:7R.2a adds a selected HATCH/source identity census before writer creation. It rejects missing/null/self/duplicate targets, unresolved/different logical owners, table/BLOCK_RECORD/child/terminator identity collisions and configured node/edge/staged/source-work limits. Modelspace, explicit model/paper owners, named/inactive-paper/fixed-space containers and detached geometry pass. The focused mode passes18 accepted/44 rejected checks, including unchanged caller identities and existing/absent destination, plus same-data corrected early retry. A byte-identical57b98cd adapter source (`87ed63906cf97c93a58f2194c5fcd2fd9fa7e1854dbdb2d031902a63d9ed655d`), compiled against current headers and linked to the same new harness/current library, fails those controls (18 accepted/0 rejected checks). The integration CTest passes1/1; strict test/adapter TUs and lc3 build pass. Fresh ASCII/binary CLI conversions still reproduce330/32 versus3A. No new fixture/registration or support claim; next7R.2b–d. |
@@ -3094,9 +3107,9 @@ scratch.
 | **[IxMilia.Dxf](https://github.com/ixmilia/dxf)** | .NET DXF/DXB library; README claims DXF support from R10 through R2014 with named exclusions including MESH, MLEADER, SURFACE, TABLE, and VIEWPORT. Its changelog records fixes for block-handle resolution, R12 BLOCK/INSERT output, 64-bit handles, handle assignment, XDATA placement, MTEXT R14 and DIMENSION writing. | Secondary DXF parser/writer for core geometry, code-page, and version cross-checks; its compatibility notes are candid about consumer acceptance. | The changelog is a change history, not a current test result or a support guarantee. Its README says AutoCAD may reject some otherwise emitted entity types and R13 output. Pinned spline projection substitutes weights on count mismatch and can return unavailable bounds for control-only curves; calibrate those fields before use. Neither its parser nor bounds replace application audit or ezdxf. |
 | **[dwg-rs](https://github.com/DrunkOnJava/dwg-rs)** | Apache-2.0 Rust reader built from the ODA-published specification; container/section/object-stream parsing spans R13–R2018, with a pre-alpha entity decoder. Its current README measures 19 files and reports 3,911 decoded, 525 skipped and 9 errored records; every record now has a declared data-stream boundary check. | Optional spec-first structural cross-check for headers, section maps, decompression, object boundaries and diagnostics. Per-file/per-family decoded, skipped and error counts are a useful transparent reporting pattern. | The project says not to use it in production; VIEWPORT/MESH/LEADER and other decoder paths have named gaps and it has no external DWG-writer acceptance. Its own README says its LZ77 offset-errata reading was cross-checked against ACadSharp algorithm comments, so do not count that narrow behavior as a wholly independent vote. Corpus totals are dated self-reports, not a semantic oracle. |
 | **[ezdwg](https://github.com/monozukuri-ai/ezdwg)** | Its project docs describe a read-focused R13–R2018 DWG parser, DXF export through ezdxf, and a native AC1015 writer for a small basic-entity set. | Optional supplementary DWG reader for a low-cost disagreement check if its current build and install path are practical. | Its narrow writer and limited published evidence do not make it an output-acceptance gate or a required dependency. Record exact revision and decoded/skipped/error coverage before using any result. |
-| **libopencad (historical reference)** | LibreDWG's 0.13.4 overview describes it as an R2000 DWG reader. | Useful only as a historical narrow-version reference; it does not add an independent modern-version comparison beyond LibreDWG/ACadSharp. | The source is an older manual entry rather than a current support guarantee; omit it from acceptance gates. |
+| **[libopencad / GDAL CAD driver](https://gdal.org/en/stable/drivers/vector/cad.html)** | Current GDAL documents a read-only `CAD` driver with internal libopencad. The linked [upstream README](https://github.com/nextgis-borsch/lib_opencad) still limits its advertised DWG version to R2000. | Optional existing-install AC1015 common-geometry disagreement check, not a modern-version or acceptance gate. GDAL documents POINT, LINE/polyline, CIRCLE/ARC and 3DFACE projections. | Distinct from GDAL's ODA-backed `DWG` driver and DXF driver. Bind the selected driver and bundled implementation, not merely GDAL's version. Tessellation and joined extended-data text do not establish exact curves, application-data/owner graphs or ACIS semantics. No install/build is on the critical path. |
 | **[netDxf](https://github.com/haplokuon/netDxf)** | Project states ASCII/binary DXF R2000–R2018; repository archived in October 2023. | Optional targeted second opinion for HATCH, dimensions, tables, and INSERT/attribute data when the .NET comparator runtime is already available. | No dynamic-block or modeler semantic gate. INSERT explosion skips reactor-bearing entities and projects attributes to TEXT; its transform may apply contextual unit conversion. These are explosion/geometry policies, not ordinary-load/save claims. Inspect lineage before counting another .NET implementation as an independent vote. |
-| **[GDAL DXF driver](https://gdal.org/en/stable/drivers/vector/dxf.html)** | DXF reader/writer; binary DXF input and direct binary-to-ASCII translation documented from GDAL 3.12. Exposes handles, PaperSpace and optional raw group values; `INLINE_BLOCKS=NO` keeps definitions/references. | Optional independent binary-DXF parser and bounded geometry/raw-tag cross-check if already installed; AC1027+ extensible mode can expose raw ASM bytes plus a 12-value affine transform. | Not a DWG reader absent the separate ODA driver, not a round-trip semantic oracle, and not an ACIS decoder. Curves are tessellated; HATCH styling and several OCS/elevation cases are omitted. Record exact build/options, never score unavailable fields as zero, and do not use it for B-rep or exact graph/appearance qualification. |
+| **[GDAL DXF driver](https://gdal.org/en/stable/drivers/vector/dxf.html)** | DXF reader/writer; binary DXF input and direct binary-to-ASCII translation documented from GDAL 3.12. Exposes handles, PaperSpace and optional raw group values; `INLINE_BLOCKS=NO` keeps definitions/references. | Optional independent binary-DXF parser and bounded geometry/raw-tag cross-check if already installed; AC1027+ extensible mode can expose raw ASM bytes plus a 12-value affine transform. | This driver does not read DWG; GDAL separately has libopencad `CAD` and ODA `DWG` drivers. It is not a round-trip semantic oracle or ACIS decoder. Curves are tessellated; HATCH styling and several OCS/elevation cases are omitted. Record exact build/options, never score unavailable fields as zero, and do not use it for B-rep or exact graph/appearance qualification. |
 | **[Assimp DXF importer](https://github.com/assimp/assimp/blob/3e9c4e1d38a8cf4cbc63513e0f23a58f70833e49/code/AssetLib/DXF/DXFLoader.cpp)** | Independent, limited ASCII-DXF mesh projection; explicitly rejects binary DXF. | Optional LINE/POINT/3DFACE/classic POLYLINE disagreement check, only if already available. | Ignores INSERT rotation, abandons the remainder of a block at a nested INSERT, and rotates the scene axes. It cannot qualify general block/OCS, graph, binary-DXF or B-rep semantics. No installation or execution is required by this plan. |
 
 Version matrices above describe project documentation, not verified parity in
@@ -4884,6 +4897,28 @@ accounting against ODA EED layout before using physical ASCII file length as a
 structured duplicates must merge under an explicit typed rule or reject, never
 silently lose ordering. Validate at the owning record, not each vector fragment.
 
+**Serialized-size readiness refinement (2026-10-15):** ODA v5.4.1 §28,
+printed269, counts the app's encoded data items, excluding the length/prefix
+and application handle. §2.2, printed8, defines BS representation, including
+negative short encodings; it does not itself establish an EED maximum of
+32,767. Autodesk's [XDATA memory guidance](https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-AutoLISP/files/GUID-48A12BAA-E785-4E2B-B7A7-E3B976E75891.htm)
+instead describes an aggregate16K per entity, and [xdroom](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-LT-AutoLISP-Reference/files/GUID-B7AD1D4B-FAFD-40F2-8A7C-7E35EC23F1FB.htm)
+illustrates16,383 bytes. Neither database accounting nor UTF-16 character
+count equals physical DXF text length. Local `encodeDwgEed` guards/splits at
+uint16 maximum and local `readDwgEed` reads an unsigned size; that symmetry
+is not independent acceptance or proof of a signed-overflow bug.
+
+Before a production limit change, characterize encoded item/chunk sizes in
+the existing writer-primitives/object target, then test one-app versus two-app
+aggregate boundaries, balanced braces, an indivisible overlarge item and a
+following object. Use tiny injectable resource caps separately; use actual
+16-/32-/64-KiB transitions only for wire/accounting calibration, not valid-file
+claims. Pin an authoritative/versioned producer accounting witness before
+enforcing a database total or same-app continuation rule. Do not silently
+truncate, split a balanced application group incorrectly, auto-migrate data
+to XRECORD, or reject previously readable opaque input merely to constrain
+canonical output. Transactional rejection and corrected retry remain required.
+
 Audit special emitters before imposing a global rule. Autodesk's STYLE table
 lists 1071 directly, while ezdxf's extended font metadata uses ACAD XDATA with
 1000/1071. `writeTextstyle` currently emits `fontFamily` directly and also
@@ -5332,7 +5367,8 @@ their own producer/spec evidence; product introduction dates are not wire gates.
 in Plan-Slice:7R.1;
 7R.2a bounded identity/owner admission is committed in its separate slice.
 7R.2b early planning/reference composition and7R.2c publication proof are
-committed separately;7R.2d successful-export retry remains ready and open.
+committed separately;7R.2d now integrates successful-export same-data repeat
+and late-failure corrected retry. The scoped local implementation is complete.
 The current low-level writer passes in both encodings, with reserved numeric
 aliases, forward/backward callback order, final-identity resolver versus
 existing preallocated map, two passes and four failed-then-corrected writer
@@ -5342,7 +5378,8 @@ must preplan forward identities or supply their final-identity resolver;
 fallback to an unbound source is not publication evidence. A zero result for
 a declared nonzero HATCH boundary rejects instead of dropping the link.
 
-The generated actual CLI controls still fail after exit0: first-loop source
+**Historical7R.1 CLI checkpoint, superseded by7R.2b below:** generated actual
+CLI controls failed after exit0: first-loop source
 330 remains32 while the boundary's emitted self-handle is3A, in ASCII and
 binary. Both generated inputs pass the checker. Use
 `--generate-hatch-references[-binary]` / `--verify-hatch-references` in the
@@ -5417,7 +5454,7 @@ retry does not yet prove the original caller drawing can be exported again.
 | 7R.2a census and owner admission (COMMITTED) | In `dx_iface::fileExport`, collect only HATCH identities and declared path targets, then scan `dx_data::mBlock` and named/fixed block entity containers with bounded source-record/node/edge accounting. Detect duplicate identities, duplicate publication through multiple containers, missing targets, and cross-kind collisions, including compound-child identities. Resolve logical owner using the same explicit BLOCK_RECORD mapping, named-block context and fixed model/paper-space rules as the writer; `space` alone and physical ENTITIES/BLOCKS placement are insufficient. Admit only unambiguous emitted entity targets with the same logical owner. Do not invent curve evaluation, rewrite the path, or require every OBJECTS record to be part of this selected graph. | Same modelspace, same named block and same paper layout positives; missing/ambiguous/wrong-kind/different-owner negatives, implicit-owner controls, small exact/over budgets, and a sentinel destination unchanged on failure. References to unsupported compound children must have an explicit rejection until their publication route is supported. |
 | 7R.2b early identity planning (COMMITTED) | Retain an operation-owned plan, configure any resolver during setup, and call existing `preallocateEntityHandle` after `write()` resets derived state but before TABLES/incoming-reference callbacks. `writeHeader` is an available early callback; `writeBlocks`/`writeEntities` are too late for preceding reactors. Honor explicit structural remaps and reserved/fixed handles. A resolver returns a final identity: never feed it back through another source map. Audit its effects on all existing table/entity appData, reactors and extension dictionaries; do not install a HATCH-only lookup that returns zero for unrelated valid references and silently erases them. | Both callback orders; numeric source/output aliases; fixed/reserved collisions; reciprocal reactor in typed and known-102 form; one composed non-HATCH dictionary/XRECORD or table-reference control unchanged. A preallocated or unchanged fallback number is not an emitted-target proof. |
 | 7R.2c emission and publication proof (COMMITTED) | Track the selected source identities actually accepted by `dx_iface::writeEntity`, not merely attempted dispatches. Its current default arm emits nothing. Before atomic output publication, use the existing `finalizeDxfWrite` callback to reject any required target not emitted exactly once with its planned identity/owner. Preserve declared reciprocal references; do not synthesize absent reactors, detach associativity or reinterpret MPOLYGON to satisfy this gate. A finalized graph is still not a native hatch evaluator. | Planned-but-unsupported dispatch, writer rejection and duplicate publication all reject without creating/replacing the final output. Positive tags resolve each loop's 330 and declared reciprocal reactor to the correct emitted record, with a following LINE/EOF and distinct path counts. |
-| 7R.2d adapter retry and actual CLI closure | Public codec record writers may mutate successful caller handles before a later whole-file failure. Make any adapter restoration/journal operation-owned and bounded, valid only while `fileExport` owns the borrowed drawing lifetime; include relevant POLYLINE/VERTEX and INSERT/ATTRIB child identities. Never retain caller pointers after return or mutate reference arrays to match reminted numbers. Clear derived identity/publication state on every export. | Repeat export of the same `dx_data`, late failure then corrected retry of that same data, and fresh-data control. Verify every source identity/reference is unchanged under the chosen adapter contract. Run generated ASCII and binary inputs through the actual CLI and existing verifier; require both output checks to turn green, not merely the low-level test or exit code. |
+| 7R.2d adapter retry and actual CLI closure (COMMITTED) | Per-write-call ID restoration retains owning POLYLINE/VERTEX and INSERT/ATTRIB child references and restores before consumer return; no raw-pointer journal survives callbacks. Snapshot work is bounded before allocation and planning state clears on all exits. Guarantee is HATCH-containing adapter exports, including detached source-handle-zero HATCH; direct codec/no-HATCH behavior stays unchanged. Reference arrays and caller geometry edits are not rewritten. | `--hatch-same-data` passes16 successful exports/eight rejection checks, repeated same data and corrected late-veto/exception/record/limit retries, source parent/child/block IDs and detached handle0. Focused sanitizer passes16/8; integration2/2, strict/lc3 and fresh two-pass ASCII/binary actual-CLI checks pass. Durable report binds this checkpoint, not the historical7R.2b artifacts. S5.18 local implementation closes, native update/fill/render/DWG stay unqualified. |
 
 The scope above is source-local and testable now. The existing direct-writer
 negative tests retry the same codec with **fresh caller data**; they do not
@@ -5428,6 +5465,18 @@ dependency. Run the focused mode for each edit and one existing round-trip
 CTest plus `lc3_compat_check` when adapter integration settles; full suites,
 native boundary-edit/update and unrelated external qualification remain phase
 gates.
+
+**7R.2d integration checkpoint:** the per-call restoration design replaces the
+earlier proposed whole-export journal. Parent98f0eae with the new test TU and
+matching parent header reproduces successful publication plus source-ID
+mutation, then failed original-data reuse. Current16/8 controls, focused
+ASan/UBSan, strict TUs/lc3 and local/fixture CTests2/2 pass. Generated actual
+ASCII/binary CLI conversions verify on both passes; the two outputs per
+encoding are byte-identical. Report
+`docs/research/hatch-same-data-retry-2026-10-15.json` freezes exact sources,
+binaries and results. This closes S5.18's bounded local acceptance, not native
+automatic editing, rendering, DWG HATCH or any external J item. Proceed to
+independent S2.3.9.4.29 B1; do not rerun the whole HATCH matrix for docs-only edits.
 
 **Normative versus implementation policy:** Autodesk's
 [appendLoop contract](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbHatch__appendLoop_Adesk__Int32_AcDbObjectIdArray_.html)
@@ -11578,17 +11627,19 @@ crosswalk below records what actually changes the implementation plan.
 | GDAL [binary DXF direct-translation contract](https://gdal.org/en/stable/drivers/vector/dxf.html#binary-dxf-to-ascii-dxf-direct-translation), Autodesk [binary DXF contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm), and the existing ODA syntax report | GDAL 3.12+ documents a direct binary-to-ASCII path distinct from its lossy OGR geometry path. Both libdxfrw legacy binary-SAT output and ezdxf baselines fail the existing ODA screen. Agreement on rejection does not localize the cause. | S2.2.5b first calibrates a same-version/modeler-profile positive in the exact reader. If GDAL is already installed, direct translation can isolate physical tags; no installation is required. Preserve the binary subject and compare reconstructed groups1/3 and subclass/history roles. A readable translated ASCII copy does not qualify original binary acceptance, B-rep geometry, or an OGR rewrite. |
 | ACadRust [v0.6.4 codepage release note](https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4), Unicode [Microsoft PC maps](https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/PC/) / [Apple Roman map](https://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/ROMAN.TXT), local `correctCodePage` | The release claims DOS/OEM, Mac Roman and Johab fixes; this is comparator eligibility, not proof about libdxfrw. Local recognized-page aliases/fallbacks remain the existing Slice 3 concern, including IBM850→1252 and IBM866→1251. | Reuse existing byte-to-scalar codec controls. Separate spelling aliases, actual mapping, unavailable-decoder literal retention and unknown-page diagnostic policy. Do not add automatic detection, change UTF-8/TU rules, install a charset framework or rerun a corpus per mapping. No duplicate finding is needed. |
 
-### Current local evidence and closure rules
+### Original writer-only evidence and continuing closure rules
 
-Fresh checks in this pass: `build/libdxfrw_dwg_local_roundtrip
+Historical checks at that writer-only research checkpoint:
+`build/libdxfrw_dwg_local_roundtrip
 --hatch-references` passes; both retained generated CLI inputs pass
 `--verify-hatch-references`; both retained outputs fail at ordered tag23,
 expected `330/3A`, observed `330/32`. Source and executable SHA-256 values
 match `docs/research/hatch-reference-writer-2026-10-15.json`. These verifier
 runs do not rerun the converter or replace the report's recorded conversion
 exit status. No full suite, native CAD, peer binary or platform qualification
-was run. Existing successful writer controls remain uncommitted worktree
-evidence until their separate integration commit.
+was run. The then-uncommitted writer was subsequently integrated in57b98cd;
+7R.2b supersedes those CLI failures for the generated case. Use the current
+handoff/7R checkpoints, not this historical paragraph, for implementation state.
 
 For S2.3.9.4.29, strengthen the existing scratch block census with at least two
 **different** body payloads and non-monotonic source identities. Permute
@@ -11630,3 +11681,116 @@ work. Any code transfer still needs separate provenance, notices and full
 downstream/release-license review; none is authorized or performed here.
 Fixture permission and oracle independence are separate from code licensing;
 no outside drawing is admitted by this research.
+
+## Broader evidence, block-census and serialized-size readiness refresh (2026-10-15)
+
+This pass is research/planning, not implementation integration. Committed
+baseline is98f0eae. Existing adapter/test WIP was inspected but not edited,
+committed or relabeled as qualified. The comparison now includes primary
+driver documentation, full peer report bodies, a proposed performance patch,
+derived-geometry source, and the authoritative local ODA pages. No peer
+binary, external drawing, native CAD program or full suite was run.
+
+### Evidence that changes a decision
+
+| Primary source | Result and confidence boundary | Existing owner / concrete refinement |
+| --- | --- | --- |
+| ACadSharp [#1297](https://github.com/DomCR/ACadSharp/issues/1297), full body retrieved; open | Reporter distinguishes AC1032 frame-only MTEXT90=16 rejection from17 and AC1027 positives. They report that matching the entity bytes still did not repair the file; omitted style objects are an unproved hypothesis. | PAR-19/29 and7D/7E/7M: isolate entity framing from whole-document closure. Preserve16; do not force17, fabricate VisualStyle records or declare extents the root cause. Retain flag/version controls, then use a producer-paired whole-file witness if this DWG route is changed. No local defect inferred. |
+| ACadSharp [#1299](https://github.com/DomCR/ACadSharp/issues/1299), full body retrieved; open, v3.8.0 | Report names a DWG→DXF→GDAL SPLINE failure, but supplies no structured offending arrays or independently verified curve in its text; its explanatory link is an AI conversation. Attachments were not acquired. | PAR-22/7H/7I/7AB: this is a downstream scenario lead, not a knot/weight diagnosis. Use authoritative field rules, distinct source/emitted arrays, exact consumer diagnostics and an analytic curve point. Do not adopt the linked explanation or make GDAL tessellation the format authority. |
+| ACadSharp [#1282](https://github.com/DomCR/ACadSharp/issues/1282), ODA v5.4.1 §2.2/§28, and Autodesk [XDATA guidance](https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-AutoLISP/files/GUID-48A12BAA-E785-4E2B-B7A7-E3B976E75891.htm) | The peer report identifies its signed size cast and own-reader loss at32,768 bytes. ODA specifies encoded app-data framing; Autodesk separately describes aggregate entity XDATA capacity. The local uint16 encode/decode pair is different. | 7K/7S/7X: perform the scoped serialized-size calibration described in7K. Keep format width, database accounting, Unicode units and resource budget distinct. A self-round-trip or peer's threshold cannot establish native acceptance. No new local finding. |
+| ACadSharp [#1283](https://github.com/DomCR/ACadSharp/issues/1283), full body retrieved; open | Report concerns recursive document-owned block cloning in an INSERT constructor; its DWG reader reportedly handles a much deeper chain. This is not evidence that nesting itself is illegal or that libdxfrw's streaming reader has the same clone path. | S2.3.9.4.29/7AI/7S: census definitions by identity without recursively cloning their content. Shared-definition reuse is positive; cycle detection must be path-aware when observing instances. Never transfer hard-owner-cycle rules to non-owning INSERT edges. |
+| LibreDWG [#1395](https://github.com/LibreDWG/libredwg/issues/1395) / [PR#1402](https://github.com/LibreDWG/libredwg/pull/1402), head2ea0202f6fd5262d88e2fa1eaa5f72bcc7ebfeed; open/unmerged at retrieval | Proposed fixes separate vector growth, ordered-index insertion and unnecessary reference-cache invalidation; contributor timings vary with allocator. Approval is not merge/deployment, and none is a local timing reproduction. | 7AW/7BA/7S.3: measure admitted visits/comparisons, growth/copy work and invalidation separately. Preserve the local source-order key and leases; do not replace them with the peer's handle-first ordering or copy its realloc helper. Use small deterministic work controls rather than large timing thresholds. |
+| GDAL [CAD](https://gdal.org/en/stable/drivers/vector/cad.html), [DWG](https://gdal.org/en/stable/drivers/vector/dwg.html), and linked [libopencad](https://github.com/nextgis-borsch/lib_opencad) | CAD/libopencad is read-only and advertises R2000; DWG uses ODA. These are separate from GDAL DXF and from each other. Their geometry/attribute projections are not neutral document models. | Slice4/7AH: correct the comparison inventory and bind actual selected driver, implementation/build, options and version/profile. An ODA-backed GDAL run is not a second independent implementation vote alongside ODAFileConverter. Keep libopencad optional/AC1015-only, not an added acceptance dependency. |
+| ezdxf1.4.4 [INSERT API](https://ezdxf.readthedocs.io/en/stable/blocks/insert.html), [disassembly](https://ezdxf.readthedocs.io/en/stable/disassemble.html), and [bounds](https://ezdxf.readthedocs.io/en/stable/bbox.html) | Virtual entities lack database handles/layout assignment; unsupported content can disappear from derived geometry. INSERT expansion also has named MINSERT/XCLIP/nonuniform-text limits. The existing coincident-grid calibration remains valid; do not rerun it unchanged. | 7AH/7AQ and censusB1 below: capture original identities/owner paths before projection and retain explicit skips. Empty primitives/null bounds are unavailable geometry, not absent source content or a successful empty-body comparison. Never derive the preservation denominator from only expanded output. |
+| IxMilia [DxfPolyline](https://raw.githubusercontent.com/ixmilia/dxf/main/src/IxMilia.Dxf/Entities/DxfPolyline.cs) / [DxfArc](https://raw.githubusercontent.com/ixmilia/dxf/main/src/IxMilia.Dxf/Entities/DxfArc.cs), mutable source inspected, no .NET execution | Bulge simplification uses a2D arc helper, fixed tiny-value thresholds and LINE fallback. An open [angle report#207](https://github.com/ixmilia/dxf/issues/207) alone supplies no machine-checkable expectation. | 7H/7AH/7AQ: calibrate signed bulge direction, elevation/normal and scale-sensitive fallback before trusting this derived route. Pin an executable/source revision if enabled; do not infer a current whole-library failure or use its approximation to normalize away retained bulges. |
+
+ODA printed8 and269 were read completely and visually checked from local
+v5.4.1, SHA256
+`1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7`.
+They refine7K's layout/accounting gate; no DWG parser or writer was changed.
+The full issue bodies supersede the earlier title-only descriptions, not
+their historical provenance. No attachment or AI-generated analysis is used
+as specification evidence.
+
+### S2.3.9.4.29: bounded, implementation-ready B1–B3 split
+
+1. **B1 — stored graph and denominator, independently ready.** In the existing
+   local-roundtrip target, generate two distinguishable bounded SAT bodies,
+   direct/modeler-only/mixed blocks and nested INSERTs. Add a shared-definition
+   diamond and an intentionally unreachable definition. Build one identity
+   index and adjacency census: stored entity/definition counts are once-only;
+   direct and nested reachability and source→output correspondence are separate.
+   Preserve original handle, logical owner and INSERT identity before peer
+   expansion. Use non-monotonic IDs and independently permuted callback/payload
+   order; equal totals with swapped bodies or an empty reachable block fail.
+2. **B2 — carrier and actual CLI handoff.** Start at one established legacy-SAT
+   target in ASCII/binary. Compare reconstructed SAT under a declared rule,
+   exact owner/INSERT links and a succeeding LINE/EOF; do not make a rendering
+   pass part of the transport gate. Run the actual CLI on the calibrated input.
+   A binary prerequisite failure names its exact stage and does not erase the
+   ASCII result or become a modeler diagnosis. Add a second target only when
+   exercising a different carrier/version gate; SAB remains its already-admitted
+   separate route. Reuse the existing schema/payload helpers, no general kernel.
+3. **B3 — discriminating failures and bounded reuse.** Mutate the census oracle
+   with payload swaps, one missing reachable body, duplicate identity and wrong
+   owner/INSERT target; all must fail even when global totals match. Distinguish
+   oracle sensitivity from actual converter rejection. For unsupported required
+   carriers/unresolved required targets, require failed conversion with absent
+   or preserved destination. Reachability bookkeeping must terminate on self/
+   mutual INSERT references without treating every reference cycle as malformed
+   ownership. Optional instance evaluation uses an explicit active-path/depth/
+   work policy and cannot count a truncated expansion as complete. Small exact/
+   over bounds and corrected reuse replace deep-stack/huge-corpus experiments.
+
+Each sub-slice records its actual outcome separately: regression-only guard,
+reproduced production loss plus minimal fix, or a named prerequisite. A test
+that merely rejects its own mutated expected map is not a converter negative;
+a fabricated SAB marker is not a valid semantic body. No external semantic
+reader is needed to close this local no-silent-loss contract.
+
+**Concrete reuse audit:** `tests/modeler_dxf_writer_matrix_tests.cpp` already
+joins the existing executable through `runModelerDxfWriterMatrix`, but its
+payloads are synthetic chunk-length probes and its collector omits owner330
+and block context. `tests/modeler_sat_dxf_compare.cpp` scans only ENTITIES/
+3DSOLID; it cannot census BLOCKS/REGION/BODY unchanged. Do not treat either as
+the completed B1 oracle. Add a bounded block-aware collector and a planned
+`--modeler-block-census` mode through `tests/dwg_local_roundtrip_tests.cpp`,
+reusing the target rather than rerunning the1,170-record syntax matrix per edit.
+The optional `tests/qualify_modeler_dxf_syntax.py` has a locally-authored cube/
+planar-region recipe for one-time scratch SAT authoring when its pinned runtime
+is already available. Freeze the two authored payloads as generator literals
+with provenance; do not require ezdxf/ODA in the ordinary fast test, import
+external drawing bytes, or count generation and same-stack readback as
+independent shape evidence. First verify the literal carriers differ and that
+the new oracle fails an equal-count swap; then run the codec/CLI control.
+
+### Fast execution, WIP and support boundaries
+
+The current7R.2d source uses per-call handle guards with owning compound-child
+references, not a cross-callback raw-pointer journal. Keep that narrower design
+and verify snapshot admission before allocation, exception cleanup, original
+source arrays, detached HATCH handle0, and unchanged no-HATCH/direct-facade
+contracts. This research ran the existing mode once:16 successful exports and
+eight rejection checks pass; the target build reports no work needed. Binary
+SHA256 is`fe545c8f4b1912132cf9b173d5a3c0d58e883c3f692b5d34726b74a4d08a58cf`;
+inspected adapter source SHA256 is
+`fb5b80aaa6580a32b7a3c57ae96b63d91dbf14e54676f5d4b8d99b91aab19604`.
+This is current uncommitted focused evidence, not a new integration, sanitizer,
+actual-CLI, native or broad support receipt. Do not close S5.18 from it.
+
+Editing gate: exact affected mode. Integration gate: affected existing target,
+its focused CTest and LibreCAD/LibreCAD_3 source-compatibility check once.
+Run sanitizers when lifetime/ownership changes, not after documentation edits;
+full suites remain phase gates. Optional comparator calibration runs only for
+the driver/projection being enabled and only when already available. Cache by
+binary/source/dependency/options/profile; invalidate on a relevant change, not
+merely because a new planning paragraph was added.
+
+After each implemented item, update actual state, evidence and next dependency;
+after each commit, show its hash and next ready slice. External failure keeps
+its evidence intact and redirects work to independent ready local items; it
+does not justify weakening acceptance or silently changing consumer behavior.
+No new CTest registration, dependency, downloaded/committed drawing or remote
+write is part of this refresh. Counts remain122 findings/70 top-level subplans.
+`J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
+`DEFERRED_EXTERNAL`, and none of this evidence can promote their support claims.

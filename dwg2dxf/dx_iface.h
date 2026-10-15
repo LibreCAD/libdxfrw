@@ -80,7 +80,9 @@ public:
     }
 
     // Separate selected HATCH graph admission from the OBJECTS closure. These
-    // budgets count examined source records/edges, not geometry evaluation.
+    // budgets count preflight records/edges, not geometry evaluation. The
+    // source-record limit also caps one per-call identity snapshot; reported
+    // graph stats do not include those temporary slots or memory/RSS.
     void setHatchGraphLimits(const ExtensionGraphLimits& limits) noexcept {
         m_hatchGraphLimits = limits;
     }
@@ -712,6 +714,7 @@ private:
     std::unordered_map<std::uint32_t, std::string> m_hatchOwnerAliases;
     std::unordered_map<std::string, bool> m_hatchOwnerBlocks;
     std::string m_hatchOwnerContext;
+    bool m_preserveHatchSourceIdentities{false};
 
     static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
         if (block == nullptr)

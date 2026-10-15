@@ -37,6 +37,7 @@ bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutput
 bool runHatchAdmissionTests(const std::filesystem::path& parent);
 bool runHatchAdapterTests(const std::filesystem::path& parent);
 bool runHatchPublicationTests(const std::filesystem::path& parent);
+bool runHatchSameDataTests(const std::filesystem::path& parent);
 bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary);
 bool verifyHatchReferenceFile(const std::filesystem::path& path);
 
@@ -15053,7 +15054,9 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 2 && std::string(argv[1]) == "--hatch-publication") {
+    if (argc == 2 && std::string(argv[1]) == "--hatch-same-data") {
+        return runHatchSameDataTests(directory) ? 0 : 1;
+    } else if (argc == 2 && std::string(argv[1]) == "--hatch-publication") {
         return runHatchPublicationTests(directory) ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--hatch-adapter") {
         return runHatchAdapterTests(directory) ? 0 : 1;
@@ -15134,6 +15137,7 @@ int main(int argc, char** argv) {
                      " [--hatch-admission]"
                      " [--hatch-adapter]"
                      " [--hatch-publication]"
+                     " [--hatch-same-data]"
                      " [--generate-hatch-references[-binary] DXF]"
                      " [--verify-hatch-references DXF]"
                      " [--hatch-pattern-preservation]"
@@ -16280,6 +16284,9 @@ int main(int argc, char** argv) {
            failures);
     expect(runHatchPublicationTests(directory),
            "HATCH adapter actual identity/type/owner publication proof",
+           failures);
+    expect(runHatchSameDataTests(directory),
+           "HATCH same-data source identity, child lifetime and late-failure retry",
            failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";
