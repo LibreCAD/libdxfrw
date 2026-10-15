@@ -73,6 +73,34 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
         writer->writeDouble(30, 3.75); writer->writeDouble(11, sentinel + 1);
         writer->writeDouble(21, 5.25); writer->writeDouble(31, -6.75);
     };
+    const auto compoundPolyline = [&writer, &text](const char* owner) {
+        text(0, "POLYLINE"); text(5, "C0"); text(330, owner);
+        text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDb3dPolyline");
+        writer->writeInt16(66, 1); writer->writeInt16(70, 8);
+        writer->writeDouble(10, 0); writer->writeDouble(20, 0); writer->writeDouble(30, 0);
+        for (int vertex = 0; vertex != 2; ++vertex) {
+            const std::string handle = vertex == 0 ? "C1" : "C2";
+            text(0, "VERTEX"); text(5, handle); text(330, "C0");
+            text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDbVertex");
+            text(100, "AcDb3dPolylineVertex"); writer->writeInt16(70, 32);
+            writer->writeDouble(10, 51 + vertex); writer->writeDouble(20, 52 + vertex);
+            writer->writeDouble(30, 53 + vertex);
+            writer->writeInt32(91, 70003 + vertex);
+        }
+        text(0, "SEQEND"); text(5, "C3"); text(330, "C0");
+        text(100, "AcDbEntity"); text(8, "0");
+    };
+    const auto viewport = [&writer, &text](const char* owner) {
+        text(0, "VIEWPORT"); text(5, "C4"); text(330, owner);
+        text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDbViewport");
+        writer->writeDouble(10, 4); writer->writeDouble(20, 5); writer->writeDouble(30, 0);
+        writer->writeDouble(40, 205); writer->writeDouble(41, 156);
+        writer->writeInt16(68, 1); writer->writeInt16(69, 42);
+        writer->writeDouble(12, 128.5); writer->writeDouble(22, 97.5);
+        writer->writeDouble(16, 0); writer->writeDouble(26, 0); writer->writeDouble(36, 1);
+        writer->writeDouble(17, 0); writer->writeDouble(27, 0); writer->writeDouble(37, 0);
+        writer->writeDouble(45, 50);
+    };
     section("BLOCKS");
     int index = 0;
     for (const auto& item : records) {
@@ -84,10 +112,16 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
         writer->writeInt16(70, std::string(item.second) == "*U1" ? 1 : 0);
         writer->writeDouble(10, 0); writer->writeDouble(20, 0); writer->writeDouble(30, 0);
         text(3, item.second); text(1, "");
-        if (std::string(item.second) == "Named") line("B0", item.first, 101.25);
+        if (std::string(item.second) == "Named") {
+            line("B0", item.first, 101.25);
+            compoundPolyline(item.first);
+        }
         if (std::string(item.second) == "*U1") line("B1", item.first, 201.25);
         if (std::string(item.first) == "17") line("B2", item.first, 301.25);
-        if (std::string(item.first) == "1B") line("B3", item.first, 401.25, true);
+        if (std::string(item.first) == "1B") {
+            line("B3", item.first, 401.25, true);
+            viewport(item.first);
+        }
         text(0, "ENDBLK"); text(5, endHandle); text(330, item.first);
         text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDbBlockEnd");
         ++index;
@@ -133,9 +167,10 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
 }
 
 struct Record {
-    std::string type, handle, owner, name;
+    std::string type, handle, owner, name, section;
     double x {0};
     std::int32_t identifier {0};
+    std::int32_t viewportId {0};
     std::vector<std::pair<int, std::string>> xdata;
     std::vector<std::string> appData;
 };
@@ -152,18 +187,30 @@ bool verify(const std::string& path) {
     else reader = std::make_unique<dxfReaderAscii>(&input);
     std::vector<Record> records;
     Record current;
+    std::string section;
     int code = 0;
     bool eof = false;
     while (reader->readRec(&code)) {
         if (code == 0) {
             if (!current.type.empty()) records.push_back(current);
             current = Record{}; current.type = reader->getString();
+            if (current.type == "ENDSEC") {
+                current.section = section;
+                section.clear();
+            } else if (current.type != "SECTION") {
+                current.section = section;
+            }
             eof = current.type == "EOF";
         } else if (code == 5) current.handle = reader->getString();
         else if (code == 330) current.owner = reader->getString();
-        else if (code == 2) current.name = reader->getString();
+        else if (code == 2) {
+            current.name = reader->getString();
+            if (current.type == "SECTION")
+                section = current.name;
+        }
         else if (code == 10) current.x = reader->getDouble();
         else if (code == 91) current.identifier = reader->getInt32();
+        else if (code == 69) current.viewportId = reader->getInt32();
         else if (code == 1000 || code == 1001)
             current.xdata.emplace_back(code, reader->getString());
         else if (code == 102 || code == 1 || code == 320)
@@ -174,14 +221,26 @@ bool verify(const std::string& path) {
         return fail("block-owner control did not reach its literal EOF");
     }
     std::map<std::string, std::string> blocks;
+    std::map<std::string, std::vector<std::string>> blockDefinitions;
     std::set<std::string> identities;
+    std::size_t blockRecordRows = 0;
+    std::size_t blockRows = 0;
     for (const auto& record : records) {
-        if (record.type == "BLOCK_RECORD") blocks[record.name] = record.handle;
+        if (record.type == "BLOCK_RECORD") {
+            ++blockRecordRows;
+            blocks[record.name] = record.handle;
+        }
+        if (record.type == "BLOCK" && record.section == "BLOCKS") {
+            ++blockRows;
+            blockDefinitions[record.name].push_back(record.owner);
+        }
         if (record.type != "SECTION" && !record.handle.empty()
             && !identities.insert(record.handle).second)
             return fail("emitted identities collide");
     }
-    if (blocks.size() != 5 || blocks["*Model_Space"] != "1F"
+    if (blockRecordRows != 5u || blockRows != blockRecordRows
+        || blocks.size() != 5u || blockDefinitions.size() != blocks.size()
+        || blocks["*Model_Space"] != "1F"
         || blocks["*Paper_Space"] != "1E" || blocks["Named"] == "1F"
         || blocks["*Paper_Space0"] == blocks["*Paper_Space"]) {
         std::cerr << "Raw records=" << records.size() << " stop code=" << code << '\n';
@@ -192,20 +251,94 @@ bool verify(const std::string& path) {
             std::cerr << "BLOCK_RECORD " << block.first << "=" << block.second << '\n';
         return fail("space, named or anonymous BLOCK_RECORD identity changed");
     }
+    for (const auto& block : blocks) {
+        const auto found = blockDefinitions.find(block.first);
+        if (found == blockDefinitions.end() || found->second.size() != 1u
+            || found->second.front() != block.second)
+            return fail("BLOCK/BLOCK_RECORD names or owner identities do not balance");
+    }
+    std::map<std::string, std::size_t> blockDefinitionChildCounts;
+    std::map<std::string, std::vector<std::string>> blockChildTypes;
+    std::map<std::string, std::size_t> ownedEntityCounts;
+    std::map<std::string, std::string> blockNamesByHandle;
+    for (const auto& block : blocks)
+        blockNamesByHandle[block.second] = block.first;
+    std::string activeBlockName;
+    std::string activeBlockOwner;
+    for (const auto& record : records) {
+        if (record.section == "BLOCKS") {
+            if (record.type == "BLOCK") {
+                if (!activeBlockName.empty())
+                    return fail("nested BLOCK header appeared before previous ENDBLK");
+                activeBlockName = record.name;
+                activeBlockOwner = record.owner;
+            } else if (record.type == "ENDBLK") {
+                if (activeBlockName.empty() || record.owner != activeBlockOwner)
+                    return fail("ENDBLK owner does not close its active block definition");
+                activeBlockName.clear();
+                activeBlockOwner.clear();
+            } else if (!activeBlockName.empty()
+                       && (record.type == "LINE" || record.type == "POLYLINE"
+                           || record.type == "INSERT" || record.type == "VIEWPORT")) {
+                if (record.owner != activeBlockOwner)
+                    return fail("block child owner differs from active BLOCK_RECORD");
+                ++blockDefinitionChildCounts[activeBlockName];
+                blockChildTypes[activeBlockName].push_back(record.type);
+                if (record.type == "VIEWPORT" && record.viewportId != 42)
+                    return fail("paper-space viewport child lost its distinct ID");
+            }
+        } else if (record.section == "ENTITIES"
+                   && (record.type == "LINE" || record.type == "POLYLINE"
+                       || record.type == "INSERT" || record.type == "VIEWPORT")) {
+            const auto owner = blockNamesByHandle.find(record.owner);
+            if (owner == blockNamesByHandle.end())
+                return fail("ENTITIES record has no owning BLOCK_RECORD census key");
+            ++ownedEntityCounts[owner->second];
+            if (record.type == "VIEWPORT" && owner->second == "*Paper_Space"
+                && record.viewportId != 42)
+                return fail("paper-space viewport child lost its distinct ID");
+        }
+    }
+    if (!activeBlockName.empty()
+        || blockDefinitionChildCounts["*Model_Space"] != 0u
+        || blockDefinitionChildCounts["*Paper_Space"] != 0u
+        || blockDefinitionChildCounts["Named"] != 2u
+        || blockDefinitionChildCounts["*U1"] != 1u
+        || blockDefinitionChildCounts["*Paper_Space0"] != 0u
+        || blockChildTypes["Named"] != std::vector<std::string>({"LINE", "POLYLINE"})
+        || ownedEntityCounts["*Model_Space"] != 4u
+        || ownedEntityCounts["*Paper_Space"] != 3u
+        || ownedEntityCounts["*Paper_Space0"] != 1u
+        || ownedEntityCounts["Named"] != 0u || ownedEntityCounts["*U1"] != 0u)
+        return fail("per-BLOCK child census or paper-space viewport ownership changed");
+
     int lines = 0, vertices = 0, attributes = 0, sequences = 0, inserts = 0;
+    int viewports = 0;
     std::string sequenceParent;
     for (const auto& record : records) {
         if (record.type == "POLYLINE" || record.type == "INSERT") {
             sequenceParent = record.handle;
-            if (record.owner != blocks["*Model_Space"])
-                return fail("sequence parent owner does not name modelspace");
-            if (record.type == "INSERT") ++inserts;
-            const std::vector<std::pair<int, std::string>> expected{
-                {1001, "VERTEX_APP"}, {1000, record.type == "POLYLINE"
-                    ? "parent-xdata" : "next-record-xdata"}};
-            if (record.xdata != expected)
-                return fail("parent/next-record XDATA scope changed");
+            const std::string expectedOwner = record.section == "BLOCKS"
+                ? blocks["Named"] : blocks["*Model_Space"];
+            if (record.owner != expectedOwner)
+                return fail("sequence parent owner does not name its source block");
+            if (record.type == "INSERT") {
+                ++inserts;
+                if (record.name != "Named")
+                    return fail("model-space INSERT target changed");
+            }
+            if (record.section == "ENTITIES") {
+                const std::vector<std::pair<int, std::string>> expected{
+                    {1001, "VERTEX_APP"}, {1000, record.type == "POLYLINE"
+                        ? "parent-xdata" : "next-record-xdata"}};
+                if (record.xdata != expected)
+                    return fail("parent/next-record XDATA scope changed");
+            } else if (!record.xdata.empty()) {
+                return fail("block compound parent received another record's XDATA");
+            }
         }
+        if (record.type == "VIEWPORT" && record.owner == blocks["*Paper_Space"])
+            ++viewports;
         if (record.type == "LINE") {
             const std::string owner = record.x == 1.25 || record.x == 301.25 ? blocks["*Model_Space"]
                 : record.x == 11.25 || record.x == 401.25 ? blocks["*Paper_Space"]
@@ -219,23 +352,31 @@ bool verify(const std::string& path) {
             if (sequenceParent.empty() || record.owner != sequenceParent)
                 return fail("minted sequence-child owner was remapped twice");
             if (record.type == "VERTEX") {
-                const std::string index = std::to_string(vertices);
-                if (record.identifier != vertices + 70001)
+                const std::map<double, std::int32_t> expectedIdentifiers{
+                    {1.0, 70001}, {2.0, 70002}, {51.0, 70003}, {52.0, 70004}};
+                const auto expectedIdentifier = expectedIdentifiers.find(record.x);
+                if (expectedIdentifier == expectedIdentifiers.end()
+                    || record.identifier != expectedIdentifier->second)
                     return fail("classic VERTEX I32 identifier changed through conversion");
-                if (record.xdata != std::vector<std::pair<int, std::string>>{
-                        {1001, "VERTEX_APP"}, {1000, "vertex-xdata-" + index}})
-                    return fail("distinct classic VERTEX XDATA is missing or merged");
-                if (record.appData != std::vector<std::string>{"{VERTEX_META",
-                        "vertex-application-" + index, "DEADBEEF", "}"})
-                    return fail("VERTEX common application scope changed");
+                if (record.x == 1.0 || record.x == 2.0) {
+                    const std::string index = record.x == 1.0 ? "0" : "1";
+                    if (record.xdata != std::vector<std::pair<int, std::string>>{
+                            {1001, "VERTEX_APP"}, {1000, "vertex-xdata-" + index}})
+                        return fail("distinct classic VERTEX XDATA is missing or merged");
+                    if (record.appData != std::vector<std::string>{"{VERTEX_META",
+                            "vertex-application-" + index, "DEADBEEF", "}"})
+                        return fail("VERTEX common application scope changed");
+                } else if (!record.xdata.empty() || !record.appData.empty()) {
+                    return fail("block VERTEX inherited unrelated XDATA/application data");
+                }
                 ++vertices;
             }
             else if (record.type == "ATTRIB") ++attributes;
             else ++sequences;
         }
     }
-    return lines == 7 && vertices == 2 && attributes == 1
-        && inserts == 1 && sequences == 2
+    return lines == 7 && vertices == 4 && attributes == 1
+        && inserts == 1 && sequences == 3 && viewports == 1
         ? true : fail("sentinel entity/sequence count changed");
 }
 
