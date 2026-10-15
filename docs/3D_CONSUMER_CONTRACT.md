@@ -176,8 +176,10 @@ A resolver's zero result rejects a declared nonzero boundary reference
 transactionally. Forward references require preplanning. The CLI adapter now
 performs bounded identity/owner admission and preplans its selected HATCH
 graph before incoming table/entity references; typed and known-102 reciprocal
-links pass generated ASCII/binary CLI controls. Final publication proof and
-successful-export same-data retry remain open under parity7R.2c/d.
+links pass generated ASCII/binary CLI controls. Finalization requires actual
+adapter dispatch plus the codec's written-source ledger, matching identity,
+type and owner, and publication of named owner BLOCK definitions. Successful-
+export same-data retry remains open under parity7R.2d.
 Per-path counts/flags and rational spline field ordering have local
 ASCII/binary controls, with no native automatic-update or rendering claim.
 

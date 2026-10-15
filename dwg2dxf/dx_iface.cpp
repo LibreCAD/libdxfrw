@@ -2487,10 +2487,16 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
     m_hatchGraphStats = {};
     m_hatchGraphFailure = ExtensionGraphFailure::None;
     m_hatchSourceHandles.clear();
+    m_hatchTargets.clear();
+    m_hatchOwnerAliases.clear();
+    m_hatchOwnerBlocks.clear();
     const auto reject = [this](ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph) {
         if (m_hatchGraphFailure == ExtensionGraphFailure::None)
             m_hatchGraphFailure = reason;
         m_hatchSourceHandles.clear();
+        m_hatchTargets.clear();
+        m_hatchOwnerAliases.clear();
+        m_hatchOwnerBlocks.clear();
         return false;
     };
     const auto sourceRecord = [this, &reject]() {
@@ -2675,21 +2681,91 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
                 }
             }
         }
+        for (const auto& entry : selected) {
+            const DRW_Entity& entity = *entry.second.entity;
+            HatchPublication target;
+            target.type = entity.eType;
+            target.owner = entry.second.owner;
+            m_hatchTargets.emplace(entry.first, std::move(target));
+            if (entity.parentHandle != DRW::NoHandle)
+                m_hatchOwnerAliases.emplace(entity.parentHandle, entry.second.owner);
+            if (entry.second.owner != "*MODEL_SPACE"
+                && entry.second.owner != "*PAPER_SPACE")
+                m_hatchOwnerBlocks.emplace(entry.second.owner, false);
+        }
         return true;
     } catch (...) {
         return reject();
     }
 }
 
+void dx_iface::failHatchPublication() noexcept {
+    m_hatchPlanningFailed = true;
+    if (m_hatchGraphFailure == ExtensionGraphFailure::None)
+        m_hatchGraphFailure = ExtensionGraphFailure::InvalidGraph;
+}
+
+void dx_iface::recordHatchBlockPublication(const std::string& name, bool written) {
+    if (m_hatchOwnerBlocks.empty())
+        return;
+    const auto block = m_hatchOwnerBlocks.find(layoutSymbolKey(name));
+    if (block == m_hatchOwnerBlocks.end())
+        return;
+    if (!written || block->second)
+        failHatchPublication();
+    else
+        block->second = true;
+}
+
+bool dx_iface::finalizeDxfWrite() {
+    if (m_hatchPlanningFailed)
+        return false;
+    const auto* context = dxfW != nullptr ? dxfW->getWritingContext() : nullptr;
+    if (!m_hatchTargets.empty() && context == nullptr) {
+        failHatchPublication();
+        return false;
+    }
+    for (const auto& target : m_hatchTargets) {
+        const auto binding = context->sourceHandleToMintedMap.find(target.first);
+        if (target.second.emitted == 0 || !target.second.published
+            || context->writtenSourceEntityHandles.count(target.first) != 1
+            || context->ambiguousSourceHandles.count(target.first) != 0
+            || binding == context->sourceHandleToMintedMap.end()
+            || binding->second != target.second.emitted) {
+            failHatchPublication();
+            return false;
+        }
+    }
+    for (const auto& block : m_hatchOwnerBlocks) {
+        if (!block.second) {
+            failHatchPublication();
+            return false;
+        }
+    }
+    return true;
+}
+
 bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           dx_data *fData, bool debug, bool requireResolvedOwners){
     m_hatchSourceHandles.clear();
+    m_hatchTargets.clear();
+    m_hatchOwnerAliases.clear();
+    m_hatchOwnerBlocks.clear();
+    m_hatchOwnerContext.clear();
     m_hatchPlanningFailed = false;
     struct HatchPlanScope {
         std::vector<std::uint32_t>& handles;
+        std::unordered_map<std::uint32_t, HatchPublication>& targets;
+        std::unordered_map<std::uint32_t, std::string>& aliases;
+        std::unordered_map<std::string, bool>& blocks;
+        std::string& context;
         bool& failed;
-        ~HatchPlanScope() { handles.clear(); failed = false; }
-    } hatchPlanScope{m_hatchSourceHandles, m_hatchPlanningFailed};
+        ~HatchPlanScope() {
+            handles.clear(); targets.clear(); aliases.clear(); blocks.clear();
+            context.clear(); failed = false;
+        }
+    } hatchPlanScope{m_hatchSourceHandles, m_hatchTargets, m_hatchOwnerAliases,
+                     m_hatchOwnerBlocks, m_hatchOwnerContext, m_hatchPlanningFailed};
     cData = fData;
     m_acdsHistoryObjects.clear();
     m_acdsTypedHistoryObjects.clear();
@@ -3361,54 +3437,79 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
 }
 
 void dx_iface::writeEntity(DRW_Entity* e){
+    if (e == nullptr) {
+        failHatchPublication();
+        return;
+    }
+    const auto selected = m_hatchTargets.find(e->handle);
+    const std::uint32_t sourceHandle = e->handle;
+    if (selected != m_hatchTargets.end()) {
+        std::string owner;
+        if (e->parentHandle != DRW::NoHandle) {
+            const auto alias = m_hatchOwnerAliases.find(e->parentHandle);
+            if (alias != m_hatchOwnerAliases.end()) owner = alias->second;
+        } else if (!m_hatchOwnerContext.empty()) {
+            owner = layoutSymbolKey(m_hatchOwnerContext);
+        } else {
+            owner = e->space == DRW::PaperSpace ? "*PAPER_SPACE" : "*MODEL_SPACE";
+        }
+        const HatchPublication& target = selected->second;
+        if (target.published || target.emitted == 0 || target.type != e->eType
+            || target.owner != owner
+            || dxfW->getWritingContext()->writtenSourceEntityHandles.count(sourceHandle) != 0) {
+            failHatchPublication();
+            return;
+        }
+    }
+    bool written = false;
     switch (e->eType) {
     case DRW::POINT:
-        dxfW->writePoint(static_cast<DRW_Point*>(e));
+        written = dxfW->writePoint(static_cast<DRW_Point*>(e));
         break;
     case DRW::LINE:
-        dxfW->writeLine(static_cast<DRW_Line*>(e));
+        written = dxfW->writeLine(static_cast<DRW_Line*>(e));
         break;
     case DRW::THREEDLINE:
-        dxfW->write3DLine(static_cast<DRW_3DLine*>(e));
+        written = dxfW->write3DLine(static_cast<DRW_3DLine*>(e));
         break;
     case DRW::RAY:
-        dxfW->writeRay(static_cast<DRW_Ray*>(e));
+        written = dxfW->writeRay(static_cast<DRW_Ray*>(e));
         break;
     case DRW::XLINE:
-        dxfW->writeXline(static_cast<DRW_Xline*>(e));
+        written = dxfW->writeXline(static_cast<DRW_Xline*>(e));
         break;
     case DRW::CIRCLE:
-        dxfW->writeCircle(static_cast<DRW_Circle*>(e));
+        written = dxfW->writeCircle(static_cast<DRW_Circle*>(e));
         break;
     case DRW::ARC:
-        dxfW->writeArc(static_cast<DRW_Arc*>(e));
+        written = dxfW->writeArc(static_cast<DRW_Arc*>(e));
         break;
     case DRW::SOLID:
-        dxfW->writeSolid(static_cast<DRW_Solid*>(e));
+        written = dxfW->writeSolid(static_cast<DRW_Solid*>(e));
         break;
     case DRW::DXF_TRACE:
-        dxfW->writeTrace(static_cast<DRW_Trace*>(e));
+        written = dxfW->writeTrace(static_cast<DRW_Trace*>(e));
         break;
     case DRW::E3DFACE:
-        dxfW->write3dface(static_cast<DRW_3Dface*>(e));
+        written = dxfW->write3dface(static_cast<DRW_3Dface*>(e));
         break;
     case DRW::ELLIPSE:
-        dxfW->writeEllipse(static_cast<DRW_Ellipse*>(e));
+        written = dxfW->writeEllipse(static_cast<DRW_Ellipse*>(e));
         break;
     case DRW::LWPOLYLINE:
-        dxfW->writeLWPolyline(static_cast<DRW_LWPolyline*>(e));
+        written = dxfW->writeLWPolyline(static_cast<DRW_LWPolyline*>(e));
         break;
     case DRW::POLYLINE:
-        dxfW->writePolyline(static_cast<DRW_Polyline*>(e));
+        written = dxfW->writePolyline(static_cast<DRW_Polyline*>(e));
         break;
     case DRW::MESH:
-        dxfW->writeMesh(static_cast<DRW_Mesh*>(e));
+        written = dxfW->writeMesh(static_cast<DRW_Mesh*>(e));
         break;
     case DRW::HELIX:
-        dxfW->writeHelix(static_cast<DRW_Helix*>(e));
+        written = dxfW->writeHelix(static_cast<DRW_Helix*>(e));
         break;
     case DRW::SPLINE:
-        dxfW->writeSpline(static_cast<DRW_Spline*>(e));
+        written = dxfW->writeSpline(static_cast<DRW_Spline*>(e));
         break;
 //    case RS2::EntitySplinePoints:
 //        writeSplinePoints(static_cast<DRW_Point*>(e));
@@ -3416,18 +3517,18 @@ void dx_iface::writeEntity(DRW_Entity* e){
 //    case RS2::EntityVertex:
 //        break;
     case DRW::INSERT:
-        dxfW->writeInsert(static_cast<DRW_Insert*>(e));
+        written = dxfW->writeInsert(static_cast<DRW_Insert*>(e));
         break;
     case DRW::MTEXT:
-        dxfW->writeMText(static_cast<DRW_MText*>(e));
+        written = dxfW->writeMText(static_cast<DRW_MText*>(e));
         break;
     case DRW::TEXT:
         if (auto* rtext = dynamic_cast<DRW_RText*>(e))
-            dxfW->writeRText(rtext);
+            written = dxfW->writeRText(rtext);
         else if (auto* arcText = dynamic_cast<DRW_ArcAlignedText*>(e))
-            dxfW->writeArcAlignedText(arcText);
+            written = dxfW->writeArcAlignedText(arcText);
         else
-            dxfW->writeText(static_cast<DRW_Text*>(e));
+            written = dxfW->writeText(static_cast<DRW_Text*>(e));
         break;
     case DRW::DIMLINEAR:
     case DRW::DIMALIGNED:
@@ -3437,25 +3538,25 @@ void dx_iface::writeEntity(DRW_Entity* e){
     case DRW::DIMDIAMETRIC:
     case DRW::DIMORDINATE:
     case DRW::DIMARC:
-        dxfW->writeDimension(static_cast<DRW_Dimension*>(e));
+        written = dxfW->writeDimension(static_cast<DRW_Dimension*>(e));
         break;
     case DRW::LEADER:
-        dxfW->writeLeader(static_cast<DRW_Leader*>(e));
+        written = dxfW->writeLeader(static_cast<DRW_Leader*>(e));
         break;
     case DRW::HATCH:
-        dxfW->writeHatch(static_cast<DRW_Hatch*>(e));
+        written = dxfW->writeHatch(static_cast<DRW_Hatch*>(e));
         break;
     case DRW::MPOLYGON:
-        dxfW->writeMPolygon(static_cast<DRW_MPolygon*>(e));
+        written = dxfW->writeMPolygon(static_cast<DRW_MPolygon*>(e));
         break;
     case DRW::VIEWPORT:
-        dxfW->writeViewport(static_cast<DRW_Viewport*>(e));
+        written = dxfW->writeViewport(static_cast<DRW_Viewport*>(e));
         break;
     case DRW::IMAGE:
-        dxfW->writeImage(static_cast<DRW_Image*>(e), static_cast<dx_ifaceImg*>(e)->path);
+        written = dxfW->writeImage(static_cast<DRW_Image*>(e), static_cast<dx_ifaceImg*>(e)->path);
         break;
     case DRW::WIPEOUT:
-        dxfW->writeWipeout(static_cast<DRW_Wipeout*>(e));
+        written = dxfW->writeWipeout(static_cast<DRW_Wipeout*>(e));
         break;
     case DRW::PLANESURFACE:
     case DRW::EXTRUDEDSURFACE:
@@ -3463,14 +3564,21 @@ void dx_iface::writeEntity(DRW_Entity* e){
     case DRW::SWEPTSURFACE:
     case DRW::LOFTEDSURFACE:
     case DRW::NURBSURFACE:
-        dxfW->writeSurface(static_cast<DRW_Surface*>(e));
+        written = dxfW->writeSurface(static_cast<DRW_Surface*>(e));
         break;
     case DRW::E3DSOLID:
     case DRW::REGION:
     case DRW::BODY:
-        dxfW->writeModelerGeometry(static_cast<DRW_ModelerGeometry*>(e));
+        written = dxfW->writeModelerGeometry(static_cast<DRW_ModelerGeometry*>(e));
         break;
     default:
         break;
+    }
+    if (selected != m_hatchTargets.end()) {
+        if (!written || e->handle != selected->second.emitted
+            || dxfW->getWritingContext()->writtenSourceEntityHandles.count(sourceHandle) != 1)
+            failHatchPublication();
+        else
+            selected->second.published = true;
     }
 }

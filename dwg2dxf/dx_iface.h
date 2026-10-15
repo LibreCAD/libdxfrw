@@ -432,10 +432,13 @@ public:
         // write() has reset its derived maps and planned BLOCK_RECORDs, but
         // no TABLES/reactor callback has run yet. Plan forward HATCH links now.
         for (std::uint32_t source : m_hatchSourceHandles) {
-            if (dxfW->preallocateEntityHandle(source) == 0) {
+            const std::uint32_t emitted = dxfW->preallocateEntityHandle(source);
+            const auto target = m_hatchTargets.find(source);
+            if (emitted == 0 || target == m_hatchTargets.end()) {
                 m_hatchPlanningFailed = true;
                 break;
             }
+            target->second.emitted = emitted;
         }
         //complete copy of header vars:
         data = cData->headerC;
@@ -443,9 +446,7 @@ public:
 //        for (auto it=cData->headerC.vars.begin(); it != cData->headerC.vars.end(); ++it)
 //            data.vars[it->first] = new DRW_Variant( *(it->second) );
     }
-    bool finalizeDxfWrite() override {
-        return !m_hatchPlanningFailed;
-    }
+    bool finalizeDxfWrite() override;
 
     virtual void writeBlocks() override{
         //write each block
@@ -457,11 +458,14 @@ public:
             // codec's reserved handles and abort the whole DXF transaction.
             if (isFixedSpaceBlock(bk))
                 continue;
-            dxfW->writeBlock(bk);
+            if (!m_hatchTargets.empty())
+                m_hatchOwnerContext = bk->name;
+            recordHatchBlockPublication(bk->name, dxfW->writeBlock(bk));
             //and write each entity in block
             for (std::list<DRW_Entity*>::const_iterator it=bk->ent.begin(); it!=bk->ent.end(); ++it)
                 writeEntity(*it);
         }
+        m_hatchOwnerContext.clear();
     }
     // Preplan emitted block identities while retaining source table metadata.
     virtual void writeBlockRecords() override{
@@ -481,6 +485,7 @@ public:
     }
     //write entities of model space and first paper_space
     virtual void writeEntities() override{
+        m_hatchOwnerContext.clear();
         for (std::list<DRW_Entity*>::const_iterator it=cData->mBlock->ent.begin(); it!=cData->mBlock->ent.end(); ++it)
             writeEntity(*it);
         // Fixed space BLOCK/ENDBLK records are regenerated, but their owned
@@ -670,6 +675,8 @@ private:
     bool prepareExtensionObjectGraph(dx_data* data,
                                      bool includeNamedObjectRoot);
     bool validateHatchBoundaryGraph(const dx_data& data);
+    void recordHatchBlockPublication(const std::string& name, bool written);
+    void failHatchPublication() noexcept;
     bool validateVisualStyleReferences(const dx_data& data,
                                        const char** failure) const;
     static bool collectAcdsHistoryProxyObjects(
@@ -695,6 +702,16 @@ private:
     ExtensionGraphFailure m_hatchGraphFailure{ExtensionGraphFailure::None};
     std::vector<std::uint32_t> m_hatchSourceHandles;
     bool m_hatchPlanningFailed{false};
+    struct HatchPublication {
+        DRW::ETYPE type{DRW::UNKNOWN};
+        std::string owner;
+        std::uint32_t emitted{0};
+        bool published{false};
+    };
+    std::unordered_map<std::uint32_t, HatchPublication> m_hatchTargets;
+    std::unordered_map<std::uint32_t, std::string> m_hatchOwnerAliases;
+    std::unordered_map<std::string, bool> m_hatchOwnerBlocks;
+    std::string m_hatchOwnerContext;
 
     static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
         if (block == nullptr)

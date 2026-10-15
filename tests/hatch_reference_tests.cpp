@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <limits>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -296,6 +297,120 @@ bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary) {
 
 bool verifyHatchReferenceFile(const std::filesystem::path& path) {
     return verify(path, true, false, false);
+}
+
+bool runHatchPublicationTests(const std::filesystem::path& parent) {
+    const auto directory = parent / ("libdxfrw-hatch-publication-" + std::to_string(
+        std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    class FaultAdapter final : public dx_iface {
+    public:
+        int mode{0};
+        void writeBlocks() override {
+            if (mode != 9) { dx_iface::writeBlocks(); return; }
+            // Emit the entities with their explicit named-block owners but
+            // omit the owning BLOCK definition itself.
+            for (const auto* block : cData->blocks)
+                for (DRW_Entity* entity : block->ent) writeEntity(entity);
+        }
+        void writeEntities() override {
+            if (mode == 9) return;
+            DRW_Entity* boundary = nullptr;
+            for (DRW_Entity* entity : cData->mBlock->ent)
+                if (entity->layer == "BOUNDARY_1") boundary = entity;
+            const std::uint32_t source = boundary != nullptr ? boundary->handle : 0;
+            if (boundary != nullptr) {
+                if (mode == 3) boundary->eType = DRW::UNKNOWN;
+                if (mode == 4) boundary->space = DRW::PaperSpace;
+                if (mode == 5) boundary->parentHandle = 0x777;
+                if (mode == 6) boundary->handle = 0x777;
+            }
+            for (DRW_Entity* entity : cData->mBlock->ent) {
+                if (mode == 1 && entity == boundary) continue;
+                if (mode != 8) { writeEntity(entity); continue; }
+                // Even a complete codec write is not adapter-dispatch proof.
+                switch (entity->eType) {
+                case DRW::HATCH: dxfW->writeHatch(static_cast<DRW_Hatch*>(entity)); break;
+                case DRW::LWPOLYLINE: dxfW->writeLWPolyline(static_cast<DRW_LWPolyline*>(entity)); break;
+                case DRW::SPLINE: dxfW->writeSpline(static_cast<DRW_Spline*>(entity)); break;
+                case DRW::LINE: dxfW->writeLine(static_cast<DRW_Line*>(entity)); break;
+                default: break;
+                }
+            }
+            if (mode == 7 && boundary != nullptr) {
+                boundary->handle = source;
+                writeEntity(boundary);
+            }
+        }
+    } adapter;
+    bool passed = true;
+    std::size_t rejected = 0, retries = 0;
+    for (bool binary : {false, true}) {
+        for (int mode = 1; mode <= 11; ++mode) {
+            auto data = drawing(true, true);
+            DRW_Entity* boundary = nullptr;
+            for (DRW_Entity* entity : data->mBlock->ent)
+                if (entity->layer == "BOUNDARY_1") boundary = entity;
+            if (mode == 2) boundary->eType = DRW::UNKNOWN;
+            if (mode == 10)
+                static_cast<DRW_LWPolyline*>(boundary)->vertlist.front()->x
+                    = std::numeric_limits<double>::quiet_NaN();
+            if (mode == 9) {
+                auto* block = new dx_ifaceBlock();
+                block->name = "PublicationBlock";
+                block->handle = 0x80;
+                block->parentHandle = 0x81;
+                for (DRW_Entity* entity : data->mBlock->ent) entity->parentHandle = 0x81;
+                block->ent.splice(block->ent.end(), data->mBlock->ent);
+                data->blocks.push_back(block);
+            }
+            if (mode == 11) {
+                data = std::make_unique<dx_data>();
+                auto* hatch = new DRW_Hatch();
+                hatch->handle = 0x30; // Same number preallocation will return.
+                hatch->name = "SOLID";
+                hatch->associative = 1;
+                auto loop = std::make_shared<DRW_HatchLoop>(3);
+                loop->objlist.push_back(polyline(outer));
+                loop->m_boundaryHandles = {0x31};
+                loop->update();
+                hatch->appendLoop(loop);
+                hatch->loopsnum = 1;
+                auto* contour = new DRW_LWPolyline(*polyline(outer));
+                contour->handle = 0x31;
+                contour->reactorHandles = {0x30};
+                data->mBlock->ent = {hatch, contour};
+            }
+            const auto path = directory / (std::to_string(binary) + '-' + std::to_string(mode) + ".dxf");
+            const std::string sentinel = "HATCH publication destination\n";
+            { std::ofstream stream(path, std::ios::binary); stream << sentinel; }
+            adapter.mode = mode;
+            const bool success = adapter.fileExport(path.string(), mode == 11 ? DRW::AC1009 : DRW::AC1027,
+                                                     binary, data.get(), false);
+            std::ifstream input(path, std::ios::binary);
+            const std::string bytes((std::istreambuf_iterator<char>(input)), {});
+            input.close();
+            const bool rejection = !success && bytes == sentinel
+                && adapter.hatchGraphFailure() == dx_iface::ExtensionGraphFailure::InvalidGraph;
+            if (rejection) ++rejected;
+            else std::cerr << "HATCH publication mode " << mode
+                           << " failed rejection gate: success=" << success
+                           << " destination-preserved=" << (bytes == sentinel)
+                           << " graph-failure=" << static_cast<int>(adapter.hatchGraphFailure()) << '\n';
+            passed = rejection && passed;
+            adapter.mode = 0;
+            data = drawing(true, true);
+            const bool retry = adapter.fileExport(path.string(), DRW::AC1027, binary, data.get(), false)
+                && verify(path, true, false, false);
+            if (retry) ++retries;
+            passed = retry && passed;
+        }
+    }
+    std::cout << "HATCH publication controls: " << (passed ? "PASS" : "FAIL")
+              << " (rejected=" << rejected << ", fresh-data retries=" << retries << ")\n";
+    if (passed) std::filesystem::remove_all(directory);
+    else std::cout << "HATCH publication evidence: " << directory << '\n';
+    return passed;
 }
 
 bool runHatchAdapterTests(const std::filesystem::path& parent) {
