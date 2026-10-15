@@ -18604,11 +18604,10 @@ bool DRW_SpatialFilter::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
 }
 
 bool DRW_GeoData::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
-    // AcDbGeoData DXF (R2010+ version 2/3).  Decodes the scalar geolocation
-    // fields; the coordinate-mesh point/face lists (codes 13/23/14/24 ... 93/96)
-    // are left to the raw-net (their 13/23/14/24 interleave needs a point cursor
-    // — a follow-up).  Code mapping cross-checked against dwgTs
-    // parseObjectsGeoSpatialDxf.ts.
+    // GEODATA's archival v1 and modern v2+ tagged-code grammars overlap.
+    // Keep the version-specific meanings separate; Autodesk's 2009 code-70
+    // description also conflicts with later references and peer mappings, so
+    // retain the v1 value as uninterpreted flags.
     auto ensurePoint = [this](std::size_t index) {
         if (index >= 100000)
             return false;
@@ -18623,9 +18622,37 @@ bool DRW_GeoData::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             return DRW::resize(m_faces, static_cast<int>(index + 1));
         return true;
     };
+    const auto beginMesh = [this](std::int32_t count) {
+        if (count < 0 || count > 100000)
+            return false;
+        m_points.clear();
+        if (!DRW::reserve(m_points, count))
+            return false;
+        m_dxfSourcePointIndex = 0;
+        m_dxfTargetPointIndex = 0;
+        return true;
+    };
+    const bool legacy = m_version == 1;
+    const bool legacyCivil = legacy && m_dxfInLegacyCivilData;
     switch (code) {
     case 100:
         m_dxfInGeoDataSubclass = reader->getUtf8String() == "AcDbGeoData";
+        break;
+    case 3: {
+        const UTF8STRING marker = reader->getUtf8String();
+        if (legacy && marker == "CIVIC3D_DATA_BEGIN") {
+            m_legacy.m_civil.m_present = true;
+            m_dxfInLegacyCivilData = true;
+        } else {
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        break;
+    }
+    case 4:
+        if (legacy && reader->getUtf8String() == "CIVIC3D_DATA_END")
+            m_dxfInLegacyCivilData = false;
+        else
+            return DRW_TableEntry::parseCode(code, reader);
         break;
     case 330:
         if (m_dxfInGeoDataSubclass)
@@ -18634,65 +18661,231 @@ bool DRW_GeoData::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             parentHandle = reader->getHandleString();
         break;
     case 90:  m_version = reader->getInt32(); break;
-    case 70:  m_coordinatesType = reader->getInt32(); break;
+    case 70:
+        if (legacy)
+            m_legacy.m_controlFlags = reader->getInt32();
+        else
+            m_coordinatesType = reader->getInt32();
+        break;
     case 10:  m_designPoint.x = reader->getDouble(); break;
     case 20:  m_designPoint.y = reader->getDouble(); break;
     case 30:  m_designPoint.z = reader->getDouble(); break;
-    case 11:  m_referencePoint.x = reader->getDouble(); break;
-    case 21:  m_referencePoint.y = reader->getDouble(); break;
-    case 31:  m_referencePoint.z = reader->getDouble(); break;
-    case 40:  m_horizontalUnitScale = reader->getDouble(); break;
-    case 41:  m_verticalUnitScale = reader->getDouble(); break;
-    case 91:  m_horizontalUnits = reader->getInt32(); break;
-    case 92:  m_verticalUnits = reader->getInt32(); break;
+    case 11:
+        if (legacy) m_legacy.m_secondWcsPoint.x = reader->getDouble();
+        else m_referencePoint.x = reader->getDouble();
+        break;
+    case 21:
+        if (legacy) m_legacy.m_secondWcsPoint.y = reader->getDouble();
+        else m_referencePoint.y = reader->getDouble();
+        break;
+    case 31:
+        if (legacy) m_legacy.m_secondWcsPoint.z = reader->getDouble();
+        else m_referencePoint.z = reader->getDouble();
+        break;
+    case 40:
+        if (legacy) m_legacy.m_geolocation[0] = reader->getDouble();
+        else m_horizontalUnitScale = reader->getDouble();
+        break;
+    case 41:
+        if (legacy) m_legacy.m_geolocation[1] = reader->getDouble();
+        else m_verticalUnitScale = reader->getDouble();
+        break;
+    case 42:
+        if (legacy) m_legacy.m_geolocation[2] = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 43:
+        if (legacy) m_legacy.m_drawingScales[0] = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 44:
+        if (legacy) m_legacy.m_drawingScales[1] = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 45:
+        if (legacy) m_legacy.m_drawingScales[2] = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 46:
+        if (legacy) m_legacy.m_mapUnits = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 52:
+        if (legacy) m_legacy.m_northDirectionAngle = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 91:
+        if (legacy) m_legacy.m_dwgUnits = reader->getInt32();
+        else m_horizontalUnits = reader->getInt32();
+        break;
+    case 92:
+        if (legacy && !legacyCivil) {
+            if (!beginMesh(reader->getInt32()))
+                return false;
+        } else if (!legacy) {
+            m_verticalUnits = reader->getInt32();
+        } else {
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        break;
     case 210: m_upDirection.x = reader->getDouble(); break;
     case 220: m_upDirection.y = reader->getDouble(); break;
     case 230: m_upDirection.z = reader->getDouble(); break;
-    case 12:  m_northDirection.x = reader->getDouble(); break;
-    case 22:  m_northDirection.y = reader->getDouble(); break;
-    case 95:  m_scaleEstimationMethod = reader->getInt32(); break;
-    case 141: m_userSpecifiedScaleFactor = reader->getDouble(); break;
-    case 294: m_enableSeaLevelCorrection = (reader->getInt32() != 0); break;
-    case 142: m_seaLevelElevation = reader->getDouble(); break;
-    case 143: m_coordinateProjectionRadius = reader->getDouble(); break;
+    case 12:
+        if (legacy) {
+            if (!ensurePoint(m_dxfSourcePointIndex)) return false;
+            m_points[m_dxfSourcePointIndex].m_source.x = reader->getDouble();
+        } else {
+            m_northDirection.x = reader->getDouble();
+        }
+        break;
+    case 22:
+        if (legacy) {
+            if (!ensurePoint(m_dxfSourcePointIndex)) return false;
+            m_points[m_dxfSourcePointIndex].m_source.y = reader->getDouble();
+            ++m_dxfSourcePointIndex;
+        } else {
+            m_northDirection.y = reader->getDouble();
+        }
+        break;
+    case 13:
+        if (legacy) {
+            if (!ensurePoint(m_dxfTargetPointIndex)) return false;
+            m_points[m_dxfTargetPointIndex].m_destination.x = reader->getDouble();
+        } else {
+            if (!ensurePoint(m_dxfSourcePointIndex)) return false;
+            m_points[m_dxfSourcePointIndex].m_source.x = reader->getDouble();
+        }
+        break;
+    case 23:
+        if (legacy) {
+            if (!ensurePoint(m_dxfTargetPointIndex)) return false;
+            m_points[m_dxfTargetPointIndex].m_destination.y = reader->getDouble();
+            ++m_dxfTargetPointIndex;
+        } else {
+            if (!ensurePoint(m_dxfSourcePointIndex)) return false;
+            m_points[m_dxfSourcePointIndex].m_source.y = reader->getDouble();
+            ++m_dxfSourcePointIndex;
+        }
+        break;
+    case 14:
+    case 24:
+        if (legacyCivil) {
+            const std::size_t axis = code == 14 ? 0u : 1u;
+            m_legacy.m_civil.m_localReferencePoint[axis] = reader->getDouble();
+        } else if (!legacy) {
+            const double value = reader->getDouble();
+            const std::size_t axis = code == 14 ? 0u : 1u;
+            if (!ensurePoint(m_dxfTargetPointIndex)) return false;
+            if (axis == 0u)
+                m_points[m_dxfTargetPointIndex].m_destination.x = value;
+            if (axis == 1u) {
+                m_points[m_dxfTargetPointIndex].m_destination.y = value;
+                ++m_dxfTargetPointIndex;
+            }
+        } else {
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        break;
+    case 15:
+    case 25:
+        if (legacyCivil) {
+            const std::size_t axis = code == 15 ? 0u : 1u;
+            m_legacy.m_civil.m_gridReferencePoint[axis] = reader->getDouble();
+        } else {
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        break;
+    case 16:
+    case 26:
+        if (legacyCivil) {
+            const std::size_t axis = code == 16 ? 0u : 1u;
+            m_legacy.m_civil.m_localRotationPoint[axis] = reader->getDouble();
+        } else {
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        break;
+    case 17:
+    case 27:
+        if (legacyCivil) {
+            const std::size_t axis = code == 17 ? 0u : 1u;
+            m_legacy.m_civil.m_gridRotationPoint[axis] = reader->getDouble();
+        } else {
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        break;
+    case 54:
+        if (legacyCivil) m_legacy.m_civil.m_rotationAngle = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 95:
+        if (legacyCivil) m_legacy.m_civil.m_scaleEstimationMethod = reader->getInt32();
+        else if (!legacy) m_scaleEstimationMethod = reader->getInt32();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 140:
+        if (legacyCivil) m_legacy.m_civil.m_gridAzimuth = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 141:
+        if (legacyCivil) m_legacy.m_civil.m_ambiguous141Value = reader->getDouble();
+        else if (!legacy) m_userSpecifiedScaleFactor = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 292:
+        if (legacyCivil) m_legacy.m_civil.m_transformLocalToGrid = reader->getBool();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 293:
+        if (legacyCivil) m_legacy.m_civil.m_useRotationPoints = reader->getBool();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 294:
+        if (legacyCivil) m_legacy.m_civil.m_enableSeaLevelCorrection = reader->getBool();
+        else if (!legacy) m_enableSeaLevelCorrection = reader->getBool();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 142:
+        if (legacyCivil) m_legacy.m_civil.m_seaLevelElevation = reader->getDouble();
+        else if (!legacy) m_seaLevelElevation = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
+    case 143:
+        if (legacyCivil) m_legacy.m_civil.m_coordinateProjectionRadius = reader->getDouble();
+        else if (!legacy) m_coordinateProjectionRadius = reader->getDouble();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
     case 301: // coordinate-system definition (chunked; ^J -> newline)
-    case 303: m_coordinateSystemDefinition += reader->getUtf8String(); break;
+        m_coordinateSystemDefinition += reader->getUtf8String();
+        break;
+    case 303:
+        if (legacy) m_legacy.m_coordinateSystemDescription = reader->getUtf8String();
+        else m_coordinateSystemDefinition += reader->getUtf8String();
+        break;
     case 302: m_geoRssTag = reader->getUtf8String(); break;
+    case 304:
+        if (legacy) m_legacy.m_coordinateSystemDatum = reader->getUtf8String();
+        else return DRW_TableEntry::parseCode(code, reader);
+        break;
     case 305: m_observationFromTag = reader->getUtf8String(); break;
     case 306: m_observationToTag = reader->getUtf8String(); break;
     case 307: m_observationCoverageTag = reader->getUtf8String(); break;
-    case 93: {
+    case 93:
+        if (legacyCivil) {
+            m_legacy.m_civil.m_localReferencePointNumber = reader->getInt32();
+            break;
+        }
+        if (legacy)
+            return DRW_TableEntry::parseCode(code, reader);
+        {
         const int count = reader->getInt32();
-        if (count < 0 || count > 100000)
+        if (!beginMesh(count))
             return false;
-        m_points.clear();
-        if (!DRW::reserve(m_points, count))
-            return false;
-        m_dxfSourcePointIndex = 0;
-        m_dxfTargetPointIndex = 0;
         break;
-    }
-    case 13:
-        if (!ensurePoint(m_dxfSourcePointIndex))
-            return false;
-        m_points[m_dxfSourcePointIndex].m_source.x = reader->getDouble();
-        break;
-    case 23:
-        if (!ensurePoint(m_dxfSourcePointIndex))
-            return false;
-        m_points[m_dxfSourcePointIndex].m_source.y = reader->getDouble();
-        ++m_dxfSourcePointIndex;
-        break;
-    case 14:
-        if (!ensurePoint(m_dxfTargetPointIndex))
-            return false;
-        m_points[m_dxfTargetPointIndex].m_destination.x = reader->getDouble();
-        break;
-    case 24:
-        if (!ensurePoint(m_dxfTargetPointIndex))
-            return false;
-        m_points[m_dxfTargetPointIndex].m_destination.y = reader->getDouble();
-        ++m_dxfTargetPointIndex;
+        }
+    case 94:
+        if (legacyCivil) m_legacy.m_civil.m_gridReferencePointNumber = reader->getInt32();
+        else return DRW_TableEntry::parseCode(code, reader);
         break;
     case 96: {
         const int count = reader->getInt32();
@@ -18730,6 +18923,7 @@ void DRW_GeoData::reset() {
     DRW_TableEntry::reset();
     tType = DRW::GEODATA;
     m_dxfInGeoDataSubclass = false;
+    m_dxfInLegacyCivilData = false;
     m_dxfSourcePointIndex = 0;
     m_dxfTargetPointIndex = 0;
     m_dxfFaceIndex = 0;
@@ -18757,6 +18951,7 @@ void DRW_GeoData::reset() {
     m_points.clear();
     m_faces.clear();
     m_civilTail = DRW_GeoCivilTail{};
+    m_legacy = DRW_GeoDataLegacy{};
 }
 
 bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){

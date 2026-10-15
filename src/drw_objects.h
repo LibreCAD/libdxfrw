@@ -1482,6 +1482,45 @@ struct DRW_GeoMeshFace {
   std::int32_t m_index3 = 0;
 };
 
+//! CIVIC3D_DATA values used only by the archival GEODATA DXF v1 grammar.
+//! Kept separate from similarly numbered modern GEODATA fields.
+struct DRW_GeoDataLegacyCivil {
+  bool m_present = false;
+  bool m_transformLocalToGrid = false;
+  std::array<double, 2> m_localReferencePoint{{0.0, 0.0}};
+  std::array<double, 2> m_gridReferencePoint{{0.0, 0.0}};
+  std::int32_t m_localReferencePointNumber = 0;
+  std::int32_t m_gridReferencePointNumber = 0;
+  bool m_useRotationPoints = false;
+  std::array<double, 2> m_localRotationPoint{{0.0, 0.0}};
+  std::array<double, 2> m_gridRotationPoint{{0.0, 0.0}};
+  double m_rotationAngle = 0.0;
+  double m_gridAzimuth = 0.0;
+  std::int32_t m_scaleEstimationMethod = 0;
+  // The 2009 table calls group 141 "Scale estimation method"; later Autodesk
+  // tables call it "User specified scale factor". Preserve without inference.
+  double m_ambiguous141Value = 0.0;
+  bool m_enableSeaLevelCorrection = false;
+  double m_seaLevelElevation = 0.0;
+  double m_coordinateProjectionRadius = 0.0;
+};
+
+//! Values unique to the archival GEODATA DXF v1 field map.
+//! Group 70 is retained as uninterpreted flags because Autodesk's 2009 DXF
+//! reference conflicts with later tables and current peer implementations.
+struct DRW_GeoDataLegacy {
+  std::int32_t m_controlFlags = 0;
+  std::array<double, 3> m_geolocation{{0.0, 0.0, 0.0}};
+  DRW_Coord m_secondWcsPoint;
+  double m_northDirectionAngle = 0.0;
+  std::array<double, 3> m_drawingScales{{1.0, 1.0, 1.0}};
+  double m_mapUnits = 0.0;
+  std::int32_t m_dwgUnits = 0;
+  UTF8STRING m_coordinateSystemDescription;
+  UTF8STRING m_coordinateSystemDatum;
+  DRW_GeoDataLegacyCivil m_civil;
+};
+
 //! DWG-only CIVIL tail carried by GEODATA in AC1021 through AC1027.
 //! The fields are retained in wire order; several are undocumented reserved
 //! values and are deliberately not interpreted or folded into the main body.
@@ -1532,13 +1571,15 @@ public:
       m_geoRssTag(o.m_geoRssTag), m_observationFromTag(o.m_observationFromTag),
       m_observationToTag(o.m_observationToTag),
       m_observationCoverageTag(o.m_observationCoverageTag),
-      m_points(o.m_points), m_faces(o.m_faces), m_civilTail(o.m_civilTail) {
+      m_points(o.m_points), m_faces(o.m_faces), m_civilTail(o.m_civilTail),
+      m_legacy(o.m_legacy) {
     tType = o.tType;
   }
   DRW_GeoData& operator=(const DRW_GeoData& o) {
     if (this != &o) {
       DRW_TableEntry::operator=(o);
       m_dxfInGeoDataSubclass = false;
+      m_dxfInLegacyCivilData = false;
       m_dxfSourcePointIndex = 0;
       m_dxfTargetPointIndex = 0;
       m_dxfFaceIndex = 0;
@@ -1566,6 +1607,7 @@ public:
       m_points = o.m_points;
       m_faces = o.m_faces;
       m_civilTail = o.m_civilTail;
+      m_legacy = o.m_legacy;
       tType = o.tType;
     }
     return *this;
@@ -1580,6 +1622,7 @@ protected:
                                dwgBufferW *strBuf = nullptr,
                                dwgBufferW *handleBuf = nullptr) const;
   bool m_dxfInGeoDataSubclass = false;
+  bool m_dxfInLegacyCivilData = false;
   std::size_t m_dxfSourcePointIndex = 0;
   std::size_t m_dxfTargetPointIndex = 0;
   std::size_t m_dxfFaceIndex = 0;
@@ -1609,6 +1652,7 @@ public:
   std::vector<DRW_GeoMeshPoint> m_points;
   std::vector<DRW_GeoMeshFace> m_faces;
   DRW_GeoCivilTail m_civilTail;
+  DRW_GeoDataLegacy m_legacy;
 };
 
 struct DRW_TableGeometryContent {

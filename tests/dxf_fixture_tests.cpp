@@ -346,7 +346,10 @@ bool writeGeoDataVersionControl(const std::filesystem::path& path, bool binary,
             && real(54, 54.125) && real(140, 140.125)
             && integer(95, 2) && real(141, 141.125)
             && boolean(294, true) && real(142, 142.125)
-            && real(143, 143.125) && string(4, "CIVIC3D_DATA_END");
+            && real(143, 143.125) && string(4, "CIVIC3D_DATA_END")
+            // Synthetic out-of-marker sentinels prove CIVIC-only groups do
+            // not leak into the typed Civil profile after its terminator.
+            && real(14, 914.125) && integer(95, 95) && real(141, 941.125);
     } else {
         written = written
             && real(40, 40.125) && real(41, 41.125)
@@ -1793,7 +1796,91 @@ void testGeoDataVersionedMappings(TestContext& t) {
                 && importer.geoData.front().handle == 0x700u
                 && importer.geoData.front().parentHandle == 0x2u
                 && importer.geoData.front().m_hostBlockHandle == 0x3u
-                && importer.geoData.front().m_coordinatesType == 2;
+                && (version.objectVersion == 1
+                    || importer.geoData.front().m_coordinatesType == 2);
+            bool legacyLifecycleMatches = true;
+            if (version.objectVersion == 1 && typedValuesMatch) {
+                const DRW_GeoData& geo = importer.geoData.front();
+                typedValuesMatch = geo.m_coordinatesType == 0
+                    && geo.m_legacy.m_controlFlags == 2
+                    && geo.m_designPoint.x == 10.125
+                    && geo.m_designPoint.y == 20.125
+                    && geo.m_designPoint.z == 30.125
+                    && geo.m_referencePoint.x == 0.0
+                    && geo.m_referencePoint.y == 0.0
+                    && geo.m_referencePoint.z == 0.0
+                    && geo.m_legacy.m_secondWcsPoint.x == 11.125
+                    && geo.m_legacy.m_secondWcsPoint.y == 21.125
+                    && geo.m_legacy.m_secondWcsPoint.z == 31.125
+                    && geo.m_legacy.m_geolocation[0] == 40.125
+                    && geo.m_legacy.m_geolocation[1] == 41.125
+                    && geo.m_legacy.m_geolocation[2] == 42.125
+                    && geo.m_legacy.m_drawingScales[0] == 43.125
+                    && geo.m_legacy.m_drawingScales[1] == 44.125
+                    && geo.m_legacy.m_drawingScales[2] == 45.125
+                    && geo.m_legacy.m_mapUnits == 46.125
+                    && geo.m_legacy.m_northDirectionAngle == 52.125
+                    && geo.m_legacy.m_dwgUnits == 91
+                    && geo.m_upDirection.x == 210.125
+                    && geo.m_upDirection.y == 220.125
+                    && geo.m_upDirection.z == 230.125
+                    && geo.m_points.size() == 1u
+                    && geo.m_points.front().m_source.x == 12.125
+                    && geo.m_points.front().m_source.y == 22.125
+                    && geo.m_points.front().m_destination.x == 13.125
+                    && geo.m_points.front().m_destination.y == 23.125
+                    && geo.m_faces.size() == 1u
+                    && geo.m_faces.front().m_index1 == 1
+                    && geo.m_faces.front().m_index2 == 2
+                    && geo.m_faces.front().m_index3 == 3
+                    && geo.m_coordinateSystemDefinition
+                        == "legacy-coordinate-definition"
+                    && geo.m_geoRssTag == "legacy-georss"
+                    && geo.m_legacy.m_coordinateSystemDescription
+                        == "legacy-coordinate-description"
+                    && geo.m_legacy.m_coordinateSystemDatum == "legacy-datum"
+                    && geo.m_observationFromTag == "legacy-observation-tag"
+                    && geo.m_observationToTag == "legacy-observation-to"
+                    && geo.m_observationCoverageTag
+                        == "legacy-observation-coverage"
+                    && geo.m_legacy.m_civil.m_present
+                    && geo.m_legacy.m_civil.m_transformLocalToGrid
+                    && geo.m_legacy.m_civil.m_localReferencePoint[0] == 14.125
+                    && geo.m_legacy.m_civil.m_localReferencePoint[1] == 24.125
+                    && geo.m_legacy.m_civil.m_gridReferencePoint[0] == 15.125
+                    && geo.m_legacy.m_civil.m_gridReferencePoint[1] == 25.125
+                    && geo.m_legacy.m_civil.m_localReferencePointNumber == 1
+                    && geo.m_legacy.m_civil.m_gridReferencePointNumber == 94
+                    && geo.m_legacy.m_civil.m_useRotationPoints
+                    && geo.m_legacy.m_civil.m_localRotationPoint[0] == 16.125
+                    && geo.m_legacy.m_civil.m_localRotationPoint[1] == 26.125
+                    && geo.m_legacy.m_civil.m_gridRotationPoint[0] == 17.125
+                    && geo.m_legacy.m_civil.m_gridRotationPoint[1] == 27.125
+                    && geo.m_legacy.m_civil.m_rotationAngle == 54.125
+                    && geo.m_legacy.m_civil.m_gridAzimuth == 140.125
+                    && geo.m_legacy.m_civil.m_scaleEstimationMethod == 2
+                    && geo.m_legacy.m_civil.m_ambiguous141Value == 141.125
+                    && geo.m_legacy.m_civil.m_enableSeaLevelCorrection
+                    && geo.m_legacy.m_civil.m_seaLevelElevation == 142.125
+                    && geo.m_legacy.m_civil.m_coordinateProjectionRadius
+                        == 143.125;
+                DRW_GeoData copied(geo);
+                DRW_GeoData assigned;
+                assigned = geo;
+                legacyLifecycleMatches = copied.m_legacy.m_controlFlags == 2
+                    && copied.m_legacy.m_civil.m_localRotationPoint[1] == 26.125
+                    && copied.m_legacy.m_coordinateSystemDatum == "legacy-datum"
+                    && assigned.m_legacy.m_controlFlags == 2
+                    && assigned.m_legacy.m_civil.m_gridReferencePointNumber == 94
+                    && assigned.m_legacy.m_coordinateSystemDescription
+                        == "legacy-coordinate-description";
+                copied.reset();
+                legacyLifecycleMatches = legacyLifecycleMatches
+                    && copied.m_legacy.m_controlFlags == 0
+                    && !copied.m_legacy.m_civil.m_present
+                    && copied.m_legacy.m_civil.m_ambiguous141Value == 0.0
+                    && copied.m_legacy.m_coordinateSystemDatum.empty();
+            }
             if (version.objectVersion >= 2 && typedValuesMatch) {
                 const DRW_GeoData& geo = importer.geoData.front();
                 typedValuesMatch = geo.m_horizontalUnitScale == 40.125
@@ -1819,7 +1906,8 @@ void testGeoDataVersionedMappings(TestContext& t) {
                 + stem + " preserves ordered GEODATA raw groups, object "
                          "boundary, and current typed control values";
             t.expect(imported && rawSequencePreserved
-                         && objectBoundaryPreserved && typedValuesMatch,
+                         && objectBoundaryPreserved && typedValuesMatch
+                         && legacyLifecycleMatches,
                      label.c_str());
         }
     }
