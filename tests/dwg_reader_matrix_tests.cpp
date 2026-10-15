@@ -288,6 +288,301 @@ void testExactUnknownSectionNames(TestContext& t) {
              "unknown-name index handles node-allocation failure without losing prior staged names");
 }
 
+bool readLe32(const std::vector<std::uint8_t>& bytes, std::size_t offset,
+              std::uint32_t& value) {
+    if (offset > bytes.size() || bytes.size() - offset < 4u)
+        return false;
+    value = static_cast<std::uint32_t>(bytes[offset])
+        | (static_cast<std::uint32_t>(bytes[offset + 1u]) << 8u)
+        | (static_cast<std::uint32_t>(bytes[offset + 2u]) << 16u)
+        | (static_cast<std::uint32_t>(bytes[offset + 3u]) << 24u);
+    return true;
+}
+
+bool writeLe32(std::vector<std::uint8_t>& bytes, std::size_t offset,
+               std::uint32_t value) {
+    if (offset > bytes.size() || bytes.size() - offset < 4u)
+        return false;
+    for (unsigned int i = 0; i < 4u; ++i)
+        bytes[offset + i] = static_cast<std::uint8_t>(value >> (i * 8u));
+    return true;
+}
+
+std::vector<std::uint8_t> encodeR2004LiteralRun(
+        const std::vector<std::uint8_t>& source) {
+    if (source.empty() || source.size() > std::numeric_limits<std::uint32_t>::max())
+        return {};
+    const auto length = static_cast<std::uint32_t>(source.size());
+    std::vector<std::uint8_t> compressed;
+    if (length <= 18u) {
+        compressed.push_back(static_cast<std::uint8_t>(length - 3u));
+    } else {
+        compressed.push_back(0);
+        std::uint32_t remaining = length - 18u;
+        while (remaining > 0xFFu) {
+            compressed.push_back(0);
+            remaining -= 0xFFu;
+        }
+        compressed.push_back(static_cast<std::uint8_t>(remaining));
+    }
+    compressed.insert(compressed.end(), source.begin(), source.end());
+    return compressed;
+}
+
+std::vector<std::uint8_t> encodeR2004SystemPage(
+        std::uint32_t pageType, const std::vector<std::uint8_t>& content) {
+    const auto compressed = encodeR2004LiteralRun(content);
+    if (compressed.empty()
+        || content.size() > std::numeric_limits<std::uint32_t>::max()
+        || compressed.size() > std::numeric_limits<std::uint32_t>::max())
+        return {};
+    std::vector<std::uint8_t> page(20u, 0);
+    (void)writeLe32(page, 0, pageType);
+    (void)writeLe32(page, 4, static_cast<std::uint32_t>(content.size()));
+    (void)writeLe32(page, 8, static_cast<std::uint32_t>(compressed.size()));
+    (void)writeLe32(page, 12, 2u);
+    std::uint32_t checksum = dwgUtil::checksum18(0, page.data(), page.size());
+    checksum = dwgUtil::checksum18(checksum, compressed.data(), compressed.size());
+    (void)writeLe32(page, 16, checksum);
+    page.insert(page.end(), compressed.begin(), compressed.end());
+    return page;
+}
+
+bool decodeR2004SystemPage(const std::vector<std::uint8_t>& bytes,
+                           std::uint64_t address, std::uint32_t expectedType,
+                           std::vector<std::uint8_t>& content) {
+    if (address > bytes.size() || bytes.size() - static_cast<std::size_t>(address) < 20u)
+        return false;
+    const auto offset = static_cast<std::size_t>(address);
+    std::uint32_t pageType = 0, decompressedSize = 0, compressedSize = 0;
+    if (!readLe32(bytes, offset, pageType)
+        || !readLe32(bytes, offset + 4u, decompressedSize)
+        || !readLe32(bytes, offset + 8u, compressedSize)
+        || pageType != expectedType || decompressedSize == 0
+        || decompressedSize > dwgSafety::MaxBufferSize
+        || compressedSize == 0
+        || compressedSize > bytes.size() - offset - 20u)
+        return false;
+
+    content.resize(decompressedSize);
+    dwgCompressor decompressor;
+    return decompressor.decompress18(bytes.data() + offset + 20u,
+                                     content.data(), compressedSize,
+                                     decompressedSize)
+        && decompressor.decompressedBytes() == decompressedSize;
+}
+
+bool makeDuplicateUnknownR2004SectionMap(std::vector<std::uint8_t>& bytes) {
+    if (bytes.size() < 0x100u)
+        return false;
+
+    std::array<std::uint8_t, 0x6c> variableHeader{};
+    for (std::size_t i = 0; i < variableHeader.size(); ++i)
+        variableHeader[i] = bytes[0x80u + i]
+            ^ static_cast<std::uint8_t>(DRW_magicNum18[i]);
+    const auto headerValue32 = [&variableHeader](std::size_t offset) {
+        return static_cast<std::uint32_t>(variableHeader[offset])
+            | (static_cast<std::uint32_t>(variableHeader[offset + 1u]) << 8u)
+            | (static_cast<std::uint32_t>(variableHeader[offset + 2u]) << 16u)
+            | (static_cast<std::uint32_t>(variableHeader[offset + 3u]) << 24u);
+    };
+    const std::uint32_t sectionPageMapId = headerValue32(0x50u);
+    const std::uint32_t dataSectionMapId = headerValue32(0x5cu);
+    const std::uint64_t sectionPageMapOffset = headerValue32(0x54u)
+        | (static_cast<std::uint64_t>(headerValue32(0x58u)) << 32u);
+    if (sectionPageMapOffset > std::numeric_limits<std::uint64_t>::max() - 0x100u)
+        return false;
+    const std::uint64_t sectionPageMapAddress = sectionPageMapOffset + 0x100u;
+
+    std::vector<std::uint8_t> sectionPageMapContent;
+    if (!decodeR2004SystemPage(bytes, sectionPageMapAddress, 0x41630e3bu,
+                               sectionPageMapContent)
+        || sectionPageMapContent.size() % 8u != 0u)
+        return false;
+
+    std::uint64_t physicalAddress = 0x100u;
+    std::uint64_t dataSectionMapAddress = 0;
+    std::uint32_t dataSectionMapPageSize = 0;
+    bool foundSectionPageMap = false;
+    bool foundDataSectionMap = false;
+    for (std::size_t offset = 0; offset < sectionPageMapContent.size(); offset += 8u) {
+        std::uint32_t pageId = 0, pageSize = 0;
+        if (!readLe32(sectionPageMapContent, offset, pageId)
+            || !readLe32(sectionPageMapContent, offset + 4u, pageSize)
+            || pageSize == 0
+            || physicalAddress > std::numeric_limits<std::uint64_t>::max() - pageSize)
+            return false;
+        if (pageId == sectionPageMapId) {
+            if (physicalAddress != sectionPageMapAddress)
+                return false;
+            foundSectionPageMap = true;
+        }
+        if (pageId == dataSectionMapId) {
+            dataSectionMapAddress = physicalAddress;
+            dataSectionMapPageSize = pageSize;
+            foundDataSectionMap = true;
+        }
+        physicalAddress += pageSize;
+    }
+    if (!foundSectionPageMap || !foundDataSectionMap
+        || dataSectionMapAddress > bytes.size()
+        || dataSectionMapPageSize > bytes.size() - dataSectionMapAddress)
+        return false;
+
+    std::vector<std::uint8_t> dataSectionMapContent;
+    if (!decodeR2004SystemPage(bytes, dataSectionMapAddress, 0x4163003bu,
+                               dataSectionMapContent)
+        || dataSectionMapContent.size() < 20u)
+        return false;
+    std::uint32_t descriptionCount = 0;
+    if (!readLe32(dataSectionMapContent, 0, descriptionCount)
+        || descriptionCount < 2u)
+        return false;
+
+    std::vector<std::size_t> nameOffsets;
+    std::size_t offset = 20u;
+    for (std::uint32_t i = 0; i < descriptionCount; ++i) {
+        std::uint32_t pageCount = 0;
+        if (offset > dataSectionMapContent.size()
+            || dataSectionMapContent.size() - offset < 96u
+            || !readLe32(dataSectionMapContent, offset + 8u, pageCount))
+            return false;
+        nameOffsets.push_back(offset + 32u);
+        const std::uint64_t next = static_cast<std::uint64_t>(offset) + 96u
+            + static_cast<std::uint64_t>(pageCount) * 16u;
+        if (next > dataSectionMapContent.size())
+            return false;
+        offset = static_cast<std::size_t>(next);
+    }
+    if (nameOffsets.size() < 2u)
+        return false;
+
+    constexpr char duplicateName[] = "AcDb:CodexDuplicate";
+    for (std::size_t i = 0; i < 2u; ++i) {
+        const auto nameOffset = nameOffsets[i];
+        std::fill(dataSectionMapContent.begin() + static_cast<std::ptrdiff_t>(nameOffset),
+                  dataSectionMapContent.begin() + static_cast<std::ptrdiff_t>(nameOffset + 64u),
+                  std::uint8_t{0});
+        std::copy(duplicateName, duplicateName + sizeof(duplicateName) - 1u,
+                  dataSectionMapContent.begin() + static_cast<std::ptrdiff_t>(nameOffset));
+    }
+
+    auto replacement = encodeR2004SystemPage(0x4163003bu, dataSectionMapContent);
+    if (replacement.empty() || replacement.size() > dataSectionMapPageSize)
+        return false;
+    replacement.resize(dataSectionMapPageSize, 0);
+    std::copy(replacement.begin(), replacement.end(),
+              bytes.begin() + static_cast<std::ptrdiff_t>(dataSectionMapAddress));
+    return true;
+}
+
+class SectionMapPublicationProbe final : public dwgReader18 {
+public:
+    SectionMapPublicationProbe(std::vector<std::uint8_t>& bytes, dwgRW* owner)
+        : dwgReader18(std::make_unique<dwgBuffer>(bytes.data(), bytes.size()), owner) {
+        version = DRW::AC1018;
+        decoder.setVersion(version, false);
+    }
+    bool parse() { return readFileHeader(); }
+    std::size_t knownSections() const { return sections.size(); }
+    std::size_t unknownSections() const { return m_unknownSections.size(); }
+    const std::vector<DwgIntegrityDiagnostic>& diagnostics() const {
+        return m_integrityDiagnostics;
+    }
+};
+
+class SectionMapSink final : public dx_iface {
+public:
+    SectionMapSink() {
+        cData = &data;
+        currentBlock = data.mBlock;
+    }
+    void addHeader(const DRW_Header*) override { ++headers; }
+    void addLine(const DRW_Line& value) override {
+        ++lines;
+        end = value.secPoint;
+    }
+    dx_data data;
+    std::size_t headers{0};
+    std::size_t lines{0};
+    DRW_Coord end;
+};
+
+void testR2004SectionMapPublication(TestContext& t) {
+    std::stringbuf streamBuffer(std::ios::out | std::ios::binary);
+    std::ofstream output;
+    static_cast<std::ostream&>(output).rdbuf(&streamBuffer);
+    DRW_Header header;
+    header.addInt("$MEASUREMENT", 1, 70);
+    DRW_Line line;
+    line.basePoint = {2, 3, 5};
+    line.secPoint = {7, 11, 13};
+    dwgWriter18 writer(&output, &header);
+    const bool generated = writer.prepareDwgClassManifest()
+        && writer.writeFileHeaderStub() && writer.writeDwgHeader()
+        && writer.writeDwgClasses() && writer.writeDwgObjects()
+        && writer.encodeEntity(&line) && writer.emitDeferredBlockControl()
+        && writer.finalizeHeaderHandseed() && writer.writeDwgHandles()
+        && writer.writeSecondHeader() && writer.finalize();
+    t.expect(generated, "complete AC1018 section-map witness is generated in memory");
+    if (!generated)
+        return;
+
+    const auto encoded = streamBuffer.str();
+    const std::vector<std::uint8_t> valid(encoded.begin(), encoded.end());
+    std::vector<std::uint8_t> invalid = valid;
+    t.expect(makeDuplicateUnknownR2004SectionMap(invalid),
+             "two generated R2004 descriptors receive an exact duplicate unknown name with a resealed DSM page");
+    if (invalid == valid)
+        return;
+    const std::vector<std::uint8_t> publicInvalid = invalid;
+
+    dwgRW diagnosticOwner("");
+    SectionMapPublicationProbe probe(invalid, &diagnosticOwner);
+    const bool rejected = !probe.parse();
+    const auto diagnostics = probe.diagnostics();
+    const bool exactFailure = std::any_of(
+        diagnostics.begin(), diagnostics.end(), [](const DwgIntegrityDiagnostic& entry) {
+            return entry.phase == DwgIntegrityPhase::SectionMap
+                && entry.kind == DwgIntegrityCheckKind::SectionPageReference
+                && entry.severity == DwgIntegritySeverity::Error;
+        });
+    const bool checksumsStayedValid = std::none_of(
+        diagnostics.begin(), diagnostics.end(), [](const DwgIntegrityDiagnostic& entry) {
+            return (entry.phase == DwgIntegrityPhase::FileHeader
+                    && entry.kind == DwgIntegrityCheckKind::FileHeaderCrc)
+                || entry.kind == DwgIntegrityCheckKind::SystemPageChecksum;
+        });
+    t.expect(rejected && exactFailure && checksumsStayedValid,
+             "duplicate-name failure reaches the real SectionMap stage after valid envelope and checksums");
+    t.expect(probe.knownSections() == 0u && probe.unknownSections() == 0u,
+             "failed full-map admission publishes neither standard nor unknown section descriptors");
+
+    std::copy(valid.begin(), valid.end(), invalid.begin());
+    t.expect(probe.parse() && probe.knownSections() > 0u
+                 && probe.unknownSections() == 0u,
+             "the same reader instance retries a corrected full map and publishes the valid descriptors");
+
+    SectionMapSink sink;
+    dwgRW publicReader("");
+    t.expect(!publicReader.readBuffer(
+                 publicInvalid.data(), publicInvalid.size(), &sink, false)
+                 && sink.headers == 0u && sink.lines == 0u,
+             "public DWG read publishes no callbacks for a duplicate full section map");
+    const auto publicDiagnostics = publicReader.getIntegrityDiagnostics();
+    t.expect(std::any_of(publicDiagnostics.begin(), publicDiagnostics.end(),
+                         [](const DwgIntegrityDiagnostic& entry) {
+                             return entry.phase == DwgIntegrityPhase::SectionMap
+                                 && entry.kind == DwgIntegrityCheckKind::SectionPageReference;
+                         }),
+             "public readBuffer preserves the reader-level duplicate-map diagnostic identity");
+    t.expect(publicReader.readBuffer(valid.data(), valid.size(), &sink, false)
+                 && sink.headers == 1u && sink.lines == 1u
+                 && sink.end.x == 7 && sink.end.y == 11
+                 && sink.end.z == 13,
+             "public readBuffer recovers on the same facade after the corrected full map is supplied");
+}
+
 void appendAdmissionDiagnostic(std::ostream& out, const DRW_OperationDiagnostic& value) {
     out << static_cast<int>(value.operation) << ':';
     const auto append = [&out](const auto& entry) {
@@ -1754,6 +2049,7 @@ int main() {
     TestContext context;
     testDisjointRangeIndex(context);
     testExactUnknownSectionNames(context);
+    testR2004SectionMapPublication(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
