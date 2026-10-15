@@ -711,6 +711,7 @@ if(LIBDXFRW_BUILD_TESTS)
 
     add_executable(libdxfrw_dwg_local_roundtrip
         tests/dwg_local_roundtrip_tests.cpp
+        tests/modeler_dxf_writer_matrix_tests.cpp
         dwg2dxf/dx_iface.cpp)
     target_compile_features(libdxfrw_dwg_local_roundtrip PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_dwg_local_roundtrip PRIVATE

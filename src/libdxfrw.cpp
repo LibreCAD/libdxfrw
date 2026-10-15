@@ -1183,19 +1183,6 @@ const char *modelerGeometryDxfName(DRW::ETYPE type) {
     }
 }
 
-const char *modelerGeometryDxfSubclass(DRW::ETYPE type) {
-    switch (type) {
-    case DRW::E3DSOLID:
-        return "AcDb3dSolid";
-    case DRW::REGION:
-        return "AcDbRegion";
-    case DRW::BODY:
-        return "AcDbBody";
-    default:
-        return nullptr;
-    }
-}
-
 bool isTextAcisPayload(const std::vector<std::uint8_t>& data) {
     return std::all_of(data.begin(), data.end(), [](std::uint8_t byte) {
         return byte == '\n' || byte == '\r' || byte == '\t' ||
@@ -8633,8 +8620,11 @@ bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
         return rejectUnsupportedDxfWrite();
 
     const char *recordName = modelerGeometryDxfName(ent->eType);
-    const char *subclassName = modelerGeometryDxfSubclass(ent->eType);
-    if (recordName == nullptr || subclassName == nullptr)
+    if (recordName == nullptr)
+        return rejectUnsupportedDxfWrite();
+    const bool writeSolidHistory = ent->eType == DRW::E3DSOLID
+        && version >= DRW::AC1021;
+    if (ent->m_historyHandle != 0 && !writeSolidHistory)
         return rejectUnsupportedDxfWrite();
 
     EntityRecordScope scope(*this, ent);
@@ -8647,13 +8637,9 @@ bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
             writer->writeBool(290, ent->m_dxfModelerFlag);
         if (ent->m_hasDxfModelerUid)
             writer->writeUtf8String(2, ent->m_dxfModelerUid);
-    }
-    writer->writeString(100, subclassName);
-    if (!writeAc1027Shell)
+    } else {
         writer->writeInt16(70, ent->m_modelerVersion);
-    if (ent->m_historyHandle != 0)
-        writer->writeString(350,
-                            toHexStr(remapObjectHandle(ent->m_historyHandle)));
+    }
     if (writeAc1015SatV1) {
         if (!writeDxfSatV1Text(writer.get(), ent->m_dwgAcisPayload))
             return failDxfWrite();
@@ -8661,6 +8647,12 @@ bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
         if (!writeDxfSatTextPayloadChunks(writer.get(), ent->m_rawBytes,
                                           ent->m_dxfPayloadChunks))
             return failDxfWrite();
+    }
+    // SAT belongs to AcDbModelerGeometry. Only R2007+ 3DSOLID has the
+    // following subclass/history pair; REGION and BODY have no such subclass.
+    if (writeSolidHistory) {
+        writer->writeString(100, "AcDb3dSolid");
+        writer->writeString(350, toHexStr(remapObjectHandle(ent->m_historyHandle)));
     }
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;

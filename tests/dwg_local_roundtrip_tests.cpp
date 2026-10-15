@@ -32,6 +32,8 @@
 #include "ltype_string_area_test_helpers.h"
 #include "xrecord_test_helpers.h"
 
+bool runModelerDxfWriterMatrix(const std::filesystem::path& parent, bool keepOutputs);
+
 namespace {
 
 struct Ac1024ClassesIntegrityReceipt {
@@ -15045,7 +15047,9 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 2 && std::string(argv[1]) == "--hatch-pattern-preservation") {
+    if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--modeler-dxf-matrix") {
+        return runModelerDxfWriterMatrix(argc == 3 ? argv[2] : directory, argc == 3) ? 0 : 1;
+    } else if (argc == 2 && std::string(argv[1]) == "--hatch-pattern-preservation") {
         const bool passed = runHatchPatternPredicateControls()
             && runDxfHatchPatternPreservation(false, directory, false)
             && runDxfHatchPatternPreservation(true, directory, false);
@@ -15106,6 +15110,7 @@ int main(int argc, char** argv) {
     } else if (argc != 1) {
         std::cerr << "usage: " << argv[0]
                   << " [--keep-dir DIRECTORY]"
+                     " [--modeler-dxf-matrix [DIRECTORY]]"
                      " [--hatch-pattern-preservation]"
                      " [--generate-hatch-pattern[-binary] DXF]"
                      " [--verify-hatch-pattern DXF]"
@@ -16235,6 +16240,9 @@ int main(int argc, char** argv) {
            "local DWG modeler version range and empty-body validation", failures);
     expect(runModelerDwgSatV1Extraction(),
            "local AC1015 DWG SAT v1 bounded extraction and DXF text carrier",
+           failures);
+    expect(runModelerDxfWriterMatrix(directory, keepOutputs),
+           "DXF modeler version/entity schema, SAT boundary and history matrix",
            failures);
     if (failures != 0) {
         std::cerr << failures << " local DWG round-trip assertion(s) failed\n";

@@ -140,6 +140,18 @@ listed parser path is complete or interoperable. Coordinate rules for DWG must
 be confirmed per family/version with the applicable ODA section and authentic
 target evidence before they are promoted.
 
+The DXF modeler writer places legacy group 70 and SAT groups 1/3 under
+`AcDbModelerGeometry`. Only R2007/AC1021 and later 3DSOLID adds
+`AcDb3dSolid` followed by group 350, including an explicit null history value.
+REGION and BODY use the modeler subclass alone. A nonzero history handle on
+REGION/BODY or an older solid target rejects the output transaction; callers
+must select a representable target or retain that unsupported relationship
+separately. R2013+ SAB remains in its separate ACDSDATA carrier. The local
+ASCII/binary tag matrix and generated ODA observations are recorded in the
+[3D plan](../DWG_DXF_3D_SUPPORT_PLAN.md); legacy binary-SAT interoperability
+remains unqualified because both subject and calibration files fail that
+independent reader screen.
+
 ## Consumer compatibility and probe evidence
 
 Completed DXF SPLINE/HELIX control-point payloads and HATCH spline boundaries
