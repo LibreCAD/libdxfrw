@@ -74,6 +74,9 @@ struct dx_dxfReadOutcome {
     bool diagnosticAvailable{false};
     bool diagnosticCaptureFailed{false};
     DRW_OperationDiagnostic diagnostic;
+    // Request exists even if setup fails before read entry. Applied policy is
+    // observations.codePagePolicy and is meaningful with the read status.
+    DRW::DxfCodePagePolicy requestedCodePagePolicy{DRW::DxfCodePagePolicy::Compatible};
 };
 
 // Read result and observations have separate meanings. This envelope belongs

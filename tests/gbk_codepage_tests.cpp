@@ -2239,6 +2239,187 @@ void testConverterDxfReadOutcome(TestContext& t) {
     else std::cerr << "Converter DXF outcome evidence: " << directory << '\n';
 }
 
+void testExactCodePageImport(TestContext& t) {
+    using Mapping = DRW::DxfCodePagePolicy;
+    using Source = dx_dxfSourceTextPolicy;
+    using Status = dx_dxfSourceTextStatus;
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-exact-import-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    const auto writeBytes = [](const std::filesystem::path& path, const std::string& bytes) {
+        std::ofstream file(path, std::ios::binary); file.write(bytes.data(), bytes.size());
+        if (!file) throw std::runtime_error("authored exact import could not be written");
+    };
+    const auto readBytes = [](const std::filesystem::path& path) {
+        std::ifstream file(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(file), {});
+    };
+    const auto hasTextAndLine = [](const dx_data& data, const std::string& expected) {
+        if (data.mBlock->ent.size() != 2) return false;
+        const auto* text = dynamic_cast<const DRW_Text*>(data.mBlock->ent.front());
+        const auto* line = dynamic_cast<const DRW_Line*>(data.mBlock->ent.back());
+        return text && text->text == expected && line && line->eType == DRW::LINE
+            && line->basePoint.x == 1 && line->basePoint.y == 2 && line->basePoint.z == 3
+            && line->secPoint.x == 4 && line->secPoint.y == 5 && line->secPoint.z == 6;
+    };
+    const std::string expected = "L\xC4\x84Z";
+    std::size_t handoffs = 0, publications = 0, refusals = 0;
+    for (const char* page : {"ISO8859-4", "ISO-8859-4"})
+        for (bool modern : {false,true}) for (bool binary : {false,true}) {
+        const auto input = directory / ("source-" + std::to_string(handoffs) + ".dxf");
+        writeBytes(input, makeTextObservationDrawing(page, modern, false, binary,
+                                                    modern ? expected : "L\xA1Z"));
+        dx_data data; dx_iface adapter;
+        t.expect(adapter.fileImport(input.string(), &data, false, Mapping::ExactNamed)
+                     && hasTextAndLine(data, expected)
+                     && data.dxfReadOutcome.requestedCodePagePolicy == Mapping::ExactNamed
+                     && data.dxfReadOutcome.observations.codePagePolicy == Mapping::ExactNamed
+                     && !data.dxfReadOutcome.observations.hasIssues()
+                     && (data.dxfReadOutcome.observations.exactNamedDecodeCalls > 0) == !modern
+                     && data.headerC.dxfCodePageDeclaration() == page,
+                 "explicit adapter input policy reaches typed ASCII/binary legacy/modern text and owned outcomes");
+        const auto retained = data.dxfReadOutcome;
+        t.expect(dx_iface::admitDxfSourceText(data).status == (modern ? Status::Admitted : Status::UnsupportedProfile),
+                 "exact mapping does not itself admit a new high-byte conversion profile; modern metadata stays inert");
+        const auto output = directory / ("first-" + std::to_string(handoffs) + ".dxf");
+        const auto target = modern ? DRW::AC1018 : DRW::AC1021;
+        if (!modern) {
+            for (bool sentinel : {false,true}) {
+                if (sentinel) writeBytes(output, "preserved-destination");
+                t.expect(!adapter.fileExport(output.string(), target, binary, &data, false, false,
+                                             Source::RequireValidSource, DRW::DxfTextWritePolicy::RequireLossless)
+                             && adapter.sourceTextAdmission().status == Status::UnsupportedProfile
+                             && (sentinel ? readBytes(output) == "preserved-destination" : !std::filesystem::exists(output))
+                             && sameTextObservations(retained.observations, data.dxfReadOutcome.observations),
+                         "unqualified exact high-byte source refuses before destination creation/replacement or evidence mutation");
+                ++refusals;
+            }
+        }
+        // Explicit Compatible source admission is a caller choice, not producer
+        // qualification. Target transport still checks every required scalar.
+        t.expect(adapter.fileExport(output.string(), target, binary, &data, false, false,
+                                   modern ? Source::RequireValidSource : Source::Compatible,
+                                   DRW::DxfTextWritePolicy::RequireLossless),
+                 "explicit compatible import export retains exact scalars under separate lossless target policy");
+        dx_data first; dx_iface next;
+        t.expect(next.fileImport(output.string(), &first, false) && hasTextAndLine(first, expected)
+                     && first.dxfReadOutcome.requestedCodePagePolicy == Mapping::Compatible
+                     && first.dxfReadOutcome.observations.codePagePolicy == Mapping::Compatible,
+                 "first actual output reimports under unchanged default input mapping");
+        const auto secondOutput = directory / ("second-" + std::to_string(handoffs) + ".dxf");
+        t.expect(next.fileExport(secondOutput.string(), target, binary, &first, false, false,
+                                Source::RequireValidSource, DRW::DxfTextWritePolicy::RequireLossless),
+                 "normalized actual output composes with existing source and target admission");
+        dx_data second;
+        t.expect(next.fileImport(secondOutput.string(), &second, false) && hasTextAndLine(second, expected)
+                     && data.dxfReadOutcome.requestedCodePagePolicy == Mapping::ExactNamed
+                     && sameTextObservations(retained.observations, data.dxfReadOutcome.observations),
+                 "two exports and third read preserve semantic text/LINE and the original owned evidence");
+        publications += 2;
+        ++handoffs;
+    }
+    const auto good = directory / "retry.dxf";
+    writeBytes(good, makeTextObservationDrawing("ISO8859-4", false, false, false, "L\xA1Z"));
+    dx_data reused; dx_iface adapter;
+    t.expect(adapter.fileImport(good.string(), &reused, false, Mapping::ExactNamed), "reuse starts with exact input");
+    const auto saved = reused.dxfReadOutcome;
+    auto invalid = makeTextObservationDrawing("ISO8859-4", false, false, false, "L\xA1Z");
+    const auto handleAt = invalid.find("\nB\n");
+    t.expect(handleAt != std::string::npos, "authored late failure has its distinct LINE handle");
+    if (handleAt != std::string::npos) invalid.replace(handleAt + 1, 1, "INVALID_HANDLE");
+    const auto invalidPath = directory / "late-invalid.dxf"; writeBytes(invalidPath, invalid);
+    t.expect(!adapter.fileImport(invalidPath.string(), &reused, false, Mapping::ExactNamed)
+                 && reused.dxfReadOutcome.readReturned && !reused.dxfReadOutcome.operationSucceeded
+                 && reused.dxfReadOutcome.requestedCodePagePolicy == Mapping::ExactNamed
+                 && reused.dxfReadOutcome.observations.codePagePolicy == Mapping::ExactNamed
+                 && reused.dxfReadOutcome.observations.exactNamedDecodeCalls > 0
+                 && dx_iface::admitDxfSourceText(reused).status == Status::ImportNotSuccessful,
+             "late returned failure retains applied exact prefix without authorizing conversion");
+    t.expect(!adapter.fileImport((directory / "missing.dxf").string(), &reused, false, Mapping::ExactNamed)
+                 && reused.dxfReadOutcome.readReturned && reused.dxfReadOutcome.error == DRW::BAD_OPEN
+                 && reused.dxfReadOutcome.requestedCodePagePolicy == Mapping::ExactNamed
+                 && reused.dxfReadOutcome.observations.codePagePolicy == Mapping::ExactNamed
+                 && reused.dxfReadOutcome.observations.semanticDecodeCalls == 0,
+             "early returned failure owns requested/applied policy without stale events");
+    t.expect(adapter.fileImport(good.string(), &reused, false)
+                 && reused.dxfReadOutcome.requestedCodePagePolicy == Mapping::Compatible
+                 && reused.dxfReadOutcome.observations.codePagePolicy == Mapping::Compatible
+                 && reused.dxfReadOutcome.observations.hasIssues() && !saved.observations.hasIssues(),
+             "defaulted next import resets policies and observations without changing the copied exact outcome");
+    t.expect(!adapter.fileImport((directory / "invalid.ext").string(), &reused, false, Mapping::ExactNamed)
+                 && !reused.dxfReadOutcome.attempted
+                 && reused.dxfReadOutcome.requestedCodePagePolicy == Mapping::Compatible,
+             "non-DXF attempt resets the DXF-specific request rather than fabricating an applied policy");
+    for (bool asciiOnly : {false,true}) {
+        const auto path = directory / (asciiOnly ? "ascii-independent.dxf" : "unavailable.dxf");
+        writeBytes(path, makeTextObservationDrawing("EUC-JP", false, false, false,
+                                                   asciiOnly ? "L\\U+0104Z" : "L\xA1Z"));
+        dx_data data;
+        t.expect(adapter.fileImport(path.string(), &data, false, Mapping::ExactNamed)
+                     && dx_iface::admitDxfSourceText(data).status == (asciiOnly ? Status::Admitted : Status::ObservedIssues)
+                     && data.dxfReadOutcome.observations.unavailableNamedDecodeCalls == (asciiOnly ? 0u : 1u),
+                 "unknown-family ASCII escapes remain independent while unavailable high bytes are observed/refused");
+    }
+    {
+        auto bytes = makeTextObservationDrawing("ISO8859-4", false, false, false, "L\xA1Z");
+        bytes.resize(bytes.rfind("0\nEOF\n"));
+        bytes += "0\nSECTION\n2\nHEADER\n9\n$DWGCODEPAGE\n3\nANSI_1252\n0\nENDSEC\n0\nEOF\n";
+        const auto path = directory / "later-canonical.dxf"; writeBytes(path, bytes);
+        dx_data data;
+        t.expect(adapter.fileImport(path.string(), &data, false, Mapping::ExactNamed)
+                     && data.headerC.dxfCodePageDeclaration() == "ANSI_1252"
+                     && !data.dxfReadOutcome.observations.hasIssues()
+                     && dx_iface::admitDxfSourceText(data).status == Status::UnsupportedProfile,
+                 "later canonical metadata cannot qualify earlier exact high-byte consumption");
+        data.dxfReadOutcome.requestedCodePagePolicy = Mapping::Compatible;
+        t.expect(dx_iface::admitDxfSourceText(data).status == Status::EvidenceUnavailable,
+                 "request/applied policy disagreement is unavailable evidence, not a clean source");
+        data.dxfReadOutcome.requestedCodePagePolicy = data.dxfReadOutcome.observations.codePagePolicy = static_cast<Mapping>(255);
+        t.expect(dx_iface::admitDxfSourceText(data).status == Status::EvidenceUnavailable,
+                 "unknown input-policy enum values cannot authorize complete conversion");
+    }
+    class ChangingImport final : public dx_iface {
+    public:
+        explicit ChangingImport(Mapping& request) : request(request) {}
+        void addText(const DRW_Text& value) override {
+            request = Mapping::Compatible;
+            if (throwNow) { failImportObservationAllocations = failCopy; throw 79; }
+            dx_iface::addText(value);
+        }
+        Mapping& request;
+        bool throwNow{false}, failCopy{false};
+    };
+    for (int mode = 0; mode < 3; ++mode) {
+        Mapping request = Mapping::ExactNamed; ChangingImport changing(request);
+        changing.throwNow = mode != 0; changing.failCopy = mode == 2;
+        dx_data data; bool returned = false, caught = false;
+        try { returned = changing.fileImport(good.string(), &data, false, request); }
+        catch (int sentinel) { failImportObservationAllocations = false; caught = sentinel == 79; }
+        catch (...) { failImportObservationAllocations = false; }
+        failImportObservationAllocations = false;
+        const auto& outcome = data.dxfReadOutcome;
+        t.expect((mode == 0 ? returned && !caught : !returned && caught)
+                     && request == Mapping::Compatible && outcome.readThrew == (mode != 0)
+                     && outcome.requestedCodePagePolicy == Mapping::ExactNamed
+                     && outcome.observations.codePagePolicy == Mapping::ExactNamed
+                     && outcome.observations.exactNamedDecodeCalls > 0 && !outcome.observations.hasIssues()
+                     && outcome.diagnosticAvailable == (mode != 2)
+                     && outcome.diagnosticCaptureFailed == (mode == 2),
+                 "copied requested policy and applied observations survive callback mutation/throw/diagnostic-copy failure");
+        changing.throwNow = changing.failCopy = false;
+        dx_data retry;
+        t.expect(changing.fileImport(good.string(), &retry, false)
+                     && retry.dxfReadOutcome.requestedCodePagePolicy == Mapping::Compatible
+                     && retry.dxfReadOutcome.observations.codePagePolicy == Mapping::Compatible,
+                 "same adapter corrected retry uses the default rather than a stale explicit policy");
+    }
+    std::cout << "Exact adapter input: handoffs=" << handoffs << ", two-pass exports=" << publications
+              << ", atomic strict-source refusals=" << refusals
+              << "; reuse/unavailable/ASCII/cumulative/profile-evidence and 3 callback/retry controls pass\n";
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Exact import evidence: " << directory << '\n';
+}
+
 void testDxfSourceTextAdmission(TestContext& t) {
     using Status = dx_dxfSourceTextStatus;
     using Policy = dx_dxfSourceTextPolicy;
@@ -3194,6 +3375,12 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--exact-codepage-import") {
+        testExactCodePageImport(context);
+        testConverterDxfReadOutcome(context);
+        testDxfSourceTextAdmission(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--exact-codepage-reader") {
         testExactCodePageReader(context);
         return context.failures == 0 ? 0 : 1;
@@ -3275,6 +3462,7 @@ int main(int argc, char** argv) {
     testTextObservationHandoff(context);
     testExactCodePageReader(context);
     testConverterDxfReadOutcome(context);
+    testExactCodePageImport(context);
     testDxfSourceTextAdmission(context);
     testTargetTextTransport(context);
     testTargetTextFacade(context);

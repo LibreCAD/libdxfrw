@@ -178,8 +178,24 @@ observations, not just the Boolean result. `exactNamedDecodeCalls` and
 not character/record coverage or producer qualification. Available exact
 decoding does not suppress malformed-sequence/escape observations.
 
-The CLI and default converter adapter still import with `Compatible`; explicit
-adapter/CLI selection and producer-profile admission are separate planned work.
+The CLI and default converter adapter still import with `Compatible`. The
+in-tree adapter now accepts an explicit fourth `fileImport` argument selecting
+`DRW::DxfCodePagePolicy`; this internal converter API is not an installed header.
+Its owned outcome retains `requestedCodePagePolicy` before facade construction,
+separately from the applied `observations.codePagePolicy` snapshot/status.
+Returned failures and callback/diagnostic-copy exceptions retain both; new
+non-DXF attempts reset DXF-specific evidence. Existing imports still append to
+the caller model; resetting the outcome does not clear previously imported data.
+
+`RequireValidSource` rejects unknown/disagreeing policy evidence. Until the
+closed exact-source profile contract is reviewed, it also conservatively
+refuses when exact-decoder and non-ASCII observations coexist, even with no
+decode issues. These overlapping counts do not identify/qualify every consumed
+profile, and later HEADER metadata cannot erase them. Decoder-independent
+ASCII/represented escapes and modern inert metadata retain their existing
+admission. Callers choosing compatible source admission can export explicit
+exact input under the separate target-text policy; this is not producer
+qualification. No new CLI input option/default or source-profile claim is added.
 This library option does not certify native rendering, wire-profile conformance,
 all named mappings or complete conversion. Source admission, UTF8 recovery and
 target-text transport remain independent policies; legacy Unicode profiles are

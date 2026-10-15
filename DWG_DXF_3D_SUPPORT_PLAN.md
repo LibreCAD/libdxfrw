@@ -131,6 +131,22 @@ handoff, then3.3c.2b separately reviewed source-profile/CLI admission; default
 adapter/CLI input remains Compatible. No3D ledger, native qualification, fixture,
 registration, dependency, DWG layout or six deferred J/support status changes.
 
+Parity Slice3.3c.2a now implements explicit defaulted adapter input selection
+and owned requested/applied policy evidence across return/unwind/reset/reuse.
+Unknown/disagreeing evidence rejects strict source admission; coexisting exact
+decoder/non-ASCII counts conservatively refuse pending closed profile review,
+without letting later canonical HEADER values qualify earlier text. Modern
+inert metadata and ASCII represented escapes retain admission; default adapter/
+CLI input remains Compatible. Eight handoffs/16 two-pass exports/readbacks/eight
+atomic strict-source refusals plus failure/reuse/unavailable/callback-allocation
+controls pass. Existing outcome/source handoffs36/40, final codec/CLI2/2 in8.90s,
+strict two-TU and focused ASan/UBSan pass. Receipt:
+docs/research/codec-exact-adapter-3-3c-2a-2026-10-15.json.
+Next3.3c.2b records closed cumulative profile identity/eligibility before broader
+CLI opt-in; local contract/evidence work needs no new external run. Counts,
+native tuples, DWG layout, fixtures/dependencies/registrations and six deferred
+J/support states remain unchanged.
+
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
 adds140 current-source codec observations and a bounded3.1–3.5 implementation

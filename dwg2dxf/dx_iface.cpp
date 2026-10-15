@@ -2261,7 +2261,8 @@ void snapshotDxfReadOutcome(dx_data& data, const dxfRW& reader) noexcept {
 
 } // namespace
 
-bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
+bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
+                          DRW::DxfCodePagePolicy codePagePolicy){
     fData->dxfReadOutcome = {};
     fData->dwgReadOutcome = {};
     fData->sourceFormat = dx_source_format::Unknown;
@@ -2275,7 +2276,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
         fData->sourceFormat = dx_source_format::DXF;
         //loads dxf
         fData->dxfReadOutcome.attempted = true;
+        fData->dxfReadOutcome.requestedCodePagePolicy = codePagePolicy;
         dxfRW dxf(fileI.c_str());
+        dxf.setDxfCodePagePolicy(codePagePolicy);
         if (debug) {
             dxf.setDebug(DRW::DebugLevel::Debug);
         }
@@ -2836,8 +2839,24 @@ dx_dxfSourceTextAdmission dx_iface::admitDxfSourceText(const dx_data& data) noex
         return {Status::EvidenceUnavailable, mask};
     if (read.diagnostic.failed())
         return {Status::ImportNotSuccessful, mask};
+    if ((read.requestedCodePagePolicy != DRW::DxfCodePagePolicy::Compatible
+         && read.requestedCodePagePolicy != DRW::DxfCodePagePolicy::ExactNamed)
+        || read.requestedCodePagePolicy != read.observations.codePagePolicy)
+        return {Status::EvidenceUnavailable, mask};
     if (mask != 0u)
         return {Status::ObservedIssues, mask};
+
+    // Exact high-byte profiles are not enabled for complete conversion by
+    // this adapter handoff alone. Counts can overlap across fields/HEADERs;
+    // use them only as a conservative refusal, never a profile certificate.
+    // A later canonical HEADER cannot erase earlier exact consumption.
+    // Decoder-independent ASCII/escapes and modern inert metadata retain
+    // their existing admission. Closed per-consumption profile eligibility
+    // is a separately reviewed step, not inferred from a zero issue mask.
+    if (read.observations.codePagePolicy == DRW::DxfCodePagePolicy::ExactNamed
+        && read.observations.exactNamedDecodeCalls != 0u
+        && read.observations.nonAsciiDecodeCalls != 0u)
+        return {Status::UnsupportedProfile, mask};
 
     // Naming categories alone do not admit a DXF wire profile. Match the full
     // owned source declaration, never its possibly colliding 64-byte prefix.

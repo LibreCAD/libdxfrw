@@ -75,8 +75,21 @@ The appended `exactNamedDecodeCalls`/`unavailableNamedDecodeCalls` overlap and
 saturate like other semantic-call counters, not source entity/character counts.
 Exact decoder availability does not remove malformed input/escape issues or
 qualify legacy Unicode wire profiles. CLI/default adapter import still uses
-Compatible; explicit adapter handoff and closed source-profile admission remain
-separate work. This option is not a producer/native text or3D support claim,
+Compatible. The internal adapter's defaulted fourth `fileImport` argument now
+allows explicit selection, with owned `requestedCodePagePolicy` recorded before
+facade construction separately from applied read observations/status. Returned
+and throwing exits retain it; new non-DXF attempts reset this DXF evidence.
+Outcome reset does not change existing append-to-model import behavior.
+
+Strict source admission rejects unknown/disagreeing policy evidence and,
+pending closed exact-profile review, conservatively refuses coexisting exact
+decoder/non-ASCII observations even when the issue mask is zero. Overlapping
+counters cannot certify profiles; later HEADER values cannot erase this gate.
+ASCII/represented escapes and modern inert metadata remain eligible. Explicit
+compatible source admission plus separate target guarding permits scoped
+conversions, not producer qualification. No CLI exact-input option/default is
+enabled; source-profile admission remains separate work.
+This option is not a producer/native text or3D support claim,
 and does not turn stored TEXT/MTEXT commands into a plain-text promise.
 
 DXF output has a separate `DRW::DxfTextWritePolicy`: library/default adapter

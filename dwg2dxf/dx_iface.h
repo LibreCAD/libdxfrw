@@ -51,7 +51,10 @@ public:
 
     dx_iface() = default;
     ~dx_iface() = default;
-    bool fileImport(const std::string& fileI, dx_data *fData, bool debug);
+    // Explicit input-only selection; ordinary/CLI calls retain Compatible.
+    // Owned outcome distinguishes this request from the read-entry snapshot.
+    bool fileImport(const std::string& fileI, dx_data *fData, bool debug,
+                    DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible);
     static constexpr std::size_t DwgReadReportMaxBytes = 32u * 1024u;
     static void reportDwgReadOutcome(std::ostream& output,
                                      const dx_dwgReadOutcome& outcome);
