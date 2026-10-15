@@ -1431,6 +1431,7 @@ class DRW_Tolerance : public DRW_Entity {
     SETENTFRIENDS
 private:
     std::size_t m_dxfRetainedTextBytes{0};
+    std::size_t m_dxfRetainedDimStyleBytes{0};
 
 public:
     DRW_Tolerance() {

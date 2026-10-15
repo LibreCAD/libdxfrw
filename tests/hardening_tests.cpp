@@ -4001,6 +4001,75 @@ void testDxfToleranceTextOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfToleranceStyleNameOwnerBudget(TestContext& t) {
+    class ToleranceParseProbe final : public DRW_Tolerance {
+    public:
+        using DRW_Tolerance::parseCode;
+        using DRW_Tolerance::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nDIMSTYLE\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(59u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && tolerance.dimStyleName == "DIMSTYLE"
+                     && budget->used() == 8u,
+                 "TOLERANCE style-name replacement retains only its live value at the exact transient peak");
+        ToleranceParseProbe copy(tolerance);
+        ToleranceParseProbe assigned;
+        assigned = tolerance;
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 8u && copy.dimStyleName == "DIMSTYLE"
+                     && assigned.dimStyleName == "DIMSTYLE",
+                 "TOLERANCE style-name lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 8u,
+                 "TOLERANCE assignment copy keeps the style-name charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final TOLERANCE reset releases its style-name lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(58u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && tolerance.dimStyleName == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under TOLERANCE style-name replacement preserves the prior value and charge");
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected TOLERANCE style-name replacement releases its lease on reset");
+    }
+}
+
 void testDxfLeaderStyleOwnerBudget(TestContext& t) {
     class LeaderParseProbe final : public DRW_Leader {
     public:
@@ -6276,6 +6345,7 @@ int main() {
     testDxfDimensionStyleOwnerBudget(context);
     testDxfDimensionTextOwnerBudget(context);
     testDxfToleranceTextOwnerBudget(context);
+    testDxfToleranceStyleNameOwnerBudget(context);
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);

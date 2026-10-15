@@ -9260,7 +9260,10 @@ bool DRW_Tolerance::parseCode(int code, const std::unique_ptr<dxfReader>& reader
             return false;
         break;
     case 3:
-        dimStyleName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedDimStyleBytes, dimStyleName,
+                reader->getUtf8String()))
+            return false;
         break;
     case 10:
         insertionPoint.x = reader->getDouble();
@@ -9300,6 +9303,7 @@ void DRW_Tolerance::resetDwgState() {
     text.clear();
     m_dxfRetainedTextBytes = 0u;
     dimStyleName = "STANDARD";
+    m_dxfRetainedDimStyleBytes = 0u;
     dimStyleH = dwgHandle{};
     insertionPoint = DRW_Coord{0.0, 0.0, 0.0};
     xAxisDirectionVector = DRW_Coord{0.0, 0.0, 0.0};
