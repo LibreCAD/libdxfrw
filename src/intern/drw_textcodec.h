@@ -28,6 +28,15 @@ struct DRW_CodePageSelection {
     const char* selectedName {nullptr};
 };
 
+struct DRW_TextDecodeObservation {
+    std::uint32_t issues {0};
+    bool nonAsciiBytes {false};
+    bool legacyBytes {false};
+    bool recovery {false};
+};
+
+enum class DRW_TextSourceKind : std::uint8_t { Utf8, LegacyBytes, Utf16 };
+
 class DRW_TextCodec
 {
 public:
@@ -39,6 +48,11 @@ public:
     DRW_TextCodec& operator=(DRW_TextCodec&&) noexcept = default;
     std::string fromUtf8(std::string_view s);
     std::string toUtf8(std::string_view s);
+    // Last completed conversion only; the reader owns cumulative observations.
+    DRW_TextDecodeObservation lastDecodeObservation() const noexcept {
+        return m_lastDecodeObservation;
+    }
+    static bool isUtf8ScalarText(std::string_view text) noexcept;
     /// Convert byte-oriented DWG TV fields using the file codepage while the
     /// primary codec may remain UTF-16 for R2007+ fields.
     std::string fromUtf8CP8(std::string_view s);
@@ -75,6 +89,9 @@ public:
 private:
     void configureCodePage(const std::string& c, bool dxfFormat,
                            bool explicitDeclaration = false);
+    void finishDecodeObservation(const DRW_Converter& converter,
+                                 bool recovery = false,
+                                 bool byteChannel = false) noexcept;
 
 private:
     DRW::Version version{DRW::UNKNOWNV};
@@ -95,18 +112,24 @@ private:
     std::string cp;
     std::unique_ptr< DRW_Converter> conv;
     std::unique_ptr< DRW_Converter> cp8Conv;
+    DRW_TextDecodeObservation m_lastDecodeObservation;
 };
 
 class DRW_Converter
 {
 public:
-    DRW_Converter(const int *t, int l)
+    DRW_Converter(const int *t, int l,
+                  DRW_TextSourceKind kind = DRW_TextSourceKind::Utf8)
         :table{t }
         ,cpLength{l}
+        ,m_sourceKind(kind)
     {}
     virtual ~DRW_Converter()=default;
     virtual std::string fromUtf8(std::string_view s) {return std::string{s};}
     virtual std::string toUtf8(std::string_view s);
+    DRW_TextDecodeObservation decodeObservation() const noexcept {
+        return m_decodeObservation;
+    }
     std::string encodeText(const std::string& stmp);
     std::string decodeText(int c);
     std::string encodeNum(int c);
@@ -124,6 +147,17 @@ public:
     int cpLength;
 
 protected:
+    void beginDecode() noexcept {
+        m_decodeObservation = {};
+        m_decodeObservation.legacyBytes = m_sourceKind == DRW_TextSourceKind::LegacyBytes;
+    }
+    void observeSourceByte(unsigned char value) noexcept {
+        m_decodeObservation.nonAsciiBytes |= value >= 0x80u;
+    }
+    void markDecodeIssue(DRW::DxfTextIssue issue) noexcept {
+        m_decodeObservation.issues |= DRW::dxfTextIssueMask(issue);
+    }
+    void observeEscapePrefix(std::string_view suffix) noexcept;
     /// Unicode -> DBCS, over the caller's cpLength-entry double table, built
     /// once per converter. Filled in table order, so a repeated code point
     /// keeps its first mapping - the one the linear scan this replaces
@@ -132,18 +166,20 @@ protected:
 
 private:
     std::unordered_map<int, int> m_reverse;
+    DRW_TextSourceKind m_sourceKind;
+    DRW_TextDecodeObservation m_decodeObservation;
 };
 
 class DRW_ConvUTF16 : public DRW_Converter {
 public:
-    DRW_ConvUTF16():DRW_Converter(nullptr, 0) {}
+    DRW_ConvUTF16():DRW_Converter(nullptr, 0, DRW_TextSourceKind::Utf16) {}
     std::string fromUtf8(std::string_view s) override;
     std::string toUtf8(std::string_view s) override;
 };
 
 class DRW_ConvTable : public DRW_Converter {
 public:
-    DRW_ConvTable(const int *t, int l):DRW_Converter(t, l) {}
+    DRW_ConvTable(const int *t, int l):DRW_Converter(t, l, DRW_TextSourceKind::LegacyBytes) {}
     std::string fromUtf8(std::string_view s) override;
     std::string toUtf8(std::string_view s) override;
 };
@@ -151,7 +187,7 @@ public:
 class DRW_ConvDBCSTable : public DRW_Converter {
 public:
     DRW_ConvDBCSTable(const int *t,  const int *lt, const int dt[][2], int l)
-        :DRW_Converter(t, l)
+        :DRW_Converter(t, l, DRW_TextSourceKind::LegacyBytes)
         ,leadTable{lt}
         ,doubleTable{dt}
     {}

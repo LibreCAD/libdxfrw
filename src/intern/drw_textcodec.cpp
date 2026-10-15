@@ -11,6 +11,51 @@
 #include "drw_cptable949.h"
 #include "drw_cptable950.h"
 
+namespace {
+// Share the existing UTF8 scalar rules with input observations, without a
+// substring allocation. Malformed input consumes one byte, as before.
+int decodeUtf8Scalar(std::string_view text, int* consumed) noexcept {
+    if (consumed == nullptr) return -1;
+    *consumed = 1;
+    if (text.empty()) return -1;
+    const auto lead = static_cast<unsigned char>(text.front());
+    std::size_t length = 0;
+    std::uint32_t value = 0, minimum = 0;
+    if (lead >= 0xC2u && lead <= 0xDFu) {
+        length = 2; value = lead & 0x1Fu; minimum = 0x80u;
+    } else if (lead >= 0xE0u && lead <= 0xEFu) {
+        length = 3; value = lead & 0x0Fu; minimum = 0x800u;
+    } else if (lead >= 0xF0u && lead <= 0xF4u) {
+        length = 4; value = lead & 0x07u; minimum = 0x10000u;
+    } else return -1;
+    if (text.size() < length) return -1;
+    for (std::size_t i = 1; i < length; ++i) {
+        const auto next = static_cast<unsigned char>(text[i]);
+        if ((next & 0xC0u) != 0x80u) return -1;
+        value = (value << 6u) | (next & 0x3Fu);
+    }
+    if (value < minimum || value > 0x10FFFFu
+        || (value >= 0xD800u && value <= 0xDFFFu)) return -1;
+    *consumed = static_cast<int>(length);
+    return static_cast<int>(value);
+}
+
+bool asciiHex(unsigned char value) noexcept {
+    return (value >= '0' && value <= '9') || (value >= 'A' && value <= 'F')
+        || (value >= 'a' && value <= 'f');
+}
+} // namespace
+
+bool DRW_TextCodec::isUtf8ScalarText(std::string_view text) noexcept {
+    for (std::size_t i = 0; i < text.size();) {
+        if (static_cast<unsigned char>(text[i]) < 0x80u) { ++i; continue; }
+        int length = 1;
+        if (decodeUtf8Scalar(text.substr(i), &length) < 0) return false;
+        i += static_cast<std::size_t>(length);
+    }
+    return true;
+}
+
 DRW_TextCodec::DRW_TextCodec()
     : version{DRW::AC1021}
     , conv( new DRW_Converter(nullptr, 0) )
@@ -32,6 +77,7 @@ void DRW_TextCodec::swap(DRW_TextCodec& other) noexcept {
     swap(cp, other.cp);
     swap(conv, other.conv);
     swap(cp8Conv, other.cp8Conv);
+    swap(m_lastDecodeObservation, other.m_lastDecodeObservation);
 }
 
 void DRW_TextCodec::setVersion(DRW::Version v, bool dxfFormat){
@@ -179,14 +225,42 @@ void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
 }
 
 std::string DRW_TextCodec::toUtf8(std::string_view s) {
+    m_lastDecodeObservation = {};
     if (m_dxfTextEncoding == DRW::DxfTextEncoding::LegacyLibreCadUtf8
         && m_legacyDxfInputEligible) {
         // Preserve UTF-8 input bytes while retaining Unicode/MIF escapes.
         // Do not replace conv: fromUtf8 still uses the declared output codec.
         DRW_Converter utf8(nullptr, 0);
-        return utf8.toUtf8(s);
+        auto result = utf8.toUtf8(s);
+        finishDecodeObservation(utf8, true);
+        return result;
     }
-    return conv->toUtf8(s);
+    auto result = conv->toUtf8(s);
+    finishDecodeObservation(*conv);
+    return result;
+}
+
+void DRW_TextCodec::finishDecodeObservation(const DRW_Converter& converter,
+                                           bool recovery, bool byteChannel) noexcept {
+    m_lastDecodeObservation = converter.decodeObservation();
+    m_lastDecodeObservation.recovery = recovery;
+    if (!m_lastDecodeObservation.nonAsciiBytes || !m_lastDecodeObservation.legacyBytes)
+        return;
+    const auto selection = byteChannel ? m_byteCodePageSelection : m_declaredCodePageSelection;
+    using Issue = DRW::DxfTextIssue;
+    switch (selection.kind) {
+    case DRW_CodePageKind::Unspecified:
+        m_lastDecodeObservation.issues |= DRW::dxfTextIssueMask(Issue::UnspecifiedCodePage); break;
+    case DRW_CodePageKind::CompatibilityAlias:
+        m_lastDecodeObservation.issues |= DRW::dxfTextIssueMask(Issue::CompatibilityCodePage); break;
+    case DRW_CodePageKind::Unavailable:
+        m_lastDecodeObservation.issues |= DRW::dxfTextIssueMask(Issue::UnavailableCodePage); break;
+    case DRW_CodePageKind::Unknown:
+        m_lastDecodeObservation.issues |= DRW::dxfTextIssueMask(Issue::UnknownCodePage); break;
+    default: break;
+    }
+    if (!byteChannel && selection.selectedName != nullptr && selection.selectedName != cp)
+        m_lastDecodeObservation.issues |= DRW::dxfTextIssueMask(Issue::ReappliedCodePage);
 }
 
 std::string DRW_TextCodec::fromUtf8(std::string_view s) {
@@ -198,7 +272,11 @@ std::string DRW_TextCodec::fromUtf8CP8(std::string_view s) {
 }
 
 std::string DRW_TextCodec::toUtf8CP8(std::string_view s) {
-    return cp8Conv ? cp8Conv->toUtf8(s) : std::string{s};
+    m_lastDecodeObservation = {};
+    if (!cp8Conv) return std::string{s};
+    auto result = cp8Conv->toUtf8(s);
+    finishDecodeObservation(*cp8Conv, false, true);
+    return result;
 }
 
 void DRW_TextCodec::setByteCodePage(const std::string &c) {
@@ -209,12 +287,22 @@ void DRW_TextCodec::setByteCodePage(const std::string &c) {
 }
 
 std::string DRW_Converter::toUtf8(std::string_view s) {
+    beginDecode();
     std::string result;
     int j = 0;
     unsigned int i= 0;
     for (i=0; i < s.length(); i++) {
         unsigned char c = s.at(i);
+        observeSourceByte(c);
+        if (c >= 0x80u) {
+            int length = 1;
+            if (decodeUtf8Scalar(s.substr(i), &length) < 0) {
+                markDecodeIssue(DRW::DxfTextIssue::InvalidUtf8);
+                markDecodeIssue(DRW::DxfTextIssue::InvalidUnicodeOutput);
+            }
+        }
         if (c < 0x80) { //ascii check for \U+???? or \M+cXXXX
+            if (c == '\\') observeEscapePrefix(s.substr(i));
             if (c == '\\' && i+6 < s.length() && s.at(i+1) == 'U' && s.at(i+2) == '+') {
                 result += s.substr(j,i-j);
                 result += encodeText(std::string{s.substr(i,7)});
@@ -275,14 +363,17 @@ std::string DRW_ConvTable::fromUtf8(std::string_view s) {
 }
 
 std::string DRW_ConvTable::toUtf8(std::string_view s) {
+    beginDecode();
     std::string res;
     for ( auto it=s.begin() ; it < s.end(); ++it ) {
         unsigned char c = *it;
+        observeSourceByte(c);
         // \U+ and \M+ escapes are 7-bit ASCII anchors; valid even when an
         // adjacent table byte is high. Test the backslash branch regardless
         // of `c < 0x80` so an escape immediately following a table-mapped
         // byte is still detected.
         if (c == '\\') {
+            observeEscapePrefix(s.substr(static_cast<std::size_t>(it - s.begin())));
             if (s.end()-it > 6 && *(it+1) == 'U' && *(it+2) == '+') {
                 res += encodeText(std::string(it, it+7));
                 it += 6;
@@ -300,6 +391,10 @@ std::string DRW_ConvTable::toUtf8(std::string_view s) {
         } else if (c < 0x80) {
             res += c; // ascii char write
         } else {
+            if (table[c-0x80] == 0) {
+                markDecodeIssue(DRW::DxfTextIssue::UndefinedByteSequence);
+                markDecodeIssue(DRW::DxfTextIssue::DiscardedSource);
+            }
             res += encodeNum(table[c-0x80]); // translate from table
         }
     } //end for
@@ -308,6 +403,7 @@ std::string DRW_ConvTable::toUtf8(std::string_view s) {
 }
 
 std::string DRW_Converter::encodeText(const std::string &stmp){
+    observeEscapePrefix(stmp);
     int code;
 #if defined(__APPLE__)
     // %x writes an unsigned int; scanning straight into `code` is undefined and
@@ -326,8 +422,12 @@ std::string DRW_Converter::encodeText(const std::string &stmp){
 
 std::string DRW_Converter::encodeMifText(const std::string &tok){
     // tok layout: "\M+cXXXX" — selector at index 3, 4 hex digits at [4..8).
-    if (tok.size() != 8 || tok[0] != '\\' || tok[1] != 'M' || tok[2] != '+')
+    if (tok.size() != 8 || tok[0] != '\\' || tok[1] != 'M' || tok[2] != '+') {
+        markDecodeIssue(DRW::DxfTextIssue::MalformedEscape);
+        markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
         return std::string{};
+    }
+    observeEscapePrefix(tok);
     // Numeric stream/scanf conversion accepts signs, whitespace and partial
     // hex. Validate the complete ASCII payload first on every platform, so a
     // malformed escape stays literal in the caller instead of creating a
@@ -335,8 +435,10 @@ std::string DRW_Converter::encodeMifText(const std::string &tok){
     for (std::size_t i = 4; i < 8; ++i) {
         const unsigned char ch = static_cast<unsigned char>(tok[i]);
         if (!((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F')
-              || (ch >= 'a' && ch <= 'f')))
+              || (ch >= 'a' && ch <= 'f'))) {
+            markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
             return std::string{};
+        }
     }
     const char* cpName = nullptr;
     switch (tok[3]) {
@@ -345,9 +447,13 @@ std::string DRW_Converter::encodeMifText(const std::string &tok){
         case '3': cpName = "ANSI_949"; break; // EUC-KR
         // Selector4 names Johab1361, not CP1252. There is no Johab decoder
         // here; let the existing callers preserve the original MIF spelling.
-        case '4': return std::string{};
+        case '4':
+            markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+            return std::string{};
         case '5': cpName = "ANSI_936"; break; // GB18030/GBK
-        default:  return std::string{};
+        default:
+            markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+            return std::string{};
     }
     int code = 0;
 #if defined(__APPLE__)
@@ -367,14 +473,37 @@ std::string DRW_Converter::encodeMifText(const std::string &tok){
     // all: the pair {0x00, low} decoded straight through as a NUL, and a NUL
     // in a layer name makes the DXF writers refuse the whole string. Reject
     // it so the caller keeps the escape as literal text instead.
-    if (code < 0x100) return std::string{};
+    if (code < 0x100) {
+        markDecodeIssue(DRW::DxfTextIssue::MalformedEscape);
+        markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+        return std::string{};
+    }
     DRW_TextCodec codec;
     codec.setVersion(DRW::AC1015, /*dxfFormat=*/false);
     codec.setCodePage(cpName, /*dxfFormat=*/false);
     std::string raw;
     raw.push_back(static_cast<char>((code >> 8) & 0xFF));
     raw.push_back(static_cast<char>(code & 0xFF));
-    return codec.toUtf8(raw);
+    auto result = codec.toUtf8(raw);
+    m_decodeObservation.issues |= codec.lastDecodeObservation().issues;
+    return result;
+}
+
+void DRW_Converter::observeEscapePrefix(std::string_view suffix) noexcept {
+    if (suffix.size() < 3 || suffix[0] != '\\' || suffix[2] != '+'
+        || (suffix[1] != 'U' && suffix[1] != 'M')) return;
+    const bool mif = suffix[1] == 'M';
+    const std::size_t needed = mif ? 8u : 7u;
+    const std::size_t available = (std::min)(needed, suffix.size());
+    bool valid = suffix.size() >= needed;
+    for (std::size_t i = 3; i < available; ++i) {
+        const auto value = static_cast<unsigned char>(suffix[i]);
+        observeSourceByte(value);
+        if (mif && i == 3) valid &= value >= '1' && value <= '5';
+        else valid &= asciiHex(value);
+    }
+    if (!valid) markDecodeIssue(DRW::DxfTextIssue::MalformedEscape);
+    if (suffix.size() < needed) markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
 }
 
 std::string DRW_Converter::decodeText(int c){
@@ -405,6 +534,9 @@ std::string DRW_Converter::decodeTableValue(int v){
 }
 
 std::string DRW_Converter::encodeNum(int c){
+    if (c == 0) markDecodeIssue(DRW::DxfTextIssue::DiscardedSource);
+    if (c < 0 || c > 0x10FFFF || (c >= 0xD800 && c <= 0xDFFF))
+        markDecodeIssue(DRW::DxfTextIssue::InvalidUnicodeOutput);
     unsigned char ret[5];
     if (c < 128) { // 0-7F US-ASCII 7 bits
         ret[0] = c;
@@ -438,50 +570,7 @@ std::string DRW_Converter::encodeNum(int c){
  * valid character.
  */
 int DRW_Converter::decodeNum(const std::string &s, int *b){
-    if (b == nullptr)
-        return -1;
-    *b = 1;
-    if (s.empty())
-        return -1;
-
-    const auto continuation = [](unsigned char value) {
-        return (value & 0xC0U) == 0x80U;
-    };
-    const unsigned char c = static_cast<unsigned char>(s[0]);
-    std::size_t length = 0;
-    std::uint32_t code = 0;
-    std::uint32_t minimum = 0;
-
-    if (c >= 0xC2U && c <= 0xDFU) {
-        length = 2;
-        code = c & 0x1FU;
-        minimum = 0x80U;
-    } else if (c >= 0xE0U && c <= 0xEFU) {
-        length = 3;
-        code = c & 0x0FU;
-        minimum = 0x800U;
-    } else if (c >= 0xF0U && c <= 0xF4U) {
-        length = 4;
-        code = c & 0x07U;
-        minimum = 0x10000U;
-    } else {
-        return -1;
-    }
-
-    if (s.size() < length)
-        return -1;
-    for (std::size_t index = 1; index < length; ++index) {
-        const unsigned char value = static_cast<unsigned char>(s[index]);
-        if (!continuation(value))
-            return -1;
-        code = (code << 6) | (value & 0x3FU);
-    }
-    if (code < minimum || code > 0x10FFFFU
-        || (code >= 0xD800U && code <= 0xDFFFU))
-        return -1;
-
-    *b = static_cast<int>(length);
-    return static_cast<int>(code);
+    return decodeUtf8Scalar(s, b);
 }
 
 
@@ -526,12 +615,15 @@ std::string DRW_ConvDBCSTable::fromUtf8(std::string_view s) {
 }
 
 std::string DRW_ConvDBCSTable::toUtf8(std::string_view s) {
+    beginDecode();
     std::string res;
     for (auto it=s.begin() ; it < s.end(); ++it ) {
         bool notFound = true;
         unsigned char c = *it;
+        observeSourceByte(c);
         if (c < 0x80) {
             notFound = false;
+            if (c == '\\') observeEscapePrefix(s.substr(static_cast<std::size_t>(it - s.begin())));
             // check for \U+ or \M+ encoded text (both are ASCII anchors;
             // backslash 0x5C is never a DBCS lead byte)
             if (c == '\\') {
@@ -573,14 +665,18 @@ std::string DRW_ConvDBCSTable::toUtf8(std::string_view s) {
             }
         }
         //not found
-        if (notFound) res += encodeNum(NOTFOUND936);
+        if (notFound) {
+            markDecodeIssue(DRW::DxfTextIssue::UndefinedByteSequence);
+            markDecodeIssue(DRW::DxfTextIssue::ReplacedSource);
+            res += encodeNum(NOTFOUND936);
+        }
     } //end for
 
     return res;
 }
 
 DRW_Conv932Table::DRW_Conv932Table()
-    :DRW_Converter(DRW_Table932, CPLENGTH932) {
+    :DRW_Converter(DRW_Table932, CPLENGTH932, DRW_TextSourceKind::LegacyBytes) {
 }
 
 std::string DRW_Conv932Table::fromUtf8(std::string_view s) {
@@ -624,12 +720,15 @@ std::string DRW_Conv932Table::fromUtf8(std::string_view s) {
 }
 
 std::string DRW_Conv932Table::toUtf8(std::string_view s) {
+    beginDecode();
     std::string res;
     for (auto it=s.begin() ; it < s.end(); ++it ) {
         bool notFound = true;
         unsigned char c = *it;
+        observeSourceByte(c);
         if (c < 0x80) {
             notFound = false;
+            if (c == '\\') observeEscapePrefix(s.substr(static_cast<std::size_t>(it - s.begin())));
             // check for \U+ or \M+ encoded text (SJIS lead bytes are
             // 0x81-0x9F and 0xE0-0xFC; backslash 0x5C is always ASCII)
             if (c == '\\') {
@@ -677,7 +776,11 @@ std::string DRW_Conv932Table::toUtf8(std::string_view s) {
             }
         }
         //not found
-        if (notFound) res += encodeNum(NOTFOUND932);
+        if (notFound) {
+            markDecodeIssue(DRW::DxfTextIssue::UndefinedByteSequence);
+            markDecodeIssue(DRW::DxfTextIssue::ReplacedSource);
+            res += encodeNum(NOTFOUND932);
+        }
     } //end for
 
     return res;
@@ -690,12 +793,20 @@ std::string DRW_ConvUTF16::fromUtf8(std::string_view s){
 }
 
 std::string DRW_ConvUTF16::toUtf8(std::string_view s){
+    beginDecode();
+    if ((s.size() & 1u) != 0u) {
+        observeSourceByte(static_cast<unsigned char>(s.back()));
+        markDecodeIssue(DRW::DxfTextIssue::MalformedUtf16);
+        markDecodeIssue(DRW::DxfTextIssue::DiscardedSource);
+    }
     // Decode UTF-16LE bytes to UTF-8. Combines surrogate pairs
     // 0xD800..0xDBFF + 0xDC00..0xDFFF into astral codepoints; an unpaired
     // half (high without matching low, or stray low) emits U+FFFD.
     std::string res;
     const size_t n = s.size() & ~static_cast<size_t>(1);
     for (size_t i = 0; i < n; i += 2) {
+        observeSourceByte(static_cast<unsigned char>(s[i]));
+        observeSourceByte(static_cast<unsigned char>(s[i + 1]));
         std::uint32_t ch =
             static_cast<std::uint8_t>(s[i]) |
             (static_cast<std::uint8_t>(s[i + 1]) << 8);
@@ -709,12 +820,18 @@ std::string DRW_ConvUTF16::toUtf8(std::string_view s){
                     i += 2; // consume the low surrogate
                 } else {
                     ch = 0xFFFD; // unpaired high
+                    markDecodeIssue(DRW::DxfTextIssue::MalformedUtf16);
+                    markDecodeIssue(DRW::DxfTextIssue::ReplacedSource);
                 }
             } else {
                 ch = 0xFFFD; // truncated high at end
+                markDecodeIssue(DRW::DxfTextIssue::MalformedUtf16);
+                markDecodeIssue(DRW::DxfTextIssue::ReplacedSource);
             }
         } else if (ch >= 0xDC00 && ch <= 0xDFFF) { // stray low surrogate
             ch = 0xFFFD;
+            markDecodeIssue(DRW::DxfTextIssue::MalformedUtf16);
+            markDecodeIssue(DRW::DxfTextIssue::ReplacedSource);
         }
         res += encodeNum(static_cast<int>(ch));
     }

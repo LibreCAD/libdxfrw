@@ -20,7 +20,13 @@ HEADER declaration snapshot and corrects the stale hardening fixture premise.
 Final focused acceptance is5/5 in13.62s plus strict/build/lc3 and focused
 ASan/UBSan; docs/research/codec-provenance-3-2b-1-2026-10-15.json binds the
 actual source/artifacts. Earlier research WIP/failure evidence remains frozen.
-Next local item is3.2b.2a source-text observations; no3D ledger count changes.
+Slice3.2b.2a now implements fixed-size source-text observations and owned facade
+snapshots without changing decoder/read policy:33 literal/four UTF16 controls,
+84 handoffs/16 reader roles/saturation and15 lifecycle/context controls pass.
+Final5/5 in22.13s, strict/build/lc3 and focused ASan/UBSan pass; all140 frozen
+codec outputs remain unchanged. Its binding is
+docs/research/codec-source-observations-3-2b-2a-2026-10-15.json. Next local item
+is3.2b.2b's owned converter DXF outcome; no3D ledger count changes.
 
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
@@ -128,13 +134,20 @@ modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
 four default/R12 compatibility controls and actual CLI no-output checks.
 S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
 nested DWG AcDs/SAB and native geometry remain unqualified. Next local work is
-parity Slice3.2b.2a bounded source-text observations.3.2b.1's owned declaration
+parity Slice3.2b.2b owned converter DXF outcome.3.2b.2a source-text observations
+now expose completed semantic-call events, overlapping/saturating counts and
+first known group/physical record/value-end context without inventing exact
+offending-byte or deferred positions. Metadata/raw controls/handles/binary are
+excluded, and memory/file callback unwind retains completed prefix evidence.
+Final5/5 in22.13s, strict/build/lc3, focused ASan/UBSan and unchanged140 outputs
+close this local observation slice, not converter strictness or support claims.
+3.2b.1's owned declaration
 snapshot is implemented, with72 handoffs/three delimiter controls and exact
 logical-byte admission/lifetime tests. The modern GEODATA copy/reset fixture
 now declares v2; genuine v1 grammar controls remain. Final5/5 in13.62s,
 strict/build/lc3 and focused ASan/UBSan supersede—but do not rewrite—the earlier
-4/5 research gate.3.2b.2a–d continues with source-text observations,
-owned DXF import outcomes, strict complete-conversion admission and lossless
+4/5 research gate.3.2b.2b–d continues with owned DXF import outcomes,
+strict complete-conversion admission and lossless
 target scalar transport; ordinary2D defaults remain compatible.32 authored
 CLI routes demonstrate that second-pass byte stability is insufficient.
 Source/parser validity, transformed projection and native B-rep qualification
@@ -6690,7 +6703,7 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity Slice3.2b.2a source-text observations):
+local work is parity Slice3.2b.2b owned converter DXF outcome):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,

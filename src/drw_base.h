@@ -308,6 +308,58 @@ struct OperationDiagnostic {
     bool failed() const noexcept { return cause != OperationCause::None; }
 };
 
+// Observed source-text events, not an exhaustive mapping/support certificate.
+// Counters below count completed semantic decode calls (not unique records or
+// characters). Several issues can describe the same call.
+enum class DxfTextIssue : std::uint8_t {
+    UnspecifiedCodePage,
+    CompatibilityCodePage,
+    UnavailableCodePage,
+    UnknownCodePage,
+    ReappliedCodePage,
+    InvalidUtf8,
+    UndefinedByteSequence,
+    ReplacedSource,
+    DiscardedSource,
+    MalformedEscape,
+    UnrepresentedEscape,
+    InvalidUnicodeOutput,
+    MalformedUtf16,
+    Count
+};
+
+constexpr std::uint32_t dxfTextIssueMask(DxfTextIssue issue) noexcept {
+    return issue < DxfTextIssue::Count
+        ? std::uint32_t{1} << static_cast<unsigned>(issue) : 0u;
+}
+
+struct DxfTextReadObservations {
+    static constexpr std::size_t IssueCount =
+        static_cast<std::size_t>(DxfTextIssue::Count);
+    std::uint64_t semanticDecodeCalls {0};
+    std::uint64_t nonAsciiDecodeCalls {0};
+    std::uint64_t legacyByteDecodeCalls {0};
+    std::uint64_t recoveryDecodeCalls {0};
+    std::uint64_t issueDecodeCalls {0};
+    std::array<std::uint64_t, IssueCount> issueCalls {};
+    std::uint32_t issueMask {0};
+    std::uint32_t firstIssueMask {0};
+    int firstGroupCode {0}; // zero when original field context is unavailable
+    std::uint64_t firstRecord {0}; // one-based physical record, when known
+    // Bytes consumed through that physical value/delimiter, not the offending
+    // code-unit's offset or the beginning of its record. Binary includes sentinel.
+    std::uint64_t firstValueEndOffset {0};
+    bool hasFirstRecord {false};
+    bool hasFirstValueEndOffset {false};
+    bool counterSaturated {false};
+
+    bool hasIssues() const noexcept { return issueMask != 0u; }
+    std::uint64_t issueCount(DxfTextIssue issue) const noexcept {
+        const auto index = static_cast<std::size_t>(issue);
+        return index < issueCalls.size() ? issueCalls[index] : 0u;
+    }
+};
+
 enum class DebugLevel {
     None,
     Disabled = None,
@@ -563,6 +615,8 @@ using DRW_OperationPhase = DRW::OperationPhase;
 using DRW_OperationCause = DRW::OperationCause;
 using DRW_OperationDiagnosticEntry = DRW::OperationDiagnosticEntry;
 using DRW_OperationDiagnostic = DRW::OperationDiagnostic;
+using DRW_DxfTextIssue = DRW::DxfTextIssue;
+using DRW_DxfTextReadObservations = DRW::DxfTextReadObservations;
 
 //! Class to handle 3D coordinate point
 /*!

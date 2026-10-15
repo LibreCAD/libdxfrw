@@ -116,7 +116,8 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
         break;
     case 1:
         curr->addString(code, deferText && name != "$ACADVER"
-            ? reader->getRawValue() : reader->getUtf8String());
+            ? reader->getRawValue() : (name == "$ACADVER"
+                ? reader->getMetadataUtf8String() : reader->getUtf8String()));
         if (name =="$ACADVER") {
             // An unrecognised $ACADVER is reported, not fatal.  A file with NO
             // $ACADVER reads fine, so refusing one that merely names a revision
@@ -160,7 +161,8 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
         break;
     case 3:
         curr->addString(code, deferText && name != "$DWGCODEPAGE"
-            ? reader->getRawValue() : reader->getUtf8String());
+            ? reader->getRawValue() : (name == "$DWGCODEPAGE"
+                ? reader->getMetadataUtf8String() : reader->getUtf8String()));
         if (name =="$DWGCODEPAGE") {
             // Preserve the physical value independently of the established
             // normalized public HEADER entry and its semantic decoder.
@@ -261,7 +263,7 @@ void DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
             continue;
         const int code = value->code();
         if (code == 1 || code == 2 || code == 3 || code == 6 || code == 7 || code == 8)
-            value->addString(code, reader->toUtf8String(*value->content.s));
+            value->addString(code, reader->toUtf8String(*value->content.s, code));
     }
 
     // Preserve physical legacy presence and expose the historical 2D alias

@@ -25,6 +25,18 @@ The returned reference lasts while a retaining header owns it. DWG does not
 fabricate this DXF value. This does not qualify decoded text, full model memory,
 concurrent access or a raw-replay export policy; downstream rebuild is required.
 
+`dxfRW::getTextReadObservations()` returns a fixed-size owned snapshot of
+completed semantic decode calls, including source invalidity, substitutions,
+discarded bytes, unresolved escapes and actually used legacy-page ambiguity.
+Raw controls/binary/handles and metadata are excluded. Counts overlap and can
+include repeated/assembled conversions; they are not entity/character coverage.
+First physical context is a record and value-end offset, not an offending-unit
+offset; deferred/assembled positions remain unknown. Copies survive reuse and
+callback unwind; writes/rejected nesting preserve the last-read snapshot.
+Default text/projection/read-failure behavior is unchanged. No issues does not
+prove complete text, object or B-rep semantics, and the CLI still needs the
+separate owned-outcome/strict-policy integration. Consumer rebuild is required.
+
 For a DXF or DWG client that must handle coordinates itself, call
 `dxfRW::read` / `dxfRW::readAscii` or `dwgRW::read` with `ext == false`. The
 public parameter is documented as applying extrusion for 2D conversion when

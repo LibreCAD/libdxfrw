@@ -74,6 +74,52 @@ bool isUnambiguousDxfHandleCode(int code) {
 
 }  // namespace
 
+void dxfReader::appendTextReadObservation(DRW_DxfTextReadObservations& target,
+    const DRW_TextDecodeObservation& value, int groupCode,
+    std::uint64_t record, bool hasRecord,
+    std::uint64_t valueEndOffset, bool hasValueEndOffset) noexcept {
+    const auto increment = [&target](std::uint64_t& count) {
+        if (count == (std::numeric_limits<std::uint64_t>::max)())
+            target.counterSaturated = true;
+        else ++count;
+    };
+    increment(target.semanticDecodeCalls);
+    if (value.nonAsciiBytes) increment(target.nonAsciiDecodeCalls);
+    if (value.legacyBytes) increment(target.legacyByteDecodeCalls);
+    if (value.recovery) increment(target.recoveryDecodeCalls);
+    if (value.issues == 0u) return;
+    if (target.issueMask == 0u) {
+        target.firstIssueMask = value.issues;
+        target.firstGroupCode = groupCode;
+        target.firstRecord = hasRecord ? record : 0u;
+        target.hasFirstRecord = hasRecord;
+        target.firstValueEndOffset = hasValueEndOffset ? valueEndOffset : 0u;
+        target.hasFirstValueEndOffset = hasValueEndOffset;
+    }
+    target.issueMask |= value.issues;
+    increment(target.issueDecodeCalls);
+    for (std::size_t i = 0; i < target.issueCalls.size(); ++i) {
+        if ((value.issues & DRW::dxfTextIssueMask(static_cast<DRW::DxfTextIssue>(i))) != 0u)
+            increment(target.issueCalls[i]);
+    }
+}
+
+std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
+                                         bool physicalRecord) {
+    auto result = decoder.toUtf8(text);
+    // A semantic getter may also be used for a subclass/structural marker.
+    // Do not turn raw controls, binary data or handles into text-loss events.
+    const bool semantic = sourceCode == 0 ? !physicalRecord
+        : dxfValueKindForCode(sourceCode, m_classifierProfile) == DxfValueKind::Str
+            && sourceCode != 9 && sourceCode != 100 && sourceCode != 102
+            && sourceCode != 999 && sourceCode != 1002 && !isDxfHandleCode(sourceCode);
+    if (semantic)
+        appendTextReadObservation(m_textReadObservations, decoder.lastDecodeObservation(),
+                                 sourceCode, m_recordCount, physicalRecord,
+                                 m_inputByteCount, physicalRecord);
+    return result;
+}
+
 bool dxfReader::canConsumeInputBytes(std::size_t count) noexcept {
     if (m_inputByteBudgetExceeded)
         return false;

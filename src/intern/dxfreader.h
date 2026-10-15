@@ -422,7 +422,7 @@ public:
         if ((m_decodeSemanticStrings && m_currentCode == 430)
             || m_currentCode == 1000 || m_currentCode == 1001
             || m_currentCode == 1003)
-            return decoder.toUtf8(strData);
+            return decodeSemanticText(strData, m_currentCode, true);
         return strData;
     }
     const std::string& getRawValue() const { return rawData; }
@@ -449,8 +449,23 @@ public:
     // Some legacy DIMSTYLE records use 340 for a text-style name and leave
     // subsequent handle slots empty; accept that scoped spelling.
     void setAllowDimstyleNames(bool allow) { m_allowDimstyleNames = allow; }
-    std::string toUtf8String(std::string t) {return decoder.toUtf8(t);}
-    std::string getUtf8String() {return decoder.toUtf8(strData);}
+    // Assembled/deferred values have no single original physical record.
+    std::string toUtf8String(std::string t, int sourceCode = 0) {
+        return decodeSemanticText(t, sourceCode, false);
+    }
+    std::string getUtf8String() {
+        return decodeSemanticText(strData, m_currentCode, true);
+    }
+    // Version/page metadata keeps its historical decode behavior but is not
+    // a document semantic-text observation.
+    std::string getMetadataUtf8String() { return decoder.toUtf8(strData); }
+    DRW_DxfTextReadObservations textReadObservations() const noexcept {
+        return m_textReadObservations;
+    }
+    static void appendTextReadObservation(DRW_DxfTextReadObservations& target,
+        const DRW_TextDecodeObservation& value, int groupCode,
+        std::uint64_t record, bool hasRecord,
+        std::uint64_t valueEndOffset = 0, bool hasValueEndOffset = false) noexcept;
     double getDouble() {return doubleData;}
     int getInt32() {return intData;}
     std::int64_t getInt64() {return int64;}
@@ -524,6 +539,9 @@ protected:
     std::int64_t int64 = 0; // signed 64-bit integer (DXF codes 160-169)
     bool skip = false; //set to true for ascii dxf, false for binary
 private:
+    std::string decodeSemanticText(std::string_view text, int sourceCode,
+                                   bool physicalRecord);
+    DRW_DxfTextReadObservations m_textReadObservations;
     DRW_TextCodec decoder;
     bool m_bIgnoreComments {false};
     DxfClassifierProfile m_classifierProfile {

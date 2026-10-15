@@ -7,8 +7,11 @@
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
+#include <type_traits>
 #include <string>
 #include <vector>
 
@@ -72,6 +75,7 @@ public:
         cData = data;
         currentBlock = data != nullptr ? data->mBlock : nullptr;
     }
+    void attachWriter(dxfRW* writer) { dxfW = writer; }
 
     void addMLine(const DRW_MLine* data) override {
         mlineStyleName = data == nullptr ? std::string{} : data->styleName;
@@ -1101,6 +1105,403 @@ void testMifLiteralModelRoundTrip(TestContext& t) {
     }
 }
 
+std::uint32_t textIssueMask(std::initializer_list<DRW_DxfTextIssue> issues) {
+    std::uint32_t mask = 0;
+    for (auto issue : issues) mask |= DRW::dxfTextIssueMask(issue);
+    return mask;
+}
+
+void testTextDecodeObservations(TestContext& t) {
+    static_assert(std::is_trivially_copyable<DRW_DxfTextReadObservations>::value,
+                  "text observations must remain fixed-size owned values");
+    using Issue = DRW_DxfTextIssue;
+    struct Row {
+        const char* page;
+        bool modern;
+        std::string bytes, expected;
+        std::uint32_t issues;
+    };
+    const Row rows[] = {
+        {"ANSI_1252", false, "L\xE9R", "L\xC3\xA9R", 0},
+        {"ANSI_1252", false, "L\x81R", "LR", textIssueMask({Issue::UndefinedByteSequence, Issue::DiscardedSource})},
+        {"ISO8859-4", false, "L\xA1R", "LR", textIssueMask({Issue::CompatibilityCodePage, Issue::UndefinedByteSequence, Issue::DiscardedSource})},
+        {"ISO8859-5", false, "L\xB0R", "L\xC2\xB0R", textIssueMask({Issue::CompatibilityCodePage})},
+        {"CP866", false, "L\x80R", "L\xE2\x82\xACR", textIssueMask({Issue::UnavailableCodePage})},
+        {"local-unknown", false, "L\x80R", "L\xE2\x82\xACR", textIssueMask({Issue::UnknownCodePage})},
+        {nullptr, false, "L\xE9R", "L\xC3\xA9R", textIssueMask({Issue::UnspecifiedCodePage})},
+        {"ISO8859-4", false, "plain", "plain", 0},
+        {"local-unknown", false, "\\U+0410", "\xD0\x90", 0},
+        {"ANSI_1252", false, "\\U+0000", "", textIssueMask({Issue::DiscardedSource})},
+        {"ANSI_1252", false, "\\U+ZZZZ", "", textIssueMask({Issue::MalformedEscape, Issue::DiscardedSource})},
+        {"ANSI_1252", false, "\\U+12G4", "\x12", textIssueMask({Issue::MalformedEscape})},
+        {"ANSI_1252", false, "\\U+D800", "\xED\xA0\x80", textIssueMask({Issue::InvalidUnicodeOutput})},
+        {"ANSI_1252", false, "\\U+12", "\\U+12", textIssueMask({Issue::MalformedEscape, Issue::UnrepresentedEscape})},
+        {"ANSI_1252", false, "\\M+48861", "\\M+48861", textIssueMask({Issue::UnrepresentedEscape})},
+        {"ANSI_1252", false, "\\M+193FG", "\\M+193FG", textIssueMask({Issue::MalformedEscape, Issue::UnrepresentedEscape})},
+        {"ANSI_1252", false, "\\M+10080", "\\M+10080", textIssueMask({Issue::MalformedEscape, Issue::UnrepresentedEscape})},
+        {"local-unknown", false, "\\M+182A0", "\xE3\x81\x82", 0},
+        {"ANSI_932", false, "L\x82", "L\xE3\x83\xBB", textIssueMask({Issue::UndefinedByteSequence, Issue::ReplacedSource})},
+        {"ANSI_936", false, "L\x81", "L?", textIssueMask({Issue::UndefinedByteSequence, Issue::ReplacedSource})},
+        {"ANSI_950", false, "\x88\x62", "\xC3\x8A\xCC\x84", 0},
+        {"ANSI_932", false, "?", "?", 0},
+        {"ANSI_1252", false, "", "", 0},
+        {"ANSI_1252", false, "\\M+1FFFF", "\xE3\x83\xBB", textIssueMask({Issue::UndefinedByteSequence, Issue::ReplacedSource})},
+        {"ANSI_1252", true, "\xEF\xBF\xBD", "\xEF\xBF\xBD", 0},
+        {"local-unknown", true, "\xC3\xA9", "\xC3\xA9", 0},
+        {"CP866", true, "\xF0\x9F\x98\x80", "\xF0\x9F\x98\x80", 0},
+        {"ANSI_1252", true, "\xC0\x80", "\xC0\x80", textIssueMask({Issue::InvalidUtf8, Issue::InvalidUnicodeOutput})},
+        {"ANSI_1252", true, "\xED\xA0\x80", "\xED\xA0\x80", textIssueMask({Issue::InvalidUtf8, Issue::InvalidUnicodeOutput})},
+        {"ANSI_1252", true, "\xF4\x90\x80\x80", "\xF4\x90\x80\x80", textIssueMask({Issue::InvalidUtf8, Issue::InvalidUnicodeOutput})},
+        {"ANSI_1252", true, "L\x80R", "L\x80R", textIssueMask({Issue::InvalidUtf8, Issue::InvalidUnicodeOutput})},
+        {"ANSI_1252", true, "L\xE2", "L\xE2", textIssueMask({Issue::InvalidUtf8, Issue::InvalidUnicodeOutput})},
+        {"ANSI_1252", true, "\\M+48861", "\\M+48861", textIssueMask({Issue::UnrepresentedEscape})},
+    };
+    std::size_t cases = 0;
+    for (const auto& row : rows) {
+        DRW_TextCodec codec;
+        codec.setVersion(row.modern ? DRW::AC1024 : DRW::AC1015, true);
+        if (row.page != nullptr) codec.setCodePage(row.page, true);
+        const auto decoded = codec.toUtf8(row.bytes);
+        const auto observed = codec.lastDecodeObservation();
+        t.expect(decoded == row.expected && observed.issues == row.issues
+                     && observed.legacyBytes == !row.modern,
+                 "source observation preserves old decoder output and reports only evidenced events");
+        if (decoded != row.expected || observed.issues != row.issues)
+            std::cerr << "Observation row " << cases << " issues=" << observed.issues
+                      << " expected=" << row.issues << '\n';
+        t.expect(codec.toUtf8("clean") == "clean" && codec.lastDecodeObservation().issues == 0
+                     && !codec.lastDecodeObservation().nonAsciiBytes,
+                 "next conversion resets per-value events without inventing loss from result characters");
+        ++cases;
+    }
+    DRW_TextCodec utf16;
+    utf16.setVersion(DRW::AC1024, false);
+    const std::pair<std::string, std::uint32_t> utf16Rows[] = {
+        {std::string("\x3D\xD8\0\xDE", 4), 0},
+        {std::string("\0\xD8", 2), textIssueMask({Issue::MalformedUtf16, Issue::ReplacedSource})},
+        {std::string("\xFD\xFF", 2), 0},
+        {"A", textIssueMask({Issue::MalformedUtf16, Issue::DiscardedSource})}
+    };
+    for (const auto& row : utf16Rows) {
+        (void)utf16.toUtf8(row.first);
+        t.expect(utf16.lastDecodeObservation().issues == row.second
+                     && !utf16.lastDecodeObservation().legacyBytes,
+                 "UTF16 malformed units are observed separately from valid replacement scalars");
+    }
+    DRW_TextCodec recovery;
+    recovery.setVersion(DRW::AC1015, true);
+    recovery.setCodePage("ANSI_1252", true);
+    recovery.setDxfTextEncoding(DRW::DxfTextEncoding::LegacyLibreCadUtf8);
+    t.expect(recovery.toUtf8("\xC3\xA9") == "\xC3\xA9"
+                 && recovery.lastDecodeObservation().recovery
+                 && !recovery.lastDecodeObservation().legacyBytes
+                 && recovery.lastDecodeObservation().issues == 0,
+             "explicit recovery observes its actual UTF8 path rather than unused legacy mapping");
+    DRW_TextCodec other;
+    (void)other.toUtf8("\x80");
+    const auto prior = other.lastDecodeObservation();
+    other.swap(recovery);
+    DRW_TextCodec moved(std::move(recovery));
+    t.expect(moved.lastDecodeObservation().issues == prior.issues
+                 && other.lastDecodeObservation().recovery,
+             "last-value snapshots swap/move with their codec state without borrowing");
+    std::cout << "Text decoder observations: literal rows=" << cases << ", UTF16 controls=4\n";
+}
+
+void testTextObservationReaderRoles(TestContext& t) {
+    using Issue = DRW_DxfTextIssue;
+    const int codes[] = {0, 5, 9, 100, 102, 105, 310, 330, 999, 1002, 1005, 1, 1000, 1001, 1003, 430};
+    std::size_t cases = 0;
+    for (int code : codes) {
+        const bool semantic = code == 1 || code == 1000 || code == 1001 || code == 1003 || code == 430;
+        const bool handle = isDxfHandleCode(code);
+        const std::string value = handle ? "A" : code == 310 ? "81" : "\x81";
+        std::istringstream input(std::to_string(code) + "\n" + value + "\n");
+        std::unique_ptr<dxfReader> reader = std::make_unique<dxfReaderAscii>(&input);
+        reader->setVersion("AC1015", true);
+        reader->setCodePage("ANSI_1252");
+        reader->setSemanticStringMode(true);
+        int actualCode = 0;
+        const bool read = reader->readRec(&actualCode);
+        if (read) {
+            const std::string raw = reader->getRawValue();
+            // Exercise semantic-code dispatch and the explicit UTF8 getter;
+            // observations count calls, not deduplicated physical records.
+            (void)reader->getString();
+            (void)reader->getUtf8String();
+            const auto observed = reader->textReadObservations();
+            t.expect(reader->getRawValue() == raw
+                         && (observed.semanticDecodeCalls != 0u) == semantic
+                         && (observed.issueCount(Issue::UndefinedByteSequence) != 0u) == semantic,
+                     "semantic getters exclude controls/binary/handles and never rewrite raw carrier bytes");
+            if (semantic)
+                t.expect(observed.hasFirstRecord && observed.firstRecord == 1
+                             && observed.hasFirstValueEndOffset
+                             && observed.firstValueEndOffset == std::to_string(code).size() + value.size() + 2u,
+                         "physical context records the exact value end, not an invented offending byte");
+        }
+        t.expect(read && actualCode == code, "reader-role control reads its intended physical record");
+        ++cases;
+    }
+    DRW_DxfTextReadObservations saturated;
+    const auto maximum = (std::numeric_limits<std::uint64_t>::max)();
+    saturated.semanticDecodeCalls = saturated.nonAsciiDecodeCalls = maximum;
+    saturated.legacyByteDecodeCalls = saturated.recoveryDecodeCalls = maximum;
+    saturated.issueDecodeCalls = maximum;
+    saturated.issueCalls[static_cast<std::size_t>(Issue::UnknownCodePage)] = maximum;
+    DRW_TextDecodeObservation value;
+    value.nonAsciiBytes = value.legacyBytes = value.recovery = true;
+    value.issues = textIssueMask({Issue::UnknownCodePage});
+    dxfReader::appendTextReadObservation(saturated, value, 1, 17, true);
+    dxfReader::appendTextReadObservation(saturated, {}, 2, 99, false);
+    t.expect(saturated.counterSaturated && saturated.semanticDecodeCalls == maximum
+                 && saturated.issueCount(Issue::UnknownCodePage) == maximum
+                 && saturated.firstGroupCode == 1 && saturated.firstRecord == 17
+                 && saturated.hasFirstRecord && saturated.firstIssueMask == value.issues
+                 && saturated.issueCount(Issue::Count) == 0,
+             "fixed counters saturate without wrapping or replacing first issue context");
+    std::cout << "Text observation reader roles: cases=" << cases << ", saturation controls=1\n";
+}
+
+std::string makeTextObservationDrawing(const char* page, bool modern,
+                                        bool pageFirst, bool binary,
+                                        const std::string& payload) {
+    auto bytes = makeCodePageDiagnosticDrawing(page, modern, pageFirst, binary);
+    const std::string original = modern ? "\xC3\xA9\xE4\xB8\xAD" : "ascii-control";
+    const auto at = bytes.find(original);
+    if (at == std::string::npos) throw std::runtime_error("authored TEXT payload not found");
+    bytes.replace(at, original.size(), payload);
+    return bytes;
+}
+
+bool sameTextObservations(const DRW_DxfTextReadObservations& a,
+                          const DRW_DxfTextReadObservations& b) {
+    return a.semanticDecodeCalls == b.semanticDecodeCalls
+        && a.nonAsciiDecodeCalls == b.nonAsciiDecodeCalls
+        && a.legacyByteDecodeCalls == b.legacyByteDecodeCalls
+        && a.recoveryDecodeCalls == b.recoveryDecodeCalls
+        && a.issueDecodeCalls == b.issueDecodeCalls && a.issueCalls == b.issueCalls
+        && a.issueMask == b.issueMask && a.firstIssueMask == b.firstIssueMask
+        && a.firstGroupCode == b.firstGroupCode && a.firstRecord == b.firstRecord
+        && a.firstValueEndOffset == b.firstValueEndOffset
+        && a.hasFirstValueEndOffset == b.hasFirstValueEndOffset
+        && a.hasFirstRecord == b.hasFirstRecord && a.counterSaturated == b.counterSaturated;
+}
+
+void testTextObservationHandoff(TestContext& t) {
+    using Issue = DRW_DxfTextIssue;
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-text-observations-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    struct Row {
+        const char* page;
+        bool modern;
+        std::string bytes, expected;
+        std::uint32_t issues;
+    };
+    const Row rows[] = {
+        {"ISO8859-4", false, "L\xA1R", "LR", textIssueMask({Issue::CompatibilityCodePage, Issue::UndefinedByteSequence, Issue::DiscardedSource})},
+        {"local-unknown", false, "plain", "plain", 0},
+        {"local-unknown", false, "\\U+0410", "\xD0\x90", 0},
+        {"CP866", false, "\x80", "\xE2\x82\xAC", textIssueMask({Issue::UnavailableCodePage})},
+        {"ANSI_1252", false, "L\x81R", "LR", textIssueMask({Issue::UndefinedByteSequence, Issue::DiscardedSource})},
+        {"local-unknown", true, "\xC3\xA9", "\xC3\xA9", 0},
+        {"ANSI_1252", true, "L\x80R", "L\x80R", textIssueMask({Issue::InvalidUtf8, Issue::InvalidUnicodeOutput})},
+        {"ANSI_1252", false, "\\M+48861", "\\M+48861", textIssueMask({Issue::UnrepresentedEscape})},
+        {"ANSI_932", false, "L\x82", "L\xE3\x83\xBB", textIssueMask({Issue::UndefinedByteSequence, Issue::ReplacedSource})},
+        {"ANSI_1252", true, "\\U+D800", "\xED\xA0\x80", textIssueMask({Issue::InvalidUnicodeOutput})},
+        {"UTF8", false, "\xC3\xA9", "\xC3\x83\xC2\xA9", textIssueMask({Issue::ReappliedCodePage})},
+        {nullptr, false, "\xE9", "\xC3\xA9", textIssueMask({Issue::UnspecifiedCodePage})},
+        {"ISO8859-4", false, "plain", "plain", 0},
+        {"local-\x81", false, "plain", "plain", 0}
+    };
+    std::size_t cases = 0;
+    for (const auto& row : rows) for (bool pageFirst : {false, true})
+        for (int route = 0; route < 3; ++route) {
+        auto bytes = makeTextObservationDrawing(row.page, row.modern, pageFirst, route == 2, row.bytes);
+        const auto path = directory / (std::to_string(cases) + ".dxf");
+        if (route != 0) {
+            std::ofstream output(path, std::ios::binary);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        }
+        dx_data data;
+        PreparedDxInterface sink;
+        sink.attach(&data);
+        DRW_DxfTextReadObservations observed;
+        bool read = false;
+        {
+            dxfRW facade(path.string().c_str());
+            read = route == 0 ? facade.readAscii(&sink, false, bytes) : facade.read(&sink, false);
+            observed = facade.getTextReadObservations();
+            t.expect(facade.getError() == DRW::BAD_NONE && !facade.getLastDiagnostic().failed(),
+                     "text observations do not change the tolerant primary read result");
+        }
+        const auto* text = data.mBlock->ent.empty() ? nullptr
+            : dynamic_cast<const DRW_Text*>(data.mBlock->ent.front());
+        bool correct = read && text != nullptr && text->text == row.expected
+            && data.mBlock->ent.size() == 2 && observed.issueMask == row.issues
+            && observed.issueDecodeCalls == (row.issues != 0 ? 1u : 0u)
+            && observed.semanticDecodeCalls != 0 && !observed.counterSaturated;
+        if (row.issues != 0)
+            correct = correct && observed.firstGroupCode == 1 && observed.hasFirstRecord
+                && observed.firstRecord != 0 && observed.firstIssueMask == row.issues
+                && observed.hasFirstValueEndOffset && observed.firstValueEndOffset != 0
+                && observed.firstValueEndOffset <= bytes.size();
+        for (std::size_t i = 0; i < observed.issueCalls.size(); ++i)
+            correct = correct && observed.issueCalls[i] == ((row.issues & (1u << i)) != 0 ? 1u : 0u);
+        t.expect(correct, "owned facade snapshot preserves source issues across metadata order/memory/ASCII/binary");
+        if (!correct) std::cerr << "Handoff row " << cases << " issues=" << observed.issueMask
+                                << " expected=" << row.issues << '\n';
+        ++cases;
+    }
+
+    auto bad = makeTextObservationDrawing("ISO8859-4", false, false, false, "L\xA1R");
+    auto clean = makeTextObservationDrawing("ANSI_1252", false, false, false, "plain");
+    dxfRW reusable((directory / "write-preserves-snapshot.dxf").string().c_str());
+    dx_data data;
+    PreparedDxInterface sink;
+    sink.attach(&data);
+    t.expect(reusable.readAscii(&sink, false, bad), "lifecycle starts with observed lossy source");
+    const auto retained = reusable.getTextReadObservations();
+    t.expect(!reusable.readAscii(nullptr, false, clean)
+                 && sameTextObservations(retained, reusable.getTextReadObservations()),
+             "readAscii null-interface rejection preserves the last source snapshot");
+    sink.attachWriter(&reusable);
+    t.expect(reusable.write(&sink, DRW::AC1024, false)
+                 && sameTextObservations(retained, reusable.getTextReadObservations()),
+             "write preserves last-read observations without adding a text-loss policy");
+    sink.attachWriter(nullptr);
+    dx_data fresh;
+    sink.attach(&fresh);
+    t.expect(reusable.readAscii(&sink, false, clean)
+                 && !reusable.getTextReadObservations().hasIssues() && retained.hasIssues(),
+             "next admitted read resets observations without changing a copied snapshot");
+    const auto at = bad.find("\nB\n");
+    auto invalid = bad;
+    if (at != std::string::npos) invalid.replace(at + 1, 1, "INVALID_HANDLE");
+    dx_data partial;
+    sink.attach(&partial);
+    t.expect(at != std::string::npos && !reusable.readAscii(&sink, false, invalid)
+                 && reusable.getTextReadObservations().issueMask == retained.issueMask,
+             "later primary record failure keeps earlier source-loss observations");
+    t.expect(!reusable.read(nullptr, false)
+                 && reusable.getTextReadObservations().semanticDecodeCalls == 0,
+             "admitted file read clears source observations even on early argument failure");
+
+    class LiveSink final : public dx_iface {
+    public:
+        LiveSink(dx_data& data, dxfRW& facade, std::string& nested)
+            : codec(facade), content(nested) { cData = &data; currentBlock = data.mBlock; }
+        void addText(const DRW_Text& value) override {
+            during = codec.getTextReadObservations();
+            nestedRejected = !codec.readAscii(this, false, content)
+                && !codec.write(this, DRW::AC1024, false)
+                && sameTextObservations(during, codec.getTextReadObservations());
+            if (throwNow) throw std::runtime_error("authored observation callback failure");
+            dx_iface::addText(value);
+        }
+        dxfRW& codec;
+        std::string& content;
+        DRW_DxfTextReadObservations during;
+        bool nestedRejected {false}, throwNow {false};
+    };
+    dx_data liveData;
+    LiveSink live(liveData, reusable, clean);
+    t.expect(reusable.readAscii(&live, false, bad) && live.nestedRejected
+                 && live.during.issueMask == retained.issueMask
+                 && reusable.getTextReadObservations().issueMask == retained.issueMask,
+             "callback snapshots and rejected nested operations preserve active read observations");
+    live.throwNow = true;
+    bool threw = false;
+    try { (void)reusable.readAscii(&live, false, bad); }
+    catch (const std::runtime_error&) { threw = true; }
+    t.expect(threw && reusable.getTextReadObservations().issueMask == retained.issueMask,
+             "scope unwind retains completed decode observations after a throwing callback");
+    dx_data afterThrow;
+    sink.attach(&afterThrow);
+    t.expect(reusable.readAscii(&sink, false, clean) && !reusable.getTextReadObservations().hasIssues(),
+             "corrected same-facade read resets after callback exception");
+
+    // Deferred HEADER values are decoded after metadata discovery. Their
+    // original physical positions are unavailable; never label ENDSEC as it.
+    std::string deferred = "0\nSECTION\n2\nHEADER\n9\n$CLAYER\n8\nL\x81R\n"
+        "9\n$ACADVER\n1\nAC1015\n9\n$DWGCODEPAGE\n3\nANSI_1252\n"
+        "0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n5\nA\n8\n0\n"
+        "10\n1\n20\n2\n11\n3\n21\n4\n0\nENDSEC\n0\nEOF\n";
+    dx_data headerData;
+    sink.attach(&headerData);
+    t.expect(reusable.readAscii(&sink, false, deferred)
+                 && reusable.getTextReadObservations().firstGroupCode == 8
+                 && !reusable.getTextReadObservations().hasFirstRecord
+                 && reusable.getTextReadObservations().firstRecord == 0
+                 && !reusable.getTextReadObservations().hasFirstValueEndOffset
+                 && reusable.getTextReadObservations().firstValueEndOffset == 0,
+             "deferred HEADER context retains field code without fabricating a physical record");
+    std::string changedMetadata =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
+        "9\n$DWGCODEPAGE\n3\nISO8859-4\n0\nENDSEC\n"
+        "0\nSECTION\n2\nENTITIES\n0\nTEXT\n5\nA\n8\n0\n"
+        "10\n0\n20\n0\n40\n1\n1\n\xA1\n0\nENDSEC\n"
+        "0\nSECTION\n2\nHEADER\n9\n$DWGCODEPAGE\n3\nANSI_1252\n0\nENDSEC\n"
+        "0\nSECTION\n2\nENTITIES\n0\nTEXT\n5\nB\n8\n0\n"
+        "10\n1\n20\n1\n40\n1\n1\nplain\n0\nENDSEC\n0\nEOF\n";
+    dx_data changedData;
+    sink.attach(&changedData);
+    t.expect(reusable.readAscii(&sink, false, changedMetadata)
+                 && headerString(changedData.headerC, "$DWGCODEPAGE") == "ANSI_1252"
+                 && reusable.getTextReadObservations().issueMask == retained.issueMask
+                 && reusable.getTextReadObservations().issueDecodeCalls == 1,
+             "later canonical metadata and clean text cannot erase an earlier source-loss event");
+    auto capped = makeCodePageDiagnosticDrawing("ISO8859-4", false, false, false, 20);
+    const std::string oldPayload = "ascii-control";
+    const auto cappedAt = capped.find(oldPayload);
+    if (cappedAt != std::string::npos) capped.replace(cappedAt, oldPayload.size(), "\xA1");
+    dx_data cappedData;
+    sink.attach(&cappedData);
+    t.expect(cappedAt != std::string::npos && reusable.readAscii(&sink, false, capped)
+                 && reusable.getLastDiagnostic().secondary.size() == DRW_OperationDiagnostic::MaxSecondaryEntries
+                 && reusable.getTextReadObservations().issueMask == retained.issueMask,
+             "source-loss observations survive a full bounded diagnostic advisory list");
+    reusable.setDxfTextEncoding(DRW::DxfTextEncoding::LegacyLibreCadUtf8);
+    auto recovered = makeTextObservationDrawing("ANSI_1252", false, false, false, "\xC3\xA9");
+    dx_data recoveredData;
+    sink.attach(&recoveredData);
+    t.expect(reusable.readAscii(&sink, false, recovered)
+                 && !reusable.getTextReadObservations().hasIssues()
+                 && reusable.getTextReadObservations().recoveryDecodeCalls != 0
+                 && reusable.getTextReadObservations().legacyByteDecodeCalls == 0,
+             "facade recovery observations describe the actual opt-in UTF8 path");
+    const auto throwingPath = directory / "throwing-file-read.dxf";
+    {
+        std::ofstream output(throwingPath, std::ios::binary);
+        output.write(bad.data(), static_cast<std::streamsize>(bad.size()));
+    }
+    DRW_DxfTextReadObservations fileUnwind;
+    {
+        dxfRW fileCodec(throwingPath.string().c_str());
+        dx_data fileData;
+        LiveSink fileSink(fileData, fileCodec, clean);
+        fileSink.throwNow = true;
+        bool fileThrew = false;
+        try { (void)fileCodec.read(&fileSink, false); }
+        catch (const std::runtime_error&) { fileThrew = true; }
+        fileUnwind = fileCodec.getTextReadObservations();
+        t.expect(fileThrew && fileUnwind.issueMask == retained.issueMask,
+                 "file callback unwind snapshots observations without touching the destroyed stream");
+    }
+    dxfRW missing((directory / "not-created.dxf").string().c_str());
+    dx_data missingData;
+    sink.attach(&missingData);
+    t.expect(missing.readAscii(&sink, false, bad) && !missing.read(&sink, false)
+                 && missing.getTextReadObservations().semanticDecodeCalls == 0
+                 && fileUnwind.issueMask == retained.issueMask,
+             "file open failure resets new observations while destroyed-facade copies remain valid");
+    std::cout << "Text observation facade handoffs=" << cases << ", lifecycle/context controls=15\n";
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Text observation evidence: " << directory << '\n';
+}
+
 void testMalformedUtf8(TestContext& t) {
     DRW_TextCodec codec;
     codec.setVersion(DRW::AC1015, false);
@@ -1544,6 +1945,12 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--text-read-observations") {
+        testTextDecodeObservations(context);
+        testTextObservationReaderRoles(context);
+        testTextObservationHandoff(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--codepage-provenance") {
         testCodePageProvenanceBudget(context);
         testCodePageDeclarationProvenance(context);
@@ -1576,6 +1983,9 @@ int main(int argc, char** argv) {
     testCodePageDiagnosticHandoff(context);
     testCodePageProvenanceBudget(context);
     testCodePageDeclarationProvenance(context);
+    testTextDecodeObservations(context);
+    testTextObservationReaderRoles(context);
+    testTextObservationHandoff(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);
     testDxfWriters(context);

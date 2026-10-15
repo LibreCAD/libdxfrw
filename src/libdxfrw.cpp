@@ -440,35 +440,7 @@ bool isValidDxfPlotCustomDpi(DRW::Version version, int resolution, int dpi) {
 }
 
 bool isUtf8ScalarText(const std::string& text) {
-    for (std::size_t index = 0; index < text.size();) {
-        const auto lead = static_cast<unsigned char>(text[index++]);
-        if (lead < 0x80)
-            continue;
-        unsigned count = 0;
-        std::uint32_t scalar = 0;
-        std::uint32_t minimum = 0;
-        if (lead >= 0xC2 && lead <= 0xDF) {
-            count = 1; scalar = lead & 0x1Fu; minimum = 0x80;
-        } else if (lead >= 0xE0 && lead <= 0xEF) {
-            count = 2; scalar = lead & 0x0Fu; minimum = 0x800;
-        } else if (lead >= 0xF0 && lead <= 0xF4) {
-            count = 3; scalar = lead & 0x07u; minimum = 0x10000;
-        } else {
-            return false;
-        }
-        if (count > text.size() - index)
-            return false;
-        for (unsigned part = 0; part < count; ++part) {
-            const auto next = static_cast<unsigned char>(text[index++]);
-            if ((next & 0xC0u) != 0x80u)
-                return false;
-            scalar = (scalar << 6u) | (next & 0x3Fu);
-        }
-        if (scalar < minimum || scalar > 0x10FFFFu
-            || (scalar >= 0xD800u && scalar <= 0xDFFFu))
-            return false;
-    }
-    return true;
+    return DRW_TextCodec::isUtf8ScalarText(text);
 }
 
 bool isFiniteDxfCoord(const DRW_Coord& point) {
@@ -1865,10 +1837,14 @@ public:
             m_owner.m_readTokenBudgetActive = false;
             m_owner.m_readInputByteBudgetActive = false;
             m_owner.m_readDecodeWorkBudgetActive = false;
+            m_owner.m_readTextObservationsActive = false;
         }
     }
     ~WholeOperationScope() noexcept {
         if (m_admitted) {
+            if (m_owner.m_readTextObservationsActive && m_owner.reader != nullptr)
+                m_owner.m_textReadObservations = m_owner.reader->textReadObservations();
+            m_owner.m_readTextObservationsActive = false;
             m_owner.m_dxfWriteFinalizing = false;
             m_owner.m_readTokenBudgetActive = false;
             m_owner.m_readInputByteBudgetActive = false;
@@ -2078,6 +2054,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     if (!operation.admitted())
         return false;
     beginOperationDiagnostic(DRW::OperationKind::Read);
+    m_textReadObservations = {};
     drw_assert(fileName.empty() == false);
     version = DRW::UNKNOWNV;
     m_sourceVersion = DRW::UNKNOWNV;
@@ -2153,6 +2130,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         reader->setInputByteBudget(m_dxfReadInputByteBudget);
     }
     reader->setDecodeWorkBudget(m_dxfReadDecodeWorkBudget);
+    m_readTextObservationsActive = true;
     reader->setTypedVariantNodeBudget(m_dxfReadTypedVariantNodeBudget);
     reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
@@ -2179,6 +2157,8 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     filestr.close();
     version = (DRW::Version) reader->getVersion();
     m_sourceVersion = reader->getSourceVersion();
+    m_textReadObservations = reader->textReadObservations();
+    m_readTextObservationsActive = false;
     reader.reset();
     return isOk;
 }
@@ -2192,6 +2172,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
     }
+    m_textReadObservations = {};
     beginDxfReadRetainedBudget();
     // readAscii is an explicit ASCII entry point.  A caller may reuse one
     // dxfRW instance after a binary write/read operation; leaving binFile set
@@ -2222,6 +2203,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
         return failDxfReadRetainedBudget();
     std::istringstream strstream(content);
     reader = std::make_unique<dxfReaderAscii>(&strstream);
+    m_readTextObservationsActive = true;
     reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
@@ -2250,6 +2232,8 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     }
     version = (DRW::Version) reader->getVersion();
     m_sourceVersion = reader->getSourceVersion();
+    m_textReadObservations = reader->textReadObservations();
+    m_readTextObservationsActive = false;
     reader.reset();
     return isOk;
 }
@@ -12067,7 +12051,7 @@ bool dxfRW::processMLine() {
             // MLINE group 2 is a semantic style name. The frozen parser
             // retains its raw getString() call, so normalize once at the
             // callback boundary using the active DXF code page.
-            mline.styleName = reader->toUtf8String(mline.styleName);
+            mline.styleName = reader->toUtf8String(mline.styleName, 2);
             iface->addMLine(&mline);
             return true;
         }
@@ -13166,7 +13150,7 @@ bool dxfRW::processDimension() {
             // is bound by the frozen AC1024 candidate contract and therefore
             // retains its raw getString() call; normalize at the callback
             // boundary using the active DXF code page instead.
-            dim.setName(reader->toUtf8String(dim.getName()));
+            dim.setName(reader->toUtf8String(dim.getName(), 2));
             int type = dim.type & 0x0F;
         switch (type) {
             case 0: {
@@ -13229,7 +13213,7 @@ bool dxfRW::processArcDimension() {
                 return setError(DRW::BAD_READ_ENTITIES);
             // See processDimension(): the frozen parser stores group 2 raw,
             // while the public callback contract carries UTF-8 model text.
-            d.setName(reader->toUtf8String(d.getName()));
+            d.setName(reader->toUtf8String(d.getName(), 2));
             iface->addDimArc(&d);
             return true;
         }
@@ -13256,7 +13240,7 @@ bool dxfRW::processLargeRadialDimension() {
                 return setError(DRW::BAD_READ_ENTITIES);
             // See processDimension(): preserve the callback's UTF-8 semantic
             // string contract without rebinding the frozen parser source.
-            d.setName(reader->toUtf8String(d.getName()));
+            d.setName(reader->toUtf8String(d.getName(), 2));
             iface->addDimRadial(&d);
             return true;
         }
@@ -19382,6 +19366,11 @@ DRW_OperationDiagnostic dxfRW::getLastDiagnostic() const {
         result.message = mapped.message;
     }
     return result;
+}
+
+DRW_DxfTextReadObservations dxfRW::getTextReadObservations() const noexcept {
+    return m_readTextObservationsActive && reader != nullptr
+        ? reader->textReadObservations() : m_textReadObservations;
 }
 
 bool dxfRW::setError(const DRW::error lastError){

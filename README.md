@@ -144,6 +144,31 @@ Neither advisories nor provenance establish complete charset support. Existing
 inexact aliases/fallback decoding remain compatibility behavior; strict
 conversion text-loss policy and mapping repairs are separate open work.
 
+`dxfRW::getTextReadObservations()` separately returns a fixed-size owned
+snapshot of completed semantic decode calls. `issueMask` and
+`issueCount(DRW::DxfTextIssue)` expose observed undefined/malformed input,
+replacement/deletion, unresolved escapes and legacy selection ambiguity.
+Inexact/unavailable/unknown page issues apply when non-ASCII bytes actually
+use that legacy decoder, not merely because metadata names it. Modern UTF-8
+and explicit input recovery keep their existing behavior. Metadata, structural
+controls, binary payloads and handles are excluded; raw bytes are unchanged.
+
+Counters overlap, saturate with `counterSaturated`, and count calls rather than
+unique records, entities or characters. Repeated getters/assembled values can
+be counted again. The first observed issue retains its group code when known;
+physical values also retain a one-based record and `firstValueEndOffset`
+(bytes consumed through the value/delimiter, including a binary sentinel).
+That is not the offending code-unit's position. Deferred/assembled values do
+not invent a physical position; deferred decoding order need not be file order.
+
+Snapshots survive reuse/destruction and include completed prefixes on failure
+or callback unwind. An admitted read resets them; `readAscii(nullptr)`, rejected
+nested operations and writes preserve the previous read snapshot. These events
+do not change text, `read()` success/errors or diagnostics, and an empty mask
+does not certify complete semantic coverage. Converter outcome handoff and
+strict refusal remain separate work. Public layout changes require rebuilding
+consumers; no binary ABI or concurrency guarantee is added.
+
 ### Using `dwg2dxf` from FreeCAD
 
 The installed `dwg2dxf` executable can serve as FreeCAD Draft's external

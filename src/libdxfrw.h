@@ -523,6 +523,13 @@ public:
     /// recent read/write operation.  The legacy getError() value remains the
     /// compatibility channel.
     DRW_OperationDiagnostic getLastDiagnostic() const;
+    /** Fixed-size observations from completed semantic DXF decode calls.
+     * Counters overlap and are not unique-record/character coverage. Metadata,
+     * raw controls/binary/handles are excluded. No text, selection or failure
+     * policy changes. Copies survive reuse/destruction. An admitted file read
+     * resets even on early failure; readAscii(nullptr), rejected nested calls
+     * and writes preserve the last read snapshot. Consumer rebuild required. */
+    DRW_DxfTextReadObservations getTextReadObservations() const noexcept;
 
     std::uint32_t getBlockRecordHandleToWrite(const std::string& blockName) const;
     std::uint32_t getTextStyleHandle(const std::string& styleName) const;
@@ -900,6 +907,8 @@ private:
     std::uint64_t m_reservationFailureGeneration {0};
     std::uint64_t m_consumedReservationFailureGeneration {0};
     DRW_OperationDiagnostic m_lastDiagnostic;
+    DRW_DxfTextReadObservations m_textReadObservations;
+    bool m_readTextObservationsActive {false};
     bool m_wholeOperationActive {false};
     bool m_dxfWriteAttemptActive {false};
     // Closed after emission, including the consumer veto and publication.
