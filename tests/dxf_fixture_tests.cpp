@@ -323,6 +323,26 @@ void testNodRootOrdering(TestContext& t) {
                                       && value.handle == 0xB0u;
                               }) == 1,
                  "later ownerless dictionary is retained, not promoted as root");
+
+        const auto output = directory
+            / (binary ? "writer-root-first-binary.dxf"
+                      : "writer-root-first-ascii.dxf");
+        dx_data outputData;
+        dx_iface writerInterface;
+        t.expect(writerInterface.fileExport(output.string(), DRW::AC1027,
+                                            binary, &outputData, false),
+                 "empty drawing writer emits a valid OBJECTS section");
+        FixtureInterface outputInterface;
+        dx_data readbackData;
+        t.expect(outputInterface.fileImport(output.string(), &readbackData,
+                                            false),
+                 "generated output with regenerated NOD re-imports");
+        t.expect(outputInterface.dictionaries.size() >= 2
+                     && outputInterface.dictionaries[0].handle == 0xCu
+                     && outputInterface.dictionaries[0].m_entries.size() >= 1
+                     && outputInterface.dictionaries[0].m_entries[0].m_name == "ACAD_GROUP"
+                     && outputInterface.dictionaries[1].handle == 0xDu,
+                 "writer places regenerated NOD before the reserved ACAD_GROUP dictionary");
     }
 }
 
