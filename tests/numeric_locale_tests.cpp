@@ -81,18 +81,54 @@ bool testOutput() {
         && writer.writeString(1001, "LOCAL_APP")
         && writer.writeBool(290, true)
         && writer.writeDouble(20, std::nextafter(1.0, 2.0));
-    ok = expect(ok && stream.str() == " 10\n1234.5\n 90\n1234567\n1001\nLOCAL_APP\n290\n1\n 20\n1\n",
-                "ASCII numeric output inherited decimal/grouping punctuation or changed 16-digit policy") && ok;
+    ok = expect(ok && stream.str() == " 10\n1234.5\n 90\n1234567\n1001\nLOCAL_APP\n290\n1\n 20\n1.0000000000000002\n",
+                "ASCII numeric output inherited decimal/grouping punctuation or lost binary64 precision") && ok;
     ok = expect(stream.getloc() == comma && stream.flags() == flags
                     && stream.precision() == 7 && stream.width() == 9,
                 "ASCII writer changed caller stream locale/format state") && ok;
+
+    const struct {
+        int code;
+        double value;
+    } values[] = {
+        {10, 2419318.197152937},
+        {20, -3154161.355029621},
+        {30, std::nextafter(1.0, 2.0)},
+        {40, std::nextafter(-1.0, -2.0)},
+        {41, (std::numeric_limits<double>::max)()},
+        {42, (std::numeric_limits<double>::min)()},
+        {43, std::numeric_limits<double>::denorm_min()},
+        {44, -0.0}
+    };
+    std::ostringstream coordinateStream;
+    dxfWriterAscii coordinateWriter(&coordinateStream);
+    bool coordinateOk = true;
+    for (const auto& value : values)
+        coordinateOk = coordinateWriter.writeDouble(value.code, value.value) && coordinateOk;
+    std::istringstream coordinateInput(coordinateStream.str());
+    dxfReaderAscii coordinateReader(&coordinateInput);
+    for (const auto& value : values) {
+        int code = 0;
+        const bool read = coordinateReader.readRec(&code);
+        const double actual = coordinateReader.getDouble();
+        coordinateOk = read && code == value.code && actual == value.value
+            && std::signbit(actual) == std::signbit(value.value) && coordinateOk;
+    }
+    ok = expect(coordinateOk,
+                "ASCII DXF changed a finite double during writer/reader round trip") && ok;
+
     std::ostringstream ordinary, localized;
     localized.imbue(comma);
     dxfWriterBinary binaryA(&ordinary), binaryB(&localized);
     ok = binaryA.writeDouble(10, 1234.5) && binaryA.writeInt32(90, 1234567)
         && binaryB.writeDouble(10, 1234.5) && binaryB.writeInt32(90, 1234567) && ok;
-    return expect(ordinary.str() == localized.str() && localized.getloc() == comma,
-                  "binary numeric output or caller locale changed") && ok;
+    ok = expect(ordinary.str() == localized.str() && localized.getloc() == comma,
+                "binary numeric output or caller locale changed") && ok;
+    std::ostringstream binaryBoundary;
+    dxfWriterBinary boundaryWriter(&binaryBoundary);
+    return expect(boundaryWriter.writeDouble(30, std::nextafter(1.0, 2.0))
+                      && binaryBoundary.str() == std::string("\x1e\x00\x01\x00\x00\x00\x00\x00\xf0\x3f", 10),
+                  "binary64 boundary encoding changed") && ok;
 }
 
 class RawSink final : public dx_iface {
@@ -189,8 +225,8 @@ bool generate(const std::string& path, bool binary) {
     writer->writeString(5, "A0"); writer->writeString(330, "0");
     writer->writeString(100, "AcDbEntity"); writer->writeString(8, "0");
     writer->writeString(100, "AcDbLine");
-    writer->writeDouble(10, 1234.5); writer->writeDouble(20, -2.5);
-    writer->writeDouble(30, 3.75); writer->writeDouble(11, -4.5);
+    writer->writeDouble(10, 2419318.197152937); writer->writeDouble(20, -3154161.355029621);
+    writer->writeDouble(30, std::nextafter(1.0, 2.0)); writer->writeDouble(11, -4.5);
     writer->writeDouble(21, 5.25); writer->writeDouble(31, -6.75);
     writer->writeString(0, "ENDSEC"); writer->writeString(0, "EOF");
     return !writer->hasWriteError() && stream.good();
@@ -207,8 +243,10 @@ bool verify(const std::string& path) {
                     && scale->second->d_val() == 1234.5
                     && data.mBlock->ent.size() == 1, "header/coordinate control changed")) return false;
     const auto* line = dynamic_cast<DRW_Line*>(data.mBlock->ent.front());
-    return expect(line && line->basePoint.x == 1234.5 && line->basePoint.y == -2.5
-                      && line->basePoint.z == 3.75 && line->secPoint.x == -4.5
+    return expect(line && line->basePoint.x == 2419318.197152937
+                      && line->basePoint.y == -3154161.355029621
+                      && line->basePoint.z == std::nextafter(1.0, 2.0)
+                      && line->secPoint.x == -4.5
                       && line->secPoint.y == 5.25 && line->secPoint.z == -6.75,
                   "coordinate sentinel changed");
 }

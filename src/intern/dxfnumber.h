@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <locale>
 #include <locale.h>
+#include <limits>
 #include <sstream>
 #include <string>
 #if defined(__APPLE__)
@@ -102,7 +103,9 @@ inline bool parsePrefix(const std::string& text, double& value) {
     return end != text.c_str() && errno != ERANGE && errno != ENOMEM;
 }
 
-inline std::string formatDouble(double value, int precision = 16) {
+// Numeric tags must recover the input double; 16 digits can collapse adjacent values.
+inline std::string formatDouble(
+    double value, int precision = std::numeric_limits<double>::max_digits10) {
     struct Formatter {
         Formatter() { stream.imbue(std::locale::classic()); }
         std::ostringstream stream;
