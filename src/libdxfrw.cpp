@@ -6161,6 +6161,19 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
         m_writeError = true;
         return false;
     }
+    // Strict converter closure applies to the referenced definition as well
+    // as this entity's owner. TABLES has already planned all BLOCK_RECORDs,
+    // including forward/nested references; reuse that index, not a new walk.
+    // R12 has no BLOCK_RECORD table and keeps its existing fallback contract.
+    if (m_requireResolvedBlockOwners && version > DRW::AC1009
+        && getBlockRecordHandleToWrite(ent->name) == DRW::NoHandle) {
+        recordOperationDiagnostic(writingBlock ? DRW::OperationPhase::Blocks
+                                               : DRW::OperationPhase::Entities,
+            DRW::OperationCause::ValidationFailure, "unresolved-insert-target",
+            "INSERT target has no emitted BLOCK_RECORD", 0, false,
+            ent->handle, ent->handle != DRW::NoHandle);
+        return failDxfWrite();
+    }
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
     // Successful child scopes still belong to this compound transaction.
@@ -8557,8 +8570,15 @@ bool dxfRW::writeSurface(DRW_Surface *ent){
 }
 
 bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
-    if (version <= DRW::AC1009)
+    if (version <= DRW::AC1009) {
+        recordOperationDiagnostic(writingBlock ? DRW::OperationPhase::Blocks
+                                               : DRW::OperationPhase::Entities,
+            DRW::OperationCause::UnsupportedVersion, "unsupported-modeler-target",
+            "3DSOLID/REGION/BODY is unavailable in this DXF target", 0, false,
+            ent != nullptr ? ent->handle : 0,
+            ent != nullptr && ent->handle != DRW::NoHandle);
         return rejectUnsupportedDxfWrite("3DSOLID/REGION/BODY");
+    }
     if (!preflightEntity(ent))
         return false;
     const bool writeAc1027Shell = version >= DRW::AC1027;
@@ -8617,8 +8637,14 @@ bool dxfRW::writeModelerGeometry(DRW_ModelerGeometry *ent) {
             && !ent->m_rawBytes.empty()
             && (version > DRW::AC1024
                 || !hasDxfTextPayloadChunks(ent->m_rawBytes,
-                                            ent->m_dxfPayloadChunks))))
+                                            ent->m_dxfPayloadChunks)))) {
+        recordOperationDiagnostic(writingBlock ? DRW::OperationPhase::Blocks
+                                               : DRW::OperationPhase::Entities,
+            DRW::OperationCause::ValidationFailure, "unrepresentable-modeler-carrier",
+            "modeler payload has no supported representation for this DXF target",
+            0, false, ent->handle, ent->handle != DRW::NoHandle);
         return rejectUnsupportedDxfWrite();
+    }
 
     const char *recordName = modelerGeometryDxfName(ent->eType);
     if (recordName == nullptr)

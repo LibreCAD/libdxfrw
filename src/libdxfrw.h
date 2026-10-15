@@ -469,7 +469,8 @@ public:
                                 std::uint32_t emittedHandle);
     //! Plan source BLOCK_RECORD identities independently of minted entities.
     //! The records are copied; this does not emit their layout/resource edges.
-    //! Strict mode rejects an explicit non-null entity owner without a binding.
+    //! Strict mode rejects an explicit non-null entity owner without a binding
+    //! and modern INSERT names without a planned BLOCK_RECORD target.
     //! Legacy writers without this metadata retain their existing fallback.
     void setSourceBlockRecords(const std::vector<DRW_Block_Record>& records,
                                bool requireResolvedOwners = false) {

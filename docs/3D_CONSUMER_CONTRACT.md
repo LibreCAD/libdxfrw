@@ -160,8 +160,15 @@ links in ASCII/binary. SAT comparison reconstructs groups1/3 with caret
 unescaping; only the typed parser's terminal framing LF outside those chunks
 is excluded. This is bounded local transport evidence, not geometry expansion,
 native acceptance, nested DWG AcDs/SAB or general block-metadata support. The
-parent plan's B3 fail-closed conversion gate remains open; checker-mutation
-rejections are not converter failures.
+parent plan's B3 local fail-closed gate is now implemented: strict modern
+conversion rejects an INSERT name without a planned BLOCK_RECORD target,
+including nested and model-space references, before publishing the output.
+Already unsupported modeler carriers/targets have explicit diagnostics.
+Generated rejection checks cover both encodings and absent/existing outputs;
+corrected fresh-data reuse is separate from generic same-data rollback.
+Default tolerant adapters and R12 ordinary INSERT fallback remain unchanged.
+These compatibility controls are not valid-file support positives, and the
+checker-mutation negatives remain separate from actual converter failures.
 
 ## Consumer compatibility and probe evidence
 

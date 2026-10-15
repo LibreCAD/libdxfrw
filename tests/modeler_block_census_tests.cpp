@@ -753,6 +753,121 @@ bool writeModelerBlockFile(const std::filesystem::path& path, bool binary) {
 
 bool verifyModelerBlockFile(const std::filesystem::path& path) { return verifyOutput(path); }
 
+bool writeModelerBlockMissingTargetFile(const std::filesystem::path& path, bool binary) {
+    auto source = makeDrawing(false, false);
+    auto left = std::next(source->blocks.begin(), 2);
+    static_cast<DRW_Insert*>((*left)->ent.front())->name = "MissingCube";
+    dx_iface exporter;
+    // Deliberately author a dangling-reference negative through the tolerant
+    // adapter route. This is not a valid-format or support-positive fixture.
+    return exporter.fileExport(path.string(), DRW::AC1024, binary, source.get(), false, false);
+}
+
+bool runModelerBlockFailureTests(const std::filesystem::path& parent, bool keep) {
+    const auto directory = parent / ("libdxfrw-modeler-block-failures-" + std::to_string(
+        std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    bool passed = true;
+    std::size_t rejected = 0, retries = 0, compatibility = 0;
+    for (bool binary : {false, true}) {
+        const auto tolerant = directory / (binary ? "tolerant-binary.dxf" : "tolerant-ascii.dxf");
+        // Default false remains tolerant; this deliberately dangling profile
+        // calibrates legacy API behavior, not valid-file support.
+        auto source = makeDrawing(false, false);
+        auto left = std::next(source->blocks.begin(), 2);
+        static_cast<DRW_Insert*>((*left)->ent.front())->name = "MissingCube";
+        dx_iface adapter;
+        PhysicalGraph graph;
+        bool ok = adapter.fileExport(tolerant.string(), DRW::AC1024, binary, source.get(), false)
+            && physicalGraph(tolerant, graph) && graph.rows.size() == 13;
+        std::size_t dangling = 0;
+        for (const auto& row : graph.rows)
+            if (row.second.owner == "Left" && row.second.target == "MissingCube") ++dangling;
+        ok = dangling == 1 && ok;
+        if (ok) ++compatibility;
+        passed = ok && passed;
+        dx_data legacy;
+        auto insert = std::make_unique<DRW_Insert>();
+        insert->name = "MissingR12";
+        legacy.mBlock->ent.push_back(insert.release());
+        const auto r12 = directory / (binary ? "r12-binary.dxf" : "r12-ascii.dxf");
+        dx_data imported;
+        dx_iface reader;
+        ok = adapter.fileExport(r12.string(), DRW::AC1009, binary, &legacy, false, true)
+            && reader.fileImport(r12.string(), &imported, false)
+            && imported.mBlock->ent.size() == 1;
+        if (ok) {
+            const auto* value = dynamic_cast<const DRW_Insert*>(imported.mBlock->ent.front());
+            ok = value != nullptr && value->name == "MISSINGR12";
+        }
+        if (ok) ++compatibility;
+        passed = ok && passed;
+    }
+    for (bool binary : {false, true}) for (bool existing : {false, true}) for (int fault = 0; fault < 7; ++fault) {
+        auto source = makeDrawing(false, false);
+        auto* solid = static_cast<DRW_ModelerGeometry*>(source->blocks.front()->ent.front());
+        DRW::Version version = DRW::AC1024;
+        if (fault == 0) {
+            auto left = std::next(source->blocks.begin(), 2);
+            static_cast<DRW_Insert*>((*left)->ent.front())->name = "MissingCube";
+        }
+        if (fault == 1) solid->parentHandle = 0xEEEE;
+        if (fault == 2) version = DRW::AC1027; // Legacy inline SAT has no admitted modern carrier here.
+        if (fault == 3) {
+            solid->m_rawBytes = {0, 0xFF};
+            solid->m_dxfPayloadChunks = {{310, 0, 2}};
+        }
+        if (fault == 4) solid->handle = 0x300; // Duplicate the mixed REGION's identity.
+        if (fault == 5)
+            static_cast<DRW_Insert*>(*std::next(source->mBlock->ent.begin()))->name = "MissingRoot";
+        if (fault == 6) version = DRW::AC1009;
+        const auto path = directory / (std::to_string(binary) + std::to_string(existing)
+                                      + std::to_string(fault) + ".dxf");
+        const std::string sentinel = "existing modeler block destination\n";
+        if (existing) { std::ofstream output(path, std::ios::binary); output << sentinel; }
+        dx_iface adapter;
+        std::ostringstream diagnostic;
+        bool refused = false;
+        {
+            struct RestoreCerr {
+                std::streambuf* previous;
+                ~RestoreCerr() { std::cerr.rdbuf(previous); }
+            } restore{std::cerr.rdbuf(diagnostic.rdbuf())};
+            refused = !adapter.fileExport(path.string(), version, binary, source.get(), false, true);
+        }
+        const char* expectedDiagnostic = fault == 0 || fault == 5 ? "unresolved-insert-target"
+            : fault == 1 ? "unresolved-block-owner"
+            : fault == 6 ? "unsupported-modeler-target"
+            : fault == 2 || fault == 3 ? "unrepresentable-modeler-carrier" : "emit-failure";
+        refused = refused && diagnostic.str().find(expectedDiagnostic) != std::string::npos;
+        bool untouched = !std::filesystem::exists(path);
+        if (existing) {
+            std::ifstream input(path, std::ios::binary);
+            const std::string contents((std::istreambuf_iterator<char>(input)), {});
+            untouched = contents == sentinel;
+        }
+        if (refused && untouched) ++rejected;
+        else std::cerr << "Modeler converter negative failed: fault=" << fault
+                       << " binary=" << binary << " existing=" << existing
+                       << " refused=" << refused << " destination-unchanged=" << untouched << '\n';
+        passed = refused && untouched && passed;
+        // Generic direct writers retain their caller-mutation contract. This
+        // checks the same adapter after failure with explicitly fresh data,
+        // not an unimplemented whole-model identity rollback guarantee.
+        auto corrected = makeDrawing(false, false);
+        const bool retried = adapter.fileExport(path.string(), DRW::AC1024, binary,
+                                                corrected.get(), false, true) && verifyOutput(path);
+        if (retried) ++retries;
+        passed = retried && passed;
+    }
+    std::cout << "Modeler block converter failures B3: " << (passed ? "PASS" : "FAIL")
+              << " (rejected=" << rejected << ", fresh-data retries=" << retries
+              << ", compatibility=" << compatibility << ")\n";
+    if (passed && !keep) std::filesystem::remove_all(directory);
+    else std::cout << "Modeler failure evidence: " << directory << '\n';
+    return passed;
+}
+
 bool runModelerBlockCodecTests(const std::filesystem::path& parent, bool keep) {
     const auto directory = parent / ("libdxfrw-modeler-block-codec-" + std::to_string(
         std::chrono::steady_clock::now().time_since_epoch().count()));

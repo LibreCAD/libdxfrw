@@ -37,6 +37,8 @@ bool runModelerBlockCensusTests();
 bool runModelerBlockCodecTests(const std::filesystem::path& parent, bool keep);
 bool writeModelerBlockFile(const std::filesystem::path& path, bool binary);
 bool verifyModelerBlockFile(const std::filesystem::path& path);
+bool writeModelerBlockMissingTargetFile(const std::filesystem::path& path, bool binary);
+bool runModelerBlockFailureTests(const std::filesystem::path& parent, bool keep);
 bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutputs);
 bool runHatchAdmissionTests(const std::filesystem::path& parent);
 bool runHatchAdapterTests(const std::filesystem::path& parent);
@@ -15058,7 +15060,12 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--modeler-block-codec") {
+    if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--modeler-block-failures") {
+        return runModelerBlockFailureTests(argc == 3 ? argv[2] : directory, argc == 3) ? 0 : 1;
+    } else if (argc == 3 && (std::string(argv[1]) == "--generate-modeler-blocks-missing-target"
+                         || std::string(argv[1]) == "--generate-modeler-blocks-missing-target-binary")) {
+        return writeModelerBlockMissingTargetFile(argv[2], std::string(argv[1]) == "--generate-modeler-blocks-missing-target-binary") ? 0 : 1;
+    } else if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--modeler-block-codec") {
         return runModelerBlockCodecTests(argc == 3 ? argv[2] : directory, argc == 3) ? 0 : 1;
     } else if (argc == 3 && (std::string(argv[1]) == "--generate-modeler-blocks"
                          || std::string(argv[1]) == "--generate-modeler-blocks-binary")) {
@@ -15148,7 +15155,9 @@ int main(int argc, char** argv) {
                      " [--modeler-dxf-matrix [DIRECTORY]]"
                      " [--modeler-block-census]"
                      " [--modeler-block-codec [DIRECTORY]]"
+                     " [--modeler-block-failures [DIRECTORY]]"
                      " [--generate-modeler-blocks[-binary] DXF]"
+                     " [--generate-modeler-blocks-missing-target[-binary] DXF]"
                      " [--verify-modeler-blocks DXF]"
                      " [--hatch-references [DIRECTORY]]"
                      " [--hatch-admission]"
@@ -16295,6 +16304,9 @@ int main(int argc, char** argv) {
            failures);
     expect(runModelerBlockCodecTests(directory, keepOutputs),
            "modeler raw and typed block/owner/carrier/INSERT codec handoff",
+           failures);
+    expect(runModelerBlockFailureTests(directory, keepOutputs),
+           "modeler converter required-target/carrier rejection and fresh-data reuse",
            failures);
     expect(runHatchReferenceTests(directory, keepOutputs),
            "HATCH source-reference remap and multi-path wire ordering",
