@@ -361,8 +361,10 @@ void testLayoutGraphReadContract(TestContext& t) {
                          adapterData.dictionaries.end(),
                          [](const DRW_Dictionary& value) {
                              return value.handle == 0x500u;
-                         }),
-                 "dx_iface retains the positional NOD separately from child dictionaries");
+                         })
+                     && adapterData.layouts.size() == 3
+                     && adapterData.blockRecords.size() == 3,
+                 "dx_iface retains the positional NOD separately and keeps the typed layout graph");
 
         const auto findLayout = [&interface_](std::uint32_t handle) {
             return std::find_if(interface_.layouts.begin(), interface_.layouts.end(),

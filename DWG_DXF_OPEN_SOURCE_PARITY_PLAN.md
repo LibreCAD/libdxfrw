@@ -4401,8 +4401,8 @@ Split implementation to keep a small critical path:
 
    Local source facts at this research checkpoint: `processLayout()` reaches
    `addLayout()` and `DRW_Layout::parseCode`/`dxfRW::writeLayout` cover typed
-   payload fields. However `dx_iface` has no `addLayout` override or retained
-   layout collection, and its `writeObjects()` does not call `writeLayout`.
+   payload fields. `dx_iface` now retains typed LAYOUT callbacks in `dx_data`,
+   but its `writeObjects()` still does not call `writeLayout`. Likewise,
    `processBlockRecord()` reads `layoutHandle` from code340 and publishes a
    `DRW_Block_Record`, but `dx_iface::writeBlockRecords()` forwards only name,
    units and preview bytes; `emitBlockRecord()` does not emit code340. The
@@ -4436,8 +4436,10 @@ Split implementation to keep a small critical path:
       and binary tests prove old interfaces overriding only `addDictionary()`
       still see the root once, while `dx_iface` stores the root separately.
    3. **Adapter retention and identity census:** retain layouts and source
-      BLOCK_RECORD metadata in `dx_data`; build unique maps by source handle,
-      canonical block name and layout name. Reject duplicate/zero identities,
+      BLOCK_RECORD metadata in `dx_data` (the NOD handoff is committed at
+      `b799ca7`; this slice adds typed LAYOUT retention); then build unique
+      maps by source handle, canonical block name and layout name. Reject
+      duplicate/zero identities,
       wrong-type edges, dangling targets, inconsistent two-way links and
       cross-layout associations before output creation. Preserve the distinct
       330 roles and ordered app-data/reactor groups; do not rewrite caller
@@ -10572,9 +10574,8 @@ the NOD→ACAD_LAYOUT dictionary→three named layouts path, one model and two
 paper layouts, plus reciprocal BLOCK_RECORD 340/LAYOUT 330 links in deliberately
 crossed object order; distinct 331/345/346/333 values are asserted as typed
 references, without claiming the referenced target objects are resolved. The
-next step is retaining typed layouts and source BLOCK_RECORD metadata, followed
-by graph census, shared remap/preflight, and one composed writer checkpoint—not
-a broad writer rewrite. Reuse
+next step is the source-handle/name identity census and preflight, then shared
+remapping and one composed writer checkpoint—not a broad writer rewrite. Reuse
 `libdxfrw_dxf_fixture_tests`, the existing block-owner CLI tests, and
 `lc3_compat_check`; no downloaded or checked-in DWG/DXF fixtures, no new CTest
 target, and no full suite per graph case. The historical six external-only

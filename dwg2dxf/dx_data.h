@@ -80,6 +80,7 @@ public:
     std::list<DRW_Textstyle>textStyles; //stores a copy of all text styles
     std::list<DRW_AppId>appIds;         //stores a copy of all line types
     std::vector<DRW_Block_Record> blockRecords; //owned source identity/metadata
+    std::vector<DRW_Layout> layouts; //typed DXF LAYOUT graph records
     std::list<DRW_Dictionary>dictionaries; //typed OBJECTS dictionaries
     DRW_Dictionary namedObjectDictionary; //position-identified DXF NOD
     bool hasNamedObjectDictionary {false};

@@ -115,6 +115,10 @@ public:
     void addBlockRecord(const DRW_Block_Record& data) override {
         cData->blockRecords.push_back(data);
     }
+    void addLayout(const DRW_Layout& data) override {
+        if (cData != nullptr)
+            cData->layouts.push_back(data);
+    }
     virtual void addDictionary(const DRW_Dictionary& data) override {
         if (cData != nullptr)
             cData->dictionaries.push_back(data);
