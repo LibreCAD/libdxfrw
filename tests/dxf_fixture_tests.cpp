@@ -568,25 +568,55 @@ void testLayoutGraphReadContract(TestContext& t) {
             [](const DRW_Dictionary& dictionary) {
                 return dictionary.handle == 0x720u;
             });
-        if (emptyRootDictionary != adapterData.dictionaries.end()) {
+        auto customRootEntry = std::find_if(
+            adapterData.namedObjectDictionary.m_entries.begin(),
+            adapterData.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "CUSTOM_EMPTY";
+            });
+        if (emptyRootDictionary != adapterData.dictionaries.end()
+            && customRootEntry
+                != adapterData.namedObjectDictionary.m_entries.end()) {
+            const auto expectStrictNodRejected = [&]() {
+                {
+                    std::ofstream sentinel(rejectedOutput,
+                                           std::ios::binary | std::ios::trunc);
+                    sentinel << "unsupported-nod-sentinel";
+                }
+                dx_iface exporter;
+                const bool exported = exporter.fileExport(
+                    rejectedOutput.string(), DRW::AC1027, binary,
+                    &adapterData, false, true);
+                std::ifstream preserved(rejectedOutput, std::ios::binary);
+                const std::string contents(
+                    (std::istreambuf_iterator<char>(preserved)),
+                    std::istreambuf_iterator<char>());
+                return !exported && contents == "unsupported-nod-sentinel";
+            };
+
+            const std::uint32_t originalTarget = customRootEntry->m_handle;
+            customRootEntry->m_handle = 0x7FEu;
+            t.expect(expectStrictNodRejected(),
+                     "missing unrelated NOD target is rejected before strict publication");
+            customRootEntry->m_handle = originalTarget;
+
+            const std::uint32_t originalOwner =
+                emptyRootDictionary->parentHandle;
+            emptyRootDictionary->parentHandle = 0x7FFu;
+            t.expect(expectStrictNodRejected(),
+                     "wrongly-owned unrelated NOD dictionary is rejected before strict publication");
+            emptyRootDictionary->parentHandle = originalOwner;
+
+            adapterData.dictionaries.push_back(*emptyRootDictionary);
+            t.expect(expectStrictNodRejected(),
+                     "multiply-matched unrelated NOD target is rejected before strict publication");
+            adapterData.dictionaries.pop_back();
+
             DRW_Dictionary::Entry unresolved;
             unresolved.m_name = "UNRESOLVED_CHILD";
             unresolved.m_handle = 0x7FEu;
             emptyRootDictionary->m_entries.push_back(unresolved);
-            {
-                std::ofstream sentinel(rejectedOutput,
-                                       std::ios::binary | std::ios::trunc);
-                sentinel << "unsupported-nod-sentinel";
-            }
-            dx_iface exporter;
-            const bool exported = exporter.fileExport(
-                rejectedOutput.string(), DRW::AC1027, binary, &adapterData,
-                false, true);
-            std::ifstream preserved(rejectedOutput, std::ios::binary);
-            const std::string contents(
-                (std::istreambuf_iterator<char>(preserved)),
-                std::istreambuf_iterator<char>());
-            t.expect(!exported && contents == "unsupported-nod-sentinel",
+            t.expect(expectStrictNodRejected(),
                      "unclosed unrelated NOD child dictionary is rejected before strict publication");
             emptyRootDictionary->m_entries.clear();
         }
