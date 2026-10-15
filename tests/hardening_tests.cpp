@@ -3101,7 +3101,7 @@ void testDxfOwnedSnapshotBudget(TestContext& t) {
                  && !codec.m_readInputByteBudgetActive,
              "snapshot cap rejects before stream copy and before any callback");
 
-    codec.setDxfReadRetainedByteBudget(source.size() + 16u);
+    codec.setDxfReadRetainedByteBudget(source.size() + 48u);
     content = source;
     AdmissionInterface isolated;
     isolated.codec = &codec;
@@ -3114,7 +3114,7 @@ void testDxfOwnedSnapshotBudget(TestContext& t) {
              "exact instrumented snapshot/token budget preserves callback-time source mutation isolation");
 
     dxfRW interrupted(nullptr);
-    interrupted.setDxfReadRetainedByteBudget(source.size() + 16u);
+    interrupted.setDxfReadRetainedByteBudget(source.size() + 48u);
     content = source;
     AdmissionInterface throwing;
     throwing.codec = &interrupted;
@@ -3143,7 +3143,7 @@ void testDxfOwnedSnapshotBudget(TestContext& t) {
                  && interrupted.getLastDiagnostic().code
                         == "dxf-retained-byte-budget",
              "snapshot rejection does not dereference or replace an interrupted operation's reader");
-    interrupted.setDxfReadRetainedByteBudget(source.size() + 16u);
+    interrupted.setDxfReadRetainedByteBudget(source.size() + 48u);
     AdmissionInterface retry;
     retry.codec = &interrupted;
     t.expect(interrupted.readAscii(&retry, false, content)
@@ -3159,7 +3159,7 @@ void testDxfReaderRecordTextBudget(TestContext& t) {
     {
         std::istringstream input(ascii);
         dxfReaderAscii reader(&input);
-        auto budget = std::make_shared<DxfReadRetainedBudget>(16u);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(48u);
         reader.setRetainedByteBudget(budget);
         int code = 0;
         const bool first = reader.readRec(&code);
@@ -3167,29 +3167,29 @@ void testDxfReaderRecordTextBudget(TestContext& t) {
         const bool second = reader.readRec(&code);
         const std::size_t secondUsed = budget->used();
         const bool eof = !reader.readRec(&code);
-        t.expect(first && firstUsed == 16u && second && secondUsed == 2u
+        t.expect(first && firstUsed == 48u && second && secondUsed == 6u
                      && eof && budget->used() == 0u,
-                 "ASCII strData/rawData logical lengths are charged together and released at the next record");
+                 "ASCII strData/rawData and worst-case decoded output are charged together and released at the next record");
     }
     {
         std::istringstream input(ascii);
         dxfReaderAscii reader(&input);
-        auto budget = std::make_shared<DxfReadRetainedBudget>(15u);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(47u);
         reader.setRetainedByteBudget(budget);
         int code = 0;
         t.expect(!reader.readRec(&code) && budget->exceeded()
                      && budget->used() == 0u,
-                 "ASCII raw spelling copy is rejected before assignment and partial token charge rolls back");
+                 "ASCII decoded-output headroom is rejected before parser use and partial token charge rolls back");
     }
     {
         std::istringstream input("1\nx\r\n");
         dxfReaderAscii reader(&input);
-        auto budget = std::make_shared<DxfReadRetainedBudget>(2u);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(6u);
         reader.setRetainedByteBudget(budget);
         int code = 0;
         t.expect(reader.readRec(&code) && code == 1
-                     && reader.getString() == "x" && budget->used() == 2u,
-                 "terminal CR is charged as input but excluded from normalized retained text length");
+                     && reader.getString() == "x" && budget->used() == 6u,
+                 "terminal CR is charged as input but excluded from normalized text and decoded-output retention");
     }
     {
         std::istringstream input("70\n1234\n70\n2\n");
@@ -3212,23 +3212,38 @@ void testDxfReaderRecordTextBudget(TestContext& t) {
     {
         std::istringstream input(binaryChunk);
         dxfReaderBinary reader(&input);
-        auto budget = std::make_shared<DxfReadRetainedBudget>(8u);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(12u);
         reader.setRetainedByteBudget(budget);
         int code = 0;
         const bool parsed = reader.readRec(&code);
         t.expect(parsed && code == 310 && reader.getString() == "ABCD"
-                     && budget->used() == 8u,
-                 "binary chunk hex expansion and raw spelling duplicate share the retained-byte budget");
+                     && budget->used() == 12u,
+                 "binary chunk hex expansion, raw spelling, and returned string copy share the retained-byte budget");
+    }
+    {
+        const std::string big5 = {
+            '1', '\n', static_cast<char>(0x88), static_cast<char>(0x62), '\n'};
+        std::istringstream input(big5);
+        dxfReaderAscii reader(&input);
+        reader.setCodePage("ANSI_950");
+        auto budget = std::make_shared<DxfReadRetainedBudget>(12u);
+        reader.setRetainedByteBudget(budget);
+        int code = 0;
+        const bool parsed = reader.readRec(&code);
+        const std::string decoded = parsed ? reader.getUtf8String() : std::string{};
+        t.expect(parsed && code == 1 && decoded.size() == 4u
+                     && budget->used() == 12u,
+                 "Big5-HKSCS two-scalar decoding fits the reserved UTF-8 output headroom");
     }
     {
         std::istringstream input(binaryChunk);
         dxfReaderBinary reader(&input);
-        auto budget = std::make_shared<DxfReadRetainedBudget>(7u);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(11u);
         reader.setRetainedByteBudget(budget);
         int code = 0;
         t.expect(!reader.readRec(&code) && budget->exceeded()
                      && budget->used() == 0u,
-                 "binary chunk raw-copy overage releases the decoded hex charge on record rejection");
+                 "binary returned-string overage releases the decoded hex/raw charge on record rejection");
     }
 }
 
@@ -3239,7 +3254,7 @@ void testDxfHeaderCommentRetentionBudget(TestContext& t) {
     dxfRW codec(nullptr);
     AdmissionInterface rejected;
     rejected.codec = &codec;
-    codec.setDxfReadRetainedByteBudget(source.size() + 22u);
+    codec.setDxfReadRetainedByteBudget(source.size() + 38u);
     t.expect(!codec.readAscii(&rejected, false, content)
                  && rejected.lines.empty()
                  && codec.header.getComments() == "alpha"
@@ -3249,7 +3264,7 @@ void testDxfHeaderCommentRetentionBudget(TestContext& t) {
                         == "dxf-retained-byte-budget",
              "aggregate comment retention rejects before copying the over-budget second comment");
 
-    codec.setDxfReadRetainedByteBudget(source.size() + 26u);
+    codec.setDxfReadRetainedByteBudget(source.size() + 58u);
     content = source;
     AdmissionInterface exact;
     exact.codec = &codec;

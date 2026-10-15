@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <unordered_set>
 #include <utility>
@@ -45,6 +46,8 @@ public:
     void release(std::size_t bytes) noexcept {
         m_used = bytes <= m_used ? m_used - bytes : 0u;
     }
+
+    void reject() noexcept { m_exceeded = true; }
 
     std::size_t limit() const noexcept { return m_limit; }
     std::size_t used() const noexcept { return m_used; }
@@ -168,6 +171,27 @@ public:
         if (released != 0 && m_retainedByteBudget != nullptr)
             m_retainedByteBudget->release(released);
         m_currentRecordRetainedBytes -= released;
+    }
+    // Reserve one worst-case returned string representation before parsers
+    // can call getString()/getUtf8String(). A single-byte table emits at most
+    // one four-byte UTF-8 scalar per input byte; DBCS emits at most two such
+    // scalars per two input bytes (including its two-scalar Big5-HKSCS cells),
+    // while UTF-16 and identity paths have lower ratios. Binary getString()
+    // can duplicate the canonical hex spelling once. This is a logical length
+    // bound; transient codec scratch/capacity and caller-owned callback copies
+    // are not counted.
+    bool reserveCurrentRecordTextOutput() noexcept {
+        if (m_retainedByteBudget == nullptr
+            || (type != STRING && type != BINARY))
+            return true;
+        const std::size_t maxSize =
+            (std::numeric_limits<std::size_t>::max)();
+        const std::size_t multiplier = type == STRING ? 4u : 1u;
+        if (strData.size() > maxSize / multiplier) {
+            m_retainedByteBudget->reject();
+            return false;
+        }
+        return retainCurrentRecordBytes(strData.size() * multiplier);
     }
     // A derived parser may consume a non-XDATA field without calling its
     // base. Coordinate assembly must still stop at that physical boundary.

@@ -330,6 +330,10 @@ bool dxfReader::readRec(int *codeData) {
         invalidateRecord();
         return false;
     }
+    if (!reserveCurrentRecordTextOutput()) {
+        invalidateRecord();
+        return false;
+    }
     return true;
 }
 std::uint32_t dxfReader::getHandleString(){
