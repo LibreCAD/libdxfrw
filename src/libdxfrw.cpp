@@ -3670,7 +3670,7 @@ bool dxfRW::writeLineType(DRW_LType *ent){
         m_writeError = true;
     if (!result || writer->hasWriteError())
         return false;
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -3841,7 +3841,7 @@ bool dxfRW::writeTextstyle(DRW_Textstyle *ent){
         m_writeError = true;
     if (!result || writer->hasWriteError())
         return false;
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -3957,7 +3957,7 @@ bool dxfRW::writeVport(DRW_Vport *ent){
         m_writeError = true;
     if (!result || writer->hasWriteError())
         return false;
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -4202,7 +4202,7 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         m_writeError = true;
         return false;
     }
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -4414,7 +4414,7 @@ bool dxfRW::writeAppId(DRW_AppId *ent){
         m_writeError = true;
     if (!result || writer->hasWriteError())
         return false;
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite() || !recordDxfTableRow() || !record.commit()) {
         m_writeError = true;
         return false;
     }
@@ -8906,7 +8906,10 @@ bool dxfRW::writeTables() {
         }
         writer->writeString(100, "AcDbSymbolTable");
     }
-    writer->writeInt16(70, 1); //end table def
+    std::streampos vportCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(vportCountOffset))
+        return false;
 /*** VPORT ***/
     if (hasWriteFailure())
         return false;
@@ -8920,7 +8923,7 @@ bool dxfRW::writeTables() {
         if (!writeVport(&portact))
             return false;
     }
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(vportCountOffset))
         return false;
     if (!writeEndTable())
         return false;
@@ -8971,7 +8974,10 @@ bool dxfRW::writeTables() {
         }
         writer->writeString(100, "AcDbSymbolTable");
     }
-    writer->writeInt16(70, 4); //end table def
+    std::streampos lineTypeCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(lineTypeCountOffset))
+        return false;
 //Mandatory linetypes
     writer->writeString(0, "LTYPE");
     if (version > DRW::AC1009) {
@@ -8995,6 +9001,8 @@ bool dxfRW::writeTables() {
     writer->writeDouble(40, 0.0);
     if (!writeMandatoryExtData("BYBLOCK"))
         return false;
+    if (!recordDxfTableRow())
+        return false;
 
     writer->writeString(0, "LTYPE");
     if (version > DRW::AC1009) {
@@ -9017,6 +9025,8 @@ bool dxfRW::writeTables() {
     writer->writeInt16(73, 0);
     writer->writeDouble(40, 0.0);
     if (!writeMandatoryExtData("BYLAYER"))
+        return false;
+    if (!recordDxfTableRow())
         return false;
 
     writer->writeString(0, "LTYPE");
@@ -9042,11 +9052,13 @@ bool dxfRW::writeTables() {
     writer->writeDouble(40, 0.0);
     if (!writeMandatoryExtData("CONTINUOUS"))
         return false;
+    if (!recordDxfTableRow())
+        return false;
 //Application linetypes
     if (hasWriteFailure())
         return false;
     iface->writeLTypes();
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(lineTypeCountOffset))
         return false;
     if (!writeEndTable())
         return false;
@@ -9090,7 +9102,10 @@ bool dxfRW::writeTables() {
 }
         writer->writeString(100, "AcDbSymbolTable");
 }
-    writer->writeInt16(70, 3); //end table def
+    std::streampos styleCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(styleCountOffset))
+        return false;
     if (hasWriteFailure())
         return false;
     dimstyleStd =false;
@@ -9103,7 +9118,7 @@ bool dxfRW::writeTables() {
         if (!writeTextstyle(&tsty))
             return false;
     }
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(styleCountOffset))
         return false;
     if (!writeEndTable())
         return false;
@@ -9159,7 +9174,10 @@ bool dxfRW::writeTables() {
         }
         writer->writeString(100, "AcDbSymbolTable");
         }
-    writer->writeInt16(70, 1); //end table def
+    std::streampos appIdCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(appIdCountOffset))
+        return false;
     writer->writeString(0, "APPID");
     if (version > DRW::AC1009) {
         writer->writeString(5, "12");
@@ -9171,10 +9189,12 @@ bool dxfRW::writeTables() {
     }
     writer->writeString(2, "ACAD");
     writer->writeInt16(70, 0);
+    if (!recordDxfTableRow())
+        return false;
     if (hasWriteFailure())
         return false;
     iface->writeAppId();
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(appIdCountOffset))
         return false;
     if (!writeEndTable())
         return false;
@@ -9188,7 +9208,10 @@ bool dxfRW::writeTables() {
         }
         writer->writeString(100, "AcDbSymbolTable");
         }
-    writer->writeInt16(70, 1); //end table def
+    std::streampos dimStyleCountOffset;
+    tableRows.reset();
+    if (!writeCapacityPlaceholder(dimStyleCountOffset))
+        return false;
     if (version > DRW::AC1014) {
         writer->writeString(100, "AcDbDimStyleTable");
         writer->writeInt16(71, 1); //end table def
@@ -9205,7 +9228,7 @@ bool dxfRW::writeTables() {
         if (!writeDimstyle(&dsty))
             return false;
         }
-    if (hasWriteFailure())
+    if (hasWriteFailure() || !patchCapacity(dimStyleCountOffset))
         return false;
     if (!writeEndTable())
         return false;

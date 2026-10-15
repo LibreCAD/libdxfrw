@@ -3692,6 +3692,11 @@ void testDynamicTableCapacityBasics(TestContext& t) {
     DxfTableSnapshot views;
     DxfTableSnapshot ucs;
     DxfTableSnapshot layers;
+    DxfTableSnapshot vports;
+    DxfTableSnapshot lineTypes;
+    DxfTableSnapshot styles;
+    DxfTableSnapshot appIds;
+    DxfTableSnapshot dimStyles;
     t.expect(exported && readDxfTableSnapshot(path, false, "VIEW", views)
                  && views.declaredCapacity == 2
                  && views.rowKinds == std::vector<std::string>{"VIEW", "VIEW"}
@@ -3708,6 +3713,189 @@ void testDynamicTableCapacityBasics(TestContext& t) {
                  && layers.rowKinds == std::vector<std::string>{"LAYER"}
                  && layers.rowNames == std::vector<std::string>{"0"},
              "implicit default LAYER is included in its capacity");
+    t.expect(exported && readDxfTableSnapshot(path, false, "VPORT", vports)
+                 && vports.declaredCapacity == 1
+                 && vports.rowKinds == std::vector<std::string>{"VPORT"}
+                 && vports.rowNames == std::vector<std::string>{"*ACTIVE"},
+             "implicit active VPORT is included in its capacity");
+    t.expect(exported && readDxfTableSnapshot(path, false, "LTYPE", lineTypes)
+                 && lineTypes.declaredCapacity == 3
+                 && lineTypes.rowKinds
+                        == std::vector<std::string>{"LTYPE", "LTYPE", "LTYPE"}
+                 && lineTypes.rowNames == std::vector<std::string>{
+                        "ByBlock", "ByLayer", "Continuous"},
+             "mandatory LTYPE rows are included in their capacity");
+    t.expect(exported && readDxfTableSnapshot(path, false, "STYLE", styles)
+                 && styles.declaredCapacity == 1
+                 && styles.rowKinds == std::vector<std::string>{"STYLE"}
+                 && styles.rowNames == std::vector<std::string>{"Standard"},
+             "implicit Standard STYLE is included in its capacity");
+    t.expect(exported && readDxfTableSnapshot(path, false, "APPID", appIds)
+                 && appIds.declaredCapacity == 1
+                 && appIds.rowKinds == std::vector<std::string>{"APPID"}
+                 && appIds.rowNames == std::vector<std::string>{"ACAD"},
+             "mandatory ACAD APPID is included in its capacity");
+    t.expect(exported
+                 && readDxfTableSnapshot(path, false, "DIMSTYLE", dimStyles)
+                 && dimStyles.declaredCapacity == 1
+                 && dimStyles.rowKinds == std::vector<std::string>{"DIMSTYLE"}
+                 && dimStyles.rowNames == std::vector<std::string>{"Standard"},
+             "implicit Standard DIMSTYLE is included in its capacity");
+    std::filesystem::remove(path, error);
+}
+
+void testDynamicTableCapacityMatrix(TestContext& t) {
+    class CapacityMatrixInterface final : public dx_iface {
+    public:
+        void writeVports() override {
+            ++vportCalls;
+            DRW_Vport first;
+            first.name = "CAPACITY_VPORT_A";
+            results.push_back(dxfW->writeVport(&first));
+            DRW_Vport second;
+            second.name = "CAPACITY_VPORT_B";
+            results.push_back(dxfW->writeVport(&second));
+        }
+
+        void writeLTypes() override {
+            ++lineTypeCalls;
+            DRW_LType duplicate;
+            duplicate.name = "BYBLOCK";
+            results.push_back(dxfW->writeLineType(&duplicate));
+            DRW_LType custom;
+            custom.name = "CAPACITY_LTYPE";
+            results.push_back(dxfW->writeLineType(&custom));
+        }
+
+        void writeLayers() override {
+            ++layerCalls;
+            DRW_Layer zero;
+            zero.name = "0";
+            results.push_back(dxfW->writeLayer(&zero));
+            DRW_Layer custom;
+            custom.name = "CAPACITY_LAYER";
+            results.push_back(dxfW->writeLayer(&custom));
+        }
+
+        void writeTextstyles() override {
+            ++styleCalls;
+            DRW_Textstyle standard;
+            standard.name = "Standard";
+            results.push_back(dxfW->writeTextstyle(&standard));
+            DRW_Textstyle custom;
+            custom.name = "CAPACITY_STYLE";
+            results.push_back(dxfW->writeTextstyle(&custom));
+        }
+
+        void writeViews() override {
+            ++viewCalls;
+            DRW_View first;
+            first.name = "CAPACITY_VIEW_A";
+            results.push_back(dxfW->writeView(&first));
+            DRW_View second;
+            second.name = "CAPACITY_VIEW_B";
+            results.push_back(dxfW->writeView(&second));
+        }
+
+        void writeUCSs() override {
+            ++ucsCalls;
+            DRW_UCS first;
+            first.name = "CAPACITY_UCS_A";
+            results.push_back(dxfW->writeUCS(&first));
+            DRW_UCS second;
+            second.name = "CAPACITY_UCS_B";
+            results.push_back(dxfW->writeUCS(&second));
+        }
+
+        void writeAppId() override {
+            ++appIdCalls;
+            DRW_AppId duplicate;
+            duplicate.name = "ACAD";
+            results.push_back(dxfW->writeAppId(&duplicate));
+            DRW_AppId custom;
+            custom.name = "CAPACITY_APPID";
+            results.push_back(dxfW->writeAppId(&custom));
+        }
+
+        void writeDimstyles() override {
+            ++dimStyleCalls;
+            DRW_Dimstyle standard;
+            standard.name = "Standard";
+            results.push_back(dxfW->writeDimstyle(&standard));
+            DRW_Dimstyle custom;
+            custom.name = "CAPACITY_DIMSTYLE";
+            results.push_back(dxfW->writeDimstyle(&custom));
+        }
+
+        int vportCalls {0};
+        int lineTypeCalls {0};
+        int layerCalls {0};
+        int styleCalls {0};
+        int viewCalls {0};
+        int ucsCalls {0};
+        int appIdCalls {0};
+        int dimStyleCalls {0};
+        std::vector<bool> results;
+    } interface_;
+
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    const std::filesystem::path path =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-table-capacity-matrix-" + std::to_string(nonce)
+           + ".dxf");
+    std::error_code error;
+    std::filesystem::remove(path, error);
+    dx_data data;
+    const bool exported = interface_.fileExport(
+        path.string(), DRW::AC1021, false, &data, false);
+    t.expect(exported
+                 && interface_.vportCalls == 1
+                 && interface_.lineTypeCalls == 1
+                 && interface_.layerCalls == 1
+                 && interface_.styleCalls == 1
+                 && interface_.viewCalls == 1
+                 && interface_.ucsCalls == 1
+                 && interface_.appIdCalls == 1
+                 && interface_.dimStyleCalls == 1
+                 && std::all_of(interface_.results.cbegin(),
+                                interface_.results.cend(),
+                                [](bool result) { return result; }),
+             "all table callbacks run once and all submitted rows are accepted");
+
+    const auto expectCapacity = [&](const std::string& table,
+                                    const std::vector<std::string>& kinds,
+                                    const std::vector<std::string>& names) {
+        DxfTableSnapshot snapshot;
+        const bool read = exported
+            && readDxfTableSnapshot(path, false, table, snapshot);
+        const std::string label = table
+            + " group70 equals the emitted row count and names";
+        t.expect(read && snapshot.ended
+                     && snapshot.declaredCapacity
+                            == static_cast<int>(names.size())
+                     && snapshot.rowKinds == kinds
+                     && snapshot.rowNames == names,
+                 label.c_str());
+    };
+
+    expectCapacity("VPORT", {"VPORT", "VPORT"},
+                   {"*ACTIVE", "CAPACITY_VPORT_B"});
+    expectCapacity("LTYPE",
+                   {"LTYPE", "LTYPE", "LTYPE", "LTYPE"},
+                   {"ByBlock", "ByLayer", "Continuous", "CAPACITY_LTYPE"});
+    expectCapacity("LAYER", {"LAYER", "LAYER"},
+                   {"0", "CAPACITY_LAYER"});
+    expectCapacity("STYLE", {"STYLE", "STYLE"},
+                   {"Standard", "CAPACITY_STYLE"});
+    expectCapacity("VIEW", {"VIEW", "VIEW"},
+                   {"CAPACITY_VIEW_A", "CAPACITY_VIEW_B"});
+    expectCapacity("UCS", {"UCS", "UCS"},
+                   {"CAPACITY_UCS_A", "CAPACITY_UCS_B"});
+    expectCapacity("APPID", {"APPID", "APPID"},
+                   {"ACAD", "CAPACITY_APPID"});
+    expectCapacity("DIMSTYLE", {"DIMSTYLE", "DIMSTYLE"},
+                   {"Standard", "CAPACITY_DIMSTYLE"});
     std::filesystem::remove(path, error);
 }
 
@@ -8924,6 +9112,7 @@ int main(int argc, char** argv) {
     testHiddenZeroHeightAttrib(context);
     testMeshRawFieldTags(context);
     testDynamicTableCapacityBasics(context);
+    testDynamicTableCapacityMatrix(context);
     testHeaderMetadataOrder(context);
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
