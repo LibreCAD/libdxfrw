@@ -105,8 +105,9 @@ enum class DwgDataStorageWriterPhase : std::uint8_t {
 };
 
 /// Severity of a DWG integrity observation. Structural observations are
-/// failures; checksum observations remain warnings for compatibility with
-/// existing third-party files.
+/// failures; checksum and explicitly tolerated reference observations remain
+/// warnings for compatibility with existing third-party files. A warning
+/// does not certify complete semantic/object-graph coverage.
 enum class DwgIntegritySeverity : std::uint8_t {
     Error,
     Warning
@@ -161,7 +162,8 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     HeaderSectionSentinel,
     HeaderSectionCrc,
     HeaderSectionCompatibility,
-    HeaderSectionUnclaimedData
+    HeaderSectionUnclaimedData,
+    NamedObjectDictionaryReference
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

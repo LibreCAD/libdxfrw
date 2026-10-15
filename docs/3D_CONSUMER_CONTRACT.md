@@ -51,8 +51,28 @@ records with no source metadata keep their previous DWG bytes.
 The appended public data requires a consumer rebuild; no pure callback is
 added and binary ABI is not promised. A decoded body flag or retained raw
 metadata is not a complete format/profile certificate. This prerequisite does
-not implement typed DWG→DXF style emission, NOD discovery, named-color target
+not implement typed DWG→DXF style emission, named-color target
 mapping or renderer/ACIS semantics; full CLI acceptance remains separate.
+
+`DRW_Header::dwgNamedObjectDictionaryReference()` returns an owned optional
+source H value (role, encoded size, full64-bit reference and legacy low32 view).
+Absent/fresh/DXF/failed HEADER is distinct from explicit absolute null. The
+usability predicate checks only the hard-owner role and current32-bit map
+capacity; it does not certify a target object. Source provenance does not
+select regenerated writer identities. Only the matching complete DICTIONARY
+with zero parent reaches the existing `addNamedObjectDictionary` callback;
+its default forwards to `addDictionary` once. Physical order, lowest handle
+and an ownerless dictionary are not alternative root-selection rules for DWG.
+
+Wrong-role/wide, missing, wrong-kind, wrong-owner and incomplete roots remain
+observable warnings under ordinary tolerant reading. Strict or visual-style
+converter output refuses an invalid/unresolved non-null source root before
+publication. `NamedObjectDictionaryReference` appends diagnostic kind26 while
+keeping0–25/schema1 stable. An unrecorded exact HEADER H offset is absent,
+not guessed from the envelope. This reader handoff does not repair the
+writer's existing null HEADER NOD placeholder, establish complete root-child
+closure or qualify the full CLI conversion. Rebuild public consumers; no new
+pure virtual, default projection policy or binary-ABI guarantee is introduced.
 
 DXF HEADER codepage provenance is separate from semantic text and the normalized
 `vars["$DWGCODEPAGE"]` used by writers. `hasDxfCodePageDeclaration()` distinguishes

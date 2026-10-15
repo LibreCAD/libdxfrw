@@ -5941,6 +5941,10 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
                               DwgIntegrityAddressSpace offsetSpace,
                               std::int32_t sectionId,
                               std::uint64_t sectionOffset) {
+  m_dwgNodReference.reset();
+  m_dwgNodPublished = false;
+  m_dwgNodFailureReported = false;
+  hdr.m_dwgNamedObjectDictionaryReference.reset();
   if (buf == nullptr || hBuf == nullptr)
     return false;
 
@@ -6018,6 +6022,22 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
                DwgIntegritySeverity::Warning, crcEnvelope,
                envelope.storedCrc, calculated, true);
       }
+    }
+    m_dwgNodReference = hdr.dwgNamedObjectDictionaryReference();
+    if (m_dwgNodReference && !hasUsableDwgNodReference()) {
+      const bool wide = m_dwgNodReference->ref64
+          > (std::numeric_limits<std::uint32_t>::max)();
+      // The H value is retained, but its exact byte/bit position is not.
+      // Do not label the envelope's sentinel/check position as that field.
+      recordIntegrityDiagnostic(DwgIntegritySeverity::Warning, offsetSpace,
+             DwgIntegrityPhase::SectionParser,
+             DwgIntegrityCheckKind::NamedObjectDictionaryReference,
+             secEnum::HEADER, sectionId, "AcDb:Header", 0u, false,
+             0u, false, 0u, false,
+             wide ? (std::numeric_limits<std::uint32_t>::max)()
+                  : static_cast<std::uint64_t>(DRW::DwgHardOwnership),
+             wide ? m_dwgNodReference->ref64 : m_dwgNodReference->code, true);
+      m_dwgNodFailureReported = true;
     }
     return true;
   } catch (...) {
@@ -10820,6 +10840,9 @@ bool dwgReader::readDwgObjects(DRW_Interface &intfa, dwgBuffer *dbuf,
   if (!structuralFailure) {
     structuralFailure = !publishDeferredRawObjects(intfa, deferredRawObjects);
   }
+  if (hasUsableDwgNodReference() && m_dwgNodReference->ref64 != 0u
+      && !m_dwgNodPublished && !m_dwgNodFailureReported)
+    warnDwgNodReference(dwgObjType::DICTIONARY, 0u);
   // A bounded object body that a typed parser cannot decode is retained as
   // a warning, but a missing/truncated object frame invalidates the OBJECTS
   // section. The frame reader is the only authority for this distinction.
@@ -10881,6 +10904,28 @@ bool dwgReader::publishDeferredRawObjects(
 /**
  * Reads a dwg drawing object (dwg object object) given its offset in the file
  */
+bool dwgReader::hasUsableDwgNodReference() const noexcept {
+  // Existing authored HEADERs carry an explicit absolute null placeholder.
+  // Relative codes6+ with a zero payload are not absolute null references.
+  return m_dwgNodReference
+      && DRW_Header::isUsableDwgNamedObjectDictionaryReference(*m_dwgNodReference);
+}
+
+void dwgReader::warnDwgNodReference(std::uint64_t expected,
+                                    std::uint64_t observed,
+                                    const objHandle* object,
+                                    DwgIntegrityAddressSpace offsetSpace) noexcept {
+  m_dwgNodFailureReported = true;
+  const auto handle = hasUsableDwgNodReference()
+      ? m_dwgNodReference->ref : 0u;
+  recordIntegrityDiagnostic(DwgIntegritySeverity::Warning, offsetSpace,
+      DwgIntegrityPhase::SectionParser,
+      DwgIntegrityCheckKind::NamedObjectDictionaryReference,
+      secEnum::OBJECTS, -1, "AcDb:AcDbObjects", 0u, false,
+      object != nullptr ? object->loc : 0u, object != nullptr,
+      handle, handle != 0u, expected, observed, true);
+}
+
 bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                               DRW_Interface &intfa, bool *frameFailure,
                               DwgIntegrityAddressSpace offsetSpace) {
@@ -10930,6 +10975,12 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
     dwgBuffer buff(tmpByteStr.data(), size, &decoder);
     const std::int16_t encodedType = classification.encodedType;
     const std::int16_t oType = classification.resolvedType;
+    const bool namedObjectRoot = hasUsableDwgNodReference()
+        && m_dwgNodReference->ref64 != 0u
+        && m_dwgNodReference->ref64 == obj.handle;
+    if (namedObjectRoot && oType != dwgObjType::DICTIONARY)
+      warnDwgNodReference(dwgObjType::DICTIONARY,
+                          static_cast<std::uint16_t>(oType), &obj, offsetSpace);
     const DRW_Class *resolvedClass = classification.resolvedClass;
     const bool fixedObjectShell = classification.fixedObjectShell;
     const bool rawCustomObjectShell =
@@ -11092,7 +11143,24 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
             }
             dictionaryMembership = std::move(receipt);
           }
-          intfa.addDictionary(e);
+          if (namedObjectRoot && e.hasCompleteDwgEntries()
+              && e.parentHandle == DRW::NoHandle && !m_dwgNodPublished) {
+            intfa.addNamedObjectDictionary(e);
+            m_dwgNodPublished = true;
+          } else {
+            if (namedObjectRoot) {
+              if (!e.hasCompleteDwgEntries())
+                warnDwgNodReference(1u, 0u, &obj, offsetSpace);
+              else if (e.parentHandle != DRW::NoHandle)
+                warnDwgNodReference(0u, e.parentHandle, &obj, offsetSpace);
+              else {
+                warnDwgNodReference(1u, 2u, &obj, offsetSpace);
+                ret = false;
+                break;
+              }
+            }
+            intfa.addDictionary(e);
+          }
           intfa.addUnsupportedObject(makeRawObject(oType));
         }
         break;

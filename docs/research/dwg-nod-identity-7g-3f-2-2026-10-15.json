@@ -1,0 +1,237 @@
+{
+  "schema": "libdxfrw-scoped-implementation-acceptance-v1",
+  "date": "2026-10-15",
+  "planSlice": "7G.3f.2",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "baseline": "49427d088d154427d6bc7bc56cd367f4314c9254",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "qualificationEligible": false,
+  "scope": "Validated HEADER NOD identity and one complete typed root callback, source lifetime and converter preflight. Reader handoff only; no writer HEADER identity repair, typed style DXF serializer, complete graph/CLI9d or native semantic support.",
+  "implementation": {
+    "source": "Owned optional dwgHandle retains code/encoded size/ref64 and legacy low32 ref. Absent/fresh/DXF, explicit null, wrong role and unrepresentable map identity stay distinct. Nonzero roots require absolute hard ownership code3 and representable current32-bit map identity. No wire field/order/width change.",
+    "lifecycle": "Copy/move/swap/clear and read-entry/failed-header reset; DXF HEADER parsing does not fabricate DWG provenance. Source snapshot does not control regenerated writer identities.",
+    "publication": "Select matching full HEADER identity only, validate existing DICTIONARY frame/complete entries/zero owner, and call existing addNamedObjectDictionary once. Its default forwards historical addDictionary once. No physical-order/lowest-handle/0xC fallback.",
+    "failures": "Wrong-role/wide HEADER, missing/wrong-kind/wrong-owner/incomplete root warn nonfatally for ordinary readers. Explicit strict/visual-style converter preflight refuses invalid or unresolved non-null source reference before destination publication; explicit corrected same-model retries pass.",
+    "diagnostics": "Append NamedObjectDictionaryReference kind26, retain0–25/schema1. Full64-bit invalid value remains observable. HEADER H exact field offset is not captured, so hasFileOffset=false; known OBJECTS frame locations use their actual address space.",
+    "compatibility": "No new virtual/pure callback; ordinary 2D projection/tolerance unchanged. Appended public layout requires rebuild; no binary ABI promise."
+  },
+  "authority": {
+    "pdf": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "version": "5.4.1",
+      "readRelevantChapterPages": "69–85 and103–107",
+      "renderedReviewedPages": [
+        81,
+        104
+      ],
+      "scope": "p81 HEADER NOD hard owner; p103 objects may occur in any order and be unused. Existing fixed DICTIONARY/XRECORD dispatch only; no new wire type codes."
+    }
+  },
+  "permanentControls": {
+    "headers": "Five literal H replacements in a complete authored AC1032 HEADER: code3/A000, absolute null, wrong code5/A000, relative code6/zero, and code3/10000A000 low32 alias. Independent H walk/bit splice/CRC, no byte-alignment assumption; failed same-reader HEADER and null direct parse reset, corrected retry.",
+    "objectPhase": "Authored lower-handle child before higher-handle root; valid/missing/wrong-kind/wrong-owner/CRC-valid malformed counted-entry root, following independent XRECORD, source absent/null/wrong-role/wide/relative nonselection and same-reader correction. Unit OBJECTS phase, not a new full-file qualification.",
+    "duplicates": "Existing HANDLES duplicate-identity/map diagnostics remain in the same reader-matrix gate. No claim of a second valid root in a unique-handle map or an additional independently authored full-file duplicate-root witness.",
+    "converter": "11 invalid/missing-root no-publication checks (existing destination and ASCII/binary); eight explicitly corrected same-model/converter retries and DXF readbacks retain caller source HEADER/root identities and suffix. No source provenance invented on DXF reread.",
+    "tracked": "Three existing AC1032 fixtures each publish source hard-owner root12 exactly once and retain24 typed styles/zero raw DXF companions; ordinary fixture explicit null publishes no root. Header copy/move and legacy default callback count retained. No drawing fixture/CTest registration added."
+  },
+  "correction": {
+    "initialTestPremise": "The new independent H-walk expected generated null to retain soft-owner code2. Existing putHandle canonicalizes it to code0. Probe confirmed slot31 code0,size0; fixed only new test expectation, no production writer byte change.",
+    "scratchRecipe": "Acceptance helper initially used nonexistent CompletedProcess flags, expected a debug-only preflight message in normal CLI stderr, then used a wrong executable path. Corrected the helper; failed packets are not acceptance evidence.",
+    "diagnosticReview": "Removed a guessed HEADER H offset based on envelope position; unknown field position now explicitly absent and independently asserted."
+  },
+  "commands": [
+    "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_local_roundtrip libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+    "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Isrc/intern -I. -Idwg2dxf -DLIBDXFRW_READER_FIXTURE_DIR='\"/Users/dli/dev/libdxfrw/tests/fixtures/dwg\"' -fsyntax-only src/drw_header.cpp src/intern/dwgreader.cpp dwg2dxf/dx_iface.cpp tests/dwg_reader_matrix_tests.cpp",
+    "ctest --test-dir build -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip|hardening|dwg_object_vectors)$' --output-on-failure --output-junit /private/tmp/libdxfrw-nod-identity.BZxzEG/focused-final.xml",
+    "cmake --build /private/tmp/libdxfrw-hatch-asan.Nc6BqC --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 ctest --test-dir /private/tmp/libdxfrw-hatch-asan.Nc6BqC -R '^libdxfrw_dwg_(reader_matrix|object_vectors)$' --output-on-failure --output-junit /private/tmp/libdxfrw-nod-identity.BZxzEG/sanitizer-final.xml",
+    "python3 -B /private/tmp/libdxfrw-nod-identity.BZxzEG/acceptance.py"
+  ],
+  "acceptance": {
+    "trackedReaderRows": [
+      {
+        "source": "tests/fixtures/dwg/rtext_arctext.dwg",
+        "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+        "observations": {
+          "sourcePresent": 1,
+          "sourceCode": 3,
+          "sourceSize": 1,
+          "sourceValue": 12,
+          "rootCaptured": 1,
+          "rootHandle": 12,
+          "dictionaryCount": 12,
+          "styleCount": 24,
+          "rawStyleCount": 0
+        },
+        "stderrSha256": "70d1928d29771a06d481bd59468eb14391d796085b7c6ef2c842bec20f6d4939",
+        "qualificationEligible": false
+      },
+      {
+        "source": "tests/fixtures/dwg/mpolygon_solid.dwg",
+        "sha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+        "observations": {
+          "sourcePresent": 1,
+          "sourceCode": 3,
+          "sourceSize": 1,
+          "sourceValue": 12,
+          "rootCaptured": 1,
+          "rootHandle": 12,
+          "dictionaryCount": 12,
+          "styleCount": 24,
+          "rawStyleCount": 0
+        },
+        "stderrSha256": "21f6cc322e50e04a402250fa792fb8f715c14e59282a1171e032a32f2a4677bb",
+        "qualificationEligible": false
+      },
+      {
+        "source": "tests/fixtures/dwg/large_radial.dwg",
+        "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+        "observations": {
+          "sourcePresent": 1,
+          "sourceCode": 3,
+          "sourceSize": 1,
+          "sourceValue": 12,
+          "rootCaptured": 1,
+          "rootHandle": 12,
+          "dictionaryCount": 12,
+          "styleCount": 24,
+          "rawStyleCount": 0
+        },
+        "stderrSha256": "c9424f025dbc00f93c06808ae274797e0033d9124eddc3f51d19e8c7604932c4",
+        "qualificationEligible": false
+      },
+      {
+        "source": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+        "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+        "observations": {
+          "sourcePresent": 1,
+          "sourceCode": 0,
+          "sourceSize": 0,
+          "sourceValue": 0,
+          "rootCaptured": 0,
+          "rootHandle": 0,
+          "dictionaryCount": 0,
+          "styleCount": 0,
+          "rawStyleCount": 0
+        },
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualificationEligible": false
+      }
+    ],
+    "sixAuthoredVisualStyleStreamsUnchanged": true,
+    "parentComponentProbeScope": "Frozen standalone 49427d0 executable; component streams only, not whole-file/HEADER identity parity",
+    "cliDiagnostic": {
+      "argv": [
+        "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+        "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/rtext_arctext.dwg",
+        "-o",
+        "/private/tmp/libdxfrw-nod-identity.BZxzEG/cli-open.dxf"
+      ],
+      "returncode": 1,
+      "outputExists": false,
+      "stdout": "\nConversion failed\n",
+      "stderr": "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1032 sourceVersionEnum=18 legacyError=0 semanticCoverage=unknown\nObservations overlap; decodedRecordTotal=unknown uniqueSkippedRecordTotal=unknown carrierLossTotal=unknown exportCompleteness=unknown\nRaw name prefixes can collide and are not complete identities.\nentityParseFailures=0 objectParseFailures=0 classesCrcMismatch=1 reader21Ac1021CrcMismatch=0 reader18FamilyHeaderCrcMismatch=0 dataStorageLinkFailures=0 dataStorageOrphanRecords=0 decodedProxyPrimitives=0 \nskippedCustomClasses: sourceNames=0 observedInstances=0 retainedRows=0 omittedNames=0 omittedRowInstances=0 truncatedRetainedNames=0 omittedNameBytes=0 aggregateSaturated=false\nskippedUnsupportedObjects: sourceNames=0 observedInstances=0 retainedRows=0 omittedNames=0 omittedRowInstances=0 truncatedRetainedNames=0 omittedNameBytes=0 aggregateSaturated=false\nframeCoverageStatus=2 frameSourceDenominator=observed sourceFrames=267 pending=0 deferred=0 staged=0 published=267 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0 \nObserved receipt callbacks (not terminal delivery): typed=187 raw=0 typedAndRaw=71 control=9 \nOpaque callbacks are not CLI retention/export: opaqueViewCallbacks=71 opaqueFramesRetainedForCorrelation=0 callbackCountsSaturated=false\nIntegrity observations: sourceRecorded=3 retainedRows=3 extractionOmitted=0 reportedUpstreamDroppedLowerBound=0 truncatedRetainedNames=0 omittedNameBytes=0 aggregateSaturated=false\nintegrity row: version=18 severity=1 phase=7 kind=24 offsetSpace=2 logicalSectionId=2 sectionDescriptorId=1 raw-prefix=\"\\x41\\x63\\x44\\x62\\x3a\\x48\\x65\\x61\\x64\\x65\\x72\" prefixBytes=11 sourceBytes=11 nameTruncated=false hasPageId=0 pageId=0 hasFileOffset=1 fileOffset=16 hasLogicalHandle=0 logicalHandle=0 hasExpected=1 expected=751 hasObserved=1 observed=755 \nintegrity row: version=18 severity=1 phase=7 kind=25 offsetSpace=2 logicalSectionId=2 sectionDescriptorId=1 raw-prefix=\"\\x41\\x63\\x44\\x62\\x3a\\x48\\x65\\x61\\x64\\x65\\x72\" prefixBytes=11 sourceBytes=11 nameTruncated=false hasPageId=0 pageId=0 hasFileOffset=1 fileOffset=773 hasLogicalHandle=0 logicalHandle=0 hasExpected=1 expected=773 hasObserved=1 observed=1512 \nintegrity row: version=18 severity=1 phase=7 kind=1 offsetSpace=2 logicalSectionId=3 sectionDescriptorId=3 raw-prefix=\"\\x41\\x63\\x44\\x62\\x3a\\x43\\x6c\\x61\\x73\\x73\\x65\\x73\" prefixBytes=12 sourceBytes=12 nameTruncated=false hasPageId=0 pageId=0 hasFileOffset=0 fileOffset=0 hasLogicalHandle=0 logicalHandle=0 hasExpected=1 expected=420 hasObserved=1 observed=61198 \n",
+      "exactPreflightStageReported": false,
+      "fullHarnessPassed": false
+    },
+    "focusedJUnit": [
+      {
+        "path": "/private/tmp/libdxfrw-nod-identity.BZxzEG/focused-final.xml",
+        "sha256": "0b2dd7ef3d5077d7144422f9b4fdb83c825736a3f93b329e5fb768c1cfde6318",
+        "suite": {
+          "name": "(empty)",
+          "tests": "4",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "4",
+          "timestamp": "2026-10-15T19:10:48"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_dwg_local_roundtrip",
+            "classname": "libdxfrw_dwg_local_roundtrip",
+            "time": "2.90269",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dwg_reader_matrix",
+            "classname": "libdxfrw_dwg_reader_matrix",
+            "time": "1.51173",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dwg_object_vectors",
+            "classname": "libdxfrw_dwg_object_vectors",
+            "time": "0.155565",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_hardening",
+            "classname": "libdxfrw_hardening",
+            "time": "0.255113",
+            "status": "run"
+          }
+        ],
+        "summedCaseSeconds": 4.8250980000000006
+      },
+      {
+        "path": "/private/tmp/libdxfrw-nod-identity.BZxzEG/sanitizer-final.xml",
+        "sha256": "e55ff2b95bdcbd68ee3378a8fc0ccded51a3e7f2e158022239d26db7ea2c005e",
+        "suite": {
+          "name": "(empty)",
+          "tests": "2",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "1",
+          "timestamp": "2026-10-15T19:11:11"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_dwg_reader_matrix",
+            "classname": "libdxfrw_dwg_reader_matrix",
+            "time": "1.23795",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dwg_object_vectors",
+            "classname": "libdxfrw_dwg_object_vectors",
+            "time": "0.255432",
+            "status": "run"
+          }
+        ],
+        "summedCaseSeconds": 1.493382
+      }
+    ],
+    "sourceSha256": {
+      "src/drw_header.h": "28086f4ed6db7490cf7df65b578107f038725b8d3793bf4bbfe5980dca044e9a",
+      "src/drw_header.cpp": "87d4518d2960ded6c24a86b429e3ff173fb8628a7155c6438cd5c10b612f2504",
+      "src/drw_interface.h": "0d2a187d3b2f11112374e6a471929a521794667db5fa8a9ad64def39228c667e",
+      "src/libdwgr.h": "e4aff8d50e4c2e3593aa7f7450fc530d394918929d94f41f4bce58d4f9f6efcf",
+      "src/intern/dwgreader.h": "9489f25351393b775aabd41e19f9bad05b7c226084aa69f9108ebbdc6fbcd4ff",
+      "src/intern/dwgreader.cpp": "b41e46e39ce75f6b589f63868e481e61b35b5a7fcc3d539f6b0e798b2e17f525",
+      "dwg2dxf/dx_iface.cpp": "463d7faf9e7fd1ce77e137a38f3141a72e3700d01d9a5cbe6b71d173c93c4a4b",
+      "tests/dwg_reader_matrix_tests.cpp": "cfb00b8bd088c1f2054c35034ce722a0240e58ae5b36495981e59e96ef2d6ef9"
+    },
+    "artifactSha256": {
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a": "ac02da1a01d112c3d9f8347fbf0d634c2f2a5bebd5db81be5e72d4c8bc9bab29",
+      "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf": "4ee29dba07051e05abd728bff256d5f64b27d3de9c432b18716ca7caed59b56b",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw_dwg_reader_matrix_tests": "f2a5e02adbed69112265f4e729fad366a8eef0b925024f0b6887fe7bb192951a",
+      "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw.a": "874e0366210f1647de0fdc3812097dbfa7ce5bdd852bc780338ef030ceabe2ff",
+      "/private/tmp/libdxfrw-nod-identity.BZxzEG/read_probe": "a6dc5cb6dc2f3de010ec354a88be9abee85fcd6d41c911f720887df29970c830",
+      "/private/tmp/libdxfrw-nod-identity.BZxzEG/default-current": "d6db14c9469ef13510640d88dc08d7c0f33383a4994801209887c1aab47c892b",
+      "/private/tmp/libdxfrw-visualstyle-wire.z2FWew/default-current": "00b1dd9b25645720075497a9c3aed7bb08d94915ab352163757fa6daa55273c0"
+    },
+    "recipe": "\"\"\"Bound current NOD handoff observations; not full conversion qualification.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\nimport xml.etree.ElementTree as ET\n\nrepo = Path('/Users/dli/dev/libdxfrw')\nscratch = Path(__file__).resolve().parent\nsys.path.insert(0, str(repo / 'tools'))\nfrom bounded_process import run_bounded\n\ndef digest(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\ndef run(argv):\n    result = run_bounded(argv, timeout=15, output_limit=65536)\n    return result\n\nrows = []\nfor stem in ('rtext_arctext', 'mpolygon_solid', 'large_radial', 'ordinary_enc_AC1027'):\n    source = repo / f'tests/fixtures/dwg/{stem}.dwg'\n    result = run([str(scratch / 'read_probe'), str(source)])\n    assert result.returncode == 0, result.stderr\n    values = json.loads(result.stdout)\n    advanced = stem != 'ordinary_enc_AC1027'\n    assert values['sourcePresent'] == 1\n    assert values['sourceValue'] == (12 if advanced else 0)\n    assert values['sourceCode'] == (3 if advanced else 0)\n    assert values['rootCaptured'] == int(advanced)\n    assert values['rootHandle'] == (12 if advanced else 0)\n    assert values['styleCount'] == (24 if advanced else 0)\n    assert values['rawStyleCount'] == 0\n    rows.append(dict(source=str(source.relative_to(repo)), sha256=digest(source),\n                     observations=values, stderrSha256=hashlib.sha256(result.stderr).hexdigest(),\n                     qualificationEligible=False))\n\ncurrent = run([str(scratch / 'default-current')])\nparent = run(['/private/tmp/libdxfrw-visualstyle-wire.z2FWew/default-current'])\nassert current.returncode == parent.returncode == 0\nassert json.loads(current.stdout) == json.loads(parent.stdout)\nassert len(json.loads(current.stdout)) == 6\n\noutput = scratch / 'cli-open.dxf'\nassert not output.exists(), 'use a fresh output identity for the single diagnostic'\nargv = [str(repo / 'build/dwg2dxf/dwg2dxf'),\n        str(repo / 'tests/fixtures/dwg/rtext_arctext.dwg'), '-o', str(output)]\ncli = run(argv)\nassert cli.returncode != 0 and not output.exists()\n\npackets = []\nfor name, expected in (('focused-final.xml', 4), ('sanitizer-final.xml', 2)):\n    path = scratch / name\n    root = ET.parse(path).getroot()\n    assert int(root.attrib['tests']) == expected\n    assert all(int(root.attrib[key]) == 0 for key in ('failures', 'skipped', 'disabled'))\n    cases = [dict(item.attrib) for item in root.findall('testcase')]\n    packets.append(dict(path=str(path), sha256=digest(path), suite=root.attrib,\n                        cases=cases, summedCaseSeconds=sum(float(c['time']) for c in cases)))\n\nsources = ('src/drw_header.h', 'src/drw_header.cpp', 'src/drw_interface.h',\n           'src/libdwgr.h', 'src/intern/dwgreader.h', 'src/intern/dwgreader.cpp',\n           'dwg2dxf/dx_iface.cpp', 'tests/dwg_reader_matrix_tests.cpp')\nartifacts = (repo / 'build/libdxfrw.a', repo / 'build/dwg2dxf/dwg2dxf',\n             repo / 'build/libdxfrw_dwg_reader_matrix_tests',\n             Path('/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw.a'),\n             scratch / 'read_probe', scratch / 'default-current',\n             Path('/private/tmp/libdxfrw-visualstyle-wire.z2FWew/default-current'))\nprint(json.dumps(dict(trackedReaderRows=rows, sixAuthoredVisualStyleStreamsUnchanged=True,\n    parentComponentProbeScope='Frozen standalone 49427d0 executable; component streams only, not whole-file/HEADER identity parity',\n    cliDiagnostic=dict(argv=argv, returncode=cli.returncode, outputExists=output.exists(),\n                       stdout=cli.stdout.decode(), stderr=cli.stderr.decode(),\n                       exactPreflightStageReported=False, fullHarnessPassed=False),\n    focusedJUnit=packets, sourceSha256={p: digest(repo / p) for p in sources},\n    artifactSha256={str(p): digest(p) for p in artifacts},\n    recipe=Path(__file__).read_text(), qualificationEligible=False)))\n",
+    "qualificationEligible": false
+  },
+  "residual": {
+    "next": "7G.3f.3 explicit DWG origin/version and typed same-version style serializer, then f.4 complete graph/unchanged full CLI harness; 7BE.9d open.",
+    "writer": "Existing encodeDwg NOD H is explicit null while dwgwriter15 emits physical root0xC. Queue separate existing-owner f.2b planned target-header root reference and sealing/readback controls. Do not guess root in reader or reuse source identity as writer target.",
+    "scope": "No full suite/native Linux/Windows FreeCAD/independent ACIS kernel or J268 historical reconstruction. All six J items DEFERRED_EXTERNAL and non-promoting."
+  }
+}

@@ -84,7 +84,28 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `6c5666c`;
+**Current handoff (2026-10-15, provenance `49427d0`;
+Plan-Slice:7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE):**
+HEADER now owns the full source NOD H, including role/size/ref64, with absent,
+explicit-null and invalid/unrepresentable identities kept separate. Only its
+matching complete zero-parent DICTIONARY publishes the existing optional root
+callback once; no first/lowest-handle or0xC guessing. Wrong/missing roots warn
+under tolerant reads; strict/visual-style export refuses before publication
+and explicit corrected same-model retries pass. Kind26 appends without
+renumbering0–25/schema1; unknown exact HEADER H offsets remain absent.
+Permanent authored HEADER/OBJECTS negatives, callback/lifetime/retry controls
+and four tracked-file integration rows pass. Main4/4 in4.83s, strict four-TU/
+build/lc3 and ASan/UBSan2/2 in1.49s pass; six authored style component streams
+remain byte-identical to49427d0. Receipt:
+`docs/research/dwg-nod-identity-7g-3f-2-2026-10-15.json`.
+Next f.3 typed same-version serializer, then f.4 full graph/CLI9d. A separate
+f.2b writer task must replace its null target HEADER NOD placeholder using
+preplanned emitted identity, not captured source or reader inference. A single
+actual FreeCAD-form tracked RTEXT conversion still exits1/no output; do not
+label root handoff full conversion success. No fixture/CTest registration,
+native, ABI or support/J promotion; source consumers require rebuild.
+
+**Prior7G.3f.1 handoff (2026-10-15, provenance `6c5666c`;
 Plan-Slice:7G.3f.1 / LOCAL_IMPLEMENTATION_COMPLETE):**
 this queue supersedes historical “next” actions and plan-only research states.
 VISUALSTYLE now owns its28/58 source companions,5/8 complete CMC prefixes/
@@ -5270,7 +5291,8 @@ This sequence supersedes the generic “implement a typed serializer” handoff.
 | Child / readiness | Implementation boundary | Smallest acceptance gate |
 | --- | --- | --- |
 | **7G.3f.1 / LOCAL_IMPLEMENTATION_COMPLETE** | Preserve source property companions, complete CMC prefixes/decoded names and pre-clamp isolines in the existing owned VISUALSTYLE body; retain legacy convenience fields. | Three-version literal and72 tracked-style controls; six unchanged authored byte profiles; main3/3, strict/build/lc3 and ASan/UBSan2/2 pass. |
-| **7G.3f.2 / READY_LOCAL** | Retain validated DWG HEADER NOD identity and publish the matching complete dictionary through the existing optional root callback, without guessing a root. | HEADER/reader object vectors plus non-monotonic root/child, missing/wrong-type/duplicate root and callback-count controls. |
+| **7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE** | Retain validated DWG HEADER NOD identity and publish the matching complete dictionary through the existing optional root callback, without guessing a root. | Authored HEADER/OBJECTS role/null/wide/non-monotonic/missing/wrong-type/owner/count/retry controls, reused duplicate-map gate and four tracked rows; main4/4, strict/build/lc3, sanitizer2/2 pass. |
+| **7G.3f.2b / READY_LOCAL; INDEPENDENT_WRITER_FOLLOWUP** | Bind regenerated DWG HEADER NOD H to the writer's preplanned actual root, not the retained source identity or null placeholder. | Literal code3/nonzero H, existing reserved-identity/sealing controls, full authored writer→reader root/child callback counts across applicable targets; no reader guessing. |
 | **7G.3f.3 / TAG_PROFILE_CAPTURED; MAPPING_REVIEW_REQUIRED** | Implement a typed-DWG-to-DXF serializer for the smallest witnessed version/property/color profile. Keep DXF-origin raw replay separate. | Exact literal tags/property groups/colors/companions and following record; unsupported-profile no-publication and corrected same-model retry. |
 | **7G.3f.4 / DEPENDS_ON_1_2_3** | Compose root, target types, remapping and source-format dispatch, then rerun the unchanged full FreeCAD-form CLI harness. | Existing extension-graph/adapter tests and one composed CLI gate, retaining RTEXT/ARCALIGNEDTEXT/MPOLYGON assertions and warnings. |
 
@@ -5299,10 +5321,11 @@ fields; do not count typed+raw callbacks as two source objects. Rebuild
 consumers after public layout changes; optional virtuals are source-compatible,
 not a guarantee of binary ABI stability.
 
-**f.2 root identity and publication.** Current HEADER code reads then discards
-the `DICT NAMED OBJS` handle; the DWG DICTIONARY dispatcher calls only
-`addDictionary`. Retain the source root identity with explicit absent/invalid
-state, reset/copy/read-entry lifetime and bounds inherited from HEADER. Check
+**f.2 root identity and publication — locally implemented.** The HEADER now
+retains `DICT NAMED OBJS` and the DWG DICTIONARY dispatcher selects its exact
+complete target through the existing optional root callback. Source identity
+has explicit absent/null/invalid state, reset/copy/read-entry lifetime and
+bounds inherited from HEADER. Check
 ODA§9 and§20 before parser edits. Do not fabricate a HEADER variable, hardcode
 handle0xC, select the first/lowest ownerless object, or reuse DXF's positional
 root rule. Validate the referenced frame is one complete DICTIONARY with
@@ -5319,6 +5342,19 @@ incomplete counted entries, same-reader retry and following-object controls.
 Do not silently substitute another root after failure. Once selected, every
 `ACAD_VISUALSTYLE` entry, style owner, reactor and extension-dictionary edge
 must share the preplanned identity map and existing work caps.
+
+**f.2b separate writer readiness.** `DRW_Header::encodeDwg` still emits an
+absolute null NOD H while `dwgwriter15` creates physical dictionary0xC and
+ACAD_GROUP0xD. The ordinary tracked fixture genuinely has a null HEADER root;
+do not promote its physical dictionary in the reader. Supply an explicit
+internal target-root reference from the writer's preplanned/reserved graph,
+encode the required hard-owner role, and retain source provenance separately.
+Check the root exists exactly once with zero parent and sealed child edges,
+then assert literal HEADER role/value and full writer→reader callbacks. Audit
+all six existing writer targets and source/target identity collisions using
+small authored vectors; do not rewrite captured source H or alter unrelated
+control pointers. This existing-owner follow-up is not a new top-level finding
+or a prerequisite for the same-version DWG→DXF serializer.
 
 **f.3 exact versioned serializer.** Start with the same-version AC1032 profile
 needed by the retained advanced CLI witnesses; admit other source/target

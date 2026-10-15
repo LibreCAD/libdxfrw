@@ -33,6 +33,7 @@
 #include <limits>
 #include <unordered_map>
 #include <utility>
+#include <optional>
 #include "drw_base.h"
 
 class dxfReader;
@@ -139,11 +140,13 @@ public:
           vportCtrl(h.vportCtrl),
           vpEntHeaderCtrl(h.vpEntHeaderCtrl),
           handSeed(h.handSeed),
-          m_dwgHandseedBitOffset(h.m_dwgHandseedBitOffset) {
+          m_dwgHandseedBitOffset(h.m_dwgHandseedBitOffset),
+          m_dwgNamedObjectDictionaryReference(h.m_dwgNamedObjectDictionaryReference) {
         h.curr = nullptr;
         h.m_dxfHeaderFinalized = false;
         h.m_dxfSourceVersion = DRW::UNKNOWNV;
         h.clearDxfDimunitAliasProvenance();
+        h.m_dwgNamedObjectDictionaryReference.reset();
     }
 
     DRW_Header& operator=(const DRW_Header &h) {
@@ -206,6 +209,32 @@ public:
     /// this value or the reader's structural checks. Fresh/API/DWG headers
     /// have no DXF declaration and report UNKNOWNV.
     DRW::Version dxfSourceVersion() const noexcept { return m_dxfSourceVersion; }
+
+    /// Original DWG HEADER named-object-dictionary H field, copied by value.
+    /// Missing (fresh/DXF/failed HEADER) and explicitly null are distinct.
+    /// ref64 retains the complete encoded value; ref is the legacy low32 view.
+    /// A decoded reference is not proof of a matching complete root object,
+    /// and this provenance does not control regenerated writer identities.
+    std::optional<dwgHandle> dwgNamedObjectDictionaryReference() const noexcept {
+        return m_dwgNamedObjectDictionaryReference;
+    }
+    /// Checks only the absolute HEADER handle role and current32-bit map
+    /// capacity, not existence/type/completeness of its referenced object.
+    static bool isUsableDwgNamedObjectDictionaryReference(const dwgHandle& source) noexcept {
+        if (source.size > sizeof(source.ref64)
+            || source.ref != static_cast<std::uint32_t>(source.ref64)
+            || (source.size < sizeof(source.ref64)
+                && (source.ref64 >> (source.size * 8u)) != 0u)
+            || source.ref64 > (std::numeric_limits<std::uint32_t>::max)())
+            return false;
+        if (source.ref64 != 0u)
+            return source.code == DRW::DwgHardOwnership;
+        return source.code == DRW::DwgNullReference
+            || source.code == DRW::DwgSoftOwnership
+            || source.code == DRW::DwgHardOwnership
+            || source.code == DRW::DwgSoftPointer
+            || source.code == DRW::DwgHardPointer;
+    }
 
     /// Last complete physically read DXF $DWGCODEPAGE group-3 value, before Unicode
     /// decoding or compatibility normalization. Reader delimiters and ASCII's
@@ -300,6 +329,7 @@ private:
         ucsCtrl = h.ucsCtrl;
         vportCtrl = h.vportCtrl;
         vpEntHeaderCtrl = h.vpEntHeaderCtrl;
+        m_dwgNamedObjectDictionaryReference = h.m_dwgNamedObjectDictionaryReference;
     }
 
     void swap(DRW_Header& other) noexcept {
@@ -331,6 +361,7 @@ private:
         swap(vpEntHeaderCtrl, other.vpEntHeaderCtrl);
         swap(handSeed, other.handSeed);
         swap(m_dwgHandseedBitOffset, other.m_dwgHandseedBitOffset);
+        swap(m_dwgNamedObjectDictionaryReference, other.m_dwgNamedObjectDictionaryReference);
     }
 
     bool getDouble(std::string key, double *varDouble);
@@ -348,6 +379,7 @@ private:
         m_dxfSourceVersion = DRW::UNKNOWNV;
         clearDxfCodePageDeclaration();
         clearDxfDimunitAliasProvenance();
+        m_dwgNamedObjectDictionaryReference.reset();
     }
     /// Store v under key in vars, freeing any previously-stored variant
     /// (avoids a leak when a header variable appears more than once).
@@ -425,6 +457,7 @@ private:
     /// of the buffer passed to encodeDwg(). It is a write-time locator, never
     /// persisted.
     std::uint32_t m_dwgHandseedBitOffset {kInvalidDwgHandseedBitOffset};
+    std::optional<dwgHandle> m_dwgNamedObjectDictionaryReference;
 
 
 };

@@ -35,6 +35,7 @@
 #include "intern/drw_textcodec.h"
 #include "intern/dwgtemplate.h"
 #include "intern/dwgheadersection.h"
+#include "intern/dwgobjectframe.h"
 #include "intern/dwgwriter15.h"
 #include "intern/dwgwriter18.h"
 #include "intern/dwgwriter21.h"
@@ -54,6 +55,8 @@ static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionBounds) 
 static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionCompatibility) == 24u
                   && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionUnclaimedData) == 25u,
               "compatible HEADER observations append without renumbering prior categories");
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::NamedObjectDictionaryReference) == 26u,
+              "NOD reference observations append without renumbering prior categories");
 
 struct TestContext {
     int failures {0};
@@ -1217,6 +1220,351 @@ std::vector<std::uint8_t> makeHeaderSection(TestContext& t,
     return writer.buffer();
 }
 
+std::vector<std::uint8_t> headerWithNodReference(TestContext& t,
+                                                std::uint8_t code,
+                                                std::uint64_t value) {
+    auto bytes = makeHeaderSection<dwgWriter32>(t, "NOD reference vector");
+    dwgBuffer input(bytes.data(), bytes.size());
+    t.expect(input.setPosition(24u), "NOD vector reaches the modern HEADER bit-size");
+    const auto handlesBit = 192u + input.getRawLong32();
+    t.expect(input.setPosition(handlesBit / 8u), "NOD vector reaches the handle stream");
+    input.setBitPos(handlesBit & 7u);
+    // ODA9: CLAYER..CMLSTYLE6, paper/model UCS3+3, DIM8,
+    // controls9, ACAD_GROUP/MLINESTYLE2; the next H is NOD.
+    for (int i = 0; i < 31; ++i) (void)input.getHandle();
+    const auto offset = input.getPosition() * 8u + input.getBitPos();
+    const auto old = input.getHandle();
+    const bool located = input.isGood()
+        && old.code == DRW::DwgNullReference && old.size == 0u;
+    t.expect(located, "independent HEADER H walk locates the null NOD placeholder");
+    if (!located) return {};
+    std::uint8_t size = 0;
+    for (auto remaining = value; remaining != 0u; remaining >>= 8u) ++size;
+    std::vector<std::uint8_t> encoded{static_cast<std::uint8_t>((code << 4u) | size)};
+    for (int i = size; i > 0; --i)
+        encoded.push_back(static_cast<std::uint8_t>(value >> (8u * (i - 1))));
+    // HEADER handle streams need not be byte aligned. Replace one encoded
+    // null H (8bits) while preserving every surrounding bit and stream origin.
+    const auto original = bytes;
+    bytes.assign(original.size() + encoded.size() - 1u, 0u);
+    const auto copyBit = [&bytes](std::size_t destination, unsigned bit) {
+        bytes[destination / 8u] |= static_cast<std::uint8_t>(bit << (7u - destination % 8u));
+    };
+    for (std::size_t i = 0; i < offset; ++i)
+        copyBit(i, (original[i / 8u] >> (7u - i % 8u)) & 1u);
+    for (std::size_t i = 0; i < encoded.size() * 8u; ++i)
+        copyBit(offset + i, (encoded[i / 8u] >> (7u - i % 8u)) & 1u);
+    for (std::size_t i = offset + 8u; i < original.size() * 8u; ++i)
+        copyBit(i + (encoded.size() - 1u) * 8u,
+                (original[i / 8u] >> (7u - i % 8u)) & 1u);
+    const auto declared = static_cast<std::uint32_t>(bytes.size() - 38u);
+    for (unsigned i = 0; i < 4; ++i)
+        bytes[16u + i] = static_cast<std::uint8_t>(declared >> (8u * i));
+    const auto crcOffset = bytes.size() - 18u;
+    const auto crc = headerTestCrc(bytes, 16u, crcOffset);
+    bytes[crcOffset] = static_cast<std::uint8_t>(crc);
+    bytes[crcOffset + 1u] = static_cast<std::uint8_t>(crc >> 8u);
+    return bytes;
+}
+
+class NodObjectWriter final : public dwgWriter32 {
+public:
+    using dwgWriter32::dwgWriter32;
+    const auto& objects() const { return m_objectMap; }
+};
+
+class NodObjectReader final : public dwgReader32 {
+public:
+    explicit NodObjectReader(std::vector<std::uint8_t>& bytes)
+        : dwgReader32(std::make_unique<dwgBuffer>(bytes.data(), bytes.size()), nullptr) {
+        version = DRW::AC1032;
+        decoder.setVersion(version, false);
+    }
+    void adoptHeader(const DRW_Header& header) {
+        m_dwgNodReference = header.dwgNamedObjectDictionaryReference();
+        m_dwgNodPublished = m_dwgNodFailureReported = false;
+    }
+    bool readObjects(std::vector<std::uint8_t>& bytes,
+                     const std::vector<std::pair<std::uint32_t, std::uint32_t>>& frames,
+                     DRW_Interface& sink) {
+        objObjectMap.clear();
+        for (std::size_t i = 0; i < frames.size(); ++i)
+            objObjectMap.emplace(frames[i].first,
+                objHandle(0u, frames[i].first, frames[i].second, i));
+        dwgBuffer input(bytes.data(), bytes.size(), &decoder);
+        return dwgReader::readDwgObjects(sink, &input);
+    }
+    const auto& diagnostics() const { return m_integrityDiagnostics; }
+};
+
+class NodSink : public dx_iface {
+public:
+    NodSink() { cData = &data; currentBlock = data.mBlock; }
+    void addDictionary(const DRW_Dictionary& object) override {
+        ++dictionaries;
+        dx_iface::addDictionary(object);
+    }
+    void addNamedObjectDictionary(const DRW_Dictionary& object) override {
+        ++roots;
+        dx_iface::addNamedObjectDictionary(object);
+    }
+    void addXRecord(const DRW_XRecord& object) override {
+        ++records;
+        dx_iface::addXRecord(object);
+    }
+    dx_data data;
+    std::size_t roots{0}, dictionaries{0}, records{0};
+};
+
+class NodCommonProbe final : public DRW_Dictionary {
+public:
+    bool readCommon(dwgBuffer* body, dwgBuffer* strings, std::uint32_t handleBits) {
+        return DRW_TableEntry::parseDwg(DRW::AC1032, body, strings, handleBits);
+    }
+};
+
+bool malformNodCount(TestContext& t, std::vector<std::uint8_t>& bytes,
+                     std::uint32_t offset) {
+    DRW_TextCodec codec;
+    codec.setVersion(DRW::AC1032, false);
+    dwgBuffer input(bytes.data(), bytes.size(), &codec);
+    DwgObjectFrame frame;
+    if (!frame.readAt(input, DRW::AC1032, offset)) return false;
+    dwgBuffer body(frame.body().data(), frame.body().size(), &codec);
+    dwgBuffer strings = body;
+    NodCommonProbe common;
+    if (!common.readCommon(&body, &strings, frame.bodyBitSize())) return false;
+    const auto countBit = body.getPosition() * 8u + body.getBitPos();
+    if (body.getBitLong() != 2) return false;
+    (void)input.setPosition(offset);
+    (void)input.getModularShort();
+    (void)input.getUModularChar();
+    const auto bodyOffset = input.getPosition();
+    const auto bit = bodyOffset * 8u + countBit + 1u;
+    // BL2's01 prefix becomes00 (a raw32-bit count) inside the same frame.
+    // Body bounds/CRC stay valid, but the declared dictionary body does not.
+    bytes[bit / 8u] &= static_cast<std::uint8_t>(~(0x80u >> (bit & 7u)));
+    const auto crcOffset = bodyOffset + frame.body().size();
+    const auto crc = headerTestCrc(bytes, offset, crcOffset);
+    bytes[crcOffset] = static_cast<std::uint8_t>(crc);
+    bytes[crcOffset + 1u] = static_cast<std::uint8_t>(crc >> 8u);
+    dwgBuffer verify(bytes.data(), bytes.size(), &codec);
+    t.expect(frame.readAt(verify, DRW::AC1032, offset),
+             "malformed NOD count is still an exact CRC-valid bounded object frame");
+    return true;
+}
+
+void testDwgNodReference(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-nod-" + std::to_string(
+                std::chrono::steady_clock::now().time_since_epoch().count()));
+    if (!std::filesystem::create_directory(directory)) {
+        t.expect(false, "NOD test owns a fresh scratch directory");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path directory;
+        ~Cleanup() { std::error_code error; std::filesystem::remove_all(directory, error); }
+    } cleanup{directory};
+    DRW_Header fresh;
+    t.expect(!fresh.dwgNamedObjectDictionaryReference(), "fresh HEADER has no DWG root provenance");
+    for (const auto& row : {
+            std::pair<std::uint8_t, std::uint64_t>{DRW::DwgHardOwnership, 0xA000u},
+            {DRW::DwgSoftOwnership, 0u}, {DRW::DwgHardPointer, 0xA000u},
+            {6u, 0u}, {DRW::DwgHardOwnership, 0x10000A000ULL}}) {
+        auto bytes = headerWithNodReference(t, row.first, row.second);
+        if (bytes.empty()) continue;
+        HeaderSectionReader reader(bytes, 0u, DRW::AC1032, 6u);
+        DRW_Header parsed;
+        const bool accepted = reader.readDwgHeader(parsed);
+        const auto reference = parsed.dwgNamedObjectDictionaryReference();
+        t.expect(accepted && reference && reference->code == row.first
+                     && reference->ref64 == row.second
+                     && reference->ref == static_cast<std::uint32_t>(row.second),
+                 "HEADER retains complete role/null/wide NOD H without truncation or guessing");
+        if (!reference) continue;
+        const bool usable = row.first == DRW::DwgSoftOwnership
+            || (row.first == DRW::DwgHardOwnership && row.second <= 0xFFFFFFFFu);
+        t.expect(DRW_Header::isUsableDwgNamedObjectDictionaryReference(*reference) == usable
+                     && reader.diagnostics().size() == (usable ? 0u : 1u),
+                 "invalid NOD role/width is observable while ordinary HEADER reading stays tolerant");
+        if (!usable && !reader.diagnostics().empty())
+            t.expect(reader.diagnostics().back().kind
+                         == DwgIntegrityCheckKind::NamedObjectDictionaryReference
+                         && reader.diagnostics().back().severity == DwgIntegritySeverity::Warning
+                         && !reader.diagnostics().back().hasFileOffset
+                         && reader.diagnostics().back().hasObserved
+                         && reader.diagnostics().back().observed
+                              == (row.second > 0xFFFFFFFFu ? row.second : row.first),
+                     "NOD warning uses its appended optional diagnostic category");
+        if (!usable) {
+            dx_data incomplete;
+            incomplete.headerC = parsed;
+            dx_iface converter;
+            const auto destination = directory / "bad-reference.dxf";
+            { std::ofstream existing(destination); existing << "NOD_SENTINEL"; }
+            t.expect(!converter.fileExport(destination.string(), DRW::AC1032, false,
+                                           &incomplete, false, true),
+                     "strict converter refuses invalid/wide NOD source before output publication");
+            std::ifstream unchanged(destination);
+            const std::string content((std::istreambuf_iterator<char>(unchanged)),
+                                       std::istreambuf_iterator<char>());
+            t.expect(content == "NOD_SENTINEL", "invalid NOD reference preserves destination");
+        }
+        bytes.back() ^= 1u;
+        t.expect(!reader.readDwgHeader(parsed) && !parsed.dwgNamedObjectDictionaryReference(),
+                 "failed HEADER reuse clears prior NOD provenance");
+        bytes.back() ^= 1u;
+        t.expect(reader.readDwgHeader(parsed) && parsed.dwgNamedObjectDictionaryReference(),
+                 "corrected same-reader HEADER restores NOD provenance");
+        HeaderBodyProbe direct;
+        static_cast<DRW_Header&>(direct) = parsed;
+        t.expect(!direct.parseDwg(DRW::AC1032, nullptr, nullptr)
+                     && !direct.dwgNamedObjectDictionaryReference(),
+                 "null direct HEADER parse cannot retain an old NOD reference");
+    }
+
+    auto headerBytes = headerWithNodReference(t, DRW::DwgHardOwnership, 0xA000u);
+    if (headerBytes.empty()) return;
+    HeaderSectionReader headerReader(headerBytes, 0u, DRW::AC1032, 6u);
+    DRW_Header header;
+    t.expect(headerReader.readDwgHeader(header), "object-root controls have a decoded source HEADER");
+    for (const std::string variant : {"valid", "missing", "wrong-type", "wrong-owner", "malformed"}) {
+        NodObjectWriter writer(nullptr, &fresh);
+        DRW_Dictionary child;
+        child.handle = 0x100u;
+        child.parentHandle = 0xA000u;
+        t.expect(writer.writeDictionary(child), "lower-handle dictionary emits before the root");
+        if (variant != "missing") {
+            if (variant == "wrong-type") {
+                DRW_XRecord wrong;
+                wrong.handle = 0xA000u;
+                t.expect(writer.writeXRecord(wrong), "wrong root type stays a valid object record");
+            } else {
+                DRW_Dictionary root;
+                root.handle = 0xA000u;
+                root.parentHandle = variant == "wrong-owner" ? 0xA100u : 0u;
+                root.hardOwner = 1;
+                root.m_entries = {{"LOCAL_CHILD", 0x100u}, {"LOCAL_RECORD", 0xA001u}};
+                t.expect(writer.writeDictionary(root), "root dictionary emits complete counted entries");
+            }
+        }
+        DRW_XRecord suffix;
+        suffix.handle = 0xA001u;
+        suffix.parentHandle = 0xA000u;
+        suffix.m_values.emplace_back(1, UTF8STRING("NOD_SUFFIX"));
+        t.expect(writer.writeXRecord(suffix), "following XRECORD is an independent suffix control");
+        auto bytes = writer.buffer();
+        const auto original = bytes;
+        if (variant == "malformed") {
+            const auto frame = std::find_if(writer.objects().begin(), writer.objects().end(),
+                [](const auto& object) { return object.first == 0xA000u; });
+            const bool changed = frame != writer.objects().end()
+                && malformNodCount(t, bytes, frame->second);
+            t.expect(changed, "NOD negative mutates only its declared body count");
+            if (!changed) continue;
+        }
+        NodObjectReader reader(bytes);
+        reader.adoptHeader(header);
+        NodSink sink;
+        sink.data.headerC = header;
+        const bool valid = variant == "valid";
+        t.expect(reader.readObjects(bytes, writer.objects(), sink)
+                     && sink.roots == (valid ? 1u : 0u)
+                     && sink.records == (variant == "wrong-type" ? 2u : 1u)
+                     && sink.dictionaries == (variant == "wrong-owner" ? 2u : 1u),
+                 "NOD selection is typed/complete/owner-checked without dropping suffixes: " + variant);
+        t.expect(reader.diagnostics().size() == (valid ? 0u : 1u),
+                 "missing or inconsistent NOD remains a bounded warning: " + variant);
+        if (valid) {
+            for (const auto& absent : {
+                    std::pair<std::uint8_t, std::uint64_t>{DRW::DwgSoftOwnership, 0u},
+                    {DRW::DwgHardPointer, 0xA000u},
+                    {DRW::DwgHardOwnership, 0x10000A000ULL}, {6u, 0u}}) {
+                auto noRootBytes = headerWithNodReference(t, absent.first, absent.second);
+                if (noRootBytes.empty()) continue;
+                HeaderSectionReader noRootReader(noRootBytes, 0u, DRW::AC1032, 6u);
+                DRW_Header noRootHeader;
+                t.expect(noRootReader.readDwgHeader(noRootHeader),
+                         "NOD selector negative has a complete source HEADER");
+                reader.adoptHeader(noRootHeader);
+                NodSink unrelated;
+                t.expect(reader.readObjects(bytes, writer.objects(), unrelated)
+                             && unrelated.roots == 0u && unrelated.dictionaries == 2u
+                             && unrelated.records == 1u,
+                         "null/wrong-role/wide reference never aliases the matching low32 dictionary");
+            }
+            reader.adoptHeader(fresh);
+            NodSink noSource;
+            t.expect(reader.readObjects(bytes, writer.objects(), noSource)
+                         && noSource.roots == 0u && noSource.dictionaries == 2u,
+                     "absent source reference never promotes an ownerless dictionary");
+            class LegacyDefault final : public NodSink {
+            public:
+                void addNamedObjectDictionary(const DRW_Dictionary& object) override {
+                    DRW_Interface::addNamedObjectDictionary(object);
+                }
+            } legacy;
+            reader.adoptHeader(header);
+            t.expect(reader.readObjects(bytes, writer.objects(), legacy)
+                         && legacy.roots == 0u && legacy.dictionaries == 2u,
+                     "existing optional root default calls historical addDictionary exactly once");
+        } else {
+            if (variant == "malformed") {
+                bytes = original;
+                reader.adoptHeader(header);
+                NodSink retry;
+                t.expect(reader.readObjects(bytes, writer.objects(), retry)
+                             && retry.roots == 1u && retry.records == 1u,
+                         "corrected dictionary body succeeds on the same reader");
+            }
+            dx_iface converter;
+            const auto destination = directory / (variant + ".dxf");
+            t.expect(!converter.fileExport(destination.string(), DRW::AC1032, false,
+                                           &sink.data, false, true)
+                         && !std::filesystem::exists(destination),
+                     "missing/wrong NOD cannot publish an absent destination");
+            { std::ofstream existing(destination); existing << "NOD_SENTINEL"; }
+            t.expect(!converter.fileExport(destination.string(), DRW::AC1032, true,
+                                           &sink.data, false, true),
+                     "missing/wrong NOD refuses binary publication too");
+            std::ifstream unchanged(destination);
+            const std::string content((std::istreambuf_iterator<char>(unchanged)),
+                                       std::istreambuf_iterator<char>());
+            t.expect(content == "NOD_SENTINEL", "root refusal preserves an existing destination");
+            unchanged.close();
+            sink.data.dictionaries.erase(std::remove_if(sink.data.dictionaries.begin(),
+                sink.data.dictionaries.end(), [](const DRW_Dictionary& object) {
+                    return object.handle == 0xA000u;
+                }), sink.data.dictionaries.end());
+            sink.data.xRecords.erase(std::remove_if(sink.data.xRecords.begin(),
+                sink.data.xRecords.end(), [](const DRW_XRecord& object) {
+                    return object.handle == 0xA000u;
+                }), sink.data.xRecords.end());
+            auto& corrected = sink.data.namedObjectDictionary;
+            corrected.handle = 0xA000u;
+            corrected.parentHandle = 0u;
+            corrected.hardOwner = 1;
+            corrected.m_entries = {{"LOCAL_CHILD", 0x100u}, {"LOCAL_RECORD", 0xA001u}};
+            sink.data.hasNamedObjectDictionary = true;
+            for (const bool binary : {false, true}) {
+                t.expect(converter.fileExport(destination.string(), DRW::AC1032, binary,
+                                              &sink.data, false, true),
+                         "explicit corrected root permits same-model/converter retry");
+                dx_data reopened;
+                dx_iface input;
+                t.expect(input.fileImport(destination.string(), &reopened, false)
+                             && reopened.hasNamedObjectDictionary
+                             && !reopened.headerC.dwgNamedObjectDictionaryReference()
+                             && reopened.xRecords.size() == 1u
+                             && sink.data.headerC.dwgNamedObjectDictionaryReference()->ref64 == 0xA000u
+                             && sink.data.namedObjectDictionary.handle == 0xA000u,
+                         "corrected ASCII/binary DXF preserves root/suffix and source identities");
+            }
+        }
+    }
+}
+
 void checkHeaderVersionProfile(TestContext& t,
                                std::vector<std::uint8_t> bytes,
                                DRW::Version version, std::uint8_t maintenance,
@@ -1610,6 +1958,7 @@ void testTrackedHeaderRead(TestContext& t) {
         }
         void addHeader(const DRW_Header* header) override {
             ++headers;
+            dx_iface::addHeader(header);
             const std::array<const char*, 4> keys{{"LUNITS", "INSUNITS", "LUPREC", "DIMDEC"}};
             for (std::size_t i = 0; i < keys.size(); ++i) {
                 const auto found = header->vars.find(keys[i]);
@@ -1623,8 +1972,13 @@ void testTrackedHeaderRead(TestContext& t) {
             arcText += dynamic_cast<const DRW_ArcAlignedText*>(&text) != nullptr;
         }
         void addMPolygon(const DRW_MPolygon*) override { ++mpolygon; }
+        void addNamedObjectDictionary(const DRW_Dictionary& dictionary) override {
+            ++roots;
+            dx_iface::addNamedObjectDictionary(dictionary);
+        }
         std::array<int, 4> values{{-1, -1, -1, -1}};
         std::size_t headers{0};
+        std::size_t roots{0};
         std::size_t rtext{0}, arcText{0}, mpolygon{0};
         dx_data data;
     };
@@ -1652,6 +2006,31 @@ void testTrackedHeaderRead(TestContext& t) {
         t.expect(observations.frames.status == DRW_DwgFrameCoverageStatus::FinalizedComplete
                      && observations.frames.sourceFrames == row.frames,
                  "tracked physical frame accounting (not semantic qualification): " + std::string(row.name));
+        const auto root = sink.data.headerC.dwgNamedObjectDictionaryReference();
+        t.expect(root.has_value() && root->ref64 == (row.compatible ? 12u : 0u)
+                     && sink.roots == (row.compatible ? 1u : 0u)
+                     && sink.data.hasNamedObjectDictionary == row.compatible,
+                 "DWG root identity follows the source HEADER, not handle/order guessing");
+        if (row.compatible && root) {
+            t.expect(root->code == DRW::DwgHardOwnership
+                         && sink.data.namedObjectDictionary.handle == root->ref64
+                         && sink.data.namedObjectDictionary.hasCompleteDwgEntries()
+                         && std::none_of(sink.data.dictionaries.begin(), sink.data.dictionaries.end(),
+                                [&root](const DRW_Dictionary& dictionary) {
+                                    return dictionary.handle == root->ref64;
+                                }),
+                     "validated DWG NOD is published once on its explicit root path");
+            DRW_Header copy(sink.data.headerC);
+            DRW_Header moved(std::move(copy));
+            DRW_Header assigned;
+            assigned = moved;
+            const auto movedRoot = moved.dwgNamedObjectDictionaryReference();
+            const auto assignedRoot = assigned.dwgNamedObjectDictionaryReference();
+            t.expect(!copy.dwgNamedObjectDictionaryReference()
+                         && movedRoot && movedRoot->ref64 == root->ref64
+                         && assignedRoot && assignedRoot->ref64 == root->ref64,
+                     "DWG root-reference copies/moves own the captured value after HEADER delivery");
+        }
         std::size_t layouts = 0, tails = 0;
         for (std::size_t i = 0; i < observations.integrity.retained; ++i) {
             const auto& diagnostic = observations.integrity.rows[i];
@@ -2319,6 +2698,7 @@ int main() {
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
+    testDwgNodReference(context);
     testHeaderCompatibilityProfile(context);
     testTrackedHeaderRead(context);
     testHeaderPublicRead(context);

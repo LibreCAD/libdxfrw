@@ -661,6 +661,11 @@ protected:
       bool hasValues = false) noexcept;
   void recordObjectFrameFailure(const objHandle &object,
                                 DwgIntegrityAddressSpace offsetSpace) noexcept;
+  bool hasUsableDwgNodReference() const noexcept;
+  void warnDwgNodReference(std::uint64_t expected, std::uint64_t observed,
+                          const objHandle *object = nullptr,
+                          DwgIntegrityAddressSpace offsetSpace =
+                              DwgIntegrityAddressSpace::None) noexcept;
   void
   recordEntityFailure(const objHandle &object, std::int16_t type,
                       DwgEntityFailurePhase phase,
@@ -1154,6 +1159,9 @@ public:
   /// as reactors, filters, TABLECONTENT, dynamic-block graphs, etc.
   std::unordered_map<std::string, size_t> m_skippedUnsupportedObjects;
   std::vector<DRW_RawDwgSection> m_rawDwgSections;
+  std::optional<dwgHandle> m_dwgNodReference;
+  bool m_dwgNodPublished{false};
+  bool m_dwgNodFailureReported{false};
   //! Typed AcDb:AcDsPrototype_1b index (PR-2a). Parallel to raw section store.
   std::vector<DRW_DataStorageSection> m_dataStorageSections;
   //! Preferred DataStorage records successfully linked while the entity

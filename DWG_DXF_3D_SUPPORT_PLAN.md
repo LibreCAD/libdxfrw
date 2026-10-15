@@ -3,7 +3,24 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
-**Latest research-only handoff (committed baseline `6c5666c`):** the
+**Current parity7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE (baseline `49427d0`):**
+DWG HEADER retains the complete source NOD H; absent/null/wrong-role/wide
+states are distinct. Only its matching complete zero-parent DICTIONARY
+publishes the existing optional root callback once. Ordinary failures warn;
+strict/visual-style output refuses unresolved non-null roots before publication,
+with corrected same-model retries. No physical-order/lowest-handle guessing.
+Diagnostic kind26 appends,0–25/schema1 remain stable, and unknown HEADER field
+offsets are explicitly absent. Authored HEADER/OBJECTS lifecycle/negative
+controls and four tracked files pass: main4/4 in4.83s, strict four-TU/build/lc3,
+ASan/UBSan2/2 in1.49s. Six authored style component streams remain unchanged.
+Receipt: `docs/research/dwg-nod-identity-7g-3f-2-2026-10-15.json`.
+Next typed same-version style serializer and composed full CLI9d, which stays
+open (one actual RTEXT FreeCAD-form conversion still exits1/no output).
+Separate writer f.2b must bind its regenerated HEADER NOD to its emitted root;
+the current null placeholder cannot be repaired by reader inference. Rebuild
+consumers; no new virtual, fixture/registration, native/ACIS or J promotion.
+
+**Prior research-only handoff (committed baseline `6c5666c`):** the
 [source-fidelity and graph-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#source-fidelity-versioned-visualstyle-and-graph-oracle-review-2026-10-15)
 adds eight authored ezdxf component controls, reproduced with bounded capture,
 and three actual audit-disabled ODA27.1 conversions of the existing tracked

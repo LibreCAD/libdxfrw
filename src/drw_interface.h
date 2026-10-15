@@ -79,7 +79,8 @@ public:
   /** Called for every Dictionary (named-object container, ODA fixed type 42).
    */
   virtual void addDictionary(const DRW_Dictionary &data) { (void)data; }
-  /** Called for the position-identified DXF Named Objects Dictionary.
+  /** Called for the position-identified DXF Named Objects Dictionary, or
+   * the complete DWG dictionary selected by the validated HEADER reference.
    * The default preserves the historical addDictionary() notification.
    */
   virtual void addNamedObjectDictionary(const DRW_Dictionary &data) {

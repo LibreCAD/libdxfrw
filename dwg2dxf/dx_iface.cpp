@@ -3019,6 +3019,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     // until there is an explicit, observable omission policy.
     const bool includeNamedObjectRoot = requireResolvedOwners
         || validateVisualStyles;
+    const auto dwgRoot = cData->headerC.dwgNamedObjectDictionaryReference();
+    if (includeNamedObjectRoot && dwgRoot
+        && (!DRW_Header::isUsableDwgNamedObjectDictionaryReference(*dwgRoot)
+            || (dwgRoot->ref64 != 0u && (!cData->hasNamedObjectDictionary
+            || dwgRoot->ref64 != cData->namedObjectDictionary.handle)))) {
+        reportPreflightFailure("DWG HEADER NOD reference has no validated root handoff");
+        return false;
+    }
     if (!prepareExtensionObjectGraph(cData, includeNamedObjectRoot)) {
         reportPreflightFailure("extension-object graph validation");
         if (debug) {

@@ -103,6 +103,7 @@ bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 
 bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,
                                bool deferText) {
+    m_dwgNamedObjectDictionaryReference.reset();
     if (nullptr == curr && 9 != code) {
         DRW_DBG("invalid header code: ");
         DRW_DBG(code);
@@ -2024,6 +2025,7 @@ bool DRW_Header::getCoord(std::string key, DRW_Coord *varCoord){
 bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf,
                           dwgBuffer *hBbuf,
                           std::uint8_t maintenanceVersion) {
+    m_dwgNamedObjectDictionaryReference.reset();
     if (buf == nullptr || hBbuf == nullptr)
         return false;
 
@@ -2532,6 +2534,7 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
     DRW_DBG("\nDICT ACAD_MLINESTYLE: "); DRW_DBGHL(CONTROL.code, CONTROL.size, CONTROL.ref);
     CONTROL = hBbuf->getHandle();
     DRW_DBG("\nDICT NAMED OBJS: "); DRW_DBGHL(CONTROL.code, CONTROL.size, CONTROL.ref);
+    m_dwgNamedObjectDictionaryReference = CONTROL;
 
     if (version > DRW::AC1014) {//2000+
         storeVar("TSTACKALIGN", new DRW_Variant(70, buf->getBitShort()));
