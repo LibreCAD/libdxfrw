@@ -81,6 +81,8 @@ public:
     std::list<DRW_AppId>appIds;         //stores a copy of all line types
     std::vector<DRW_Block_Record> blockRecords; //owned source identity/metadata
     std::list<DRW_Dictionary>dictionaries; //typed OBJECTS dictionaries
+    DRW_Dictionary namedObjectDictionary; //position-identified DXF NOD
+    bool hasNamedObjectDictionary {false};
     std::list<DRW_XRecord>xRecords;      //typed XRECORD objects
     std::list<DRW_Material>materials;    //typed MATERIAL objects
     std::list<DRW_ProxyObject>proxyObjects; //typed ACAD_PROXY_OBJECT records

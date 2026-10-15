@@ -14440,7 +14440,10 @@ bool dxfRW::processDictionary() {
             // publishing callbacks rather than guessing a later root.
             if (first && raw.parentHandle != 0)
                 return setError(DRW::BAD_READ_OBJECTS);
-            iface->addDictionary(dict);
+            if (first)
+                iface->addNamedObjectDictionary(dict);
+            else
+                iface->addDictionary(dict);
             //Skip only the root — the codec regenerates it, and routing it
             //would duplicate the NamedObjectsDictionary / ACAD_GROUP dict.
             m_objectsRootPositionPassed = true;

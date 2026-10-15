@@ -116,7 +116,15 @@ public:
         cData->blockRecords.push_back(data);
     }
     virtual void addDictionary(const DRW_Dictionary& data) override {
-        cData->dictionaries.push_back(data);
+        if (cData != nullptr)
+            cData->dictionaries.push_back(data);
+    }
+    virtual void addNamedObjectDictionary(
+        const DRW_Dictionary& data) override {
+        if (cData != nullptr) {
+            cData->namedObjectDictionary = data;
+            cData->hasNamedObjectDictionary = true;
+        }
     }
     virtual void addXRecord(const DRW_XRecord& data) override {
         cData->xRecords.push_back(data);

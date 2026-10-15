@@ -4406,13 +4406,15 @@ Split implementation to keep a small critical path:
    `processBlockRecord()` reads `layoutHandle` from code340 and publishes a
    `DRW_Block_Record`, but `dx_iface::writeBlockRecords()` forwards only name,
    units and preview bytes; `emitBlockRecord()` does not emit code340. The
-   parsed positional NOD is delivered only as a generic dictionary callback;
-   `fileExport()` prepares `setRootDictEntries()` only for the special ACDS
-   material path, so ordinary source `ACAD_LAYOUT` entries are not attached
-   to regenerated NOD C. `writeLayout()` reserves the record handle but does
-   not resolve/remap its 330/331/345/346/333 references. Thus standalone typed
-   parsing/writing is not end-to-end closure, nor are reader callback counts
-   or successful CLI conversion sufficient acceptance.
+   position-identified root now has a non-pure `addNamedObjectDictionary()`
+   callback and a separate `dx_data` slot; the base callback forwards to
+   `addDictionary()` for old consumers. However, `fileExport()` still prepares
+   `setRootDictEntries()` only for the special ACDS material path, so ordinary
+   source `ACAD_LAYOUT` entries are not attached to regenerated NOD C.
+   `writeLayout()` reserves the record handle but does not resolve/remap its
+   330/331/345/346/333 references. Thus standalone typed parsing/writing is
+   not end-to-end closure, nor are reader callback counts or successful CLI
+   conversion sufficient acceptance.
 
    Implement as five independently commit-ready slices, in dependency order:
 
@@ -4425,13 +4427,14 @@ Split implementation to keep a small critical path:
       physical record order and forward/backward references. This must pass
       through public read callbacks before changing the adapter; ASCII/binary
       use the same semantic oracle.
-   2. **Explicit source-root handoff:** add a non-pure `DRW_Interface` callback
-      for the position-identified named-object dictionary, default-forwarding
-      to `addDictionary()` so existing source consumers keep receiving it.
-      Store it distinctly in `dx_data` without duplicating it among child
-      dictionaries. Record source-compatibility and require downstream rebuild
-      checks (`lc3_compat_check`); do not assert binary ABI stability. Prove old
-      interfaces overriding only `addDictionary()` still see the root once.
+   2. **Explicit source-root handoff (COMMITTED `a87311a`):** add a non-pure
+      `DRW_Interface` callback for the position-identified named-object
+      dictionary, default-forwarding to `addDictionary()` so existing source
+      consumers keep receiving it. Store it distinctly in `dx_data` without
+      duplicating it among child dictionaries. Run downstream rebuild checks
+      (`lc3_compat_check`); do not assert binary ABI stability. Generated ASCII
+      and binary tests prove old interfaces overriding only `addDictionary()`
+      still see the root once, while `dx_iface` stores the root separately.
    3. **Adapter retention and identity census:** retain layouts and source
       BLOCK_RECORD metadata in `dx_data`; build unique maps by source handle,
       canonical block name and layout name. Reject duplicate/zero identities,
@@ -10562,15 +10565,16 @@ subplan, dependency, fixture payload, CTest registration or support claim.
 | LibreDWG [DWG object/space model](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi) and [space accessors](https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c) | LibreDWG resolves model/paper BLOCK_HEADERs through decoded DWG header variables and BLOCK_CONTROL references, not by sorting DXF layout handles. Its manual also describes pre-R2004 VX control/table records as a legacy VIEWPORT association that is synthesized from DXF VIEWPORT entities on DXF import. This provides useful route separation, not evidence that every libdxfrw reader version currently decodes all layout/viewport semantics. | Keep DWG's decoded model/paper-space ownership and pre-R2004 VX behavior in the DWG reader lane; keep DXF's NOD/ACAD_LAYOUT/BLOCK_RECORD graph in the DXF graph lane. Run common entity/owner checks in both lanes, but do not infer one representation from the other. |
 | Local source audit at current HEAD (`processLayout`, `processBlockRecord`, `DRW_Layout`, `DRW_Block_Record`, `dx_data`, `dx_iface`, and `dxfRW::writeLayout`/`emitBlockRecord`) | Source-confirmed `dx_iface` loss chain: `processLayout()` invokes a callback that `dx_iface` does not override; `dx_data` has no layout collection; adapter `writeObjects()` does not emit LAYOUT; source BLOCK_RECORD code340 is read into `layoutHandle`, but adapter forwards only name/units/preview to a writer that emits no code340; the positional NOD is stored as an undifferentiated dictionary and general NOD entries are not supplied to `setRootDictEntries()` (currently used for the ACDS material path); direct `writeLayout()` reserves the object handle but does not remap its typed reference fields. Core-level parse/write availability therefore does not imply `dwg2dxf` round-trip support. | Keep this as PAR-20/7G.3 implementation work, not PAR-56's distinct LibreCAD_3 downstream retention gap. Apply the five ordered 7G.3e slices: public read oracle; explicit source-root callback/handoff; adapter retention and graph census; all-handles/root-edge remapping preflight; atomic emit/readback closure. New non-pure callback is source-compatible by existing project convention but is not a binary-ABI promise; rebuild LibreCAD and LibreCAD_3 compatibility targets. |
 
-**Readiness and speed decision:** the first generated read-contract slice is
-now exercised in `libdxfrw_dxf_fixture_tests`: ASCII and binary vectors contain
+**Readiness and speed decision:** the generated read-contract slice and
+position-identified root handoff are now exercised in
+`libdxfrw_dxf_fixture_tests`: ASCII and binary vectors contain
 the NOD→ACAD_LAYOUT dictionary→three named layouts path, one model and two
 paper layouts, plus reciprocal BLOCK_RECORD 340/LAYOUT 330 links in deliberately
 crossed object order; distinct 331/345/346/333 values are asserted as typed
 references, without claiming the referenced target objects are resolved. The
-next step is root handoff and adapter retention independently, followed by
-shared remap/preflight and one composed writer checkpoint—not a broad writer
-rewrite. Reuse
+next step is retaining typed layouts and source BLOCK_RECORD metadata, followed
+by graph census, shared remap/preflight, and one composed writer checkpoint—not
+a broad writer rewrite. Reuse
 `libdxfrw_dxf_fixture_tests`, the existing block-owner CLI tests, and
 `lc3_compat_check`; no downloaded or checked-in DWG/DXF fixtures, no new CTest
 target, and no full suite per graph case. The historical six external-only

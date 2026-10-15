@@ -86,6 +86,12 @@ public:
         dictionaries.push_back(value);
     }
 
+    // Exercise the backwards-compatible callback path used by consumers that
+    // implement addDictionary() but know nothing about the NOD-specific hook.
+    void addNamedObjectDictionary(const DRW_Dictionary& value) override {
+        DRW_Interface::addNamedObjectDictionary(value);
+    }
+
     void addMaterial(const DRW_Material& value) override {
         materials.push_back(value);
     }
@@ -336,6 +342,27 @@ void testLayoutGraphReadContract(TestContext& t) {
                      && layoutDictionary->parentHandle == 0xB0u
                      && layoutDictionary->m_entries.size() == 3,
                  "root ACAD_LAYOUT dictionary and inner named-layout mapping stay distinct");
+
+        dx_iface adapter;
+        dx_data adapterData;
+        adapter.cData = &adapterData;
+        adapter.currentBlock = adapterData.mBlock;
+        dxfRW adapterReader(path.string().c_str());
+        const bool adapterImported = adapterReader.read(&adapter, false);
+        t.expect(adapterImported && adapterData.hasNamedObjectDictionary
+                     && adapterData.namedObjectDictionary.handle == 0xB0u
+                     && adapterData.namedObjectDictionary.m_entries.size() == 1
+                     && std::none_of(adapterData.dictionaries.begin(),
+                         adapterData.dictionaries.end(),
+                         [](const DRW_Dictionary& value) {
+                             return value.handle == 0xB0u;
+                         })
+                     && std::any_of(adapterData.dictionaries.begin(),
+                         adapterData.dictionaries.end(),
+                         [](const DRW_Dictionary& value) {
+                             return value.handle == 0x500u;
+                         }),
+                 "dx_iface retains the positional NOD separately from child dictionaries");
 
         const auto findLayout = [&interface_](std::uint32_t handle) {
             return std::find_if(interface_.layouts.begin(), interface_.layouts.end(),
