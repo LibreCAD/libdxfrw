@@ -6707,6 +6707,136 @@ void testProxySubclassMarkerIsIgnoredInsideApplicationGroups(TestContext& t) {
              "the record still reaches the caller");
 }
 
+void testProxyEntityPayloadRetainedBudget(TestContext& t) {
+    class ProxyCaptureInterface final : public FuzzInterface {
+    public:
+        void addProxyEntity(const DRW_ProxyEntity& value) override {
+            ++proxyEntityCount;
+            proxyEntity = value;
+        }
+        void addRawDxfEntity(const DRW_RawDxfObject& value) override {
+            ++rawEntityCount;
+            rawEntity = value;
+        }
+        void addProxyObject(const DRW_ProxyObject& value) override {
+            ++proxyObjectCount;
+            proxyObject = value;
+        }
+        void addRawDxfObject(const DRW_RawDxfObject& value) override {
+            ++rawObjectCount;
+            rawObject = value;
+        }
+
+        std::size_t proxyEntityCount{0};
+        std::size_t rawEntityCount{0};
+        std::size_t proxyObjectCount{0};
+        std::size_t rawObjectCount{0};
+        DRW_ProxyEntity proxyEntity;
+        DRW_RawDxfObject rawEntity;
+        DRW_ProxyObject proxyObject;
+        DRW_RawDxfObject rawObject;
+    };
+    std::string content =
+        "0\nSECTION\n2\nENTITIES\n"
+        "0\nACAD_PROXY_ENTITY\n5\n30\n100\nAcDbProxyEntity\n"
+        "92\n2\n310\nAABB\n0\nENDSEC\n0\nEOF\n";
+    {
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(content.size() + 141u);
+        ProxyCaptureInterface interface_;
+        t.expect(reader.readAscii(&interface_, false, content),
+                 "proxy entity payload capture fits the exact raw-subclass/current-record peak");
+        t.expect(interface_.proxyEntityCount == 1u
+                     && interface_.rawEntityCount == 1u
+                     && interface_.proxyEntity.proxyGraphics.size() == 2u
+                     && interface_.proxyEntity.numProxyGraph == 2
+                     && static_cast<unsigned char>(
+                            interface_.proxyEntity.proxyGraphics[0]) == 0xAAu
+                     && static_cast<unsigned char>(
+                            interface_.proxyEntity.proxyGraphics[1]) == 0xBBu,
+                 "proxy entity callback retains the decoded primary payload and its raw source carrier");
+        t.expect(interface_.rawEntity.m_retainedTextLease != nullptr
+                     && interface_.rawEntity.m_retainedTextLease->bytes() == 60u,
+                 "raw proxy group spellings remain attached to their own retained lease");
+    }
+    {
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(content.size() + 140u);
+        ProxyCaptureInterface interface_;
+        std::string input = content;
+        t.expect(!reader.readAscii(&interface_, false, input)
+                     && reader.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget"
+                     && interface_.proxyEntityCount == 0u
+                     && interface_.rawEntityCount == 0u,
+                 "one-byte-under proxy payload-copy admission rejects before either callback");
+    }
+    {
+        const std::string hexPayload(128u, 'A');
+        std::string largeContent =
+            "0\nSECTION\n2\nENTITIES\n"
+            "0\nACAD_PROXY_ENTITY\n5\n31\n100\nAcDbProxyEntity\n"
+            "92\n64\n310\n" + hexPayload + "\n0\nENDSEC\n0\nEOF\n";
+        dxfRW reader(nullptr);
+        // Peak at group 310: raw owner 309 + current binary record 384
+        // (strData/rawData/canonical hex) + temporary hex copy 128 + decoded
+        // typed payload 64, in addition to the owned input snapshot.
+        reader.setDxfReadRetainedByteBudget(largeContent.size() + 885u);
+        ProxyCaptureInterface interface_;
+        t.expect(reader.readAscii(&interface_, false, largeContent)
+                     && interface_.proxyEntityCount == 1u
+                     && interface_.proxyEntity.proxyGraphics.size() == 64u
+                     && interface_.rawEntity.m_retainedTextLease != nullptr
+                     && interface_.rawEntity.m_retainedTextLease->bytes() == 309u,
+                 "64-byte proxy payload and raw source fit the exact generated retained-byte peak");
+    }
+    {
+        const std::string hexPayload(128u, 'A');
+        std::string largeContent =
+            "0\nSECTION\n2\nENTITIES\n"
+            "0\nACAD_PROXY_ENTITY\n5\n31\n100\nAcDbProxyEntity\n"
+            "92\n64\n310\n" + hexPayload + "\n0\nENDSEC\n0\nEOF\n";
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(largeContent.size() + 884u);
+        ProxyCaptureInterface interface_;
+        const bool read = reader.readAscii(&interface_, false, largeContent);
+        t.expect(!read,
+                 "one-byte-under proxy payload admission is rejected");
+        t.expect(reader.getLastDiagnostic().code
+                     == "dxf-retained-byte-budget",
+                 "one-byte-under proxy payload admission reports its resource cause");
+        t.expect(interface_.proxyEntityCount == 0u
+                     && interface_.rawEntityCount == 0u,
+                 "one-byte-under proxy payload admission rejects before callback publication");
+    }
+    {
+        std::string objectContent =
+            "0\nSECTION\n2\nOBJECTS\n"
+            "0\nACAD_PROXY_OBJECT\n5\n32\n100\nAcDbProxyObject\n"
+            "92\n2\n310\nAABB\n0\nENDSEC\n0\nEOF\n";
+        dxfRW reader(nullptr);
+        reader.setDxfReadRetainedByteBudget(objectContent.size() + 141u);
+        ProxyCaptureInterface interface_;
+        t.expect(reader.readAscii(&interface_, false, objectContent)
+                     && interface_.proxyObjectCount == 1u
+                     && interface_.rawObjectCount == 1u
+                     && interface_.proxyObject.m_binaryData.size() == 2u
+                     && interface_.proxyObject.m_binaryData[0] == 0xAAu
+                     && interface_.proxyObject.m_binaryData[1] == 0xBBu,
+                 "proxy object payload and raw source fit the exact generated retained-byte peak");
+        dxfRW underReader(nullptr);
+        underReader.setDxfReadRetainedByteBudget(objectContent.size() + 140u);
+        ProxyCaptureInterface underInterface;
+        std::string underInput = objectContent;
+        t.expect(!underReader.readAscii(&underInterface, false, underInput)
+                     && underReader.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget"
+                     && underInterface.proxyObjectCount == 0u
+                     && underInterface.rawObjectCount == 0u,
+                 "one-byte-under proxy object payload admission rejects before callbacks");
+    }
+}
+
 
 // $ACADVER handling.
 //
@@ -6877,6 +7007,7 @@ int main() {
     testLinetypeDashFlagIsFourBits(context);
     testProxyPayloadCodesAreScopedToTheProxySubclass(context);
     testProxySubclassMarkerIsIgnoredInsideApplicationGroups(context);
+    testProxyEntityPayloadRetainedBudget(context);
     testUnrecognisedAcadVersionIsNotFatal(context);
     testStrayAcadVersionValueCannotDowngrade(context);
     testEmbeddedAttributeDefinitionTextRouting(context);

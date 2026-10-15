@@ -15585,6 +15585,10 @@ struct DxfProxyCapture {
     std::vector<std::uint8_t> body;
     std::vector<std::uint8_t> unknown;
     std::vector<DRW_ProxyObjectIdRef> objectIdRefs;
+    // The typed proxy payload vectors duplicate source groups across physical
+    // records. Keep their decoded bytes charged until ownership transfers to
+    // the published proxy entity/object.
+    std::shared_ptr<DxfReadRetainedLease> retainedPayloadLease;
 };
 
 bool proxyDxfInteger(const DRW_Variant& value, std::int64_t& result) {
@@ -15635,10 +15639,14 @@ bool proxyDxfHandle(const DRW_Variant& value, std::uint64_t& result) {
     return true;
 }
 
-bool appendProxyDxfBytes(const DRW_Variant& value,
-                         std::vector<std::uint8_t>& target) {
+bool appendProxyDxfBytes(
+    const DRW_Variant& value, std::vector<std::uint8_t>& target,
+    std::shared_ptr<DxfReadRetainedLease>& retainedLease,
+    const std::shared_ptr<DxfReadRetainedBudget>& budget) {
     if (target.size() > DRW::kMaxDxfBinaryPayloadBytes)
         return false;
+
+    DxfReadRetainedLeaseCheckpoint retainedCheckpoint(retainedLease);
     if (value.type() == DRW_Variant::BINARY) {
         const auto* bytes = value.binary();
         if (bytes == nullptr || bytes->size() >
@@ -15646,6 +15654,7 @@ bool appendProxyDxfBytes(const DRW_Variant& value,
             return false;
         const std::size_t newSize = target.size() + bytes->size();
         if (newSize > static_cast<std::size_t>(std::numeric_limits<int>::max())
+            || !retainDxfReadBytes(retainedLease, budget, bytes->size())
             || !DRW::reserve(target, static_cast<int>(newSize)))
             return false;
         try {
@@ -15653,13 +15662,28 @@ bool appendProxyDxfBytes(const DRW_Variant& value,
         } catch (...) {
             return false;
         }
+        retainedCheckpoint.commit();
         return true;
     }
     if (value.type() != DRW_Variant::STRING || value.c_str() == nullptr)
         return false;
 
-    const std::string text(value.c_str());
-    return appendDxfHexChunk(text, target);
+    const char* const rawHex = value.c_str();
+    const std::size_t rawHexBytes =
+        std::char_traits<char>::length(rawHex);
+    DxfReadRetainedReservation temporaryHex(budget, rawHexBytes);
+    if (budget != nullptr && !temporaryHex.reserved())
+        return false;
+    const std::string text(rawHex, rawHexBytes);
+    if ((text.size() & 1u) != 0u)
+        return false;
+    const std::size_t decodedBytes = text.size() / 2u;
+    if (decodedBytes > DRW::kMaxDxfBinaryPayloadBytes - target.size()
+        || !retainDxfReadBytes(retainedLease, budget, decodedBytes)
+        || !appendDxfHexChunk(text, target))
+        return false;
+    retainedCheckpoint.commit();
+    return true;
 }
 
 bool validateProxyDxfPayloads(const DxfProxyCapture& capture) {
@@ -15704,7 +15728,8 @@ int proxyDxfHandleCode(int code) {
 }
 
 bool collectProxyDxfGroup(DxfProxyCapture& capture,
-                          const DRW_Variant& value, bool entity) {
+                          const DRW_Variant& value, bool entity,
+                          const std::shared_ptr<DxfReadRetainedBudget>& budget) {
     const int code = value.code();
     if (code == 102) {
         if (value.type() != DRW_Variant::STRING || value.c_str() == nullptr)
@@ -15881,13 +15906,15 @@ bool collectProxyDxfGroup(DxfProxyCapture& capture,
             target = &capture.body;
         else if (capture.slot == DxfProxyPayloadSlot::Unknown)
             target = &capture.unknown;
-        return appendProxyDxfBytes(value, *target);
+        return appendProxyDxfBytes(value, *target,
+                                   capture.retainedPayloadLease, budget);
     }
     case 311:
         capture.inProxyRecord = true;
         return appendProxyDxfBytes(value,
                                    entity || capture.unknownSizeIs162
-                                       ? capture.unknown : capture.body);
+                                       ? capture.unknown : capture.body,
+                                   capture.retainedPayloadLease, budget);
     default:
         return true;
     }
@@ -15964,6 +15991,7 @@ void applyProxyDxfCommon(DRW_ProxyEntity& entity,
 
 bool applyProxyDxfCapture(DRW_ProxyEntity& entity,
                           DxfProxyCapture&& capture) {
+    const std::size_t primarySize = capture.primary.size();
     entity.m_hasProxyClassId = capture.hasProxyClassId;
     entity.m_proxyClassId = capture.proxyClassId;
     entity.m_hasProxyCarrierId = capture.hasProxyCarrierId;
@@ -15986,6 +16014,13 @@ bool applyProxyDxfCapture(DRW_ProxyEntity& entity,
     entity.m_unknownData = std::move(capture.unknown);
     entity.proxyGraphics.clear();
     if (!capture.primary.empty()) {
+        const auto& budget = capture.retainedPayloadLease != nullptr
+            ? capture.retainedPayloadLease->budget()
+            : std::shared_ptr<DxfReadRetainedBudget>{};
+        DxfReadRetainedReservation proxyGraphicsCopy(
+            budget, capture.primary.size());
+        if (budget != nullptr && !proxyGraphicsCopy.reserved())
+            return false;
         if (capture.primary.size()
                 > static_cast<std::size_t>(std::numeric_limits<int>::max())
             || !DRW::reserve(entity.proxyGraphics,
@@ -15998,11 +16033,15 @@ bool applyProxyDxfCapture(DRW_ProxyEntity& entity,
         } catch (...) {
             return false;
         }
+        // The capture vector's charge now accounts for this published string;
+        // release the temporary source allocation before the separate-copy
+        // reservation expires.
+        std::vector<std::uint8_t>().swap(capture.primary);
     }
-    entity.numProxyGraph = capture.primary.size() >
+    entity.numProxyGraph = primarySize >
                                    static_cast<std::size_t>(std::numeric_limits<int>::max())
         ? std::numeric_limits<int>::max()
-        : static_cast<int>(capture.primary.size());
+        : static_cast<int>(primarySize);
     entity.reactorHandles = std::move(capture.reactorHandles);
     entity.xDictHandle = capture.xDictHandle;
     entity.m_objectIdRefs = std::move(capture.objectIdRefs);
@@ -16440,6 +16479,7 @@ bool dxfRW::processProxyEntity() {
             raw.parentHandle = entity.parentHandle;
             if (!applyProxyDxfCapture(entity, std::move(capture)))
                 return setError(DRW::BAD_READ_ENTITIES);
+            entity.m_dxfRetainedStringLease = capture.retainedPayloadLease;
             if (entity.proxyGraphics.size() >= 16
                 && canDecodeProxyGraphics(*reader))
                 DRW_ProxyGraphicDecoder::decode(
@@ -16455,7 +16495,9 @@ bool dxfRW::processProxyEntity() {
         if (!captureRawGroup(raw, code, /*validateHandles=*/true))
             return setError(DRW::BAD_CODE_PARSED);
         if (raw.groups.empty()
-            || !collectProxyDxfGroup(capture, raw.groups.back(), true)) {
+            || !collectProxyDxfGroup(
+                capture, raw.groups.back(), true,
+                reader->retainedByteBudget())) {
             return setError(DRW::BAD_CODE_PARSED);
         }
         applyProxyDxfCommon(entity, raw.groups.back());
@@ -16495,6 +16537,7 @@ bool dxfRW::processProxyObject() {
                                                    : static_cast<std::uint32_t>(DRW::NoHandle);
             raw.parentHandle = object.parentHandle;
             applyProxyDxfCapture(object, std::move(capture));
+            object.m_dxfRetainedStringLease = capture.retainedPayloadLease;
             iface->addProxyObject(object);
             iface->addRawDxfObject(raw);
             return true;
@@ -16505,7 +16548,9 @@ bool dxfRW::processProxyObject() {
         if (!captureRawGroup(raw, code, /*validateHandles=*/true))
             return setError(DRW::BAD_CODE_PARSED);
         if (raw.groups.empty()
-            || !collectProxyDxfGroup(capture, raw.groups.back(), false)) {
+            || !collectProxyDxfGroup(
+                capture, raw.groups.back(), false,
+                reader->retainedByteBudget())) {
             return setError(DRW::BAD_CODE_PARSED);
         }
     }
