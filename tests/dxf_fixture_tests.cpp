@@ -146,6 +146,186 @@ bool importTemporaryDxf(const char* stem, const std::string& contents,
     return imported;
 }
 
+bool writeNodOrderControl(const std::filesystem::path& path, bool binary,
+                          bool malformed, bool rootOwnerPresent,
+                          bool extensionOwnerPresent,
+                          bool nonDictionaryFirst = false) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output)
+        return false;
+    if (binary)
+        output.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+    writer->setVersion("AC1027", true);
+    const auto string = [&writer](int code, const char* value) {
+        return writer->writeString(code, value);
+    };
+    const auto dictionary = [&string, &writer](const char* handle,
+                                                const char* owner,
+                                                bool ownerPresent,
+                                                bool root) {
+        return string(0, "DICTIONARY") && string(5, handle)
+            && (!ownerPresent || string(330, owner))
+            && string(100, "AcDbDictionary") && writer->writeInt16(280, 1)
+            && writer->writeInt16(281, 1)
+            && (!root || (string(3, "ACAD_LAYOUT")
+                          && string(350, "200")))
+            && (!root || (string(3, "TEST_ROOT") && string(350, "300")))
+            && (root || (string(3, "TEST_EXTENSION") && string(350, "400")));
+    };
+    const auto placeholder = [&string](const char* handle, const char* owner,
+                                       bool ownerPresent) {
+        return string(0, "ACDBPLACEHOLDER") && string(5, handle)
+            && (!ownerPresent || string(330, owner));
+    };
+    const auto layout = [&string, &writer]() {
+        return string(0, "LAYOUT") && string(5, "200")
+            && string(100, "AcDbPlotSettings") && string(1, "")
+            && string(100, "AcDbLayout") && writer->writeInt16(71, 2)
+            && string(1, "NOD_ORDER_LAYOUT");
+    };
+    bool written = string(0, "SECTION") && string(2, "HEADER")
+        && string(9, "$ACADVER") && string(1, "AC1027")
+        && string(0, "ENDSEC") && string(0, "SECTION")
+        && string(2, "OBJECTS");
+    if (malformed) {
+        written = written && dictionary("3", "2", true, false)
+            && dictionary("B0", "0", true, true);
+    } else {
+        if (nonDictionaryFirst)
+            written = written && placeholder("1", nullptr, false);
+        written = written
+            && dictionary("B0", "0", rootOwnerPresent, true)
+            && dictionary("3", "2", extensionOwnerPresent, false);
+    }
+    written = written && placeholder("2", nullptr, false)
+        && placeholder("300", "B0", true)
+        && placeholder("400", "3", true) && layout()
+        && string(0, "ENDSEC") && string(0, "EOF");
+    return written && !writer->hasWriteError() && output.good();
+}
+
+void testNodRootOrdering(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-nod-order-" + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "temporary NOD ordering directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    for (const bool binary : {false, true}) {
+        for (const bool rootOwnerPresent : {false, true}) {
+            for (const bool extensionOwnerPresent : {false, true}) {
+                const auto path = directory
+                    / (std::string("conforming-") + (binary ? "binary" : "ascii")
+                       + (rootOwnerPresent ? "-root-zero" : "-root-omitted")
+                       + (extensionOwnerPresent ? "-extension-owned.dxf"
+                                                 : "-extension-ownerless.dxf"));
+                t.expect(writeNodOrderControl(path, binary, false,
+                                              rootOwnerPresent,
+                                              extensionOwnerPresent),
+                         "generated conforming NOD-order control is complete");
+                FixtureInterface interface_;
+                dx_data data;
+                interface_.cData = &data;
+                interface_.currentBlock = data.mBlock;
+                dxfRW reader(path.string().c_str());
+                const bool imported = reader.read(&interface_, false);
+                t.expect(imported,
+                         "physically first NOD imports despite higher handle and owner spelling");
+                const auto root = std::find_if(interface_.dictionaries.begin(),
+                    interface_.dictionaries.end(), [](const DRW_Dictionary& value) {
+                        return value.handle == 0xB0u;
+                    });
+                const auto extension = std::find_if(interface_.dictionaries.begin(),
+                    interface_.dictionaries.end(), [](const DRW_Dictionary& value) {
+                        return value.handle == 3u;
+                    });
+                t.expect(interface_.dictionaries.size() == 2
+                             && root != interface_.dictionaries.end()
+                             && root->m_entries.size() == 2
+                             && root->m_entries[0].m_name == "ACAD_LAYOUT"
+                             && root->m_entries[0].m_handle == 0x200u
+                             && root->m_entries[1].m_name == "TEST_ROOT"
+                             && root->m_entries[1].m_handle == 0x300u
+                             && extension != interface_.dictionaries.end()
+                             && extension->m_entries.size() == 1
+                             && extension->m_entries.front().m_name == "TEST_EXTENSION"
+                             && extension->m_entries.front().m_handle == 0x400u,
+                         "root and lower-handle extension dictionaries retain distinct entries");
+                const auto rawExtension = std::find_if(interface_.rawObjects.begin(),
+                    interface_.rawObjects.end(), [](const DRW_RawDxfObject& value) {
+                        return value.name == "DICTIONARY" && value.handle == 3u;
+                    });
+                t.expect(rawExtension != interface_.rawObjects.end()
+                             && (extensionOwnerPresent
+                                     ? rawExtension->parentHandle == 2u
+                                     : rawExtension->parentHandle == 0u)
+                             && std::count_if(interface_.rawObjects.begin(),
+                                 interface_.rawObjects.end(),
+                                 [](const DRW_RawDxfObject& value) {
+                                     return value.name == "DICTIONARY"
+                                         && value.handle == 0xB0u;
+                                 }) == 0,
+                         "only the positional root is suppressed from raw dictionary replay");
+                t.expect(interface_.layouts.size() == 1
+                             && interface_.layouts.front().handle == 0x200u
+                             && interface_.layouts.front().name == "NOD_ORDER_LAYOUT",
+                         "ACAD_LAYOUT target is delivered under its original handle");
+            }
+        }
+
+        const auto malformed = directory
+            / (binary ? "malformed-binary.dxf" : "malformed-ascii.dxf");
+        t.expect(writeNodOrderControl(malformed, binary, true, true, true),
+                 "generated owned-first malformed NOD control is complete");
+        FixtureInterface malformedInterface;
+        dx_data malformedData;
+        malformedInterface.cData = &malformedData;
+        malformedInterface.currentBlock = malformedData.mBlock;
+        dxfRW malformedReader(malformed.string().c_str());
+        t.expect(!malformedReader.read(&malformedInterface, false)
+                     && malformedReader.getError() == DRW::BAD_READ_OBJECTS,
+                 "owned first OBJECTS dictionary is rejected as a malformed NOD root");
+        t.expect(malformedInterface.dictionaries.empty()
+                     && malformedInterface.rawObjects.empty()
+                     && malformedInterface.layouts.empty(),
+                 "malformed root rejection occurs before object callbacks are published");
+
+        const auto missingNod = directory
+            / (binary ? "non-dictionary-first-binary.dxf"
+                      : "non-dictionary-first-ascii.dxf");
+        t.expect(writeNodOrderControl(missingNod, binary, false, false, true,
+                                      true),
+                 "generated no-root compatibility control is complete");
+        FixtureInterface missingNodInterface;
+        dx_data missingNodData;
+        missingNodInterface.cData = &missingNodData;
+        missingNodInterface.currentBlock = missingNodData.mBlock;
+        dxfRW missingNodReader(missingNod.string().c_str());
+        t.expect(missingNodReader.read(&missingNodInterface, false),
+                 "legacy OBJECTS stream without a leading NOD remains readable");
+        t.expect(std::count_if(missingNodInterface.rawObjects.begin(),
+                              missingNodInterface.rawObjects.end(),
+                              [](const DRW_RawDxfObject& value) {
+                                  return value.name == "DICTIONARY"
+                                      && value.handle == 0xB0u;
+                              }) == 1,
+                 "later ownerless dictionary is retained, not promoted as root");
+    }
+}
+
 bool writeHiddenZeroHeightAttribDxf(const std::filesystem::path& path,
                                     bool binary) {
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
@@ -9269,6 +9449,11 @@ void testDxfWriteAttemptFailure(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 3 && (std::string(argv[1]) == "--generate-nod-owned-first"
+                     || std::string(argv[1]) == "--generate-nod-owned-first-binary")) {
+        const bool binary = std::string(argv[1]) == "--generate-nod-owned-first-binary";
+        return writeNodOrderControl(argv[2], binary, true, true, true) ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--legacy-dimension-point-order") {
         TestContext context;
         testLegacyDimensionPointOrder(context);
@@ -9459,6 +9644,7 @@ int main(int argc, char** argv) {
     testEed(context);
     testRawControls(context);
     testDictionaryWithoutOwner(context);
+    testNodRootOrdering(context);
     testXRecordDataOrder(context);
     testXRecordCoordinateTuples(context);
     testXRecordCoordinateBoundaries(context);

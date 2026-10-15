@@ -945,11 +945,10 @@ private:
     std::uint32_t currHandle {DRW::NoHandle};
 
     DRW_ParsingContext m_readingContext;
-    /// Whether the OBJECTS section being read has already yielded a
-    /// DICTIONARY. The DXF specification puts the named object dictionary
-    /// first, which is one of the two tests that tell the root apart from a
-    /// named dictionary that simply omits its owner group.
-    bool m_objectsDictionarySeen {false};
+    /// Whether the first-record position is no longer available to identify
+    /// the DXF Named Object Dictionary. A later ownerless DICTIONARY must not
+    /// be promoted to root merely because it is the first dictionary parsed.
+    bool m_objectsRootPositionPassed {false};
     DRW_WritingContext m_writingContext;
     // Raw carriers retain source code-5 lexemes up to DWG's 64-bit handle
     // width; keep exact values for duplicate detection during one read.

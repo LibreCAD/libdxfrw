@@ -118,6 +118,7 @@ set_tests_properties(libdxfrw_block_owners PROPERTIES LABELS "fast;dxf;graph;ada
 add_test(NAME dwg2dxf_block_owner_rejection_cli
     COMMAND ${CMAKE_COMMAND}
         "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_block_owner_tests>"
+        "-DNOD_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
         "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
         "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
         -P ${CMAKE_CURRENT_SOURCE_DIR}/run_block_owner_rejection_test.cmake)
