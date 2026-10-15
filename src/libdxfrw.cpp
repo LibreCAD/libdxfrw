@@ -18890,8 +18890,8 @@ bool dxfRW::setError(const DRW::error lastError){
                && reader->typedVariantNodeBudgetExceeded()) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,
-            "dxf-typed-variant-node-budget",
-            "the aggregate typed entity-XDATA variant-node budget was exhausted");
+            "dxf-typed-xdata-node-budget",
+            "the aggregate typed XDATA variant-node budget was exhausted");
         error = DRW::BAD_CODE_PARSED;
     } else {
         error = lastError;
@@ -18919,8 +18919,8 @@ bool dxfRW::failDxfReadBudget() {
         recordOperationDiagnostic(
             DRW::OperationPhase::Validation,
             DRW::OperationCause::ResourceLimit,
-            "dxf-typed-variant-node-budget",
-            "the aggregate typed entity-XDATA variant-node budget was exhausted");
+            "dxf-typed-xdata-node-budget",
+            "the aggregate typed XDATA variant-node budget was exhausted");
         setError(DRW::BAD_CODE_PARSED);
         return true;
     }

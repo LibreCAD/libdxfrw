@@ -45,7 +45,7 @@ constexpr std::size_t kDefaultDxfReadInputByteBudget = 1024u * 1024u * 1024u;
 constexpr std::size_t kDefaultDxfReadDecodeWorkBudget =
     1024u * 1024u * 1024u;
 
-//! Aggregate typed DXF entity-XDATA DRW_Variant slots admitted by one read.
+//! Aggregate typed DXF entity/table-entry XDATA DRW_Variant slots per read.
 //! This is a caller-raiseable resource ceiling, not a format maximum.
 constexpr std::size_t kDefaultDxfReadTypedVariantNodeBudget = 1024u * 1024u;
 

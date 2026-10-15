@@ -3402,7 +3402,7 @@ void testDxfMTextDecodeWorkBudget(TestContext& t) {
              "direct MTEXT reader exposes the deterministic six-byte decode-work counter");
 }
 
-void testDxfEntityXdataVariantNodeBudget(TestContext& t) {
+void testDxfXdataVariantNodeBudget(TestContext& t) {
     class VariantCapture final : public FuzzInterface {
     public:
         void addLine(const DRW_Line& line) override {
@@ -3413,6 +3413,24 @@ void testDxfEntityXdataVariantNodeBudget(TestContext& t) {
         std::size_t count {0u};
         std::size_t variantCount {0u};
     };
+    class TableVariantCapture final : public FuzzInterface {
+    public:
+        void addLayer(const DRW_Layer& layer) override {
+            ++count;
+            variantCount = layer.extData.size();
+        }
+
+        std::size_t count {0u};
+        std::size_t variantCount {0u};
+    };
+    class CombinedVariantCapture final : public FuzzInterface {
+    public:
+        void addLayer(const DRW_Layer&) override { ++layerCount; }
+        void addLine(const DRW_Line&) override { ++lineCount; }
+
+        std::size_t layerCount {0u};
+        std::size_t lineCount {0u};
+    };
 
     const std::string drawing =
         "0\nSECTION\n2\nENTITIES\n0\nLINE\n"
@@ -3420,6 +3438,13 @@ void testDxfEntityXdataVariantNodeBudget(TestContext& t) {
         "1001\nAPP\n1000\na\n1000\nb\n"
         "1010\n1\n1020\n2\n1030\n3\n1040\n4.5\n1070\n42\n"
         "0\nENDSEC\n0\nEOF\n";
+    const std::string tableDrawing =
+        "0\nSECTION\n2\nTABLES\n"
+        "0\nTABLE\n2\nLAYER\n70\n1\n"
+        "0\nLAYER\n2\nXDATA_LAYER\n70\n0\n"
+        "1001\nAPP\n1000\na\n1000\nb\n"
+        "1010\n1\n1020\n2\n1030\n3\n1040\n4.5\n1070\n42\n"
+        "0\nENDTAB\n0\nENDSEC\n0\nEOF\n";
     dxfRW exact(nullptr);
     t.expect(exact.dxfReadTypedVariantNodeBudget() == 1024u * 1024u,
              "facade publishes the caller-raiseable typed XDATA node-budget default");
@@ -3439,7 +3464,7 @@ void testDxfEntityXdataVariantNodeBudget(TestContext& t) {
                  && under.getLastDiagnostic().cause
                         == DRW::OperationCause::ResourceLimit
                  && under.getLastDiagnostic().code
-                        == "dxf-typed-variant-node-budget",
+                        == "dxf-typed-xdata-node-budget",
              "one-under entity XDATA node cap rejects before callback with a scoped diagnostic");
 
     under.setDxfReadTypedVariantNodeBudget(6u);
@@ -3448,6 +3473,40 @@ void testDxfEntityXdataVariantNodeBudget(TestContext& t) {
     t.expect(under.readAscii(&retry, false, input)
                  && retry.count == 1u && retry.variantCount == 6u,
              "raising typed XDATA node admission resets the same-facade read counter");
+
+    dxfRW exactTable(nullptr);
+    exactTable.setDxfReadTypedVariantNodeBudget(6u);
+    TableVariantCapture admittedTable;
+    input = tableDrawing;
+    t.expect(exactTable.readAscii(&admittedTable, false, input)
+                 && admittedTable.count == 1u
+                 && admittedTable.variantCount == 6u,
+             "table-entry XDATA strings, coordinate tuple, double, and integer share the exact node cap");
+
+    dxfRW underTable(nullptr);
+    underTable.setDxfReadTypedVariantNodeBudget(5u);
+    TableVariantCapture rejectedTable;
+    input = tableDrawing;
+    t.expect(!underTable.readAscii(&rejectedTable, false, input)
+                 && rejectedTable.count == 0u
+                 && underTable.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && underTable.getLastDiagnostic().code
+                        == "dxf-typed-xdata-node-budget",
+             "table-entry XDATA one-under node cap rejects before layer callback with the scoped diagnostic");
+
+    const std::size_t eofOffset = tableDrawing.rfind("0\nEOF\n");
+    const std::string combinedDrawing = tableDrawing.substr(0u, eofOffset) + drawing;
+    dxfRW combined(nullptr);
+    combined.setDxfReadTypedVariantNodeBudget(11u);
+    CombinedVariantCapture combinedCapture;
+    input = combinedDrawing;
+    t.expect(!combined.readAscii(&combinedCapture, false, input)
+                 && combinedCapture.layerCount == 1u
+                 && combinedCapture.lineCount == 0u
+                 && combined.getLastDiagnostic().code
+                        == "dxf-typed-xdata-node-budget",
+             "entity and table-entry XDATA consume one aggregate per-read node allowance");
 }
 
 void testDxfAppDataRetentionBudget(TestContext& t) {
@@ -7234,7 +7293,7 @@ int main() {
     testDxfRawCarrierRetentionBudget(context);
     testEmptyRawCarrierNameRetention(context);
     testDxfMTextDecodeWorkBudget(context);
-    testDxfEntityXdataVariantNodeBudget(context);
+    testDxfXdataVariantNodeBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);

@@ -2316,6 +2316,8 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     case 1003:
     case 1004:
     case 1005:
+        if (!reader->chargeTypedVariantNode())
+            return false;
         {
             DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
                 m_dxfRetainedStringLease);
@@ -2353,6 +2355,8 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
             || (currCoordMask & present) != 0) {
             if (curr != nullptr || component != 0)
                 DRW_DBG("WARNING: unordered/incomplete table XDATA point retained\n");
+            if (!reader->chargeTypedVariantNode())
+                return false;
             auto value = std::make_unique<DRW_Variant>(
                 pointCode, DRW_Coord(0.0, 0.0, 0.0));
             curr = value.get();
@@ -2378,11 +2382,15 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     case 1040:
     case 1041:
     case 1042:
+        if (!reader->chargeTypedVariantNode())
+            return false;
         if (!appendExtData(std::make_unique<DRW_Variant>(code, reader->getDouble())))
             return false;
         break;
     case 1070:
     case 1071:
+        if (!reader->chargeTypedVariantNode())
+            return false;
         if (!appendExtData(std::make_unique<DRW_Variant>(code, reader->getInt32())))
             return false;
         break;
