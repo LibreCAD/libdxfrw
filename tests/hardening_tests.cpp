@@ -3431,6 +3431,20 @@ void testDxfXdataVariantNodeBudget(TestContext& t) {
         std::size_t layerCount {0u};
         std::size_t lineCount {0u};
     };
+    class ObjectVariantCapture final : public FuzzInterface {
+    public:
+        void addDictionary(const DRW_Dictionary&) override {
+            ++dictionaryCount;
+        }
+        void addScale(const DRW_Scale& scale) override {
+            ++scaleCount;
+            variantCount = scale.extData.size();
+        }
+
+        std::size_t dictionaryCount {0u};
+        std::size_t scaleCount {0u};
+        std::size_t variantCount {0u};
+    };
 
     const std::string drawing =
         "0\nSECTION\n2\nENTITIES\n0\nLINE\n"
@@ -3445,6 +3459,14 @@ void testDxfXdataVariantNodeBudget(TestContext& t) {
         "1001\nAPP\n1000\na\n1000\nb\n"
         "1010\n1\n1020\n2\n1030\n3\n1040\n4.5\n1070\n42\n"
         "0\nENDTAB\n0\nENDSEC\n0\nEOF\n";
+    const std::string objectDrawing =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
+        "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
+        "0\nDICTIONARY\n5\nC\n100\nAcDbDictionary\n281\n1\n"
+        "0\nSCALE\n5\n1A\n330\nC\n100\nAcDbScale\n"
+        "70\n0\n300\n1:1\n140\n1\n141\n1\n290\n1\n"
+        "1001\nAPP\n1000\na\n1000\nb\n"
+        "0\nENDSEC\n0\nEOF\n";
     dxfRW exact(nullptr);
     t.expect(exact.dxfReadTypedVariantNodeBudget() == 1024u * 1024u,
              "facade publishes the caller-raiseable typed XDATA node-budget default");
@@ -3507,6 +3529,27 @@ void testDxfXdataVariantNodeBudget(TestContext& t) {
                  && combined.getLastDiagnostic().code
                         == "dxf-typed-xdata-node-budget",
              "entity and table-entry XDATA consume one aggregate per-read node allowance");
+
+    dxfRW exactObject(nullptr);
+    exactObject.setDxfReadTypedVariantNodeBudget(3u);
+    ObjectVariantCapture admittedObject;
+    input = objectDrawing;
+    t.expect(exactObject.readAscii(&admittedObject, false, input)
+                 && admittedObject.dictionaryCount == 1u
+                 && admittedObject.scaleCount == 1u
+                 && admittedObject.variantCount == 3u,
+             "modeled SCALE object XDATA delegated to DRW_TableEntry obeys the exact shared node cap");
+
+    dxfRW underObject(nullptr);
+    underObject.setDxfReadTypedVariantNodeBudget(2u);
+    ObjectVariantCapture rejectedObject;
+    input = objectDrawing;
+    t.expect(!underObject.readAscii(&rejectedObject, false, input)
+                 && rejectedObject.dictionaryCount == 1u
+                 && rejectedObject.scaleCount == 0u
+                 && underObject.getLastDiagnostic().code
+                        == "dxf-typed-xdata-node-budget",
+             "modeled object XDATA one-under node cap rejects before SCALE callback");
 }
 
 void testDxfAppDataRetentionBudget(TestContext& t) {

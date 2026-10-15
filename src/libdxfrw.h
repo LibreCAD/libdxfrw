@@ -184,12 +184,14 @@ public:
     std::size_t dxfReadDecodeWorkBudget() const noexcept {
         return m_dxfReadDecodeWorkBudget;
     }
-    /** Bound typed DXF entity/table-entry XDATA `DRW_Variant` nodes admitted
-     * by each subsequent read. The 1,048,576-node default is a caller-raiseable
-     * resource ceiling, not a DXF maximum. Object XDATA, application data,
-     * raw carriers, and other typed containers remain outside this counter.
-     * Changes from callbacks apply to the next read. Rebuild consumers using
-     * this additive API. */
+    /** Bound typed DXF entity and `DRW_TableEntry::parseCode` XDATA
+     * `DRW_Variant` nodes admitted by each subsequent read. This also covers
+     * modeled object records that delegate XDATA to that base parser; it is
+     * not a guarantee over every OBJECTS parser/raw carrier. The default is
+     * 1,048,576 nodes; it is caller-raiseable and not a DXF maximum.
+     * Application data, raw carriers and other typed containers remain
+     * outside this counter. Callback changes apply to the next read. Rebuild
+     * consumers using this API. */
     void setDxfReadTypedVariantNodeBudget(std::size_t maxNodes) noexcept {
         m_dxfReadTypedVariantNodeBudget = maxNodes;
     }

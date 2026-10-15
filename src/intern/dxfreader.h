@@ -333,8 +333,8 @@ public:
     void setTypedVariantNodeBudget(std::size_t budget) noexcept {
         m_typedVariantNodeBudget = budget;
     }
-    // Count typed entity/table-entry XDATA variant nodes before allocation.
-    // This deliberately does not claim object/appData/raw-carrier coverage.
+    // Count entity/DRW_TableEntry-base XDATA variants before allocation.
+    // Custom object parsers/appData/raw carriers remain outside this counter.
     bool chargeTypedVariantNode() noexcept {
         if (m_typedVariantNodeBudgetExceeded)
             return false;
