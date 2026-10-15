@@ -2664,9 +2664,17 @@ public:
         attribute->basePoint = DRW_Coord(84.0, 85.0, 0.0);
         attribute->height = 1.0;
         insert.attlist.push_back(attribute);
+        auto hiddenZeroHeight = std::make_shared<DRW_Attrib>();
+        hiddenZeroHeight->tag = "LOCAL_HIDDEN_ZERO_HEIGHT";
+        hiddenZeroHeight->text = "LOCAL_ZERO_VALUE";
+        hiddenZeroHeight->basePoint = DRW_Coord(86.0, 87.0, 0.0);
+        hiddenZeroHeight->height = 0.0;
+        hiddenZeroHeight->attribFlags = 1;
+        insert.attlist.push_back(hiddenZeroHeight);
         wroteInsert_ = writer_->writeInsert(&insert) && insert.handle != 0;
-        wroteAttrib_ = wroteInsert_ && insert.attlist.size() == 1
+        wroteAttrib_ = wroteInsert_ && insert.attlist.size() == 2
             && insert.attlist.front()->handle != 0
+            && insert.attlist.back()->handle != 0
             && insert.seqendH.ref != DRW::NoHandle;
 
         DRW_PointCloud pointCloud;
@@ -4031,10 +4039,15 @@ public:
     }
     void addInsert(const DRW_Insert& data) override {
         readInsertSeen_ = true;
-        readAttribSeen_ = data.attlist.size() == 1
+        readAttribSeen_ = data.attlist.size() == 2
             && data.attlist.front() != nullptr
             && data.attlist.front()->tag == "LOCAL_TAG"
-            && data.attlist.front()->text == "LOCAL_VALUE";
+            && data.attlist.front()->text == "LOCAL_VALUE"
+            && data.attlist.back() != nullptr
+            && data.attlist.back()->tag == "LOCAL_HIDDEN_ZERO_HEIGHT"
+            && data.attlist.back()->text == "LOCAL_ZERO_VALUE"
+            && data.attlist.back()->height == 0.0
+            && (data.attlist.back()->attribFlags & 1u) != 0;
         dx_iface::addInsert(data);
     }
 

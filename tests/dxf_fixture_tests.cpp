@@ -145,6 +145,52 @@ bool importTemporaryDxf(const char* stem, const std::string& contents,
     return imported;
 }
 
+bool writeHiddenZeroHeightAttribDxf(const std::filesystem::path& path,
+                                    bool binary) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    writer->setVersion("AC1021", true);
+    const auto string = [&writer](int code, const char* value) {
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer](int code, int value) {
+        return writer->writeInt16(code, value);
+    };
+    const auto real = [&writer](int code, double value) {
+        return writer->writeDouble(code, value);
+    };
+
+    const bool written = string(0, "SECTION") && string(2, "HEADER")
+        && string(9, "$ACADVER") && string(1, "AC1021")
+        && string(0, "ENDSEC")
+        && string(0, "SECTION") && string(2, "ENTITIES")
+        && string(0, "INSERT") && string(100, "AcDbEntity")
+        && string(8, "0") && string(100, "AcDbBlockReference")
+        && string(2, "LOCAL_ATTRIB_OWNER")
+        && real(10, 1.0) && real(20, 2.0) && real(30, 3.0)
+        && integer(66, 1)
+        && string(0, "ATTRIB") && string(100, "AcDbEntity")
+        && string(8, "0") && string(100, "AcDbText")
+        && real(10, 4.0) && real(20, 5.0) && real(30, 6.0)
+        && real(40, 0.0) && string(1, "HIDDEN_ZERO_VALUE")
+        && string(7, "STANDARD") && string(100, "AcDbAttribute")
+        && integer(70, 1) && string(2, "HIDDEN_ZERO_TAG")
+        && string(0, "SEQEND") && string(8, "0")
+        && string(0, "LINE") && string(100, "AcDbEntity")
+        && string(8, "0") && string(100, "AcDbLine")
+        && real(10, 10.0) && real(20, 20.0) && real(30, 30.0)
+        && real(11, 40.0) && real(21, 50.0) && real(31, 60.0)
+        && string(0, "ENDSEC") && string(0, "EOF");
+    stream.flush();
+    return written && !writer->hasWriteError() && stream.good();
+}
+
 const DRW_Layer* findNonDefaultLayer(const dx_data& data) {
     for (const DRW_Layer& layer : data.layers) {
         if (layer.name != "0")
@@ -3352,6 +3398,51 @@ void testLegacyDimensionPointOrder(TestContext& t) {
                      && capture.lines.front().secPoint.z == 106.0,
                  ("AC1009 DIMENSION group order preserves following LINE "
                   + order + " group70").c_str());
+    }
+}
+
+void testHiddenZeroHeightAttrib(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const std::filesystem::path path =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-hidden-zero-attrib-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        const bool written = writeHiddenZeroHeightAttribDxf(path, binary);
+        FixtureInterface importer;
+        dx_data data;
+        const bool imported = written
+            && importer.fileImport(path.string(), &data, false);
+        std::error_code error;
+        std::filesystem::remove(path, error);
+
+        t.expect(imported,
+                 binary ? "generated binary hidden zero-height ATTRIB imports"
+                        : "generated ASCII hidden zero-height ATTRIB imports");
+        const DRW_Insert* insert = imported && data.mBlock != nullptr
+            && !data.mBlock->ent.empty()
+            ? dynamic_cast<const DRW_Insert*>(data.mBlock->ent.front())
+            : nullptr;
+        t.expect(insert != nullptr && insert->attlist.size() == 1
+                     && insert->attlist.front() != nullptr
+                     && insert->attlist.front()->tag == "HIDDEN_ZERO_TAG"
+                     && insert->attlist.front()->text == "HIDDEN_ZERO_VALUE"
+                     && insert->attlist.front()->height == 0.0
+                     && (insert->attlist.front()->attribFlags & 1u) != 0,
+                 binary ? "binary ATTRIB preserves hidden zero height and values"
+                        : "ASCII ATTRIB preserves hidden zero height and values");
+        const DRW_Line* followingLine = imported && data.mBlock != nullptr
+            && data.mBlock->ent.size() == 2u
+            ? dynamic_cast<const DRW_Line*>(data.mBlock->ent.back())
+            : nullptr;
+        t.expect(followingLine != nullptr
+                     && followingLine->basePoint.x == 10.0
+                     && followingLine->basePoint.y == 20.0
+                     && followingLine->secPoint.x == 40.0
+                     && followingLine->secPoint.z == 60.0,
+                 binary ? "binary ATTRIB SEQEND preserves following LINE"
+                        : "ASCII ATTRIB SEQEND preserves following LINE");
     }
 }
 
@@ -8565,6 +8656,7 @@ int main(int argc, char** argv) {
     testNamedColorCodecs(context);
     testRawXdataTextBytes(context);
     testLegacyDimensionPointOrder(context);
+    testHiddenZeroHeightAttrib(context);
     testHeaderMetadataOrder(context);
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
