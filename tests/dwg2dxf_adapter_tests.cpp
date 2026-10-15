@@ -266,8 +266,11 @@ void populateVisualStyleGraph(dx_data& data, bool addStyleToRoot = true) {
     DRW_Dictionary styles;
     styles.handle = 0x700u;
     styles.parentHandle = 0xCu;
-    if (addStyleToRoot)
+    if (addStyleToRoot) {
+        // Deliberately non-monotonic entry order relative to source handles.
+        styles.m_entries.push_back({"SECOND_STYLE", 0x80u});
         styles.m_entries.push_back({"CUSTOM_STYLE", 0x1Cu});
+    }
     data.dictionaries.push_back(styles);
 
     DRW_VisualStyle style;
@@ -277,6 +280,13 @@ void populateVisualStyleGraph(dx_data& data, bool addStyleToRoot = true) {
     style.desc = "generated visual style";
     style.type = 24;
     data.visualStyles.push_back(style);
+
+    DRW_VisualStyle secondStyle;
+    secondStyle.handle = 0x80u;
+    secondStyle.parentHandle = styles.handle;
+    secondStyle.desc = "second generated visual style";
+    secondStyle.type = 25;
+    data.visualStyles.push_back(secondStyle);
 
     DRW_RawDxfObject rawStyle;
     rawStyle.name = "VISUALSTYLE";
@@ -292,6 +302,20 @@ void populateVisualStyleGraph(dx_data& data, bool addStyleToRoot = true) {
         DRW_Variant(40, 0.75)};
     data.rawVisualStyleObjects.push_back(std::move(rawStyle));
 
+    DRW_RawDxfObject rawSecondStyle;
+    rawSecondStyle.name = "VISUALSTYLE";
+    rawSecondStyle.handle = secondStyle.handle;
+    rawSecondStyle.parentHandle = secondStyle.parentHandle;
+    rawSecondStyle.groups = {
+        DRW_Variant(5, std::string("80")),
+        DRW_Variant(330, std::string("700")),
+        DRW_Variant(100, std::string("AcDbVisualStyle")),
+        DRW_Variant(2, std::string("SECOND_STYLE")),
+        DRW_Variant(70, std::int32_t(25)),
+        DRW_Variant(71, std::int32_t(4)),
+        DRW_Variant(40, 0.5)};
+    data.rawVisualStyleObjects.push_back(std::move(rawSecondStyle));
+
     DRW_Vport vport;
     vport.name = "*ACTIVE";
     vport.visualStyleHandle = style.handle;
@@ -299,7 +323,7 @@ void populateVisualStyleGraph(dx_data& data, bool addStyleToRoot = true) {
 
     DRW_View view;
     view.name = "STYLE_VIEW";
-    view.m_visualStyleHandle = style.handle;
+    view.m_visualStyleHandle = secondStyle.handle;
     data.views.push_back(view);
 
     auto* viewport = new DRW_Viewport();
@@ -323,8 +347,8 @@ bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
     dx_iface reader;
     if (!reader.fileImport(path.string(), &readback, false))
         return fail("closed VisualStyle graph did not reopen");
-    if (readback.visualStyles.size() != 1u
-        || readback.rawVisualStyleObjects.size() != 1u
+    if (readback.visualStyles.size() != 2u
+        || readback.rawVisualStyleObjects.size() != 2u
         || readback.dictionaries.empty()
         || !readback.hasNamedObjectDictionary) {
         return fail("VisualStyle typed/raw/root records were not all retained (styles="
@@ -333,10 +357,28 @@ bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
             + ", dictionaries=" + std::to_string(readback.dictionaries.size())
             + ", nod=" + std::to_string(readback.hasNamedObjectDictionary) + ")");
     }
-    const DRW_RawDxfObject& rawStyle = readback.rawVisualStyleObjects.front();
-    if (rawStyle.groups.size() != 7u || rawStyle.groups[6].code() != 40
-        || rawStyle.groups[6].type() != DRW_Variant::DOUBLE
-        || rawStyle.groups[6].d_val() != 0.75)
+    const auto rawGroupName = [](const DRW_RawDxfObject& object) {
+        for (const DRW_Variant& group : object.groups) {
+            if (group.code() == 2 && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr)
+                return std::string(group.c_str());
+        }
+        return std::string{};
+    };
+    const DRW_RawDxfObject* rawStyle = nullptr;
+    const DRW_RawDxfObject* rawSecondStyle = nullptr;
+    for (const DRW_RawDxfObject& candidate : readback.rawVisualStyleObjects) {
+        if (rawGroupName(candidate) == "CUSTOM_STYLE")
+            rawStyle = &candidate;
+        else if (rawGroupName(candidate) == "SECOND_STYLE")
+            rawSecondStyle = &candidate;
+    }
+    if (rawStyle == nullptr || rawSecondStyle == nullptr
+        || rawStyle->groups.size() != 7u || rawStyle->groups[6].code() != 40
+        || rawStyle->groups[6].type() != DRW_Variant::DOUBLE
+        || rawStyle->groups[6].d_val() != 0.75
+        || rawSecondStyle->groups.size() != 7u
+        || rawSecondStyle->groups[6].d_val() != 0.5)
         return fail("VisualStyle non-handle raw groups changed during export");
     const auto rootStyleEntry = std::find_if(
         readback.namedObjectDictionary.m_entries.begin(),
@@ -356,13 +398,42 @@ bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
     if (styleDictionary == nullptr
         || styleDictionary->parentHandle != readback.namedObjectDictionary.handle)
         return fail("ACAD_VISUALSTYLE root edge did not resolve to its dictionary");
-    const std::uint32_t emittedStyleHandle = readback.visualStyles.front().handle;
+    const auto findEntry = [styleDictionary](const std::string& name) {
+        return std::find_if(styleDictionary->m_entries.begin(),
+            styleDictionary->m_entries.end(), [&name](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == name;
+            });
+    };
+    const auto customEntry = findEntry("CUSTOM_STYLE");
+    const auto secondEntry = findEntry("SECOND_STYLE");
+    if (customEntry == styleDictionary->m_entries.end()
+        || secondEntry == styleDictionary->m_entries.end()
+        || customEntry == secondEntry
+        || styleDictionary->m_entries.front().m_name != "SECOND_STYLE"
+        || styleDictionary->m_entries.back().m_name != "CUSTOM_STYLE")
+        return fail("VisualStyle dictionary lost its non-monotonic source order");
+    const std::uint32_t emittedStyleHandle = customEntry->m_handle;
+    const std::uint32_t emittedSecondStyleHandle = secondEntry->m_handle;
+    const auto typedCustomStyle = std::find_if(
+        readback.visualStyles.begin(), readback.visualStyles.end(),
+        [emittedStyleHandle](const DRW_VisualStyle& candidate) {
+            return candidate.handle == emittedStyleHandle;
+        });
+    const auto typedSecondStyle = std::find_if(
+        readback.visualStyles.begin(), readback.visualStyles.end(),
+        [emittedSecondStyleHandle](const DRW_VisualStyle& candidate) {
+            return candidate.handle == emittedSecondStyleHandle;
+        });
     if (emittedStyleHandle == 0 || emittedStyleHandle == 0x1Cu
-        || readback.rawVisualStyleObjects.front().handle != emittedStyleHandle
-        || readback.visualStyles.front().parentHandle
-            != styleDictionary->handle
-        || readback.rawVisualStyleObjects.front().parentHandle
-            != styleDictionary->handle)
+        || emittedSecondStyleHandle != 0x80u
+        || rawStyle->handle != emittedStyleHandle
+        || rawSecondStyle->handle != emittedSecondStyleHandle
+        || typedCustomStyle == readback.visualStyles.end()
+        || typedSecondStyle == readback.visualStyles.end()
+        || typedCustomStyle->parentHandle != styleDictionary->handle
+        || typedSecondStyle->parentHandle != styleDictionary->handle
+        || rawStyle->parentHandle != styleDictionary->handle
+        || rawSecondStyle->parentHandle != styleDictionary->handle)
         return fail("VisualStyle identity collision remap or owner changed");
     const auto matchesStyle = [emittedStyleHandle](std::uint32_t handle) {
         return handle == emittedStyleHandle;
@@ -370,7 +441,7 @@ bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
     if (readback.VPorts.size() != 1u
         || !matchesStyle(readback.VPorts.front().visualStyleHandle)
         || readback.views.size() != 1u
-        || !matchesStyle(readback.views.front().m_visualStyleHandle))
+        || readback.views.front().m_visualStyleHandle != emittedSecondStyleHandle)
         return fail("VPORT/VIEW VisualStyle reference did not follow remap");
     const DRW_Viewport* viewport = nullptr;
     for (const DRW_Entity* entity : readback.mBlock->ent) {
@@ -422,6 +493,37 @@ bool visualStyleGraphRejectsWrongOwner(const std::filesystem::path& directory,
                              std::istreambuf_iterator<char>());
     if (actual != "sentinel\n")
         return fail("wrong-owner VisualStyle rejection replaced destination");
+    return true;
+}
+
+bool visualStyleGraphRejectsTopologyMismatch(
+    const std::filesystem::path& directory, bool binary,
+    const std::string& mismatch) {
+    const auto path = directory / ("visual-style-topology-" + mismatch
+        + (binary ? "-bin.dxf" : "-ascii.dxf"));
+    dx_data data;
+    populateVisualStyleGraph(data);
+    if (mismatch == "wrong-type") {
+        data.views.front().m_visualStyleHandle = 0x700u; // DICTIONARY, not style.
+    } else if (mismatch == "cross-root") {
+        data.dictionaries.front().parentHandle = 0x701u;
+    } else {
+        return fail("unknown VisualStyle topology mismatch case");
+    }
+
+    const std::string before = "sentinel\n";
+    { std::ofstream original(path, std::ios::binary); original << before; }
+    dx_iface iface;
+    if (iface.fileExport(path.string(), DRW::AC1027, binary, &data, false,
+                         true))
+        return fail("inconsistent VisualStyle topology was accepted: "
+            + mismatch);
+    std::ifstream input(path, std::ios::binary);
+    const std::string actual((std::istreambuf_iterator<char>(input)),
+                             std::istreambuf_iterator<char>());
+    if (actual != before)
+        return fail("VisualStyle topology rejection replaced destination: "
+            + mismatch);
     return true;
 }
 
@@ -553,6 +655,12 @@ bool extensionGraphLimits() {
                "dangling VisualStyle rejection preserves output and permits retry");
         expect(visualStyleGraphRejectsWrongOwner(directory, binary),
                "wrong-owner VisualStyle rejection preserves output");
+        for (const std::string mismatch : {"wrong-type", "cross-root"}) {
+            expect(visualStyleGraphRejectsTopologyMismatch(
+                       directory, binary, mismatch),
+                   "VisualStyle " + mismatch
+                       + " edge mismatch is rejected before publication");
+        }
         for (const std::string mismatch : {"self", "owner", "duplicate"}) {
             expect(visualStyleGraphRejectsRawIdentityMismatch(
                        directory, binary, mismatch),
