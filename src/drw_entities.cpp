@@ -7919,7 +7919,10 @@ bool DRW_Ole2Frame::parseCode(int code, const std::unique_ptr<dxfReader>& reader
 
     switch (code) {
     case 3:
-        m_oleClient = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedOleClientBytes, m_oleClient,
+                reader->getUtf8String()))
+            return false;
         break;
     case 10:
         m_pt1.x = reader->getDouble();
@@ -8019,6 +8022,7 @@ void DRW_Ole2Frame::resetDwgState() {
     m_dxfPayloadLengthSpecified = false;
     m_oleVersion = 2;
     m_oleClient = "OLE";
+    m_dxfRetainedOleClientBytes = 0u;
     m_rawBytes.clear();
 }
 

@@ -4274,6 +4274,74 @@ void testDxfMLineStyleNameOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfOle2FrameClientOwnerBudget(TestContext& t) {
+    class Ole2FrameParseProbe final : public DRW_Ole2Frame {
+    public:
+        using DRW_Ole2Frame::parseCode;
+        using DRW_Ole2Frame::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        Ole2FrameParseProbe frame;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!frame.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && frame.m_oleClient == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "OLE2FRAME client replacement retains only its live value at the exact transient peak");
+        Ole2FrameParseProbe copy(frame);
+        Ole2FrameParseProbe assigned;
+        assigned = frame;
+        frame.resetDwgState();
+        t.expect(budget->used() == 7u && copy.m_oleClient == "DIMTEXT"
+                     && assigned.m_oleClient == "DIMTEXT",
+                 "OLE2FRAME client lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "OLE2FRAME assignment copy keeps the client charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final OLE2FRAME reset releases its client lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        Ole2FrameParseProbe frame;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!frame.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && frame.m_oleClient == "OLD" && budget->used() == 3u,
+                 "one-byte-under OLE2FRAME client replacement preserves the prior value and charge");
+        frame.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected OLE2FRAME client replacement releases its lease on reset");
+    }
+}
+
 void testDxfLeaderStyleOwnerBudget(TestContext& t) {
     class LeaderParseProbe final : public DRW_Leader {
     public:
@@ -6553,6 +6621,7 @@ int main() {
     testDxfBlockXrefPathOwnerBudget(context);
     testDxfBlockNameOwnerBudget(context);
     testDxfMLineStyleNameOwnerBudget(context);
+    testDxfOle2FrameClientOwnerBudget(context);
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);

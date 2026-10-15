@@ -1090,7 +1090,8 @@ public:
         m_objectSize(o.m_objectSize), m_bodyBitSize(o.m_bodyBitSize),
         m_rawBytes(o.m_rawBytes), m_payloadBytes(o.m_payloadBytes),
         m_oleVersion(o.m_oleVersion), m_oleClient(o.m_oleClient),
-        m_pt1(o.m_pt1), m_pt2(o.m_pt2) {
+        m_pt1(o.m_pt1), m_pt2(o.m_pt2),
+        m_dxfRetainedOleClientBytes(o.m_dxfRetainedOleClientBytes) {
         eType = DRW::OLE2FRAME;
     }
     DRW_Ole2Frame& operator=(const DRW_Ole2Frame& o) {
@@ -1116,6 +1117,7 @@ public:
             m_oleClient = o.m_oleClient;
             m_pt1 = o.m_pt1;
             m_pt2 = o.m_pt2;
+            m_dxfRetainedOleClientBytes = o.m_dxfRetainedOleClientBytes;
             eType = DRW::OLE2FRAME;
         }
         return *this;
@@ -1153,6 +1155,9 @@ public:
     std::string   m_oleClient = "OLE";  /*!< DXF 3  */
     DRW_Coord     m_pt1;                /*!< DXF 10/20/30 upper-left  */
     DRW_Coord     m_pt2;                /*!< DXF 11/21/31 lower-right */
+
+private:
+    std::size_t m_dxfRetainedOleClientBytes{0};
 
 protected:
     [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0,
