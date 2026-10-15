@@ -6835,6 +6835,74 @@ void testProxyEntityPayloadRetainedBudget(TestContext& t) {
                      && underInterface.rawObjectCount == 0u,
                  "one-byte-under proxy object payload admission rejects before callbacks");
     }
+    {
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-binary-proxy-carrier-" + std::to_string(nonce)
+               + ".dxf");
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code error;
+                std::filesystem::remove(path, error);
+            }
+        } cleanup{path};
+
+        std::ostringstream stream(std::ios::out | std::ios::binary);
+        stream << "AutoCAD Binary DXF\r\n";
+        stream.put(static_cast<char>(26));
+        stream.put('\0');
+        dxfWriterBinary writer(&stream);
+        const bool written = writer.writeString(0, "SECTION")
+            && writer.writeString(2, "OBJECTS")
+            && writer.writeString(0, "ACAD_PROXY_OBJECT")
+            && writer.writeString(5, "33")
+            && writer.writeString(330, "2")
+            && writer.writeString(100, "AcDbProxyObject")
+            && writer.writeInt32(92, 2)
+            && writer.writeString(310, "AABB")
+            && writer.writeString(0, "ENDSEC")
+            && writer.writeString(0, "EOF");
+        t.expect(written, "generated binary proxy-carrier source is valid");
+        {
+            const std::string bytes = stream.str();
+            std::ofstream output(path, std::ios::binary);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+            t.expect(output.good(), "generated binary proxy source is written");
+        }
+
+        const std::string filename = path.string();
+        dxfRW reader(filename.c_str());
+        reader.setDxfReadRetainedByteBudget(4096u);
+        ProxyCaptureInterface interface_;
+        const bool read = reader.read(&interface_, false);
+        std::size_t retainedRawStringBytes = 0u;
+        for (const DRW_Variant& group : interface_.rawObject.groups) {
+            if (group.type() == DRW_Variant::STRING)
+                retainedRawStringBytes += std::string(group.c_str()).size();
+        }
+        t.expect(read && interface_.proxyObjectCount == 1u
+                     && interface_.rawObjectCount == 1u
+                     && interface_.proxyObject.m_binaryData
+                            == std::vector<unsigned char>{0xAAu, 0xBBu}
+                     && interface_.rawObject.m_retainedTextLease != nullptr
+                     && interface_.rawObject.m_retainedTextLease->bytes()
+                            == interface_.rawObject.name.size()
+                                + retainedRawStringBytes
+                     && interface_.rawObject.hasRawValues
+                            == false,
+                 "binary raw-proxy carrier retains canonical hex groups once and decoded payload separately");
+        bool foundBinaryCarrier = false;
+        for (const DRW_Variant& group : interface_.rawObject.groups) {
+            foundBinaryCarrier = foundBinaryCarrier
+                || (group.code() == 310
+                    && group.type() == DRW_Variant::STRING
+                    && std::string(group.c_str()) == "AABB");
+        }
+        t.expect(foundBinaryCarrier,
+                 "binary proxy carrier exposes canonical hexadecimal raw data");
+    }
 }
 
 
