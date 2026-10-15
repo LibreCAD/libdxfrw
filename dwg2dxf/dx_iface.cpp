@@ -2486,9 +2486,11 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
 bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
     m_hatchGraphStats = {};
     m_hatchGraphFailure = ExtensionGraphFailure::None;
+    m_hatchSourceHandles.clear();
     const auto reject = [this](ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph) {
         if (m_hatchGraphFailure == ExtensionGraphFailure::None)
             m_hatchGraphFailure = reason;
+        m_hatchSourceHandles.clear();
         return false;
     };
     const auto sourceRecord = [this, &reject]() {
@@ -2520,6 +2522,7 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
             if (m_hatchGraphStats.stagedHandles >= m_hatchGraphLimits.maxStagedHandles)
                 return reject(ExtensionGraphFailure::StagedHandleLimit);
             selected.emplace(handle, Candidate{});
+            m_hatchSourceHandles.push_back(handle);
             ++m_hatchGraphStats.visitedNodes;
             ++m_hatchGraphStats.stagedHandles;
             return true;
@@ -2680,6 +2683,13 @@ bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
 
 bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           dx_data *fData, bool debug, bool requireResolvedOwners){
+    m_hatchSourceHandles.clear();
+    m_hatchPlanningFailed = false;
+    struct HatchPlanScope {
+        std::vector<std::uint32_t>& handles;
+        bool& failed;
+        ~HatchPlanScope() { handles.clear(); failed = false; }
+    } hatchPlanScope{m_hatchSourceHandles, m_hatchPlanningFailed};
     cData = fData;
     m_acdsHistoryObjects.clear();
     m_acdsTypedHistoryObjects.clear();

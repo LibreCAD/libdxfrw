@@ -3181,7 +3181,7 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
         reactors.reserve(ent->reactorHandles.size());
         for (const std::uint32_t source : ent->reactorHandles) {
             const std::uint32_t emitted = m_referenceResolver
-                ? resolveReference(source) : source;
+                ? resolveReference(source) : remapObjectHandle(source);
             if (!m_referenceResolver || emitted != 0)
                 reactors.push_back(emitted);
         }
@@ -3194,7 +3194,7 @@ bool dxfRW::writeEntity(DRW_Entity *ent, bool captureSourceHandle,
     }
     if (ent->xDictHandle != 0 && !hasXDictionaryAppGroup) {
         const std::uint32_t emitted = m_referenceResolver
-            ? resolveReference(ent->xDictHandle) : ent->xDictHandle;
+            ? resolveReference(ent->xDictHandle) : remapObjectHandle(ent->xDictHandle);
         if (!m_referenceResolver || emitted != 0) {
             writer->writeString(102, "{ACAD_XDICTIONARY");
             writer->writeString(360, toHexStr(emitted));

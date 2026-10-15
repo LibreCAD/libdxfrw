@@ -429,11 +429,22 @@ public:
     }
 
     virtual void writeHeader(DRW_Header& data) override{
+        // write() has reset its derived maps and planned BLOCK_RECORDs, but
+        // no TABLES/reactor callback has run yet. Plan forward HATCH links now.
+        for (std::uint32_t source : m_hatchSourceHandles) {
+            if (dxfW->preallocateEntityHandle(source) == 0) {
+                m_hatchPlanningFailed = true;
+                break;
+            }
+        }
         //complete copy of header vars:
         data = cData->headerC;
         //or copy one by one:
 //        for (auto it=cData->headerC.vars.begin(); it != cData->headerC.vars.end(); ++it)
 //            data.vars[it->first] = new DRW_Variant( *(it->second) );
+    }
+    bool finalizeDxfWrite() override {
+        return !m_hatchPlanningFailed;
     }
 
     virtual void writeBlocks() override{
@@ -682,6 +693,8 @@ private:
     ExtensionGraphLimits m_hatchGraphLimits;
     ExtensionGraphStats m_hatchGraphStats;
     ExtensionGraphFailure m_hatchGraphFailure{ExtensionGraphFailure::None};
+    std::vector<std::uint32_t> m_hatchSourceHandles;
+    bool m_hatchPlanningFailed{false};
 
     static bool isFixedSpaceBlock(const dx_ifaceBlock* block) {
         if (block == nullptr)

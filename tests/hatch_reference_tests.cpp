@@ -171,7 +171,8 @@ bool readRecords(const std::filesystem::path& path, std::map<std::string, Record
     return false;
 }
 
-bool verify(const std::filesystem::path& path, bool reactors, bool detached) {
+bool verify(const std::filesystem::path& path, bool reactors, bool detached,
+            bool reservedHandle = true) {
     std::map<std::string, Record> records;
     if (!readRecords(path, records) || records.size() != 5) return false;
     for (const char* name : {"HATCH_CONTROL", "BOUNDARY_1", "BOUNDARY_2", "BOUNDARY_3", "FOLLOWING_CONTROL"})
@@ -184,7 +185,7 @@ bool verify(const std::filesystem::path& path, bool reactors, bool detached) {
     std::set<std::string> handles;
     for (const auto& entry : records) {
         if (entry.second.handle.empty() || entry.second.handle == "0"
-            || entry.second.handle == "30" || entry.second.owner != "1F"
+            || (reservedHandle && entry.second.handle == "30") || entry.second.owner != "1F"
             || !handles.insert(entry.second.handle).second) return false;
     }
     std::vector<Tag> expected;
@@ -294,7 +295,108 @@ bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary) {
 }
 
 bool verifyHatchReferenceFile(const std::filesystem::path& path) {
-    return verify(path, true, false);
+    return verify(path, true, false, false);
+}
+
+bool runHatchAdapterTests(const std::filesystem::path& parent) {
+    const auto directory = parent / ("libdxfrw-hatch-adapter-" + std::to_string(
+        std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    bool passed = true;
+    std::size_t successful = 0, rejected = 0;
+    const auto verifyTableReferences = [](const std::filesystem::path& path) {
+        dx_data data;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &data, false)) return false;
+        std::uint32_t hatchHandle = 0;
+        for (const DRW_Entity* entity : data.mBlock->ent)
+            if (entity->layer == "HATCH_CONTROL") hatchHandle = entity->handle;
+        bool layerFound = false, ltypeFound = false;
+        for (const DRW_Layer& layer : data.layers)
+            if (layer.name == "HATCH_CONTROL") {
+                layerFound = layer.reactorHandles == std::vector<std::uint32_t>{hatchHandle};
+            }
+        for (const DRW_LType& ltype : data.lineTypes)
+            if (ltype.name == "AuxPattern") {
+                for (const DRW_Dictionary& dictionary : data.dictionaries)
+                    if (dictionary.handle == ltype.xDictHandle
+                        && dictionary.parentHandle == ltype.handle)
+                        ltypeFound = true;
+            }
+        return hatchHandle != 0 && layerFound && ltypeFound;
+    };
+    for (bool binary : {false, true}) {
+        for (bool first : {false, true}) {
+            for (bool appData : {false, true}) {
+                auto data = drawing(first, true);
+                for (DRW_Layer& layer : data->layers)
+                    if (layer.name == "HATCH_CONTROL") layer.reactorHandles = {0x40};
+                DRW_LType ltype;
+                ltype.handle = 0xB0;
+                ltype.name = "AuxPattern";
+                ltype.xDictHandle = 0xA1;
+                data->lineTypes.push_back(ltype);
+                DRW_Dictionary dictionary;
+                dictionary.handle = 0xA1;
+                dictionary.parentHandle = ltype.handle;
+                data->dictionaries.push_back(dictionary);
+                if (appData) {
+                    for (DRW_Entity* entity : data->mBlock->ent)
+                        if (entity->layer.rfind("BOUNDARY_", 0) == 0) {
+                            entity->appData.push_back({
+                                DRW_Variant(102, std::string("{ACAD_REACTORS")),
+                                DRW_Variant(330, std::string("40")),
+                                DRW_Variant(102, std::string("}"))});
+                        }
+                }
+                const std::string key = std::to_string(binary) + '-' + std::to_string(first)
+                    + '-' + std::to_string(appData);
+                const auto path = directory / (key + ".dxf");
+                dx_iface adapter;
+                bool success = adapter.fileExport(path.string(), DRW::AC1027, binary,
+                                                  data.get(), false)
+                    && verify(path, true, false, false) && verifyTableReferences(path);
+                if (success) ++successful;
+                passed = success && passed;
+                dx_data imported;
+                const auto second = directory / (key + "-second.dxf");
+                success = adapter.fileImport(path.string(), &imported, false)
+                    && adapter.fileExport(second.string(), DRW::AC1027, binary, &imported, false)
+                    && verify(second, true, false, false) && verifyTableReferences(second);
+                if (success) ++successful;
+                passed = success && passed;
+            }
+        }
+        class RejectPlanning final : public dx_iface {
+        public:
+            bool rejectPlan{true};
+            void writeHeader(DRW_Header& header) override {
+                if (rejectPlan) dxfW->markSourceHandleAmbiguous(0x40);
+                dx_iface::writeHeader(header);
+            }
+        } adapter;
+        const auto path = directory / (binary ? "planning-binary.dxf" : "planning-ascii.dxf");
+        const std::string sentinel = "planned HATCH destination\n";
+        { std::ofstream stream(path, std::ios::binary); stream << sentinel; }
+        auto data = drawing(true, true);
+        const bool failed = !adapter.fileExport(path.string(), DRW::AC1027, binary, data.get(), false);
+        std::ifstream input(path, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(input)), {});
+        input.close();
+        if (failed && bytes == sentinel) ++rejected;
+        passed = failed && bytes == sentinel && passed;
+        adapter.rejectPlan = false;
+        data = drawing(true, true);
+        const bool retry = adapter.fileExport(path.string(), DRW::AC1027, binary, data.get(), false)
+            && verify(path, true, false, false);
+        if (retry) ++successful;
+        passed = retry && passed;
+    }
+    std::cout << "HATCH adapter planning/reference controls: " << (passed ? "PASS" : "FAIL")
+              << " (successful=" << successful << ", rejected=" << rejected << ")\n";
+    if (passed) std::filesystem::remove_all(directory);
+    else std::cout << "HATCH adapter evidence: " << directory << '\n';
+    return passed;
 }
 
 bool runHatchAdmissionTests(const std::filesystem::path& parent) {
@@ -534,15 +636,15 @@ bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutput
             for (bool resolver : {false, true}) {
                 const auto path = directory / (std::to_string(binary) + '-' + std::to_string(first)
                     + '-' + std::to_string(resolver) + ".dxf");
-                auto source = drawing(first, resolver);
+                auto source = drawing(first, true);
                 passed = write(path, *source, binary, true, resolver)
-                    && verify(path, resolver, false) && passed;
+                    && verify(path, true, false) && passed;
                 dx_data imported;
                 dx_iface reader;
                 const auto second = directory / (path.stem().string() + "-second.dxf");
                 passed = reader.fileImport(path.string(), &imported, false)
                     && write(second, imported, binary, true, resolver)
-                    && verify(second, resolver, false) && passed;
+                    && verify(second, true, false) && passed;
             }
         }
         for (bool detached : {false, true}) {
