@@ -33,6 +33,7 @@
 #include "xrecord_test_helpers.h"
 
 bool runModelerDxfWriterMatrix(const std::filesystem::path& parent, bool keepOutputs);
+bool runModelerBlockCensusTests();
 bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutputs);
 bool runHatchAdmissionTests(const std::filesystem::path& parent);
 bool runHatchAdapterTests(const std::filesystem::path& parent);
@@ -15054,7 +15055,9 @@ int main(int argc, char** argv) {
         DRW::AC1024, DRW::AC1027, DRW::AC1032};
     std::filesystem::path directory = std::filesystem::temp_directory_path();
     bool keepOutputs = false;
-    if (argc == 2 && std::string(argv[1]) == "--hatch-same-data") {
+    if (argc == 2 && std::string(argv[1]) == "--modeler-block-census") {
+        return runModelerBlockCensusTests() ? 0 : 1;
+    } else if (argc == 2 && std::string(argv[1]) == "--hatch-same-data") {
         return runHatchSameDataTests(directory) ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--hatch-publication") {
         return runHatchPublicationTests(directory) ? 0 : 1;
@@ -15133,6 +15136,7 @@ int main(int argc, char** argv) {
         std::cerr << "usage: " << argv[0]
                   << " [--keep-dir DIRECTORY]"
                      " [--modeler-dxf-matrix [DIRECTORY]]"
+                     " [--modeler-block-census]"
                      " [--hatch-references [DIRECTORY]]"
                      " [--hatch-admission]"
                      " [--hatch-adapter]"
@@ -16272,6 +16276,9 @@ int main(int argc, char** argv) {
            failures);
     expect(runModelerDxfWriterMatrix(directory, keepOutputs),
            "DXF modeler version/entity schema, SAT boundary and history matrix",
+           failures);
+    expect(runModelerBlockCensusTests(),
+           "modeler stored block identity/owner/reachability census sensitivity",
            failures);
     expect(runHatchReferenceTests(directory, keepOutputs),
            "HATCH source-reference remap and multi-path wire ordering",

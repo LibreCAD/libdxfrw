@@ -2,7 +2,7 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
-**Current handoff (2026-10-15, through Plan-Slice:7R.2d):**
+**Current handoff (2026-10-15, HATCH `cf2c3b6`; Plan-Slice:S2.3.9.4.29.B1):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
@@ -14,7 +14,7 @@ associativity claims. S5.18 is locally complete; external semantics stay open.
 | --- | --- | --- |
 | 1 | PAR-35 / 7R.1 / S5.18 direct HATCH writer | COMMITTED `57b98cd`. Retain the passing literal tags, resolver-alias and failed-write controls; this is not CLI associativity support. |
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
-| 3 | S2.3.9.4.29 block-path modeler census | READY_LOCAL / INDEPENDENT. Capture definition/entity/owner/INSERT identities before any virtual projection. Distinct payloads, shared definitions and bounded reachability must discriminate swapped/missing bodies. Use the B1–B3 readiness split in the final research section; no native CAD, downloaded drawing, or HATCH fix is a prerequisite. |
+| 3 | S2.3.9.4.29 block-path modeler census | B1 COMMITTED / B2 READY_LOCAL. The stored-graph oracle passes8 positive/14 negative checks with literal independent expectations, distinct locally authored cube/region carriers,13 entities/six definitions/seven INSERT edges/five reachable definitions, shared/unreachable controls and bounded cycles/reuse. Report: docs/research/modeler-block-census-b1-2026-10-15.json. Next B2: raw/typed ASCII/binary codec and actual-CLI correspondence, not expansion counts; B3 genuine converter negatives remains separate. No native/external prerequisite. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
 | 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | SOURCE_READY / VERSION_WITNESS_REQUIRED as applicable. Reuse the existing codec vectors and ODA/trace gates; do not substitute a peer's width or recovery heuristic. |
 
@@ -585,6 +585,7 @@ Its historical binary diff SHA-256 is
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| S2.3.9.4.29.B1 stored block census | COMMITTED / SOURCE_CENSUS_ONLY | Plan-Slice:S2.3.9.4.29.B1 adds a test-only bounded collector and --modeler-block-census in the existing executable, with an independent literal identity/owner/type/carrier/INSERT expectation. Locally authored closed cube/planar-region SAT literals are not filler or external fixtures. Four block/entity order variants, shared/unreachable definitions, non-monotonic IDs, two placements, equal-count swaps/omission/role/owner/alias negatives, invalid source graphs, exact/under resource controls and bounded reference cycles pass8 positives/14 negatives. Strict TU/lc3 and existing local CTest1/1 in2.14s pass. Pinned authoring-recipe regeneration and same-stack six/one-face readback are consistency only. Durable report binds source/artifact/provenance. Production unchanged; no codec/CLI output or independent/native semantic claim. B2 is next; historical HATCH reports stay frozen. |
 | PAR-35 / 7R.2d / S5.18 same-data retry | COMMITTED / LOCAL_IMPLEMENTATION_COMPLETE | Plan-Slice:7R.2d restores entity/compound-child source handles at each adapter write-call exit with owning child references, not a cross-callback pointer journal. Bounds snapshots before allocation; includes detached HATCH handle0, leaves direct codec/no-HATCH behavior and caller edits unchanged. Focused16 successful/eight rejected checks, same-data corrected late-veto/exception/record/limit retry, ASan/UBSan16/8, strict adapter/test TUs and lc3 pass. Existing local/fixture CTests pass2/2 in5.27s. Actual generated ASCII/binary CLI conversions and exact verifiers pass twice with identical per-encoding output hashes. Parent98f0eae adapter/new harness reproduces first successful export with mutated IDs and failed subsequent reuse. Report docs/research/hatch-same-data-retry-2026-10-15.json binds sources/binaries/baseline/CLI. Closes scoped S5.18 local implementation only; no native/fill/render/DWG/ABI/J promotion. NextS2.3.9.4.29 B1. |
 | PAR-35 / 7R.2c actual publication proof | COMMITTED / IDENTITY_TYPE_OWNER_PUBLICATION_VERIFIED | Plan-Slice:7R.2c retains bounded identity/type/logical-owner snapshots, not borrowed entity pointers. Adapter dispatch checks owner/type/expected final identity, exactly-once publication, the codec's actual written-source ledger and final bindings/ambiguity. Named owner BLOCK definitions must actually be emitted. No-op success or preallocation alone cannot close the gate. `--hatch-publication` passes22 rejection checks/22 corrected fresh-data retries across both encodings: skip/default dispatch, changed type/space/parent/source identity, duplicate dispatch, codec-only bypass, missing owner BLOCK, writer rejection and an unsupported R12 no-op classification control. Parent1c85111 source/header compiled with this new harness and the unchanged parent library reproduces18 successful invalid publications; four other attempts already fail atomically but lack the new graph classification. Baseline executable `e713ec34c2c46a2ad608b902b370e3e53366db059653964ae78d25f9778c6c3b` at `/private/tmp/libdxfrw-hatch-publication-baseline.dPWToN/before` fails the new gate while22 fresh-data retries pass. Current integration CTest passes1/1 in2.15s; focused admission/planning/publication and strict/lc3 checks pass. Next7R.2d: successful-export same-data and late-failure identity retry; no whole7R/S5.18 or native/support promotion. |
 | PAR-35 / 7R.2b early planning and reference composition | COMMITTED / GENERATED_CLI_REFERENCES_VERIFIED | Plan-Slice:7R.2b retains bounded source IDs only for the export lifetime and preallocates after codec reset/BLOCK_RECORD planning but before TABLES. Typed entity reactors/xDictionary now use the existing mapped fallback, as table/known-102 references already do; no global HATCH-only resolver is installed and final resolver values still map once. Planning failure rejects final publication and clears state for retry. `--hatch-adapter` passes18 exports/two rejection checks across both orders/encodings/two passes, typed/known-102 reactors, an incoming layer-table reactor and an unrelated LTYPE extension dictionary. Direct mapped-reactor controls pass. Three focused CTests pass3/3 in5.61s; strict adapter/test TUs and lc3 build pass. Fresh actual CLI ASCII/binary conversions and verifiers exit0. Durable hashes/commands are `docs/research/hatch-adapter-planning-2026-10-15.json`. Prior red receipts remain unchanged. Next7R.2c/d publication identity/type/owner proof and successful-export same-data retries; no full PAR-35/S5.18 or support closure. |
@@ -11763,6 +11764,24 @@ with provenance; do not require ezdxf/ODA in the ordinary fast test, import
 external drawing bytes, or count generation and same-stack readback as
 independent shape evidence. First verify the literal carriers differ and that
 the new oracle fails an equal-count swap; then run the codec/CLI control.
+
+**B1 implementation checkpoint:** Plan-Slice:S2.3.9.4.29.B1 implements the
+stored-source collector in`tests/modeler_block_census_tests.cpp` and hooks the
+existing target/mode without a new CTest. Its expected graph is literal, not
+the collector's own output. Four order variants retain all13 rows/six
+definition/block-record identities/seven INSERT links; five definitions are
+reachable and the sixth is explicitly unused. Equal-count payload/owner/type/
+placement/target/alias mutations and missing carrier fail the comparator;
+invalid source identities/owners/targets and resource exhaustion leave the
+previous census unchanged. A non-owning INSERT cycle terminates with six
+reachability visits. Eight positives/14 negatives, strict TU/lc3 and local
+CTest1/1 pass. Authored SAT literals match the pinned cube/rectangle recipe;
+the same-stack authoring check is not an independent kernel result. No
+production code, ASCII/binary output, native program or external fixture is
+part of this B1 gate. Exact bindings are
+`docs/research/modeler-block-census-b1-2026-10-15.json`.
+Next B2 must collect actual BLOCKS/ENTITIES owners and reminted identities,
+not compare source census to itself or treat B1 negatives as converter failures.
 
 ### Fast execution, WIP and support boundaries
 
