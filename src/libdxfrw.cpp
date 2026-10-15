@@ -6337,7 +6337,9 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
     if (ent == nullptr)
         return false;
 
-    writer->writeString(100, "Embedded Object");
+    // ODA's canonical R2018 attribute grammar uses the embedded-object marker
+    // (101), not a subclass marker (100). The reader still accepts legacy 100.
+    writer->writeString(101, "Embedded Object");
     writer->writeDouble(10, ent->basePoint.x);
     writer->writeDouble(20, ent->basePoint.y);
     writer->writeDouble(30, ent->basePoint.z);

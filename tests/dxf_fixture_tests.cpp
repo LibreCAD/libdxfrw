@@ -530,6 +530,144 @@ std::vector<DRW_MText*> embeddedOrientationTexts(dx_data& data) {
     return result;
 }
 
+std::pair<std::size_t, std::size_t> embeddedObjectMarkerCounts(
+    const std::filesystem::path& path, bool binary) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return {};
+    if (binary)
+        stream.seekg(22);
+    std::unique_ptr<dxfReader> reader;
+    if (binary)
+        reader = std::make_unique<dxfReaderBinary>(&stream);
+    else
+        reader = std::make_unique<dxfReaderAscii>(&stream);
+    std::size_t legacy = 0;
+    std::size_t canonical = 0;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 100 || code == 101) {
+            const std::string value = reader->getString();
+            if (value == "Embedded Object") {
+                if (code == 100)
+                    ++legacy;
+                else
+                    ++canonical;
+            }
+        }
+    }
+    return {legacy, canonical};
+}
+
+bool embeddedAttributeFieldsMatch(const dx_data& data) {
+    if (data.mBlock == nullptr)
+        return false;
+    std::size_t insertCount = 0;
+    std::size_t definitionCount = 0;
+    bool sentinelLineFound = false;
+    std::size_t entityIndex = 0;
+    for (const DRW_Entity* entity : data.mBlock->ent) {
+        if (const auto* insert = dynamic_cast<const DRW_Insert*>(entity)) {
+            ++insertCount;
+            if (insert->attlist.size() != 4u)
+                return false;
+            for (std::size_t index = 0; index != insert->attlist.size(); ++index) {
+                const auto& attribute = insert->attlist[index];
+                if (!attribute || !attribute->mtext
+                    || attribute->text != "fallback_" + std::to_string(index)
+                    || attribute->mtext->text != "EMBED_" + std::to_string(index)
+                    || attribute->tag != (index == 0 ? "#ODD_TAG" : "TAG" + std::to_string(index)))
+                    return false;
+            }
+        } else if (const auto* definition = dynamic_cast<const DRW_Attdef*>(entity)) {
+            const std::size_t index = 4u + definitionCount++;
+            if (index > 7u || !definition->mtext
+                || definition->text != "fallback_" + std::to_string(index)
+                || definition->mtext->text != "EMBED_" + std::to_string(index)
+                || definition->tag != (index == 4u ? "#ODD_TAG" : "TAG" + std::to_string(index))
+                || definition->prompt != (index == 4u ? "#PROMPT" : "prompt"))
+                return false;
+        } else if (const auto* line = dynamic_cast<const DRW_Line*>(entity)) {
+            sentinelLineFound = entityIndex + 1u == data.mBlock->ent.size()
+                && line->basePoint.x == 71.0 && line->basePoint.y == 72.0
+                && line->secPoint.x == 74.0 && line->secPoint.y == 75.0;
+        }
+        ++entityIndex;
+    }
+    return insertCount == 1u && definitionCount == 4u && sentinelLineFound;
+}
+
+bool generateZeroYHatch(const std::filesystem::path& path, bool binary) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> tags;
+    if (binary)
+        tags = std::make_unique<dxfWriterBinary>(&stream);
+    else
+        tags = std::make_unique<dxfWriterAscii>(&stream);
+    tags->setVersion("AC1032", true);
+    tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
+    tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1032");
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "SECTION");
+    tags->writeString(2, "ENTITIES");
+    tags->writeString(0, "HATCH"); tags->writeString(5, "6000");
+    tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+    tags->writeString(100, "AcDbHatch");
+    tags->writeDouble(10, 0); tags->writeDouble(20, 0); tags->writeDouble(30, 0);
+    tags->writeDouble(210, 0); tags->writeDouble(220, 0); tags->writeDouble(230, 1);
+    tags->writeUtf8String(2, "SOLID"); tags->writeInt16(70, 1);
+    tags->writeInt16(71, 0); tags->writeInt32(91, 1);
+    tags->writeInt32(92, 0); tags->writeInt32(93, 1); tags->writeInt16(72, 1);
+    tags->writeDouble(10, 1); tags->writeDouble(20, 2);
+    tags->writeDouble(11, 4); tags->writeDouble(21, 0); // Explicit zero Y.
+    tags->writeInt32(97, 0); tags->writeInt16(75, 0); tags->writeInt16(76, 1);
+    tags->writeInt16(78, 0); tags->writeInt32(98, 0);
+    tags->writeString(0, "LINE"); tags->writeString(5, "6001");
+    tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");
+    tags->writeString(100, "AcDbLine");
+    tags->writeDouble(10, 71); tags->writeDouble(20, 72); tags->writeDouble(30, 73);
+    tags->writeDouble(11, 74); tags->writeDouble(21, 75); tags->writeDouble(31, 76);
+    tags->writeString(0, "ENDSEC"); tags->writeString(0, "EOF");
+    return !tags->hasWriteError() && stream.good();
+}
+
+bool verifyZeroYHatch(const std::filesystem::path& path) {
+    dx_data data;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &data, false) || data.mBlock == nullptr
+        || data.mBlock->ent.size() != 2u)
+        return false;
+    const auto* hatch = dynamic_cast<const DRW_Hatch*>(data.mBlock->ent.front());
+    const auto* line = dynamic_cast<const DRW_Line*>(data.mBlock->ent.back());
+    if (hatch == nullptr || hatch->looplist.size() != 1u || line == nullptr
+        || line->basePoint.x != 71 || line->basePoint.y != 72
+        || line->secPoint.x != 74 || line->secPoint.y != 75)
+        return false;
+    const auto* edge = hatch->looplist.front()->objlist.size() == 1u
+        ? dynamic_cast<const DRW_Line*>(hatch->looplist.front()->objlist.front().get())
+        : nullptr;
+    return edge != nullptr && edge->secPoint.x == 4 && edge->secPoint.y == 0;
+}
+
+void testZeroYHatch(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path()
+            / ("libdxfrw-hatch-zero-y-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        const bool generated = generateZeroYHatch(path, binary);
+        const bool verified = generated && verifyZeroYHatch(path);
+        t.expect(verified,
+                 binary ? "binary DXF HATCH retains an explicit zero line-edge Y and following LINE"
+                        : "ASCII DXF HATCH retains an explicit zero line-edge Y and following LINE");
+        std::error_code error;
+        std::filesystem::remove(path, error);
+    }
+}
+
 // Exercise the core ATTDEF callback/writer explicitly: the CLI's absent
 // ATTDEF cache/emission route is separate7F work, not this orientation fix.
 class EmbeddedOrientationInterface final : public dx_iface {
@@ -547,34 +685,79 @@ public:
 };
 
 void testEmbeddedMTextOrientation(TestContext& t, bool binary,
-                                  const std::filesystem::path& output) {
-    std::string source = "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1032\n0\nENDSEC\n"
-        "0\nSECTION\n2\nBLOCKS\n0\nBLOCK\n5\n3000\n100\nAcDbEntity\n8\n0\n"
-        "100\nAcDbBlockBegin\n2\nORIENT_BLOCK\n70\n0\n10\n0\n20\n0\n30\n0\n"
-        "3\nORIENT_BLOCK\n0\nENDBLK\n5\n3001\n100\nAcDbEntity\n8\n0\n"
-        "100\nAcDbBlockEnd\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n"
-        "0\nINSERT\n5\n3002\n100\nAcDbEntity\n8\n0\n100\nAcDbBlockReference\n"
-        "66\n1\n2\nORIENT_BLOCK\n10\n0\n20\n0\n30\n0\n";
+                                  const std::filesystem::path& output,
+                                  int embeddedMarker) {
+    const auto input = std::filesystem::path(output.string() + "-embedded-input.dxf");
+    std::ofstream sourceStream(input, std::ios::binary | std::ios::trunc);
+    if (binary)
+        sourceStream.write("AutoCAD Binary DXF\r\n\032\0", 22);
+    std::unique_ptr<dxfWriter> sourceTags;
+    if (binary)
+        sourceTags = std::make_unique<dxfWriterBinary>(&sourceStream);
+    else
+        sourceTags = std::make_unique<dxfWriterAscii>(&sourceStream);
+    sourceTags->setVersion("AC1032", true);
+    const auto string = [&sourceTags](int code, const std::string& value) {
+        sourceTags->writeUtf8String(code, value);
+    };
+    const auto integer16 = [&sourceTags](int code, int value) {
+        sourceTags->writeInt16(code, value);
+    };
+    const auto point = [&sourceTags](int code, double x, double y, double z) {
+        sourceTags->writeDouble(code, x);
+        sourceTags->writeDouble(code + 10, y);
+        sourceTags->writeDouble(code + 20, z);
+    };
+    string(0, "SECTION"); string(2, "HEADER"); string(9, "$ACADVER");
+    string(1, "AC1032"); string(0, "ENDSEC"); string(0, "SECTION");
+    string(2, "BLOCKS"); string(0, "BLOCK"); string(5, "3000");
+    string(100, "AcDbEntity"); string(8, "0"); string(100, "AcDbBlockBegin");
+    string(2, "ORIENT_BLOCK"); integer16(70, 0); point(10, 0, 0, 0);
+    string(3, "ORIENT_BLOCK"); string(0, "ENDBLK"); string(5, "3001");
+    string(100, "AcDbEntity"); string(8, "0"); string(100, "AcDbBlockEnd");
+    string(0, "ENDSEC"); string(0, "SECTION"); string(2, "ENTITIES");
+    string(0, "INSERT"); string(5, "3002"); string(100, "AcDbEntity");
+    string(8, "0"); string(100, "AcDbBlockReference"); integer16(66, 1);
+    string(2, "ORIENT_BLOCK"); point(10, 0, 0, 0);
     for (int id = 0; id != 8; ++id) {
-        if (id == 4) source += "0\nSEQEND\n5\n3003\n100\nAcDbEntity\n8\n0\n";
-        source += std::string("0\n") + (id < 4 ? "ATTRIB" : "ATTDEF")
-            + "\n5\n" + std::to_string(4000 + id)
-            + "\n100\nAcDbEntity\n8\n0\n100\nAcDbText\n10\n4\n20\n5\n30\n6\n"
-              "40\n2\n1\nfallback\n100\nEmbedded Object\n10\n1\n20\n2\n30\n3\n"
-              "40\n2\n41\n10\n71\n1\n72\n1\n1\nEMBED_" + std::to_string(id) + "\n";
+        if (id == 4) {
+            string(0, "SEQEND"); string(5, "3003");
+            string(100, "AcDbEntity"); string(8, "0");
+        }
+        string(0, id < 4 ? "ATTRIB" : "ATTDEF");
+        string(5, std::to_string(4000 + id)); string(100, "AcDbEntity");
+        string(8, "0"); string(100, "AcDbText"); point(10, 4, 5, 6);
+        sourceTags->writeDouble(40, 2);
+        string(1, "fallback_" + std::to_string(id));
+        string(embeddedMarker, "Embedded Object");
+        point(10, 1, 2, 3); sourceTags->writeDouble(40, 2);
+        sourceTags->writeDouble(41, 10); integer16(71, 1); integer16(72, 1);
+        string(1, "EMBED_" + std::to_string(id));
         const int order = id % 4;
-        if (order == 1 || order == 2) source += "11\n0\n21\n1\n31\n0\n";
-        if (order != 1) source += "50\n30\n";
-        if (order == 3) source += "11\n0\n21\n1\n31\n0\n";
-        source += std::string("100\n") + (id < 4 ? "AcDbAttribute" : "AcDbAttributeDefinition")
-            + "\n2\nTAG" + std::to_string(id) + "\n70\n0\n";
-        if (id >= 4) source += "3\nprompt\n";
+        if (order == 1 || order == 2) point(11, 0, 1, 0);
+        if (order != 1) sourceTags->writeDouble(50, 30);
+        if (order == 3) point(11, 0, 1, 0);
+        string(100, id < 4 ? "AcDbAttribute" : "AcDbAttributeDefinition");
+        string(2, id == 0 || id == 4 ? "#ODD_TAG" : "TAG" + std::to_string(id));
+        integer16(70, 0);
+        if (id >= 4)
+            string(3, id == 4 ? "#PROMPT" : "prompt");
     }
-    source += "0\nENDSEC\n0\nEOF\n";
+    string(0, "LINE"); string(5, "5000"); string(100, "AcDbEntity");
+    string(8, "0"); string(100, "AcDbLine");
+    point(10, 71, 72, 73); point(11, 74, 75, 76);
+    string(0, "ENDSEC"); string(0, "EOF");
+    sourceTags.reset();
+    const bool sourceWritten = sourceStream.good();
+    sourceStream.close();
+    if (!sourceWritten) {
+        std::error_code error;
+        std::filesystem::remove(input, error);
+        t.expect(false, "embedded ATTRIB/ATTDEF generated source is writable");
+        return;
+    }
     EmbeddedOrientationInterface reader;
     dx_data data;
-    const auto input = std::filesystem::path(output.string() + "-embedded-input.dxf");
-    { std::ofstream file(input, std::ios::binary); file << source; }
     const bool imported = reader.fileImport(input.string(), &data, false);
     std::error_code error;
     std::filesystem::remove(input, error);
@@ -585,12 +768,18 @@ void testEmbeddedMTextOrientation(TestContext& t, bool binary,
         const int order = id++ % 4;
         sourceValid = text->angle == (order == 0 || order == 2 ? 30 : 90) && sourceValid;
     }
-    t.expect(sourceValid, "legacy embedded ATTRIB/ATTDEF routes finalize their own last-wins orientation");
+    t.expect(sourceValid && embeddedAttributeFieldsMatch(data),
+             embeddedMarker == 101
+                 ? "canonical embedded ATTRIB/ATTDEF preserves fallback, hash tag, prompt, and following LINE"
+                 : "legacy embedded ATTRIB/ATTDEF preserves fallback, hash tag, prompt, and following LINE");
     EmbeddedOrientationInterface writer;
     const bool written = writer.fileExport(output.string(), DRW::AC1032, binary, &data, false);
+    const auto outputMarkers = embeddedObjectMarkerCounts(output, binary);
     dx_data decoded;
     EmbeddedOrientationInterface outputReader;
-    bool retained = written && outputReader.fileImport(output.string(), &decoded, false);
+    bool retained = written && outputMarkers.first == 0u && outputMarkers.second == 8u
+        && outputReader.fileImport(output.string(), &decoded, false)
+        && embeddedAttributeFieldsMatch(decoded);
     const auto decodedTexts = embeddedOrientationTexts(decoded);
     retained = decodedTexts.size() == 8u && retained;
     id = 0;
@@ -598,7 +787,7 @@ void testEmbeddedMTextOrientation(TestContext& t, bool binary,
         const int order = id++ % 4;
         retained = text->angle == (order == 0 || order == 2 ? 30 : 90) && retained;
     }
-    t.expect(retained, "embedded MTEXT writer shares parsed active-orientation selection");
+    t.expect(retained, "embedded MTEXT writer emits canonical 101 markers and preserves scoped fields");
     for (auto* text : texts) {
         *text = DRW_MText{};
         text->text = "FRESH_EMBEDDED"; text->height = 2;
@@ -707,7 +896,8 @@ void testMTextOrientationPrecedence(TestContext& t) {
             freshValid = text->angle == (freshId++ == 1 ? 0 : 30) && freshValid;
         }
         t.expect(freshValid, "fresh API MTEXT angle/vector/conflicting fields retain legacy behavior without mutation");
-        testEmbeddedMTextOrientation(t, binary, output);
+        testEmbeddedMTextOrientation(t, binary, output, 100);
+        testEmbeddedMTextOrientation(t, binary, output, 101);
         std::error_code error;
         std::filesystem::remove(source, error); std::filesystem::remove(output, error);
     }
@@ -9231,6 +9421,7 @@ int main(int argc, char** argv) {
     testClassicVertexPresenceBoundaries(context);
     testClassicVertexIdentifierRetention(context);
     testMTextOrientationPrecedence(context);
+    testZeroYHatch(context);
     testInsertChildHandleRollback(context);
     testLegacyEllipseCarrierTransfer(context);
     testTableRecordOwners(context);

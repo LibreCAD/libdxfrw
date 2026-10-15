@@ -13098,12 +13098,24 @@ bool DRW_GeoPositionMarker::encodeDwg(DRW::Version v, dwgBufferW *buf,
 
 bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // Multi-line ATTRIB (R2018+, ODA spec §20.4.4): an embedded MTEXT object
-    // is introduced by the DXF subclass marker `100 / Embedded Object` (NOT
-    // `AcDbMText`).  After the marker, the standard MTEXT group codes follow
-    // (10/20/30 insertion, 11/21/31 X-axis, 40 height, 41 rect width, 71
-    // attachment point, 72 drawing direction, 1 formatted text, etc.), then
-    // the ATTRIB-specific tail (tag=2, prompt=3 for ATTDEF, flags=70,
+    // is introduced by the DXF embedded-object marker `101 / Embedded Object`
+    // (NOT `AcDbMText`).  Accept the historical `100 / Embedded Object`
+    // spelling on input for compatibility. After the marker, standard MTEXT
+    // group codes follow (10/20/30 insertion, 11/21/31 X-axis, 40 height, 41
+    // rect width, 71 attachment point, 72 drawing direction, 1 formatted text),
+    // then the ATTRIB-specific tail (tag=2, prompt=3 for ATTDEF, flags=70,
     // lock-position=280) which we must NOT route into the embedded MText.
+    if (code == 101) {
+        const std::string marker = reader->getString();
+        if (marker == "Embedded Object") {
+            if (!mtext) {
+                mtext = std::make_unique<DRW_MText>();
+                if (attVersion == 0) attVersion = 1;
+            }
+            dxfInAttributeSubclass = false;
+        }
+        return true;
+    }
     if (code == 100) {
         const std::string sub = reader->getString();
         if (sub == "Embedded Object" && !mtext) {
