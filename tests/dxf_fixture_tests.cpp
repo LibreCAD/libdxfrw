@@ -55,6 +55,7 @@ public:
     std::vector<DRW_Scale> scales;
     std::vector<DRW_DictionaryVar> dictionaryVars;
     std::vector<DRW_Group> groups;
+    std::vector<DRW_GeoData> geoData;
     std::vector<DRW_PlotSettings> plotSettings;
     std::vector<DRW_Layout> layouts;
 
@@ -111,6 +112,10 @@ public:
 
     void addGroup(const DRW_Group& value) override {
         groups.push_back(value);
+    }
+
+    void addGeoData(const DRW_GeoData& value) override {
+        geoData.push_back(value);
     }
 
     /// Point the writer at data that was just read, for a round trip.
@@ -263,6 +268,106 @@ bool writeVisualStyleRetentionControl(const std::filesystem::path& path,
                 && writer->writeDouble(40, 0.75) && writer->writeInt16(74, 1)
                 && writer->writeInt32(91, 2)
                 && writer->writeBool(291, false)))
+        && string(0, "ENDSEC") && string(0, "EOF");
+    return written && !writer->hasWriteError() && output.good();
+}
+
+bool writeGeoDataVersionControl(const std::filesystem::path& path, bool binary,
+                                const char* targetVersion,
+                                std::int32_t objectVersion,
+                                std::vector<int>& expectedCodes) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output)
+        return false;
+    if (binary)
+        output.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+    writer->setVersion(targetVersion, true);
+    const auto string = [&writer, &expectedCodes](int code,
+                                                  const std::string& value) {
+        expectedCodes.push_back(code);
+        return writer->writeString(code, value);
+    };
+    const auto integer = [&writer, &expectedCodes](int code, std::int32_t value) {
+        expectedCodes.push_back(code);
+        return writer->writeInt32(code, value);
+    };
+    const auto shortInteger = [&writer, &expectedCodes](int code, int value) {
+        expectedCodes.push_back(code);
+        return writer->writeInt16(code, value);
+    };
+    const auto real = [&writer, &expectedCodes](int code, double value) {
+        expectedCodes.push_back(code);
+        return writer->writeDouble(code, value);
+    };
+    const auto boolean = [&writer, &expectedCodes](int code, bool value) {
+        expectedCodes.push_back(code);
+        return writer->writeBool(code, value);
+    };
+    bool written = string(0, "SECTION") && string(2, "HEADER")
+        && string(9, "$ACADVER") && string(1, targetVersion)
+        && string(0, "ENDSEC") && string(0, "SECTION")
+        && string(2, "OBJECTS");
+    expectedCodes.clear();
+    written = written && string(0, "GEODATA") && string(5, "700")
+        && string(330, "2") && string(100, "AcDbGeoData")
+        && integer(90, objectVersion) && string(330, "3")
+        && shortInteger(70, 2)
+        && real(10, 10.125) && real(20, 20.125) && real(30, 30.125)
+        && real(11, 11.125) && real(21, 21.125) && real(31, 31.125);
+    if (objectVersion == 1) {
+        // Generated archival-grammar probe. Values deliberately distinguish
+        // every code collision from the modern v2/v3 map.
+        written = written
+            && real(40, 40.125) && real(41, 41.125) && real(42, 42.125)
+            && real(43, 43.125) && real(44, 44.125) && real(45, 45.125)
+            && real(46, 46.125) && real(52, 52.125) && integer(91, 91)
+            && integer(92, 1) && real(210, 210.125)
+            && real(220, 220.125) && real(230, 230.125)
+            && real(12, 12.125) && real(22, 22.125)
+            && real(13, 13.125) && real(23, 23.125)
+            && integer(96, 1) && integer(97, 1)
+            && integer(98, 2) && integer(99, 3)
+            && string(301, "legacy-coordinate-definition")
+            && string(302, "legacy-georss")
+            && string(303, "legacy-coordinate-description")
+            && string(304, "legacy-datum")
+            && string(305, "legacy-observation-tag")
+            && string(306, "legacy-observation-to")
+            && string(307, "legacy-observation-coverage")
+            && string(3, "CIVIC3D_DATA_BEGIN")
+            && boolean(292, true) && real(14, 14.125) && real(24, 24.125)
+            && real(15, 15.125) && real(25, 25.125)
+            && integer(93, 1) && integer(94, 94)
+            && boolean(293, true) && real(16, 16.125) && real(26, 26.125)
+            && real(17, 17.125) && real(27, 27.125)
+            && real(54, 54.125) && real(140, 140.125)
+            && integer(95, 2) && real(141, 141.125)
+            && boolean(294, true) && real(142, 142.125)
+            && real(143, 143.125) && string(4, "CIVIC3D_DATA_END");
+    } else {
+        written = written
+            && real(40, 40.125) && real(41, 41.125)
+            && integer(91, 91) && integer(92, 92)
+            && real(210, 210.125) && real(220, 220.25)
+            && real(230, 230.375) && real(12, 12.125)
+            && real(22, 22.25) && integer(95, 2)
+            && real(141, 141.125) && boolean(294, true)
+            && real(142, 142.125) && real(143, 143.125)
+            && string(301, "modern-coordinate-definition")
+            && string(302, "modern-georss")
+            && string(305, "modern-observation-tag")
+            && string(306, "modern-observation-to")
+            && string(307, "modern-observation-coverage")
+            && integer(93, 1) && real(13, 13.125) && real(23, 23.25)
+            && real(14, 14.125) && real(24, 24.25)
+            && integer(96, 1) && integer(97, 1)
+            && integer(98, 2) && integer(99, 3);
+    }
+    written = written && string(0, "ACDBPLACEHOLDER")
+        && string(5, "701") && string(330, "2")
         && string(0, "ENDSEC") && string(0, "EOF");
     return written && !writer->hasWriteError() && output.good();
 }
@@ -1611,6 +1716,112 @@ void testVisualStyleRetention(TestContext& t) {
                  binary
                      ? "binary no-VisualStyle control does not fabricate style callbacks"
                      : "ASCII no-VisualStyle control does not fabricate style callbacks");
+    }
+}
+
+void testGeoDataVersionedMappings(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-geodata-version-" + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "temporary GEODATA directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    struct VersionCase {
+        const char* target;
+        std::int32_t objectVersion;
+    };
+    const VersionCase versions[] = {
+        {"AC1021", 1}, {"AC1024", 2}, {"AC1027", 3}
+    };
+    for (const bool binary : {false, true}) {
+        for (const VersionCase& version : versions) {
+            const std::string stem = std::string("geodata-")
+                + version.target + (binary ? "-binary" : "-ascii");
+            const auto path = directory / (stem + ".dxf");
+            std::vector<int> expectedCodes;
+            const bool generated = writeGeoDataVersionControl(
+                path, binary, version.target, version.objectVersion,
+                expectedCodes);
+            FixtureInterface importer;
+            dx_data data;
+            const bool imported = generated
+                && importer.fileImport(path.string(), &data, false);
+            const auto geodataRaw = std::find_if(
+                importer.rawObjects.begin(), importer.rawObjects.end(),
+                [](const DRW_RawDxfObject& raw) {
+                    return raw.name == "GEODATA";
+                });
+            const auto following = std::find_if(
+                importer.rawObjects.begin(), importer.rawObjects.end(),
+                [](const DRW_RawDxfObject& raw) {
+                    return raw.name == "ACDBPLACEHOLDER";
+                });
+            std::vector<int> actualCodes;
+            if (geodataRaw != importer.rawObjects.end()) {
+                actualCodes.reserve(geodataRaw->groups.size());
+                for (const DRW_Variant& group : geodataRaw->groups)
+                    actualCodes.push_back(group.code());
+            }
+            std::vector<int> expectedGeoCodes;
+            if (expectedCodes.size() > 1u) {
+                const auto followingObject = std::find(
+                    expectedCodes.begin() + 1, expectedCodes.end(), 0);
+                expectedGeoCodes.assign(expectedCodes.begin() + 1,
+                                        followingObject);
+            }
+            const bool rawSequencePreserved = geodataRaw
+                    != importer.rawObjects.end()
+                && actualCodes == expectedGeoCodes
+                && geodataRaw->groups.size() == geodataRaw->rawValues.size()
+                && geodataRaw->handle == 0x700u
+                && geodataRaw->parentHandle == 0x2u;
+            const bool objectBoundaryPreserved = importer.rawObjects.size() == 2u
+                && following != importer.rawObjects.end()
+                && following->handle == 0x701u;
+            bool typedValuesMatch = importer.geoData.size() == 1u
+                && importer.geoData.front().m_version == version.objectVersion
+                && importer.geoData.front().handle == 0x700u
+                && importer.geoData.front().parentHandle == 0x2u
+                && importer.geoData.front().m_hostBlockHandle == 0x3u
+                && importer.geoData.front().m_coordinatesType == 2;
+            if (version.objectVersion >= 2 && typedValuesMatch) {
+                const DRW_GeoData& geo = importer.geoData.front();
+                typedValuesMatch = geo.m_horizontalUnitScale == 40.125
+                    && geo.m_verticalUnitScale == 41.125
+                    && geo.m_horizontalUnits == 91
+                    && geo.m_verticalUnits == 92
+                    && geo.m_upDirection.x == 210.125
+                    && geo.m_upDirection.y == 220.25
+                    && geo.m_upDirection.z == 230.375
+                    && geo.m_northDirection.x == 12.125
+                    && geo.m_northDirection.y == 22.25
+                    && geo.m_points.size() == 1u
+                    && geo.m_points.front().m_source.x == 13.125
+                    && geo.m_points.front().m_source.y == 23.25
+                    && geo.m_points.front().m_destination.x == 14.125
+                    && geo.m_points.front().m_destination.y == 24.25
+                    && geo.m_faces.size() == 1u
+                    && geo.m_faces.front().m_index1 == 1
+                    && geo.m_faces.front().m_index2 == 2
+                    && geo.m_faces.front().m_index3 == 3;
+            }
+            const std::string label = (binary ? "binary " : "ASCII ")
+                + stem + " preserves ordered GEODATA raw groups, object "
+                         "boundary, and current typed control values";
+            t.expect(imported && rawSequencePreserved
+                         && objectBoundaryPreserved && typedValuesMatch,
+                     label.c_str());
+        }
     }
 }
 
@@ -10934,6 +11145,7 @@ int main(int argc, char** argv) {
     testDictionaryWithoutOwner(context);
     testNodRootOrdering(context);
     testVisualStyleRetention(context);
+    testGeoDataVersionedMappings(context);
     testLayoutGraphReadContract(context);
     testXRecordDataOrder(context);
     testXRecordCoordinateTuples(context);
