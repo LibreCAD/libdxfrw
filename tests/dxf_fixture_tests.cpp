@@ -246,6 +246,56 @@ std::vector<std::pair<int, std::string>> groupsOfRecord(
     return groups;
 }
 
+bool literalMeshWireFieldsMatch(const std::filesystem::path& path,
+                                bool binary) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader;
+    if (binary) {
+        constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a\0";
+        std::array<char, 22> actual{};
+        stream.read(actual.data(), static_cast<std::streamsize>(actual.size()));
+        if (!stream || !std::equal(actual.begin(), actual.end(), signature))
+            return false;
+        reader = std::make_unique<dxfReaderBinary>(&stream);
+    } else {
+        reader = std::make_unique<dxfReaderAscii>(&stream);
+    }
+
+    const std::vector<std::pair<int, double>> expected{
+        {71, 2.0}, {72, 1.0}, {94, 2.0}, {95, 2.0},
+        {140, 0.25}, {140, 0.75}};
+    std::vector<std::pair<int, double>> actualFields;
+    bool inMesh = false;
+    bool sawMesh = false;
+    bool sawFollowingLine = false;
+    bool sawEof = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            const std::string name = reader->getString();
+            if (inMesh && name == "LINE")
+                sawFollowingLine = true;
+            if (name == "EOF") {
+                sawEof = true;
+                break;
+            }
+            inMesh = name == "MESH";
+            sawMesh = sawMesh || inMesh;
+            continue;
+        }
+        if (!inMesh)
+            continue;
+        if (code == 71 || code == 72 || code == 94 || code == 95)
+            actualFields.emplace_back(code, reader->getInt32());
+        else if (code == 140)
+            actualFields.emplace_back(code, reader->getDouble());
+    }
+    return sawEof && sawMesh && sawFollowingLine
+        && actualFields == expected;
+}
+
 std::string groupValue(const std::vector<std::pair<int, std::string>>& groups,
                        int code);
 
@@ -3443,6 +3493,79 @@ void testHiddenZeroHeightAttrib(TestContext& t) {
                      && followingLine->secPoint.z == 60.0,
                  binary ? "binary ATTRIB SEQEND preserves following LINE"
                         : "ASCII ATTRIB SEQEND preserves following LINE");
+    }
+}
+
+void testMeshRawFieldTags(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const std::filesystem::path path =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-mesh-wire-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        std::error_code error;
+        std::filesystem::remove(path, error);
+
+        dx_data source;
+        auto mesh = std::make_unique<DRW_Mesh>();
+        mesh->version = 2;
+        mesh->blendCrease = true;
+        mesh->subdivisionLevel = 7;
+        mesh->vertices = {{0.0, 0.0, 0.0}, {2.0, 0.0, 0.0},
+                          {0.0, 3.0, 0.0}};
+        mesh->faces = {{0, 1, 2}};
+        mesh->edges = {{0, 1}, {1, 2}};
+        mesh->creases = {0.25, 0.75};
+        source.mBlock->ent.push_back(mesh.release());
+        auto* following = new DRW_Line;
+        following->basePoint = {10.0, 20.0, 30.0};
+        following->secPoint = {40.0, 50.0, 60.0};
+        source.mBlock->ent.push_back(following);
+
+        dx_iface writer;
+        const bool exported = writer.fileExport(
+            path.string(), DRW::AC1021, binary, &source, false);
+        t.expect(exported,
+                 binary ? "generated binary MESH exports"
+                        : "generated ASCII MESH exports");
+        t.expect(exported && literalMeshWireFieldsMatch(path, binary),
+                 binary ? "binary MESH raw 71/72/94/95/140 fields retain order and LINE framing"
+                        : "ASCII MESH raw 71/72/94/95/140 fields retain order and LINE framing");
+
+        dx_data decoded;
+        dx_iface reader;
+        const bool imported = exported
+            && reader.fileImport(path.string(), &decoded, false);
+        const DRW_Mesh* decodedMesh = imported && decoded.mBlock != nullptr
+            && !decoded.mBlock->ent.empty()
+            ? dynamic_cast<const DRW_Mesh*>(decoded.mBlock->ent.front())
+            : nullptr;
+        t.expect(decodedMesh != nullptr && decodedMesh->version == 2
+                     && decodedMesh->blendCrease
+                     && decodedMesh->subdivisionLevel == 7
+                     && decodedMesh->vertices.size() == 3u
+                     && decodedMesh->vertices[1].x == 2.0
+                     && decodedMesh->vertices[2].y == 3.0
+                     && decodedMesh->faces
+                            == std::vector<std::vector<std::int32_t>>{{0, 1, 2}}
+                     && decodedMesh->edges
+                            == std::vector<std::pair<std::int32_t, std::int32_t>>{
+                                {0, 1}, {1, 2}}
+                     && decodedMesh->creases
+                            == std::vector<double>{0.25, 0.75},
+                 binary ? "binary MESH typed self-read retains generated fields"
+                        : "ASCII MESH typed self-read retains generated fields");
+        const DRW_Line* decodedLine = imported && decoded.mBlock != nullptr
+            && decoded.mBlock->ent.size() == 2u
+            ? dynamic_cast<const DRW_Line*>(decoded.mBlock->ent.back())
+            : nullptr;
+        t.expect(decodedLine != nullptr
+                     && decodedLine->basePoint.x == 10.0
+                     && decodedLine->secPoint.z == 60.0,
+                 binary ? "binary MESH reader publishes following LINE"
+                        : "ASCII MESH reader publishes following LINE");
+        std::filesystem::remove(path, error);
     }
 }
 
@@ -8657,6 +8780,7 @@ int main(int argc, char** argv) {
     testRawXdataTextBytes(context);
     testLegacyDimensionPointOrder(context);
     testHiddenZeroHeightAttrib(context);
+    testMeshRawFieldTags(context);
     testHeaderMetadataOrder(context);
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
