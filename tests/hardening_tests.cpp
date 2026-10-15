@@ -3933,6 +3933,74 @@ void testDxfDimensionTextOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfToleranceTextOwnerBudget(TestContext& t) {
+    class ToleranceParseProbe final : public DRW_Tolerance {
+    public:
+        using DRW_Tolerance::parseCode;
+        using DRW_Tolerance::resetDwgState;
+    };
+
+    const std::string source = "1\nOLD\n1\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && tolerance.text == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "TOLERANCE visual-text replacement retains only its live value at the exact transient peak");
+        ToleranceParseProbe copy(tolerance);
+        ToleranceParseProbe assigned;
+        assigned = tolerance;
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 7u && copy.text == "DIMTEXT"
+                     && assigned.text == "DIMTEXT",
+                 "TOLERANCE text lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "TOLERANCE assignment copy keeps the text charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final TOLERANCE reset releases its visual-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        ToleranceParseProbe tolerance;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!tolerance.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && tolerance.text == "OLD" && budget->used() == 3u,
+                 "one-byte-under TOLERANCE text replacement preserves the previous value and charge");
+        tolerance.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected TOLERANCE text replacement releases its lease on reset");
+    }
+}
+
 void testDxfLeaderStyleOwnerBudget(TestContext& t) {
     class LeaderParseProbe final : public DRW_Leader {
     public:
@@ -6207,6 +6275,7 @@ int main() {
     testDxfAttdefPromptOwnerBudget(context);
     testDxfDimensionStyleOwnerBudget(context);
     testDxfDimensionTextOwnerBudget(context);
+    testDxfToleranceTextOwnerBudget(context);
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);

@@ -9254,7 +9254,10 @@ bool DRW_SectionObject::encodeDwg(DRW::Version v, dwgBufferW *buf,
 bool DRW_Tolerance::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 1:
-        text = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes, text,
+                reader->getUtf8String()))
+            return false;
         break;
     case 3:
         dimStyleName = reader->getUtf8String();
@@ -9295,6 +9298,7 @@ bool DRW_Tolerance::parseCode(int code, const std::unique_ptr<dxfReader>& reader
 void DRW_Tolerance::resetDwgState() {
     DRW_Entity::reset();
     text.clear();
+    m_dxfRetainedTextBytes = 0u;
     dimStyleName = "STANDARD";
     dimStyleH = dwgHandle{};
     insertionPoint = DRW_Coord{0.0, 0.0, 0.0};
