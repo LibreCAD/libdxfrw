@@ -3860,6 +3860,73 @@ void testDxfDimensionStyleOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfLeaderStyleOwnerBudget(TestContext& t) {
+    class LeaderParseProbe final : public DRW_Leader {
+    public:
+        using DRW_Leader::parseCode;
+        using DRW_Leader::resetDwgState;
+    };
+
+    const std::string source = "3\nOLD\n3\nLEADER\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(45u);
+        LeaderParseProbe leader;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!leader.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && leader.style == "LEADER" && budget->used() == 6u,
+                 "LEADER style replacement retains only the live field at the exact transient peak");
+        LeaderParseProbe copy(leader);
+        LeaderParseProbe assigned;
+        assigned = leader;
+        leader.resetDwgState();
+        t.expect(budget->used() == 6u && copy.style == "LEADER"
+                     && assigned.style == "LEADER",
+                 "LEADER style lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 6u,
+                 "LEADER assignment copy keeps the style charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final LEADER reset releases its style lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LeaderParseProbe leader;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!leader.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && leader.style == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under LEADER style replacement preserves its previous value and charge");
+        leader.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected LEADER style replacement releases its lease on reset");
+    }
+}
+
 void testDxfXDataStringOwnerBudget(TestContext& t) {
     class LineParseProbe final : public DRW_Line {
     public:
@@ -6066,6 +6133,7 @@ int main() {
     testDxfAttribTagOwnerBudget(context);
     testDxfAttdefPromptOwnerBudget(context);
     testDxfDimensionStyleOwnerBudget(context);
+    testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);

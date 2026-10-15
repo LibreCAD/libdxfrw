@@ -21501,7 +21501,10 @@ bool DRW_DimOrdinate::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint
 bool DRW_Leader::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 3:
-        style = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedStyleBytes, style,
+                reader->getUtf8String()))
+            return false;
         break;
     case 71:
         arrow = reader->getInt32();
@@ -21629,6 +21632,7 @@ bool DRW_Leader::validateDxf() const {
 void DRW_Leader::resetDwgState() {
     DRW_Entity::reset();
     style.clear();
+    m_dxfRetainedStyleBytes = 0u;
     arrow = 1;
     leadertype = 0;
     flag = 3;
@@ -23995,7 +23999,8 @@ bool DRW_Viewport::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_
 }
 
 DRW_Leader::DRW_Leader(const DRW_Leader& o)
-    : DRW_Entity(o), style(o.style), arrow(o.arrow), leadertype(o.leadertype),
+    : DRW_Entity(o), m_dxfRetainedStyleBytes(o.m_dxfRetainedStyleBytes),
+      style(o.style), arrow(o.arrow), leadertype(o.leadertype),
       flag(o.flag), hookline(o.hookline), hookflag(o.hookflag),
       textheight(o.textheight), textwidth(o.textwidth), vertnum(o.vertnum),
       coloruse(o.coloruse), annotHandle(o.annotHandle), origin(o.origin),
@@ -24016,6 +24021,7 @@ DRW_Leader::DRW_Leader(const DRW_Leader& o)
 DRW_Leader& DRW_Leader::operator=(const DRW_Leader& o) {
     if (this != &o) {
         DRW_Entity::operator=(o);
+        m_dxfRetainedStyleBytes = o.m_dxfRetainedStyleBytes;
         style = o.style;
         arrow = o.arrow;
         leadertype = o.leadertype;

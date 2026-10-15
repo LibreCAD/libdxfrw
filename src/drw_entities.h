@@ -4623,6 +4623,9 @@ protected:
 */
 class DRW_Leader : public DRW_Entity {
     SETENTFRIENDS
+private:
+    std::size_t m_dxfRetainedStyleBytes{0};
+
 public:
     DRW_Leader() {
         eType = DRW::LEADER;
