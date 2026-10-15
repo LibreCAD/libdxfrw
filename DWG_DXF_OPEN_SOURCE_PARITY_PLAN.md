@@ -54,18 +54,21 @@ position, owned first DICTIONARY input fails before callbacks, and a later
 ownerless dictionary is not promoted when an older/minimal OBJECTS stream has
 no leading NOD. The narrow strict rejection leaves those legacy streams on
 their tolerant path. Neither peer report alone establishes a support claim.
-The 2026-10-15 LAYOUT crosswalk grounds the next 7G slice in Autodesk's
-reciprocal graph: NOD `ACAD_LAYOUT` entry→ACAD_LAYOUT dictionary→named LAYOUT
-entries and BLOCK_RECORD 340→LAYOUT,
-alongside LAYOUT owner/object/block-record 330, viewport 331, UCS 345/346 and
-shade-plot 333 edges. A deeper local source audit confirms the end-to-end
-PAR-20 gap: core parses the fields and exposes `writeLayout`, but `dx_iface`
-drops `addLayout`, does not write LAYOUT objects, emits BLOCK_RECORDs without
-code340, and does not import general source NOD entries into writer root
-planning. The existing `DRW_Layout` fields are not yet a sufficient contract
-for all graph identities/remapping. This is an implementation-readiness
-refinement, not a new defect ID or support claim; keep it separate from the
-LibreCAD_3 typed/raw PAR-56 boundary.
+The 2026-10-15 LAYOUT crosswalk grounds 7G.3e in Autodesk's reciprocal graph:
+NOD `ACAD_LAYOUT` entry→ACAD_LAYOUT dictionary→named LAYOUT entries and
+BLOCK_RECORD 340→LAYOUT, alongside LAYOUT owner/object/block-record 330,
+viewport 331, UCS 345/346 and shade-plot 333 edges. The core adapter/writer
+emission slice is now committed at `f911b4f`: it emits the named layout
+dictionary and LAYOUT objects, remaps fixed-handle collisions, writes
+reciprocal BLOCK_RECORD 340 links, and round-trips the core graph in generated
+ASCII/binary DXF from AC1015 through AC1027. AC1014 output refuses a retained
+multi-layout graph before publication. This does not yet preserve every
+unrelated source NOD entry or close auxiliary VIEWPORT/UCS/shade target types;
+the generated positive control omits those auxiliary targets. PAR-122's
+DWG-derived VIEWPORT 68/69 projection and full CLI/native consumer checks also
+remain open. This is an implementation-readiness refinement, not a new defect
+ID or support claim; keep it separate from the LibreCAD_3 typed/raw PAR-56
+boundary.
 The 2026-10-14 ODA/peer refresh adds source/spec-confirmed candidate PAR-119
 and implementation subplan7BP for the target-version-dependent GEODATA CIVIL
 tail, plus PAR-120/7BQ for under-declared capacities across dynamic DXF symbol
@@ -637,6 +640,7 @@ Its historical binary diff SHA-256 is
 | PAR-120 / 7BQ dynamic symbol-table capacities | IMPLEMENTED / EXTERNAL_ACCEPTANCE_PENDING | Broadened the DIMSTYLE candidate to VPORT/LTYPE/LAYER/STYLE/VIEW/UCS/APPID plus DIMSTYLE; BLOCK_RECORD remains the computed-count control. Autodesk's current DXF contract was checked against local `6d76a34`; ezdxf exact-count output and netDxf's contrary “obsolete in practice” interpretation were reconciled. `a1e81bc`, `a30e46c` and `cb1bc47` commit the generated backpatch helper, all eight dynamic-table writer paths, mandatory/fallback accounting, four-profile exact row vectors, signed-16-bit boundary and late-failure rollback. No strict-reader rejection was established and no native CAD acceptance was run; report this as a local metadata/conformance correction, not a promoted output-acceptance claim. No fixture/CTest, full suite or support promotion. Next ready item: 7BP GEODATA target-version/objectVersion separation. |
 | Broader peer output / legacy semantic audit | PLAN_UPDATED / NONPROMOTING | Cross-checked ACadSharp #1074/#1077, #1180, #1194/#1201, #1038/#1067, #1133/#1151, open #1217/#1247, and LibreDWG #1351/#1357 against Autodesk DXF contracts and local `6d76a34`. Corrects the #1074 diagnosis to the active-VPORT ambient-color default; finds no corresponding local default defect. Adds field-level fast-test refinements to existing writer/reader/table routes, including explicit zero-height hidden ATTRIB, LEADER metrics, unordered AC1009 DIMENSION groups and raw MESH tags. Confirms local INSERT sequence handling is already structurally paired. No new PAR/subplan, source/test edit, peer execution, sample admission, CTest, dependency, support claim or J promotion; counts remain120/69. |
 | 7G.3e typed LAYOUT reference remapping | COMMITTED / TYPED-WRITER-SCOPED | `55056aa` routes LAYOUT's structural owner, shade-plot, paper-space BLOCK_RECORD, last-active VIEWPORT, named UCS and base UCS handles through the existing source-handle remap table. The new generated Wave 1 case checks exact remapped groups 330/333/331/345/346, both distinct 330 roles, ASCII/binary equality, and the following-record boundary. `cmake --build build --target libdxfrw_wave1_tests -j4` and `build/libdxfrw_wave1_tests` pass. This closes only the low-level typed writer edge remapper; `dx_iface` graph emission, NOD entry merge, source BLOCK_RECORD 340 links, layout-local VIEWPORT 68/69 derivation and composed graph readback remain queued under 7G.3e. No fixture, new test registration or support promotion. |
+| 7G.3e core layout graph emission and version boundary | COMMITTED / CORE_GRAPH_ONLY | `f911b4f` emits the source ACAD_LAYOUT dictionary and LAYOUT records, remaps layout/dictionary handles around fixed DXF identities, and emits reciprocal BLOCK_RECORD group340 links on AC1015+ including canonical model/paper rows. The generated ASCII/binary fixture forces two collisions and reads back the root→dictionary→layout and layout↔BLOCK_RECORD links across AC1015/1018/1021/1024/1027. A retained graph targeting AC1014 is rejected before replacing a sentinel destination. `cmake --build build --target libdxfrw_dxf_fixture_tests -j4`, `build/libdxfrw_dxf_fixture_tests`, Wave1 build/run and `lc3_compat_check` pass; `git diff --check` is clean. Autodesk defines code340's role; ezdxf's layout docs describe the R12 single-active-paperspace exception and R2000+ page-layout features, so implementation policy is AC1015+ and fail-closed downgrade below it. The generated closure vector clears viewport/UCS/shade references; unrelated source NOD entries, auxiliary target census/emission, paper-space entity ownership, PAR-122 derivation, composed CLI/native acceptance and LibreCAD_3 runtime behavior remain open. No fixture payload, CTest registration or support promotion. |
 
 **API source checkpoint before integration:** reviewed
 ca7db684/90319104/2f7cc65 formed the eight-path patch on736ae70 bound above.
@@ -4412,22 +4416,23 @@ Split implementation to keep a small critical path:
    separate VIEWPORT association; do not infer DWG layout identities from DXF
    names or handle order.
 
-   Local source facts at this research checkpoint: `processLayout()` reaches
-   `addLayout()` and `DRW_Layout::parseCode`/`dxfRW::writeLayout` cover typed
-   payload fields. `dx_iface` now retains typed LAYOUT callbacks in `dx_data`,
-   but its `writeObjects()` still does not call `writeLayout`. Likewise,
-   `processBlockRecord()` reads `layoutHandle` from code340 and publishes a
-   `DRW_Block_Record`, but `dx_iface::writeBlockRecords()` forwards only name,
-   units and preview bytes; `emitBlockRecord()` does not emit code340. The
-   position-identified root now has a non-pure `addNamedObjectDictionary()`
-   callback and a separate `dx_data` slot; the base callback forwards to
-   `addDictionary()` for old consumers. However, `fileExport()` still prepares
-   `setRootDictEntries()` only for the special ACDS material path, so ordinary
-   source `ACAD_LAYOUT` entries are not attached to regenerated NOD C.
-   `writeLayout()` reserves the record handle but does not resolve/remap its
-   330/331/345/346/333 references. Thus standalone typed parsing/writing is
-   not end-to-end closure, nor are reader callback counts or successful CLI
-   conversion sufficient acceptance.
+   Local source facts and implementation state: `processLayout()` reaches
+   `addLayout()` and the core typed codec parses/writes the distinct LAYOUT
+   fields. The source-root callback and `dx_data` retention, structural graph
+   census, and low-level typed-reference remapper are already committed. The
+   adapter's core graph writer slice is now committed at `f911b4f`: it attaches
+   the `ACAD_LAYOUT` root edge, emits the matching inner dictionary and
+   retained LAYOUT records, maps source dictionary/layout identities away from
+   fixed DXF handles, and writes code340 backlinks for source and canonical
+   model/paper BLOCK_RECORD rows. A generated read→export→read graph control
+   covers ASCII/binary AC1015, AC1018, AC1021, AC1024 and AC1027, including
+   two fixed-handle collisions. Its source has only the `ACAD_LAYOUT` NOD
+   entry; arbitrary other source NOD entries are still not copied into the
+   regenerated root. The positive fixture clears VIEWPORT/UCS/shade target
+   handles because their target records are not present in that vector, so
+   typed numeric remapping is not yet target-type closure. No actual
+   paper-space entity ownership, DWG→DXF viewport derivation, full CLI/native
+   acceptance, or LibreCAD_3 runtime behavior is established by this test.
 
    Implement as five independently commit-ready slices, in dependency order:
 
@@ -4459,25 +4464,29 @@ Split implementation to keep a small critical path:
       Optional viewport/UCS/shade target type resolution remains for the next
       census extension. Preserve the distinct 330 roles and ordered
       app-data/reactor groups; do not rewrite caller structures in place.
-   4. **Preplan/remap before emission:** plan all emitted LAYOUT and
-      BLOCK_RECORD handles and regenerated NOD entries before OBJECTS starts.
-      Reconcile generated canonical model/paper-space records, source handle
-      collisions, handle remapping, case-folded duplicate names and existing
-      ACDS/material root entries in one admission pass. Add a typed
-      BLOCK_RECORD output path for code340 and make `writeLayout` resolve every
-      typed handle edge via the same source→emitted map; on unsupported
-      versions omit only by documented version rule, otherwise fail before
-      publishing. No fallback based on tab order, fixed handles or names.
-   5. **Emit and close:** output BLOCK_RECORD table rows, block definitions/
-      spaces, regenerated NOD/root dictionary, then LAYOUT objects in a
-      reference-safe order. Root may reference later OBJECTS records, but every
-      emitted target must exist exactly once and every reciprocal edge must
-      resolve. Run import→export→import ASCII/binary and the existing CLI
-      cohort. Assert two named paper layouts remain distinct, their entities
-      and viewports keep the right owners, NOD entry names/order are retained,
-      and model space remains distinct. Negative cases assert no destination
-      publication/replacement. Run one composed graph checkpoint only after
-      the shared parser/writer boundary settles; no full suite per vector.
+   4. **Preplan/remap before emission (CORE COMMITTED `f911b4f`):** the writer
+      plans fixed-handle remaps for source named dictionaries and LAYOUTs,
+      routes typed references through the same remap path, merges the source
+      `ACAD_LAYOUT` root edge with the existing ACDS/material root entries, and
+      emits code340 backlinks including canonical model/paper rows. Graphs
+      with LAYOUT records targeting before AC1015 are refused before output
+      publication; the R12 one-active-paperspace compatibility model is not
+      represented as a modern multi-layout graph. Remaining admission work:
+      preserve/reconcile unrelated source NOD entries and resolve auxiliary
+      VIEWPORT/UCS/shade targets by type. Do not fall back to tab order, fixed
+      handles or names.
+   5. **Core emit/readback closure (COMMITTED `f911b4f`; FULL 7G.3e STILL
+      OPEN):** the generated two-paper-layout plus Model graph now verifies
+      root key→dictionary→named layout and reciprocal layout/BLOCK_RECORD
+      links after remapping, in ASCII/binary across AC1015/1018/1021/1024/1027.
+      The AC1014 negative proves fail-closed destination preservation. This
+      vector does not contain paper-space drawing entities or the referenced
+      auxiliary objects, so it does not close entity/viewport ownership,
+      target-type resolution, source NOD preservation, or PAR-122 output
+      derivation. Next extend only the existing generated fixture with those
+      specific targets and one paper-space entity; then run a single composed
+      CLI checkpoint after the reader/writer boundary settles. Keep full suites
+      at phase gates, not per vector.
 
       **PAR-122 paper-space VIEWPORT output fields:** Autodesk's DXF contract
       defines group68 as off/on plus active stack order and group69 as viewport
@@ -10701,3 +10710,21 @@ semantics to the separate independent-kernel gate. Retain LibreCAD and
 LibreCAD_3 2D compatibility checks unchanged. Findings and top-level subplans
 remain 122/70. `J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
 `DEFERRED_EXTERNAL`, and none of this research promotes their support claims.
+
+## DXF LAYOUT version boundary and core graph writer checkpoint (2026-10-15)
+
+This targeted follow-up cross-checks the format role of BLOCK_RECORD code340,
+the practical DXF-version boundary for multi-layout output, and the newly
+committed graph writer. It refines 7G.3e only; it adds no new defect ID or
+support claim.
+
+| Evidence | Result and confidence limit | Concrete plan rule |
+| --- | --- | --- |
+| Autodesk [BLOCK_RECORD DXF codes](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm) and [LAYOUT DXF codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm); ezdxf [layout lifecycle](https://ezdxf.readthedocs.io/en/stable/tasks/add_layouts.html), [drawing layout API](https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html), and [layout page setup](https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html) | Autodesk identifies BLOCK_RECORD 340 as the hard pointer to its associated LAYOUT and LAYOUT's post-subclass 330 as the paper-space BLOCK_RECORD association. ezdxf can model multiple layouts but documents that R12 output retains only the active paperspace; its page-setup API requires R2000+. This informs the implementation boundary but is not a substitute for version-specific producer evidence. | Emit the complete LAYOUT graph only for AC1015/R2000 and later. For a pre-R2000 target with retained layout identities, reject before opening/replacing the destination rather than emit unsupported objects or silently drop tabs. Emit each source/canonical BLOCK_RECORD 340 link on the same AC1015+ boundary. Keep R12's legacy single-active-paperspace route distinct; do not infer arbitrary paper-tab loss as harmless. |
+| Local graph-writer implementation, committed `f911b4f`; previous typed-reference slice `55056aa`; generated `tests/dxf_fixture_tests.cpp` control | The adapter now emits the ACAD_LAYOUT dictionary and LAYOUTs, and remaps graph identities including fixed-handle collisions. Reciprocal group340 links are emitted for AC1015+; a retained graph targeting AC1014 is refused. Generated ASCII/binary round-trips close the root dictionary/named-layout/BLOCK_RECORD cycle in AC1015/1018/1021/1024/1027. The positive graph fixture clears 331/345/346/333 targets and contains no paper-space drawing entity; this is core structural closure only. | Treat `f911b4f` as a bounded implementation checkpoint, not completion of 7G.3e. Keep source NOD entries other than `ACAD_LAYOUT`, auxiliary-reference target-type closure, paper-space entity ownership, PAR-122 VIEWPORT derivation and CLI/native semantic evidence on the remaining queue. Extend the existing generated fixture only for those specific open edges; do not add external fixture payloads or a CTest per version. |
+
+The focused DXF fixture executable passed for the ASCII/binary five-version
+matrix; Wave 1 passed; `lc3_compat_check` built successfully; and
+`git diff --check` was clean before the code commit. Findings and top-level
+subplans remain 122/70. `J256`, `J260`, `J268`, `J284`, `J293`, and `J295`
+remain `DEFERRED_EXTERNAL` and non-promoting.
