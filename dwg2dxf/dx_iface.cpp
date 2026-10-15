@@ -2284,8 +2284,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             dxfW = nullptr;
             return false;
         }
-        dxfW->setNamedDictObjects(materialDictionaries);
-
         if (!m_acdsTypedHistoryObjects.empty()) {
             // Native custom objects use their record names directly. They do
             // not carry the proxy-only group-91 class ordinal.
@@ -2643,6 +2641,87 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     dxfW->setHandleRemap(handleRemap);
     std::vector<std::pair<std::string, std::string>> rootEntries =
         materialRootEntries;
+    std::unordered_set<std::string> rootEntryNames;
+    for (const auto& entry : rootEntries) {
+        if (!rootEntryNames.insert(layoutSymbolKey(entry.first)).second) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
+    if (cData->hasNamedObjectDictionary) {
+        for (const DRW_Dictionary::Entry& sourceEntry :
+             cData->namedObjectDictionary.m_entries) {
+            const std::string key = layoutSymbolKey(sourceEntry.m_name);
+            if (key == "ACAD_LAYOUT" || key == "ACAD_GROUP"
+                || (key == "ACAD_IMAGE_DICT" && !cData->images.empty()))
+                continue;
+
+            if (key == "ACAD_MATERIAL"
+                && rootEntryNames.count(key) != 0) {
+                const auto material = std::find_if(
+                    materialDictionaries.begin(), materialDictionaries.end(),
+                    [&sourceEntry](const DRW_Dictionary& dictionary) {
+                        return dictionary.handle == sourceEntry.m_handle;
+                    });
+                if (material == materialDictionaries.end()) {
+                    delete dxfW;
+                    dxfW = nullptr;
+                    return false;
+                }
+                continue;
+            }
+
+            if (key.empty() || !rootEntryNames.insert(key).second
+                || cData->namedObjectDictionary.handle == 0
+                || cData->namedObjectDictionary.handle == DRW::NoHandle
+                || sourceEntry.m_handle == 0
+                || sourceEntry.m_handle == DRW::NoHandle) {
+                delete dxfW;
+                dxfW = nullptr;
+                return false;
+            }
+
+            const DRW_Dictionary* targetDictionary = nullptr;
+            std::size_t targetMatches = 0;
+            for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+                if (dictionary.handle == sourceEntry.m_handle) {
+                    targetDictionary = &dictionary;
+                    ++targetMatches;
+                }
+            }
+            // The first retention slice is intentionally limited to empty,
+            // directly-owned dictionaries. Never recreate a dangling root
+            // edge or claim closure for dictionary contents the adapter does
+            // not yet serialize as a typed object graph.
+            if (targetMatches != 1u || targetDictionary == nullptr
+                || targetDictionary->parentHandle
+                       != cData->namedObjectDictionary.handle
+                || !targetDictionary->m_entries.empty()) {
+                if (requireResolvedOwners) {
+                    delete dxfW;
+                    dxfW = nullptr;
+                    return false;
+                }
+                continue;
+            }
+
+            const bool alreadyQueued = std::any_of(
+                materialDictionaries.begin(), materialDictionaries.end(),
+                [sourceEntry](const DRW_Dictionary& dictionary) {
+                    return dictionary.handle == sourceEntry.m_handle;
+                });
+            if (!alreadyQueued)
+                materialDictionaries.push_back(*targetDictionary);
+
+            std::uint32_t emittedHandle = sourceEntry.m_handle;
+            const auto remapped = handleRemap.find(emittedHandle);
+            if (remapped != handleRemap.end())
+                emittedHandle = remapped->second;
+            rootEntries.emplace_back(
+                sourceEntry.m_name, dxfW->toHexStrHandle(emittedHandle));
+        }
+    }
     if (cData->hasNamedObjectDictionary && !cData->layouts.empty()) {
         const auto layoutEntry = std::find_if(
             cData->namedObjectDictionary.m_entries.begin(),
@@ -2662,6 +2741,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         rootEntries.emplace_back("ACAD_LAYOUT",
                                  dxfW->toHexStrHandle(emittedHandle));
     }
+    dxfW->setNamedDictObjects(materialDictionaries);
     dxfW->setRootDictEntries(rootEntries);
     bool success = dxfW->write(this, v, binary);
     if (!success && (debug || requireResolvedOwners)) {

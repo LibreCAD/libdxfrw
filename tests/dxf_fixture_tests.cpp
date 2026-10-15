@@ -511,6 +511,25 @@ void testLayoutGraphReadContract(TestContext& t) {
                      && adapterData.blockRecords.size() == 3,
                  "dx_iface retains the positional NOD, named UCS rows and typed layout graph");
 
+        const auto addEmptyRootDictionary = [](dx_data& data) {
+            if (!data.hasNamedObjectDictionary
+                || data.namedObjectDictionary.handle == 0
+                || data.namedObjectDictionary.handle == DRW::NoHandle)
+                return false;
+            DRW_Dictionary child;
+            child.handle = 0x720u;
+            child.parentHandle = data.namedObjectDictionary.handle;
+            child.cloning = 1;
+            DRW_Dictionary::Entry entry;
+            entry.m_name = "CUSTOM_EMPTY";
+            entry.m_handle = child.handle;
+            data.namedObjectDictionary.m_entries.push_back(entry);
+            data.dictionaries.push_back(std::move(child));
+            return true;
+        };
+        t.expect(addEmptyRootDictionary(adapterData),
+                 "generated NOD graph adds one typed, directly-owned empty dictionary");
+
         const auto rejectedOutput = directory
             / (binary ? "invalid-layout-output-binary.dxf"
                       : "invalid-layout-output-ascii.dxf");
@@ -543,6 +562,34 @@ void testLayoutGraphReadContract(TestContext& t) {
             DRW::AC1027);
         adapterData.layouts.front().paperSpaceBlockRecordHandle.ref =
             originalBlockRecordHandle;
+
+        auto emptyRootDictionary = std::find_if(
+            adapterData.dictionaries.begin(), adapterData.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == 0x720u;
+            });
+        if (emptyRootDictionary != adapterData.dictionaries.end()) {
+            DRW_Dictionary::Entry unresolved;
+            unresolved.m_name = "UNRESOLVED_CHILD";
+            unresolved.m_handle = 0x7FEu;
+            emptyRootDictionary->m_entries.push_back(unresolved);
+            {
+                std::ofstream sentinel(rejectedOutput,
+                                       std::ios::binary | std::ios::trunc);
+                sentinel << "unsupported-nod-sentinel";
+            }
+            dx_iface exporter;
+            const bool exported = exporter.fileExport(
+                rejectedOutput.string(), DRW::AC1027, binary, &adapterData,
+                false, true);
+            std::ifstream preserved(rejectedOutput, std::ios::binary);
+            const std::string contents(
+                (std::istreambuf_iterator<char>(preserved)),
+                std::istreambuf_iterator<char>());
+            t.expect(!exported && contents == "unsupported-nod-sentinel",
+                     "unclosed unrelated NOD child dictionary is rejected before strict publication");
+            emptyRootDictionary->m_entries.clear();
+        }
 
         const std::uint32_t originalLayoutDictionaryTarget =
             adapterData.namedObjectDictionary.m_entries.front().m_handle;
@@ -884,6 +931,8 @@ void testLayoutGraphReadContract(TestContext& t) {
             for (DRW_Layout& layout : exportSource.layouts) {
                 layout.shadePlotHandle.ref = 0;
             }
+            t.expect(addEmptyRootDictionary(exportSource),
+                     "versioned graph source contains the generated unrelated root dictionary");
             applyCollisionRemap(exportSource);
             const std::string outputName = std::string("layout-graph-export-")
                 + target.second + (binary ? "-binary.dxf" : "-ascii.dxf");
@@ -910,6 +959,23 @@ void testLayoutGraphReadContract(TestContext& t) {
                 [](const DRW_Dictionary::Entry& entry) {
                     return entry.m_name == "ACAD_LAYOUT";
                 });
+            const auto rootCustomDictionary = std::find_if(
+                exportedData.namedObjectDictionary.m_entries.begin(),
+                exportedData.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "CUSTOM_EMPTY";
+                });
+            const DRW_Dictionary* exportedCustomDictionary = nullptr;
+            if (rootCustomDictionary
+                != exportedData.namedObjectDictionary.m_entries.end()) {
+                for (const DRW_Dictionary& dictionary :
+                     exportedData.dictionaries) {
+                    if (dictionary.handle == rootCustomDictionary->m_handle) {
+                        exportedCustomDictionary = &dictionary;
+                        break;
+                    }
+                }
+            }
             const DRW_Dictionary* exportedDictionary = nullptr;
             if (rootLayout
                 != exportedData.namedObjectDictionary.m_entries.end()) {
@@ -956,6 +1022,17 @@ void testLayoutGraphReadContract(TestContext& t) {
                 + target.second
                 + " layout dictionary and reciprocal block links close after remapping";
             t.expect(exportedGraphClosed, closureLabel.c_str());
+            const bool unrelatedRootEntryClosed =
+                rootCustomDictionary
+                    != exportedData.namedObjectDictionary.m_entries.end()
+                && exportedCustomDictionary != nullptr
+                && exportedCustomDictionary->parentHandle
+                    == exportedData.namedObjectDictionary.handle
+                && exportedCustomDictionary->m_entries.empty();
+            const std::string rootEntryLabel = std::string("exported ")
+                + target.second
+                + " retains the unrelated typed empty NOD child dictionary";
+            t.expect(unrelatedRootEntryClosed, rootEntryLabel.c_str());
 
             const auto exportedInactivePaper = std::find_if(
                 exportedData.blocks.begin(), exportedData.blocks.end(),
