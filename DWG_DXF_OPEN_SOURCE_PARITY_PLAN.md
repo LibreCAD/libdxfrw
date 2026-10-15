@@ -106,7 +106,11 @@ implemented at`6a388d6`; a generated binary-DXF regression at`556ebdc`
 confirms the raw code310 carrier retains canonical hex once while the typed
 proxy payload has separate decoded-byte ownership. The test creates/removes its
 temporary input and adds no fixture. Neither accounting change promotes proxy
-semantics.
+semantics. A generated empty-record follow-up at`6589ad1` also charges the
+record-name copy in generic unknown OBJECTS/ENTITIES fallback paths before
+callback; exact and one-byte-under caps cover both routes. This closes only
+those generic empty carriers, not every typed route that also publishes a raw
+carrier.
 Next retain the remaining per-container real-file HEADER witnesses, complete
 the remaining 7AG.1c omission-reporting method, and continue dependency-ready
 resource work. Declared text remains the default; peer HATCH transforms and
@@ -213,8 +217,9 @@ J293/J295 stay `DEFERRED_EXTERNAL` and non-promoting. The follow-up source
 refresh is documentation-only as well: it adds no fixtures, dependencies,
 peer builds, external executions, registrations, or support claims.
 
-**Latest implementation checkpoint:** `556ebdc` (generated binary raw-carrier
-control for `7S.2c.d.17.4`), following `6a388d6`
+**Latest implementation checkpoint:** `6589ad1` (empty generic raw-carrier
+name admission, `7S.2c.d.17.5`), following binary carrier test `556ebdc` and
+`6a388d6`
 (`Plan-Slice: 7S.2c.d.17.4 proxy-payload ownership`), 2026-10-14. The committed
 `7S.2a`–`7S.2c` sequence extends aggregate logical-input admission into bounded
 snapshots, per-record/getter expansion, MTEXT, raw carriers, and the named
@@ -227,7 +232,12 @@ no DWG/DXF fixture or CTest was added. The generated binary object test also
 passes and confirms the raw carrier's exact retained string length, canonical
 `AABB` spelling, separate `AA BB` typed bytes, and `hasRawValues == false`.
 The test writes only a temporary generated file and removes it. This is
-retained-byte accounting only,
+retained-byte accounting only. The follow-on fix reserves an otherwise missed
+name-only copy on generic unknown OBJECTS/ENTITIES records before callback;
+both in-memory generated routes pass exact `snapshot + 7*8` and one-byte-under
+controls without a fixture. Specialized typed routes which also publish a raw
+carrier, public mutation, writer copies, typed-projection scratch and remaining
+empty-carrier forms are still outside this slice. This is
 not proxy-graphics semantic support; its public layout additions require
 consumer rebuild and no binary-ABI claim is made. The one-GiB acquired-input
 limit remains separate from retained logical-byte charges, allocator capacity,
@@ -4983,6 +4993,7 @@ DWG page/object/block caps before extending any uncovered aggregate scope.
 | 7S.2c.d.17.2 ARCALIGNEDTEXT font names | COMMITTED / ARC_FONT_OWNER_SCOPED | `16c4dac` retains the direct group2 font name and group3 big-font name in separate per-field counters on the shared retained-string lease. Each replacement is admitted before assignment and releases the previous field only after success; reset clears both counters, and implicit copy/assignment preserve them. | Generated code2 font-name replacement passes exact31/over30, preserving the old `OLD` value and3-byte charge when refused; code3 big-font replacement passes exact31. Copy/assignment plus sibling-reset controls return the shared usage to0 only after the final copy resets. Strict `libdxfrw_hardening_tests`/`lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Two private counters change public `DRW_ArcAlignedText` layout: downstream rebuild required; binary ABI is not claimed. D2T strings now have a separate progress entry; remaining proxy carriers, public mutation, writer copies and typed projections remain outside this slice. |
 | 7S.2c.d.17.3 ARCALIGNEDTEXT D2T strings | COMMITTED / ARC_D2T_OWNER_SCOPED | `ec77b3d` retains all six group41–46 numeric-to-text fields with independent live-byte counters on the shared owner lease. Before `arcAlignedD2T` formats a value, a conservative16-byte reservation bounds the six-significant-digit double spelling (at most13 bytes for a finite double); the reservation shrinks to actual temporary length, then destination replacement is admitted before the old field charge is released. Reset clears all six counters; implicit copy/assignment preserve them. | Exact23/over22 group42 replacement proves the preformat reservation and prior-field preservation. Copy/assignment survive sibling reset and release at the final owner. All six group41–46 mappings pass with canonical output, including the maximum finite exponent; after reader teardown their final logical values retain32 bytes and reset returns usage to0. Strict `libdxfrw_hardening_tests`/`lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Adds a private counter array to public `DRW_ArcAlignedText` layout: downstream rebuild required; binary ABI is not claimed. Remaining empty/raw carriers, public mutation, writer copies and typed projections stay open. |
 | 7S.2c.d.17.4 DXF proxy payload ownership | COMMITTED / PROXY_PAYLOAD_OWNER_SCOPED | `6a388d6` charges decoded code310/311 bytes on a shared retained lease for `ACAD_PROXY_ENTITY` and `ACAD_PROXY_OBJECT`. ASCII hex is charged for its temporary spelling, decoded payload, and entity's vector-to-string peak; the temporary capture allocation is released before that peak reservation expires. Entity/object callbacks keep the payload lease with the published typed owner. | Generated entity and object exact `+141` / one-under `+140` controls verify raw/typed publication boundaries; generated64-byte entity hex control passes exact `+885` and rejects `+884`, with resource diagnostic and no callbacks. Entity `numProxyGraph` remains the original payload length; copy/callback and raw-carrier contents are asserted. A generated binary DXF proxy object additionally proves that code310 remains canonical `AABB` in its raw `DRW_Variant`, the typed payload is separately decoded to `AA BB`, and the raw-carrier lease accounts for the retained name/string variants exactly once (`hasRawValues == false`); the temp input is removed and no fixture is committed. `libdxfrw_hardening_tests` plus `lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Proxy object/entity base lease members already change public layouts and require downstream rebuild; binary ABI is not claimed. Empty/raw-only carriers, public mutation, writer-side copies and typed-projection scratch remain outside this row. |
+| 7S.2c.d.17.5 empty generic raw-carrier names | COMMITTED / EMPTY_GENERIC_RAW_NAME_SCOPED | `6589ad1` adds `copyRawDxfCarrierName()` for the generic unknown OBJECTS/ENTITIES fallback. It reserves the raw record name on a `DxfReadRetainedLease` before copying it, so an empty record that never invokes `captureRawGroup()` no longer escapes aggregate retained-byte admission. Existing nonempty paths share this lease and do not charge the name twice; no public model layout changes. | Generated unknown object and entity records with no groups pass the exact `snapshot + (6×8 current-record text/raw/getter bound) + 8-byte retained name` cap; each `cap−1` case reports `dxf-retained-byte-budget` before raw callback. Hardening and strict `lc3_compat_check` build pass. No fixture/registration/CTest/support promotion. Specialized typed raw-carrier routes, other empty-carrier forms, public mutation, writer-side copies and typed-projection scratch remain open. |
 | 7S.2d decoded work/nodes | Charge bytes actually revisited by decoding and inspected variant/container slots separately from input bytes. A final MTEXT group1 decodes the accumulated prefix; repeated group1 can revisit it repeatedly. Preserve accepted grammar unless separately changed. | Small group3…group1 positive and repeated-group1 malformed-input control with deterministic visited-byte counters, not a timing or large-allocation test. |
 
    The current snapshot-isolation control passes against archive284a7f1f: the
