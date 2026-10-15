@@ -34,8 +34,14 @@ First physical context is a record and value-end offset, not an offending-unit
 offset; deferred/assembled positions remain unknown. Copies survive reuse and
 callback unwind; writes/rejected nesting preserve the last-read snapshot.
 Default text/projection/read-failure behavior is unchanged. No issues does not
-prove complete text, object or B-rep semantics, and the CLI still needs the
-separate owned-outcome/strict-policy integration. Consumer rebuild is required.
+prove complete text, object or B-rep semantics. The CLI's owned
+`dx_data::dxfReadOutcome` now survives reader destruction, including returned
+failure and callback unwind. Accepted source revision, codec revision, final
+HEADER metadata prefixes, diagnostics and cumulative events remain separate.
+Unknown versions are not inferred from raw metadata, and diagnostic-copy failure
+is explicit without changing the original read exception. Final metadata cannot
+erase earlier text loss. Strict source/target conversion policy remains open;
+ordinary 2D/3D read/projection behavior is unchanged. Consumer rebuild is required.
 
 For a DXF or DWG client that must handle coordinates itself, call
 `dxfRW::read` / `dxfRW::readAscii` or `dwgRW::read` with `ext == false`. The

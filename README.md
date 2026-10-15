@@ -165,8 +165,15 @@ Snapshots survive reuse/destruction and include completed prefixes on failure
 or callback unwind. An admitted read resets them; `readAscii(nullptr)`, rejected
 nested operations and writes preserve the previous read snapshot. These events
 do not change text, `read()` success/errors or diagnostics, and an empty mask
-does not certify complete semantic coverage. Converter outcome handoff and
-strict refusal remain separate work. Public layout changes require rebuilding
+does not certify complete semantic coverage. The converter now retains an
+owned `dx_data::dxfReadOutcome`: read return/throw status, accepted source and
+codec revisions, legacy error, bounded diagnostic evidence, final metadata
+prefixes and cumulative observations survive reader destruction. Metadata
+prefixes carry length/truncation, not complete identities; the delivered HEADER
+owns the full source declaration. A failed diagnostic copy is explicit and
+cannot replace the original exception or erase fixed observations. This does
+not change CLI output, tolerant defaults or add strict text refusal; that policy
+remains separate work. Public layout changes require rebuilding
 consumers; no binary ABI or concurrency guarantee is added.
 
 ### Using `dwg2dxf` from FreeCAD

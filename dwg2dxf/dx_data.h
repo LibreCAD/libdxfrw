@@ -15,8 +15,50 @@
 #include "libdxfrw.h"
 #include "libdwgr.h"
 
+#include <array>
 #include <list>
 #include <vector>
+
+// CLI-owned metadata prefixes. Full physical declaration bytes remain in the
+// delivered headerC capsule; a prefix is never a complete declaration identity.
+struct dx_dxfTextPrefix {
+    std::array<char, 64> bytes{};
+    std::size_t length{0};
+    std::size_t sourceBytes{0};
+    bool truncated{false};
+};
+
+enum class dx_dxfCodePageKind : std::uint8_t {
+    Unspecified, Canonical, ExactAlias, CompatibilityAlias, Unavailable, Unknown
+};
+
+// One DXF import attempt, not a charset/support or export-completeness verdict.
+// Final HEADER metadata describes only the last delivered header; cumulative
+// observations preserve earlier semantic decode events independently.
+struct dx_dxfReadOutcome {
+    bool attempted{false};
+    bool readReturned{false};
+    bool readThrew{false};
+    bool operationSucceeded{false};
+    DRW::Version sourceVersion{DRW::UNKNOWNV}; // accepted, not raw HEADER spelling
+    DRW::Version codecVersion{DRW::UNKNOWNV}; // distinct compatibility channel
+    DRW::error error{DRW::BAD_NONE};
+    DRW_DxfTextReadObservations observations;
+    bool headerDelivered{false};
+    bool hasCodePageDeclaration{false};
+    dx_dxfCodePageKind finalDeclarationKind{dx_dxfCodePageKind::Unspecified};
+    dx_dxfTextPrefix finalDeclaration;
+    // Classifier's compatibility selection, not an actual per-field decoder.
+    // Absent declarations leave this empty; modern DXF can ignore it entirely.
+    dx_dxfTextPrefix finalDeclarationSelection;
+    dx_dxfTextPrefix finalNormalizedCodePage;
+    // Read diagnostics contain only fixed implementation strings and at most
+    // 16 secondary rows (no source names/payloads). Copying can still allocate;
+    // failure is explicit and never changes the read Boolean/original throw.
+    bool diagnosticAvailable{false};
+    bool diagnosticCaptureFailed{false};
+    DRW_OperationDiagnostic diagnostic;
+};
 
 // Read result and observations have separate meanings. This envelope belongs
 // to one CLI import, not a support claim or an output-completeness verdict.
@@ -78,6 +120,7 @@ public:
     DRW_Header headerC;                 //stores a copy of the header vars
     DRW::Version sourceVersion;          //detected source DXF/DWG revision
     dx_source_format sourceFormat {dx_source_format::Unknown};
+    dx_dxfReadOutcome dxfReadOutcome;     //owned most-recent DXF import evidence
     dx_dwgReadOutcome dwgReadOutcome;     //bounded most-recent-import evidence
     std::list<DRW_LType>lineTypes;      //stores a copy of all line types
     std::list<DRW_Layer>layers;         //stores a copy of all layers

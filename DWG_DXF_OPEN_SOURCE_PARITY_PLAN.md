@@ -29,7 +29,7 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `a804dae`; Plan-Slice:Slice3.2b.2a):**
+**Current handoff (2026-10-15, provenance `d20cf7f`; Plan-Slice:Slice3.2b.2b):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
@@ -45,8 +45,13 @@ monotonic source-text observations without changing decoder outputs or read
 policy.33 literal rows/four UTF16 controls,84 facade handoffs,16 reader roles,
 saturation and15 lifecycle/context controls pass. Final5/5 in22.13s,
 strict/build/lc3 and focused ASan/UBSan pass; all140 frozen codec observations
-remain unchanged. Next local work is3.2b.2b's owned converter DXF outcome,
-then strict source/target text admission—not another provenance or peer scan.
+remain unchanged.3.2b.2b now retains the converter's owned DXF import outcome
+with RAII and returned/throwing-read snapshots.36 ASCII/binary handoffs,
+five revision controls, ten reuse/context controls and three exception/retry
+pairs pass, including diagnostic-copy allocation failure. Final focused4/4
+in4.17s plus strict compilation/build and focused ASan/UBSan pass. No installed
+API, decoder, output-policy or support-claim change follows. Next local work is
+3.2b.2c explicit strict source-text admission, then2d target transport.
 
 | Order | Bounded item | Actual state and next gate |
 | --- | --- | --- |
@@ -54,7 +59,7 @@ then strict source/target text admission—not another provenance or peer scan.
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
 | 3 | S2.3.9.4.29 block-path modeler census | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:S2.3.9.4.29.B3. The strict writer now rejects unresolved modern INSERT targets using its existing BLOCK_RECORD index. B3 passes28 genuine rejection/destination checks,28 corrected fresh-data retries and four default/R12 compatibility controls. Actual CLI passes four missing-target rejection cells/two R12 refusals plus four valid two-pass conversions/verifiers; positive bytes remain stable. Strict source/TU/lc3 and retained final-source focused CTests2/2 pass. Durable B3 report: docs/research/modeler-block-failures-b3-2026-10-15.json. B1/B2 receipts remain frozen; no nested DWG AcDs/SAB/native/B-rep/J promotion. Codec3.1 is also committed; next independent local slice is3.2. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
-| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2a LOCAL_IMPLEMENTATION_COMPLETE / SOURCE_OBSERVATIONS; parent3.2 IN_PROGRESS. Public fixed-size owned snapshots retain overlapping/saturating semantic decode-call events and first known field/physical record/value-end context through metadata changes, warning caps, failures and callback unwind. Metadata/raw controls/handles/binary are excluded; actual legacy-byte use and UTF8/recovery remain distinct.33 literal rows/four UTF16 controls,16 reader roles/saturation,84 facade handoffs/15 lifecycle-context controls pass. Final5/5 in22.13s, strict/build/lc3 and focused ASan/UBSan pass; all140 frozen codec outputs are unchanged. Receipt docs/research/codec-source-observations-3-2b-2a-2026-10-15.json.3.2b.1 ownership remains closed separately at a804dae. Next3.2b.2b owned converter outcome, then2c/2d strict source/target policy;3.3/3.4 stay separate. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2b LOCAL_IMPLEMENTATION_COMPLETE / OWNED_CONVERTER_OUTCOME; parent3.2 IN_PROGRESS. DXF import snapshots survive reader destruction and callback unwind; accepted/codec versions, diagnostics, final metadata prefixes and cumulative source observations remain separate.36 handoffs/five version/ten context controls and three exception/retry pairs pass; allocation failure cannot mask the original exception. Final focused4/4 in4.17s, strict/build and focused ASan/UBSan pass. Receipt docs/research/codec-import-outcome-3-2b-2b-2026-10-15.json.3.2b.1 provenance and2a source observations stay closed separately; no new codec/output/support policy. Next2c explicit strict source admission, then2d target transport;3.3/3.4 stay separate. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
 
 7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
 GEODATA reader or writer from an older research queue. The new research
@@ -623,6 +628,7 @@ Its historical binary diff SHA-256 is
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| Slice3.2b.2b / PAR-05 owned converter DXF outcome | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | dx_data::dxfReadOutcome retains returned/throwing read status, accepted source/codec revisions, legacy error, cumulative fixed observations, last delivered HEADER declaration classification/64-byte prefixes and owned diagnostics. Prefixes flag truncation/total length, not identity; absent and empty declarations differ; full declaration remains in headerC. RAII replaces raw facade ownership; returned failures and callback unwind are captured before destruction. Diagnostic-copy allocation failure is explicit and cannot erase fixed evidence or replace the original exception. Every import resets both envelopes, including invalid extension/changed format/open failure; stale model HEADER cannot masquerade as delivered evidence.36 ASCII/binary handoffs/five version/ten reuse-context controls and three exception/retry pairs pass. Final focused4/4 in4.17s, strict two-TU compile/build and focused ASan/UBSan pass. Receipt docs/research/codec-import-outcome-3-2b-2b-2026-10-15.json. No installed API, decoder, default/output-policy, fixture/dependency/registration/native/J/support change. Next2c explicit strict source admission, then2d target preflight; parent3.2 remains open. |
 | Slice3.2b.2a / PAR-05 source-text observations | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | Adds DRW_DxfTextIssue/DRW_DxfTextReadObservations and noexcept getTextReadObservations(), with fixed owned arrays/counters/masks and bounded first known context. Converter events expose undefined/deleted/replaced input, malformed UTF8/UTF16/scalars and unresolved escape-looking syntax; actual non-ASCII legacy use adds original selection/reapply issues. No decoder/read/export policy change or new pure callback. Reader aggregation excludes metadata/raw controls/handles/binary and survives metadata changes, full16-warning cap, later failure and memory/file callback unwind. Admitted reads reset; null readAscii/rejected nesting/writes preserve; copied snapshots outlive facade. Physical context is record plus consumed value-end, not exact offending-byte/start; deferred/assembled positions remain unknown.33 literal/four UTF16,16 role/saturation,84 handoff/15 lifecycle controls pass; all140 frozen C/Turkish outputs remain byte-identical. Final5/5 in22.13s, strict five TUs/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-observations-3-2b-2a-2026-10-15.json. Next2b converter snapshot before deletion, then2c/2d strict policy. No fixture/dependency/registration/native/J/support promotion; consumer rebuild required, not binary ABI/concurrency/charset qualification. |
 | Slice3.2b.1 / PAR-05 owned declaration provenance | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | Immutable shared HEADER capsule retains full raw DXF group3 before decoding/normalization, distinguishes absent/empty and survives copy/move/reset and reader/facade destruction. Reserve logical bytes before allocation; share one charge, count old/new overlap, keep prior snapshot on refusal and release at last owner.72 handoffs plus84 existing raw-presence/spelling assertions, three delimiter controls, direct2/2 and facade3/3 exact/one-below admission pairs pass. ASCII terminal CR is framing; binary payload CR remains data. Public vars edits preserve history; export remains normalized; DWG fabricates no DXF declaration. The stale GEODATA hardening fixture now declares v2 for its modern mesh tags, retaining all copy/reset assertions and genuine v1 fixtures. Strict two-TU compile/build/lc3, final five focused CTests5/5 in13.62s and focused ASan/UBSan pass. Public HEADER layout requires rebuild; no binary ABI/thread/full-memory/charset qualification. Receipt docs/research/codec-provenance-3-2b-1-2026-10-15.json; Subsequent3.2b.2a closes source observations; next3.2b.2b converter outcome. No fixture/dependency/registration/native/J/support promotion. |
 | Broader conversion-loss, graph and oracle readiness | PLAN_UPDATED / NONPROMOTING | Baseline704832b with existing three-file provenance WIP preserved.32 authored ASCII-output routes/64 final-run CLI processes all exit0 and retain second-pass TEXT bytes; six named legacy-alias routes change/delete a character, one supplementary downgrade substitutes?, and five malformed modern outputs fail ordinary strict reopening. Two literal CIF peer projections are valid transport, not loss. Four executed ezdxf controls expose virtual/inplace versus copies, sheared INSERT omission and ignored zero-scale behavior. Source-pinned ACadSharp1292/1296/1275, LibreDWG1440/1447, netDxf and current FreeCAD refine existing owners. Recovered provenance integration4/5 has a source-confirmed stale GEODATA fixture premise; no all-green or committed-WIP claim. Durable report docs/research/broader-conversion-readiness-2026-10-15.json; findings/subplans122/70 and six external J states unchanged. |
@@ -4013,8 +4019,25 @@ unchanged in C/Turkish locales. Receipt:
 `docs/research/codec-source-observations-3-2b-2a-2026-10-15.json`.
 This is observation, not charset qualification or a new strict policy.
 
-**Remaining3.2b.2b–d (local):** add an owned converter DXF import
-outcome, explicit strict-complete CLI admission, and target scalar/escape
+**Slice3.2b.2b implementation checkpoint:** the converter now stores an owned
+DXF outcome before its RAII reader is destroyed, including normal false returns
+and callback unwind. Accepted source revision is not codec revision or last raw
+HEADER spelling; early/throwing exits do not fabricate acceptance. Final
+declaration classification and normalized metadata use64-byte prefixes with
+total-length/truncation flags; full source bytes remain in the delivered HEADER.
+Absent and empty declarations differ, and stale reused model metadata is not
+evidence of a newly delivered HEADER. Cumulative decode events survive later
+canonical metadata and a full16-advisory list. Read diagnostic producers are
+fixed implementation strings, not source payloads; an allocation failure copying
+them is explicit and cannot mask the original exception or fixed observations.
+36 handoffs, five revision controls, ten reuse/context controls and three
+exception/retry pairs pass. Final focused4/4 in4.17s (codec/fixtures/diagnostics/
+actual CLI), strict two-TU compilation/build and focused ASan/UBSan pass.
+Receipt: `docs/research/codec-import-outcome-3-2b-2b-2026-10-15.json`.
+No installed API, codec mapping, tolerant/default or output-policy change.
+
+**Remaining3.2b.2c–d (local):** add explicit strict-complete CLI admission
+and target scalar/escape
 preflight. A final normalized HEADER value or truncated warning list cannot
 certify earlier text; successful re-encoding cannot recover discarded bytes.
 Unknown metadata with ASCII/valid CIF, modern UTF8, malformed bytes, unavailable
@@ -12176,9 +12199,10 @@ can satisfy their respective gates, not these codec observations or peer PRs.
 
 **Subsequent implementation:**3.2b.1 closes the owned-provenance and stale
 fixture prerequisite;3.2b.2a now closes source observations/public facade
-snapshotting with a separate final5/5/sanitizer receipt. Original
+snapshotting with a separate final5/5/sanitizer receipt.3.2b.2b now closes
+owned converter outcomes with a separate focused4/4/sanitizer receipt. Original
 research observations, WIP hashes and recovered4/5 result below remain frozen
-historical evidence. Next actionable implementation is3.2b.2b; later policy,
+historical evidence. Next actionable implementation is3.2b.2c; later policy,
 mapping and external qualification gates remain open.
 
 **Authority and worktree boundary:** committed baseline
@@ -12308,7 +12332,10 @@ Only the bounded provenance candidate exists;3.2b.2 is unimplemented.
    successful prefix, repeated HEADERs/metadata, unavailable MIF versus literal
    text, modern inert metadata, copied snapshots/reset and failed/new reads.
    Do not infer source preservation from final length, warning cap or re-encode.
-3. **3.2b.2b owned converter handoff (`READY_LOCAL` after2a).**
+3. **3.2b.2b owned converter handoff (`LOCAL_IMPLEMENTATION_COMPLETE`).**
+   Implemented in the checkpoint/receipt above; the original requirements below
+   remain its scope. No allocation/diagnostic-copy failure may replace an
+   original read exception; unavailable copied evidence is explicit, not clean.
    Snapshot bounded DXF outcomes into`dx_data` before facade deletion,
    analogous in lifetime—not semantics—to`dx_dwgReadOutcome`. Keep success,
    legacy error, accepted version, selection provenance and observations
@@ -12335,6 +12362,11 @@ Only the bounded provenance candidate exists;3.2b.2 is unimplemented.
    allowlist for each DXF revision; bind the actual accepted producer/profile
    separately (especially UTF16 or legacy UTF8 declarations). An empty issue
    mask cannot supply that format-admission decision.
+   Consume the owned2b envelope, requiring a returned successful read and known
+   policy eligibility. `diagnosticCaptureFailed` is unavailable evidence, never
+   a clean diagnostic. Metadata prefixes are not complete names; use the owned
+   full HEADER declaration for profile matching. Final declaration classification
+   is not the actual per-field decoder; earlier cumulative issues remain binding.
    Ambiguous text/escape semantics is not-complete, not fabricated recovery.
    Preserve ordinary library/2D defaults: no autodetection or broader fallback.
    Test absent-output/existing-destination sentinels, actual nonzero status,

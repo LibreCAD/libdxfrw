@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <chrono>
 #include <charconv>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
@@ -9,6 +10,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <new>
 #include <sstream>
 #include <stdexcept>
 #include <type_traits>
@@ -28,6 +30,24 @@
 #include "libdwgr.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
+
+namespace {
+bool failImportObservationAllocations = false;
+}
+
+// Only armed after a test callback throws a nonallocating sentinel. Exercise
+// diagnostic-copy failure during unwind without changing production allocators.
+void* operator new(std::size_t size) {
+    if (!failImportObservationAllocations) {
+        if (void* memory = std::malloc(size == 0 ? 1 : size)) return memory;
+    }
+    throw std::bad_alloc();
+}
+void* operator new[](std::size_t size) { return ::operator new(size); }
+void operator delete(void* memory) noexcept { std::free(memory); }
+void operator delete[](void* memory) noexcept { std::free(memory); }
+void operator delete(void* memory, std::size_t) noexcept { std::free(memory); }
+void operator delete[](void* memory, std::size_t) noexcept { std::free(memory); }
 
 // Test-only access to the reader's primary codec and version.  The production
 // API exposes only the source-code-page snapshot; no test seam is exported.
@@ -1502,6 +1522,268 @@ void testTextObservationHandoff(TestContext& t) {
     else std::cerr << "Text observation evidence: " << directory << '\n';
 }
 
+bool sameReadDiagnostic(const DRW_OperationDiagnostic& a,
+                        const DRW_OperationDiagnostic& b) {
+    if (a.operation != b.operation || a.phase != b.phase || a.cause != b.cause
+        || a.code != b.code || a.message != b.message || a.offset != b.offset
+        || a.handle != b.handle || a.hasOffset != b.hasOffset || a.hasHandle != b.hasHandle
+        || a.secondary.size() != b.secondary.size()) return false;
+    for (std::size_t i = 0; i < a.secondary.size(); ++i) {
+        const auto& x = a.secondary[i];
+        const auto& y = b.secondary[i];
+        if (x.phase != y.phase || x.cause != y.cause || x.code != y.code
+            || x.message != y.message || x.offset != y.offset || x.handle != y.handle
+            || x.hasOffset != y.hasOffset || x.hasHandle != y.hasHandle) return false;
+    }
+    return true;
+}
+
+bool dxfPrefixMatches(const dx_dxfTextPrefix& prefix, std::string_view expected) {
+    const auto retained = std::min(expected.size(), prefix.bytes.size());
+    return prefix.sourceBytes == expected.size() && prefix.length == retained
+        && prefix.truncated == (retained != expected.size())
+        && std::equal(expected.begin(), expected.begin() + retained, prefix.bytes.begin());
+}
+
+void testConverterDxfReadOutcome(TestContext& t) {
+    using Kind = dx_dxfCodePageKind;
+    using Issue = DRW_DxfTextIssue;
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-dxf-import-outcome-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    const auto writeInput = [&](const std::string& name, const std::string& bytes) {
+        const auto path = directory / name;
+        std::ofstream output(path, std::ios::binary);
+        output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        if (!output) throw std::runtime_error("authored outcome input could not be written");
+        return path;
+    };
+    struct Row { const char* page; bool modern; std::string bytes; Kind kind; };
+    const Row rows[] = {
+        {"ANSI_1252", false, "plain", Kind::Canonical},
+        {"CP1252", false, "\xE9", Kind::ExactAlias},
+        {"ISO8859-4", false, "L\xA1R", Kind::CompatibilityAlias},
+        {"CP866", false, "\x80", Kind::Unavailable},
+        {"local-unknown", false, "plain", Kind::Unknown},
+        {"local-unknown", true, "\xC3\xA9", Kind::Unknown},
+        {nullptr, false, "\xE9", Kind::Unspecified},
+        {"", false, "\xE9", Kind::Unknown},
+        {"ANSI_1252", true, "\x80", Kind::Canonical}
+    };
+    std::size_t handoffs = 0;
+    for (const auto& row : rows) for (bool pageFirst : {false, true})
+        for (bool binary : {false, true}) {
+        const auto bytes = makeTextObservationDrawing(row.page, row.modern, pageFirst, binary, row.bytes);
+        const auto path = writeInput(std::to_string(handoffs) + ".dxf", bytes);
+        dx_data reference;
+        PreparedDxInterface referenceSink;
+        referenceSink.attach(&reference);
+        dxfRW reader(path.string().c_str());
+        const bool direct = reader.read(&referenceSink, false);
+        dx_dxfReadOutcome owned;
+        {
+            dx_data data;
+            dx_iface adapter;
+            const bool imported = adapter.fileImport(path.string(), &data, false);
+            owned = data.dxfReadOutcome;
+            const bool correct = imported == direct && data.sourceFormat == dx_source_format::DXF
+                         && !data.dwgReadOutcome.attempted && owned.attempted
+                         && owned.readReturned && !owned.readThrew && owned.operationSucceeded
+                         && owned.sourceVersion == reader.getSourceVersion()
+                         && owned.codecVersion == reader.getVersion() && owned.error == reader.getError()
+                         && owned.diagnosticAvailable && !owned.diagnosticCaptureFailed
+                         && sameReadDiagnostic(owned.diagnostic, reader.getLastDiagnostic())
+                         && sameTextObservations(owned.observations, reader.getTextReadObservations())
+                         && owned.headerDelivered && owned.hasCodePageDeclaration == (row.page != nullptr)
+                         && owned.finalDeclarationKind == row.kind
+                         && dxfPrefixMatches(owned.finalDeclaration, row.page == nullptr ? "" : row.page)
+                         && dxfPrefixMatches(owned.finalDeclarationSelection,
+                             row.page == nullptr ? "" : row.kind == Kind::CompatibilityAlias ? "ANSI_1257" : "ANSI_1252")
+                         && dxfPrefixMatches(owned.finalNormalizedCodePage, headerString(data.headerC, "$DWGCODEPAGE"));
+            t.expect(correct,
+                     "converter owns exact DXF outcomes without altering ASCII/binary/metadata-order reads");
+            if (!correct) std::cerr << "Outcome handoff row=" << handoffs
+                << " page=" << (row.page == nullptr ? "<absent>" : row.page)
+                << " kind=" << static_cast<int>(owned.finalDeclarationKind)
+                << " expectedKind=" << static_cast<int>(row.kind)
+                << " declared=" << owned.hasCodePageDeclaration
+                << " normalized=" << headerString(data.headerC, "$DWGCODEPAGE") << '\n';
+        }
+        t.expect(owned.readReturned && sameTextObservations(owned.observations, reader.getTextReadObservations()),
+                 "copied converter outcome survives both facade and model destruction");
+        ++handoffs;
+    }
+
+    std::size_t versionControls = 0;
+    for (const char* version : {"", "AC9999", "AC1018", "AC1032"}) {
+        std::string bytes = "0\nSECTION\n2\nHEADER\n";
+        if (*version != '\0') bytes += std::string("9\n$ACADVER\n1\n") + version + '\n';
+        bytes += "0\nENDSEC\n0\nEOF\n";
+        const auto path = writeInput("version-" + std::to_string(versionControls) + ".dxf", bytes);
+        dx_data data;
+        dx_iface adapter;
+        const auto accepted = std::string_view(version) == "AC1018" ? DRW::AC1018
+            : std::string_view(version) == "AC1032" ? DRW::AC1032 : DRW::UNKNOWNV;
+        const auto codecVersion = std::string_view(version) == "AC9999" ? DRW::UNKNOWNV
+            : accepted == DRW::AC1018 ? DRW::AC1015 : DRW::AC1021;
+        const bool imported = adapter.fileImport(path.string(), &data, false);
+        const bool correct = imported
+                     && data.dxfReadOutcome.sourceVersion == accepted
+                     && data.dxfReadOutcome.codecVersion == codecVersion;
+        t.expect(correct,
+                 "accepted source revision remains separate from default/folded codec revision");
+        if (!correct) std::cerr << "Version control=" << version << " accepted="
+            << data.dxfReadOutcome.sourceVersion << " codec=" << data.dxfReadOutcome.codecVersion << '\n';
+        ++versionControls;
+    }
+    {
+        const auto path = writeInput("version-repeated.dxf",
+            "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n9\n$ACADVER\n1\nAC1009\n0\nENDSEC\n0\nEOF\n");
+        dx_data data;
+        dx_iface adapter;
+        t.expect(adapter.fileImport(path.string(), &data, false)
+                     && data.dxfReadOutcome.sourceVersion == DRW::AC1021
+                     && headerString(data.headerC, "$ACADVER") == "AC1009",
+                 "last raw lower-revision spelling cannot masquerade as accepted source authority");
+        ++versionControls;
+    }
+
+    const auto lossy = makeTextObservationDrawing("ISO8859-4", false, false, false, "L\xA1R");
+    const auto clean = makeTextObservationDrawing("ANSI_1252", false, false, false, "plain");
+    const auto lossyPath = writeInput("lossy.dxf", lossy);
+    const auto cleanPath = writeInput("clean.dxf", clean);
+    dx_data reused;
+    dx_iface adapter;
+    t.expect(adapter.fileImport(lossyPath.string(), &reused, false), "outcome reuse starts with lossy source");
+    const auto saved = reused.dxfReadOutcome;
+    auto invalid = lossy;
+    const auto at = invalid.find("\nB\n");
+    if (at != std::string::npos) invalid.replace(at + 1, 1, "INVALID_HANDLE");
+    const auto invalidPath = writeInput("later-invalid.dxf", invalid);
+    t.expect(at != std::string::npos && !adapter.fileImport(invalidPath.string(), &reused, false)
+                 && reused.dxfReadOutcome.readReturned && !reused.dxfReadOutcome.operationSucceeded
+                 && reused.dxfReadOutcome.sourceVersion == DRW::AC1015
+                 && reused.dxfReadOutcome.error != DRW::BAD_NONE
+                 && reused.dxfReadOutcome.diagnostic.failed()
+                 && reused.dxfReadOutcome.observations.issueMask == saved.observations.issueMask,
+             "failed read retains accepted revision, primary diagnostic and earlier decode loss separately");
+    t.expect(!adapter.fileImport((directory / "missing.dxf").string(), &reused, false)
+                 && reused.dxfReadOutcome.attempted && reused.dxfReadOutcome.readReturned
+                 && reused.dxfReadOutcome.sourceVersion == DRW::UNKNOWNV
+                 && reused.dxfReadOutcome.error == DRW::BAD_OPEN
+                 && !reused.dxfReadOutcome.headerDelivered
+                 && !reused.dxfReadOutcome.hasCodePageDeclaration
+                 && reused.dxfReadOutcome.finalDeclaration.sourceBytes == 0
+                 && reused.dxfReadOutcome.observations.semanticDecodeCalls == 0,
+             "open failure resets evidence rather than inheriting the reused model's old HEADER");
+    const auto earlyPath = writeInput("early-invalid.dxf", "not-a-group\nvalue\n");
+    t.expect(!adapter.fileImport(earlyPath.string(), &reused, false)
+                 && reused.dxfReadOutcome.readReturned && !reused.dxfReadOutcome.readThrew
+                 && reused.dxfReadOutcome.sourceVersion == DRW::UNKNOWNV
+                 && !reused.dxfReadOutcome.headerDelivered
+                 && reused.dxfReadOutcome.diagnosticAvailable
+                 && reused.dxfReadOutcome.diagnostic.failed(),
+             "early parser failure retains its diagnostic without stale header/revision evidence");
+    t.expect(adapter.fileImport(cleanPath.string(), &reused, false)
+                 && !reused.dxfReadOutcome.observations.hasIssues()
+                 && saved.observations.hasIssues(),
+             "corrected reuse clears the next outcome without changing copied prior evidence");
+    t.expect(!adapter.fileImport((directory / "invalid.ext").string(), &reused, false)
+                 && !reused.dxfReadOutcome.attempted && !reused.dwgReadOutcome.attempted
+                 && reused.sourceFormat == dx_source_format::Unknown,
+             "invalid-extension attempts clear both import outcome envelopes");
+    const auto dwgPath = writeInput("local-truncated.dwg", "AC1027");
+    t.expect(!adapter.fileImport(dwgPath.string(), &reused, false)
+                 && !reused.dxfReadOutcome.attempted && reused.dwgReadOutcome.attempted
+                 && reused.sourceFormat == dx_source_format::DWG,
+             "changed-format read resets DXF evidence without changing DWG outcomes");
+
+    auto capped = makeCodePageDiagnosticDrawing("ISO8859-4", false, false, false, 20);
+    const auto cappedAt = capped.find("ascii-control");
+    if (cappedAt != std::string::npos) capped.replace(cappedAt, 13, "\xA1");
+    const auto cappedPath = writeInput("capped.dxf", capped);
+    dx_data cappedData;
+    t.expect(adapter.fileImport(cappedPath.string(), &cappedData, false)
+                 && cappedData.dxfReadOutcome.diagnostic.secondary.size() == 16
+                 && cappedData.dxfReadOutcome.observations.hasIssues(),
+             "a full diagnostic advisory cap cannot erase converter source-loss state");
+    const auto largePage = std::string(4096, 'x') + "-distinct-suffix";
+    const auto longPath = writeInput("long-page.dxf",
+        makeTextObservationDrawing(largePage.c_str(), false, false, false, "plain"));
+    dx_data longData;
+    t.expect(adapter.fileImport(longPath.string(), &longData, false)
+                 && dxfPrefixMatches(longData.dxfReadOutcome.finalDeclaration, largePage)
+                 && longData.dxfReadOutcome.finalDeclaration.truncated
+                 && longData.headerC.dxfCodePageDeclaration() == largePage
+                 && longData.dxfReadOutcome.finalDeclarationKind == Kind::Unknown,
+             "bounded prefix retains total length/truncation while HEADER owns the full declaration");
+    const std::string changed =
+        "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n9\n$DWGCODEPAGE\n3\nISO8859-4\n0\nENDSEC\n"
+        "0\nSECTION\n2\nENTITIES\n0\nTEXT\n5\nA\n8\n0\n10\n0\n20\n0\n40\n1\n1\n\xA1\n0\nENDSEC\n"
+        "0\nSECTION\n2\nHEADER\n9\n$DWGCODEPAGE\n3\nANSI_1252\n0\nENDSEC\n0\nEOF\n";
+    const auto changedPath = writeInput("changed-metadata.dxf", changed);
+    dx_data changedData;
+    t.expect(adapter.fileImport(changedPath.string(), &changedData, false)
+                 && changedData.dxfReadOutcome.finalDeclarationKind == Kind::Canonical
+                 && dxfPrefixMatches(changedData.dxfReadOutcome.finalDeclaration, "ANSI_1252")
+                 && changedData.dxfReadOutcome.observations.issueCount(Issue::DiscardedSource) == 1,
+             "last canonical metadata does not relabel or erase earlier semantic loss");
+
+    class ThrowingImport final : public dx_iface {
+    public:
+        bool headerThrow{false}, allocationFailure{false}, enabled{true};
+        void addHeader(const DRW_Header* value) override {
+            if (headerThrow) throw 71;
+            dx_iface::addHeader(value);
+        }
+        void addText(const DRW_Text& value) override {
+            if (enabled) {
+                failImportObservationAllocations = allocationFailure;
+                throw 73;
+            }
+            dx_iface::addText(value);
+        }
+    };
+    for (int mode = 0; mode < 3; ++mode) {
+        dx_data data;
+        data.sourceVersion = DRW::AC1032;
+        ThrowingImport throwing;
+        throwing.headerThrow = mode == 0;
+        throwing.allocationFailure = mode == 2;
+        bool caughtOriginal = false;
+        try { (void)throwing.fileImport(lossyPath.string(), &data, false); }
+        catch (int sentinel) { failImportObservationAllocations = false; caughtOriginal = sentinel == (mode == 0 ? 71 : 73); }
+        catch (...) { failImportObservationAllocations = false; }
+        failImportObservationAllocations = false;
+        const auto& outcome = data.dxfReadOutcome;
+        t.expect(caughtOriginal && outcome.attempted && outcome.readThrew && !outcome.readReturned
+                     && !outcome.operationSucceeded && outcome.sourceVersion == DRW::UNKNOWNV
+                     && data.sourceVersion == DRW::AC1032
+                     && outcome.headerDelivered == (mode != 0)
+                     && outcome.observations.hasIssues() == (mode != 0)
+                     && outcome.diagnosticAvailable == (mode != 2)
+                     && outcome.diagnosticCaptureFailed == (mode == 2),
+                 "RAII unwind retains prefix evidence without inventing a version or replacing the original exception");
+        if (mode != 2)
+            t.expect(outcome.diagnostic.secondary.size() == 1,
+                     "throwing read preserves already recorded secondary advisories without synthesizing a primary failure");
+        throwing.headerThrow = throwing.allocationFailure = throwing.enabled = false;
+        dx_data retry;
+        t.expect(throwing.fileImport(cleanPath.string(), &retry, false)
+                     && retry.dxfReadOutcome.readReturned && !retry.dxfReadOutcome.readThrew
+                     && !retry.dxfReadOutcome.observations.hasIssues()
+                     && retry.dxfReadOutcome.diagnosticAvailable
+                     && !retry.dxfReadOutcome.diagnosticCaptureFailed,
+                 "same adapter recovers after callback/diagnostic-copy exceptions with fresh evidence");
+    }
+    std::cout << "Converter DXF outcome: handoffs=" << handoffs
+              << ", version controls=" << versionControls
+              << ", reuse/context controls=10, exception/retry pairs=3\n";
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Converter DXF outcome evidence: " << directory << '\n';
+}
+
 void testMalformedUtf8(TestContext& t) {
     DRW_TextCodec codec;
     codec.setVersion(DRW::AC1015, false);
@@ -1945,6 +2227,10 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--dxf-import-outcome") {
+        testConverterDxfReadOutcome(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--text-read-observations") {
         testTextDecodeObservations(context);
         testTextObservationReaderRoles(context);
@@ -1986,6 +2272,7 @@ int main(int argc, char** argv) {
     testTextDecodeObservations(context);
     testTextObservationReaderRoles(context);
     testTextObservationHandoff(context);
+    testConverterDxfReadOutcome(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);
     testDxfWriters(context);

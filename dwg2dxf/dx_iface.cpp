@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include "dx_iface.h"
@@ -27,6 +28,7 @@
 #include "libdxfrw.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfcode.h"
+#include "intern/drw_textcodec.h"
 
 namespace {
 
@@ -2205,7 +2207,62 @@ void dx_iface::reportDwgReadOutcome(std::ostream& output,
     // output-publication policy, even when the caller's stream throws.
 }
 
+namespace {
+
+void snapshotDxfPrefix(dx_dxfTextPrefix& output, std::string_view source) noexcept {
+    output.sourceBytes = source.size();
+    output.length = std::min(source.size(), output.bytes.size());
+    std::copy_n(source.begin(), output.length, output.bytes.begin());
+    output.truncated = output.length != output.sourceBytes;
+}
+
+void snapshotDxfReadOutcome(dx_data& data, const dxfRW& reader) noexcept {
+    auto& outcome = data.dxfReadOutcome;
+    outcome.sourceVersion = reader.getSourceVersion();
+    outcome.codecVersion = reader.getVersion();
+    outcome.error = reader.getError();
+    outcome.observations = reader.getTextReadObservations();
+    if (outcome.headerDelivered) {
+        outcome.hasCodePageDeclaration = data.headerC.hasDxfCodePageDeclaration();
+        const auto& declaration = data.headerC.dxfCodePageDeclaration();
+        snapshotDxfPrefix(outcome.finalDeclaration, declaration);
+        const auto selection = outcome.hasCodePageDeclaration
+            ? DRW_TextCodec::classifyCodePage(declaration)
+            : DRW_CodePageSelection{};
+        switch (selection.kind) {
+        case DRW_CodePageKind::Unspecified: outcome.finalDeclarationKind = dx_dxfCodePageKind::Unspecified; break;
+        case DRW_CodePageKind::Canonical: outcome.finalDeclarationKind = dx_dxfCodePageKind::Canonical; break;
+        case DRW_CodePageKind::ExactAlias: outcome.finalDeclarationKind = dx_dxfCodePageKind::ExactAlias; break;
+        case DRW_CodePageKind::CompatibilityAlias: outcome.finalDeclarationKind = dx_dxfCodePageKind::CompatibilityAlias; break;
+        case DRW_CodePageKind::Unavailable: outcome.finalDeclarationKind = dx_dxfCodePageKind::Unavailable; break;
+        case DRW_CodePageKind::Unknown: outcome.finalDeclarationKind = dx_dxfCodePageKind::Unknown; break;
+        }
+        snapshotDxfPrefix(outcome.finalDeclarationSelection,
+            selection.selectedName == nullptr ? std::string_view{} : selection.selectedName);
+        // Avoid constructing a lookup std::string during exception unwind;
+        // small-string allocation is an implementation detail, not a contract.
+        const auto normalized = std::find_if(data.headerC.vars.begin(), data.headerC.vars.end(),
+            [](const auto& entry) { return std::string_view(entry.first) == "$DWGCODEPAGE"; });
+        if (normalized != data.headerC.vars.end() && normalized->second != nullptr
+            && normalized->second->type() == DRW_Variant::STRING
+            && normalized->second->content.s != nullptr)
+            snapshotDxfPrefix(outcome.finalNormalizedCodePage, *normalized->second->content.s);
+    }
+    // All read-side code/message producers are fixed literals (including the
+    // error mapper and codepage advisories); no unbounded source copy precedes
+    // this snapshot. Keep allocation failure separate from source-text loss.
+    try {
+        outcome.diagnostic = reader.getLastDiagnostic();
+        outcome.diagnosticAvailable = true;
+    } catch (...) {
+        outcome.diagnosticCaptureFailed = true;
+    }
+}
+
+} // namespace
+
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
+    fData->dxfReadOutcome = {};
     fData->dwgReadOutcome = {};
     fData->sourceFormat = dx_source_format::Unknown;
     unsigned int found = fileI.find_last_of(".");
@@ -2217,18 +2274,28 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug){
     if (fileExt == "DXF"){
         fData->sourceFormat = dx_source_format::DXF;
         //loads dxf
-        dxfRW* dxf = new dxfRW(fileI.c_str());
+        fData->dxfReadOutcome.attempted = true;
+        dxfRW dxf(fileI.c_str());
         if (debug) {
-            dxf->setDebug(DRW::DebugLevel::Debug);
+            dxf.setDebug(DRW::DebugLevel::Debug);
         }
-        bool success = dxf->read(this, false);
+        bool success = false;
+        try {
+            success = dxf.read(this, false);
+        } catch (...) {
+            fData->dxfReadOutcome.readThrew = true;
+            snapshotDxfReadOutcome(*fData, dxf);
+            throw;
+        }
+        fData->dxfReadOutcome.readReturned = true;
+        fData->dxfReadOutcome.operationSucceeded = success;
+        snapshotDxfReadOutcome(*fData, dxf);
         if (success)
             fData->sourceVersion = sourceVersionFromDxfHeader(
-                fData->headerC, dxf->getVersion());
+                fData->headerC, dxf.getVersion());
         if (!success) {
-            std::cout << "DXF file error: format " << dxf->getVersion() << " error " << dxf->getError() << std::endl;
+            std::cout << "DXF file error: format " << dxf.getVersion() << " error " << dxf.getError() << std::endl;
         }
-        delete dxf;
         return success;
     } else if (fileExt == "DWG"){
         fData->sourceFormat = dx_source_format::DWG;

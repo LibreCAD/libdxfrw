@@ -99,6 +99,8 @@ public:
     //header
     void addHeader(const DRW_Header* data) override{
         cData->headerC = *data;
+        if (cData->dxfReadOutcome.attempted)
+            cData->dxfReadOutcome.headerDelivered = true;
     }
     void addDxfClass(const DRW_Class& data) override {
         cData->dxfClasses.push_back(data);

@@ -25,8 +25,14 @@ snapshots without changing decoder/read policy:33 literal/four UTF16 controls,
 84 handoffs/16 reader roles/saturation and15 lifecycle/context controls pass.
 Final5/5 in22.13s, strict/build/lc3 and focused ASan/UBSan pass; all140 frozen
 codec outputs remain unchanged. Its binding is
-docs/research/codec-source-observations-3-2b-2a-2026-10-15.json. Next local item
-is3.2b.2b's owned converter DXF outcome; no3D ledger count changes.
+docs/research/codec-source-observations-3-2b-2a-2026-10-15.json.3.2b.2b now
+retains owned converter outcomes through returned failure/callback unwind,
+separating accepted/codec revisions, diagnostics, bounded final metadata and
+cumulative text observations.36 handoffs/five revision/ten context controls and
+three exception/retry pairs pass, including diagnostic-copy allocation failure.
+Final focused4/4 in4.17s, strict/build and focused ASan/UBSan pass; binding:
+docs/research/codec-import-outcome-3-2b-2b-2026-10-15.json. Next local item is
+3.2b.2c strict source admission, then2d target transport; no3D ledger count changes.
 
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
@@ -134,7 +140,10 @@ modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
 four default/R12 compatibility controls and actual CLI no-output checks.
 S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
 nested DWG AcDs/SAB and native geometry remain unqualified. Next local work is
-parity Slice3.2b.2b owned converter DXF outcome.3.2b.2a source-text observations
+parity Slice3.2b.2c explicit strict source admission.3.2b.2b now owns converter
+outcomes through false returns/unwind with36 handoffs/five revision/ten context
+controls and three exception/retry pairs; focused4/4/strict/build/sanitizer pass.
+This adds no strict policy or native support claim.3.2b.2a source-text observations
 now expose completed semantic-call events, overlapping/saturating counts and
 first known group/physical record/value-end context without inventing exact
 offending-byte or deferred positions. Metadata/raw controls/handles/binary are
@@ -6703,7 +6712,7 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity Slice3.2b.2b owned converter DXF outcome):
+local work is parity Slice3.2b.2c explicit strict source admission):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,
