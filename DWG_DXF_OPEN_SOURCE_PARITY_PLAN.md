@@ -19,6 +19,27 @@ producer. The now-retrieved LibreDWG #1450–#1452 reports remain peer-only:
 FIELD cursor control, and #1452's packed-C misalignment has no matching local
 pointer-cast pattern. Findings/subplans are 122/70; all six external J items
 remain deferred and non-promoting.
+The latest 3D cross-implementation review keeps the same counts and sharpens
+Slice 8's completion rule: carrier integrity, handle/owner association, and
+independent shape semantics are separate proofs. A surviving `3DSOLID` record
+or entity-count match cannot conceal a lost solid-only block.
+The newest Autodesk DXF cross-check sharpens 7G.3e/7BG: LAYOUT 345 is the
+optional named-UCS edge; 346 is conditional on orthographic layout group 76,
+and an omitted base handle means WORLD. A UCS table record's own 346 is governed
+separately by group 79; its repeated orthographic-origin tuples use group 71.
+The local UCS table writer also has a group-345 emission path not listed in
+Autodesk's UCS-table code contract, so audit its literal output before blessing
+it. These are bounded correctness/readiness checks, not new findings or support
+evidence.
+The 2026-10-15 DWG pipeline refresh cross-checks ODA's R2007 data-page ordering
+against LibreDWG's merged uncompressed-page fix and its still-open handle-map
+and owned-entity proposals. Local readers already RS-decode before deciding
+whether to decompress; the unresolved question is page-class coverage and
+regression evidence, not an entity-layout rewrite. The plan now separates
+page decoding, handle-map admission, graph enumeration, and final DXF
+publication, with fast generated controls under existing reader/7F.1/7G.3
+owners. No peer heuristic or support claim is promoted.
+
 The 2026-10-15 broader GEODATA crosswalk refines PAR-119/7BP and PAR-121/7BR:
 Autodesk's 2009 legacy DXF table and 2020 modern DXF table show objectVersion-1
 group-code collisions that the local codec does not branch around; ezdxf 1.4.4
@@ -69,6 +90,15 @@ DWG-derived VIEWPORT 68/69 projection and full CLI/native consumer checks also
 remain open. This is an implementation-readiness refinement, not a new defect
 ID or support claim; keep it separate from the LibreCAD_3 typed/raw PAR-56
 boundary.
+The named/base UCS handoff under that same graph owner is now committed at
+`e637c13`: `dx_iface` retains named UCS table rows, validates LAYOUT 345/346
+against typed UCS targets and orthographic state, remaps a fixed-handle
+collision, and emits/readbacks the graph in generated ASCII/binary DXF across
+AC1015–AC1027. The UCS table serializer omits its undocumented 345 field.
+This closes only the named/base layout-UCS edge; UCS-record orthographic
+options, unrelated NOD entries, VisualStyle/RenderSettings/PlotSettings, DWG
+viewport-list projection, composed CLI, and native consumer qualification
+remain open. No support claim is added.
 The 2026-10-14 ODA/peer refresh adds source/spec-confirmed candidate PAR-119
 and implementation subplan7BP for the target-version-dependent GEODATA CIVIL
 tail, plus PAR-120/7BQ for under-declared capacities across dynamic DXF symbol
@@ -10770,7 +10800,7 @@ native CAD application, or downloaded drawing was used.
 | LibreDWG [manual: Tables / VX records / AcDS](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi), [ACadSharp version matrix](https://domcr.github.io/ACadSharp/index.html), and Autodesk [persistent object references](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm) | LibreDWG documents pre-R2004 DWG VX table records as a special VIEWPORT association related to (but not represented by) DXF VIEWPORT entities; its model/paper block selection comes from DWG controls/header references. ACadSharp's matrix separately lists DXF read/write and DWG read/write, with version gaps, but gives no per-entity completeness guarantee. Autodesk distinguishes owning relations from pointers and arbitrary handles; XDATA 1005 is a translated soft pointer. The LibreDWG `master` manual and ACadSharp site are mutable and advertised capability is not conformance evidence. | Keep a directional route matrix: DWG decode→adapter handoff→DXF serialization, DXF parse→adapter handoff, and DXF→legacy-DWG viewport synthesis are separate cells. Pin exact peer commit/release and options before any differential run. For each cell record `typed`, `opaque-preserved`, `projected`, `not-applicable`, `dropped`, or `rejected`, with a comparable-field denominator; never convert missing peer projection into a libdxfrw failure or turn a version checkmark into support. Require typed owner closure and semantic field comparisons, not counts/open-success alone. |
 | GDAL [DXF driver](https://gdal.org/en/stable/drivers/vector/dxf.html), [known issues](https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md), and ezdxf's [entity/layout data model](https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst) | GDAL is an OGR geometry projection: it tessellates curves, has documented OCS/elevation exceptions and entity omissions, may inline INSERTs under a default per-block limit, and exposes AC1027+ ASM payload/transform only when configured; it does not decode B-rep semantics. ezdxf's internal entity database/layout spaces are a richer CAD graph than a flattened GIS layer. Therefore no single cross-project output count can serve as a whole-drawing parity measure. | Extend existing comparator receipts with per-field oracle disposition and options: use GDAL only for common geometry/raw-tag checks with block expansion explicitly disabled or its feature cap explicitly bound; use a CAD-graph library for handles/layout/object closure; use the independent kernel/native route for shape semantics. Exclude unsupported projection cells from denominators. Do not install a comparator, add CI dependencies, add CTests, or run a full suite for each individual field. |
 
-**Implementation progress — 7G.3e paper-space ownership and LAYOUT 331:**
+**Implementation progress — 7G.3e paper-space ownership and LAYOUT 331 (committed):**
 `dx_iface::validateLayoutGraph` now resolves each non-null DXF LAYOUT 331 to
 exactly one retained `DRW_Viewport` entity, requires paper-space status, and
 checks that its owner handle is the BLOCK_RECORD associated with that LAYOUT.
@@ -10795,10 +10825,145 @@ claim.
 The focused `libdxfrw_dxf_fixture_tests` target and registered
 `libdxfrw_dxf_fixtures` CTest pass; `lc3_compat_check` builds; `git diff
 --check` is clean. Full suites and the composed `dwg2dxf` CLI checkpoint were
-not run. Next, continue 7G.3e with unrelated NOD-entry retention and typed UCS/
-VisualStyle/RenderSettings/PlotSettings closure, then PAR-122 DWG→DXF viewport
-field derivation, before one composed CLI checkpoint. In parallel, apply the
-entity-specific WCS/OCS matrix to existing 7H/7O/7AG slices without a broad
-geometry-kernel or transformed-bounds rewrite. No finding, subplan, fixture
-payload, registration, dependency, or support claim is added. `J256`, `J260`,
-`J268`, `J284`, `J293`, and `J295` remain `DEFERRED_EXTERNAL` and non-promoting.
+not run.
+
+**Implementation progress — 7G.3e named/base UCS closure (committed):**
+Commit `e637c13` retains named UCS table rows in `dx_iface`, preflights LAYOUT
+345/346 as typed UCS edges and orthographic state, remaps a fixed-handle
+collision, and emits/readbacks the graph in generated ASCII/binary DXF across
+AC1015–AC1027. The serializer omits the undocumented UCS-record 345 field.
+Focused `libdxfrw_dxf_fixture_tests` build/run and
+`ctest -R '^libdxfrw_dxf_fixtures$'` pass; `libdxfrw_wave1_tests` build/run and
+`ctest -R '^libdxfrw_wave1$'` pass; `lc3_compat_check` builds and
+`git diff --check` is clean. Full suites, composed `dwg2dxf` CLI, and native
+consumers were not run.
+
+This closes only the named/base layout-UCS edge. UCS-record orthographic
+options (7BG), unrelated source NOD-entry retention, VisualStyle/
+RenderSettings/standalone PlotSettings closure and mode-gated LAYOUT 333,
+DWG viewport-count/list projection, composed CLI, and native consumer
+qualification remain open. Next, retain unrelated source NOD entries without
+promoting positional dictionaries or weakening source-root validation; then
+implement the confirmed VisualStyle edge and producer-confirmed
+RenderSettings container before closing any required shade-plot target. Keep
+standalone PLOTSETTINGS separate from LAYOUT's embedded fields. After that,
+implement PAR-122 DWG→DXF viewport 68/69 derivation with source-route and
+explicit-DXF preservation tests, then run one composed CLI checkpoint.
+In parallel, apply the entity-specific WCS/OCS matrix to existing 7H/7O/7AG
+slices without a broad geometry-kernel or transformed-bounds rewrite. No
+finding, subplan, fixture payload, registration, dependency, or support claim
+is added. `J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
+`DEFERRED_EXTERNAL` and non-promoting.
+
+## Cross-implementation 3D loss and acceptance gates (2026-10-15; plan-only)
+
+This review compares the DWG AcDs container contract with reported losses in
+LibreDWG and ACadSharp, current ACadRust ACIS test patterns, and DXF projection
+boundaries in GDAL and QCAD/dxflib. It sharpens the existing PAR-07/Slice 8,
+7G.3, and 7F.1 work; it adds no local defect or subplan. Peer issue reports
+remain version-bound evidence and are not reproduced libdxfrw failures.
+
+| Evidence | Result and limit | Implementation-ready refinement |
+| --- | --- | --- |
+| ODA [Open Design Specification §24](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf), LibreDWG [`decode_r2007.c`](https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c), and LibreDWG [issue #1411](https://github.com/LibreDWG/libredwg/issues/1411) | ODA defines AcDs as a byte-stream data store with segment, schema/data/search indexes and a handle-to-data-record association; this is more than locating SAB marker bytes. Issue #1411 reports a LibreDWG 0.14.8593 conversion where REGION entities survived while the R2013+ AcDs/SAB payload did not. Its author supplies a locally generatable ezdxf cube-DXF route; the confidential DWG is not needed and the reported result is specific to that build. | Keep S8.1–S8.3 staged: validate bounded segment/index structure; resolve each payload through the entity handle; then extract/check the bounded SAB record. Generated association controls must independently permute entity-stream order, handle order, data-directory order and sorted-index rank. Include `has_ds_data`/record-present agreement, duplicate or missing handle mappings, wrong-index rank, out-of-range segment/page, and a following-record sentinel. A successful entity callback or found SAB marker is not enough. Use scratch-authored data in a temporary directory; never check in or download the issue's customer drawing. |
+| ACadSharp [issue #1195](https://github.com/DomCR/ACadSharp/issues/1195) and current ACadRust [ACIS round-trip tests](https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs) | ACadSharp 3.4.9's issue report says the DWG reader retained `3DSOLID`/`REGION` objects but the DXF writer omitted them, leaving solid-only block definitions empty; it is not evidence about later ACadSharp builds. ACadRust's tests include marker-fabricated SAB blobs for association regressions and a planar cube self-round-trip. These are useful transport-test designs, but same-implementation output/readback does not independently prove producer compatibility or valid B-rep semantics. Pin mutable peer revisions before any run. | Extend S8.5 with two small scratch-authored block cases: one block containing only a 3DSOLID/REGION and referenced by INSERT, and one mixed block containing a LINE plus the solid. Assert per-block/per-type source and emitted census, owner path, INSERT target, payload disposition and downstream body presence; do not rely on global entity totals. The default complete-conversion route remains fail-closed for unsupported required records. A deliberately requested 2D projection may omit 3D only with an explicit, truthful loss disposition before publication. Keep fake SAB controls for handle/index association only; use a valid authored body for kernel semantics. |
+| GDAL [DXF driver 3D extensibility](https://gdal.org/en/stable/drivers/vector/dxf.html) and QCAD [dxflib `DL_Dxf` API](https://qcad.org/doc/qcad/latest/developer/class_d_l___dxf.html) | GDAL skips ACIS/ASM entities by default; its AC1027+ extensible mode exposes raw `ASMData` and `ASMTransform`, but does not construct OGR geometry. QCAD/dxflib documents `SOLID` as a filled trace and exposes ordinary 2D `SOLID`/`3DFACE` callbacks, not a general ACIS `3DSOLID` model. Neither is a 3D solid-semantics oracle. | Keep GDAL optional for DXF carrier bytes and affine-transform projection checks only, with the mode/version recorded. If QCAD/dxflib is already available, use it only as a bounded common-2D DXF consumer check; exclude ACIS/ASM rows from its denominator. Do not install either as a required dependency or interpret `SOLID` and `3DSOLID` as the same feature. |
+| `dwg-rs` [record-boundary report and test guidance](https://github.com/DrunkOnJava/dwg-rs) | Its current README describes per-record data-stream boundary checks that changed some prior zero-error counts into failures; the project correctly treats this as improved detection rather than a regression. This is a parser-test-process signal, not independent semantic acceptance or broad format support. Pin its source revision before any comparator run. | For local parser mutations, require exact record-end consumption and a succeeding-object/entity sentinel in the existing focused test owner. Report “decoded without error” separately from boundary-checked and semantically projected; do not expand the broad corpus or sanitizer matrix per field. |
+
+**Execution order and gates:** first add the generated per-block census and
+failure-before-publication controls to existing test executables; then complete
+the version-specific carrier/link path; only after those pass, run one selected
+independent structural reader and one compatible semantic reader/kernel on the
+same scratch-authored body. Keep DXF-inline SAT/SAB, DWG AcDs, polygonal MESH,
+and `3DFACE` as distinct routes and result rows. Preserve existing LibreCAD /
+LibreCAD_3 2D callbacks and fast compatibility gates. Use affected `-Werror`
+targets, the existing focused CTest, and one composed CLI checkpoint after the
+shared conversion path settles; reserve full suites for the plan's phase gate.
+Prefer runtime-generated, locally authored controls in existing test targets;
+do not download or commit customer/third-party drawings. A checked-in drawing
+is allowed only when created locally from scratch and necessary. Add no CTest
+registrations, required dependencies, or peer builds for individual edits.
+Findings/subplans remain 122/70; all six external J items remain
+`DEFERRED_EXTERNAL` and cannot be promoted by generated or self-round-trip
+evidence.
+
+## Broader DXF/UCS contract and peer-evidence refresh (2026-10-15; plan-only)
+
+This pass cross-checked Autodesk's published LAYOUT/UCS group-code contracts
+against the active local UCS/layout writer path, and refreshed the comparison
+boundary using ezdxf 1.4.4, current ACadSharp documentation, LibreDWG's
+documented fuzzing entry points, and current ACadRust/OpenCADStudio reports.
+The aim is to make the next 7G.3e slice correct and cheap to validate, not to
+add peer-derived support claims. No peer binary, native CAD application, or
+external drawing was run or imported; no new fixture, dependency, test
+registration, or PAR ID is proposed.
+
+| Evidence | Deeper result and confidence boundary | Plan refinement |
+| --- | --- | --- |
+| Autodesk [LAYOUT DXF codes](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm), [UCS table-record codes](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-1906E8A7-3393-4BF9-BD27-F9AE4352FB8B.htm), and [UCS reference guide](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-Core/files/GUID-51CC776E-5ED6-46FC-A850-E3690B0275AF.htm) | The same numeric group code has owner-specific meaning and conditions. LAYOUT 345 is present only when the layout UCS is named. LAYOUT 346 is present only when its orthographic type 76 is nonzero; if omitted, the base is WORLD. A UCS symbol-table record's repeated orthographic type/origin entries are 71 plus 13/23/33 tuples; its base-UCS handle is 346. Autodesk's UCS table page is internally inconsistent about 79: it labels the field "Always 0" while also making the presence/default rule for 346 depend on 79 being zero/nonzero. Its published table lists 346 but not 345. | In 7G.3e, use independent vectors: (a) non-orthographic layout `76=0` with no 346; (b) orthographic layout with omitted 346, exercising implicit WORLD; (c) orthographic layout with 346 resolving to exactly one retained UCS; and (d) wrong-type/missing nonzero targets rejected before publication. Do not use nonzero LAYOUT 346 with `76=0` as a positive fixture. Keep LAYOUT 345 validation conditional on a nonzero named-UCS handle. In 7BG, keep repeated 71 tuples separate from scalar/base metadata, preserve the accepted 79 value without imposing a blanket `79==0` rejection, and pin the correct UCS-record 346 condition with an authoritative versioned witness before changing its parser/writer. Keep that edge in the UCS-table lane, not the LAYOUT parser. |
+| Local `DRW_UCS`/`DRW_Layout` parser-writer audit (`src/drw_objects.cpp`, `src/libdxfrw.cpp`) | The in-tree UCS writer can emit group 345 from `DRW_UCS::namedUcsHandle`, whereas the Autodesk UCS table-record code page reviewed here documents group 346 as the base-UCS handle but does not list 345. `DRW_UCS::parseCode` also routes both 71 and 79 into scalar `orthoType`; the existing 7BG plan already identifies code-71 values as repeated orthographic tuple selectors that must not overwrite the scalar. This source audit identifies a concrete verification target, but does not establish how an AutoCAD producer treats the extra 345 or prove the parser behavior against producer-authored input. | Before accepting the current UCS closure slice, inspect the generated raw UCS table row and correct it against the Autodesk field contract plus an independent literal-group-code oracle. Do not emit or remap table-row 345 solely because the model has a similarly named field; either establish that route with a producer/spec source or omit/reject it under the existing truthful-loss policy. Extend 7BG's parser/writer vectors with two orthographic options and a distinct 79 scalar, and ensure a subsequent row/entity sentinel proves code-71 tuple parsing cannot leak across records. Keep this work under 7BG and 7G.3e; do not create a duplicate finding from the same source audit. |
+| ezdxf [1.4.4 overview](https://ezdxf.readthedocs.io/en/stable/), [version management](https://ezdxf.readthedocs.io/en/stable/drawing/management.html), [document model](https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html), and [proxy-graphics options](https://ezdxf.readthedocs.io/en/stable/options.html) | The release documents ASCII and binary DXF read/write, but its read and create/write version sets differ (for example, R13/R14 are upgraded on read rather than supported as independent output targets). Its document model keeps UCS and layout tables as separate collections and stores inactive paperspace contents under block layouts. Proxy-graphic retention is option-controlled; disabling load can discard the graphic on a later write. This is a peer's explicit policy, not normative permission to lose unsupported data. | Pin the peer and its options in any later DXF differential receipt. Keep binary-vs-ASCII and source-vs-target-version axes explicit. When a proxy or unknown object is in the case, record the exact load/store option and classify its disposition; never call an option-induced omission a codec defect, nor treat the same-library round-trip as semantic proof. Do not add ezdxf to required CI or use it to decide UCS group-code validity. |
+| ACadSharp [current version matrix](https://github.com/DomCR/ACadSharp) / [reader notification API](https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md), ACadSharp [#1195](https://github.com/DomCR/ACadSharp/issues/1195), and ACadRust [round-trip tests](https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs) | ACadSharp advertises independent read/write columns by version and exposes read notifications; its documentation also cautions that entity availability varies by version. The open #1195 report describes 3DSOLID/REGION objects read into its model but omitted by its DXF writer in v3.4.9, leaving referenced solid-only blocks empty. ACadRust's round-trip suite usefully exercises ordered fields and handle/index permutations but also includes fabricated SAB carrier controls and same-implementation round-trips. These sources show why version-open success, global entity count, and writer→own-reader success can each miss loss; they do not establish any local failure. | In the existing conversion matrix, record separate stages and counts: decoded source object; adapter callback; retained typed/raw object; emitted target object; resolved owner/reference; downstream semantic result. For block-backed content, compare per-block and per-type census so an empty block cannot be hidden by entities elsewhere. Treat fake SAB as association/bounds coverage only and semantic shape checks only on valid locally authored bodies with an eligible independent reader/kernel. No new peer toolchain or per-field external run is needed. |
+| LibreDWG [manual: fuzzing frontends](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi), [fuzz campaign repository](https://github.com/LibreDWG/libredwg-fuzz), and ACadRust's current [malformed-reader reports](https://github.com/hakanaktt/acadrust/issues) | LibreDWG documents distinct fuzz entry modes for DWG, ASCII DXF, binary DXF, and conversions; ACadRust's live issue list includes malformed-count allocation/panic reports alongside field-loss leads. These signal that parser safety and semantic fidelity require different oracles. External corpora and security reports are not to be imported or treated as local reproducers. | Keep per-slice fast generated tests as the default. For parser/bounds edits only, select the one affected input mode and run a bounded mutation/truncation cohort from a locally authored seed through existing hardening owners; retain longer multi-format fuzz/corpus jobs for scheduled or phase gates. For serialization-only edits, use exact typed/raw tag-order checks plus following-record sentinels; do not pay a full mutation or native matrix for each slice. Record crash/bounds outcome separately from semantic retention. |
+| OpenCADStudio [3D AutoCAD-compatibility report #1615](https://github.com/HakanSeven12/OpenCADStudio/issues/1615) | The initial report says OpenCADStudio-saved solids fail in AutoCAD/ProgeCAD, but follow-up says version 50 improved, and the maintainer's Oct. 13 current-main pyramid/cylinder boolean saved as 2018 DWG opened in a strict third-party reader. The issue remains under-specified for the reporter's intermittent failures and does not isolate a libdxfrw stage; neither report nor maintainer check proves general B-rep equivalence. | Treat this as a qualified-app scenario lead, not a confirmed current failure or support claim. For target-CAD checks, record exact producer build, boolean operation/body, DWG version, consumer product/build, diagnostics, and reopened body semantics. A successful strict structural reader can certify parse/structure only; retain independent-kernel and native semantic checks as distinct Slice 8 gates. |
+
+**7G.3e implementation-ready delta:** the in-flight positive layout case with a
+nonzero 346 must set `orthoViewType` to a valid nonzero orthographic type. Add
+the three companion conditions above without multiplying the version matrix:
+run them in the existing ASCII/binary fixture target at one representative
+AC1015+ version, then retain the already-planned cross-version matrix for the
+single composed graph checkpoint. Include a negative with `76=0` plus nonzero
+346 if strict graph admission rejects contradictory references; always preserve
+the pre-existing destination on rejection. Resolve a base UCS only where the
+field is applicable; an absent WORLD-default base is not a missing-target
+error. Keep table-record 346 tests in 7BG, not the current layout-only
+implementation sub-slice.
+
+**Scope and evidence policy:** no new PAR ID, top-level subplan, required
+dependency, downloaded/checked-in fixture, CTest registration, full-suite run,
+or external support promotion is justified. Findings/subplans remain 122/70;
+`J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
+`DEFERRED_EXTERNAL`. Apply the immediate 7G.3e vectors with the focused
+`-Werror` target and `lc3_compat_check`; run the composed CLI checkpoint once
+after the auxiliary-object and reciprocal-link boundary closes, and leave full
+validation at its existing phase gate.
+
+## Broader DWG decode and conversion-completeness refresh (2026-10-15; plan-only)
+
+This pass triangulates the authoritative ODA R2007 page rules with newly
+merged/open LibreDWG reports, then checks the corresponding local source seams
+and existing plan owners. It corrects two peer diagnoses before translating
+them into tests: the large-coordinate LWPOLYLINE report was caused by page
+decoding, not polyline grammar; and the alleged short handle-map section in
+LibreDWG #1355 was later withdrawn by its reporter. These reports are
+cross-project evidence, not local reproductions. No external DWG was obtained
+or run, and no production code, finding ID, registration, dependency, support
+claim, or fixture payload is added here.
+
+| Evidence | Deeper result and local confidence boundary | Plan refinement |
+| --- | --- | --- |
+| ODA [Open Design Specification v5.4.1, §§5.4 and 5.13](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf); LibreDWG [#1361](https://github.com/LibreDWG/libredwg/issues/1361) and merged [#1363](https://github.com/LibreDWG/libredwg/pull/1363) | ODA separates compression from Reed–Solomon coding: a page may remain uncompressed when compression is not beneficial and still undergo the version/section-selected RS encoding (R21 data pages use (255,251), interleaved or non-interleaved by page encoding). LibreDWG #1363 traced near-DBL_MAX LWPOLYLINE/HATCH/LAYOUT values to treating some incompressible AC1021 pages as verbatim; its issue author also reports a small set of pages that appear genuinely verbatim, distinguished from RS-coded pages by physical page-size geometry. The latter is a peer-observed compatibility case, not an ODA rule established by this pass. Local `dwgReader21::parseDataPage` RS-decodes the non-AC1018 path before its copy/decompress branch; `dwgReader18` does likewise on its AC1024+ RS fallback. Both use compression-size comparisons only after decode. Source review found no corresponding defect in entity `parseDwg` grammar, but the fast test search found no explicit generated AC1021 data-page profile matrix. | Keep the entity parsers untouched unless a page-valid input still reproduces bad coordinates after page decoding is proven. Under the existing reader-matrix owner, add compact from-scratch page controls for RS-compressed and RS-uncompressed data, both AC1021 interleaving modes where constructible, plus legacy AC1018-format compatibility on the mixed-page route. Make the expected logical bytes and a following-page/object sentinel explicit. Investigate the peer's apparent verbatim page class against ODA and a shareable producer trace before accepting it: page-size discrimination may be recorded as a candidate classifier, not copied as an unconditional heuristic. Malformed size/encoding combinations must fail with the existing integrity diagnostic and leave the reader reusable. Use only existing fast reader targets; do not import the issue's DWG corpus or expand the per-commit version suite. |
+| Local `dwgReader21::parseDataPage` and `dwgReader18::parseDataPage` source audit, checked against ODA §5.4; LibreDWG #1363 | Local AC1021 code RS-decodes first and currently copies only when `cSize == uSize`; otherwise it calls the LZ77 decompressor. The AC1024+ RS path decompresses only when `cSize < uSize`, otherwise copying the decoded payload. ODA's rule is “not compressed if compression is not shorter,” but the exact validity meaning of `cSize > uSize` in every relevant section/page profile was not established here. This is a narrow asymmetry worth resolving, not yet a confirmed valid-file defect. | Add a page-profile discriminator decision to the reader-matrix subplan: positively cover `cSize < uSize` (compressed) and the authoritative uncompressed representation; add a `cSize > uSize` negative that either rejects or follows a separately documented page rule. Do not let that case fall into arbitrary decompression by default. Confirm the page-map field interpretation and decoded-size bounds from ODA plus a producer witness before changing behavior. Assert checksum/page bounds, exact logical output, next-page alignment, and no section publication after failure. This is a fast, local gate—not a request for a downloaded sample or full reader corpus. |
+| LibreDWG open [#1357](https://github.com/LibreDWG/libredwg/issues/1357) and open [#1359](https://github.com/LibreDWG/libredwg/pull/1359) | #1357 documents an iterator returning the same null result for “end” and “reference did not resolve”; the reporter measured conversion stopping at the first bad owned reference, including block definitions. #1359 proposes handling unresolved entries as skips, warning, and guarding the iterator with `>= num_owned`; it is still a proposal, not released behavior. Local 7G already has a generated DXF `*D` unresolved-owner/suffix negative that proves suffix parsing and strict CLI rejection without publication, but that is not DWG object-map evidence and does not yet constitute modelspace-plus-each-block coverage. | Keep the local complete-conversion default fail-closed; do not silently copy LibreDWG's proposed recovery policy. Extend existing 7G.3/PAR-49 controls at the owning graph boundary to modelspace, one nested/referenced block, and a mixed block: missing first/middle/final references, a valid suffix, zero-child control, and declared-count boundary/overrun. Record per-owner/per-type counts and diagnostics through decode → callback → adapter → target. If a later explicit recovery mode skips entries, it must distinguish `resolved`, `unresolved/skipped`, and `end`, stay within the declared count, preserve independent suffix records, report exact losses, and mark output partial; it cannot satisfy the strict complete-conversion gate. Keep these vectors generated in existing fast targets; no separate CTest or new support claim. |
+| LibreDWG issue [#1355](https://github.com/LibreDWG/libredwg/issues/1355) and open [#1360](https://github.com/LibreDWG/libredwg/pull/1360); local `dwgReader::readDwgHandles` | The issue reporter corrected the initial “section too short/third page” diagnosis: CRC-checked map pages end at the declared boundary. The reported trigger is instead an invalid modular-char `handleoff`; the peer candidate retries at a later byte only on that parse failure. The author says broader resync conditions also dropped valid Leader entities, and #1360 remains open. Local `readDwgHandles` checks buffer health, cursor progress, delta ranges, object-location limits, duplicates, and stages the map before publication; malformed modular-char input currently fails rather than using its returned garbage. Thus neither the withdrawn size theory nor peer resync is a local fix prescription. | Keep malformed handle-map handling in the existing reader/hardening lane. Add a tiny generated map vector with valid entries on both sides of an invalid modular-char, asserting bounded diagnostic, no staged-map publication, no fabricated offset, and clean same-reader retry. Do not skip bytes or resynchronize unless ODA defines an ignorable byte sequence and a producer trace proves CRC/page-end alignment, entry accounting, and resolved suffix identities; exact end position alone is not enough. Keep object-map/page framing distinct from downstream DXF writer completeness. |
+| LibreDWG #1355 follow-up and #1360's “still open” completion note; existing PAR-49/7F.1 plus `DwgDxfOutputTransaction` | The peer report separates decoder recovery from the CLI's false-success condition: even if object decode warns/continues, a writer that stops before required sections or terminal EOF must not report a complete successful conversion. The local plan already owns bounded import outcomes and explicit partial/loss policy, while the CLI output transaction owns publication; those are separate gates and must be joined. | In the single composed 7F.1/CLI checkpoint, pair a clean full conversion with an injected/source-local partial decode that otherwise lets the writer start. Assert exactly one required terminal EOF, final writer result and parse/loss summary, nonzero or explicitly classified partial status, and no creation/replacement of the destination on strict complete mode. If a separately requested partial mode is retained, require a visible partial marker/result and preserve atomic publication semantics. Do not add this composition to every parser slice; run it once when the outcome schema and graph/auxiliary-object boundary settle. |
+
+**Implementation-ready sequence:** first settle R2007 page-class identification and
+the `cSize` threshold with ODA/source evidence, then add only the compact
+generated reader-matrix controls. Next add invalid-handle-map atomicity to the
+existing reader/hardening owner. In parallel, finish 7G.3's per-owner graph
+census and 7F.1's import-outcome schema; compose them once at the strict CLI
+publication boundary. Preserve existing 2D callback/API compatibility. Each
+slice remains independently commit-ready and updates its progress row after
+commit; unavailable external samples or native qualification gate only the
+claim they are meant to support, not unrelated implementation work.
+
+**Scope and evidence policy:** research status checked 2026-10-15. No local
+runtime test or peer executable was run for this plan-only pass. No downloaded
+or checked-in DWG/DXF, dependency, new CTest, full-suite run, PAR ID, top-level
+subplan, or support row is added. New byte-level inputs, if implemented, must be
+generated locally from scratch and live in existing fast test owners. Prefer
+the changed `-Werror` target and `lc3_compat_check`; reserve reader matrices,
+sanitizers, full suites, and native/oracle checks for their named composition
+gates. Findings/subplans remain 122/70; `J256`, `J260`, `J268`, `J284`, `J293`,
+and `J295` remain `DEFERRED_EXTERNAL` and cannot be promoted by this research.
