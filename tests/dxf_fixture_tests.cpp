@@ -1311,6 +1311,98 @@ void testNodRootOrdering(TestContext& t) {
                      && outputInterface.dictionaries[0].m_entries[0].m_name == "ACAD_GROUP"
                      && outputInterface.dictionaries[1].handle == 0xDu,
                  "writer places regenerated NOD before the reserved ACAD_GROUP dictionary");
+
+        dx_data graphSource;
+        graphSource.hasNamedObjectDictionary = true;
+        graphSource.namedObjectDictionary.handle = 0xB0u;
+        graphSource.namedObjectDictionary.m_entries = {
+            {"NOD_CHILD", 0x3u}, {"NOD_DIRECT_XRECORD", 0x5u}};
+        DRW_Dictionary child;
+        child.handle = 0x3u;
+        child.parentHandle = 0xB0u;
+        child.m_entries.push_back({"NESTED_XRECORD", 0x4u});
+        graphSource.dictionaries.push_back(child);
+        DRW_XRecord nested;
+        nested.handle = 0x4u;
+        nested.parentHandle = 0x3u;
+        nested.m_dataEntries.emplace_back(1, UTF8STRING("nested-nod-record"));
+        graphSource.xRecords.push_back(nested);
+        DRW_XRecord direct;
+        direct.handle = 0x5u;
+        direct.parentHandle = 0xB0u;
+        direct.m_dataEntries.emplace_back(1, UTF8STRING("direct-nod-record"));
+        graphSource.xRecords.push_back(direct);
+        const auto graphOutput = directory
+            / (binary ? "typed-nod-graph-binary.dxf"
+                      : "typed-nod-graph-ascii.dxf");
+        dx_iface graphWriter;
+        const bool graphWritten = graphWriter.fileExport(
+            graphOutput.string(), DRW::AC1027, binary, &graphSource,
+            false, true);
+        dx_data graphReadback;
+        dx_iface graphReader;
+        const bool graphRead = graphWritten
+            && graphReader.fileImport(graphOutput.string(), &graphReadback,
+                                      false);
+        const auto childRootEntry = std::find_if(
+            graphReadback.namedObjectDictionary.m_entries.begin(),
+            graphReadback.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "NOD_CHILD";
+            });
+        const auto directRootEntry = std::find_if(
+            graphReadback.namedObjectDictionary.m_entries.begin(),
+            graphReadback.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "NOD_DIRECT_XRECORD";
+            });
+        const auto exportedChild = std::find_if(
+            graphReadback.dictionaries.begin(), graphReadback.dictionaries.end(),
+            [&childRootEntry, &graphReadback](const DRW_Dictionary& value) {
+                return childRootEntry
+                        != graphReadback.namedObjectDictionary.m_entries.end()
+                    && value.handle == childRootEntry->m_handle;
+            });
+        const auto nestedRecord = std::find_if(
+            graphReadback.xRecords.begin(), graphReadback.xRecords.end(),
+            [&exportedChild, &graphReadback](const DRW_XRecord& value) {
+                return exportedChild != graphReadback.dictionaries.end()
+                    && value.parentHandle == exportedChild->handle;
+            });
+        const auto directRecord = std::find_if(
+            graphReadback.xRecords.begin(), graphReadback.xRecords.end(),
+            [&directRootEntry, &graphReadback](const DRW_XRecord& value) {
+                return directRootEntry
+                        != graphReadback.namedObjectDictionary.m_entries.end()
+                    && value.handle == directRootEntry->m_handle;
+            });
+        t.expect(graphRead && graphReadback.hasNamedObjectDictionary
+                     && graphReadback.namedObjectDictionary.handle == 0xCu
+                     && childRootEntry
+                         != graphReadback.namedObjectDictionary.m_entries.end()
+                     && childRootEntry->m_handle != 0x3u
+                     && exportedChild != graphReadback.dictionaries.end()
+                     && exportedChild->parentHandle == 0xCu
+                     && exportedChild->m_entries.size() == 1u
+                     && exportedChild->m_entries.front().m_name
+                         == "NESTED_XRECORD"
+                     && nestedRecord != graphReadback.xRecords.end()
+                     && nestedRecord->handle
+                         == exportedChild->m_entries.front().m_handle
+                     && nestedRecord->m_dataEntries.size() == 1u
+                     && nestedRecord->m_dataEntries.front().content.s != nullptr
+                     && *nestedRecord->m_dataEntries.front().content.s
+                         == "nested-nod-record"
+                     && directRootEntry
+                         != graphReadback.namedObjectDictionary.m_entries.end()
+                     && directRecord != graphReadback.xRecords.end()
+                     && directRecord->parentHandle == 0xCu
+                     && directRecord->handle != 0x5u
+                     && directRecord->m_dataEntries.size() == 1u
+                     && directRecord->m_dataEntries.front().content.s != nullptr
+                     && *directRecord->m_dataEntries.front().content.s
+                         == "direct-nod-record",
+                 "strict export remaps a lower-handle NOD child and closes direct and nested XRECORDs");
     }
 }
 
