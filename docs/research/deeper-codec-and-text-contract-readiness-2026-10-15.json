@@ -1,0 +1,862 @@
+{
+  "schema": "libdxfrw-scoped-research-evidence-v1",
+  "date": "2026-10-15",
+  "baseline": "5886b4842bd4b15a1fcd8f3de869e423615bddd1",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Research/plan-only: exhaustive named mapping discrimination; pinned Rust DXF source comparison; authored text-command/carrier calibration. Existing production/test WIP is preserved, not integrated or claimed as clean-HEAD qualification.",
+  "owners": [
+    "PAR-05 / Slice3.3",
+    "PAR-74/85 / 7AR",
+    "PAR-81 / 7AU",
+    "7M",
+    "7AH/7AQ",
+    "7S"
+  ],
+  "sourceHashes": {
+    "src/intern/drw_textcodec.cpp": "40083823672fd7b2212906e5d1b6134eac725424c41fbf58e6a41e7a85f238f8",
+    "src/intern/drw_textcodec.h": "80a1b53daac6eaa0e7f8a51fc83fb1506054121fdd48a810759894c5d9e18691",
+    "src/intern/drw_cptables.h": "76cbf82944d5a33a5e770dc8f469a1a2e360348f80c8fa5732ef66fb1a5c10a0"
+  },
+  "preservedWipHashes": {
+    "CMakeLists.txt": "eb2d6701a57796cf2516e4191f5aab56bcce01b1e9e03dce8a916548704a9b4c",
+    "dwg2dxf/dx_iface.cpp": "3f6ebb80de34f3ca5b1355be3ce0eabeb6683a7155883e4b32e022915cb60323",
+    "dwg2dxf/dx_iface.h": "e50f40236e8a5873dd9b8dd6c204c47d02a659e5645f865e4753c8c426cdef70",
+    "dwg2dxf/main.cpp": "41fed5e133441da4f7cfae0cbc9c094aef081488cceb9eb3e9ea188785ac292e",
+    "src/drw_base.h": "cf7387f68048cd2e1641696779364a6ea5cdb52e25c9b0b6b58f2130f010d171",
+    "src/intern/dxfwriter.cpp": "29cd439a24b14bc2c1d42cb03d39e3b5431989a80506feabd2918178a1f7546c",
+    "src/intern/dxfwriter.h": "0f77d9ccf48b73753f506ad8a174df475830a89bf10843b27c5e6ddec646f6d5",
+    "src/libdxfrw.cpp": "d0df1ccb5b81db28bc4d49cc7dd322327b914da413f5c68fb7711f18653045af",
+    "src/libdxfrw.h": "ed91aae9001bf6e1d51e2c78e2f09c9ea992c9beb5f7e7f83ec9783e79d70eb4",
+    "tests/dwg2dxf_cli_contract_tests.py": "ad2fb4473e43b63159bce209716963621229aca64ced8c1ae0d08fa72ade2f72",
+    "tests/gbk_codepage_tests.cpp": "797272476f0dffe4b35c50348b87de788f5a98ac07703c7f6c34256b6a24bb03",
+    "tests/wave1_tests.cpp": "50d7a13744b29ffe4198ed5e1ea0aa0d277bfc12dc1bc2f72d66c19af99520cb"
+  },
+  "mappingProbe": {
+    "rows": 2560,
+    "exitCode": 0,
+    "measuredRunSeconds": 0.030406916000000003,
+    "python": "3.9.6",
+    "tableChecks": [
+      {
+        "alias": "ISO8859-4",
+        "table": "8859-4.TXT",
+        "defined": 256,
+        "python_strict_disagreements": 0
+      },
+      {
+        "alias": "ISO-8859-4",
+        "table": "8859-4.TXT",
+        "defined": 256,
+        "python_strict_disagreements": 0
+      },
+      {
+        "alias": "ISO8859-10",
+        "table": "8859-10.TXT",
+        "defined": 256,
+        "python_strict_disagreements": 0
+      },
+      {
+        "alias": "ISO8859-13",
+        "table": "8859-13.TXT",
+        "defined": 256,
+        "python_strict_disagreements": 0
+      },
+      {
+        "alias": "ANSI_1257",
+        "table": "CP1257.TXT",
+        "defined": 244,
+        "python_strict_disagreements": 0
+      }
+    ],
+    "tableHashes": {
+      "8859-4.TXT": "e717699903bef2144234279a598ce39b44502942c9cc23a2ce2069a65f46b00d",
+      "8859-10.TXT": "3441c37377c6721586255282ef4302c0ca61796674361959b3a2591f823a0e67",
+      "8859-13.TXT": "375cc8d45b331c29e5630bf5c821c85572ffba60487d4d279341bbd13f46750f",
+      "CP1257.TXT": "5ac72f382ea4f64fe61854e0dae7d311583bd1dd20797697d4dce32b175a268b"
+    },
+    "probeHashes": {
+      "probe.cpp": "361ea6e4375d2b1732f2075141859d404d311580da9e5322cc98bf66bb2f9858",
+      "compare.py": "061ffd339142e91e07c55bf49ca752c3e763ec34c79b27ef06e6bba7a6fd019a",
+      "probe": "11c7f258ff2203f8489f7975cd57a4c100358e72c6cf02f67662dbd7a14388fb"
+    },
+    "profiles": [
+      {
+        "alias": "ISO8859-4",
+        "routes": [
+          "AC1015 DXF byte codec",
+          "AC1015 non-DXF byte codec"
+        ],
+        "rowsPerRoute": 256,
+        "selected": "ANSI_1257",
+        "selectionKind": 3,
+        "decodeMismatchCount": 104,
+        "decodeMismatchBytes": "80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a1 a2 a3 a5 a6 a8 a9 aa ab ac ae af b1 b2 b3 b5 b6 b7 b8 b9 ba bb bc bd be bf c0 c1 c2 c3 c6 c7 ca cb cc cd ce cf d0 d1 d2 d3 d4 d8 d9 da db dd de e0 e1 e2 e3 e6 e7 ea eb ec ed ee ef f0 f1 f2 f3 f4 f8 f9 fa fb fd fe",
+        "deletedDefinedCount": 12,
+        "deletedDefinedBytes": "81 83 88 8a 8c 90 98 9a 9c 9f a1 a5",
+        "encodeNotOriginalByteCount": 104,
+        "encodeExpectedSemanticsLostCount": 0,
+        "undefinedSourceBytes": "",
+        "anchors": [
+          {
+            "byte": "80",
+            "expected_utf8": "c280",
+            "decoded_utf8": "e282ac",
+            "encoded_expected": "5c552b30303830",
+            "decoded_encoded_expected": "c280",
+            "source_issues": 2
+          },
+          {
+            "byte": "81",
+            "expected_utf8": "c281",
+            "decoded_utf8": "",
+            "encoded_expected": "5c552b30303831",
+            "decoded_encoded_expected": "c281",
+            "source_issues": 322
+          },
+          {
+            "byte": "a1",
+            "expected_utf8": "c484",
+            "decoded_utf8": "",
+            "encoded_expected": "c0",
+            "decoded_encoded_expected": "c484",
+            "source_issues": 322
+          },
+          {
+            "byte": "a2",
+            "expected_utf8": "c4b8",
+            "decoded_utf8": "c2a2",
+            "encoded_expected": "5c552b30313338",
+            "decoded_encoded_expected": "c4b8",
+            "source_issues": 2
+          },
+          {
+            "byte": "ff",
+            "expected_utf8": "cb99",
+            "decoded_utf8": "cb99",
+            "encoded_expected": "ff",
+            "decoded_encoded_expected": "cb99",
+            "source_issues": 2
+          }
+        ]
+      },
+      {
+        "alias": "ISO-8859-4",
+        "routes": [
+          "AC1015 DXF byte codec",
+          "AC1015 non-DXF byte codec"
+        ],
+        "rowsPerRoute": 256,
+        "selected": "ANSI_1252",
+        "selectionKind": 4,
+        "decodeMismatchCount": 82,
+        "decodeMismatchBytes": "80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a1 a2 a3 a5 a6 a9 aa ab ac ae b1 b2 b3 b5 b6 b7 b9 ba bb bc bd be bf c0 c7 c8 ca cc cf d0 d1 d2 d3 d9 dd de e0 e7 e8 ea ec ef f0 f1 f2 f3 f9 fd fe ff",
+        "deletedDefinedCount": 5,
+        "deletedDefinedBytes": "81 8d 8f 90 9d",
+        "encodeNotOriginalByteCount": 82,
+        "encodeExpectedSemanticsLostCount": 0,
+        "undefinedSourceBytes": "",
+        "anchors": [
+          {
+            "byte": "80",
+            "expected_utf8": "c280",
+            "decoded_utf8": "e282ac",
+            "encoded_expected": "5c552b30303830",
+            "decoded_encoded_expected": "c280",
+            "source_issues": 4
+          },
+          {
+            "byte": "81",
+            "expected_utf8": "c281",
+            "decoded_utf8": "",
+            "encoded_expected": "5c552b30303831",
+            "decoded_encoded_expected": "c281",
+            "source_issues": 324
+          },
+          {
+            "byte": "a1",
+            "expected_utf8": "c484",
+            "decoded_utf8": "c2a1",
+            "encoded_expected": "5c552b30313034",
+            "decoded_encoded_expected": "c484",
+            "source_issues": 4
+          },
+          {
+            "byte": "a2",
+            "expected_utf8": "c4b8",
+            "decoded_utf8": "c2a2",
+            "encoded_expected": "5c552b30313338",
+            "decoded_encoded_expected": "c4b8",
+            "source_issues": 4
+          },
+          {
+            "byte": "ff",
+            "expected_utf8": "cb99",
+            "decoded_utf8": "c3bf",
+            "encoded_expected": "5c552b30324439",
+            "decoded_encoded_expected": "cb99",
+            "source_issues": 4
+          }
+        ]
+      },
+      {
+        "alias": "ISO8859-10",
+        "routes": [
+          "AC1015 DXF byte codec",
+          "AC1015 non-DXF byte codec"
+        ],
+        "rowsPerRoute": 256,
+        "selected": "ANSI_1257",
+        "selectionKind": 3,
+        "decodeMismatchCount": 106,
+        "decodeMismatchBytes": "80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a1 a2 a3 a4 a5 a6 a8 a9 aa ab ac ae af b1 b2 b3 b4 b5 b6 b8 b9 ba bb bc bd be bf c0 c1 c2 c3 c6 c7 ca cb cc cd ce cf d0 d1 d2 d4 d7 d8 d9 da db dd de e0 e1 e2 e3 e6 e7 ea eb ec ed ee ef f0 f1 f2 f4 f7 f8 f9 fa fb fd fe ff",
+        "deletedDefinedCount": 12,
+        "deletedDefinedBytes": "81 83 88 8a 8c 90 98 9a 9c 9f a1 a5",
+        "encodeNotOriginalByteCount": 106,
+        "encodeExpectedSemanticsLostCount": 0,
+        "undefinedSourceBytes": "",
+        "anchors": [
+          {
+            "byte": "80",
+            "expected_utf8": "c280",
+            "decoded_utf8": "e282ac",
+            "encoded_expected": "5c552b30303830",
+            "decoded_encoded_expected": "c280",
+            "source_issues": 2
+          },
+          {
+            "byte": "81",
+            "expected_utf8": "c281",
+            "decoded_utf8": "",
+            "encoded_expected": "5c552b30303831",
+            "decoded_encoded_expected": "c281",
+            "source_issues": 322
+          },
+          {
+            "byte": "a1",
+            "expected_utf8": "c484",
+            "decoded_utf8": "",
+            "encoded_expected": "c0",
+            "decoded_encoded_expected": "c484",
+            "source_issues": 322
+          },
+          {
+            "byte": "a2",
+            "expected_utf8": "c492",
+            "decoded_utf8": "c2a2",
+            "encoded_expected": "c7",
+            "decoded_encoded_expected": "c492",
+            "source_issues": 2
+          },
+          {
+            "byte": "ff",
+            "expected_utf8": "c4b8",
+            "decoded_utf8": "cb99",
+            "encoded_expected": "5c552b30313338",
+            "decoded_encoded_expected": "c4b8",
+            "source_issues": 2
+          }
+        ]
+      },
+      {
+        "alias": "ISO8859-13",
+        "routes": [
+          "AC1015 DXF byte codec",
+          "AC1015 non-DXF byte codec"
+        ],
+        "rowsPerRoute": 256,
+        "selected": "ANSI_1257",
+        "selectionKind": 3,
+        "decodeMismatchCount": 36,
+        "decodeMismatchBytes": "80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f a1 a5 b4 ff",
+        "deletedDefinedCount": 12,
+        "deletedDefinedBytes": "81 83 88 8a 8c 90 98 9a 9c 9f a1 a5",
+        "encodeNotOriginalByteCount": 36,
+        "encodeExpectedSemanticsLostCount": 0,
+        "undefinedSourceBytes": "",
+        "anchors": [
+          {
+            "byte": "80",
+            "expected_utf8": "c280",
+            "decoded_utf8": "e282ac",
+            "encoded_expected": "5c552b30303830",
+            "decoded_encoded_expected": "c280",
+            "source_issues": 2
+          },
+          {
+            "byte": "81",
+            "expected_utf8": "c281",
+            "decoded_utf8": "",
+            "encoded_expected": "5c552b30303831",
+            "decoded_encoded_expected": "c281",
+            "source_issues": 322
+          },
+          {
+            "byte": "a1",
+            "expected_utf8": "e2809d",
+            "decoded_utf8": "",
+            "encoded_expected": "94",
+            "decoded_encoded_expected": "e2809d",
+            "source_issues": 322
+          },
+          {
+            "byte": "a2",
+            "expected_utf8": "c2a2",
+            "decoded_utf8": "c2a2",
+            "encoded_expected": "a2",
+            "decoded_encoded_expected": "c2a2",
+            "source_issues": 2
+          },
+          {
+            "byte": "ff",
+            "expected_utf8": "e28099",
+            "decoded_utf8": "cb99",
+            "encoded_expected": "92",
+            "decoded_encoded_expected": "e28099",
+            "source_issues": 2
+          }
+        ]
+      },
+      {
+        "alias": "ANSI_1257",
+        "routes": [
+          "AC1015 DXF byte codec",
+          "AC1015 non-DXF byte codec"
+        ],
+        "rowsPerRoute": 256,
+        "selected": "ANSI_1257",
+        "selectionKind": 1,
+        "decodeMismatchCount": 0,
+        "decodeMismatchBytes": "",
+        "deletedDefinedCount": 0,
+        "deletedDefinedBytes": "",
+        "encodeNotOriginalByteCount": 0,
+        "encodeExpectedSemanticsLostCount": 0,
+        "undefinedSourceBytes": "81 83 88 8a 8c 90 98 9a 9c 9f a1 a5",
+        "anchors": [
+          {
+            "byte": "80",
+            "expected_utf8": "e282ac",
+            "decoded_utf8": "e282ac",
+            "encoded_expected": "80",
+            "decoded_encoded_expected": "e282ac",
+            "source_issues": 0
+          },
+          {
+            "byte": "81",
+            "expected_utf8": null,
+            "decoded_utf8": "",
+            "encoded_expected": "",
+            "decoded_encoded_expected": "",
+            "source_issues": 320
+          },
+          {
+            "byte": "a1",
+            "expected_utf8": null,
+            "decoded_utf8": "",
+            "encoded_expected": "",
+            "decoded_encoded_expected": "",
+            "source_issues": 320
+          },
+          {
+            "byte": "a2",
+            "expected_utf8": "c2a2",
+            "decoded_utf8": "c2a2",
+            "encoded_expected": "a2",
+            "decoded_encoded_expected": "c2a2",
+            "source_issues": 0
+          },
+          {
+            "byte": "ff",
+            "expected_utf8": "cb99",
+            "decoded_utf8": "cb99",
+            "encoded_expected": "ff",
+            "decoded_encoded_expected": "cb99",
+            "source_issues": 0
+          }
+        ]
+      }
+    ],
+    "interpretation": "All256 bytes are defined and uniquely mapped in each of the three ISO tables. CP1257 has244 defined and12 undefined bytes. Decode mismatch/deletion is established at codec level only. Different emitted bytes for independently supplied expected Unicode are NOT necessarily semantic loss: Windows encoding or BMP CIF preserves all supplied expected scalars in this probe. Encoder semantics and declared-source interpretation require separate assertions.",
+    "limits": "No DXF file HEADER routing, DWG numeric metadata, DWG TV/TU/EED ingest, native producer, output-policy mapping change or support qualification."
+  },
+  "caretProbe": {
+    "rows": [
+      {
+        "kind": "TEXT",
+        "case": "caret-command",
+        "target": "2004",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literalend",
+        "source_sha256": "2e844e8dfaab1c48342d669b718211726266773fe366ff5974181c2ae4028283",
+        "output_sha256": "3eccc0b88554d7740fb02824b19f899278d32471e3d61b3c07a6f4975d71eeb2"
+      },
+      {
+        "kind": "TEXT",
+        "case": "caret-command",
+        "target": "2004",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literalend",
+        "source_sha256": "2e844e8dfaab1c48342d669b718211726266773fe366ff5974181c2ae4028283",
+        "output_sha256": "6999aa06a1eb0fb7cfbc543cc155caeca68903ce1cca5610cfbd6686e58494dc"
+      },
+      {
+        "kind": "TEXT",
+        "case": "caret-command",
+        "target": "2007",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literalend",
+        "source_sha256": "2e844e8dfaab1c48342d669b718211726266773fe366ff5974181c2ae4028283",
+        "output_sha256": "263e0e5d1d1de9e9af497cd17434aaa947dc2601cba11d548dbaa75539fbf4b6"
+      },
+      {
+        "kind": "TEXT",
+        "case": "caret-command",
+        "target": "2007",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literalend",
+        "source_sha256": "2e844e8dfaab1c48342d669b718211726266773fe366ff5974181c2ae4028283",
+        "output_sha256": "ba88429bd6074f97c61728dce613a6d7e94ef41fd624f99e362ddca27fe32487"
+      },
+      {
+        "kind": "TEXT",
+        "case": "caret-space",
+        "target": "2004",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "fe789262be07d3a5cf7764e617c97cd16b0b0002c130d16e07838d7003a62e23",
+        "output_sha256": "68a4fae4a9f11d48e0713715c391a7a17993956e145bb099873a1025d7ecc553"
+      },
+      {
+        "kind": "TEXT",
+        "case": "caret-space",
+        "target": "2004",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "fe789262be07d3a5cf7764e617c97cd16b0b0002c130d16e07838d7003a62e23",
+        "output_sha256": "94155e130247cf7bd13ef48bf1ddd3d18c3a61db582278b2abb7330b4c8ef0f3"
+      },
+      {
+        "kind": "TEXT",
+        "case": "caret-space",
+        "target": "2007",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "fe789262be07d3a5cf7764e617c97cd16b0b0002c130d16e07838d7003a62e23",
+        "output_sha256": "d0e44f451c6cd5c6249b519d9caeff236cad3925205506f10e0eed2db9d54ab6"
+      },
+      {
+        "kind": "TEXT",
+        "case": "caret-space",
+        "target": "2007",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "fe789262be07d3a5cf7764e617c97cd16b0b0002c130d16e07838d7003a62e23",
+        "output_sha256": "84be1374d8b361c425f5689b56dd6660de363545e593b3be2eb5330ae4c7c985"
+      },
+      {
+        "kind": "TEXT",
+        "case": "raw-bel",
+        "target": "2004",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "b7e7cac9861a5348d530125d89241a59d7b8db927a40737ea67be82450143d05",
+        "output_sha256": "89c786a9f73097bd8b53a6079e2b4c96b6fb1b25026dd0ed2e048051a11165dc"
+      },
+      {
+        "kind": "TEXT",
+        "case": "raw-bel",
+        "target": "2004",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "b7e7cac9861a5348d530125d89241a59d7b8db927a40737ea67be82450143d05",
+        "output_sha256": "038f31e40f8b3336dbaaa5914900836912090c6fa0cf4e81d0cca6d85088d793"
+      },
+      {
+        "kind": "TEXT",
+        "case": "raw-bel",
+        "target": "2007",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "b7e7cac9861a5348d530125d89241a59d7b8db927a40737ea67be82450143d05",
+        "output_sha256": "fce6d76b9cbe2d8a2beb0e08c677ac1d005eed35fb088efa6f8737d121d79850"
+      },
+      {
+        "kind": "TEXT",
+        "case": "raw-bel",
+        "target": "2007",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "b7e7cac9861a5348d530125d89241a59d7b8db927a40737ea67be82450143d05",
+        "output_sha256": "baf0af01ed99502b42fcb9e85a77c5d50567acf94a656ddfad7e3fb4b7f949fc"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-command",
+        "target": "2004",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literal\nend",
+        "source_sha256": "0e427f4fe366007d2991a3146010b98a5c28071b6210f64eef80a7c5fd690fde",
+        "output_sha256": "00fe98120675c3bf4817dfa293db3120fa8433eb12873f99f19a4d7edae99d85"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-command",
+        "target": "2004",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literal\nend",
+        "source_sha256": "0e427f4fe366007d2991a3146010b98a5c28071b6210f64eef80a7c5fd690fde",
+        "output_sha256": "4295485e3d796df801a83edf0d8da8de987a6f7f12eb4d45795b2d9fd269e4cd"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-command",
+        "target": "2007",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literal\nend",
+        "source_sha256": "0e427f4fe366007d2991a3146010b98a5c28071b6210f64eef80a7c5fd690fde",
+        "output_sha256": "4092e9f442dd30c811a3a4954d94f1080ae5f6077b7f7b5234bf8f675f074150"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-command",
+        "target": "2007",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^Jend",
+        "caret_decoded": "literal\nend",
+        "plain_text_projection": "literal\nend",
+        "source_sha256": "0e427f4fe366007d2991a3146010b98a5c28071b6210f64eef80a7c5fd690fde",
+        "output_sha256": "96213d88ea51abd7ed363fd564eb14fcd8e046d5b0c9965944b953141150712d"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-space",
+        "target": "2004",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "4c9bf627486f4ece90570e6d2321b16b30e65812b9bda14dadd958e98f78380d",
+        "output_sha256": "fb2ae4e2271dc4e8544fe23749be05f66bdda3058975544e89ceb2e1de641cd8"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-space",
+        "target": "2004",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "4c9bf627486f4ece90570e6d2321b16b30e65812b9bda14dadd958e98f78380d",
+        "output_sha256": "156d7bc7bb3467bc60897cf8228f74b5d43936bdebfaa23a2286d3287f4cb156"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-space",
+        "target": "2007",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "4c9bf627486f4ece90570e6d2321b16b30e65812b9bda14dadd958e98f78380d",
+        "output_sha256": "bf4d9b9a8eeb2cb99d31f7d9797e300b74676a5aa1600f3c3c7147ec1cbf2f2c"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "caret-space",
+        "target": "2007",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "literal^ end",
+        "caret_decoded": "literal^end",
+        "plain_text_projection": "literal^end",
+        "source_sha256": "4c9bf627486f4ece90570e6d2321b16b30e65812b9bda14dadd958e98f78380d",
+        "output_sha256": "5bc2ab9cb35ce76d9efe988957015b1fccf932f47034afcf4645c3a7a0deb73b"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "raw-bel",
+        "target": "2004",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "e24cd72177ceaa88ae6393573a79d8bdb481563d931abe585eba56b3647de8f3",
+        "output_sha256": "e4832df102f71f5f584f7ca36c4cc8d4347f9fb8d13b383149dace4d10410319"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "raw-bel",
+        "target": "2004",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "e24cd72177ceaa88ae6393573a79d8bdb481563d931abe585eba56b3647de8f3",
+        "output_sha256": "ecd5fd237b264c677d210be7f8308c112b1e86b01e55f3254d40cd970fc44311"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "raw-bel",
+        "target": "2007",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "e24cd72177ceaa88ae6393573a79d8bdb481563d931abe585eba56b3647de8f3",
+        "output_sha256": "173a6512a4177fd91be37fb28de3cf85c6f407a37d8d1c1b3913018ed2e201fb"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "raw-bel",
+        "target": "2007",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "BEL\u0007end",
+        "caret_decoded": "BEL\u0007end",
+        "plain_text_projection": "BEL\u0007end",
+        "source_sha256": "e24cd72177ceaa88ae6393573a79d8bdb481563d931abe585eba56b3647de8f3",
+        "output_sha256": "c59864e195fc18db0d03e2a205e386a7686f15b735606fd20e68defb7930e7e8"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "mtext-stack",
+        "target": "2004",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "\\S1^ 2;\\Ptail",
+        "caret_decoded": "\\S1^2;\\Ptail",
+        "plain_text_projection": "1^2\ntail",
+        "source_sha256": "77ee5e6d2ca4493b2ee06217d3a5953c95bc9a74dcba4c2199136dd0c6d98d7a",
+        "output_sha256": "7ba5598f831560f0465c31a351c1c79e41d4831b26b1d05beebc539bb632b4c2"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "mtext-stack",
+        "target": "2004",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "\\S1^ 2;\\Ptail",
+        "caret_decoded": "\\S1^2;\\Ptail",
+        "plain_text_projection": "1^2\ntail",
+        "source_sha256": "77ee5e6d2ca4493b2ee06217d3a5953c95bc9a74dcba4c2199136dd0c6d98d7a",
+        "output_sha256": "e9012dab6da789d587547c00848e1ae8cd9bc00ed9d11ff94403c69d93efedb0"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "mtext-stack",
+        "target": "2007",
+        "binary": false,
+        "exit_code": 0,
+        "raw_carrier": "\\S1^ 2;\\Ptail",
+        "caret_decoded": "\\S1^2;\\Ptail",
+        "plain_text_projection": "1^2\ntail",
+        "source_sha256": "77ee5e6d2ca4493b2ee06217d3a5953c95bc9a74dcba4c2199136dd0c6d98d7a",
+        "output_sha256": "3bfd40421db9be2c9dc5a96cee7ac262e499956c40d71389ef589b394f689342"
+      },
+      {
+        "kind": "MTEXT",
+        "case": "mtext-stack",
+        "target": "2007",
+        "binary": true,
+        "exit_code": 0,
+        "raw_carrier": "\\S1^ 2;\\Ptail",
+        "caret_decoded": "\\S1^2;\\Ptail",
+        "plain_text_projection": "1^2\ntail",
+        "source_sha256": "77ee5e6d2ca4493b2ee06217d3a5953c95bc9a74dcba4c2199136dd0c6d98d7a",
+        "output_sha256": "2b89465977b3f5e0c01b003ce3a82523ade56d16a16a5dcc2df6be9950ff8b96"
+      }
+    ],
+    "elapsed_seconds": 0.5563850000035018,
+    "ezdxf_version": "1.4.4",
+    "python": "3.12.15 (main, Sep 30 2026, 22:04:19) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "cli_sha256": "ca6c632bd51df1b6d118406c69e8d7b0781d037f814ea3ef653241308326e514",
+    "script_sha256": "0aa37e93dc0cc01204dbed881ba3a898878798b119fa24a124804a9ad8eb838b",
+    "text_tools_sha256": "a5d342bed0f49708e3d766668e0620d4d087469bd78588ac91138bf026e509de",
+    "limits": [
+      "Raw command-stream preservation, not caller plain-text intent",
+      "No native CAD or rendering; no caret-normalization implementation",
+      "Existing source/artifact-bound uncommitted candidate; not clean HEAD"
+    ],
+    "interpretation": "All28 CLI conversions preserve exact raw TEXT/MTEXT carriers and the distinct LINE coordinates. Caret and plain-text projections differ by field/command grammar; no intent-aware local defect or native rendering result is inferred. Raw BEL is accepted unchanged; SAVEAS-style caret encoding is not established by scalar transport tests.",
+    "initialHarnessFailure": "First invocation used wrong bounded_process keyword names and exited TypeError before launching a converter; corrected to timeout/output_limit, then28/28 routes pass. No product assertion or policy was weakened."
+  },
+  "peerSource": {
+    "repository": "ixmilia/dxf-rs",
+    "revision": "9ebb1013110ecc3c1b62f557d4e60bb0bec59d10",
+    "executed": false,
+    "rustToolchainInstalled": false,
+    "facts": [
+      "Drawing::load supplies WINDOWS_1252 by default; load_with_encoding is an explicit caller contract. Do not infer that HEADER declaration selects an exact named codec.",
+      "CodePairIter applies CIF decoding conditionally when its selected encoding equals WINDOWS_1252, followed by caret unescaping; modern UTF8/source profiles need separate calibration.",
+      "Legacy ASCII writer invokes escape_unicode_to_ascii; binary string writer invokes caret escaping then writes UTF8 bytes without that legacy-CIF branch.",
+      "escape_unicode_to_ascii uses minimum four-digit hexadecimal formatting of a Unicode scalar, while the reader consumes a fixed seven-character CIF sequence. Supplementary convention cannot be borrowed as qualified.",
+      "ASCII Double Display uses fixed12-decimal format_f64; peer round trips need a small-coordinate precision-loss calibration before geometry comparisons."
+    ],
+    "limits": "Source-only facts, not a built peer failure, supported-release matrix, current libdxfrw defect or independent DWG/ACIS evidence."
+  },
+  "downloadAndArtifactHashes": {
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/dxf-rs-code_pair_iter.rs": "35732a7d29a5853066229ced41b0fe7cf956ca7ec3a63439c1f8a2d77a2ae351",
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/dxf-rs-code_pair_value.rs": "ba9938675ae77eb6330900a4ede65682d85c8a05af45c88cb3f833ecb42a02f5",
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/dxf-rs-code_pair_writer.rs": "343c657775e121babe3a493f6fd5f16b287aa2ca5d7fe3b8be6271d8208d51d5",
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/dxf-rs-drawing.rs": "c8b53d32cc15dfb16ea3c95e2336fef320126123d20bb520eae2b17285e343db",
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/dxf-rs-encoding-tests.rs": "f5a2cd1dbbae1f90df1338853d2fe39449fffafcaa3dcc0263fd5ef462f3e3ea",
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/dxf-rs-helper_functions.rs": "e35b0468ec0a8b63017574ac8c17615c90798679c638ac8c260de30b6c60d4c0",
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/dxf-rs-Cargo.toml": "ed6b7a68023e50d0f969fcd576c818ce821dd02000016f5ad34008fbf06b5abb",
+    "/private/tmp/libdxfrw-deeper-readiness.cvvmLR/unicode-license.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "/private/tmp/libdxfrw-target-transport.GsJ7UV/accepted-shared-writer-ctest.xml": "0965e7b79053cda5b5b661ee92a215b5b3dbe13f50f65505708c90477aefa689",
+    "build/libdxfrw.a": "42256dda5db2983d0fac04b1730330ccb6a2bf94c85e028db3975e42820119a3",
+    "build/libdxfrw_gbk_codepage_tests": "8d3eb5157305c5d0e54c2e42e518cf7123c9933bc415272088a31eb9438c7679",
+    "build/dwg2dxf/dwg2dxf": "ca6c632bd51df1b6d118406c69e8d7b0781d037f814ea3ef653241308326e514"
+  },
+  "primarySources": [
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-4.TXT",
+      "role": "ISO8859-4 byte/scalar authority, table2.0"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-10.TXT",
+      "role": "ISO8859-10 authority, distinct family"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-13.TXT",
+      "role": "ISO8859-13 authority, distinct family"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT",
+      "role": "Windows Baltic control; undefined bytes not relabeled valid ISO"
+    },
+    {
+      "url": "https://www.unicode.org/license.txt",
+      "role": "Retrieved current notice; preserve applicable data-file copyright/permission provenance when generating a table"
+    },
+    {
+      "url": "https://encoding.spec.whatwg.org/#names-and-labels",
+      "role": "Web-label policy differs from exact IANA/ISO/Windows profiles; not a DXF authority"
+    },
+    {
+      "url": "https://docs.rs/encoding_rs/0.8.42/encoding_rs/",
+      "role": "Web focus, explicit ISO8859-1/windows1252 conflation; not exact Windows behavior for every page"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/intl/code-page-identifiers",
+      "role": "OS numeric identifiers are namespace-specific;28594 is not a DWG ID prescription"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm",
+      "role": "SAVEAS text control/caret expansion; not a blanket raw or MTEXT rewrite"
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html",
+      "role": "MTEXT caret, stacked fractions, formatting and byte chunks"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+      "role": "XDATA1000/1001 physical-byte limits; not102 scope limits"
+    }
+  ],
+  "candidateState": {
+    "slice": "Slice3.2b.2d",
+    "state": "UNCOMMITTED_CANDIDATE_WITH_RETAINED_LOCAL_GATE",
+    "parent3_2": "IN_PROGRESS",
+    "retainedJUnit": {
+      "path": "/private/tmp/libdxfrw-target-transport.GsJ7UV/accepted-shared-writer-ctest.xml",
+      "tests": 10,
+      "failures": 0,
+      "skipped": 0,
+      "rerunThisResearchTurn": false
+    },
+    "next": "Review source/contract and finalize candidate docs/receipt before integration; no fresh full-suite run while source/artifact hashes remain unchanged. Mapping3.3 stays a separate policy-gated slice."
+  },
+  "reproduction": {
+    "directory": "/private/tmp/libdxfrw-deeper-readiness.cvvmLR",
+    "downloads": "Download primary table URLs into8859-4.TXT,8859-10.TXT,8859-13.TXT,CP1257.TXT and verify tableHashes before use; no online inputs required by ordinary library tests.",
+    "compile": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc DIRECTORY/probe.cpp src/intern/drw_textcodec.cpp -o DIRECTORY/probe",
+    "mappingRun": "python3 DIRECTORY/compare.py /Users/dli/dev/libdxfrw",
+    "caretRun": "env EZDXF_DISABLE_C_EXT=1 XDG_CONFIG_HOME=DIRECTORY/config /private/tmp/libdxfrw-parity-work.k7hiK2/oracle/bin/python -I DIRECTORY/caret_probe.py /Users/dli/dev/libdxfrw",
+    "sources": {
+      "probe.cpp": "#include \"intern/drw_textcodec.h\"\n#include <iomanip>\n#include <iostream>\n#include <sstream>\n#include <stdexcept>\n#include <string>\n\nstatic std::string hex(std::string_view input) {\n    std::ostringstream out;\n    for (unsigned char byte : input)\n        out << std::hex << std::setw(2) << std::setfill('0') << unsigned(byte);\n    return out.str();\n}\n\nstatic std::string unhex(const std::string& input) {\n    if (input == \"-\") return {};\n    if (input.size() % 2u != 0u) throw std::runtime_error(\"odd hex\");\n    std::string result;\n    for (std::size_t i = 0; i < input.size(); i += 2u)\n        result.push_back(static_cast<char>(std::stoul(input.substr(i, 2u), nullptr, 16)));\n    return result;\n}\n\nint main() {\n    std::string alias, inputHex, expectedHex;\n    int dxf;\n    while (std::cin >> alias >> dxf >> inputHex >> expectedHex) {\n        DRW_TextCodec codec;\n        codec.setVersion(DRW::AC1015, dxf != 0);\n        codec.setCodePage(alias, dxf != 0);\n        const auto selected = codec.declaredCodePageSelection();\n        const auto decoded = codec.toUtf8(unhex(inputHex));\n        const auto observation = codec.lastDecodeObservation();\n        const auto encodedExpected = expectedHex == \"-\" ? std::string{}\n            : codec.fromUtf8(unhex(expectedHex));\n        const auto decodedEncodedExpected = expectedHex == \"-\" ? std::string{}\n            : codec.toUtf8(encodedExpected);\n        std::cout << alias << '\\t' << dxf << '\\t' << inputHex << '\\t'\n                  << codec.getCodePage() << '\\t' << unsigned(selected.kind) << '\\t'\n                  << hex(decoded) << '\\t' << hex(encodedExpected) << '\\t'\n                  << hex(decodedEncodedExpected) << '\\t' << observation.issues << '\\n';\n    }\n}\n",
+      "compare.py": "import hashlib\nimport json\nimport pathlib\nimport platform\nimport subprocess\nimport sys\nimport time\n\nroot = pathlib.Path(__file__).resolve().parent\nrepo = pathlib.Path(sys.argv[1]).resolve()\n\ndef sha(path):\n    return hashlib.sha256(path.read_bytes()).hexdigest()\n\ndef table(path):\n    result = {}\n    for line in path.read_text().splitlines():\n        fields = line.split('#', 1)[0].split()\n        if len(fields) >= 2:\n            result[int(fields[0], 16)] = int(fields[1], 16)\n    return result\n\nprofiles = [\n    ('ISO8859-4', '8859-4.TXT', 'iso8859_4'),\n    ('ISO-8859-4', '8859-4.TXT', 'iso8859_4'),\n    ('ISO8859-10', '8859-10.TXT', 'iso8859_10'),\n    ('ISO8859-13', '8859-13.TXT', 'iso8859_13'),\n    ('ANSI_1257', 'CP1257.TXT', 'cp1257'),\n]\ninputs, expectations = [], []\ntable_checks = []\nfor alias, file_name, python_codec in profiles:\n    mapping = table(root / file_name)\n    differences = []\n    for byte in range(256):\n        try:\n            py_value = ord(bytes([byte]).decode(python_codec, errors='strict'))\n        except UnicodeDecodeError:\n            py_value = None\n        if mapping.get(byte) != py_value:\n            differences.append(byte)\n    assert not differences, (alias, differences)\n    table_checks.append({'alias': alias, 'table': file_name,\n                         'defined': len(mapping), 'python_strict_disagreements': 0})\n    for dxf in (0, 1):\n        for byte in range(256):\n            value = mapping.get(byte)\n            utf8 = None if value is None else chr(value).encode('utf8').hex()\n            inputs.append(f'{alias} {dxf} {byte:02x} {utf8 or \"-\"}\\n')\n            expectations.append((alias, dxf, byte, utf8))\nstarted = time.monotonic()\nrun = subprocess.run([str(root / 'probe')], input=''.join(inputs), text=True,\n                     capture_output=True, timeout=15, check=True)\nassert len(run.stdout) < 1048576 and not run.stderr\nrows = run.stdout.splitlines()\nassert len(rows) == len(expectations)\nsummary = {}\nfor row, (alias, dxf, byte, expected) in zip(rows, expectations):\n    fields = row.split('\\t')\n    assert len(fields) == 9, fields\n    assert fields[:3] == [alias, str(dxf), f'{byte:02x}']\n    _, _, _, selected, kind, decoded, encoded_expected, decoded_encoded, issues = fields\n    key = alias + ('/DXF' if dxf else '/byte-codec')\n    group = summary.setdefault(key, {'selected': selected, 'selection_kind': int(kind),\n        'rows': 0, 'decode_mismatch_bytes': [], 'deleted_defined_bytes': [],\n        'encode_not_original_byte': [], 'encode_expected_semantics_lost': [],\n        'undefined_source_bytes': [], 'anchors': []})\n    group['rows'] += 1\n    if expected is None:\n        group['undefined_source_bytes'].append(f'{byte:02x}')\n    else:\n        if decoded != expected:\n            group['decode_mismatch_bytes'].append(f'{byte:02x}')\n        if not decoded and expected:\n            group['deleted_defined_bytes'].append(f'{byte:02x}')\n        if encoded_expected != f'{byte:02x}':\n            group['encode_not_original_byte'].append(f'{byte:02x}')\n        if decoded_encoded != expected:\n            group['encode_expected_semantics_lost'].append(f'{byte:02x}')\n    if byte in (0x80, 0x81, 0xA1, 0xA2, 0xFF):\n        group['anchors'].append({'byte': f'{byte:02x}', 'expected_utf8': expected,\n            'decoded_utf8': decoded, 'encoded_expected': encoded_expected,\n            'decoded_encoded_expected': decoded_encoded, 'source_issues': int(issues)})\n\nprint(json.dumps({'rows': len(rows), 'elapsed_seconds': time.monotonic() - started,\n    'python': platform.python_version(), 'table_checks': table_checks,\n    'source_hashes': {name: sha(repo / name) for name in (\n        'src/intern/drw_textcodec.cpp', 'src/intern/drw_textcodec.h',\n        'src/intern/drw_cptables.h')},\n    'probe_hashes': {name: sha(root / name) for name in ('probe.cpp', 'compare.py', 'probe')},\n    'table_hashes': {name: sha(root / name) for name in (\n        '8859-4.TXT', '8859-10.TXT', '8859-13.TXT', 'CP1257.TXT')},\n    'summary': summary}, indent=2))\n",
+      "caret_probe.py": "\"\"\"Authored command-stream calibration; not a native rendering qualifier.\"\"\"\nimport hashlib\nimport json\nimport pathlib\nimport sys\nimport time\n\nimport ezdxf\nfrom ezdxf.tools.text import caret_decode\n\nroot = pathlib.Path(__file__).resolve().parent\nrepo = pathlib.Path(sys.argv[1]).resolve()\nsys.path.insert(0, str(repo / 'tools'))\nfrom bounded_process import run_bounded\n\ncli = repo / 'build/dwg2dxf/dwg2dxf'\ncases = [('caret-command', 'literal^Jend'), ('caret-space', 'literal^ end'),\n         ('raw-bel', 'BEL\\x07end'), ('mtext-stack', r'\\S1^ 2;\\Ptail')]\nrows = []\nstarted = time.monotonic()\nfor kind in ('TEXT', 'MTEXT'):\n    for label, content in cases:\n        if label == 'mtext-stack' and kind != 'MTEXT':\n            continue\n        pairs = [(0, 'SECTION'), (2, 'HEADER'), (9, '$ACADVER'), (1, 'AC1021'),\n                 (0, 'ENDSEC'), (0, 'SECTION'), (2, 'ENTITIES'),\n                 (0, kind), (5, 'A'), (100, 'AcDbEntity'), (8, '0'),\n                 (100, 'AcDbText' if kind == 'TEXT' else 'AcDbMText'),\n                 (10, 1), (20, 2), (30, 3), (40, 1), (1, content),\n                 (0, 'LINE'), (5, 'B'), (100, 'AcDbEntity'), (8, '0'),\n                 (100, 'AcDbLine'), (10, 34), (20, 35), (30, 36),\n                 (11, 37), (21, 38), (31, 39), (0, 'ENDSEC'), (0, 'EOF')]\n        source = root / f'{kind}-{label}.dxf'\n        source.write_bytes(''.join(f'{code}\\n{value}\\n' for code, value in pairs).encode('utf8'))\n        source_sha = hashlib.sha256(source.read_bytes()).hexdigest()\n        for target in ('2004', '2007'):\n            for binary in (False, True):\n                output = root / f'{kind}-{label}-{target}-{binary}.dxf'\n                result = run_bounded([str(cli), str(source), '-y', f'-v{target}',\n                                      *(['-b'] if binary else []), str(output)],\n                                     timeout=5, output_limit=65536)\n                assert result.returncode == 0, (kind, label, result.stdout, result.stderr)\n                document = ezdxf.readfile(output, errors='strict')\n                entities = list(document.modelspace())\n                assert [e.dxftype() for e in entities] == [kind, 'LINE']\n                text = entities[0].dxf.text if kind == 'TEXT' else entities[0].text\n                assert text == content, (kind, label, text)\n                line = entities[1]\n                assert tuple(line.dxf.start) == (34, 35, 36)\n                assert tuple(line.dxf.end) == (37, 38, 39)\n                rows.append({'kind': kind, 'case': label, 'target': target,\n                    'binary': binary, 'exit_code': result.returncode,\n                    'raw_carrier': text, 'caret_decoded': caret_decode(text),\n                    'plain_text_projection': entities[0].plain_text(),\n                    'source_sha256': source_sha,\n                    'output_sha256': hashlib.sha256(output.read_bytes()).hexdigest()})\n        assert hashlib.sha256(source.read_bytes()).hexdigest() == source_sha\n\nprint(json.dumps({'rows': rows, 'elapsed_seconds': time.monotonic() - started,\n    'ezdxf_version': ezdxf.__version__, 'python': sys.version,\n    'cli_sha256': hashlib.sha256(cli.read_bytes()).hexdigest(),\n    'script_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),\n    'text_tools_sha256': hashlib.sha256(pathlib.Path(sys.modules[caret_decode.__module__].__file__).read_bytes()).hexdigest(),\n    'limits': ['Raw command-stream preservation, not caller plain-text intent',\n               'No native CAD or rendering; no caret-normalization implementation',\n               'Existing source/artifact-bound uncommitted candidate; not clean HEAD']}, indent=2))\n"
+    },
+    "limits": "Mapping subprocess timeout15s and output asserted below1MiB; each actual CLI child timeout5s/output65536 through existing process-tree guard. All new drawings authored at runtime in one temporary root; no external drawing downloaded/committed. No new dependency, CTest or full-suite run."
+  },
+  "readinessSequence": [
+    "3.2b.2d current-candidate acceptance, contract/documentation and durable source/artifact-bound receipt",
+    "3.3a choose explicit exact-named input mapping policy independent of historical default, source declarations and target transport",
+    "3.3b generated ISO8859-4 table and offline exhaustive decode/inverse/profile controls only",
+    "3.3c source-policy/HEADER handoff and one composed legacy/modern ASCII/binary actual CLI checkpoint",
+    "7AR/7M pin semantic text versus formatting-carrier caret/CIF contract;7AU retain role/provenance migration separately",
+    "3.4 numeric DWG/TV/TU/EED version witnesses; native consumer/independent ACIS remain independent external gates"
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "supportPromotion": false,
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "ledger": 149,
+    "committed": 128,
+    "blocked": 6,
+    "inProgress": 3,
+    "other": 12,
+    "readyParents": 0
+  }
+}

@@ -682,7 +682,9 @@ if(LIBDXFRW_BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_fast_focus.py
             --build-dir ${CMAKE_BINARY_DIR})
 
-    add_executable(libdxfrw_wave1_tests tests/wave1_tests.cpp)
+    add_executable(libdxfrw_wave1_tests
+        tests/wave1_tests.cpp
+        dwg2dxf/dx_iface.cpp)
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
     if(MSVC)
         target_compile_definitions(libdxfrw_wave1_tests PRIVATE

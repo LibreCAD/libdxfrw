@@ -16,17 +16,27 @@
 #include <cstdint>
 #include <ostream>
 #include <sstream>
+#include <vector>
 
 #include "drw_textcodec.h"
 
 class dxfWriter {
 public:
-    explicit dxfWriter(std::ostream *stream){filestr = stream; /*count =0;*/}
+    enum class TextFailure { NoFailure, InvalidUtf8, UnsafeRecordText, UnsupportedProfile, TargetLoss, OpaqueText };
+    explicit dxfWriter(std::ostream *stream, bool binary = false):filestr(stream), m_binaryStrings(binary) {}
     virtual ~dxfWriter() = default;
     virtual bool writeString(int code, std::string text) = 0;
     bool writeUtf8String(int code, std::string text);
     bool writeUtf8Caps(int code, std::string text);
-    std::string fromUtf8String(std::string t) {return encoder.fromUtf8(t);}
+    std::string fromUtf8String(std::string t);
+    bool writeUtf8Chunks(std::string_view text, int continuationCode,
+                         int finalCode, std::size_t maxBytes);
+    void setTextWritePolicy(DRW::DxfTextWritePolicy policy) noexcept { m_textPolicy = policy; }
+    bool requiresLosslessText() const noexcept { return m_textPolicy == DRW::DxfTextWritePolicy::RequireLossless; }
+    TextFailure textFailure() const noexcept { return m_textFailure; }
+    // Raw text is never decoded/quoted here. Modern source-bound UTF8 may be
+    // validated; other high-byte opaque strings need missing source provenance.
+    bool preflightOpaqueText(std::string_view text, bool knownUtf8 = false);
     virtual bool writeInt16(int code, int data) = 0;
     virtual bool writeInt32(int code, int data) = 0;
     virtual bool writeInt64(int code, std::int64_t data) = 0;
@@ -35,7 +45,7 @@ public:
     void setVersion(const std::string &v, bool dxfFormat){encoder.setVersion(v, dxfFormat);}
     void setCodePage(const std::string &c){encoder.setCodePage(c, true);}
     std::string getCodePage(){return encoder.getCodePage();}
-    [[nodiscard]] bool hasWriteError() const { return writeError; }
+    [[nodiscard]] bool hasWriteError() const { return writeError || m_textFailure != TextFailure::NoFailure; }
     /// Underlying output stream, used by dxfRW to record the $HANDSEED value
     /// offset and back-patch it with the final handle high-water mark.
     std::ostream *stream() { return filestr; }
@@ -49,8 +59,18 @@ protected:
     }
     std::ostream *filestr;
 private:
+    bool encodeStrictText(std::string_view text, std::size_t maxBytes,
+                          std::vector<std::string>& chunks);
+    bool failText(TextFailure failure) noexcept {
+        if (m_textFailure == TextFailure::NoFailure) m_textFailure = failure;
+        writeError = true;
+        return false;
+    }
     DRW_TextCodec encoder;
     bool writeError = false;
+    bool m_binaryStrings;
+    DRW::DxfTextWritePolicy m_textPolicy{DRW::DxfTextWritePolicy::Compatible};
+    TextFailure m_textFailure{TextFailure::NoFailure};
 };
 
 /** Stages a DXF byte range and publishes it only after the caller succeeds. */
@@ -126,7 +146,7 @@ private:
 
 class dxfWriterBinary : public dxfWriter {
 public:
-    explicit dxfWriterBinary(std::ostream *stream):dxfWriter(stream){}
+    explicit dxfWriterBinary(std::ostream *stream):dxfWriter(stream, true){}
     virtual ~dxfWriterBinary() = default;
     virtual bool writeString(int code, std::string text);
     virtual bool writeInt16(int code, int data);

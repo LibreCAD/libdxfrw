@@ -144,6 +144,10 @@ enum class DxfTextEncoding {
     LegacyLibreCadUtf8
 };
 
+// Output policy only. Compatible retains historical writer byte behavior;
+// RequireLossless validates semantic UTF8, target scalar transport and quoting.
+enum class DxfTextWritePolicy { Compatible, RequireLossless };
+
 //! Version numbers for the DXF Format.
 enum Version {
     UNKNOWNV,     //!< UNKNOWN VERSION.

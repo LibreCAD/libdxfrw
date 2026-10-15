@@ -19,9 +19,20 @@ and valid modern UTF8 with inert legacy metadata, remain eligible. Unknown sourc
 revision is not invented; only decoder-independent text is eligible without it.
 .PP
 This is a necessary source-text gate, not whole-drawing, charset-mapping,
-target-text, DWG or native-consumer qualification. Existing structural/owner
+DWG or native-consumer qualification. Existing structural/owner
 and unsupported-record checks still apply. Ordinary library reads and default
 adapter exports retain their tolerant behavior; no automatic recovery is added.
+.PP
+For both DWG and DXF input, required semantic output text also passes a separate
+lossless target-transport gate. Invalid UTF8, unsupported supplementary-character
+downgrade, unsafe record framing and high-byte opaque text without qualified
+source provenance cause a nonzero exit without publishing or replacing output.
+Modern UTF8 and qualified legacy BMP/codepage/CIF transport remain available.
+Literal escape-looking semantic backslashes are selectively quoted; MTEXT
+formatting and raw binary/handle roles are not globally rewritten. This is not
+complete charset, raw-application-data, native-rendering or DWG support
+qualification. Ordinary library writers default to Compatible; the CLI explicitly
+opts into RequireLossless without an additional command-line switch.
 .SH OPTIONS
 input      existing file to convert
    -b         optional, sets output as binary dxf

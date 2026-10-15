@@ -2,7 +2,19 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
-**Latest research delta (2026-10-15, committed baseline `704832b`):** the
+**Latest research delta (2026-10-15, committed baseline `5886b48`):** the
+[exact-mapping, text-carrier and comparator-readiness review](#deeper-exact-mapping-text-carrier-and-comparator-readiness-review-2026-10-15)
+adds2,560 exhaustive byte-codec observations,28 authored actual-CLI carrier
+calibrations, and a pinned Rust-DXF reader/writer cross-check. It separates
+exact named input mappings, historical alias selection, target transport and
+TEXT/MTEXT command semantics. Slice3.3 now has bounded policy/table/handoff
+substeps and explicit offline fast gates. At that research checkpoint, the
+3.2b.2d production/test candidate was preserved uncommitted; its historical
+research receipt is not relabeled as implementation qualification.
+No new finding/top-level subplan, fixture, dependency or support promotion;
+all six J gates remain `DEFERRED_EXTERNAL`.
+
+**Previous research delta (2026-10-15, committed baseline `704832b`):** the
 [conversion-loss, graph and oracle-readiness refresh](#broader-conversion-loss-graph-and-oracle-readiness-refresh-2026-10-15)
 adds32 authored actual-CLI routes (64 final-run processes), four executed
 geometry-oracle controls, source-pinned DIMASSOC/proxy/consumer cross-checks,
@@ -20,7 +32,7 @@ source-text observations with an owned public facade snapshot. The
 research receipt above remains frozen at its earlier WIP/failure boundary;
 the new implementation receipt supplies the passing acceptance evidence.
 
-**Previous research delta (2026-10-15, baseline `5c3c76e`):** the
+**Earlier research delta (2026-10-15, baseline `5c3c76e`):** the
 [codec-policy and peer-horizon refresh](#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
 adds140 source-bound unit-codec observations, a concrete Slice3.1–3.5
 implementation sequence and calibrated comparator/consumer gates. It is
@@ -29,7 +41,7 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `c53b1b1`; Plan-Slice:Slice3.2b.2c):**
+**Current handoff (2026-10-15, provenance `5886b48`; Plan-Slice:Slice3.2b.2d):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
@@ -59,8 +71,25 @@ mixed batch across ASCII/binary and positional/FreeCAD forms. Later metadata
 cannot erase unknown-revision/unsupported UTF16 interpretation, nor a full
 advisory list erase earlier loss. Final focused5/5 in32.46s, strict four-TU
 compilation/build/lc3 and focused ASan/UBSan pass. This necessary source gate is
-not a charset/DWG/target/whole-conversion certificate. Next local work is
-3.2b.2d target scalar transport; parent3.2 remains open.
+not a charset/DWG/target/whole-conversion certificate.
+3.2b.2d now implements separate explicit target scalar transport for DXF/DWG
+CLI sources; ordinary library/default adapter writes remain Compatible.
+40 literal wire/14 rejection-modern/40 chunk controls,32 owner refusals with
+corrected same-model retries, eight repeated literal routes and GEODATA/policy/
+mixed-role controls pass. Actual DXF CLI passes24 refusals/12 retries/12 modern
+positives/16 two-pass routes; authored DWG passes eight legacy refusals/four
+modern two-pass routes/eight exact callback verifiers. Retained final selected
+shared-writer gate is10/10 in25.68s, with identical source/artifact bindings;
+fresh focused/CLI/DWG/ASan-UBSan/five strict-TU checks pass and affected/lc3
+build is up to date. No repeat full suite or native qualification is claimed.
+Receipt: docs/research/codec-target-transport-3-2b-2d-2026-10-15.json.
+Sticky failures preserve destinations/caller state; scalar/CIF atoms are not
+split. Missing high-byte raw102 provenance is refused, not guessed. Fixed
+public policy state requires consumer rebuild; no pure callback is added.
+Parent3.2 remains IN_PROGRESS. Next3.3a exact-named mapping identity/policy,
+then3.3b offline ISO8859-4 and3.3c HEADER/CLI handoff. Caret/native rendering,
+Compatible-default7AR behavior, full102 migration and DWG numeric metadata
+remain separate. Prior research receipts retain their original WIP boundary.
 
 | Order | Bounded item | Actual state and next gate |
 | --- | --- | --- |
@@ -68,7 +97,7 @@ not a charset/DWG/target/whole-conversion certificate. Next local work is
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
 | 3 | S2.3.9.4.29 block-path modeler census | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:S2.3.9.4.29.B3. The strict writer now rejects unresolved modern INSERT targets using its existing BLOCK_RECORD index. B3 passes28 genuine rejection/destination checks,28 corrected fresh-data retries and four default/R12 compatibility controls. Actual CLI passes four missing-target rejection cells/two R12 refusals plus four valid two-pass conversions/verifiers; positive bytes remain stable. Strict source/TU/lc3 and retained final-source focused CTests2/2 pass. Durable B3 report: docs/research/modeler-block-failures-b3-2026-10-15.json. B1/B2 receipts remain frozen; no nested DWG AcDs/SAB/native/B-rep/J promotion. Codec3.1 is also committed; next independent local slice is3.2. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
-| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Next2d target transport;3.3/3.4 stay separate. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Slice3.2b.2d LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_TARGET_TRANSPORT: retained10/10 gate and fresh focused/CLI/DWG/sanitizer/strict checks pass; receipt docs/research/codec-target-transport-3-2b-2d-2026-10-15.json. Next3.3a exact-mapping policy, then3.3b/c; raw102/default7AR/native semantics remain open.3.4 stays version-witness-gated. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
 
 7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
 GEODATA reader or writer from an older research queue. The new research
@@ -8113,6 +8142,13 @@ Malformed CIF/scalar policy and valid semantic idempotence7AR.2 stay open.
 
 **7AR.2 — valid semantic-to-wire idempotence (PAR-85)**
 
+Slice3.2b.2d implements selective CIF/MIF-looking backslash quoting under
+explicit `RequireLossless`, with Compatible defaults unchanged. Its passing
+local callbacks do not settle general caret, TEXT/MTEXT formatting or native
+rendering. The latest review below adds the
+required raw-carrier versus projected-text contract calibration. Do not apply
+a global caret/backslash escape or decode pass to close this owner.
+
 1. Preserve the exact literal `prefix\U+005CU+0041suffix` control and assert
    three distinct layers: physical group1 spelling, public callback text and
    ordinary peer carrier text. Source callback must not change from
@@ -8293,6 +8329,12 @@ installation or broad version/platform sweep is required.
 **Scope:** PAR-81; shared entity/table `parseDxfGroups`, `writeAppData`, public
 variants and raw companions. Preserve7P scope placement,7X numeric-width fixes,
 7A handle roles and the separate7AL.2 codec work.
+
+Slice3.2b.2d adds strict refusal for high-byte source-unbound raw102 strings and
+once-only encoding for already-decoded1000/1001/1003 roles. This is a scoped
+loss guard, not the full public typed/raw migration below.
+Do not infer XDATA255/31-byte limits merely because a102-scope string uses the
+same numeric group code; scope and role remain binding.
 
 1. Preserve the eight imported LINE/LAYER same/crossversion controls plus the
    two caller-created UTF-8 group1/group470 controls. The latter currently
@@ -12186,6 +12228,10 @@ the oracle agree.
    and four-byte GB18030 is not implemented by accepting the GBK subset. Until
    a grammar is implemented, classify it unavailable/compatibility-only under
    the chosen policy, not supported because its name normalizes successfully.
+   The latest exhaustive review below supplies3.3a policy/identity,3.3b offline
+   table, and3.3c HEADER/CLI handoff substeps. Do not silently replace the
+   historical default alias selection or treat a correct Windows/CIF encoding
+   of supplied Unicode as proof that ISO source bytes were decoded correctly.
 4. **3.4 — join real metadata paths (`VERSION_EVIDENCE_GATE`).** After the
    codec is correct, separately review numeric DWG ID→name, DXF name→codec,
    canonical writer ID and per-field EED codepage. Do not conflate file TV,
@@ -12339,9 +12385,15 @@ bounded outcomes, not zero-output agreement.
 ### Implementation-ready delivery sequence
 
 These are substeps under existing owners, not new top-level subplans.
-Only the bounded provenance candidate exists;3.2b.2 is unimplemented.
+3.2b.1 and3.2b.2a–c are committed;2d is locally implemented with a separate
+source/artifact-bound acceptance receipt in the current handoff.
+The original prerequisite/failure descriptions below remain historical audit
+scope, not instructions to rerun or reopen completed work. The current queue
+and exact-mapping review supersede their former readiness labels.
 
-1. **3.2b.1 integration prerequisite (`READY_LOCAL`, no native gate).**
+1. **3.2b.1 integration prerequisite (`COMMITTED a804dae`).**
+   The fixture correction and passing receipt in the current handoff close
+   this prerequisite. Original diagnosis/requirements:
    Recover JUnit rather than restart after truncation:5 tests,4 pass, one
    hardening assertion`GEODATA parser state source setup`. The untouched
    fixture declares objectVersion1 but uses modern93-count/13,23-source/
@@ -12357,7 +12409,8 @@ Only the bounded provenance candidate exists;3.2b.2 is unimplemented.
    copy/move/reset/failure/retry. HEADER layout requires downstream rebuild;
    immutable bytes do not confer retained-budget/model thread safety.
    Commit/bind separately before acceptance; parent3.2 remains open.
-2. **3.2b.2a source-text observations (`READY_LOCAL` after owner/API review).**
+2. **3.2b.2a source-text observations (`COMMITTED d20cf7f`).**
+   Acceptance is bound in the current handoff; original requirements:
    Add fixed-size per-read observations at the codec/reader boundary, not an
    unbounded list of original strings. Track semantic byte fields requiring
    legacy decoding; inexact/unavailable/unknown selections actually used for
@@ -12422,7 +12475,12 @@ Only the bounded provenance candidate exists;3.2b.2 is unimplemented.
    This is a necessary required-text gate, not a whole-conversion completeness
    certificate: existing owner/carrier/unsupported-object and target-omission
    policies still apply, with unknown semantic coverage reported honestly.
-5. **3.2b.2d target scalar transport (`READY_LOCAL` after source gate).**
+5. **3.2b.2d target scalar transport (`LOCAL_IMPLEMENTATION_COMPLETE`).**
+   The current handoff and separate target-transport acceptance receipt bind
+   the source/artifacts, retained10/10 shared-writer gate and fresh focused
+   finalization checks. The earlier research candidate receipt stays frozen.
+   Native rendering, exact mappings, Compatible defaults and full raw102
+   migration remain distinct. Original acceptance requirements follow:
    Source admission is now implemented; consume it without treating an admitted
    source as target eligibility. Keep target policy explicit and independent of
    the source policy/owner Boolean; preserve ordinary2D writer/adapter defaults
@@ -12484,3 +12542,188 @@ the3D ledger remains149 items:128 committed/6 blocked/3 in progress/12 other/
 `J295` remain`DEFERRED_EXTERNAL`, non-promoting. Native Linux/Windows
 FreeCAD and independent ACIS/AcDs semantics require their existing exact
 qualification evidence, not these text/projection probes.
+
+## Deeper exact-mapping, text-carrier and comparator-readiness review (2026-10-15)
+
+**Boundary:** research at committed HEAD`5886b48`; existing production/test
+changes are preserved byte-for-byte. No production implementation, commit,
+external drawing, dependency, CTest registration or support matrix changes in
+this pass. The durable receipt is
+[deeper-codec-and-text-contract-readiness-2026-10-15.json](docs/research/deeper-codec-and-text-contract-readiness-2026-10-15.json).
+It binds local source/artifacts, downloaded mapping/source hashes, all authored
+probe sources, exact observations and reproduction limits. Earlier receipts
+and failed external packets remain frozen. This replaces the current
+research/readiness queue, not those historical observations.
+
+**Subsequent implementation:** Slice3.2b.2d now closes the scoped local target
+scalar-transport gate with the separate
+[acceptance receipt](docs/research/codec-target-transport-3-2b-2d-2026-10-15.json).
+The research JSON's uncommitted-candidate state is historical and unchanged,
+not current implementation status. The current handoff above is authoritative;
+next new work is3.3a. Exact mapping, caret/native semantics and full102 migration
+are not closed by that integration.
+
+### Exhaustive evidence, not another overlap anchor
+
+The authored probe executes256 input bytes for five declared profiles through
+both AC1015 DXF and non-DXF byte-codec selection:2,560 observations. It checks
+decode against Unicode's table, then separately encodes the independently
+expected Unicode scalar. Unicode tables and strict CPython codecs agree on
+all tested byte definitions. The recorded probe run takes0.031s excluding
+compilation; this is a bounded diagnostic measurement, not a benchmark.
+
+| Declared profile | Actual local selection | Decode mismatches per256-byte route | Defined bytes deleted | Interpretation |
+| --- | --- | --- | --- | --- |
+| ISO8859-4 | ANSI_1257 / CompatibilityAlias |104 |12 | A1 should be U+0104 but disappears; the mapping is not Windows Baltic. |
+| ISO-8859-4 | ANSI_1252 / Unavailable |82 |5 | Hyphen spelling selects a different historical fallback; naming normalization alone cannot repair it. |
+| ISO8859-10 | ANSI_1257 / CompatibilityAlias |106 |12 | Separate table/profile, not another spelling of ISO8859-4. |
+| ISO8859-13 | ANSI_1257 / CompatibilityAlias |36 |12 | A1 should be U+201D; agreement on other Baltic letters is insufficient. |
+| ANSI_1257 | ANSI_1257 / Canonical |0 of244 defined |0 defined |12 source bytes are undefined, correctly observed separately; do not invent valid scalars for them. |
+
+The mapping authority is Unicode's
+[8859-4](https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-4.TXT),
+[8859-10](https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-10.TXT),
+[8859-13](https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-13.TXT) and
+[CP1257](https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT)
+data, not a peer's alias table. All256 bytes are defined and uniquely mapped
+in each tested ISO family. C1 controls80–9F are real table entries, not
+undefined Windows bytes; byte-codec validity does not admit raw controls in
+every DXF field/framing.
+
+**Important non-finding:** encoding supplied expected Unicode through the
+selected Windows table/BMP CIF preserves its scalars in all defined rows.
+Different encoded bytes are not automatically target loss: U+0104 legitimately
+encodes as Windows1257 C0 or CP1252 CIF. The demonstrated failure is wrong ISO
+source interpretation. A same-codec inverse check, or changing output metadata
+to ISO while still emitting Windows bytes, cannot fix that failure. No whole
+DWG, numeric codepage ID, TU/EED or native producer was exercised.
+
+### Broader source comparison and comparator exclusions
+
+| Primary source | Checked fact | Existing owner / implementation decision |
+| --- | --- | --- |
+| [WHATWG labels](https://encoding.spec.whatwg.org/#names-and-labels) and [encoding_rs0.8.42](https://docs.rs/encoding_rs/0.8.42/encoding_rs/) | Web-compatible Latin1/ISO8859-1 labels intentionally select Windows1252. The Rust library documents that its profiles do not promise exact Windows behavior. These are different policy contracts, not a DXF or exact-ISO authority. | Slice3.3/7AQ: record actual requested and effective profiles; a successful peer label lookup or shared fallback is not independent mapping evidence. Never globally import web-label semantics into the DXF classifier. |
+| [dxf-rs reader](https://github.com/ixmilia/dxf-rs/blob/9ebb1013110ecc3c1b62f557d4e60bb0bec59d10/src/code_pair_iter.rs), [drawing entry point](https://github.com/ixmilia/dxf-rs/blob/9ebb1013110ecc3c1b62f557d4e60bb0bec59d10/src/drawing.rs) | Pinned reader defaults to Windows1252, exposes explicit caller encoding, conditionally CIF-decodes only its Windows1252 branch, then caret-decodes strings. | 7AH/7AQ: calibrate actual read route, metadata authority and raw-versus-decoded text before adding this optional peer. Do not count a literal CIF projection as callback-semantic agreement. |
+| [dxf-rs writer](https://github.com/ixmilia/dxf-rs/blob/9ebb1013110ecc3c1b62f557d4e60bb0bec59d10/src/code_pair_writer.rs) and [text/numeric helpers](https://github.com/ixmilia/dxf-rs/blob/9ebb1013110ecc3c1b62f557d4e60bb0bec59d10/src/code_pair_value.rs) | Legacy ASCII invokes Unicode-to-CIF conversion; binary strings take a separate caret/UTF8 path. CIF formatting uses at least four hex digits but reading consumes a fixed seven-character token. ASCII doubles use12 decimal places. | 3.2/7AR/7AQ: exclude uncalibrated supplementary and legacy-binary peer cells; no five/six-digit escape convention inferred. Add tiny coordinate1e-15 plus a distinct suffix control before using its ASCII rewriter as a geometry oracle. These are source-only risks, not executed peer failures or libdxfrw findings. |
+| Autodesk [control-character contract](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm), ezdxf [MTEXT grammar](https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html) | SAVEAS uses caret notation and escapes a literal caret; MTEXT already uses caret commands and stacked-fraction syntax. | 7AR/7M: specify plain semantic text versus stored command stream before any escaping change. Global quoting/decoding can corrupt intentional formatting. Scalar-valid, callback-idempotent, normalized command text and rendered glyphs are distinct outcomes. |
+| Autodesk [XDATA byte limits](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm), local `writeExtData` |1000/1001 use255/31 encoded-byte limits; local typed-XDATA preflight already checks selected output bytes. | 7K/7AU/3.2: retain that existing validation. Add only a decisive quote/CIF-expansion boundary if missing; do not duplicate the validator or apply XDATA limits to arbitrary102 app data. |
+
+The Rust revision is source-pinned`9ebb1013110ecc3c1b62f557d4e60bb0bec59d10`.
+No Rust toolchain/peer was installed or executed. Its package dependency range
+is not an attested runtime dependency version. Microsoft
+[28594](https://learn.microsoft.com/en-us/windows/win32/intl/code-page-identifiers)
+is an OS identifier for ISO8859-4, not a prescription for DWG numeric IDs.
+No new DWG byte-layout conclusion is drawn from these sources; ODA and a
+versioned producer witness remain binding before DWG parser edits.
+
+### Executed command-stream calibration
+
+The existing isolated ezdxf1.4.4 pure-Python environment ordinarily reopens28
+authored current-CLI outputs: TEXT/MTEXT caret-command, caret-space and raw-BEL
+cases, plus MTEXT stacked-fraction/paragraph text, across AC1018/AC1021 and
+ASCII/binary output. All28 preserve exact raw carrier values and the following
+LINE `(34,35,36)`–`(37,38,39)`; all source hashes remain unchanged. Each child
+uses the existing bounded-process helper with5s/65,536-byte limits. There is
+no recovery/audit/native renderer, binary input or DWG in this probe.
+
+For `literal^Jend`, raw text remains exact; caret decoding produces LF, while
+TEXT's plain-text projection removes that line break and MTEXT's retains it.
+`literal^ end` projects to a literal caret. MTEXT `\S1^ 2;\Ptail` retains its
+command stream, not a plain-text promise. Raw BEL survives unchanged, which
+does not establish SAVEAS-style producer conformance. These observations
+calibrate representation/consumer boundaries, not caller intent or a newly
+reproduced local defect. First harness invocation used incorrect helper keyword
+names and stopped before launching a child; the corrected28-route run passed
+without weakening an assertion.
+
+### Implementation-ready substeps and fastest valid gates
+
+1. **3.2b.2d candidate acceptance (`LOCAL_IMPLEMENTATION_COMPLETE`).**
+   Explicit Compatible/RequireLossless policy, DXF/DWG CLI opt-in, whole-atom
+   transport and raw-role refusal are implemented and documented. The separate
+   acceptance receipt binds the retained10/10 selected gate and fresh focused,
+   actual CLI/DWG, sanitizer and strict-source checks. Do not relabel the
+   earlier selected suite as a new run, close caret/native semantics, or count
+   ordinary Compatible behavior as fixed by an explicit policy. Next3.3a.
+2. **3.3a exact mapping policy and identity (`POLICY_GATE`, first new code).**
+   Recommend a separate explicit exact-named input selection contract; ordinary
+   compatible/default alias interpretation stays frozen. Do not overload the
+   input-only LibreCAD UTF8 recovery option, source-validity policy, target
+   loss guard or owner Boolean. Name separately: full original declaration,
+   requested mapping family, actual decoder, and target wire codec/declaration.
+   Compact/hyphen ISO8859-4 may select the same exact decoder only in the new
+   explicit profile, without silently changing their historical defaults.
+   Retain per-field cumulative observations and source provenance across HEADER
+   finalization/version changes; modern DXF metadata stays inert. Map quality
+   and format-profile admission are not the classifier's naming category.
+   Review installed API/consumer migration and no-new-pure-callback rules;
+   require downstream rebuild if layouts change, not binary-ABI claims.
+3. **3.3b first ISO8859-4 table (`READY_LOCAL` after3.3a decision).**
+   Generate a fixed128-entry80–FF table from the hash-pinned256-row Unicode
+   source, with the applicable source notice and [permission provenance](https://www.unicode.org/license.txt)
+   retained in generated file/associated documentation. No iconv/ICU runtime
+   dependency, online test input or external CAD fixture. Include C1 identity
+   entries, all96 graphic entries and explicit inverse uniqueness. Validate
+   all256 decodes and all256 inverse encodes against independently checked
+   expectations, plus literal A1→U+0104, A2→U+0138, FF→U+02D9 and80→U+0080.
+   Freeze current Compatible aliases and ANSI1257's244 defined/12 undefined
+   controls. Undefined ISO8859-4-byte negatives do not exist; use wrong-profile,
+   unsupported-family and malformed-syntax controls instead. Keep frame-invalid
+   NUL/CR/LF tests outside the codec-table validity denominator. One existing
+   codec executable/focused mode is sufficient during iteration.
+4. **3.3c source-policy/HEADER/CLI handoff (`AFTER3.3b`).**
+   The exact decoder must actually reach parsed text and owned import outcomes;
+   adding a dormant table or relabeling CompatibilityAlias as Canonical is not
+   closure. Test one authored A1 text plus distinct LINE under the explicit
+   exact source profile, with expected Unicode and a qualified canonical target
+   page/BMP CIF or modern UTF8. Retain original ISO metadata as provenance; never
+   emit Windows bytes under an ISO declaration. A correct decoder alone does
+   not admit noncanonical producer metadata to complete-conversion mode.
+   If that format decision remains pending, close only the explicit local
+   codec/API gate and retain truthful CLI refusal. Compose legacy/modern and
+   ASCII/binary output once, including destination preservation and same-data
+   retry. Reuse existing source/target refusal helpers; do not cross-product
+   every table byte with every owner, platform and target revision.
+5. **7AR/7M/7AU representation follow-up (`SEPARATE_SCOPE`).**
+   Inventory TEXT's stored commands, MTEXT/embedded formatting, symbol/HEADER
+   strings, XDATA and102 typed/raw roles before changing caret/CIF order.
+   Pin whether each API supplies plain text or a command stream. Test a literal
+   caret, `^J`, `^ `, intentional MTEXT stack/paragraph commands, mixed CIF and
+   Unicode, and one escape-at-chunk-boundary case. Compare physical bytes,
+   public callback values and command-aware projection separately; native glyph
+   acceptance stays external. Preserve raw byte spelling and binary/handles.
+   Unresolved role/provenance should retain the explicit refusal, not become
+   guessed decoding. Full102 migration remains open after the candidate guard.
+6. **3.4 and external work stay independent (`VERSION/EXTERNAL_GATE`).**
+   Do not replace numeric DWG IDs with Windows IDs, or fold TV/TU/EED together.
+   Read the relevant ODA chapter and trace an eligible real field before a
+   parser change. If exact-profile or producer acceptance stalls, finish the
+   bounded table/API controls and continue a separately ready graph/resource
+   item; do not repeatedly scan unchanged peers or weaken support evidence.
+
+### Validation cadence and self-updating handoff
+
+- During table implementation, run the focused offline codec mode and strict
+  touched-TU checks. Run existing HEADER/fixture/actual CLI and LC/LC3 source
+  compatibility gates once when the policy reaches public consumers. Full
+  suites remain shared-boundary/phase gates; this plan-only pass ran none.
+- Keep decode correctness, lossless target encoding, wire-profile conformance,
+  command preservation, consumer projection and native semantics as separate
+  named assertions. Refusals, unavailable peer cells and malformed controls
+  never count as successful supported-format conversions.
+- Charge/bound output-expansion and staging work under the existing7S owner;
+  a255-byte field ceiling is not an operation-memory budget. Use a tiny injected
+  budget/late-invalid suffix and failure/retry control when that owner changes,
+  not a new giant fuzz corpus per text edit. Current candidate budget coverage
+  is not promoted by this source-only observation.
+- After each implemented substep, record actual status, source/artifact binding,
+  residual gate and next ready action. After each slice commit, immediately
+  show its hash and focused outcome. Reuse unchanged acceptance evidence only
+  with verified bindings; never rewrite its date or claim a fresh platform run.
+
+Counts remain122 findings/70 top-level subplans and149 ledger items
+(128 committed/6 blocked/3 in progress/12 other/0 ready parents). The research
+adds substeps under existing owners, not a new defect from every peer concern.
+`J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
+`DEFERRED_EXTERNAL`, non-promoting. Native Linux/Windows FreeCAD and independent
+ACIS/AcDs semantic qualification retain their existing exact acceptance gates.

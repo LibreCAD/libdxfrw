@@ -18,6 +18,7 @@
 #include <string>
 #include <algorithm>
 #include <charconv>
+#include <utility>
 #include "dxfwriter.h"
 #include "dxfnumber.h"
 
@@ -190,9 +191,80 @@ bool writeLittleEndian(std::ostream *stream, std::uint64_t value,
     return (filestr->good());
 }*/
 
+bool dxfWriter::encodeStrictText(std::string_view text, std::size_t maxBytes,
+                                 std::vector<std::string>& chunks) {
+    if (m_textFailure != TextFailure::NoFailure) return false;
+    if (!DRW_TextCodec::isUtf8ScalarText(text)) return failText(TextFailure::InvalidUtf8);
+    if (text.find('\0') != std::string_view::npos
+        || (!m_binaryStrings && (text.find('\r') != std::string_view::npos
+                                 || text.find('\n') != std::string_view::npos)))
+        return failText(TextFailure::UnsafeRecordText);
+    const auto target = encoder.getSourceVersion();
+    // Normalized metadata can say ANSI_1252 while a legacy UTF8 declaration
+    // selected the pass-through converter. Guard the original selection.
+    const auto declaration = encoder.declaredCodePageSelection();
+    const auto page = declaration.selectedName == nullptr
+        ? std::string_view{} : std::string_view(declaration.selectedName);
+    if (target < DRW::AC1009 || target > DRW::AC1032
+        || (target < DRW::AC1021 && (page == "UTF-8" || page == "UTF-16")))
+        return failText(TextFailure::UnsupportedProfile);
+    if (maxBytes == 0u) return failText(TextFailure::TargetLoss);
+    std::string chunk;
+    for (std::size_t offset = 0; offset < text.size();) {
+        const auto lead = static_cast<unsigned char>(text[offset]);
+        const std::size_t length = lead < 0x80u ? 1u : lead < 0xE0u ? 2u : lead < 0xF0u ? 3u : 4u;
+        const auto scalar = text.substr(offset, length); // complete scalar, validated above
+        // Quote only a semantic backslash which would start CIF/MIF decoding.
+        // One-pass decoding of \\U+005C then literal U+/M+ preserves meaning;
+        // ordinary paths, MTEXT \\P/font/stack commands and raw bytes are untouched.
+        const bool quote = lead == '\\' && offset + 2u < text.size()
+            && (text[offset + 1u] == 'U' || text[offset + 1u] == 'M')
+            && text[offset + 2u] == '+';
+        const std::string encoded = quote ? "\\U+005C" : encoder.fromUtf8(scalar);
+        // This is a local loss guard, not an independent charset mapping oracle.
+        // Literal scalar/wire tests separately constrain the supported transport.
+        if (encoder.toUtf8(encoded) != scalar || encoded.size() > maxBytes)
+            return failText(TextFailure::TargetLoss);
+        if (!chunk.empty() && encoded.size() > maxBytes - chunk.size()) {
+            chunks.push_back(std::move(chunk));
+            chunk.clear();
+        }
+        chunk += encoded;
+        offset += length;
+    }
+    chunks.push_back(std::move(chunk)); // empty final field remains explicit
+    return true;
+}
+
+std::string dxfWriter::fromUtf8String(std::string text) {
+    if (!requiresLosslessText()) return encoder.fromUtf8(text);
+    std::vector<std::string> chunks;
+    if (!encodeStrictText(text, (std::numeric_limits<std::size_t>::max)(), chunks)) return {};
+    return std::move(chunks.front());
+}
+
 bool dxfWriter::writeUtf8String(int code, std::string text) {
-    std::string t = encoder.fromUtf8(text);
-    return writeString(code, t);
+    std::string encoded = fromUtf8String(std::move(text));
+    return m_textFailure == TextFailure::NoFailure && writeString(code, std::move(encoded));
+}
+
+bool dxfWriter::writeUtf8Chunks(std::string_view text, int continuationCode,
+                               int finalCode, std::size_t maxBytes) {
+    std::vector<std::string> chunks;
+    if (!encodeStrictText(text, maxBytes, chunks)) return false;
+    for (std::size_t index = 0; index < chunks.size(); ++index) {
+        if (!writeString(index + 1u == chunks.size() ? finalCode : continuationCode,
+                         std::move(chunks[index]))) return false;
+    }
+    return true;
+}
+
+bool dxfWriter::preflightOpaqueText(std::string_view text, bool knownUtf8) {
+    if (!requiresLosslessText()) return true;
+    const bool highBytes = std::any_of(text.begin(), text.end(), [](unsigned char byte) { return byte >= 0x80u; });
+    if (!highBytes) return true;
+    if (!knownUtf8) return failText(TextFailure::OpaqueText);
+    return DRW_TextCodec::isUtf8ScalarText(text) || failText(TextFailure::InvalidUtf8);
 }
 
 bool dxfWriter::writeUtf8Caps(int code, std::string text) {
@@ -201,8 +273,7 @@ bool dxfWriter::writeUtf8Caps(int code, std::string text) {
                    [](unsigned char ch) {
                        return static_cast<char>(dxfAsciiUpper(ch));
                    });
-    std::string t = encoder.fromUtf8(strname);
-    return writeString(code, t);
+    return writeUtf8String(code, std::move(strname));
 }
 
 bool dxfWriterBinary::writeString(int code, std::string text) {

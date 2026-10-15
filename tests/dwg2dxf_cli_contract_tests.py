@@ -241,6 +241,19 @@ def check_read_observations(converter, root):
     return checked
 
 
+def encode_authored_pairs(pairs, binary):
+    """Small from-scratch recipe for only the string/double tags used here."""
+    result = bytearray(BINARY_PREFIX if binary else b"")
+    for code, value in [*pairs, (0, b"EOF")]:
+        if binary:
+            result += struct.pack("<H", code)
+            result += value + b"\0" if isinstance(value, bytes) else struct.pack("<d", value)
+        else:
+            result += str(code).encode() + b"\n"
+            result += (value if isinstance(value, bytes) else repr(value).encode()) + b"\n"
+    return bytes(result)
+
+
 def check_source_text_admission(converter, root):
     """Actual CLI source refusal before publication; no peer/runtime dependency."""
     def header(version, page):
@@ -258,16 +271,7 @@ def check_source_text_admission(converter, root):
                 (10, 34.0), (20, 35.0), (30, 36.0),
                 (11, 37.0), (21, 38.0), (31, 39.0), (0, b"ENDSEC")]
 
-    def encode(pairs, binary):
-        result = bytearray(BINARY_PREFIX if binary else b"")
-        for code, value in [*pairs, (0, b"EOF")]:
-            if binary:
-                result += struct.pack("<H", code)
-                result += value + b"\0" if isinstance(value, bytes) else struct.pack("<d", value)
-            else:
-                result += str(code).encode() + b"\n"
-                result += (value if isinstance(value, bytes) else repr(value).encode()) + b"\n"
-        return bytes(result)
+    encode = encode_authored_pairs
 
     negatives = [
         ("alias deletion", b"AC1015", b"ISO8859-4", b"L\xa1R"),
@@ -393,21 +397,97 @@ def check_source_text_admission(converter, root):
     return rejected, retries, positives, 1
 
 
+def check_target_text_transport(converter, root):
+    def drawing(kind, payload, binary, layer=b"0"):
+        return encode_authored_pairs([
+            (0, b"SECTION"), (2, b"HEADER"), (9, b"$ACADVER"), (1, b"AC1021"),
+            (9, b"$DWGCODEPAGE"), (3, b"ANSI_1252"), (0, b"ENDSEC"),
+            (0, b"SECTION"), (2, b"ENTITIES"), (0, kind), (5, b"A0"), (8, layer),
+            (10, 1.0), (20, 2.0), (40, 1.0), (1, payload),
+            (0, b"LINE"), (5, b"B0"), (8, b"0"), (10, 34.0), (20, 35.0),
+            (30, 36.0), (11, 37.0), (21, 38.0), (31, 39.0), (0, b"ENDSEC")], binary)
+
+    def invoke(source, output, version, freecad, binary=False):
+        args = [source, "-o", output, version, "-y"] if freecad else [source, version, "-y", output]
+        if binary:
+            args.insert(-1 if not freecad else len(args), "-b")
+        return run_bounded([str(converter), *map(str, args)], 5, 65536, cwd=root)
+
+    refused = retries = modern = repeated = 0
+    emoji = "😀".encode()
+    for index, kind in enumerate((b"TEXT", b"MTEXT", b"TEXT")):
+        for binary in (False, True):
+            source = root / f"target-source-{index}-{binary}.dxf"
+            original = drawing(kind, emoji if index != 2 else b"plain", binary,
+                               layer=emoji if index == 2 else b"0")
+            for freecad in (False, True):
+                output = root / f"target-result-{index}-{binary}-{freecad}.dxf"
+                source.write_bytes(original)
+                for existing in (False, True):
+                    if existing:
+                        output.write_bytes(SENTINEL)
+                    else:
+                        output.unlink(missing_ok=True)
+                    before = set(root.iterdir())
+                    result = invoke(source, output, "-v2004", freecad, binary=freecad)
+                    actual = output.read_bytes() if output.exists() else None
+                    if (result.returncode != 1 or actual != (SENTINEL if existing else None)
+                            or set(root.iterdir()) != before or b"dxf-text-target-loss" not in result.stderr
+                            or b"Success:" in result.stdout or source.read_bytes() != original):
+                        raise AssertionError(f"target scalar downgrade false success/publication: {result!r}")
+                    refused += 1
+                source.write_bytes(drawing(kind, "А".encode(), binary))
+                result = invoke(source, output, "-v2004", freecad, binary=freecad)
+                if result.returncode != 0 or b"\\U+0410" not in output.read_bytes():
+                    raise AssertionError(f"BMP CIF target retry failed: {result!r}")
+                retries += 1
+                source.write_bytes(original)
+                result = invoke(source, output, "-v2007", freecad, binary=freecad)
+                if result.returncode != 0 or emoji not in output.read_bytes():
+                    raise AssertionError(f"modern supplementary scalar was lost: {result!r}")
+                modern += 1
+    for kind in (b"TEXT", b"MTEXT"):
+        for source_binary in (False, True):
+            source = root / f"literal-source-{kind.decode()}-{source_binary}.dxf"
+            # Genuine source CIF becomes a literal escape-looking semantic
+            # backslash. Wire output must keep this distinction on both passes.
+            source.write_bytes(drawing(kind, b"A" * 248 + b"\\U+005CU+0041suffix", source_binary))
+            for version in ("-v2004", "-v2007"):
+                for binary in (False, True):
+                    first = root / f"literal-first-{repeated}.dxf"
+                    second = root / f"literal-second-{repeated}.dxf"
+                    for input_path, output in ((source, first), (first, second)):
+                        result = invoke(input_path, output, version, True, binary)
+                        if result.returncode != 0 or b"\\U+005CU+0041suffix" not in output.read_bytes():
+                            raise AssertionError(f"literal semantic CIF lost on repeated conversion: {result!r}")
+                    repeated += 1
+    return refused, retries, modern, repeated
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--converter", required=True, type=Path)
+    parser.add_argument("--target-text-only", action="store_true",
+                        help="run only the focused target transport controls while iterating")
     args = parser.parse_args()
     converter = args.converter.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="libdxfrw-cli-contract-") as directory:
         root = Path(directory)
+        if args.target_text_only:
+            target = check_target_text_transport(converter, root)
+            print(f"CLI target transport: PASS ({target[0]} refusals/{target[1]} retries/"
+                  f"{target[2]} modern positives/{target[3]} two-pass literal routes)")
+            return
         checked = check_options(converter, root)
         batch_checked = check_batch(converter, root)
         observation_checked = check_read_observations(converter, root)
         source_checked = check_source_text_admission(converter, root)
+        target = check_target_text_transport(converter, root)
     print(f"CLI contract: PASS ({checked} option/filename and "
           f"{batch_checked} batch controls, {observation_checked} read-observation controls; "
           f"source text {source_checked[0]} refusals/{source_checked[1]} retries/"
-          f"{source_checked[2]} positives/{source_checked[3]} mixed batch, bounded subprocesses)")
+          f"{source_checked[2]} positives/{source_checked[3]} mixed batch; target text "
+          f"{target[0]} refusals/{target[1]} retries/{target[2]} modern/{target[3]} two-pass routes, bounded subprocesses)")
 
 
 if __name__ == "__main__":

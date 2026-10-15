@@ -48,8 +48,33 @@ inert metadata remain eligible. Cumulative observations also retain non-ASCII
 decoding without an accepted revision and unsupported UTF16 interpretation.
 This is not target-text/DWG/whole-drawing qualification. Ordinary library reads
 and default adapter exports preserve their 2D/3D tolerant/projection behavior.
-Target scalar preflight remains open. The fixed observation array grows;
-consumer rebuild is required, not a binary ABI guarantee.
+The fixed observation array grows; consumer rebuild is required, not a binary
+ABI guarantee.
+
+DXF output has a separate `DRW::DxfTextWritePolicy`: library/default adapter
+writes retain `Compatible`, while explicit `RequireLossless` validates UTF-8
+scalars, lossless target encoding and safe record framing. Select it with
+`dxfRW::setDxfTextWritePolicy`; `dxfTextWritePolicy()` reports the persistent
+setting. Admitted writes snapshot it before callbacks; callback changes apply
+only to the next write. No input recovery, owner-resolution or 2D coordinate
+projection behavior is changed. Consumer rebuild is required; no pure virtual
+is added or binary ABI qualified.
+
+The CLI opts in for both DXF and DWG sources. Legacy supplementary loss and
+invalid semantic text cause failure without publishing/replacing output;
+modern UTF-8 remains available. Selective quoting preserves semantic literal
+`\U+`/`\M+` prefixes through subsequent reads, without globally escaping MTEXT
+commands or raw carriers. MTEXT/modern GEODATA byte chunks retain complete
+encoded atoms. High-byte opaque102 strings lacking encoding provenance are
+refused rather than guessed; already-decoded1000/1001/1003 roles encode once.
+Raw modern source-bound UTF-8 is validated without changing its spelling;
+binary and handle carriers remain separate.
+
+These checks do not qualify exact codepage mappings, all raw application-data
+representations, caret/control syntax, TEXT/MTEXT rendering, DWG source decoding
+or independent native/ACIS semantics. In particular, command-stream equality
+is not a plain-text or rendered-glyph promise. Existing compatible writes and
+adapter-owned 2D/3D projection contracts remain available.
 
 For a DXF or DWG client that must handle coordinates itself, call
 `dxfRW::read` / `dxfRW::readAscii` or `dwgRW::read` with `ext == false`. The

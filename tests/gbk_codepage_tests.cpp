@@ -1930,6 +1930,372 @@ void testDxfSourceTextAdmission(TestContext& t) {
     else std::cerr << "Source admission evidence: " << directory << '\n';
 }
 
+void testTargetTextTransport(TestContext& t) {
+    using Policy = DRW::DxfTextWritePolicy;
+    using Failure = dxfWriter::TextFailure;
+    struct WireRow { const char* page; std::string semantic, legacy, modern; };
+    const WireRow rows[] = {
+        {"ANSI_1252", "plain?", "plain?", "plain?"},
+        {"ANSI_1252", "\xC3\xA9", "\xE9", "\xC3\xA9"},
+        {"ANSI_1252", "\xD0\x90", "\\U+0410", "\xD0\x90"},
+        {"ANSI_932", "\xE6\x97\xA5", "\x93\xFA", "\xE6\x97\xA5"},
+        {"ANSI_950", "\xE4\xB8\xAD", "\xA4\xA4", "\xE4\xB8\xAD"},
+        {"ANSI_1252", "\xEF\xBF\xBD", "\\U+FFFD", "\xEF\xBF\xBD"},
+        {"ANSI_1252", "prefix\\U+0041suffix", "prefix\\U+005CU+0041suffix", "prefix\\U+005CU+0041suffix"},
+        {"ANSI_1252", "\\M+193FA", "\\U+005CM+193FA", "\\U+005CM+193FA"},
+        {"ANSI_1252", "\\U+\\M+", "\\U+005CU+\\U+005CM+", "\\U+005CU+\\U+005CM+"},
+        {"ANSI_1252", "C:\\ordinary\\path\\P{\\fArial;A}\\S1/2;", "C:\\ordinary\\path\\P{\\fArial;A}\\S1/2;", "C:\\ordinary\\path\\P{\\fArial;A}\\S1/2;"}
+    };
+    std::size_t wireCases = 0;
+    for (const auto& row : rows) for (bool modern : {false, true}) for (bool binary : {false, true}) {
+        std::ostringstream output(std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion(modern ? "AC1021" : "AC1018", true);
+        writer->setCodePage(row.page);
+        writer->setTextWritePolicy(Policy::RequireLossless);
+        const auto original = row.semantic;
+        const auto encoded = writer->fromUtf8String(row.semantic);
+        t.expect(encoded == (modern ? row.modern : row.legacy)
+                     && writer->writeUtf8String(1, row.semantic) && !writer->hasWriteError()
+                     && row.semantic == original,
+                 "literal scalar/wire anchors constrain strict transport without changing caller text");
+        std::istringstream input(output.str(), std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        reader->setVersion(modern ? "AC1021" : "AC1018", true);
+        reader->setCodePage(row.page);
+        int code = 0;
+        t.expect(reader->readRec(&code) && code == 1 && reader->getRawValue() == encoded
+                     && reader->getUtf8String() == row.semantic,
+                 "strict semantic quoting is one-pass callback-idempotent in both framings");
+        ++wireCases;
+    }
+    std::size_t rejectionCases = 0;
+    for (const std::string bad : {"\x80", "\xC0\xAF", "\xED\xA0\x80", "\xF4\x90\x80\x80", "\xE2\x82"})
+        for (bool modern : {false, true}) {
+        std::ostringstream output;
+        dxfWriterAscii writer(&output);
+        writer.setVersion(modern ? "AC1021" : "AC1018", true);
+        writer.setTextWritePolicy(Policy::RequireLossless);
+        {
+            DxfWriterRecordScope scope(writer);
+            t.expect(!writer.writeUtf8String(1, bad), "invalid UTF8 fails before any semantic field bytes");
+        }
+        t.expect(output.str().empty() && writer.hasWriteError()
+                     && writer.textFailure() == Failure::InvalidUtf8
+                     && !writer.writeUtf8String(1, "later valid"),
+                 "record rollback cannot clear an admitted operation's sticky text failure");
+        ++rejectionCases;
+    }
+    for (bool binary : {false, true}) {
+        for (bool modern : {false, true}) {
+            std::ostringstream output(std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            writer->setVersion(modern ? "AC1021" : "AC1018", true);
+            writer->setTextWritePolicy(Policy::RequireLossless);
+            const bool written = writer->writeUtf8String(1, "\xF0\x9F\x98\x80");
+            t.expect(written == modern && (modern || (output.str().empty() && writer->textFailure() == Failure::TargetLoss)),
+                     "supplementary scalars remain UTF8 in modern targets and cannot become a legacy question mark");
+            ++rejectionCases;
+        }
+    }
+    std::size_t chunkCases = 0;
+    for (const auto& row : rows) for (bool modern : {false, true}) for (bool binary : {false, true}) {
+        const auto source = std::string(248, 'A') + row.semantic + "\\Ptail";
+        std::ostringstream output(std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+        writer->setVersion(modern ? "AC1021" : "AC1018", true);
+        writer->setCodePage(row.page);
+        writer->setTextWritePolicy(Policy::RequireLossless);
+        t.expect(writer->writeUtf8Chunks(source, 3, 1, 250), "whole semantic chunk preflight succeeds");
+        std::istringstream input(output.str(), std::ios::binary);
+        std::unique_ptr<dxfReader> reader = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&input))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&input));
+        reader->setVersion(modern ? "AC1021" : "AC1018", true);
+        reader->setCodePage(row.page);
+        std::string decoded;
+        int code = 0, last = 0;
+        while (reader->readRec(&code)) {
+            t.expect((code == 3 || code == 1) && last != 1 && reader->getRawValue().size() <= 250,
+                     "encoded chunks preserve field order and byte ceiling");
+            decoded += reader->getUtf8String();
+            last = code;
+        }
+        t.expect(last == 1 && decoded == source,
+                 "CIF/MIF quotes and UTF8/DBCS scalar atoms are never split across physical chunks");
+        ++chunkCases;
+    }
+    std::size_t framingCases = 0;
+    for (bool binary : {false, true}) {
+        for (const std::string& text : {std::string("A\0B", 3), std::string("A\nB")}) {
+            std::ostringstream output(std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            writer->setVersion("AC1021", true); writer->setTextWritePolicy(Policy::RequireLossless);
+            const bool eligible = binary && text.find('\0') == std::string::npos;
+            t.expect(writer->writeUtf8String(1, text) == eligible
+                         && (eligible || (output.str().empty() && writer->textFailure() == Failure::UnsafeRecordText)),
+                     "semantic framing preserves binary newline but never publishes NUL/ASCII pair injection");
+            ++framingCases;
+        }
+    }
+    for (const char* page : {"UTF8", "UTF16"}) {
+        std::ostringstream output;
+        dxfWriterAscii writer(&output);
+        writer.setVersion("AC1018", true); writer.setCodePage(page);
+        writer.setTextWritePolicy(Policy::RequireLossless);
+        t.expect(!writer.writeUtf8String(1, "plain") && output.str().empty()
+                     && writer.textFailure() == Failure::UnsupportedProfile,
+                 "a canonical/exact Unicode name cannot admit an unsupported legacy target profile");
+    }
+    {
+        std::ostringstream output;
+        dxfWriterAscii writer(&output);
+        writer.setVersion("AC1009", true); writer.setTextWritePolicy(Policy::RequireLossless);
+        t.expect(writer.writeUtf8Caps(2, "name\\u+0041")
+                     && output.str().find("NAME\\U+005CU+0041") != std::string::npos,
+                 "R12 ASCII-capitalized symbols quote escape-looking slashes after case policy");
+        std::ostringstream raw;
+        dxfWriterAscii carrier(&raw);
+        carrier.setVersion("AC1021", true); carrier.setTextWritePolicy(Policy::RequireLossless);
+        t.expect(carrier.writeString(1, "\\U+0041") && raw.str().find("\\U+0041") != std::string::npos
+                     && raw.str().find("\\U+005C") == std::string::npos,
+                 "explicit raw carrier emission never quotes semantic-looking source bytes");
+    }
+    std::cout << "Target text units: wire=" << wireCases << ", rejection/modern controls=" << rejectionCases
+              << ", chunks=" << chunkCases << ", framing=" << framingCases << ", profile/caps/raw=4\n";
+}
+
+void testTargetTextFacade(TestContext& t) {
+    using Policy = DRW::DxfTextWritePolicy;
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-target-text-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    const auto bytes = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(input), {});
+    };
+    const std::string sentinel = "target transport destination sentinel\n";
+    const auto makeData = [](int field, const std::string& payload) {
+        auto data = std::make_unique<dx_data>();
+        data->headerC.addStr("$DWGCODEPAGE", "ANSI_1252", 3);
+        auto* line = new DRW_Line();
+        line->basePoint = {34, 35, 36}; line->secPoint = {37, 38, 39};
+        data->mBlock->ent.push_back(line);
+        if (field == 0 || field == 1) {
+            DRW_Text* text = field == 0 ? new DRW_Text() : new DRW_MText();
+            text->height = 1; text->text = payload;
+            data->mBlock->ent.push_front(text);
+        } else if (field == 2) {
+            DRW_Layer layer; layer.name = payload; data->layers.push_back(layer);
+        } else if (field == 3) {
+            data->headerC.addStr("$DIMPOST", payload, 1);
+        } else if (field == 4 || field == 5) {
+            auto* block = new dx_ifaceBlock(); block->name = field == 4 ? payload : "TARGET";
+            data->blocks.push_back(block);
+            auto* insert = new DRW_Insert(); insert->name = block->name;
+            if (field == 5) {
+                auto attribute = std::make_shared<DRW_Attrib>();
+                attribute->tag = "TAG"; attribute->height = 1; attribute->text = payload;
+                insert->attlist.push_back(attribute);
+            }
+            data->mBlock->ent.push_front(insert);
+        } else if (field == 6) {
+            line->extData.push_back(std::make_shared<DRW_Variant>(1001, std::string("ACAD")));
+            line->extData.push_back(std::make_shared<DRW_Variant>(1000, payload));
+        } else {
+            std::list<DRW_Variant> group;
+            group.emplace_back(102, std::string("AUTHORED_APP"));
+            group.emplace_back(1, payload); group.emplace_back(102, std::string("}"));
+            line->appData.push_back(std::move(group));
+        }
+        return data;
+    };
+    std::size_t cases = 0;
+    for (int field = 0; field < 8; ++field) for (bool modern : {false, true}) for (bool binary : {false, true}) {
+        const auto path = directory / (std::to_string(cases) + ".dxf");
+        auto data = makeData(field, field == 7 ? "\xC3\xA9" : "\x80");
+        PreparedDxInterface adapter; adapter.attach(data.get());
+        dxfRW codec(path.string().c_str()); adapter.attachWriter(&codec);
+        t.expect(codec.dxfTextWritePolicy() == Policy::Compatible,
+                 "ordinary facade writer default remains compatible");
+        codec.setDxfTextWritePolicy(Policy::RequireLossless);
+        { std::ofstream output(path, std::ios::binary); output << sentinel; }
+        const auto version = modern ? DRW::AC1021 : DRW::AC1018;
+        const auto firstHandle = data->mBlock->ent.front()->handle;
+        const auto lastHandle = data->mBlock->ent.back()->handle;
+        t.expect(!codec.write(&adapter, version, binary) && bytes(path) == sentinel
+                     && codec.getError() != DRW::BAD_NONE && codec.getLastDiagnostic().failed()
+                     && data->mBlock->ent.front()->handle == firstHandle
+                     && data->mBlock->ent.back()->handle == lastHandle,
+                 "target refusal preserves destination and publishes a primary failure for every required owner");
+        if (field == 0 || field == 1) static_cast<DRW_Text*>(data->mBlock->ent.front())->text = "corrected";
+        else if (field == 2) data->layers.front().name = "corrected";
+        else if (field == 3) data->headerC.addStr("$DIMPOST", "corrected", 1);
+        else if (field == 4) {
+            data->blocks.front()->name = "corrected";
+            static_cast<DRW_Insert*>(data->mBlock->ent.front())->name = "corrected";
+        } else if (field == 5) static_cast<DRW_Insert*>(data->mBlock->ent.front())->attlist.front()->text = "corrected";
+        else if (field == 6) data->mBlock->ent.back()->extData.back()->addString(1000, "corrected");
+        else {
+            auto value = data->mBlock->ent.back()->appData.front().begin();
+            (++value)->addString(1, "corrected");
+        }
+        t.expect(codec.write(&adapter, version, binary) && bytes(path) != sentinel,
+                 "same facade and corrected same model clear target failure and publish the retry");
+        ++cases;
+    }
+    std::size_t idempotence = 0;
+    for (int field : {0, 1}) for (bool modern : {false, true}) for (bool binary : {false, true}) {
+        const auto path = directory / ("semantic-" + std::to_string(idempotence) + ".dxf");
+        const auto source = std::string(248, 'A') + "\\U+0041\\M+193FA\\P{\\fArial;" + "\xE4\xB8\xAD" + "}\\S1/2;";
+        auto data = makeData(field, source);
+        PreparedDxInterface adapter; adapter.attach(data.get());
+        dxfRW codec(path.string().c_str()); adapter.attachWriter(&codec);
+        codec.setDxfTextWritePolicy(Policy::RequireLossless);
+        const auto version = modern ? DRW::AC1021 : DRW::AC1018;
+        for (int pass = 0; pass < 2; ++pass) {
+            t.expect(codec.write(&adapter, version, binary), "strict valid literal text exports");
+            dx_data read; dx_iface importer;
+            const bool imported = importer.fileImport(path.string(), &read, false);
+            const auto* text = read.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_Text*>(read.mBlock->ent.front());
+            t.expect(imported && text != nullptr && text->text == source,
+                     "valid literal backslashes and MTEXT formatting survive repeated callback export/read");
+        }
+        ++idempotence;
+    }
+    for (bool binary : {false, true}) {
+        dx_data data;
+        const auto path = directory / (binary ? "geo-binary.dxf" : "geo-ascii.dxf");
+        dxfRW codec(path.string().c_str());
+        class GeoSink final : public dx_iface {
+        public:
+            GeoSink(dx_data& data, dxfRW& codec) : codec(codec) {
+                cData = &data; currentBlock = data.mBlock; dxfW = &codec;
+                geo.m_version = 2;
+            }
+            void writeObjects() override { wrote = codec.writeGeoData(&geo); }
+            void addGeoData(const DRW_GeoData& value) override { observed = value.m_coordinateSystemDefinition; }
+            dxfRW& codec; DRW_GeoData geo; bool wrote{false}; std::string observed;
+        } sink(data, codec);
+        const auto definition = std::string(254, 'A') + "\xE4\xB8\xAD" + "\\U+0041";
+        sink.geo.m_coordinateSystemDefinition = definition;
+        codec.setDxfTextWritePolicy(Policy::RequireLossless);
+        t.expect(codec.write(&sink, DRW::AC1024, binary) && sink.wrote
+                     && codec.read(&sink, false) && sink.observed == definition,
+                 "GEODATA strict255-byte chunks preserve a boundary Unicode scalar and literal escape");
+    }
+    {
+        auto data = makeData(0, "\x80");
+        const auto path = directory / "callback-policy.dxf";
+        dxfRW codec(path.string().c_str());
+        class PolicySink final : public dx_iface {
+        public:
+            PolicySink(dx_data& data, dxfRW& codec) : codec(codec) { cData = &data; currentBlock = data.mBlock; dxfW = &codec; }
+            void writeEntities() override {
+                codec.setDxfTextWritePolicy(Policy::Compatible);
+                dx_iface::writeEntities();
+            }
+            dxfRW& codec;
+        } sink(*data, codec);
+        codec.setDxfTextWritePolicy(Policy::RequireLossless);
+        t.expect(!codec.write(&sink, DRW::AC1021, false)
+                     && codec.getLastDiagnostic().code == "dxf-text-invalid-utf8"
+                     && codec.dxfTextWritePolicy() == Policy::Compatible
+                     && codec.write(&sink, DRW::AC1021, false),
+                 "callback policy changes affect the next operation, never the admitted strict writer");
+    }
+    for (bool modern : {false, true}) for (bool binary : {false, true}) {
+        auto data = makeData(7, "ascii raw control");
+        auto& group = data->mBlock->ent.back()->appData.front();
+        auto close = std::prev(group.end());
+        group.emplace(close, 1000, std::string("\xD0\x90"));
+        group.emplace(close, 310, std::string("C6D096"));
+        group.emplace(close, 320, std::string("ABCDEF"));
+        const auto path = directory / (std::string("mixed-roles-") + (modern ? "modern" : "legacy") + (binary ? "binary" : "ascii") + ".dxf");
+        PreparedDxInterface sink; sink.attach(data.get());
+        dxfRW codec(path.string().c_str()); sink.attachWriter(&codec);
+        codec.setDxfTextWritePolicy(Policy::RequireLossless);
+        const bool written = codec.write(&sink, modern ? DRW::AC1021 : DRW::AC1018, binary);
+        dx_data read; dx_iface importer;
+        const bool imported = written && importer.fileImport(path.string(), &read, false);
+        bool scalar = false, handle = false, chunk = false;
+        if (imported && !read.mBlock->ent.empty()) for (const auto& values : read.mBlock->ent.back()->appData)
+            for (const auto& value : values) {
+                if (value.type() != DRW_Variant::STRING) continue;
+                const auto text = std::string(value.c_str());
+                if (value.code() == 1000) scalar = text == "\xD0\x90";
+                if (value.code() == 320) handle = text == "ABCDEF";
+                if (value.code() == 310) chunk = text == "C6D096";
+            }
+        t.expect(imported && scalar && handle && chunk,
+                 "1000-in102 is encoded once while opaque ASCII, binary hex and arbitrary handles retain their roles");
+    }
+    std::cout << "Target text facade: owner refusals/same-model retries=" << cases
+              << ", repeated literal routes=" << idempotence << ", GEODATA controls=2, snapshot control=1, mixed-role controls=4\n";
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Target transport evidence: " << directory << '\n';
+}
+
+void writeTargetDwgControl(TestContext& t, const std::filesystem::path& path) {
+    // Optional locally authored whole-DWG witness, not an external/native oracle.
+    dwgRW writer(path.string().c_str());
+    class Source final : public dx_iface {
+    public:
+        explicit Source(dwgRW& writer) : writer(writer) {
+            cData = &data; currentBlock = data.mBlock;
+            text.height = 1; text.basePoint = {1, 2, 3};
+            text.text = "DWG \xF0\x9F\x98\x80 literal\\U+0041";
+            line.basePoint = {34, 35, 36}; line.secPoint = {37, 38, 39};
+        }
+        void writeHeader(DRW_Header& header) override { header.addStr("$DWGCODEPAGE", "ANSI_1252", 3); }
+        void writeEntities() override { wrote = writer.writeText(&text) && writer.writeLine(&line); }
+        void writeBlocks() override {} void writeBlockRecords() override {}
+        void writeLTypes() override {} void writeLayers() override {} void writeTextstyles() override {}
+        void writeVports() override {} void writeDimstyles() override {} void writeAppId() override {} void writeObjects() override {}
+        void writeViews() override {} void writeUCSs() override {}
+        dx_data data; dwgRW& writer; DRW_Text text; DRW_Line line; bool wrote{false};
+    } source(writer);
+    t.expect(writer.write(&source, DRW::AC1027, true) && source.wrote,
+             "authored DWG source writes required TEXT/LINE without a skip");
+    dx_data data; dx_iface reader;
+    const bool read = reader.fileImport(path.string(), &data, false);
+    bool matched = false;
+    for (const auto* entity : data.mBlock->ent) {
+        const auto* text = dynamic_cast<const DRW_Text*>(entity);
+        if (text != nullptr && text->text == source.text.text) matched = true;
+    }
+    t.expect(read && matched && data.mBlock->ent.size() == 2,
+             "authored whole-DWG witness reaches target admission with the intended semantic text");
+    std::cout << "Authored target DWG witness: " << (t.failures == 0 ? "PASS" : "FAIL") << '\n';
+}
+
+void verifyTargetDxfControl(TestContext& t, const std::filesystem::path& path) {
+    dx_data data; dx_iface reader;
+    const bool read = reader.fileImport(path.string(), &data, false);
+    bool text = false, line = false;
+    for (const auto* entity : data.mBlock->ent) {
+        const auto* value = dynamic_cast<const DRW_Text*>(entity);
+        if (value != nullptr) text = value->text == "DWG \xF0\x9F\x98\x80 literal\\U+0041";
+        const auto* geometry = dynamic_cast<const DRW_Line*>(entity);
+        if (geometry != nullptr && entity->eType == DRW::LINE)
+            line = geometry->basePoint.x == 34 && geometry->basePoint.y == 35 && geometry->basePoint.z == 36
+                && geometry->secPoint.x == 37 && geometry->secPoint.y == 38 && geometry->secPoint.z == 39;
+    }
+    t.expect(read && text && line && data.mBlock->ent.size() == 2,
+             "DWG-derived DXF retains exact supplementary/literal semantic text and a distinct following LINE");
+    std::cout << "Target DXF witness: " << (t.failures == 0 ? "PASS" : "FAIL") << '\n';
+}
+
 void testMalformedUtf8(TestContext& t) {
     DRW_TextCodec codec;
     codec.setVersion(DRW::AC1015, false);
@@ -2373,6 +2739,19 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 3 && std::string(argv[1]) == "--target-dwg-control") {
+        writeTargetDwgControl(context, std::filesystem::u8path(argv[2]));
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 3 && std::string(argv[1]) == "--verify-target-dxf-control") {
+        verifyTargetDxfControl(context, std::filesystem::u8path(argv[2]));
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--target-text-transport") {
+        testTargetTextTransport(context);
+        testTargetTextFacade(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--source-text-admission") {
         testDxfSourceTextAdmission(context);
         return context.failures == 0 ? 0 : 1;
@@ -2424,6 +2803,8 @@ int main(int argc, char** argv) {
     testTextObservationHandoff(context);
     testConverterDxfReadOutcome(context);
     testDxfSourceTextAdmission(context);
+    testTargetTextTransport(context);
+    testTargetTextFacade(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);
     testDxfWriters(context);

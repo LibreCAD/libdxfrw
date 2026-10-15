@@ -61,7 +61,8 @@ public:
     }
     bool fileExport(const std::string& file, DRW::Version v, bool binary,
                     dx_data *fData, bool debug, bool requireResolvedOwners = false,
-                    dx_dxfSourceTextPolicy sourceTextPolicy = dx_dxfSourceTextPolicy::Compatible);
+                    dx_dxfSourceTextPolicy sourceTextPolicy = dx_dxfSourceTextPolicy::Compatible,
+                    DRW::DxfTextWritePolicy targetTextPolicy = DRW::DxfTextWritePolicy::Compatible);
     void writeEntity(DRW_Entity* e);
     void setExtensionGraphLimits(const ExtensionGraphLimits& limits) noexcept {
         m_extensionGraphLimits = limits;

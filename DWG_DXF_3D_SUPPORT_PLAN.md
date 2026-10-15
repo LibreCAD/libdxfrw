@@ -3,7 +3,18 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
-**Latest research-only handoff (committed baseline `704832b`):** the
+**Latest research-only handoff (committed baseline `5886b48`):** the
+[exact-mapping, text-carrier and comparator-readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-exact-mapping-text-carrier-and-comparator-readiness-review-2026-10-15)
+adds2,560 exhaustive byte-codec observations,28 authored CLI command-carrier
+calibrations and a pinned Rust-DXF source comparison. It provides3.3a policy,
+3.3b offline ISO8859-4 table and3.3c HEADER/CLI handoff substeps, preserving
+ordinary LibreCAD/LC3 defaults and separating exact input mapping from target
+transport/native rendering. At that research checkpoint,3.2b.2d production/test
+WIP was preserved uncommitted; its historical receipt is not relabeled as a
+fresh or clean-HEAD run. Subsequent integration is recorded below; next3.3a.
+No3D item/support counts or six deferred J dispositions change.
+
+**Previous research-only handoff (committed baseline `704832b`):** the
 [conversion-loss, graph and oracle-readiness refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-conversion-loss-graph-and-oracle-readiness-refresh-2026-10-15)
 adds32 authored actual-CLI routes/64 final-run processes and four executed
 ezdxf transform controls. It distinguishes source loss, target scalar loss,
@@ -39,7 +50,21 @@ erase earlier loss/encoding ambiguity. Final focused5/5 in32.46s, strict/build/
 lc3 and focused ASan/UBSan pass; binding:
 docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. Ordinary facade/default
 adapter2D/3D behavior is compatible; fixed-array growth requires rebuilding.
-Next local item is3.2b.2d target transport; no3D ledger/support count changes.
+Slice3.2b.2d now implements separate explicit target scalar transport. Library/
+default adapter writes remain Compatible; CLI DXF/DWG routes require lossless
+required semantic text.40 wire/14 rejection-modern/40 chunk controls and32
+owner refusals with corrected same-model retry pass, along with repeated
+literal/GEODATA/policy/mixed-role checks. Actual DXF CLI24 refusals/12 retries/
+12 modern positives/16 two-pass routes and authored DWG eight refusals/four
+two-pass routes/eight exact verifiers pass. Retained source/artifact-bound
+selected writer gate10/10 in25.68s remains unchanged; fresh focused/CLI/DWG/
+ASan-UBSan/five strict-TU checks pass and affected/lc3 build is up to date.
+Receipt: docs/research/codec-target-transport-3-2b-2d-2026-10-15.json.
+No repeated full suite/native run is claimed. Policy state requires consumer
+rebuild; no new pure callback. Parent3.2 remains IN_PROGRESS; next3.3a exact
+mapping identity/policy, then3.3b offline table/3.3c HEADER/CLI handoff. The
+scalar guard does not close caret/native semantics, Compatible-default7AR,
+full102 migration or DWG numeric metadata. No3D ledger/support count changes.
 
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
@@ -147,7 +172,8 @@ modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
 four default/R12 compatibility controls and actual CLI no-output checks.
 S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
 nested DWG AcDs/SAB and native geometry remain unqualified. Next local work is
-parity Slice3.2b.2d target scalar transport.3.2b.2c now closes explicit CLI
+parity3.3a's explicit exact-mapping policy decision;3.2b.2d target transport is
+locally implemented as recorded in the current handoff.3.2b.2c closes explicit CLI
 source admission with40 API handoffs/one profile/17 envelope controls, actual
 CLI208 refusals/104 retries/40 positives/one batch, and focused5/5/strict/build/
 lc3/sanitizer passing. Default facade/adapter behavior remains compatible;
@@ -6723,7 +6749,8 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity Slice3.2b.2d target scalar transport):
+local work is policy-gated parity3.3a exact mapping identity, then3.3b/c;
+3.2b.2d target transport is locally implemented):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,

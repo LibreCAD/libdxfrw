@@ -186,9 +186,45 @@ decoder-independent text. Later metadata, truncated prefixes and the advisory
 cap cannot erase earlier loss; unavailable diagnostics are not clean evidence.
 Ordinary library reads and default adapter exports remain tolerant, without
 autodetection or new recovery. This necessary input gate does not certify all
-charset mappings, raw carriers, DWG text, target transport or whole-drawing
-completeness; target preflight remains separate work. Public layout changes
+charset mappings, raw carriers, DWG text or whole-drawing completeness.
+Target transport is a separate explicit policy below. Public layout changes
 require rebuilding consumers; no binary ABI or concurrency guarantee is added.
+
+### Lossless target-text transport
+
+Library writes default to `DRW::DxfTextWritePolicy::Compatible`, retaining
+historical encoding behavior. A caller can opt subsequent writes into
+`dxfRW::setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless)` and
+inspect the persistent setting with `dxfTextWritePolicy()`. Each admitted write
+snapshots the policy; changing it during a callback affects the next write only.
+It is independent of input recovery, source-text admission and owner resolution.
+The added facade state requires consumers to rebuild; no new pure callback or
+binary-ABI guarantee is introduced.
+
+`dwg2dxf` explicitly selects this target policy for both DXF and DWG input.
+Semantic text must contain valid UTF-8 scalars and have a lossless target
+representation. BMP text can use the existing legacy codepage/CIF transport;
+unsupported supplementary-character downgrade is refused, while modern UTF-8
+retains those scalars. NUL is rejected, as are physical CR/LF in ASCII output.
+This does not introduce a new caret/control-character escaping convention.
+Failure prevents publication/replacement of the destination and exposes a
+`dxf-text-*` validation diagnostic through `getLastDiagnostic()`.
+
+The strict writer selectively quotes a semantic backslash before `U+` or `M+`
+so another read does not reinterpret literal escape-looking text. Ordinary
+paths and MTEXT formatting commands remain unchanged. MTEXT and modern
+GEODATA chunks split only between complete encoded scalars/CIF quote atoms,
+within their existing byte ceilings. Raw carriers are not decoded or quoted:
+source-bound modern UTF-8 can be validated, but high-byte opaque strings without
+qualified provenance, including unclassified102 application data, are refused
+under the strict policy. Known already-decoded102 text roles encode once;
+binary/handle roles retain their representation.
+
+This is a required scalar-transport guard, not proof of every charset mapping,
+producer wire profile, raw102 migration, command interpretation, native text
+rendering, DWG decoding or complete drawing semantics. Exact named mappings
+and those independent qualification gates remain open. Default library/adapter
+exports preserve existing LibreCAD/LibreCAD_3 behavior.
 
 ### Using `dwg2dxf` from FreeCAD
 

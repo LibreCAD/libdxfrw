@@ -33,10 +33,8 @@
 #include "intern/dxfwriter.h"
 #include "intern/rscodec.h"
 
-// The façade probe only exercises read callbacks. Keep the test target
-// independent from the dwg2dxf adapter translation unit, whose writeEntity
-// implementation is not needed here.
-void dx_iface::writeEntity(DRW_Entity*) {}
+// Link the production adapter: inherited publication callbacks and the
+// write/short-append probes require its actual implementation.
 
 // Keep access to the protected header codec limited to this test translation
 // unit. The production API remains unchanged.

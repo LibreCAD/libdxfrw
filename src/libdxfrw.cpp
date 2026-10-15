@@ -2455,6 +2455,17 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     }
     std::ofstream& filestr = output.stream();
     const auto failWrite = [&]() {
+        if (writer != nullptr && writer->textFailure() != dxfWriter::TextFailure::NoFailure) {
+            const auto failure = writer->textFailure();
+            const char* code = failure == dxfWriter::TextFailure::InvalidUtf8 ? "dxf-text-invalid-utf8"
+                : failure == dxfWriter::TextFailure::UnsafeRecordText ? "dxf-text-record-framing"
+                : failure == dxfWriter::TextFailure::UnsupportedProfile ? "dxf-text-target-profile"
+                : failure == dxfWriter::TextFailure::OpaqueText ? "dxf-text-opaque-source"
+                : "dxf-text-target-loss";
+            recordOperationDiagnostic(DRW::OperationPhase::Validation,
+                DRW::OperationCause::ValidationFailure, code,
+                "required text has no qualified lossless representation in this DXF target");
+        }
         writer.reset();
         output.abort();
         m_writeError = true;
@@ -2479,6 +2490,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         if (!writer->writeString(999, comm))
             return failWrite();
     }
+    writer->setTextWritePolicy(m_dxfTextWritePolicy);
     //Reserve the codec's fixed structural code-5 literals (table heads, mandatory
     //records, BLOCK_RECORDs, *Model/*Paper BLOCK+ENDBLK, root dict C / ACAD_GROUP
     //D) so the minted-handle stream (m_handleAllocator.next()) skips them. Any raw
@@ -3402,7 +3414,8 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
                     m_writeError = true;
                     return false;
                 }
-                if (!writer->writeString(102, marker)) {
+                if (!writer->preflightOpaqueText(marker)
+                    || !writer->writeString(102, marker)) {
                     m_writeError = true;
                     return false;
                 }
@@ -3444,7 +3457,17 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
                             value = toHexStr(remapped);
                     }
                 }
-                written = writer->writeString(data.code(), value);
+                if (writer->requiresLosslessText()
+                    && (data.code() == 1000 || data.code() == 1001 || data.code() == 1003)) {
+                    // These roles are already decoded by getString(), even
+                    // inside102. Encode once; never decode them a second time.
+                    written = writer->writeUtf8String(data.code(), value);
+                } else {
+                    const auto kind = dxfValueKindForCode(data.code(), profile);
+                    written = (kind == DxfValueKind::Bin || isDxfHandleCode(data.code())
+                        || writer->preflightOpaqueText(value))
+                        && writer->writeString(data.code(), value);
+                }
                 break;
             }
             case DRW_Variant::INTEGER:
@@ -6877,25 +6900,29 @@ bool dxfRW::writeMText(DRW_MText *ent){
         // and escape sequences. Encoded per-codepoint chunks stay <=250 bytes;
         // for pure-ASCII text the output is byte-identical to the old 250-split.
         const std::string& utf8 = ent->text;
-        std::vector<std::string> chunks;
-        std::string cur;
-        for (std::size_t p = 0; p < utf8.size(); ) {
-            unsigned char c = static_cast<unsigned char>(utf8[p]);
-            std::size_t cl = (c < 0x80) ? 1 : ((c >> 5) == 0x6) ? 2
-                           : ((c >> 4) == 0xE) ? 3 : ((c >> 3) == 0x1E) ? 4 : 1;
-            if (p + cl > utf8.size()) cl = utf8.size() - p;
-            std::string enc = writer->fromUtf8String(utf8.substr(p, cl));
-            if (!cur.empty() && cur.size() + enc.size() > 250) {
-                chunks.push_back(cur);
-                cur.clear();
+        if (writer->requiresLosslessText()) {
+            if (!writer->writeUtf8Chunks(utf8, 3, 1, 250u)) return false;
+        } else {
+            std::vector<std::string> chunks;
+            std::string cur;
+            for (std::size_t p = 0; p < utf8.size(); ) {
+                unsigned char c = static_cast<unsigned char>(utf8[p]);
+                std::size_t cl = (c < 0x80) ? 1 : ((c >> 5) == 0x6) ? 2
+                               : ((c >> 4) == 0xE) ? 3 : ((c >> 3) == 0x1E) ? 4 : 1;
+                if (p + cl > utf8.size()) cl = utf8.size() - p;
+                std::string enc = writer->fromUtf8String(utf8.substr(p, cl));
+                if (!cur.empty() && cur.size() + enc.size() > 250) {
+                    chunks.push_back(cur);
+                    cur.clear();
+                }
+                cur += enc;
+                p += cl;
             }
-            cur += enc;
-            p += cl;
+            chunks.push_back(cur);  // final (group 1); empty when text is empty
+            for (std::size_t k = 0; k + 1 < chunks.size(); ++k)
+                writer->writeString(3, chunks[k]);
+            writer->writeString(1, chunks.back());
         }
-        chunks.push_back(cur);  // final (group 1); empty when text is empty
-        for (std::size_t k = 0; k + 1 < chunks.size(); ++k)
-            writer->writeString(3, chunks[k]);
-        writer->writeString(1, chunks.back());
         writer->writeUtf8String(7, ent->style);
         writer->writeDouble(210, ent->extPoint.x);
         writer->writeDouble(220, ent->extPoint.y);
@@ -16916,8 +16943,12 @@ bool dxfRW::writeRawDxfGroups(
     if (!preflightScope.complete())
         return failDxfWrite();
 
-    auto writeString = [this](int code, const std::string &value) {
-        if (!writer->writeString(code, value)) {
+    auto writeString = [this, sourceVersion, profile](int code, const std::string &value) {
+        const bool textKind = dxfValueKindForCode(code, profile) == DxfValueKind::Str
+            || dxfValueKindForCode(code, profile) == DxfValueKind::Unknown;
+        const bool knownUtf8 = sourceVersion >= DRW::AC1021 && version >= DRW::AC1021;
+        if ((textKind && !isDxfHandleCode(code) && !writer->preflightOpaqueText(value, knownUtf8))
+            || !writer->writeString(code, value)) {
             m_writeError = true;
             return false;
         }
@@ -17095,7 +17126,9 @@ bool dxfRW::writeRawDxfObject(DRW_RawDxfObject *obj) {
         return true;
     };
     DxfWriterRecordScope record(*writer);
-    if (!writeString(0, obj->name))
+    if (!writer->preflightOpaqueText(obj->name,
+            obj->m_version >= DRW::AC1021 && version >= DRW::AC1021)
+        || !writeString(0, obj->name))
         return false;
     if (!writeRawDxfGroups(obj->groups, obj->rawValues, obj->hasRawValues,
                             obj->m_version, /*remapSourceHandles=*/true,
@@ -17224,7 +17257,9 @@ bool dxfRW::writeRawDxfSection(const DRW_RawDxfSection &section) {
     if (!remapAcdsAsmDataOwnerHandles(output))
         return false;
     DxfWriterRecordScope record(*writer);
-    if (!writer->writeString(0, "SECTION")
+    if (!writer->preflightOpaqueText(output.m_name,
+            output.m_version >= DRW::AC1021 && version >= DRW::AC1021)
+        || !writer->writeString(0, "SECTION")
         || !writer->writeString(2, output.m_name)
         || !writeRawDxfGroups(output.m_groups, output.m_rawValues,
                               output.m_hasRawValues,
@@ -18388,11 +18423,15 @@ bool dxfRW::writeGeoData(DRW_GeoData *ent) {
 
     std::string::size_type offset = 0;
     if (objectVersion != 1) {
-        while (definition.size() - offset > 255) {
-            writer->writeUtf8String(303, definition.substr(offset, 255));
-            offset += 255;
+        if (writer->requiresLosslessText()) {
+            if (!writer->writeUtf8Chunks(definition, 303, 301, 255u)) return false;
+        } else {
+            while (definition.size() - offset > 255) {
+                writer->writeUtf8String(303, definition.substr(offset, 255));
+                offset += 255;
+            }
+            writer->writeUtf8String(301, definition.substr(offset));
         }
-        writer->writeUtf8String(301, definition.substr(offset));
         writer->writeUtf8String(302, ent->m_geoRssTag);
         writer->writeUtf8String(305, ent->m_observationFromTag);
         writer->writeUtf8String(306, ent->m_observationToTag);

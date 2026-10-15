@@ -2860,7 +2860,8 @@ dx_dxfSourceTextAdmission dx_iface::admitDxfSourceText(const dx_data& data) noex
 
 bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           dx_data *fData, bool debug, bool requireResolvedOwners,
-                          dx_dxfSourceTextPolicy sourceTextPolicy){
+                          dx_dxfSourceTextPolicy sourceTextPolicy,
+                          DRW::DxfTextWritePolicy targetTextPolicy){
     m_sourceTextAdmission = {};
     if (sourceTextPolicy == dx_dxfSourceTextPolicy::RequireValidSource) {
         m_sourceTextAdmission = fData == nullptr
@@ -3007,6 +3008,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         return false;
     }
     dxfW = new dxfRW(file.c_str());
+    dxfW->setDxfTextWritePolicy(targetTextPolicy);
     std::vector<DRW_Block_Record> sourceBlockRecords = cData->blockRecords;
     for (const dx_ifaceBlock* block : cData->blocks) {
         if (block == nullptr || block->parentHandle == DRW::NoHandle)

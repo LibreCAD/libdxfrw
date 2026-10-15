@@ -133,6 +133,17 @@ public:
     void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
         m_dxfTextEncoding = encoding;
     }
+    /** Select semantic-text output policy for subsequent writes. The admitted
+     * write snapshots it; callback changes affect only the next write. Ordinary
+     * Compatible output/raw carriers remain unchanged. RequireLossless rejects
+     * invalid/unrepresentable text and quotes escape-looking semantic slashes,
+     * not formatting commands or raw bytes. Consumer rebuild required. */
+    void setDxfTextWritePolicy(DRW::DxfTextWritePolicy policy) noexcept {
+        m_dxfTextWritePolicy = policy;
+    }
+    DRW::DxfTextWritePolicy dxfTextWritePolicy() const noexcept {
+        return m_dxfTextWritePolicy;
+    }
     /**
      * Set the aggregate record ceiling for each subsequent DXF read.
      *
@@ -908,6 +919,7 @@ private:
     std::uint64_t m_consumedReservationFailureGeneration {0};
     DRW_OperationDiagnostic m_lastDiagnostic;
     DRW_DxfTextReadObservations m_textReadObservations;
+    DRW::DxfTextWritePolicy m_dxfTextWritePolicy{DRW::DxfTextWritePolicy::Compatible};
     bool m_readTextObservationsActive {false};
     bool m_wholeOperationActive {false};
     bool m_dxfWriteAttemptActive {false};

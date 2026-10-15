@@ -103,7 +103,8 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
     // CLI complete-conversion admission is explicit and separate from owner
     // resolution. Ordinary library reads/adapter exports remain tolerant.
     badState = output.fileExport(outName, ver, binary, &fData, debug, true,
-                                 dx_dxfSourceTextPolicy::RequireValidSource);
+                                 dx_dxfSourceTextPolicy::RequireValidSource,
+                                 DRW::DxfTextWritePolicy::RequireLossless);
 
     return badState;
 }
