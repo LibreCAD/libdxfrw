@@ -95,6 +95,15 @@ ACadRust #130–#134 remain version- and corpus-bound leads. This updates the
 optional 7AP oracle gate and sharpens existing TABLE, opaque-carrier,
 ownership, record-bound and resource tests only. The six external J items
 remain deferred and non-promoting.
+The newest cross-project resource-profile refresh checks the official LibreDWG
+release-build option and whole-file acquisition path, GDAL's block-expansion
+limit and raw-ASM projection, and FreeCAD's converter-to-DXF-import handoff.
+It refines comparator profiles and applicability, not local support: mutable
+peer `master`/`stable`/`main` sources must be pinned before execution, peer
+memory use is not a libdxfrw budget oracle, and projected raw ASM is not shape
+semantics. In parallel, local7S.2c.d.17.4 proxy-payload retention is
+implemented at`6a388d6`; that accounting change does not promote proxy
+semantics.
 Next retain the remaining per-container real-file HEADER witnesses, complete
 the remaining 7AG.1c omission-reporting method, and continue dependency-ready
 resource work. Declared text remains the default; peer HATCH transforms and
@@ -119,9 +128,11 @@ reader/package work does not wait for external qualification.
 
 **Research snapshot:** 2026-10-14
 
-**Latest research boundary:** research inputs were checked against implementation
-HEAD `c090d70` (2026-10-14),
-with the earlier `cf6466b` findings and the plan-only peer/consumer,
+**Latest research boundary:** the full format/semantic source review used
+implementation HEAD `c090d70` (2026-10-14); the newest focused cross-project
+resource-profile refresh is documented at the end of this plan and was checked
+against implementation HEAD `6a388d6`. Earlier review inputs include the
+`cf6466b` findings and the plan-only peer/consumer,
 implementation-source, cross-project regression-process, binary-DXF reader,
 ACIS reader/kernel availability, and DWG parser safety/corpus refreshes
 recorded below, plus the 2026-10-14 ACadRust `a1a216d` writer/parser issue
@@ -148,7 +159,8 @@ text at `ce5ee41`; 7S.2c.d.12 TOLERANCE style name at `b4deb55`;
 7S.2c.d.16 OLE2FRAME client name at `fc4b873`; 7S.2c.d.17.1 single-line
 TEXT value ownership at `794d788`; and 7S.2c.d.17.2 ARCALIGNEDTEXT font
 names at `16c4dac`; and 7S.2c.d.17.3 ARCALIGNEDTEXT D2T strings at
-`ec77b3d`. These
+`ec77b3d`; and 7S.2c.d.17.4 decoded DXF proxy payload ownership at
+`6a388d6`. These
 change only local retained-byte
 accounting and do not alter peer-source conclusions or external qualification
 boundaries.
@@ -198,27 +210,27 @@ J293/J295 stay `DEFERRED_EXTERNAL` and non-promoting. The follow-up source
 refresh is documentation-only as well: it adds no fixtures, dependencies,
 peer builds, external executions, registrations, or support claims.
 
-**Latest implementation checkpoint:** `c090d70`
-(`Plan-Slice: 7S.2a.input-budget`), 2026-10-14. The one-GiB caller-raiseable
-aggregate logical-input ceiling now counts ASCII line delimiters/CR, binary
-group codes for both code-width eras, fixed-width values, binary chunk lengths
-and bytes, ignored comments, and the 22-byte binary sentinel exactly once.
-Remaining budget is checked before each bounded acquisition; actual bytes, not
-read-ahead, are charged. ResourceLimit is distinct from I/O/token/record
-failures. Tiny cap−1/cap/cap+1, zero, no-drain, numeric, R12/R13, chunk,
-sentinel, memory/file, comment, retry and nested-lifetime controls pass in the
-existing hardening target. The strict build plus Wave1/hardening/DXF-fixtures
-pass3/3 in3.60s; `lc3_compat_check` builds. The additive facade setting and
-private state require consumer rebuild; no memory-retention/format-support
-claim is made. Prior 7BO full-map publication/reuse evidence remains at
-`7050c3e` (reader-matrix+hardening2/2 in1.38s). No sample or CTest was added.
-The broader local `dwg_read` filter was diagnostic only: AC1021/AC1024 reads
-completed before38/53 conversions failed later in strict DXF emission, so it
-does not qualify writer output or establish a regression. No local DWG/DXF
-sample was committed. The prior nonvirtual `leftOut()` report is committed at
-`2623d4a` and retains strict failure/destination preservation. Counts remain
-118/67; six external J items, full adapter/native compatibility, and support
-claims are unchanged.
+**Latest implementation checkpoint:** `6a388d6`
+(`Plan-Slice: 7S.2c.d.17.4 proxy-payload ownership`), 2026-10-14. The committed
+`7S.2a`–`7S.2c` sequence extends aggregate logical-input admission into bounded
+snapshots, per-record/getter expansion, MTEXT, raw carriers, and the named
+typed-field owners recorded in the ledger. The latest slice charges decoded
+DXF proxy code310/311 payloads for entity and object typed owners; exact
+generated entity/object `+141`/`+140` controls and64-byte `+885`/`+884` controls
+pass, including rejection diagnostics and no callback publication on quota
+failure. `libdxfrw_hardening_tests` and strict `lc3_compat_check` build pass;
+no DWG/DXF fixture or CTest was added. This is retained-byte accounting only,
+not proxy-graphics semantic support; its public layout additions require
+consumer rebuild and no binary-ABI claim is made. The one-GiB acquired-input
+limit remains separate from retained logical-byte charges, allocator capacity,
+RSS, and caller-owned callback copies. Prior 7BO full-map publication/reuse
+evidence remains at`7050c3e`; prior diagnostic-only AC1021/AC1024 conversion
+failures in strict DXF emission remain non-qualification. Next work is remaining
+empty/raw carrier, public-mutation, writer-copy and typed-projection accounting,
+then7S.2d decoded-work/node charging; retain a single composed checkpoint at
+the relevant milestone rather than rerunning full suites per field. Counts are
+120 findings/69 subplans; six external J items, full adapter/native compatibility,
+and support claims are unchanged.
 
 **Previous research boundary:** `25adc7f5201a101f5298394aa0f37796b43d2b91`
 (2026-10-14). Tracked worktree/index were clean at entry. This update changes
@@ -4962,6 +4974,7 @@ DWG page/object/block caps before extending any uncovered aggregate scope.
 | 7S.2c.d.17.1 single-line TEXT value | COMMITTED / TEXT_VALUE_OWNER_SCOPED | `794d788` retains DXF group1 values parsed through `DRW_Text::parseCode`; the direct `ARCALIGNEDTEXT` group1 override uses the same per-field replacement owner. `RTEXT` and single-line `ATTRIB` inherit/delegate through that path. Replacement reserves before assignment, then releases the previous value; reset clears the field count, and default `DRW_Text` copy/assignment preserve it. `DRW_MText::text` remains on its separate assembly lease. | Generated exact31/over30 replacement controls prove exact success and one-under refusal preserving `OLD` and its3-byte charge. Copy construction and assignment preserve the4-byte final charge through sibling resets; final reset returns usage to0. Direct ARCALIGNEDTEXT, RTEXT and ATTRIB routes also pass exact31 and reset-release controls. `libdxfrw_hardening_tests` and `lc3_compat_check` build under the strict project flags; the hardening vectors pass. No fixture, new registration or support promotion. Adds protected counter state to public `DRW_Text` layout, so downstream consumers must rebuild; binary ABI is not claimed. Other direct arc-text strings now have separate progress entries; next address the remaining proxy-carrier, public-mutation and writer/projection scopes before 7S.2c.d completion. |
 | 7S.2c.d.17.2 ARCALIGNEDTEXT font names | COMMITTED / ARC_FONT_OWNER_SCOPED | `16c4dac` retains the direct group2 font name and group3 big-font name in separate per-field counters on the shared retained-string lease. Each replacement is admitted before assignment and releases the previous field only after success; reset clears both counters, and implicit copy/assignment preserve them. | Generated code2 font-name replacement passes exact31/over30, preserving the old `OLD` value and3-byte charge when refused; code3 big-font replacement passes exact31. Copy/assignment plus sibling-reset controls return the shared usage to0 only after the final copy resets. Strict `libdxfrw_hardening_tests`/`lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Two private counters change public `DRW_ArcAlignedText` layout: downstream rebuild required; binary ABI is not claimed. D2T strings now have a separate progress entry; remaining proxy carriers, public mutation, writer copies and typed projections remain outside this slice. |
 | 7S.2c.d.17.3 ARCALIGNEDTEXT D2T strings | COMMITTED / ARC_D2T_OWNER_SCOPED | `ec77b3d` retains all six group41–46 numeric-to-text fields with independent live-byte counters on the shared owner lease. Before `arcAlignedD2T` formats a value, a conservative16-byte reservation bounds the six-significant-digit double spelling (at most13 bytes for a finite double); the reservation shrinks to actual temporary length, then destination replacement is admitted before the old field charge is released. Reset clears all six counters; implicit copy/assignment preserve them. | Exact23/over22 group42 replacement proves the preformat reservation and prior-field preservation. Copy/assignment survive sibling reset and release at the final owner. All six group41–46 mappings pass with canonical output, including the maximum finite exponent; after reader teardown their final logical values retain32 bytes and reset returns usage to0. Strict `libdxfrw_hardening_tests`/`lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Adds a private counter array to public `DRW_ArcAlignedText` layout: downstream rebuild required; binary ABI is not claimed. Remaining empty/raw carriers, public mutation, writer copies and typed projections stay open. |
+| 7S.2c.d.17.4 DXF proxy payload ownership | COMMITTED / PROXY_PAYLOAD_OWNER_SCOPED | `6a388d6` charges decoded code310/311 bytes on a shared retained lease for `ACAD_PROXY_ENTITY` and `ACAD_PROXY_OBJECT`. ASCII hex is charged for its temporary spelling, decoded payload, and entity's vector-to-string peak; the temporary capture allocation is released before that peak reservation expires. Entity/object callbacks keep the payload lease with the published typed owner. | Generated entity and object exact `+141` / one-under `+140` controls verify raw/typed publication boundaries; generated64-byte entity hex control passes exact `+885` and rejects `+884`, with resource diagnostic and no callbacks. Entity `numProxyGraph` remains the original payload length; copy/callback and raw-carrier contents are asserted. `libdxfrw_hardening_tests` plus `lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Proxy object/entity base lease members already change public layouts and require downstream rebuild; binary ABI is not claimed. Empty/raw-only carriers, public mutation, writer-side copies and typed-projection scratch remain outside this row. |
 | 7S.2d decoded work/nodes | Charge bytes actually revisited by decoding and inspected variant/container slots separately from input bytes. A final MTEXT group1 decodes the accumulated prefix; repeated group1 can revisit it repeatedly. Preserve accepted grammar unless separately changed. | Small group3…group1 positive and repeated-group1 malformed-input control with deterministic visited-byte counters, not a timing or large-allocation test. |
 
    The current snapshot-isolation control passes against archive284a7f1f: the
@@ -9856,3 +9869,30 @@ full-suite rerun per case. A composed DXF/writer checkpoint remains once the
 affected helper/subclass pair settles. Findings/subplans remain120/69;
 `J256`, `J260`, `J268`, `J284`, `J293` and `J295` remain
 `DEFERRED_EXTERNAL` and cannot promote support claims.
+
+## Cross-project resource-profile and consumer-route refresh (2026-10-14; plan-only)
+
+This deeper comparison was checked against local implementation HEAD
+`6a388d6` after the proxy-payload retention slice. It revisits primary project
+manuals/source for LibreDWG, GDAL, FreeCAD and ezdxf, then reconciles their
+actual route/build limits with the existing comparator and acceptance plan.
+No peer was installed or executed; no drawing payload was downloaded; no local
+format defect, new PAR finding, support claim, fixture admission, registration,
+dependency or external qualification is inferred. LibreDWG `master`, GDAL
+`stable`, and FreeCAD `main` links are mutable discovery snapshots: resolve and
+record exact SHAs/versions before any run.
+
+| Source | Broader finding and comparison boundary | Plan/readiness update |
+| --- | --- | --- |
+| [LibreDWG build documentation](https://github.com/LibreDWG/libredwg) and [`dwg_read_file` source](https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c) | The documented `--enable-release` profile intentionally disables features not included in official release tarballs, including unstable objects and unknown versions/objects. The current source also loads the complete DWG input into memory before decode. Therefore two executables from the same project can differ in decodable feature surface by configure profile, and its RSS cannot calibrate libdxfrw's separately defined logical-input/retained-byte counters. The source does not say that its decoded object graph is charged by a libdxfrw-equivalent policy. | Refine existing7AP/7AQ and7S.1 comparator receipts: record exact commit, executable hash/path, configure/build profile (`--enable-release` or developer), requested target, actual input/output six-byte magic, return code, decoded/skipped/error inventory, input size and peak-memory observation separately. Use release-profile results for packaged-behavior comparisons; use developer-profile runs only as explicitly exploratory. Never assert resource parity from peer RSS or from a successful converter exit alone. No peer install is needed for current local fixes. |
+| [GDAL DXF driver documentation](https://gdal.org/en/stable/drivers/vector/dxf.html) | GDAL expands INSERT blocks by default and caps inserted features at10,000 per block unless `DXF_FEATURE_LIMIT_PER_BLOCK` is explicitly set to `-1` or another value. `INLINE_BLOCKS=NO` instead exposes definitions and references. Its AC1027+ `3D_EXTENSIBLE_MODE` exposes raw `ASMData` and a 12-value transform; that is a carrier projection, not ACIS parsing or B-rep geometry. Existing documented limitations also exclude some annotation OCS/elevation, HATCH style and exact-curve claims. | Refine7G.2/7G.3 and the existing GDAL row: retain references (`INLINE_BLOCKS=NO`) for graph assertions; when testing expansion, bind the feature-limit option and assert an explicit completion/truncation disposition instead of comparing counts against the default10,000 cap. Treat ACIS as raw-payload+transform inspection only and mark unsupported geometry cells `COMPARATOR_NOT_APPLICABLE`. No required GDAL dependency or CTest. |
+| [FreeCAD `importDWG.py`](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py) and [DWG import documentation](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md) | The stock DWG open route is a pipeline: configured external converter produces a DXF, then FreeCAD's `importDXF.open()` creates the document. The current mutable `main` source calls `communicate()` and accepts a conversion output based on path existence without testing the process return code; it then passes the file to the DXF importer. Converter output, DXF parser success, and resulting document semantics are three distinct outcomes. | Tighten existing FreeCAD native/platform gate only: pin FreeCAD and converter builds; use a fresh unique output path; record argv, executable/hash, exit code, output magic/size and conversion diagnostics; then assert imported document type, independently expected entities/attributes, 3D bounding box where applicable, edit/save/reopen behavior. A stale/pre-existing DXF or output-exists-only report is not converter success. Keep Linux/Windows native and semantic ACIS gates explicit; this source pass does not unblock them. |
+| [ezdxf binary proxy writer fix](https://github.com/mozman/ezdxf/commit/c87c87e65937feede396e5861eec703bde701ec8) and [proxy-writer tests](https://github.com/mozman/ezdxf/pull/1418) | The repaired peer route distinguishes encoded ASCII hex text from raw binary tag bytes and tests chunk boundaries, data-code eras and output formats. This is useful to cross-check the writer contract, but neither a peer-generated payload nor peer self-roundtrip supplies expected semantics. | Keep7AP.4's locally authored0/127/128/255/256 byte vectors and ASCII/binary, 92/160, R2010/R2013, declared-count and following-record controls in the existing fast target. Only use ezdxf as an optional secondary writer after resolving the tested revision to include the fix; unexpected peer failure is `COMPARATOR_UNAVAILABLE`, not a libdxfrw pass or failure. |
+
+**Implementation-speed delta:** execute source-local generated checks first and
+in the existing fast targets. Comparator availability/profile checks are
+read-only preflight, not a reason to install dependencies or block a ready
+local fix. Compose reader/writer tests once the touched helper pair settles;
+reserve full suites and platform/native handoffs for their named milestones.
+This update changes no new finding/subplan; counts remain120/69, and all six
+external J items remain `DEFERRED_EXTERNAL` and non-promoting.
