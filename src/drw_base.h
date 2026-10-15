@@ -276,7 +276,7 @@ enum class OperationCause : std::uint8_t {
     InternalFailure
 };
 
-//! One bounded secondary failure recorded while cleaning up an operation.
+//! One bounded secondary advisory or failure (including cleanup failures).
 struct OperationDiagnosticEntry {
     OperationPhase phase {OperationPhase::None};
     OperationCause cause {OperationCause::None};

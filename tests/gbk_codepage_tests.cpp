@@ -397,6 +397,338 @@ std::size_t auditNamedCodePageAliases(TestContext& t, const std::string& filter)
     return cases;
 }
 
+
+void testCodePageSelectionMetadata(TestContext& t) {
+    using Kind = DRW_CodePageKind;
+    struct Row { const char* source; Kind kind; const char* selected; };
+    const Row rows[] = {
+        {"ANSI_1252", Kind::Canonical, "ANSI_1252"},
+        {"ansi_949", Kind::Canonical, "ANSI_949"},
+        {"CP1252", Kind::ExactAlias, "ANSI_1252"},
+        {"gbk", Kind::CompatibilityAlias, "ANSI_936"},
+        {"UTF8", Kind::ExactAlias, "UTF-8"},
+        {"UTF-16", Kind::Canonical, "UTF-16"},
+        {"ISO8859-4", Kind::CompatibilityAlias, "ANSI_1257"},
+        {"KOI8-R", Kind::CompatibilityAlias, "ANSI_1251"},
+        {"GB18030", Kind::CompatibilityAlias, "ANSI_936"},
+        {"EUC-JP", Kind::CompatibilityAlias, "ANSI_932"},
+        {"BIG5-HKSCS", Kind::CompatibilityAlias, "ANSI_950"},
+        {"CP866", Kind::Unavailable, "ANSI_1252"},
+        {"ISO-8859-4", Kind::Unavailable, "ANSI_1252"},
+        {"JOHAB", Kind::Unavailable, "ANSI_1252"},
+        {"unknown-local-test-codepage", Kind::Unknown, "ANSI_1252"},
+        {"", Kind::Unknown, "ANSI_1252"},
+        {"ANSI_1252 ", Kind::Unknown, "ANSI_1252"},
+        {"\xE9", Kind::Unknown, "ANSI_1252"}
+    };
+    for (const auto& row : rows) {
+        const auto selected = DRW_TextCodec::classifyCodePage(row.source);
+        t.expect(selected.kind == row.kind && selected.selectedName != nullptr
+                     && std::string(selected.selectedName) == row.selected,
+                 "classifier distinguishes canonical/exact/inexact/unavailable/unknown names");
+    }
+    const std::string nulName("ANSI_1252\0X", 11);
+    t.expect(DRW_TextCodec::classifyCodePage(nulName).kind == Kind::Unknown,
+             "embedded NUL cannot truncate a declared page to a valid prefix");
+
+    // Frozen pre-change selector transcription, not a semantic Unicode
+    // oracle. Future mapping/policy changes must intentionally change this
+    // compatibility baseline, never interpret it as named-codec support.
+    struct LegacySelection { const char* source; const char* selected; };
+    const LegacySelection legacy[] = {
+        {"ANSI_874", "ANSI_874"},
+        {"CP874", "ANSI_874"},
+        {"ISO8859-11", "ANSI_874"},
+        {"TIS-620", "ANSI_874"},
+        {"ANSI_1250", "ANSI_1250"},
+        {"CP1250", "ANSI_1250"},
+        {"ISO8859-2", "ANSI_1250"},
+        {"ANSI_1251", "ANSI_1251"},
+        {"CP1251", "ANSI_1251"},
+        {"ISO8859-5", "ANSI_1251"},
+        {"KOI8-R", "ANSI_1251"},
+        {"KOI8-U", "ANSI_1251"},
+        {"IBM 866", "ANSI_1251"},
+        {"ANSI_1252", "ANSI_1252"},
+        {"CP1252", "ANSI_1252"},
+        {"LATIN1", "ANSI_1252"},
+        {"ISO-8859-1", "ANSI_1252"},
+        {"CP819", "ANSI_1252"},
+        {"CSISO", "ANSI_1252"},
+        {"IBM819", "ANSI_1252"},
+        {"ISO_8859-1", "ANSI_1252"},
+        {"APPLE ROMAN", "ANSI_1252"},
+        {"ISO8859-1", "ANSI_1252"},
+        {"ISO8859-15", "ANSI_1252"},
+        {"ISO-IR-100", "ANSI_1252"},
+        {"L1", "ANSI_1252"},
+        {"IBM 850", "ANSI_1252"},
+        {"ANSI_1253", "ANSI_1253"},
+        {"CP1253", "ANSI_1253"},
+        {"ISO8859-7", "ANSI_1253"},
+        {"ANSI_1254", "ANSI_1254"},
+        {"CP1254", "ANSI_1254"},
+        {"ISO8859-9", "ANSI_1254"},
+        {"ISO8859-3", "ANSI_1254"},
+        {"ANSI_1255", "ANSI_1255"},
+        {"CP1255", "ANSI_1255"},
+        {"ISO8859-8", "ANSI_1255"},
+        {"ANSI_1256", "ANSI_1256"},
+        {"CP1256", "ANSI_1256"},
+        {"ISO8859-6", "ANSI_1256"},
+        {"ANSI_1257", "ANSI_1257"},
+        {"CP1257", "ANSI_1257"},
+        {"ISO8859-4", "ANSI_1257"},
+        {"ISO8859-10", "ANSI_1257"},
+        {"ISO8859-13", "ANSI_1257"},
+        {"ANSI_1258", "ANSI_1258"},
+        {"CP1258", "ANSI_1258"},
+        {"ANSI_932", "ANSI_932"},
+        {"SHIFT-JIS", "ANSI_932"},
+        {"SHIFT_JIS", "ANSI_932"},
+        {"CSSHIFTJIS", "ANSI_932"},
+        {"CSWINDOWS31J", "ANSI_932"},
+        {"MS_KANJI", "ANSI_932"},
+        {"X-MS-CP932", "ANSI_932"},
+        {"X-SJIS", "ANSI_932"},
+        {"EUCJP", "ANSI_932"},
+        {"EUC-JP", "ANSI_932"},
+        {"CSEUCPKDFMTJAPANESE", "ANSI_932"},
+        {"X-EUC", "ANSI_932"},
+        {"X-EUC-JP", "ANSI_932"},
+        {"JIS7", "ANSI_932"},
+        {"ANSI_936", "ANSI_936"},
+        {"CP936", "ANSI_936"},
+        {"GBK", "ANSI_936"},
+        {"GB2312", "ANSI_936"},
+        {"CHINESE", "ANSI_936"},
+        {"CN-GB", "ANSI_936"},
+        {"CSGB2312", "ANSI_936"},
+        {"CSGB231280", "ANSI_936"},
+        {"CSISO58BG231280", "ANSI_936"},
+        {"GB_2312-80", "ANSI_936"},
+        {"GB231280", "ANSI_936"},
+        {"GB2312-80", "ANSI_936"},
+        {"ISO-IR-58", "ANSI_936"},
+        {"GB18030", "ANSI_936"},
+        {"ANSI_949", "ANSI_949"},
+        {"EUCKR", "ANSI_949"},
+        {"ANSI_950", "ANSI_950"},
+        {"BIG5", "ANSI_950"},
+        {"CN-BIG5", "ANSI_950"},
+        {"CSBIG5", "ANSI_950"},
+        {"X-X-BIG5", "ANSI_950"},
+        {"BIG5-HKSCS", "ANSI_950"},
+        {"UTF-8", "UTF-8"},
+        {"UTF8", "UTF-8"},
+        {"UTF8-BIT", "UTF-8"},
+        {"UTF-16", "UTF-16"},
+        {"UTF16", "UTF-16"},
+        {"UTF16-BIT", "UTF-16"},
+    };
+    std::size_t compatibilityCases = 0;
+    for (const auto& row : legacy) for (bool dxf : {false, true}) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1015, dxf);
+        codec.setCodePage(row.source, dxf);
+        const char* headerName = std::string(row.selected) == "UTF-8"
+            ? "ANSI_1252" : row.selected;
+        t.expect(codec.getCodePage() == headerName,
+                 "every pre-change accepted alias retains its compatibility selection");
+        ++compatibilityCases;
+    }
+
+    DRW_TextCodec codec;
+    t.expect(codec.declaredCodePageSelection().kind == Kind::Unspecified,
+             "unconfigured codec has no explicit declaration");
+    codec.setVersion(DRW::AC1015, true);
+    t.expect(codec.declaredCodePageSelection().kind == Kind::Unspecified,
+             "version-selected default is not a source declaration");
+    codec.setCodePage("KOI8-R", true);
+    codec.setVersion(DRW::AC1015, true);
+    codec.reapplyCodePage("ANSI_1251", true);
+    t.expect(codec.declaredCodePageSelection().kind == Kind::CompatibilityAlias
+                 && std::string(codec.declaredCodePageSelection().selectedName) == "ANSI_1251"
+                 && codec.getCodePage() == "ANSI_1251",
+             "version reset and normalized HEADER reapply preserve declaration category");
+    codec.setByteCodePage("CP866");
+    t.expect(codec.byteCodePageSelection().kind == Kind::Unavailable
+                 && codec.declaredCodePageSelection().kind == Kind::CompatibilityAlias,
+             "secondary byte selection does not replace primary declaration metadata");
+    DRW_TextCodec other;
+    other.setVersion(DRW::AC1015, true);
+    other.setCodePage("CP936", true);
+    other.setByteCodePage("ANSI_936");
+    codec.swap(other);
+    t.expect(codec.declaredCodePageSelection().kind == Kind::ExactAlias
+                 && codec.byteCodePageSelection().kind == Kind::Canonical
+                 && other.declaredCodePageSelection().kind == Kind::CompatibilityAlias
+                 && other.byteCodePageSelection().kind == Kind::Unavailable
+                 && codec.toUtf8CP8("\xD6\xD0") == "\xE4\xB8\xAD",
+             "swap transfers primary/byte classification with their converters");
+    DRW_TextCodec moved(std::move(other));
+    t.expect(moved.declaredCodePageSelection().kind == Kind::CompatibilityAlias
+                 && moved.byteCodePageSelection().kind == Kind::Unavailable
+                 && moved.getCodePage() == "ANSI_1251",
+             "move retains selection metadata without borrowing source strings");
+    const auto temporary = DRW_TextCodec::classifyCodePage(std::string("koi8-r"));
+    t.expect(std::string(temporary.selectedName) == "ANSI_1251",
+             "classification retains only static canonical spelling after source destruction");
+    DRW_TextCodec recovery;
+    recovery.setDxfTextEncoding(DRW::DxfTextEncoding::LegacyLibreCadUtf8);
+    recovery.setCodePage("UTF8", true);
+    recovery.setVersion(DRW::AC1015, true);
+    recovery.reapplyCodePage("ANSI_1252", true);
+    t.expect(recovery.declaredCodePageSelection().kind == Kind::ExactAlias
+                 && std::string(recovery.declaredCodePageSelection().selectedName) == "UTF-8"
+                 && recovery.getCodePage() == "ANSI_1252"
+                 && recovery.toUtf8("\xC3\xA9") == "\xC3\xA9"
+                 && recovery.fromUtf8("\xC3\xA9") == "\xE9",
+             "normalized UTF8 declaration keeps historical input-only recovery and export encoding");
+    std::cout << "Codec selection metadata: legacy selection cases=" << compatibilityCases << '\n';
+}
+
+std::string makeCodePageDiagnosticDrawing(const char* declaration, bool modern,
+                                          bool pageFirst, bool binary,
+                                          int headerRepeats = 1) {
+    std::ostringstream output(std::ios::binary);
+    if (binary) {
+        static constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a\0";
+        output.write(signature, sizeof(signature) - 1);
+    }
+    std::unique_ptr<dxfWriter> writer;
+    if (binary) writer = std::make_unique<dxfWriterBinary>(&output);
+    else writer = std::make_unique<dxfWriterAscii>(&output);
+    const auto page = [&]() {
+        if (declaration != nullptr) {
+            writer->writeString(9, "$DWGCODEPAGE");
+            writer->writeString(3, declaration);
+        }
+    };
+    for (int i = 0; i < headerRepeats; ++i) {
+        writer->writeString(0, "SECTION");
+        writer->writeString(2, "HEADER");
+        if (pageFirst) page();
+        writer->writeString(9, "$ACADVER");
+        writer->writeString(1, modern ? "AC1024" : "AC1015");
+        if (!pageFirst) page();
+        writer->writeString(0, "ENDSEC");
+    }
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "ENTITIES");
+    writer->writeString(0, "TEXT");
+    writer->writeString(5, "A");
+    writer->writeString(8, "0");
+    writer->writeDouble(10, 0);
+    writer->writeDouble(20, 0);
+    writer->writeDouble(30, 0);
+    writer->writeDouble(40, 1);
+    writer->writeString(1, modern ? "\xC3\xA9\xE4\xB8\xAD" : "ascii-control");
+    writer->writeString(0, "LINE");
+    writer->writeString(5, "B");
+    writer->writeString(8, "0");
+    writer->writeDouble(10, 1);
+    writer->writeDouble(20, 2);
+    writer->writeDouble(30, 3);
+    writer->writeDouble(11, 4);
+    writer->writeDouble(21, 5);
+    writer->writeDouble(31, 6);
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "EOF");
+    return output.str();
+}
+
+void testCodePageDiagnosticHandoff(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-codepage-selection-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    struct Row { const char* source; const char* advisory; };
+    const Row rows[] = {
+        {nullptr, nullptr}, {"ANSI_1252", nullptr}, {"CP1252", nullptr},
+        {"ISO8859-4", "compatibility-codepage-alias"},
+        {"CP866", "unavailable-codepage"},
+        {"unknown-local-test-codepage", "unknown-codepage"},
+        {"UTF8", "reapplied-codepage"}
+    };
+    std::size_t cases = 0, warnings = 0;
+    for (const auto& row : rows) for (bool modern : {false, true})
+        for (bool pageFirst : {false, true}) for (int route = 0; route < 3; ++route) {
+        const bool binary = route == 2;
+        auto bytes = makeCodePageDiagnosticDrawing(row.source, modern, pageFirst, binary);
+        const auto path = directory / (std::to_string(cases) + ".dxf");
+        if (route != 0) {
+            std::ofstream output(path, std::ios::binary);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        }
+        dx_data imported;
+        PreparedDxInterface capture;
+        capture.attach(&imported);
+        dxfRW facade(path.string().c_str());
+        const bool read = route == 0 ? facade.readAscii(&capture, false, bytes)
+                                     : facade.read(&capture, false);
+        const auto diagnostic = facade.getLastDiagnostic();
+        const char* expected = modern ? nullptr : row.advisory;
+        bool correct = read && facade.getError() == DRW::BAD_NONE && !diagnostic.failed()
+            && imported.mBlock->ent.size() == 2;
+        if (expected != nullptr) {
+            correct = correct && diagnostic.secondary.size() == 1
+                && diagnostic.secondary.front().phase == DRW::OperationPhase::Header
+                && diagnostic.secondary.front().code == expected;
+            ++warnings;
+        } else correct = correct && diagnostic.secondary.empty();
+        if (correct) {
+            const auto* text = dynamic_cast<const DRW_Text*>(imported.mBlock->ent.front());
+            const auto* line = dynamic_cast<const DRW_Line*>(imported.mBlock->ent.back());
+            correct = text != nullptr && text->text
+                == (modern ? "\xC3\xA9\xE4\xB8\xAD" : "ascii-control")
+                && line != nullptr && line->basePoint.z == 3 && line->secPoint.z == 6;
+        }
+        t.expect(correct, "codepage category survives metadata order and ASCII/memory/binary handoff");
+        ++cases;
+    }
+    PreparedDxInterface capture;
+    dx_data data;
+    capture.attach(&data);
+    dxfRW reusable("");
+    auto repeated = makeCodePageDiagnosticDrawing("unknown-local-test-codepage", false, false, false, 20);
+    t.expect(reusable.readAscii(&capture, false, repeated)
+                 && !reusable.getLastDiagnostic().failed()
+                 && reusable.getLastDiagnostic().secondary.size()
+                        == DRW::OperationDiagnostic::MaxSecondaryEntries,
+             "repeated HEADER advisories are bounded without becoming a read failure");
+    auto good = makeCodePageDiagnosticDrawing("ANSI_1252", false, false, false);
+    const auto retainedSnapshot = reusable.getLastDiagnostic();
+    auto malformed = repeated;
+    const auto handle = malformed.find("\nA\n");
+    if (handle != std::string::npos)
+        malformed.replace(handle + 1, 1, "NOT_HEX");
+    dx_data failedData;
+    capture.attach(&failedData);
+    t.expect(handle != std::string::npos
+                 && !reusable.readAscii(&capture, false, malformed)
+                 && reusable.getLastDiagnostic().failed()
+                 && reusable.getLastDiagnostic().code != "unknown-codepage"
+                 && reusable.getLastDiagnostic().secondary.size()
+                        == DRW::OperationDiagnostic::MaxSecondaryEntries,
+             "bounded nonfatal advisories do not hide the later primary handle failure");
+    t.expect(!reusable.readAscii(nullptr, false, good)
+                 && reusable.getLastDiagnostic().failed()
+                 && reusable.getLastDiagnostic().secondary.empty()
+                 && retainedSnapshot.secondary.size()
+                        == DRW::OperationDiagnostic::MaxSecondaryEntries,
+             "null-interface read resets its diagnostic but a copied advisory snapshot survives");
+    dx_data retryData;
+    capture.attach(&retryData);
+    t.expect(reusable.readAscii(&capture, false, good)
+                 && reusable.getLastDiagnostic().secondary.empty()
+                 && !reusable.getLastDiagnostic().failed(),
+             "next admitted read resets advisory metadata and diagnostics");
+    std::cout << "Codec HEADER diagnostic handoff: cases=" << cases
+              << ", nonfatal advisory cases=" << warnings << '\n';
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Codec selection evidence: " << directory << '\n';
+}
 void testMifEscapePolicy(TestContext& t) {
     struct MifCase { const char* source; const char* expected; };
     const std::vector<MifCase> cases{
@@ -948,6 +1280,11 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--codepage-selection") {
+        testCodePageSelectionMetadata(context);
+        testCodePageDiagnosticHandoff(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--codepage-policy") {
         testCodePagePolicyAnchors(context);
         return context.failures == 0 ? 0 : 1;
@@ -966,6 +1303,8 @@ int main(int argc, char** argv) {
         return 2;
     testCodePageAliases(context);
     testCodePagePolicyAnchors(context);
+    testCodePageSelectionMetadata(context);
+    testCodePageDiagnosticHandoff(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);
     testDxfWriters(context);

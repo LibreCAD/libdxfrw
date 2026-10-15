@@ -212,7 +212,7 @@ void DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
     const auto page = vars.find("$DWGCODEPAGE");
     if (page != vars.end() && page->second != nullptr
         && page->second->type() == DRW_Variant::STRING)
-        reader->setCodePage(*page->second->content.s);
+        reader->reapplyCodePage(*page->second->content.s);
     for (auto& item : vars) {
         DRW_Variant* value = item.second;
         if (value == nullptr || value->type() != DRW_Variant::STRING

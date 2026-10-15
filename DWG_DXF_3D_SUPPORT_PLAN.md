@@ -109,9 +109,11 @@ modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
 four default/R12 compatibility controls and actual CLI no-output checks.
 S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
 nested DWG AcDs/SAB and native geometry remain unqualified. Next local work is
-parity Slice3.2 classification;3.1's test-only controls are now committed with
-42 passing canonical/escape/modern cases and an intentionally red opt-in alias
-audit. No codec mapping/default behavior has changed. This does not wait on
+parity Slice3.2b owned declaration provenance and strict conversion policy.
+Slice3.2a now preserves naming categories through HEADER reapply and publishes
+bounded nonfatal DXF advisories, with178 selector checks/84 handoffs and focused
+3/3 passing. All140 previous codec observations are unchanged; mapping/default
+behavior and alias mismatches remain. Parent3.2 stays open. This does not wait on
 native FreeCAD or a new oracle. S4.5 remains gated
 by S3's verified DataStorage layout. Keep focused modes in the existing
 round-trip executable; no new fixture or CTest registration is needed.
@@ -6659,7 +6661,7 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity Slice3.2):
+local work is parity Slice3.2b):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,

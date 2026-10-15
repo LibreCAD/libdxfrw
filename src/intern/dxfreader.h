@@ -458,6 +458,10 @@ public:
     int getVersion(){return decoder.getVersion();}
     void setVersion(const std::string &v, bool dxfFormat){decoder.setVersion(v, dxfFormat);}
     void setCodePage(const std::string &c){decoder.setCodePage(c, true);}
+    void reapplyCodePage(const std::string& c){decoder.reapplyCodePage(c, true);}
+    DRW_CodePageSelection declaredCodePageSelection() const noexcept {
+        return decoder.declaredCodePageSelection();
+    }
     void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
         decoder.setDxfTextEncoding(encoding);
     }

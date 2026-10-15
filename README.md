@@ -104,6 +104,27 @@ Broad/untrusted oracle inputs remain out of scope pending worker resource gates.
 Reported dependency versions are metadata, not loaded-dependency attestation.
 Optimized Python (`-O`/`-OO`) is rejected so assertions cannot be skipped.
 
+### Text decoding and codepage advisories
+
+Declared encoding remains the default. R2007+ DXF strings use UTF-8 regardless
+of legacy `$DWGCODEPAGE` metadata. Existing applications may explicitly select
+`dxfRW::setDxfTextEncoding(DRW::DxfTextEncoding::LegacyLibreCadUtf8)` for
+eligible pre-R2007, CP1252-based input; this is input-only recovery, not
+auto-detection or a change to export encoding.
+
+After a DXF read, `getLastDiagnostic().secondary` can contain bounded nonfatal
+codepage advisories: `compatibility-codepage-alias`, `unavailable-codepage`,
+`unknown-codepage`, or `reapplied-codepage`. They describe historical selection
+or normalized-header reapplication, not a new fatal-read policy. A successful
+read can therefore have advisories while `getError()` remains `BAD_NONE` and
+the diagnostic's `failed()` remains false. A later fatal error still occupies
+the primary diagnostic. The next admitted operation resets diagnostics;
+retain a returned snapshot if needed.
+
+These advisories do not establish complete charset support or expose the full
+original declaration spelling. Existing inexact aliases and fallback decoding
+remain compatibility behavior, not independently verified text semantics.
+
 ### Using `dwg2dxf` from FreeCAD
 
 The installed `dwg2dxf` executable can serve as FreeCAD Draft's external

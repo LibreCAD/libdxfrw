@@ -11,7 +11,7 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, B3 `3dc16b8`; Plan-Slice:Slice3.1):**
+**Current handoff (2026-10-15, B3 `3dc16b8`, codec tests `88fcd6a`; Plan-Slice:Slice3.2a):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
@@ -25,7 +25,7 @@ associativity claims. S5.18 is locally complete; external semantics stay open.
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
 | 3 | S2.3.9.4.29 block-path modeler census | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:S2.3.9.4.29.B3. The strict writer now rejects unresolved modern INSERT targets using its existing BLOCK_RECORD index. B3 passes28 genuine rejection/destination checks,28 corrected fresh-data retries and four default/R12 compatibility controls. Actual CLI passes four missing-target rejection cells/two R12 refusals plus four valid two-pass conversions/verifiers; positive bytes remain stable. Strict source/TU/lc3 and retained final-source focused CTests2/2 pass. Durable B3 report: docs/research/modeler-block-failures-b3-2026-10-15.json. B1/B2 receipts remain frozen; no nested DWG AcDs/SAB/native/B-rep/J promotion. Codec3.1 is also committed; next independent local slice is3.2. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
-| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.1 COMMITTED / DISCRIMINATORS_ONLY. Mandatory controls pass28 canonical/eight two-scalar/six modern UTF8 cases; existing codec CTest1/1 passes0.11s. Opt-in alias audit remains intentionally red:46/70 mismatches, including36 byte-stable wrong-text/eight empty decodes; selected ISO8859-4 is2/2 red. No production mapping/fallback changed. Next3.2 internal classification/provenance/diagnostics is READY_LOCAL, while default-policy changes remain gated. S3.2 DWG envelope stays VERSION_WITNESS_REQUIRED. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2a COMMITTED / CLASSIFICATION_AND_ADVISORIES; parent3.2 remains IN_PROGRESS. ASCII-safe fixed classifier retains all89 old selections and distinguishes canonical/exact/historical/unavailable/unknown names. Original category survives HEADER reapply; primary/byte state swaps/moves together.178 selector checks,84 HEADER handoffs/24 nonfatal-advisory cases, bounded-warning/primary-failure/reuse controls, strict/lc3 and focused3/3 in3.38s pass. All140 prior codec observations are unchanged; alias audit remains46/70 red, not support evidence. Next3.2b owned full-declaration provenance and strict complete-conversion policy;3.3 mapping repairs remain separately gated. S3.2 DWG envelope stays VERSION_WITNESS_REQUIRED. |
 
 7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
 GEODATA reader or writer from an older research queue. The new research
@@ -594,6 +594,7 @@ Its historical binary diff SHA-256 is
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| Slice3.2a / PAR-05 naming classification and advisories | COMMITTED / PARENT_IN_PROGRESS | Fixed108-entry ASCII-only classifier preserves all89 accepted old selections (178 legacy configuration checks), without process CTYPE folding or caller-string retention. Canonical/exact/historical-compatibility/unavailable/unknown categories and static selected names survive version reset/normalized HEADER reapply, secondary byte conversion and swap/move. Reapply still updates the historical input-only recovery eligibility; no codec/default mapping changes. Legacy DXF publishes bounded nonfatal HEADER advisories, including normalized/reapplied UTF8 metadata; modern UTF8 does not report inert legacy-page fallback.84 memory/ASCII-file/binary-file handoffs with both metadata orders pass, including24 advisory cases; warning cap, later primary handle failure, copied snapshots/null-interface/new-read reset pass. Strict three-production/test TUs, build/lc3 and focused codec/diagnostic/fixture3/3 in3.38s pass. All140 old C/Turkish probe outputs match; whole alias audit stays46/70 red. Durable report docs/research/codec-selection-3-2a-2026-10-15.json. Full source spelling/owned provenance and strict CLI text-loss policy are NOT implemented; parent3.2 remains open, next3.2b. No DWG parser/fixture/dependency/registration/native/J promotion. |
 | Slice3.1 / PAR-05 codec discriminators | COMMITTED / TEST_ONLY | Existing GBK target now has --codepage-policy with28 canonical selection/decode/encode anchors, eight exact HKSCS two-scalar/CIF transports and six modern UTF8 metadata controls, also run by its mandatory CTest. Separate --codepage-alias-audit [ALIAS] uses35 independent literal expectations in both legacy configurations, not local-table outputs; the whole audit correctly returns1 for46/70 mismatches,36 byte-stable wrong results/eight empty decodes. Selected ISO8859-4 returns1 for two empty decodes; nonexistent filter returns2 rather than a vacuous pass. Strict TU/build/lc3 and existing codec CTest1/1 in0.11s pass. Durable report docs/research/codec-policy-discriminators-3-1-2026-10-15.json. Deliberately red audit is opt-in, never a green support gate or registered mandatory failure. No production/fixture/dependency/registration/native/J change. Next3.2 internal classification/provenance and diagnostic routing; mapping/default-policy claims stay open. |
 | S2.3.9.4.29.B3 required target/carrier refusal | COMMITTED / LOCAL_IMPLEMENTATION_COMPLETE | Plan-Slice:S2.3.9.4.29.B3 closes the scoped generated legacy-SAT block/no-silent-loss item. Frozen parent plus initial five-fault harness reproduces four invalid missing-target publications while16 other refusals/20 fresh-data retries pass; final seven-fault cohort passes28 actual rejection/destination checks,28 fresh-data retries and four default/R12 compatibility controls. Strict modern writeInsert now requires a planned BLOCK_RECORD target before emission; modeler refusal diagnostics change no admission rules. Actual CLI refuses four missing-target cells/two R12 cells without creation/replacement, while four valid two-pass conversions/verifiers stay byte-stable. Strict compile/build/lc3 and retained final-source local/fixture2/2 pass. Durable report docs/research/modeler-block-failures-b3-2026-10-15.json distinguishes baseline cohorts, final binaries, API versus CLI version gates and compatibility-only malformed controls. No fixture/registration/dependency/native/DWG-AcDs/B-rep/J promotion. Next local3.1 codec discriminators. |
 | S2.3.9.4.29.B2 codec and actual CLI | COMMITTED / AC1024_LEGACY_SAT_HANDOFF_VERIFIED | Plan-Slice:S2.3.9.4.29.B2 adds bounded BLOCKS/TABLES/ENTITIES scanning and typed readback, with25 source→emitted bindings and physical owner330/BLOCK/ENDBLK/INSERT closure. Four order variants ×two encodings ×two passes yield16 verified codec handoffs. Twelve equal-count physical-graph mutations reject without changing prior bindings; these are not converter failures. Current B1 remains8/14. Actual CLI input/output/second pass verify in both encodings; second output hashes are stable. Strict TU/lc3 and local CTest1/1 in2.24s pass. Typed SAT's one framing LF and DIMSTYLE105-versus5 names are calibrated explicitly. Existing ezdxf1.4.4 reads all six files/four correctly owned bodies as author-stack consistency only. Durable report docs/research/modeler-block-codec-b2-2026-10-15.json binds sources/binaries/outputs. No production edit/fixture/registration/native/DWG-AcDs/semantic/J promotion. NextB3 genuine converter negatives and retry. |
@@ -3913,6 +3914,47 @@ oracle, fixture, full suite or native prerequisite is introduced.
   not an oracle for unknown or extra aliases. Assert source bytes, expected
   Unicode scalars, declared/emitted page and output bytes separately;
   byte stability or a same-codec reread alone cannot pass this gate.
+
+**Slice3.2a implementation checkpoint:** the internal classifier now uses a
+fixed108-entry table with byte-safe ASCII comparison. All89 previously
+accepted names keep their decoder/header selection;178 legacy configuration
+checks pass. Classification metadata keeps the original declaration category
+and static compatibility selection separately from the normalized/applied
+header name, with independent primary/byte channels and correct swap/move.
+It retains no caller string or new unbounded text. HEADER reapply preserves
+the old recovery-eligibility updates while restoring the original category.
+
+Legacy/unknown-version DXF reads add bounded secondary advisories for inexact,
+unavailable, unknown and normalized/reapplied declarations. The primary result
+and error remain successful; later fatal failures still use the primary slot.
+Modern DXF UTF8 ignores these inert legacy metadata choices.84 generated
+handoffs across memory/ASCII-file/binary-file, two metadata orders and legacy/
+modern versions pass, including24 advisory cases. Warning-cap, later invalid
+handle, snapshot copy/null-interface reset and corrected new-read controls
+pass. Strict production/test compilation, build/lc3 and codec/diagnostic/fixture
+CTest3/3 pass in3.38s. All140 earlier C/Turkish unit observations are identical;
+the intentionally red alias audit remains46/70, not a supported-mapping score.
+Exact bindings: `docs/research/codec-selection-3-2a-2026-10-15.json`.
+
+The naming inventory does not certify every byte in a canonical mapping.
+GBK stays a compatibility alias: Unicode's [Windows CP936 mapping](https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP936.TXT)
+maps80 to U+20AC, matching the local single-byte branch, while this host's
+Python GBK/CP936 codec rejects that byte. Pin the actual codec profile instead
+of equating those labels or using the Python alias as an exhaustive Windows
+mapping oracle. No decoder change follows from this calibration.
+
+**Remaining3.2b (`READY_LOCAL` for provenance work):** preserve the complete
+original source declaration without replacing the established normalized
+HEADER value used by consumers/writers. First select its lifetime owner and
+charge any added full string to the existing retained-byte budget before
+allocation; do not introduce a borrowed view, uncharged duplicate or implicit
+truncated spelling. Verify copy/move/reset, repeated declarations/HEADERs,
+both entry routes, exact/over budget and failure/reuse. Then define and test
+the strict complete-converter refusal when required legacy text has no
+represented decoder. Keep ordinary2D defaults compatible and modern UTF8
+independent; warnings alone do not close strict no-corruption conversion.
+Until that policy is settled,3.3's mapping changes stay separate and3.2 is
+not complete. No external/native gate is needed to implement owned provenance.
 
 **Fast validation**
 
@@ -11906,8 +11948,9 @@ write is part of this refresh. Counts remain122 findings/70 top-level subplans.
 **Subsequent integration:** Plan-Slice:S2.3.9.4.29.B3 now closes the scoped local
 block-transport gate; see its separate receipt/current handoff. The research
 observations and original WIP boundary below remain historical, not that
-implementation's acceptance evidence. Slice3.1's test-only discriminator gate
-is also implemented with its own receipt; next local item is3.2 classification.
+implementation's acceptance evidence. Slice3.1's discriminator gate and3.2a's
+classification/advisories are also implemented with separate receipts. Parent
+3.2 remains open; next local item is3.2b owned declaration provenance.
 
 This is a research/plan update at committed baseline`5c3c76e`, not a production
 integration. Existing changes in`src/libdxfrw.{cpp,h}` and the two modeler-test

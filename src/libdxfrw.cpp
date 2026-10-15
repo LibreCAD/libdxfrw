@@ -10219,6 +10219,34 @@ bool dxfRW::processHeader() {
             DRW_DBG(sectionstr); DRW_DBG(" processHeader\n\n");
             if (dxfKeywordEquals(sectionstr, "ENDSEC")) {
                 header.finalizeDxfHeader(reader);
+                // Naming diagnostics must observe the original declaration,
+                // not the canonical spelling reapplied during finalization.
+                // R2007+ DXF uses UTF8, so legacy metadata selects no byte
+                // decoder there. These bounded advisories are nonfatal.
+                if (!reader->hasSourceVersion()
+                    || reader->getSourceVersion() < DRW::AC1021) {
+                    const auto selection = reader->declaredCodePageSelection();
+                    const char* diagnosticCode = nullptr;
+                    const char* diagnosticMessage = nullptr;
+                    if (selection.kind == DRW_CodePageKind::CompatibilityAlias) {
+                        diagnosticCode = "compatibility-codepage-alias";
+                        diagnosticMessage = "legacy codepage alias uses a historical compatibility decoder; byte equivalence is not assured";
+                    } else if (selection.kind == DRW_CodePageKind::Unavailable) {
+                        diagnosticCode = "unavailable-codepage";
+                        diagnosticMessage = "recognized codepage has no implemented selection route; compatibility fallback retained";
+                    } else if (selection.kind == DRW_CodePageKind::Unknown) {
+                        diagnosticCode = "unknown-codepage";
+                        diagnosticMessage = "unrecognized codepage uses the compatibility fallback";
+                    } else if (selection.selectedName != nullptr
+                               && std::string_view(selection.selectedName) != reader->getCodePage()) {
+                        diagnosticCode = "reapplied-codepage";
+                        diagnosticMessage = "legacy codepage metadata was normalized and reapplied by compatibility policy";
+                    }
+                    if (diagnosticCode != nullptr)
+                        recordOperationDiagnostic(DRW::OperationPhase::Header,
+                            DRW::OperationCause::ValidationFailure,
+                            diagnosticCode, diagnosticMessage, 0, false, 0, false, true);
+                }
                 iface->addHeader(&header);
                 return true;  //found ENDSEC terminate
             }

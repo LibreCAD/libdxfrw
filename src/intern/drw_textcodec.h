@@ -9,6 +9,25 @@
 
 class DRW_Converter;
 
+// Naming/selection provenance only, not proof that every byte in a mapping
+// is qualified. Unavailable means this selection route has no implementation;
+// compatibility aliases and unknown names retain their historical decoder.
+enum class DRW_CodePageKind : std::uint8_t {
+    Unspecified,
+    Canonical,
+    ExactAlias,
+    CompatibilityAlias,
+    Unavailable,
+    Unknown
+};
+
+struct DRW_CodePageSelection {
+    DRW_CodePageKind kind {DRW_CodePageKind::Unspecified};
+    // Static classifier spelling, not a borrowed caller string. This is the
+    // compatibility selection; modern DXF still uses UTF8 independently.
+    const char* selectedName {nullptr};
+};
+
 class DRW_TextCodec
 {
 public:
@@ -30,6 +49,22 @@ public:
     void setVersion(const std::string &v, bool dxfFormat);
     void setVersion(DRW::Version v, bool dxfFormat);
     void setCodePage(const std::string &c, bool dxfFormat);
+    static DRW_CodePageSelection classifyCodePage(std::string_view name) noexcept;
+    DRW_CodePageSelection declaredCodePageSelection() const noexcept {
+        return m_declaredCodePageSelection;
+    }
+    DRW_CodePageSelection byteCodePageSelection() const noexcept {
+        return m_byteCodePageSelection;
+    }
+    // HEADER finalization reapplies normalized metadata after version
+    // discovery without relabeling the original selection as canonical.
+    void reapplyCodePage(const std::string& c, bool dxfFormat) {
+        const auto declaration = m_declaredCodePageSelection;
+        // Preserve the historical reapplication's recovery-eligibility
+        // updates as well as its converter. Only provenance is restored.
+        configureCodePage(c, dxfFormat, true);
+        m_declaredCodePageSelection = declaration;
+    }
     void setDxfTextEncoding(DRW::DxfTextEncoding encoding) noexcept {
         m_dxfTextEncoding = encoding;
     }
@@ -38,7 +73,6 @@ public:
     void swap(DRW_TextCodec& other) noexcept;
 
 private:
-    std::string correctCodePage(const std::string& s);
     void configureCodePage(const std::string& c, bool dxfFormat,
                            bool explicitDeclaration = false);
 
@@ -56,6 +90,8 @@ private:
     DRW::DxfTextEncoding m_dxfTextEncoding {DRW::DxfTextEncoding::Declared};
     bool m_legacyDxfInputEligible {false};
     bool m_legacyDxfCodePageAllowed {true};
+    DRW_CodePageSelection m_declaredCodePageSelection;
+    DRW_CodePageSelection m_byteCodePageSelection;
     std::string cp;
     std::unique_ptr< DRW_Converter> conv;
     std::unique_ptr< DRW_Converter> cp8Conv;

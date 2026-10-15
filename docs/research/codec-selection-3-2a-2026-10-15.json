@@ -1,0 +1,158 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "Slice3.2a",
+  "parent_commit": "88fcd6a",
+  "scope": "Internal naming classification and bounded nonfatal DXF HEADER advisories only; Slice3.2 remains in progress.",
+  "source_sha256": {
+    "src/intern/drw_textcodec.cpp": "ba3a82657b7010195ed45b49462586f3505c89b122cd2bfbc8b93dc6bcdc6428",
+    "src/intern/drw_textcodec.h": "d56b72a979c3fa6e5a4d839d082f00108a1d4110416d1404bbd9a6da9f9aee49",
+    "src/intern/dxfreader.h": "bd31bbd073c57de31ec291acb245c2c8bbd611affc46d47d8e1e78b3ff1cc5b3",
+    "src/drw_header.cpp": "278fcf22a12987bf78f1a3a5419396bacb056c6684e48c1ee0bf377e92112ad3",
+    "src/libdxfrw.cpp": "ce883f81363ef02ff822bdac4ca20b827efe51a90cf50f0c3fa258e60eb80bf7",
+    "src/drw_base.h": "ca8c54f100d68502fb95dbff9fd89ee47542300c7da710b4d74319bfd0387460",
+    "tests/gbk_codepage_tests.cpp": "3b6fa22fc8495ca78a732c6b4b58feca21efc8c0fdc69386314bc472d25b5ed0"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw.a": "8ef1b594f462ac0dc944e7a5c72ef335d0a1d1af774342cf71b82bd20475ab6d",
+    "build/libdxfrw_gbk_codepage_tests": "3ba92bf8cfbf8651effd226211816b37a6dd28d5a28d35badcf57b7554691af4",
+    "build/dwg2dxf/dwg2dxf": "94de7fe0d723d95cc831fde47559a7f09c87842113d5802227b78af049a8a203"
+  },
+  "implementation": {
+    "classifier_entries": 108,
+    "entries_by_kind": {
+      "Canonical": 16,
+      "ExactAlias": 17,
+      "CompatibilityAlias": 56,
+      "Unavailable": 19
+    },
+    "old_accepted_names": 89,
+    "normalization": "Allocation-free fixed string_view table with ASCII-only unsigned-byte folding; no process locale mutation or borrowed input retention.",
+    "categories": [
+      "Unspecified",
+      "Canonical",
+      "ExactAlias",
+      "CompatibilityAlias",
+      "Unavailable",
+      "Unknown"
+    ],
+    "category_limit": "Naming/selection policy is not exhaustive byte mapping qualification. Unavailable means no implemented selection route under that name, not a new decoder.",
+    "state": "Independent primary-declaration and secondary-byte classifications; static selected names; swap/move accompany converters.",
+    "header_reapply": "Original category remains after normalized name is reapplied. Reapplication still updates legacy recovery eligibility and output codec exactly as before.",
+    "advisory_codes": [
+      "compatibility-codepage-alias",
+      "unavailable-codepage",
+      "unknown-codepage",
+      "reapplied-codepage"
+    ],
+    "advisory_contract": "Legacy/unknown-version DXF only, bounded secondary entries. Successful read and BAD_NONE/failed()==false remain unchanged; modern UTF8 ignores inert legacy metadata.",
+    "not_preserved": "Full original declaration spelling is not yet retained or published. Only category and static selected spelling survive.",
+    "decoding_or_export_mapping_changes": false
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_gbk_codepage_tests libdxfrw_dxf_fixture_tests libdxfrw_diagnostic_tests dwg2dxf lc3_compat_check --parallel 2; exit0",
+    "strict_tu": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -fsyntax-only src/intern/drw_textcodec.cpp src/drw_header.cpp src/libdxfrw.cpp; plus tests/gbk_codepage_tests.cpp with its fixture-root definition; exit0",
+    "selection_mode": "build/libdxfrw_gbk_codepage_tests --codepage-selection; exit0",
+    "legacy_selection_cases": 178,
+    "classification_edge_cases": "canonical/lowercase/exact/historical/unavailable/unknown/empty/trailing-space/high-byte/embedded-NUL; unspecified default, version/reapply, independent byte state, swap/move, temporary source and recovery eligibility",
+    "header_handoff_cases": 84,
+    "nonfatal_advisory_cases": 24,
+    "handoff_cross_product": "7 declarations x legacy AC1015/modern AC1024 x page-before/after-version x memory ASCII/file ASCII/file binary",
+    "handoff_limit": "Locally authored structural controls; legacy text is ASCII to avoid treating fallback mojibake as a valid-format positive. Modern text independently expects UTF8.",
+    "additional_controls": [
+      "20 repeated HEADER advisories cap at16 and stay nonfatal",
+      "a following invalid self handle still creates the primary failure with16 advisories",
+      "copied advisory snapshot survives reuse; null-interface read resets its own diagnostic",
+      "next admitted valid read clears prior advisories",
+      "normalized UTF8 declaration preserves historical input-only recovery and CP1252 export"
+    ],
+    "canonical_mode": "--codepage-policy; exit0 canonical28/two-scalar8/modern6",
+    "named_alias_audit": {
+      "command": "--codepage-alias-audit",
+      "exit_code": 1,
+      "cases": 70,
+      "mismatches": 46,
+      "byte_stable_but_wrong": 36,
+      "empty": 8,
+      "disposition": "Still deliberately red/opt-in, not support evidence."
+    },
+    "iso8859_4_audit": {
+      "command": "--codepage-alias-audit ISO8859-4",
+      "exit_code": 1,
+      "cases": 2,
+      "empty": 2
+    },
+    "ctest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_gbk_codepage|libdxfrw_dxf_fixtures|libdxfrw_diagnostic)$' --output-on-failure --output-junit /private/tmp/libdxfrw-codepage-selection-final-ctest.xml",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "reported_total_seconds": 3.38,
+      "junit_sha256": "b39a51865e6a1da9e725148a845b2613c0e37b0829c742404db15c0f8eb1fba1",
+      "cases": [
+        {
+          "name": "libdxfrw_gbk_codepage",
+          "status": "run",
+          "seconds": 0.12467
+        },
+        {
+          "name": "libdxfrw_diagnostic",
+          "status": "run",
+          "seconds": 0.188777
+        },
+        {
+          "name": "libdxfrw_dxf_fixtures",
+          "status": "run",
+          "seconds": 3.05712
+        }
+      ]
+    }
+  },
+  "unchanged_output_calibration": {
+    "reference": "docs/research/broader-codec-policy-research-2026-10-15.json",
+    "reference_sha256": "57eb16e6cf41e28c9e1073ace0546f34731911b8ae0e26d51fd0f7e74cbbd610",
+    "new_probe": "/private/tmp/libdxfrw-broader-codec.YMVBfJ/probe-after-selection",
+    "new_probe_sha256": "4c87a94267b0b0d4a9304037c30078fb7c62a302bea36a560a7509bb2c4df5e6",
+    "authored_probe_cpp_sha256": "79cbba78c6000a043782933d1f97fe5eed7682211cb2a398aefdd12d8d92f901",
+    "cells": 140,
+    "locales": [
+      "C",
+      "tr_TR.ISO8859-9"
+    ],
+    "all_previous_decoded_reencoded_reread_observations_identical": true,
+    "scope": "Unit codec output equivalence, not DWG ingest/native/whole consumer equivalence. Original probe binary and historical report remain unchanged."
+  },
+  "candidate_test_corrections": [
+    "Six initial assertions confused UTF8's classifier spelling with its established ANSI_1252 header getter spelling.",
+    "One initial assertion incorrectly expected null-interface read to retain the facade diagnostic; only a copied snapshot persists.",
+    "A candidate reapply implementation would have changed the old recovery-eligibility update; final source preserves it and adds a guard. None is claimed as a pre-existing parent-code defect."
+  ],
+  "profile_research": {
+    "url": "https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP936.TXT",
+    "anchor": "80 -> U+20AC",
+    "local_branch": "Same Windows-936 euro behavior",
+    "python_control": "Python3.9.6 gbk and cp936 aliases both reject80 with UnicodeDecodeError",
+    "decision": "GBK is compatibility-classified; no mapping change or general codec claim."
+  },
+  "remaining": [
+    "Slice3.2b owned/budgeted full declaration provenance with copy/move/reset/retry",
+    "Explicit strict complete-conversion text-loss refusal policy, preserving ordinary2D defaults",
+    "Slice3.3 independent mapping-family repairs",
+    "Slice3.4 authoritative ODA/version trace for DWG numeric metadata changes"
+  ],
+  "new_dependency": false,
+  "new_fixture_payload": false,
+  "new_ctest_registration": false,
+  "dwg_parser_changes": false,
+  "full_suite_run": false,
+  "native_qualification": false,
+  "support_claim_promotions": 0,
+  "deferred_external_unchanged": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

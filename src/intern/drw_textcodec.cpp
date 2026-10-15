@@ -27,6 +27,8 @@ void DRW_TextCodec::swap(DRW_TextCodec& other) noexcept {
     swap(m_dxfTextEncoding, other.m_dxfTextEncoding);
     swap(m_legacyDxfInputEligible, other.m_legacyDxfInputEligible);
     swap(m_legacyDxfCodePageAllowed, other.m_legacyDxfCodePageAllowed);
+    swap(m_declaredCodePageSelection, other.m_declaredCodePageSelection);
+    swap(m_byteCodePageSelection, other.m_byteCodePageSelection);
     swap(cp, other.cp);
     swap(conv, other.conv);
     swap(cp8Conv, other.cp8Conv);
@@ -113,7 +115,8 @@ void DRW_TextCodec::setCodePage(const std::string &c, bool dxfFormat){
 
 void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
                                     bool explicitDeclaration) {
-    cp = correctCodePage(c);
+    const DRW_CodePageSelection selection = classifyCodePage(c);
+    cp = selection.selectedName;
     // Internal version defaults do not erase an earlier explicit non-1252
     // declaration. HEADER finalization reapplies the final declared page.
     if (dxfFormat && explicitDeclaration)
@@ -171,6 +174,8 @@ void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
     } else {
         conv.reset( new DRW_ConvTable(DRW_Table1252, CPLENGTHCOMMON) );
     }
+    if (explicitDeclaration)
+        m_declaredCodePageSelection = selection;
 }
 
 std::string DRW_TextCodec::toUtf8(std::string_view s) {
@@ -200,6 +205,7 @@ void DRW_TextCodec::setByteCodePage(const std::string &c) {
     DRW_TextCodec byteCodec;
     byteCodec.setCodePage(c, false);
     cp8Conv = std::move(byteCodec.conv);
+    m_byteCodePageSelection = byteCodec.m_declaredCodePageSelection;
 }
 
 std::string DRW_Converter::toUtf8(std::string_view s) {
@@ -715,76 +721,140 @@ std::string DRW_ConvUTF16::toUtf8(std::string_view s){
     return res;
 }
 
-std::string DRW_TextCodec::correctCodePage(const std::string& s) {
-    //stringstream cause crash in OS/X, bug#3597944
-    std::string cp=s;
-    transform(cp.begin(), cp.end(), cp.begin(), toupper);
-    //Latin/Thai
-    if (cp=="ANSI_874" || cp=="CP874" || cp=="ISO8859-11" || cp=="TIS-620") {
-        return "ANSI_874";
-        //Central Europe and Eastern Europe
-    } else if (cp=="ANSI_1250" || cp=="CP1250" || cp=="ISO8859-2") {
-        return "ANSI_1250";
-        //Cyrillic script
-    } else if (cp=="ANSI_1251" || cp=="CP1251" || cp=="ISO8859-5" || cp=="KOI8-R" ||
-               cp=="KOI8-U" || cp=="IBM 866") {
-        return "ANSI_1251";
-        //Western Europe
-    } else if (cp=="ANSI_1252" || cp=="CP1252" || cp=="LATIN1" || cp=="ISO-8859-1" ||
-               cp=="CP819" || cp=="CSISO" || cp=="IBM819" || cp=="ISO_8859-1" || cp=="APPLE ROMAN" ||
-               cp=="ISO8859-1" || cp=="ISO8859-15" || cp=="ISO-IR-100" || cp=="L1" || cp=="IBM 850") {
-        return "ANSI_1252";
-        //Greek
-    } else if (cp=="ANSI_1253" || cp=="CP1253" || cp=="ISO8859-7") {
-        return "ANSI_1253";
-        //Turkish
-    } else if (cp=="ANSI_1254" || cp=="CP1254" || cp=="ISO8859-9" || cp=="ISO8859-3") {
-        return "ANSI_1254";
-        //Hebrew
-    } else if (cp=="ANSI_1255" || cp=="CP1255" || cp=="ISO8859-8") {
-        return "ANSI_1255";
-        //Arabic
-    } else if (cp=="ANSI_1256" || cp=="CP1256" || cp=="ISO8859-6") {
-        return "ANSI_1256";
-        //Baltic
-    } else if (cp=="ANSI_1257" || cp=="CP1257" || cp=="ISO8859-4" || cp=="ISO8859-10" || cp=="ISO8859-13") {
-        return "ANSI_1257";
-        //Vietnamese
-    } else if (cp=="ANSI_1258" || cp=="CP1258") {
-        return "ANSI_1258";
-
-        //Japanese
-    } else if (cp=="ANSI_932" || cp=="SHIFT-JIS" || cp=="SHIFT_JIS" || cp=="CSSHIFTJIS" ||
-               cp=="CSWINDOWS31J" || cp=="MS_KANJI" || cp=="X-MS-CP932" || cp=="X-SJIS" ||
-               cp=="EUCJP" || cp=="EUC-JP" || cp=="CSEUCPKDFMTJAPANESE" || cp=="X-EUC" ||
-               cp=="X-EUC-JP" || cp=="JIS7") {
-        return "ANSI_932";
-        //Chinese PRC GBK (XGB) simplified
-    } else if (cp=="ANSI_936" || cp=="CP936" || cp=="GBK" || cp=="GB2312" || cp=="CHINESE" || cp=="CN-GB" ||
-               cp=="CSGB2312" || cp=="CSGB231280" || cp=="CSISO58BG231280" ||
-               cp=="GB_2312-80" || cp=="GB231280" || cp=="GB2312-80" ||
-               cp=="ISO-IR-58" || cp=="GB18030") {
-        return "ANSI_936";
-        //Korean
-    } else if (cp=="ANSI_949" || cp=="EUCKR") {
-        return "ANSI_949";
-        //Chinese Big5 (Taiwan, Hong Kong SAR)
-    } else if (cp=="ANSI_950" || cp=="BIG5" || cp=="CN-BIG5" || cp=="CSBIG5" ||
-               cp=="X-X-BIG5" || cp=="BIG5-HKSCS") {
-        return "ANSI_950";
-
-//celtic
-/*    } else if (cp=="ISO8859-14") {
-       return "ISO8859-14";
-    } else if (cp=="TSCII") {
-        return "TSCII"; //tamil
-    }*/
-
-    } else if (cp=="UTF-8" || cp=="UTF8" || cp=="UTF8-BIT") {
-        return "UTF-8";
-    } else if (cp=="UTF-16" || cp=="UTF16" || cp=="UTF16-BIT") {
-        return "UTF-16";
+DRW_CodePageSelection DRW_TextCodec::classifyCodePage(std::string_view name) noexcept {
+    struct Entry {
+        std::string_view name;
+        const char* selected;
+        DRW_CodePageKind kind;
+    };
+    // This preserves the old selection for every accepted spelling. The kind
+    // describes naming policy, not exhaustive byte-mapping qualification.
+    static constexpr Entry entries[] = {
+        {"ANSI_874", "ANSI_874", DRW_CodePageKind::Canonical},
+        {"CP874", "ANSI_874", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-11", "ANSI_874", DRW_CodePageKind::CompatibilityAlias},
+        {"TIS-620", "ANSI_874", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1250", "ANSI_1250", DRW_CodePageKind::Canonical},
+        {"CP1250", "ANSI_1250", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-2", "ANSI_1250", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1251", "ANSI_1251", DRW_CodePageKind::Canonical},
+        {"CP1251", "ANSI_1251", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-5", "ANSI_1251", DRW_CodePageKind::CompatibilityAlias},
+        {"KOI8-R", "ANSI_1251", DRW_CodePageKind::CompatibilityAlias},
+        {"KOI8-U", "ANSI_1251", DRW_CodePageKind::CompatibilityAlias},
+        {"IBM 866", "ANSI_1251", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1252", "ANSI_1252", DRW_CodePageKind::Canonical},
+        {"CP1252", "ANSI_1252", DRW_CodePageKind::ExactAlias},
+        {"LATIN1", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO-8859-1", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"CP819", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"CSISO", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"IBM819", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO_8859-1", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"APPLE ROMAN", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO8859-1", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO8859-15", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO-IR-100", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"L1", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"IBM 850", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1253", "ANSI_1253", DRW_CodePageKind::Canonical},
+        {"CP1253", "ANSI_1253", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-7", "ANSI_1253", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1254", "ANSI_1254", DRW_CodePageKind::Canonical},
+        {"CP1254", "ANSI_1254", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-9", "ANSI_1254", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO8859-3", "ANSI_1254", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1255", "ANSI_1255", DRW_CodePageKind::Canonical},
+        {"CP1255", "ANSI_1255", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-8", "ANSI_1255", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1256", "ANSI_1256", DRW_CodePageKind::Canonical},
+        {"CP1256", "ANSI_1256", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-6", "ANSI_1256", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1257", "ANSI_1257", DRW_CodePageKind::Canonical},
+        {"CP1257", "ANSI_1257", DRW_CodePageKind::ExactAlias},
+        {"ISO8859-4", "ANSI_1257", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO8859-10", "ANSI_1257", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO8859-13", "ANSI_1257", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_1258", "ANSI_1258", DRW_CodePageKind::Canonical},
+        {"CP1258", "ANSI_1258", DRW_CodePageKind::ExactAlias},
+        {"ANSI_932", "ANSI_932", DRW_CodePageKind::Canonical},
+        {"CSWINDOWS31J", "ANSI_932", DRW_CodePageKind::ExactAlias},
+        {"X-MS-CP932", "ANSI_932", DRW_CodePageKind::ExactAlias},
+        {"SHIFT-JIS", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"SHIFT_JIS", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"CSSHIFTJIS", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"MS_KANJI", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"X-SJIS", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"EUCJP", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"EUC-JP", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"CSEUCPKDFMTJAPANESE", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"X-EUC", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"X-EUC-JP", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"JIS7", "ANSI_932", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_936", "ANSI_936", DRW_CodePageKind::Canonical},
+        {"CP936", "ANSI_936", DRW_CodePageKind::ExactAlias},
+        {"GBK", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"GB2312", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"CHINESE", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"CN-GB", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"CSGB2312", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"CSGB231280", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"CSISO58BG231280", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"GB_2312-80", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"GB231280", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"GB2312-80", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"ISO-IR-58", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"GB18030", "ANSI_936", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_949", "ANSI_949", DRW_CodePageKind::Canonical},
+        {"EUCKR", "ANSI_949", DRW_CodePageKind::CompatibilityAlias},
+        {"ANSI_950", "ANSI_950", DRW_CodePageKind::Canonical},
+        {"BIG5", "ANSI_950", DRW_CodePageKind::CompatibilityAlias},
+        {"CN-BIG5", "ANSI_950", DRW_CodePageKind::CompatibilityAlias},
+        {"CSBIG5", "ANSI_950", DRW_CodePageKind::CompatibilityAlias},
+        {"X-X-BIG5", "ANSI_950", DRW_CodePageKind::CompatibilityAlias},
+        {"BIG5-HKSCS", "ANSI_950", DRW_CodePageKind::CompatibilityAlias},
+        {"UTF-8", "UTF-8", DRW_CodePageKind::Canonical},
+        {"UTF8", "UTF-8", DRW_CodePageKind::ExactAlias},
+        {"UTF8-BIT", "UTF-8", DRW_CodePageKind::ExactAlias},
+        {"UTF-16", "UTF-16", DRW_CodePageKind::Canonical},
+        {"UTF16", "UTF-16", DRW_CodePageKind::ExactAlias},
+        {"UTF16-BIT", "UTF-16", DRW_CodePageKind::ExactAlias},
+        {"CP437", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"CP850", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"CP866", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"MACINTOSH", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"JOHAB", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ANSI_1361", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-2", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-3", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-4", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-5", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-6", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-7", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-8", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-9", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-10", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-13", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO-8859-15", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"ISO8859-14", "ANSI_1252", DRW_CodePageKind::Unavailable},
+        {"TSCII", "ANSI_1252", DRW_CodePageKind::Unavailable},
+    };
+    const auto equalsAscii = [](std::string_view source, std::string_view key) {
+        if (source.size() != key.size())
+            return false;
+        for (std::size_t i = 0; i < source.size(); ++i) {
+            const unsigned char byte = static_cast<unsigned char>(source[i]);
+            const unsigned char folded = byte >= 'a' && byte <= 'z'
+                ? static_cast<unsigned char>(byte - 'a' + 'A') : byte;
+            if (folded != static_cast<unsigned char>(key[i]))
+                return false;
+        }
+        return true;
+    };
+    for (const Entry& entry : entries) {
+        if (equalsAscii(name, entry.name))
+            return {entry.kind, entry.selected};
     }
-
-    return "ANSI_1252";
+    // An explicit empty declaration is unknown, not an absent declaration.
+    return {DRW_CodePageKind::Unknown, "ANSI_1252"};
 }
