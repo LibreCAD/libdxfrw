@@ -380,6 +380,73 @@ bool verify(const std::string& path) {
         ? true : fail("sentinel entity/sequence count changed");
 }
 
+bool verifyAnonymousBlockChild(const std::string& path) {
+    std::ifstream input(path, std::ios::binary);
+    char signature[22] {};
+    input.read(signature, sizeof signature);
+    const bool binary = std::string(signature, sizeof signature)
+        == std::string("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    input.clear(); input.seekg(binary ? 22 : 0);
+    std::unique_ptr<dxfReader> reader;
+    if (binary) reader = std::make_unique<dxfReaderBinary>(&input);
+    else reader = std::make_unique<dxfReaderAscii>(&input);
+    std::string section;
+    std::vector<Record> records;
+    Record current;
+    int code = 0;
+    bool eof = false;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (!current.type.empty()) records.push_back(current);
+            current = Record{};
+            current.type = reader->getString();
+            if (current.type == "ENDSEC") {
+                current.section = section;
+                section.clear();
+            } else if (current.type != "SECTION") {
+                current.section = section;
+            }
+            eof = current.type == "EOF";
+        } else if (code == 2) {
+            current.name = reader->getString();
+            if (current.type == "SECTION") section = current.name;
+        } else if (code == 5) current.handle = reader->getString();
+        else if (code == 330) current.owner = reader->getString();
+        else if (code == 10) current.x = reader->getDouble();
+    }
+    if (!eof)
+        return fail("anonymous-block output did not reach EOF");
+
+    std::string recordHandle;
+    std::size_t blockRecordCount = 0;
+    std::size_t blockHeaderCount = 0;
+    std::size_t childLineCount = 0;
+    std::size_t sentinelLineCount = 0;
+    bool childLeakedToEntities = false;
+    for (const Record& record : records) {
+        if (record.type == "BLOCK_RECORD" && record.name == "*D999") {
+            recordHandle = record.handle;
+            ++blockRecordCount;
+        } else if (record.type == "BLOCK" && record.section == "BLOCKS"
+                   && record.name == "*D999") {
+            ++blockHeaderCount;
+            if (record.owner != recordHandle)
+                return fail("anonymous BLOCK header owner differs from its emitted record");
+        } else if (record.type == "LINE" && record.x == 901.0) {
+            ++sentinelLineCount;
+            if (record.section == "ENTITIES")
+                childLeakedToEntities = true;
+            if (record.section == "BLOCKS" && record.owner == recordHandle)
+                ++childLineCount;
+        }
+    }
+    return !recordHandle.empty() && blockRecordCount == 1u
+        && blockHeaderCount == 1u && childLineCount == 1u
+        && sentinelLineCount == 1u
+        && !childLeakedToEntities
+        ? true : fail("anonymous *D child was dropped, duplicated or re-homed");
+}
+
 bool runLocal(const std::filesystem::path& directory) {
     for (unsigned control = 0; control != 4; ++control) {
         const bool uppercaseFixed = control >= 2;
@@ -448,6 +515,38 @@ bool testStrictRejection(const std::filesystem::path& directory) {
         const std::string retained((std::istreambuf_iterator<char>(stream)), {});
         if (retained != original || line->handle != 0xA0)
             return fail("owner rejection changed destination or caller identity");
+    }
+    return true;
+}
+
+bool testAnonymousBlockChildOwnership(const std::filesystem::path& directory) {
+    for (bool binary : {false, true}) {
+        dx_data data;
+        DRW_Block_Record model;
+        model.handle = 0x17; model.name = "*Model_Space";
+        data.blockRecords.push_back(model);
+        auto* anonymous = new dx_ifaceBlock;
+        anonymous->name = "*D999";
+        anonymous->parentHandle = 0xDEADu; // No source BLOCK_RECORD has this ID.
+        auto* line = new DRW_Line;
+        line->handle = 0xA0u; line->parentHandle = 0xDEADu;
+        line->basePoint = DRW_Coord(901, 902, 903);
+        line->secPoint = DRW_Coord(904, 905, 906);
+        anonymous->ent.push_back(line);
+        data.blocks.push_back(anonymous);
+
+        const auto output = directory / (binary
+            ? "anonymous block identity binary.dxf"
+            : "anonymous block identity ascii.dxf");
+        dx_iface iface;
+        const bool exported = iface.fileExport(
+            output.string(), DRW::AC1027, binary, &data, false, true);
+        if (!exported || !verifyAnonymousBlockChild(output.string())
+            || anonymous->ent.size() != 1u
+            || anonymous->ent.front() != line || line->parentHandle != 0xDEADu
+            || !data.mBlock->ent.empty()) {
+            return fail("anonymous *D ownership changed caller graph or output");
+        }
     }
     return true;
 }
@@ -893,7 +992,8 @@ int main(int argc, char** argv) {
         / ("libdxfrw-block-owners-" + std::to_string(nonce));
     std::filesystem::create_directory(directory);
     const bool success = runLocal(directory) && testMetadataCopy()
-        && testStrictRejection(directory) && testMintedOverrideAndLegacyFallback(directory)
+        && testStrictRejection(directory) && testAnonymousBlockChildOwnership(directory)
+        && testMintedOverrideAndLegacyFallback(directory)
         && testSourceIdentityGuards(directory) && testQueuedBlockCallbacks(directory);
     if (success) std::filesystem::remove_all(directory);
     else std::cerr << "Evidence: " << directory << '\n';
