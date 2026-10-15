@@ -26,14 +26,23 @@ peer-reported producer defect, not a reproduced libdxfrw failure; the local
 root filter's first-record/owner/handle decision is now an explicit review
 boundary. GDAL's DXF driver and FreeCAD's DWG-to-DXF-to-importDXF route are
 reconfirmed as projections with documented limits, not full 3D semantic
-oracles. No new finding, subplan, external qualification, or support claim is
-added; all six external J dispositions remain deferred.
+oracles. A follow-up Autodesk code-table check confirms common object owner
+group 330 is optional; root selection therefore follows DXF record position,
+while group 330 is only a consistency check. Strictly reject an owned first
+OBJECTS dictionary rather than guessing a later root. No new finding, subplan,
+external qualification, or support claim is added; all six external J
+dispositions remain deferred.
 The adjacent positive `*D` block-identity case is now committed at
 `0cc564f`; it proves callback identity aliasing and no-rehome output only, not
 orphan recovery or full 7G.3 closure. The distinct unresolved-owner `*D`
 negative and suffix-preservation case is now committed at `0de4495`; input is
 read through the suffix, and strict CLI export rejects without publishing or
-replacing a destination. Neither test-only slice changes production behavior.
+replacing a destination. The NOD-order implementation and generated ASCII /
+binary controls are committed at `5a86b1a`: root candidacy is physical-record
+position, owned first DICTIONARY input fails before callbacks, and a later
+ownerless dictionary is not promoted when an older/minimal OBJECTS stream has
+no leading NOD. The narrow strict rejection leaves those legacy streams on
+their tolerant path. Neither peer report alone establishes a support claim.
 The 2026-10-14 ODA/peer refresh adds source/spec-confirmed candidate PAR-119
 and implementation subplan7BP for the target-version-dependent GEODATA CIVIL
 tail, plus PAR-120/7BQ for under-declared capacities across dynamic DXF symbol
@@ -260,8 +269,8 @@ J293/J295 stay `DEFERRED_EXTERNAL` and non-promoting. The follow-up source
 refresh is documentation-only as well: it adds no fixtures, dependencies,
 peer builds, external executions, registrations, or support claims.
 
-**Latest implementation checkpoint:** `b41ccc2` (`7S.2d.4` modeled-object
-XDATA route check), following `36fe35d` (`7S.2d.3` table-entry
+**Latest implementation checkpoint before the current graph slice:** `b41ccc2`
+(`7S.2d.4` modeled-object XDATA route check), following `36fe35d` (`7S.2d.3` table-entry
 XDATA node accounting), `ff45d98` (`7S.2d.2` entity-XDATA
 variant-node admission) and `5fececd` (`7S.2d.1` repeated MTEXT
 prefix decode-work), `837f461` (`7S.2c.d.17.5` empty generic
@@ -3400,7 +3409,7 @@ failure does not prevent completing them:
 | 7D — MTEXT height | COMMITTED | main/context heights remain distinct; next 7E/7M | `libdxfrw_dwg_local_roundtrip`, `libdxfrw_dxf_fixtures` |
 | 7E.1/2 — MTEXT columns/orientation | ISOLATED_WIP / COMMITTED | active orientation integrated; full columns/canonical attributes remain7E.1/7M | DXF/local tests, literal/public orientation; peer blind spot explicit |
 | 7F — CLI callback retention | COMMITTED_1a / SCHEMA_PENDING |1a integrated with main4/4;1b typed contract/producer/eligibility migration after7AG inventory repair; remaining retention routes separate | six dependency-free schema negatives, then tiny partial/opaque/clean read and readback controls |
-| 7G — CLI graph/layout closure | PARTIAL / BLOCK_CENSUS_AND_ANONYMOUS_OWNERSHIP_COMMITTED (`0de4495`) | 7G.0/1 and per-definition census are committed; positive `*D` identity binding and the separate unresolved-owner/no-rehome rejection with suffix read are covered; conforming/malformed NOD order, layout roots and full closure remain | `libdxfrw_block_owners` plus ASCII/binary CLI and rejection CTests pass 4/4; next add the NOD identity/order matrix, then remaining roots/reciprocity |
+| 7G — CLI graph/layout closure | PARTIAL / BLOCK_OWNERSHIP_AND_NOD_IDENTITY_SCOPED (`5a86b1a`) | 7G.0/1 and per-definition census; `*D` identity, unresolved-owner/suffix rejection, positional NOD identity with non-monotonic handles, owner spelling controls and pre-callback rejection of an owned first DICTIONARY are committed. Full root-entry read/write/read closure, remaining roots/reciprocity and effective order remain open. | `libdxfrw_dxf_fixtures` plus block-owner cohort pass5/5 unique tests; the existing rejection CLI CTest now checks no publication/destination replacement for malformed ASCII/binary NOD. Continue with root-entry serialization/reciprocity and the composed graph checkpoint. |
 | 7H — geometry gate/input policy | COMMITTED / SCOPED_GEOMETRY | scaled/unit/reflected/real-mode and7H.4 direction admission integrated; caller geometry/tolerant readers retained | main DXF/strict/lc3 and four ordinary direction projections pass; no broad/native geometry claim |
 | 7I — implicit spline weights | COMMITTED | preservation commit before upstream integration; retain focused controls | `libdxfrw_dwg_local_roundtrip`, one independent curve point |
 | 7J — dimension overrides | REPRO_READY | 7K; 7G for picture-block closure | DXF fixture plus independent override dictionary |
@@ -4305,26 +4314,32 @@ Split implementation to keep a small critical path:
    selectors. Preserve regenerated NOD-first output. For malformed DXF where
    the first record is an owned extension dictionary and a later record looks
    like the NOD, do not silently promote the later dictionary or call the graph
-   complete: retain/report the anomaly, and permit recovery only through an
-   explicit, bounded policy that proves one unambiguous root and preserves all
-   other dictionary identities. These are peer-led regression requirements,
-   not newly reproduced local defects.
+   complete: reject the OBJECTS read at the first record with
+   `BAD_READ_OBJECTS`, before publishing dictionary callbacks. Recovery would
+   require a separately designed opt-in policy; it is not part of this
+   implementation slice. These are peer-led regression requirements, not
+   newly reproduced local defects.
 
    **NOD ordering and identity control (peer lead LibreDWG #1413):** use the
    existing generated object/graph lane; add no drawing fixture or CTest. First
-   make a conforming ASCII and binary DXF with a NOD whose handle is greater
-   than an extension DICTIONARY, but with the NOD physically first. Assert the
-   NOD's `ACAD_LAYOUT`/custom entries and the extension dictionary are each
-   delivered once and remain attached to the right identities after
-   read→write→read; output must still place the regenerated NOD first. Then
+   make conforming ASCII and binary DXFs with a NOD whose handle is greater
+   than an extension DICTIONARY, but with the NOD physically first. Vary its
+   owner group330 across omitted and explicit-zero forms; vary the non-root
+   dictionary's owner as present/nonzero versus omitted without changing root
+   identity. Assert the NOD's `ACAD_LAYOUT`/custom entries and the extension
+   dictionary are each delivered once and remain attached to the right
+   identities; output must still place the regenerated NOD first. Then
    generate the reported malformed ordering (owned lower-handle extension
-   DICTIONARY first, unique ownerless root candidate later). Assert that
-   conversion neither silently loses layout names nor treats the extension
-   dictionary as the root, duplicates dictionaries, or publishes a complete
-   result without an anomaly/loss outcome. Choose strict rejection versus
-   narrowly verified recovery only after the DXF contract, current callback
-   behavior and consumer needs are reconciled. Keep handles intentionally
-   non-monotonic and vary group330 presence independently. Use the smallest
+   DICTIONARY first, unique ownerless root candidate later). Reject before any
+   dictionary callback with `BAD_READ_OBJECTS`; prove the CLI publishes no
+   output or replaces an existing destination. This is strict input validation,
+   not recovery. Keep handles intentionally non-monotonic. In this malformed
+   case the first record is a DICTIONARY and its owner is nonzero; reject it.
+   Autodesk marks common object group330 optional, so absent versus explicit
+   zero is valid for a positional root and does not select it. Keep older or
+   minimal OBJECTS streams that begin with another record on their existing
+   tolerant path until a corpus-backed compatibility policy is reviewed; do
+   not broaden this fix into a global OBJECTS preamble rejection. Use the smallest
    existing graph/object CTest target with temporary generated inputs; no
    checked-in or downloaded DWG/DXF payload.
 
@@ -10340,17 +10355,15 @@ fixtures. Findings/subplans remain121/70;
 the six external-only `J256`, `J260`, `J268`, `J284`, `J293`, `J295` items
 remain `DEFERRED_EXTERNAL` and non-promoting.
 
-## Broader object-graph and consumer crosswalk (2026-10-15; plan-only)
+## Broader object-graph crosswalk and NOD slice (2026-10-15)
 
-This read-only refresh compares a newly surfaced LibreDWG NOD-order report
-against Autodesk's DXF contract, the local DXF reader/writer root selection,
-ezdxf's documented object loading model, and the current GDAL/FreeCAD consumer
-boundaries. Local production source inspected at `c44301e`; a test-only edit
-was present then and was excluded from the source conclusions. No peer binary,
-FreeCAD build, or proprietary drawing was run. The generated anonymous-block
-identity control was run afterward and committed as `0cc564f`; no drawing
-payload was admitted or checked in. Findings/subplans remain121/70, and
-peer-only evidence promotes no local defect or support claim.
+This refresh compares a newly surfaced LibreDWG NOD-order report against
+Autodesk's DXF contract, the local DXF reader/writer root selection, ezdxf's
+documented object loading model, and current GDAL/FreeCAD consumer boundaries.
+The source cross-check began at `c44301e`; the implementation and generated
+controls are committed at `5a86b1a`. No peer binary, FreeCAD build, or
+proprietary drawing was run. Findings/subplans remain121/70, and peer-only
+evidence does not promote a support claim.
 
 | Evidence | Cross-check and boundary | Plan/readiness update |
 | --- | --- | --- |
@@ -10360,18 +10373,45 @@ peer-only evidence promotes no local defect or support claim.
 | FreeCAD [DWG import route](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py), [converter/import documentation](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md), and [format limitations](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md) | The current `importDWG.open()` route converts DWG to DXF and calls `importDXF.open()`; documentation says FreeCAD depends on an external DWG converter and that its DXF support does not implement every feature. The format table explicitly limits DXF import/export to 2D data because 3D data uses proprietary ACIS/ASM payload. Therefore stock FreeCAD is a downstream route/2D-consumer check, not an independent ACIS B-rep oracle, even when `dwg2dxf` successfully emits solids. | Keep the native FreeCAD gate route-specific: pin FreeCAD release, converter selection/version/argv, native-vs-legacy DXF importer, options, and semantic postconditions. Use it for documented 2D geometry, layout/block and metadata behavior only. Keep the ACIS/ACDS 3D semantic gate separate and require an independent compatible parser/kernel for those claims; if unavailable, report external qualification pending and continue source-local work. |
 | ACadSharp [version matrix](https://github.com/DomCR/ACadSharp/wiki/) and open [ACIS writer issue #1195](https://github.com/DomCR/ACadSharp/issues/1195) | The published matrix lists broad DWG/DXF reader/writer version coverage, while #1195 reports `3DSOLID`/`REGION` entities dropped by a DXF writer version. Both are useful comparison context; a version checkmark or a successfully opened output does not establish family-level semantic retention. | Retain per-family raw-field, ownership, payload and semantic gates. Use capability matrices only to select comparator runs; record actual build/revision/options and output version. Keep ACIS writer presence distinct from carrier retention, payload validity and independent solid semantics. No dependency or support promotion. |
 
+**NOD policy resolution and implementation result:** the first row's earlier
+“strict rejection versus recovery” question is resolved for the reported case:
+an owned first DICTIONARY is malformed under the positional root contract and
+is rejected with `BAD_READ_OBJECTS` before dictionary callbacks. Autodesk's
+[common-object table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm)
+marks owner group330 optional; the [DICTIONARY table](https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm)
+describes its owner-pointer role. Missing versus explicit zero cannot select
+the root; a nonzero owner on a physically first dictionary is inconsistent
+evidence. The attempted broader rule rejecting every
+non-DICTIONARY first record failed 35 existing synthetic fixture assertions
+(primarily intentionally minimal OBJECTS snippets). The implemented scope
+therefore tracks whether the actual first OBJECTS record is a DICTIONARY,
+rejects only the owned-first case, and never uses a later non-reserved,
+ownerless dictionary as the root when that position has passed. Fixed C/D
+handles remain reserved writer records, not evidence of source root identity.
+Legacy/minimal streams without an initial NOD remain readable but are not
+proof of a complete named-object graph.
+
+Commit `5a86b1a` adds generated positive matrices for ASCII/binary DXF,
+non-monotonic NOD/extension handles, omitted/explicit-zero root owners, and
+present/omitted extension owners; it checks exact dictionary entries, raw
+identity, and the `ACAD_LAYOUT` callback handle. Owned-first malformed controls
+prove rejection before callbacks. The existing block-owner CLI CTest now also
+checks that ASCII/binary CLI rejection creates no destination and preserves
+pre-existing destination bytes under overwrite mode. `libdxfrw_dxf_fixtures`
+and the four-test block-owner cohort pass (five unique CTests); `-Werror` target
+build and `git diff --check` pass. No full suite, peer runtime, external
+qualification, new fixture payload, or support metadata changed.
+
 **Implementation-readiness result:** the positive anonymous `*D` identity
-case (`0cc564f`) and distinct unresolved-owner/orphan-suffix negative
-(`0de4495`) are committed and explicitly do not claim DWG orphan recovery.
-Next insert the NOD matrix as a fast sub-slice inside the existing7G graph lane.
-Use runtime-generated inputs in the existing graph/object test target and its
-ASCII/binary CLI cohort; do not check in DWG/DXF payloads, add CTest
-registrations, or install peers. First run the focused tests against current
-source to establish whether the risk reproduces; only then change root
-classification, writer ordering, or recovery policy. A valid-output invariant
-is NOD-first regardless of handle order. A malformed-input invariant is no
-silent loss/false-complete graph, not unconditional recovery. Validate the
-changed production/test targets under `-Werror`, plus `lc3_compat_check` only
-if public adapter/API code changes; reserve one composed graph checkpoint for
-the completed root/reciprocity boundary, not per vector. FreeCAD/GDAL and all
-external-only J items stay nonblocking for this implementation path.
+case (`0cc564f`), distinct unresolved-owner/orphan-suffix negative
+(`0de4495`), and NOD identity/order slice (`5a86b1a`) are committed; these do
+not claim DWG orphan recovery or complete graph closure. Continue with root
+entry serialization/reciprocity and effective block ordering in the existing
+7G lane. Use runtime-generated inputs in existing targets only; do not check
+in drawing payloads, add CTest registrations, or install peers. The writer's
+NOD-first invariant must remain true across supported output versions. A
+malformed-input invariant is no silent loss/false-complete graph, not
+unconditional recovery. Validate changed `-Werror` targets; reserve one
+composed graph checkpoint for the completed root/reciprocity boundary, not
+per vector. FreeCAD/GDAL and all external-only J items stay nonblocking for
+this implementation path.
