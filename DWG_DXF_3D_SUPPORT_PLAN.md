@@ -94,8 +94,9 @@ repeat/late-failure retry with16 successful exports/eight rejection checks,
 focused sanitizer, integration2/2, strict/lc3 and two-pass actual ASCII/binary
 CLI verification. S5.18's scoped local implementation closes, not native
 associativity/fill/render or DWG. S2.3.9.4.29.B1 now implements the independent
-stored-graph oracle (8 positives/14 negatives); next is B2's codec/actual-CLI
-correspondence. This does not wait on
+stored-graph oracle (8 positives/14 negatives), and B2 now passes16 raw/typed
+ASCII/binary handoffs plus two-pass actual CLI checks. Next is B3's genuine
+no-output rejection/corrected-reuse gate. This does not wait on
 external customer DWGs, native FreeCAD or a new oracle. S4.5 remains gated
 by S3's verified DataStorage layout. Keep focused modes in the existing
 round-trip executable; no new fixture or CTest registration is needed.
@@ -3694,8 +3695,8 @@ committed, refresh this section's states/dependencies/next unblock step, then
 publish the existing progress update before advancing; do not batch progress
 updates until the whole ACIS lane finishes.
 
-**S2.3.9.4.29 — block-path modeler omission census (`IN_PROGRESS`, B1 committed;
-B2 ready, local-only
+**S2.3.9.4.29 — block-path modeler omission census (`IN_PROGRESS`, B1/B2 committed;
+B3 ready, local-only
 reproduction first):** ACadSharp issue #1195 reports another converter
 silently dropping 3DSOLID/REGION entities inside block definitions and leaving
 solid-only INSERTs empty; the customer DWGs are not available and this is not
@@ -3760,6 +3761,23 @@ six-one-face authoring readback checks literals only, not independent semantics.
 No production codec changed, output/CLI preservation is not yet established,
 and no external fixture or CTest registration was added. Continue B2, then B3;
 the parent S2.3.9.4.29 item remains open.
+
+**B2 integration checkpoint (Plan-Slice:S2.3.9.4.29.B2):** the authored AC1024
+legacy-SAT graph passes16 codec handoffs across four order variants, both
+encodings and two passes. Raw scanning and typed readback bind25 entity/BLOCK/
+BLOCK_RECORD identities, actual owners/footer owners, exact reconstructed
+carriers and seven INSERT links. Twelve equal-count physical-graph checker
+mutations reject; they are not converter failure evidence. Actual generated
+ASCII/binary CLI conversions and exact verifiers pass twice, with byte-stable
+second outputs. Strict TU/lc3 and local CTest1/1 pass in2.24s. The checker
+calibrates typed SAT's single framing LF and DIMSTYLE105 self versus5 name;
+it does not normalize away carrier changes. Existing ezdxf1.4.4 ordinary loads
+of all six generated files retain four correctly owned bodies; because that
+is the authoring stack, it is consistency only. Durable source/binary/CLI
+bindings: `docs/research/modeler-block-codec-b2-2026-10-15.json`.
+Production remains unchanged; no external fixture, new registration, native
+CAD, nested DWG AcDs/SAB, B-rep or J qualification follows. Continue B3 genuine
+converter no-output failures and corrected reuse before closing this parent.
 
 1. Generate two distinguishable, valid bounded modeler payloads, a modeler-only
    block, a mixed block, nested INSERTs with two instances and a direct entity.
@@ -6611,7 +6629,7 @@ splines.
 
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 127 committed, 6 explicitly blocked, 4 in progress,
-12 other bounded evidence states, and 0 ready parent items; B2 is the next
+12 other bounded evidence states, and 0 ready parent items; B3 is the next
 ready sub-slice):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
@@ -6995,7 +7013,7 @@ Additional implementation-item record:
 | S2.3.9.4.28 | COMMITTED / RAW-RETENTION REGRESSION | Expanded the generated extrusion DXF control to include unprojected group-90/91/92/93 values, direction, sweep scalars, and an opaque group-310 chunk. Assertions confirm the selected typed subset can complete while all those additional fields survive in the raw DXF record. Focused target build, `libdxfrw_dwg_local_roundtrip` (1/1), and `git diff --check` pass. No external fixture, DWG decoder, serializer, or support claim was added. |
 
 | S2.2.5 | IN_PROGRESS / SCHEMA_COMMITTED | S2.2.5a repairs the independently reproduced legacy ASCII modeler loss: group 70/SAT stay in AcDbModelerGeometry; only AC1021+ 3DSOLID adds its subclass and explicit null/remapped group 350 after the payload. Unsupported nonzero history rejects transactionally. The existing target's focused matrix passes 1,170 records per pass/two passes and 24 rejection/retry controls across five versions/both encodings; local-roundtrip CTest passes and lc3 source check builds. Durable report `docs/research/modeler-dxf-syntax-2026-10-15.json` records ODA acceptance of 12 actual legacy ASCII and six R2013 ASCII/binary controls. All 12 legacy binary subjects and ezdxf binary baselines fail the same ODA screen; keep S2.2.5b binary calibration and independent long-token/cut-policy decision open. Optional qualification script returns nonzero for the incomplete whole matrix. No drawing fixture, CTest registration or support promotion. The separate FreeCAD CLI RTEXT/header failure is reproduced on clean baseline291858e and recorded above. Next ready S5.18 / S2.3.9.4.29. |
-| S2.3.9.4.29 | IN_PROGRESS / B1_COMMITTED_B2_READY | Plan-Slice:S2.3.9.4.29.B1 adds the bounded stored-definition/entity/owner/INSERT/carrier oracle with literal independent expectations, distinct authored cube/region SAT, shared/unreachable graph and order permutations. Eight positives/14 negatives, strict TU/lc3 and local CTest1/1 in2.14s pass. Durable report docs/research/modeler-block-census-b1-2026-10-15.json binds provenance/source/binary. This is source-census/oracle sensitivity, not actual converter negative or codec/CLI preservation. NextB2 raw/typed ASCII/binary actual handoff; thenB3 genuine fail-closed cases. No external fixture/native dependency, new CTest, production change or ACIS/support/J promotion. |
+| S2.3.9.4.29 | IN_PROGRESS / B1_B2_COMMITTED_B3_READY | B1 source census passes8/14; B2 generated AC1024 legacy-SAT codec passes16 handoffs,25 source→emitted entity/BLOCK/BLOCK_RECORD bindings and exact raw/typed owner/carrier/INSERT closure. Twelve physical checker mutations reject separately from genuine converter failures. Actual ASCII/binary CLI inputs/outputs verify twice; second outputs are byte-stable. Strict TU/lc3 and local CTest1/1 in2.24s pass. B1 provenance and B2 source/artifact/CLI reports are frozen separately under docs/research. NextB3 genuine no-output conversion rejection and corrected reuse. No production change, external fixture/native dependency, new CTest or DWG-AcDs/B-rep/support/J promotion. |
 | S4.5 | BLOCKED_ON_S3 | Future DataStorage writer must test zero-based search-table entries and handle/index pairings with directory order permuted from sorted-handle rank. ODA v5.4.1 §24.2.2.7.1 is the authority; ACadSharp PR #1150 is a regression lead only. No DWG writer or fixture before S3. |
 
 Research state remains narrow. ODA File Converter 27.1.0.0 represents the witnessed BOX/extrusion history classes as opaque `ACAD_PROXY_OBJECT` records with group-91 class ordinals; it is not an ACSH field oracle. It emits the dynamic-block closure as typed DXF objects for a companion artifact, but that path begins from ACadSharp DXF SHA-256 `4f267520…61e6` and ODA-created DWG SHA-256 `ad4b05af…42fb`, not pinned `sample_AC1027.dwg` SHA-256 `4c63508d…d24d6`. The graph/targets align, but the exact-identity comparator found two selector-40 value mismatches. On the pinned DWG, LibreDWG 0.14 DXF export matches libdxfrw on A83/A84 but differs on A86/A87; LibreDWG JSON and DXF exports also disagree with each other. Thus no current secondary output is an authoritative value oracle, and dynamic-block DXF serialization stays blocked. The third graph `A80` is owned by dictionary `A7F` under `BLOCK_RECORD A7E` and targets twelve dynamic-block parameter/action/grip objects, not either modeler history; `dx_iface` now has capture-only typed storage for these callbacks and rejects whole-file export when any are present (S2.3.9.4.21); no typed dynamic-block DXF writer is qualified. Selector-40 values are now retained transactionally, and `GripLocationComponent` full-decode status is set only at exact data/string stream ends; `dwgBuffer::getBitDouble()` now rejects reserved bit code `11` per ODA v5.4.1 §2.5. Continue only with a same-input authoritative export or bounded raw-bit trace before writing these objects; preserve full-file fail-closed behavior. The AC1027 semantic witness now has a source-native AutoCAD authoring tool, but remains gated until a native Windows execution and independent readback provide the exact SAB/ACDS and dimensions packet. Autodesk's current [Extruded Surface DXF reference](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-9218F5A6-3AE4-4EA4-854E-E15E1946AE88.htm) confirms public field meanings for matrices, sweep alignment and flags, but is not the internal ACSH object layout and omits group 71; it cannot supply the missing DWG parse order. A source check on current [LibreDWG `objects.in`](https://github.com/LibreDWG/libredwg/blob/master/src/objects.in#L1288) still labels `ACSH_EXTRUSION_CLASS` `DEBUGGING`; its [0.13.4 manual](https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html) lists symbolic fields but not a validated AC1027 bit order. The exact-input LibreDWG dynamic-block discrepancy is separate from its experimental ACSH extrusion parser, so do not conflate the two. The independent InventorLoader/FreeCAD Part check verifies geometry for the three SAB payloads, but not sweep/history semantics or exact libdxfrw output handoff. The official [CAD Assistant](https://www.opencascade.com/products/cad-assistant/) v1.6.0 macOS ARM64 app is confirmed by the vendor as importing SAT and SAB. Its hash-pinned 1,980-byte SAB attempt returned “Error occurred transferring SAT file” without geometry or metrics; this is inconclusive, not a negative validity result, and CAD Assistant cannot decode DWG custom classes. The DMG passes `hdiutil verify` and matches the vendor-download cask checksum, but `codesign --verify --deep --strict` reports an invalid bundle signature, so do not launch it again until the discrepancy is understood. The Mac is currently locked, preventing a fresh GUI check. Native Linux/Windows FreeCAD qualification and exact final-output ODA/consumer round-trip remain outstanding. None of these results promotes general ACIS/ACDS support, and no external drawing is added. |

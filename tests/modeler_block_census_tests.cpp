@@ -1,5 +1,8 @@
 #include <algorithm>
 #include <cstdint>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <map>
@@ -11,6 +14,7 @@
 #include <vector>
 
 #include "dwg2dxf/dx_iface.h"
+#include "intern/dxfreader.h"
 
 namespace {
 
@@ -307,12 +311,7 @@ std::unique_ptr<dx_data> makeDrawing(bool reverseBlocks, bool reverseEntities) {
     return data;
 }
 
-} // namespace
-
-bool runModelerBlockCensusTests() {
-    bool passed = true;
-    std::size_t positives = 0, negatives = 0;
-    auto source = makeDrawing(false, false);
+Census expectedDrawing() {
     Census expected;
     DRW_ModelerGeometry cube(DRW::E3DSOLID), region(DRW::REGION);
     setCarrier(cube, cubeSat); setCarrier(region, regionSat);
@@ -339,7 +338,17 @@ bool runModelerBlockCensusTests() {
     expected.reachable = {"OnlyCube", "Mixed", "Left", "Right", "Root"};
     expected.records = 13; expected.edges = 7; expected.visits = 6;
     expected.bytes = 2 * (cube.m_rawBytes.size() + region.m_rawBytes.size());
-    if (cube.m_rawBytes == region.m_rawBytes) return false;
+    return expected;
+}
+
+} // namespace
+
+bool runModelerBlockCensusTests() {
+    bool passed = true;
+    std::size_t positives = 0, negatives = 0;
+    auto source = makeDrawing(false, false);
+    const Census expected = expectedDrawing();
+    if (expected.rows.at(0x900).carrier == expected.rows.at(0x300).carrier) return false;
     for (bool blocks : {false, true}) for (bool entities : {false, true}) {
         const auto data = makeDrawing(blocks, entities);
         Census observed;
@@ -402,5 +411,384 @@ bool runModelerBlockCensusTests() {
     passed = boundedCycle && passed;
     std::cout << "Modeler stored-block census B1: " << (passed ? "PASS" : "FAIL")
               << " (positive=" << positives << ", negative=" << negatives << ")\n";
+    return passed;
+}
+
+namespace {
+
+std::string ownerName(const std::string& name) {
+    if (name == "*Model_Space" || name == "*MODEL_SPACE") return "*MODEL_SPACE";
+    if (name == "*Paper_Space" || name == "*PAPER_SPACE") return "*PAPER_SPACE";
+    return name;
+}
+
+bool fixedSpace(const std::string& name) {
+    return ownerName(name) == "*MODEL_SPACE" || ownerName(name) == "*PAPER_SPACE";
+}
+
+struct PhysicalRow {
+    std::string type, section, block, name;
+    std::uint32_t handle = 0, owner = 0;
+    unsigned handles = 0, owners = 0, coordinateMask = 0, modelerVersions = 0, histories = 0;
+    int modelerVersion = 0;
+    std::uint32_t history = 0;
+    DRW_Coord point, end;
+    std::vector<std::uint8_t> carrier;
+    std::vector<std::string> subclasses;
+};
+
+struct PhysicalGraph {
+    std::map<std::string, std::uint32_t> blockRecords;
+    std::map<std::string, std::pair<std::uint32_t, std::uint32_t>> blocks, footers;
+    std::map<std::uint32_t, StoredRow> rows;
+    std::map<std::uint32_t, std::uint32_t> owners;
+};
+
+bool physicalGraph(const std::filesystem::path& path, PhysicalGraph& result) {
+    std::error_code error;
+    const auto size = std::filesystem::file_size(path, error);
+    if (error || size > 131072) return false; // Authored profile, not a format maximum.
+    std::ifstream input(path, std::ios::binary);
+    char signature[22]{};
+    input.read(signature, sizeof(signature));
+    const bool binary = std::string(signature, sizeof(signature))
+        == std::string("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    input.clear(); input.seekg(binary ? 22 : 0);
+    std::unique_ptr<dxfReader> reader;
+    if (binary) reader = std::make_unique<dxfReaderBinary>(&input);
+    else reader = std::make_unique<dxfReaderAscii>(&input);
+    PhysicalGraph staged;
+    PhysicalRow row;
+    std::set<std::uint32_t> identities;
+    std::set<std::string> sections;
+    std::string section, block;
+    bool sectionName = false;
+    unsigned appDepth = 0;
+    const auto finish = [&]() {
+        if (row.type.empty()) return true;
+        if (appDepth != 0 || row.handles > 1 || row.owners > 1) return false;
+        if (row.handles != 0 && (row.handle == 0 || !identities.insert(row.handle).second))
+            return false;
+        if (row.section == "TABLES" && row.type == "BLOCK_RECORD")
+            return row.handles == 1 && !row.name.empty()
+                && staged.blockRecords.emplace(ownerName(row.name), row.handle).second;
+        if (row.section == "BLOCKS" && row.type == "BLOCK") {
+            if (!block.empty() || row.handles != 1 || row.owners != 1 || row.name.empty())
+                return false;
+            block = ownerName(row.name);
+            return staged.blocks.emplace(block, std::make_pair(row.handle, row.owner)).second;
+        }
+        if (row.section == "BLOCKS" && row.type == "ENDBLK") {
+            if (block.empty() || row.handles != 1 || row.owners != 1) return false;
+            const bool inserted = staged.footers.emplace(
+                block, std::make_pair(row.handle, row.owner)).second;
+            block.clear();
+            return inserted;
+        }
+        if (row.section != "ENTITIES" && row.section != "BLOCKS") return true;
+        if (row.handles != 1 || row.owners != 1 || staged.rows.size() >= 64
+            || (row.section == "BLOCKS" && (block.empty() || fixedSpace(block))))
+            return false;
+        DRW::ETYPE type;
+        if (row.type == "3DSOLID") type = DRW::E3DSOLID;
+        else if (row.type == "REGION") type = DRW::REGION;
+        else if (row.type == "BODY") type = DRW::BODY;
+        else if (row.type == "INSERT") type = DRW::INSERT;
+        else if (row.type == "LINE") type = DRW::LINE;
+        else return false;
+        const bool modeler = type == DRW::E3DSOLID || type == DRW::REGION || type == DRW::BODY;
+        if (modeler) {
+            std::vector<std::string> wanted{"AcDbEntity", "AcDbModelerGeometry"};
+            if (type == DRW::E3DSOLID) wanted.push_back("AcDb3dSolid");
+            if (row.subclasses != wanted || row.modelerVersions != 1 || row.modelerVersion != 1
+                || row.carrier.empty() || row.histories != (type == DRW::E3DSOLID ? 1u : 0u)
+                || row.history != 0) return false;
+        } else if (type == DRW::INSERT) {
+            if (row.coordinateMask != 7u || row.name.empty()) return false;
+        } else if (row.coordinateMask != 63u || row.point.x != 0 || row.point.y != 0
+                   || row.point.z != 0 || row.end.x != 1 || row.end.y != 2 || row.end.z != 3)
+            return false;
+        const std::string owner = row.section == "ENTITIES" ? "*MODEL_SPACE" : block;
+        StoredRow stored{type, owner, type == DRW::INSERT ? row.name : std::string{},
+                         row.carrier, type == DRW::INSERT ? row.point : DRW_Coord{}};
+        return staged.owners.emplace(row.handle, row.owner).second
+            && staged.rows.emplace(row.handle, std::move(stored)).second;
+    };
+    int code = 0;
+    std::size_t pairs = 0;
+    while (++pairs <= 10000 && reader->readRec(&code)) {
+        if (code == 0) {
+            if (!finish()) {
+                std::cerr << "  raw record: " << row.section << '/' << row.type
+                          << " handle=" << row.handle << " owner=" << row.owner
+                          << " bytes=" << row.carrier.size() << " coordinates=" << row.coordinateMask
+                          << " name=" << row.name << '\n';
+                return false;
+            }
+            row = {};
+            const std::string type = reader->getString();
+            if (type == "SECTION") {
+                if (!section.empty() || sectionName || !block.empty()) return false;
+                sectionName = true;
+            } else if (type == "ENDSEC") {
+                if (section.empty() || !block.empty()) return false;
+                section.clear();
+            } else if (type == "EOF") {
+                if (!section.empty() || sectionName || !block.empty()
+                    || sections.count("BLOCKS") != 1 || sections.count("ENTITIES") != 1
+                    || sections.count("TABLES") != 1 || input.peek() != std::char_traits<char>::eof())
+                    return false;
+                result = std::move(staged);
+                return true;
+            } else {
+                if (section.empty() || sectionName) return false;
+                row.type = type; row.section = section;
+            }
+            continue;
+        }
+        if (sectionName) {
+            if (code != 2 || !sections.insert(reader->getString()).second) return false;
+            section = reader->getString(); sectionName = false;
+            continue;
+        }
+        if (row.type.empty()) continue; // HEADER variables are not record identities.
+        if (code == 102) {
+            const std::string marker = reader->getString();
+            if (!marker.empty() && marker.front() == '{') ++appDepth;
+            else if (marker == "}" && appDepth != 0) --appDepth;
+            else return false;
+            continue;
+        }
+        if (appDepth != 0) continue;
+        // DIMSTYLE's self identity is105; its group5 is a legacy arrow-block
+        // name. Do not turn an empty name into a null/duplicate self handle.
+        if ((code == 5 && row.type != "DIMSTYLE") || (code == 105 && row.type == "DIMSTYLE")) {
+            row.handle = reader->getHandleString(); ++row.handles;
+        }
+        else if (code == 330) { row.owner = reader->getHandleString(); ++row.owners; }
+        else if (code == 2) row.name = reader->getString();
+        else if (code == 100) row.subclasses.push_back(reader->getString());
+        else if (code == 70) { row.modelerVersion = reader->getInt32(); ++row.modelerVersions; }
+        else if (code == 350) { row.history = reader->getHandleString(); ++row.histories; }
+        else if (row.type == "LINE" || row.type == "INSERT") {
+            unsigned bit = 0;
+            double* coordinate = nullptr;
+            if (code == 10) { coordinate = &row.point.x; bit = 1; }
+            if (code == 20) { coordinate = &row.point.y; bit = 2; }
+            if (code == 30) { coordinate = &row.point.z; bit = 4; }
+            if (code == 11) { coordinate = &row.end.x; bit = 8; }
+            if (code == 21) { coordinate = &row.end.y; bit = 16; }
+            if (code == 31) { coordinate = &row.end.z; bit = 32; }
+            if (coordinate) {
+                if ((row.coordinateMask & bit) != 0) return false;
+                row.coordinateMask |= bit; *coordinate = reader->getDouble();
+            }
+        } else if ((row.type == "3DSOLID" || row.type == "REGION" || row.type == "BODY")
+                   && (code == 1 || code == 3)) {
+            if (code == 1 && !row.carrier.empty()) row.carrier.push_back('\n');
+            const std::string text = reader->getString();
+            if (text.size() > 255 || row.carrier.size() + text.size() > 65536) return false;
+            for (std::size_t i = 0; i < text.size(); ++i) {
+                row.carrier.push_back(static_cast<std::uint8_t>(text[i]));
+                if (text[i] == '^' && i + 1 < text.size() && text[i + 1] == ' ') ++i;
+            }
+        }
+    }
+    return false;
+}
+
+bool comparePhysical(const PhysicalGraph& graph, std::map<std::uint32_t, std::uint32_t>& bindings) {
+    const Census expected = expectedDrawing();
+    if (graph.rows.size() != expected.rows.size() || graph.blockRecords.size() != 8
+        || graph.blocks.size() != 8 || graph.footers.size() != 8) return false;
+    for (const auto& block : graph.blocks) {
+        const auto table = graph.blockRecords.find(block.first);
+        const auto footer = graph.footers.find(block.first);
+        if (table == graph.blockRecords.end() || footer == graph.footers.end()
+            || block.second.second != table->second || footer->second.second != table->second
+            || (!fixedSpace(block.first) && expected.definitions.count(block.first) != 1))
+            return false;
+    }
+    std::map<std::uint32_t, std::uint32_t> staged;
+    for (const auto& entry : graph.rows) {
+        const auto owner = graph.blockRecords.find(entry.second.owner);
+        const auto physicalOwner = graph.owners.find(entry.first);
+        if (owner == graph.blockRecords.end() || physicalOwner == graph.owners.end()
+            || physicalOwner->second != owner->second
+            || (!entry.second.target.empty() && graph.blocks.count(entry.second.target) != 1))
+            return false;
+        std::uint32_t source = 0;
+        for (const auto& wanted : expected.rows)
+            if (entry.second == wanted.second) {
+                if (source != 0) return false;
+                source = wanted.first;
+            }
+        if (source == 0 || !staged.emplace(source, entry.first).second) return false;
+    }
+    if (staged.size() != expected.rows.size()) return false;
+    for (const auto& definition : expected.definitions) {
+        const auto block = graph.blocks.find(definition.first);
+        const auto record = graph.blockRecords.find(definition.first);
+        if (block == graph.blocks.end() || record == graph.blockRecords.end()
+            || !staged.emplace(definition.second.first, block->second.first).second
+            || !staged.emplace(definition.second.second, record->second).second) return false;
+    }
+    bindings = std::move(staged);
+    return true;
+}
+
+bool typedMatches(const std::filesystem::path& path, const PhysicalGraph& graph) {
+    dx_data data;
+    dx_iface importer;
+    if (!importer.fileImport(path.string(), &data, false) || data.sourceVersion != DRW::AC1024
+        || data.blockRecords.size() != graph.blockRecords.size()) {
+        std::cerr << "  typed header/records: version=" << data.sourceVersion
+                  << " records=" << data.blockRecords.size() << '/' << graph.blockRecords.size() << '\n';
+        return false;
+    }
+    std::set<std::uint32_t> tableIds;
+    for (const auto& record : data.blockRecords) {
+        const auto found = graph.blockRecords.find(ownerName(record.name));
+        if (found == graph.blockRecords.end() || found->second != record.handle
+            || !tableIds.insert(record.handle).second) return false;
+    }
+    std::set<std::uint32_t> seen;
+    const auto entities = [&](const dx_ifaceBlock& block, const std::string& owner) {
+        for (const auto* entity : block.ent) {
+            if (!entity || !seen.insert(entity->handle).second) return false;
+            const auto found = graph.rows.find(entity->handle);
+            if (found == graph.rows.end() || found->second.owner != owner
+                || graph.owners.at(entity->handle) != entity->parentHandle) {
+                std::cerr << "  typed entity identity/owner: " << entity->handle << " parent=" << entity->parentHandle << " owner=" << owner << '\n';
+                return false;
+            }
+            StoredRow row{entity->eType, owner, {}, {}, {}};
+            if (const auto* modeler = dynamic_cast<const DRW_ModelerGeometry*>(entity)) {
+                if (modeler->m_modelerVersion != 1 || modeler->m_historyHandle != 0) return false;
+                row.carrier = modeler->m_rawBytes;
+                // processModelerGeometry supplies one terminal LF outside the
+                // retained group-1/3 chunk ranges. Normalize only that framing
+                // byte; internal whitespace and every encoded byte stay exact.
+                if (row.carrier.size() == found->second.carrier.size() + 1
+                    && row.carrier.back() == '\n') row.carrier.pop_back();
+            } else if (const auto* insert = dynamic_cast<const DRW_Insert*>(entity)) {
+                row.target = insert->name; row.placement = insert->basePoint;
+            } else if (const auto* line = dynamic_cast<const DRW_Line*>(entity)) {
+                if (line->basePoint.x != 0 || line->basePoint.y != 0 || line->basePoint.z != 0
+                    || line->secPoint.x != 1 || line->secPoint.y != 2 || line->secPoint.z != 3)
+                    return false;
+            } else return false;
+            if (!(row == found->second)) {
+                std::cerr << "  typed entity fields: " << entity->handle << " type=" << row.type
+                          << " raw-type=" << found->second.type << " bytes=" << row.carrier.size()
+                          << '/' << found->second.carrier.size() << " target=" << row.target << '/' << found->second.target << '\n';
+                return false;
+            }
+        }
+        return true;
+    };
+    if (!entities(*data.mBlock, "*MODEL_SPACE") || data.blocks.size() != graph.blocks.size()) {
+        std::cerr << "  typed model/blocks: " << data.mBlock->ent.size()
+                  << " blocks=" << data.blocks.size() << '/' << graph.blocks.size() << '\n';
+        return false;
+    }
+    std::set<std::string> blockNames;
+    for (const auto* block : data.blocks) {
+        if (!block) return false;
+        if (!blockNames.insert(ownerName(block->name)).second) return false;
+        const auto found = graph.blocks.find(ownerName(block->name));
+        if (found == graph.blocks.end() || found->second.first != block->handle
+            || found->second.second != block->parentHandle
+            || !entities(*block, ownerName(block->name))) {
+            std::cerr << "  typed block: " << block->name << " handle=" << block->handle
+                      << " parent=" << block->parentHandle << " entities=" << block->ent.size();
+            if (found != graph.blocks.end()) std::cerr << " raw=" << found->second.first << '/' << found->second.second;
+            std::cerr << '\n';
+            return false;
+        }
+    }
+    return seen.size() == graph.rows.size();
+}
+
+bool verifyOutput(const std::filesystem::path& path,
+                  std::map<std::uint32_t, std::uint32_t>* outputBindings = nullptr) {
+    PhysicalGraph graph;
+    std::map<std::uint32_t, std::uint32_t> bindings;
+    if (!physicalGraph(path, graph)) { std::cerr << "Modeler block raw scan failed: " << path << '\n'; return false; }
+    if (!comparePhysical(graph, bindings)) { std::cerr << "Modeler block owner/carrier binding failed: " << path << '\n'; return false; }
+    if (!typedMatches(path, graph)) { std::cerr << "Modeler block typed handoff failed: " << path << '\n'; return false; }
+    if (outputBindings) *outputBindings = std::move(bindings);
+    return true;
+}
+
+std::size_t physicalOracleControls(const std::filesystem::path& path) {
+    PhysicalGraph original;
+    std::map<std::uint32_t, std::uint32_t> bindings;
+    if (!physicalGraph(path, original) || !comparePhysical(original, bindings)
+        || bindings.size() != 25) return 0;
+    std::size_t rejected = 0;
+    for (int mutation = 0; mutation < 6; ++mutation) {
+        PhysicalGraph changed = original;
+        const auto solid = bindings.at(0x900), region = bindings.at(0x300);
+        if (mutation == 0) changed.owners.at(solid) = changed.blockRecords.at("Unused");
+        if (mutation == 1) changed.blocks.at("OnlyCube").second = changed.blockRecords.at("Mixed");
+        if (mutation == 2) changed.footers.at("OnlyCube").second = changed.blockRecords.at("Mixed");
+        if (mutation == 3) std::swap(changed.rows.at(solid).carrier, changed.rows.at(region).carrier);
+        if (mutation == 4) changed.rows.at(bindings.at(0x710)).target = "Unused";
+        if (mutation == 5) changed.blockRecords.at("OnlyCube") = 0xFFFF;
+        auto unchanged = bindings;
+        if (!comparePhysical(changed, unchanged) && unchanged == bindings
+            && changed.rows.size() == original.rows.size()) ++rejected;
+    }
+    return rejected; // Oracle sensitivity, never converter rejection evidence.
+}
+
+} // namespace
+
+bool writeModelerBlockFile(const std::filesystem::path& path, bool binary) {
+    auto source = makeDrawing(true, true);
+    dx_iface exporter;
+    return exporter.fileExport(path.string(), DRW::AC1024, binary, source.get(), false, true);
+}
+
+bool verifyModelerBlockFile(const std::filesystem::path& path) { return verifyOutput(path); }
+
+bool runModelerBlockCodecTests(const std::filesystem::path& parent, bool keep) {
+    const auto directory = parent / ("libdxfrw-modeler-block-codec-" + std::to_string(
+        std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    bool passed = true;
+    std::size_t verified = 0, oracleRejections = 0;
+    for (bool binary : {false, true}) for (bool blocks : {false, true}) for (bool entities : {false, true}) {
+        const auto path = directory / (std::to_string(binary) + std::to_string(blocks)
+                                      + std::to_string(entities) + ".dxf");
+        auto source = makeDrawing(blocks, entities);
+        std::map<std::uint32_t, const DRW_Entity*> original;
+        for (const auto* entity : source->mBlock->ent) original.emplace(entity->handle, entity);
+        for (const auto* block : source->blocks)
+            for (const auto* entity : block->ent) original.emplace(entity->handle, entity);
+        dx_iface exporter;
+        std::map<std::uint32_t, std::uint32_t> emitted;
+        bool ok = exporter.fileExport(path.string(), DRW::AC1024, binary, source.get(), false, true)
+            && verifyOutput(path, &emitted);
+        for (const auto& entry : original)
+            ok = emitted.count(entry.first) == 1 && emitted[entry.first] == entry.second->handle && ok;
+        if (ok) ++verified;
+        passed = ok && passed;
+        if (!blocks && !entities) oracleRejections += physicalOracleControls(path);
+        dx_data imported;
+        dx_iface importer;
+        const auto second = directory / (path.stem().string() + "-second.dxf");
+        ok = importer.fileImport(path.string(), &imported, false)
+            && importer.fileExport(second.string(), DRW::AC1024, binary, &imported, false, true)
+            && verifyOutput(second);
+        if (ok) ++verified;
+        passed = ok && passed;
+    }
+    passed = oracleRejections == 12 && passed;
+    std::cout << "Modeler block codec handoff B2: " << (passed ? "PASS" : "FAIL")
+              << " (verified=" << verified << ", oracle_rejections=" << oracleRejections << ")\n";
+    if (passed && !keep) std::filesystem::remove_all(directory);
+    else std::cout << "Modeler block codec evidence: " << directory << '\n';
     return passed;
 }

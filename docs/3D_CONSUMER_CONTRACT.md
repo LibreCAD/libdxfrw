@@ -152,6 +152,17 @@ ASCII/binary tag matrix and generated ODA observations are recorded in the
 remains unqualified because both subject and calibration files fail that
 independent reader screen.
 
+The generated AC1024 legacy-SAT block profile separately checks modeler-only,
+mixed, nested shared and unreachable definitions, direct bodies and distinct
+INSERT placements. Raw and typed codec/actual-CLI checks preserve the four
+stored carriers and correlate entity/BLOCK/BLOCK_RECORD identities and owner
+links in ASCII/binary. SAT comparison reconstructs groups1/3 with caret
+unescaping; only the typed parser's terminal framing LF outside those chunks
+is excluded. This is bounded local transport evidence, not geometry expansion,
+native acceptance, nested DWG AcDs/SAB or general block-metadata support. The
+parent plan's B3 fail-closed conversion gate remains open; checker-mutation
+rejections are not converter failures.
+
 ## Consumer compatibility and probe evidence
 
 Completed DXF SPLINE/HELIX control-point payloads and HATCH spline boundaries
