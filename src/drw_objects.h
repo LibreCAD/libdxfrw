@@ -43,6 +43,7 @@
 
 class dxfReader;
 class dxfWriter;
+class DxfReadRetainedLease;
 class dwgBuffer;
 class dwgRW;
 
@@ -1055,6 +1056,10 @@ struct DRW_RawDxfObject {
   bool hasRawValues = false;
   DRW::Version m_version =
       DRW::UNKNOWNV; /*!< source DXF version, if captured */
+  // Shared logical-byte owner for captured string copies. Copies made by a
+  // consumer callback share this lease; they are not charged as library-owned
+  // duplicate destinations.
+  std::shared_ptr<DxfReadRetainedLease> m_retainedTextLease;
 };
 
 //! Lossless carrier for a DXF section that libdxfrw does not model.
@@ -1066,6 +1071,7 @@ struct DRW_RawDxfSection {
   std::vector<UTF8STRING> m_rawValues;
   bool m_hasRawValues = false;
   DRW::Version m_version = DRW::UNKNOWNV;
+  std::shared_ptr<DxfReadRetainedLease> m_retainedTextLease;
 };
 
 //! GROUP object (fixed type 72), carrying a named set of entity handles.

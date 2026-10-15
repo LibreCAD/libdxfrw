@@ -122,6 +122,80 @@ private:
     bool m_reserved;
 };
 
+// Logical byte owner for strings retained by one parsed value/carrier. The
+// owner is separate from reader-record charges so moves/callback publication
+// can keep the charge alive beyond the source token's invalidation.
+class DxfReadRetainedLease final {
+public:
+    explicit DxfReadRetainedLease(
+        std::shared_ptr<DxfReadRetainedBudget> retainedBudget) noexcept
+        : m_budget(std::move(retainedBudget)) {}
+
+    ~DxfReadRetainedLease() noexcept {
+        if (m_budget != nullptr && m_bytes != 0u)
+            m_budget->release(m_bytes);
+    }
+
+    bool bind(std::shared_ptr<DxfReadRetainedBudget> nextBudget,
+              std::size_t currentSize) noexcept {
+        if (nextBudget == m_budget)
+            return resizeTo(currentSize);
+        if (nextBudget != nullptr && !nextBudget->reserve(currentSize))
+            return false;
+        if (m_budget != nullptr && m_bytes != 0u)
+            m_budget->release(m_bytes);
+        m_budget = std::move(nextBudget);
+        m_bytes = m_budget != nullptr ? currentSize : 0u;
+        return true;
+    }
+
+    bool resizeTo(std::size_t nextSize) noexcept {
+        if (m_budget == nullptr) {
+            m_bytes = 0u;
+            return true;
+        }
+        if (nextSize > m_bytes) {
+            if (!m_budget->reserve(nextSize - m_bytes))
+                return false;
+        } else if (nextSize < m_bytes) {
+            m_budget->release(m_bytes - nextSize);
+        }
+        m_bytes = nextSize;
+        return true;
+    }
+
+    bool add(std::size_t bytes) noexcept {
+        const std::size_t maxSize =
+            (std::numeric_limits<std::size_t>::max)();
+        if (bytes > maxSize - m_bytes) {
+            if (m_budget != nullptr)
+                m_budget->reject();
+            return false;
+        }
+        return resizeTo(m_bytes + bytes);
+    }
+
+    bool adopt(DxfReadRetainedReservation& reservation) noexcept {
+        if (m_budget == nullptr || reservation.budget() != m_budget
+            || !reservation.reserved())
+            return false;
+        const std::size_t nextSize = reservation.transfer();
+        if (m_bytes != 0u)
+            m_budget->release(m_bytes);
+        m_bytes = nextSize;
+        return true;
+    }
+
+    std::size_t bytes() const noexcept { return m_bytes; }
+    const std::shared_ptr<DxfReadRetainedBudget>& budget() const noexcept {
+        return m_budget;
+    }
+
+private:
+    std::shared_ptr<DxfReadRetainedBudget> m_budget;
+    std::size_t m_bytes {0u};
+};
+
 class dxfReader {
 public:
     enum TYPE {

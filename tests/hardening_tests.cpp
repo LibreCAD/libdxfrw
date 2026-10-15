@@ -2138,6 +2138,23 @@ public:
     }
 };
 
+class RawCarrierRetentionSink final : public FuzzInterface {
+public:
+    void addRawDxfSection(const DRW_RawDxfSection& value) override {
+        ++sectionCount;
+        section = value;
+    }
+    void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        ++objectCount;
+        object = value;
+    }
+
+    DRW_RawDxfSection section;
+    DRW_RawDxfObject object;
+    std::size_t sectionCount {0u};
+    std::size_t objectCount {0u};
+};
+
 bool sameAdmissionDiagnostic(const DRW_OperationDiagnostic& a,
                              const DRW_OperationDiagnostic& b) {
     if (a.operation != b.operation || a.phase != b.phase || a.cause != b.cause
@@ -3297,6 +3314,89 @@ void testDxfMTextAssemblyBudget(TestContext& t) {
         t.expect(prefix && group1 && !admitted && budget->exceeded()
                      && entity.text == "abcd",
                  "MTEXT conversion input/output headroom rejects before appending an over-budget final group");
+    }
+}
+
+void testDxfRawCarrierRetentionBudget(TestContext& t) {
+    const std::string sectionSource =
+        "0\nSECTION\n2\nUNKNOWN\n1\npayload\n0\nENDSEC\n0\nEOF\n";
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(sectionSource.size() + 63u);
+        RawCarrierRetentionSink sink;
+        std::string content = sectionSource;
+        t.expect(codec.readAscii(&sink, false, content)
+                     && sink.sectionCount == 1u
+                     && sink.section.m_name == "UNKNOWN"
+                     && sink.section.m_groups.size() == 1u
+                     && sink.section.m_groups.front().code() == 1
+                     && sink.section.m_groups.front().type()
+                            == DRW_Variant::STRING
+                     && sink.section.m_groups.front().content.s != nullptr
+                     && *sink.section.m_groups.front().content.s == "payload"
+                     && sink.section.m_rawValues.size() == 1u
+                     && sink.section.m_rawValues.front() == "payload"
+                     && sink.section.m_retainedTextLease != nullptr
+                     && sink.section.m_retainedTextLease->bytes() == 21u
+                     && codec.m_activeDxfReadRetainedBudget->used() == 21u,
+                 "unknown-section name plus typed/raw string copies share a lifetime lease at their exact generated peak");
+        auto budget = codec.m_activeDxfReadRetainedBudget;
+        sink.section = DRW_RawDxfSection{};
+        t.expect(budget->used() == 0u,
+                 "dropping the consumer's section value releases the shared carrier lease");
+    }
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(sectionSource.size() + 62u);
+        RawCarrierRetentionSink rejected;
+        std::string content = sectionSource;
+        const bool sectionRead = codec.readAscii(&rejected, false, content);
+        t.expect(!sectionRead
+                     && rejected.sectionCount == 0u
+                     && codec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && codec.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget",
+                 "raw section carrier insertion rejects before the over-budget group is copied or published");
+    }
+
+    const std::string objectSource =
+        "0\nSECTION\n2\nOBJECTS\n0\nACMEOBJECT\n5\nA1\n1\npayload\n"
+        "0\nENDSEC\n0\nEOF\n";
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(objectSource.size() + 70u);
+        RawCarrierRetentionSink sink;
+        std::string content = objectSource;
+        t.expect(codec.readAscii(&sink, false, content)
+                     && sink.objectCount == 1u
+                     && sink.object.name == "ACMEOBJECT"
+                     && sink.object.groups.size() == 2u
+                     && sink.object.groups[0].content.s != nullptr
+                     && *sink.object.groups[0].content.s == "A1"
+                     && sink.object.groups[1].content.s != nullptr
+                     && *sink.object.groups[1].content.s == "payload"
+                     && sink.object.rawValues.size() == 2u
+                     && sink.object.rawValues[0] == "A1"
+                     && sink.object.rawValues[1] == "payload"
+                     && sink.object.m_retainedTextLease != nullptr
+                     && sink.object.m_retainedTextLease->bytes() == 28u
+                     && codec.m_activeDxfReadRetainedBudget->used() == 28u,
+                 "raw object name and source/typed value copies remain charged across record boundaries and publication");
+    }
+    {
+        dxfRW codec(nullptr);
+        codec.setDxfReadRetainedByteBudget(objectSource.size() + 69u);
+        RawCarrierRetentionSink rejected;
+        std::string content = objectSource;
+        const bool objectRead = codec.readAscii(&rejected, false, content);
+        t.expect(!objectRead
+                     && rejected.objectCount == 0u
+                     && codec.getLastDiagnostic().cause
+                            == DRW::OperationCause::ResourceLimit
+                     && codec.getLastDiagnostic().code
+                            == "dxf-retained-byte-budget",
+                 "raw object typed/raw destination growth rejects before callback publication");
     }
 }
 
@@ -5315,6 +5415,7 @@ int main() {
     testDxfOwnedSnapshotBudget(context);
     testDxfReaderRecordTextBudget(context);
     testDxfMTextAssemblyBudget(context);
+    testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);

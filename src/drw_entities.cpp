@@ -35,59 +35,6 @@
 #include "intern/dwgreader.h"
 #include "intern/dwgsafety.h"
 
-struct DRW_DxfRetainedTextLease final {
-    explicit DRW_DxfRetainedTextLease(
-        std::shared_ptr<DxfReadRetainedBudget> retainedBudget) noexcept
-        : budget(std::move(retainedBudget)) {}
-
-    ~DRW_DxfRetainedTextLease() noexcept {
-        if (budget != nullptr && bytes != 0u)
-            budget->release(bytes);
-    }
-
-    bool bind(std::shared_ptr<DxfReadRetainedBudget> nextBudget,
-              std::size_t currentSize) noexcept {
-        if (nextBudget == budget)
-            return resizeTo(currentSize);
-        if (nextBudget != nullptr && !nextBudget->reserve(currentSize))
-            return false;
-        if (budget != nullptr && bytes != 0u)
-            budget->release(bytes);
-        budget = std::move(nextBudget);
-        bytes = budget != nullptr ? currentSize : 0u;
-        return true;
-    }
-
-    bool resizeTo(std::size_t nextSize) noexcept {
-        if (budget == nullptr) {
-            bytes = 0u;
-            return true;
-        }
-        if (nextSize > bytes) {
-            if (!budget->reserve(nextSize - bytes))
-                return false;
-        } else if (nextSize < bytes) {
-            budget->release(bytes - nextSize);
-        }
-        bytes = nextSize;
-        return true;
-    }
-
-    bool adopt(DxfReadRetainedReservation& reservation) noexcept {
-        if (budget == nullptr || reservation.budget() != budget
-            || !reservation.reserved())
-            return false;
-        const std::size_t nextSize = reservation.transfer();
-        if (bytes != 0u)
-            budget->release(bytes);
-        bytes = nextSize;
-        return true;
-    }
-
-    std::shared_ptr<DxfReadRetainedBudget> budget;
-    std::size_t bytes {0u};
-};
-
 namespace {
 
 DRW_Coord extrusionUnitVector(DRW_Coord direction) {
@@ -13532,7 +13479,7 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 
         if (!m_dxfRetainedTextLease) {
             m_dxfRetainedTextLease =
-                std::make_shared<DRW_DxfRetainedTextLease>(budget);
+                std::make_shared<DxfReadRetainedLease>(budget);
         }
         if (!m_dxfRetainedTextLease->bind(budget, text.size()))
             return false;

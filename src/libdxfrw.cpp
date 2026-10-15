@@ -9914,6 +9914,13 @@ bool dxfRW::processRawDxfSection(const std::string& sectionName) {
         return setError(DRW::BAD_READ_SECTION);
 
     DRW_RawDxfSection section;
+    const auto& retainedBudget = reader->retainedByteBudget();
+    if (retainedBudget != nullptr) {
+        section.m_retainedTextLease =
+            std::make_shared<DxfReadRetainedLease>(retainedBudget);
+        if (!section.m_retainedTextLease->add(sectionName.size()))
+            return failDxfReadRetainedBudget();
+    }
     section.m_name = sectionName;
     section.m_hasRawValues = !binFile;
     DxfRawHandleLexemeScope handleLexemes(*reader);
@@ -9932,6 +9939,7 @@ bool dxfRW::processRawDxfSection(const std::string& sectionName) {
         }
 
         DRW_RawDxfObject group;
+        group.m_retainedTextLease = section.m_retainedTextLease;
         if (!captureRawGroup(group, code, /*validateHandles=*/true)) {
             recordInvalidRawHandleDiagnostic();
             return setError(DRW::BAD_CODE_PARSED);
@@ -16041,6 +16049,22 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
     if (obj.m_version == DRW::UNKNOWNV)
         obj.m_version = reader->getSourceVersion();
     obj.hasRawValues = !binFile;
+    const auto& retainedBudget = reader->retainedByteBudget();
+    if (retainedBudget != nullptr) {
+        if (!obj.m_retainedTextLease) {
+            obj.m_retainedTextLease =
+                std::make_shared<DxfReadRetainedLease>(retainedBudget);
+            // Object names were copied from nextentity before the first data
+            // pair. Attach their already-bounded token length to the carrier
+            // owner before adding any further retained string destinations.
+            if (!obj.m_retainedTextLease->add(obj.name.size()))
+                return false;
+        } else if (obj.m_retainedTextLease->budget() != retainedBudget
+                   && !obj.m_retainedTextLease->bind(
+                       retainedBudget, obj.m_retainedTextLease->bytes())) {
+            return false;
+        }
+    }
     if (validateHandles && isDxfHandleReferenceCode(code)) {
         const bool validHandle = reader->allowsWideHandleLexemes()
             ? reader->isValidHandleLexeme()
@@ -16085,8 +16109,29 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
         if (rawHandle != 0)
             m_readRawHandles.insert(rawHandle);
     }
+    const std::string& rawValue = reader->getRawValue();
+    const RawValType valueType =
+        classifyDxfCode(code, reader->classifierProfile());
+    std::size_t retainedCopyBytes =
+        valueType == RawValType::Str ? rawValue.size() : 0u;
+    if (!binFile) {
+        const std::size_t maxSize =
+            (std::numeric_limits<std::size_t>::max)();
+        if (rawValue.size() > maxSize - retainedCopyBytes) {
+            if (retainedBudget != nullptr)
+                retainedBudget->reject();
+            return false;
+        }
+        retainedCopyBytes += rawValue.size();
+    }
+    const std::size_t previousRetainedBytes =
+        obj.m_retainedTextLease != nullptr
+            ? obj.m_retainedTextLease->bytes() : 0u;
+    if (obj.m_retainedTextLease != nullptr
+        && !obj.m_retainedTextLease->add(retainedCopyBytes))
+        return false;
     try {
-        switch (classifyDxfCode(code, reader->classifierProfile())) {
+        switch (valueType) {
         case RawValType::Int16:
         case RawValType::Int32:
         case RawValType::Bool:
@@ -16114,6 +16159,8 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
         obj.rawValues.emplace_back(binFile ? std::string{}
                                             : reader->getRawValue());
     } catch (...) {
+        if (obj.m_retainedTextLease != nullptr)
+            (void)obj.m_retainedTextLease->resizeTo(previousRetainedBytes);
         return false;
     }
     if (5 == code && obj.handle == 0) {
@@ -18733,7 +18780,14 @@ DRW_OperationDiagnostic dxfRW::getLastDiagnostic() const {
 }
 
 bool dxfRW::setError(const DRW::error lastError){
-    if (m_readTokenBudgetActive && reader != nullptr
+    if (reader != nullptr && reader->retainedByteBudget() != nullptr
+        && reader->retainedByteBudget()->exceeded()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,
+            "dxf-retained-byte-budget",
+            "the aggregate DXF retained-byte budget was exhausted");
+        error = DRW::BAD_CODE_PARSED;
+    } else if (m_readTokenBudgetActive && reader != nullptr
         && reader->tokenByteBudgetExceeded()) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,

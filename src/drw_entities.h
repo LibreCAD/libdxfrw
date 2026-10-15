@@ -27,7 +27,7 @@
 #include "drw_acis.h"
 
 class dxfReader;
-struct DRW_DxfRetainedTextLease;
+class DxfReadRetainedLease;
 class dwgBuffer;
 class dwgRW;
 class DRW_Polyline;
@@ -2172,7 +2172,7 @@ private:
     // MTEXT chunks may span many physical group-3/group-1 records. Keep the
     // aggregate logical text charge with the parsed value through callback
     // publication/destruction, not just with the most recent reader token.
-    std::shared_ptr<DRW_DxfRetainedTextLease> m_dxfRetainedTextLease;
+    std::shared_ptr<DxfReadRetainedLease> m_dxfRetainedTextLease;
 
 public:
     double interlin;              /*!< linespacing factor, code 44 */
