@@ -3,7 +3,19 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
-**Latest research-only handoff (baseline `5c3c76e`):** the
+**Latest research-only handoff (committed baseline `704832b`):** the
+[conversion-loss, graph and oracle-readiness refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-conversion-loss-graph-and-oracle-readiness-refresh-2026-10-15)
+adds32 authored actual-CLI routes/64 final-run processes and four executed
+ezdxf transform controls. It distinguishes source loss, target scalar loss,
+valid CIF transport, projected-geometry omissions and raw ACIS carriers;
+none is independent native solid evidence. Existing HEADER-provenance WIP is
+preserved/uncommitted, with recovered integration4/5 and a stale GEODATA
+fixture premise to reconcile before acceptance. The bounded3.2b.1–3.2b.2d
+delivery sequence requires no new external tool or full suite per substep.
+Durable evidence: docs/research/broader-conversion-readiness-2026-10-15.json.
+All six J gates remain`DEFERRED_EXTERNAL`; ledger/support claims are unchanged.
+
+**Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
 adds140 current-source codec observations and a bounded3.1–3.5 implementation
 sequence. It also sharpens FIELD graph, GDAL/XClip projection, peer AcDs safety
@@ -109,7 +121,15 @@ modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
 four default/R12 compatibility controls and actual CLI no-output checks.
 S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
 nested DWG AcDs/SAB and native geometry remain unqualified. Next local work is
-parity Slice3.2b owned declaration provenance and strict conversion policy.
+review/integration of parity Slice3.2b.1's existing owned declaration candidate,
+after correcting the unmodified hardening fixture's v1/modern GEODATA premise
+and rerunning its fast gate. The recovered integration run is4/5, not an
+all-green acceptance. Then3.2b.2a–d adds bounded source-text observations,
+owned DXF import outcomes, strict complete-conversion admission and lossless
+target scalar transport; ordinary2D defaults remain compatible.32 authored
+CLI routes demonstrate that second-pass byte stability is insufficient.
+Source/parser validity, transformed projection and native B-rep qualification
+remain separate; an ignored geometry-oracle error cannot unblock ACIS claims.
 Slice3.2a now preserves naming categories through HEADER reapply and publishes
 bounded nonfatal DXF advisories, with178 selector checks/84 handoffs and focused
 3/3 passing. All140 previous codec observations are unchanged; mapping/default
@@ -6661,7 +6681,7 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity Slice3.2b):
+local work is parity Slice3.2b.1 candidate review/fast-gate repair, then3.2b.2):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,
