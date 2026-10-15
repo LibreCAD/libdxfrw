@@ -217,38 +217,38 @@ J293/J295 stay `DEFERRED_EXTERNAL` and non-promoting. The follow-up source
 refresh is documentation-only as well: it adds no fixtures, dependencies,
 peer builds, external executions, registrations, or support claims.
 
-**Latest implementation checkpoint:** `6589ad1` (empty generic raw-carrier
-name admission, `7S.2c.d.17.5`), following binary carrier test `556ebdc` and
-`6a388d6`
-(`Plan-Slice: 7S.2c.d.17.4 proxy-payload ownership`), 2026-10-14. The committed
-`7S.2a`–`7S.2c` sequence extends aggregate logical-input admission into bounded
-snapshots, per-record/getter expansion, MTEXT, raw carriers, and the named
-typed-field owners recorded in the ledger. The latest slice charges decoded
-DXF proxy code310/311 payloads for entity and object typed owners; exact
-generated entity/object `+141`/`+140` controls and64-byte `+885`/`+884` controls
-pass, including rejection diagnostics and no callback publication on quota
-failure. `libdxfrw_hardening_tests` and strict `lc3_compat_check` build pass;
-no DWG/DXF fixture or CTest was added. The generated binary object test also
-passes and confirms the raw carrier's exact retained string length, canonical
-`AABB` spelling, separate `AA BB` typed bytes, and `hasRawValues == false`.
-The test writes only a temporary generated file and removes it. This is
-retained-byte accounting only. The follow-on fix reserves an otherwise missed
-name-only copy on generic unknown OBJECTS/ENTITIES records before callback;
-both in-memory generated routes pass exact `snapshot + 7*8` and one-byte-under
-controls without a fixture. Specialized typed routes which also publish a raw
-carrier, public mutation, writer copies, typed-projection scratch and remaining
-empty-carrier forms are still outside this slice. This is
-not proxy-graphics semantic support; its public layout additions require
-consumer rebuild and no binary-ABI claim is made. The one-GiB acquired-input
-limit remains separate from retained logical-byte charges, allocator capacity,
-RSS, and caller-owned callback copies. Prior 7BO full-map publication/reuse
-evidence remains at`7050c3e`; prior diagnostic-only AC1021/AC1024 conversion
-failures in strict DXF emission remain non-qualification. Next work is remaining
-empty/raw carrier, public-mutation, writer-copy and typed-projection accounting,
-then7S.2d decoded-work/node charging; retain a single composed checkpoint at
-the relevant milestone rather than rerunning full suites per field. Counts are
-120 findings/69 subplans; six external J items, full adapter/native compatibility,
-and support claims are unchanged.
+**Latest implementation checkpoint:** `5fececd` (`7S.2d.1` repeated MTEXT
+prefix decode-work), following `837f461` (`7S.2c.d.17.5` empty generic
+raw-carrier name admission), binary carrier test `556ebdc`, and `6a388d6`
+(`7S.2c.d.17.4` proxy-payload ownership), 2026-10-14. The committed `7S.2a`–
+`7S.2c` sequence extends aggregate logical-input admission into bounded
+snapshots, per-record/getter expansion, MTEXT lifetime, raw carriers, and the
+named typed-field owners recorded in the ledger. Its latest retained-byte
+controls include decoded DXF proxy code310/311 payloads, exact generated
+entity/object and 64-byte payload limits, binary raw `AABB` versus typed `AA BB`
+ownership, and empty generic unknown OBJECTS/ENTITIES records. The new `7S.2d.1`
+slice adds a separate caller-raiseable default 1-GiB deterministic decode-work
+budget. `DRW_MText::parseCode` charges the next accumulated code-1 prefix size
+before append/decode, so repeated code-1 groups cannot revisit an uncharged
+prefix; code-3 assembly is deliberately not counted by this work unit. Generated
+group3→group1 exact-six/one-under-five, repeated-group1 exact-five/one-under-
+four, direct six-visit counter, and same-facade raised-budget retry controls
+pass. `libdxfrw_hardening_tests` and strict `lc3_compat_check` build; hardening
+vectors pass. No DWG/DXF fixture or CTest was added. This is scoped
+instrumentation, not a claim that all parser loops, variant slots, or nodes are
+charged, and it is not format/semantic support evidence. The additive facade
+budget member changes public `dxfRW` layout and requires downstream rebuild; no
+binary-ABI claim is made. The one-GiB acquired-input cap remains separate from
+decode work, retained logical bytes, allocator capacity, RSS, and caller-owned
+callback copies. Specialized typed/raw carriers, public mutation, writer copies,
+typed-projection scratch, and remaining empty-carrier forms remain open; so do
+other parser decode loops and variant/node accounting. Prior 7BO full-map
+publication/reuse evidence remains at `7050c3e`; diagnostic-only AC1021/AC1024
+conversion failures in strict DXF emission remain non-qualification. Continue
+the smallest generated fast-test slices, then compose at the named milestone;
+do not rerun full suites per field. Counts remain120 findings/69 subplans; six
+external J items, full adapter/native compatibility, and support claims are
+unchanged.
 
 **Previous research boundary:** `25adc7f5201a101f5298394aa0f37796b43d2b91`
 (2026-10-14). Tracked worktree/index were clean at entry. This update changes
@@ -3325,7 +3325,7 @@ failure does not prevent completing them:
 | 7F.1b /7AH | Migrate the typed result/runner together, including optional modeler source presence and readable bounded observations. | Frozen-schema compatibility plus unknown/zero/presence/omission mutations, then clean/partial/opaque read/readback sentinels. |
 | 7AK.6, integrated | Preserve policy-aware binding/first-discovery validation and exact current-source package acceptance. |20 composed original/moved static/shared components pass; old timeout remains historical. Actual older/native/Conan/ABI cells stay separate. |
 | Slice8 verifier contract, integrated | Preserve scoped geometry/unit/typed-topology/raw-coverage separation and self-test-only explicit helper loading. |81 controls pass in ordinary/isolated CPython3.9/3.12. Native producer, parser/kernel execution and independent semantic qualification remain separate; qualificationEligible stays false. |
-| 7S.2a–d | 7S.2a input-byte accounting is committed at`c090d70`; owned snapshot7S.2b at`7146e94`; comments7S.2c.a at`d826969`; reader token/raw buffers7S.2c.b at`39409ce`; decoded getter-output headroom7S.2c.c.1 at`1ac27ee`; MTEXT lifetime7S.2c.c.2 at`80673ee`; captured raw-carrier strings7S.2c.d.1 at`cfafe39`; common entity/table 102 appData strings7S.2c.d.2 at`8e29783`; common entity layer/linetype/color-book and table-name replacement7S.2c.d.3 at`ea2b92e`; entity/table typed XDATA strings7S.2c.d.4 at`fd3c2e2`; derived TEXT-family/ARCALIGNEDTEXT style7S.2c.d.5 at`f96b4fb`; ATTRIB/ATTDEF tag7S.2c.d.6 at`c31cfcf`; ATTDEF prompt7S.2c.d.7 at`8a19cca`; DIMENSION style7S.2c.d.8 at`92d8a46`; LEADER style7S.2c.d.9 at`801cd45`; DIMENSION text7S.2c.d.10 at`438592e`; TOLERANCE text7S.2c.d.11 at`ce5ee41`; TOLERANCE style name7S.2c.d.12 at`b4deb55`; BLOCK xref path7S.2c.d.13 at`84637c1`; BLOCK name7S.2c.d.14 at`fdfef86`; MLINE style name7S.2c.d.15 at`beedee8`; OLE2FRAME client7S.2c.d.16 at`fc4b873`. Continue other derived fields and empty-carrier/public-mutation, writer-copy and typed-projection ownership within7S.2c, then decoded work/nodes7S.2d as separate commits. | Tiny exact/over caps, Big5-HKSCS expansion, MTEXT exact-peak/prefix rollback/destruction, raw-section/object, entity/table appData and common-string exact-peak/copy-reset/release, same-facade reset and carrier replacement/clear controls in existing hardening targets; one sanitizer checkpoint after shared storage/lifetime changes settle, not a full suite per sub-slice. |
+| 7S.2a–d | 7S.2a input-byte accounting is committed at`c090d70`; owned snapshot7S.2b at`7146e94`; comments7S.2c.a at`d826969`; reader token/raw buffers7S.2c.b at`39409ce`; decoded getter-output headroom7S.2c.c.1 at`1ac27ee`; MTEXT lifetime7S.2c.c.2 at`80673ee`; captured raw-carrier strings7S.2c.d.1 at`cfafe39`; common entity/table 102 appData strings7S.2c.d.2 at`8e29783`; common entity layer/linetype/color-book and table-name replacement7S.2c.d.3 at`ea2b92e`; entity/table typed XDATA strings7S.2c.d.4 at`fd3c2e2`; derived TEXT-family/ARCALIGNEDTEXT style7S.2c.d.5 at`f96b4fb`; ATTRIB/ATTDEF tag7S.2c.d.6 at`c31cfcf`; ATTDEF prompt7S.2c.d.7 at`8a19cca`; DIMENSION style7S.2c.d.8 at`92d8a46`; LEADER style7S.2c.d.9 at`801cd45`; DIMENSION text7S.2c.d.10 at`438592e`; TOLERANCE text7S.2c.d.11 at`ce5ee41`; TOLERANCE style name7S.2c.d.12 at`b4deb55`; BLOCK xref path7S.2c.d.13 at`84637c1`; BLOCK name7S.2c.d.14 at`fdfef86`; MLINE style name7S.2c.d.15 at`beedee8`; OLE2FRAME client7S.2c.d.16 at`fc4b873`; single-line TEXT value7S.2c.d.17.1 at`794d788`; ARCALIGNEDTEXT font names7S.2c.d.17.2 at`16c4dac`; D2T strings7S.2c.d.17.3 at`ec77b3d`; decoded proxy payload7S.2c.d.17.4 at`6a388d6`; empty generic raw names7S.2c.d.17.5 at`6589ad1`; and scoped repeated-MTEXT decode work7S.2d.1 at`5fececd`. Remaining typed/raw carrier routes, public mutation, writer copies, typed-projection scratch, empty-carrier forms, and variant/node accounting are independent bounded follow-ups. | Existing hardening target covers exact/over retained-byte admission, ownership/copy/reset/release, proxy-carrier paths and the deterministic MTEXT code-1 prefix work counter; strict `lc3_compat_check` remains source compatibility only. Run one sanitizer checkpoint after shared storage/lifetime changes settle, not a full suite per sub-slice. |
 
 | Sub-slice | Current readiness | Main dependency | Smallest existing validation lane |
 | --- | --- | --- | --- |
@@ -4994,7 +4994,9 @@ DWG page/object/block caps before extending any uncovered aggregate scope.
 | 7S.2c.d.17.3 ARCALIGNEDTEXT D2T strings | COMMITTED / ARC_D2T_OWNER_SCOPED | `ec77b3d` retains all six group41–46 numeric-to-text fields with independent live-byte counters on the shared owner lease. Before `arcAlignedD2T` formats a value, a conservative16-byte reservation bounds the six-significant-digit double spelling (at most13 bytes for a finite double); the reservation shrinks to actual temporary length, then destination replacement is admitted before the old field charge is released. Reset clears all six counters; implicit copy/assignment preserve them. | Exact23/over22 group42 replacement proves the preformat reservation and prior-field preservation. Copy/assignment survive sibling reset and release at the final owner. All six group41–46 mappings pass with canonical output, including the maximum finite exponent; after reader teardown their final logical values retain32 bytes and reset returns usage to0. Strict `libdxfrw_hardening_tests`/`lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Adds a private counter array to public `DRW_ArcAlignedText` layout: downstream rebuild required; binary ABI is not claimed. Remaining empty/raw carriers, public mutation, writer copies and typed projections stay open. |
 | 7S.2c.d.17.4 DXF proxy payload ownership | COMMITTED / PROXY_PAYLOAD_OWNER_SCOPED | `6a388d6` charges decoded code310/311 bytes on a shared retained lease for `ACAD_PROXY_ENTITY` and `ACAD_PROXY_OBJECT`. ASCII hex is charged for its temporary spelling, decoded payload, and entity's vector-to-string peak; the temporary capture allocation is released before that peak reservation expires. Entity/object callbacks keep the payload lease with the published typed owner. | Generated entity and object exact `+141` / one-under `+140` controls verify raw/typed publication boundaries; generated64-byte entity hex control passes exact `+885` and rejects `+884`, with resource diagnostic and no callbacks. Entity `numProxyGraph` remains the original payload length; copy/callback and raw-carrier contents are asserted. A generated binary DXF proxy object additionally proves that code310 remains canonical `AABB` in its raw `DRW_Variant`, the typed payload is separately decoded to `AA BB`, and the raw-carrier lease accounts for the retained name/string variants exactly once (`hasRawValues == false`); the temp input is removed and no fixture is committed. `libdxfrw_hardening_tests` plus `lc3_compat_check` build and hardening execution pass. No fixture/new registration/support promotion. Proxy object/entity base lease members already change public layouts and require downstream rebuild; binary ABI is not claimed. Empty/raw-only carriers, public mutation, writer-side copies and typed-projection scratch remain outside this row. |
 | 7S.2c.d.17.5 empty generic raw-carrier names | COMMITTED / EMPTY_GENERIC_RAW_NAME_SCOPED | `6589ad1` adds `copyRawDxfCarrierName()` for the generic unknown OBJECTS/ENTITIES fallback. It reserves the raw record name on a `DxfReadRetainedLease` before copying it, so an empty record that never invokes `captureRawGroup()` no longer escapes aggregate retained-byte admission. Existing nonempty paths share this lease and do not charge the name twice; no public model layout changes. | Generated unknown object and entity records with no groups pass the exact `snapshot + (6×8 current-record text/raw/getter bound) + 8-byte retained name` cap; each `cap−1` case reports `dxf-retained-byte-budget` before raw callback. Hardening and strict `lc3_compat_check` build pass. No fixture/registration/CTest/support promotion. Specialized typed raw-carrier routes, other empty-carrier forms, public mutation, writer-side copies and typed-projection scratch remain open. |
-| 7S.2d decoded work/nodes | Charge bytes actually revisited by decoding and inspected variant/container slots separately from input bytes. A final MTEXT group1 decodes the accumulated prefix; repeated group1 can revisit it repeatedly. Preserve accepted grammar unless separately changed. | Small group3…group1 positive and repeated-group1 malformed-input control with deterministic visited-byte counters, not a timing or large-allocation test. |
+| 7S.2d decoded work/nodes | `7S.2d.1` is committed at`5fececd`: charge the next assembled MTEXT code-1 prefix length before append/decode, using a separate deterministic caller-raiseable decode-work budget. This is scoped instrumentation; group3 assembly, parser loops outside the instrumented path, and variant/container slots are not covered. Continue instrumenting one demonstrated revisit/iteration unit at a time without changing accepted grammar. | The existing hardening target proves grouped code3→code1 exact-six/one-under-five, repeated code1 exact-five/one-under-four, direct visit count six, work-specific diagnostic, no rejected callback and same-facade raised-budget retry. Next ready work is separate variant/container-node accounting or another locally demonstrated repeated-decode loop; use tiny generated limits and deterministic counters, never timing or large-allocation thresholds. |
+| 7S.2d.1 MTEXT prefix decode-work | COMMITTED / MTEXT_PREFIX_WORK_SCOPED | `5fececd` adds a separate default 1-GiB deterministic decode-work budget to the DXF facade/reader. `DRW_MText::parseCode` reserves the next accumulated code-1 prefix size before append/decode; repeated code1 therefore charges repeated prefix visits. The work unit is instrumented byte visits, not CPU time, input bytes, retained bytes, allocator capacity or RSS. Code3-only assembly and uninstrumented parser paths are explicitly excluded. | Generated grouped code3→code1 exact6/over5 and repeated-group1 exact5/over4 controls pass; direct reader counter observes6 visits, the work-budget diagnostic precedes callback, and the same facade succeeds after raising its budget. `libdxfrw_hardening_tests` plus strict `lc3_compat_check` build and hardening run pass. No fixture/CTest. The new facade budget field changes public `dxfRW` layout and requires downstream rebuild; binary ABI is not claimed. Not a whole-parser complexity bound or support promotion. Next: bounded typed-variant/container-slot admission and remaining code-1 decode loops only where source inspection demonstrates repeated work. |
+| 7S.2c/7S.2d sequencing correction | UPDATED | The earlier `7S.2c` summary predates `7S.2c.d.17.1–17.5` and the start of `7S.2d`; do not read its “then7S.2d” sentence as a prerequisite ordering. `7S.2d.1` is already committed while independent `7S.2c` raw-carrier/public-mutation/writer-copy/projection scopes remain open. | Continue independent bounded slices by lowest-cost demonstrated gap. Neither `7S.2c` completion nor full parser-wide node accounting blocks unrelated implementation. Keep a later composed resource/lifetime checkpoint, not full-suite runs per sub-slice. |
 
    The current snapshot-isolation control passes against archive284a7f1f: the
    first callback replaces caller content with six-byte EOF input, while the
@@ -9915,3 +9917,40 @@ local fix. Compose reader/writer tests once the touched helper pair settles;
 reserve full suites and platform/native handoffs for their named milestones.
 This update changes no new finding/subplan; counts remain120/69, and all six
 external J items remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Independent 3D-reader and carrier-path research refresh (2026-10-14; plan-only)
+
+This deeper source review uses implementation HEAD `5fececd` and broadens the
+previous comparator survey across an official standalone ACIS reader, current
+SAT/SAB parser contracts, the DWG-to-DXF and DXF-writer routes, and Autodesk's
+3DSOLID carrier contract. The objective is to make the external qualification
+gate actionable without confusing platform availability, opaque-byte retention,
+parser acceptance, or shape semantics. No peer was installed or executed; no
+DWG/DXF payload was downloaded or committed; no new local finding, test
+registration, dependency, support claim, or external qualification is added.
+Mutable `main`/`master` links are discovery references; record exact source,
+release, executable, licensing/entitlement, and architecture before any run.
+
+| Primary source | Deeper finding and evidence limit | Plan/readiness update |
+| --- | --- | --- |
+| Ansys [ACIS interface v261](https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadACIS.html), [Linux support matrix](https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadLinux.html), and [Windows support matrix](https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadWindows.html) | The 2026 R1 documentation describes a standalone SAT/SAB reader, lists geometry through ACIS 2023 for Windows/Linux, and accepts solid, surface, and line bodies. It says CAD parameters and associativity are unsupported; hidden/suppressed parts are skipped; units are taken from the file when present but require caller selection if absent; it cannot save the reader file. The platform tables name x86-64 Linux and Windows, not macOS/ARM64. “Standalone” and a separate vendor product do not alone prove parser/kernel lineage or semantic independence. | This candidate cannot satisfy the previously selected official macOS ARM64 route. Preserve that platform constraint; do not substitute Linux/Windows evidence or OCCT-based FreeCAD/`cq-acis` output. First do a no-install availability check for an officially supported macOS ARM64 non-OCCT reader. If none is found, record that external gate as unavailable and continue local implementation; platform substitution requires explicit user direction. If Ansys is later authorized as a separate supplemental route, bind the exact x86-64 binary, entitlement, import profile, SAT/SAB inner version, units, visibility options, diagnostics and observed bodies; establish lineage before calling it independent. Treat its geometry-only result as non-associative and do not infer save/reopen capability from the import API. |
+| [`cq-acis` README](https://github.com/monozukuri-ai/cq-acis/blob/main/README.md), [geometry support matrix](https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md), and [`acis-core` API contract](https://docs.rs/acis-core/latest/acis_core/) | The project labels itself experimental and lists selected SAT save versions and SAB/ASM profiles. Unsupported records may remain raw and conversion can fail when a requested shape cannot be built at source precision; explicit NURBS admission is narrow and other procedural profiles stay unsupported. `acis-core` validates indices/references/source ranges, but explicitly does not prove B-rep validity or compatibility with a producer/kernel profile; SAB history remains opaque and source-free box authoring is restricted to one exact generated profile. These components share the cq-acis project and OCCT geometry path already identified in Slice 8. | Keep parser/reference-closure, raw-record coverage, typed topology, completed shape construction and kernel validity as separate fields. For every generated or producer-derived body, report total source records, typed versus raw/unsupported entities, diagnostics, converted bodies, failed/omitted bodies, and per-body geometry; do not accept one valid shape or a high decoded count as full-file success. Freeze the exact package/profile before using it. No new dependency or local test target is warranted. |
+| LibreDWG [issue #1411](https://github.com/LibreDWG/libredwg/issues/1411), Autodesk [3DSOLID DXF group-code reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm), and the local authoritative ODA v5.4.1 §7/§24 review | #1411 reports that one release-profile LibreDWG build (`8a1ae764`, 0.14.8593) keeps AC1027+ REGION shells but loses their AcDs/SAB geometry; its supplied ezdxf recipe generates an R2018 DXF with a real SAB body, so a proprietary DWG is not required for a carrier regression. The issue is version-bound and not independently reproduced here. Autodesk separately specifies DXF group70 modeler version, repeated group1/3 proprietary payload lines and group350 history reference. ODA's DWG AcDs container/index rules remain authoritative for the DWG route; SAT/SAB grammar is a separate dependency. | Keep S8.1–S8.4 as distinct DWG AcDs versus DXF-inline carriers. Turn the issue recipe into a local ephemeral generator/control only after pinning the ezdxf producer and inspecting the SAB header; assert section presence, record-index/handle ownership, exact payload extraction and entity/history handle closure before any kernel call. On DXF, assert group1/3 split/join ordering and group350 independently. For both routes, an entity shell, successful conversion status, or exact opaque bytes is not a shape-semantic pass. Do not check in the generated drawing or use the issue's confidential real DWG. |
+| ACadSharp [issue #1195](https://github.com/DomCR/ACadSharp/issues/1195) and [PR #1240](https://github.com/DomCR/ACadSharp/pull/1240) | The issue reports DWG solids/regions omitted silently by ACadSharp 3.4.9's DWG→DXF writer, including solids nested in blocks. As of this research read, PR #1240 remains open, has no reviews or deployment, depends on schema/storage PR #1174, and its branch describes version-checked modeler serialization with warnings for unsupported binary data. This is source/peer-route evidence, not current-release output or a local defect. | Keep S8.5's route checkpoints: source entity decoded → raw/typed callback → block-definition retention → writer admission/skip diagnostic → emitted carrier → independently reopened geometry. Run the nested-block/mixed 2D+3D controls only against a pinned merged release or exact branch and label it experimental otherwise. Keep the main-space and block-definition census separate; entity-count equality alone would miss an empty block. |
+| Ansys v261 platform matrices and previous user-selected target | The official published candidate is absent for the selected macOS ARM64 platform; the documentation provides only Linux x86-64 and Windows x86-64 tables. None of the reviewed OCCT-derived candidates resolves that gap because they share the FreeCAD kernel lineage, and their source/package availability does not establish an official macOS ARM64 binary. | Add an explicit stop-condition only to the *external reader subgate*: no accepted substitute means report `EXTERNAL_READER_UNAVAILABLE` and leave J items deferred, while all ready source-local fixes and generated fast checks continue. Do not hold unrelated implementation, change a qualification denominator, or imply the unresolved gate can be bypassed. |
+
+**Implementation-readiness delta:** the cheapest next ACIS work remains local and
+deterministic: (1) pin/inspect the generator and inner SAB profile, (2) add the
+generated temporary input through existing fast/hardening machinery, (3) assert
+DWG AcDs index-to-handle joins or DXF group1/3/history fields, (4) separately
+measure independent geometry only when a permitted matching reader exists.
+External-reader discovery is a short preflight, not a prerequisite for carrier,
+budget, or diagnostics fixes. Any future reader result must record platform,
+build/profile, parser identity, import options, units, hidden-body treatment,
+warnings, complete source-to-output body inventory, and independent expected
+bounds/centroid/volume/interior probes where meaningful. A parser's validity
+check, its own writer/readback, or a shared OCCT shape is not independent
+semantic evidence. The selected macOS ARM64 gate is unresolved; Ansys is not a
+substitute. Counts remain120 findings/69 subplans; `J256`, `J260`, `J268`,
+`J284`, `J293` and `J295` remain `DEFERRED_EXTERNAL`, and none of this research
+promotes a support claim.
