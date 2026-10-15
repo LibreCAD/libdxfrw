@@ -9445,7 +9445,10 @@ bool DRW_Tolerance::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32
 bool DRW_Block::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 1:
-        xrefPath = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedXrefPathBytes, xrefPath,
+                reader->getUtf8String()))
+            return false;
         break;
     case 2:
         name = reader->getUtf8String();
@@ -9463,6 +9466,7 @@ bool DRW_Block::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 void DRW_Block::resetDwgState() {
     const bool endBlock = isEnd;
     DRW_Point::resetDwgState();
+    m_dxfRetainedXrefPathBytes = 0u;
     name = endBlock ? UTF8STRING() : UTF8STRING("*U0");
     flags = 0;
     insUnits = 0;

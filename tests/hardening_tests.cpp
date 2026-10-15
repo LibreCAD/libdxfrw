@@ -4070,6 +4070,74 @@ void testDxfToleranceStyleNameOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfBlockXrefPathOwnerBudget(TestContext& t) {
+    class BlockParseProbe final : public DRW_Block {
+    public:
+        using DRW_Block::parseCode;
+        using DRW_Block::resetDwgState;
+    };
+
+    const std::string source = "1\nOLD\n1\nDIMTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && block.xrefPath == "DIMTEXT"
+                     && budget->used() == 7u,
+                 "BLOCK xref-path replacement retains only its live value at the exact transient peak");
+        BlockParseProbe copy(block);
+        BlockParseProbe assigned;
+        assigned = block;
+        block.resetDwgState();
+        t.expect(budget->used() == 7u && copy.xrefPath == "DIMTEXT"
+                     && assigned.xrefPath == "DIMTEXT",
+                 "BLOCK xref-path lease survives copy construction and assignment");
+        copy.resetDwgState();
+        t.expect(budget->used() == 7u,
+                 "BLOCK assignment copy keeps the xref-path charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final BLOCK reset releases its xref-path lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        BlockParseProbe block;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!block.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded()
+                     && block.xrefPath == "OLD" && budget->used() == 3u,
+                 "one-byte-under BLOCK xref-path replacement preserves the prior value and charge");
+        block.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected BLOCK xref-path replacement releases its lease on reset");
+    }
+}
+
 void testDxfLeaderStyleOwnerBudget(TestContext& t) {
     class LeaderParseProbe final : public DRW_Leader {
     public:
@@ -6346,6 +6414,7 @@ int main() {
     testDxfDimensionTextOwnerBudget(context);
     testDxfToleranceTextOwnerBudget(context);
     testDxfToleranceStyleNameOwnerBudget(context);
+    testDxfBlockXrefPathOwnerBudget(context);
     testDxfLeaderStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
