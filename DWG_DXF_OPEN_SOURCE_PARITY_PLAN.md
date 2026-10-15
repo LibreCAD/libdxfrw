@@ -10547,7 +10547,7 @@ composed graph checkpoint for the completed root/reciprocity boundary, not
 per vector. FreeCAD/GDAL and all external-only J items stay nonblocking for
 this implementation path.
 
-## Deeper LAYOUT implementation and comparator crosswalk (2026-10-15; plan-only)
+## Deeper LAYOUT implementation and comparator crosswalk (2026-10-15; research and generated-test update)
 
 This pass extends the existing 7G.3/PAR-20 LAYOUT work using Autodesk's
 record contracts, ezdxf's document-linking model, LibreDWG's DWG space lookup
@@ -10566,10 +10566,11 @@ subplan, dependency, fixture payload, CTest registration or support claim.
 now exercised in `libdxfrw_dxf_fixture_tests`: ASCII and binary vectors contain
 the NOD→ACAD_LAYOUT dictionary→three named layouts path, one model and two
 paper layouts, plus reciprocal BLOCK_RECORD 340/LAYOUT 330 links in deliberately
-crossed object order. The next step remains a bounded extension of that read
-contract for optional 331/345/346/333 roles, then root handoff and adapter
-retention independently, followed by shared remap/preflight and one composed
-writer checkpoint—not a broad writer rewrite. Reuse
+crossed object order; distinct 331/345/346/333 values are asserted as typed
+references, without claiming the referenced target objects are resolved. The
+next step is root handoff and adapter retention independently, followed by
+shared remap/preflight and one composed writer checkpoint—not a broad writer
+rewrite. Reuse
 `libdxfrw_dxf_fixture_tests`, the existing block-owner CLI tests, and
 `lc3_compat_check`; no downloaded or checked-in DWG/DXF fixtures, no new CTest
 target, and no full suite per graph case. The historical six external-only
@@ -10598,10 +10599,11 @@ support matrix is used as semantic conformance evidence.
 dependency, fixture payload, CTest registration, external peer runtime, or
 full-suite cadence is added. The current focused NOD/layout tests now include
 both dictionary levels and a three-layout reciprocal graph in ASCII and
-binary; optional LAYOUT target roles 331/345/346/333 and writer-side whole-graph
-remapping remain explicit follow-ups in 7G.3e. Keep quick tests on each changed
-slice, one composed graph checkpoint at the completed writer boundary, and
-full reader/writer matrices at their existing phase gates. Findings and
-top-level subplans remain121/70. `J256`, `J260`, `J268`, `J284`, `J293`, and
-`J295` remain `DEFERRED_EXTERNAL`; none of this research or the local generated
-controls can promote their support claims.
+binary, as well as distinct typed 331/345/346/333 reference values; resolving
+those targets and writer-side whole-graph remapping remain explicit follow-ups
+in 7G.3e. Keep quick tests on each changed slice, one composed graph checkpoint
+at the completed writer boundary, and full reader/writer matrices at their
+existing phase gates. Findings and top-level subplans remain121/70. `J256`,
+`J260`, `J268`, `J284`, `J293`, and `J295` remain `DEFERRED_EXTERNAL`; none of
+this research or the local generated controls can promote their support
+claims.

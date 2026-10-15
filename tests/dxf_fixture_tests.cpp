@@ -243,13 +243,21 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
     const auto layout = [&string, &integer](const char* handle,
                                              const char* name,
                                              const char* blockRecordHandle,
-                                             int tabOrder) {
+                                             int tabOrder,
+                                             const char* viewportHandle = nullptr,
+                                             const char* namedUcsHandle = nullptr,
+                                             const char* baseUcsHandle = nullptr,
+                                             const char* shadePlotHandle = nullptr) {
         return string(0, "LAYOUT") && string(5, handle)
             && string(102, "{ACAD_REACTORS") && string(330, "500")
             && string(102, "}") && string(330, "500")
             && string(100, "AcDbPlotSettings") && string(1, "")
             && string(100, "AcDbLayout") && integer(71, tabOrder)
-            && string(1, name) && string(330, blockRecordHandle);
+            && string(1, name) && string(330, blockRecordHandle)
+            && (viewportHandle == nullptr || string(331, viewportHandle))
+            && (namedUcsHandle == nullptr || string(345, namedUcsHandle))
+            && (baseUcsHandle == nullptr || string(346, baseUcsHandle))
+            && (shadePlotHandle == nullptr || string(333, shadePlotHandle));
     };
 
     bool written = string(0, "SECTION") && string(2, "HEADER")
@@ -269,7 +277,7 @@ bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
         && string(330, "0") && string(100, "AcDbDictionary")
         && integer(280, 1) && integer(281, 1)
         && string(3, "ACAD_LAYOUT") && string(350, "500")
-        && layout("200", "Sheet A", "601", 1)
+        && layout("200", "Sheet A", "601", 1, "700", "701", "702", "703")
         && layout("201", "Sheet B", "603", 2)
         && layout("202", "Model", "602", 0)
         && string(0, "DICTIONARY") && string(5, "500")
@@ -359,6 +367,13 @@ void testLayoutGraphReadContract(TestContext& t) {
         }
         t.expect(reciprocalGraph,
                  "each model/paper LAYOUT and BLOCK_RECORD preserve reciprocal typed handles");
+        const auto layoutWithViewTargets = findLayout(0x200u);
+        t.expect(layoutWithViewTargets != interface_.layouts.end()
+                     && layoutWithViewTargets->lastActiveViewportHandle.ref == 0x700u
+                     && layoutWithViewTargets->namedUcsHandle.ref == 0x701u
+                     && layoutWithViewTargets->baseUcsHandle.ref == 0x702u
+                     && layoutWithViewTargets->shadePlotHandle.ref == 0x703u,
+                 "distinct VIEWPORT, named UCS, base UCS and shade-plot handles retain their own typed roles");
         if (layoutDictionary != interface_.dictionaries.end()) {
             const std::array<std::pair<const char*, std::uint32_t>, 3> expected{{
                 {"Sheet A", 0x200u}, {"Sheet B", 0x201u}, {"Model", 0x202u}
