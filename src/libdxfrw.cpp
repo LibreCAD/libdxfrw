@@ -13785,9 +13785,9 @@ bool dxfRW::processDbColor() {
         "dxfRW::processDbColor", [this](DRW_DbColor& data) { iface->addDbColor(data); });
 }
 
-// GEODATA (AcDbGeoData): structured DXF read of the scalar geolocation fields,
-// plus full raw-net preservation (the coordinate-mesh lists are round-tripped
-// raw only — see DRW_GeoData::parseCode).
+// GEODATA (AcDbGeoData): structured versioned DXF fields plus a raw companion.
+// The typed callback serves semantic consumers; raw replay remains the
+// independent same-DXF preservation route.
 bool dxfRW::processGeoData() {
     DRW_DBG("dxfRW::processGeoData");
     int code;
@@ -18075,41 +18075,19 @@ bool dxfRW::writeRasterVariables(DRW_RasterVariables *ent) {
     return true;
 }
 
-// GEODATA (AcDbGeoData, custom class). Inverse of DRW_GeoData::parseCode for
-// scalar geolocation fields and mesh point/face lists.
+// GEODATA (AcDbGeoData, custom class). Inverse of the versioned
+// DRW_GeoData::parseCode field maps; the raw-object replay path remains a
+// separate lossless DXF-to-DXF route.
 bool dxfRW::writeGeoData(DRW_GeoData *ent) {
-    if (!preflightTableEntry(ent))
+    if (ent == nullptr || writer == nullptr)
         return false;
-    writer->writeString(0, "GEODATA");
-    writer->writeString(5, toHexStr(ent->handle));
-    if (!writeTableEntryAppData(*ent))
+
+    const std::int32_t objectVersion = ent->m_version != 0
+        ? ent->m_version : 2;
+    // Autodesk's published GEODATA map identifies versions 1 (2009) and
+    // 2 (2010). Do not emit the historical default of 3 without a schema.
+    if (objectVersion < 1 || objectVersion > 2)
         return false;
-    writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    writer->writeString(100, "AcDbGeoData");
-    writer->writeInt32(90, ent->m_version != 0 ? ent->m_version : 3);
-    if (ent->m_hostBlockHandle != 0)
-        writer->writeString(330, toHexStr(ent->m_hostBlockHandle));
-    writer->writeInt16(70, ent->m_coordinatesType);
-    writer->writeDouble(10, ent->m_designPoint.x);
-    writer->writeDouble(20, ent->m_designPoint.y);
-    writer->writeDouble(30, ent->m_designPoint.z);
-    writer->writeDouble(11, ent->m_referencePoint.x);
-    writer->writeDouble(21, ent->m_referencePoint.y);
-    writer->writeDouble(31, ent->m_referencePoint.z);
-    writer->writeDouble(40, ent->m_horizontalUnitScale);
-    writer->writeDouble(41, ent->m_verticalUnitScale);
-    writer->writeInt32(91, ent->m_horizontalUnits);
-    writer->writeInt32(92, ent->m_verticalUnits);
-    writer->writeDouble(210, ent->m_upDirection.x);
-    writer->writeDouble(220, ent->m_upDirection.y);
-    writer->writeDouble(230, ent->m_upDirection.z);
-    writer->writeDouble(12, ent->m_northDirection.x);
-    writer->writeDouble(22, ent->m_northDirection.y);
-    writer->writeInt32(95, ent->m_scaleEstimationMethod);
-    writer->writeDouble(141, ent->m_userSpecifiedScaleFactor);
-    writer->writeBool(294, ent->m_enableSeaLevelCorrection);
-    writer->writeDouble(142, ent->m_seaLevelElevation);
-    writer->writeDouble(143, ent->m_coordinateProjectionRadius);
 
     std::string definition = ent->m_coordinateSystemDefinition;
     for (std::string::size_type pos = definition.find('\n');
@@ -18117,33 +18095,299 @@ bool dxfRW::writeGeoData(DRW_GeoData *ent) {
          pos = definition.find('\n', pos + 2)) {
         definition.replace(pos, 1, "^J");
     }
-    std::string::size_type offset = 0;
-    while (definition.size() - offset > 255) {
-        writer->writeUtf8String(303, definition.substr(offset, 255));
-        offset += 255;
-    }
-    writer->writeUtf8String(301, definition.substr(offset));
-    writer->writeUtf8String(302, ent->m_geoRssTag);
-    writer->writeUtf8String(305, ent->m_observationFromTag);
-    writer->writeUtf8String(306, ent->m_observationToTag);
-    writer->writeUtf8String(307, ent->m_observationCoverageTag);
 
-    writer->writeInt32(93, static_cast<int>(ent->m_points.size()));
-    for (const DRW_GeoMeshPoint &point : ent->m_points) {
-        writer->writeDouble(13, point.m_source.x);
-        writer->writeDouble(23, point.m_source.y);
-        writer->writeDouble(14, point.m_destination.x);
-        writer->writeDouble(24, point.m_destination.y);
+    const auto finite = [](double value) { return std::isfinite(value); };
+    const auto finitePoint = [&finite](const DRW_Coord& point) {
+        return finite(point.x) && finite(point.y) && finite(point.z);
+    };
+    const auto civilHasValues = [](const DRW_GeoDataLegacyCivil& civil) {
+        return civil.m_present || civil.m_transformLocalToGrid
+            || civil.m_localReferencePoint != std::array<double, 2>{{0.0, 0.0}}
+            || civil.m_gridReferencePoint != std::array<double, 2>{{0.0, 0.0}}
+            || civil.m_localReferencePointNumber != 0
+            || civil.m_gridReferencePointNumber != 0
+            || civil.m_useRotationPoints
+            || civil.m_localRotationPoint != std::array<double, 2>{{0.0, 0.0}}
+            || civil.m_gridRotationPoint != std::array<double, 2>{{0.0, 0.0}}
+            || civil.m_rotationAngle != 0.0 || civil.m_gridAzimuth != 0.0
+            || civil.m_scaleEstimationMethod != 0
+            || civil.m_ambiguous141Value != 0.0
+            || civil.m_enableSeaLevelCorrection
+            || civil.m_seaLevelElevation != 0.0
+            || civil.m_coordinateProjectionRadius != 0.0;
+    };
+    const auto legacyHasValues = [&civilHasValues](const DRW_GeoDataLegacy& legacy) {
+        return legacy.m_controlFlags != 0
+            || legacy.m_geolocation != std::array<double, 3>{{0.0, 0.0, 0.0}}
+            || legacy.m_secondWcsPoint.x != 0.0
+            || legacy.m_secondWcsPoint.y != 0.0
+            || legacy.m_secondWcsPoint.z != 0.0
+            || legacy.m_northDirectionAngle != 0.0
+            || legacy.m_drawingScales != std::array<double, 3>{{1.0, 1.0, 1.0}}
+            || legacy.m_mapUnits != 0.0 || legacy.m_dwgUnits != 0
+            || !legacy.m_coordinateSystemDescription.empty()
+            || !legacy.m_coordinateSystemDatum.empty()
+            || civilHasValues(legacy.m_civil);
+    };
+    const auto civilTailHasValues = [](const DRW_GeoCivilTail& tail) {
+        return tail.m_present || !tail.m_hasCivilData || tail.m_reservedFlag1
+            || tail.m_referenceCoordinates
+                != std::array<double, 4>{{0.0, 0.0, 0.0, 0.0}}
+            || tail.m_reservedLongs != std::array<std::int32_t, 2>{{0, 0}}
+            || tail.m_reservedCoordinates
+                != std::array<double, 4>{{0.0, 0.0, 0.0, 0.0}}
+            || tail.m_reservedFlag2 || tail.m_northDirectionDegrees != 0.0
+            || tail.m_northDirectionRadians != 0.0
+            || tail.m_scaleEstimationMethod != 1
+            || tail.m_userSpecifiedScaleFactor != 1.0
+            || tail.m_enableSeaLevelCorrection
+            || tail.m_seaLevelElevation != 0.0
+            || tail.m_coordinateProjectionRadius != 0.0;
+    };
+    const auto finiteMesh = [&finite](const DRW_GeoMeshPoint& point) {
+        return finite(point.m_source.x) && finite(point.m_source.y)
+            && point.m_source.z == 0.0
+            && finite(point.m_destination.x) && finite(point.m_destination.y)
+            && point.m_destination.z == 0.0;
+    };
+
+    // The DXF Geo-Mesh is 2D in both published field maps. Reject coordinates
+    // this writer cannot represent instead of silently discarding Z.
+    if (ent->m_points.size() > 100000u || ent->m_faces.size() > 100000u
+        || !std::all_of(ent->m_points.begin(), ent->m_points.end(), finiteMesh))
+        return false;
+
+    if (objectVersion == 1) {
+        const DRW_GeoDataLegacyCivil& civil = ent->m_legacy.m_civil;
+        const auto finiteArray = [&finite](const auto& values) {
+            return std::all_of(values.begin(), values.end(), finite);
+        };
+        const auto representableText = [this](const std::string& value) {
+            return isSafeDxfRecordText(value)
+                && writer->fromUtf8String(value).size() <= 255u;
+        };
+
+        // Reject rather than silently discard values that belong to the
+        // modern field map, the distinct DWG CIVIL tail, or an unsupported
+        // legacy string width. This validation is intentionally before any
+        // record or writer state mutation so a corrected call can be retried.
+        if (ent->m_legacy.m_controlFlags < std::numeric_limits<std::int16_t>::min()
+            || ent->m_legacy.m_controlFlags > std::numeric_limits<std::int16_t>::max()
+            || !finitePoint(ent->m_designPoint)
+            || !finitePoint(ent->m_legacy.m_secondWcsPoint)
+            || !finitePoint(ent->m_upDirection)
+            || !finiteArray(ent->m_legacy.m_geolocation)
+            || !finiteArray(ent->m_legacy.m_drawingScales)
+            || !finite(ent->m_legacy.m_northDirectionAngle)
+            || !finite(ent->m_legacy.m_mapUnits)
+            || !finiteArray(civil.m_localReferencePoint)
+            || !finiteArray(civil.m_gridReferencePoint)
+            || !finiteArray(civil.m_localRotationPoint)
+            || !finiteArray(civil.m_gridRotationPoint)
+            || !finite(civil.m_rotationAngle) || !finite(civil.m_gridAzimuth)
+            || !finite(civil.m_ambiguous141Value)
+            || !finite(civil.m_seaLevelElevation)
+            || !finite(civil.m_coordinateProjectionRadius)
+            || !representableText(definition)
+            || !representableText(ent->m_geoRssTag)
+            || !representableText(ent->m_legacy.m_coordinateSystemDescription)
+            || !representableText(ent->m_legacy.m_coordinateSystemDatum)
+            || !representableText(ent->m_observationFromTag)
+            || !representableText(ent->m_observationToTag)
+            || !representableText(ent->m_observationCoverageTag)
+            || (!civil.m_present && civilHasValues(civil))
+            || civilTailHasValues(ent->m_civilTail)
+            || ent->m_coordinatesType != 0
+            || ent->m_referencePoint.x != 0.0 || ent->m_referencePoint.y != 0.0
+            || ent->m_referencePoint.z != 0.0
+            || ent->m_northDirection.x != 0.0 || ent->m_northDirection.y != 1.0
+            || ent->m_northDirection.z != 0.0
+            || ent->m_horizontalUnitScale != 1.0
+            || ent->m_verticalUnitScale != 1.0
+            || ent->m_horizontalUnits != 0 || ent->m_verticalUnits != 0
+            || ent->m_scaleEstimationMethod != 0
+            || ent->m_userSpecifiedScaleFactor != 1.0
+            || ent->m_enableSeaLevelCorrection
+            || ent->m_seaLevelElevation != 0.0
+            || ent->m_coordinateProjectionRadius != 0.0) {
+            return false;
+        }
+    } else {
+        const DRW_GeoDataLegacy& legacy = ent->m_legacy;
+        const auto finiteArray = [&finite](const auto& values) {
+            return std::all_of(values.begin(), values.end(), finite);
+        };
+        const auto safeText = [](const std::string& value) {
+            return isSafeDxfRecordText(value);
+        };
+        if (!safeText(definition) || !safeText(ent->m_geoRssTag)
+            || !safeText(ent->m_observationFromTag)
+            || !safeText(ent->m_observationToTag)
+            || !safeText(ent->m_observationCoverageTag)
+            || !finitePoint(ent->m_designPoint)
+            || !finitePoint(ent->m_referencePoint)
+            || !finitePoint(ent->m_upDirection)
+            || !finitePoint(ent->m_northDirection)
+            || !finite(ent->m_horizontalUnitScale)
+            || !finite(ent->m_verticalUnitScale)
+            || !finite(ent->m_userSpecifiedScaleFactor)
+            || !finite(ent->m_seaLevelElevation)
+            || !finite(ent->m_coordinateProjectionRadius)
+            || !finiteArray(legacy.m_geolocation)
+            || !finitePoint(legacy.m_secondWcsPoint)
+            || !finite(legacy.m_northDirectionAngle)
+            || !finiteArray(legacy.m_drawingScales)
+            || !finite(legacy.m_mapUnits)
+            || !finiteArray(legacy.m_civil.m_localReferencePoint)
+            || !finiteArray(legacy.m_civil.m_gridReferencePoint)
+            || !finiteArray(legacy.m_civil.m_localRotationPoint)
+            || !finiteArray(legacy.m_civil.m_gridRotationPoint)
+            || !finite(legacy.m_civil.m_rotationAngle)
+            || !finite(legacy.m_civil.m_gridAzimuth)
+            || !finite(legacy.m_civil.m_ambiguous141Value)
+            || !finite(legacy.m_civil.m_seaLevelElevation)
+            || !finite(legacy.m_civil.m_coordinateProjectionRadius)
+            || legacyHasValues(legacy)
+            || civilTailHasValues(ent->m_civilTail))
+            return false;
     }
-    writer->writeInt32(96, static_cast<int>(ent->m_faces.size()));
-    for (const DRW_GeoMeshFace &face : ent->m_faces) {
-        writer->writeInt32(97, face.m_index1);
-        writer->writeInt32(98, face.m_index2);
-        writer->writeInt32(99, face.m_index3);
+
+    if (!preflightTableEntry(ent))
+        return false;
+
+    DxfWriterRecordScope record(*writer);
+    writer->writeString(0, "GEODATA");
+    writer->writeString(5, toHexStr(ent->handle));
+    if (!writeTableEntryAppData(*ent))
+        return false;
+    writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
+    writer->writeString(100, "AcDbGeoData");
+    writer->writeInt32(90, objectVersion);
+    if (ent->m_hostBlockHandle != 0)
+        writer->writeString(330, toHexStr(ent->m_hostBlockHandle));
+
+    if (objectVersion == 1) {
+        const DRW_GeoDataLegacy& legacy = ent->m_legacy;
+        const DRW_GeoDataLegacyCivil& civil = legacy.m_civil;
+        writer->writeInt16(70, legacy.m_controlFlags);
+        writer->writeDouble(10, ent->m_designPoint.x);
+        writer->writeDouble(20, ent->m_designPoint.y);
+        writer->writeDouble(30, ent->m_designPoint.z);
+        writer->writeDouble(11, legacy.m_secondWcsPoint.x);
+        writer->writeDouble(21, legacy.m_secondWcsPoint.y);
+        writer->writeDouble(31, legacy.m_secondWcsPoint.z);
+        writer->writeDouble(40, legacy.m_geolocation[0]);
+        writer->writeDouble(41, legacy.m_geolocation[1]);
+        writer->writeDouble(42, legacy.m_geolocation[2]);
+        writer->writeDouble(43, legacy.m_drawingScales[0]);
+        writer->writeDouble(44, legacy.m_drawingScales[1]);
+        writer->writeDouble(45, legacy.m_drawingScales[2]);
+        writer->writeDouble(46, legacy.m_mapUnits);
+        writer->writeDouble(52, legacy.m_northDirectionAngle);
+        writer->writeDouble(210, ent->m_upDirection.x);
+        writer->writeDouble(220, ent->m_upDirection.y);
+        writer->writeDouble(230, ent->m_upDirection.z);
+        writer->writeUtf8String(301, definition);
+        writer->writeUtf8String(302, ent->m_geoRssTag);
+        writer->writeUtf8String(303, legacy.m_coordinateSystemDescription);
+        writer->writeUtf8String(304, legacy.m_coordinateSystemDatum);
+        writer->writeUtf8String(305, ent->m_observationFromTag);
+        writer->writeUtf8String(306, ent->m_observationToTag);
+        writer->writeUtf8String(307, ent->m_observationCoverageTag);
+        writer->writeInt32(91, legacy.m_dwgUnits);
+        writer->writeInt32(92, static_cast<int>(ent->m_points.size()));
+        writer->writeInt32(96, static_cast<int>(ent->m_faces.size()));
+        for (const DRW_GeoMeshFace& face : ent->m_faces) {
+            writer->writeInt32(97, face.m_index1);
+            writer->writeInt32(98, face.m_index2);
+            writer->writeInt32(99, face.m_index3);
+        }
+        for (const DRW_GeoMeshPoint& point : ent->m_points) {
+            writer->writeDouble(12, point.m_source.x);
+            writer->writeDouble(22, point.m_source.y);
+            writer->writeDouble(13, point.m_destination.x);
+            writer->writeDouble(23, point.m_destination.y);
+        }
+        if (civil.m_present) {
+            writer->writeString(3, "CIVIC3D_DATA_BEGIN");
+            writer->writeBool(292, civil.m_transformLocalToGrid);
+            writer->writeDouble(14, civil.m_localReferencePoint[0]);
+            writer->writeDouble(24, civil.m_localReferencePoint[1]);
+            writer->writeDouble(15, civil.m_gridReferencePoint[0]);
+            writer->writeDouble(25, civil.m_gridReferencePoint[1]);
+            writer->writeInt32(93, civil.m_localReferencePointNumber);
+            writer->writeInt32(94, civil.m_gridReferencePointNumber);
+            writer->writeBool(293, civil.m_useRotationPoints);
+            writer->writeDouble(16, civil.m_localRotationPoint[0]);
+            writer->writeDouble(26, civil.m_localRotationPoint[1]);
+            writer->writeDouble(17, civil.m_gridRotationPoint[0]);
+            writer->writeDouble(27, civil.m_gridRotationPoint[1]);
+            writer->writeDouble(54, civil.m_rotationAngle);
+            writer->writeDouble(140, civil.m_gridAzimuth);
+            writer->writeInt32(95, civil.m_scaleEstimationMethod);
+            writer->writeDouble(141, civil.m_ambiguous141Value);
+            writer->writeBool(294, civil.m_enableSeaLevelCorrection);
+            writer->writeDouble(142, civil.m_seaLevelElevation);
+            writer->writeDouble(143, civil.m_coordinateProjectionRadius);
+            writer->writeString(4, "CIVIC3D_DATA_END");
+        }
+    } else {
+        writer->writeInt16(70, ent->m_coordinatesType);
+        writer->writeDouble(10, ent->m_designPoint.x);
+        writer->writeDouble(20, ent->m_designPoint.y);
+        writer->writeDouble(30, ent->m_designPoint.z);
+        writer->writeDouble(11, ent->m_referencePoint.x);
+        writer->writeDouble(21, ent->m_referencePoint.y);
+        writer->writeDouble(31, ent->m_referencePoint.z);
+        writer->writeDouble(40, ent->m_horizontalUnitScale);
+        writer->writeDouble(41, ent->m_verticalUnitScale);
+        writer->writeInt32(91, ent->m_horizontalUnits);
+        writer->writeInt32(92, ent->m_verticalUnits);
+        writer->writeDouble(210, ent->m_upDirection.x);
+        writer->writeDouble(220, ent->m_upDirection.y);
+        writer->writeDouble(230, ent->m_upDirection.z);
+        writer->writeDouble(12, ent->m_northDirection.x);
+        writer->writeDouble(22, ent->m_northDirection.y);
+        writer->writeInt32(95, ent->m_scaleEstimationMethod);
+        writer->writeDouble(141, ent->m_userSpecifiedScaleFactor);
+        writer->writeBool(294, ent->m_enableSeaLevelCorrection);
+        writer->writeDouble(142, ent->m_seaLevelElevation);
+        writer->writeDouble(143, ent->m_coordinateProjectionRadius);
+    }
+
+    std::string::size_type offset = 0;
+    if (objectVersion != 1) {
+        while (definition.size() - offset > 255) {
+            writer->writeUtf8String(303, definition.substr(offset, 255));
+            offset += 255;
+        }
+        writer->writeUtf8String(301, definition.substr(offset));
+        writer->writeUtf8String(302, ent->m_geoRssTag);
+        writer->writeUtf8String(305, ent->m_observationFromTag);
+        writer->writeUtf8String(306, ent->m_observationToTag);
+        writer->writeUtf8String(307, ent->m_observationCoverageTag);
+
+        writer->writeInt32(93, static_cast<int>(ent->m_points.size()));
+        for (const DRW_GeoMeshPoint &point : ent->m_points) {
+            writer->writeDouble(13, point.m_source.x);
+            writer->writeDouble(23, point.m_source.y);
+            writer->writeDouble(14, point.m_destination.x);
+            writer->writeDouble(24, point.m_destination.y);
+        }
+        writer->writeInt32(96, static_cast<int>(ent->m_faces.size()));
+        for (const DRW_GeoMeshFace &face : ent->m_faces) {
+            writer->writeInt32(97, face.m_index1);
+            writer->writeInt32(98, face.m_index2);
+            writer->writeInt32(99, face.m_index3);
+        }
     }
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
-    return !writer->hasWriteError();
+    if (!preflightDxfWrite() || !record.commit()) {
+        m_writeError = true;
+        return false;
+    }
+    return true;
 }
 
 // SPATIAL_FILTER (AcDbSpatialFilter, custom class). Emits the clip boundary,

@@ -81,6 +81,27 @@ HATCH boundary geometry, and a strict declared-encoding oracle profile is
 needed for literal legacy ASCII text. Neither requires new native tooling,
 an oracle upgrade or a full suite per field edit.
 
+**GEODATA dialect/version audit (2026-10-15):** the archival Autodesk 2009
+DXF reference and the later 2016/2020 GEODATA tables describe materially
+different field maps: the 2009 table includes the latitude/longitude, drawing-
+scale/map-unit, and `CIVIC3D_DATA_*` fields, while later tables describe
+coordinate type, unit scales/units, north vector, and Geo-Mesh. Later tables
+identify object versions 1 (2009) and 2 (2010); ezdxf independently exposes
+those version labels but documents its modern typed API as requiring R2010.
+Therefore keep v1 and v2 field maps disjoint, do not assign semantics to the
+legacy group-70 control value or Civil group 141, and do not infer that a peer's
+modern `coordinate_type` model covers the archival v1 schema. Autodesk's
+published map currently names only object versions 1 and 2; typed writing of
+version 3 is therefore rejected until an authoritative schema and witness
+exist. Runtime ASCII/binary vectors establish local field mapping only. A
+source-authored AutoCAD/ODA v1 and v2 pair remains the shortest independent
+compatibility check; generated fixtures stay local and do not promote DWG,
+coordinate-transformation, Civil 3D, or geometry support. Sources: [AutoCAD
+2009 DXF Reference](https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2009.pdf),
+[Autodesk 2016 GEODATA](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm),
+[Autodesk 2020 GEODATA](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm),
+and [ezdxf GeoData](https://ezdxf.readthedocs.io/en/stable/dxfobjects/geodata.html).
+
 **Research boundary at25adc7f:** this update changes plans only. Broader
 resource accounting includes HANDLE staging/frame-ledger metadata peaks and
 an operation-owned exhaustion latch, not raw payload bytes alone. Preserve
@@ -2191,7 +2212,7 @@ receive a per-format/version disposition in S0, even if the disposition is
 | Curve/surface geometry | SPLINE, HELIX, plane/extruded/revolved/swept/lofted/NURBS surfaces | Degrees, knots, weights, control point order, closure/periodicity where represented, sweep/profile handles, matrices, flags, version gates | Partial typed routes; one generated AC1015 weighted 3D HELIX converter path now guards rational/planar flags and metadata. Current FreeCAD `main` C++ `ReadEntity()` dispatch lacks HELIX and routes it to `ReadUnknownEntity()`; this is downstream-unsupported, not grounds to alter converter output. Target-authored DWG and other HELIX semantics remain unqualified. |
 | ACIS modeler geometry | 3DSOLID, REGION, BODY; SAT and SAB carriers | Entity-inline payload vs DXF ACDSDATA vs DWG DataStorage; frame vs payload separation; empty/history state; preservation versus semantic decode | AC1015 SAT-v1 has one bounded converter route; AC1021/AC1024 SAB-to-DXF remains blocked. One AC1027 standalone 3DSOLID/ACDSDATA tuple emits with a witnessed history-proxy/material closure and exact SAB bytes; ODA AC1027 round-trip and Open CAD Studio carrier readback pass narrowly (S2.3.6). InventorLoader independently decodes the exact SAB as a valid closed cone after FreeCAD Part reconstruction. That external decoder result does not make libdxfrw an ACIS geometry decoder or qualify FreeCAD native import. Material appearance, converter handoff, other tuples, and general solid geometry remain unqualified. No DWG modeler writer. |
 | Proxy/derived geometry | Proxy graphic data associated with 3D entities | Preserve raw carrier separately; transformations/styles/stop reason/caps; derived wireframe never suppresses source payload | Existing general proxy path; 3D-specific interactions need cross-check |
-| Excluded from geometry claims | Camera/view state, lights, point clouds, Navisworks/reference models, geodata | Record scope boundary; these may contain 3D positions but are not this geometry plan's native surface/solid topology target | Handle under their existing feature plans, not counted as 3D-model support |
+| Excluded from geometry claims | Camera/view state, lights, point clouds, Navisworks/reference models, geodata | Record scope boundary; these may contain 3D positions but are not this geometry plan's native surface/solid topology target | Handle under their existing feature plans, not counted as 3D-model support. S5.17 separately hardens typed DXF GEODATA field preservation; it does not implement reprojection or qualify Civil 3D/DWG semantics. |
 
 The matrix is complete only when S0 adds the actual legacy reader names and
 writer gates for each row. In particular, do not omit R1.4/R11-era reader
@@ -3743,6 +3764,34 @@ Steps:
     Do not turn scalar thickness retention into a claim that a consumer
     extrudes or displays the resulting geometry. All files are generated under
     the test build directory and removed by the control.
+19. **S5.17 — Keep archival and modern DXF GEODATA schemas separate.**
+    Autodesk's 2009 reference documents the archival profile: group 70 control
+    bits; geolocation groups 40–42; two WCS points; drawing scales/map units;
+    WKT/description/datum and observation strings; mesh counts/points/faces;
+    and the optional `CIVIC3D_DATA_BEGIN/END` block. Its later Civil group 141
+    description is ambiguous, so retain it as an uninterpreted scalar. The
+    2016/2020 tables document the modern coordinate-type, design/reference,
+    unit-scale/unit-enum, north/up, mesh, and scale/correction map. Model these
+    in separate legacy/modern fields and select by group 90; never overload
+    legacy flags or Civil values into modern `coordinate_type` or scale
+    fields. Object versions 1/2 are documented; until a primary source/sample
+    identifies version 3, typed writes reject it without changing output or
+    writer state, and a corrected retry on the same writer must succeed.
+
+    Validate full ASCII and binary wire-order vectors for every documented
+    v1 field, mesh pair/face, Civil marker and Civil field, then re-read and
+    compare all typed values. Validate modern v2 output and existing order in
+    ASCII/binary; keep the unspecified-version default at documented version
+    2. Include unsupported-version, signed group-70 range, non-finite values,
+    oversized legacy strings/counts, Civil-without-marker, and DWG-only Civil
+    tail preflight negatives, each proving no bytes/handles/errors are changed
+    before a corrected retry. Exercise typed and raw companion routes
+    separately so same-file replay does not masquerade as typed semantics.
+    This is local DXF metadata preservation only—not CRS transformation,
+    datum correctness, Civil 3D semantic interoperability, DWG field mapping,
+    or 3D geometry support. A future independent gate should compare exact
+    AutoCAD-authored v1/v2 ASCII or binary files through one separately
+    implemented reader without committing the external drawings.
 
 Positive gate: round trips preserve point order, flags, topology, frame, and
 finite values. FreeCAD's exact converter argv and output handoff stay covered;
@@ -3756,7 +3805,10 @@ positive ratio without narrowing the existing ratio-greater-than-one path.
 S5.15 rejects non-finite or non-positive ARC/CIRCLE radii before callbacks or
 writer records, without narrowing angle values. S5.16 separately locks the
 thickness scalar across ASCII/binary parsing and both existing projection
-modes; geometry/display support remains unqualified.
+modes; S5.17 verifies the separate archival-v1 and modern-v2 GEODATA maps,
+fails closed on undocumented typed-write versions, and keeps CRS/Civil 3D
+semantics outside this local field gate; geometry/display support remains
+unqualified.
 Negative gate: invalid vertex indices,
 impossible counts, zero/non-finite ARC/CIRCLE normals, non-finite coordinates,
 half-present points, or overflowed count arithmetic are rejected before
@@ -6248,6 +6300,8 @@ format specification.
 - [Autodesk ARC DXF reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-0B14D8F1-0EBA-44BF-9108-57D8CE614BC8.htm) and [CIRCLE DXF reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8663262B-222C-414D-B133-4A8506A27C18.htm) — ARC/CIRCLE center coordinates are OCS, group 210/220/230 supplies the extrusion normal, and ARC angles are in that OCS frame.
 - [Autodesk OCS](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm) and [arbitrary-axis algorithm](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm) — basis construction for the independent expected-WCS oracle; normative for the coordinate-frame check, unlike a reader/writer round trip.
 - [Autodesk 3DFACE DXF reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm) — WCS corners, optional fourth vertex, invisible-edge bits.
+- [AutoCAD 2009 DXF Reference, GEODATA](https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2009.pdf), [Autodesk 2016 GEODATA](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm), and [Autodesk 2020 GEODATA](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm) — distinct archival/modern group maps and documented object-version labels. The 2009 table is primary for its legacy field map; later references are primary for the modern map; neither alone proves behavior of a target-authored sample.
+- [ezdxf GeoData reference](https://ezdxf.readthedocs.io/en/stable/dxfobjects/geodata.html) — implementation cross-check for v1/R2009 and v2/R2010 labels, modern coordinate-type fields, modelspace ownership, and its R2010 minimum; not normative evidence for legacy v1 fields or CRS transformation correctness.
 - [Autodesk POLYLINE DXF reference](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm) — flags, 2D OCS versus 3D WCS, mesh counts, extrusion.
 - [Autodesk VERTEX DXF reference](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm) and [Polyface Meshes DXF reference](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm) — polyface vertex/face flags, signed invisible-edge indices, face ordering, and vertex/face counts.
 - [Autodesk SEQEND DXF reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm) — sequence terminator fields; SEQEND is an R12-era entity and has no class-specific subclass data.
@@ -6286,6 +6340,8 @@ Latest implementation-item ledger addition:
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| S5.17.1–.2 | COMMITTED / RESEARCHED | Added separate archival GEODATA v1 fields and modern field routing in `DRW_GeoData::parseCode`, with in-memory ASCII/binary v1 and modern controls, copy/reset coverage, and generated-reader checks; commits `8b15424`, `f666dc5`, and `35c57cd` record research, tests, and parser/model work. Research reconciles Autodesk 2009's legacy map with Autodesk 2016/2020 and ezdxf's modern R2010 map without treating peer semantics as normative. Exact values are locally-authored vectors only; no external drawing is admitted, and no reprojection/Civil/DWG support claim follows. |
+| S5.17.3 | COMMITTED | Added version-aware GEODATA DXF output for documented v1/v2, preserving the previous modern-v2 group order and emitting the full archival/Civil v1 map. Group 90 defaults to documented v2; typed v3 rejects before output/state changes. ASCII/binary vectors lock the code order, all v1/Civil values after typed readback, and modern v2 parity. Transactional negatives cover signed group-70 overflow, non-finite values, >255-byte v1 text, oversized mesh counts, nonzero 2D mesh Z, Civil fields without their marker, the DWG-only Civil tail, unsafe modern text, and mixing schema-exclusive fields; every rejection leaves a same-writer retry usable. Focused `libdxfrw_wave1`, `libdxfrw_dwg_local_roundtrip`, and `libdxfrw_dxf_fixtures` pass 3/3 in 5.33s; `lc3_compat_check` builds; `git diff --check` passes. These are locally-authored DXF controls only; no independent producer/reader, CRS transform, Civil 3D, DWG, or geometry support is claimed. |
 | S8.15.8 | COMMITTED | Added locally-authored `tests/fixtures/dxf/ac1015_helix_freecad_control.dxf` and opt-in ODA CTest `dwg2dxf_freecad_3d_helix_cli`; generated DWG/DXF outputs remain under `build/`. The source contains a nonplanar rational HELIX (13 ordered controls/weights, 17 knots, axis `(0,0,1)`, radius 1, one turn, height 4) and a separate nonplanar weighted cubic SPLINE. The exact FreeCAD argv test and public DXF readback preserve rational group-70 flag `0x04`, degree/counts, ordered WCS controls/weights, absent planar normals, and HELIX trailer; it caught and fixed weighted DWG SPLINE output incorrectly using linear bit `0x10`. Focused internal round-trip and ODA Spline/HELIX route tests pass; no generated files enter source. Current FreeCAD `main` C++ `dxf.cpp` maps SPLINE to `ReadSpline()` and falls through to `ReadUnknownEntity()` for HELIX, so classify this as converter-supported/preserved but downstream-unsupported in that importer. Do not rewrite the entity; a positive FreeCAD HELIX shape claim requires a separate upstream importer change. Target-authored DWGs and other versions remain unqualified. |
 | S8.15.9.1 | COMMITTED | Added locally authored `tests/fixtures/dwg/ac1015_ellipse_freecad_control.dwgadd`, `tests/fixtures/dxf/ac1015_ellipse_freecad_control.dxf`, and opt-in `dwg2dxf_freecad_3d_ellipse_cli`. The DWGADD recipe emits only two planar AC1015 ELLIPSE controls (full and partial) because LibreDWG `dwgadd` cannot faithfully express the elevated/tilted vectors needed by `.9.2`. In a build-tree path containing spaces, the CTest invokes exact FreeCAD argv `dwg2dxf input -o output`, verifies the AC1015 signature/header and both entity field sequences (center, WCS major axis, ratio, parameters, omitted default extrusion), then repeats the checks after public DXF readback. Focused CTest passes 1/1. The locally authored elevated/tilted DXF source is reserved for an independent writer; it is not exercised by this DWGADD test. This is self-generated planar conversion/readback evidence only, not independent DWG interoperability, FreeCAD shape support, or general ELLIPSE support. All generated DWG/DXF outputs stay under `build/`; no generated drawing fixture is tracked. |
 | S8.15.9.2 | COMMITTED | Added opt-in `dwg2dxf_freecad_3d_ellipse_oda_cli` and `tests/run_freecad_3d_ellipse_oda_cli_test.cmake`. ODA File Converter 27.1.0.0 writes the locally-authored AC1015 control only under build/temp; the fast CTest checks all three independent ELLIPSE field sets before conversion and after public DXF readback, and passes 1/1. Added `tests/freecad_dwg2dxf_3d_ellipse_check.FCMacro` to enforce an isolated FreeCAD config, capture executable/hash/argv/status and identical DWG→DXF→C++ importer handoffs, then compare resulting curve plane, major-axis direction, radii, closure, parameters, and endpoints to analytic expectations. FreeCAD 1.1.3 revision `145529fe741292ff0b3977a01195bf0247425794`, macOS 27 arm64, C++ importer mode 2, with `dwg2dxf` found on PATH (SHA-256 `5b7d23baf049746597bf0ca0a78141e94e260dfb0086aa3d468ac702df063f45`): the default-XY full ellipse matches; elevated and tilted partial ellipses are silently built as closed full +Z ellipses, with tilted normal/major-axis direction and arc endpoints lost, though FreeCAD reports no unsupported features. Thus converter output is field-preserving; only this full-XY control is a positive pinned-FreeCAD result, and partial/tilted rows remain downstream-unsupported. An earlier ODA `-4960` failure did not recur on unmodified CLI retry; no UI-lock bypass was used. Locally-authored DXF source SHA-256 `078a9982f049ee4c669f878b6cc8cc6dfcd292b72d8f394fe7c2c258b9fa7cc7`; generated DWG/DXF files were not added to source. Other FreeCAD versions/importers, target-authored DWG interoperability, and general ELLIPSE support remain unqualified. |

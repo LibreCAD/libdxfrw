@@ -1601,6 +1601,366 @@ void testTypedObjectCommonMetadata(TestContext& t) {
     exercise("EVALUATIONGRAPH", DRW_EvaluationGraph{}, [](auto& w, auto& e) { return w.writeEvaluationGraph(&e, "ACAD_EVALUATION_GRAPH"); });
 }
 
+void testGeoDataVersionedWriter(TestContext& t) {
+    const auto makeLegacy = []() {
+        DRW_GeoData geo;
+        geo.handle = 0x700u;
+        geo.parentHandle = 0x2u;
+        geo.m_hostBlockHandle = 0x3u;
+        geo.m_version = 1;
+        geo.m_legacy.m_controlFlags = 2;
+        geo.m_designPoint = DRW_Coord{10.125, 20.125, 30.125};
+        geo.m_legacy.m_secondWcsPoint = DRW_Coord{11.125, 21.125, 31.125};
+        geo.m_legacy.m_geolocation = {{40.125, 41.125, 42.125}};
+        geo.m_legacy.m_drawingScales = {{43.125, 44.125, 45.125}};
+        geo.m_legacy.m_mapUnits = 46.125;
+        geo.m_legacy.m_northDirectionAngle = 52.125;
+        geo.m_upDirection = DRW_Coord{210.125, 220.125, 230.125};
+        geo.m_coordinateSystemDefinition = "legacy-coordinate-definition";
+        geo.m_geoRssTag = "legacy-georss";
+        geo.m_legacy.m_coordinateSystemDescription =
+            "legacy-coordinate-description";
+        geo.m_legacy.m_coordinateSystemDatum = "legacy-datum";
+        geo.m_observationFromTag = "legacy-observation-tag";
+        geo.m_observationToTag = "legacy-observation-to";
+        geo.m_observationCoverageTag = "legacy-observation-coverage";
+        geo.m_legacy.m_dwgUnits = 91;
+        geo.m_points = {{{12.125, 22.125, 0.0}, {13.125, 23.125, 0.0}}};
+        geo.m_faces = {{1, 2, 3}};
+        DRW_GeoDataLegacyCivil& civil = geo.m_legacy.m_civil;
+        civil.m_present = true;
+        civil.m_transformLocalToGrid = true;
+        civil.m_localReferencePoint = {{14.125, 24.125}};
+        civil.m_gridReferencePoint = {{15.125, 25.125}};
+        civil.m_localReferencePointNumber = 1;
+        civil.m_gridReferencePointNumber = 94;
+        civil.m_useRotationPoints = true;
+        civil.m_localRotationPoint = {{16.125, 26.125}};
+        civil.m_gridRotationPoint = {{17.125, 27.125}};
+        civil.m_rotationAngle = 54.125;
+        civil.m_gridAzimuth = 140.125;
+        civil.m_scaleEstimationMethod = 2;
+        civil.m_ambiguous141Value = 141.125;
+        civil.m_enableSeaLevelCorrection = true;
+        civil.m_seaLevelElevation = 142.125;
+        civil.m_coordinateProjectionRadius = 143.125;
+        return geo;
+    };
+
+    const auto codesOf = [](const std::vector<std::string>& projection) {
+        std::vector<int> codes;
+        for (const std::string& tag : projection) {
+            const std::size_t colon = tag.find(':');
+            if (colon == std::string::npos)
+                return std::vector<int>{};
+            codes.push_back(std::stoi(tag.substr(0, colon)));
+        }
+        return codes;
+    };
+
+    std::vector<std::string> asciiProjection;
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1021;
+        owner.binFile = binary;
+        if (binary)
+            owner.writer = std::make_unique<dxfWriterBinary>(&output);
+        else
+            owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        // Group 999 is intentionally absent from binary DXF; use a normal
+        // string group to assert that failed preflight preserves prior bytes.
+        t.expect(owner.writer->writeString(1, "PRESERVED_PREFIX"),
+                 "GEODATA preflight setup writes prefix");
+        const std::string beforeReject = output.str();
+        DRW_GeoData invalid = makeLegacy();
+        invalid.m_legacy.m_controlFlags = 40000;
+        const std::uint32_t invalidHandle = invalid.handle;
+        t.expect(!owner.writeGeoData(&invalid)
+                     && output.str() == beforeReject
+                     && invalid.handle == invalidHandle
+                     && !owner.m_writeError
+                     && !owner.writer->hasWriteError(),
+                 "unrepresentable v1 flags reject before output/state mutation");
+
+        DRW_GeoData valid = makeLegacy();
+        const bool wrote = owner.writeGeoData(&valid)
+            && owner.writer->writeString(0, "WIRE_END");
+        bool ended = false;
+        const std::vector<std::string> projection = numericWireProjection(
+            output.str(), binary, ended);
+        const std::vector<int> expectedCodes = {
+            1, 0, 5, 330, 100, 90, 330, 70, 10, 20, 30, 11, 21, 31,
+            40, 41, 42, 43, 44, 45, 46, 52, 210, 220, 230, 301, 302,
+            303, 304, 305, 306, 307, 91, 92, 96, 97, 98, 99, 12, 22,
+            13, 23, 3, 292, 14, 24, 15, 25, 93, 94, 293, 16, 26, 17,
+            27, 54, 140, 95, 141, 294, 142, 143, 4, 0};
+        t.expect(wrote && ended && codesOf(projection) == expectedCodes,
+                 "v1 ASCII/binary writer emits the complete archival group map");
+        if (!binary)
+            asciiProjection = projection;
+        else
+            t.expect(projection == asciiProjection,
+                     "v1 ASCII/binary writer values and order are identical");
+
+        std::istringstream input(output.str());
+        dxfRW parser("");
+        parser.binFile = binary;
+        if (binary)
+            parser.reader = std::make_unique<dxfReaderBinary>(&input);
+        else
+            parser.reader = std::make_unique<dxfReaderAscii>(&input);
+        DRW_GeoData decoded;
+        DRW_RawDxfObject raw;
+        bool readingGeoData = false;
+        bool parsed = true;
+        int code = 0;
+        while (parser.reader->readRec(&code)) {
+            if (code == 0) {
+                const std::string record = parser.reader->getString();
+                if (record == "GEODATA") {
+                    readingGeoData = true;
+                    raw.name = record;
+                } else if (readingGeoData || record == "WIRE_END") {
+                    break;
+                }
+                continue;
+            }
+            if (readingGeoData)
+                parsed = parser.captureAndParseRawDxfGroup(raw, code, decoded)
+                    && parsed;
+        }
+        t.expect(parsed && decoded.m_version == 1
+                     && decoded.handle == 0x700u
+                     && decoded.parentHandle == 0x2u
+                     && decoded.m_hostBlockHandle == 0x3u
+                     && decoded.m_coordinatesType == 0
+                     && decoded.m_legacy.m_controlFlags == 2
+                     && decoded.m_designPoint.x == 10.125
+                     && decoded.m_designPoint.y == 20.125
+                     && decoded.m_designPoint.z == 30.125
+                     && decoded.m_legacy.m_secondWcsPoint.x == 11.125
+                     && decoded.m_legacy.m_secondWcsPoint.y == 21.125
+                     && decoded.m_legacy.m_secondWcsPoint.z == 31.125
+                     && decoded.m_legacy.m_geolocation
+                         == std::array<double, 3>{{40.125, 41.125, 42.125}}
+                     && decoded.m_legacy.m_drawingScales
+                         == std::array<double, 3>{{43.125, 44.125, 45.125}}
+                     && decoded.m_legacy.m_mapUnits == 46.125
+                     && decoded.m_legacy.m_northDirectionAngle == 52.125
+                     && decoded.m_upDirection.x == 210.125
+                     && decoded.m_upDirection.y == 220.125
+                     && decoded.m_upDirection.z == 230.125
+                     && decoded.m_coordinateSystemDefinition
+                         == "legacy-coordinate-definition"
+                     && decoded.m_geoRssTag == "legacy-georss"
+                     && decoded.m_legacy.m_coordinateSystemDescription
+                         == "legacy-coordinate-description"
+                     && decoded.m_observationFromTag == "legacy-observation-tag"
+                     && decoded.m_observationToTag == "legacy-observation-to"
+                     && decoded.m_observationCoverageTag
+                         == "legacy-observation-coverage"
+                     && decoded.m_legacy.m_dwgUnits == 91
+                     && decoded.m_points.size() == 1u
+                     && decoded.m_points.front().m_source.x == 12.125
+                     && decoded.m_points.front().m_source.y == 22.125
+                     && decoded.m_points.front().m_destination.x == 13.125
+                     && decoded.m_points.front().m_destination.y == 23.125
+                     && decoded.m_faces.size() == 1u
+                     && decoded.m_faces.front().m_index1 == 1
+                     && decoded.m_faces.front().m_index2 == 2
+                     && decoded.m_faces.front().m_index3 == 3
+                     && decoded.m_legacy.m_civil.m_present
+                     && decoded.m_legacy.m_civil.m_transformLocalToGrid
+                     && decoded.m_legacy.m_civil.m_localReferencePoint
+                         == std::array<double, 2>{{14.125, 24.125}}
+                     && decoded.m_legacy.m_civil.m_gridReferencePoint
+                         == std::array<double, 2>{{15.125, 25.125}}
+                     && decoded.m_legacy.m_civil.m_localReferencePointNumber == 1
+                     && decoded.m_legacy.m_civil.m_gridReferencePointNumber == 94
+                     && decoded.m_legacy.m_civil.m_useRotationPoints
+                     && decoded.m_legacy.m_civil.m_localRotationPoint
+                         == std::array<double, 2>{{16.125, 26.125}}
+                     && decoded.m_legacy.m_civil.m_gridRotationPoint
+                         == std::array<double, 2>{{17.125, 27.125}}
+                     && decoded.m_legacy.m_civil.m_rotationAngle == 54.125
+                     && decoded.m_legacy.m_civil.m_gridAzimuth == 140.125
+                     && decoded.m_legacy.m_civil.m_scaleEstimationMethod == 2
+                     && decoded.m_legacy.m_civil.m_ambiguous141Value == 141.125
+                     && decoded.m_legacy.m_civil.m_enableSeaLevelCorrection
+                     && decoded.m_legacy.m_civil.m_seaLevelElevation == 142.125
+                     && decoded.m_legacy.m_civil.m_coordinateProjectionRadius == 143.125
+                     && decoded.m_legacy.m_coordinateSystemDatum == "legacy-datum",
+                 "v1 writer output returns through the typed v1 reader map");
+    }
+
+    const std::vector<std::pair<const char*, std::function<void(DRW_GeoData&)>>>
+        legacyRejectCases = {
+            {"non-finite legacy point", [](DRW_GeoData& geo) {
+                geo.m_designPoint.x = std::numeric_limits<double>::quiet_NaN();
+            }},
+            {"overlong legacy text", [](DRW_GeoData& geo) {
+                geo.m_legacy.m_coordinateSystemDatum.assign(256, 'x');
+            }},
+            {"Civil data without marker", [](DRW_GeoData& geo) {
+                geo.m_legacy.m_civil.m_present = false;
+                geo.m_legacy.m_civil.m_localReferencePoint[0] = 1.0;
+            }},
+            {"DWG-only Civil tail", [](DRW_GeoData& geo) {
+                geo.m_civilTail.m_present = true;
+            }},
+            {"nonzero Geo-Mesh Z", [](DRW_GeoData& geo) {
+                geo.m_points.front().m_source.z = 1.0;
+            }},
+            {"oversized Geo-Mesh point count", [](DRW_GeoData& geo) {
+                geo.m_points.resize(100001u);
+            }},
+            {"oversized Geo-Mesh face count", [](DRW_GeoData& geo) {
+                geo.m_faces.resize(100001u);
+            }}};
+    for (const bool binary : {false, true}) {
+        for (const auto& rejectCase : legacyRejectCases) {
+            std::ostringstream output;
+            dxfRW owner("");
+            owner.version = DRW::AC1021;
+            owner.binFile = binary;
+            if (binary)
+                owner.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                owner.writer = std::make_unique<dxfWriterAscii>(&output);
+            t.expect(owner.writer->writeString(1, "PRESERVED_PREFIX"),
+                     "GEODATA negative preflight setup writes prefix");
+            const std::string beforeReject = output.str();
+            DRW_GeoData invalid = makeLegacy();
+            rejectCase.second(invalid);
+            const bool rejected = !owner.writeGeoData(&invalid)
+                && output.str() == beforeReject
+                && invalid.handle == 0x700u
+                && !owner.m_writeError
+                && !owner.writer->hasWriteError();
+            DRW_GeoData valid = makeLegacy();
+            const bool retry = owner.writeGeoData(&valid);
+            t.expect(rejected && retry && !owner.m_writeError
+                         && !owner.writer->hasWriteError(),
+                     rejectCase.first);
+        }
+    }
+
+    for (const std::int32_t objectVersion : {2}) {
+        std::vector<std::string> modernAsciiProjection;
+        for (const bool binary : {false, true}) {
+            std::ostringstream output;
+            dxfRW owner("");
+            owner.version = DRW::AC1027;
+            owner.binFile = binary;
+            if (binary)
+                owner.writer = std::make_unique<dxfWriterBinary>(&output);
+            else
+                owner.writer = std::make_unique<dxfWriterAscii>(&output);
+            DRW_GeoData modern;
+            modern.handle = 0x710u;
+            modern.parentHandle = 0x2u;
+            modern.m_hostBlockHandle = 0x3u;
+            modern.m_version = objectVersion;
+            modern.m_coordinatesType = 2;
+            modern.m_designPoint = DRW_Coord{10.125, 20.125, 30.125};
+            modern.m_referencePoint = DRW_Coord{11.125, 21.125, 31.125};
+            modern.m_horizontalUnitScale = 40.125;
+            modern.m_verticalUnitScale = 41.125;
+            modern.m_horizontalUnits = 91;
+            modern.m_verticalUnits = 92;
+            modern.m_upDirection = DRW_Coord{210.125, 220.125, 230.125};
+            modern.m_northDirection = DRW_Coord{12.125, 22.125, 0.0};
+            modern.m_coordinateSystemDefinition = "modern-coordinate-definition";
+            modern.m_geoRssTag = "modern-georss";
+            modern.m_observationFromTag = "modern-observation-tag";
+            modern.m_observationToTag = "modern-observation-to";
+            modern.m_observationCoverageTag = "modern-observation-coverage";
+            modern.m_points = {{{13.125, 23.125, 0.0}, {14.125, 24.125, 0.0}}};
+            modern.m_faces = {{1, 2, 3}};
+            const bool wrote = owner.writeGeoData(&modern)
+                && owner.writer->writeString(0, "WIRE_END");
+            bool ended = false;
+            const auto projection = numericWireProjection(output.str(), binary,
+                                                          ended);
+            const auto codes = codesOf(projection);
+            const std::vector<int> expectedCodes = {
+                0, 5, 330, 100, 90, 330, 70, 10, 20, 30, 11, 21, 31, 40,
+                41, 91, 92, 210, 220, 230, 12, 22, 95, 141, 294, 142, 143,
+                301, 302, 305, 306, 307, 93, 13, 23, 14, 24, 96, 97, 98,
+                99, 0};
+            t.expect(wrote && ended && codes == expectedCodes
+                         && std::find(projection.begin(), projection.end(),
+                                      "90:" + std::to_string(objectVersion))
+                            != projection.end(),
+                     "v2/v3 writer controls preserve the modern group order");
+            if (!binary)
+                modernAsciiProjection = projection;
+            else
+                t.expect(projection == modernAsciiProjection,
+                         "v2/v3 ASCII and binary writer values are identical");
+        }
+    }
+
+    {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1027;
+        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        t.expect(owner.writer->writeString(1, "PRESERVED_PREFIX"),
+                 "unsupported GEODATA version preflight setup writes prefix");
+        const std::string beforeReject = output.str();
+        DRW_GeoData unsupported;
+        unsupported.handle = 0x720u;
+        unsupported.m_version = 3;
+        t.expect(!owner.writeGeoData(&unsupported)
+                     && output.str() == beforeReject
+                     && !owner.m_writeError
+                     && !owner.writer->hasWriteError(),
+                 "unpublished GEODATA version 3 is rejected before output");
+
+        DRW_GeoData defaultVersion;
+        defaultVersion.handle = 0x721u;
+        const bool wrote = owner.writeGeoData(&defaultVersion)
+            && owner.writer->writeString(0, "WIRE_END");
+        bool ended = false;
+        const auto projection = numericWireProjection(output.str(), false,
+                                                      ended);
+        t.expect(wrote && ended
+                     && std::find(projection.begin(), projection.end(),
+                                  "90:2") != projection.end(),
+                 "unspecified GEODATA version defaults to documented version 2");
+    }
+
+    {
+        std::ostringstream output;
+        dxfRW owner("");
+        owner.version = DRW::AC1027;
+        owner.writer = std::make_unique<dxfWriterAscii>(&output);
+        t.expect(owner.writer->writeString(1, "PRESERVED_PREFIX"),
+                 "modern GEODATA schema preflight setup writes prefix");
+        const std::string beforeReject = output.str();
+        DRW_GeoData mixed;
+        mixed.handle = 0x722u;
+        mixed.m_version = 2;
+        mixed.m_legacy.m_controlFlags = 1;
+        const bool rejected = !owner.writeGeoData(&mixed)
+            && output.str() == beforeReject
+            && !owner.m_writeError
+            && !owner.writer->hasWriteError();
+        mixed.m_legacy.m_controlFlags = 0;
+        mixed.m_geoRssTag = "unsafe\ntext";
+        const bool unsafeTextRejected = !owner.writeGeoData(&mixed)
+            && output.str() == beforeReject
+            && !owner.m_writeError
+            && !owner.writer->hasWriteError();
+        mixed.m_geoRssTag.clear();
+        const bool retry = owner.writeGeoData(&mixed);
+        t.expect(rejected && unsafeTextRejected && retry,
+                 "modern schema rejects legacy-only values then retries");
+    }
+}
+
 void testGeneratedDictionaryGroupCommonMetadata(TestContext& t) {
     for (const DRW::Version version : {DRW::AC1014, DRW::AC1015,
                                        DRW::AC1021, DRW::AC1032}) {
@@ -6987,6 +7347,7 @@ int main() {
     testImageObjectNumericWireKinds(context);
     testCommonAppDataBaseScope(context);
     testTypedObjectCommonMetadata(context);
+    testGeoDataVersionedWriter(context);
     testGeneratedDictionaryGroupCommonMetadata(context);
     testDxfBinaryRawSectionCaptureReplay(context);
     testDxfBinaryRawObjectCaptureReplay(context);
