@@ -3247,6 +3247,59 @@ void testDxfReaderRecordTextBudget(TestContext& t) {
     }
 }
 
+void testDxfMTextAssemblyBudget(TestContext& t) {
+    class MTextParseProbe final : public DRW_MText {
+    public:
+        using DRW_MText::parseCode;
+    };
+
+    const std::string inputText = "3\nab\n3\ncd\n1\nef\n";
+    auto budget = std::make_shared<DxfReadRetainedBudget>(48u);
+    bool parsed = true;
+    bool textMatches = false;
+    std::size_t retainedAfterEof = 0u;
+    {
+        std::istringstream input(inputText);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        MTextParseProbe entity;
+        int code = 0;
+        for (const int expected : {3, 3, 1}) {
+            parsed = reader->readRec(&code) && code == expected
+                && entity.parseCode(code, reader);
+            if (!parsed)
+                break;
+        }
+        const std::size_t assembledUsed = budget->used();
+        const bool eof = !reader->readRec(&code);
+        textMatches = entity.text == "abcdef";
+        retainedAfterEof = budget->used();
+        parsed = parsed && assembledUsed == 18u && eof;
+    }
+    t.expect(parsed && textMatches && retainedAfterEof == 6u
+                 && budget->used() == 0u,
+             "MTEXT repeated chunks retain decoded logical text through record invalidation and release the lease with the value");
+    {
+        std::istringstream input(inputText);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        auto budget = std::make_shared<DxfReadRetainedBudget>(47u);
+        reader->setRetainedByteBudget(budget);
+        MTextParseProbe entity;
+        int code = 0;
+        bool prefix = true;
+        for (const int expected : {3, 3})
+            prefix = prefix && reader->readRec(&code) && code == expected
+                && entity.parseCode(code, reader);
+        const bool group1 = reader->readRec(&code) && code == 1;
+        const bool admitted = group1 && entity.parseCode(code, reader);
+        t.expect(prefix && group1 && !admitted && budget->exceeded()
+                     && entity.text == "abcd",
+                 "MTEXT conversion input/output headroom rejects before appending an over-budget final group");
+    }
+}
+
 void testDxfHeaderCommentRetentionBudget(TestContext& t) {
     const std::string plainDrawing = admissionDrawing();
     const std::string source = "999\nalpha\n999\nbeta\n" + plainDrawing;
@@ -5261,6 +5314,7 @@ int main() {
     testDxfInputByteBudget(context);
     testDxfOwnedSnapshotBudget(context);
     testDxfReaderRecordTextBudget(context);
+    testDxfMTextAssemblyBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);

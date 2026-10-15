@@ -35,6 +35,59 @@
 #include "intern/dwgreader.h"
 #include "intern/dwgsafety.h"
 
+struct DRW_DxfRetainedTextLease final {
+    explicit DRW_DxfRetainedTextLease(
+        std::shared_ptr<DxfReadRetainedBudget> retainedBudget) noexcept
+        : budget(std::move(retainedBudget)) {}
+
+    ~DRW_DxfRetainedTextLease() noexcept {
+        if (budget != nullptr && bytes != 0u)
+            budget->release(bytes);
+    }
+
+    bool bind(std::shared_ptr<DxfReadRetainedBudget> nextBudget,
+              std::size_t currentSize) noexcept {
+        if (nextBudget == budget)
+            return resizeTo(currentSize);
+        if (nextBudget != nullptr && !nextBudget->reserve(currentSize))
+            return false;
+        if (budget != nullptr && bytes != 0u)
+            budget->release(bytes);
+        budget = std::move(nextBudget);
+        bytes = budget != nullptr ? currentSize : 0u;
+        return true;
+    }
+
+    bool resizeTo(std::size_t nextSize) noexcept {
+        if (budget == nullptr) {
+            bytes = 0u;
+            return true;
+        }
+        if (nextSize > bytes) {
+            if (!budget->reserve(nextSize - bytes))
+                return false;
+        } else if (nextSize < bytes) {
+            budget->release(bytes - nextSize);
+        }
+        bytes = nextSize;
+        return true;
+    }
+
+    bool adopt(DxfReadRetainedReservation& reservation) noexcept {
+        if (budget == nullptr || reservation.budget() != budget
+            || !reservation.reserved())
+            return false;
+        const std::size_t nextSize = reservation.transfer();
+        if (bytes != 0u)
+            budget->release(bytes);
+        bytes = nextSize;
+        return true;
+    }
+
+    std::shared_ptr<DxfReadRetainedBudget> budget;
+    std::size_t bytes {0u};
+};
+
 namespace {
 
 DRW_Coord extrusionUnitVector(DRW_Coord direction) {
@@ -13464,6 +13517,88 @@ bool DRW_Attdef::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
 }
 
 bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    const auto appendMTextChunk = [this, &reader](bool decodeWholeText) {
+        const std::string chunk = reader->getString();
+        const auto& budget = reader->retainedByteBudget();
+        if (budget == nullptr) {
+            if (m_dxfRetainedTextLease
+                && !m_dxfRetainedTextLease->bind(nullptr, text.size()))
+                return false;
+            text += chunk;
+            if (decodeWholeText)
+                text = reader->toUtf8String(text);
+            return true;
+        }
+
+        if (!m_dxfRetainedTextLease) {
+            m_dxfRetainedTextLease =
+                std::make_shared<DRW_DxfRetainedTextLease>(budget);
+        }
+        if (!m_dxfRetainedTextLease->bind(budget, text.size()))
+            return false;
+
+        const std::size_t maxSize =
+            (std::numeric_limits<std::size_t>::max)();
+        if (chunk.size() > maxSize - text.size()) {
+            budget->reject();
+            return false;
+        }
+        const std::size_t nextSize = text.size() + chunk.size();
+        if (decodeWholeText && nextSize > maxSize / 5u) {
+            budget->reject();
+            return false;
+        }
+
+        // Keep the full assembled text charged to its owning MTEXT value
+        // across physical record boundaries and through callback publication.
+        // Code 1 also converts the entire accumulated prefix by value: reserve
+        // one input copy plus the maximum four-byte-per-source-byte output
+        // before the codec allocates either representation.
+        const std::size_t previousSize = text.size();
+        if (!m_dxfRetainedTextLease->resizeTo(nextSize))
+            return false;
+        const std::size_t decodeBytes = decodeWholeText ? nextSize * 5u : 0u;
+        DxfReadRetainedReservation decodeReservation(budget, decodeBytes);
+        if (decodeWholeText && !decodeReservation.reserved()) {
+            (void)m_dxfRetainedTextLease->resizeTo(previousSize);
+            return false;
+        }
+
+        try {
+            text += chunk;
+        } catch (...) {
+            (void)m_dxfRetainedTextLease->resizeTo(previousSize);
+            throw;
+        }
+        if (!decodeWholeText)
+            return true;
+
+        std::string decoded;
+        try {
+            decoded = reader->toUtf8String(text);
+        } catch (...) {
+            // The converter's by-value input and partial output are gone as
+            // stack unwinds. The assembled raw text remains charged to this
+            // entity until it is destroyed or successfully replaced.
+            throw;
+        }
+
+        const std::size_t decodedOutputBound = nextSize * 4u;
+        if (decoded.size() > decodedOutputBound) {
+            budget->reject();
+            return false;
+        }
+        if (!decodeReservation.resize(decoded.size())) {
+            budget->reject();
+            return false;
+        }
+        text.swap(decoded);
+        decoded.clear(); // the replaced raw text is no longer logically live
+        // Transfer the already-reserved output bytes to the entity's lifetime
+        // lease while releasing the superseded raw assembly charge.
+        return m_dxfRetainedTextLease->adopt(decodeReservation);
+    };
+
     if (code == 101 && reader->getString() == "Embedded Object") {
         m_dxfOrientationScope.redundantColumn = true;
         return true;
@@ -13481,8 +13616,8 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     }
     switch (code) {
     case 1:
-        text += reader->getString();
-        text = reader->toUtf8String(text);
+        if (!appendMTextChunk(true))
+            return false;
         break;
     case 11:
         hasXAxisVec = true;
@@ -13490,7 +13625,8 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         m_dxfOrientationSnapshotValid = false;
         return DRW_Text::parseCode(code, reader);
     case 3:
-        text += reader->getString();
+        if (!appendMTextChunk(false))
+            return false;
         break;
     case 44:
         interlin = reader->getDouble();

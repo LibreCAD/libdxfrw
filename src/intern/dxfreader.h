@@ -83,6 +83,39 @@ public:
 
     bool reserved() const noexcept { return m_reserved; }
 
+    // Adjust or transfer a live charge when an owned representation changes
+    // form without changing its lifetime owner.
+    bool resize(std::size_t bytes) noexcept {
+        if (m_budget == nullptr) {
+            m_bytes = bytes;
+            return true;
+        }
+        if (!m_reserved) {
+            if (!m_budget->reserve(bytes))
+                return false;
+            m_bytes = bytes;
+            m_reserved = true;
+            return true;
+        }
+        if (bytes > m_bytes) {
+            if (!m_budget->reserve(bytes - m_bytes))
+                return false;
+        } else if (bytes < m_bytes) {
+            m_budget->release(m_bytes - bytes);
+        }
+        m_bytes = bytes;
+        return true;
+    }
+
+    std::size_t transfer() noexcept {
+        m_reserved = false;
+        return m_bytes;
+    }
+
+    const std::shared_ptr<DxfReadRetainedBudget>& budget() const noexcept {
+        return m_budget;
+    }
+
 private:
     std::shared_ptr<DxfReadRetainedBudget> m_budget;
     std::size_t m_bytes;

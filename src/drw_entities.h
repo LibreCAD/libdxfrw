@@ -27,6 +27,7 @@
 #include "drw_acis.h"
 
 class dxfReader;
+struct DRW_DxfRetainedTextLease;
 class dwgBuffer;
 class dwgRW;
 class DRW_Polyline;
@@ -2166,6 +2167,12 @@ protected:
     void updateAngle();    // recalculate angle if 'hasXAxisVec' is true
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;
     [[nodiscard]] virtual bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0, dwgBufferW *strBuf=nullptr, dwgBufferW *handleBuf=nullptr) override;
+
+private:
+    // MTEXT chunks may span many physical group-3/group-1 records. Keep the
+    // aggregate logical text charge with the parsed value through callback
+    // publication/destruction, not just with the most recent reader token.
+    std::shared_ptr<DRW_DxfRetainedTextLease> m_dxfRetainedTextLease;
 
 public:
     double interlin;              /*!< linespacing factor, code 44 */
