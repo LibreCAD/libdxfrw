@@ -3511,6 +3511,108 @@ void testDxfCommonStringOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfXDataStringOwnerBudget(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    const std::string source =
+        "1000\nalpha\n1001\nAPP\n1002\n{\n1003\nLayer\n"
+        "1004\nA1B2\n1005\nA1\n";
+    const auto stringsMatch = [](const std::array<const DRW_Variant*, 6>& values) {
+        const int codes[] = {1000, 1001, 1002, 1003, 1004, 1005};
+        const char* strings[] = {"alpha", "APP", "{", "Layer", "A1B2", "A1"};
+        for (std::size_t index = 0; index < values.size(); ++index) {
+            if (values[index] == nullptr
+                || values[index]->code() != codes[index]
+                || values[index]->type() != DRW_Variant::STRING
+                || values[index]->content.s == nullptr
+                || *values[index]->content.s != strings[index])
+                return false;
+        }
+        return true;
+    };
+    const auto parse = [&source](auto& model,
+                                 const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!model.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LineParseProbe line;
+        const bool parsed = parse(line, budget);
+        std::array<const DRW_Variant*, 6> values{};
+        if (line.extData.size() == values.size()) {
+            for (std::size_t index = 0; index < values.size(); ++index)
+                values[index] = line.extData[index].get();
+        }
+        t.expect(parsed && stringsMatch(values) && budget->used() == 20u,
+                 "entity typed XDATA strings, controls and raw spellings fit the exact peak and survive reader teardown");
+        LineParseProbe copy(line);
+        line.reset();
+        t.expect(budget->used() == 20u,
+                 "copied entity XDATA retains the shared source-read lease");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "entity reset releases typed XDATA string ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(43u);
+        LineParseProbe line;
+        const bool parsed = parse(line, budget);
+        t.expect(!parsed && line.extData.size() == 3u && budget->exceeded()
+                     && budget->used() == 9u,
+                 "entity XDATA growth rejects one byte under the exact peak without appending the refused value");
+        line.reset();
+        t.expect(budget->used() == 0u,
+                 "entity XDATA quota refusal releases its remaining owner lease on reset");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(44u);
+        LayerParseProbe layer;
+        const bool parsed = parse(layer, budget);
+        std::array<const DRW_Variant*, 6> values{};
+        if (layer.extData.size() == values.size()) {
+            for (std::size_t index = 0; index < values.size(); ++index)
+                values[index] = layer.extData[index];
+        }
+        t.expect(parsed && stringsMatch(values) && budget->used() == 20u,
+                 "table-entry typed XDATA uses the same exact peak and retained-string owner");
+        LayerParseProbe copy(layer);
+        layer.reset();
+        t.expect(budget->used() == 20u,
+                 "copied table-entry XDATA retains the shared source-read lease");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry reset releases typed XDATA string ownership");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(43u);
+        LayerParseProbe layer;
+        const bool parsed = parse(layer, budget);
+        t.expect(!parsed && layer.extData.size() == 3u && budget->exceeded()
+                     && budget->used() == 9u,
+                 "table-entry XDATA quota refusal rolls back only the incomplete string insertion");
+        layer.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry XDATA quota refusal releases its lease on reset");
+    }
+}
+
 void testDxfRawCarrierRetentionBudget(TestContext& t) {
     const std::string sectionSource =
         "0\nSECTION\n2\nUNKNOWN\n1\npayload\n0\nENDSEC\n0\nEOF\n";
@@ -5611,6 +5713,7 @@ int main() {
     testDxfMTextAssemblyBudget(context);
     testDxfAppDataRetentionBudget(context);
     testDxfCommonStringOwnerBudget(context);
+    testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);

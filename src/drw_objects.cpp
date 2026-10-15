@@ -2316,8 +2316,18 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     case 1003:
     case 1004:
     case 1005:
-        if (!appendExtData(std::make_unique<DRW_Variant>(code, reader->getString())))
-            return false;
+        {
+            DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
+                m_dxfRetainedStringLease);
+            std::string value = reader->getString();
+            if (!retainDxfReadBytes(m_dxfRetainedStringLease,
+                                    reader->retainedByteBudget(), value.size()))
+                return false;
+            if (!appendExtData(std::make_unique<DRW_Variant>(
+                    code, std::move(value))))
+                return false;
+            retainedCheckpoint.commit();
+        }
         break;
     case 1010:
     case 1011:

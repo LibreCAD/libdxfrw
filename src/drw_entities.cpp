@@ -3628,8 +3628,17 @@ bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 1005:
         if (extData.size() >= DRW_TableEntry::kMaxExtendedDataItems)
             return false;
-        extData.push_back(std::make_shared<DRW_Variant>(code,
-                                                         reader->getString()));
+        {
+            DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
+                m_dxfRetainedStringLease);
+            std::string value = reader->getString();
+            if (!retainDxfReadBytes(m_dxfRetainedStringLease,
+                                    reader->retainedByteBudget(), value.size()))
+                return false;
+            extData.push_back(std::make_shared<DRW_Variant>(code,
+                                                            std::move(value)));
+            retainedCheckpoint.commit();
+        }
         break;
     case 1010:
     case 1011:
