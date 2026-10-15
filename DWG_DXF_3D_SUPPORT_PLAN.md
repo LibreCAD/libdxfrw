@@ -8,12 +8,19 @@ Review date: 2026-10-15. Historical evidence retains its original date/source.
 adds32 authored actual-CLI routes/64 final-run processes and four executed
 ezdxf transform controls. It distinguishes source loss, target scalar loss,
 valid CIF transport, projected-geometry omissions and raw ACIS carriers;
-none is independent native solid evidence. Existing HEADER-provenance WIP is
-preserved/uncommitted, with recovered integration4/5 and a stale GEODATA
+none is independent native solid evidence. At that research checkpoint,
+HEADER-provenance WIP was preserved/uncommitted, with recovered integration4/5 and a stale GEODATA
 fixture premise to reconcile before acceptance. The bounded3.2b.1–3.2b.2d
 delivery sequence requires no new external tool or full suite per substep.
 Durable evidence: docs/research/broader-conversion-readiness-2026-10-15.json.
 All six J gates remain`DEFERRED_EXTERNAL`; ledger/support claims are unchanged.
+
+**Subsequent implementation:** parity Slice3.2b.1 now integrates the owned
+HEADER declaration snapshot and corrects the stale hardening fixture premise.
+Final focused acceptance is5/5 in13.62s plus strict/build/lc3 and focused
+ASan/UBSan; docs/research/codec-provenance-3-2b-1-2026-10-15.json binds the
+actual source/artifacts. Earlier research WIP/failure evidence remains frozen.
+Next local item is3.2b.2a source-text observations; no3D ledger count changes.
 
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
@@ -121,10 +128,12 @@ modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
 four default/R12 compatibility controls and actual CLI no-output checks.
 S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
 nested DWG AcDs/SAB and native geometry remain unqualified. Next local work is
-review/integration of parity Slice3.2b.1's existing owned declaration candidate,
-after correcting the unmodified hardening fixture's v1/modern GEODATA premise
-and rerunning its fast gate. The recovered integration run is4/5, not an
-all-green acceptance. Then3.2b.2a–d adds bounded source-text observations,
+parity Slice3.2b.2a bounded source-text observations.3.2b.1's owned declaration
+snapshot is implemented, with72 handoffs/three delimiter controls and exact
+logical-byte admission/lifetime tests. The modern GEODATA copy/reset fixture
+now declares v2; genuine v1 grammar controls remain. Final5/5 in13.62s,
+strict/build/lc3 and focused ASan/UBSan supersede—but do not rewrite—the earlier
+4/5 research gate.3.2b.2a–d continues with source-text observations,
 owned DXF import outcomes, strict complete-conversion admission and lossless
 target scalar transport; ordinary2D defaults remain compatible.32 authored
 CLI routes demonstrate that second-pass byte stability is insufficient.
@@ -6681,7 +6690,7 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity Slice3.2b.1 candidate review/fast-gate repair, then3.2b.2):
+local work is parity Slice3.2b.2a source-text observations):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,

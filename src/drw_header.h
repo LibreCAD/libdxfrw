@@ -122,6 +122,7 @@ public:
           version(h.version),
           m_dxfHeaderFinalized(h.m_dxfHeaderFinalized),
           m_dxfSourceVersion(h.m_dxfSourceVersion),
+          m_dxfCodePageSource(std::move(h.m_dxfCodePageSource)),
           m_hasDerivedDimunitAlias(h.m_hasDerivedDimunitAlias),
           m_dimunitSourceCode(h.m_dimunitSourceCode),
           m_dimunitSourceValue(h.m_dimunitSourceValue),
@@ -206,6 +207,21 @@ public:
     /// have no DXF declaration and report UNKNOWNV.
     DRW::Version dxfSourceVersion() const noexcept { return m_dxfSourceVersion; }
 
+    /// Last complete physically read DXF $DWGCODEPAGE group-3 value, before Unicode
+    /// decoding or compatibility normalization. Reader delimiters and ASCII's
+    /// terminal CR are excluded; binary payload CR is retained. Absent and
+    /// explicitly empty are distinct.
+    /// Header copies share immutable owned bytes, never a reader/caller view.
+    bool hasDxfCodePageDeclaration() const noexcept {
+        return m_dxfCodePageSource != nullptr;
+    }
+    /// Bytes may not be UTF-8; this is provenance, not a decoding certificate.
+    /// The reference lasts while this header (or a retaining header copy)
+    /// owns the snapshot. Editing vars does not change this historical value.
+    const std::string& dxfCodePageDeclaration() const noexcept;
+    /// Detach only provenance, leaving the normalized vars entry unchanged.
+    void clearDxfCodePageDeclaration() noexcept { m_dxfCodePageSource.reset(); }
+
     enum class DxfDimunitAliasState {
         None,        ///< No unchanged derived alias; a present alias is explicit.
         Derived,     ///< Both legacy source and compatibility alias match capture.
@@ -242,6 +258,7 @@ private:
     bool parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,
                        bool deferText);
     void finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader);
+    bool captureDxfCodePageDeclaration(const std::unique_ptr<dxfReader>& reader);
     static bool matchesIntVar(const std::unordered_map<std::string, DRW_Variant*>& values,
                               const char* key, int code, int value);
     template <typename Map>
@@ -267,6 +284,7 @@ private:
         version = h.version;
         m_dxfHeaderFinalized = h.m_dxfHeaderFinalized;
         m_dxfSourceVersion = h.m_dxfSourceVersion;
+        m_dxfCodePageSource = h.m_dxfCodePageSource;
         m_hasDerivedDimunitAlias = h.m_hasDerivedDimunitAlias;
         m_dimunitSourceCode = h.m_dimunitSourceCode;
         m_dimunitSourceValue = h.m_dimunitSourceValue;
@@ -295,6 +313,7 @@ private:
         swap(version, other.version);
         swap(m_dxfHeaderFinalized, other.m_dxfHeaderFinalized);
         swap(m_dxfSourceVersion, other.m_dxfSourceVersion);
+        swap(m_dxfCodePageSource, other.m_dxfCodePageSource);
         swap(m_hasDerivedDimunitAlias, other.m_hasDerivedDimunitAlias);
         swap(m_dimunitSourceCode, other.m_dimunitSourceCode);
         swap(m_dimunitSourceValue, other.m_dimunitSourceValue);
@@ -327,6 +346,7 @@ private:
         customVars.clear();
         m_dxfHeaderFinalized = false;
         m_dxfSourceVersion = DRW::UNKNOWNV;
+        clearDxfCodePageDeclaration();
         clearDxfDimunitAliasProvenance();
     }
     /// Store v under key in vars, freeing any previously-stored variant
@@ -378,6 +398,8 @@ private:
     int version; //to use on read
     bool m_dxfHeaderFinalized {false};
     DRW::Version m_dxfSourceVersion {DRW::UNKNOWNV};
+    struct DxfCodePageSource;
+    std::shared_ptr<const DxfCodePageSource> m_dxfCodePageSource;
     bool m_hasDerivedDimunitAlias {false};
     int m_dimunitSourceCode {0};
     int m_dimunitSourceValue {0};

@@ -121,9 +121,28 @@ the diagnostic's `failed()` remains false. A later fatal error still occupies
 the primary diagnostic. The next admitted operation resets diagnostics;
 retain a returned snapshot if needed.
 
-These advisories do not establish complete charset support or expose the full
-original declaration spelling. Existing inexact aliases and fallback decoding
-remain compatibility behavior, not independently verified text semantics.
+The published `DRW_Header` separately retains the last complete physical
+`$DWGCODEPAGE` group-3 value. `hasDxfCodePageDeclaration()` distinguishes an
+absent declaration from an explicitly empty one; `dxfCodePageDeclaration()`
+returns its full bytes before Unicode decoding or compatibility normalization.
+Reader delimiters and ASCII's terminal CR are excluded; binary payload CR is
+retained. These bytes can be non-UTF-8: they are source provenance, not a decoder
+or text-correctness certificate.
+
+Header copies share immutable owned storage, which survives reader/facade
+destruction. Its logical byte length is charged once to the read's retained-byte
+budget until the last owning header releases it; this is not whole-model memory,
+capacity or RSS accounting. Editing `vars` does not rewrite source history.
+`clearDxfCodePageDeclaration()` detaches only that provenance, and an ordinary
+new-read/reset does not inherit it. The normalized HEADER variable and export
+behavior are unchanged: the writer does not replay the historical spelling.
+DWG reads do not fabricate a physical DXF declaration. The added HEADER state
+requires downstream consumers to rebuild; source compatibility is not binary
+ABI or thread-safety qualification.
+
+Neither advisories nor provenance establish complete charset support. Existing
+inexact aliases/fallback decoding remain compatibility behavior; strict
+conversion text-loss policy and mapping repairs are separate open work.
 
 ### Using `dwg2dxf` from FreeCAD
 

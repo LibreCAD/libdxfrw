@@ -13,6 +13,18 @@ curve/surface evaluator, or ACIS kernel.
 
 ## Read mode and ownership
 
+DXF HEADER codepage provenance is separate from semantic text and the normalized
+`vars["$DWGCODEPAGE"]` used by writers. `hasDxfCodePageDeclaration()` distinguishes
+absent/empty; `dxfCodePageDeclaration()` returns the last complete group-3 source
+bytes before decoding/normalization, excluding reader delimiters/ASCII terminal
+CR while retaining binary payload CR.
+They may be non-UTF-8. Header copies share immutable owned storage, with one
+logical retained-byte charge lasting until the last owner is released. Editing
+`vars` leaves history unchanged; clearing provenance detaches only that owner.
+The returned reference lasts while a retaining header owns it. DWG does not
+fabricate this DXF value. This does not qualify decoded text, full model memory,
+concurrent access or a raw-replay export policy; downstream rebuild is required.
+
 For a DXF or DWG client that must handle coordinates itself, call
 `dxfRW::read` / `dxfRW::readAscii` or `dwgRW::read` with `ext == false`. The
 public parameter is documented as applying extrusion for 2D conversion when

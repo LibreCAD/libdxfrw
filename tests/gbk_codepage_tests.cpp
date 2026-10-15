@@ -670,7 +670,9 @@ void testCodePageDiagnosticHandoff(TestContext& t) {
         const auto diagnostic = facade.getLastDiagnostic();
         const char* expected = modern ? nullptr : row.advisory;
         bool correct = read && facade.getError() == DRW::BAD_NONE && !diagnostic.failed()
-            && imported.mBlock->ent.size() == 2;
+            && imported.mBlock->ent.size() == 2
+            && imported.headerC.hasDxfCodePageDeclaration() == (row.source != nullptr)
+            && imported.headerC.dxfCodePageDeclaration() == (row.source != nullptr ? row.source : "");
         if (expected != nullptr) {
             correct = correct && diagnostic.secondary.size() == 1
                 && diagnostic.secondary.front().phase == DRW::OperationPhase::Header
@@ -729,6 +731,266 @@ void testCodePageDiagnosticHandoff(TestContext& t) {
     if (t.failures == 0) std::filesystem::remove_all(directory);
     else std::cerr << "Codec selection evidence: " << directory << '\n';
 }
+
+class HeaderProvenanceAccess final : public DRW_Header {
+public:
+    bool parse(int code, const std::unique_ptr<dxfReader>& reader) {
+        return parseCode(code, reader);
+    }
+};
+
+bool parseCodePageValue(HeaderProvenanceAccess& header, const std::string& value,
+                        const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+    std::istringstream input("9\n$DWGCODEPAGE\n3\n" + value + "\n");
+    std::unique_ptr<dxfReader> reader = std::make_unique<dxfReaderAscii>(&input);
+    reader->setRetainedByteBudget(budget);
+    int code = 0;
+    return reader->readRec(&code) && header.parse(code, reader)
+        && reader->readRec(&code) && header.parse(code, reader);
+}
+
+void testCodePageProvenanceBudget(TestContext& t) {
+    const std::string first = "local-codepage-" + std::string(32, 'x');
+    const std::string second = "LOCAL-codepage-" + std::string(32, 'y');
+    const auto size = first.size();
+    std::size_t admitted = 0, refused = 0;
+    t.expect(size == second.size(), "provenance budget inputs have equal literal lengths");
+    for (bool exact : {false, true}) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(7u * size - (exact ? 0u : 1u));
+        HeaderProvenanceAccess header;
+        const bool parsed = parseCodePageValue(header, first, budget);
+        if (parsed) ++admitted; else ++refused;
+        t.expect(parsed == exact && header.hasDxfCodePageDeclaration() == exact
+                     && budget->exceeded() == !exact
+                     && budget->used() == (exact ? size : 0u),
+                 "one added provenance value is admitted at exact logical-byte peak and refused one below");
+        if (!exact) continue;
+        DRW_Header copied(header), assigned;
+        assigned = copied;
+        DRW_Header moved(std::move(copied)), moveAssigned;
+        moveAssigned = std::move(assigned);
+        t.expect(&header.dxfCodePageDeclaration() == &moved.dxfCodePageDeclaration()
+                     && &header.dxfCodePageDeclaration() == &moveAssigned.dxfCodePageDeclaration()
+                     && !copied.hasDxfCodePageDeclaration() && !assigned.hasDxfCodePageDeclaration()
+                     && budget->used() == size,
+                 "copy/move headers share one immutable charged physical value without borrowing");
+        moved.addStr("$DWGCODEPAGE", "ANSI_936", 3);
+        t.expect(moved.dxfCodePageDeclaration() == first,
+                 "editing the normalized HEADER value does not rewrite historical source provenance");
+        header.clearDxfCodePageDeclaration();
+        moved = DRW_Header{};
+        t.expect(!header.hasDxfCodePageDeclaration()
+                     && header.dxfCodePageDeclaration().empty()
+                     && moveAssigned.dxfCodePageDeclaration() == first && budget->used() == size,
+                 "clear/reset detach a header while other owning copies keep the value charged");
+        moveAssigned.clearDxfCodePageDeclaration();
+        t.expect(budget->used() == 0u, "last provenance owner releases the logical charge");
+    }
+    for (bool exact : {false, true}) {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(8u * size - (exact ? 0u : 1u));
+        HeaderProvenanceAccess header;
+        t.expect(parseCodePageValue(header, first, budget), "replacement starts from an admitted declaration");
+        DRW_Header retained(header);
+        const bool replaced = parseCodePageValue(header, second, budget);
+        if (replaced) ++admitted; else ++refused;
+        t.expect(replaced == exact && retained.dxfCodePageDeclaration() == first
+                     && header.dxfCodePageDeclaration() == (exact ? second : first)
+                     && budget->used() == (exact ? 2u * size : size),
+                 "replacement reserves overlapping old/new bytes before publication and keeps old snapshot on refusal");
+        header.clearDxfCodePageDeclaration();
+        retained.clearDxfCodePageDeclaration();
+        t.expect(budget->used() == 0u, "replacement/refusal releases every provenance charge at last ownership");
+    }
+    t.expect(admitted == 2 && refused == 2, "both exact/one-below provenance admission pairs execute");
+    std::cout << "Codepage provenance budget: admitted=" << admitted << ", refused=" << refused << '\n';
+}
+
+void testCodePageDeclarationProvenance(TestContext& t) {
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-codepage-provenance-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    struct Row { std::string raw; const char* normalized; };
+    const Row rows[] = {
+        {"iso8859-4", "ANSI_1257"}, {"gBk", "ANSI_936"}, {"", "ANSI_1252"},
+        {"ANSI_1252 ", "ANSI_1252"}, {"local-\xE9-\\U+0041", "ANSI_1252"},
+        {"local-long-" + std::string(4096, 'q'), "ANSI_1252"}
+    };
+    std::size_t cases = 0;
+    for (const auto& row : rows) for (bool modern : {false, true})
+        for (bool pageFirst : {false, true}) for (int route = 0; route < 3; ++route) {
+        auto bytes = makeCodePageDiagnosticDrawing(row.raw.c_str(), modern, pageFirst, route == 2);
+        const auto path = directory / (std::to_string(cases) + ".dxf");
+        if (route != 0) {
+            std::ofstream output(path, std::ios::binary);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        }
+        dx_data imported;
+        PreparedDxInterface capture;
+        capture.attach(&imported);
+        bool read = false;
+        {
+            dxfRW facade(path.string().c_str());
+            read = route == 0 ? facade.readAscii(&capture, false, bytes)
+                              : facade.read(&capture, false);
+        }
+        t.expect(read && imported.headerC.hasDxfCodePageDeclaration()
+                     && imported.headerC.dxfCodePageDeclaration() == row.raw
+                     && headerString(imported.headerC, "$DWGCODEPAGE") == row.normalized
+                     && imported.mBlock->ent.size() == 2,
+                 "full physical declaration survives reader/facade destruction without changing normalized HEADER");
+        ++cases;
+    }
+
+    // ASCII CRLF terminates the value; in binary DXF a CR before the NUL is
+    // payload and must not be silently trimmed from the source snapshot.
+    std::size_t delimiterCases = 0;
+    for (int route = 0; route < 3; ++route) {
+        const std::string expected = route == 2 ? "gBk\r" : "gBk";
+        auto bytes = makeCodePageDiagnosticDrawing(expected.c_str(), false, false, route == 2);
+        if (route != 2) {
+            std::string crlf;
+            crlf.reserve(2u * bytes.size());
+            for (char value : bytes) {
+                if (value == '\n') crlf += '\r';
+                crlf += value;
+            }
+            bytes = std::move(crlf);
+        }
+        const auto path = directory / ("delimiters-" + std::to_string(route) + ".dxf");
+        if (route != 0) {
+            std::ofstream output(path, std::ios::binary);
+            output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        }
+        dx_data data;
+        PreparedDxInterface sink;
+        sink.attach(&data);
+        bool read = false;
+        {
+            dxfRW facade(path.string().c_str());
+            read = route == 0 ? facade.readAscii(&sink, false, bytes)
+                              : facade.read(&sink, false);
+        }
+        t.expect(read && data.headerC.hasDxfCodePageDeclaration()
+                     && data.headerC.dxfCodePageDeclaration() == expected
+                     && data.mBlock->ent.size() == 2,
+                 "provenance excludes ASCII CRLF framing but preserves binary payload CR");
+        ++delimiterCases;
+    }
+
+    class HeaderHistory final : public dx_iface {
+    public:
+        explicit HeaderHistory(dx_data& data) { cData = &data; currentBlock = data.mBlock; }
+        void addHeader(const DRW_Header* value) override {
+            headers.push_back(*value);
+            dx_iface::addHeader(value);
+        }
+        std::vector<DRW_Header> headers;
+    };
+    auto repeated = makeCodePageDiagnosticDrawing("CP866", false, false, false, 2);
+    const auto first = repeated.find("CP866\n");
+    if (first != std::string::npos) repeated.replace(first, 6, "KoI8-r\n");
+    dx_data historyData;
+    HeaderHistory history(historyData);
+    dxfRW reusable("");
+    t.expect(first != std::string::npos && reusable.readAscii(&history, false, repeated)
+                 && history.headers.size() == 2
+                 && history.headers[0].dxfCodePageDeclaration() == "KoI8-r"
+                 && history.headers[1].dxfCodePageDeclaration() == "CP866"
+                 && historyData.headerC.dxfCodePageDeclaration() == "CP866",
+             "repeated HEADER publication keeps each immutable original declaration independently");
+    auto plain = makeCodePageDiagnosticDrawing(nullptr, false, false, false);
+    dx_data fresh;
+    PreparedDxInterface capture;
+    capture.attach(&fresh);
+    t.expect(reusable.readAscii(&capture, false, plain)
+                 && !fresh.headerC.hasDxfCodePageDeclaration()
+                 && history.headers.front().dxfCodePageDeclaration() == "KoI8-r",
+             "a new read without a declaration does not inherit old provenance or invalidate retained copies");
+    auto value = makeCodePageDiagnosticDrawing("gBk", false, false, false);
+    reusable.setDxfReadRetainedByteBudget(value.size() - 1u);
+    dx_data rejected;
+    capture.attach(&rejected);
+    t.expect(!reusable.readAscii(&capture, false, value)
+                 && reusable.getLastDiagnostic().code == "dxf-retained-byte-budget"
+                 && !rejected.headerC.hasDxfCodePageDeclaration(),
+             "failed pre-header admission publishes no provenance");
+    reusable.setDxfReadRetainedByteBudget(value.size() + 4096u);
+    dx_data retry;
+    capture.attach(&retry);
+    t.expect(reusable.readAscii(&capture, false, value)
+                 && retry.headerC.dxfCodePageDeclaration() == "gBk",
+             "same facade accepts fresh provenance after corrected read budget");
+    auto duplicate = makeCodePageDiagnosticDrawing("CP866", false, false, false);
+    const std::string marker = "\nCP866\n";
+    const auto duplicateAt = duplicate.find(marker);
+    if (duplicateAt != std::string::npos)
+        duplicate.insert(duplicateAt + marker.size(), "9\n$DWGCODEPAGE\n3\nansi_1252\n");
+    dx_data duplicateData;
+    capture.attach(&duplicateData);
+    t.expect(duplicateAt != std::string::npos && reusable.readAscii(&capture, false, duplicate)
+                 && duplicateData.headerC.dxfCodePageDeclaration() == "ansi_1252"
+                 && headerString(duplicateData.headerC, "$DWGCODEPAGE") == "ANSI_1252",
+             "repeated declarations retain the last complete physical spelling, not a normalized alias");
+    auto partial = makeCodePageDiagnosticDrawing("KoI8-r", false, false, false);
+    const auto invalidHandle = partial.find("\nA\n");
+    if (invalidHandle != std::string::npos) partial.replace(invalidHandle + 1, 1, "NOT_HEX");
+    dx_data partialData;
+    capture.attach(&partialData);
+    t.expect(invalidHandle != std::string::npos && !reusable.readAscii(&capture, false, partial)
+                 && partialData.headerC.dxfCodePageDeclaration() == "KoI8-r",
+             "a later entity failure does not invalidate already published source metadata");
+
+    const std::string budgetSource = "local-budget-" + std::string(64, 'r');
+    std::size_t facadeAdmitted = 0, facadeRefused = 0;
+    for (int route = 0; route < 3; ++route) {
+        auto input = makeCodePageDiagnosticDrawing(budgetSource.c_str(), false, false, route == 2);
+        const auto path = directory / ("budget-" + std::to_string(route) + ".dxf");
+        if (route != 0) {
+            std::ofstream output(path, std::ios::binary);
+            output.write(input.data(), static_cast<std::streamsize>(input.size()));
+        }
+        dxfRW facade(path.string().c_str());
+        // 1x source spelling + 1x reader value + 4x getter-output headroom
+        // + 1x new immutable provenance; memory route also owns the stream.
+        const auto peak = (route == 0 ? input.size() : 0u) + 7u * budgetSource.size();
+        for (bool exact : {false, true}) {
+            facade.setDxfReadRetainedByteBudget(peak - (exact ? 0u : 1u));
+            dx_data data;
+            capture.attach(&data);
+            const bool accepted = route == 0 ? facade.readAscii(&capture, false, input)
+                                             : facade.read(&capture, false);
+            bool correct = accepted == exact;
+            if (accepted) {
+                ++facadeAdmitted;
+                correct = correct && data.headerC.dxfCodePageDeclaration() == budgetSource
+                    && data.mBlock->ent.size() == 2;
+            } else {
+                ++facadeRefused;
+                correct = correct && facade.getLastDiagnostic().code == "dxf-retained-byte-budget"
+                    && facade.getLastDiagnostic().cause == DRW::OperationCause::ResourceLimit
+                    && !data.headerC.hasDxfCodePageDeclaration() && data.mBlock->ent.empty();
+            }
+            t.expect(correct, "facade exact/one-below provenance budget controls reject before callback and retry correctly");
+        }
+    }
+    const auto exported = directory / "normalized-output.dxf";
+    dx_iface writer;
+    t.expect(writer.fileExport(exported.string(), DRW::AC1015, false, &retry, false)
+                 && retry.headerC.dxfCodePageDeclaration() == "gBk",
+             "export does not rewrite historical source provenance");
+    dx_data reimported;
+    dx_iface reader;
+    t.expect(reader.fileImport(exported.string(), &reimported, false)
+                 && reimported.headerC.dxfCodePageDeclaration() == "ANSI_936",
+             "writer emits the established normalized declaration, not hidden source replay");
+    std::cout << "Codepage declaration provenance: handoffs=" << cases
+              << ", delimiter controls=" << delimiterCases
+              << ", facade admitted=" << facadeAdmitted << ", facade refused=" << facadeRefused << '\n';
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Codepage provenance evidence: " << directory << '\n';
+}
+
 void testMifEscapePolicy(TestContext& t) {
     struct MifCase { const char* source; const char* expected; };
     const std::vector<MifCase> cases{
@@ -1256,6 +1518,8 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
     dwgRW reader(source.string().c_str());
     t.expect(reader.read(&interface_, false),
              "public DWG reader accepts the eligible AC1021 fixture");
+    t.expect(!data.headerC.hasDxfCodePageDeclaration(),
+             "DWG HEADER does not fabricate a physical DXF declaration");
     t.expect(reader.getCodePage() == "ANSI_1252",
              "public dwgRW getter exposes the source code page after success");
 
@@ -1280,6 +1544,11 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--codepage-provenance") {
+        testCodePageProvenanceBudget(context);
+        testCodePageDeclarationProvenance(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--codepage-selection") {
         testCodePageSelectionMetadata(context);
         testCodePageDiagnosticHandoff(context);
@@ -1305,6 +1574,8 @@ int main(int argc, char** argv) {
     testCodePagePolicyAnchors(context);
     testCodePageSelectionMetadata(context);
     testCodePageDiagnosticHandoff(context);
+    testCodePageProvenanceBudget(context);
+    testCodePageDeclarationProvenance(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);
     testDxfWriters(context);

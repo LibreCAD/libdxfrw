@@ -1488,8 +1488,11 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedDataLink.m_customData.back().m_text == "third-row",
              "DATALINK assignment clears body/custom-data parser state");
 
+    // This parser-state control uses the modern mesh grammar (93 count,
+    // 13/23 source, 14/24 target), so declare v2 rather than archival v1.
+    // Version-1 wire meanings are exercised separately in the fixture tests.
     const std::string geoDataBody =
-        "100\nAcDbGeoData\n330\nA1\n90\n1\n93\n1\n"
+        "100\nAcDbGeoData\n330\nA1\n90\n2\n93\n1\n"
         "13\n1\n23\n2\n14\n3\n24\n4\n";
     ExposedGeoData partialGeoData;
     t.expect(parseDxfRecords(partialGeoData, geoDataBody)

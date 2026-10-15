@@ -39,6 +39,43 @@ DRW::Version dxfVersionFromName(const std::string& name) {
 
 } // namespace
 
+struct DRW_Header::DxfCodePageSource final {
+    DxfCodePageSource(const std::string& value,
+                      const std::shared_ptr<DxfReadRetainedBudget>& budget)
+        : lease(budget), declaration(value) {}
+
+    DxfCodePageSource(const DxfCodePageSource&) = delete;
+    DxfCodePageSource& operator=(const DxfCodePageSource&) = delete;
+
+    // Destroy the string before releasing its logical byte charge. Sharing
+    // this immutable object across header copies retains one physical value.
+    DxfReadRetainedLease lease;
+    std::string declaration;
+};
+
+const std::string& DRW_Header::dxfCodePageDeclaration() const noexcept {
+    static const std::string empty;
+    return m_dxfCodePageSource != nullptr ? m_dxfCodePageSource->declaration : empty;
+}
+
+bool DRW_Header::captureDxfCodePageDeclaration(
+    const std::unique_ptr<dxfReader>& reader) {
+    if (reader == nullptr)
+        return false;
+    const std::string& source = reader->getRawValue();
+    const auto budget = reader->retainedByteBudget();
+    DxfReadRetainedReservation reservation(budget, source.size());
+    if (budget != nullptr && !reservation.reserved())
+        return false;
+    auto replacement = std::make_shared<DxfCodePageSource>(source, budget);
+    if (budget != nullptr && !replacement->lease.adopt(reservation)) {
+        budget->reject();
+        return false;
+    }
+    m_dxfCodePageSource = std::move(replacement);
+    return true;
+}
+
 DRW_Header::DRW_Header() {
     linetypeCtrl = layerCtrl = styleCtrl = dimstyleCtrl = appidCtrl = 0;
     blockCtrl = viewCtrl = ucsCtrl = vportCtrl = vpEntHeaderCtrl = 0;
@@ -125,6 +162,10 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
         curr->addString(code, deferText && name != "$DWGCODEPAGE"
             ? reader->getRawValue() : reader->getUtf8String());
         if (name =="$DWGCODEPAGE") {
+            // Preserve the physical value independently of the established
+            // normalized public HEADER entry and its semantic decoder.
+            if (!captureDxfCodePageDeclaration(reader))
+                return false;
             reader->setCodePage(*curr->content.s);
             curr->addString(code, reader->getCodePage());
         }
