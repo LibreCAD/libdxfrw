@@ -11616,7 +11616,10 @@ bool DRW_Text::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         alignV = (VAlign)reader->getInt32();
         break;
     case 1:
-        text = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes, text,
+                reader->getUtf8String()))
+            return false;
         break;
     case 7:
         if (!replaceDxfRetainedStringField(
@@ -11640,6 +11643,7 @@ void DRW_Text::resetDwgState() {
     xAxisAngle = 0.0;
     height = 0.0;
     text.clear();
+    m_dxfRetainedTextBytes = 0u;
     m_dxfRetainedStyleBytes = 0u;
     angle = 0.0;
     widthscale = 1.0;
@@ -12041,7 +12045,12 @@ bool DRW_ArcAlignedText::parseCode(int code, const std::unique_ptr<dxfReader>& r
     // must not delegate those to DRW_Text; unknown codes fall through to the
     // AcDbEntity common parser.  Angles (50/51) are DXF degrees -> radians.
     switch (code) {
-    case 1:   text = reader->getUtf8String(); break;
+    case 1:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes, text,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 2:   m_fontName = reader->getUtf8String(); break;
     case 3:   m_bigFontName = reader->getUtf8String(); break;
     case 7:

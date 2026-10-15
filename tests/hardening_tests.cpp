@@ -3601,6 +3601,107 @@ void testDxfTextStyleOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfTextValueOwnerBudget(TestContext& t) {
+    class TextParseProbe final : public DRW_Text {
+    public:
+        using DRW_Text::parseCode;
+        using DRW_Text::resetDwgState;
+    };
+    class ArcTextParseProbe final : public DRW_ArcAlignedText {
+    public:
+        using DRW_ArcAlignedText::parseCode;
+        using DRW_ArcAlignedText::resetDwgState;
+    };
+    class RTextParseProbe final : public DRW_RText {
+    public:
+        using DRW_RText::parseCode;
+        using DRW_Text::resetDwgState;
+    };
+    class AttribParseProbe final : public DRW_Attrib {
+    public:
+        using DRW_Attrib::parseCode;
+        using DRW_Attrib::resetAttribDwgState;
+    };
+    const auto parse = [](auto& entity, const std::string& source,
+                          const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!entity.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+    const std::string source = "1\nOLD\n1\nTEXT\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        TextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(parsed && text.text == "TEXT" && budget->used() == 4u,
+                 "TEXT group-1 replacement fits its exact peak and retains only the live value");
+        TextParseProbe copy(text);
+        TextParseProbe assigned;
+        assigned = text;
+        text.resetDwgState();
+        t.expect(budget->used() == 4u && copy.text == "TEXT"
+                     && assigned.text == "TEXT",
+                 "copied TEXT values keep the shared retained-text charge after source reset");
+        copy.resetDwgState();
+        t.expect(budget->used() == 4u,
+                 "assignment copy keeps the TEXT value charge after sibling reset");
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final TEXT value reset releases the retained-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(30u);
+        TextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(!parsed,
+                 "one-byte-under TEXT replacement is rejected");
+        t.expect(budget->exceeded(),
+                 "one-byte-under TEXT replacement latches the quota failure");
+        t.expect(text.text == "OLD" && budget->used() == 3u,
+                 "one-byte-under TEXT replacement preserves its prior value and charge");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected TEXT replacement releases its surviving lease on reset");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        ArcTextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(parsed && text.text == "TEXT" && budget->used() == 4u,
+                 "ARCALIGNEDTEXT's direct group-1 path retains text with the inherited owner");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases its inherited retained-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        RTextParseProbe text;
+        const bool parsed = parse(text, source, budget);
+        t.expect(parsed && text.text == "TEXT" && budget->used() == 4u,
+                 "RTEXT's inherited group-1 path retains its projected text value");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "RTEXT reset releases its inherited retained-text lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(31u);
+        AttribParseProbe attribute;
+        const bool parsed = parse(attribute, source, budget);
+        t.expect(parsed && attribute.text == "TEXT" && budget->used() == 4u,
+                 "single-line ATTRIB delegates group-1 ownership to DRW_Text");
+        attribute.resetAttribDwgState();
+        t.expect(budget->used() == 0u,
+                 "ATTRIB reset releases its inherited retained-text lease");
+    }
+}
+
 void testDxfAttribTagOwnerBudget(TestContext& t) {
     class AttribParseProbe final : public DRW_Attrib {
     public:
@@ -6612,6 +6713,7 @@ int main() {
     testDxfAppDataRetentionBudget(context);
     testDxfCommonStringOwnerBudget(context);
     testDxfTextStyleOwnerBudget(context);
+    testDxfTextValueOwnerBudget(context);
     testDxfAttribTagOwnerBudget(context);
     testDxfAttdefPromptOwnerBudget(context);
     testDxfDimensionStyleOwnerBudget(context);

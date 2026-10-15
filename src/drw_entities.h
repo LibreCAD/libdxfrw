@@ -2037,6 +2037,7 @@ class DRW_Text : public DRW_Line {
 protected:
     // Shared by TEXT-family parsers that either delegate to DRW_Text or
     // consume its style field directly (for example ARCALIGNEDTEXT).
+    std::size_t m_dxfRetainedTextBytes{0};
     std::size_t m_dxfRetainedStyleBytes{0};
 
 public:
