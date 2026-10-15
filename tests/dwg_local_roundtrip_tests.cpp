@@ -667,7 +667,17 @@ public:
     void writeLTypes() override {}
     void writeLayers() override {}
     void writeTextstyles() override {}
-    void writeVports() override {}
+    void writeVports() override {
+        // Keep the synthesized *ACTIVE record as the default-value control in
+        // every generated DWG. Add one named record in AC1024 to prove that a
+        // caller-provided ambient color is not replaced by that default.
+        if (writer_ == nullptr || expectedVersion_ != DRW::AC1024)
+            return;
+        DRW_Vport vport;
+        vport.name = "LOCAL_NONACTIVE";
+        vport.ambientColor = 42;
+        wroteVport_ = writer_->addVport(&vport);
+    }
     void writeDimstyles() override {}
     void writeObjects() override {
         if (writer_ == nullptr || modelSpaceLineHandle_ == 0)
@@ -2566,6 +2576,8 @@ public:
         leader.flag = 3;
         leader.hookline = 1;
         leader.arrow = 1;
+        leader.textheight = 2.75;
+        leader.textwidth = 4.25;
         leader.vertnum = 2;
         leader.vertexlist.push_back(
             std::make_shared<DRW_Coord>(69.0, 70.0, 0.0));
@@ -3107,7 +3119,18 @@ public:
         }
     }
     void addHatch(const DRW_Hatch*) override { readHatchSeen_ = true; }
-    void addLeader(const DRW_Leader*) override { readLeaderSeen_ = true; }
+    void addLeader(const DRW_Leader* data) override {
+        readLeaderSeen_ = true;
+        readLeaderMetricsSeen_ = data != nullptr
+            && data->textheight == 2.75 && data->textwidth == 4.25;
+    }
+    void addVport(const DRW_Vport& data) override {
+        dx_iface::addVport(data);
+        if (data.name == "*ACTIVE")
+            readActiveVportDefaultSeen_ = data.ambientColor == 250;
+        if (data.name == "LOCAL_NONACTIVE")
+            readCallerVportColorSeen_ = data.ambientColor == 42;
+    }
     void addTolerance(const DRW_Tolerance& data) override {
         if (data.text == "LOCAL_TOLERANCE")
             readToleranceSeen_ = data.dimStyleH.ref != 0
@@ -4046,6 +4069,7 @@ public:
     }
     bool wroteHatch() const { return wroteHatch_; }
     bool wroteLeader() const { return wroteLeader_; }
+    bool wroteVport() const { return wroteVport_; }
     bool wroteTolerance() const { return wroteTolerance_; }
     bool rejectedMalformedTolerance() const {
         return rejectedMalformedTolerance_;
@@ -4319,6 +4343,13 @@ public:
     bool readPointCloudExSeen() const { return readPointCloudExSeen_; }
     bool readHatchSeen() const { return readHatchSeen_; }
     bool readLeaderSeen() const { return readLeaderSeen_; }
+    bool readLeaderMetricsSeen() const { return readLeaderMetricsSeen_; }
+    bool readActiveVportDefaultSeen() const {
+        return readActiveVportDefaultSeen_;
+    }
+    bool readCallerVportColorSeen() const {
+        return readCallerVportColorSeen_;
+    }
     bool readToleranceSeen() const { return readToleranceSeen_; }
     bool readRTextSeen() const { return readRTextSeen_; }
     bool readArcAlignedTextSeen() const { return readArcAlignedTextSeen_; }
@@ -4664,6 +4695,7 @@ private:
     bool rejectedMalformedPointCloudEx_ {false};
     bool wroteHatch_ {false};
     bool wroteLeader_ {false};
+    bool wroteVport_ {false};
     bool wroteTolerance_ {false};
     bool rejectedMalformedTolerance_ {false};
     bool wroteRText_ {false};
@@ -4887,6 +4919,9 @@ private:
     bool readPointCloudExSeen_ {false};
     bool readHatchSeen_ {false};
     bool readLeaderSeen_ {false};
+    bool readLeaderMetricsSeen_ {false};
+    bool readActiveVportDefaultSeen_ {false};
+    bool readCallerVportColorSeen_ {false};
     bool readToleranceSeen_ {false};
     bool readRTextSeen_ {false};
     bool readArcAlignedTextSeen_ {false};
@@ -15178,6 +15213,11 @@ int main(int argc, char** argv) {
                failures);
         expect(writeIface.wroteHatch(),
                ("local DWG writer emitted HATCH" + suffix).c_str(), failures);
+        expect(version == DRW::AC1024
+                   ? writeIface.wroteVport()
+                   : !writeIface.wroteVport(),
+               ("local DWG writer retained caller VPORT control" + suffix).c_str(),
+               failures);
         expect(writeIface.wroteLeader(),
                ("local DWG writer emitted LEADER" + suffix).c_str(), failures);
         expect(writeIface.wroteTolerance(),
@@ -15585,6 +15625,20 @@ int main(int argc, char** argv) {
                ("local DWG self-read publishes HATCH" + suffix).c_str(), failures);
         expect(readIface.readLeaderSeen(),
                ("local DWG self-read publishes LEADER" + suffix).c_str(), failures);
+        expect(readIface.readActiveVportDefaultSeen(),
+               ("local DWG self-read preserves default active VPORT color" + suffix).c_str(),
+               failures);
+        expect(version == DRW::AC1024
+                   ? readIface.readCallerVportColorSeen()
+                   : !readIface.readCallerVportColorSeen(),
+               ("local DWG self-read preserves caller VPORT color" + suffix).c_str(),
+               failures);
+        expect(version <= DRW::AC1021
+                   ? (readIface.readLeaderMetricsSeen()
+                      && readIface.readToleranceSeen())
+                   : !readIface.readLeaderMetricsSeen(),
+               ("local DWG LEADER metrics and following TOLERANCE alignment"
+                + suffix).c_str(), failures);
         expect(readIface.readToleranceSeen(),
                ("local DWG self-read publishes TOLERANCE" + suffix).c_str(), failures);
         expect(readIface.readRTextSeen(),
