@@ -17591,19 +17591,22 @@ bool dxfRW::writeLayout(DRW_Layout *ent) {
     writer->writeDouble(37, ent->ucsYAxis.z);
     writer->writeInt16(76, ent->orthoViewType);
     if (ent->shadePlotHandle.ref != 0)
-        writer->writeString(333, toHexStr(ent->shadePlotHandle.ref));
+        writer->writeString(
+            333, toHexStr(remapObjectHandle(ent->shadePlotHandle.ref)));
     if (ent->paperSpaceBlockRecordHandle.ref != 0)
         writer->writeString(
-            330, toHexStr(ent->paperSpaceBlockRecordHandle.ref));
+            330, toHexStr(remapObjectHandle(
+                              ent->paperSpaceBlockRecordHandle.ref)));
     if (ent->lastActiveViewportHandle.ref != 0)
         writer->writeString(
-            331, toHexStr(ent->lastActiveViewportHandle.ref));
+            331, toHexStr(remapObjectHandle(
+                              ent->lastActiveViewportHandle.ref)));
     if (ent->namedUcsHandle.ref != 0)
         writer->writeString(
-            345, toHexStr(ent->namedUcsHandle.ref));
+            345, toHexStr(remapObjectHandle(ent->namedUcsHandle.ref)));
     if (ent->baseUcsHandle.ref != 0)
         writer->writeString(
-            346, toHexStr(ent->baseUcsHandle.ref));
+            346, toHexStr(remapObjectHandle(ent->baseUcsHandle.ref)));
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return false;
     return !writer->hasWriteError();

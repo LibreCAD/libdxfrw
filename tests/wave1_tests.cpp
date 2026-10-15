@@ -1759,6 +1759,26 @@ void testCustomTextNumericWireKinds(TestContext& t) {
 
 void testLayoutStyleNumericWireKinds(TestContext& t) {
     expectTypedNumericWire(t, [](dxfRW& writer) {
+        writer.setHandleRemap({{0xA700u, 0xB700u},
+                               {0xA701u, 0xB701u},
+                               {0xA702u, 0xB702u},
+                               {0xA703u, 0xB703u},
+                               {0xA704u, 0xB704u},
+                               {0xA705u, 0xB705u}});
+        DRW_Layout layout;
+        layout.handle = 0xA706u;
+        layout.parentHandle = 0xA700u;
+        layout.name = "WIRE_LAYOUT_LINKS";
+        layout.shadePlotHandle.ref = 0xA702u;
+        layout.paperSpaceBlockRecordHandle.ref = 0xA701u;
+        layout.lastActiveViewportHandle.ref = 0xA703u;
+        layout.namedUcsHandle.ref = 0xA704u;
+        layout.baseUcsHandle.ref = 0xA705u;
+        return writer.writeLayout(&layout);
+    }, {"330:B700", "330:B701", "333:B702", "331:B703",
+        "345:B704", "346:B705"},
+       "LAYOUT typed structural references use the source handle remap");
+    expectTypedNumericWire(t, [](dxfRW& writer) {
         DRW_Layout layout;
         layout.handle = 0x210u;
         layout.name = "WIRE_LAYOUT";
