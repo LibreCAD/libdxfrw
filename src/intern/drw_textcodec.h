@@ -58,6 +58,7 @@ struct DRW_TextDecodeObservation {
     bool recovery {false};
     bool exactNamedMapping {false};
     bool unavailableNamedMapping {false};
+    DRW::DxfTextSourceProfile sourceProfile {DRW::DxfTextSourceProfile::NoProfile};
 };
 
 enum class DRW_TextSourceKind : std::uint8_t { Utf8, LegacyBytes, Utf16 };
@@ -77,6 +78,9 @@ public:
     DRW_TextDecodeObservation lastDecodeObservation() const noexcept {
         return m_lastDecodeObservation;
     }
+    // DXF reader only, immediately after primary toUtf8 with the same input.
+    // Reports the effective decoder, not a normalized/requested source label.
+    DRW::DxfTextSourceProfile dxfSourceProfile(std::string_view input) const noexcept;
     static bool isUtf8ScalarText(std::string_view text) noexcept;
     /// Convert byte-oriented DWG TV fields using the file codepage while the
     /// primary codec may remain UTF-16 for R2007+ fields.
@@ -171,6 +175,7 @@ public:
     DRW_TextDecodeObservation decodeObservation() const noexcept {
         return m_decodeObservation;
     }
+    DRW_TextSourceKind sourceKind() const noexcept { return m_sourceKind; }
     std::string encodeText(const std::string& stmp);
     std::string decodeText(int c);
     std::string encodeNum(int c);

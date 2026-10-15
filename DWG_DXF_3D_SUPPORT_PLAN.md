@@ -147,6 +147,24 @@ CLI opt-in; local contract/evidence work needs no new external run. Counts,
 native tuples, DWG layout, fixtures/dependencies/registrations and six deferred
 J/support states remain unchanged.
 
+Parity Slice3.3c.2b.1 now replaces the temporary overlapping-counter guard
+with23 closed effective primary input profiles and fixed per-call counters/
+mask. Counts partition semantic conversions, not source records/characters;
+metadata/raw roles remain excluded and actual decode context is retained.
+Exact admission validates profile total/mask/identity/overflow/saturation and
+explicitly allows17 existing compatibility transports. Canonical Windows and
+benign legacy ASCII plus modern UTF8 are eligible; earlier exact ISO bytes
+remain unqualified after later canonical/modern metadata.28 canonical handoffs,
+16 strict two-pass exports, mixed/cumulative/effective/Unicode controls, six
+evidence mutations and saturation/invalid-enum controls pass. Existing adapter
+8/16/8, final selected reader/header/CLI6/6 in22.68s, strict five-TU/affected-lc3,
+focused ASan/UBSan and140 unchanged defaults pass. Receipt:
+docs/research/codec-consumed-profiles-3-3c-2b-1-2026-10-15.json.
+Public observation layout requires rebuild, not binary ABI; no pure callback.
+Next3.3c.2b.2 actual CLI option/conversion controls under the closed contract.
+Default input remains Compatible; raw ISO producer qualification, native3D,
+DWG metadata, all six deferred J gates and ledger/support counts stay separate.
+
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
 adds140 current-source codec observations and a bounded3.1–3.5 implementation

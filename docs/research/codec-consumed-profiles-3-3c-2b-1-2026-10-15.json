@@ -1,0 +1,299 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "parentCommit": "4fd4a3fceea3042197264a8c4209739143296308",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "planSlice": "Slice3.3c.2b.1",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parent3_3": "IN_PROGRESS",
+  "parent3_3c_2b": "IN_PROGRESS",
+  "supportPromotion": false,
+  "scope": "Closed cumulative effective primary DXF decoder/transport identity and exact-input compatibility admission. Replace overlapping-counter inference; no new CLI option, raw ISO producer admission or native/DWG qualification.",
+  "sourceHashes": {
+    "src/drw_base.h": "5759997894f7ecbe3dd48b7db5661232f3497c9767c8e3e6004e33e4cc2c6ebc",
+    "src/intern/drw_textcodec.h": "a7439486514434f6a447f15e5c0d17406eec199f06497a9897baab3777f87fb3",
+    "src/intern/drw_textcodec.cpp": "e8d3da5d2f5ae0296fac64778ef3298088c86aae1ba5c0fd1823e34d920cd6b4",
+    "src/intern/dxfreader.cpp": "9b8e372869cd41e5024b6e8db55bb46c7462fd6e49b9cd731cb56a16f0140c30",
+    "dwg2dxf/dx_iface.cpp": "02fa3cdcb6e6ba191e58f0b37973e87ea44419f5d75319b6591b2ee61db9237a",
+    "tests/gbk_codepage_tests.cpp": "b06c5d4de6f2b5e000d4c9db78d16dd61466873bca9067e353794c60e8b7fa11",
+    "tests/lc3_compat_check.cpp": "743762fb6f3068dc011c25b680b10aa16e68810e25b3beebe2b5eb0687386bad",
+    "README.md": "1266110608c873981008d5e0f7a508785788834ae167003251d315f21d33e404",
+    "docs/3D_CONSUMER_CONTRACT.md": "d529e87a846c9340263c07d5fbaed84055fcc4b3cf1862716b2f72c6fc77569a",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9510718ff0add5680682751f71044b03bc53c49044d3d12ae3c40c7596f4c3d2",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "cb8657abd0d707e5a45532902e2ea505c5d8a4f6581aa96b399e25df506f96e9"
+  },
+  "artifactHashes": {
+    "build/libdxfrw.a": "7902a87220bce93eea1b4a4cc2e5be21474980759f194fb18e5fb36a950ba8af",
+    "build/dwg2dxf/dwg2dxf": "309956df2c4faae1ce23a415725aaeeb9eb00f84cb97416e25c8cead599e0757",
+    "build/libdxfrw_gbk_codepage_tests": "d456e7362557dcc8e5e98453392050a3886354c162c05f4ed11083b8fe5d76e3",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw.a": "6de50e2c3d7134dd111f0f3d5b7416f09688786db5679410011fad95ff96a9e9",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "3d702cdebdf8a45c046953cb0acb213f18e8b3f18fe3e32e2aaef2d7528d9197",
+    "/private/tmp/libdxfrw-consumed-profile.w7r3gO/profile.log": "9654073ec7672a92ac075d5ceda5797f8b6804b6f51015720b12bfd45eb3ac41",
+    "/private/tmp/libdxfrw-consumed-profile.w7r3gO/asan-profile.log": "9654073ec7672a92ac075d5ceda5797f8b6804b6f51015720b12bfd45eb3ac41",
+    "/private/tmp/libdxfrw-consumed-profile.w7r3gO/compat-probe": "2ca20bc087ddf69d47cc2c2ecba26d292115d2ad788758dd1ac97ed94bd49b56",
+    "/private/tmp/libdxfrw-broader-codec.YMVBfJ/probe.cpp": "79cbba78c6000a043782933d1f97fe5eed7682211cb2a398aefdd12d8d92f901"
+  },
+  "contract": {
+    "profiles": [
+      "NoProfile",
+      "AsciiOrEscapes",
+      "ModernUtf8",
+      "RecoveredLegacyUtf8",
+      "Windows874",
+      "Windows932",
+      "Windows936",
+      "Windows949",
+      "Windows950",
+      "Windows1250",
+      "Windows1251",
+      "Windows1252",
+      "Windows1253",
+      "Windows1254",
+      "Windows1255",
+      "Windows1256",
+      "Windows1257",
+      "Windows1258",
+      "Iso8859_4",
+      "NonModernUtf8",
+      "LegacyUtf16",
+      "UnavailableNamed",
+      "Unidentified"
+    ],
+    "profileCount": 23,
+    "admittedCompatibilityProfiles": [
+      "AsciiOrEscapes",
+      "ModernUtf8",
+      "RecoveredLegacyUtf8",
+      "Windows874",
+      "Windows932",
+      "Windows936",
+      "Windows949",
+      "Windows950",
+      "Windows1250",
+      "Windows1251",
+      "Windows1252",
+      "Windows1253",
+      "Windows1254",
+      "Windows1255",
+      "Windows1256",
+      "Windows1257",
+      "Windows1258"
+    ],
+    "facts": "One profile for each completed semantic decode; fixed sourceProfileCalls/sourceProfileMask and noexcept profileCount query append to existing observation fields. Counts partition calls, not unique records/characters or source coverage. Other counters overlap.",
+    "effectiveIdentity": "Reader classifies immediately after completed primary conversion, using actual converter kind, exact selected decoder and recovery flags; not the requested or final normalized HEADER. Metadata/raw controls/handles/binary roles remain excluded.",
+    "ascii": "Empty values and represented ASCII escape transport are decoder-independent. Nonempty UTF16/TU-style input is distinct even when every raw byte is below0x80. Nested MIF/escape semantics remain separately constrained by existing decode issues.",
+    "lifecycle": "Owned cumulative facts survive later HEADER/version/page changes, copied outcomes, returned/throwing failures and reader destruction. Existing snapshot/reuse/writes/rejected-operation tests now compare new profile fields too.",
+    "admission": "For explicit ExactNamed, checked sum/mask reconstruction must equal semanticDecodeCalls/sourceProfileMask; overflow, saturation, missing NoProfile identity or inconsistency is EvidenceUnavailable. Only explicitly enumerated17 existing compatibility profiles are eligible. ISO4/non-modern UTF8/UTF16/unavailable/unidentified profiles cannot gain eligibility from a later canonical/modern HEADER.",
+    "claimBoundary": "Eligibility is compatibility conversion policy, not normative AutoCAD producer conformance, exhaustive charset qualification, native rendering or whole-document completeness. Raw ISO4 producer profile remains separate and unqualified.",
+    "defaults": "Compatible source admission/output and DXF decode strings are unchanged. No CLI option/default, pure callback, DWG byte-layout or output-policy change.",
+    "publicLayout": "Fixed observation layout grows; downstream rebuild required, no binary ABI or concurrency guarantee."
+  },
+  "tests": {
+    "mode": "--consumed-text-profiles",
+    "canonicalReaderHandoffs": 28,
+    "canonicalMatrix": "14 independently anchored Windows pages × ASCII/binary AC1015 input; literal Unicode, physical declaration, exact effective profile and closed admission asserted.",
+    "strictTwoPassExports": 16,
+    "exportMatrix": "Windows932/1252 × ASCII/binary × AC1018/AC1021 target, two exports plus third read, literal TEXT and distinct nonzero-Z LINE.",
+    "mixedVersionControls": 2,
+    "mixedScope": "Old exact/nonASCII counters are both positive for legacy ASCII followed by modern UTF8 and for earlier ISO bytes followed by modern UTF8. New facts admit only the decoder-independent case and retain ISO in the other.",
+    "multipleWindowsControl": 1,
+    "effectiveCompatibleVersusExactIsoControls": 2,
+    "actualReaderUnicodeControls": 4,
+    "evidenceMutations": 6,
+    "evidenceMutationScope": [
+      "missing profile counts",
+      "unknown mask bit",
+      "NoProfile missing identity with otherwise matching total",
+      "checked-sum overflow",
+      "saturation flag",
+      "semantic/profile-total disagreement"
+    ],
+    "additionalControls": [
+      "explicit recovery effective identity",
+      "UTF16 ASCII bytes versus ASCII wire transport",
+      "non-modern UTF8 pass-through identity",
+      "profile counter saturation",
+      "invalid profile enum sanitized to missing evidence and safe mask/query behavior",
+      "actual unavailable high-byte profile versus ASCII independent escapes"
+    ],
+    "existingExactAdapter": {
+      "imports": 8,
+      "twoPassExports": 16,
+      "atomicStrictSourceRefusals": 8,
+      "scope": "Prior unavailable/ASCII/cumulative/evidence/callback-allocation/retry controls retained."
+    },
+    "selectedGate": {
+      "packet": {
+        "path": "/private/tmp/libdxfrw-consumed-profile.w7r3gO/focused-ctest.xml",
+        "sha256": "46638df85824843fc2cbfd539303301e6a7ce44a3502c7b6762ec72e2e650785",
+        "suite": {
+          "name": "(empty)",
+          "tests": "6",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "22",
+          "timestamp": "2026-10-15T16:07:47"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_public_header_hygiene",
+            "classname": "libdxfrw_public_header_hygiene",
+            "time": "10.1203",
+            "status": "run"
+          },
+          {
+            "name": "dwg2dxf_cli_contract",
+            "classname": "dwg2dxf_cli_contract",
+            "time": "8.4644",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.412844",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_hardening",
+            "classname": "libdxfrw_hardening",
+            "time": "0.270935",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_diagnostic",
+            "classname": "libdxfrw_diagnostic",
+            "time": "0.173279",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dxf_fixtures",
+            "classname": "libdxfrw_dxf_fixtures",
+            "time": "3.23396",
+            "status": "run"
+          }
+        ]
+      },
+      "reportedWallSeconds": 22.68,
+      "tests": 6,
+      "failures": 0,
+      "skips": 0,
+      "scope": "Rebuilt selected reader/header/CLI/codec/hardening/diagnostic/fixture gate, not the full suite."
+    },
+    "strict": {
+      "translationUnits": [
+        "src/intern/drw_textcodec.cpp",
+        "src/intern/dxfreader.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/gbk_codepage_tests.cpp",
+        "tests/lc3_compat_check.cpp"
+      ],
+      "exitCode": 0,
+      "command": "clang++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -I. -Isrc -Idwg2dxf -fsyntax-only <source>"
+    },
+    "build": {
+      "targets": [
+        "libdxfrw_gbk_codepage_tests",
+        "dwg2dxf",
+        "lc3_compat_check",
+        "libdxfrw_hardening_tests",
+        "libdxfrw_diagnostic_tests",
+        "libdxfrw_dxf_fixture_tests"
+      ],
+      "exitCode": 0
+    },
+    "asanUbsan": {
+      "exitCode": 0,
+      "mode": "--consumed-text-profiles",
+      "rebuild": "Changed public header propagated through all core instrumented TUs and adapter/test target.",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      }
+    },
+    "frozenCompatibility": {
+      "rows": 140,
+      "locales": [
+        "C",
+        "tr_TR.ISO8859-9"
+      ],
+      "mismatches": 0,
+      "fields": [
+        "selected",
+        "decoded_utf8_hex",
+        "reencoded_hex",
+        "redecoded_utf8_hex"
+      ],
+      "reference": "docs/research/broader-codec-policy-research-2026-10-15.json",
+      "scope": "Fresh current-source probe compilation/run; not unchanged old executable reuse."
+    }
+  },
+  "baselineScope": "No old executable was run with the new profile mode. The old coarse predicate is source-inspected; current authored mixed controls explicitly assert both old counters positive and distinguish the required per-consumption outcomes. Do not label this a frozen-parent runtime reproduction.",
+  "primarySources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "use": "Release-specific string storage distinguishes modern UTF8 and legacy ASCII/CIF; the explicit Windows compatibility set is not claimed normative producer qualification."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm",
+      "use": "Control/caret interpretation remains separate from scalar/profile facts; no command escaping change is made."
+    }
+  ],
+  "limits": [
+    "Profile IDs are observation identities, not DWG numeric codepage IDs.",
+    "Raw carrier coverage and unknown/unsupported entity completeness are not inferred from profile counts.",
+    "Malformed/undefined/unrepresented text still uses existing issues; an eligible profile does not erase them.",
+    "No independent CAD producer/native reader was run for the new authored inputs. Canonical mapping anchors are selected literal field controls, not exhaustive per-page byte qualification.",
+    "SourceProfileCount is fixed/bounded; it does not change logical retained-string budget scope to whole-model/RSS accounting."
+  ],
+  "next": {
+    "item": "Slice3.3c.2b.2",
+    "action": "Exact complete-token CLI option wiring and actual positional/FreeCAD/batch conversions under the closed compatibility contract; retain default Compatible and explicit unsupported-profile/refusal behavior for raw ISO4. Profile evidence alone does not promote support."
+  },
+  "notRun": [
+    "Full suite",
+    "New native FreeCAD/LibreCAD/LC3 or installed-consumer/package qualification",
+    "Independent ACIS/AcDs semantics",
+    "DWG parser byte-layout changes",
+    "New CLI exact-input route"
+  ],
+  "fixturePolicy": "Only locally authored scratch DXF input at test runtime; no downloaded/committed drawing fixture, dependency or new CTest registration. User-owned untracked files preserved.",
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149
+  },
+  "deferredExternal": [
+    {
+      "id": "J256",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J260",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J268",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J284",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J293",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J295",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    }
+  ]
+}

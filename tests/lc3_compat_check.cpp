@@ -65,6 +65,12 @@ static_assert(noexcept(std::declval<const dxfRW&>().dxfCodePagePolicy()),
 static_assert(std::is_same<decltype(DRW_DxfTextReadObservations{}.codePagePolicy),
                   DRW::DxfCodePagePolicy>::value,
               "owned read snapshot must expose the applied input policy");
+static_assert(std::is_same<decltype(std::declval<const DRW_DxfTextReadObservations&>().profileCount(
+                  DRW::DxfTextSourceProfile::Windows1252)), std::uint64_t>::value,
+              "owned source profile query must retain its fixed counter type");
+static_assert(noexcept(std::declval<const DRW_DxfTextReadObservations&>().profileCount(
+                  DRW::DxfTextSourceProfile::Windows1252)),
+              "owned source profile query must remain noexcept");
 
 // Additional unconditional calls in the same current consumer source. These
 // three signatures are source coverage only; the other two facade gaps and a

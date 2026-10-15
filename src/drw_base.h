@@ -346,6 +346,32 @@ constexpr std::uint32_t dxfTextIssueMask(DxfTextIssue issue) noexcept {
         ? std::uint32_t{1} << static_cast<unsigned>(issue) : 0u;
 }
 
+// Effective primary DXF input transport/decoder, not the last HEADER label or
+// a producer/support certificate. ASCII includes represented CIF/MIF; decoder
+// issues still report malformed/unrepresented escapes independently.
+enum class DxfTextSourceProfile : std::uint8_t {
+    NoProfile,
+    AsciiOrEscapes,
+    ModernUtf8,
+    RecoveredLegacyUtf8,
+    Windows874, Windows932, Windows936, Windows949, Windows950,
+    Windows1250, Windows1251, Windows1252, Windows1253, Windows1254,
+    Windows1255, Windows1256, Windows1257, Windows1258,
+    Iso8859_4,
+    NonModernUtf8,
+    LegacyUtf16,
+    UnavailableNamed,
+    Unidentified,
+    Count
+};
+
+constexpr std::uint32_t dxfTextSourceProfileMask(DxfTextSourceProfile profile) noexcept {
+    return profile < DxfTextSourceProfile::Count
+        ? std::uint32_t{1} << static_cast<unsigned>(profile) : 0u;
+}
+static_assert(static_cast<unsigned>(DxfTextSourceProfile::Count) < 32u,
+              "DXF source profiles must fit the fixed mask");
+
 struct DxfTextReadObservations {
     static constexpr std::size_t IssueCount =
         static_cast<std::size_t>(DxfTextIssue::Count);
@@ -369,11 +395,21 @@ struct DxfTextReadObservations {
     DxfCodePagePolicy codePagePolicy {DxfCodePagePolicy::Compatible};
     std::uint64_t exactNamedDecodeCalls {0};
     std::uint64_t unavailableNamedDecodeCalls {0};
+    // One profile per completed semantic call; these counters partition calls,
+    // not unique records/characters. Other observation counters still overlap.
+    static constexpr std::size_t SourceProfileCount =
+        static_cast<std::size_t>(DxfTextSourceProfile::Count);
+    std::array<std::uint64_t, SourceProfileCount> sourceProfileCalls {};
+    std::uint32_t sourceProfileMask {0};
 
     bool hasIssues() const noexcept { return issueMask != 0u; }
     std::uint64_t issueCount(DxfTextIssue issue) const noexcept {
         const auto index = static_cast<std::size_t>(issue);
         return index < issueCalls.size() ? issueCalls[index] : 0u;
+    }
+    std::uint64_t profileCount(DxfTextSourceProfile profile) const noexcept {
+        const auto index = static_cast<std::size_t>(profile);
+        return index < sourceProfileCalls.size() ? sourceProfileCalls[index] : 0u;
     }
 };
 

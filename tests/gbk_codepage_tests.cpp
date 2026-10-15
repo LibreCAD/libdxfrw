@@ -1537,6 +1537,8 @@ std::string makeTextObservationDrawing(const char* page, bool modern,
 bool sameTextObservations(const DRW_DxfTextReadObservations& a,
                           const DRW_DxfTextReadObservations& b) {
     return a.codePagePolicy == b.codePagePolicy
+        && a.sourceProfileMask == b.sourceProfileMask
+        && a.sourceProfileCalls == b.sourceProfileCalls
         && a.exactNamedDecodeCalls == b.exactNamedDecodeCalls
         && a.unavailableNamedDecodeCalls == b.unavailableNamedDecodeCalls
         && a.semanticDecodeCalls == b.semanticDecodeCalls
@@ -2239,6 +2241,186 @@ void testConverterDxfReadOutcome(TestContext& t) {
     else std::cerr << "Converter DXF outcome evidence: " << directory << '\n';
 }
 
+void testConsumedTextProfiles(TestContext& t) {
+    using Profile = DRW::DxfTextSourceProfile;
+    using Mapping = DRW::DxfCodePagePolicy;
+    using Status = dx_dxfSourceTextStatus;
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-consumed-profiles-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    const auto writeBytes = [](const std::filesystem::path& path, const std::string& bytes) {
+        std::ofstream file(path, std::ios::binary); file.write(bytes.data(), bytes.size());
+        if (!file) throw std::runtime_error("authored profile input could not be written");
+    };
+    const auto partitioned = [](const DRW_DxfTextReadObservations& value) {
+        std::uint64_t total = 0; std::uint32_t mask = 0;
+        for (std::size_t i = 0; i < value.sourceProfileCalls.size(); ++i) {
+            const auto calls = value.sourceProfileCalls[i];
+            if (calls > (std::numeric_limits<std::uint64_t>::max)() - total) return false;
+            total += calls;
+            if (calls) mask |= DRW::dxfTextSourceProfileMask(static_cast<Profile>(i));
+        }
+        return total == value.semanticDecodeCalls && mask == value.sourceProfileMask
+            && value.profileCount(Profile::NoProfile) == 0;
+    };
+    struct Row { const char* page; const char* bytes; const char* expected; Profile profile; };
+    // Independent literal anchors from the existing canonical codec controls,
+    // not expected strings manufactured through a production converter.
+    const Row rows[] = {
+        {"ANSI_874", "\xA1", "\xE0\xB8\x81", Profile::Windows874},
+        {"ANSI_932", "\x82\xA0", "\xE3\x81\x82", Profile::Windows932},
+        {"ANSI_936", "\xD6\xD0", "\xE4\xB8\xAD", Profile::Windows936},
+        {"ANSI_949", "\xB0\xA1", "\xEA\xB0\x80", Profile::Windows949},
+        {"ANSI_950", "\xA4\xA4", "\xE4\xB8\xAD", Profile::Windows950},
+        {"ANSI_1250", "\xA5", "\xC4\x84", Profile::Windows1250},
+        {"ANSI_1251", "\xC0", "\xD0\x90", Profile::Windows1251},
+        {"ANSI_1252", "\xE9", "\xC3\xA9", Profile::Windows1252},
+        {"ANSI_1253", "\xC1", "\xCE\x91", Profile::Windows1253},
+        {"ANSI_1254", "\xD0", "\xC4\x9E", Profile::Windows1254},
+        {"ANSI_1255", "\xE0", "\xD7\x90", Profile::Windows1255},
+        {"ANSI_1256", "\xC7", "\xD8\xA7", Profile::Windows1256},
+        {"ANSI_1257", "\xC0", "\xC4\x84", Profile::Windows1257},
+        {"ANSI_1258", "\xD5", "\xC6\xA0", Profile::Windows1258}
+    };
+    std::size_t handoffs = 0, exports = 0;
+    for (const auto& row : rows) for (bool binary : {false,true}) {
+        const auto input = directory / (std::to_string(handoffs) + ".dxf");
+        const std::string expected = std::string("L") + row.expected + "Z";
+        writeBytes(input, makeTextObservationDrawing(row.page, false, false, binary,
+                                                    std::string("L") + row.bytes + "Z"));
+        dx_data data; dx_iface adapter;
+        const bool read = adapter.fileImport(input.string(), &data, false, Mapping::ExactNamed);
+        const auto& observations = data.dxfReadOutcome.observations;
+        const auto* text = data.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_Text*>(data.mBlock->ent.front());
+        t.expect(read && text && text->text == expected && partitioned(observations)
+                     && observations.profileCount(row.profile) == 1 && !observations.hasIssues()
+                     && data.headerC.dxfCodePageDeclaration() == row.page
+                     && dx_iface::admitDxfSourceText(data).status == Status::Admitted,
+                 "exact canonical bytes retain actual per-consumption Windows identity and existing compatibility admission");
+        if (row.profile == Profile::Windows932 || row.profile == Profile::Windows1252)
+            for (const auto target : {DRW::AC1018,DRW::AC1021}) {
+            const auto output = directory / ("first-" + std::to_string(handoffs) + "-" + std::to_string(target) + ".dxf");
+            t.expect(adapter.fileExport(output.string(), target, binary, &data, false, false,
+                                         dx_dxfSourceTextPolicy::RequireValidSource, DRW::DxfTextWritePolicy::RequireLossless),
+                     "profile-admitted exact input composes with explicit strict source and target output");
+            dx_data first; dx_iface next;
+            t.expect(next.fileImport(output.string(), &first, false), "profile output first default read succeeds");
+            const auto secondPath = directory / ("second-" + std::to_string(handoffs) + "-" + std::to_string(target) + ".dxf");
+            t.expect(next.fileExport(secondPath.string(), target, binary, &first, false, false,
+                                     dx_dxfSourceTextPolicy::RequireValidSource, DRW::DxfTextWritePolicy::RequireLossless),
+                     "profile output second strict conversion succeeds");
+            dx_data second;
+            const bool thirdRead = next.fileImport(secondPath.string(), &second, false);
+            const auto* finalText = second.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_Text*>(second.mBlock->ent.front());
+            const auto* line = second.mBlock->ent.empty() ? nullptr : dynamic_cast<const DRW_Line*>(second.mBlock->ent.back());
+            t.expect(thirdRead && finalText && finalText->text == expected && line && line->eType == DRW::LINE
+                         && line->basePoint.z == 3 && line->secPoint.z == 6 && second.mBlock->ent.size() == 2,
+                     "profile-admitted repeated conversion retains literal Unicode and following nonzero-Z LINE");
+            exports += 2;
+        }
+        ++handoffs;
+    }
+    // An ASCII legacy field and later modern non-ASCII text have intersecting
+    // old counters, but neither actually consumed a noncanonical byte profile.
+    for (bool isoBytes : {false,true}) {
+        auto bytes = makeTextObservationDrawing("ISO8859-4", false, false, false, isoBytes ? "L\xA1Z" : "plain");
+        bytes.resize(bytes.rfind("0\nEOF\n"));
+        bytes += "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n9\n$DWGCODEPAGE\n3\nANSI_1252\n0\nENDSEC\n"
+                 "0\nSECTION\n2\nENTITIES\n0\nTEXT\n5\nC\n8\n0\n10\n0\n20\n0\n40\n1\n1\n\xC3\xA9\n0\nENDSEC\n0\nEOF\n";
+        const auto path = directory / (isoBytes ? "mixed-iso.dxf" : "mixed-independent.dxf"); writeBytes(path, bytes);
+        dx_data data; dx_iface adapter;
+        t.expect(adapter.fileImport(path.string(), &data, false, Mapping::ExactNamed)
+                     && data.dxfReadOutcome.observations.exactNamedDecodeCalls > 0
+                     && data.dxfReadOutcome.observations.nonAsciiDecodeCalls > 0
+                     && partitioned(data.dxfReadOutcome.observations)
+                     && data.dxfReadOutcome.observations.profileCount(Profile::ModernUtf8) > 0
+                     && (data.dxfReadOutcome.observations.profileCount(Profile::Iso8859_4) > 0) == isoBytes
+                     && !data.dxfReadOutcome.observations.hasIssues()
+                     && dx_iface::admitDxfSourceText(data).status == (isoBytes ? Status::UnsupportedProfile : Status::Admitted),
+                 "actual cumulative profiles distinguish decoder-independent mixed versions from earlier ISO bytes despite identical old counter intersections");
+    }
+    {
+        auto bytes = makeTextObservationDrawing("ANSI_1251", false, false, false, "\xC0");
+        bytes.resize(bytes.rfind("0\nEOF\n"));
+        bytes += "0\nSECTION\n2\nHEADER\n9\n$DWGCODEPAGE\n3\nANSI_1252\n0\nENDSEC\n"
+                 "0\nSECTION\n2\nENTITIES\n0\nTEXT\n5\nC\n8\n0\n10\n0\n20\n0\n40\n1\n1\n\xE9\n0\nENDSEC\n0\nEOF\n";
+        const auto path = directory / "two-windows.dxf"; writeBytes(path, bytes);
+        dx_data data; dx_iface adapter;
+        t.expect(adapter.fileImport(path.string(), &data, false, Mapping::ExactNamed)
+                     && data.dxfReadOutcome.observations.profileCount(Profile::Windows1251) == 1
+                     && data.dxfReadOutcome.observations.profileCount(Profile::Windows1252) == 1
+                     && partitioned(data.dxfReadOutcome.observations)
+                     && dx_iface::admitDxfSourceText(data).status == Status::Admitted,
+                 "two consumed Windows profiles remain distinct beyond final HEADER normalization");
+        const auto saved = data.dxfReadOutcome.observations;
+        for (int mode = 0; mode < 6; ++mode) {
+            auto& value = data.dxfReadOutcome.observations; value = saved;
+            if (mode == 0) value.sourceProfileCalls = {};
+            if (mode == 1) value.sourceProfileMask |= std::uint32_t{1} << 31;
+            if (mode == 2) {
+                ++value.sourceProfileCalls[0]; ++value.semanticDecodeCalls;
+                value.sourceProfileMask |= DRW::dxfTextSourceProfileMask(Profile::NoProfile);
+            }
+            if (mode == 3) {
+                value.sourceProfileCalls[0] = value.sourceProfileCalls[1] = (std::numeric_limits<std::uint64_t>::max)();
+            }
+            if (mode == 4) value.counterSaturated = true;
+            if (mode == 5) ++value.semanticDecodeCalls;
+            t.expect(dx_iface::admitDxfSourceText(data).status == Status::EvidenceUnavailable,
+                     "missing/unknown/inconsistent/overflowed/saturated profile facts cannot authorize exact source conversion");
+        }
+        data.dxfReadOutcome.observations = saved;
+        t.expect(dx_iface::admitDxfSourceText(data).admitted(), "restored source facts admit without changing the original owned snapshot");
+    }
+    for (const auto mapping : {Mapping::Compatible, Mapping::ExactNamed}) {
+        auto bytes = makeTextObservationDrawing("ISO8859-4", false, false, false, "\xA2");
+        dx_data data; PreparedDxInterface sink; sink.attach(&data); dxfRW reader("profile-memory.dxf");
+        reader.setDxfCodePagePolicy(mapping);
+        t.expect(reader.readAscii(&sink, false, bytes)
+                     && reader.getTextReadObservations().profileCount(mapping == Mapping::ExactNamed ? Profile::Iso8859_4 : Profile::Windows1257) == 1,
+                 "effective consumed decoder is distinct from the requested ISO family under Compatible versus ExactNamed");
+    }
+    for (const char* page : {"UTF8","UTF16"}) for (bool modern : {false,true}) {
+        const bool utf16 = std::string_view(page) == "UTF16";
+        auto bytes = makeTextObservationDrawing(page, modern, false, false, !modern && utf16 ? "AB" : "\xC3\xA9");
+        dx_data data; PreparedDxInterface sink; sink.attach(&data); dxfRW reader("unicode-profile-memory.dxf");
+        reader.setDxfCodePagePolicy(Mapping::ExactNamed);
+        const bool read = reader.readAscii(&sink, false, bytes);
+        const auto observations = reader.getTextReadObservations();
+        const auto expected = modern ? Profile::ModernUtf8 : utf16 ? Profile::LegacyUtf16 : Profile::NonModernUtf8;
+        t.expect(read && partitioned(observations) && observations.profileCount(expected) > 0
+                     && observations.hasIssues() == !modern,
+                 "actual reader records distinct legacy Unicode and modern inert-metadata profiles without admitting unsupported interpretation");
+    }
+    {
+        DRW_TextCodec codec; codec.setVersion(DRW::AC1015, true);
+        codec.setCodePage("ANSI_1252", true); codec.setDxfTextEncoding(DRW::DxfTextEncoding::LegacyLibreCadUtf8);
+        (void)codec.toUtf8("\xC3\xA9");
+        t.expect(codec.dxfSourceProfile("\xC3\xA9") == Profile::RecoveredLegacyUtf8, "explicit recovery has its own effective profile");
+        codec.setDxfTextEncoding(DRW::DxfTextEncoding::Declared); codec.setCodePage("UTF16", true);
+        (void)codec.toUtf8("AB");
+        t.expect(codec.dxfSourceProfile("AB") == Profile::LegacyUtf16, "TU-like ASCII bytes are not decoder-independent ASCII DXF");
+        codec.setCodePage("UTF8", true); (void)codec.toUtf8("\xC3\xA9");
+        t.expect(codec.dxfSourceProfile("\xC3\xA9") == Profile::NonModernUtf8, "legacy UTF8 pass-through is not a modern source profile");
+        DRW_DxfTextReadObservations value;
+        value.sourceProfileCalls[static_cast<std::size_t>(Profile::Iso8859_4)] = (std::numeric_limits<std::uint64_t>::max)();
+        DRW_TextDecodeObservation one; one.sourceProfile = Profile::Iso8859_4;
+        dxfReader::appendTextReadObservation(value, one, 1, 0, false);
+        t.expect(value.counterSaturated && value.profileCount(Profile::Iso8859_4) == (std::numeric_limits<std::uint64_t>::max)()
+                     && value.sourceProfileMask == DRW::dxfTextSourceProfileMask(Profile::Iso8859_4),
+                 "profile counters saturate without rollover and keep their observed identity bit");
+        DRW_DxfTextReadObservations invalid; one.sourceProfile = static_cast<Profile>(255);
+        dxfReader::appendTextReadObservation(invalid, one, 1, 0, false);
+        t.expect(invalid.profileCount(Profile::NoProfile) == 1 && invalid.profileCount(static_cast<Profile>(255)) == 0
+                     && DRW::dxfTextSourceProfileMask(static_cast<Profile>(255)) == 0,
+                 "invalid profile enums record missing evidence without unsafe mask shifts or indexing");
+    }
+    std::cout << "Consumed DXF profiles: canonical handoffs=" << handoffs << ", strict two-pass exports=" << exports
+              << "; mixed/cumulative/effective/recovery/Unicode controls, 6 evidence mutations and saturation/invalid-enum checks pass\n";
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Consumed profile evidence: " << directory << '\n';
+}
+
 void testExactCodePageImport(TestContext& t) {
     using Mapping = DRW::DxfCodePagePolicy;
     using Source = dx_dxfSourceTextPolicy;
@@ -2357,6 +2539,7 @@ void testExactCodePageImport(TestContext& t) {
         dx_data data;
         t.expect(adapter.fileImport(path.string(), &data, false, Mapping::ExactNamed)
                      && dx_iface::admitDxfSourceText(data).status == (asciiOnly ? Status::Admitted : Status::ObservedIssues)
+                     && data.dxfReadOutcome.observations.profileCount(DRW::DxfTextSourceProfile::UnavailableNamed) == (asciiOnly ? 0u : 1u)
                      && data.dxfReadOutcome.observations.unavailableNamedDecodeCalls == (asciiOnly ? 0u : 1u),
                  "unknown-family ASCII escapes remain independent while unavailable high bytes are observed/refused");
     }
@@ -3375,6 +3558,11 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--consumed-text-profiles") {
+        testConsumedTextProfiles(context);
+        testExactCodePageImport(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--exact-codepage-import") {
         testExactCodePageImport(context);
         testConverterDxfReadOutcome(context);
@@ -3463,6 +3651,7 @@ int main(int argc, char** argv) {
     testExactCodePageReader(context);
     testConverterDxfReadOutcome(context);
     testExactCodePageImport(context);
+    testConsumedTextProfiles(context);
     testDxfSourceTextAdmission(context);
     testTargetTextTransport(context);
     testTargetTextFacade(context);

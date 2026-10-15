@@ -2846,17 +2846,38 @@ dx_dxfSourceTextAdmission dx_iface::admitDxfSourceText(const dx_data& data) noex
     if (mask != 0u)
         return {Status::ObservedIssues, mask};
 
-    // Exact high-byte profiles are not enabled for complete conversion by
-    // this adapter handoff alone. Counts can overlap across fields/HEADERs;
-    // use them only as a conservative refusal, never a profile certificate.
-    // A later canonical HEADER cannot erase earlier exact consumption.
-    // Decoder-independent ASCII/escapes and modern inert metadata retain
-    // their existing admission. Closed per-consumption profile eligibility
-    // is a separately reviewed step, not inferred from a zero issue mask.
-    if (read.observations.codePagePolicy == DRW::DxfCodePagePolicy::ExactNamed
-        && read.observations.exactNamedDecodeCalls != 0u
-        && read.observations.nonAsciiDecodeCalls != 0u)
-        return {Status::UnsupportedProfile, mask};
+    if (read.observations.codePagePolicy == DRW::DxfCodePagePolicy::ExactNamed) {
+        // Exact input needs complete per-consumption facts, not intersections
+        // of overlapping counters or the final HEADER. Explicitly enumerate
+        // existing compatibility transports; new families are not auto-admitted.
+        using Profile = DRW::DxfTextSourceProfile;
+        constexpr auto bit = DRW::dxfTextSourceProfileMask;
+        constexpr std::uint32_t allowed = bit(Profile::AsciiOrEscapes)
+            | bit(Profile::ModernUtf8) | bit(Profile::RecoveredLegacyUtf8)
+            | bit(Profile::Windows874) | bit(Profile::Windows932) | bit(Profile::Windows936)
+            | bit(Profile::Windows949) | bit(Profile::Windows950) | bit(Profile::Windows1250)
+            | bit(Profile::Windows1251) | bit(Profile::Windows1252) | bit(Profile::Windows1253)
+            | bit(Profile::Windows1254) | bit(Profile::Windows1255) | bit(Profile::Windows1256)
+            | bit(Profile::Windows1257) | bit(Profile::Windows1258);
+        std::uint64_t calls = 0;
+        std::uint32_t profiles = 0;
+        for (std::size_t i = 0; i < read.observations.sourceProfileCalls.size(); ++i) {
+            const auto count = read.observations.sourceProfileCalls[i];
+            if (count > (std::numeric_limits<std::uint64_t>::max)() - calls)
+                return {Status::EvidenceUnavailable, mask};
+            calls += count;
+            if (count != 0u) profiles |= bit(static_cast<Profile>(i));
+        }
+        if (calls != read.observations.semanticDecodeCalls
+            || profiles != read.observations.sourceProfileMask
+            || (profiles & bit(Profile::NoProfile)) != 0u)
+            return {Status::EvidenceUnavailable, mask};
+        // ISO's table is correct locally, but its raw producer profile remains
+        // separate. Unsupported Unicode/unavailable/unidentified/no-profile
+        // observations cannot be laundered by a later supported declaration.
+        if ((profiles & ~allowed) != 0u)
+            return {Status::UnsupportedProfile, mask};
+    }
 
     // Naming categories alone do not admit a DXF wire profile. Match the full
     // owned source declaration, never its possibly colliding 64-byte prefix.

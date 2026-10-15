@@ -81,14 +81,27 @@ facade construction separately from applied read observations/status. Returned
 and throwing exits retain it; new non-DXF attempts reset this DXF evidence.
 Outcome reset does not change existing append-to-model import behavior.
 
-Strict source admission rejects unknown/disagreeing policy evidence and,
-pending closed exact-profile review, conservatively refuses coexisting exact
-decoder/non-ASCII observations even when the issue mask is zero. Overlapping
-counters cannot certify profiles; later HEADER values cannot erase this gate.
-ASCII/represented escapes and modern inert metadata remain eligible. Explicit
-compatible source admission plus separate target guarding permits scoped
-conversions, not producer qualification. No CLI exact-input option/default is
-enabled; source-profile admission remains separate work.
+Strict source admission rejects unknown/disagreeing policy evidence. ExactNamed
+input now uses closed cumulative per-consumption profile facts, not intersecting
+counts or the last HEADER. `sourceProfileCalls` partitions completed semantic
+calls, `sourceProfileMask` retains their identities, and `profileCount` queries
+one `DRW::DxfTextSourceProfile`. Other counters overlap; none counts unique
+entities/characters or complete source coverage. Effective Windows pages,
+ASCII/represented escapes, modern UTF8 and explicit recovery are distinct from
+exact ISO4, non-modern UTF8, legacy UTF16, unavailable/unidentified input.
+Empty fields are decoder-independent; nonempty TU-like bytes are not ASCII DXF.
+Deferred fields record their actual decode context. Raw/metadata roles remain
+excluded, and copied/unwind/reuse snapshots retain the cumulative facts.
+
+Exact strict source admission verifies count/mask/semantic-total agreement and
+rejects overflow/saturation/missing identity. Its closed compatibility set keeps
+existing Windows/ASCII/modern/recovery transports eligible, not raw ISO4 producer
+qualification. Later canonical metadata cannot qualify prior ISO bytes; benign
+legacy ASCII plus modern UTF8 no longer fails from unrelated counter overlap.
+Explicit compatible source admission plus separate target guarding remains a
+caller choice, not native/producer qualification. No CLI exact-input option or
+default is enabled in this substep. Fixed observation layout grows; rebuild
+consumers, with no new pure callback or binary-ABI promise.
 This option is not a producer/native text or3D support claim,
 and does not turn stored TEXT/MTEXT commands into a plain-text promise.
 

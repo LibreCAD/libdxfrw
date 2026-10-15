@@ -328,6 +328,41 @@ void DRW_TextCodec::finishDecodeObservation(const DRW_Converter& converter,
         m_lastDecodeObservation.issues |= DRW::dxfTextIssueMask(Issue::ReappliedCodePage);
 }
 
+DRW::DxfTextSourceProfile DRW_TextCodec::dxfSourceProfile(std::string_view input) const noexcept {
+    using Profile = DRW::DxfTextSourceProfile;
+    if (input.empty()) return Profile::AsciiOrEscapes;
+    if (m_sourceVersionSet && sourceVersion >= DRW::AC1021)
+        return Profile::ModernUtf8;
+    if (m_lastDecodeObservation.unavailableNamedMapping)
+        return Profile::UnavailableNamed;
+    const std::string_view name = m_lastDecodeObservation.exactNamedMapping
+        ? std::string_view(m_dxfInputResolution.decoderName == nullptr ? "" : m_dxfInputResolution.decoderName)
+        : std::string_view(cp);
+    const bool utf16 = m_lastDecodeObservation.exactNamedMapping
+        ? name == "UTF-16" : conv->sourceKind() == DRW_TextSourceKind::Utf16;
+    // Nonempty TU-style bytes are not decoder-independent ASCII DXF text.
+    if (utf16) return Profile::LegacyUtf16;
+    if (!m_lastDecodeObservation.nonAsciiBytes) return Profile::AsciiOrEscapes;
+    if (m_lastDecodeObservation.recovery) return Profile::RecoveredLegacyUtf8;
+    const bool utf8 = m_lastDecodeObservation.exactNamedMapping
+        ? name == "UTF-8" : conv->sourceKind() == DRW_TextSourceKind::Utf8;
+    if (utf8) return Profile::NonModernUtf8;
+    struct Mapping { std::string_view name; Profile profile; };
+    static constexpr Mapping mappings[] = {
+        {"ANSI_874", Profile::Windows874}, {"ANSI_932", Profile::Windows932},
+        {"ANSI_936", Profile::Windows936}, {"ANSI_949", Profile::Windows949},
+        {"ANSI_950", Profile::Windows950}, {"ANSI_1250", Profile::Windows1250},
+        {"ANSI_1251", Profile::Windows1251}, {"ANSI_1252", Profile::Windows1252},
+        {"ANSI_1253", Profile::Windows1253}, {"ANSI_1254", Profile::Windows1254},
+        {"ANSI_1255", Profile::Windows1255}, {"ANSI_1256", Profile::Windows1256},
+        {"ANSI_1257", Profile::Windows1257}, {"ANSI_1258", Profile::Windows1258},
+        {"ISO8859-4", Profile::Iso8859_4}
+    };
+    for (const auto& mapping : mappings)
+        if (name == mapping.name) return mapping.profile;
+    return Profile::Unidentified;
+}
+
 std::string DRW_TextCodec::fromUtf8(std::string_view s) {
     return conv->fromUtf8(s);
 }

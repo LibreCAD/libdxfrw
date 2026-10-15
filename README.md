@@ -187,15 +187,14 @@ Returned failures and callback/diagnostic-copy exceptions retain both; new
 non-DXF attempts reset DXF-specific evidence. Existing imports still append to
 the caller model; resetting the outcome does not clear previously imported data.
 
-`RequireValidSource` rejects unknown/disagreeing policy evidence. Until the
-closed exact-source profile contract is reviewed, it also conservatively
-refuses when exact-decoder and non-ASCII observations coexist, even with no
-decode issues. These overlapping counts do not identify/qualify every consumed
-profile, and later HEADER metadata cannot erase them. Decoder-independent
-ASCII/represented escapes and modern inert metadata retain their existing
-admission. Callers choosing compatible source admission can export explicit
-exact input under the separate target-text policy; this is not producer
-qualification. No new CLI input option/default or source-profile claim is added.
+`RequireValidSource` rejects unknown/disagreeing policy evidence. Explicit
+exact input additionally uses cumulative per-consumption profile facts below,
+not intersections of overlapping counts or the final HEADER. Existing Windows
+compatibility transports, represented ASCII escapes and modern UTF8 remain
+eligible; exact ISO8859-4 high-byte input is still a separate unqualified
+producer-profile gate. Callers choosing compatible source admission can export
+that input under separate target-text guarding, without producer qualification.
+No CLI exact-input option/default or native support claim is added here.
 This library option does not certify native rendering, wire-profile conformance,
 all named mappings or complete conversion. Source admission, UTF8 recovery and
 target-text transport remain independent policies; legacy Unicode profiles are
@@ -221,6 +220,31 @@ physical values also retain a one-based record and `firstValueEndOffset`
 (bytes consumed through the value/delimiter, including a binary sentinel).
 That is not the offending code-unit's position. Deferred/assembled values do
 not invent a physical position; deferred decoding order need not be file order.
+
+`sourceProfileMask`, `sourceProfileCalls` and
+`profileCount(DRW::DxfTextSourceProfile)` separately describe the effective
+primary decoder/transport at each semantic conversion, not a requested name
+or normalized HEADER. The closed identities distinguish ASCII/represented
+escapes, modern UTF8, explicit recovery, individual Windows pages, exact ISO4,
+non-modern UTF8, legacy UTF16, unavailable and unidentified input. These profile
+counters use observation IDs, not numeric DWG codepage identifiers. The profile
+counters partition completed semantic calls; other counters still overlap,
+and neither represents unique source records/characters or complete coverage.
+Metadata/raw controls/binary/handles are excluded as before. Empty values are
+decoder-independent; nonempty TU-like bytes are not ASCII DXF just because
+their bytes are below80. Deferred values record their actual decoding context.
+
+Profile facts survive policy/version/page changes, failure, copied snapshots
+and facade destruction. Under explicit ExactNamed strict source admission,
+counts must agree with the mask/semantic-call total without overflow/saturation
+or missing identities. Only the closed existing compatibility set is eligible;
+ISO4/non-modern Unicode/unavailable/unidentified profiles are not silently
+admitted. A later canonical HEADER cannot erase earlier ISO consumption, while
+legacy ASCII plus later modern UTF8 no longer fails merely because unrelated
+counters intersect. These are compatibility-conversion rules, not normative
+AutoCAD producer, exhaustive mapping or native-rendering qualification.
+Fixed observation layout grows again: rebuild consumers; no new pure callback
+or binary-ABI guarantee.
 
 Snapshots survive reuse/destruction and include completed prefixes on failure
 or callback unwind. An admitted read resets them; `readAscii(nullptr)`, rejected

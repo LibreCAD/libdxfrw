@@ -89,6 +89,10 @@ void dxfReader::appendTextReadObservation(DRW_DxfTextReadObservations& target,
     if (value.recovery) increment(target.recoveryDecodeCalls);
     if (value.exactNamedMapping) increment(target.exactNamedDecodeCalls);
     if (value.unavailableNamedMapping) increment(target.unavailableNamedDecodeCalls);
+    const auto profile = value.sourceProfile < DRW::DxfTextSourceProfile::Count
+        ? value.sourceProfile : DRW::DxfTextSourceProfile::NoProfile;
+    increment(target.sourceProfileCalls[static_cast<std::size_t>(profile)]);
+    target.sourceProfileMask |= DRW::dxfTextSourceProfileMask(profile);
     if (value.issues == 0u) return;
     if (target.issueMask == 0u) {
         target.firstIssueMask = value.issues;
@@ -117,6 +121,7 @@ std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
             && sourceCode != 999 && sourceCode != 1002 && !isDxfHandleCode(sourceCode);
     if (semantic) {
         auto observation = decoder.lastDecodeObservation();
+        observation.sourceProfile = decoder.dxfSourceProfile(text);
         if (!decoder.hasSourceVersion() && observation.nonAsciiBytes)
             observation.issues |= DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnspecifiedSourceVersion);
         const auto selection = decoder.declaredCodePageSelection();
