@@ -42,8 +42,23 @@ input      existing file to convert
    -d -D      optional, enables debug tracing
    -version   version output of dxf file (required by the positional form,
               optional with -o; otherwise the source revision is retained)
+   --dxf-codepage-policy=compatible|exact-named
+              explicit DXF input mapping policy (default: compatible)
    output     output file name
 
+.PP
+The codepage-policy option uses one complete token and may be given once in
+positional, -o or batch mode. Unknown or missing values and repeated/conflicting
+tokens fail before conversion. It affects DXF inputs only; DWG decoding and
+FreeCAD's original four-argument invocation are unchanged. Exact named decoding
+does not bypass source-profile, lossless-target or owner checks, grant overwrite
+permission or enable automatic recovery. Existing Windows compatibility profiles,
+represented ASCII escapes and modern UTF8 remain eligible; correctly decoded
+raw ISO8859-4 high-byte input still refuses its unqualified producer profile
+without publication. This is not native-rendering or complete-format support
+qualification. Batch failures preserve their destination and do not stop
+independent entries.
+.PP
 The -o form is compatible with FreeCAD's external DWG converter invocation.
 It writes ASCII DXF unless -b is specified and does not prompt. If the output
 already exists, conversion fails unless -y is specified. AC1012/R13 input is

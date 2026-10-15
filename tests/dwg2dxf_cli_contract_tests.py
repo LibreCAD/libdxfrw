@@ -464,15 +464,190 @@ def check_target_text_transport(converter, root):
     return refused, retries, modern, repeated
 
 
+def check_exact_input_policy(converter, root):
+    """Actual option, profile refusal and repeated-conversion handoff; no peer."""
+    exact = "--dxf-codepage-policy=exact-named"
+    compatible = "--dxf-codepage-policy=compatible"
+
+    def header(version, page):
+        return [(0, b"SECTION"), (2, b"HEADER"), (9, b"$ACADVER"), (1, version),
+                (9, b"$DWGCODEPAGE"), (3, page), (0, b"ENDSEC")]
+
+    def body(payload):
+        return [(0, b"SECTION"), (2, b"ENTITIES"), (0, b"TEXT"), (5, b"A0"),
+                (8, b"0"), (10, 1.0), (20, 2.0), (40, 1.0), (1, payload),
+                (0, b"LINE"), (5, b"B0"), (8, b"0"), (10, 34.0), (20, 35.0),
+                (30, 36.0), (11, 37.0), (21, 38.0), (31, 39.0), (0, b"ENDSEC")]
+
+    def invoke(source, output, tokens, freecad=True, version="-v2007", binary=False):
+        args = [source, "-o", output, version, "-y", *tokens] if freecad else [source, version, "-y", *tokens, output]
+        if binary:
+            args.insert(len(args) if freecad else -1, "-b")
+        return run_bounded([str(converter), *map(str, args)], 5, 65536, cwd=root)
+
+    def verify_ascii(path, payload, revision):
+        data = path.read_bytes()
+        if data.startswith(BINARY_PREFIX):
+            raise AssertionError("profile projection expected actual ASCII output")
+        lines = data.splitlines()
+        if len(lines) % 2:
+            raise AssertionError("profile ASCII output lost a physical code/value pair")
+        pairs = [(int(lines[i].strip()), lines[i+1]) for i in range(0, len(lines), 2)]
+        if not any(a == (9, b"$ACADVER") and b == (1, revision) for a, b in zip(pairs, pairs[1:])):
+            raise AssertionError("profile actual output has the wrong source/target revision")
+        entities = []
+        for code, value in pairs:
+            if code == 0:
+                entities.append([value, []])
+            elif entities:
+                entities[-1][1].append((code, value))
+        texts = [tags for name, tags in entities if name == b"TEXT"]
+        geometry = [tags for name, tags in entities if name == b"LINE"]
+        if len(texts) != 1 or [v for c, v in texts[0] if c == 1] != [payload] or len(geometry) != 1:
+            raise AssertionError("profile output changed text bytes/type or entity coverage")
+        coordinates = {c: float(v) for c, v in geometry[0] if c in (10, 20, 30, 11, 21, 31)}
+        if coordinates != {10: 34.0, 20: 35.0, 30: 36.0, 11: 37.0, 21: 38.0, 31: 39.0}:
+            raise AssertionError("profile output lost its distinct nonzero-Z LINE")
+
+    option_rejections = 0
+    destination = root / "policy bad option destination.dxf"
+    missing_source = root / "missing policy input.dxf"
+    bad_groups = [[token] for token in ("--dxf-codepage-policy", "--dxf-codepage-policy=",
+                  "--dxf-codepage-policy=EXACT-NAMED", "--dxf-codepage-policy=unknown",
+                  "--dxf-codepage-policy=exact-named-extra", "--dxf-codepage-policy=compatible-extra",
+                  "--dxf-codepage-policy =exact-named")]
+    bad_groups += [[a, b] for a in (exact, compatible) for b in (exact, compatible)]
+    for tokens in bad_groups:
+        for freecad in (False, True):
+            destination.write_bytes(SENTINEL)
+            before = set(root.iterdir())
+            result = invoke(missing_source, destination, tokens, freecad)
+            if (result.returncode != 1 or b"Bad options." not in result.stdout
+                    or b"Error can't open" in result.stdout or destination.read_bytes() != SENTINEL
+                    or set(root.iterdir()) != before):
+                raise AssertionError(f"profile invalid option did not fail before I/O: {result!r}")
+            option_rejections += 1
+
+    routes = 0
+    for source_binary in (False, True):
+        source = root / f"policy canonical {source_binary}.dxf"
+        original = encode_authored_pairs(header(b"AC1015", b"ANSI_1252") + body(b"L\xe9Z"), source_binary)
+        source.write_bytes(original)
+        for policy in (compatible, exact):
+            for freecad in (False, True):
+                for version, revision, value in (("-v2004", b"AC1018", b"L\xe9Z"), ("-v2007", b"AC1021", "LéZ".encode())):
+                    for binary in (False, True):
+                        first = root / f"policy first {routes}.dxf"
+                        second = root / f"policy second {routes}.dxf"
+                        result = invoke(source, first, [policy], freecad, version, binary)
+                        if result.returncode != 0 or source.read_bytes() != original:
+                            raise AssertionError(f"profile first conversion failed/changed source: {result!r}")
+                        if binary:
+                            if not first.read_bytes().startswith(BINARY_PREFIX):
+                                raise AssertionError("profile first output ignored -b")
+                        else:
+                            verify_ascii(first, value, revision)
+                        first_payload = first.read_bytes()
+                        result = invoke(first, second, [], True, version)
+                        if result.returncode != 0 or first.read_bytes() != first_payload:
+                            raise AssertionError(f"default input second profile conversion failed: {result!r}")
+                        verify_ascii(second, value, revision)
+                        routes += 1
+
+    # Modern metadata and represented ASCII text do not request an ISO byte
+    # decoder. These remain distinct from the raw-ISO refusal cells below.
+    independent = 0
+    for modern in (False, True):
+        for source_binary in (False, True):
+            source = root / f"policy independent {modern}-{source_binary}.dxf"
+            payload = "LĄZ".encode() if modern else b"L\\U+0104Z"
+            original = encode_authored_pairs(header(b"AC1021" if modern else b"AC1015", b"ISO8859-4") + body(payload), source_binary)
+            source.write_bytes(original)
+            for freecad in (False, True):
+                output = root / f"policy independent result {independent}.dxf"
+                result = invoke(source, output, [exact], freecad)
+                if result.returncode != 0 or source.read_bytes() != original:
+                    raise AssertionError(f"decoder-independent/modern profile lost eligibility: {result!r}")
+                verify_ascii(output, "LĄZ".encode(), b"AC1021")
+                independent += 1
+
+    for source_binary in (False, True):
+        source = root / f"policy canonical {source_binary}.dxf"
+        output = root / f"policy default source revision {source_binary}.dxf"
+        before = source.read_bytes()
+        result = run_bounded([str(converter), str(source), "-o", str(output), exact], 5, 65536, cwd=root)
+        if result.returncode != 0 or source.read_bytes() != before:
+            raise AssertionError(f"exact option changed FreeCAD source-revision default: {result!r}")
+        verify_ascii(output, b"L\xe9Z", b"AC1015")
+        independent += 1
+
+    refusals = retries = 0
+    for version, page, payload, diagnostic in (
+            (b"AC1015", b"ISO8859-4", b"L\xa1Z", b"unsupported-source-profile issueMask=0"),
+            (b"AC1015", b"EUC-JP", b"L\xa1Z", b"observed-source-issues"),
+            (b"AC1021", b"ANSI_1252", b"\xc0\xaf", b"observed-source-issues")):
+        for source_binary in (False, True):
+            for freecad in (False, True):
+                source = root / f"policy refused source {refusals}.dxf"
+                output = root / f"policy refused output {refusals}.dxf"
+                original = encode_authored_pairs(header(version, page) + body(payload), source_binary)
+                source.write_bytes(original)
+                for existing in (False, True):
+                    if existing:
+                        output.write_bytes(SENTINEL)
+                    before = set(root.iterdir())
+                    result = invoke(source, output, [exact], freecad)
+                    if (result.returncode != 1 or diagnostic not in result.stderr
+                            or (output.read_bytes() if output.exists() else None) != (SENTINEL if existing else None)
+                            or set(root.iterdir()) != before or source.read_bytes() != original
+                            or b"Success:" in result.stdout):
+                        raise AssertionError(f"profile refusal failed policy/atomicity/source contract: {result!r}")
+                    refusals += 1
+                corrected = encode_authored_pairs(header(b"AC1015", b"ANSI_1252") + body(b"L\xe9Z"), source_binary)
+                source.write_bytes(corrected)
+                result = invoke(source, output, [exact], freecad)
+                if result.returncode != 0 or source.read_bytes() != corrected:
+                    raise AssertionError(f"profile corrected retry failed: {result!r}")
+                verify_ascii(output, "LéZ".encode(), b"AC1021")
+                retries += 1
+
+    output_dir = root / "policy batch output"
+    output_dir.mkdir()
+    bad = root / "policy batch bad.dxf"
+    good = root / "policy batch good.dxf"
+    bad_bytes = encode_authored_pairs(header(b"AC1015", b"ISO8859-4") + body(b"\xa1"), False)
+    good_bytes = encode_authored_pairs(header(b"AC1015", b"ANSI_1252") + body(b"L\xe9Z"), False)
+    bad.write_bytes(bad_bytes); good.write_bytes(good_bytes)
+    listing = root / "policy batch.txt"
+    list_bytes = (str(bad) + "\n" + str(good) + "\n").encode()
+    listing.write_bytes(list_bytes)
+    (output_dir / bad.name).write_bytes(SENTINEL)
+    result = run_bounded([str(converter), str(listing), "-B", "-v2007", "-y", exact, str(output_dir)], 5, 65536, cwd=root)
+    if (result.returncode != 1 or b"Failed:" not in result.stdout or b"Success:" not in result.stdout
+            or (output_dir / bad.name).read_bytes() != SENTINEL or bad.read_bytes() != bad_bytes
+            or good.read_bytes() != good_bytes or listing.read_bytes() != list_bytes):
+        raise AssertionError(f"profile batch did not preserve failure/continue independent item: {result!r}")
+    verify_ascii(output_dir / good.name, "LéZ".encode(), b"AC1021")
+    return option_rejections, routes, independent, refusals, retries, 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--converter", required=True, type=Path)
     parser.add_argument("--target-text-only", action="store_true",
                         help="run only the focused target transport controls while iterating")
+    parser.add_argument("--exact-input-only", action="store_true",
+                        help="run only explicit input policy/profile controls while iterating")
     args = parser.parse_args()
     converter = args.converter.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="libdxfrw-cli-contract-") as directory:
         root = Path(directory)
+        if args.exact_input_only:
+            policy = check_exact_input_policy(converter, root)
+            print(f"CLI exact input: PASS ({policy[0]} option refusals/{policy[1]} two-pass routes/"
+                  f"{policy[2]} independent positives/{policy[3]} atomic source refusals/"
+                  f"{policy[4]} corrected retries/{policy[5]} mixed batch)")
+            return
         if args.target_text_only:
             target = check_target_text_transport(converter, root)
             print(f"CLI target transport: PASS ({target[0]} refusals/{target[1]} retries/"
@@ -483,11 +658,14 @@ def main():
         observation_checked = check_read_observations(converter, root)
         source_checked = check_source_text_admission(converter, root)
         target = check_target_text_transport(converter, root)
+        policy = check_exact_input_policy(converter, root)
     print(f"CLI contract: PASS ({checked} option/filename and "
           f"{batch_checked} batch controls, {observation_checked} read-observation controls; "
           f"source text {source_checked[0]} refusals/{source_checked[1]} retries/"
           f"{source_checked[2]} positives/{source_checked[3]} mixed batch; target text "
-          f"{target[0]} refusals/{target[1]} retries/{target[2]} modern/{target[3]} two-pass routes, bounded subprocesses)")
+          f"{target[0]} refusals/{target[1]} retries/{target[2]} modern/{target[3]} two-pass routes; "
+          f"exact input {policy[0]} option refusals/{policy[1]} two-pass/{policy[2]} independent/"
+          f"{policy[3]} atomic refusals/{policy[4]} retries/{policy[5]} mixed batch, bounded subprocesses)")
 
 
 if __name__ == "__main__":

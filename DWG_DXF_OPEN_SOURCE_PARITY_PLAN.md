@@ -54,8 +54,8 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `4fd4a3f`;
-Plan-Slice:Slice3.3c.2b.1 / LOCAL_IMPLEMENTATION_COMPLETE):**
+**Current handoff (2026-10-15, provenance `7d21d2e`;
+Plan-Slice:Slice3.3c.2b.2 / LOCAL_IMPLEMENTATION_COMPLETE):**
 this queue supersedes historical “next” actions and plan-only research states.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
@@ -197,13 +197,45 @@ Compatible. Next3.3c.2b.2 explicit exact-option wiring and actual CLI controls
 under this closed compatibility contract. Raw ISO4 producer-profile admission,
 caret/native rendering, broader mappings and DWG metadata retain separate gates.
 
+3.3c.2b.2 now delivers one complete CLI token
+`--dxf-codepage-policy=compatible|exact-named`, with duplicate/conflicting or
+unknown/missing values rejected before conversion. Positional, FreeCAD and
+batch paths forward the input-only policy; DWG ignores the DXF-only selection
+and the original four-argument/default-Compatible route remains unchanged.
+Strict source/target/owner and overwrite gates are not bypassed. New actual
+controls pass22 option refusals,32 two-pass routes,10 independent/source-default
+positives,24 atomic source refusals,12 corrected retries and one mixed batch.
+Three locally generated DWG routes/seven bounded processes verify default/
+compatible/exact noninterference with exact typed TEXT/LINE; no producer claim.
+Final scoped CLI/version/codec3/3 in11.46s, strict two-TU and focused manually
+linked ASan/UBSan CLI controls pass. Core archive/adapter are byte/source-
+identical to2b.1. Receipt:
+docs/research/codec-exact-cli-3-3c-2b-2-2026-10-15.json.
+
+**Open reader follow-up, not hidden by that scoped gate:** the wider four-test
+selection is3/4: `dwg2dxf_freecad_cli_compat` still fails on tracked
+`rtext_arctext.dwg` at first stage `BAD_READ_HEADER`6 with a separate class-CRC
+warning. Parent CLI/parser source compiled with the byte-identical parent core
+reproduces the same full-harness failure; this is not a clean full-parent
+checkout or an executed native app. Earlier291858e counterevidence remains
+historical, not relabeled as fresh. The failing four-row packet is retained;
+the passing three-row acceptance packet explicitly excludes this unresolved
+broader reader cell. No fixture/assertion/reader guard was weakened.
+Next ready local action is7BE/7F/Slice5: inspect the relevant ODA HEADER/data-
+stream chapter and source-bound trace for this tracked AC1032 witness, isolate
+the first header failure before interpreting the later CRC warning, and test
+the smallest justified repair. Do not patch RTEXT entity dispatch or suppress
+integrity checks based only on the final warnings. CLI exact-profile delivery
+is locally complete, not full3.3 mapping/producer/native/whole-goal completion;
+all six J gates and support counts remain unchanged.
+
 | Order | Bounded item | Actual state and next gate |
 | --- | --- | --- |
 | 1 | PAR-35 / 7R.1 / S5.18 direct HATCH writer | COMMITTED `57b98cd`. Retain the passing literal tags, resolver-alias and failed-write controls; this is not CLI associativity support. |
 | 2 | 7R.2 HATCH adapter graph | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:7R.2d. Same-data controls pass16 successful exports/eight rejection checks; focused ASan/UBSan passes; integration CTests pass2/2 in5.27s and strict/lc3 gates pass. Actual ASCII/binary CLI conversions and exact verifiers pass twice. Durable report: docs/research/hatch-same-data-retry-2026-10-15.json. Native associativity/edit/update/fill and DWG are not qualified. Next independent item is the block census below. |
 | 3 | S2.3.9.4.29 block-path modeler census | LOCAL_IMPLEMENTATION_COMPLETE / Plan-Slice:S2.3.9.4.29.B3. The strict writer now rejects unresolved modern INSERT targets using its existing BLOCK_RECORD index. B3 passes28 genuine rejection/destination checks,28 corrected fresh-data retries and four default/R12 compatibility controls. Actual CLI passes four missing-target rejection cells/two R12 refusals plus four valid two-pass conversions/verifiers; positive bytes remain stable. Strict source/TU/lc3 and retained final-source focused CTests2/2 pass. Durable B3 report: docs/research/modeler-block-failures-b3-2026-10-15.json. B1/B2 receipts remain frozen; no nested DWG AcDs/SAB/native/B-rep/J promotion. Codec3.1 is also committed; next independent local slice is3.2. |
 | 4 | S2.2.5b legacy binary-SAT calibration | EXTERNAL_ACCEPTANCE_PENDING. Both actual output and peer binary baselines fail the recorded ODA screen. First obtain a same-profile positive control; do not treat this as a libdxfrw-only defect or repeatedly rerun the unchanged matrix. |
-| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Slice3.2b.2d LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_TARGET_TRANSPORT: retained10/10 gate and fresh focused/CLI/DWG/sanitizer/strict checks pass; receipt docs/research/codec-target-transport-3-2b-2d-2026-10-15.json. 3.3a.1 resolution contract is locally implemented:84 selection/six unknown/three lifecycle controls,178 frozen selections,140 unchanged outputs and focused2/2 pass; receipt docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json. 3.3c.1 now closes scoped functional reader/API delivery; broader profile admission remains open. 3.3b local table/input-factory is implemented:1024 byte/inverse pairs, canonical controls, focused2/2, strict/build/lc3/sanitizer, generator/license/package checks pass; receipt docs/research/codec-iso8859-4-3-3b-2026-10-15.json. 3.3c.1 reader/API is locally implemented with its separate receipt; 3.3c.2a adapter input/outcome is locally implemented; 3.3c.2b.1 consumed profile contract is locally implemented; next2b.2 CLI option and actual conversion controls; raw102/default7AR/native semantics remain open.3.4 stays version-witness-gated. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
+| 5 | Slice 3 legacy page policy / S3.2 DWG modeler envelope | Slice3.2b.2c LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_SOURCE_ADMISSION; parent3.2 IN_PROGRESS. CLI opts into RequireValidSource separately from owner resolution; library/default adapter behavior remains compatible.40 API handoffs/one profile/17 envelope controls,208 actual CLI refusals/104 corrected retries/40 positives/one mixed batch pass. Later metadata and a full advisory cap cannot erase earlier loss/profile ambiguity; final full source declaration, not prefixes/naming categories, governs legacy Unicode eligibility. Final focused5/5 in32.46s, strict/build/lc3 and focused ASan/UBSan pass. Receipt docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. No mapping/native/DWG/support promotion; fixed array growth requires rebuild. Slice3.2b.2d LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_TARGET_TRANSPORT: retained10/10 gate and fresh focused/CLI/DWG/sanitizer/strict checks pass; receipt docs/research/codec-target-transport-3-2b-2d-2026-10-15.json. 3.3a.1 resolution contract is locally implemented:84 selection/six unknown/three lifecycle controls,178 frozen selections,140 unchanged outputs and focused2/2 pass; receipt docs/research/codec-exact-resolution-3-3a-1-2026-10-15.json. 3.3c.1 now closes scoped functional reader/API delivery; broader profile admission remains open. 3.3b local table/input-factory is implemented:1024 byte/inverse pairs, canonical controls, focused2/2, strict/build/lc3/sanitizer, generator/license/package checks pass; receipt docs/research/codec-iso8859-4-3-3b-2026-10-15.json. 3.3c.1 reader/API is locally implemented with its separate receipt; 3.3c.2a adapter input/outcome is locally implemented; 3.3c.2b.1 consumed profile contract is locally implemented; 2b.2 CLI selection is locally implemented with scoped acceptance and a retained unrelated RTEXT header failure; next7BE/7F/Slice5 reader follow-up; raw102/default7AR/native semantics remain open.3.4 stays version-witness-gated. S3.2 DWG envelope remains VERSION_WITNESS_REQUIRED. |
 
 7BR.1/2/3 are committed (`f666dc5`, `35c57cd`, `946535f`); do not restart the
 GEODATA reader or writer from an older research queue. The new research
@@ -772,6 +804,7 @@ Its historical binary diff SHA-256 is
 
 | Item | State | Evidence / next action |
 | --- | --- | --- |
+| Slice3.3c.2b.2 / PAR-05 explicit CLI input selection | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | Complete exact/compatible tokens forward through positional/FreeCAD/batch paths; defaults/DWG/source-target-owner/overwrite contracts retained. Actual22 option refusals/32 two-pass/10 independent/24 atomic source refusals/12 corrected retries/one mixed batch and three generated DWG routes pass. Scoped CLI/version/codec3/3 in11.46s, strict two-TU and focused ASan/UBSan CLI pass; receipt docs/research/codec-exact-cli-3-3c-2b-2-2026-10-15.json. Wider selection remains3/4 due the tracked RTEXT first-header failure, reproduced with parent CLI source and byte-identical core; packet retained, not greenwashed. Next7BE/7F/Slice5 ODA/trace-driven reader follow-up. No fixture/dependency/registration/installed-library API/native/J/support promotion. |
 | Slice3.3c.2b.1 / PAR-05 consumed input profiles | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS |23 closed effective primary profiles partition semantic decode calls in fixed counters/mask. Exact admission validates total/mask/identity/overflow/saturation and explicitly permits17 existing compatibility profiles, not raw ISO4 producer qualification.28 canonical handoffs/16 strict two-pass exports, mixed-version false-intersection/cumulative ISO/actual-decoder/Unicode controls and six evidence mutations pass; existing adapter8/16/8 pass. Selected reader/header/CLI6/6 in22.68s, strict five TUs/affected-lc3, focused ASan/UBSan and140 unchanged frozen defaults pass. Receipt docs/research/codec-consumed-profiles-3-3c-2b-1-2026-10-15.json. Next2b.2 CLI option/actual end-to-end controls; no new fixture/dependency/registration/DWG parser/native/J/support promotion. Public observation layout requires rebuild, not binary ABI. |
 | Slice3.3c.2a / PAR-05 explicit adapter input/outcome | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | Defaulted input-policy argument is applied before read; owned requested/applied policies survive returned/throwing exits, copied evidence and reset/reuse. Unknown/disagreeing policy evidence refuses strict conversion; coexisting exact/nonASCII counts conservatively refuse pending closed profile review, without last-HEADER laundering. Eight handoffs,16 two-pass exports/readbacks,eight atomic strict-source refusals plus early/late/reuse/ASCII/unavailable/callback-allocation controls pass. Existing outcome/source handoffs36/40 and final codec/CLI2/2 in8.90s, strict two-TU and focused ASan/UBSan pass. Receipt docs/research/codec-exact-adapter-3-3c-2a-2026-10-15.json. CLI/default input remains Compatible; no new registration/fixture/dependency/installed API/native/DWG/support/J promotion. Next3.3c.2b cumulative profile identity/closed compatibility contract; keep the guard until replacement is verified. |
 | Slice3.3c.1 / PAR-05 exact input reader/API | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | Explicit Compatible/ExactNamed input selection reaches raw HEADER declarations and actual text; entry policy/cumulative counters are owned snapshots.24 HEADER/TEXT handoffs, four MTEXT, six unavailable-name, four Unicode-profile and lifecycle/recovery/move/saturation controls pass. Retained6/6 in22.50s precedes test-only MTEXT expansion; final codec1/1 in0.36s, fresh focused ASan/UBSan, strict six-TU/affected-lc3 gates pass.140 frozen defaults remain identical. README/consumer docs distinguish raw/normalized metadata, recovery, input/target/profile policies and rebuild/no ABI. Receipt docs/research/codec-exact-reader-3-3c-1-2026-10-15.json. No fixture/dependency/registration/DWG parser/native/J/support promotion. Next3.3c.2a explicit adapter input/outcome, then separately reviewed3.3c.2b CLI/profile admission; CLI/default adapter remains Compatible. |
@@ -12826,10 +12859,12 @@ without weakening an assertion.
      relabel an earlier result. Reuse the current source/target refusal helpers.
      Default adapter and CLI import remains Compatible, independently of the
      already-explicit source-validity, target-text and owner policies.
-   - **3.3c.2b profile/CLI admission (`IN_PROGRESS`).**2b.1 implements closed
+   - **3.3c.2b profile/CLI admission (`LOCAL_DELIVERY_COMPLETE`; qualification separate).**2b.1 implements closed
      effective per-consumption identity/admission and replaces the coarse2a
-     guard; its dedicated receipt/current handoff bind acceptance.2b.2 still
-     owns CLI exact-option wiring/actual conversions under that contract.
+     guard; its dedicated receipt/current handoff bind acceptance.2b.2 now
+     wires complete CLI options and actual conversions under that contract.
+     Its separate receipt retains the unresolved broader RTEXT smoke failure;
+     it does not close all producer/mapping/native or parent3.3 scope.
      Do not enable exact input merely by testing `issueMask==0`.
      Decide the closed supported source-profile set, distinguish explicit
      compatibility import from normative producer qualification, and record

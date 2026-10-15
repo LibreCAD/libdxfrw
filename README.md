@@ -178,7 +178,7 @@ observations, not just the Boolean result. `exactNamedDecodeCalls` and
 not character/record coverage or producer qualification. Available exact
 decoding does not suppress malformed-sequence/escape observations.
 
-The CLI and default converter adapter still import with `Compatible`. The
+The CLI and converter adapter still default to `Compatible`. The
 in-tree adapter now accepts an explicit fourth `fileImport` argument selecting
 `DRW::DxfCodePagePolicy`; this internal converter API is not an installed header.
 Its owned outcome retains `requestedCodePagePolicy` before facade construction,
@@ -194,7 +194,20 @@ compatibility transports, represented ASCII escapes and modern UTF8 remain
 eligible; exact ISO8859-4 high-byte input is still a separate unqualified
 producer-profile gate. Callers choosing compatible source admission can export
 that input under separate target-text guarding, without producer qualification.
-No CLI exact-input option/default or native support claim is added here.
+The CLI offers `--dxf-codepage-policy=exact-named` to request this mapping
+policy explicitly, or `--dxf-codepage-policy=compatible` to spell out the
+unchanged default. Use one complete token, once, in positional, `-o` or batch
+commands; missing/unknown values and repeated/conflicting policy tokens fail
+before file conversion. It affects DXF entries only; DWG decoding is unchanged.
+FreeCAD's original `[dwg2dxf, input, "-o", output]` call remains unchanged.
+
+For example, `dwg2dxf input.dxf -o output.dxf --dxf-codepage-policy=exact-named`
+retains the input revision unless an output
+version is selected. Input selection does not weaken required source/target
+admission, grant overwrite permission, enable automatic recovery or qualify
+raw ISO producer profiles. A correctly decoded but unqualified ISO4 high-byte
+source still fails without creating/replacing output. Batch conversion reports
+that failure and continues independent items. No native support claim follows.
 This library option does not certify native rendering, wire-profile conformance,
 all named mappings or complete conversion. Source admission, UTF8 recovery and
 target-text transport remain independent policies; legacy Unicode profiles are

@@ -66,6 +66,29 @@ int main(){
         return 1;
     }
 
+    for (const std::string token : {"--dxf-codepage-policy", "--dxf-codepage-policy=",
+                                    "--dxf-codepage-policy=EXACT-NAMED", "--dxf-codepage-policy=unknown",
+                                    "--dxf-codepage-policy=exact-named-extra", "--dxf-codepage-policy=compatible-extra"}) {
+        dwg2dxfCli::Options policy;
+        if (dwg2dxfCli::applyOption(token, policy, true) || policy.haveCodePagePolicy
+            || policy.codePagePolicy != DRW::DxfCodePagePolicy::Compatible || policy.overwrite) {
+            std::cerr << "Invalid exact input option changed authorization/state\n";
+            return 1;
+        }
+    }
+    for (bool exact : {false,true}) {
+        dwg2dxfCli::Options policy;
+        const auto token = exact ? "--dxf-codepage-policy=exact-named" : "--dxf-codepage-policy=compatible";
+        const auto other = exact ? "--dxf-codepage-policy=compatible" : "--dxf-codepage-policy=exact-named";
+        if (!dwg2dxfCli::applyOption(token, policy, false) || !policy.haveCodePagePolicy
+            || policy.codePagePolicy != (exact ? DRW::DxfCodePagePolicy::ExactNamed : DRW::DxfCodePagePolicy::Compatible)
+            || dwg2dxfCli::applyOption(token, policy, true) || dwg2dxfCli::applyOption(other, policy, true)
+            || policy.codePagePolicy != (exact ? DRW::DxfCodePagePolicy::ExactNamed : DRW::DxfCodePagePolicy::Compatible)) {
+            std::cerr << "Exact input option/duplicate contract failed\n";
+            return 1;
+        }
+    }
+
     const dwg2dxfCli::BatchInputLimits limits {4u, 2u, 8u};
     for (const auto& test : std::vector<std::pair<std::string, std::vector<std::string>>>{
              {"abcd", {"abcd"}}, {"abcd\r\n", {"abcd"}},

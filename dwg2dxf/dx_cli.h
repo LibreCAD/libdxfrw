@@ -21,6 +21,8 @@ struct Options {
     bool overwrite = false;
     bool batch = false;
     bool debug = false;
+    DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible;
+    bool haveCodePagePolicy = false;
 };
 
 inline DRW::Version versionOption(const std::string& token) {
@@ -44,6 +46,12 @@ inline bool applyOption(const std::string& token, Options& options,
         options.debug = true;
     } else if (token == "-B" && allowBatch) {
         options.batch = true;
+    } else if (token == "--dxf-codepage-policy=compatible"
+               || token == "--dxf-codepage-policy=exact-named") {
+        if (options.haveCodePagePolicy) return false;
+        options.codePagePolicy = token == "--dxf-codepage-policy=exact-named"
+            ? DRW::DxfCodePagePolicy::ExactNamed : DRW::DxfCodePagePolicy::Compatible;
+        options.haveCodePagePolicy = true;
     } else {
         const DRW::Version version = versionOption(token);
         if (version == DRW::UNKNOWNV || options.haveVersion)

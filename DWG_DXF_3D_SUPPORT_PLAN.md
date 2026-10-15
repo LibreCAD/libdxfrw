@@ -165,6 +165,27 @@ Next3.3c.2b.2 actual CLI option/conversion controls under the closed contract.
 Default input remains Compatible; raw ISO producer qualification, native3D,
 DWG metadata, all six deferred J gates and ledger/support counts stay separate.
 
+Parity Slice3.3c.2b.2 now exposes one complete exact/compatible DXF input-policy
+CLI token, rejecting unknown/missing/duplicate/conflicting values before I/O.
+Positional/FreeCAD/batch forwarding, default Compatible and DWG noninterference
+are explicit; strict source/target/owner and overwrite policies remain intact.
+Actual22 option refusals/32 two-pass routes/10 independent/source-default
+positives/24 atomic refusals/12 retries/one mixed batch pass. Three generated
+DWG routes/seven bounded processes preserve typed TEXT/LINE with each policy.
+Scoped CLI/version/codec3/3 in11.46s, strict two-TU and focused ASan/UBSan CLI
+pass; docs/research/codec-exact-cli-3-3c-2b-2-2026-10-15.json binds evidence.
+This is local CLI delivery, not ISO producer/native qualification.
+
+The wider selection remains3/4: tracked RTEXT/ARCTEXT DWG fails at first header
+stage6 with a later class-CRC warning. Parent CLI/parser source with the exact
+same core reproduces that full-harness failure; not a clean parent/native run.
+The failing packet is retained separately from scoped3/3 acceptance. No reader
+guard, assertion or fixture is weakened. Next7BE/7F/Slice5 ODA HEADER/stream
+review and trace must isolate the first failure before a DWG parser repair;
+do not infer an RTEXT dispatch defect from a header-stage error. Existing
+FreeCAD/native/3D tuples, raw ISO profile, six external J gates and support/
+ledger counts remain unpromoted and separate.
+
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
 adds140 current-source codec observations and a bounded3.1–3.5 implementation

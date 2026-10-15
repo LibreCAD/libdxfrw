@@ -74,7 +74,7 @@ of the byte decoder. Tolerant read success is not a clean-conversion result.
 The appended `exactNamedDecodeCalls`/`unavailableNamedDecodeCalls` overlap and
 saturate like other semantic-call counters, not source entity/character counts.
 Exact decoder availability does not remove malformed input/escape issues or
-qualify legacy Unicode wire profiles. CLI/default adapter import still uses
+qualify legacy Unicode wire profiles. CLI/adapter input still defaults to
 Compatible. The internal adapter's defaulted fourth `fileImport` argument now
 allows explicit selection, with owned `requestedCodePagePolicy` recorded before
 facade construction separately from applied read observations/status. Returned
@@ -99,8 +99,15 @@ existing Windows/ASCII/modern/recovery transports eligible, not raw ISO4 produce
 qualification. Later canonical metadata cannot qualify prior ISO bytes; benign
 legacy ASCII plus modern UTF8 no longer fails from unrelated counter overlap.
 Explicit compatible source admission plus separate target guarding remains a
-caller choice, not native/producer qualification. No CLI exact-input option or
-default is enabled in this substep. Fixed observation layout grows; rebuild
+caller choice, not native/producer qualification. The CLI now accepts one
+complete `--dxf-codepage-policy=exact-named` or `=compatible` token for DXF
+input in positional/FreeCAD/batch forms. Default Compatible, DWG decoding,
+FreeCAD's four-argument call and separate strict source/target/owner gates are
+unchanged. Unknown/missing/repeated/conflicting policy options reject before
+conversion; selecting exact input does not grant overwrite or recovery.
+Raw ISO4 high-byte sources still refuse their unqualified profile without
+publication, while independent batch entries continue. This is not native or
+producer qualification. Fixed observation layout grows; rebuild
 consumers, with no new pure callback or binary-ABI promise.
 This option is not a producer/native text or3D support claim,
 and does not turn stored TEXT/MTEXT commands into a plain-text promise.

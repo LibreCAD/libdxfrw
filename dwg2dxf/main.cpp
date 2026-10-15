@@ -39,6 +39,8 @@ void usage(){
     std::cout << "              and never prompts. Use -y to replace an existing output." << std::endl;
     std::cout << "   DXF input text is checked before output: observed corruption, ambiguous" << std::endl;
     std::cout << "   decoding and unsupported legacy Unicode profiles fail without publication." << std::endl;
+    std::cout << "   --dxf-codepage-policy=compatible|exact-named selects DXF input mapping." << std::endl;
+    std::cout << "   Default is compatible; exact input still requires an eligible source profile." << std::endl;
     std::cout << "     version can be:" << std::endl;
     std::cout << "        -R12   dxf release 12 version" << std::endl;
     std::cout << "        -v2000 dxf version 2000" << std::endl;
@@ -49,7 +51,8 @@ void usage(){
 
 bool convertFile(std::string inName, std::string outName, DRW::Version ver,
                  bool binary, bool overwrite, bool debug,
-                 bool nonInteractive = false){
+                 bool nonInteractive = false,
+                 DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible){
     bool badState = false;
     //verify if input file exist
     std::ifstream ifs;
@@ -83,7 +86,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
     dx_data fData;
     //First read a dwg or dxf file
     dx_iface input;
-    badState = input.fileImport( inName, &fData, debug);
+    badState = input.fileImport(inName, &fData, debug, codePagePolicy);
     if (!badState) {
         std::cout << "Error reading file " << inName << std::endl;
         return false;
@@ -154,7 +157,7 @@ int main(int argc, char *argv[]) {
 
         const bool ok = convertFile(fileName, outName, options.version,
                                     options.binary, options.overwrite,
-                                    options.debug, true);
+                                    options.debug, true, options.codePagePolicy);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -182,7 +185,7 @@ int main(int argc, char *argv[]) {
 
     if (!options.batch){ //no batch mode, only one file
         bool ok = convertFile(fileName, outName, options.version, options.binary,
-                              options.overwrite, options.debug);
+                              options.overwrite, options.debug, false, options.codePagePolicy);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -277,7 +280,7 @@ int main(int argc, char *argv[]) {
             const bool ok = regular && !ec
                 && convertFile(inputs[index], output, options.version,
                                options.binary, options.overwrite,
-                               options.debug, true);
+                               options.debug, true, options.codePagePolicy);
             std::cout << (ok ? "Success: " : "Failed: ") << inputs[index]
                       << " -> " << output << '\n';
             allOk = ok && allOk;
