@@ -10,7 +10,9 @@ The latest 3D cross-project refresh confirms a LibreDWG SAT final-block fix,
 reproducible-but-peer-only R2013+ AcDs/SAB loss, and FreeCAD's explicit stock
 ACIS limitation. Existing local SAT and carrier tests already cover the
 identified structural failure shapes; no parallel finding or duplicate test
-suite is needed. Next ready source-local item remains 7BR, DXF GEODATA v1.
+suite is needed. 7BR.1 and the versioned v1 GEODATA reader/model slice 7BR.2
+are now committed; the next ready source-local item is 7BR.3 writer symmetry or
+fail-closed rejection with retry/rollback controls.
 The 2026-10-15 broader parser/kernel survey adds `dwg-rs` as an optional
 container-only DWG comparator and `cq-acis`/`acis-core` as a potentially useful
 bounded SAT/SAB parser-plus-OCCT probe. Neither is a production-complete peer
@@ -18,6 +20,8 @@ or an independent-kernel/native qualification route: keep them optional,
 profile-pinned, and non-promoting. It also cross-checks a GEODATA v1 archival
 table transcription anomaly against Autodesk's later official tables; the v1
 implementation must not assign colliding groups 20 or 330 to the up vector.
+Further 2009-vs-later table review also found a CIVIC3D group-141 label
+conflict; v1 retains that scalar without semantic inference.
 The 2026-10-15 cross-project safety and conversion-completeness refresh adds
 implementation-ready controls under existing owners: generated HATCH-zero and
 R2018 embedded-attribute cases, per-block rather than global entity accounting,
@@ -541,7 +545,8 @@ Its historical binary diff SHA-256 is
 | 7BP.2 GEODATA CIVIL-tail writer | COMMITTED / LOCAL_MATRIX_VERIFIED / EXTERNAL_ACCEPTANCE_PENDING | `564372e`: emits the exact fixed tail only for AC1021/1024/1027; AC1032 and legacy controls omit it. Preflight rejects a false data bit, nonzero fixed-reserved fields, invalid scale enum, or non-finite tail values without touching destination buffers. Literal bit vectors compare the emitted tail independently to the ODA order and prove strings/handles unchanged; full generated DWG round-trips assert v1/v2 tail semantics and target presence over AC1015/1018/1021/1024/1027/1032. Object-vector, hardening, and local-roundtrip CTests pass 3/3; `lc3_compat_check` builds; ASan/UBSan object-vector CTest passes 1/1 (Apple runtime requires leak detection disabled). No external DWG fixture, new test registration, full suite, or support promotion. Public layout change requires downstream rebuild; no binary-ABI claim. Next ready subplan: 7BR DXF GEODATA v1 grammar. Native/producer GEODATA acceptance remains separate and non-blocking. |
 | Peer-source guard: DataStorage multi-value schema | COMMITTED / LOCAL_FAST_TESTED | `c47622b`: a locally authored raw DataStorage section asserts two distinct `AcDbDs::ID` values survive parsing, the following property remains aligned, and an over-count crossing the schema bound is rejected. `cmake --build build --target libdxfrw_graph_preservation_tests -j4`, focused CTest `libdxfrw_graph_preservation` (1/1, 0.22s), and `git diff --check` pass. The ACadSharp report motivated a guard only; source audit found no matching assignment defect. No DWG/DXF fixture, production change, CTest registration, or support promotion. The next ready production item is 7BR DXF GEODATA v1 grammar; unrelated peer leads do not block it. |
 | PAR-119 / 7BP GEODATA CIVIL-tail | LOCAL_IMPLEMENTATION_COMPLETE / EXTERNAL_ACCEPTANCE_PENDING | ODA v5.4.1 §20.4.78 remains the layout authority; objectVersion and target DWG release are separate axes. `90aa131` plus `564372e` implement bounded read/write gating and preserve every tail field, including false-bit diagnostics on input and fail-closed canonical output. LibreDWG `src/dwg2.spec` and ACadSharp #1261 remain dissenting producer leads, not grounds to change the ODA contract. Local generated vectors, round-trips and sanitizer coverage establish implementation consistency only; no shareable native producer file or application qualification ran. No fixture or support claim was added. |
-| PAR-121 / 7BR DXF GEODATA objectVersion-1 mapping | 7BR.1 COMMITTED / RAW_SEQUENCE_AND_MODERN_CONTROLS_VERIFIED | `f666dc5` adds generated ASCII and binary controls for AC1021/objectVersion1, AC1024/version2 and AC1027/version3. The v1 record carries distinct collision sentinels and CIVIC3D_DATA markers/fields; both encodings assert ordered raw group codes, typed common identity, and a following-object boundary. v2/v3 controls assert existing typed scales, units, up/north vectors, mesh points and face indices. `cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4`, direct `build/libdxfrw_dxf_fixture_tests`, focused CTest `libdxfrw_dxf_fixtures` (1/1, 2.80s), and `git diff --check` pass. This pins the present v1 typed gap and protects modern behavior; it does not yet assert v1 semantic properties or writer behavior. No fixture payload, dependency, CTest registration or support claim. Next: 7BR.2 add separately named v1 model fields/lifecycle and version-aware reader mapping; continue even if external producer/native evidence is unavailable. |
+| PAR-121 / 7BR DXF GEODATA objectVersion-1 mapping | 7BR.1 COMMITTED / RAW_SEQUENCE_AND_MODERN_CONTROLS_VERIFIED | `f666dc5` adds generated ASCII and binary controls for AC1021/objectVersion1, AC1024/version2 and AC1027/version3. The v1 record carries distinct collision sentinels and CIVIC3D_DATA markers/fields; both encodings assert ordered raw group codes, typed identity/owner handles, and a following-object boundary. v2/v3 controls assert existing typed scales, units, up/north vectors, mesh points and face indices. `cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4`, direct `build/libdxfrw_dxf_fixture_tests`, focused CTest `libdxfrw_dxf_fixtures` (1/1, 2.80s), and `git diff --check` pass. It established the raw-order and modern positive controls, not v1 typed semantics or writer behavior. No fixture payload, dependency, CTest registration or support claim. |
+| PAR-121 / 7BR DXF GEODATA objectVersion-1 mapping | 7BR.2 COMMITTED / LOCAL_ASCII_BINARY_READER_AND_LIFECYCLE_VERIFIED | `35c57cd` adds separately named v1 control flags, geolocation, second WCS point, drawing scales/map units, DWG units, description/datum, and a marker-scoped Civil profile. It maps v1 source/target mesh pairs and point count without changing v2/v3 north/scales/units/mesh fields; code70 is retained as raw flags, not `m_coordinatesType`. Autodesk's 2009 table labels CIVIC group140 Grid azimuth and code95 Scale estimation method, but labels group141 "Scale estimation method" while Autodesk's 2016/2020 tables call 141 "User specified scale factor". The v1 code141 value is preserved uninterpreted. Generated ASCII/binary assertions cover every mapped field, 70/141 ambiguity, anti-alias sentinels, post-marker state, copy/assignment/reset, ordered raw tags and the following-object boundary. Strict rebuild of `libdxfrw_dxf_fixture_tests` and `lc3_compat_check`, direct fixture executable, focused CTest `libdxfrw_dxf_fixtures` (1/1, 2.79s), and `git diff --check` pass. No external file, dependency, registration, full suite or support promotion. Public model layout changed; downstream consumers must rebuild and no binary-ABI claim is made. Next: 7BR.3 typed writer symmetry or fail-closed rejection with destination/handle rollback and same-writer corrected retry. |
 | 7BQ.3 four-profile completion | COMMITTED / LOCAL_MATRIX_VERIFIED | `cb1bc47`: generated wire snapshots cover all eight dynamic symbol tables under R12 ASCII, R12 binary, AC1021 ASCII and AC1021 binary; binary R12 uses its one-byte code reader, while modern BLOCK_RECORD remains a two-row positive control. A small internal helper accepts 0/32767 and rejects 32768. A late invalid LAYER after a successful row preserves a pre-existing destination; retrying on the same writer emits exact rows and the same handles as a fresh writer. `cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2`, `build/libdxfrw_dxf_fixture_tests`, and `git diff --check` pass; LibreCAD_3 target needed no rebuild. No external drawing, fixture, CTest registration, full suite or support promotion. No strict AutoCAD/native acceptance was run, so this is a locally implemented metadata/conformance correction rather than a consumer-acceptance claim. Earlier private `dxfRW` layout change still requires downstream rebuild; no binary ABI claim. Next ready item: 7BP GEODATA target-version/objectVersion separation, beginning with ODA §20.4.78. |
 | 7BQ.2 complete dynamic table accounting | COMMITTED / ASCII_MATRIX_VERIFIED | `a30e46c`: successful row commits now increment the active count for VPORT/LTYPE/STYLE/APPID/DIMSTYLE in addition to LAYER/VIEW/UCS; the three manual LTYPE rows and mandatory ACAD APPID count explicitly, while canonical duplicates remain suppressed and implicit VPORT/LAYER/STYLE/DIMSTYLE defaults count through their normal writer paths. Generated ASCII AC1021 controls assert all eight capacities against exact row kinds/names: empty-callback fallbacks, multiple rows, explicit defaults, one callback invocation, mandatory rows and canonical duplicate suppression. `cmake --build build --target libdxfrw_dxf_fixture_tests -j2`, `build/libdxfrw_dxf_fixture_tests`, `cmake --build build --target lc3_compat_check -j2`, and `git diff --check` pass. This history slice was extended by the four-profile completion in `cb1bc47`; no user fixture, CTest registration, full suite or support promotion. |
 | 7BQ.1 VIEW/UCS and implicit LAYER capacity | COMMITTED / ASCII_PATH_VERIFIED | `a1e81bc`: the TABLES transaction writes a group70 placeholder, tracks only successfully committed LAYER/VIEW/UCS records during their single callback pass, includes implicit layer `0`, then backpatches the private TABLES `ostringstream`. The generated ASCII AC1021 control first failed on legacy `VIEW=0`/`UCS=0`, then verifies exact capacities, exact names/row inventory, ENDTAB, and once-only callbacks; the empty-layer fallback remains `1/1`. The expanded fallback assertions in `a30e46c` also cover VPORT, mandatory LTYPE/APPID, STYLE and DIMSTYLE. Binary R12/modern backpatching, boundary handling and rollback are now covered by `cb1bc47`. Private `dxfRW` layout changed, so downstream consumers must rebuild; no binary ABI claim. |
@@ -9144,41 +9149,61 @@ a substitute for DXF↔DWG conversion.
    separately and only call a target/objectVersion combination producer-valid
    when an authoritative source says so. Autodesk's [2009 DXF reference,
    GEODATA pp.187–189](https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2009.pdf)
-   documents v1: groups40–42 are latitude/longitude/elevation; 52 is north
-   angle; 43–46 hold legacy scales/map units; 91 is drawing units; 92 is mesh
-   point count; 96 and97–99 are face count/indices; source/target mesh pairs
-   are12/22 and13/23. CIVIC3D_DATA uses marker3/4 and fields292,14/24,15/25,
-   93/94,293,16/26,17/27,54,140,95,141,294,142 and143. Also include v1
-   definition/datum/observation tags301–307. The searchable text of the 2009
-   PDF anomalously prints `210, 20, 330` for up direction, colliding with a
-   WCS Y component and the host BLOCK_RECORD code. Autodesk's later official
-   2016 and 2020 GEODATA tables consistently specify `210, 220, 230` for up
-   direction and keep `330` as host BLOCK_RECORD. Use the later explicit
-   triplet; do not reinterpret `20` or `330` as up-vector components based on
-   the anomalous searchable text. If a legacy producer witness later conflicts,
+   documents v1 group70 as a bits-control flag, not the modern coordinate-type
+   enum. Keep its exact numeric value in a v1-specific field; do not infer or
+   publish `m_coordinatesType` from it without stronger primary evidence. The
+   same table documents v1: groups40–42 are latitude/longitude/elevation; 52
+   is north angle; 43–46 hold legacy drawing scales/map units; 91 is drawing
+   units; 92 is mesh point count; 96 and97–99 are face count/indices;
+   source/target mesh pairs
+   are12/22 and13/23. Group10 is the first DWG WCS point and group11 is a
+   second WCS point reserved for future use; do not map v1 group11 to the v2
+   coordinate-system reference point. CIVIC3D_DATA uses marker3/4 and fields292,14/24,15/25,
+   93/94,293,16/26,17/27,54,140,95,141,294,142 and143. The 2009 table calls
+   140 Grid azimuth, 95 Scale estimation method, and 141 Scale estimation
+   method; later [2016](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm)
+   and [2020](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm)
+   tables call 141 User specified scale factor. Store v1 code141 separately
+   without inferring its meaning. Also include v1 definition/datum/observation
+   tags301–307. The searchable text of the 2009
+   PDF prints `210, 20, 330` for up direction, while later official [2013 DXF
+   reference](https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf)
+   and [2016 GEODATA table](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm)
+   use `210, 220, 230` and preserve330 as the host BLOCK_RECORD reference.
+   Treat the searchable `20/330` tuple as an archival transcription anomaly,
+   not an alternate data map. If a legacy producer witness later conflicts,
    preserve the raw sequence and resolve against the visual archived page or
    producer profile before adding another grammar. Keep common owner and
    coordinate-component occurrences disambiguated by ordered context. The
    [2020 Autodesk reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm)
    documents the modern v2+ map: 40/41 are unit scales, 12/22 north vector,
    13/23 source mesh, 14/24 destination mesh, 93 mesh count, and 92 vertical
-   units. Version3 has the version2 field format. Add an ordered crosswalk to
-   the subplan for all remaining legacy definition/datum/observation groups;
-   do not treat repeated or context-sensitive codes as one global map.
+   units. The later Autodesk tables label object versions1/2 only; LibreDWG's
+   current `src/dwg2.spec` says R2013 emits version3 with the version2 body.
+   Treat v3's modern map as a peer-derived profile pending an eligible producer
+   witness, not as independently producer-qualified by the official table.
+   Add an ordered crosswalk to the subplan for all remaining legacy
+   definition/datum/observation groups; do not treat repeated or
+   context-sensitive codes as one global map.
 2. **Use peer implementations as bounded evidence only.** ezdxf
    [1.4.4 `geodata.py`](https://github.com/mozman/ezdxf/blob/1.4.4/src/ezdxf/entities/geodata.py)
    explicitly switches the legacy mesh group pairs but says v1 is not really
    supported, discards `north_direction` for v1, and warns its v1 exporter may
-   corrupt DXF. This is strong evidence that a modern scalar map plus mesh
-   switch is insufficient, not an oracle for missing legacy semantics.
-   LibreDWG's mutable `src/dwg2.spec` is a useful DWG cross-check but it has a
-   different branch and a different Civil-tail gate; do not transplant its
-   DWG order into DXF. No peer self-roundtrip closes the semantic gap.
+   corrupt DXF. LibreDWG's current [`src/dwg2.spec`](https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec)
+   labels class_version1 as R2009, comments that v3 is the R2013 v2-body
+   layout, and maps DXF code70 to `coord_type` in its v1 path. That conflicts
+   with Autodesk's 2009 table describing code70 as a bits-control flag; retain
+   an uninterpreted v1 flags field until an Autodesk/API source or eligible
+   producer resolves the meaning. LibreDWG is peer evidence, not authority,
+   and its DWG grammar/CIVIL tail must not be transplanted into DXF. No peer
+   self-roundtrip closes the semantic gap.
 3. **Add generated regression vectors before changing public semantics.** In
    the existing `libdxfrw_dxf_fixture_tests`, generate ASCII and binary
    GEODATA objects with literal ordered tags, distinctive sentinels for every
    colliding group family, one mesh point/face, a populated CIVIC3D_DATA block,
-   and a following LINE/object. Use AC1021/group90=1 as the R2009-reference
+   and a following LINE/object. Include copy/assignment/reset controls for
+   the legacy model, plus deliberately out-of-marker Civil-only group sentinels
+   after CIVIC3D_DATA_END. Use AC1021/group90=1 as the R2009-reference
    field-map vector, AC1024/group90=2 and AC1027/group90=3 as modern positive
    controls. ezdxf's R2010/AC1024 export minimum is its own writer policy, not
    authority to erase Autodesk's 2009 v1 table. Keep `$ACADVER` and group90
@@ -9191,8 +9216,10 @@ a substitute for DXF↔DWG conversion.
    downloaded or checked-in DWG/DXF fixtures, CTest registrations, or new
    dependencies.
 4. **Model and parse v1 without aliasing v2 fields.** Add explicitly named
-   legacy properties only for values not losslessly represented by the current
-   API, and include them in constructor/assignment/reset behavior. Parse using
+   legacy properties in a separate profile (`DRW_GeoDataLegacy` and nested
+   CIVIC values), and include them in constructor/assignment/reset behavior.
+   Preserve code70 as uninterpreted legacy flags and code141 as an uninterpreted
+   scalar until the archival/later-reference conflict is resolved. Parse using
    `m_version` plus narrowly scoped sequence state where code meaning depends
    on CIVIL3D_DATA markers. Keep current v2/v3 values and behavior byte-for-byte
    stable. If a documented value cannot be represented, retain it in the raw
@@ -11309,10 +11336,12 @@ triage, not support qualification.
 | [dwg-rs](https://github.com/DrunkOnJava/dwg-rs), its [coverage/status notes](https://github.com/DrunkOnJava/dwg-rs#related-projects), and ODA [Open Design Specification v5.4.1](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf) | `dwg-rs` describes itself as a clean-room, Apache-2.0, pre-alpha reader of the DWG container (R13–R2018+) based on ODA v5.4.1. Its own README says the container is shipping while entity decoders have known gaps and it is not a finished reader. Its no-GPL-source posture provides implementation diversity, but it shares ODA as the byte-contract authority and does not provide an independent DXF/3D semantic oracle or complete writer. | Add it only as an optional, issue-triggered container comparator for a concrete section-map/page/decompression defect. Pin the commit, supported AC code, and exact command; compare bounded page/section/object-frame boundaries on locally generated scratch data. Keep entity decode, handles/graph closure, converted DXF, and geometry out of its pass criteria. Do not add it as a build/test dependency or wait on it for 7BR/Slice 8. |
 | [`cq-acis`](https://github.com/monozukuri-ai/cq-acis), [PyPI 0.3.11 release](https://pypi.org/project/cq-acis/0.3.11/), [geometry support and limitations](https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md), [SAB/ASM profiles](https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md), and [`acis-core` 0.3.11 contract](https://docs.rs/acis-core/latest/acis_core/) | The experimental project names SAT versions 105/400/600/700 and exact admitted SAB/ASM binary profiles; unsupported records may remain raw, parse success is not shape-conversion success, and `acis-core` reference closure is not B-rep validity. PyPI 0.3.11 has a published macOS 11+ ARM64 wheel (`cq_acis-0.3.11-cp310-abi3-macosx_11_0_arm64.whl`, SHA-256 `6dacb5d8372b10d9c2d4f973bee470c0c85dec49b4fd43013b81f159bd35d86f`) with PyPI provenance attesting source commit `c460afe89ab66820536220bc4e3e9805c3fb5e43`. Shape construction uses CadQuery/OCCT, the kernel lineage shared with FreeCAD; this is a separately implemented parser, but not an independent kernel. It accepts extracted SAT/SAB bytes, not AutoCAD DWG AcDs container/index/owner records. | Treat it as an *available supplemental independent parser and shared-kernel geometry probe*, not as the selected official Ansys reader or an independent-kernel/native gate. Before any optional run, pin the release, wheel hash, Python/CadQuery/OCP runtime, SAT/SAB save profile and units; require no unsupported shape-relevant records, explicit dispositions for opaque history/non-shape records, complete source-body inventory, valid output shapes, topology counts, analytic volume/bounds, and diagnostics. Do not validate a `cq-acis`-authored BoxSpec by the same package and call it independent. For DWG, first assert libdxfrw's AcDs record/page/handle-to-SAB association, then pass extracted SAB bytes. Because its kernel is shared with FreeCAD and the profile is experimental, it cannot alone satisfy the independent-kernel, native producer, full ACIS, ACDS-container or FreeCAD gates. No J item is promoted; a separately preregistered successor may use its bounded results only if its evidence criteria admit independent parser/shared-kernel semantics. |
 | [ACadRust](https://github.com/hakanaktt/acadrust), its [`SatDocument` API](https://docs.rs/acadrust/latest/acadrust/entities/acis/types/struct.SatDocument.html), and sibling [opencadkernel](https://github.com/HakanSeven12/opencadkernel) | ACadRust advertises SAT/SAB parsing/writing and B-rep topology, but a structured `SatDocument` is still a record model, not proof that a shape is complete or correct. The adjacent kernel documents an ACIS-to-B-rep feature boundary and calls the kernel early, with most operations not yet written. This is a potential scratch-data authoring/structural comparison lead; the related project family and self-roundtrips are not independent semantic evidence. | Do not promote README matrices, matching self-roundtrips, or generated-from-and-checked-by-the-same stack. A future cross-check may use a source-authored primitive from a pinned, separate writer and an independently computed analytic oracle; compare it in a different pinned reader/kernel. Keep production CAD examples out of the repository. If the producer and consumer share implementation lineage, record that common-mode risk and use the result only as a regression probe. |
-| Autodesk [2016 GEODATA DXF table](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm), [2020 GEODATA DXF table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm), and archived [2009 DXF Reference pp.187–189](https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2009.pdf) | Later official Autodesk tables consistently map up direction to 210/220/230 and keep 330 as host BLOCK_RECORD. Searchable text extracted from the 2009 table instead prints `210, 20, 330`, which conflicts with the common WCS-Y and owner-code meanings and with the later official tables. The rest of the archived v1 table remains the only reviewed source for its v1-only latitude/longitude/elevation, north-angle, scale/map-unit, metadata and CIVIC3D_DATA fields. | Correct 7BR's ambiguous “reference up-direction group set” to the documented 210/220/230 vector and explicitly prohibit inventing v1 interpretations for 20/330 from the anomalous text extraction. Preserve the raw input ordering. If a real R2009 producer witness or visual archival page is found to disagree, add a separate narrowly gated producer profile rather than changing the global map. Keep the source-local 7BR implementation ready; no producer run is needed to resolve the standard vector because Autodesk's later tables agree. |
+| Autodesk [2013 DXF reference](https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf), [2016 GEODATA table](https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm), [2020 GEODATA table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm), archived [2009 DXF Reference pp.187–189](https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2009.pdf), and LibreDWG [`src/dwg2.spec`](https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec) | Autodesk's archived 2009 table labels v1 group70 a bits-control flag, while later official tables define group70 as coordinate type; LibreDWG follows the later mapping even on its v1 path. The 2009 table calls CIVIC group140 Grid azimuth and 95 Scale estimation method, but labels 141 "Scale estimation method"; later Autodesk 2016/2020 tables call 141 "User specified scale factor". This leaves both a documented code70 conflict and a code141 label conflict, unresolved by a peer self-roundtrip. The 2009 searchable text also prints `210, 20, 330`; 2013/2016/2020 tables use 210/220/230 and keep 330 as host BLOCK_RECORD. LibreDWG separately states v3 is its R2013 profile with the v2 body, while Autodesk tables label versions 1/2. | Store v1 code70 as uninterpreted flags and code141 as an uninterpreted CIVIC scalar. Map the unambiguous 140 field as grid azimuth and code95 as estimation method. Treat v3 as a synthetic/peer-derived parser profile, not producer-qualified. Keep the up vector at 210/220/230, preserve raw order and the 330 host reference, and do not invent 20/330 vector components. The local 7BR.2 reader tests field separation and Civic-marker scope; 7BR.3 must still address typed output symmetry. No new finding or claim promotion. |
 
-**Execution/readiness delta:** keep implementation order unchanged: finish 7BR
-from generated ASCII/binary v1/v2/v3 vectors, continue the local object-graph
+**Execution/readiness delta:** 7BR.1 raw/modern controls and 7BR.2 v1 reader/model
+are committed; the next self-unblocking item is 7BR.3 writer symmetry or
+fail-closed rejection, with destination/handle rollback and same-writer retry
+controls over generated ASCII and binary vectors. Then continue the local object-graph
 and DWG AcDs/carrier stages, and only then run a short external-reader
 eligibility preflight if a remaining gate can use it. That preflight must answer
 platform availability, exact version/profile, dependency/kernel lineage,
