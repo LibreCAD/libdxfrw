@@ -11151,19 +11151,17 @@ customer drawing, proprietary producer, or native CAD application was run.
 | Autodesk [MESH DXF reference](https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm), local `DRW_Mesh` parser/writer and generated control `c28da26`; ACadSharp [#1038](https://github.com/DomCR/ACadSharp/issues/1038) / [#1067](https://github.com/DomCR/ACadSharp/pull/1067) | MESH is an explicit subdivision-cage representation with version, crease, level, vertex, face, edge, and per-subentity override counts/codes. It is not an ACIS solid carrier. The local generated ASCII/binary control verifies stored field order and self-read; ACadSharp's reported/fixed edge-crease path is a peer calibration, not independent surface evaluation. | Keep MESH, POLYFACE/3DFACE and ACIS 3DSOLID/REGION/BODY as disjoint rows and test denominators. For MESH, validate count-delimited topology/crease/override closure and a semantic vertex/face/edge projection; do not use exact tag equality as a tessellation or rendering pass. For DXF parsers, add at most one generated scalar-tag order variant where the group semantics permit it; never reorder count-delimited arrays or group1/group3 SAT continuation payloads. |
 | Autodesk [object/entity-code guidance](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm), current local DXF read/write tests and LibreCAD compatibility targets | Autodesk warns that code-table presentation order is typical rather than a guaranteed serialization order and that new releases can add codes. This supports tolerant, table-driven input parsing, but it does not make ordered/repeated subrecords interchangeable. Existing compatibility remains the LibreCAD/LibreCAD_3 2D gate; FreeCAD's stock DXF path is not a general ACIS importer. | Add a narrow order-independence control for non-repeated fields to the current fast fixture generator only if it hits a concrete stateful parser; preserve sequence for arrays, chunks, and link-bearing payloads. Run `-Werror` builds, the touched fixture/parser test and `lc3_compat_check` per committed slice; reserve one composed CLI checkpoint for the settled boundary, then perform the deferred Linux/Windows FreeCAD and independent-reader/kernel qualification. Generate test drawings at runtime from scratch; do not download or commit peer/vendor DWG/DXF fixtures. |
 
-**Readiness delta:** the first generated ASCII/binary DXF VisualStyle graph and
-code-348 closure slice is committed as `676ffd3`; its detailed evidence and
-remaining matrix are recorded below. Finish the fast two-style/non-monotonic
-handle, wrong-type and cross-root controls before treating that graph boundary
-as fully regression-covered, then continue the already-staged Slice 8 carrier
-sequence. Do not wait for proprietary/native qualification to implement
-locally verifiable bounded fixes. After each implementation commit, refresh
-this plan's completed/open ledger and show slice progress, then proceed to the
-next ready item even when an external qualification gate is deferred. No issue
-count or top-level subplan count changes (122/70); no downloaded or checked-in
-fixture, dependency, or test registration is added. `J256`, `J260`, `J268`,
-`J284`, `J293`, and `J295` remain `DEFERRED_EXTERNAL` and cannot promote
-support claims.
+**Readiness delta:** the generated ASCII/binary DXF VisualStyle graph and
+code-348 closure regression matrix is now committed as `676ffd3` plus follow-up
+coverage `b527489`; the detailed evidence is recorded below. Continue to the
+already-staged Slice 8 carrier sequence. Do not wait for proprietary/native
+qualification to implement locally verifiable bounded fixes. After each
+implementation commit, refresh this plan's completed/open ledger and show
+slice progress, then proceed to the next ready item even when an external
+qualification gate is deferred. No issue count or top-level subplan count
+changes (122/70); no downloaded or checked-in fixture, dependency, or test
+registration is added. `J256`, `J260`, `J268`, `J284`, `J293`, and `J295`
+remain `DEFERRED_EXTERNAL` and cannot promote support claims.
 
 ## Implementation progress — DXF VisualStyle graph slice (2026-10-15)
 
@@ -11183,12 +11181,21 @@ typed decode of all VisualStyle properties.
 directory; no drawing fixture, CTest registration, dependency or full-suite
 run was added.
 
-**Still open:** widen the generated positive case to multiple styles with
-non-monotonic handles/order, and cover wrong-type and cross-root references in
-addition to the committed missing-target, raw-identity and owner negatives.
-Complex VisualStyle fields remain a raw DXF carrier, not typed/rendered
-semantics; DWG-origin property parity, RenderSettings/PlotSettings families,
-native CAD appearance and independent kernel qualification are separate
-gates. The result is structural/tag preservation only and promotes no
+**Follow-up coverage:** `b527489` expands the generated positive graph to two
+styles with deliberately non-monotonic dictionary order and handles; it
+asserts raw/typed identity and owner closure, fixed-handle remapping, and
+separate VPORT/VIEW/VIEWPORT references. Wrong-type and cross-root negatives
+join the missing-target, wrong-owner, duplicate/mismatched raw identity, and
+conflicting ASCII source-spelling checks. The target remains an existing
+fast-test executable with ephemeral drawings only.
+
+**Validation for `b527489`:** the affected adapter test and `lc3_compat_check`
+targets built; `libdxfrw_dxf_fixtures` and `libdxfrw_extension_graph_limits`
+passed (2/2). No fixture payload or CTest registration was added.
+
+**Still open:** complex VisualStyle fields remain a raw DXF carrier, not typed
+or rendered semantics; DWG-origin property parity, RenderSettings/PlotSettings
+families, native CAD appearance and independent kernel qualification are
+separate gates. The result is structural/tag preservation only and promotes no
 format-support claim. Findings/subplans remain 122/70; `J256`, `J260`, `J268`,
 `J284`, `J293`, and `J295` remain `DEFERRED_EXTERNAL` and non-promoting.
