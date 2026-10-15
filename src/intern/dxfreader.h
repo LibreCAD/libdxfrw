@@ -103,7 +103,7 @@ public:
         filestr = stream;
         type = INVALID;
     }
-    virtual ~dxfReader() = default;
+    virtual ~dxfReader() { releaseCurrentRecordRetainedBytes(); }
     bool readRec(int *code);
 
     /// Bound the aggregate number of physical records consumed by this
@@ -144,10 +144,23 @@ public:
     }
     void setRetainedByteBudget(
         std::shared_ptr<DxfReadRetainedBudget> budget) noexcept {
+        releaseCurrentRecordRetainedBytes();
         m_retainedByteBudget = std::move(budget);
     }
     const std::shared_ptr<DxfReadRetainedBudget>& retainedByteBudget() const noexcept {
         return m_retainedByteBudget;
+    }
+    // Retain the logical length of a small value that must survive alongside
+    // this record's reader buffers. The charge ends when readRec invalidates
+    // this record or the reader is destroyed.
+    bool retainCurrentRecordBytes(std::size_t bytes) noexcept {
+        if (bytes == 0)
+            return true;
+        if (m_retainedByteBudget == nullptr
+            || !m_retainedByteBudget->reserve(bytes))
+            return false;
+        m_currentRecordRetainedBytes += bytes;
+        return true;
     }
     // A derived parser may consume a non-XDATA field without calling its
     // base. Coordinate assembly must still stop at that physical boundary.
@@ -278,8 +291,15 @@ private:
     std::size_t m_inputByteCount {0};
     bool m_inputByteBudgetExceeded {false};
     std::shared_ptr<DxfReadRetainedBudget> m_retainedByteBudget;
+    std::size_t m_currentRecordRetainedBytes {0};
     int m_currentCode {0};
     int m_previousCode {0};
+
+    void releaseCurrentRecordRetainedBytes() noexcept {
+        if (m_currentRecordRetainedBytes != 0 && m_retainedByteBudget != nullptr)
+            m_retainedByteBudget->release(m_currentRecordRetainedBytes);
+        m_currentRecordRetainedBytes = 0;
+    }
 };
 
 class dxfReaderBinary : public dxfReader {

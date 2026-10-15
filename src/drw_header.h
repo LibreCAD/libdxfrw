@@ -172,6 +172,10 @@ public:
     std::string getComments() const {return comments;}
     void write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver);
     void addComment(std::string c);
+    // Append a borrowed value transactionally without first copying it into a
+    // by-value argument. The read facade uses this after reserving retained
+    // storage for pre-SECTION comments.
+    void appendComment(const std::string& c);
 
     /// HANDSEED accessors.  The DWG writer uses these to propagate the
     /// document's high-water-mark handle so AutoCAD does not refresh

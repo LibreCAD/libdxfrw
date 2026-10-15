@@ -2019,12 +2019,11 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
     }
+    beginDxfReadRetainedBudget();
     // A dxfRW instance is reusable.  Do not carry header variables/comments
     // from a previous document into this read session.
     header = DRW_Header{};
     DRW_DBG("dxfRW::read 1def\n");
-    auto retainedBudget = std::make_shared<DxfReadRetainedBudget>(
-        m_dxfReadRetainedByteBudget);
     // Public filenames are UTF-8, not the Windows process code page.
     filestr.open (std::filesystem::u8path(fileName), std::ios_base::in | std::ios::binary);
     if (!filestr.is_open()
@@ -2079,7 +2078,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
         reader->setInputByteBudget(m_dxfReadInputByteBudget);
     }
-    reader->setRetainedByteBudget(std::move(retainedBudget));
+    reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
@@ -2109,6 +2108,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     if (nullptr == interface_) {
         return setError(DRW::BAD_UNKNOWN);
     }
+    beginDxfReadRetainedBudget();
     // readAscii is an explicit ASCII entry point.  A caller may reuse one
     // dxfRW instance after a binary write/read operation; leaving binFile set
     // would incorrectly suppress ASCII raw-value/source-spelling capture.
@@ -2128,19 +2128,17 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     m_readRawHandles.clear();
     applyExt = ext;
     iface = interface_;
-    auto retainedBudget = std::make_shared<DxfReadRetainedBudget>(
-        m_dxfReadRetainedByteBudget);
     // content belongs to the caller. Reserve the logical size of the
     // library-owned stream snapshot before istringstream copies it. Keep this
     // reservation alive longer than strstream so every exit (including a
     // throwing callback or stream construction) releases it after the copy.
-    DxfReadRetainedReservation snapshotReservation(retainedBudget,
+    DxfReadRetainedReservation snapshotReservation(m_activeDxfReadRetainedBudget,
                                                    content.size());
     if (!snapshotReservation.reserved())
         return failDxfReadRetainedBudget();
     std::istringstream strstream(content);
     reader = std::make_unique<dxfReaderAscii>(&strstream);
-    reader->setRetainedByteBudget(std::move(retainedBudget));
+    reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
     reader->setInputByteBudget(m_dxfReadInputByteBudget);
@@ -9799,8 +9797,9 @@ bool dxfRW::processDxf() {
         */
         switch (code) {
         case 999: // when DXF was created by libdxfrw, first record is a comment with dxfrw version info
-            header.addComment( reader->getString());
-                continue;
+            if (!appendDxfReadHeaderComment(reader->getRawValue()))
+                return false;
+            continue;
 
             case 0:
                 // DXF comment policy: retain 999 records before the first SECTION
@@ -18774,4 +18773,51 @@ bool dxfRW::failDxfReadRetainedBudget() {
         "the aggregate DXF retained-byte budget was exhausted");
     setError(DRW::BAD_CODE_PARSED);
     return false;
+}
+
+void dxfRW::beginDxfReadRetainedBudget() {
+    auto nextBudget = std::make_shared<DxfReadRetainedBudget>(
+        m_dxfReadRetainedByteBudget);
+    if (m_activeDxfReadRetainedBudget != nullptr
+        && m_dxfHeaderCommentRetainedBytes != 0) {
+        m_activeDxfReadRetainedBudget->release(
+            m_dxfHeaderCommentRetainedBytes);
+    }
+    m_dxfHeaderCommentRetainedBytes = 0;
+    m_activeDxfReadRetainedBudget = std::move(nextBudget);
+}
+
+bool dxfRW::appendDxfReadHeaderComment(const std::string& comment) {
+    if (reader == nullptr || m_activeDxfReadRetainedBudget == nullptr) {
+        header.addComment(comment);
+        return true;
+    }
+
+    const std::size_t maxSize = std::numeric_limits<std::size_t>::max();
+    if (comment.size() > maxSize / 2u)
+        return failDxfReadRetainedBudget();
+    const std::size_t oldSize = m_dxfHeaderCommentRetainedBytes;
+    const std::size_t separator = oldSize == 0 ? 0u : 1u;
+    if (oldSize > maxSize - separator
+        || comment.size() > maxSize - oldSize - separator)
+        return failDxfReadRetainedBudget();
+    const std::size_t newSize = oldSize + separator + comment.size();
+
+    // readRec retains both the decoded value and original spelling until the
+    // next physical record. Charge those current-record strings before making
+    // a second, persistent header-comment copy.
+    if (!reader->retainCurrentRecordBytes(comment.size() * 2u))
+        return failDxfReadRetainedBudget();
+    if (!m_activeDxfReadRetainedBudget->reserve(newSize))
+        return failDxfReadRetainedBudget();
+    try {
+        header.appendComment(comment);
+    } catch (...) {
+        m_activeDxfReadRetainedBudget->release(newSize);
+        throw;
+    }
+    if (oldSize != 0)
+        m_activeDxfReadRetainedBudget->release(oldSize);
+    m_dxfHeaderCommentRetainedBytes = newSize;
+    return true;
 }

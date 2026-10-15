@@ -46,9 +46,17 @@ DRW_Header::DRW_Header() {
 }
 
 void DRW_Header::addComment(std::string c){
-    if (!comments.empty())
-        comments += '\n';
-    comments += c;
+    appendComment(c);
+}
+
+void DRW_Header::appendComment(const std::string& c) {
+    // Build beside the existing value so an allocation failure cannot leave a
+    // dangling separator or a truncated comment in the header.
+    std::string updated(comments);
+    if (!updated.empty())
+        updated += '\n';
+    updated += c;
+    comments.swap(updated);
 }
 
 bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){

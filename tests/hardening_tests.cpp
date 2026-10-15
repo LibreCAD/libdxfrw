@@ -3151,6 +3151,42 @@ void testDxfOwnedSnapshotBudget(TestContext& t) {
              "raising the retained budget recovers the same facade after snapshot rejection");
 }
 
+void testDxfHeaderCommentRetentionBudget(TestContext& t) {
+    const std::string plainDrawing = admissionDrawing();
+    const std::string source = "999\nalpha\n999\nbeta\n" + plainDrawing;
+    std::string content = source;
+    dxfRW codec(nullptr);
+    AdmissionInterface rejected;
+    rejected.codec = &codec;
+    codec.setDxfReadRetainedByteBudget(source.size() + 22u);
+    t.expect(!codec.readAscii(&rejected, false, content)
+                 && rejected.lines.empty()
+                 && codec.header.getComments() == "alpha"
+                 && codec.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && codec.getLastDiagnostic().code
+                        == "dxf-retained-byte-budget",
+             "aggregate comment retention rejects before copying the over-budget second comment");
+
+    codec.setDxfReadRetainedByteBudget(source.size() + 23u);
+    content = source;
+    AdmissionInterface exact;
+    exact.codec = &codec;
+    t.expect(codec.readAscii(&exact, false, content)
+                 && exact.lines.size() == 2u
+                 && codec.header.getComments() == "alpha\nbeta",
+             "exact aggregate retention admits pre-SECTION comments and inserts one charged newline");
+
+    codec.setDxfReadRetainedByteBudget(plainDrawing.size());
+    content = plainDrawing;
+    AdmissionInterface reset;
+    reset.codec = &codec;
+    t.expect(codec.readAscii(&reset, false, content)
+                 && reset.lines.size() == 2u
+                 && codec.header.getComments().empty(),
+             "the next read releases prior header-comment retention and starts from a fresh budget");
+}
+
 void testDxfTokenFacadeBudget(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto path = std::filesystem::temp_directory_path()
@@ -5126,6 +5162,7 @@ int main() {
     testDxfTokenByteBudget(context);
     testDxfInputByteBudget(context);
     testDxfOwnedSnapshotBudget(context);
+    testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);
     testDwgModelerDataStorageLinking(context);

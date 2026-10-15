@@ -31,6 +31,7 @@
 
 
 class dxfReader;
+class DxfReadRetainedBudget;
 class dxfWriter;
 class HandleAllocator;
 
@@ -172,9 +173,10 @@ public:
     /** Set the aggregate logical-byte ceiling for library-owned DXF read
      * snapshots/copies. Caller-owned input and allocated capacity are not
      * charged. The 1 GiB default is caller-raiseable and is not a format
-     * maximum. This applies to subsequent reads; a change from a callback
-     * takes effect on the next read. Rebuild consumers using this additive
-     * setting. */
+     * maximum. The counter covers instrumented owners as implementation
+     * coverage is expanded. This applies to subsequent reads; a change from a
+     * callback takes effect on the next read. Rebuild consumers using this
+     * additive setting. */
     void setDxfReadRetainedByteBudget(std::size_t maxBytes) noexcept {
         m_dxfReadRetainedByteBudget = maxBytes;
     }
@@ -807,6 +809,8 @@ private:
     void recordInvalidRawHandleDiagnostic();
 
 private:
+    void beginDxfReadRetainedBudget();
+    bool appendDxfReadHeaderComment(const std::string& comment);
     DRW::Version version { DRW::UNKNOWNV };
     DRW::Version m_sourceVersion { DRW::UNKNOWNV };
     DRW::error error {DRW::BAD_NONE};
@@ -823,6 +827,8 @@ private:
     std::size_t m_dxfReadTokenByteBudget {1024u * 1024u};
     std::size_t m_dxfReadInputByteBudget {1024u * 1024u * 1024u};
     std::size_t m_dxfReadRetainedByteBudget {1024u * 1024u * 1024u};
+    std::shared_ptr<DxfReadRetainedBudget> m_activeDxfReadRetainedBudget;
+    std::size_t m_dxfHeaderCommentRetainedBytes {0};
     // Armed only after this operation constructs its reader. Early argument
     // failure must not report a token flag left by a previous interrupted read.
     bool m_readTokenBudgetActive {false};

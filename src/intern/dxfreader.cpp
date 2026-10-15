@@ -228,6 +228,7 @@ bool dxfReader::readRec(int *codeData) {
         return false;
 
     auto invalidateRecord = [this]() {
+        releaseCurrentRecordRetainedBytes();
         type = INVALID;
         strData.clear();
         rawData.clear();
