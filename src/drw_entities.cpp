@@ -3429,6 +3429,14 @@ void DRW_Entity::copyExtDataFrom(const DRW_Entity& source) {
     extData.swap(copies);
 }
 
+bool DRW_Entity::replaceDxfRetainedStringField(
+    const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+    std::string& destination, std::string value) {
+    return replaceDxfReadRetainedString(
+        reader, m_dxfRetainedStringLease, ownerBytes, destination,
+        std::move(value));
+}
+
 //! Calculate arbitrary axis
 /*!
 *   Calculate arbitrary axis for apply extrusions
@@ -11587,7 +11595,10 @@ bool DRW_Text::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         text = reader->getUtf8String();
         break;
     case 7:
-        style = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedStyleBytes, style,
+                reader->getUtf8String()))
+            return false;
         break;
     default:
         return DRW_Line::parseCode(code, reader);
@@ -11605,6 +11616,7 @@ void DRW_Text::resetDwgState() {
     xAxisAngle = 0.0;
     height = 0.0;
     text.clear();
+    m_dxfRetainedStyleBytes = 0u;
     angle = 0.0;
     widthscale = 1.0;
     oblique = 0.0;
@@ -12008,7 +12020,12 @@ bool DRW_ArcAlignedText::parseCode(int code, const std::unique_ptr<dxfReader>& r
     case 1:   text = reader->getUtf8String(); break;
     case 2:   m_fontName = reader->getUtf8String(); break;
     case 3:   m_bigFontName = reader->getUtf8String(); break;
-    case 7:   style = reader->getUtf8String(); break;
+    case 7:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedStyleBytes, style,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 10:  m_center.x = reader->getDouble(); break;
     case 20:  m_center.y = reader->getDouble(); break;
     case 30:  m_center.z = reader->getDouble(); break;

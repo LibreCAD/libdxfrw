@@ -232,6 +232,12 @@ public:
 protected:
     //parses dxf pair to read entity
     virtual bool parseCode(int code, const std::unique_ptr<dxfReader>& reader);
+    // Retain a parsed derived string field with the entity's shared DXF
+    // owner lease. Each field supplies its own live-byte counter so replacing
+    // a value charges the transient peak, not every historical spelling.
+    bool replaceDxfRetainedStringField(
+        const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+        std::string& destination, std::string value);
     //calculates extrusion axis (normal vector)
     void calculateAxis(DRW_Coord extPoint);
     //apply extrusion to @extPoint and return data in @point
@@ -2012,6 +2018,11 @@ private:
 */
 class DRW_Text : public DRW_Line {
     SETENTFRIENDS
+protected:
+    // Shared by TEXT-family parsers that either delegate to DRW_Text or
+    // consume its style field directly (for example ARCALIGNEDTEXT).
+    std::size_t m_dxfRetainedStyleBytes{0};
+
 public:
     //! Vertical alignments.
         enum VAlign {

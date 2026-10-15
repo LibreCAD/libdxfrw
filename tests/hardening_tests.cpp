@@ -3511,6 +3511,96 @@ void testDxfCommonStringOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfTextStyleOwnerBudget(TestContext& t) {
+    class TextParseProbe final : public DRW_Text {
+    public:
+        using DRW_Text::parseCode;
+        using DRW_Text::resetDwgState;
+    };
+
+    const std::string source = "7\nOLD\n7\nSTYLE\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(38u);
+        TextParseProbe text;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!text.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && text.style == "STYLE" && budget->used() == 5u,
+                 "TEXT style replacement fits the exact peak and retains only its final derived field value");
+        TextParseProbe copy(text);
+        text.resetDwgState();
+        t.expect(budget->used() == 5u && copy.style == "STYLE",
+                 "copied TEXT keeps the derived style lease after the source resets");
+        copy.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final copied TEXT reset releases the derived style lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(37u);
+        TextParseProbe text;
+        bool parsed = true;
+        {
+            std::istringstream input(source);
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!text.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(!parsed && budget->exceeded() && text.style == "OLD"
+                     && budget->used() == 3u,
+                 "one-byte-under TEXT style replacement preserves the prior value and its retained charge");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected derived style field releases its surviving lease on reset");
+    }
+    {
+        class ArcTextParseProbe final : public DRW_ArcAlignedText {
+        public:
+            using DRW_ArcAlignedText::parseCode;
+            using DRW_ArcAlignedText::resetDwgState;
+        };
+
+        auto budget = std::make_shared<DxfReadRetainedBudget>(56u);
+        ArcTextParseProbe text;
+        bool parsed = true;
+        {
+            std::istringstream input("7\nARCSTYLE\n");
+            std::unique_ptr<dxfReader> reader =
+                std::make_unique<dxfReaderAscii>(&input);
+            reader->setRetainedByteBudget(budget);
+            int code = 0;
+            while (reader->readRec(&code)) {
+                if (!text.parseCode(code, reader)) {
+                    parsed = false;
+                    break;
+                }
+            }
+        }
+        t.expect(parsed && text.style == "ARCSTYLE" && budget->used() == 8u,
+                 "ARCALIGNEDTEXT's direct style-code path uses the inherited retained-string owner");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases its inherited style-string lease");
+    }
+}
+
 void testDxfXDataStringOwnerBudget(TestContext& t) {
     class LineParseProbe final : public DRW_Line {
     public:
@@ -5713,6 +5803,7 @@ int main() {
     testDxfMTextAssemblyBudget(context);
     testDxfAppDataRetentionBudget(context);
     testDxfCommonStringOwnerBudget(context);
+    testDxfTextStyleOwnerBudget(context);
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
