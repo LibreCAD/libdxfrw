@@ -2816,8 +2816,70 @@ bool dx_iface::finalizeDxfWrite() {
     return true;
 }
 
+dx_dxfSourceTextAdmission dx_iface::admitDxfSourceText(const dx_data& data) noexcept {
+    using Status = dx_dxfSourceTextStatus;
+    if (data.sourceFormat == dx_source_format::DWG)
+        return {Status::NotApplicable, 0}; // no DXF evidence; not DWG qualification
+    if (data.sourceFormat != dx_source_format::DXF)
+        return {Status::EvidenceUnavailable, 0};
+    const auto& read = data.dxfReadOutcome;
+    const auto mask = read.observations.issueMask;
+    if (!read.attempted || !read.readReturned || read.readThrew
+        || !read.operationSucceeded || read.error != DRW::BAD_NONE)
+        return {Status::ImportNotSuccessful, mask};
+    if (!read.diagnosticAvailable || read.diagnosticCaptureFailed
+        || read.diagnostic.operation != DRW::OperationKind::Read
+        || read.diagnostic.secondary.size() > DRW_OperationDiagnostic::MaxSecondaryEntries
+        || read.observations.counterSaturated
+        || (read.headerDelivered
+            && read.hasCodePageDeclaration != data.headerC.hasDxfCodePageDeclaration()))
+        return {Status::EvidenceUnavailable, mask};
+    if (read.diagnostic.failed())
+        return {Status::ImportNotSuccessful, mask};
+    if (mask != 0u)
+        return {Status::ObservedIssues, mask};
+
+    // Naming categories alone do not admit a DXF wire profile. Match the full
+    // owned source declaration, never its possibly colliding 64-byte prefix.
+    if (read.headerDelivered && data.headerC.hasDxfCodePageDeclaration()
+        && read.sourceVersion < DRW::AC1021) {
+        const auto declaration = DRW_TextCodec::classifyCodePage(data.headerC.dxfCodePageDeclaration());
+        if (declaration.selectedName != nullptr
+            && (std::string_view(declaration.selectedName) == "UTF-8"
+                || std::string_view(declaration.selectedName) == "UTF-16"))
+            return {Status::UnsupportedProfile, mask};
+    }
+    // ASCII and represented CIF/MIF transports can be decoder-independent.
+    // No accepted revision is invented for them. Raw non-ASCII bytes require
+    // an accepted supported revision, even if today's default UTF8 accepts them.
+    if (read.observations.nonAsciiDecodeCalls != 0u
+        && (read.sourceVersion < DRW::AC1006 || read.sourceVersion > DRW::AC1032))
+        return {Status::UnknownRevision, mask};
+    return {Status::Admitted, mask};
+}
+
 bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
-                          dx_data *fData, bool debug, bool requireResolvedOwners){
+                          dx_data *fData, bool debug, bool requireResolvedOwners,
+                          dx_dxfSourceTextPolicy sourceTextPolicy){
+    m_sourceTextAdmission = {};
+    if (sourceTextPolicy == dx_dxfSourceTextPolicy::RequireValidSource) {
+        m_sourceTextAdmission = fData == nullptr
+            ? dx_dxfSourceTextAdmission{dx_dxfSourceTextStatus::EvidenceUnavailable, 0}
+            : admitDxfSourceText(*fData);
+        if (!m_sourceTextAdmission.admitted()) {
+            const auto reason = m_sourceTextAdmission.status;
+            const char* code = reason == dx_dxfSourceTextStatus::ImportNotSuccessful ? "import-not-successful"
+                : reason == dx_dxfSourceTextStatus::ObservedIssues ? "observed-source-issues"
+                : reason == dx_dxfSourceTextStatus::UnsupportedProfile ? "unsupported-source-profile"
+                : reason == dx_dxfSourceTextStatus::UnknownRevision ? "unknown-source-revision"
+                : "source-evidence-unavailable";
+            try {
+                std::cerr << "DXF source-text admission failed: " << code
+                          << " issueMask=" << m_sourceTextAdmission.issueMask << '\n';
+            } catch (...) { /* optional reporting cannot authorize publication */ }
+            return false;
+        }
+    }
     m_hatchSourceHandles.clear();
     m_hatchTargets.clear();
     m_hatchOwnerAliases.clear();

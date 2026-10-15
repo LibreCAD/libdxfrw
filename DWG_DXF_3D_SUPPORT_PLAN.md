@@ -31,8 +31,15 @@ separating accepted/codec revisions, diagnostics, bounded final metadata and
 cumulative text observations.36 handoffs/five revision/ten context controls and
 three exception/retry pairs pass, including diagnostic-copy allocation failure.
 Final focused4/4 in4.17s, strict/build and focused ASan/UBSan pass; binding:
-docs/research/codec-import-outcome-3-2b-2b-2026-10-15.json. Next local item is
-3.2b.2c strict source admission, then2d target transport; no3D ledger count changes.
+docs/research/codec-import-outcome-3-2b-2b-2026-10-15.json.3.2b.2c now implements
+explicit CLI source-text admission independently of owner resolution.40 API
+handoffs/one profile/17 envelope controls and actual CLI208 refusals/104 retries/
+40 positives/one mixed batch pass. Later metadata or full warning caps cannot
+erase earlier loss/encoding ambiguity. Final focused5/5 in32.46s, strict/build/
+lc3 and focused ASan/UBSan pass; binding:
+docs/research/codec-source-admission-3-2b-2c-2026-10-15.json. Ordinary facade/default
+adapter2D/3D behavior is compatible; fixed-array growth requires rebuilding.
+Next local item is3.2b.2d target transport; no3D ledger/support count changes.
 
 **Previous research-only handoff (baseline `5c3c76e`):** the
 [parity codec-policy and peer-horizon refresh](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#executable-codec-policy-and-peer-horizon-refresh-2026-10-15)
@@ -140,7 +147,11 @@ modern INSERT-target closure with28 genuine refusals/28 fresh-data retries,
 four default/R12 compatibility controls and actual CLI no-output checks.
 S2.3.9.4.29 is locally complete for this generated legacy-SAT transport scope;
 nested DWG AcDs/SAB and native geometry remain unqualified. Next local work is
-parity Slice3.2b.2c explicit strict source admission.3.2b.2b now owns converter
+parity Slice3.2b.2d target scalar transport.3.2b.2c now closes explicit CLI
+source admission with40 API handoffs/one profile/17 envelope controls, actual
+CLI208 refusals/104 retries/40 positives/one batch, and focused5/5/strict/build/
+lc3/sanitizer passing. Default facade/adapter behavior remains compatible;
+no target/DWG/full-semantic qualification follows.3.2b.2b now owns converter
 outcomes through false returns/unwind with36 handoffs/five revision/ten context
 controls and three exception/retry pairs; focused4/4/strict/build/sanitizer pass.
 This adds no strict policy or native support claim.3.2b.2a source-text observations
@@ -155,9 +166,9 @@ snapshot is implemented, with72 handoffs/three delimiter controls and exact
 logical-byte admission/lifetime tests. The modern GEODATA copy/reset fixture
 now declares v2; genuine v1 grammar controls remain. Final5/5 in13.62s,
 strict/build/lc3 and focused ASan/UBSan supersede—but do not rewrite—the earlier
-4/5 research gate.3.2b.2b–d continues with owned DXF import outcomes,
-strict complete-conversion admission and lossless
-target scalar transport; ordinary2D defaults remain compatible.32 authored
+4/5 research gate.3.2b.2b ownership and2c source admission are now implemented;
+3.2b.2d continues with lossless target scalar transport. Ordinary2D defaults
+remain compatible.32 authored
 CLI routes demonstrate that second-pass byte stability is insufficient.
 Source/parser validity, transformed projection and native B-rep qualification
 remain separate; an ignored geometry-oracle error cannot unblock ACIS claims.
@@ -6712,7 +6723,7 @@ splines.
 Current implementation-item ledger (update in every corresponding slice
 commit; 149 items: 128 committed, 6 explicitly blocked, 3 in progress,
 12 other bounded evidence states, and 0 ready parent items; next independent
-local work is parity Slice3.2b.2c explicit strict source admission):
+local work is parity Slice3.2b.2d target scalar transport):
 
 The first hosted run exposed a stale frozen CTest inventory (40 names versus
 49 registered by the clean workflow profile). After regenerating the contract,

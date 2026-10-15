@@ -40,8 +40,16 @@ failure and callback unwind. Accepted source revision, codec revision, final
 HEADER metadata prefixes, diagnostics and cumulative events remain separate.
 Unknown versions are not inferred from raw metadata, and diagnostic-copy failure
 is explicit without changing the original read exception. Final metadata cannot
-erase earlier text loss. Strict source/target conversion policy remains open;
-ordinary 2D/3D read/projection behavior is unchanged. Consumer rebuild is required.
+erase earlier text loss. The CLI now explicitly requires source-text admission,
+separate from owner resolution, before output creation/replacement. It rejects
+observed loss, ambiguous required non-ASCII interpretation and unsupported legacy
+Unicode profiles; unknown-page ASCII/represented escapes and modern UTF8 with
+inert metadata remain eligible. Cumulative observations also retain non-ASCII
+decoding without an accepted revision and unsupported UTF16 interpretation.
+This is not target-text/DWG/whole-drawing qualification. Ordinary library reads
+and default adapter exports preserve their 2D/3D tolerant/projection behavior.
+Target scalar preflight remains open. The fixed observation array grows;
+consumer rebuild is required, not a binary ABI guarantee.
 
 For a DXF or DWG client that must handle coordinates itself, call
 `dxfRW::read` / `dxfRW::readAscii` or `dwgRW::read` with `ext == false`. The

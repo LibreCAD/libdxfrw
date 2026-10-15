@@ -32,6 +32,22 @@ enum class dx_dxfCodePageKind : std::uint8_t {
     Unspecified, Canonical, ExactAlias, CompatibilityAlias, Unavailable, Unknown
 };
 
+// Source-text admission is independent of owner resolution, target transport
+// and whole-drawing completeness. Only the CLI opts in by default.
+enum class dx_dxfSourceTextPolicy : std::uint8_t { Compatible, RequireValidSource };
+enum class dx_dxfSourceTextStatus : std::uint8_t {
+    NotChecked, NotApplicable, Admitted, ImportNotSuccessful,
+    EvidenceUnavailable, ObservedIssues, UnsupportedProfile, UnknownRevision
+};
+struct dx_dxfSourceTextAdmission {
+    dx_dxfSourceTextStatus status{dx_dxfSourceTextStatus::NotChecked};
+    std::uint32_t issueMask{0};
+    bool admitted() const noexcept {
+        return status == dx_dxfSourceTextStatus::Admitted
+            || status == dx_dxfSourceTextStatus::NotApplicable;
+    }
+};
+
 // One DXF import attempt, not a charset/support or export-completeness verdict.
 // Final HEADER metadata describes only the last delivered header; cumulative
 // observations preserve earlier semantic decode events independently.

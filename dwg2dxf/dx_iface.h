@@ -55,8 +55,13 @@ public:
     static constexpr std::size_t DwgReadReportMaxBytes = 32u * 1024u;
     static void reportDwgReadOutcome(std::ostream& output,
                                      const dx_dwgReadOutcome& outcome);
+    static dx_dxfSourceTextAdmission admitDxfSourceText(const dx_data& data) noexcept;
+    dx_dxfSourceTextAdmission sourceTextAdmission() const noexcept {
+        return m_sourceTextAdmission;
+    }
     bool fileExport(const std::string& file, DRW::Version v, bool binary,
-                    dx_data *fData, bool debug, bool requireResolvedOwners = false);
+                    dx_data *fData, bool debug, bool requireResolvedOwners = false,
+                    dx_dxfSourceTextPolicy sourceTextPolicy = dx_dxfSourceTextPolicy::Compatible);
     void writeEntity(DRW_Entity* e);
     void setExtensionGraphLimits(const ExtensionGraphLimits& limits) noexcept {
         m_extensionGraphLimits = limits;
@@ -670,6 +675,7 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    dx_dxfSourceTextAdmission m_sourceTextAdmission;
     void countDwgReadCallback(std::size_t& count) noexcept {
         if (count != std::numeric_limits<std::size_t>::max())
             ++count;

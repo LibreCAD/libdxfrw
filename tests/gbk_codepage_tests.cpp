@@ -1784,6 +1784,152 @@ void testConverterDxfReadOutcome(TestContext& t) {
     else std::cerr << "Converter DXF outcome evidence: " << directory << '\n';
 }
 
+void testDxfSourceTextAdmission(TestContext& t) {
+    using Status = dx_dxfSourceTextStatus;
+    using Policy = dx_dxfSourceTextPolicy;
+    using Issue = DRW_DxfTextIssue;
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-source-text-admission-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directory(directory);
+    const auto writeBytes = [](const std::filesystem::path& path, const std::string& bytes) {
+        std::ofstream file(path, std::ios::binary);
+        file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        if (!file) throw std::runtime_error("source-admission scratch write failed");
+    };
+    struct Row { const char* page; bool modern; std::string bytes; bool admitted; };
+    const Row rows[] = {
+        {"ANSI_1252", false, "L\xE9R", true},
+        {"CP1252", false, "L\xE9R", true},
+        {"ISO8859-4", false, "L\xA1R", false},
+        {"ISO8859-4", false, "plain", true},
+        {"local-unknown", false, "\\U+0410", true},
+        {"local-unknown", false, "plain", true},
+        {"local-unknown", false, "\xE9", false},
+        {"CP866", false, "\x80", false},
+        {"ANSI_1252", false, "\x81", false},
+        {"ANSI_932", false, "\x82", false},
+        {"ANSI_1252", false, "\\M+48861", false},
+        {"ANSI_1252", false, "\\M+193FA", true},
+        {"UTF8", false, "plain", false},
+        {"UTF16", false, "AB", false},
+        {nullptr, false, "\xE9", false},
+        {nullptr, false, "plain", true},
+        {"local-unknown", true, "\xC3\xA9", true},
+        {"UTF16", true, "\xC3\xA9", true},
+        {"ANSI_1252", true, "\x80", false},
+        {"ANSI_1252", true, "\\U+D800", false}
+    };
+    std::size_t cases = 0;
+    dx_iface exporter;
+    for (const auto& row : rows) for (bool binary : {false, true}) {
+        const auto path = directory / (std::to_string(cases) + ".dxf");
+        const auto output = directory / ("output-" + std::to_string(cases) + ".dxf");
+        writeBytes(path, makeTextObservationDrawing(row.page, row.modern, false, binary, row.bytes));
+        dx_data data;
+        dx_iface importer;
+        t.expect(importer.fileImport(path.string(), &data, false),
+                 "source admission does not change tolerant import success");
+        const auto result = dx_iface::admitDxfSourceText(data);
+        t.expect(result.admitted() == row.admitted,
+                 "explicit source policy separates corruption/ambiguous decoding from inert metadata and valid transports");
+        const auto observations = data.dxfReadOutcome.observations;
+        const auto legacyError = data.dxfReadOutcome.error;
+        const std::string sentinel = "source-admission destination sentinel\n";
+        if (!row.admitted) writeBytes(output, sentinel);
+        const bool written = exporter.fileExport(output.string(), DRW::AC1021, binary,
+            &data, false, true, Policy::RequireValidSource);
+        t.expect(written == row.admitted
+                     && exporter.sourceTextAdmission().status == result.status
+                     && sameTextObservations(observations, data.dxfReadOutcome.observations)
+                     && data.dxfReadOutcome.error == legacyError,
+                 "source gate runs independently of owners and cannot mutate the import evidence");
+        if (!row.admitted) {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string actual((std::istreambuf_iterator<char>(existing)), {});
+            t.expect(actual == sentinel, "source refusal leaves an existing destination unchanged");
+            const auto absent = directory / ("absent-" + std::to_string(cases) + ".dxf");
+            t.expect(!exporter.fileExport(absent.string(), DRW::AC1021, binary,
+                         &data, false, false, Policy::RequireValidSource)
+                         && !std::filesystem::exists(absent),
+                     "source refusal precedes any output creation even with tolerant owner policy");
+            t.expect(exporter.fileExport(output.string(), DRW::AC1021, binary, &data, false)
+                         && exporter.sourceTextAdmission().status == Status::NotChecked,
+                     "ordinary adapter export remains compatible and does not silently opt into source refusal");
+        }
+        ++cases;
+    }
+    // The source-profile observation is reader-only; DWG's valid TU codec is
+    // not reclassified. This even-length ASCII pair decodes to a valid scalar
+    // under UTF16, so malformed-byte checks alone cannot close the profile gate.
+    std::istringstream input("1\nAB\n");
+    dxfReaderAscii profile(&input);
+    profile.setVersion("AC1015", true);
+    profile.setCodePage("UTF16");
+    int code = 0;
+    t.expect(profile.readRec(&code) && profile.getUtf8String() == "\xE4\x89\x81"
+                 && profile.textReadObservations().issueMask == DRW::dxfTextIssueMask(Issue::UnsupportedEncodingProfile),
+             "valid-scalar UTF16 interpretation still records its unsupported DXF source profile");
+    dx_data synthetic;
+    synthetic.sourceFormat = dx_source_format::DXF;
+    auto& outcome = synthetic.dxfReadOutcome;
+    outcome.attempted = outcome.readReturned = outcome.operationSucceeded = true;
+    outcome.diagnosticAvailable = true;
+    outcome.diagnostic.operation = DRW::OperationKind::Read;
+    const auto cleanOutcome = outcome;
+    t.expect(dx_iface::admitDxfSourceText(synthetic).admitted(),
+             "unknown revision with decoder-independent text does not invent a required charset");
+    outcome.diagnosticCaptureFailed = true;
+    t.expect(dx_iface::admitDxfSourceText(synthetic).status == Status::EvidenceUnavailable,
+             "failed diagnostic capture cannot count as clean evidence");
+    outcome.diagnosticCaptureFailed = false;
+    outcome.readThrew = true;
+    t.expect(dx_iface::admitDxfSourceText(synthetic).status == Status::ImportNotSuccessful,
+             "a throwing read is not admitted even if a caller leaves success set");
+    outcome.readThrew = false;
+    outcome.observations.counterSaturated = true;
+    t.expect(dx_iface::admitDxfSourceText(synthetic).status == Status::EvidenceUnavailable,
+             "saturated evidence does not masquerade as an empty clean mask");
+    outcome.observations.counterSaturated = false;
+    outcome.observations.nonAsciiDecodeCalls = 1;
+    t.expect(dx_iface::admitDxfSourceText(synthetic).status == Status::UnknownRevision,
+             "raw nonASCII requires an accepted revision even without an observed decoder error");
+    synthetic.sourceFormat = dx_source_format::DWG;
+    t.expect(dx_iface::admitDxfSourceText(synthetic).status == Status::NotApplicable,
+             "the DXF source gate does not invent DWG text qualification");
+    synthetic.sourceFormat = dx_source_format::Unknown;
+    t.expect(dx_iface::admitDxfSourceText(synthetic).status == Status::EvidenceUnavailable,
+             "an explicitly strict source export requires an actual import route");
+    synthetic.sourceFormat = dx_source_format::DXF;
+    for (int fault = 0; fault < 10; ++fault) {
+        outcome = cleanOutcome;
+        Status expected = Status::ImportNotSuccessful;
+        switch (fault) {
+        case 0: outcome.attempted = false; break;
+        case 1: outcome.readReturned = false; break;
+        case 2: outcome.operationSucceeded = false; break;
+        case 3: outcome.error = DRW::BAD_READ_ENTITIES; break;
+        case 4: outcome.diagnosticAvailable = false; expected = Status::EvidenceUnavailable; break;
+        case 5: outcome.diagnostic.operation = DRW::OperationKind::Write; expected = Status::EvidenceUnavailable; break;
+        case 6: outcome.diagnostic.cause = DRW::OperationCause::ReadFailure; break;
+        case 7:
+            outcome.headerDelivered = outcome.hasCodePageDeclaration = true;
+            expected = Status::EvidenceUnavailable;
+            break;
+        case 8:
+            outcome.diagnostic.secondary.resize(DRW_OperationDiagnostic::MaxSecondaryEntries + 1);
+            expected = Status::EvidenceUnavailable;
+            break;
+        case 9: outcome.observations.issueMask = 0x80000000u; expected = Status::ObservedIssues; break;
+        }
+        t.expect(dx_iface::admitDxfSourceText(synthetic).status == expected,
+                 "contradictory, unavailable or future unknown evidence cannot be silently admitted");
+    }
+    std::cout << "DXF source admission: handoffs=" << cases << ", profile controls=1, envelope controls=17\n";
+    if (t.failures == 0) std::filesystem::remove_all(directory);
+    else std::cerr << "Source admission evidence: " << directory << '\n';
+}
+
 void testMalformedUtf8(TestContext& t) {
     DRW_TextCodec codec;
     codec.setVersion(DRW::AC1015, false);
@@ -2227,6 +2373,10 @@ void testPublicDwgCodePageSnapshot(TestContext& t) {
 
 int main(int argc, char** argv) {
     TestContext context;
+    if (argc == 2 && std::string(argv[1]) == "--source-text-admission") {
+        testDxfSourceTextAdmission(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--dxf-import-outcome") {
         testConverterDxfReadOutcome(context);
         return context.failures == 0 ? 0 : 1;
@@ -2273,6 +2423,7 @@ int main(int argc, char** argv) {
     testTextObservationReaderRoles(context);
     testTextObservationHandoff(context);
     testConverterDxfReadOutcome(context);
+    testDxfSourceTextAdmission(context);
     testMalformedUtf8(context);
     testReaderSourceState(context);
     testDxfWriters(context);

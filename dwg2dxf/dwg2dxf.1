@@ -1,4 +1,4 @@
-.TH DWG2DXF 1 "2026-10-14" "version 1.0"
+.TH DWG2DXF 1 "2026-10-15" "version 1.0"
 .SH NAME
 dwg2dxf \- Conversor from dwg/dxf to dxf
 .SH SYNOPSIS
@@ -8,6 +8,20 @@ dwg2dxf <input> -o <output> [-version] [-b] [-y]
 .SH DESCRIPTION
 dwg2dxf is a console converter from DWG/DXF to DXF. Either input format can
 be converted to another DXF version.
+.PP
+DXF input passes a source-text admission gate before output creation or
+replacement. Observed malformed/undefined input, discarded/replaced text,
+unrepresented escapes and ambiguous non-ASCII legacy decoding cause a nonzero
+exit. Legacy UTF8/UTF16 declarations are not admitted merely because their
+names are recognized. Later metadata or a full advisory list cannot erase
+earlier observed loss. ASCII and represented CIF/MIF with unknown page metadata,
+and valid modern UTF8 with inert legacy metadata, remain eligible. Unknown source
+revision is not invented; only decoder-independent text is eligible without it.
+.PP
+This is a necessary source-text gate, not whole-drawing, charset-mapping,
+target-text, DWG or native-consumer qualification. Existing structural/owner
+and unsupported-record checks still apply. Ordinary library reads and default
+adapter exports retain their tolerant behavior; no automatic recovery is added.
 .SH OPTIONS
 input      existing file to convert
    -b         optional, sets output as binary dxf

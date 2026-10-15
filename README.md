@@ -142,12 +142,16 @@ ABI or thread-safety qualification.
 
 Neither advisories nor provenance establish complete charset support. Existing
 inexact aliases/fallback decoding remain compatibility behavior; strict
-conversion text-loss policy and mapping repairs are separate open work.
+CLI source admission does not repair those mappings or change tolerant reads.
 
 `dxfRW::getTextReadObservations()` separately returns a fixed-size owned
 snapshot of completed semantic decode calls. `issueMask` and
 `issueCount(DRW::DxfTextIssue)` expose observed undefined/malformed input,
 replacement/deletion, unresolved escapes and legacy selection ambiguity.
+They also retain non-ASCII interpretation without an accepted source revision
+and semantic use of an unsupported DXF UTF16 profile before later metadata can
+hide it. Existing issue ordinals are retained; the fixed array grows, so rebuild
+consumers.
 Inexact/unavailable/unknown page issues apply when non-ASCII bytes actually
 use that legacy decoder, not merely because metadata names it. Modern UTF-8
 and explicit input recovery keep their existing behavior. Metadata, structural
@@ -171,10 +175,20 @@ codec revisions, legacy error, bounded diagnostic evidence, final metadata
 prefixes and cumulative observations survive reader destruction. Metadata
 prefixes carry length/truncation, not complete identities; the delivered HEADER
 owns the full source declaration. A failed diagnostic copy is explicit and
-cannot replace the original exception or erase fixed observations. This does
-not change CLI output, tolerant defaults or add strict text refusal; that policy
-remains separate work. Public layout changes require rebuilding
-consumers; no binary ABI or concurrency guarantee is added.
+cannot replace the original exception or erase fixed observations. The outcome
+feeds the CLI's separate source-text admission policy. DXF conversion now refuses
+observed malformed/undefined or discarded/replaced text, unresolved escapes,
+and ambiguous non-ASCII legacy decoding before creating/replacing output.
+Legacy UTF8/UTF16 declarations are not admitted just because their classifier
+names are canonical. Unknown-page ASCII/represented CIF or MIF and valid modern
+UTF8 with inert metadata remain eligible. No source revision is invented for
+decoder-independent text. Later metadata, truncated prefixes and the advisory
+cap cannot erase earlier loss; unavailable diagnostics are not clean evidence.
+Ordinary library reads and default adapter exports remain tolerant, without
+autodetection or new recovery. This necessary input gate does not certify all
+charset mappings, raw carriers, DWG text, target transport or whole-drawing
+completeness; target preflight remains separate work. Public layout changes
+require rebuilding consumers; no binary ABI or concurrency guarantee is added.
 
 ### Using `dwg2dxf` from FreeCAD
 

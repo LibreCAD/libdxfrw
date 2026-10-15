@@ -113,10 +113,21 @@ std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
         : dxfValueKindForCode(sourceCode, m_classifierProfile) == DxfValueKind::Str
             && sourceCode != 9 && sourceCode != 100 && sourceCode != 102
             && sourceCode != 999 && sourceCode != 1002 && !isDxfHandleCode(sourceCode);
-    if (semantic)
-        appendTextReadObservation(m_textReadObservations, decoder.lastDecodeObservation(),
+    if (semantic) {
+        auto observation = decoder.lastDecodeObservation();
+        if (!decoder.hasSourceVersion() && observation.nonAsciiBytes)
+            observation.issues |= DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnspecifiedSourceVersion);
+        const auto selection = decoder.declaredCodePageSelection();
+        // DXF does not use DWG's TU/UTF16 wire profile. Observe interpretation
+        // at each semantic decode, not just the last delivered HEADER. Modern
+        // DXF ignores this legacy metadata and still decodes UTF8 normally.
+        if (!text.empty() && (!decoder.hasSourceVersion() || decoder.getSourceVersion() < DRW::AC1021)
+            && selection.selectedName != nullptr && std::string_view(selection.selectedName) == "UTF-16")
+            observation.issues |= DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnsupportedEncodingProfile);
+        appendTextReadObservation(m_textReadObservations, observation,
                                  sourceCode, m_recordCount, physicalRecord,
                                  m_inputByteCount, physicalRecord);
+    }
     return result;
 }
 

@@ -4,6 +4,7 @@
 import argparse
 import os
 from pathlib import Path
+import struct
 import sys
 import tempfile
 
@@ -240,6 +241,158 @@ def check_read_observations(converter, root):
     return checked
 
 
+def check_source_text_admission(converter, root):
+    """Actual CLI source refusal before publication; no peer/runtime dependency."""
+    def header(version, page):
+        pairs = [(0, b"SECTION"), (2, b"HEADER")]
+        if version is not None:
+            pairs += [(9, b"$ACADVER"), (1, version)]
+        if page is not None:
+            pairs += [(9, b"$DWGCODEPAGE"), (3, page)]
+        return pairs + [(0, b"ENDSEC")]
+
+    def text(payload, layer=b"0"):
+        return [(0, b"SECTION"), (2, b"ENTITIES"), (0, b"TEXT"),
+                (5, b"A0"), (8, layer), (10, 1.0), (20, 2.0), (40, 1.0),
+                (1, payload), (0, b"LINE"), (5, b"B0"), (8, layer),
+                (10, 34.0), (20, 35.0), (30, 36.0),
+                (11, 37.0), (21, 38.0), (31, 39.0), (0, b"ENDSEC")]
+
+    def encode(pairs, binary):
+        result = bytearray(BINARY_PREFIX if binary else b"")
+        for code, value in [*pairs, (0, b"EOF")]:
+            if binary:
+                result += struct.pack("<H", code)
+                result += value + b"\0" if isinstance(value, bytes) else struct.pack("<d", value)
+            else:
+                result += str(code).encode() + b"\n"
+                result += (value if isinstance(value, bytes) else repr(value).encode()) + b"\n"
+        return bytes(result)
+
+    negatives = [
+        ("alias deletion", b"AC1015", b"ISO8859-4", b"L\xa1R"),
+        ("alias wrong scalar", b"AC1015", b"ISO8859-5", b"\xb0"),
+        ("unavailable page", b"AC1015", b"CP866", b"\x80"),
+        ("unknown page", b"AC1015", b"unknown-local", b"\xe9"),
+        ("missing page", b"AC1015", None, b"\xe9"),
+        ("undefined byte", b"AC1015", b"ANSI_1252", b"L\x81R"),
+        ("truncated DBCS", b"AC1015", b"ANSI_932", b"L\x82"),
+        ("overlong UTF8", b"AC1021", b"ANSI_1252", b"\xc0\xaf"),
+        ("surrogate UTF8", b"AC1021", b"ANSI_1252", b"\xed\xa0\x80"),
+        ("out of range UTF8", b"AC1021", b"ANSI_1252", b"\xf4\x90\x80\x80"),
+        ("continuation UTF8", b"AC1021", b"ANSI_1252", b"\x80"),
+        ("truncated UTF8", b"AC1021", b"ANSI_1252", b"\xe2\x82"),
+        ("unrepresented MIF", b"AC1015", b"ANSI_1252", b"\\M+48861"),
+        ("malformed CIF", b"AC1015", b"ANSI_1252", b"\\U+ZZZZ"),
+        ("non scalar CIF", b"AC1021", b"ANSI_1252", b"\\U+D800"),
+        ("legacy UTF8 profile", b"AC1015", b"UTF8", b"plain"),
+        ("legacy UTF16 profile", b"AC1015", b"UTF16", b"AB"),
+        ("missing revision", None, None, b"\xc3\xa9"),
+        ("unknown revision", b"AC9999", None, b"\xc3\xa9"),
+    ]
+    rejected = retries = positives = 0
+    clean = header(b"AC1021", b"ANSI_1252") + text(b"clean retry")
+    for index in range(len(negatives) + 7):
+        if index < len(negatives):
+            label, version, page, payload = negatives[index]
+            pairs = header(version, page) + text(payload)
+        elif index == len(negatives):
+            label = "later canonical metadata"
+            pairs = header(b"AC1015", b"ISO8859-4") + text(b"\xa1") + header(None, b"ANSI_1252")
+        elif index == len(negatives) + 1:
+            label = "later revision cannot authorize earlier bytes"
+            pairs = header(None, None) + text(b"\xc3\xa9") + header(b"AC1021", b"ANSI_1252")
+        elif index == len(negatives) + 2:
+            label = "valid scalar unsupported earlier UTF16 profile"
+            pairs = header(b"AC1015", b"UTF16") + text(b"AB", b"00") + header(None, b"ANSI_1252")
+        elif index == len(negatives) + 3:
+            label = "full advisory list cannot erase loss"
+            pairs = header(b"AC1015", b"ISO8859-4") * 20 + text(b"\xa1")
+        elif index == len(negatives) + 4:
+            label = "layer name source loss"
+            pairs = header(b"AC1015", b"ANSI_1252") + text(b"plain", b"L\x81R")
+        elif index == len(negatives) + 5:
+            label = "deferred HEADER source loss"
+            pairs = [(0, b"SECTION"), (2, b"HEADER"), (9, b"$CLAYER"), (8, b"L\x81R"),
+                     (9, b"$ACADVER"), (1, b"AC1015"), (9, b"$DWGCODEPAGE"), (3, b"ANSI_1252"),
+                     (0, b"ENDSEC")] + text(b"plain")
+        else:
+            label = "XDATA source invalidity"
+            entities = text(b"plain")
+            line_at = entities.index((0, b"LINE"))
+            entities[line_at:line_at] = [(1001, b"AUTHORED_APP"), (1000, b"L\x80R")]
+            pairs = header(b"AC1021", b"ANSI_1252") + entities
+        for binary in (False, True):
+            source = root / f"text-source-{index}-{binary}.dxf"
+            bad = encode(pairs, binary)
+            for freecad in (False, True):
+                output = root / f"text-result-{index}-{binary}-{freecad}.dxf"
+                args = ([source, "-o", output, "-v2007", "-y", "-b"] if freecad
+                        else [source, "-v2007", "-y", output])
+                for existing in (False, True):
+                    source.write_bytes(bad)
+                    if existing:
+                        output.write_bytes(SENTINEL)
+                    else:
+                        output.unlink(missing_ok=True)
+                    before = set(root.iterdir())
+                    result = run_bounded([str(converter), *map(str, args)], 5, 65536, cwd=root)
+                    expected = SENTINEL if existing else None
+                    actual = output.read_bytes() if output.exists() else None
+                    if (result.returncode != 1 or actual != expected or set(root.iterdir()) != before
+                            or b"DXF source-text admission failed:" not in result.stderr
+                            or b"Success:" in result.stdout or source.read_bytes() != bad):
+                        raise AssertionError(f"{label}: source refusal published/modified or false success: {result!r}")
+                    if len(result.stderr) > 1024 or any(b > 127 or b == 0 for b in result.stderr):
+                        raise AssertionError(f"{label}: unbounded or unsafe source refusal report")
+                    rejected += 1
+                source.write_bytes(encode(clean, binary))
+                result = run_bounded([str(converter), *map(str, args)], 5, 65536, cwd=root)
+                if result.returncode != 0 or output.read_bytes() == SENTINEL:
+                    raise AssertionError(f"{label}: corrected same-path retry failed: {result!r}")
+                retries += 1
+
+    positive_rows = [
+        (b"AC1015", b"unknown-local", b"plain", b"plain"),
+        (b"AC1015", b"unknown-local", b"\\U+0410", "А".encode()),
+        (b"AC1015", b"ISO8859-4", b"plain", b"plain"),
+        (b"AC1015", b"CP866", b"\\M+193FA", "日".encode()),
+        (b"AC1015", b"ANSI_1252", b"L\xe9R", "LéR".encode()),
+        (b"AC1015", None, b"plain", b"plain"),
+        (b"AC1021", b"unknown-local", "é中".encode(), "é中".encode()),
+        (b"AC1021", b"UTF16", "é中".encode(), "é中".encode()),
+        (None, None, b"plain", b"plain"),
+        (b"AC9999", None, b"\\U+0410", "А".encode()),
+    ]
+    for index, (version, page, payload, expected) in enumerate(positive_rows):
+        for binary in (False, True):
+            source = root / f"text-positive-{index}-{binary}.dxf"
+            source.write_bytes(encode(header(version, page) + text(payload), binary))
+            for freecad in (False, True):
+                output = root / f"text-positive-result-{index}-{binary}-{freecad}.dxf"
+                args = [source, "-o", output, "-v2007"] if freecad else [source, "-v2007", output]
+                result = run_bounded([str(converter), *map(str, args)], 5, 65536, cwd=root)
+                if result.returncode != 0 or expected not in output.read_bytes() or result.stderr:
+                    raise AssertionError(f"source positive {index}: lost scalar/incorrect refusal: {result!r}")
+                positives += 1
+
+    bad_source, good_source = root / "text-batch-bad.dxf", root / "text-batch-good.dxf"
+    bad_source.write_bytes(encode(header(b"AC1015", b"ISO8859-4") + text(b"\xa1"), False))
+    good_source.write_bytes(encode(clean, False))
+    listing, output_dir = root / "text-batch-list.txt", root / "text-batch-result"
+    output_dir.mkdir()
+    listing.write_text(str(bad_source) + "\n" + str(good_source) + "\n", encoding="utf-8")
+    destination = output_dir / bad_source.name
+    destination.write_bytes(SENTINEL)
+    result = run_bounded([str(converter), str(listing), "-B", "-v2007", "-y", str(output_dir)],
+                         5, 65536, cwd=root)
+    if (result.returncode != 1 or destination.read_bytes() != SENTINEL
+            or not (output_dir / good_source.name).is_file()
+            or b"Failed:" not in result.stdout or b"Success:" not in result.stdout):
+        raise AssertionError(f"source-refused batch must preserve destination and continue: {result!r}")
+    return rejected, retries, positives, 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--converter", required=True, type=Path)
@@ -250,8 +403,11 @@ def main():
         checked = check_options(converter, root)
         batch_checked = check_batch(converter, root)
         observation_checked = check_read_observations(converter, root)
+        source_checked = check_source_text_admission(converter, root)
     print(f"CLI contract: PASS ({checked} option/filename and "
-          f"{batch_checked} batch controls, {observation_checked} read-observation controls, bounded subprocesses)")
+          f"{batch_checked} batch controls, {observation_checked} read-observation controls; "
+          f"source text {source_checked[0]} refusals/{source_checked[1]} retries/"
+          f"{source_checked[2]} positives/{source_checked[3]} mixed batch, bounded subprocesses)")
 
 
 if __name__ == "__main__":

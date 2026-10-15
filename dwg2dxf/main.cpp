@@ -37,6 +37,8 @@ void usage(){
     std::cout << "   output     output file name" << std::endl << std::endl;
     std::cout << "   -o         FreeCAD-compatible output path; defaults to the input revision" << std::endl;
     std::cout << "              and never prompts. Use -y to replace an existing output." << std::endl;
+    std::cout << "   DXF input text is checked before output: observed corruption, ambiguous" << std::endl;
+    std::cout << "   decoding and unsupported legacy Unicode profiles fail without publication." << std::endl;
     std::cout << "     version can be:" << std::endl;
     std::cout << "        -R12   dxf release 12 version" << std::endl;
     std::cout << "        -v2000 dxf version 2000" << std::endl;
@@ -98,7 +100,10 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
 
     //And write a dxf file
     dx_iface output;
-    badState = output.fileExport(outName, ver, binary, &fData, debug, true);
+    // CLI complete-conversion admission is explicit and separate from owner
+    // resolution. Ordinary library reads/adapter exports remain tolerant.
+    badState = output.fileExport(outName, ver, binary, &fData, debug, true,
+                                 dx_dxfSourceTextPolicy::RequireValidSource);
 
     return badState;
 }

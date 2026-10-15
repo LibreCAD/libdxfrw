@@ -325,6 +325,10 @@ enum class DxfTextIssue : std::uint8_t {
     UnrepresentedEscape,
     InvalidUnicodeOutput,
     MalformedUtf16,
+    // DXF field interpretation had no accepted source revision at decode time.
+    UnspecifiedSourceVersion,
+    // A semantic field used a UTF16 declaration outside modern inert metadata.
+    UnsupportedEncodingProfile,
     Count
 };
 
