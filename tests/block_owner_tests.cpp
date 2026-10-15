@@ -48,12 +48,15 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
     text(100, "AcDbSymbolTableRecord"); text(100, "AcDbRegAppTableRecord");
     text(2, "VERTEX_APP"); writer->writeInt16(70, 0); text(0, "ENDTAB");
     text(0, "TABLE"); text(2, "BLOCK_RECORD"); text(5, "1");
-    text(330, "0"); text(100, "AcDbSymbolTable"); writer->writeInt16(70, 5);
-    const std::pair<const char*, const char*> records[] = {
+    text(330, "0"); text(100, "AcDbSymbolTable");
+    std::vector<std::pair<const char*, const char*>> records = {
         {"17", uppercaseFixed ? "*MODEL_SPACE" : "*Model_Space"},
         {"1B", uppercaseFixed ? "*PAPER_SPACE" : "*Paper_Space"},
         {"1F", "Named"}, {"2A", "*U1"}, {"2B", "*Paper_Space0"},
     };
+    if (dangling)
+        records.emplace_back("2C", "*D999");
+    writer->writeInt16(70, static_cast<std::int16_t>(records.size()));
     for (const auto& item : records) {
         text(0, "BLOCK_RECORD"); text(5, item.first); text(330, "1");
         text(100, "AcDbSymbolTableRecord"); text(100, "AcDbBlockTableRecord");
@@ -116,6 +119,8 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
             line("B0", item.first, 101.25);
             compoundPolyline(item.first);
         }
+        if (dangling && std::string(item.second) == "*D999")
+            line("BD", "DEAD", 51.25);
         if (std::string(item.second) == "*U1") line("B1", item.first, 201.25);
         if (std::string(item.first) == "17") line("B2", item.first, 301.25);
         if (std::string(item.first) == "1B") {
@@ -127,7 +132,7 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
         ++index;
     }
     text(0, "ENDSEC"); section("ENTITIES");
-    line("A0", dangling ? "DEAD" : "17", 1.25);
+    line("A0", "17", 1.25);
     line("A1", "1B", 11.25, true);
     line("A2", "2B", 21.25, true);
     text(0, "POLYLINE"); text(5, "A3"); text(330, "17");
@@ -445,6 +450,109 @@ bool verifyAnonymousBlockChild(const std::string& path) {
         && sentinelLineCount == 1u
         && !childLeakedToEntities
         ? true : fail("anonymous *D child was dropped, duplicated or re-homed");
+}
+
+bool verifyDanglingAnonymousBlockSource(const std::string& path) {
+    std::ifstream input(path, std::ios::binary);
+    char signature[22] {};
+    input.read(signature, sizeof signature);
+    const bool binary = std::string(signature, sizeof signature)
+        == std::string("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    input.clear(); input.seekg(binary ? 22 : 0);
+    std::unique_ptr<dxfReader> reader;
+    if (binary) reader = std::make_unique<dxfReaderBinary>(&input);
+    else reader = std::make_unique<dxfReaderAscii>(&input);
+    std::string section;
+    std::vector<Record> records;
+    Record current;
+    int code = 0;
+    bool eof = false;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (!current.type.empty()) records.push_back(current);
+            current = Record{};
+            current.type = reader->getString();
+            if (current.type == "ENDSEC") {
+                current.section = section;
+                section.clear();
+            } else if (current.type != "SECTION") {
+                current.section = section;
+            }
+            eof = current.type == "EOF";
+        } else if (code == 2) {
+            current.name = reader->getString();
+            if (current.type == "SECTION") section = current.name;
+        } else if (code == 5) current.handle = reader->getString();
+        else if (code == 330) current.owner = reader->getString();
+        else if (code == 10) current.x = reader->getDouble();
+    }
+    if (!eof)
+        return fail("dangling-owner source did not reach EOF");
+
+    std::size_t recordIndex = records.size();
+    std::size_t headerIndex = records.size();
+    std::size_t childIndex = records.size();
+    std::size_t firstEntitiesIndex = records.size();
+    std::size_t suffixIndex = records.size();
+    for (std::size_t i = 0; i < records.size(); ++i) {
+        const Record& record = records[i];
+        if (record.type == "BLOCK_RECORD" && record.name == "*D999"
+            && record.handle == "2C")
+            recordIndex = i;
+        else if (record.type == "BLOCK" && record.section == "BLOCKS"
+                 && record.name == "*D999" && record.owner == "2C")
+            headerIndex = i;
+        else if (record.type == "LINE" && record.section == "BLOCKS"
+                 && record.handle == "BD" && record.owner == "DEAD"
+                 && record.x == 51.25)
+            childIndex = i;
+        else if (record.type == "LINE" && record.section == "ENTITIES"
+                 && record.handle == "A0" && record.owner == "17")
+            firstEntitiesIndex = i;
+        else if (record.type == "LINE" && record.section == "ENTITIES"
+                 && record.handle == "A1" && record.owner == "1B"
+                 && record.x == 11.25)
+            suffixIndex = i;
+    }
+    if (!(recordIndex < headerIndex && headerIndex < childIndex
+          && childIndex < firstEntitiesIndex
+          && firstEntitiesIndex < suffixIndex))
+        return fail("generated *D orphan/suffix ownership witness is incomplete");
+
+    dx_data data;
+    dx_iface iface;
+    if (!iface.fileImport(path, &data, false))
+        return fail("reader rejected the generated *D orphan source before suffix");
+    bool childStayedInAnonymous = false;
+    bool childLeakedToModelSpace = false;
+    bool suffixWasRead = false;
+    const auto inspectLine = [](const DRW_Entity* entity, double x) {
+        const auto* line = dynamic_cast<const DRW_Line*>(entity);
+        return line != nullptr && line->basePoint.x == x;
+    };
+    for (const dx_ifaceBlock* block : data.blocks) {
+        if (block == nullptr)
+            continue;
+        for (const DRW_Entity* entity : block->ent) {
+            if (block->name == "*D999" && inspectLine(entity, 51.25)
+                && entity->parentHandle == 0xDEADu)
+                childStayedInAnonymous = true;
+            if (block == data.mBlock && inspectLine(entity, 51.25))
+                childLeakedToModelSpace = true;
+            if (inspectLine(entity, 11.25))
+                suffixWasRead = true;
+        }
+    }
+    if (data.mBlock != nullptr) {
+        for (const DRW_Entity* entity : data.mBlock->ent) {
+            if (inspectLine(entity, 51.25))
+                childLeakedToModelSpace = true;
+            if (inspectLine(entity, 11.25))
+                suffixWasRead = true;
+        }
+    }
+    return childStayedInAnonymous && !childLeakedToModelSpace && suffixWasRead
+        ? true : fail("reader re-homed the orphan or stopped before the suffix");
 }
 
 bool runLocal(const std::filesystem::path& directory) {
@@ -985,6 +1093,8 @@ int main(int argc, char** argv) {
         if (mode == "--generate-callbacks") return generateCallbackControl(argv[2], false, true, CallbackFooter::Complete, true) ? 0 : 1;
         if (mode == "--generate-callbacks-binary") return generateCallbackControl(argv[2], true, true, CallbackFooter::Complete, true) ? 0 : 1;
         if (mode == "--verify") return verify(argv[2]) ? 0 : 1;
+        if (mode == "--verify-dangling-source")
+            return verifyDanglingAnonymousBlockSource(argv[2]) ? 0 : 1;
         return 2;
     }
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();

@@ -20,6 +20,11 @@ foreach(_mode IN ITEMS ascii binary)
     if(NOT "${_generated}" STREQUAL "0")
         message(FATAL_ERROR "Owner rejection control generation failed: ${_root}")
     endif()
+    execute_process(COMMAND "${ADAPTER_TEST}" --verify-dangling-source "${_source}"
+        RESULT_VARIABLE _source_verified TIMEOUT 10)
+    if(NOT "${_source_verified}" STREQUAL "0")
+        message(FATAL_ERROR "Anonymous-block orphan/suffix source verification failed: ${_root}")
+    endif()
     execute_process(COMMAND "${DWG2DXF}" "${_source}" -o "${_destination}" ${_options}
         RESULT_VARIABLE _result OUTPUT_VARIABLE _stdout ERROR_VARIABLE _stderr TIMEOUT 10)
     if("${_result}" STREQUAL "0" OR EXISTS "${_destination}")
