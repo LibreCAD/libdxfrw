@@ -3636,6 +3636,8 @@ bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 1005:
         if (extData.size() >= DRW_TableEntry::kMaxExtendedDataItems)
             return false;
+        if (!reader->chargeTypedVariantNode())
+            return false;
         {
             DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
                 m_dxfRetainedStringLease);
@@ -3671,6 +3673,8 @@ bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
                 DRW_DBG("WARNING: unordered/incomplete entity XDATA point retained\n");
             if (extData.size() >= DRW_TableEntry::kMaxExtendedDataItems)
                 return false;
+            if (!reader->chargeTypedVariantNode())
+                return false;
             curr = std::make_shared<DRW_Variant>(
                 pointCode, DRW_Coord(0.0, 0.0, 0.0));
             currCoordMask = 0;
@@ -3694,12 +3698,16 @@ bool DRW_Entity::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 1042:
         if (extData.size() >= DRW_TableEntry::kMaxExtendedDataItems)
             return false;
+        if (!reader->chargeTypedVariantNode())
+            return false;
         extData.push_back(std::make_shared<DRW_Variant>(code,
                                                          reader->getDouble()));
         break;
     case 1070:
     case 1071:
         if (extData.size() >= DRW_TableEntry::kMaxExtendedDataItems)
+            return false;
+        if (!reader->chargeTypedVariantNode())
             return false;
         extData.push_back(std::make_shared<DRW_Variant>(code,
                                                          reader->getInt32()));

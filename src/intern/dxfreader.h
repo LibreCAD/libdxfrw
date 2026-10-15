@@ -330,6 +330,27 @@ public:
     bool decodeWorkBudgetExceeded() const noexcept {
         return m_decodeWorkBudgetExceeded;
     }
+    void setTypedVariantNodeBudget(std::size_t budget) noexcept {
+        m_typedVariantNodeBudget = budget;
+    }
+    // Count typed entity-XDATA variant nodes before allocation/publication.
+    // This deliberately does not claim table/object/appData coverage.
+    bool chargeTypedVariantNode() noexcept {
+        if (m_typedVariantNodeBudgetExceeded)
+            return false;
+        if (m_typedVariantNodeCount >= m_typedVariantNodeBudget) {
+            m_typedVariantNodeBudgetExceeded = true;
+            return false;
+        }
+        ++m_typedVariantNodeCount;
+        return true;
+    }
+    std::size_t typedVariantNodeCount() const noexcept {
+        return m_typedVariantNodeCount;
+    }
+    bool typedVariantNodeBudgetExceeded() const noexcept {
+        return m_typedVariantNodeBudgetExceeded;
+    }
     void setRetainedByteBudget(
         std::shared_ptr<DxfReadRetainedBudget> budget) noexcept {
         releaseCurrentRecordRetainedBytes();
@@ -522,6 +543,10 @@ private:
         DRW::kDefaultDxfReadDecodeWorkBudget};
     std::size_t m_decodeWorkCount {0};
     bool m_decodeWorkBudgetExceeded {false};
+    std::size_t m_typedVariantNodeBudget {
+        DRW::kDefaultDxfReadTypedVariantNodeBudget};
+    std::size_t m_typedVariantNodeCount {0};
+    bool m_typedVariantNodeBudgetExceeded {false};
     std::shared_ptr<DxfReadRetainedBudget> m_retainedByteBudget;
     std::size_t m_currentRecordRetainedBytes {0};
     int m_currentCode {0};

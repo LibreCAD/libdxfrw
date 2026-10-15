@@ -3402,6 +3402,54 @@ void testDxfMTextDecodeWorkBudget(TestContext& t) {
              "direct MTEXT reader exposes the deterministic six-byte decode-work counter");
 }
 
+void testDxfEntityXdataVariantNodeBudget(TestContext& t) {
+    class VariantCapture final : public FuzzInterface {
+    public:
+        void addLine(const DRW_Line& line) override {
+            ++count;
+            variantCount = line.extData.size();
+        }
+
+        std::size_t count {0u};
+        std::size_t variantCount {0u};
+    };
+
+    const std::string drawing =
+        "0\nSECTION\n2\nENTITIES\n0\nLINE\n"
+        "10\n0\n20\n0\n30\n0\n11\n1\n21\n1\n31\n1\n"
+        "1001\nAPP\n1000\na\n1000\nb\n"
+        "1010\n1\n1020\n2\n1030\n3\n1040\n4.5\n1070\n42\n"
+        "0\nENDSEC\n0\nEOF\n";
+    dxfRW exact(nullptr);
+    t.expect(exact.dxfReadTypedVariantNodeBudget() == 1024u * 1024u,
+             "facade publishes the caller-raiseable typed XDATA node-budget default");
+    exact.setDxfReadTypedVariantNodeBudget(6u);
+    VariantCapture admitted;
+    std::string input = drawing;
+    t.expect(exact.readAscii(&admitted, false, input)
+                 && admitted.count == 1u && admitted.variantCount == 6u,
+             "entity XDATA strings, coordinate tuples, doubles, and integers publish at the exact cumulative node cap");
+
+    dxfRW under(nullptr);
+    under.setDxfReadTypedVariantNodeBudget(5u);
+    VariantCapture rejected;
+    input = drawing;
+    t.expect(!under.readAscii(&rejected, false, input)
+                 && rejected.count == 0u
+                 && under.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && under.getLastDiagnostic().code
+                        == "dxf-typed-variant-node-budget",
+             "one-under entity XDATA node cap rejects before callback with a scoped diagnostic");
+
+    under.setDxfReadTypedVariantNodeBudget(6u);
+    VariantCapture retry;
+    input = drawing;
+    t.expect(under.readAscii(&retry, false, input)
+                 && retry.count == 1u && retry.variantCount == 6u,
+             "raising typed XDATA node admission resets the same-facade read counter");
+}
+
 void testDxfAppDataRetentionBudget(TestContext& t) {
     class LineParseProbe final : public DRW_Line {
     public:
@@ -7186,6 +7234,7 @@ int main() {
     testDxfRawCarrierRetentionBudget(context);
     testEmptyRawCarrierNameRetention(context);
     testDxfMTextDecodeWorkBudget(context);
+    testDxfEntityXdataVariantNodeBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);

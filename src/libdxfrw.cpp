@@ -2081,6 +2081,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         reader->setInputByteBudget(m_dxfReadInputByteBudget);
     }
     reader->setDecodeWorkBudget(m_dxfReadDecodeWorkBudget);
+    reader->setTypedVariantNodeBudget(m_dxfReadTypedVariantNodeBudget);
     reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
@@ -2098,7 +2099,8 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         isOk = false;
     }
     if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()
-        || reader->decodeWorkBudgetExceeded()) {
+        || reader->decodeWorkBudgetExceeded()
+        || reader->typedVariantNodeBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
     }
@@ -2153,6 +2155,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
     reader->setInputByteBudget(m_dxfReadInputByteBudget);
     reader->setDecodeWorkBudget(m_dxfReadDecodeWorkBudget);
+    reader->setTypedVariantNodeBudget(m_dxfReadTypedVariantNodeBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
@@ -2168,7 +2171,8 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
         isOk = false;
     }
     if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()
-        || reader->decodeWorkBudgetExceeded()) {
+        || reader->decodeWorkBudgetExceeded()
+        || reader->typedVariantNodeBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
     }
@@ -18882,6 +18886,13 @@ bool dxfRW::setError(const DRW::error lastError){
             "dxf-decode-work-budget",
             "the aggregate deterministic DXF decode-work budget was exhausted");
         error = DRW::BAD_CODE_PARSED;
+    } else if (reader != nullptr
+               && reader->typedVariantNodeBudgetExceeded()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,
+            "dxf-typed-variant-node-budget",
+            "the aggregate typed entity-XDATA variant-node budget was exhausted");
+        error = DRW::BAD_CODE_PARSED;
     } else {
         error = lastError;
     }
@@ -18901,6 +18912,15 @@ bool dxfRW::failDxfReadBudget() {
         return true;
     }
     if (m_readDecodeWorkBudgetActive && reader->decodeWorkBudgetExceeded()) {
+        setError(DRW::BAD_CODE_PARSED);
+        return true;
+    }
+    if (reader->typedVariantNodeBudgetExceeded()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation,
+            DRW::OperationCause::ResourceLimit,
+            "dxf-typed-variant-node-budget",
+            "the aggregate typed entity-XDATA variant-node budget was exhausted");
         setError(DRW::BAD_CODE_PARSED);
         return true;
     }

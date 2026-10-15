@@ -184,6 +184,18 @@ public:
     std::size_t dxfReadDecodeWorkBudget() const noexcept {
         return m_dxfReadDecodeWorkBudget;
     }
+    /** Bound typed DXF entity-XDATA `DRW_Variant` nodes admitted by each
+     * subsequent read. The 1,048,576-node default is a caller-raiseable
+     * resource ceiling, not a DXF maximum. Current coverage is entity XDATA;
+     * table/object XDATA, application data, raw carriers, and other typed
+     * containers remain outside this counter. Changes from callbacks apply to
+     * the next read. Rebuild consumers using this additive API. */
+    void setDxfReadTypedVariantNodeBudget(std::size_t maxNodes) noexcept {
+        m_dxfReadTypedVariantNodeBudget = maxNodes;
+    }
+    std::size_t dxfReadTypedVariantNodeBudget() const noexcept {
+        return m_dxfReadTypedVariantNodeBudget;
+    }
     /** Set the aggregate logical-byte ceiling for library-owned DXF read
      * snapshots/copies. Caller-owned input and allocated capacity are not
      * charged. The 1 GiB default is caller-raiseable and is not a format
@@ -844,6 +856,7 @@ private:
     std::size_t m_dxfReadInputByteBudget {1024u * 1024u * 1024u};
     std::size_t m_dxfReadDecodeWorkBudget {
         1024u * 1024u * 1024u};
+    std::size_t m_dxfReadTypedVariantNodeBudget {1024u * 1024u};
     std::size_t m_dxfReadRetainedByteBudget {1024u * 1024u * 1024u};
     std::shared_ptr<DxfReadRetainedBudget> m_activeDxfReadRetainedBudget;
     std::size_t m_dxfHeaderCommentRetainedBytes {0};
