@@ -93,6 +93,8 @@ public:
     bool hasNamedObjectDictionary {false};
     std::list<DRW_XRecord>xRecords;      //typed XRECORD objects
     std::list<DRW_Material>materials;    //typed MATERIAL objects
+    std::list<DRW_VisualStyle>visualStyles; //typed visual style metadata
+    std::list<DRW_RawDxfObject>rawVisualStyleObjects; //full DXF style tag carrier
     std::list<DRW_ProxyObject>proxyObjects; //typed ACAD_PROXY_OBJECT records
     std::list<DRW_RawDxfObject>rawProxyObjects; //lossless DXF proxy passthrough
     std::vector<DRW_RawDxfSection> rawDxfSections; //opaque DXF section passthrough

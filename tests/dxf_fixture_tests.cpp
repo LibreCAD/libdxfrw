@@ -222,6 +222,51 @@ bool writeNodOrderControl(const std::filesystem::path& path, bool binary,
     return written && !writer->hasWriteError() && output.good();
 }
 
+bool writeVisualStyleRetentionControl(const std::filesystem::path& path,
+                                      bool binary,
+                                      bool includeVisualStyle = true) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output)
+        return false;
+    if (binary)
+        output.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+    writer->setVersion("AC1027", true);
+    const auto string = [&writer](int code, const char* value) {
+        return writer->writeString(code, value);
+    };
+    const auto dictionary = [&string, &writer](const char* handle,
+                                                const char* owner,
+                                                bool root,
+                                                bool includeStyle) {
+        return string(0, "DICTIONARY") && string(5, handle)
+            && string(330, owner) && string(100, "AcDbDictionary")
+            && writer->writeInt16(280, 1) && writer->writeInt16(281, 1)
+            && (!root || !includeStyle
+                || (string(3, "ACAD_VISUALSTYLE") && string(350, "700")))
+            && (root || (string(3, "CustomStyle") && string(350, "701")));
+    };
+    const bool written = string(0, "SECTION") && string(2, "HEADER")
+        && string(9, "$ACADVER") && string(1, "AC1027")
+        && string(0, "ENDSEC") && string(0, "SECTION")
+        && string(2, "OBJECTS")
+        && dictionary("B0", "0", true, includeVisualStyle)
+        && (!includeVisualStyle
+            || (dictionary("700", "B0", false, includeVisualStyle)
+                && string(0, "VISUALSTYLE") && string(5, "701")
+                && string(330, "700") && string(100, "AcDbVisualStyle")
+                && string(2, "CustomStyle") && writer->writeInt16(70, 24)
+                && writer->writeInt16(71, 3) && writer->writeInt16(72, 2)
+                && writer->writeInt16(73, 1) && writer->writeInt32(90, 1)
+                && writer->writeDouble(40, 0.75) && writer->writeInt16(74, 1)
+                && writer->writeInt32(91, 2)
+                && writer->writeBool(291, false)))
+        && string(0, "ENDSEC") && string(0, "EOF");
+    return written && !writer->hasWriteError() && output.good();
+}
+
 bool writeLayoutGraphControl(const std::filesystem::path& path, bool binary) {
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     if (!output)
@@ -1476,6 +1521,96 @@ void testNodRootOrdering(TestContext& t) {
                      && tolerantProxyReadback.rawProxyObjects.front().parentHandle
                          == 0xCu,
                  "tolerant export omits an unsupported NOD edge but preserves its raw proxy object");
+    }
+}
+
+void testVisualStyleRetention(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-visual-style-" + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "temporary VisualStyle directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(path, error);
+        }
+    } cleanup{directory};
+
+    for (const bool binary : {false, true}) {
+        const auto path = directory
+            / (binary ? "visual-style-binary.dxf" : "visual-style-ascii.dxf");
+        t.expect(writeVisualStyleRetentionControl(path, binary),
+                 "generated VisualStyle graph control is complete");
+
+        dx_data data;
+        dx_iface importer;
+        importer.cData = &data;
+        importer.currentBlock = data.mBlock;
+        dxfRW reader(path.string().c_str());
+        const bool imported = reader.read(&importer, false);
+        const auto styleRoot = std::find_if(
+            data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_VISUALSTYLE";
+            });
+        const auto styleDictionary = std::find_if(
+            data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == 0x700u;
+            });
+        const bool typedStyleRetained = data.visualStyles.size() == 1u
+            && data.visualStyles.front().handle == 0x701u
+            && data.visualStyles.front().parentHandle == 0x700u
+            && data.visualStyles.front().desc == "CustomStyle"
+            && data.visualStyles.front().type == 24
+            && !data.visualStyles.front().m_bodyDecoded;
+        const bool rawStyleRetained = data.rawVisualStyleObjects.size() == 1u
+            && data.rawVisualStyleObjects.front().name == "VISUALSTYLE"
+            && data.rawVisualStyleObjects.front().handle == 0x701u
+            && data.rawVisualStyleObjects.front().parentHandle == 0x700u
+            && data.rawVisualStyleObjects.front().groups.size() == 13u
+            && data.rawVisualStyleObjects.front().rawValues.size() == 13u
+            && data.rawVisualStyleObjects.front().groups.front().code() == 5
+            && data.rawVisualStyleObjects.front().groups[1].code() == 330
+            && data.rawVisualStyleObjects.front().groups[9].code() == 40
+            && data.rawVisualStyleObjects.front().groups[9].d_val() == 0.75;
+        t.expect(imported && data.hasNamedObjectDictionary
+                     && styleRoot
+                         != data.namedObjectDictionary.m_entries.end()
+                     && styleRoot->m_handle == 0x700u
+                     && styleDictionary != data.dictionaries.end()
+                     && styleDictionary->parentHandle == 0xB0u
+                     && styleDictionary->m_entries.size() == 1u
+                     && styleDictionary->m_entries.front().m_name
+                         == "CustomStyle"
+                     && styleDictionary->m_entries.front().m_handle == 0x701u
+                     && typedStyleRetained && rawStyleRetained,
+                 binary
+                     ? "binary input retains typed VisualStyle identity, owner and raw groups"
+                     : "ASCII input retains typed VisualStyle identity, owner and raw groups");
+
+        const auto noStylePath = directory
+            / (binary ? "no-visual-style-binary.dxf"
+                      : "no-visual-style-ascii.dxf");
+        t.expect(writeVisualStyleRetentionControl(noStylePath, binary, false),
+                 "generated no-VisualStyle control is complete");
+        dx_data noStyleData;
+        dx_iface noStyleImporter;
+        noStyleImporter.cData = &noStyleData;
+        noStyleImporter.currentBlock = noStyleData.mBlock;
+        dxfRW noStyleReader(noStylePath.string().c_str());
+        t.expect(noStyleReader.read(&noStyleImporter, false)
+                     && noStyleData.visualStyles.empty()
+                     && noStyleData.rawVisualStyleObjects.empty(),
+                 binary
+                     ? "binary no-VisualStyle control does not fabricate style callbacks"
+                     : "ASCII no-VisualStyle control does not fabricate style callbacks");
     }
 }
 
@@ -10798,6 +10933,7 @@ int main(int argc, char** argv) {
     testRawControls(context);
     testDictionaryWithoutOwner(context);
     testNodRootOrdering(context);
+    testVisualStyleRetention(context);
     testLayoutGraphReadContract(context);
     testXRecordDataOrder(context);
     testXRecordCoordinateTuples(context);
