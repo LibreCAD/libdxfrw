@@ -2388,6 +2388,7 @@ public:
 private:
     std::size_t m_dxfRetainedFontNameBytes{0};
     std::size_t m_dxfRetainedBigFontNameBytes{0};
+    std::array<std::size_t, 6> m_dxfRetainedD2TFieldBytes{};
 };
 
 //! Class to handle vertex

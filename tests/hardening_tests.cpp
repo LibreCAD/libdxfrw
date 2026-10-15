@@ -3764,6 +3764,75 @@ void testDxfArcAlignedFontOwnerBudget(TestContext& t) {
     }
 }
 
+void testDxfArcAlignedD2TRetentionBudget(TestContext& t) {
+    class ArcTextParseProbe final : public DRW_ArcAlignedText {
+    public:
+        using DRW_ArcAlignedText::parseCode;
+        using DRW_ArcAlignedText::resetDwgState;
+    };
+    const auto parse = [](ArcTextParseProbe& entity, const std::string& source,
+                          const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(source);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        while (reader->readRec(&code)) {
+            if (!entity.parseCode(code, reader))
+                return false;
+        }
+        return true;
+    };
+    const std::string replacement = "42\n1\n42\n2.5\n";
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(23u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, replacement, budget)
+                     && text.m_textSize == "2.5" && budget->used() == 3u,
+                 "ARCALIGNEDTEXT text-size D2T replacement fits the exact preformatted-output peak");
+        ArcTextParseProbe copy(text);
+        ArcTextParseProbe assigned;
+        assigned = text;
+        text.resetDwgState();
+        t.expect(budget->used() == 3u && copy.m_textSize == "2.5"
+                     && assigned.m_textSize == "2.5",
+                 "D2T text-size copy and assignment preserve the retained value through reset");
+        copy.resetDwgState();
+        assigned.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "final D2T text-size owner reset releases the retained lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(22u);
+        ArcTextParseProbe text;
+        t.expect(!parse(text, replacement, budget) && budget->exceeded()
+                     && text.m_textSize == "1" && budget->used() == 1u,
+                 "one-byte-under D2T replacement rejects before formatting and preserves the prior field");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "rejected D2T replacement releases its previous field lease on reset");
+    }
+    {
+        const std::string source =
+            "41\n1.25\n42\n2.5\n43\n-0.75\n44\n0\n"
+            "45\n123456.789\n46\n-1.7976931348623157e308\n";
+        auto budget = std::make_shared<DxfReadRetainedBudget>(1024u);
+        ArcTextParseProbe text;
+        t.expect(parse(text, source, budget)
+                     && text.m_xScale == "1.25"
+                     && text.m_textSize == "2.5"
+                     && text.m_charSpacing == "-0.75"
+                     && text.m_offsetFromArc == "0"
+                     && text.m_rightOffset == "123457"
+                     && text.m_leftOffset == "-1.79769e+308"
+                     && budget->used() == 32u,
+                 "all six bounded D2T fields retain their canonical formatted values, including maximum exponent");
+        text.resetDwgState();
+        t.expect(budget->used() == 0u,
+                 "ARCALIGNEDTEXT reset releases every D2T field lease");
+    }
+}
+
 void testDxfAttribTagOwnerBudget(TestContext& t) {
     class AttribParseProbe final : public DRW_Attrib {
     public:
@@ -6777,6 +6846,7 @@ int main() {
     testDxfTextStyleOwnerBudget(context);
     testDxfTextValueOwnerBudget(context);
     testDxfArcAlignedFontOwnerBudget(context);
+    testDxfArcAlignedD2TRetentionBudget(context);
     testDxfAttribTagOwnerBudget(context);
     testDxfAttdefPromptOwnerBudget(context);
     testDxfDimensionStyleOwnerBudget(context);

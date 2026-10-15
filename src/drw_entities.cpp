@@ -12044,6 +12044,30 @@ bool DRW_ArcAlignedText::parseCode(int code, const std::unique_ptr<dxfReader>& r
     // ARCALIGNEDTEXT repurposes several TEXT codes (2/10/40/41/50/51/70…), so it
     // must not delegate those to DRW_Text; unknown codes fall through to the
     // AcDbEntity common parser.  Angles (50/51) are DXF degrees -> radians.
+    const auto parseD2TField = [this, &reader](std::size_t index,
+                                                UTF8STRING& destination) {
+        // Six significant digits plus sign, decimal point and the three-digit
+        // double exponent fit in 13 bytes; reserve 16 before formatting to
+        // cover the transient value as well as its eventual field owner.
+        constexpr std::size_t kMaxD2TTextBytes = 16u;
+        const auto& budget = reader->retainedByteBudget();
+        DxfReadRetainedReservation formattedOutput(budget,
+                                                   kMaxD2TTextBytes);
+        if (budget != nullptr && !formattedOutput.reserved())
+            return false;
+        std::string value = arcAlignedD2T(reader->getDouble());
+        if (budget != nullptr) {
+            if (value.size() > kMaxD2TTextBytes) {
+                budget->reject();
+                return false;
+            }
+            if (!formattedOutput.resize(value.size()))
+                return false;
+        }
+        return replaceDxfRetainedStringField(
+            reader, m_dxfRetainedD2TFieldBytes[index], destination,
+            std::move(value));
+    };
     switch (code) {
     case 1:
         if (!replaceDxfRetainedStringField(
@@ -12073,12 +12097,30 @@ bool DRW_ArcAlignedText::parseCode(int code, const std::unique_ptr<dxfReader>& r
     case 20:  m_center.y = reader->getDouble(); break;
     case 30:  m_center.z = reader->getDouble(); break;
     case 40:  m_radius = reader->getDouble(); break;
-    case 41:  m_xScale = arcAlignedD2T(reader->getDouble()); break;
-    case 42:  m_textSize = arcAlignedD2T(reader->getDouble()); break;
-    case 43:  m_charSpacing = arcAlignedD2T(reader->getDouble()); break;
-    case 44:  m_offsetFromArc = arcAlignedD2T(reader->getDouble()); break;
-    case 45:  m_rightOffset = arcAlignedD2T(reader->getDouble()); break;
-    case 46:  m_leftOffset = arcAlignedD2T(reader->getDouble()); break;
+    case 41:
+        if (!parseD2TField(0u, m_xScale))
+            return false;
+        break;
+    case 42:
+        if (!parseD2TField(1u, m_textSize))
+            return false;
+        break;
+    case 43:
+        if (!parseD2TField(2u, m_charSpacing))
+            return false;
+        break;
+    case 44:
+        if (!parseD2TField(3u, m_offsetFromArc))
+            return false;
+        break;
+    case 45:
+        if (!parseD2TField(4u, m_rightOffset))
+            return false;
+        break;
+    case 46:
+        if (!parseD2TField(5u, m_leftOffset))
+            return false;
+        break;
     case 50:  m_startAngle = reader->getDouble() / ARAD; break;
     case 51:  m_endAngle = reader->getDouble() / ARAD; break;
     case 70:  m_isReverse = reader->getInt32(); break;
@@ -12117,6 +12159,7 @@ void DRW_ArcAlignedText::resetDwgState() {
     m_bigFontName.clear();
     m_dxfRetainedFontNameBytes = 0u;
     m_dxfRetainedBigFontNameBytes = 0u;
+    m_dxfRetainedD2TFieldBytes.fill(0u);
     m_rawColor = 0;
     m_characterSet = 0;
     m_pitchAndFamily = 0;
