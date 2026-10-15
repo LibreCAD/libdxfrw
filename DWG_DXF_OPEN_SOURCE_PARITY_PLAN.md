@@ -1,6 +1,12 @@
 # DWG/DXF open-source implementation comparison and fix plan
 
-**Status:**118 findings tracked across67 top-level implementation subplans.
+**Status:**120 findings tracked across69 top-level implementation subplans.
+The 2026-10-14 ODA/peer refresh adds source/spec-confirmed candidate PAR-119
+and implementation subplan7BP for the target-version-dependent GEODATA CIVIL
+tail, plus PAR-120/7BQ for the hard-coded DIMSTYLE table capacity; producer or
+strict-application reproduction remains pending where called out. Other newly
+surfaced peer issues refine existing validation owners and do not add findings.
+All six external J dispositions remain deferred and non-promoting.
 PAR-118's BLOCK callback/subtype correction is integrated under7AG.3a, with
 the focused composed safety checkpoint passing at bc8f45f. MIF decoding and peer graph
 calibrations refine existing findings rather than add more IDs.
@@ -71,6 +77,24 @@ writer branches and captures a handle-index ordering trap. These remain
 peer-only evidence; no new local PAR ID or support claim is justified. See the
 dated cross-reader refresh below for exact boundaries and the smallest plan
 changes.
+The subsequent Oct.14 ACadSharp horizon scan and ODA v5.4.1 §20.4.78 audit add
+PAR-119 and 7BP for GEODATA's conditional CIVIL tail; implementation HEAD is
+`2feae07`, and no local producer/native reproduction was run. Other new issue
+reports are assigned to existing work and remain peer-only. At that earlier
+refresh boundary findings/subplans were119/68; all six external J items
+remained `DEFERRED_EXTERNAL`.
+The deeper DXF contract pass adds PAR-120/7BQ after checking Autodesk's
+symbol-table count rule against `writeDimstyles()`'s streaming behavior and the
+fixed DIMSTYLE table group-70 value. The separate ACadSharp #1253 group-71 /
+table-header-340 claims remain a strict-output audit question, not a second
+finding until their exact context is independently pinned. Current counts are
+120/69; no strict AutoCAD run or fixture admission occurred.
+The later 2026-10-14 peer-regression pass adds no finding or subplan: ezdxf's
+binary proxy-graphic writer defect is fixed at merged commit `c87c87e`, while
+ACadRust #130–#134 remain version- and corpus-bound leads. This updates the
+optional 7AP oracle gate and sharpens existing TABLE, opaque-carrier,
+ownership, record-bound and resource tests only. The six external J items
+remain deferred and non-promoting.
 Next retain the remaining per-container real-file HEADER witnesses, complete
 the remaining 7AG.1c omission-reporting method, and continue dependency-ready
 resource work. Declared text remains the default; peer HATCH transforms and
@@ -121,12 +145,35 @@ ATTRIB tag accounting at `c31cfcf`; 7S.2c.d.7 ATTDEF prompt accounting at
 text at `ce5ee41`; 7S.2c.d.12 TOLERANCE style name at `b4deb55`;
 7S.2c.d.13 BLOCK xref path at `84637c1`; 7S.2c.d.14 BLOCK name at
 `fdfef86`; 7S.2c.d.15 MLINE style name at `beedee8`; and
-7S.2c.d.16 OLE2FRAME client name at `fc4b873`. These
+7S.2c.d.16 OLE2FRAME client name at `fc4b873`; 7S.2c.d.17.1 single-line
+TEXT value ownership at `794d788`. These
 change only local retained-byte
 accounting and do not alter peer-source conclusions or external qualification
 boundaries.
 Mutable repository docs and peer issue reports were not treated as exact
 executable pins or local reproductions.
+The newest plan-only update was researched against implementation HEAD
+`2feae07` (2026-10-14): the local GEODATA parser/encoder source was inspected,
+the official ODA-hosted v5.4.1 PDF §20.4.78 pp.193–196 was checked, and the
+current ACadSharp open-issue listing plus selected issue bodies were reviewed.
+The AGENTS.md-specified local PDF copy was absent at `~/doc/dwg/` in this
+environment, so the official ODA-hosted copy was used. No implementation/test
+source, test fixture, registration, dependency, metadata, or remote state
+changed. Peer issue reports do not promote support; the six external J items
+remain deferred.
+The follow-up source pass also checked Autodesk's symbol-table and DIMSTYLE
+references against `src/libdxfrw.cpp`, and verified the local CLASS/HATCH
+counterexamples to two other ACadSharp #1253 subclaims. It adds only the
+source/spec candidate DIMSTYLE capacity mismatch; modern entity/annotation,
+resource-boundary and legacy-DXF issue reports map to existing owners unless
+they obtain independent local reproductions.
+The next read-only cross-project pass checked live ACadRust #130–#134 reports,
+the merged ezdxf binary-proxy fix, and downstream `dwg2png` corpus claims,
+then compared those leads with current TABLE/proxy/graph paths. It adds no PAR
+ID: the ACadRust reports remain peer-only, and `dwg2png` uses ACadRust rather
+than an independent DWG reader. The exact ezdxf merge is
+`c87c87e65937feede396e5861eec703bde701ec8`; ezdxf 1.4.4 remains a known-bad
+optional oracle for this path.
 That refresh uses exact read-only peer pins where available; it does not
 relabel the previously executed comparator runtime pins. FreeCAD `main` was
 read as a mutable source snapshot and must be pinned again before a native
@@ -412,6 +459,8 @@ Its historical binary diff SHA-256 is
 | 7S.2c.d.14 BLOCK name | COMMITTED / BLOCK_NAME_OWNER_SCOPED | `fdfef86` retains `DRW_Block::name` (DXF code2) separately from `xrefPath`, on the shared entity lease with a per-field live-byte counter. Replacement is admitted before assignment; reset restores the constructor's `*U0` (or ENDBLK's empty name) after base/entity release. Implicit copies/assignment preserve both counters and the owner lease. | Generated `OLD→DIMNAME` succeeds at exact52-byte transient peak and leaves7 bytes; cap51 rejects while preserving `OLD` plus3. Copy/assignment keep7 through sibling resets; final reset returns usage to0. Strict library and `lc3_compat_check` target build; Wave1/hardening/DXF-fixtures pass3/3 in3.40s. No fixture/new CTest/support promotion. Adds a private counter to public `DRW_Block` layout: downstream rebuild required; binary ABI is not claimed. Public mutation and writer copies remain open. |
 | 7S.2c.d.15 MLINE style name | COMMITTED / MLINE_STYLE_OWNER_SCOPED | `beedee8` retains `DRW_MLine::styleName` (DXF code2) on the shared entity lease with a field counter; the existing raw `getString()` conversion is preserved. Its explicit copy constructor and assignment carry the counter, while reset clears it. | Generated `OLD→DIMNAME` succeeds at exact52-byte transient peak and leaves7 bytes; cap51 rejects while preserving `OLD` plus3. Copy/assignment keep7 through sibling resets; final reset returns usage to0. Strict library and `lc3_compat_check` target build; Wave1/hardening/DXF-fixtures pass3/3 in3.40s. No fixture/new CTest/support promotion. Adds a private counter to public `DRW_MLine` layout: downstream rebuild required; binary ABI is not claimed. Public mutation and writer copies remain open. |
 | 7S.2c.d.16 OLE2FRAME client name | COMMITTED / OLE2FRAME_CLIENT_OWNER_SCOPED | `fc4b873` retains `DRW_Ole2Frame::m_oleClient` (DXF code3) using its per-field counter on the shared entity lease. Explicit copy construction/assignment carry the counter; reset restores the existing `OLE` default and releases parsed charge. | Generated `OLD→DIMTEXT` succeeds at exact52-byte transient peak and leaves7 bytes; cap51 rejects while preserving `OLD` plus3. Copy/assignment keep7 through sibling resets; final reset returns usage to0. Strict library and `lc3_compat_check` target build; Wave1/hardening/DXF-fixtures pass3/3 in3.38s. No fixture/new CTest/support promotion. Adds a private counter to public `DRW_Ole2Frame` layout: downstream rebuild required; binary ABI is not claimed. Public mutation and writer copies remain open. |
+| Deep peer/spec refresh (2026-10-14) | PLAN_UPDATED / NONPROMOTING | Adds source/spec-confirmed candidate PAR-119 and7BP for the GEODATA CIVIL tail, plus crosswalks the Oct.14 ACadSharp issue horizon into existing owners. Implementation source boundary `2feae07`; no peer runtime, proprietary sample, native application, new fixture, or external qualification ran. | ODA v5.4.1 §20.4.78 pp.193–196 checked; local `DRW_GeoData` source confirms no tail branch after the faces. Exact producer/file-version/objectVersion behavior remains pending and is explicitly the first7BP gate. New peer leads are non-promoting; findings/subplans119/68; six external J dispositions remain unchanged. No source/test/metadata/support/remote change. |
+| Deeper DXF contract / strict-writer cross-check (2026-10-14) | PLAN_UPDATED / NONPROMOTING | Adds source/spec-confirmed candidate PAR-120 and7BQ: DIMSTYLE table group70 is fixed at1 while the interface can emit multiple style rows, including an implicit Standard row. ACadSharp #1253's CLASSES/HATCH findings are locally contradicted by current source; its special DIMSTYLE group71/table-header-340 claims remain an unpromoted audit lead. | Autodesk's symbol-table reference and DIMSTYLE field documentation checked against current writer source; ACadSharp issue #1253 was verified against AutoCAD 2027 by its reporter but is not a libdxfrw reproduction. Add locally generated exact ordered-tag vectors; no peer runtime/native application/new fixture or CTest ran. Counts120/69, all six J dispositions unchanged, no support/metadata/remote change. |
 | 7AV.5 /7S.1 composed lifetime checkpoint | VERIFIED / SAFETY_SCOPED | Clean tracked b4f74be913c86b43b96560ca23292aafebf1f436 checkout `/private/tmp/libdxfrw-current-safety.OPuDX0/repo`, Debug/static entire library plus hardening/DXF/reader-matrix targets instrumented with address sanitizer. `ASAN_OPTIONS=detect_stack_use_after_return=1:detect_leaks=0` exact3/3 pass7.80s. Report SHA256`afd4cac931c4cb0d5da07a78fd05020b67b5959aca983d76be4b9c2bfcac588a` binds source revision, archive/executables and successful log. Initial detect_leaks=1 attempt aborted before tests because this macOS runtime does not support it; no leak-check pass claimed. Archive`9877ff4d6de8c9c3f9fba9756e4c29c12a5242ed73f7d7d59c54bfad330fddcf`, hardening`d1ada14bb529f52ad65f0154a6b0dc2326dab8d4e8fd3b41c67d9db57a0575bc`, reader-matrix`f8db2fac4a9cf7669973915f37086b14e4bd18588ba1e8ab1d9d8e3eabde2371`, DXF`c43f62011a28bd4bf2744651aa4f399f1010fd23c20682bb124eda6cfc933442`. No full84 suite/native/runtime receipt/support promotion; d49 and ca8 historical evidence remains unchanged. Next7AG/7F.1b capability contract and corrected7AK.6 package request work. |
 | Broader profile / oracle / policy review | PLAN_UPDATED / NONPROMOTING | At907b77, extends existing7AG/7AH/7AQ/7AK.6/7S.2/Slice8 rather than adding PAR IDs. Actual metadata predicates accept contradictory side/warning flags; public-model projection misses optional shell presence/value. Eight mocked ACIS-verifier rows distinguish geometry from unknown units/diagnostics; deliberate peer calibration loses one face without changing bounds. Binary late-header and callback source-mutation controls bind current artifacts.18+6 CMake probes correct the prior NEW-policy false-reject claim and show OLD-only333 can accept unrelated output.7AG.1a50157be stays isolated;7AK.6 stays unready. Only plans change in main; no fixture/receipt/native claim or six-J promotion. |
 | 7AG.1a source preflight integration | COMMITTED / COMMON_SURFACE_ONLY | `Plan-Slice:7AG.1a`, integrates independently reviewed50157be on e46717d. Moves conditional probe implementation outside the unconditional170-callback sink and makes common field helpers available in both builds. Current-main strict ordinary/3D compile+link and both linked self-tests pass; builder/schema direct checks pass, target inventory is exact170 and standalone reports exactly the two pending supplements. Two default-recipe outputs are byte-identical with expected LINE endpoints,30 callbacks/14 records. Main report`/private/tmp/libdxfrw-main-7ag1a.nEs6nw/report.json` SHA256`6c48e1ee8b8ce1f6cba515c61d0d5415e045c82e6fc0bbe42e305145c47ff8ea` binds source/executables and unchanged b4 archive284a7f1f; four checks plus two recipes take5.38s. Initial CTest selection found zero because this cache does not register qualification tests; it is not counted as a pass. No production library/API/schema/receipt/registration/fixture change or paired target/native qualification. Next7AG.4 predicates, capability/profile bridge and7F.1b, while independent package/reader fixes proceed. |
@@ -458,6 +507,7 @@ Its historical binary diff SHA-256 is
 | 7AH/7AQ/7N patterned-HATCH retention controls | COMMITTED / TEST_ONLY | `Plan-Slice:7AH.pattern-retention`, integrates independently approved owner-corrected e1bf40af on087c330, only the existing local-roundtrip test file. Two explicit nondefault lines per model/named HATCH,21 ordered physical pairs, typed fields/frame/closed boundary and actual unique model/named owners survive library/CLI handoffs without flattening.47 private predicate negatives are not migrated semantic comparison. Two-step affected build, strict TU/DXF-local2/2/four CLI routes/eight handoffs pass22 commands6.54s; reportbb3ffad3 below binds exact main source/artifacts/JUnit. Corrected5c0 candidate report preserves historical metadata error. No production red/fix, new registration/payload/API/renderer/native/support claim. Step2 profile migration and transformed-phase calibration remain separate; subsequent safety/probe closure is recorded below. |
 | 7AD bounded portable Python probe | COMMITTED / CONFIGURE_ONLY | `Plan-Slice:7AD.python-probe`, integrates complete reviewedb912a963→cb22907f on c6c00c5. The named5s version probe preserves exact old-version1 versus launch/timeout/other outcomes; tiny CMake-owned C++17/Werror sentinel avoids GNU-only flag/suffix assumptions. Ordinary self-test passes; actual main14 bounded children/four profiles/eight controls pass16.28s, source before/after unchanged. Main reconfigure1.2s and actual registered CLI1/1 in0.28s pass, with selected-Python/CLI roles and non-skipped JUnit checked. Report8b8aa97a and acceptancec1701995 below bind exact main patch68192858. No project C++ rebuild, native Windows/FreeCAD, registration/fixture/receipt change or support promotion. Next7BE reader/writer and7AG.1c remain independently ready. |
 | Decoder/consumer/comparator readiness research | PLAN_UPDATED / NONPROMOTING | At86198a7 preserves staged HEADER patchb8712389 without claiming its pending main gate. Extends existing PAR-07/S3.7,7G.3,7AG.1c and7AH/7AQ: actual7 SAB,8 binary-phase and10 order component controls; current consumer call phases/terminal resolver/route-specific zero/loss-policy review. Corrected binary report preserves exact adjacent I64 after a disclosed scratch JavaScript serialization error. Its getter/reservation2/3 result and invalid negative premise are historical, superseded by corrected and integrated1ade4c6 (3/3 current-main fast gate).118/67,84/45/exact7, six deferred J statuses and all main source/test index bytes remained unchanged at that earlier research boundary. Subsequent reader/facade slices are separate. No native/dependency/full-suite prerequisite. |
+| Deeper downstream / regression follow-up | PLAN_UPDATED / NONPROMOTING | Live-read ACadRust #130–#134; checked ezdxf #1412's merged fix at `c87c87e65937feede396e5861eec703bde701ec8`; and read the `dwg2png` 11-file AC1032 report, whose parser is ACadRust. Tightens existing 7AP proxy chunk controls and keeps ACadRust TABLE state, silent DXF→DWG losses, orphan publication, and strict MLeader-record-bound claims in 7G.3d/7AG/PAR-63/64/PAR-14/7F.1. No new PAR/subplan, peer runtime, local fixture, registration, dependency, support promotion or J disposition change; counts remain120/69 and all six J items remain `DEFERRED_EXTERNAL`. |
 
 **API source checkpoint before integration:** reviewed
 ca7db684/90319104/2f7cc65 formed the eight-path patch on736ae70 bound above.
@@ -3069,6 +3119,8 @@ revision unless a live-upstream correction is named explicitly.
 | **PAR-116** | P1 | Executed modern HATCH zero-fit mismatch: encodeDwgBoundaryData emits two tangent pairs unconditionally after fitCount; parser reads them only for positive fitCount. AC1027 zero-fit CLI succeeds with HATCH0/LINE1, versus one-fit HATCH1/LINE1; AC1018 partners retain HATCH. ODA p196 and producer-trace/peer conditional layouts disagree. |7N.3 resolves the exact version/profile exception with ODA review and a named producer witness before altering bytes. Preserve compatible reading, add zero/one-fit literal writer controls followed by edges/loops/seeds/patterns and observable parse-loss diagnostics through7F.1. Completed DXF7AF does not close this DWG layout gate. |
 | **PAR-117** | P1 | Source-confirmed section-map work gap: reader18 and independent reader21 validated every page range against a vector of preceding ranges. Nonoverlapping p-page input costs p(p−1)/2 comparisons; MaxPageCount permits1,048,576. Existing size/page/count caps remain present. No large-file timing, OOM or crash experiment was run. | `31f7cfd` installs per-section ordered intervals with predecessor/successor overlap checks; `bf1113c` adds exact unknown-name indexing without changing order. The 9,261-triple range differential, common-prefix128/512 name/range work envelopes, duplicate/case controls and allocation-failure/retry checks pass. `7050c3e` closes the generated negative full-map diagnostic/no-publication/same-reader-reuse witness without bypassing valid file-envelope and page checksums. Preserve version-specific range rules, checked arithmetic, first-offender diagnostics, separate page ownership, and exact case-sensitive names; no wall-time, OOM, crash or broad reader claim. This is distinct from7AW residual-object and7BA child work. |
 | **PAR-118** | P1 | Reproduced context-dependent callback loss at25d951c: DxfBlockEventSink copies addSurface as DRW_Surface, retaining derived eType but slicing dynamic type. Identical PLANESURFACE/REVOLVEDSURFACE records reach concrete callbacks in ENTITIES and base-only callbacks in BLOCKS. TOLERANCE/CAMERA callbacks fall1→0 in BLOCKS; reads still succeed with both suffix LINEs. Source dx_iface.h317–343 then downcasts by eType; those unsafe casts were not executed. |7AG.3a preserves concrete surface types in queued copies and covers every entity callback reachable in BLOCKS. Retain ENDBLK atomicity, callback lifetime/order, existing read exception propagation, 2D defaults and corrected reuse. This is callback-contract evidence, not a DWG layout or independently validated B-rep result. |
+| **PAR-119** | P1 | ODA v5.4.1 §20.4.78 pp.193–196 specifies a trailing CIVIL-data block after GEODATA mesh faces for DWG file versions R21 and earlier (with the note “AutoCAD 2010 always writes civil data”), independently of GEODATA objectVersion 1/2/3. Local `DRW_GeoData::encodeDwg` (`src/drw_objects.cpp:15796–15825`) and `parseDwg` (`:18852–18875` onward) move from the face array directly to common/deferred handle processing; no CIVIL-tail branch is present. ACadSharp issue #1261 reports the same omission in its own writer/reader and cites two real but confidential drawings; its class-version gate and described field differences conflict with the ODA summary, so this remains source/spec-confirmed, reproduction-pending—not a local producer failure report. | Implement7BP only after pinning exact DWG file version, GEODATA objectVersion, presence/meaning of the tail flag, and the precise ODA field order against an eligible producer trace. Add generated tiny reader/writer vectors with distinct horizontal/vertical units, nondefault north/scale fields, zero/one mesh entries, tail-present/absent and following-handle sentinel; ensure the sentinel and next object remain aligned. Preserve strict object bounds and transactional failure behavior. No confidential DWG import or broad GeoData support claim. |
+| **PAR-120** | P1 | Source/spec-confirmed candidate: `writeTables` in `src/libdxfrw.cpp` writes DIMSTYLE table group70 as the literal `1`, then `iface->writeDimstyles()` may emit multiple records and the writer adds a `Standard` record when absent. Autodesk documents table group70 as the maximum number of entries that may follow, so a multi-style output can declare less capacity than the records actually written. ACadSharp #1253 independently reports strict-writer problems in this region, but its additional `AcDbDimStyleTable` group71/table-header-340 interpretation is not bundled into this finding pending a primary ordered-output witness. No local AutoCAD rejection or independent parser reproduction is claimed. | Implement7BQ with a bounded staging/counting design that invokes consumer callbacks exactly once, derives group70 from actual emitted entries (including implicit Standard), and preserves handle allocation, output atomicity, and R12/R2000+ differences. Generated raw-tag vectors must cover implicit/explicit Standard, multiple custom styles, accurate header-to-record count, and following TABLE/ENDSEC sentinels. Separately pin the group71 and table-header-340 question against an existing permitted AutoCAD-produced file or an authoritative ordered example; do not confuse those with per-record DIMSTYLE group340 (`DIMTXSTY`). |
 
 ## Implementation slices
 
@@ -4905,7 +4957,8 @@ DWG page/object/block caps before extending any uncovered aggregate scope.
    | 7S.2a input/work admission — COMMITTED `c090d70` | One per-read logical-byte counter is independent of physical read-ahead, token length and retained copies. It counts ASCII code/value bytes plus LF/CR, R12/R13 binary code widths, all fixed-width numeric/Boolean fields, chunk length/payload/NUL, ignored comments, and the 22-byte binary sentinel exactly once; re-read bytes after format detection are not double-charged. Caller-raiseable default:1GiB. Each bounded acquisition checks remaining budget first; quota exhaustion has a distinct ResourceLimit diagnostic. | Existing fast hardening controls exercise cap−1/cap/cap+1, zero, numeric-only ASCII/binary, ignored comments/no drain, R12/R13 and extended codes, binary chunks, binary sentinel exact-size accounting, file/memory reads, same-facade retry and rejected nested lifecycle. Wave1/hardening/DXF-fixtures pass3/3 in3.60s; no new CTest or fixture. |
    | 7S.2b owned snapshot — COMMITTED `7146e94` | Reserve the library-owned `readAscii` snapshot's logical `content.size()` before constructing `istringstream`; caller content and allocated capacity are outside this unit. The lexical reservation outlives the stream and rolls back after construction or callback exceptions. The per-read shared budget is initialized for file and in-memory routes; file-backed copy owners are charged by follow-on slices. | Two LINE callbacks still arrive after callback one replaces caller input with EOF; exact-cap succeeds, cap−1 rejects before any callback, a throwing callback releases the snapshot charge despite the surviving reader object, a stale-reader failure does not replace/dereference it, and raised-cap same-facade retry succeeds. Strict changed-target build/`lc3_compat_check`; Wave1/hardening/DXF-fixtures3/3 in3.28s. |
    | 7S.2c live text/carriers | Identify temporary `getString()` copies, simultaneous `strData`/`rawData`, assembled MTEXT, by-value decode input/output and typed/raw carriers. Charge inserted comment newlines as retention, not acquired input. Define logical-length/capacity scope and move/replacement/rollback explicitly. Sub-slice7S.2c.a is committed at`d826969`: pre-SECTION `DRW_Header` comments use the per-read shared budget and accumulated logical length remains charged across read return until the facade begins another read. 7S.2c.b is committed at`39409ce`: bounded `strData`/numeric-token append and `rawData` duplicate are charged; binary hex expansion is precharged; terminal CR normalization refunds one byte; per-record charge releases on invalidation/destruction and interrupted stale-reader text remains charged. Sub-slice7S.2c.c.1 is committed at`1ac27ee`: before parsers receive a textual/binary record, reserve one conservative getter-output logical bound (4× textual source bytes; 1× canonical binary hex) so the current record's returned `getString()`/`getUtf8String()` representation is pre-admitted. It deliberately excludes capacity/RSS, codec scratch and caller-owned callback copies, and is not normal typed-model lifetime coverage. Sub-slice7S.2c.c.2 is committed at`80673ee`: a private shared lease tracks the whole MTEXT assembly across physical records/callback and value destruction; group growth reserves before append, group-1 decoding pre-reserves the accumulated by-value input+4× output, then shrinks/transfers that charge to actual decoded length while releasing replaced raw text. Generated exact48/over47 controls cover repeated group3 plus group1, preservation after EOF, release at entity destruction and no final append on rejection. This adds private state to public`DRW_MText` layout; require downstream rebuild, with no binary ABI claim. Escaping consumer copies share/extend the originating lease but are not separately charged. 7S.2c.d.1 is committed at`cfafe39`: raw section/object names, captured string-valued variants and ASCII raw spellings are reserved before insertion and retained through the corresponding callback-owned carrier. Per-group raw-section carriers share a lease through move; a latched quota failure keeps the ResourceLimit diagnostic. Exact current peak controls cover section/object publication and release after the sink drops its copies. Public raw structs gain private shared-lease state and also require downstream rebuild; binary ABI is not claimed. Copies extend/share one originating charge rather than receiving independent charges. 7S.2c.d.2 is committed at`8e29783`: common entity/table appData groups charge actual opener suffixes, markers, string/binary spellings and raw handle strings before insertion; an outer checkpoint rolls back incomplete groups, while copies/moves preserve the lease and reset releases it. Exact52/over51 tests leave11 retained bytes after reader teardown for both bases. 7S.2c.d.3 is committed at`ea2b92e`: common entity layer/linetype/color-book strings and table-entry name use per-field replacement charges, reserving the new logical value before assignment and releasing the previous value only after replacement. Repeated code8 and code2 therefore charge the live field plus the transient replacement peak rather than all historical values. Exact80/over79 entity and31/over30 table controls preserve the previous fields on refusal; the final owner holds20 and4 bytes respectively. Both entity/table base layouts require downstream rebuild, not binary ABI. Copies share charges; public `appData`/field mutation and writer copies are outside the contract. 7S.2c.d.4 is committed at`fd3c2e2`: typed XDATA extData strings in entities and table entries (codes1000–1005) charge each destination before variant insertion, including semantic text, control/binary spellings and handle strings. Incomplete vector append unwinds via a lease checkpoint; copied model variants keep the common owner lease. Exact44/over43 generated input retains20 bytes after reader teardown for both bases; one-under refusal keeps the preceding three variants/9 bytes, then reset releases them. This adds no layout beyond the common lease/base fields recorded in d.2/d.3. 7S.2c.d.5 is committed at`f96b4fb`: the inherited TEXT-family style field is charged with replacement-peak semantics; the direct ARCALIGNEDTEXT code7 override uses the same counter. Exact38/over37 tests preserve the previous style, then copy/reset checks return usage5→0; direct ARCALIGNEDTEXT exact56/reset also passes. This adds protected counter state to public`DRW_Text` layout, requiring downstream rebuild; no binary ABI claim. `DRW_MText::text` keeps its separate assembly lease. 7S.2c.d.6 is committed at`c31cfcf`: `DRW_Attrib::tag` group2 uses the common entity lease and a per-field counter; replacement refusal preserves the old tag. Explicit ATTRIB copy construction/assignment retain the counter, reset releases it, and ATTDEF group2 delegation is covered. Exact24/over23 plus copy/reset and ATTDEF exact24 controls pass. A private counter changes public`DRW_Attrib` layout, requiring downstream rebuild; no binary ABI claim. 7S.2c.d.7 is committed at`8a19cca`: `DRW_Attdef::prompt` is charged only on the prompt branch; pre-subclass code3 remains embedded MTEXT with its separate text lease. Reset and DWG failure cleanup clear the prompt counter; implicit copy/assignment preserve it. Exact45/over44 replacement and mixed nested-MTEXT/prompt lease controls pass. This adds private state to public`DRW_Attdef` layout, requiring downstream rebuild; no binary ABI claim. 7S.2c.d.8 is committed at`92d8a46`: dimension code3 style replacement uses the shared lease; explicit copy construction, assignment and subclass copies carry its byte counter, while reset clears the style charge. Exact59/over58, copy/reset and failure-preservation controls pass. A private counter changes public`DRW_Dimension` layout, requiring downstream rebuild; no binary ABI claim. Public setters, dimension text and remaining derived fields are outside this slice. 7S.2c.d.9 is committed at`801cd45`: LEADER code3 style replacement uses the shared lease; copy construction/assignment carry its field count and reset releases it. Exact45/over44 plus copy/reset controls pass. A private counter changes public`DRW_Leader` layout, requiring downstream rebuild; binary ABI is not claimed. 7S.2c.d.10 is committed at`438592e`: DIMENSION code1 custom text uses a separate field counter on the shared entity lease; the explicit base copy constructor and default assignment preserve it, while reset releases it. Exact52/over51 replacement, copy and reset controls pass. This adds another private counter to public`DRW_Dimension` layout, requiring downstream rebuild; binary ABI is not claimed. Public setters remain outside this slice. 7S.2c.d.11 is committed at`ce5ee41`: TOLERANCE code1 visual text uses a separate field counter on the shared entity lease; default copy/assignment preserve it and reset releases it. Exact52/over51 replacement, copy and reset controls pass. A private counter changes public`DRW_Tolerance` layout, requiring downstream rebuild; binary ABI is not claimed. Public mutation and the code3 `dimStyleName` remain outside this slice. 7S.2c.d.12 is committed at`b4deb55`: TOLERANCE code3 `dimStyleName` uses a separate field counter on the shared entity lease; default copy/assignment preserve both retained fields and reset restores `STANDARD` while releasing them. Exact59/over58 replacement, copy and reset controls pass. A private counter changes public`DRW_Tolerance` layout, requiring downstream rebuild; binary ABI is not claimed. Public mutation remains outside this slice. 7S.2c.d.13 is committed at`84637c1`: BLOCK code1 `xrefPath` uses a per-field counter on the shared entity lease; implicit copy/assignment preserve it and reset releases it. Exact52/over51 replacement, copy and reset controls pass. A private counter changes public`DRW_Block` layout, requiring downstream rebuild; binary ABI is not claimed. Public mutation and the code2 block name remain outside this slice. 7S.2c.d.14 is committed at`fdfef86`: BLOCK code2 name uses its own counter on the shared lease; implicit copy/assignment preserve both parsed string owners, and reset restores `*U0`/ENDBLK empty name after releasing them. Exact52/over51 replacement, copy and reset controls pass. This adds another private counter to public`DRW_Block` layout, requiring downstream rebuild; binary ABI is not claimed. Public mutation remains outside this slice. 7S.2c.d.15 is committed at`beedee8`: MLINE code2 `styleName` uses a per-field counter on the shared lease; explicit copy construction/assignment preserve it, while reset releases it. Exact52/over51 replacement, copy and reset controls pass. A private counter changes public`DRW_MLine` layout, requiring downstream rebuild; binary ABI is not claimed. Public mutation remains outside this slice. 7S.2c.d.16 is committed at`fc4b873`: OLE2FRAME code3 `m_oleClient` uses its own shared-lease field counter; explicit copy/assignment preserve it, while reset restores `OLE` and releases the charge. Exact52/over51 replacement, copy and reset controls pass. A private counter changes public`DRW_Ole2Frame` layout, requiring downstream rebuild; binary ABI is not claimed. Public mutation remains outside this slice. Remaining d.17 covers other derived text, empty/raw proxy carriers, public mutation, writer-side copies and typed projections; do not infer whole-model retention. | Existing hardening target: exact/over ASCII output headroom, Big5-HKSCS two-scalar conversion, numeric temporary/raw spelling, terminal CR, next-record/EOF release, binary chunk hex/raw/output expansion and stale-reader exception/replacement. MTEXT generated repeated-group exact/over/lifetime and raw-section/object exact-peak/callback-release controls pass in the same target; next add the next bounded derived-text owner and carrier-mutation controls, then7S.2d decoder-work/node charging. No binary fixtures/new registrations. |
-   | 7S.2d decoded work/nodes | Charge bytes actually revisited by decoding and inspected variant/container slots separately from input bytes. A final MTEXT group1 decodes the accumulated prefix; repeated group1 can revisit it repeatedly. Preserve accepted grammar unless separately changed. | Small group3…group1 positive and repeated-group1 malformed-input control with deterministic visited-byte counters, not a timing or large-allocation test. |
+| 7S.2c.d.17.1 single-line TEXT value | COMMITTED / TEXT_VALUE_OWNER_SCOPED | `794d788` retains DXF group1 values parsed through `DRW_Text::parseCode`; the direct `ARCALIGNEDTEXT` group1 override uses the same per-field replacement owner. `RTEXT` and single-line `ATTRIB` inherit/delegate through that path. Replacement reserves before assignment, then releases the previous value; reset clears the field count, and default `DRW_Text` copy/assignment preserve it. `DRW_MText::text` remains on its separate assembly lease. | Generated exact31/over30 replacement controls prove exact success and one-under refusal preserving `OLD` and its3-byte charge. Copy construction and assignment preserve the4-byte final charge through sibling resets; final reset returns usage to0. Direct ARCALIGNEDTEXT, RTEXT and ATTRIB routes also pass exact31 and reset-release controls. `libdxfrw_hardening_tests` and `lc3_compat_check` build under the strict project flags; the hardening vectors pass. No fixture, new registration or support promotion. Adds protected counter state to public `DRW_Text` layout, so downstream consumers must rebuild; binary ABI is not claimed. Next inspect the remaining direct arc-text font/D2T fields and carrier mutation scopes before 7S.2c.d completion. |
+| 7S.2d decoded work/nodes | Charge bytes actually revisited by decoding and inspected variant/container slots separately from input bytes. A final MTEXT group1 decodes the accumulated prefix; repeated group1 can revisit it repeatedly. Preserve accepted grammar unless separately changed. | Small group3…group1 positive and repeated-group1 malformed-input control with deterministic visited-byte counters, not a timing or large-allocation test. |
 
    The current snapshot-isolation control passes against archive284a7f1f: the
    first callback replaces caller content with six-byte EOF input, while the
@@ -7023,14 +7076,24 @@ byte-layout change is required for the initial slice.
    edited geometry, duplicate raw+typed publication, version/codepage change
    and indexed-resource negative. Compare callback bytes/digest, literal tags
    and an independent circle primitive; avoid the LINE peer-loader blind spot.
-   Keep binary proxy generation independent from ezdxf's writer: issue
-   [#1412](https://github.com/mozman/ezdxf/issues/1412) records a 1.4.4
-   ASCII/binary proxy-graphic failure, so a peer exception is an unavailable
-   oracle cell, not evidence about libdxfrw. If GDAL 3.12+ is already present,
-   it may serve as an optional binary-DXF raw/projection check after capability
-   and option capture; its geometry projection is not exact and its ACIS path
-   is opaque-only. Run DXF/local focused targets, then one repeated CLI
-   projection. General cached rendering, proprietary enablers and native CAD
+   Add generated payload lengths0/127/128/255/256 at both proxy count-code
+   eras (92 and160), with exact concatenated bytes, per-chunk limit, declared
+   length and next-record sentinel asserted in ASCII and binary. Local
+   `writeDxfBinaryChunks` uses127-byte chunks; the existing lowercase-hex
+   writer check is not the full boundary matrix. ezdxf issue
+   [#1412](https://github.com/mozman/ezdxf/issues/1412) is fixed by merged
+   [PR #1418](https://github.com/mozman/ezdxf/pull/1418), commit
+   [`c87c87e`](https://github.com/mozman/ezdxf/commit/c87c87e65937feede396e5861eec703bde701ec8).
+   That commit adds ASCII/binary tests at0/127/128/255/256 bytes, R2010/R2013
+   count-code profiles, and JSON-tag encoding; its contributor reports focused
+   validation, not a full-suite pass. Pin a peer build containing this commit
+   before using ezdxf as an optional binary-proxy oracle; released1.4.4 remains
+   the known-bad case. Do not derive expected bytes from the peer. If GDAL
+   3.12+ is already present, it may serve as an optional binary-DXF
+   raw/projection check after capability and option capture; its geometry
+   projection is not exact and its ACIS path is opaque-only. Run DXF/local
+   focused targets, then one repeated CLI projection. General cached rendering,
+   proprietary enablers and native CAD
    qualification remain excluded; unsupported safety design does not block
    unrelated narrow fixes.
 
@@ -8571,6 +8634,109 @@ The focused port is now in the existing unit target; do not reuse its
 implementation-specific counts as portable/asymptotic proof or as a complete
 reader-envelope/admission pass.
 
+### 7BP — Resolve and preserve the GEODATA CIVIL tail
+
+**Scope:** PAR-119; `DRW_GeoData::parseDwg` / `encodeDwg`, DWG object body
+completion and the handle-stream boundary. Keep the legacy 2D `DRW_Interface`
+callback contract unchanged. This is a source/spec candidate, not yet a
+producer-reproduced failure.
+
+1. **Settle the version axes before editing bytes.** Read ODA v5.4.1
+   §20.4.78 pp.193–196. Keep the DWG file version (AC code / target release)
+   distinct from the GEODATA object's internal `m_version` (1=2009, 2=2010,
+   3=2013). ODA describes CIVIL data after geo-mesh faces for DWG R21 and
+   earlier and separately says AutoCAD 2010 always writes it. ACadSharp
+   [issue #1261](https://github.com/DomCR/ACadSharp/issues/1261) reports real
+   files but its class-version wording and field differences do not override
+   ODA. Obtain a shareable producer trace or an existing permitted repository
+   input if available; otherwise record the contradiction and implement only
+   what the normative target gate supports. Do not infer the tail from
+   `m_version == 1` alone.
+2. **Freeze the bounded wire contract.** Tabulate target file version ×
+   objectVersion × tail-present flag, including AC1018/AC1021/AC1024/AC1027
+   targets as relevant to the writer matrix. Record the expected body-bit
+   endpoint and handle-stream start for each cell. Use the ODA field list and
+   only ODA-admitted canonical values; keep the CIVIL-tail flags distinct from
+   `DRW_GeoData`'s existing sea-level-correction flag. If an unmodeled field
+   cannot be safely regenerated, choose bounded source-version-preserving
+   retention or explicit unsupported/loss reporting before emission—never
+   silently skip it or manufacture semantic values.
+3. **Add generated component vectors, no DWG fixture payload.** In the
+   existing `dwg_object_vectors_tests` / hardening targets, construct bounded
+   object bodies from scratch for tail-absent and tail-present paths, both
+   first-bit states, zero/one geo-mesh points and faces, distinct horizontal
+   and vertical units, non-default north/scale values, and an unmistakable
+   following-handle/suffix sentinel. Assert exact cursor position, decoded
+   typed values or explicit raw disposition, handle references, no partial
+   callback/publication on truncation, and same-reader retry. Cover target
+   release and objectVersion as separate dimensions; a test where they are
+   equal is not enough.
+4. **Implement reader then writer as independently reviewable slices.** The
+   reader consumes/retains only the verified tail profile before leaving the
+   body cursor at the verified endpoint; record-local malformed data follows
+   existing soft-error policy only when the boundary is still known. The
+   writer emits the target-appropriate tail before common/deferred handles,
+   validates representability and preserves the existing destination on
+   failure. Check old and new 2D consumer callbacks and downstream rebuild
+   requirements if public layout changes; do not claim binary ABI stability.
+5. **Fast-first acceptance.** Strictly build the changed library/test TUs and
+   `lc3_compat_check`; run only the existing GeoData object-vector and focused
+   hardening tests for each slice. Run one composed reader/writer matrix and
+   sanitizer checkpoint after the reader/writer pair settles, not a full
+   suite after every field. If an external executable or eligible producer
+   input is unavailable, finish generated spec-bound checks and move to another
+   ready item; keep native/output acceptance pending and do not block unrelated
+   work. Do not add a binary fixture, CTest registration, dependency or support
+   claim in this plan-only update.
+
+### 7BQ — Declare the actual DIMSTYLE table size
+
+**Scope:** PAR-120; DXF `TABLE/DIMSTYLE` header and `writeDimstyle` rows.
+Preserve current callback/API compatibility, one-pass consumer behavior,
+handle-allocation order and destination transactionality.
+
+1. **Freeze the exact table grammar.** Use Autodesk's [symbol-table group
+   rules](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm)
+   and [DIMSTYLE record groups](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm).
+   Record the supported-version requirements for header group70 and the
+   separate per-record group340 (`DIMTXSTY`). Capture whether the
+   `AcDbDimStyleTable` subclass's group71 and any table-header group340 list
+   are required for each target version from an existing permitted
+   AutoCAD-produced file or an authoritative ordered reference before changing
+   them. ACadSharp [issue #1253](https://github.com/DomCR/ACadSharp/issues/1253)
+   is a reproduction lead, not by itself the normative contract.
+2. **Stage once; never call consumer code twice to count.** `writeDimstyles()`
+   is a callback stream, not an enumerable collection. Add a bounded,
+   per-table staging/counting scope that captures successfully prepared rows
+   and allocated identities from one callback invocation, accounts for the
+   implicit `Standard` row exactly once, and emits a header only after the
+   final row count is known. Preserve existing table order, handle allocator
+   state, style/block references, validation failures and whole-output
+   rollback. Do not add a pure virtual or make every `DRW_Interface`
+   implement a new counting API. If raw-record staging is selected, ensure it
+   uses the same effective target version and text encoding as final output.
+3. **Use tiny generated, ordered-tag vectors.** Cover (a) no caller-supplied
+   style so the library inserts `Standard`, (b) caller-supplied `Standard`
+   without duplication, (c) two custom styles with implicit `Standard`, and
+   (d) late invalid style after one valid style. For each, assert group70 is
+   at least the emitted row count, exact group71/header-handle-list grammar
+   only after step1 establishes it, one matching record handle per row where
+   required, correct group340 text-style handle *inside each record*, the
+   next `TABLE`/`ENDSEC` sentinel, callback invocation count of one, and
+   unchanged destination/allocator after failure. Include one pre-R2000
+   profile and one modern profile; extend other targets only where their
+   subclass grammar differs.
+4. **Fast-first acceptance and self-update.** Build the changed library and
+   test translation units with warnings-as-errors; run only the DIMSTYLE
+   writer-vector target plus `lc3_compat_check` for each implementation
+   commit. Run one composed tables/DXF-fixture check after staging and header
+   emission settle; no full suite per field. After every committed step,
+   update this plan's progress ledger with status/evidence/next ready slice.
+   If no permitted strict-application sample exists for group71/table-level
+   340, record that gate, finish the normative group70 correction and move to
+   the next unblocked item; do not stop unrelated implementation or promote
+   strict AutoCAD compatibility. Add no peer drawing, dependency or new CTest.
+
 ### Slice 8 — Integrate ACIS/3D comparison with the existing plan
 
 **Work**
@@ -9625,3 +9791,64 @@ targets and strict target builds; do not add peer payloads, CTests, full-suite
 frequency or new support claims. Findings remain 118 and top-level subplans 67.
 `J256`, `J260`, `J268`, `J284`, `J293` and `J295` remain `DEFERRED_EXTERNAL`
 and non-promoting.
+
+## Broader strict-writer and parser-safety issue horizon (2026-10-14; plan-only)
+
+This deeper pass checked the [current ACadSharp issue horizon](https://github.com/DomCR/ACadSharp/issues)
+as a source of adversarial test cases, then cross-checked actionable DXF
+claims against Autodesk's format references and the local implementation at
+`2feae07`. A peer issue is a lead, not a local defect or support result. Of
+this batch, only the DIMSTYLE table-capacity mismatch has enough normative
+plus local source evidence for a new candidate (PAR-120); GEODATA remains the
+separate ODA-backed PAR-119. All other rows below tighten already-owned
+validation and do not promote a DWG/DXF support claim.
+
+| Peer/spec signal | Local/source cross-check and evidence limit | Plan/readiness delta |
+| --- | --- | --- |
+| [ACadSharp #1253](https://github.com/DomCR/ACadSharp/issues/1253): AutoCAD 2027 rejects its emitted CLASSES/HATCH/DIMSTYLE sequence. | This report is measured against ACadSharp 3.6.35 and the reporter says they compared with AutoCAD `DXFOUT`; it is not a libdxfrw reproduction. Local `DRW_Class::write` emits only the documented CLASS groups and does not emit 92/93. Both local HATCH routes write group47 only when `pixelSize != 0` (`src/libdxfrw.cpp:5339,5536`), already matching the reported AutoCAD omission for zero. In contrast, the DIMSTYLE table header writes group70=1 (`:9055`), while `writeDimstyles()` can emit multiple rows and synthesize Standard; Autodesk says group70 is the maximum count of entries following the table header. Entry-level group340 is the DIMTXSTY style reference and must not be confused with the peer's separate table-header group340 claim. | PAR-120/7BQ addresses only the proven under-declared group70 candidate. Preserve the local CLASS/HATCH behavior. Pin the special `AcDbDimStyleTable` group71 and pre-entry group340 order with an existing permitted AutoCAD-produced file or authoritative ordered source before changing either. |
+| [ACadSharp #1264](https://github.com/DomCR/ACadSharp/issues/1264): TABLE block-cell values remain `Unknown` after DWG read, while AutoCAD-saved DXF represents the same cell as an empty string. | The report compares the same AC1032 drawing's DWG and AutoCAD DXF and identifies a difference between handle association and `CadValue`; it is a peer-model observation, not evidence that libdxfrw's TABLE parser has that exact error. Entity-count equality would not detect this semantic mismatch. | Extend existing `7G.3d` TABLE vectors only if the local reader path admits block cell values: compare the decoded value type/empty bit, block handle and following-cell alignment for a nonempty block reference; retain field-level expected values, not a generic callback-count pass. |
+| [ACadSharp #1297](https://github.com/DomCR/ACadSharp/issues/1297), [#1299](https://github.com/DomCR/ACadSharp/issues/1299), and [#1277](https://github.com/DomCR/ACadSharp/issues/1277): AC1032 MTEXT frame-only flag rejection, bad SPLINE conversion, and annotative MLEADER-context no-op corruption. | These are newly listed peer report titles, not locally reproduced behavior. Existing libdxfrw DXF tests include a frame-only MTEXT case, but do not by themselves cover the AC1032 DWG writer. The peer SPLINE report's data source and expected curve were not inspected in libdxfrw. | Route frame flags through PAR-19/29 and7D/7E/7M; add a DWG object-vector flag-only case with a following-object sentinel when that writer path is touched. Route spline-array and curve semantics through PAR-22/7H/7I; compare source knots/weights/control points and an independent curve point. Route MLEADER storage/conversion through PAR-20/7F and the distinct annotation/object-reference gate. Do not merge these three scenarios into one “entity count” test. |
+| ACadSharp #1283/#1281/#1282/#1234: nested-block deep-copy stack/performance, DXF stack overflow from long repeated constructs, per-application XDATA beyond 32,767 bytes, and SummaryInfo values at/above 16,383 characters. See the [current issue list](https://github.com/DomCR/ACadSharp/issues) and [#1234 details](https://github.com/DomCR/ACadSharp/issues/1234). | The #1234 report says its own reader/writer roundtrip drops the property and may not catch files rejected by other tools—an important oracle blind spot, not a transferable libdxfrw boundary. Similar titles refer to distinct dimensions: recursion depth/work, token or retained bytes, serialized length/count width, and object-level behavior. The committed `7AI` bounds an adapter extension-object graph; it does not prove the DXF parser's call stack is bounded. `7S.2c.d.*` retained-string accounting is not automatically a serialized group length fix. | Keep existing PAR-14/PAR-26/7AI/7S owners separate. Use configurable tiny limits and exact around-boundary payloads in current fast targets; check byte-vs-character units, signed narrowing, UTF-16 code units, recursion versus visited nodes, and unchanged next-record/object sentinels. First inspect each local route; add no enormous hostile fixture or duplicate finding from titles alone. |
+| ACadSharp #1280/#1259: Turkish-locale codepage-name lookup and Korean alias/output-encoding mismatch. | The already-integrated7AE.1 removes locale-sensitive folding for ASCII keywords/symbol keys. That does not establish complete codepage alias coverage or verify that an accepted alias encodes bytes in the declared legacy codec; current repository Korean fixtures are separate evidence from peer reports. | Keep casing (7AE.1), codepage-name normalization/mapping (PAR-05/7AE.2–3), Unicode semantic text and emitted byte encoding as distinct checks. Add locale-specific alias lookup plus actual encode/decode and fallback diagnostics to the existing codec target if the exact alias is not already covered; do not change the declared codec to UTF-8 silently. |
+| ACadSharp #1278/#1279/#1266: R12 subclass markers in POLYLINE/VERTEX, missing VERTEX subtype, and zero `$HANDSEED`. | These issue titles combine a legacy-format parse path with edge/malformed inputs; no local repro or normative statement was established in this refresh. The public VERTEX grammar and existing compound-record plans remain the authority for legal fields and sequence boundaries. | Add tiny generated R12 controls under the existing legacy/compound reader target when touching that path: duplicate/optional subclass marker order, absent subtype recovery disposition, zero seed without identity aliasing, and SEQEND/next-record isolation. Keep malformed-input recovery outcomes outside valid-format support denominators. |
+| Autodesk [symbol-table rules](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm), [DIMSTYLE record fields](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm), plus ODA [GEODATA §20.4.78](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf). | Autodesk specifies group70 as table-header maximum entry count and distinguishes per-entry DIMSTYLE fields; ODA v5.4.1 separates GEODATA objectVersion from the file-version CIVIL-tail gate. The local source gaps are respectively the literal DIMSTYLE table group70=1 and absent GEODATA tail branch; ACadSharp #1261's alternative class-version claim does not displace ODA. | Keep PAR-119/7BP and PAR-120/7BQ as two narrow owners. They require different vectors, target axes and source-truth decisions. No fixture payload, registered test, peer dependency, native application or full suite is needed for their first fast slices. |
+
+**Implementation-speed and evidence boundary:** do the candidate DIMSTYLE group70
+correction in the existing writer-vector target after its callback-once staging
+contract is settled; do not wait for a native AutoCAD instance to add the raw
+vector. Run one composed DXF/table checkpoint after the header+staging pair,
+not every record-field change. For GEODATA, finish the generated spec-bound
+reader/writer vectors while the eligible producer trace is pending. Peer
+issues, self-roundtrips, and the plan's six external-only J items remain
+non-promoting. This pass edits the plan only; implementation source, tests,
+fixtures, CTest registration, dependency graph, qualification metadata and
+remote state are unchanged. Counts are120 findings/69 top-level subplans;
+`J256`, `J260`, `J268`, `J284`, `J293` and `J295` remain
+`DEFERRED_EXTERNAL`.
+
+## Downstream and peer-regression follow-up (2026-10-14; plan-only)
+
+This read-only pass broadened the previous implementation comparison to the
+latest ACadRust issue horizon, a repaired independent DXF writer path, and a
+downstream DWG-to-image consumer. It cross-checked actionable claims against
+current libdxfrw routes at `2feae07`. Peer reports remain leads: no proprietary
+input was obtained, no local peer was built or run, and no new libdxfrw
+finding/support claim is asserted.
+
+| Source signal | Evidence and local cross-check | Plan/readiness update |
+| --- | --- | --- |
+| ezdxf [#1412](https://github.com/mozman/ezdxf/issues/1412) and merged [#1418](https://github.com/mozman/ezdxf/pull/1418) | The 1.4.4 issue was a binary-DXF proxy graphic failure: export passed pre-encoded hex text into a binary-tag path. Commit [`c87c87e65937feede396e5861eec703bde701ec8`](https://github.com/mozman/ezdxf/commit/c87c87e65937feede396e5861eec703bde701ec8) changes the proxy exporter to pass `DXFBinaryTag` values; added tests cover0/127/128/255/256 bytes, ASCII/binary, R2010/R2013 length-code profiles, custom data-code and JSON output. The contributor reports55 focused checks using an in-memory patch plus syntax validation; this is not a full repository suite. Locally, `writeDxfBinaryChunks` also splits into127-byte chunks and the DXF fixture target checks lowercase hex decoding, but the full chunk/count-code boundary matrix is not recorded as present. | Update7AP.4: add the exact generated boundary matrix and next-record/count assertions. ezdxf is again eligible as an optional binary-proxy oracle only when the comparator pin includes `c87c87e`; do not use unpatched1.4.4 and do not generate expected bytes from ezdxf. No separate finding: local source inspection did not reproduce the peer's type/encoding error. |
+| ACadRust [#130](https://github.com/hakanaktt/acadrust/issues/130): R2010+ TABLE merge and title/header suppression | The peer report concerns the entire handoff: DWG decode, table style/cell state, DXF serialization, and rendering state. It is distinct from ACadSharp #1264's individual block-cell value/type lead. Existing local7G.3d already separates `DRW_Table`/`DRW_TableStyle` decoding, concrete adapter retention, and ASCII/binary DXF output, and calls out merged ranges plus suppression flags; the peer does not constitute a normative DWG layout witness or independent renderer pass. | Keep7G.3d as the single owner. The generated3×2 vector must assert each `m_isMerged` cell and range, top-left width/height span, table-style identity, separately toggled title/header suppression, following object and ordinary readback. A pre-AC1024 control tests the version gate. Do not infer render fidelity from writer→reader agreement or entity counts. |
+| ACadRust [#132](https://github.com/hakanaktt/acadrust/issues/132): DXF→DWG unknown-class, named-color and table XDATA losses | The opened report is against acadrust0.6.3 and says a candidate fix was committed with a retest requested; no retest result was published in the inspected issue. It distinguishes untranslatable DXF-only raw class codes from DWG-origin opaque frame replay, group430 color-book names from DWG `DBCOLOR` handles, and table-record XDATA from entity/object XDATA. Current libdxfrw common color-book430 paths already have coverage under PAR-64; table-record XDATA remains PAR-63, while the source-bound opaque output limits remain PAR-20/7C and explicit omission reporting remains7AG. | Keep these existing owners separate. Add/report the disposition per item: converted typed, same-source opaque frame, intentionally unsupported with diagnostic, or rejected before publish. Do not claim raw DXF group codes are a replayable DWG object, duplicate PAR-64, or treat the peer's proposed fix as shipped/verified. |
+| ACadRust [#133](https://github.com/hakanaktt/acadrust/issues/133): orphan entities re-homed to model space | Its author reports10 count mismatches in351 private production DWGs, all AC1032; one case adds51 entities from an erased anonymous dimension block, creating phantom dimensions. Issue #133 remains peer-only and the proposed commit asks for corpus retest; the files are unavailable. Existing7G.3 already rejects silent re-homing as a default and separates null, fixed-space, tombstoned and unresolved non-null owners. | Retain a tiny anonymous `*D`-like missing-owner sentinel and prove those children do not leak into model space, while preserving later suffix records and reporting bounded loss. A malformed or absent owner is not permission to invent model-space ownership. Do not import the private corpus counts into support denominators. |
+| ACadRust [#134](https://github.com/hakanaktt/acadrust/issues/134): strict AC1032 MLeader-context bounds | The author reports70/351 private files newly rejected by acadrust0.6.4 after object-size bounds,65 at `AcDbMLeaderObjectContextData`; ODA/AutoCAD are reported to read them. The corpus is not attached; the report remains open and no retest/field trace was available. This is evidence that peer strictness can regress on valid variants, not that libdxfrw's bounds are wrong. | Keep PAR-14/7F.1 record-boundary behavior. Before a parser change, trace a shareable producer and compare the exact object layout with ODA; test one supported context plus a following-object sentinel. Soften only a bounded record-local semantic failure after the frame endpoint is proven; never turn section/frame truncation into tolerated input to match a peer. |
+| [`dwg2png`](https://github.com/diskd-ai/dwg2png) downstream consumer | The project reports11 real AC1032 files of4–46MB and 23 rendered pages, but its parser dependency is ACadRust. The renderer's text/geometry/INSERT/viewport projection and the report's PDF comparison are downstream-consumer evidence, not an independent DWG parse, a second semantic reader, or a universally correct geometry oracle. Sample payloads and their independent provenance are not available here. | Keep as an optional lead for future corpus-family selection or 2D consumer stress only. Bind parser/runtime version and independently sourced expected semantics before use; do not import/download sample files or count this as an independent ACadRust cross-check. |
+
+**Result:** the implementation queue is unchanged. The smallest readiness
+delta is the7AP chunk-boundary matrix; TABLE, unknown/XDATA, ownership and
+MLeader items refine existing7G/7AG/PAR owners. Use locally generated controls
+in the existing fast targets, no new CTest, no peer drawing payload, and no
+full-suite rerun per case. A composed DXF/writer checkpoint remains once the
+affected helper/subclass pair settles. Findings/subplans remain120/69;
+`J256`, `J260`, `J268`, `J284`, `J293` and `J295` remain
+`DEFERRED_EXTERNAL` and cannot promote support claims.
