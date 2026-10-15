@@ -36,6 +36,7 @@
 #include "intern/dxfnumber.h"
 #include "intern/dxfcode.h"
 #include "intern/dxfwriter.h"
+#include "intern/dxftablecapacity.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
 #include "intern/dwg_dxf_output_transaction.h"
@@ -93,8 +94,7 @@ bool backpatchDxfTableCapacity(dxfWriter& writer,
                                std::streampos groupOffset,
                                std::size_t count, bool binary,
                                bool r12Binary) {
-    if (count > static_cast<std::size_t>(
-                    (std::numeric_limits<std::int16_t>::max)()))
+    if (!DRW::intern::dxfTableCapacityFitsGroup70(count))
         return false;
     std::ostringstream* stream =
         dynamic_cast<std::ostringstream*>(writer.stream());
@@ -3681,8 +3681,8 @@ bool dxfRW::writeLineType(DRW_LType *ent){
 bool dxfRW::recordDxfTableRow() noexcept {
     if (!m_dxfTableRowCountActive)
         return true;
-    if (m_dxfTableRowCount >= static_cast<std::size_t>(
-            (std::numeric_limits<std::int16_t>::max)())) {
+    if (!DRW::intern::dxfTableCapacityFitsGroup70(
+            m_dxfTableRowCount + 1u)) {
         m_writeError = true;
         return false;
     }

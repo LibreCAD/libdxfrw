@@ -25,6 +25,7 @@
 #include "dwg2dxf/dx_iface.h"
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
+#include "intern/dxftablecapacity.h"
 #include "intern/drw_textcodec.h"
 #include "intern/dwgbufferw.h"
 
@@ -300,12 +301,14 @@ struct DxfTableSnapshot {
     int declaredCapacity {-1};
     std::vector<std::string> rowKinds;
     std::vector<std::string> rowNames;
+    std::vector<std::string> rowHandles;
     bool ended {false};
 };
 
 bool readDxfTableSnapshot(const std::filesystem::path& path, bool binary,
                           const std::string& wanted,
-                          DxfTableSnapshot& snapshot) {
+                          DxfTableSnapshot& snapshot,
+                          bool r12Binary = false) {
     std::ifstream stream(path, std::ios::binary);
     if (!stream)
         return false;
@@ -316,7 +319,10 @@ bool readDxfTableSnapshot(const std::filesystem::path& path, bool binary,
         stream.read(actual.data(), static_cast<std::streamsize>(actual.size()));
         if (!stream || !std::equal(actual.begin(), actual.end(), signature))
             return false;
-        reader = std::make_unique<dxfReaderBinary>(&stream);
+        if (r12Binary)
+            reader = std::make_unique<dxfReaderBinaryR12>(&stream);
+        else
+            reader = std::make_unique<dxfReaderBinary>(&stream);
     } else {
         reader = std::make_unique<dxfReaderAscii>(&stream);
     }
@@ -368,6 +374,9 @@ bool readDxfTableSnapshot(const std::filesystem::path& path, bool binary,
         else if (inTableRows && matchesWanted
                  && captureRowName && code == 2)
             snapshot.rowNames.push_back(reader->getString());
+        else if (inTableRows && matchesWanted && captureRowName
+                 && (code == 5 || code == 105))
+            snapshot.rowHandles.push_back(reader->getString());
     }
     return false;
 }
@@ -3645,6 +3654,15 @@ void testMeshRawFieldTags(TestContext& t) {
     }
 }
 
+void testDxfTableCapacityCountBounds(TestContext& t) {
+    constexpr std::size_t largest = static_cast<std::size_t>(
+        (std::numeric_limits<std::int16_t>::max)());
+    t.expect(DRW::intern::dxfTableCapacityFitsGroup70(0u)
+                 && DRW::intern::dxfTableCapacityFitsGroup70(largest)
+                 && !DRW::intern::dxfTableCapacityFitsGroup70(largest + 1u),
+             "group70 count helper accepts 32767 and rejects 32768");
+}
+
 void testDynamicTableCapacityBasics(TestContext& t) {
     class CapacityInterface final : public dx_iface {
     public:
@@ -3836,67 +3854,184 @@ void testDynamicTableCapacityMatrix(TestContext& t) {
         int appIdCalls {0};
         int dimStyleCalls {0};
         std::vector<bool> results;
+    };
+
+    struct Profile {
+        const char* name;
+        DRW::Version version;
+        bool binary;
+        bool legacyNames;
+    };
+    const std::array<Profile, 4> profiles{{
+        {"R12 ASCII", DRW::AC1009, false, true},
+        {"R12 binary", DRW::AC1009, true, true},
+        {"AC1021 ASCII", DRW::AC1021, false, false},
+        {"AC1021 binary", DRW::AC1021, true, false}
+    }};
+    for (const Profile& profile : profiles) {
+        CapacityMatrixInterface interface_;
+        const auto nonce = std::chrono::steady_clock::now()
+            .time_since_epoch().count();
+        const std::filesystem::path path =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-table-capacity-matrix-"
+               + std::to_string(nonce) + "-" + profile.name + ".dxf");
+        std::error_code error;
+        std::filesystem::remove(path, error);
+        dx_data data;
+        const bool exported = interface_.fileExport(
+            path.string(), profile.version, profile.binary, &data, false);
+        const std::string callbackLabel = std::string(profile.name)
+            + " callbacks run once and all submitted rows are accepted";
+        t.expect(exported
+                     && interface_.vportCalls == 1
+                     && interface_.lineTypeCalls == 1
+                     && interface_.layerCalls == 1
+                     && interface_.styleCalls == 1
+                     && interface_.viewCalls == 1
+                     && interface_.ucsCalls == 1
+                     && interface_.appIdCalls == 1
+                     && interface_.dimStyleCalls == 1
+                     && std::all_of(interface_.results.cbegin(),
+                                    interface_.results.cend(),
+                                    [](bool result) { return result; }),
+                 callbackLabel.c_str());
+
+        const auto expectCapacity = [&](const std::string& table,
+                                        const std::vector<std::string>& kinds,
+                                        const std::vector<std::string>& names) {
+            DxfTableSnapshot snapshot;
+            const bool read = exported && readDxfTableSnapshot(
+                path, profile.binary, table, snapshot,
+                profile.binary && profile.legacyNames);
+            const std::string label = std::string(profile.name) + " " + table
+                + " group70 equals the emitted row count and names";
+            t.expect(read && snapshot.ended
+                         && snapshot.declaredCapacity
+                                == static_cast<int>(names.size())
+                         && snapshot.rowKinds == kinds
+                         && snapshot.rowNames == names,
+                     label.c_str());
+        };
+
+        const std::vector<std::string> mandatoryLineTypes =
+            profile.legacyNames
+                ? std::vector<std::string>{"BYBLOCK", "BYLAYER", "CONTINUOUS",
+                                           "CAPACITY_LTYPE"}
+                : std::vector<std::string>{"ByBlock", "ByLayer", "Continuous",
+                                           "CAPACITY_LTYPE"};
+        const std::string standardName = profile.legacyNames
+            ? "STANDARD" : "Standard";
+        expectCapacity("VPORT", {"VPORT", "VPORT"},
+                       {"*ACTIVE", "CAPACITY_VPORT_B"});
+        expectCapacity("LTYPE",
+                       {"LTYPE", "LTYPE", "LTYPE", "LTYPE"},
+                       mandatoryLineTypes);
+        expectCapacity("LAYER", {"LAYER", "LAYER"},
+                       {"0", "CAPACITY_LAYER"});
+        expectCapacity("STYLE", {"STYLE", "STYLE"},
+                       {standardName, "CAPACITY_STYLE"});
+        expectCapacity("VIEW", {"VIEW", "VIEW"},
+                       {"CAPACITY_VIEW_A", "CAPACITY_VIEW_B"});
+        expectCapacity("UCS", {"UCS", "UCS"},
+                       {"CAPACITY_UCS_A", "CAPACITY_UCS_B"});
+        expectCapacity("APPID", {"APPID", "APPID"},
+                       {"ACAD", "CAPACITY_APPID"});
+        expectCapacity("DIMSTYLE", {"DIMSTYLE", "DIMSTYLE"},
+                       {standardName, "CAPACITY_DIMSTYLE"});
+        if (!profile.legacyNames) {
+            expectCapacity("BLOCK_RECORD",
+                           {"BLOCK_RECORD", "BLOCK_RECORD"},
+                           {"*Model_Space", "*Paper_Space"});
+        }
+        std::filesystem::remove(path, error);
+    }
+}
+
+void testDynamicTableCapacityRollback(TestContext& t) {
+    class CapacityRetryInterface final : public dx_iface {
+    public:
+        void writeLayers() override {
+            ++layerCalls;
+            DRW_Layer accepted;
+            accepted.name = "CAPACITY_RETRY_LAYER";
+            results.push_back(dxfW->writeLayer(&accepted));
+            if (failLate) {
+                DRW_Layer rejected;
+                rejected.name = "CAPACITY_REJECTED_LAYER";
+                rejected.color = DRW::ColorByLayer + 1;
+                results.push_back(dxfW->writeLayer(&rejected));
+            }
+        }
+
+        bool failLate {true};
+        int layerCalls {0};
+        std::vector<bool> results;
     } interface_;
 
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
     const std::filesystem::path path =
         std::filesystem::temp_directory_path()
-        / ("libdxfrw-table-capacity-matrix-" + std::to_string(nonce)
+        / ("libdxfrw-table-capacity-retry-" + std::to_string(nonce)
            + ".dxf");
+    const std::filesystem::path baselinePath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-table-capacity-baseline-" + std::to_string(nonce)
+           + ".dxf");
+    const std::string sentinel = "existing destination sentinel\n";
+    {
+        std::ofstream destination(path, std::ios::binary);
+        destination << sentinel;
+    }
+
+    dx_data data;
+    interface_.cData = &data;
+    const std::string outputName = path.string();
+    dxfRW writer(outputName.c_str());
+    interface_.dxfW = &writer;
+    const bool failed = !writer.write(&interface_, DRW::AC1021, false);
+    std::ifstream afterFailure(path, std::ios::binary);
+    const std::string failureBytes{
+        std::istreambuf_iterator<char>(afterFailure),
+        std::istreambuf_iterator<char>()};
+    t.expect(failed && interface_.layerCalls == 1
+                 && interface_.results == std::vector<bool>{true, false}
+                 && failureBytes == sentinel,
+             "late table-row failure rolls back staged output and preserves destination");
+
+    interface_.failLate = false;
+    interface_.results.clear();
+    const bool retried = writer.write(&interface_, DRW::AC1021, false);
+    DxfTableSnapshot retriedLayers;
+    const bool retriedSnapshot = retried
+        && readDxfTableSnapshot(path, false, "LAYER", retriedLayers);
+
+    dx_data baselineData;
+    CapacityRetryInterface baselineInterface;
+    baselineInterface.failLate = false;
+    baselineInterface.cData = &baselineData;
+    const std::string baselineName = baselinePath.string();
+    dxfRW baselineWriter(baselineName.c_str());
+    baselineInterface.dxfW = &baselineWriter;
+    const bool baselineWritten = baselineWriter.write(
+        &baselineInterface, DRW::AC1021, false);
+    DxfTableSnapshot baselineLayers;
+    const bool baselineSnapshot = baselineWritten
+        && readDxfTableSnapshot(
+            baselinePath, false, "LAYER", baselineLayers);
+    t.expect(retriedSnapshot && baselineSnapshot
+                 && interface_.layerCalls == 2
+                 && interface_.results == std::vector<bool>{true}
+                 && retriedLayers.ended
+                 && retriedLayers.declaredCapacity == 2
+                 && retriedLayers.rowNames == std::vector<std::string>{
+                     "CAPACITY_RETRY_LAYER", "0"}
+                 && retriedLayers.rowHandles == baselineLayers.rowHandles,
+             "same-writer retry resets table counts and handle allocation after rollback");
     std::error_code error;
     std::filesystem::remove(path, error);
-    dx_data data;
-    const bool exported = interface_.fileExport(
-        path.string(), DRW::AC1021, false, &data, false);
-    t.expect(exported
-                 && interface_.vportCalls == 1
-                 && interface_.lineTypeCalls == 1
-                 && interface_.layerCalls == 1
-                 && interface_.styleCalls == 1
-                 && interface_.viewCalls == 1
-                 && interface_.ucsCalls == 1
-                 && interface_.appIdCalls == 1
-                 && interface_.dimStyleCalls == 1
-                 && std::all_of(interface_.results.cbegin(),
-                                interface_.results.cend(),
-                                [](bool result) { return result; }),
-             "all table callbacks run once and all submitted rows are accepted");
-
-    const auto expectCapacity = [&](const std::string& table,
-                                    const std::vector<std::string>& kinds,
-                                    const std::vector<std::string>& names) {
-        DxfTableSnapshot snapshot;
-        const bool read = exported
-            && readDxfTableSnapshot(path, false, table, snapshot);
-        const std::string label = table
-            + " group70 equals the emitted row count and names";
-        t.expect(read && snapshot.ended
-                     && snapshot.declaredCapacity
-                            == static_cast<int>(names.size())
-                     && snapshot.rowKinds == kinds
-                     && snapshot.rowNames == names,
-                 label.c_str());
-    };
-
-    expectCapacity("VPORT", {"VPORT", "VPORT"},
-                   {"*ACTIVE", "CAPACITY_VPORT_B"});
-    expectCapacity("LTYPE",
-                   {"LTYPE", "LTYPE", "LTYPE", "LTYPE"},
-                   {"ByBlock", "ByLayer", "Continuous", "CAPACITY_LTYPE"});
-    expectCapacity("LAYER", {"LAYER", "LAYER"},
-                   {"0", "CAPACITY_LAYER"});
-    expectCapacity("STYLE", {"STYLE", "STYLE"},
-                   {"Standard", "CAPACITY_STYLE"});
-    expectCapacity("VIEW", {"VIEW", "VIEW"},
-                   {"CAPACITY_VIEW_A", "CAPACITY_VIEW_B"});
-    expectCapacity("UCS", {"UCS", "UCS"},
-                   {"CAPACITY_UCS_A", "CAPACITY_UCS_B"});
-    expectCapacity("APPID", {"APPID", "APPID"},
-                   {"ACAD", "CAPACITY_APPID"});
-    expectCapacity("DIMSTYLE", {"DIMSTYLE", "DIMSTYLE"},
-                   {"Standard", "CAPACITY_DIMSTYLE"});
-    std::filesystem::remove(path, error);
+    std::filesystem::remove(baselinePath, error);
 }
 
 std::string headerOrderBytes(
@@ -9111,8 +9246,10 @@ int main(int argc, char** argv) {
     testLegacyDimensionPointOrder(context);
     testHiddenZeroHeightAttrib(context);
     testMeshRawFieldTags(context);
+    testDxfTableCapacityCountBounds(context);
     testDynamicTableCapacityBasics(context);
     testDynamicTableCapacityMatrix(context);
+    testDynamicTableCapacityRollback(context);
     testHeaderMetadataOrder(context);
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
