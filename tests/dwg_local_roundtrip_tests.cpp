@@ -1484,6 +1484,13 @@ public:
         geoData.m_observationFromTag = "LOCAL_FROM";
         geoData.m_observationToTag = "LOCAL_TO";
         geoData.m_observationCoverageTag = "LOCAL_COVERAGE";
+        geoData.m_civilTail.m_northDirectionDegrees = 30.0;
+        geoData.m_civilTail.m_northDirectionRadians = M_PI / 6.0;
+        geoData.m_civilTail.m_scaleEstimationMethod = 3;
+        geoData.m_civilTail.m_userSpecifiedScaleFactor = 2.75;
+        geoData.m_civilTail.m_enableSeaLevelCorrection = true;
+        geoData.m_civilTail.m_seaLevelElevation = 123.5;
+        geoData.m_civilTail.m_coordinateProjectionRadius = 456.75;
         wroteGeoData_ = registeredGeoData_ && writer_->writeGeoData(&geoData)
             && geoData.handle != 0;
 
@@ -1517,6 +1524,13 @@ public:
         geoDataV2.m_observationFromTag = "LOCAL_FROM_V2";
         geoDataV2.m_observationToTag = "LOCAL_TO_V2";
         geoDataV2.m_observationCoverageTag = "LOCAL_COVERAGE_V2";
+        geoDataV2.m_civilTail.m_northDirectionDegrees = 45.0;
+        geoDataV2.m_civilTail.m_northDirectionRadians = M_PI / 4.0;
+        geoDataV2.m_civilTail.m_scaleEstimationMethod = 2;
+        geoDataV2.m_civilTail.m_userSpecifiedScaleFactor = 3.75;
+        geoDataV2.m_civilTail.m_enableSeaLevelCorrection = false;
+        geoDataV2.m_civilTail.m_seaLevelElevation = 321.5;
+        geoDataV2.m_civilTail.m_coordinateProjectionRadius = 654.25;
         wroteGeoDataV2_ = registeredGeoDataV2_
             && writer_->writeGeoData(&geoDataV2)
             && geoDataV2.handle != 0;
@@ -3714,6 +3728,8 @@ public:
             readMalformedSpatialFilterSeen_ = true;
     }
     void addGeoData(const DRW_GeoData& data) override {
+        const bool expectedCivilTail = expectedVersion_ >= DRW::AC1021
+            && expectedVersion_ <= DRW::AC1027;
         if (data.handle == 0xD100u)
             readGeoDataSeen_ = data.parentHandle == 0x17u
                 && data.xDictHandle == 0xA601u
@@ -3729,6 +3745,17 @@ public:
                 && data.m_observationFromTag == "LOCAL_FROM"
                 && data.m_observationToTag == "LOCAL_TO"
                 && data.m_observationCoverageTag == "LOCAL_COVERAGE"
+                && data.m_civilTail.m_present == expectedCivilTail
+                && (!expectedCivilTail
+                    || (data.m_civilTail.m_hasCivilData
+                        && data.m_civilTail.m_northDirectionDegrees == 30.0
+                        && std::abs(data.m_civilTail.m_northDirectionRadians
+                                    - M_PI / 6.0) < 1e-14
+                        && data.m_civilTail.m_scaleEstimationMethod == 3
+                        && data.m_civilTail.m_userSpecifiedScaleFactor == 2.75
+                        && data.m_civilTail.m_enableSeaLevelCorrection
+                        && data.m_civilTail.m_seaLevelElevation == 123.5
+                        && data.m_civilTail.m_coordinateProjectionRadius == 456.75))
                 && data.m_points.empty() && data.m_faces.empty();
         if (data.handle == 0xD101u)
             readMalformedGeoDataSeen_ = true;
@@ -3753,6 +3780,16 @@ public:
                 && data.m_observationFromTag == "LOCAL_FROM_V2"
                 && data.m_observationToTag == "LOCAL_TO_V2"
                 && data.m_observationCoverageTag == "LOCAL_COVERAGE_V2"
+                && data.m_civilTail.m_present == expectedCivilTail
+                && (!expectedCivilTail
+                    || (data.m_civilTail.m_hasCivilData
+                        && data.m_civilTail.m_northDirectionDegrees == 45.0
+                        && data.m_civilTail.m_northDirectionRadians == M_PI / 4.0
+                        && data.m_civilTail.m_scaleEstimationMethod == 2
+                        && data.m_civilTail.m_userSpecifiedScaleFactor == 3.75
+                        && !data.m_civilTail.m_enableSeaLevelCorrection
+                        && data.m_civilTail.m_seaLevelElevation == 321.5
+                        && data.m_civilTail.m_coordinateProjectionRadius == 654.25))
                 && data.m_points.empty() && data.m_faces.empty();
     }
     void linkUnderlay(const DRW_UnderlayDefinition* data) override {

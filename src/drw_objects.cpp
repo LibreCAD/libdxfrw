@@ -15723,12 +15723,13 @@ bool DRW_SpatialFilter::encodeDwg(DRW::Version version, dwgBufferW *buf,
 // body.  R2007+ places the common owner/reactor/xDictionary prefix first in
 // the deferred handle stream, followed by the host-block handle.
 //
-// Mesh points + faces always follow the version-specific body when
-// m_version is 2 or 3 (for legacy v1, the parser falls through to
-// observation tags + mesh blocks too).
+// Mesh points + faces follow the object-version body; the target-version-
+// gated CIVIL tail follows those arrays for AC1021 through AC1027.
 bool DRW_GeoData::encodeDwg(DRW::Version version, dwgBufferW *buf,
                              dwgBufferW *strBuf,
                              dwgBufferW *handleBuf) const {
+    const bool writesCivilTail =
+        version >= DRW::AC1021 && version <= DRW::AC1027;
     if (buf == nullptr
         || reactorHandles.size() > dwgSafety::MaxReactorCount
         || extensionDictionaryFlag() > 1)
@@ -15749,6 +15750,33 @@ bool DRW_GeoData::encodeDwg(DRW::Version version, dwgBufferW *buf,
         || !std::isfinite(m_seaLevelElevation)
         || !std::isfinite(m_coordinateProjectionRadius)) {
         return false;
+    }
+    if (writesCivilTail) {
+        if (!m_civilTail.m_hasCivilData || m_civilTail.m_reservedFlag1
+            || m_civilTail.m_reservedFlag2
+            || m_civilTail.m_scaleEstimationMethod < 1
+            || m_civilTail.m_scaleEstimationMethod > 4
+            || std::any_of(m_civilTail.m_reservedLongs.cbegin(),
+                           m_civilTail.m_reservedLongs.cend(),
+                           [](std::int32_t value) { return value != 0; })
+            || std::any_of(m_civilTail.m_reservedCoordinates.cbegin(),
+                           m_civilTail.m_reservedCoordinates.cend(),
+                           [](double value) { return value != 0.0; }))
+            return false;
+        for (const double value : m_civilTail.m_referenceCoordinates) {
+            if (!std::isfinite(value))
+                return false;
+        }
+        for (const double value : m_civilTail.m_reservedCoordinates) {
+            if (!std::isfinite(value))
+                return false;
+        }
+        if (!std::isfinite(m_civilTail.m_northDirectionDegrees)
+            || !std::isfinite(m_civilTail.m_northDirectionRadians)
+            || !std::isfinite(m_civilTail.m_userSpecifiedScaleFactor)
+            || !std::isfinite(m_civilTail.m_seaLevelElevation)
+            || !std::isfinite(m_civilTail.m_coordinateProjectionRadius))
+            return false;
     }
     for (const DRW_GeoMeshPoint& point : m_points) {
         if (!finite(point.m_source) || !finite(point.m_destination))
@@ -15823,6 +15851,28 @@ bool DRW_GeoData::encodeDwg(DRW::Version version, dwgBufferW *buf,
         buf->putBitLong(f.m_index1);
         buf->putBitLong(f.m_index2);
         buf->putBitLong(f.m_index3);
+    }
+
+    // ODA §20.4.78's CIVIL tail is selected by the target DWG release, not
+    // by m_version. Keep the fixed fields verbatim and separate from their
+    // similar-looking main-body counterparts.
+    if (writesCivilTail) {
+        buf->putBit(m_civilTail.m_hasCivilData ? 1u : 0u);
+        buf->putBit(m_civilTail.m_reservedFlag1 ? 1u : 0u);
+        for (const double value : m_civilTail.m_referenceCoordinates)
+            buf->putRawDouble(value);
+        for (const std::int32_t value : m_civilTail.m_reservedLongs)
+            buf->putBitLong(value);
+        for (const double value : m_civilTail.m_reservedCoordinates)
+            buf->putRawDouble(value);
+        buf->putBit(m_civilTail.m_reservedFlag2 ? 1u : 0u);
+        buf->putBitDouble(m_civilTail.m_northDirectionDegrees);
+        buf->putBitDouble(m_civilTail.m_northDirectionRadians);
+        buf->putBitLong(m_civilTail.m_scaleEstimationMethod);
+        buf->putBitDouble(m_civilTail.m_userSpecifiedScaleFactor);
+        buf->putBit(m_civilTail.m_enableSeaLevelCorrection ? 1u : 0u);
+        buf->putBitDouble(m_civilTail.m_seaLevelElevation);
+        buf->putBitDouble(m_civilTail.m_coordinateProjectionRadius);
     }
 
     // START_OBJECT_HANDLE_STREAM: R2007+ common handles precede the deferred

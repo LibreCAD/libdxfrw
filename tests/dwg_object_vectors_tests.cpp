@@ -62,6 +62,7 @@ struct GeoDataFrame {
     std::uint32_t handleBits {0};
     std::uint64_t bodyEndBit {0};
     std::uint64_t civilTailStartBit {0};
+    std::uint64_t handleStartBit {0};
 };
 
 void appendBits(dwgBufferW& destination, const dwgBufferW& source) {
@@ -94,6 +95,44 @@ void appendLiteralGeoCivilTail(dwgBufferW& tail, bool hasCivilData,
     tail.putBitDouble(123.5);
     if (!truncateLastValue)
         tail.putBitDouble(456.75);
+}
+
+void setLiteralGeoCivilTail(DRW_GeoData& geoData, bool hasCivilData = true) {
+    geoData.m_civilTail.m_present = true;
+    geoData.m_civilTail.m_hasCivilData = hasCivilData;
+    geoData.m_civilTail.m_reservedFlag1 = false;
+    geoData.m_civilTail.m_referenceCoordinates =
+        {{11.25, 22.5, 33.75, 44.125}};
+    geoData.m_civilTail.m_reservedLongs = {{0, 0}};
+    geoData.m_civilTail.m_reservedCoordinates = {{0.0, 0.0, 0.0, 0.0}};
+    geoData.m_civilTail.m_reservedFlag2 = false;
+    geoData.m_civilTail.m_northDirectionDegrees = 30.0;
+    geoData.m_civilTail.m_northDirectionRadians = M_PI / 6.0;
+    geoData.m_civilTail.m_scaleEstimationMethod = 3;
+    geoData.m_civilTail.m_userSpecifiedScaleFactor = 2.75;
+    geoData.m_civilTail.m_enableSeaLevelCorrection = true;
+    geoData.m_civilTail.m_seaLevelElevation = 123.5;
+    geoData.m_civilTail.m_coordinateProjectionRadius = 456.75;
+}
+
+bool equalBitRange(const dwgBufferW& left, std::uint64_t leftOffset,
+                   const dwgBufferW& right, std::uint64_t rightOffset,
+                   std::uint64_t length) {
+    if (leftOffset > left.bitCount() || rightOffset > right.bitCount()
+        || length > left.bitCount() - leftOffset
+        || length > right.bitCount() - rightOffset)
+        return false;
+    for (std::uint64_t index = 0; index < length; ++index) {
+        const auto bitAt = [](const dwgBufferW& buffer, std::uint64_t bit) {
+            return static_cast<std::uint8_t>(
+                (buffer.data()[static_cast<std::size_t>(bit / 8u)]
+                 >> (7u - static_cast<unsigned>(bit & 7u))) & 1u);
+        };
+        if (bitAt(left, leftOffset + index)
+            != bitAt(right, rightOffset + index))
+            return false;
+    }
+    return true;
 }
 
 bool makeLiteralGeoDataFrame(DRW::Version targetVersion,
@@ -205,8 +244,8 @@ bool makeLiteralGeoDataFrame(DRW::Version targetVersion,
     followingHandle.ref64 = followingHandle.ref;
     handles.putHandle(followingHandle);
     handles.alignToByte();
-    frame.handleBits = targetVersion >= DRW::AC1024
-        ? static_cast<std::uint32_t>(handles.bitCount()) : 0u;
+    frame.handleStartBit = full.bitCount();
+    frame.handleBits = static_cast<std::uint32_t>(handles.bitCount());
     full.putBytes(handles.data().data(), handles.size());
     if (!full.isGood())
         return false;
@@ -746,6 +785,22 @@ void testGeoDataCivilTailReaderVectors(TestContext& t) {
                      && parsed.m_seaLevelElevation
                          == (item.objectVersion >= 2 ? 8.5 : 0.0),
                  "GEODATA main-body fields and deferred handle references survive tail parsing");
+        dwgBuffer handleInput(frame.bytes.data(), frame.bytes.size(), &codec);
+        const bool handlePositioned =
+            handleInput.setPosition(frame.handleStartBit >> 3);
+        handleInput.setBitPos(static_cast<std::uint8_t>(
+            frame.handleStartBit & 7u));
+        const dwgHandle owner = handleInput.getHandle();
+        const dwgHandle host = handleInput.getHandle();
+        const dwgHandle sentinel = handleInput.getHandle();
+        const std::uint64_t handleCursor = handleInput.getPosition() * 8u
+            + handleInput.getBitPos();
+        t.expect(handlePositioned && handleInput.isGood()
+                     && owner.ref == 0xA200u && host.ref == 0xA300u
+                     && sentinel.ref == 0xA400u
+                     && handleCursor
+                         == frame.handleStartBit + frame.handleBits,
+                 "GEODATA owner, host and following-handle sentinel remain in exact order");
         t.expect(parsed.m_points.size() == (item.includeMesh ? 1u : 0u)
                      && parsed.m_faces.size() == (item.includeMesh ? 1u : 0u),
                  "GEODATA tail follows both empty and populated mesh arrays");
@@ -780,6 +835,22 @@ void testGeoDataCivilTailReaderVectors(TestContext& t) {
                          && parsed.m_civilTail.m_seaLevelElevation == 123.5
                          && parsed.m_civilTail.m_coordinateProjectionRadius == 456.75,
                      "GEODATA CIVIL values retain ODA order and remain distinct from main-body values");
+
+            DRW_GeoData copied = parsed;
+            DRW_GeoData assigned;
+            assigned = parsed;
+            t.expect(copied.m_civilTail.m_present
+                         && copied.m_civilTail.m_referenceCoordinates
+                             == parsed.m_civilTail.m_referenceCoordinates
+                         && assigned.m_civilTail.m_present
+                         && assigned.m_civilTail.m_coordinateProjectionRadius
+                             == parsed.m_civilTail.m_coordinateProjectionRadius,
+                     "GEODATA CIVIL values survive model copy and assignment");
+            assigned.reset();
+            t.expect(!assigned.m_civilTail.m_present
+                         && assigned.m_civilTail.m_hasCivilData
+                         && assigned.m_civilTail.m_scaleEstimationMethod == 1,
+                     "GEODATA reset clears source-tail presence and restores canonical defaults");
         }
     }
 
@@ -832,6 +903,138 @@ void testGeoDataCivilTailReaderVectors(TestContext& t) {
                      && reused.m_civilTail.m_coordinateProjectionRadius == 456.75,
                  "the same GEODATA parser instance succeeds after a rejected truncated frame");
     }
+}
+
+void testGeoDataCivilTailWriterVectors(TestContext& t) {
+    struct Case {
+        DRW::Version targetVersion;
+        std::int32_t objectVersion;
+        bool includeMesh;
+    };
+    const std::array<Case, 4> cases{{
+        {DRW::AC1021, 1, false},
+        {DRW::AC1024, 2, true},
+        {DRW::AC1027, 2, false},
+        {DRW::AC1027, 3, true}}};
+
+    for (const Case& item : cases) {
+        GeoDataCodecProbe object;
+        object.handle = 0xA100u;
+        object.parentHandle = 0xA200u;
+        object.setDwgCommonObjectState(0, 1, false);
+        object.m_version = item.objectVersion;
+        object.m_hostBlockHandle = 0xA300u;
+        object.m_coordinatesType = 2;
+        object.m_designPoint = DRW_Coord{101.25, 202.5, 303.75};
+        object.m_referencePoint = DRW_Coord{10.5, 20.25, 30.75};
+        object.m_upDirection = DRW_Coord{0.0, 0.0, 1.0};
+        object.m_northDirection = DRW_Coord{0.25, 0.75, 0.0};
+        object.m_horizontalUnitScale = 1.125;
+        object.m_horizontalUnits = 4;
+        object.m_verticalUnitScale = 2.25;
+        object.m_verticalUnits = 7;
+        object.m_scaleEstimationMethod = 2;
+        object.m_userSpecifiedScaleFactor = 1.75;
+        object.m_enableSeaLevelCorrection = true;
+        object.m_seaLevelElevation = 8.5;
+        object.m_coordinateProjectionRadius = 16.25;
+        object.m_coordinateSystemDefinition = "LOCAL_COORD_SYS";
+        object.m_geoRssTag = "LOCAL_GEO_TAG";
+        object.m_observationFromTag = "FROM_TAG";
+        object.m_observationToTag = "TO_TAG";
+        object.m_observationCoverageTag = "COVERAGE_TAG";
+        setLiteralGeoCivilTail(object);
+        if (item.includeMesh) {
+            object.m_points.push_back({DRW_Coord{1.5, 2.5, 0.0},
+                                       DRW_Coord{3.5, 4.5, 0.0}});
+            object.m_faces.push_back({0, 1, 2});
+        }
+
+        dwgBufferW actualBody;
+        dwgBufferW actualStrings;
+        dwgBufferW actualHandles;
+        const bool encoded = object.encodeDwg(
+            item.targetVersion, &actualBody, &actualStrings, &actualHandles);
+        dwgBufferW noTailBody;
+        dwgBufferW noTailStrings;
+        dwgBufferW noTailHandles;
+        const bool baselineEncoded = object.encodeDwg(
+            DRW::AC1032, &noTailBody, &noTailStrings, &noTailHandles);
+        dwgBufferW expectedTail;
+        appendLiteralGeoCivilTail(expectedTail, true, false);
+        t.expect(encoded && baselineEncoded,
+                 "GEODATA writer encodes tail and no-tail target controls");
+        t.expect(encoded && baselineEncoded
+                     && actualBody.bitCount()
+                         == noTailBody.bitCount() + expectedTail.bitCount()
+                     && equalBitRange(actualBody, 0, noTailBody, 0,
+                                      noTailBody.bitCount())
+                     && equalBitRange(actualBody, noTailBody.bitCount(),
+                                      expectedTail, 0,
+                                      expectedTail.bitCount()),
+                 "GEODATA target writer appends the exact literal ODA tail after mesh data");
+        t.expect(actualStrings.data() == noTailStrings.data()
+                     && actualStrings.bitCount() == noTailStrings.bitCount()
+                     && actualHandles.data() == noTailHandles.data()
+                     && actualHandles.bitCount() == noTailHandles.bitCount(),
+                 "GEODATA CIVIL tail does not shift detached strings or deferred handles");
+    }
+
+    GeoDataCodecProbe invalid;
+    invalid.m_version = 2;
+    invalid.m_hostBlockHandle = 0xA300u;
+    invalid.setDwgCommonObjectState(0, 1, false);
+    setLiteralGeoCivilTail(invalid, false);
+    dwgBufferW body;
+    dwgBufferW strings;
+    dwgBufferW handles;
+    body.putRawChar8(0xA5u);
+    strings.putRawChar8(0x5Au);
+    handles.putRawChar8(0xC3u);
+    const auto bodyBefore = body.data();
+    const auto stringsBefore = strings.data();
+    const auto handlesBefore = handles.data();
+    const bool rejectedFalseFlag = !invalid.encodeDwg(
+        DRW::AC1027, &body, &strings, &handles);
+    t.expect(rejectedFalseFlag && body.data() == bodyBefore
+                 && strings.data() == stringsBefore
+                 && handles.data() == handlesBefore
+                 && !invalid.m_civilTail.m_hasCivilData,
+             "GEODATA writer rejects noncanonical false tail flag transactionally");
+
+    invalid.m_civilTail.m_hasCivilData = true;
+    invalid.m_civilTail.m_northDirectionDegrees =
+        std::numeric_limits<double>::quiet_NaN();
+    const bool rejectedNonFinite = !invalid.encodeDwg(
+        DRW::AC1024, &body, &strings, &handles);
+    t.expect(rejectedNonFinite && body.data() == bodyBefore
+                 && strings.data() == stringsBefore
+                 && handles.data() == handlesBefore
+                 && std::isnan(invalid.m_civilTail.m_northDirectionDegrees),
+             "GEODATA writer rejects non-finite tail fields before touching output buffers");
+
+    invalid.m_civilTail.m_northDirectionDegrees = 0.0;
+    invalid.m_civilTail.m_reservedLongs[0] = 1;
+    const bool rejectedReserved = !invalid.encodeDwg(
+        DRW::AC1027, &body, &strings, &handles);
+    invalid.m_civilTail.m_reservedLongs[0] = 0;
+    invalid.m_civilTail.m_scaleEstimationMethod = 0;
+    const bool rejectedScaleMethod = !invalid.encodeDwg(
+        DRW::AC1027, &body, &strings, &handles);
+    t.expect(rejectedReserved && rejectedScaleMethod
+                 && body.data() == bodyBefore
+                 && strings.data() == stringsBefore
+                 && handles.data() == handlesBefore,
+             "GEODATA writer rejects noncanonical reserved values and scale enums transactionally");
+
+    invalid.m_civilTail.m_hasCivilData = false;
+    invalid.m_civilTail.m_northDirectionDegrees = 0.0;
+    invalid.m_civilTail.m_scaleEstimationMethod = 3;
+    body.reset();
+    strings.reset();
+    handles.reset();
+    t.expect(invalid.encodeDwg(DRW::AC1032, &body, &strings, &handles),
+             "GEODATA false tail flag is immaterial when the target has no tail");
 }
 
 void testOptionalStreamFallbacks(TestContext& t) {
@@ -1036,6 +1239,7 @@ int main() {
     testPlotSettingsVectors(context);
     testLayoutVectors(context);
     testGeoDataCivilTailReaderVectors(context);
+    testGeoDataCivilTailWriterVectors(context);
     testOptionalStreamFallbacks(context);
     testLtypeTextAreaVectors(context);
     if (context.failures != 0) {
