@@ -2388,9 +2388,16 @@ bool DRW_TableEntry::parseDxfGroups(int code,
                                     const std::unique_ptr<dxfReader>& reader) {
     if (appData.size() >= DRW::kMaxDxfApplicationGroups)
         return false;
+    DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
+        m_dxfAppDataRetainedLease);
+    const auto retainedBudget = reader->retainedByteBudget();
+    const auto retainText = [this, &reader](std::size_t bytes) {
+        return retainDxfReadBytes(m_dxfAppDataRetainedLease,
+                                  reader->retainedByteBudget(), bytes);
+    };
     std::list<DRW_Variant> parsedGroup;
     DRW_Variant opener;
-    const std::string appName = reader->getString();
+    std::string appName = reader->getString();
     if (appName.size() <= 1 || appName.front() != '{')
         return false;
 
@@ -2398,8 +2405,18 @@ bool DRW_TableEntry::parseDxfGroups(int code,
     const bool isXDictionary = appName == "{ACAD_XDICTIONARY";
     std::vector<std::uint32_t> parsedReactors;
     std::uint32_t parsedXDictionary = 0;
-    opener.addString(code, appName.substr(1));
-    parsedGroup.push_back(opener);
+    const std::size_t openerSize = appName.size() - 1u;
+    if (openerSize > (std::numeric_limits<std::size_t>::max)() / 2u
+        || !retainText(openerSize * 2u))
+        return false;
+    std::string openerText = appName.substr(1);
+    opener.addString(code, std::move(openerText));
+    parsedGroup.push_back(std::move(opener));
+    if (retainedBudget != nullptr && m_dxfAppDataRetainedLease != nullptr
+        && !m_dxfAppDataRetainedLease->resizeTo(
+            m_dxfAppDataRetainedLease->bytes() - openerSize))
+        return false;
+    appName.clear();
     int depth = 1;
     int nextCode = 0;
 
@@ -2411,7 +2428,7 @@ bool DRW_TableEntry::parseDxfGroups(int code,
 
         DRW_Variant value;
         if (nextCode == 102) {
-            const std::string marker = reader->getString();
+            std::string marker = reader->getString();
             if (marker.empty() || (marker.front() == '{' && marker.size() == 1))
                 return false;
             if (marker.front() == '{') {
@@ -2422,14 +2439,18 @@ bool DRW_TableEntry::parseDxfGroups(int code,
             } else {
                 return false;
             }
-            value.addString(nextCode, marker);
+            if (!retainText(marker.size()))
+                return false;
+            value.addString(nextCode, std::move(marker));
         } else if (nextCode == 330
                    || (nextCode >= 320 && nextCode <= 369)
                    || (nextCode >= 390 && nextCode <= 399)
                    || nextCode == 480 || nextCode == 481
                    || nextCode == 1005) {
-            const std::string rawHandle = reader->getString();
-            value.addString(nextCode, rawHandle);
+            std::string rawHandle = reader->getString();
+            if (!retainText(rawHandle.size()))
+                return false;
+            value.addString(nextCode, std::move(rawHandle));
             if (depth == 1 && isReactors && nextCode == 330) {
                 const auto reactor = reader->getHandleString();
                 if (reactor != 0) {
@@ -2445,9 +2466,13 @@ bool DRW_TableEntry::parseDxfGroups(int code,
         } else {
             switch (reader->type) {
             case dxfReader::STRING:
-            case dxfReader::BINARY:
-                value.addString(nextCode, reader->getString());
+            case dxfReader::BINARY: {
+                std::string text = reader->getString();
+                if (!retainText(text.size()))
+                    return false;
+                value.addString(nextCode, std::move(text));
                 break;
+            }
             case dxfReader::INT32:
             case dxfReader::BOOL:
                 value.addInt(nextCode, reader->getInt32());
@@ -2463,7 +2488,7 @@ bool DRW_TableEntry::parseDxfGroups(int code,
                 return false;
             }
         }
-        parsedGroup.push_back(value);
+        parsedGroup.push_back(std::move(value));
     }
 
     if (depth != 0)
@@ -2473,6 +2498,7 @@ bool DRW_TableEntry::parseDxfGroups(int code,
     if (isXDictionary && parsedXDictionary != 0)
         xDictHandle = parsedXDictionary;
     appData.push_back(std::move(parsedGroup));
+    retainedCheckpoint.commit();
     return true;
 }
 

@@ -3317,6 +3317,88 @@ void testDxfMTextAssemblyBudget(TestContext& t) {
     }
 }
 
+void testDxfAppDataRetentionBudget(TestContext& t) {
+    class LineParseProbe final : public DRW_Line {
+    public:
+        using DRW_Line::parseCode;
+    };
+    class LayerParseProbe final : public DRW_Layer {
+    public:
+        using DRW_Layer::parseCode;
+    };
+
+    const std::string group = "102\n{APP\n1\npayload\n102\n}\n";
+    auto parseGroup = [&group](auto& model,
+                               const std::shared_ptr<DxfReadRetainedBudget>& budget) {
+        std::istringstream input(group);
+        std::unique_ptr<dxfReader> reader =
+            std::make_unique<dxfReaderAscii>(&input);
+        reader->setRetainedByteBudget(budget);
+        int code = 0;
+        return reader->readRec(&code) && code == 102
+            && model.parseCode(code, reader);
+    };
+    const auto appGroupMatches = [](const auto& model) {
+        if (model.appData.size() != 1u || model.appData.front().size() != 3u)
+            return false;
+        auto value = model.appData.front().begin();
+        const bool opener = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == "APP";
+        ++value;
+        const bool payload = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == "payload";
+        ++value;
+        const bool closer = value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && *value->content.s == "}";
+        return opener && payload && closer;
+    };
+
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        LineParseProbe line;
+        const bool parsed = parseGroup(line, budget);
+        t.expect(parsed && appGroupMatches(line) && budget->used() == 11u,
+                 "entity 102 application strings fit the exact generated parse peak and remain charged after reader teardown");
+        LineParseProbe copy(line);
+        line.reset();
+        t.expect(budget->used() == 11u,
+                 "a copied entity keeps its parsed application-group lease when the original is reset");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "entity reset releases the final application-group string lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        LineParseProbe line;
+        const bool parsed = parseGroup(line, budget);
+        t.expect(!parsed && line.appData.empty() && budget->exceeded()
+                     && budget->used() == 0u,
+                 "entity application-group growth rejects one byte under the exact peak and rolls back partial group charges");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(52u);
+        LayerParseProbe layer;
+        const bool parsed = parseGroup(layer, budget);
+        t.expect(parsed && appGroupMatches(layer) && budget->used() == 11u,
+                 "table-entry 102 application strings share the same exact peak and owner-lifetime accounting");
+        LayerParseProbe copy(layer);
+        layer.reset();
+        t.expect(budget->used() == 11u,
+                 "a copied table entry keeps its application-group lease when the source entry is reset");
+        copy.reset();
+        t.expect(budget->used() == 0u,
+                 "table-entry reset releases the final application-group string lease");
+    }
+    {
+        auto budget = std::make_shared<DxfReadRetainedBudget>(51u);
+        LayerParseProbe layer;
+        const bool parsed = parseGroup(layer, budget);
+        t.expect(!parsed && layer.appData.empty() && budget->exceeded()
+                     && budget->used() == 0u,
+                 "table-entry application-group failure rolls back partial retained strings");
+    }
+}
+
 void testDxfRawCarrierRetentionBudget(TestContext& t) {
     const std::string sectionSource =
         "0\nSECTION\n2\nUNKNOWN\n1\npayload\n0\nENDSEC\n0\nEOF\n";
@@ -5415,6 +5497,7 @@ int main() {
     testDxfOwnedSnapshotBudget(context);
     testDxfReaderRecordTextBudget(context);
     testDxfMTextAssemblyBudget(context);
+    testDxfAppDataRetentionBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);

@@ -192,6 +192,7 @@ public:
     oType = e.oType;
     objSize = e.objSize;
     handleStreamBitSize = e.handleStreamBitSize;
+    m_dxfAppDataRetainedLease = e.m_dxfAppDataRetainedLease;
     copyExtDataFrom(e);
   }
 
@@ -204,7 +205,8 @@ public:
         pendingLayerRefResolutions(std::move(e.pendingLayerRefResolutions)),
         xDictFlag(e.xDictFlag), numReactors(e.numReactors),
         commonLinkTailValidated(e.commonLinkTailValidated),
-        hasDsData(e.hasDsData), curr(e.curr), currCoordMask(e.currCoordMask) {
+        hasDsData(e.hasDsData), curr(e.curr), currCoordMask(e.currCoordMask),
+        m_dxfAppDataRetainedLease(std::move(e.m_dxfAppDataRetainedLease)) {
     oType = e.oType;
     objSize = e.objSize;
     handleStreamBitSize = e.handleStreamBitSize;
@@ -235,6 +237,7 @@ public:
       oType = e.oType;
       objSize = e.objSize;
       handleStreamBitSize = e.handleStreamBitSize;
+      m_dxfAppDataRetainedLease = e.m_dxfAppDataRetainedLease;
       clearExtData();
       installExtData(std::move(copies), e);
     }
@@ -265,6 +268,7 @@ public:
     handleStreamBitSize = e.handleStreamBitSize;
     curr = e.curr;
     currCoordMask = e.currCoordMask;
+    m_dxfAppDataRetainedLease = std::move(e.m_dxfAppDataRetainedLease);
     e.extData.clear();
     e.curr = nullptr;
     e.currCoordMask = 0;
@@ -312,6 +316,7 @@ protected:
     flags = 0;
     clearExtData();
     appData.clear();
+    m_dxfAppDataRetainedLease.reset();
     reactorHandles.clear();
     pendingAppIdResolutions.clear();
     pendingLayerRefResolutions.clear();
@@ -453,6 +458,9 @@ private:
 
   DRW_Variant *curr{nullptr};
   std::uint8_t currCoordMask{0}; // transient X/Y/Z presence for one XDATA tuple
+  // Logical string bytes retained by appData's parsed 102 groups. Copies
+  // share the source-read lease so publication does not silently uncharge it.
+  std::shared_ptr<DxfReadRetainedLease> m_dxfAppDataRetainedLease;
 };
 
 //! What the reader established about the common owner/reactor/xdictionary

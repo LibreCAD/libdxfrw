@@ -196,6 +196,62 @@ private:
     std::size_t m_bytes {0u};
 };
 
+inline bool retainDxfReadBytes(
+    std::shared_ptr<DxfReadRetainedLease>& lease,
+    const std::shared_ptr<DxfReadRetainedBudget>& budget,
+    std::size_t bytes) {
+    if (budget == nullptr || bytes == 0u)
+        return true;
+    if (lease == nullptr) {
+        lease = std::make_shared<DxfReadRetainedLease>(budget);
+    } else if (lease->budget() != budget
+               && !lease->bind(budget, lease->bytes())) {
+        return false;
+    }
+    return lease->add(bytes);
+}
+
+// A parse helper may build a temporary list of retained strings before it
+// publishes the complete application group. Roll the owner back if parsing or
+// allocation fails so a caller that reuses the model does not inherit a
+// partial charge.
+class DxfReadRetainedLeaseCheckpoint final {
+public:
+    explicit DxfReadRetainedLeaseCheckpoint(
+        std::shared_ptr<DxfReadRetainedLease>& lease) noexcept
+        : m_target(lease), m_original(lease),
+          m_originalBudget(lease != nullptr ? lease->budget()
+                                            : std::shared_ptr<DxfReadRetainedBudget>{}),
+          m_originalBytes(lease != nullptr ? lease->bytes() : 0u) {}
+
+    ~DxfReadRetainedLeaseCheckpoint() noexcept {
+        if (m_committed)
+            return;
+        if (m_original == nullptr) {
+            m_target.reset();
+            return;
+        }
+        m_target = m_original;
+        if (m_original->budget() == m_originalBudget)
+            (void)m_original->resizeTo(m_originalBytes);
+        else
+            (void)m_original->bind(m_originalBudget, m_originalBytes);
+    }
+
+    DxfReadRetainedLeaseCheckpoint(const DxfReadRetainedLeaseCheckpoint&) = delete;
+    DxfReadRetainedLeaseCheckpoint& operator=(
+        const DxfReadRetainedLeaseCheckpoint&) = delete;
+
+    void commit() noexcept { m_committed = true; }
+
+private:
+    std::shared_ptr<DxfReadRetainedLease>& m_target;
+    std::shared_ptr<DxfReadRetainedLease> m_original;
+    std::shared_ptr<DxfReadRetainedBudget> m_originalBudget;
+    std::size_t m_originalBytes;
+    bool m_committed {false};
+};
+
 class dxfReader {
 public:
     enum TYPE {

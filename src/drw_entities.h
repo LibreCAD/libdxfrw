@@ -156,6 +156,7 @@ public:
 	void reset() {
 		extData.clear();
 		appData.clear();
+		m_dxfAppDataRetainedLease.reset();
 		handle = DRW::NoHandle;
 		parentHandle = DRW::NoHandle;
 		space = DRW::ModelSpace;
@@ -421,9 +422,12 @@ protected: //only for read dwg
 private:
 	void init(DRW_Entity const& rhs);
 	DRW_Coord extAxisX;
-    DRW_Coord extAxisY;
+	DRW_Coord extAxisY;
 	std::shared_ptr<DRW_Variant> curr;
     std::uint8_t currCoordMask{0}; // transient X/Y/Z presence for one XDATA tuple
+    // Logical string bytes retained by appData's parsed 102 groups. Copies
+    // share the source-read lease so publication does not silently uncharge it.
+    std::shared_ptr<DxfReadRetainedLease> m_dxfAppDataRetainedLease;
 };
 
 //! Typed metadata carrier for an ACAD_PROXY_ENTITY (DWG type 498).
