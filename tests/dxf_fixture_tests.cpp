@@ -3262,6 +3262,99 @@ public:
     void addLine(const DRW_Line& data) override { lines.push_back(data); }
 };
 
+class CapturedLinearDimension : public DRW_DimLinear {
+public:
+    explicit CapturedLinearDimension(const DRW_DimLinear& value)
+        : DRW_DimLinear(value) {}
+
+    DRW_Coord auxiliaryPoint15() const { return getPt5(); }
+};
+
+class LegacyDimensionOrderCapture final : public dx_iface {
+public:
+    LegacyDimensionOrderCapture() {
+        cData = &data_;
+        currentBlock = data_.mBlock;
+    }
+
+    std::vector<CapturedLinearDimension> dimensions;
+    std::vector<DRW_Line> lines;
+
+    void addDimLinear(const DRW_DimLinear* value) override {
+        if (value != nullptr)
+            dimensions.emplace_back(*value);
+    }
+
+    void addLine(const DRW_Line& value) override {
+        lines.push_back(value);
+    }
+
+private:
+    dx_data data_;
+};
+
+std::string legacyDimensionOrderInput(bool pointsBeforeType) {
+    std::ostringstream bytes;
+    const auto tag = [&bytes](int code, const char* value) {
+        bytes << code << '\n' << value << '\n';
+    };
+    const auto dimensionPoints = [&tag]() {
+        tag(13, "13.25"); tag(23, "23.5"); tag(33, "33.75");
+        tag(14, "14.25"); tag(24, "24.5"); tag(34, "34.75");
+        tag(15, "15.25"); tag(25, "25.5"); tag(35, "35.75");
+    };
+
+    tag(0, "SECTION"); tag(2, "HEADER");
+    tag(9, "$ACADVER"); tag(1, "AC1009");
+    tag(0, "ENDSEC");
+    tag(0, "SECTION"); tag(2, "ENTITIES");
+    tag(0, "DIMENSION"); tag(8, "0"); tag(2, "*D1");
+    tag(3, "STANDARD");
+    if (pointsBeforeType)
+        dimensionPoints();
+    tag(70, "0");
+    if (!pointsBeforeType)
+        dimensionPoints();
+    tag(0, "LINE"); tag(8, "0");
+    tag(10, "101"); tag(20, "102"); tag(30, "103");
+    tag(11, "104"); tag(21, "105"); tag(31, "106");
+    tag(0, "ENDSEC"); tag(0, "EOF");
+    return bytes.str();
+}
+
+void testLegacyDimensionPointOrder(TestContext& t) {
+    for (const bool pointsBeforeType : {true, false}) {
+        LegacyDimensionOrderCapture capture;
+        dxfRW reader(nullptr);
+        std::string input = legacyDimensionOrderInput(pointsBeforeType);
+        const bool read = reader.readAscii(&capture, false, input);
+        const std::string order = pointsBeforeType ? "before" : "after";
+        t.expect(read && capture.dimensions.size() == 1,
+                 ("AC1009 DIMENSION with points " + order
+                  + " group70 dispatches as linear").c_str());
+        t.expect(read && capture.dimensions.size() == 1
+                     && capture.dimensions.front().type == 0
+                     && capture.dimensions.front().getDef1Point().x == 13.25
+                     && capture.dimensions.front().getDef1Point().y == 23.5
+                     && capture.dimensions.front().getDef1Point().z == 33.75
+                     && capture.dimensions.front().getDef2Point().x == 14.25
+                     && capture.dimensions.front().getDef2Point().y == 24.5
+                     && capture.dimensions.front().getDef2Point().z == 34.75
+                     && capture.dimensions.front().auxiliaryPoint15().x == 15.25
+                     && capture.dimensions.front().auxiliaryPoint15().y == 25.5
+                     && capture.dimensions.front().auxiliaryPoint15().z == 35.75,
+                 ("AC1009 DIMENSION retains reordered 13/14/15 coordinates "
+                  + order + " group70").c_str());
+        t.expect(read && capture.lines.size() == 1
+                     && capture.lines.front().basePoint.x == 101.0
+                     && capture.lines.front().basePoint.z == 103.0
+                     && capture.lines.front().secPoint.x == 104.0
+                     && capture.lines.front().secPoint.z == 106.0,
+                 ("AC1009 DIMENSION group order preserves following LINE "
+                  + order + " group70").c_str());
+    }
+}
+
 std::string headerOrderBytes(
     bool binary, const std::vector<std::pair<int, std::string>>& fields,
     const std::string& text = "", const std::string& version = "AC1018") {
@@ -8307,6 +8400,13 @@ void testDxfWriteAttemptFailure(TestContext& t) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--legacy-dimension-point-order") {
+        TestContext context;
+        testLegacyDimensionPointOrder(context);
+        std::cout << "AC1009 DIMENSION point order: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--wipeout-subclass-payload") {
         TestContext context; testWipeoutSubclassPayload(context);
         return context.failures == 0 ? 0 : 1;
@@ -8464,6 +8564,7 @@ int main(int argc, char** argv) {
     testXdataTextCodecs(context);
     testNamedColorCodecs(context);
     testRawXdataTextBytes(context);
+    testLegacyDimensionPointOrder(context);
     testHeaderMetadataOrder(context);
     testHeaderMetadataBoundaries(context);
     testHeaderAliasProvenance(context);
