@@ -43,6 +43,12 @@ position, owned first DICTIONARY input fails before callbacks, and a later
 ownerless dictionary is not promoted when an older/minimal OBJECTS stream has
 no leading NOD. The narrow strict rejection leaves those legacy streams on
 their tolerant path. Neither peer report alone establishes a support claim.
+The 2026-10-15 LAYOUT crosswalk grounds the next 7G slice in Autodesk's
+reciprocal graph: NOD `ACAD_LAYOUT` entry→LAYOUT and BLOCK_RECORD 340→LAYOUT,
+alongside LAYOUT owner/object/block-record 330, viewport 331, UCS 345/346 and
+shade-plot 333 edges. The core callback model carries typed LAYOUT fields, but
+`dx_data`/`dx_iface` do not retain or emit them; this is the known PAR-20 / PAR-56
+handoff gap, not a new defect ID or support claim.
 The 2026-10-14 ODA/peer refresh adds source/spec-confirmed candidate PAR-119
 and implementation subplan7BP for the target-version-dependent GEODATA CIVIL
 tail, plus PAR-120/7BQ for under-declared capacities across dynamic DXF symbol
@@ -4342,6 +4348,34 @@ Split implementation to keep a small critical path:
    not broaden this fix into a global OBJECTS preamble rejection. Use the smallest
    existing graph/object CTest target with temporary generated inputs; no
    checked-in or downloaded DWG/DXF payload.
+
+   **LAYOUT/NOD reciprocal closure ([Autodesk LAYOUT codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm),
+   [BLOCK_RECORD codes](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm),
+   and [OBJECTS root example](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm)):** model the
+   object roles separately: NOD `ACAD_LAYOUT` entry name→LAYOUT handle; LAYOUT
+   owner-dictionary 330 and owner-object 330; its post-`AcDbLayout` 330 to the
+   associated paper-space BLOCK_RECORD; 331 last-active VIEWPORT; 345 named
+   UCS; 346 base UCS; and 333 shade-plot object. The BLOCK_RECORD's layout
+   back-reference must resolve to that same LAYOUT. Do not equate the two
+   group330 values or infer a layout from `tabOrder`, `name`, fixed handles or
+   paper-space block name alone. The local codec already has `DRW_Layout`
+   parse/write methods and `DRW_Block_Record::layoutHandle`, but `dx_data` has
+   no layout collection and `dx_iface` drops `addLayout`; current export root
+   entries are explicitly prepared, not copied from source NOD identity. Keep
+   this source-confirmed PAR-20/7G gap distinct from the independent 2D
+   LibreCAD_3 typed/raw PAR-56 consumer boundary. First settle an
+   ABI/source-compatible explicit root-dictionary handoff; do not infer root
+   identity from handle C or owner value 0. Pre-plan emitted layout and
+   BLOCK_RECORD handles before root emission, and stage both directions of
+   each reciprocal edge without mutating caller data. Use a generated two-tab
+   paper-layout control plus model space: vary physical dictionary order,
+   handles, tab order, and forward/backward references; compare root entries,
+   LAYOUT fields and BLOCK_RECORD back-links after import→export→import in
+   ASCII and binary, then run the same pair through the existing CLI. Add
+   wrong-type, missing-target, duplicate-name/handle and cross-layout edges;
+   reject ambiguous/incomplete graphs before publishing output. Treat VIEWPORT
+   and UCS edges as independently retained typed targets, not numeric
+   existence-only checks. No drawing payload or new CTest registration.
 
    **Reserved-space anomaly profile (peer lead #1157):** extend the existing
    generated BLOCK_CONTROL/owner matrix to distinguish one unique
