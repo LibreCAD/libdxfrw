@@ -170,6 +170,20 @@ public:
     std::size_t dxfReadInputByteBudget() const noexcept {
         return m_dxfReadInputByteBudget;
     }
+    /** Set the cumulative deterministic decode-work ceiling for each
+     * subsequent DXF read. This counts instrumented source-byte visits, so a
+     * decoder that revisits an assembled prefix charges it again; it is not
+     * elapsed time, acquired input, retained memory, or a format maximum.
+     * The 1 GiB default is caller-raiseable. Changes from callbacks apply to
+     * the next read. Current coverage includes repeated MTEXT group-1 prefix
+     * decoding and is not a claim that every parser loop is instrumented.
+     * Rebuild consumers using this additive API. */
+    void setDxfReadDecodeWorkBudget(std::size_t maxUnits) noexcept {
+        m_dxfReadDecodeWorkBudget = maxUnits;
+    }
+    std::size_t dxfReadDecodeWorkBudget() const noexcept {
+        return m_dxfReadDecodeWorkBudget;
+    }
     /** Set the aggregate logical-byte ceiling for library-owned DXF read
      * snapshots/copies. Caller-owned input and allocated capacity are not
      * charged. The 1 GiB default is caller-raiseable and is not a format
@@ -828,6 +842,8 @@ private:
         4u * 1024u * 1024u};
     std::size_t m_dxfReadTokenByteBudget {1024u * 1024u};
     std::size_t m_dxfReadInputByteBudget {1024u * 1024u * 1024u};
+    std::size_t m_dxfReadDecodeWorkBudget {
+        1024u * 1024u * 1024u};
     std::size_t m_dxfReadRetainedByteBudget {1024u * 1024u * 1024u};
     std::shared_ptr<DxfReadRetainedBudget> m_activeDxfReadRetainedBudget;
     std::size_t m_dxfHeaderCommentRetainedBytes {0};
@@ -835,6 +851,7 @@ private:
     // failure must not report a token flag left by a previous interrupted read.
     bool m_readTokenBudgetActive {false};
     bool m_readInputByteBudgetActive {false};
+    bool m_readDecodeWorkBudgetActive {false};
     std::unique_ptr<dxfReader> reader;
     std::unique_ptr<dxfWriter> writer;
     DRW_Interface *iface {nullptr};

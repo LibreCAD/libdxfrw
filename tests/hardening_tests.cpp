@@ -3323,6 +3323,85 @@ void testDxfMTextAssemblyBudget(TestContext& t) {
     }
 }
 
+void testDxfMTextDecodeWorkBudget(TestContext& t) {
+    class MTextCapture final : public FuzzInterface {
+    public:
+        void addMText(const DRW_MText& value) override {
+            ++count;
+            text = value.text;
+        }
+
+        std::size_t count {0u};
+        std::string text;
+    };
+
+    const std::string groupedPrefix =
+        "0\nSECTION\n2\nENTITIES\n0\nMTEXT\n10\n0\n20\n0\n40\n1\n"
+        "3\nab\n3\ncd\n1\nef\n0\nENDSEC\n0\nEOF\n";
+    dxfRW exact(nullptr);
+    t.expect(exact.dxfReadDecodeWorkBudget()
+                 == 1024u * 1024u * 1024u,
+             "facade publishes the documented decode-work default");
+    exact.setDxfReadDecodeWorkBudget(6u);
+    MTextCapture admitted;
+    std::string input = groupedPrefix;
+    t.expect(exact.readAscii(&admitted, false, input)
+                 && admitted.count == 1u && admitted.text == "abcdef",
+             "group-3 assembly followed by group 1 succeeds at six visited prefix bytes");
+
+    dxfRW under(nullptr);
+    under.setDxfReadDecodeWorkBudget(5u);
+    MTextCapture rejected;
+    input = groupedPrefix;
+    t.expect(!under.readAscii(&rejected, false, input)
+                 && rejected.count == 0u
+                 && under.getLastDiagnostic().cause
+                        == DRW::OperationCause::ResourceLimit
+                 && under.getLastDiagnostic().code == "dxf-decode-work-budget",
+             "one-under MTEXT prefix visitation rejects before callback with a work-specific diagnostic");
+    under.setDxfReadDecodeWorkBudget(6u);
+    MTextCapture retry;
+    input = groupedPrefix;
+    t.expect(under.readAscii(&retry, false, input)
+                 && retry.count == 1u && retry.text == "abcdef",
+             "raising decode-work admission starts a fresh same-facade reader budget");
+
+    const std::string repeatedGroup1 =
+        "0\nSECTION\n2\nENTITIES\n0\nMTEXT\n10\n0\n20\n0\n40\n1\n"
+        "3\na\n1\nb\n1\nc\n0\nENDSEC\n0\nEOF\n";
+    dxfRW repeated(nullptr);
+    repeated.setDxfReadDecodeWorkBudget(5u);
+    MTextCapture repeatedAdmitted;
+    input = repeatedGroup1;
+    t.expect(repeated.readAscii(&repeatedAdmitted, false, input)
+                 && repeatedAdmitted.count == 1u
+                 && repeatedAdmitted.text == "abc",
+             "repeated group-1 input retains its current append/convert grammar at exact cumulative work");
+
+    dxfRW repeatedUnder(nullptr);
+    repeatedUnder.setDxfReadDecodeWorkBudget(4u);
+    MTextCapture repeatedRejected;
+    input = repeatedGroup1;
+    t.expect(!repeatedUnder.readAscii(&repeatedRejected, false, input)
+                 && repeatedRejected.count == 0u
+                 && repeatedUnder.getLastDiagnostic().code
+                        == "dxf-decode-work-budget",
+             "repeated group-1 prefix revisits accumulate and stop before publication when over budget");
+
+    std::istringstream directInput("3\nab\n3\ncd\n1\nef\n");
+    std::unique_ptr<dxfReader> directReader =
+        std::make_unique<dxfReaderAscii>(&directInput);
+    directReader->setDecodeWorkBudget(6u);
+    ExposedMText directEntity;
+    int code = 0;
+    bool parsed = true;
+    for (const int expected : {3, 3, 1})
+        parsed = parsed && directReader->readRec(&code) && code == expected
+            && directEntity.parseCode(code, directReader);
+    t.expect(parsed && directReader->decodeWorkCount() == 6u,
+             "direct MTEXT reader exposes the deterministic six-byte decode-work counter");
+}
+
 void testDxfAppDataRetentionBudget(TestContext& t) {
     class LineParseProbe final : public DRW_Line {
     public:
@@ -7106,6 +7185,7 @@ int main() {
     testDxfXDataStringOwnerBudget(context);
     testDxfRawCarrierRetentionBudget(context);
     testEmptyRawCarrierNameRetention(context);
+    testDxfMTextDecodeWorkBudget(context);
     testDxfHeaderCommentRetentionBudget(context);
     testDxfTokenFacadeBudget(context);
     testDwgAggregateObjectBudget(context);

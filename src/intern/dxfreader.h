@@ -309,6 +309,27 @@ public:
     bool inputByteBudgetExceeded() const noexcept {
         return m_inputByteBudgetExceeded;
     }
+    void setDecodeWorkBudget(std::size_t budget) noexcept {
+        m_decodeWorkBudget = budget;
+    }
+    // Charge deterministic source-byte visits made by instrumented decoders.
+    // Unlike input bytes this counter is cumulative: revisiting a prefix is a
+    // new unit of work even though no source bytes are acquired again.
+    bool chargeDecodeWork(std::size_t bytes) noexcept {
+        if (m_decodeWorkBudgetExceeded)
+            return false;
+        if (m_decodeWorkCount > m_decodeWorkBudget
+            || bytes > m_decodeWorkBudget - m_decodeWorkCount) {
+            m_decodeWorkBudgetExceeded = true;
+            return false;
+        }
+        m_decodeWorkCount += bytes;
+        return true;
+    }
+    std::size_t decodeWorkCount() const noexcept { return m_decodeWorkCount; }
+    bool decodeWorkBudgetExceeded() const noexcept {
+        return m_decodeWorkBudgetExceeded;
+    }
     void setRetainedByteBudget(
         std::shared_ptr<DxfReadRetainedBudget> budget) noexcept {
         releaseCurrentRecordRetainedBytes();
@@ -497,6 +518,10 @@ private:
     std::size_t m_inputByteBudget {DRW::kDefaultDxfReadInputByteBudget};
     std::size_t m_inputByteCount {0};
     bool m_inputByteBudgetExceeded {false};
+    std::size_t m_decodeWorkBudget {
+        DRW::kDefaultDxfReadDecodeWorkBudget};
+    std::size_t m_decodeWorkCount {0};
+    bool m_decodeWorkBudgetExceeded {false};
     std::shared_ptr<DxfReadRetainedBudget> m_retainedByteBudget;
     std::size_t m_currentRecordRetainedBytes {0};
     int m_currentCode {0};

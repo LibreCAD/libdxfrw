@@ -40,6 +40,11 @@ constexpr std::size_t kDefaultDxfReadRecordBudget = 4u * 1024u * 1024u;
 //! callers with larger documents may raise it through dxfRW.
 constexpr std::size_t kDefaultDxfReadInputByteBudget = 1024u * 1024u * 1024u;
 
+//! Deterministic source-byte visits admitted by instrumented DXF decoding.
+//! This is cumulative work accounting, not elapsed time or a format maximum.
+constexpr std::size_t kDefaultDxfReadDecodeWorkBudget =
+    1024u * 1024u * 1024u;
+
 //! Aggregate logical bytes retained by one DXF read operation. This includes
 //! library-owned snapshots/copies, not caller-owned input or allocated capacity.
 constexpr std::size_t kDefaultDxfReadRetainedByteBudget =

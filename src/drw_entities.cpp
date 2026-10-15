@@ -13639,6 +13639,19 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     const auto appendMTextChunk = [this, &reader](bool decodeWholeText) {
         const std::string chunk = reader->getString();
         const auto& budget = reader->retainedByteBudget();
+        const std::size_t maxSize =
+            (std::numeric_limits<std::size_t>::max)();
+        if (chunk.size() > maxSize - text.size()) {
+            if (budget != nullptr)
+                budget->reject();
+            return false;
+        }
+        const std::size_t nextSize = text.size() + chunk.size();
+        // Each code-1 conversion walks the accumulated prefix. Charge those
+        // deterministic source-byte visits cumulatively before appending or
+        // decoding; code-3 chunks are assembled once and are not charged here.
+        if (decodeWholeText && !reader->chargeDecodeWork(nextSize))
+            return false;
         if (budget == nullptr) {
             if (m_dxfRetainedTextLease
                 && !m_dxfRetainedTextLease->bind(nullptr, text.size()))
@@ -13656,13 +13669,6 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         if (!m_dxfRetainedTextLease->bind(budget, text.size()))
             return false;
 
-        const std::size_t maxSize =
-            (std::numeric_limits<std::size_t>::max)();
-        if (chunk.size() > maxSize - text.size()) {
-            budget->reject();
-            return false;
-        }
-        const std::size_t nextSize = text.size() + chunk.size();
         if (decodeWholeText && nextSize > maxSize / 5u) {
             budget->reject();
             return false;

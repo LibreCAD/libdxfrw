@@ -1792,6 +1792,7 @@ public:
             m_owner.m_wholeOperationActive = true;
             m_owner.m_readTokenBudgetActive = false;
             m_owner.m_readInputByteBudgetActive = false;
+            m_owner.m_readDecodeWorkBudgetActive = false;
         }
     }
     ~WholeOperationScope() noexcept {
@@ -1799,6 +1800,7 @@ public:
             m_owner.m_dxfWriteFinalizing = false;
             m_owner.m_readTokenBudgetActive = false;
             m_owner.m_readInputByteBudgetActive = false;
+            m_owner.m_readDecodeWorkBudgetActive = false;
             m_owner.m_wholeOperationActive = false;
         }
     }
@@ -2078,6 +2080,7 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
         reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
         reader->setInputByteBudget(m_dxfReadInputByteBudget);
     }
+    reader->setDecodeWorkBudget(m_dxfReadDecodeWorkBudget);
     reader->setRetainedByteBudget(m_activeDxfReadRetainedBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
@@ -2087,13 +2090,15 @@ bool dxfRW::read(DRW_Interface *interface_, bool ext){
 
     m_readTokenBudgetActive = true;
     m_readInputByteBudgetActive = true;
+    m_readDecodeWorkBudgetActive = true;
     bool isOk {processDxf()};
     if (reader->retainedByteBudget() != nullptr
         && reader->retainedByteBudget()->exceeded()) {
         failDxfReadRetainedBudget();
         isOk = false;
     }
-    if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()) {
+    if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()
+        || reader->decodeWorkBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
     }
@@ -2147,6 +2152,7 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
     reader->setRecordBudget(m_dxfReadRecordBudget);
     reader->setTokenByteBudget(m_dxfReadTokenByteBudget);
     reader->setInputByteBudget(m_dxfReadInputByteBudget);
+    reader->setDecodeWorkBudget(m_dxfReadDecodeWorkBudget);
     reader->setDxfTextEncoding(m_dxfTextEncoding);
     reader->setClassifierProfile(
         m_useTargetLegacyClassifier
@@ -2154,13 +2160,15 @@ bool dxfRW::readAscii(DRW_Interface *interface_, bool ext, std::string& content)
             : DxfClassifierProfile::StandaloneSafe);
     m_readTokenBudgetActive = true;
     m_readInputByteBudgetActive = true;
+    m_readDecodeWorkBudgetActive = true;
     bool isOk {processDxf()};
     if (reader->retainedByteBudget() != nullptr
         && reader->retainedByteBudget()->exceeded()) {
         failDxfReadRetainedBudget();
         isOk = false;
     }
-    if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()) {
+    if (reader->tokenByteBudgetExceeded() || reader->inputByteBudgetExceeded()
+        || reader->decodeWorkBudgetExceeded()) {
         failDxfReadBudget();
         isOk = false;
     }
@@ -18867,6 +18875,13 @@ bool dxfRW::setError(const DRW::error lastError){
             "dxf-input-byte-budget",
             "the aggregate DXF logical-input byte budget was exhausted");
         error = DRW::BAD_CODE_PARSED;
+    } else if (m_readDecodeWorkBudgetActive && reader != nullptr
+               && reader->decodeWorkBudgetExceeded()) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation, DRW::OperationCause::ResourceLimit,
+            "dxf-decode-work-budget",
+            "the aggregate deterministic DXF decode-work budget was exhausted");
+        error = DRW::BAD_CODE_PARSED;
     } else {
         error = lastError;
     }
@@ -18882,6 +18897,10 @@ bool dxfRW::failDxfReadBudget() {
         return true;
     }
     if (m_readInputByteBudgetActive && reader->inputByteBudgetExceeded()) {
+        setError(DRW::BAD_CODE_PARSED);
+        return true;
+    }
+    if (m_readDecodeWorkBudgetActive && reader->decodeWorkBudgetExceeded()) {
         setError(DRW::BAD_CODE_PARSED);
         return true;
     }
