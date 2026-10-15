@@ -20159,7 +20159,10 @@ bool DRW_Dimension::parseCode(int code, const std::unique_ptr<dxfReader>& reader
         name = reader->getString();
         break;
     case 3:
-        style = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedStyleBytes, style,
+                reader->getUtf8String()))
+            return false;
         break;
     case 70:
         type = reader->getInt32();
@@ -20336,6 +20339,7 @@ void DRW_Dimension::resetDwgState() {
     textPoint = DRW_Coord{0.0, 0.0, 0.0};
     text.clear();
     style = "STANDARD";
+    m_dxfRetainedStyleBytes = 0u;
     align = 5;
     linesty = 1;
     linefactor = 1.0;
