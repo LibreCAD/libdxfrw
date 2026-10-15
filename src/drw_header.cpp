@@ -15,6 +15,7 @@
 #include "drw_header.h"
 #include <cmath>
 #include <cstdio>
+#include <optional>
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 #include "intern/drw_dbg.h"
@@ -2056,9 +2057,12 @@ bool DRW_Header::parseDwg(DRW::Version version, dwgBuffer *buf,
 bool DRW_Header::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
                               dwgBuffer *hBbuf,
                               std::uint8_t maintenanceVersion) {
-    if (version != DRW::AC1015)
+    // Preserve existing modern body-only callers. Full sections use the same
+    // admitted envelope and upper ceilings on every version, not only R2000.
+    if (version != DRW::AC1015 && buf->getPosition() == 0u)
         return parseDwgBody(version, buf, hBbuf, maintenanceVersion, true);
-    const auto envelope = inspectLegacyDwgHeader(*buf);
+    const auto envelope = inspectDwgHeaderEnvelope(*buf, version,
+                                                   maintenanceVersion);
     if (envelope.error != DwgHeaderEnvelopeError::None)
         return false;
     if (envelope.compact)
@@ -2087,6 +2091,8 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
     const std::uint64_t headerStart = buf->getPosition();
     std::uint32_t size = buf->getRawLong32();
     std::uint32_t bitSize = 0;
+    std::uint64_t stringStartBit = 0, stringEndBit = 0;
+    const bool fullSection = headerStart == 16u && !consumeTrailer;
     std::uint64_t endBitPos = 160; //start bit: 16 sentinel + 4 size
     DRW_DBG("\nbyte size of data: "); DRW_DBG(size);
     if ((DRW::AC1024 <= version && 3 < maintenanceVersion)
@@ -2105,6 +2111,17 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
         bitSize = buf->getRawLong32();
         DRW_DBG("\nsize in bits: "); DRW_DBG(bitSize);
         endBitPos += bitSize;
+        if (fullSection) {
+            std::uint64_t bodyBits = 0;
+            if (!buf->isGood()
+                || !dwgSafety::multiply(buf->size(), 8u, bodyBits)
+                || endBitPos > bodyBits
+                || !buf->getR2007StringStreamBounds(
+                    endBitPos, stringStartBit, stringEndBit)
+                || stringStartBit < buf->getPosition() * 8u
+                || stringEndBit < stringStartBit)
+                return false;
+        }
         hBbuf->setPosition(endBitPos >>3);
         hBbuf->setBitPos(endBitPos&7);
     }
@@ -2622,7 +2639,11 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
         storeVar("CSHADOW", new DRW_Variant(70, buf->getRawChar8()));
         DRW_DBG("\nUnknown 2007+ double2: "); DRW_DBG(buf->getBitDouble());
     }
-    if (version > DRW::AC1012) {//R14+
+    // ODA section 9, p.83: the four trailing unknown shorts are optional
+    // (type 5/6 only). In a full R2007+ section the string boundary is known;
+    // leave the uninterpreted tail alone rather than reading TU bytes as
+    // debug-only shorts. Legacy/compact callers retain their prior layout.
+    if (version > DRW::AC1012 && !(fullSection && version > DRW::AC1018)) {//R14+
         DRW_DBG("\nUnknown R14+ short1: "); DRW_DBG(buf->getBitShort());
         DRW_DBG("\nUnknown R14+ short2: "); DRW_DBG(buf->getBitShort());
         DRW_DBG("\nUnknown R14+ short3: "); DRW_DBG(buf->getBitShort());
@@ -2636,30 +2657,46 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
     /**** RLZ: disabled, pending to read all data ***/
     //Start reading string stream for 2007 and further
     if (version > DRW::AC1018) {//2007+
-        if (!buf->seekR2007StringStream(endBitPos))
+        std::optional<dwgBuffer> boundedStrings;
+        dwgBuffer* strings = buf;
+        if (fullSection) {
+            const auto dataEndBit = buf->getPosition() * 8u + buf->getBitPos();
+            if (!buf->isGood() || !hBbuf->isGood() || dataEndBit > stringStartBit)
+                return false;
+            boundedStrings.emplace(buf->forkBounded((stringEndBit + 7u) / 8u));
+            strings = &*boundedStrings;
+            if (!strings->setPosition(stringStartBit >> 3u))
+                return false;
+            strings->setBitPos(static_cast<std::uint8_t>(stringStartBit & 7u));
+        } else if (!strings->seekR2007StringStream(endBitPos)) {
             return false;
+        }
         DRW_DBG("\nstring buf position: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\nstring buf bit position: "); DRW_DBG(buf->getBitPos());
-        DRW_DBG("\nUnknown text1: "); DRW_DBG(buf->getUCSText(false));
-        DRW_DBG("\nUnknown text2: "); DRW_DBG(buf->getUCSText(false));
-        DRW_DBG("\nUnknown text3: "); DRW_DBG(buf->getUCSText(false));
-        DRW_DBG("\nUnknown text4: "); DRW_DBG(buf->getUCSText(false));
-        storeVar("MENU", new DRW_Variant(1, buf->getUCSText(false)));
-        storeVar("DIMPOST", new DRW_Variant(1, buf->getUCSText(false)));
-        storeVar("DIMAPOST", new DRW_Variant(1, buf->getUCSText(false)));
+        DRW_DBG("\nUnknown text1: "); DRW_DBG(strings->getUCSText(false));
+        DRW_DBG("\nUnknown text2: "); DRW_DBG(strings->getUCSText(false));
+        DRW_DBG("\nUnknown text3: "); DRW_DBG(strings->getUCSText(false));
+        DRW_DBG("\nUnknown text4: "); DRW_DBG(strings->getUCSText(false));
+        storeVar("MENU", new DRW_Variant(1, strings->getUCSText(false)));
+        storeVar("DIMPOST", new DRW_Variant(1, strings->getUCSText(false)));
+        storeVar("DIMAPOST", new DRW_Variant(1, strings->getUCSText(false)));
         if (version > DRW::AC1021) {//2010+
-            storeVar("DIMALTMZS", new DRW_Variant(70, buf->getUCSText(false)));//RLZ: pending to verify//////////////
-            storeVar("DIMMZS", new DRW_Variant(70, buf->getUCSText(false)));//RLZ: pending to verify//////////////
+            storeVar("DIMALTMZS", new DRW_Variant(70, strings->getUCSText(false)));//RLZ: pending to verify//////////////
+            storeVar("DIMMZS", new DRW_Variant(70, strings->getUCSText(false)));//RLZ: pending to verify//////////////
         }
-        storeVar("HYPERLINKBASE", new DRW_Variant(1, buf->getUCSText(false)));
-        storeVar("STYLESHEET", new DRW_Variant(1, buf->getUCSText(false)));
-        storeVar("FINGERPRINTGUID", new DRW_Variant(1, buf->getUCSText(false)));
+        storeVar("HYPERLINKBASE", new DRW_Variant(1, strings->getUCSText(false)));
+        storeVar("STYLESHEET", new DRW_Variant(1, strings->getUCSText(false)));
+        storeVar("FINGERPRINTGUID", new DRW_Variant(1, strings->getUCSText(false)));
         DRW_DBG("\nstring buf position: "); DRW_DBG(buf->getPosition());
         DRW_DBG("  string buf bit position: "); DRW_DBG(buf->getBitPos());
-        storeVar("VERSIONGUID", new DRW_Variant(1, buf->getUCSText(false)));
+        storeVar("VERSIONGUID", new DRW_Variant(1, strings->getUCSText(false)));
         DRW_DBG("\nstring buf position: "); DRW_DBG(buf->getPosition());
         DRW_DBG("  string buf bit position: "); DRW_DBG(buf->getBitPos());
-        storeVar("PROJECTNAME", new DRW_Variant(1, buf->getUCSText(false)));
+        storeVar("PROJECTNAME", new DRW_Variant(1, strings->getUCSText(false)));
+        if (!strings->isGood()
+            || (fullSection && strings->getPosition() * 8u
+                + strings->getBitPos() > stringEndBit))
+            return false;
     }
 /***    ****/
     DRW_DBG("\nstring buf position: "); DRW_DBG(buf->getPosition());
@@ -2711,9 +2748,9 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
         }
     }
 
-    // The section RL includes every field after the RL itself, including the
-    // optional R2010+/R2018 high-size field.  Therefore its CRC is always at
-    // the end of the declared payload; do not skip hSize a second time.
+    // Full sections were admitted and bounded by parseDwgImpl; they do not
+    // reach this historical body-only caller trailer path. Preserve its
+    // RL-relative origin without inferring another producer's size profile.
     std::uint64_t crcOffset = 0;
     if (!dwgSafety::add(headerStart, 4u, crcOffset)
         || !dwgSafety::add(crcOffset, size, crcOffset)

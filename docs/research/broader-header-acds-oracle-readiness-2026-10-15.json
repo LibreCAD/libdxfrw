@@ -1,0 +1,595 @@
+{
+  "schema": "libdxfrw-scoped-research-evidence-v1",
+  "date": "2026-10-15",
+  "baseline": "2063b501ccc1827d8914c0de6a450b3d694e62cc",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Research and plan update only: tracked ODA-converted HEADER framing, optional peer limits, AcDs blob-cursor lead, and fast headless projection calibration. No production/test source edits, fixture additions, CI registrations, remote writes or support promotion.",
+  "owners": [
+    "PAR-96 / 7BE.9 / Slice5",
+    "7F.1b",
+    "S3.2 / Slice8",
+    "7AH / 7AQ / Slice4",
+    "7H / 7O / 7AA",
+    "7AD"
+  ],
+  "qualificationEligible": false,
+  "upstreamPins": {
+    "LibreDWG/libredwg": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+    "DrunkOnJava/dwg-rs": "d0ce39be6a679697554db0ee1f84f0d0671bf081",
+    "gdsestimating/dxf-parser": "0df7a37a4207a1f925b8d0bfffc270ff121446b4",
+    "vagran/dxf-viewer": "cd07bae4a6bb7bf1f3de28685583c8cc189f703f",
+    "DomCR/ACadSharp": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+    "LibreCAD/LibreCAD:fixture-provenance": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753"
+  },
+  "primarySourceFiles": [
+    {
+      "url": "https://github.com/DomCR/ACadSharp/blob/9bd47f48766a371c441e8d1ab80733e21f62b711/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgHeaderReader.cs",
+      "gitBlobSha": "95a047569e43687091bc7915cef18daa1cd25ca1",
+      "scope": "lines 1-150",
+      "interpretationOnly": true
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/blob/9bd47f48766a371c441e8d1ab80733e21f62b711/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs",
+      "gitBlobSha": "8e2d2a5f93891e3f23cbe9037ce98a3637c0fae2",
+      "scope": "full file",
+      "interpretationOnly": true
+    },
+    {
+      "url": "https://github.com/DrunkOnJava/dwg-rs/blob/d0ce39be6a679697554db0ee1f84f0d0671bf081/src/header_vars.rs",
+      "gitBlobSha": "e18ca7ac0313b9b1fda9d97b8e4413e968994447",
+      "scope": "full file",
+      "interpretationOnly": true
+    },
+    {
+      "url": "https://github.com/vagran/dxf-viewer/blob/cd07bae4a6bb7bf1f3de28685583c8cc189f703f/test/README.md",
+      "gitBlobSha": "dcd0c0634324d55809b721a0871b38447dbb58fd",
+      "scope": "full file",
+      "interpretationOnly": true
+    },
+    {
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/3c7785ebbcbfc8f3c8f79dbba093aff09cdec753/librecad/src/lib/filters/tests/testdata/PROVENANCE.md",
+      "gitBlobSha": "67bff0ef41c9775d6d15bec57d21ac48f5c05391",
+      "scope": "full file",
+      "interpretationOnly": true
+    }
+  ],
+  "refreshedPullRequests": [
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1304",
+      "merged": true,
+      "mergedAt": "2026-10-15T13:03:57Z",
+      "head": "f921817e11e1ef42491111113d8239ac0aeba2df",
+      "merge": "cb4ab172f0dd8ac68558126442c4371f4d44c3be",
+      "title": "fix(dxf): read and write the flip arrow flags of a dimension"
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1305",
+      "merged": true,
+      "mergedAt": "2026-10-15T09:46:02Z",
+      "head": "7065430f25ed3e34b63d012ac23e76bb788a9f22",
+      "merge": "25de68c0cfd9cbc3b4e412a3c48957ddc3f53798",
+      "title": "Read every page of a multi-page blob in the Prototype1b section"
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1306",
+      "merged": true,
+      "mergedAt": "2026-10-15T10:07:18Z",
+      "head": "060fb5865a4b29c9e23296a6dece7daa73e12513",
+      "merge": "8e921d9869dd60148cbdeef889efc250c9448140",
+      "title": "fix: keep the length of the VPORT view direction"
+    }
+  ],
+  "authoritativePdf": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "version": "5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "readPages": "69-85; chapter 9 complete",
+    "renderedReviewedPages": [
+      72,
+      83
+    ],
+    "originalAgentsPathAbsent": true
+  },
+  "finalBoundaryProbe": {
+    "schema": "libdxfrw-bounded-research-probe-v1",
+    "scope": "Read-only tracked-fixture HEADER inspection and independent reader observations; no production edits or support promotion",
+    "rows": [
+      {
+        "version": 18,
+        "maintenance": 55,
+        "appMaintenance": 55,
+        "logicalSize": 1512,
+        "allocationSize": 1512,
+        "declaredLow": 731,
+        "highWord": 0,
+        "bitSize": 5035,
+        "envelopeError": 1,
+        "payloadEnd": 751,
+        "trailerEnd": 769,
+        "source": "tests/fixtures/dwg/rtext_arctext.dwg",
+        "sourceSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+        "logicalSectionSha256": "0082c5560512fcd7fd100219e486ff47481a7c184ea98c994f2d90e22a1dc292",
+        "candidateOffsets": [
+          {
+            "extraBytes": 0,
+            "crcOffset": 751,
+            "sentinelMatches": false,
+            "storedCrc": 40959,
+            "calculatedCrc": 26706,
+            "suffixBytes": 743
+          },
+          {
+            "extraBytes": 4,
+            "crcOffset": 755,
+            "sentinelMatches": true,
+            "storedCrc": 10705,
+            "calculatedCrc": 10705,
+            "suffixBytes": 739
+          }
+        ]
+      },
+      {
+        "peer": "rtext_arctext",
+        "objectCount": 267,
+        "headerKeyCount": 298,
+        "entityTypes": {
+          "RTEXT": 1,
+          "ARCALIGNEDTEXT": 1,
+          "LINE": 45,
+          "MPOLYGON": 0
+        }
+      },
+      {
+        "version": 17,
+        "maintenance": 0,
+        "appMaintenance": 6,
+        "logicalSize": 490,
+        "allocationSize": 490,
+        "declaredLow": 452,
+        "highWord": 0,
+        "bitSize": 3096,
+        "envelopeError": 0,
+        "payloadEnd": 472,
+        "trailerEnd": 490,
+        "source": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+        "sourceSha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+        "logicalSectionSha256": "5f0cefbcae8bc35e2f6d2ad9fd5392d452c91403406f85935f80e731d5245501",
+        "candidateOffsets": [
+          {
+            "extraBytes": 0,
+            "crcOffset": 472,
+            "sentinelMatches": true,
+            "storedCrc": 45111,
+            "calculatedCrc": 45111,
+            "suffixBytes": 0
+          },
+          {
+            "extraBytes": 4,
+            "crcOffset": 476,
+            "sentinelMatches": false,
+            "storedCrc": 56544,
+            "calculatedCrc": 25364,
+            "suffixBytes": 0
+          }
+        ]
+      },
+      {
+        "peer": "ordinary_enc_AC1027",
+        "objectCount": 26,
+        "headerKeyCount": 298,
+        "entityTypes": {
+          "RTEXT": 0,
+          "ARCALIGNEDTEXT": 0,
+          "LINE": 3,
+          "MPOLYGON": 0
+        }
+      },
+      {
+        "version": 18,
+        "maintenance": 55,
+        "appMaintenance": 55,
+        "logicalSize": 1580,
+        "allocationSize": 1580,
+        "declaredLow": 799,
+        "highWord": 0,
+        "bitSize": 5579,
+        "envelopeError": 1,
+        "payloadEnd": 819,
+        "trailerEnd": 837,
+        "source": "tests/fixtures/dwg/mpolygon_solid.dwg",
+        "sourceSha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+        "logicalSectionSha256": "7d573a62186593cf383232109d4c42bea617df77f2cd16287e642984ed7d5792",
+        "candidateOffsets": [
+          {
+            "extraBytes": 0,
+            "crcOffset": 819,
+            "sentinelMatches": false,
+            "storedCrc": 40959,
+            "calculatedCrc": 26351,
+            "suffixBytes": 743
+          },
+          {
+            "extraBytes": 4,
+            "crcOffset": 823,
+            "sentinelMatches": true,
+            "storedCrc": 34452,
+            "calculatedCrc": 34452,
+            "suffixBytes": 739
+          }
+        ]
+      },
+      {
+        "peer": "mpolygon_solid",
+        "objectCount": 95,
+        "headerKeyCount": 298,
+        "entityTypes": {
+          "RTEXT": 0,
+          "ARCALIGNEDTEXT": 0,
+          "LINE": 0,
+          "MPOLYGON": 1
+        }
+      },
+      {
+        "version": 18,
+        "maintenance": 55,
+        "appMaintenance": 55,
+        "logicalSize": 1580,
+        "allocationSize": 1580,
+        "declaredLow": 799,
+        "highWord": 0,
+        "bitSize": 5579,
+        "envelopeError": 1,
+        "payloadEnd": 819,
+        "trailerEnd": 837,
+        "source": "tests/fixtures/dwg/large_radial.dwg",
+        "sourceSha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+        "logicalSectionSha256": "346921b0c310652e5d4767c591691fcd4a37677576b1c537fa8fbf9d0da2c944",
+        "candidateOffsets": [
+          {
+            "extraBytes": 0,
+            "crcOffset": 819,
+            "sentinelMatches": false,
+            "storedCrc": 40959,
+            "calculatedCrc": 36867,
+            "suffixBytes": 743
+          },
+          {
+            "extraBytes": 4,
+            "crcOffset": 823,
+            "sentinelMatches": true,
+            "storedCrc": 9280,
+            "calculatedCrc": 9280,
+            "suffixBytes": 739
+          }
+        ]
+      },
+      {
+        "peer": "large_radial",
+        "objectCount": 110,
+        "headerKeyCount": 298,
+        "entityTypes": {
+          "RTEXT": 0,
+          "ARCALIGNEDTEXT": 0,
+          "LINE": 3,
+          "MPOLYGON": 0
+        }
+      }
+    ],
+    "calls": [
+      {
+        "label": "rtext_arctext-section",
+        "command": [
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/header_probe",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/rtext_arctext.dwg",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/rtext_arctext.header.bin"
+        ],
+        "exit": 0,
+        "stdoutSha256": "b48715118eaefa561e1c352a11de22e06d92a73c4d8fb23b92699683807c8895",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "rtext_arctext-cli",
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/rtext_arctext.dwg",
+          "-y",
+          "-d",
+          "-v2010",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/rtext_arctext-converted.dxf"
+        ],
+        "exit": 1,
+        "stdoutSha256": "b395f0b8cb4d15c738c9352fd7d2a7dd1f203f576895f561fb73dae5deea2381",
+        "stderrSha256": "a50e96269e82b047930f7a451860b395741fd54101e2555dde8997c1d6258dc2"
+      },
+      {
+        "label": "rtext_arctext-libredwg",
+        "command": [
+          "/opt/homebrew/bin/dwgread",
+          "-O",
+          "JSON",
+          "-o",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/rtext_arctext-peer.json",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/rtext_arctext.dwg"
+        ],
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+      },
+      {
+        "label": "ordinary_enc_AC1027-section",
+        "command": [
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/header_probe",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/ordinary_enc_AC1027.header.bin"
+        ],
+        "exit": 0,
+        "stdoutSha256": "c593a7335e2b1808c9c381a8376f1f9ac50a440d07be286377e7052dc9e015b3",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "ordinary_enc_AC1027-cli",
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+          "-y",
+          "-d",
+          "-v2010",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/ordinary_enc_AC1027-converted.dxf"
+        ],
+        "exit": 0,
+        "stdoutSha256": "2e6416ebc412753546bac356d7f2b05392f49d70eb401f45877e7b99cbcf5e14",
+        "stderrSha256": "1cbcd4e66b0c0cfdb5c00c8a233adac4fda16cc69fe9cf2c8787136b6ccce737"
+      },
+      {
+        "label": "ordinary_enc_AC1027-libredwg",
+        "command": [
+          "/opt/homebrew/bin/dwgread",
+          "-O",
+          "JSON",
+          "-o",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/ordinary_enc_AC1027-peer.json",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/ordinary_enc_AC1027.dwg"
+        ],
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+      },
+      {
+        "label": "mpolygon_solid-section",
+        "command": [
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/header_probe",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/mpolygon_solid.dwg",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/mpolygon_solid.header.bin"
+        ],
+        "exit": 0,
+        "stdoutSha256": "498a64327df625e3d9ec50af2bec4ef54555a3a546797389a48befc8367481b5",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "mpolygon_solid-cli",
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/mpolygon_solid.dwg",
+          "-y",
+          "-d",
+          "-v2010",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/mpolygon_solid-converted.dxf"
+        ],
+        "exit": 1,
+        "stdoutSha256": "9e0beb5dff8d12a64671875c4eaf70de9ad939b6d4e47437215dbe12844b5e67",
+        "stderrSha256": "87aa1204d1b8f79a14656258ee92864fc5cd44781828d9940bde8597d09c9455"
+      },
+      {
+        "label": "mpolygon_solid-libredwg",
+        "command": [
+          "/opt/homebrew/bin/dwgread",
+          "-O",
+          "JSON",
+          "-o",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/mpolygon_solid-peer.json",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/mpolygon_solid.dwg"
+        ],
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+      },
+      {
+        "label": "large_radial-section",
+        "command": [
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/header_probe",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/large_radial.dwg",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/large_radial.header.bin"
+        ],
+        "exit": 0,
+        "stdoutSha256": "498a64327df625e3d9ec50af2bec4ef54555a3a546797389a48befc8367481b5",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "large_radial-cli",
+        "command": [
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/large_radial.dwg",
+          "-y",
+          "-d",
+          "-v2010",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/large_radial-converted.dxf"
+        ],
+        "exit": 1,
+        "stdoutSha256": "c0c92af58e864d27177fca7ca40dafc6904d759895115eac8a040de615d46749",
+        "stderrSha256": "8ac9e43b26457fcbc640e956aa03203e079ab03307772e6d09b77a1cae2a2f0a"
+      },
+      {
+        "label": "large_radial-libredwg",
+        "command": [
+          "/opt/homebrew/bin/dwgread",
+          "-O",
+          "JSON",
+          "-o",
+          "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/large_radial-peer.json",
+          "/Users/dli/dev/libdxfrw/tests/fixtures/dwg/large_radial.dwg"
+        ],
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+      }
+    ],
+    "recipes": {
+      "header_probe.cpp": "#include \"src/intern/dwgreader18.h\"\n#include \"src/intern/dwgheadersection.h\"\n#include <fstream>\n#include <iostream>\n#include <memory>\n\nclass HeaderProbe final : public dwgReader18 {\npublic:\n    HeaderProbe(std::unique_ptr<dwgBuffer> buffer, dwgRW* facade)\n        : dwgReader18(std::move(buffer), facade) {}\n    bool inspect(const char* output) {\n        if (!readMetaData() || !readFileHeader()) return false;\n        const auto found = sections.find(secEnum::HEADER);\n        if (found == sections.end() || !parseDataPage(found->second)) return false;\n        const auto& section = found->second;\n        dwgBuffer buffer(objData.get(), section.size, &decoder);\n        if (!buffer.setPosition(16u)) return false;\n        const auto envelope = inspectDwgHeaderEnvelope(buffer, version,\n                                                       appMaintenanceVersion);\n        const auto count = buffer.getRawLong32();\n        const auto high = dwgHeaderHasHighSizeWord(version, appMaintenanceVersion)\n            ? buffer.getRawLong32() : 0u;\n        const auto bits = version > DRW::AC1018 ? buffer.getRawLong32() : 0u;\n        std::ofstream dump(output, std::ios::binary);\n        dump.write(reinterpret_cast<const char*>(objData.get()),\n                   static_cast<std::streamsize>(section.size));\n        std::cout << \"{\\\"version\\\":\" << static_cast<unsigned>(version)\n                  << \",\\\"maintenance\\\":\" << static_cast<unsigned>(maintenanceVersion)\n                  << \",\\\"appMaintenance\\\":\" << static_cast<unsigned>(appMaintenanceVersion)\n                  << \",\\\"logicalSize\\\":\" << section.size\n                  << \",\\\"allocationSize\\\":\" << uncompSize\n                  << \",\\\"declaredLow\\\":\" << count << \",\\\"highWord\\\":\" << high\n                  << \",\\\"bitSize\\\":\" << bits\n                  << \",\\\"envelopeError\\\":\" << static_cast<unsigned>(envelope.error)\n                  << \",\\\"payloadEnd\\\":\" << envelope.payloadEnd\n                  << \",\\\"trailerEnd\\\":\" << envelope.trailerEnd << \"}\\n\";\n        return buffer.isGood() && dump.good();\n    }\n};\n\nint main(int argc, char** argv) {\n    if (argc != 3) return 2;\n    dwgRW facade(argv[1]);\n    (void)facade.getPreview(); // Detect version using the existing file facade.\n    if (facade.getVersion() != DRW::AC1027\n        && facade.getVersion() != DRW::AC1032) return 3;\n    std::ifstream source(argv[1], std::ios::binary);\n    HeaderProbe probe(std::make_unique<dwgBuffer>(&source), &facade);\n    return probe.inspect(argv[2]) ? 0 : 4;\n}\n",
+      "probe.py": "import hashlib\nimport json\nfrom pathlib import Path\nimport sys\n\nREPO = Path('/Users/dli/dev/libdxfrw')\nROOT = Path(__file__).resolve().parent\nsys.path.insert(0, str(REPO / 'tools'))\nfrom bounded_process import run_bounded\n\ndef digest(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\ncalls = []\ndef run(label, command, limit=1048576):\n    result = run_bounded(command, 20, limit, cwd=ROOT)\n    # Logs are generated observations, never pre-existing user files.\n    for stream in ('stdout', 'stderr'):\n        (ROOT / (label + '.' + stream)).write_bytes(getattr(result, stream))\n    calls.append(dict(label=label, command=list(map(str, command)),\n                      exit=result.returncode,\n                      stdoutSha256=hashlib.sha256(result.stdout).hexdigest(),\n                      stderrSha256=hashlib.sha256(result.stderr).hexdigest()))\n    return result\n\nsamples = ['rtext_arctext', 'ordinary_enc_AC1027', 'mpolygon_solid', 'large_radial']\nrows = []\nfor name in samples:\n    source = REPO / 'tests/fixtures/dwg' / (name + '.dwg')\n    if True:\n        section = ROOT / (name + '.header.bin')\n        result = run(name + '-section', [str(ROOT / 'header_probe'), str(source), str(section)])\n        assert result.returncode == 0, result.stderr\n        row = json.loads(result.stdout)\n        raw = section.read_bytes()\n        end_sentinel = bytes.fromhex('3084e0dc0221c756a0839747b192cca0')\n        row['source'] = str(source.relative_to(REPO))\n        row['sourceSha256'] = digest(source)\n        row['logicalSectionSha256'] = digest(section)\n        row['candidateOffsets'] = []\n        for delta in (0, 4):\n            offset = 20 + row['declaredLow'] + delta\n            crc = 0xc0c1\n            for byte in raw[16:offset]:\n                crc ^= byte\n                for _ in range(8):\n                    crc = (crc >> 1) ^ (0xa001 if crc & 1 else 0)\n            row['candidateOffsets'].append(dict(\n                extraBytes=delta, crcOffset=offset,\n                sentinelMatches=raw[offset+2:offset+18] == end_sentinel,\n                storedCrc=int.from_bytes(raw[offset:offset+2], 'little'),\n                calculatedCrc=crc, suffixBytes=max(0, len(raw)-offset-18)))\n        rows.append(row)\n    run(name + '-cli', [str(REPO / 'build/dwg2dxf/dwg2dxf'), str(source),\n                        '-y', '-d', '-v2010', str(ROOT / (name + '-converted.dxf'))],\n                        limit=4194304)\n    peer = run(name + '-libredwg', ['/opt/homebrew/bin/dwgread', '-O', 'JSON',\n                                   '-o', str(ROOT / (name + '-peer.json')), str(source)])\n    if peer.returncode == 0:\n        document = json.loads((ROOT / (name + '-peer.json')).read_text())\n        objects = document.get('OBJECTS', [])\n        rows.append(dict(peer=name, objectCount=len(objects),\n                         headerKeyCount=len(document.get('HEADER', {})),\n                         entityTypes={key:sum(o.get('entity') == key for o in objects)\n                                      for key in ('RTEXT', 'ARCALIGNEDTEXT', 'LINE', 'MPOLYGON')}))\n\nreport = dict(schema='libdxfrw-bounded-research-probe-v1',\n              scope='Read-only tracked-fixture HEADER inspection and independent reader observations; no production edits or support promotion',\n              rows=rows, calls=calls,\n              recipes={name:(ROOT/name).read_text() for name in ('header_probe.cpp', 'probe.py')},\n              sourceHashes={path:digest(REPO/path) for path in (\n                  'src/intern/dwgheadersection.h','src/drw_header.cpp',\n                  'src/intern/dwgreader.cpp','src/intern/dwgreader18.cpp',\n                  'src/drw_datastorage.cpp','build/libdxfrw.a','build/dwg2dxf/dwg2dxf')})\n(ROOT / 'results.json').write_text(json.dumps(report, indent=2)+'\\n')\nprint(json.dumps(dict(rows=rows, calls=[dict(label=c['label'], exit=c['exit']) for c in calls]), indent=2))\n"
+    },
+    "sourceHashes": {
+      "src/intern/dwgheadersection.h": "ac1569ad1cf91b5593e0058aa44833348825ee21eff6f7df15bdd267bcf3c726",
+      "src/drw_header.cpp": "0479d21bb73c5fde605fed24c7f1a618a1bd308f9d42e089d773b2a4f2f7c555",
+      "src/intern/dwgreader.cpp": "dcea98497365303865f714d4c78bb27341fb0ebc5abf307a24b47dfdb4b68dbe",
+      "src/intern/dwgreader18.cpp": "202a5287284cd911cccd65685f0eae004365ab29530b113ca97330592e1b1505",
+      "src/drw_datastorage.cpp": "152a5dbf10fd68eee2fbe293b02cb39ef4cbb195b0271877d5ad514994922401",
+      "build/libdxfrw.a": "7902a87220bce93eea1b4a4cc2e5be21474980759f194fb18e5fb36a950ba8af",
+      "build/dwg2dxf/dwg2dxf": "b1b190b6cfae3e6f5cd8f0ce59207ed74f878990ed205cfd2a32996d062ff825"
+    }
+  },
+  "probeCompile": {
+    "command": [
+      "c++",
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-I/Users/dli/dev/libdxfrw",
+      "header_probe.cpp",
+      "/Users/dli/dev/libdxfrw/build/libdxfrw.a",
+      "-o",
+      "header_probe"
+    ],
+    "exit": 0,
+    "scope": "Scratch-only observational subclass; no modifications to readers or buffers"
+  },
+  "peerRuntime": {
+    "path": "/opt/homebrew/bin/dwgread",
+    "version": "0.14",
+    "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "sourcePinNotRuntimeBuildClaim": true,
+    "stderr": "SUCCESS on all four final runs; this is not a native producer audit or whole-format qualification"
+  },
+  "currentLibreDwgSource": {
+    "url": "https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/decode.c#L2430-L2510",
+    "sha256": "b71d2dc0ed27659fe2731372543c6c2a8c60b651171bece06fc5783ea9bfc910",
+    "review": "Modern HEADER reads RL and separate bit/string/handle streams without matching libdxfrw's strict exact-total-length/CRC-trailer admission; runtime read success therefore corroborates reachability/fields only"
+  },
+  "finalProjectionProbe": {
+    "version": "1.4.4",
+    "module": "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/disassemble.py",
+    "cExtensions": false,
+    "moduleSha256": "b20b203d7ce9b542f7182a613a71bae5b40bc8bb59aa153a680992187e72786f",
+    "primitiveRows": [
+      {
+        "type": "LINE",
+        "empty": false,
+        "vertexCount": 2
+      },
+      {
+        "type": "RAY",
+        "empty": true,
+        "vertexCount": 0
+      },
+      {
+        "type": "XLINE",
+        "empty": true,
+        "vertexCount": 0
+      },
+      {
+        "type": "3DSOLID",
+        "empty": true,
+        "vertexCount": 0
+      }
+    ],
+    "authoredSabBytes": 5489,
+    "clippingEnabled": true,
+    "clippedBlockDecomposition": [
+      {
+        "start": [
+          2,
+          4,
+          10
+        ],
+        "end": [
+          3,
+          4,
+          10
+        ]
+      },
+      {
+        "start": [
+          12,
+          4,
+          10
+        ],
+        "end": [
+          13,
+          4,
+          10
+        ]
+      }
+    ],
+    "scope": "Actual installed helper projection only; not whole reader/native/ACIS semantic qualification",
+    "recipe": "import hashlib\nimport json\nfrom pathlib import Path\nimport ezdxf\nfrom ezdxf import disassemble, xclip\nfrom ezdxf.acis import api\nfrom ezdxf.render import forms\n\ndoc = ezdxf.new('R2013')\nmsp = doc.modelspace()\nentities = [msp.add_line((2, 3, 5), (7, 11, 13)),\n            msp.add_ray((2, 3, 5), (1, 2, 3)),\n            msp.add_xline((2, 3, 5), (1, 2, 3))]\nsolid = msp.add_3dsolid()\napi.export_dxf(solid, [api.body_from_mesh(forms.cube())])\nassert len(solid.sab) > 0\nentities.append(solid)\nrows = []\nfor entity in entities:\n    primitive = disassemble.make_primitive(entity)\n    rows.append(dict(type=entity.dxftype(), empty=primitive.is_empty,\n                     vertexCount=len(list(primitive.vertices()))))\nassert rows[0]['vertexCount'] == 2 and not rows[0]['empty']\nassert all(row['empty'] for row in rows[1:])\n\nblock = doc.blocks.new('CLIPPED')\nblock.add_line((0, 0, 3), (1, 0, 3))\nblock.add_line((10, 0, 3), (11, 0, 3))\ninsert = msp.add_blockref('CLIPPED', (2, 4, 7))\nclip = xclip.XClip(insert)\nclip.set_block_clipping_path([(-1, -1), (2, -1), (2, 1), (-1, 1)])\nassert clip.has_clipping_path and clip.is_clipping_enabled\nprojected = list(disassemble.recursive_decompose([insert]))\nlines = [dict(start=list(e.dxf.start), end=list(e.dxf.end)) for e in projected]\nassert lines == [dict(start=[2,4,10], end=[3,4,10]),\n                 dict(start=[12,4,10], end=[13,4,10])]\n\nmodule = Path(disassemble.__file__)\nreport = dict(version=ezdxf.__version__, module=str(module),\n              cExtensions=ezdxf.options.use_c_ext,\n              moduleSha256=hashlib.sha256(module.read_bytes()).hexdigest(),\n              primitiveRows=rows, authoredSabBytes=len(solid.sab),\n              clippingEnabled=clip.is_clipping_enabled,\n              clippedBlockDecomposition=lines,\n              scope='Actual installed helper projection only; not whole reader/native/ACIS semantic qualification',\n              recipe=Path(__file__).read_text())\nprint(json.dumps(report, indent=2))\n"
+  },
+  "projectionExecution": {
+    "python": "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/bin/python",
+    "args": [
+      "-I",
+      "-B",
+      "projection_probe.py"
+    ],
+    "timeoutSeconds": 10,
+    "perStreamCaptureBytes": 65536,
+    "exit": 0,
+    "environment": {
+      "XDG_CONFIG_HOME": "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/empty-config",
+      "EZDXF_DISABLE_C_EXT": "1"
+    },
+    "counts": {
+      "primitiveControls": 4,
+      "clippedBlockControls": 1
+    },
+    "isolation": "Existing bounded_process runner; no serialized drawing or package install"
+  },
+  "harnessCorrections": [
+    "Initial system Python could not import ezdxf (exit 1); used the already existing task-private ezdxf 1.4.4 environment, no installation.",
+    "Final boundary packet expands earlier 8/9-cell exploratory packets to 12 cells. Three local CLI HEADER failures are retained; these expected research observations are not green acceptance tests."
+  ],
+  "conclusions": [
+    "All three tracked archived ODA-converted AC1032 fixtures fail current HEADER bounds at offset16 before entity dispatch. At CRC offset24+RL, sentinel and independent CRC16 match; current20+RL does not. Each has739 trailing logical bytes (733/736/737 nonzero), not proved zero padding.",
+    "Tracked libdxfrw-writer-authored AC1027 control has CRC at20+RL and exact trailer end. Do not globally add four or globally relax total length.",
+    "ODA provenance is source-documented but converter build/version and trailing-byte semantics remain unverified. No support claim or parser repair is implied by CRC agreement.",
+    "ACadSharp1305 is merged; local DataStorage uses absolute page-reference offsets rather than the reported shared-cursor loop. Add a tiny multi-page/following-record calibration only under the existing owner, not a new speculative production fix.",
+    "dwg-rs parse_strict is minimum-prefix validation, not full HEADER conformance. Exclude it as HEADER trailer/CRC/semantic admission oracle.",
+    "ezdxf 1.4.4 projection returns empty RAY/XLINE/nonempty-SAB3DSOLID primitives and ignores enabled XCLIP during recursive decomposition. Use storage and visible projection as different contracts."
+  ],
+  "nextReadySlices": [
+    "7BE.9a evidence complete; 7BE.9b bounded profile decision and 7BE.9c stream-bound repair pending authoritative container review",
+    "7BE.9d full retained FreeCAD CLI harness, including later MPOLYGON and large-radial regression",
+    "7AH/7AQ report-only oracle negatives and coverage gating",
+    "S3.2 tiny AcDs multi-page cursor/suffix calibration, independent semantics still external"
+  ],
+  "unchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportPromotions": 0
+  },
+  "limits": [
+    "Not a clean rebuild or full suite; binaries/source hashes bound explicitly.",
+    "No native FreeCAD/LibreCAD/Linux/Windows/CAD/kernel application executed.",
+    "No arbitrary sentinel scanning, fallback parsing, changed fixture bytes, changed parser guards or code fix was performed.",
+    "External semantic evidence, numeric/native 3D interpretation and historical J268 membership remain unresolved."
+  ],
+  "scratchDirectory": "/private/tmp/libdxfrw-broader-boundaries.eCaIDz"
+}

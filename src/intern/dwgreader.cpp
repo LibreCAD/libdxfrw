@@ -5984,6 +5984,20 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
              DwgIntegritySeverity::Error, envelope, 0u, 0u, false);
       return false;
     }
+    if (envelope.excludesHighSizeWord) {
+      auto compatibility = envelope;
+      compatibility.offset = envelope.start;
+      report(DwgIntegrityCheckKind::HeaderSectionCompatibility,
+             DwgIntegritySeverity::Warning, compatibility,
+             envelope.payloadEnd - 4u, envelope.payloadEnd, true);
+    }
+    if (envelope.unclaimedBytes != 0u) {
+      auto unclaimed = envelope;
+      unclaimed.offset = envelope.trailerEnd;
+      report(DwgIntegrityCheckKind::HeaderSectionUnclaimedData,
+             DwgIntegritySeverity::Warning, unclaimed,
+             envelope.trailerEnd, buf->size(), true);
+    }
     if (!envelope.compact) {
       auto probe = buf->forkIndependent();
       const auto calculated = probe.crc8(0xC0C1u,

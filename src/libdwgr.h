@@ -159,7 +159,9 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     TemplateDescriptionUnsupported,
     HeaderSectionBounds,
     HeaderSectionSentinel,
-    HeaderSectionCrc
+    HeaderSectionCrc,
+    HeaderSectionCompatibility,
+    HeaderSectionUnclaimedData
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.

@@ -729,6 +729,8 @@ if(LIBDXFRW_BUILD_TESTS)
         tests/dwg_reader_matrix_tests.cpp
         dwg2dxf/dx_iface.cpp)
     target_compile_features(libdxfrw_dwg_reader_matrix_tests PRIVATE cxx_std_17)
+    target_compile_definitions(libdxfrw_dwg_reader_matrix_tests PRIVATE
+        LIBDXFRW_READER_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dwg")
     target_include_directories(libdxfrw_dwg_reader_matrix_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/src/intern

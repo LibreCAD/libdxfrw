@@ -2,7 +2,21 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
-**Latest research delta (2026-10-15, committed baseline `a06447c`):** the
+**Latest research delta (2026-10-15, committed baseline `2063b50`):** the
+[HEADER, AcDs and projection-oracle readiness review](#header-acds-and-projection-oracle-readiness-review-2026-10-15)
+replaces the generic RTEXT investigation with bounded7BE.9 substeps. A final
+12-cell tracked-fixture packet retains three local AC1032 HEADER failures,
+four independent LibreDWG reads and four observational section probes; the
+AC1027 CLI control passes. Three ODA-converted fixtures share a four-byte
+trailer-offset difference and739 nonzero-containing suffix bytes. This is
+evidence for a profile decision, not permission to weaken size checks.
+Five actual ezdxf helper controls refine projection eligibility; ACadSharp
+#1304/#1305/#1306 are now verified merged. No production/test source, fixture,
+dependency, registered test, finding/top-level-subplan count or support claim
+changes. All six J items remain `DEFERRED_EXTERNAL`. Durable receipt:
+`docs/research/broader-header-acds-oracle-readiness-2026-10-15.json`.
+
+**Prior consumer-semantics research delta (2026-10-15, committed baseline `a06447c`):** the
 [consumer-semantics and executable-oracle readiness review](#broader-consumer-semantics-and-executable-oracle-readiness-review-2026-10-15)
 adds eight authored Assimp6.0.5 runtime controls, ten exact extracted FreeCAD
 helper observations and140 unchanged Compatible-codec observations. It pins
@@ -54,9 +68,28 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance `7d21d2e`;
-Plan-Slice:Slice3.3c.2b.2 / LOCAL_IMPLEMENTATION_COMPLETE):**
+**Current handoff (2026-10-15, provenance `2063b50`;
+Plan-Slice:7BE.9bc / LOCAL_IMPLEMENTATION_COMPLETE):**
 this queue supersedes historical “next” actions and plan-only research states.
+The HEADER profile/stream repair is locally implemented with a separate
+receipt: `docs/research/header-compatibility-7be-9bc-2026-10-15.json`.
+Both fixed-offset size profiles preserve exact sentinel/CRC bounds; only the
+witnessed AC1032 alternate with zero unknown word and matching CRC admits an
+unclaimed suffix, explicitly reported rather than declared padding. Full
+DATA/string/handle parsing is bounded; ODA's optional debug-only trailing
+shorts no longer consume string bytes. Canonical warning behavior and compact
+callers remain compatible. Four permanent tracked-file API regressions pass,
+including16 HEADER values matching recorded independent reads, physical frame
+accounting and concrete RTEXT/ARCTEXT/MPOLYGON callbacks. Three reader cells
+pass in the retained four-cell selection3/4 in4.29s; strict three-TU/build/lc3
+and final focused ASan/UBSan1/1 pass. The CLI cell remains red at a later
+export boundary, not HEADER6:24 typed DWG VISUALSTYLE records have no raw DXF
+companions, so the graph preflight rejects before traversal. Do not fabricate
+raw carriers or weaken that check. Next7G/7F VISUALSTYLE source-format-aware
+serialization/closure;9d full CLI acceptance remains open, with class-CRC and
+unclaimed-suffix warnings still observable. No fixture, callback, support/J
+promotion or full-suite/native result follows. Historical research remains
+frozen at its pre-repair observations.
 The writer, bounded admission, early planning and final publication proof are
 integrated separately (`57b98cd`, `daf6a0f`, `1c85111`, `98f0eae`).
 The final same-data identity/retry slice is integrated separately as7R.2d.
@@ -221,11 +254,13 @@ checkout or an executed native app. Earlier291858e counterevidence remains
 historical, not relabeled as fresh. The failing four-row packet is retained;
 the passing three-row acceptance packet explicitly excludes this unresolved
 broader reader cell. No fixture/assertion/reader guard was weakened.
-Next ready local action is7BE/7F/Slice5: inspect the relevant ODA HEADER/data-
-stream chapter and source-bound trace for this tracked AC1032 witness, isolate
-the first header failure before interpreting the later CRC warning, and test
-the smallest justified repair. Do not patch RTEXT entity dispatch or suppress
-integrity checks based only on the final warnings. CLI exact-profile delivery
+The subsequent research at2063b50 reads ODA§9 and captures source-bound traces
+for all three tracked ODA-converted AC1032 witnesses, plus an AC1027 control.
+7BE.9b/c is subsequently locally implemented as recorded in the current
+handoff;9d now depends on the typed DWG VISUALSTYLE-to-DXF graph handoff.
+See the latest research section and7BE.9 below. Do not patch RTEXT entity
+dispatch or suppress integrity checks based only on the final warnings.
+CLI exact-profile delivery
 is locally complete, not full3.3 mapping/producer/native/whole-goal completion;
 all six J gates and support counts remain unchanged.
 
@@ -9064,9 +9099,12 @@ API tests, encrypted file-header CRC, page checks and CLASSES compatibility.
    data, two-byte CRC and16-byte ending sentinel. Use appMaintenanceVersion
    from file byte0x12, not maintenanceVersion at0x0B: the word is present for
    AC1024/AC1027 only when appMaintenanceVersion>3, and always for AC1032+.
-   Do not add the
-   optional word to the RL twice, assume an undocumented high-word meaning,
-   seek to allocated-buffer end or borrow CLASSES' version-specific tail probes.
+   Current writer-authored controls include that word within RL; the later
+   tracked ODA-converted witnesses locate a CRC-valid trailer four bytes
+   farther on and retain a logical suffix. Resolve those distinct profiles
+   under7BE.9, not an unqualified universal RL-includes-word assertion. Do not
+   count the word twice, invent a high-word meaning, seek to allocation end,
+   or borrow CLASSES' version-specific tail probes.
    Check the end sentinel at the computed declared offset on an independent
    cursor. Bad declared size/sentinel is a section-level structural failure:
    return false, publish no HEADER variables and preserve first-stage errors.
@@ -9154,6 +9192,98 @@ R13/R14 partners remain open. Next add generated logical-section controls and
 maintenance partners; rerun the sanitizer only if those edits change
 cursor/window lifetime. Test-normalized stale CRCs are reader inputs only;
 they do not validate writer sealing. Do not run a full corpus per substep.
+
+**7BE.9 / current tracked-producer framing follow-up (2063b50):** the generated
+7BE.8 partners are committed (`9048257`); do not restart that slice. New
+research observes a different archived ODA-converted profile in three already
+tracked fixtures. Scope remains PAR-96/7BE/Slice5, not a new top-level finding.
+
+- **9a EVIDENCE_RECORDED:** retain exact input, library/CLI, logical-section
+  and log hashes plus bytewise CRC results from the new receipt. ODA§9 was
+  read completely; pages72/83 were visually checked. The actual5.4.1 file is
+  `~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf`; the unsuffixed
+  AGENTS path is absent. Do not edit that user document/instruction file.
+- **9b LOCAL_IMPLEMENTATION_COMPLETE / EXPLICIT_COMPATIBILITY_PROFILE:** read the relevant ODA container/logical-size
+  chapter before code edits. Distinguish section-directory length, inner RL,
+  optional word, stream endpoints, CRC/end sentinel and trailing bytes. The
+  three archived ODA outputs have CRC at24+RL; the generated AC1027 control
+  has CRC at20+RL. Select a documented or explicitly compatibility-scoped
+  profile with checked arithmetic and bounded discriminators. Do not globally
+  add4, replace equality by`<=`, scan for arbitrary sentinels, use file hashes
+  as parser allowlists, or infer all AC1032/ODA files follow this profile.
+  CRC/sentinel agreement alone cannot justify dropping739 bytes; classify the
+  suffix or retain its opaque/unresolved disposition. Converter build/version
+  is not established by the pinned provenance statement or maintenance55.
+- **9c LOCAL_IMPLEMENTATION_COMPLETE / BOUNDED_STREAMS:** make the smallest shared-envelope repair only
+  after9b. Bound data/string/handle forks by the selected inner body/trailer,
+  not directory/page capacity; preserve bit origins, shared failure state,
+  compact AC1015 controls and transactional HEADER publication. Reject
+  ambiguous profiles, overrun, truncation, impossible bit/string endpoints
+  and bad sentinels. Keep established checksum-warning compatibility for an
+  otherwise selected canonical profile; do not use a CRC mismatch to switch
+  profiles speculatively. Report any admitted compatibility/suffix condition
+  through existing bounded diagnostics. Writer sealing must retain its own
+  proven span unless a separately reviewed writer change is necessary.
+- **9d ACCEPTANCE_PENDING:** extend existing reader-matrix/hardening cases with
+  tiny literal vectors for both observed layouts, optional-word boundaries,
+  nonzero suffix, overlapping-marker exclusion, CRC flip, truncated declared body,
+  sentinel corruption and same-reader retry. Re-run the retained complete
+  FreeCAD CLI harness, including its later MPOLYGON assertions, and the
+  tracked large-radial case. Assert actual typed records/fields and following
+  entities, not just exit0. Check the later class-CRC warning separately after
+  HEADER is repaired; a passing header is not conversion completeness.
+  Use strict touched-TU builds and focused CTests; run the affected shared
+  reader safety gate once, sanitizer once if cursor/window lifetime changes,
+  and the full suite only at a shared-reader/release phase gate.
+
+If suffix semantics remain unresolved, retain the refusal and named blocker;
+continue independent7F.1b or7AH/7AQ report work. Research and admitted-profile
+parsing are not native CAD acceptance or support promotion. After each item,
+update status/evidence/remaining dependency; after each implementation commit,
+show the hash, focused result and next ready slice immediately.
+
+**9b/c acceptance and9d residual:** ODA§4, printed23–35, was read completely
+and page29 rendered/reviewed before edits;§9 and bit codes were also reviewed.
+The suffix is retained as an explicitly unresolved diagnostic disposition,
+not copied raw bytes or normative padding. Alternate admission is AC1032-only,
+zero-word/CRC/sentinel-bound and never scans; canonical exact-length/CRC-warning
+behavior is unchanged. Optional unknown type5/6 shorts are not required by
+ODA§9 p83 and cannot consume a full modern HEADER's string stream merely for
+debug output. DATA/string/handle forks retain origins/health and HEADER vars
+publish transactionally. No DWG writer bytes or sealing spans changed.
+The candidate end sentinels overlap at a four-byte displacement: canonical
+byte4 is0x02, while alternate byte0 must be0x30. Both exact markers therefore
+cannot coexist; there is no ambiguous dual-valid profile to choose by trial
+parsing. The distant-marker negative separately guards against scanning.
+
+Existing reader-matrix now contains three positive suffix profiles, eight
+malformed-envelope/body mutations, three string/footer mutations, two version
+exclusions, distant-sentinel refusal, CRC-valid short-body refusal, same-reader
+retry and capped-diagnostic controls. Four already tracked file reads verify
+exact public HEADER fields,267/95/110/26 physical frame denominators and
+RTEXT/ARCTEXT/MPOLYGON callbacks. Final source-bound selected gate remains3/4
+in4.29s (three reader tests pass; unchanged CLI smoke fails during output),
+strict three-TU/build/lc3 pass, and fresh focused ASan/UBSan1/1 in1.20s passes.
+An intermediate test-only subclass-of-final build failure was corrected;
+its stale-binary CTest packet is not acceptance. The final packet runs the
+new permanent cases after successful rebuild.
+
+**Self-unblocking9d → existing7G/7F:** actual API probes show all three
+advanced files retain24 typed VISUALSTYLEs, zero raw DXF style companions and
+no duplicate extension-source handles. RTEXT's27 linetypes+13 dictionaries+
+24 styles explain the64 source records before graph traversal; the first
+preflight rejection is the raw/typed-style cardinality check. The DWG reader
+does not fabricate a DXF raw companion; this is a source-format handoff,
+not another HEADER or entity-dispatch defect. Next define/implement an exact
+typed-DWG→DXF style serializer and rooted reference closure under existing
+7G/7F. Preserve the full raw-companion requirement for DXF-origin replay,
+versioned property/color/handle roles, unknown-body refusal, destination/retry
+atomicity and2D defaults. Do not silently drop styles, manufacture source raw
+evidence, remove references or bypass graph checks to green the smoke. Missing
+DWG NOD identity is separately observed, not assumed to be the only further
+blocker. Start with tiny typed/raw source-format positives and omission/
+malformed-body negatives, then one exact full CLI checkpoint with both later
+feature assertions; require the complete route before closing9d.
 
 ### 7BF — Resolve LTYPE units and preserve bounded editable payloads
 
@@ -13057,3 +13187,115 @@ Counts remain122 findings/70 top-level subplans and1493D ledger items
 `DEFERRED_EXTERNAL`, non-promoting. Native Linux/Windows FreeCAD, independent
 known-dimension ACIS/AcDs semantics and ODA/version-witness gates remain
 separate. No DWG byte-layout change is inferred from these comparisons.
+
+## HEADER, AcDs and projection-oracle readiness review (2026-10-15)
+
+Research/planning at committed HEAD`2063b501ccc1827d8914c0de6a450b3d694e62cc`.
+No production/test source, existing drawing, dependency, CI registration or
+remote state is changed. Earlier research/acceptance receipts remain frozen.
+The reproducible recipes, input/artifact/log hashes, upstream pins and scoped
+results are saved in
+[the research receipt](docs/research/broader-header-acds-oracle-readiness-2026-10-15.json).
+This section and the current7BE.9 queue supersede historical “next” actions.
+
+### Executed HEADER framing evidence
+
+The final12-cell packet comprises four scratch-only section inspections,
+four actual CLI conversions and four installed LibreDWG0.14 JSON reads.
+Each child has20s/per-stream capture bounds; strict C++17 probe compilation
+passes. All four peer reads exit0/print SUCCESS; the current CLI passes the
+AC1027 control but retains all three AC1032 `BAD_READ_HEADER`6 failures.
+This is not a12/12 acceptance pass or a new native FreeCAD run.
+
+| Already tracked witness | Directory logical bytes | RL / bit-size | CRC location matching independent CRC16 and ending sentinel | Remaining logical bytes |
+| --- | --- | --- | --- | --- |
+| ODA-converted `rtext_arctext.dwg`, AC1032 |1512|731 /5035|755 =24+RL; stored/calculated10705|739;733 nonzero|
+| ODA-converted `mpolygon_solid.dwg`, AC1032 |1580|799 /5579|823 =24+RL; stored/calculated34452|739;736 nonzero|
+| ODA-converted `large_radial.dwg`, AC1032 |1580|799 /5579|823 =24+RL; stored/calculated9280|739;737 nonzero|
+| libdxfrw-writer-authored `ordinary_enc_AC1027.dwg` |490|452 /3096|472 =20+RL; stored/calculated45111|0|
+
+All four optional words are zero. Application maintenance is55 for the three
+AC1032 inputs and6 for the AC1027 control. The current helper rejects the
+AC1032 envelope at offset16 before `DRW_Header::parseDwg` is called: both its
+20+RL trailer position and exact-total-length premise disagree with these
+witnesses. A global+4 would break the positive control. The suffix is not
+zero padding, and no claim is made that arbitrary trailing bytes are valid.
+
+The pinned [LibreCAD fixture provenance](https://github.com/LibreCAD/LibreCAD/blob/3c7785ebbcbfc8f3c8f79dbba093aff09cdec753/librecad/src/lib/filters/tests/testdata/PROVENANCE.md)
+identifies the three advanced files as ODA File Converter outputs from small
+project-authored DXFs; ordinary controls are libdxfrw-writer generated. Thus
+these are eligible existing repository artifacts, not newly downloaded test
+drawings. The provenance does not identify the converter build/version or
+explain the suffix. Do not infer either from maintenance55.
+
+ODA5.4.1§§6–9, printed69–85, were read, with full-page visual review of72/83.
+The documented envelope, version-gated optional word and CRC origin inform
+the repair, but do not independently settle this producer's surplus bytes.
+The [current LibreDWG HEADER path](https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/decode.c#L2430-L2510)
+does not impose the local exact-total-length/inner-trailer admission. Its
+installed0.14 executable is separately hash-bound, not asserted to be built
+from that current source pin. Peer output contains267/95/110 objects for
+RTEXT/MPOLYGON/radial respectively, with RTEXT1/ARCALIGNEDTEXT1 and MPOLYGON1
+in their respective documents. Those fields corroborate reader reachability,
+not full graph, geometry, integrity or native producer acceptance.
+
+**Decision:** execute7BE.9b–d, not an RTEXT/MPOLYGON dispatch patch. Preserve
+the failing broad CLI harness and its later feature assertions. CRC-valid
+alternative framing is a lead for an explicit bounded profile, not a permit
+for sentinel scanning, swallowing suffixes or relabeling the existing
+first-stage error as CLASSES8. No reader guard was changed in this pass.
+
+### Broader source crosswalk and executable projection calibration
+
+| Primary evidence | Local applicability and implementation-ready decision |
+| --- | --- |
+| ACadSharp [merged#1305](https://github.com/DomCR/ACadSharp/pull/1305), merge25de68c; [current Prototype1b reader](https://github.com/DomCR/ACadSharp/blob/9bd47f48766a371c441e8d1ab80733e21f62b711/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs) | The peer lost its descriptor cursor after visiting a blob page; the patch restores it for the next page. Its reported large/private2013 drawing and self-comparison are not independently executed here. Local `drw_datastorage.cpp` computes every page-reference offset absolutely and validates page index/count/start/length; the same cursor pattern is absent. Under existing S3.2/Slice8, add a tiny two-/three-page authored descriptor with unequal final page, out-of-order physical segments, a second record and suffix sentinel. Assert exact assembly, joins and malformed-page diagnostics; no multi-megabyte fixture or speculative parser rewrite. Before using ACadSharp as a multi-page oracle, calibrate its actual executable at a revision including this merge. Payload equality is not ACIS semantics. |
+| dwg-rs [d0ce39be `header_vars.rs`](https://github.com/DrunkOnJava/dwg-rs/blob/d0ce39be6a679697554db0ee1f84f0d0671bf081/src/header_vars.rs) | `parse_strict` rejects inputs shorter than20 bytes, then copies the prefix/body. Sentinel validity is a separate predicate; trailer/CRC and versioned HEADER fields are not validated by this function, and offset16 is named size-in-bits. Limit the peer to separately calibrated container/byte extraction. Under7AQ, reject a claimed HEADER-conformance vote based merely on this method name or successful CLI load; add minimum-prefix, wrong-sentinel and size-unit report mutations if enabling it. Source review only, no Rust build/runtime qualification. |
+| ACadSharp [merged#1304](https://github.com/DomCR/ACadSharp/pull/1304), mergecb4ab17; [merged#1306](https://github.com/DomCR/ACadSharp/pull/1306), merge8e921d9 | This supersedes the older “open#1304” snapshot, not its frozen receipt. Local DXF already retains dimension74/75, and VPORT import/export retains full direction components. Do not add duplicate fixes. Keep nonunit VPORT magnitude and arrow flags in the scoped peer field profile; a DWG-based version condition in the peer's DXF patch does not establish the DXF boundary. Reuse existing7H/7O/7AA controls, actual dependency/runtime pins and source-version gates. |
+| ezdxf1.4.4 [disassemble contract](https://ezdxf.readthedocs.io/en/stable/disassemble.html), installed helper SHA bound in the receipt | Four actual helper controls yield LINE2 vertices, but empty RAY/XLINE/3DSOLID primitives. The authored solid has5489 SAB bytes, not an empty shell. A fifth control decomposes an enabled-XCLIP INSERT into both inside/outside LINEs, with exact translated Z10 endpoints: decomposition ignores clipping. Under7AH/7AQ, account for unsupported source families and distinguish stored geometry from visible clipped projection. Do not score an empty primitive as measured zero or use un-clipped geometry to qualify clipping. These in-memory helper runs do not execute a CAD kernel or full-file reader. |
+| [dxf-viewer cd07bae test architecture](https://github.com/vagran/dxf-viewer/blob/cd07bae4a6bb7bf1f3de28685583c8cc189f703f/test/README.md), [documented limits](https://github.com/vagran/dxf-viewer) | Adopt only applicable process ideas under7AD/7AH: tiny generated semantic projections, invariant negatives proving the checker can fail, separate paint-order and geometry checks, and dependency-free narrowed gates. Its headless/fontless smoke cannot validate text appearance or shaders, and the documented2D/encoding/OCS/layout limits exclude it from general3D/native qualification. No viewer/npm/browser dependency, downloaded corpus, source transplant or execution is required. Related dxf-parser lineage is not another independent parser vote. |
+
+Five projection controls execute under the existing isolated ezdxf1.4.4
+environment with C extensions disabled and task-private config;10s/65536-byte
+capture bounds apply. The first generic system-Python attempt lacked ezdxf;
+the existing private environment resolved it without installation. No drawing
+payload is serialized or added. Four newly refreshed peer heads plus
+ACadSharp9bd47f48 are recorded; unchanged heads do not justify rerunning old
+corpora. No mandatory comparator is added.
+
+### Fast execution order and self-updating completion rules
+
+1. **First7BE.9b/c:** resolve the witnessed profile/suffix policy, then implement
+   and validate the smallest shared-envelope/stream change. Keep9a evidence
+   immutable and add a separate implementation acceptance receipt; do not
+   rename these retained failures as passing tests.
+2. **Then7BE.9d/7F.1b:** run the exact retained CLI smoke through all later
+   assertions and surface unresolved integrity/semantic coverage accurately.
+   One successful LINE or repaired HEADER cannot close conversion completeness.
+3. **Independent7AH/7AQ:** implement report-only negatives for prefix-only
+   “strict” parsers, empty unsupported projections and clipping-profile
+   mismatches. Existing Python self-tests are enough until enabling an actual
+   peer route; no library rebuild or new comparator install is required.
+4. **Independent S3.2/Slice8:** use the small multi-page blob/suffix control
+   when that path next changes. Reuse existing hardening/local-roundtrip
+   targets; do not impose the peer's2MB observed threshold as a format rule.
+   Keep structural assembly, owner association and independent known-dimension
+   B-rep/kernel evidence as separate gates.
+
+During iteration use the focused named test/component and strict touched-TU
+compile. Run the shared-reader safety/integration selection once after the
+composed change; full suites are shared-boundary/release gates, not per doc,
+field or peer-source refresh. Reuse only source/artifact/profile-matching
+receipts, and invalidate affected cells rather than changing historical hashes.
+After each implemented item update status, evidence, residual scope and next
+dependency; immediately show every slice commit/hash and its focused result.
+If one producer/platform gate remains unavailable, retain its refusal and
+continue an independently ready report/resource slice instead of repeating
+unchanged searches. New authority is still required for unrelated actions.
+
+Counts remain122 findings/70 top-level subplans and1493D ledger items;
+7BE.9 is a bounded child of an existing owner, not another finding.
+`J256`, `J260`, `J268`, `J284`, `J293`, and `J295` remain
+`DEFERRED_EXTERNAL`, non-promoting. This pass supplies no native Linux/Windows
+FreeCAD run, independent known-dimension ACIS/AcDs semantics, converter-build
+qualification or reconstruction of J268's missing historical membership.

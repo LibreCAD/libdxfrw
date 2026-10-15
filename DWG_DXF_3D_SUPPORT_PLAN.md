@@ -3,7 +3,41 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
-**Latest research-only handoff (committed baseline `a06447c`):** the
+**Latest research-only handoff (committed baseline `2063b50`):** the
+[HEADER, AcDs and projection-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#header-acds-and-projection-oracle-readiness-review-2026-10-15)
+adds a source/artifact-bound12-cell packet over four already tracked drawings.
+All three archived ODA-converted AC1032 fixtures fail first HEADER admission;
+matching CRC/end sentinels lie four bytes beyond the current computed offset,
+followed by739 nonzero-containing logical bytes. The AC1027 writer control
+matches current framing.7BE.9 now separates profile/suffix resolution, bounded
+stream repair and full CLI acceptance; no general size-check relaxation or
+entity-dispatch fix is inferred. Five actual ezdxf helper controls distinguish
+empty unsupported primitives and un-clipped decomposition from shape/display
+semantics. ACadSharp's merged multi-page blob fix motivates a tiny S3.2 cursor/
+following-record calibration, not a demonstrated local defect or kernel pass.
+The dwg-rs strict-prefix helper is excluded as a HEADER-conformance oracle.
+No production/test source, fixture, registration, dependency,3D ledger count
+or support claim changes; all six J items remain`DEFERRED_EXTERNAL`. Receipt:
+`docs/research/broader-header-acds-oracle-readiness-2026-10-15.json`.
+
+**Subsequent parity7BE.9bc implementation:** full HEADER parsing now uses
+bounded DATA/string/handle windows for all full-section versions. The witnessed
+AC1032 alternate size form requires zero unknown word, matching CRC and exact
+fixed-offset sentinel; unclaimed logical bytes remain explicit warnings, not
+decoded/preserved content or zero padding. Canonical CRC warnings, compact
+callers and2D callbacks remain compatible. Optional debug-only unknown shorts
+do not consume modern string bytes. Four permanent tracked-file API regressions
+verify16 selected HEADER values, physical frame accounting and concrete
+RTEXT/ARCTEXT/MPOLYGON callbacks. Final selected gate3/4 in4.29s retains the
+unchanged full CLI failure; strict/build/lc3 and focused ASan/UBSan1/1 pass.
+The remaining CLI failure is later output preflight:24 typed DWG VISUALSTYLEs
+lack raw DXF companions. Next existing7G/7F must bridge that source format and
+rooted graph without dropping styles or fabricating raw evidence;9d stays open.
+Receipt: `docs/research/header-compatibility-7be-9bc-2026-10-15.json`.
+No new3D ledger item/count, native tuple, fixture, registration or support/J
+promotion. Earlier research/failed HEADER packets retain their original state.
+
+**Prior consumer-semantics research-only handoff (committed baseline `a06447c`):** the
 [consumer-semantics and executable-oracle review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-consumer-semantics-and-executable-oracle-readiness-review-2026-10-15)
 adds eight authored Assimp6.0.5 runtime controls, ten exact extracted FreeCAD
 helper observations and140 unchanged Compatible-codec observations, with
@@ -180,9 +214,11 @@ The wider selection remains3/4: tracked RTEXT/ARCTEXT DWG fails at first header
 stage6 with a later class-CRC warning. Parent CLI/parser source with the exact
 same core reproduces that full-harness failure; not a clean parent/native run.
 The failing packet is retained separately from scoped3/3 acceptance. No reader
-guard, assertion or fixture is weakened. Next7BE/7F/Slice5 ODA HEADER/stream
-review and trace must isolate the first failure before a DWG parser repair;
-do not infer an RTEXT dispatch defect from a header-stage error. Existing
+guard, assertion or fixture is weakened. Subsequent research at2063b50 reads
+ODA§9 and captures all three archived ODA-converted HEADER witnesses plus the
+AC1027 positive; next7BE.9b/c resolves the profile/suffix and bounds the stream,
+then9d reruns the complete retained harness including later MPOLYGON. Do not
+infer an RTEXT dispatch defect from a header-stage error. Existing
 FreeCAD/native/3D tuples, raw ISO profile, six external J gates and support/
 ledger counts remain unpromoted and separate.
 

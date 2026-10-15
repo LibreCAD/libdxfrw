@@ -51,6 +51,9 @@ static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionBounds) 
                   && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionSentinel) == 22u
                   && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionCrc) == 23u,
               "HEADER integrity categories append to the stable diagnostic contract");
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionCompatibility) == 24u
+                  && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionUnclaimedData) == 25u,
+              "compatible HEADER observations append without renumbering prior categories");
 
 struct TestContext {
     int failures {0};
@@ -1357,6 +1360,182 @@ void testHeaderVersionEnvelopes(TestContext& t) {
     }
 }
 
+void patchHeaderTestLong(std::vector<std::uint8_t>& bytes, std::size_t offset,
+                         std::uint32_t value) {
+    for (std::size_t i = 0; i < 4u; ++i)
+        bytes.at(offset + i) = static_cast<std::uint8_t>(value >> (8u * i));
+}
+
+void sealHeaderTest(std::vector<std::uint8_t>& bytes, std::size_t crcOffset) {
+    const auto crc = headerTestCrc(bytes, 16u, crcOffset);
+    bytes.at(crcOffset) = static_cast<std::uint8_t>(crc);
+    bytes.at(crcOffset + 1u) = static_cast<std::uint8_t>(crc >> 8u);
+}
+
+void testHeaderCompatibilityProfile(TestContext& t) {
+    DRW_Header source;
+    source.addInt("LUNITS", 4, 70);
+    source.addStr("MENU", "header-boundary-menu", 1);
+    dwgWriter32 writer(nullptr, &source);
+    t.expect(writer.writeDwgHeader(), "compatible profile source generation");
+    const auto canonical = writer.buffer();
+    const auto crcOffset = canonical.size() - 18u;
+    auto compatible = canonical;
+    patchHeaderTestLong(compatible, 16u,
+                        static_cast<std::uint32_t>(crcOffset - 24u));
+    sealHeaderTest(compatible, crcOffset);
+    for (const std::size_t suffix : {0u, 1u, 739u}) {
+        auto bytes = compatible;
+        bytes.insert(bytes.end(), suffix, 0xA5u); // Authored opaque bytes, not zero padding.
+        const auto original = bytes;
+        dwgBuffer view(bytes.data(), bytes.size());
+        (void)view.setPosition(16u);
+        const auto envelope = inspectDwgHeaderEnvelope(view, DRW::AC1032, 55u);
+        t.expect(envelope.error == DwgHeaderEnvelopeError::None
+                     && envelope.excludesHighSizeWord
+                     && envelope.payloadEnd == crcOffset
+                     && envelope.trailerEnd == compatible.size()
+                     && envelope.unclaimedBytes == suffix
+                     && view.getPosition() == 16u && view.isGood()
+                     && bytes == original,
+                 "CRC-bound compatible envelope is nonmutating, suffix=" + std::to_string(suffix));
+        HeaderSectionReader reader(bytes, 0u, DRW::AC1032, 55u);
+        DRW_Header header;
+        t.expect(reader.readDwgHeader(header) && header.vars.count("LUNITS") == 1u
+                     && header.vars.at("LUNITS")->content.i == 4
+                     && header.vars.count("MENU") == 1u
+                     && header.vars.at("MENU")->type() == DRW_Variant::STRING
+                     && header.vars.at("MENU")->c_str() != nullptr
+                     && std::string(header.vars.at("MENU")->c_str()) == "header-boundary-menu"
+                     && reader.diagnostics().size() == (suffix == 0u ? 1u : 2u),
+                 "compatible HEADER retains fields and explicit observations");
+        if (!reader.diagnostics().empty()) {
+            const auto& layout = reader.diagnostics().front();
+            t.expect(layout.kind == DwgIntegrityCheckKind::HeaderSectionCompatibility
+                         && layout.severity == DwgIntegritySeverity::Warning
+                         && layout.offsetSpace == DwgIntegrityAddressSpace::DecodedBuffer
+                         && layout.hasFileOffset && layout.fileOffset == 16u
+                         && layout.hasExpected && layout.expected == crcOffset - 4u
+                         && layout.hasObserved && layout.observed == crcOffset,
+                     "compatible layout diagnostic binds actual CRC offsets");
+        }
+        if (suffix != 0u && reader.diagnostics().size() == 2u) {
+            const auto& tail = reader.diagnostics().back();
+            t.expect(tail.kind == DwgIntegrityCheckKind::HeaderSectionUnclaimedData
+                         && tail.severity == DwgIntegritySeverity::Warning
+                         && tail.hasFileOffset && tail.fileOffset == compatible.size()
+                         && tail.hasExpected && tail.expected == compatible.size()
+                         && tail.hasObserved && tail.observed == bytes.size(),
+                     "unclaimed logical suffix is observable, not declared padding");
+        }
+    }
+    dwgBuffer fieldProbe(compatible.data(), compatible.size());
+    (void)fieldProbe.setPosition(24u);
+    const auto bits = fieldProbe.getRawLong32();
+    const auto endBit = 192u + std::uint64_t(bits);
+    std::uint64_t stringStart = 0, stringEnd = 0;
+    const bool stringsLocated = fieldProbe.getR2007StringStreamBounds(
+        endBit, stringStart, stringEnd);
+    t.expect(stringsLocated && stringStart < stringEnd,
+             "generated nonempty string stream has independent literal bounds");
+    if (stringsLocated) {
+        const auto patchBit = [](std::vector<std::uint8_t>& bytes,
+                                  std::uint64_t offset, bool value) {
+            const auto mask = static_cast<std::uint8_t>(1u << (7u - (offset & 7u)));
+            auto& byte = bytes.at(static_cast<std::size_t>(offset >> 3u));
+            byte = value ? static_cast<std::uint8_t>(byte | mask)
+                         : static_cast<std::uint8_t>(byte & ~mask);
+        };
+        for (const std::string name : {"string-length", "string-absence", "footer-length"}) {
+            auto bytes = compatible;
+            bytes.insert(bytes.end(), 739u, 0xA5u);
+            if (name == "string-length") {
+                patchBit(bytes, stringStart, false);
+                patchBit(bytes, stringStart + 1u, false); // BS00 + raw 0xffff.
+                for (unsigned i = 0; i < 16u; ++i)
+                    patchBit(bytes, stringStart + 2u + i, true);
+            } else if (name == "string-absence") {
+                patchBit(bytes, endBit - 1u, false);
+            } else {
+                for (unsigned i = 0; i < 16u; ++i)
+                    patchBit(bytes, endBit - 17u + i, true);
+            }
+            sealHeaderTest(bytes, crcOffset);
+            HeaderSectionReader reader(bytes, 0u, DRW::AC1032, 55u);
+            DRW_Header header;
+            t.expect(!reader.readDwgHeader(header) && header.vars.empty(),
+                     "CRC-valid string mutation cannot borrow handle/suffix bytes: " + name);
+        }
+    }
+
+    for (const std::string name : {"crc", "begin", "end", "word", "short",
+                                   "max", "bits-zero", "bits-max"}) {
+        auto bytes = compatible;
+        bytes.insert(bytes.end(), 739u, 0xA5u);
+        if (name == "crc") bytes[crcOffset] ^= 1u;
+        if (name == "begin") bytes[0] ^= 1u;
+        if (name == "end") bytes[crcOffset + 2u] ^= 1u;
+        if (name == "word") patchHeaderTestLong(bytes, 20u, 1u);
+        if (name == "short") patchHeaderTestLong(bytes, 16u, 1u);
+        if (name == "max") patchHeaderTestLong(bytes, 16u, 0xFFFFFFFFu);
+        if (name == "bits-zero") patchHeaderTestLong(bytes, 24u, 0u);
+        if (name == "bits-max") patchHeaderTestLong(bytes, 24u, 0xFFFFFFFFu);
+        if (name != "crc") sealHeaderTest(bytes, crcOffset);
+        HeaderSectionReader reader(bytes, 0u, DRW::AC1032, 55u);
+        DRW_Header header;
+        header.addInt("stale", 1, 70);
+        t.expect(!reader.readDwgHeader(header) && header.vars.empty()
+                     && reader.diagnostics().size() == 1u
+                     && reader.diagnostics().front().severity == DwgIntegritySeverity::Error,
+                 "opaque suffix cannot rescue malformed compatible body: " + name);
+    }
+    for (const DRW::Version version : {DRW::AC1024, DRW::AC1027}) {
+        auto bytes = compatible;
+        HeaderSectionReader reader(bytes, 0u, version, 55u);
+        DRW_Header header;
+        t.expect(!reader.readDwgHeader(header) && header.vars.empty(),
+                 "AC1032 compatibility is not extrapolated to unwitnessed versions");
+    }
+    auto fakeTail = canonical;
+    fakeTail.insert(fakeTail.end(), 739u, 0xA5u);
+    fakeTail.insert(fakeTail.end(), compatible.end() - 18, compatible.end());
+    HeaderSectionReader fakeReader(fakeTail, 0u, DRW::AC1032, 55u);
+    DRW_Header fakeHeader;
+    t.expect(!fakeReader.readDwgHeader(fakeHeader) && fakeHeader.vars.empty(),
+             "canonical surplus and distant matching sentinel do not trigger a scan");
+
+    // A correct alternate CRC/sentinel with abundant suffix bytes still cannot
+    // supply a missing variable body, string footer or handle stream.
+    std::vector<std::uint8_t> shortBody(compatible.begin(), compatible.begin() + 32u);
+    patchHeaderTestLong(shortBody, 16u, 8u);
+    shortBody.resize(34u);
+    sealHeaderTest(shortBody, 32u);
+    shortBody.insert(shortBody.end(), std::begin(dwgSentinels::HEADER_END),
+                     std::end(dwgSentinels::HEADER_END));
+    shortBody.insert(shortBody.end(), 739u, 0xA5u);
+    HeaderSectionReader shortReader(shortBody, 0u, DRW::AC1032, 55u);
+    DRW_Header shortHeader;
+    t.expect(!shortReader.readDwgHeader(shortHeader) && shortHeader.vars.empty(),
+             "CRC-valid truncated alternate body cannot borrow unclaimed suffix");
+
+    auto reuseBytes = compatible;
+    reuseBytes.insert(reuseBytes.end(), 739u, 0xA5u);
+    HeaderSectionReader reuse(reuseBytes, 0u, DRW::AC1032, 55u);
+    DRW_Header reused;
+    t.expect(reuse.readDwgHeader(reused), "compatible reader first valid operation");
+    reuseBytes[crcOffset] ^= 1u;
+    t.expect(!reuse.readDwgHeader(reused) && reused.vars.empty(),
+             "compatible reader clears state on rejected replacement");
+    reuseBytes[crcOffset] ^= 1u;
+    t.expect(reuse.readDwgHeader(reused) && reused.vars.count("LUNITS") == 1u,
+             "compatible reader accepts corrected retry");
+    HeaderSectionReader saturated(reuseBytes, 0u, DRW::AC1032, 55u);
+    saturated.fillDiagnostics();
+    DRW_Header saturatedHeader;
+    t.expect(saturated.readDwgHeader(saturatedHeader) && saturated.dropped() == 2u,
+             "compatible observations preserve bounded dropped-diagnostic accounting");
+}
+
 class FullHeaderWriterProbe final : public dwgWriter15 {
 public:
     FullHeaderWriterProbe(std::ofstream* stream, DRW_Header* header)
@@ -1421,6 +1600,74 @@ public:
     DRW_Coord lineEnd;
     dx_data data;
 };
+
+void testTrackedHeaderRead(TestContext& t) {
+    class Sink final : public dx_iface {
+    public:
+        Sink() {
+            cData = &data;
+            currentBlock = data.mBlock;
+        }
+        void addHeader(const DRW_Header* header) override {
+            ++headers;
+            const std::array<const char*, 4> keys{{"LUNITS", "INSUNITS", "LUPREC", "DIMDEC"}};
+            for (std::size_t i = 0; i < keys.size(); ++i) {
+                const auto found = header->vars.find(keys[i]);
+                if (found != header->vars.end() && found->second != nullptr
+                    && found->second->type() == DRW_Variant::INTEGER)
+                    values[i] = found->second->content.i;
+            }
+        }
+        void addText(const DRW_Text& text) override {
+            rtext += dynamic_cast<const DRW_RText*>(&text) != nullptr;
+            arcText += dynamic_cast<const DRW_ArcAlignedText*>(&text) != nullptr;
+        }
+        void addMPolygon(const DRW_MPolygon*) override { ++mpolygon; }
+        std::array<int, 4> values{{-1, -1, -1, -1}};
+        std::size_t headers{0};
+        std::size_t rtext{0}, arcText{0}, mpolygon{0};
+        dx_data data;
+    };
+    struct Row {
+        const char* name;
+        std::size_t frames;
+        std::array<int, 4> values;
+        bool compatible;
+    };
+    const std::array<Row, 4> rows{{
+        {"rtext_arctext.dwg", 267u, {{2, 4, 4, 2}}, true},
+        {"mpolygon_solid.dwg", 95u, {{2, 0, 4, 4}}, true},
+        {"large_radial.dwg", 110u, {{2, 0, 4, 4}}, true},
+        {"ordinary_enc_AC1027.dwg", 26u, {{2, 0, 4, 4}}, false}
+    }};
+    for (const auto& row : rows) {
+        const auto path = (std::filesystem::path(LIBDXFRW_READER_FIXTURE_DIR) / row.name).string();
+        dwgRW reader(path.c_str());
+        Sink sink;
+        const bool read = reader.read(&sink, false);
+        const auto observations = reader.getReadObservations();
+        t.expect(read && reader.getError() == DRW::BAD_NONE && sink.headers == 1u
+                     && sink.values == row.values,
+                 "tracked HEADER exact public fields: " + std::string(row.name));
+        t.expect(observations.frames.status == DRW_DwgFrameCoverageStatus::FinalizedComplete
+                     && observations.frames.sourceFrames == row.frames,
+                 "tracked physical frame accounting (not semantic qualification): " + std::string(row.name));
+        std::size_t layouts = 0, tails = 0;
+        for (std::size_t i = 0; i < observations.integrity.retained; ++i) {
+            const auto& diagnostic = observations.integrity.rows[i];
+            layouts += diagnostic.kind == DwgIntegrityCheckKind::HeaderSectionCompatibility;
+            tails += diagnostic.kind == DwgIntegrityCheckKind::HeaderSectionUnclaimedData;
+        }
+        t.expect(layouts == (row.compatible ? 1u : 0u)
+                     && tails == (row.compatible ? 1u : 0u),
+                 "tracked HEADER compatibility evidence survives facade snapshot");
+        if (std::string(row.name) == "rtext_arctext.dwg")
+            t.expect(sink.rtext == 1u && sink.arcText == 1u,
+                     "tracked RTEXT/ARCTEXT concrete callbacks survive HEADER admission");
+        if (std::string(row.name) == "mpolygon_solid.dwg")
+            t.expect(sink.mpolygon == 1u, "tracked MPOLYGON callback survives HEADER admission");
+    }
+}
 
 template<class Writer>
 void testHeaderWriterSealing(TestContext& t, const std::string& version) {
@@ -2053,6 +2300,8 @@ int main() {
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
+    testHeaderCompatibilityProfile(context);
+    testTrackedHeaderRead(context);
     testHeaderPublicRead(context);
     testHeaderWriters(context);
     testHeaderWriterSealingFailures(context);

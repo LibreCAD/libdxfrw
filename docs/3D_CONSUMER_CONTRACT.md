@@ -13,6 +13,22 @@ curve/surface evaluator, or ACIS kernel.
 
 ## Read mode and ownership
 
+DWG HEADER admission distinguishes the inner CRC/sentinel-bounded body from
+the section-directory length. A witnessed AC1032 compatibility form excludes
+the optional four-byte word from RL; it is admitted only with zero unknown
+word, matching CRC and exact sentinel at that fixed alternate offset. It is
+not extrapolated to earlier/future releases or selected by scanning. Full
+data/string/handle parsing cannot borrow the trailer or surplus section bytes.
+`HeaderSectionCompatibility` and `HeaderSectionUnclaimedData` append optional
+warning categories without renumbering prior categories. Their offsets and
+expected/observed values expose the alternate CRC position and unclaimed
+logical span. Unclaimed bytes are not declared zero padding, decoded content
+or preserved opaque payload; consumers requiring complete preservation must
+treat that warning as unresolved coverage. Canonical checksum mismatches keep
+their existing warn-only contract. Compatible read success does not certify
+CLI graph/export, native acceptance or format support. No callback/projection
+policy is changed; rebuild source consumers and do not infer binary ABI.
+
 DXF HEADER codepage provenance is separate from semantic text and the normalized
 `vars["$DWGCODEPAGE"]` used by writers. `hasDxfCodePageDeclaration()` distinguishes
 absent/empty; `dxfCodePageDeclaration()` returns the last complete group-3 source
