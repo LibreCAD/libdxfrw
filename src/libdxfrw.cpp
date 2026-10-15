@@ -3977,7 +3977,8 @@ bool dxfRW::writeVport(DRW_Vport *ent){
             if (ent->backgroundHandle != 0)
                 writer->writeString(332, toHexStr(ent->backgroundHandle));
             if (ent->visualStyleHandle != 0)
-                writer->writeString(348, toHexStr(ent->visualStyleHandle));
+                writer->writeString(348, toHexStr(
+                    remapObjectHandle(ent->visualStyleHandle)));
             if (ent->m_sunHandle != 0)
                 writer->writeString(361, toHexStr(ent->m_sunHandle));
     }
@@ -4317,7 +4318,8 @@ bool dxfRW::writeView(DRW_View *ent){
         if (ent->m_backgroundHandle != 0)
             writer->writeString(332, toHexStr(ent->m_backgroundHandle));
         if (ent->m_visualStyleHandle != 0)
-            writer->writeString(348, toHexStr(ent->m_visualStyleHandle));
+            writer->writeString(348, toHexStr(
+                remapObjectHandle(ent->m_visualStyleHandle)));
         if (ent->m_sunHandle != 0)
             writer->writeString(361, toHexStr(ent->m_sunHandle));
         if (ent->m_liveSectionHandle != 0)
@@ -7396,7 +7398,8 @@ bool dxfRW::writeViewport(DRW_Viewport *ent) {
     }
     if (version > DRW::AC1018) {
         if (ent->visualStyleHandle != 0)
-            writer->writeString(348, toHexStr(ent->visualStyleHandle));
+            writer->writeString(348, toHexStr(
+                remapObjectHandle(ent->visualStyleHandle)));
         if (ent->m_sunHandle != 0)
             writer->writeString(361, toHexStr(ent->m_sunHandle));
     }

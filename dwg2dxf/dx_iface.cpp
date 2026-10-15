@@ -103,6 +103,76 @@ bool hasDwgReadWarning(const dx_dwgReadOutcome& outcome) noexcept {
         || value.frames.status == DRW_DwgFrameCoverageStatus::FinalizedPartial;
 }
 
+bool visualStyleRawIdentityMatches(const DRW_RawDxfObject& object) {
+    if (object.handle == 0 || object.handle == DRW::NoHandle
+        || object.parentHandle == 0 || object.parentHandle == DRW::NoHandle
+        || (object.hasRawValues
+            && object.rawValues.size() != object.groups.size()))
+        return false;
+
+    const auto parseHandle = [](const std::string& text,
+                                std::uint32_t& handle) {
+        if (text.empty() || text.size() > 16u)
+            return false;
+        std::uint64_t parsed = 0;
+        const char* begin = text.data();
+        const char* end = begin + text.size();
+        const std::from_chars_result result =
+            std::from_chars(begin, end, parsed, 16);
+        if (result.ec != std::errc{} || result.ptr != end || parsed == 0
+            || parsed > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        handle = static_cast<std::uint32_t>(parsed);
+        return true;
+    };
+
+    std::size_t selfHandleCount = 0;
+    std::size_t ownerHandleCount = 0;
+    int applicationDepth = 0;
+    for (std::size_t index = 0; index < object.groups.size(); ++index) {
+        const DRW_Variant& group = object.groups[index];
+        if (group.code() == 102) {
+            if (group.type() != DRW_Variant::STRING
+                || group.c_str() == nullptr)
+                return false;
+            const std::string marker(group.c_str());
+            if (marker.size() > 1u && marker.front() == '{') {
+                ++applicationDepth;
+            } else if (marker == "}") {
+                if (applicationDepth == 0)
+                    return false;
+                --applicationDepth;
+            } else {
+                return false;
+            }
+            continue;
+        }
+        if (applicationDepth != 0
+            || (group.code() != 5 && group.code() != 330))
+            continue;
+        if (group.type() != DRW_Variant::STRING || group.c_str() == nullptr)
+            return false;
+
+        std::uint32_t decodedHandle = 0;
+        const std::uint32_t expectedHandle =
+            group.code() == 5 ? object.handle : object.parentHandle;
+        std::size_t& count = group.code() == 5
+            ? selfHandleCount : ownerHandleCount;
+        if (++count != 1u
+            || !parseHandle(group.c_str(), decodedHandle)
+            || decodedHandle != expectedHandle)
+            return false;
+        if (object.hasRawValues) {
+            std::uint32_t sourceHandle = 0;
+            if (!parseHandle(object.rawValues[index], sourceHandle)
+                || sourceHandle != expectedHandle)
+                return false;
+        }
+    }
+    return applicationDepth == 0 && selfHandleCount == 1u
+        && ownerHandleCount == 1u;
+}
+
 const char* canonicalDwgReadVersion(DRW::Version version) noexcept {
     switch (version) {
     case DRW::MC00: return "MC0.0";
@@ -1510,12 +1580,14 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                            bool includeNamedObjectRoot) {
     m_extensionDictionaryHandles.clear();
     m_extensionXRecordHandles.clear();
+    m_extensionVisualStyleHandles.clear();
     m_extensionGraphStats = {};
     m_extensionGraphFailure = ExtensionGraphFailure::None;
     const auto reject = [this](ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph) {
         // No partial traversal result may leak into a later export attempt.
         m_extensionDictionaryHandles.clear();
         m_extensionXRecordHandles.clear();
+        m_extensionVisualStyleHandles.clear();
         if (m_extensionGraphFailure == ExtensionGraphFailure::None)
             m_extensionGraphFailure = reason;
         return false;
@@ -1538,6 +1610,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     try {
         std::unordered_map<std::uint32_t, const DRW_Dictionary*> dictionaries;
         std::unordered_map<std::uint32_t, const DRW_XRecord*> xrecords;
+        std::unordered_map<std::uint32_t, const DRW_VisualStyle*> visualStyles;
+        std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> rawVisualStyles;
         std::unordered_set<std::uint32_t> sourceHandles;
         std::unordered_set<std::uint32_t> linetypeHandles;
         if (includeNamedObjectRoot && data->hasNamedObjectDictionary) {
@@ -1574,6 +1648,28 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || !xrecords.emplace(record.handle, &record).second)
                 return reject();
         }
+        for (const DRW_VisualStyle& style : data->visualStyles) {
+            if (!examineSourceRecord())
+                return false;
+            if (style.handle == 0 || style.handle == DRW::NoHandle
+                || !sourceHandles.insert(style.handle).second
+                || !visualStyles.emplace(style.handle, &style).second)
+                return reject();
+        }
+        for (const DRW_RawDxfObject& object : data->rawVisualStyleObjects) {
+            if (!examineSourceRecord())
+                return false;
+            const auto typed = visualStyles.find(object.handle);
+            if (object.name != "VISUALSTYLE" || object.handle == 0
+                || object.handle == DRW::NoHandle
+                || !visualStyleRawIdentityMatches(object)
+                || typed == visualStyles.end()
+                || typed->second->parentHandle != object.parentHandle
+                || !rawVisualStyles.emplace(object.handle, &object).second)
+                return reject();
+        }
+        if (rawVisualStyles.size() != visualStyles.size())
+            return reject();
         for (const DRW_EvaluationGraph& graph : data->evaluationGraphs) {
             if (!examineSourceRecord())
                 return false;
@@ -1585,11 +1681,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> visiting;
         std::unordered_set<std::uint32_t> visitedDictionaries;
         std::unordered_set<std::uint32_t> visitedXRecords;
+        std::unordered_set<std::uint32_t> visitedVisualStyles;
         enum class Phase { Enter, ExtensionDictionary, Reactors, Entries, Leave };
         struct Frame {
             std::uint32_t handle;
             const DRW_Dictionary* dictionary{nullptr};
             const DRW_XRecord* record{nullptr};
+            const DRW_VisualStyle* visualStyle{nullptr};
             Phase phase{Phase::Enter};
             std::size_t index{0};
         };
@@ -1599,13 +1697,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             if (dictionary != dictionaries.end()) {
                 if (handle == 0xCu || handle == 0xDu)
                     return reject();
-                frames.push_back({handle, dictionary->second, nullptr, Phase::Enter, 0});
+                frames.push_back({handle, dictionary->second, nullptr, nullptr,
+                                  Phase::Enter, 0});
                 return true;
             }
             const auto record = xrecords.find(handle);
-            if (requireDictionary || record == xrecords.end())
+            if (record != xrecords.end()) {
+                if (requireDictionary)
+                    return reject();
+                frames.push_back({handle, nullptr, record->second, nullptr,
+                                  Phase::Enter, 0});
+                return true;
+            }
+            const auto visualStyle = visualStyles.find(handle);
+            if (requireDictionary || visualStyle == visualStyles.end())
                 return reject();
-            frames.push_back({handle, nullptr, record->second, Phase::Enter, 0});
+            frames.push_back({handle, nullptr, nullptr, visualStyle->second,
+                              Phase::Enter, 0});
             return true;
         };
         const auto visit = [&](std::uint32_t handle, bool requireDictionary) {
@@ -1615,14 +1723,18 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 Frame& frame = frames.back();
                 const DRW_TableEntry& entry = frame.dictionary != nullptr
                     ? static_cast<const DRW_TableEntry&>(*frame.dictionary)
-                    : static_cast<const DRW_TableEntry&>(*frame.record);
+                    : frame.record != nullptr
+                        ? static_cast<const DRW_TableEntry&>(*frame.record)
+                        : static_cast<const DRW_TableEntry&>(*frame.visualStyle);
                 switch (frame.phase) {
                 case Phase::Enter: {
                     if (visiting.count(frame.handle) != 0)
                         return reject(); // Containment/extension edge, not a reactor.
                     const bool visited = frame.dictionary != nullptr
                         ? visitedDictionaries.count(frame.handle) != 0
-                        : visitedXRecords.count(frame.handle) != 0;
+                        : frame.record != nullptr
+                            ? visitedXRecords.count(frame.handle) != 0
+                            : visitedVisualStyles.count(frame.handle) != 0;
                     if (visited) {
                         frames.pop_back();
                         break;
@@ -1639,7 +1751,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         if (!frame.dictionary->hasCompleteDwgEntries()
                             && !frame.dictionary->hasCompleteDxfEntries())
                             return reject();
-                    } else {
+                    } else if (frame.record != nullptr) {
                         if (frame.record->m_rawDataValid)
                             return reject();
                         for (const auto& value : frame.record->m_handleValues) {
@@ -1648,6 +1760,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             if (value.first == 0)
                                 return reject();
                         }
+                    } else {
+                        const auto raw = rawVisualStyles.find(frame.handle);
+                        if (raw == rawVisualStyles.end()
+                            || raw->second->parentHandle != entry.parentHandle)
+                            return reject();
                     }
                     if (m_extensionGraphStats.stagedHandles >= m_extensionGraphLimits.maxStagedHandles)
                         return reject(ExtensionGraphFailure::StagedHandleLimit);
@@ -1655,8 +1772,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     visiting.insert(frame.handle);
                     if (frame.dictionary != nullptr)
                         m_extensionDictionaryHandles.push_back(frame.handle);
-                    else
+                    else if (frame.record != nullptr)
                         m_extensionXRecordHandles.push_back(frame.handle);
+                    else
+                        m_extensionVisualStyleHandles.push_back(frame.handle);
                     frame.phase = Phase::ExtensionDictionary;
                     break;
                 }
@@ -1697,8 +1816,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     visiting.erase(frame.handle);
                     if (frame.dictionary != nullptr)
                         visitedDictionaries.insert(frame.handle);
-                    else
+                    else if (frame.record != nullptr)
                         visitedXRecords.insert(frame.handle);
+                    else
+                        visitedVisualStyles.insert(frame.handle);
                     frames.pop_back();
                     break;
                 }
@@ -1724,7 +1845,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         }
 
         const auto hasParent = [&dictionaries, &visitedDictionaries,
-                                &visitedXRecords, &linetypeHandles, data,
+                                &visitedXRecords, &visitedVisualStyles,
+                                &linetypeHandles, data,
                                 includeNamedObjectRoot](
                                    std::uint32_t parent) {
             return parent == 0 || parent == 0xCu || parent == 0xDu
@@ -1734,7 +1856,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || linetypeHandles.count(parent) != 0
                 || (dictionaries.count(parent) != 0
                     && visitedDictionaries.count(parent) != 0)
-                || visitedXRecords.count(parent) != 0;
+                || visitedXRecords.count(parent) != 0
+                || visitedVisualStyles.count(parent) != 0;
         };
 
         if (includeNamedObjectRoot && data->hasNamedObjectDictionary) {
@@ -1760,6 +1883,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     ++matches;
                 if (xrecords.count(entry.m_handle) != 0)
                     ++matches;
+                if (visualStyles.count(entry.m_handle) != 0)
+                    ++matches;
                 if (matches != 1u || !visit(entry.m_handle, false))
                     return false;
             }
@@ -1782,7 +1907,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             };
             const auto validateHandleTarget =
                 [&isHandleCode, &linetypeHandles, &visitedDictionaries,
-                 &visitedXRecords](int code, std::uint64_t target) {
+                 &visitedXRecords, &visitedVisualStyles](
+                    int code, std::uint64_t target) {
                     if (!isHandleCode(code))
                         return true;
                     if (target > std::numeric_limits<std::uint32_t>::max())
@@ -1792,7 +1918,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     return targetHandle == 0
                         || linetypeHandles.count(targetHandle) != 0
                         || visitedDictionaries.count(targetHandle) != 0
-                        || visitedXRecords.count(targetHandle) != 0;
+                        || visitedXRecords.count(targetHandle) != 0
+                        || visitedVisualStyles.count(targetHandle) != 0;
                 };
             const auto validateHandleValue =
                 [&isHandleCode, &validateHandleTarget, &examineEdge](
@@ -1842,10 +1969,155 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 }
             }
         }
+        for (std::uint32_t handle : m_extensionVisualStyleHandles) {
+            const DRW_VisualStyle* style = visualStyles.at(handle);
+            if (!examineEdge() || !hasParent(style->parentHandle))
+                return reject();
+        }
         return true;
     } catch (...) {
         return reject();
     }
+}
+
+bool dx_iface::validateVisualStyleReferences(const dx_data& data,
+                                              const char** failure) const {
+    const auto reject = [failure](const char* reason) {
+        if (failure != nullptr)
+            *failure = reason;
+        return false;
+    };
+    if (failure != nullptr)
+        *failure = nullptr;
+    const auto isVisualStyleKey = [](const std::string& name) {
+        static constexpr char expected[] = "ACAD_VISUALSTYLE";
+        if (name.size() != sizeof(expected) - 1u)
+            return false;
+        for (std::size_t i = 0; i < name.size(); ++i) {
+            char character = name[i];
+            if (character >= 'a' && character <= 'z')
+                character = static_cast<char>(character - 'a' + 'A');
+            if (character != expected[i])
+                return false;
+        }
+        return true;
+    };
+
+    bool hasVisualStyleReference = false;
+    for (const DRW_Vport& vport : data.VPorts)
+        hasVisualStyleReference |= vport.visualStyleHandle != 0;
+    for (const DRW_View& view : data.views)
+        hasVisualStyleReference |= view.m_visualStyleHandle != 0;
+    const auto hasViewportReference = [&hasVisualStyleReference](
+                                          const std::list<DRW_Entity*>& entities) {
+        for (const DRW_Entity* entity : entities) {
+            const auto* viewport = dynamic_cast<const DRW_Viewport*>(entity);
+            if (viewport != nullptr && viewport->visualStyleHandle != 0)
+                hasVisualStyleReference = true;
+        }
+    };
+    if (data.mBlock != nullptr)
+        hasViewportReference(data.mBlock->ent);
+    for (const dx_ifaceBlock* block : data.blocks) {
+        if (block != nullptr)
+            hasViewportReference(block->ent);
+    }
+
+    if (!data.hasNamedObjectDictionary) {
+        if (!data.visualStyles.empty() || !data.rawVisualStyleObjects.empty()
+            || hasVisualStyleReference)
+            return reject("VISUALSTYLE data or code-348 edge has no NOD root");
+        return true;
+    }
+
+    const DRW_Dictionary* styleDictionary = nullptr;
+    std::size_t styleDictionaryRootEntries = 0;
+    for (const DRW_Dictionary::Entry& entry :
+         data.namedObjectDictionary.m_entries) {
+        if (!isVisualStyleKey(entry.m_name))
+            continue;
+        ++styleDictionaryRootEntries;
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle != entry.m_handle)
+                continue;
+            if (styleDictionary != nullptr)
+                return reject("ACAD_VISUALSTYLE root target is ambiguous");
+            styleDictionary = &dictionary;
+        }
+    }
+    if (styleDictionaryRootEntries == 0) {
+        if (!data.visualStyles.empty() || !data.rawVisualStyleObjects.empty()
+            || hasVisualStyleReference)
+            return reject("VISUALSTYLE data or code-348 edge is not rooted");
+        return true;
+    }
+    if (styleDictionaryRootEntries != 1u || styleDictionary == nullptr
+        || styleDictionary->parentHandle
+            != data.namedObjectDictionary.handle
+        || std::find(m_extensionDictionaryHandles.begin(),
+                     m_extensionDictionaryHandles.end(),
+                     styleDictionary->handle)
+            == m_extensionDictionaryHandles.end())
+        return reject("ACAD_VISUALSTYLE dictionary is missing or not closed");
+
+    std::unordered_set<std::uint32_t> rootedStyleHandles;
+    for (const DRW_Dictionary::Entry& entry : styleDictionary->m_entries) {
+        std::size_t typedMatches = 0;
+        const DRW_VisualStyle* style = nullptr;
+        for (const DRW_VisualStyle& candidate : data.visualStyles) {
+            if (candidate.handle != entry.m_handle)
+                continue;
+            style = &candidate;
+            ++typedMatches;
+        }
+        std::size_t rawMatches = 0;
+        for (const DRW_RawDxfObject& candidate : data.rawVisualStyleObjects) {
+            if (candidate.handle == entry.m_handle
+                && candidate.name == "VISUALSTYLE"
+                && candidate.parentHandle == styleDictionary->handle)
+                ++rawMatches;
+        }
+        if (typedMatches != 1u || rawMatches != 1u || style == nullptr
+            || style->parentHandle != styleDictionary->handle
+            || !rootedStyleHandles.insert(entry.m_handle).second
+            || std::find(m_extensionVisualStyleHandles.begin(),
+                         m_extensionVisualStyleHandles.end(), entry.m_handle)
+                == m_extensionVisualStyleHandles.end())
+            return reject("ACAD_VISUALSTYLE entry is not a unique closed style");
+    }
+    if (rootedStyleHandles.size() != data.visualStyles.size()
+        || rootedStyleHandles.size() != data.rawVisualStyleObjects.size())
+        return reject("unrooted or unmatched VISUALSTYLE carrier remains");
+
+    const auto targetIsRooted = [&rootedStyleHandles](std::uint32_t handle) {
+        return handle == 0 || rootedStyleHandles.count(handle) != 0;
+    };
+    for (const DRW_Vport& vport : data.VPorts) {
+        if (!targetIsRooted(vport.visualStyleHandle))
+            return reject("VPORT code-348 target is missing or wrongly typed");
+    }
+    for (const DRW_View& view : data.views) {
+        if (!targetIsRooted(view.m_visualStyleHandle))
+            return reject("VIEW code-348 target is missing or wrongly typed");
+    }
+    const auto validateViewportTargets = [&targetIsRooted](
+                                             const std::list<DRW_Entity*>& entities) {
+        for (const DRW_Entity* entity : entities) {
+            const auto* viewport = dynamic_cast<const DRW_Viewport*>(entity);
+            if (viewport != nullptr
+                && !targetIsRooted(viewport->visualStyleHandle))
+                return false;
+        }
+        return true;
+    };
+    if ((data.mBlock != nullptr
+         && !validateViewportTargets(data.mBlock->ent)))
+        return reject("VIEWPORT code-348 target is missing or wrongly typed");
+    for (const dx_ifaceBlock* block : data.blocks) {
+        if (block != nullptr && !validateViewportTargets(block->ent))
+            return reject("VIEWPORT code-348 target is missing or wrongly typed");
+    }
+    return true;
 }
 
 
@@ -2244,7 +2516,42 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "dynamic-block objects have no qualified DXF serializer");
         return false;
     }
-    if (!prepareExtensionObjectGraph(cData, requireResolvedOwners)) {
+    const auto hasVisualStyleEdges = [this]() {
+        for (const DRW_Vport& vport : cData->VPorts) {
+            if (vport.visualStyleHandle != 0)
+                return true;
+        }
+        for (const DRW_View& view : cData->views) {
+            if (view.m_visualStyleHandle != 0)
+                return true;
+        }
+        const auto hasViewportEdge = [](const std::list<DRW_Entity*>& entities) {
+            for (const DRW_Entity* entity : entities) {
+                const auto* viewport = dynamic_cast<const DRW_Viewport*>(entity);
+                if (viewport != nullptr && viewport->visualStyleHandle != 0)
+                    return true;
+            }
+            return false;
+        };
+        if (cData->mBlock != nullptr
+            && hasViewportEdge(cData->mBlock->ent))
+            return true;
+        for (const dx_ifaceBlock* block : cData->blocks) {
+            if (block != nullptr && hasViewportEdge(block->ent))
+                return true;
+        }
+        return false;
+    };
+    const bool hasVisualStyleData = !cData->visualStyles.empty()
+        || !cData->rawVisualStyleObjects.empty();
+    const bool validateVisualStyles = hasVisualStyleData
+        || hasVisualStyleEdges();
+    // A VisualStyle carrier is only safe to emit with its rooted dictionary
+    // graph. Tolerant callers still get fail-closed behavior for this feature
+    // until there is an explicit, observable omission policy.
+    const bool includeNamedObjectRoot = requireResolvedOwners
+        || validateVisualStyles;
+    if (!prepareExtensionObjectGraph(cData, includeNamedObjectRoot)) {
         reportPreflightFailure("extension-object graph validation");
         if (debug) {
             std::cerr << "Extension graph diagnostic: " << extensionGraphFailureName()
@@ -2254,6 +2561,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                       << " source-records=" << m_extensionGraphStats.sourceRecords << '\n';
         }
         return false;
+    }
+    if (includeNamedObjectRoot) {
+        const char* visualStyleFailure = nullptr;
+        if (!validateVisualStyleReferences(*cData, &visualStyleFailure)) {
+            reportPreflightFailure(visualStyleFailure != nullptr
+                                       ? visualStyleFailure
+                                       : "VISUALSTYLE reference closure");
+            return false;
+        }
     }
     if (!cData->dataStorageSections.empty()
         && (!cData->rawProxyObjects.empty()
@@ -2560,6 +2876,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
+    for (const DRW_VisualStyle& style : cData->visualStyles) {
+        if (!dxfW->reserveHandle(style.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
     std::unordered_set<std::uint32_t> proxyHandles;
     for (const DRW_RawDxfObject& object : cData->rawProxyObjects) {
         if (object.handle == 0 || !proxyHandles.insert(object.handle).second
@@ -2673,6 +2996,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     for (const std::uint32_t handle : m_extensionXRecordHandles) {
         if (!remapFixedCollision(handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
+    for (const DRW_VisualStyle& style : cData->visualStyles) {
+        if (!remapFixedCollision(style.handle)) {
             delete dxfW;
             dxfW = nullptr;
             return false;

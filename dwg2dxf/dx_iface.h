@@ -44,7 +44,7 @@ public:
         std::size_t visitedNodes{0};
         // Reference slots, including owners and validated XRECORD pointers.
         std::size_t examinedEdges{0};
-        // Prepared dictionary/XRECORD handle-list entries, not payload bytes.
+        // Prepared dictionary/XRECORD/VisualStyle entries, not payload bytes.
         std::size_t stagedHandles{0};
         std::size_t sourceRecords{0};
     };
@@ -105,6 +105,10 @@ public:
     }
     virtual void addVport(const DRW_Vport& data) override{
         cData->VPorts.push_back(data);
+    }
+    void addView(const DRW_View& data) override {
+        if (cData != nullptr)
+            cData->views.push_back(data);
     }
     virtual void addUCS(const DRW_UCS& data) override{
         cData->ucsList.push_back(data);
@@ -481,6 +485,10 @@ public:
         for (std::list<DRW_Vport>::iterator it=cData->VPorts.begin(); it != cData->VPorts.end(); ++it)
             dxfW->writeVport(&(*it));
     }
+    void writeViews() override {
+        for (DRW_View& view : cData->views)
+            dxfW->writeView(&view);
+    }
     virtual void writeUCSs() override{
         for (std::list<DRW_UCS>::iterator it=cData->ucsList.begin(); it != cData->ucsList.end(); ++it)
             dxfW->writeUCS(&(*it));
@@ -541,6 +549,21 @@ public:
                         return;
                     break;
                 }
+            }
+        }
+        std::unordered_set<std::uint32_t> visualStyleHandles;
+        for (std::uint32_t handle : m_extensionVisualStyleHandles) {
+            std::size_t matches = 0;
+            for (DRW_RawDxfObject& object : cData->rawVisualStyleObjects) {
+                if (object.handle != handle)
+                    continue;
+                ++matches;
+                if (!dxfW->writeRawDxfObject(&object))
+                    return;
+            }
+            if (matches != 1u || !visualStyleHandles.insert(handle).second) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
             }
         }
         std::unordered_set<std::uint32_t> rawProxyHandles;
@@ -623,6 +646,8 @@ private:
     }
     bool prepareExtensionObjectGraph(dx_data* data,
                                      bool includeNamedObjectRoot);
+    bool validateVisualStyleReferences(const dx_data& data,
+                                       const char** failure) const;
     static bool collectAcdsHistoryProxyObjects(
         const dx_data& data, std::vector<DRW_RawDxfObject>& objects,
         std::vector<std::uint32_t>& materialHandles, bool debug);
@@ -637,6 +662,7 @@ private:
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionXRecordHandles;
+    std::vector<std::uint32_t> m_extensionVisualStyleHandles;
     ExtensionGraphLimits m_extensionGraphLimits;
     ExtensionGraphStats m_extensionGraphStats;
     ExtensionGraphFailure m_extensionGraphFailure{ExtensionGraphFailure::None};

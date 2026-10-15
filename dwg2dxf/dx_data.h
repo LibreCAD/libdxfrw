@@ -83,6 +83,7 @@ public:
     std::list<DRW_Layer>layers;         //stores a copy of all layers
     std::list<DRW_Dimstyle>dimStyles;   //stores a copy of all dimension styles
     std::list<DRW_Vport>VPorts;         //stores a copy of all vports
+    std::list<DRW_View>views;            //stored views and visual-style links
     std::list<DRW_UCS>ucsList;          //named UCS table records
     std::list<DRW_Textstyle>textStyles; //stores a copy of all text styles
     std::list<DRW_AppId>appIds;         //stores a copy of all line types

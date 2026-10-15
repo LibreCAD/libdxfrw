@@ -256,6 +256,233 @@ void populateExtensionChain(dx_data& data, std::size_t count, bool wide = false)
     }
 }
 
+void populateVisualStyleGraph(dx_data& data, bool addStyleToRoot = true) {
+    data.hasNamedObjectDictionary = true;
+    data.namedObjectDictionary.handle = 0xCu;
+    data.namedObjectDictionary.name = "NOD";
+    data.namedObjectDictionary.m_entries.push_back(
+        {"ACAD_VISUALSTYLE", 0x700u});
+
+    DRW_Dictionary styles;
+    styles.handle = 0x700u;
+    styles.parentHandle = 0xCu;
+    if (addStyleToRoot)
+        styles.m_entries.push_back({"CUSTOM_STYLE", 0x1Cu});
+    data.dictionaries.push_back(styles);
+
+    DRW_VisualStyle style;
+    style.handle = 0x1Cu; // Deliberately collides with a fixed writer handle.
+    style.parentHandle = styles.handle;
+    style.name = "CUSTOM_STYLE";
+    style.desc = "generated visual style";
+    style.type = 24;
+    data.visualStyles.push_back(style);
+
+    DRW_RawDxfObject rawStyle;
+    rawStyle.name = "VISUALSTYLE";
+    rawStyle.handle = style.handle;
+    rawStyle.parentHandle = style.parentHandle;
+    rawStyle.groups = {
+        DRW_Variant(5, std::string("1C")),
+        DRW_Variant(330, std::string("700")),
+        DRW_Variant(100, std::string("AcDbVisualStyle")),
+        DRW_Variant(2, std::string("CUSTOM_STYLE")),
+        DRW_Variant(70, std::int32_t(24)),
+        DRW_Variant(71, std::int32_t(3)),
+        DRW_Variant(40, 0.75)};
+    data.rawVisualStyleObjects.push_back(std::move(rawStyle));
+
+    DRW_Vport vport;
+    vport.name = "*ACTIVE";
+    vport.visualStyleHandle = style.handle;
+    data.VPorts.push_back(vport);
+
+    DRW_View view;
+    view.name = "STYLE_VIEW";
+    view.m_visualStyleHandle = style.handle;
+    data.views.push_back(view);
+
+    auto* viewport = new DRW_Viewport();
+    viewport->visualStyleHandle = style.handle;
+    data.mBlock->ent.push_back(viewport);
+}
+
+bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
+                               bool binary, bool strict) {
+    const auto path = directory / (std::string("visual-style-")
+        + (strict ? "strict-" : "tolerant-")
+        + (binary ? "binary.dxf" : "ascii.dxf"));
+    dx_data data;
+    populateVisualStyleGraph(data);
+    dx_iface iface;
+    if (!iface.fileExport(path.string(), DRW::AC1027, binary, &data, false,
+                          strict))
+        return fail("closed VisualStyle graph did not export");
+
+    dx_data readback;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &readback, false))
+        return fail("closed VisualStyle graph did not reopen");
+    if (readback.visualStyles.size() != 1u
+        || readback.rawVisualStyleObjects.size() != 1u
+        || readback.dictionaries.empty()
+        || !readback.hasNamedObjectDictionary) {
+        return fail("VisualStyle typed/raw/root records were not all retained (styles="
+            + std::to_string(readback.visualStyles.size()) + ", raw="
+            + std::to_string(readback.rawVisualStyleObjects.size())
+            + ", dictionaries=" + std::to_string(readback.dictionaries.size())
+            + ", nod=" + std::to_string(readback.hasNamedObjectDictionary) + ")");
+    }
+    const DRW_RawDxfObject& rawStyle = readback.rawVisualStyleObjects.front();
+    if (rawStyle.groups.size() != 7u || rawStyle.groups[6].code() != 40
+        || rawStyle.groups[6].type() != DRW_Variant::DOUBLE
+        || rawStyle.groups[6].d_val() != 0.75)
+        return fail("VisualStyle non-handle raw groups changed during export");
+    const auto rootStyleEntry = std::find_if(
+        readback.namedObjectDictionary.m_entries.begin(),
+        readback.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_VISUALSTYLE";
+        });
+    const DRW_Dictionary* styleDictionary = nullptr;
+    if (rootStyleEntry != readback.namedObjectDictionary.m_entries.end()) {
+        for (const DRW_Dictionary& dictionary : readback.dictionaries) {
+            if (dictionary.handle == rootStyleEntry->m_handle) {
+                styleDictionary = &dictionary;
+                break;
+            }
+        }
+    }
+    if (styleDictionary == nullptr
+        || styleDictionary->parentHandle != readback.namedObjectDictionary.handle)
+        return fail("ACAD_VISUALSTYLE root edge did not resolve to its dictionary");
+    const std::uint32_t emittedStyleHandle = readback.visualStyles.front().handle;
+    if (emittedStyleHandle == 0 || emittedStyleHandle == 0x1Cu
+        || readback.rawVisualStyleObjects.front().handle != emittedStyleHandle
+        || readback.visualStyles.front().parentHandle
+            != styleDictionary->handle
+        || readback.rawVisualStyleObjects.front().parentHandle
+            != styleDictionary->handle)
+        return fail("VisualStyle identity collision remap or owner changed");
+    const auto matchesStyle = [emittedStyleHandle](std::uint32_t handle) {
+        return handle == emittedStyleHandle;
+    };
+    if (readback.VPorts.size() != 1u
+        || !matchesStyle(readback.VPorts.front().visualStyleHandle)
+        || readback.views.size() != 1u
+        || !matchesStyle(readback.views.front().m_visualStyleHandle))
+        return fail("VPORT/VIEW VisualStyle reference did not follow remap");
+    const DRW_Viewport* viewport = nullptr;
+    for (const DRW_Entity* entity : readback.mBlock->ent) {
+        viewport = dynamic_cast<const DRW_Viewport*>(entity);
+        if (viewport != nullptr)
+            break;
+    }
+    if (viewport == nullptr || !matchesStyle(viewport->visualStyleHandle))
+        return fail("VIEWPORT VisualStyle reference did not follow remap");
+    return true;
+}
+
+bool visualStyleGraphRejectsDanglingReference(
+    const std::filesystem::path& directory, bool binary) {
+    const auto path = directory / (binary ? "visual-style-reject-bin.dxf"
+                                          : "visual-style-reject-ascii.dxf");
+    dx_data data;
+    populateVisualStyleGraph(data);
+    data.views.front().m_visualStyleHandle = 0x999u;
+    { std::ofstream original(path, std::ios::binary); original << "sentinel\n"; }
+    const std::string before = "sentinel\n";
+    dx_iface iface;
+    if (iface.fileExport(path.string(), DRW::AC1027, binary, &data, false,
+                         true))
+        return fail("dangling VIEW VisualStyle reference was accepted");
+    std::ifstream input(path, std::ios::binary);
+    const std::string actual((std::istreambuf_iterator<char>(input)),
+                             std::istreambuf_iterator<char>());
+    if (actual != before)
+        return fail("dangling VisualStyle rejection replaced destination");
+    return visualStyleGraphRoundTrip(directory, binary, true);
+}
+
+bool visualStyleGraphRejectsWrongOwner(const std::filesystem::path& directory,
+                                       bool binary) {
+    const auto path = directory / (binary ? "visual-style-owner-bin.dxf"
+                                          : "visual-style-owner-ascii.dxf");
+    dx_data data;
+    populateVisualStyleGraph(data);
+    data.visualStyles.front().parentHandle = 0x701u;
+    data.rawVisualStyleObjects.front().parentHandle = 0x701u;
+    { std::ofstream original(path, std::ios::binary); original << "sentinel\n"; }
+    dx_iface iface;
+    if (iface.fileExport(path.string(), DRW::AC1027, binary, &data, false,
+                         true))
+        return fail("wrong-owner VisualStyle carrier was accepted");
+    std::ifstream input(path, std::ios::binary);
+    const std::string actual((std::istreambuf_iterator<char>(input)),
+                             std::istreambuf_iterator<char>());
+    if (actual != "sentinel\n")
+        return fail("wrong-owner VisualStyle rejection replaced destination");
+    return true;
+}
+
+bool visualStyleGraphRejectsRawIdentityMismatch(
+    const std::filesystem::path& directory, bool binary,
+    const std::string& mismatch) {
+    const auto path = directory / ("visual-style-identity-" + mismatch
+        + (binary ? "-bin.dxf" : "-ascii.dxf"));
+    dx_data data;
+    populateVisualStyleGraph(data);
+    DRW_RawDxfObject& raw = data.rawVisualStyleObjects.front();
+    if (mismatch == "self") {
+        raw.groups.front() = DRW_Variant(5, std::string("1D"));
+    } else if (mismatch == "owner") {
+        raw.groups[1] = DRW_Variant(330, std::string("701"));
+    } else if (mismatch == "duplicate") {
+        raw.groups.insert(raw.groups.begin() + 1,
+                          DRW_Variant(5, std::string("1C")));
+    } else if (mismatch == "source-spelling") {
+        if (binary)
+            return fail("ASCII source-spelling mismatch test selected binary DXF");
+        raw.hasRawValues = true;
+        for (const DRW_Variant& group : raw.groups) {
+            switch (group.type()) {
+            case DRW_Variant::STRING:
+                raw.rawValues.emplace_back(group.c_str());
+                break;
+            case DRW_Variant::INTEGER:
+                raw.rawValues.emplace_back(std::to_string(group.i_val()));
+                break;
+            case DRW_Variant::INTEGER64:
+                raw.rawValues.emplace_back(std::to_string(group.i64_val()));
+                break;
+            case DRW_Variant::DOUBLE:
+                raw.rawValues.emplace_back(std::to_string(group.d_val()));
+                break;
+            default:
+                return fail("could not synthesize VisualStyle raw source spellings");
+            }
+        }
+        raw.rawValues.front() = "1D";
+    } else {
+        return fail("unknown VisualStyle identity mismatch case");
+    }
+
+    const std::string before = "sentinel\n";
+    { std::ofstream original(path, std::ios::binary); original << before; }
+    dx_iface iface;
+    if (iface.fileExport(path.string(), DRW::AC1027, binary, &data, false,
+                         true))
+        return fail("inconsistent raw VisualStyle identity was accepted: "
+            + mismatch);
+    std::ifstream input(path, std::ios::binary);
+    const std::string actual((std::istreambuf_iterator<char>(input)),
+                             std::istreambuf_iterator<char>());
+    if (actual != before)
+        return fail("raw VisualStyle identity rejection replaced destination: "
+            + mismatch);
+    return true;
+}
+
 bool extensionGraphLimits() {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto directory = std::filesystem::temp_directory_path()
@@ -318,6 +545,25 @@ bool extensionGraphLimits() {
                "zero graph budgets admit an empty extension graph");
     }
     for (const bool binary : {false, true}) {
+        expect(visualStyleGraphRoundTrip(directory, binary, true),
+               "closed VisualStyle graph remaps and reopens in both DXF encodings");
+        expect(visualStyleGraphRoundTrip(directory, binary, false),
+               "tolerant export still closes retained VisualStyle roots");
+        expect(visualStyleGraphRejectsDanglingReference(directory, binary),
+               "dangling VisualStyle rejection preserves output and permits retry");
+        expect(visualStyleGraphRejectsWrongOwner(directory, binary),
+               "wrong-owner VisualStyle rejection preserves output");
+        for (const std::string mismatch : {"self", "owner", "duplicate"}) {
+            expect(visualStyleGraphRejectsRawIdentityMismatch(
+                       directory, binary, mismatch),
+                   "raw VisualStyle " + mismatch
+                       + " identity mismatch is rejected before publication");
+        }
+        if (!binary) {
+            expect(visualStyleGraphRejectsRawIdentityMismatch(
+                       directory, false, "source-spelling"),
+                   "conflicting ASCII raw self-handle spelling is rejected");
+        }
         for (const bool wide : {false, true}) {
             for (const int resource : {0, 1, 2}) {
                 for (std::size_t count : {2u, 3u, 4u}) {
