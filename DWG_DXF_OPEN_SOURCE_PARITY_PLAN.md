@@ -15491,9 +15491,9 @@ pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.38 seconds);
 external reader, native application, drawing fixture, dependency, or semantic
 geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
 J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice:
-join generated raw AcDs section capture to an actual parsed `3DSOLID`/`REGION`
-entity if the fast page-loader seam permits it; keep `BODY` separate until
-external producer evidence proves its AcDs carrier mapping.
+add adversarial missing/duplicate/wrong-handle dispositions to the joined raw
+section/entity path; keep `BODY` separate until external producer evidence
+proves its AcDs carrier mapping.
 
 ## Implementation progress — AC1027 REGION/AcDs callback closure (2026-10-15)
 
@@ -15514,6 +15514,35 @@ pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.28 seconds);
 native application, peer executable, drawing fixture, dependency, or semantic
 geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
 J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice:
-connect the existing generated raw AcDs page-chain capture to an actual parsed
-`3DSOLID` or `REGION` entity, preserving the fast test boundary and without
-promoting marker bytes to valid payload evidence.
+add generated raw-section controls for missing, duplicate, wrong-handle and
+orphan modeler references, preserving the fast page-loader boundary and
+without promoting marker bytes to valid payload evidence.
+
+## Implementation progress — raw AcDs section to AC1027 3DSOLID dispatch (2026-10-15)
+
+Implementation commit: `1a24e19` (`Test AC1027 AcDs section to body dispatch`).
+
+Added a 448-byte, source-authored one-record AcDs section with bounded inline
+payload. The existing virtual decoded-page seam feeds the bytes into
+`captureRawDwgDataSections`, which publishes both exact raw bytes and the typed
+record index. A separate generated AC1027 3DSOLID frame then passes through the
+real classifier and entity parser; handle-based linking attaches that indexed
+payload before the owner-aware block callback. Assertions cover section/record
+counts, raw-section identity, entity and owner handles, exact payload bytes,
+separation from the complete `m_rawBytes` DWG frame, and final link/orphan
+counts.
+
+The section's page bytes are supplied after the physical DWG page-decoding
+stage, so this remains an in-memory section/entity composition—not a complete
+DWG container/page-map test. Its marker-only payload is not valid SAB and is
+not geometry evidence. No checked-in fixture or production behavior changed.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.32 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
+native application, peer executable, downloaded fixture, dependency, or
+semantic geometry check ran. Findings/subplans remain 122/70. J256, J260,
+J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next
+local slice: produce raw-section variants whose handle binding is missing,
+duplicated or wrong, and verify explicit orphan/failure disposition without
+aborting unrelated 2D/block records.
