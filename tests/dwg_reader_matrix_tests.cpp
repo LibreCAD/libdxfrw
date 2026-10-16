@@ -617,16 +617,34 @@ public:
     }
 };
 
+using AcDsTestRecord =
+    std::pair<std::uint32_t, std::vector<std::uint8_t>>;
+
 std::vector<std::uint8_t> makeInlineAcDsSection(
-    std::uint32_t handle, const std::vector<std::uint8_t>& payload) {
-    constexpr std::size_t sectionSize = 448u;
+    const std::vector<AcDsTestRecord>& records) {
+    constexpr std::size_t sectionSize = 576u;
     constexpr std::size_t segmentIndexOffset = 64u;
     constexpr std::size_t dataIndexOffset = 192u;
     constexpr std::size_t dataOffset = 320u;
-    constexpr std::size_t recordDataOffset = 400u;
-    if (payload.size() > sectionSize - recordDataOffset - 4u
-        || payload.size() > std::numeric_limits<std::uint32_t>::max())
+    constexpr std::size_t segmentDataOffset = dataOffset + 48u;
+    if (records.size() > 2u
+        || records.size()
+            > (sectionSize - segmentDataOffset) /
+                   DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE)
         return {};
+
+    const std::size_t headerBytes =
+        records.size() * DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE;
+    const std::size_t recordDataOffset =
+        (segmentDataOffset + headerBytes + 15u) & ~std::size_t{15u};
+    std::size_t payloadByteCount = 0;
+    for (const AcDsTestRecord& record : records) {
+        if (record.second.size() > std::numeric_limits<std::uint32_t>::max()
+            || record.second.size()
+                > sectionSize - recordDataOffset - 4u - payloadByteCount)
+            return {};
+        payloadByteCount += 4u + record.second.size();
+    }
 
     std::vector<std::uint8_t> bytes(sectionSize, 0u);
     const auto putU16 = [&bytes](std::size_t offset, std::uint16_t value) {
@@ -644,13 +662,13 @@ std::vector<std::uint8_t> makeInlineAcDsSection(
     };
     const auto putSegment = [&putU16, &putU32, &bytes](
                                 std::size_t offset, const char* name,
-                                std::uint32_t index) {
+                                std::uint32_t index, std::uint32_t size) {
         putU16(offset, DRW_DataStorageConst::SEGMENT_SIGNATURE);
         for (std::size_t byte = 0; byte < 6u; ++byte)
             bytes[offset + 2u + byte] =
                 static_cast<std::uint8_t>(name[byte]);
         putU32(offset + 8u, index);
-        putU32(offset + 16u, 128u);
+        putU32(offset + 16u, size);
         putU32(offset + 24u, 1u);
     };
 
@@ -658,36 +676,48 @@ std::vector<std::uint8_t> makeInlineAcDsSection(
     putU32(12u, 1u);
     putU32(20u, 1u);
     putU32(24u, static_cast<std::uint32_t>(segmentIndexOffset));
-    putU32(32u, 3u);
+    putU32(32u, 3u); // Segment-index entry count.
     putU32(36u, 0xffffffffu); // No schema-index segment.
     putU32(40u, 1u); // Data-index segment.
     putU32(44u, 0xffffffffu); // No search segment.
     putU32(48u, 0xffffffffu); // No previous-save segment.
     putU32(52u, static_cast<std::uint32_t>(sectionSize));
 
-    putSegment(segmentIndexOffset, "segidx", 0u);
-    putSegment(dataIndexOffset, "datidx", 1u);
-    putSegment(dataOffset, "_data_", 2u);
+    putSegment(segmentIndexOffset, "segidx", 0u, 128u);
+    putSegment(dataIndexOffset, "datidx", 1u, 128u);
+    putSegment(dataOffset, "_data_", 2u, 256u);
     const std::array<std::pair<std::size_t, std::uint32_t>, 3> segments{{
         {segmentIndexOffset, 128u}, {dataIndexOffset, 128u},
-        {dataOffset, 128u}}};
+        {dataOffset, 256u}}};
     for (std::size_t index = 0; index < segments.size(); ++index) {
         const std::size_t entry = segmentIndexOffset + 48u + index * 12u;
         putU64(entry, segments[index].first);
         putU32(entry + 8u, segments[index].second);
     }
 
-    putU32(dataIndexOffset + 48u, 1u);
-    putU32(dataIndexOffset + 56u, 2u);
-    putU32(dataIndexOffset + 60u, 0u);
-    putU32(dataIndexOffset + 64u, 0u);
+    putU32(dataIndexOffset + 48u,
+           static_cast<std::uint32_t>(records.size()));
+    std::size_t payloadLocalOffset = 0u;
+    for (std::size_t index = 0; index < records.size(); ++index) {
+        const std::size_t dataIndexEntry = dataIndexOffset + 56u + index * 12u;
+        putU32(dataIndexEntry, 2u);
+        putU32(dataIndexEntry + 4u, static_cast<std::uint32_t>(
+            index * DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE));
+        putU32(dataIndexEntry + 8u, 0u);
 
-    putU32(dataOffset + 48u, DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
-    putU64(dataOffset + 56u, handle);
-    putU32(dataOffset + 64u, 0u);
-    putU32(recordDataOffset, static_cast<std::uint32_t>(payload.size()));
-    std::copy(payload.begin(), payload.end(),
-              bytes.begin() + static_cast<std::ptrdiff_t>(recordDataOffset + 4u));
+        const std::size_t header = segmentDataOffset
+            + index * DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE;
+        putU32(header, DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+        putU64(header + 8u, records[index].first);
+        putU32(header + 16u,
+               static_cast<std::uint32_t>(payloadLocalOffset));
+
+        const std::size_t data = recordDataOffset + payloadLocalOffset;
+        putU32(data, static_cast<std::uint32_t>(records[index].second.size()));
+        std::copy(records[index].second.begin(), records[index].second.end(),
+                  bytes.begin() + static_cast<std::ptrdiff_t>(data + 4u));
+        payloadLocalOffset += 4u + records[index].second.size();
+    }
     return bytes;
 }
 
@@ -1077,8 +1107,8 @@ void testModelerAcDsBodyDispatch(TestContext& t) {
     if (!generated)
         return;
 
-    const std::vector<std::uint8_t> rawSection =
-        makeInlineAcDsSection(solidHandle, payload);
+    const std::vector<std::uint8_t> rawSection = makeInlineAcDsSection(
+        {{solidHandle, payload}});
     t.expect(!rawSection.empty(),
              "source-authored one-record AcDs section is generated in memory");
     if (rawSection.empty())
@@ -1206,6 +1236,135 @@ void testModelerAcDsRegionDispatch(TestContext& t) {
     t.expect(reader.dataStorageLinkFailures() == 0u
                  && reader.dataStorageOrphans() == 0u,
              "dispatched REGION consumes exactly one generated AcDs record");
+}
+
+void testModelerAcDsRecordDispositions(TestContext& t) {
+    constexpr std::uint32_t blockHandle = 0x740u;
+    constexpr std::uint32_t missingRecordSolid = 0xA40u;
+    constexpr std::uint32_t wrongHandleSolid = 0xA41u;
+    constexpr std::uint32_t duplicateRecordSolid = 0xA42u;
+    static constexpr std::uint8_t signature[] = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
+    std::vector<std::uint8_t> firstPayload(std::begin(signature),
+                                          std::end(signature));
+    firstPayload.insert(firstPayload.end(), {0x21u, 0x43u});
+    std::vector<std::uint8_t> secondPayload(std::begin(signature),
+                                           std::end(signature));
+    secondPayload.insert(secondPayload.end(), {0x54u, 0x76u});
+
+    struct WalkResult {
+        bool captured;
+        bool walked;
+        std::size_t callbacks;
+        std::uint32_t callbackHandle;
+        std::uint32_t callbackOwner;
+        bool hasDataStorage;
+        bool hasLinkedRecord;
+        std::uint16_t modelerVersion;
+        std::vector<std::uint8_t> linkedPayload;
+        std::size_t parsedRecords;
+        std::size_t linkFailures;
+        std::size_t orphans;
+    };
+    const auto runWalk = [=](std::uint32_t solidHandle,
+                             const std::vector<AcDsTestRecord>& records) {
+        std::ofstream output;
+        DRW_Header header;
+        ModelerDispatchFrameWriter writer(&output, &header);
+        if (!writer.encodeAcDsSolid(solidHandle, blockHandle))
+            return WalkResult{false, false, 0u, DRW::NoHandle,
+                              DRW::NoHandle, false, false, 0u, {}, 0u, 0u, 0u};
+
+        std::vector<std::uint8_t> sourceBytes = writer.buffer();
+        const std::vector<std::uint8_t> rawSection =
+            makeInlineAcDsSection(records);
+        if (rawSection.empty())
+            return WalkResult{false, false, 0u, DRW::NoHandle,
+                              DRW::NoHandle, false, false, 0u, {}, 0u, 0u, 0u};
+
+        dwgRW parent("");
+        auto blockOwner = std::make_unique<DRW_Block_Record>();
+        DRW_Block_Record* block = blockOwner.get();
+        block->handle = blockHandle;
+        block->name = "ACDS_DISPOSITION_TEST";
+        DwgBlockOwnershipTestAccess::setEntityHandles(*block, {solidHandle});
+        ModelerDispatchReader reader(
+            std::unique_ptr<dwgBuffer>(new dwgBuffer(
+                sourceBytes.data(), sourceBytes.size())),
+            &parent);
+        reader.setFormatVersion(DRW::AC1027);
+        reader.blockRecordmap.emplace(blockHandle, block);
+        (void)blockOwner.release(); // reader owns block-record values.
+        reader.ObjectMap.emplace(solidHandle,
+                                 objHandle(38u, solidHandle, 0u));
+        reader.setPrototypeSectionData(rawSection);
+        const bool captured = reader.captureDataStorageSection();
+        if (!captured) {
+            reader.finalizeDataStorage();
+            return WalkResult{false, false, 0u, DRW::NoHandle,
+                              DRW::NoHandle, false, false, 0u, {},
+                              reader.parsedDataStorageRecords(),
+                              reader.dataStorageLinkFailures(),
+                              reader.dataStorageOrphans()};
+        }
+
+        dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
+        ModelerDispatchSink sink;
+        sink.activeWalkOwner = blockHandle;
+        const bool walked = reader.walkBlockRecordEntities(
+            block, &objectStream, sink, blockHandle, blockHandle);
+        reader.finalizeDataStorage();
+        WalkResult result{captured, walked, sink.modeler.size(),
+                          DRW::NoHandle, DRW::NoHandle, false, false, 0u,
+                          {}, reader.parsedDataStorageRecords(),
+                          reader.dataStorageLinkFailures(),
+                          reader.dataStorageOrphans()};
+        if (!sink.modeler.empty()) {
+            const ModelerDispatchSink::OwnedSolid& solid =
+                sink.modeler.front();
+            result.callbackHandle = solid.entity.handle;
+            result.callbackOwner = solid.walkOwner;
+            result.hasDataStorage = solid.entity.hasDataStorageBinaryData();
+            result.hasLinkedRecord = solid.entity.hasDataStorageRecord;
+            result.modelerVersion = solid.entity.m_modelerVersion;
+            result.linkedPayload = solid.entity.dataStorageData;
+        }
+        return result;
+    };
+
+    const WalkResult missing = runWalk(missingRecordSolid, {});
+    const WalkResult wrongHandle = runWalk(
+        wrongHandleSolid, {{wrongHandleSolid + 1u, firstPayload}});
+    const WalkResult duplicate = runWalk(
+        duplicateRecordSolid, {{duplicateRecordSolid, firstPayload},
+                               {duplicateRecordSolid, secondPayload}});
+    t.expect(missing.captured && missing.walked && missing.callbacks == 1u
+                 && missing.callbackHandle == missingRecordSolid
+                 && missing.callbackOwner == blockHandle
+                 && missing.hasDataStorage && !missing.hasLinkedRecord
+                 && missing.modelerVersion == 168u
+                 && missing.linkedPayload.empty()
+                 && missing.parsedRecords == 0u
+                 && missing.linkFailures == 1u && missing.orphans == 0u,
+             "missing AcDs record stays explicit while the typed solid callback survives");
+    t.expect(wrongHandle.captured && wrongHandle.walked
+                 && wrongHandle.callbacks == 1u
+                 && wrongHandle.callbackHandle == wrongHandleSolid
+                 && wrongHandle.hasDataStorage && !wrongHandle.hasLinkedRecord
+                 && wrongHandle.modelerVersion == 168u
+                 && wrongHandle.linkedPayload.empty()
+                 && wrongHandle.parsedRecords == 1u
+                 && wrongHandle.linkFailures == 1u && wrongHandle.orphans == 1u,
+             "wrong-handle AcDs record is not attached and is reported orphaned");
+    t.expect(duplicate.captured && duplicate.walked
+                 && duplicate.callbacks == 1u
+                 && duplicate.callbackHandle == duplicateRecordSolid
+                 && duplicate.hasDataStorage && duplicate.hasLinkedRecord
+                 && duplicate.modelerVersion == 2u
+                 && duplicate.linkedPayload == secondPayload
+                 && duplicate.parsedRecords == 2u
+                 && duplicate.linkFailures == 0u && duplicate.orphans == 1u,
+             "duplicate AcDs revisions attach the preferred exact record and expose the other as orphan");
 }
 
 void testR2004SectionMapPublication(TestContext& t) {
@@ -3394,6 +3553,7 @@ int main() {
     testModelerInsertTargetResolution(context);
     testModelerAcDsBodyDispatch(context);
     testModelerAcDsRegionDispatch(context);
+    testModelerAcDsRecordDispositions(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
