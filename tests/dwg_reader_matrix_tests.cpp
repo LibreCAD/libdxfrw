@@ -734,25 +734,6 @@ public:
         decoder.setVersion(value, false);
     }
 
-    void appendDataStorageRecord(std::uint64_t handle,
-                                 const std::string& handleKey,
-                                 std::vector<std::uint8_t> payload) {
-        DRW_DataStorageSection section;
-        section.m_version = version;
-        DRW_DataStorageRecord record;
-        record.handle = handle;
-        record.handleKey = handleKey;
-        record.payload = std::move(payload);
-        record.segmentIndex = 3u;
-        record.schemaIndex = 5u;
-        section.records.push_back(std::move(record));
-        section.recordIndexByHandle.emplace(handle, 0u);
-        section.recordIndexByHandleKey.emplace(handleKey, 0u);
-        section.recordIndexesByHandle[handle].push_back(0u);
-        section.recordIndexesByHandleKey[handleKey].push_back(0u);
-        m_dataStorageSections.push_back(std::move(section));
-    }
-
     void setPrototypeSectionData(std::vector<std::uint8_t> data) {
         m_prototypeSectionData = std::move(data);
         dwgSectionInfo section;
@@ -1188,6 +1169,12 @@ void testModelerAcDsRegionDispatch(TestContext& t) {
              "in-memory AC1027 REGION shell and AcDs record are generated");
     if (!generated)
         return;
+    const std::vector<std::uint8_t> rawSection = makeInlineAcDsSection(
+        {{regionHandle, payload}});
+    t.expect(!rawSection.empty(),
+             "source-authored REGION AcDs section is generated in memory");
+    if (rawSection.empty())
+        return;
 
     std::vector<std::uint8_t> sourceBytes = writer.buffer();
     dwgRW parent("");
@@ -1204,7 +1191,14 @@ void testModelerAcDsRegionDispatch(TestContext& t) {
     reader.blockRecordmap.emplace(blockHandle, block);
     (void)blockOwner.release(); // reader owns block-record values.
     reader.ObjectMap.emplace(regionHandle, objHandle(37u, regionHandle, 0u));
-    reader.appendDataStorageRecord(regionHandle, "A30", payload);
+    reader.setPrototypeSectionData(rawSection);
+    const bool captured = reader.captureDataStorageSection();
+    t.expect(captured && reader.rawDataStorageSections() == 1u
+                 && reader.parsedDataStorageRecords() == 1u
+                 && reader.rawDataStorageSectionEquals(rawSection),
+             "REGION AcDs bytes pass through raw page capture and typed indexing");
+    if (!captured)
+        return;
 
     dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
     ModelerDispatchSink sink;
