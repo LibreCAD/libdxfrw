@@ -19,6 +19,17 @@ new fixture/dependency/support claim or external J transition is allowed.
 See [the detailed parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-3d-carrier-runtime-and-peer-writer-readiness-review-2026-10-15),
 [`3d-carrier-runtime-and-peer-writer-review-2026-10-15.json`](docs/research/3d-carrier-runtime-and-peer-writer-review-2026-10-15.json).
 
+**Implementation slice — explicit MESH property overrides (2026-10-15):**
+commit `f8d802d` adds generated ASCII/binary wire and typed-readback checks for
+two override records with different subentity markers/property types, plus a
+following-entity sentinel. The existing local MESH implementation now has
+focused coverage of overrides as well as vertices, faces, edges and creases;
+this remains structural field preservation, not rendered/surface semantics or
+ACIS parity. The DXF fixture target, executable, and registered CTest pass; no
+fixture, production code, callback contract, or support claim changed. Exact
+source/artifact hashes are in
+[`mesh-property-overrides-fast-test-2026-10-15.json`](docs/research/mesh-property-overrides-fast-test-2026-10-15.json).
+
 **Latest broader peer-capability / CLASS readiness review (2026-10-15):**
 cross-implementation version matrices, type inventories, raw-preservation
 routes, and semantic qualification are now explicitly kept as separate
