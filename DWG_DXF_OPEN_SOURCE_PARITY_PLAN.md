@@ -15012,6 +15012,36 @@ No implementation, fixture, dependency, support count or consumer qualification
 changed in this research pass. Findings/subplans remain 122/70; J256, J260,
 J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
 
+## Implementation progress — parsed DataStorage to entity-link boundary (2026-10-15)
+
+Implementation commit: `33c4fce` (`Test DataStorage parser-to-link boundary`).
+
+The generated two-page `blob01` section is now passed as raw bytes through
+`DRW_parseDataStorage`, moved into a `dwgReader27` test instance, and linked to
+a modeler body using matching numeric and canonical-hex handles. The control
+checks exact assembled payload bytes, segment/schema indices, payload-marker
+metadata, preserved parent handle, AC1027/SAB-signature normalization, and
+zero link failures. A second parsed record is intentionally left unattached;
+finalization must report it as the one orphan with its source handle. All
+bytes remain generated in memory.
+
+This is only a parser→record-link→orphan-accounting structural control. The
+payload starts with the SAB signature but is not asserted to be valid SAB or
+3D geometry. The test injects a parsed section into the reader directly; it
+does not yet cover the DWG section-discovery path, entity `parseDwg` dispatch,
+block/INSERT reachability, duplicate/missing/wrong-type rows across a
+multi-record raw section, output serialization, or semantic body preservation.
+
+Validation: `libdxfrw_graph_preservation_tests` builds and
+`libdxfrw_graph_preservation` passes 1/1 (0.42 seconds); `lc3_compat_check` is
+up to date and `git diff --check` passes. No full suite, disk DWG/DXF/SAT/SAB
+fixture, external executable, new dependency or support promotion was used.
+Next: join source-generated raw records to multiple modeler entities across
+distinct owners and deliberately divergent record/handle/traversal orders;
+then cover block/INSERT closure before implementing untouched-section
+passthrough invalidation. Findings/subplans remain 122/70, and J256, J260,
+J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
 ## Implementation progress — Blob01 alias and aggregate-total controls (2026-10-15)
 
 Implementation commit: `ed92737` (`Cover DataStorage page-chain alias and totals`).
