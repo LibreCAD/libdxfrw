@@ -5558,23 +5558,67 @@ void testDwgModelerDataStorageLinking(TestContext& t) {
     std::vector<std::uint8_t> secondPayload = sab;
     secondPayload.push_back(0x22u);
     orderReader.appendDataStorageSection(makeDataStorageTestSection(
-        {makeDataStorageTestRecord(0x81u, "81", firstPayload),
-         makeDataStorageTestRecord(0x82u, "82", secondPayload)}));
-    DRW_ModelerGeometry secondModeler(DRW::E3DSOLID);
-    secondModeler.handle = 0x82u;
-    secondModeler.setHasDataStorageBinaryData(true);
-    DRW_ModelerGeometry firstModeler(DRW::E3DSOLID);
-    firstModeler.handle = 0x81u;
-    firstModeler.setHasDataStorageBinaryData(true);
-    orderReader.linkDataStorage(secondModeler);
-    orderReader.linkDataStorage(firstModeler);
-    t.expect(secondModeler.dataStorageData == secondPayload
-                 && firstModeler.dataStorageData == firstPayload
-                 && secondModeler.m_modelerVersion == 2
-                 && firstModeler.m_modelerVersion == 2
+        {makeDataStorageTestRecord(0x70u, "70", secondPayload),
+         makeDataStorageTestRecord(0x10u, "10", sab),
+         makeDataStorageTestRecord(0x90u, "90", firstPayload)}));
+    orderReader.m_dataStorageSections.front().records[0].segmentIndex = 7u;
+    orderReader.m_dataStorageSections.front().records[0].schemaIndex = 4u;
+    orderReader.m_dataStorageSections.front().records[1].segmentIndex = 2u;
+    orderReader.m_dataStorageSections.front().records[1].schemaIndex = 8u;
+    orderReader.m_dataStorageSections.front().records[2].segmentIndex = 5u;
+    orderReader.m_dataStorageSections.front().records[2].schemaIndex = 1u;
+
+    // Record order (70, 10, 90), sorted handle order (10, 70, 90), and
+    // owner traversal order (90, 10, 70) are all distinct. The three bodies
+    // are intentionally owned by model space and two different block records.
+    DRW_ModelerGeometry nestedBody(DRW::BODY);
+    nestedBody.handle = 0x70u;
+    nestedBody.parentHandle = 0xC00u;
+    nestedBody.setHasDataStorageBinaryData(true);
+    nestedBody.dataStorageHandle = 0x70u;
+    nestedBody.dataStorageHandleKey = "70";
+    DRW_ModelerGeometry modelSpaceBody(DRW::REGION);
+    modelSpaceBody.handle = 0x10u;
+    modelSpaceBody.parentHandle = 0xA00u;
+    modelSpaceBody.setHasDataStorageBinaryData(true);
+    modelSpaceBody.dataStorageHandle = 0x10u;
+    modelSpaceBody.dataStorageHandleKey = "10";
+    DRW_ModelerGeometry rootBlockBody(DRW::E3DSOLID);
+    rootBlockBody.handle = 0x90u;
+    rootBlockBody.parentHandle = 0xB00u;
+    rootBlockBody.setHasDataStorageBinaryData(true);
+    rootBlockBody.dataStorageHandle = 0x90u;
+    rootBlockBody.dataStorageHandleKey = "90";
+
+    orderReader.linkDataStorage(rootBlockBody);
+    orderReader.linkDataStorage(modelSpaceBody);
+    orderReader.linkDataStorage(nestedBody);
+    orderReader.finalizeDataStorageLinks();
+    t.expect(nestedBody.hasDataStorageRecord
+                 && nestedBody.dataStorageData == secondPayload
+                 && nestedBody.dataStorageSegmentIndex == 7u
+                 && nestedBody.dataStorageSchemaIndex == 4u
+                 && nestedBody.m_modelerVersion == 2
+                 && !nestedBody.m_isEmpty
+                 && nestedBody.parentHandle == 0xC00u
+                 && modelSpaceBody.hasDataStorageRecord
+                 && modelSpaceBody.dataStorageData == sab
+                 && modelSpaceBody.dataStorageSegmentIndex == 2u
+                 && modelSpaceBody.dataStorageSchemaIndex == 8u
+                 && modelSpaceBody.m_modelerVersion == 2
+                 && !modelSpaceBody.m_isEmpty
+                 && modelSpaceBody.parentHandle == 0xA00u
+                 && rootBlockBody.hasDataStorageRecord
+                 && rootBlockBody.dataStorageData == firstPayload
+                 && rootBlockBody.dataStorageSegmentIndex == 5u
+                 && rootBlockBody.dataStorageSchemaIndex == 1u
+                 && rootBlockBody.m_modelerVersion == 2
+                 && !rootBlockBody.m_isEmpty
+                 && rootBlockBody.parentHandle == 0xB00u
                  && orderReader.linkFailures() == 0u
-                 && orderReader.linkedRecordCount() == 2u,
-             "AcDs SAB records bind by entity handle independent of traversal order");
+                 && orderReader.linkedRecordCount() == 3u
+                 && orderReader.m_dataStorageOrphanRecords == 0u,
+             "AcDs bodies bind by handle across distinct block owners and record orders");
 
     dwgRW mismatchOwner(nullptr);
     ExposedDwgReader27 mismatchReader(
