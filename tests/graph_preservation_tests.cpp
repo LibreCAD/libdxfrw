@@ -539,6 +539,8 @@ void testDataStorageBlobPages(TestContext& t) {
         std::size_t pageOneHeaderOffset = 0;
         std::size_t descriptorOffset = 0;
         std::size_t pageZeroSegmentSizeOffset = 0;
+        std::size_t dataRegionOffset = 0;
+        std::size_t suffixRecordHeaderOffset = 0;
         std::uint32_t pageSegmentSize = 0;
     };
 
@@ -651,6 +653,7 @@ void testDataStorageBlobPages(TestContext& t) {
 
         const std::size_t afterHeaders = dataOffset + 48u + 40u;
         const std::size_t dataRegionOffset = (afterHeaders + 15u) & ~15u;
+        fixture.dataRegionOffset = dataRegionOffset;
         putU32(dataRegionOffset,
                DRW_DataStorageConst::DATA_BLOB_REFERENCE_MARKER);
         fixture.descriptorOffset = dataRegionOffset + 4u;
@@ -697,6 +700,8 @@ void testDataStorageBlobPages(TestContext& t) {
         fixture.pageOneHeaderOffset = pageOneSegmentOffset + 48u;
 
         const std::size_t suffixRecordOffset = dataRegionOffset + 52u;
+        fixture.suffixRecordHeaderOffset =
+            firstRecordHeader + DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE;
         putU32(suffixRecordOffset,
                static_cast<std::uint32_t>(sentinel.size()));
         std::copy(sentinel.begin(), sentinel.end(),
@@ -861,6 +866,61 @@ void testDataStorageBlobPages(TestContext& t) {
                  && truncatedPageSuffix != nullptr
                  && truncatedPageSuffix->payload == sentinel,
              "DataStorage rejects a page segment truncated by one byte and preserves suffix");
+
+    BlobFixture truncatedPageHeader = makeFixture();
+    putU32(truncatedPageHeader.bytes,
+           truncatedPageHeader.pageZeroSegmentSizeOffset, 64u);
+    const DRW_DataStorageSection rejectedTruncatedPageHeader =
+        DRW_parseDataStorage(truncatedPageHeader.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* pageHeaderSuffix =
+        rejectedTruncatedPageHeader.findRecordByHandle(0xa18u);
+    const bool hasTruncatedPageHeaderDiagnostic = std::any_of(
+        rejectedTruncatedPageHeader.diagnostics.cbegin(),
+        rejectedTruncatedPageHeader.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code
+                == "datastorage-blob-page-segment-invalid";
+        });
+    t.expect(!rejectedTruncatedPageHeader.structurallyValid
+                 && !rejectedTruncatedPageHeader.replayAllowed
+                 && rejectedTruncatedPageHeader.findRecordByHandle(0xa17u)
+                        == nullptr
+                 && pageHeaderSuffix != nullptr
+                 && pageHeaderSuffix->payload == sentinel
+                 && hasTruncatedPageHeaderDiagnostic,
+             "DataStorage rejects a page segment truncated before its page header");
+
+    BlobFixture truncatedDescriptor = makeFixture();
+    constexpr std::uint32_t shortBlobRecordLength = 35u;
+    putU32(truncatedDescriptor.bytes,
+           truncatedDescriptor.suffixRecordHeaderOffset + 16u,
+           shortBlobRecordLength);
+    const std::size_t overlappedSuffixOffset =
+        truncatedDescriptor.dataRegionOffset + shortBlobRecordLength;
+    putU32(truncatedDescriptor.bytes, overlappedSuffixOffset,
+           static_cast<std::uint32_t>(sentinel.size()));
+    std::copy(sentinel.begin(), sentinel.end(),
+              truncatedDescriptor.bytes.begin()
+                  + static_cast<std::ptrdiff_t>(overlappedSuffixOffset + 4u));
+    const DRW_DataStorageSection rejectedTruncatedDescriptor =
+        DRW_parseDataStorage(truncatedDescriptor.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* truncatedDescriptorSuffix =
+        rejectedTruncatedDescriptor.findRecordByHandle(0xa18u);
+    const bool hasTruncatedDescriptorDiagnostic = std::any_of(
+        rejectedTruncatedDescriptor.diagnostics.cbegin(),
+        rejectedTruncatedDescriptor.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code
+                == "datastorage-blob-reference-truncated";
+        });
+    t.expect(!rejectedTruncatedDescriptor.structurallyValid
+                 && !rejectedTruncatedDescriptor.replayAllowed
+                 && rejectedTruncatedDescriptor.findRecordByHandle(0xa17u)
+                        == nullptr
+                 && truncatedDescriptorSuffix != nullptr
+                 && truncatedDescriptorSuffix->payload == sentinel
+                 && hasTruncatedDescriptorDiagnostic,
+             "DataStorage bounds a truncated blob descriptor at the next record");
 
     BlobFixture wrongSegmentKind = makeFixture();
     putU32(wrongSegmentKind.bytes, wrongSegmentKind.descriptorOffset + 32u, 2u);
