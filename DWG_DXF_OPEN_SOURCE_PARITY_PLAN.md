@@ -20,7 +20,7 @@ J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
 **Latest AcDs peer-maturity update (2026-10-15; local baseline `09bb237`):**
 ACadSharp's full DWG `Prototype1b` reader is no longer merely an open-PR lead:
 PR [#1154](https://github.com/DomCR/ACadSharp/pull/1154) was merged and is
-included in released v3.6.51 (later v3.7.1 is available). The implementation
+included in released v3.6.51 (later v3.8.0 is now the latest release). The implementation
 was prompted by a public review challenging earlier signature-scan and fixed
 schema assumptions; the merged reader is a useful pinned structural comparator,
 but its large/private corpus reports are not a reproduced local result. A
@@ -34,6 +34,21 @@ the exact payload reaches its owning modeler entity. ACadSharp's writer work
 unmerged in the reviewed snapshot. This refresh tightens only existing S8.2 / S8.3 /
 S8.4 readiness; it adds no finding, fixture, dependency, or support claim. All six
 external J items remain `DEFERRED_EXTERNAL` and non-promoting.
+
+**Latest peer-release and proxy-read-path refresh (2026-10-15):** the current
+ACadSharp release pin is v3.8.0 (`3a1c66b`); v3.7.16 (`3feabba`) contains the
+merged [proxy-shell face-list correction #1241](https://github.com/DomCR/ACadSharp/pull/1241).
+That peer bug was a double index advance which left bytes unread and shifted
+subsequent proxy geometries. It is a parser failure-pattern lead, not evidence
+that libdxfrw shares that grammar: first distinguish DWG proxy-shell records
+from libdxfrw's DXF proxy-graphics decoder. Current ACadSharp
+[ACIS writer #1150](https://github.com/DomCR/ACadSharp/pull/1150),
+[schema/storage refactor #1174](https://github.com/DomCR/ACadSharp/pull/1174),
+and [writer #1240](https://github.com/DomCR/ACadSharp/pull/1240) remain open
+and are not in the released comparator. The optional peer baseline is therefore
+v3.8.0, while v3.6.51 remains the first release known to include the full
+Prototype1b reader. No local finding, fixture, dependency, support claim or J
+status changes; all six external J items remain `DEFERRED_EXTERNAL`.
 
 **Latest cross-project carrier and consumer review (2026-10-15; baseline
 `11c8fe7`):** a broader pass across LibreDWG, ezdxf, FreeCAD, GDAL, and
@@ -15989,3 +16004,46 @@ J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and
 non-promoting. Next composed work stays gated on an independently qualified
 ACIS semantic reader; locally continue the separate carrier/parser/consumer
 subplans without relabeling frame or container preservation as 3D semantics.
+
+## Broader live peer-release and parser-failure-pattern review (2026-10-15; research only)
+
+This refresh checked current release records and linked PR discussions rather
+than relying only on the peer capability tables. It compares implementation
+status and failure modes across ACadSharp, LibreDWG, ezdxf, and FreeCAD, while
+keeping ODA/Autodesk format material as the primary layout authority. No peer
+was installed or run, no external drawing was fetched, and no local support
+claim or finding disposition changed.
+
+| Source | Fresh evidence | Plan consequence |
+| --- | --- | --- |
+| ACadSharp [releases](https://github.com/DomCR/ACadSharp/releases) | v3.8.0 (`3a1c66b`, Sep 21) is the current release; it includes the full Prototype1b reader already shipped in v3.6.51 (#1154). Its direct predecessor v3.7.16 (`3feabba`, Sep 18) includes proxy-shell face-list fix #1241. | Use v3.8.0 as the optional latest structural-comparator pin; record the exact package/source hashes at execution. Retain v3.6.51 only as the first known release containing #1154. Release presence is not local reproduction or SAB semantic evidence. |
+| ACadSharp [#1241](https://github.com/DomCR/ACadSharp/pull/1241) | The merged fix identifies a loop that advanced the proxy face-list index by `count + 1` in addition to the loop increment, leaving bytes unread and shifting later proxy geometry in the same stream. The maintainer noted local files did not exercise the branch. | Treat as an adversarial parser pattern, not a libdxfrw defect. Before adding tests, map ACadSharp's DWG proxy-shell list to any libdxfrw `ACAD_PROXY_ENTITY` parser and to `DRW_ProxyGraphicDecoder`; these are not presumed to share a wire grammar. Add a source-authored multi-item/next-record sentinel only if the local decoder has the corresponding counted-list construct. Otherwise mark this peer case not applicable and retain existing PAR-76/7AP DXF proxy-graphics coverage. |
+| ACadSharp [#1150](https://github.com/DomCR/ACadSharp/pull/1150), [#1174](https://github.com/DomCR/ACadSharp/pull/1174), and [#1240](https://github.com/DomCR/ACadSharp/pull/1240) | Live pages still show the ACIS writer, ACDS/schema refactor, and dependent writer proposal as open; #1240 says its branch is not deployed. Earlier discussion reports #1174's branch-specific `NotImplementedException` in ACDS record parsing. | Distinguish the stable released reader from unmerged writer/refactor branches. Do not copy their writer layout or let the branch-specific failure imply a master/release regression. Any future differential run must pin a branch SHA and separately report build, parse, per-handle payload resolution, emitted carrier, independent reopen, and semantic results. |
+| LibreDWG [issue #1411](https://github.com/LibreDWG/libredwg/issues/1411) and current [AcDs implementation](https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec) | The issue documents one LibreDWG 0.14.8593 AC1027+/AC1032 loss path; current source still offers useful index/schema cross-checks but is not a complete owner/page or geometry oracle. | Keep the issue scoped to that build/reproducer. Do not treat empty JSON, omitted section output, or successful conversion exit as proof the source lacked SAB. Compare exact source handle, DataStorage row, page assembly, and owning entity before comparing output. |
+| FreeCAD current [format guide](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md), [DWG import documentation](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md), and [issue #18454](https://github.com/FreeCAD/FreeCAD/issues/18454) | The standard DWG/DXF route is converter-to-DXF; documentation describes only 2D data support, and the issue says FreeCAD's DXF importer cannot read ACIS blobs. | Keep stock FreeCAD conversion/2D importer qualification separate from the optional CAD Exchanger 3D route and from ACIS reader/kernel semantics. Converter success plus an empty solid shell cannot promote 3D support. |
+
+### Revised implementation-ready follow-through
+
+1. Refresh the optional peer manifest to v3.8.0 and preserve v3.6.51 as the
+   minimum reader-bearing release. Do not download/install it just to keep local
+   work moving; when an existing isolated comparator environment is available,
+   pin package hash, source tag/commit, runtime, and command.
+2. Perform a narrow source-path map for ACadSharp #1241 before creating any
+   libdxfrw regression. If a matching local counted-list decoder exists, add
+   one runtime-generated several-face case followed by another primitive and
+   assert exact stream completion, subsequent-item identity, and sentinel
+   integrity. If not, record `NOT_APPLICABLE`; never conflate its DWG proxy
+   shell parser with DXF cached proxy-graphics decoding.
+3. Keep ACadSharp's ACIS reader, its unmerged writer branches, LibreDWG's
+   partial AcDs implementation, ezdxf's DXF-carrier facilities, and FreeCAD's
+   consumer path as different comparison roles. A release matrix or PR status
+   cannot substitute for stage-specific runtime evidence.
+4. Continue the existing local AC1027 AcDs and block-closure implementation
+   using runtime-generated controls. No new fixture, dependency, CTest
+   registration, broad/full-suite run, or native app run is justified by this
+   static refresh; retain the planned composed checkpoint cadence.
+
+This update adds no PAR finding or top-level subplan; totals remain 122/70.
+No code, fixture, dependency, peer execution, native qualification, or support
+claim changed. J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.
