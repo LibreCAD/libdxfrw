@@ -15240,10 +15240,13 @@ run and no generated drawing was added. Durable evidence:
 
 ### Superseding implementation-ready sequence
 
-1. Finish the current in-memory DWG section and owner/body closure path. Add
-   block-only `3DSOLID`/`REGION` plus `INSERT` reachability and explicit
-   duplicate, missing, wrong-type, orphan, and unreferenced dispositions;
-   keep traversal, record, page, and sorted-handle order deliberately distinct.
+1. Continue from the generated AC1027 `BLOCK_RECORD` dispatch regression
+   recorded below. That test proves a single empty `3DSOLID` frame reaches the
+   typed callback with its owner handle intact; it does not prove payload
+   closure. Next add block-only `3DSOLID`/`REGION` plus `INSERT` reachability
+   and explicit duplicate, missing, wrong-type, orphan, and unreferenced
+   dispositions; keep traversal, record, page, and sorted-handle order
+   deliberately distinct.
 2. Before writer work, retain the *complete bounded modeler-body span* for
    same-version replay, including versioned payload boundaries and any
    wireframe/silhouette bytes. Attach source version, entity handle, history
@@ -15362,3 +15365,26 @@ This is a research/readiness refinement only. No source/test code, drawing
 fixture, dependency, finding/subplan count, support claim, or remote state
 changed. Findings/subplans remain 122/70. J256, J260, J268, J284, J293 and
 J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — AC1027 modeler block-walk dispatch (2026-10-15)
+
+Implementation commit: `85e5d58` (`Test AC1027 modeler block dispatch`).
+
+Added a source-authored, in-memory AC1027 object frame using the production
+writer's frame assembler, then fed it through the real `walkBlockRecordEntities`
+path with a `BLOCK_RECORD` entMap entry and the matching owner handle. The test
+asserts one typed `3DSOLID` callback with the exact entity and owner handles,
+empty-modeler state, and no invented ACIS payload. This closes the local
+dispatch/owner verification gap only; it does not qualify nonempty SAT/SAB,
+AcDs linkage, a block-only solid reached through an INSERT, REGION, complete
+DWG container handling, writer replay, or B-rep semantics.
+
+Validation: `libdxfrw_dwg_reader_matrix_tests` builds with strict warnings;
+focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.30 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
+native application, peer executable, external fixture, or semantic geometry
+check ran. No generated drawing fixture or dependency was added. The next
+unblocked local slice is an in-memory multi-entity/block reachability control
+that distinguishes stored block contents from INSERT-driven reachability and
+records per-entity disposition. Findings/subplans remain 122/70; J256, J260,
+J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
