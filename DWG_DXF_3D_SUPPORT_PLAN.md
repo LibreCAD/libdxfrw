@@ -3,6 +3,22 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
+**Latest deeper carrier/writer research (2026-10-15):** the broader review
+now includes an executed LibreDWG 0.14 AC1032→R2018 DXF conversion compared
+with the hash-matched ODA R2018 output from the same already-tracked drawing.
+All58 Flat VisualStyle primary group codes align, but six property tuples do
+not; LibreDWG omits two group176 companions, produces three group420 values
+outside the documented 24-bit range, and differs in extended-lighting/CMC
+values. This is a strong warning against copying peer output as the wire
+contract, not a producer-authored or CAD-acceptance result. ACadSharp's merged
+ACIS read route and still-open schema/write proposals expose concrete segment,
+handle-order and chunk-boundary cases for the container-specific test plan.
+The existing local MESH field test also lacks property-override records, so
+the plan adds a generated fast vector before broad native qualification. No
+new fixture/dependency/support claim or external J transition is allowed.
+See [the detailed parity-plan review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-3d-carrier-runtime-and-peer-writer-readiness-review-2026-10-15),
+[`3d-carrier-runtime-and-peer-writer-review-2026-10-15.json`](docs/research/3d-carrier-runtime-and-peer-writer-review-2026-10-15.json).
+
 **Latest broader peer-capability / CLASS readiness review (2026-10-15):**
 cross-implementation version matrices, type inventories, raw-preservation
 routes, and semantic qualification are now explicitly kept as separate

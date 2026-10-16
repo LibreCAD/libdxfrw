@@ -2,6 +2,22 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
+**Latest broader 3D carrier/runtime research (2026-10-15; baseline `8ee7b90`):**
+the first pinned LibreDWG 0.14 writer run on the already-tracked AC1032 input
+now supplies output evidence for the 58-slot VisualStyle hypothesis. Both
+LibreDWG and ODA emit the same primary group-code sequence across all58 Flat
+slots, but six slot payloads differ: LibreDWG omits companions on slots31/33,
+emits three group420 values with a nonzero high byte, and differs in other CMC
+and RGB/ACI values; group177 is2 in its output and3 in ODA's. Do not bless a
+candidate serializer or normalize those deltas from peer output alone. Broader
+ACadSharp follow-up also reveals a merged ACIS read path plus still-open ACDS
+schema/write work, with explicit multi-segment and sorted-handle indexing risks.
+The plan adds compact generated controls for MESH property-override order and
+bounded ACDS segmentation/ownership before writer or semantic claims. No
+support claim, fixture, dependency, J disposition, or full-suite cadence is
+promoted. Full evidence and command/hash receipt:
+[`3d-carrier-runtime-and-peer-writer-review-2026-10-15.json`](docs/research/3d-carrier-runtime-and-peer-writer-review-2026-10-15.json).
+
 **Latest research/implementation delta (2026-10-15, implementation baseline `d5f5e4a`):**
 f.4a owned retention is now complete through reset/malformed-default,
 lifetime, copy and following-record fast controls. The deeper
@@ -14480,3 +14496,52 @@ dependency is introduced. The evidence manifest is
 The update is research-only: no code, tests, support matrix/count, or platform
 receipt changed; J256/J260/J268/J284/J293/J295 remain
 `DEFERRED_EXTERNAL` and non-promoting.
+
+## Broader 3D carrier-runtime and peer-writer readiness review (2026-10-15)
+
+This pass combines one bounded run of the installed LibreDWG writer with a
+hash-matched ODA conversion already recorded from the same tracked AC1032
+input, then checks current open-source ACIS read/write work against the
+authoritative DXF carrier tables and local test coverage. Runtime output is
+useful interoperability evidence, not a producer-authored field oracle or
+native CAD acceptance. No external drawing was introduced; both converter
+outputs remain scratch artifacts.
+
+| Evidence | Result and confidence limit | Plan refinement |
+| --- | --- | --- |
+| Same tracked `rtext_arctext.dwg` converted to R2018 DXF by ODA File Converter 27.1 and LibreDWG 0.14; exact binary/output hashes are in the receipt | The Flat `VISUALSTYLE` records have the same primary group-code sequence across all58 slots, but only52 complete slot tuples match. Differences are slots6,31,33,41,44,51. LibreDWG writes only56 group-176 companions (missing at31/33), versus58 in ODA; group177 is2 versus3. Three LibreDWG group420 payloads are `0xC2FFFFFF`, `0xC2000000`, and `0xC20000FF`, while the corresponding ODA encodings are within24 bits. Slots41 and51 also disagree in their CMC field values. Neither converter is an independent readback of the other's output; the source DWG's original producer is not established by this run. | Update f.3c: a primary-tag crosswalk can now be checked against real writer output, but cannot be used to admit a serializer. Track value, companion, CMC method and lighting discrepancies by slot. Resolve group420 treatment against Autodesk's documented `0x00RRGGBB` meaning and an eligible producer/readback; do not copy LibreDWG's high byte, blindly mask it, adopt group177 defaults, or relax the two missing companions. Retain the crosswalk as candidate data with per-field evidence grades. |
+| Autodesk [MESH](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm) and [3DFACE](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm) tables; local `DRW_Mesh` implementation and `testMeshRawFieldTags` | The DXF MESH contract has separate bounded streams for vertices, face-list items, edge-index pairs, crease values and subentity overrides. Local parse/write/model validation already retains `propertyOverrides`, but the focused emitted-wire/self-read test covers only the cage, edges, creases and following-LINE framing; it has no positive override record. 3DFACE additionally carries WCS corners and independent invisible-edge flags. | Add one generated ASCII/binary MESH override vector to the existing fixture executable: two distinct subentity markers, different property-counts/types, literal ordered tag assertions, typed readback and following-entity sentinel. Add malformed override count/record negatives with atomic rejection only if not already covered in the hardening owner. Keep the version matrix at one representative modern DXF target for this field-order slice; leave topology/rendering/native CAD claims separate. Do not change the callback contract or make optional 3D callbacks pure. |
+| Merged ACadSharp [read path #1139](https://github.com/DomCR/ACadSharp/pull/1139), current open schema refactor [#1174](https://github.com/DomCR/ACadSharp/pull/1174), and still-open writer proposals [#1150](https://github.com/DomCR/ACadSharp/pull/1150) / [#1240](https://github.com/DomCR/ACadSharp/pull/1240) | #1139 reports separate read routes for pre-2013 DXF group1/3 text, inline DWG modeler bodies, R2013+ DXF ACDSDATA and R2013+ DWG AcDs records; record association is by owner handle. Its author reports a 306-file corpus and notes that payloads split across multiple `blob01` segments remain unsupported (about0.5% of that collection). The write proposals remain open, not merged baseline evidence. Their discussion identifies practical failure cases: directory order differing from sorted-handle rank, SAT text cut points across 1/3 chunks, version-conditioned history subclass output, R2013+ owner-index construction, and an R2007 DWG writer gap. These are review leads, not normative format contracts or local proof. | Refine S2.3/Slice8 into container-specific fast gates, using ODA §24 and DXF tables as authority: (a) pre-2013 text SAT group1/3 character transform and chunk reconstruction; (b) pre-2013 DWG v1/v2 entity-stream boundaries; (c) modern DXF ACDSDATA owner-handle joins; and (d) modern DWG AcDs segment/directory joins. Generated cases must include multiple records with deliberately nonmonotonic handles, inline and blob payloads, multi-`blob01` continuation, both `ACIS BinaryFile` and `ASM BinaryFile` signatures, unrelated schema records, empty-body flags, and an object following the target. Check declared lengths, end markers, owner identity and output handle remap; keep all of these as separate route rows. Before permitting write, close every payload-to-owner edge and test the directory's sorted-handle index independently of physical record order. |
+| Autodesk [3DSOLID DXF contract](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm), [common group codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm), and [FreeCAD format manual](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md) | DXF documents modeler-version plus proprietary group1/3 payload and a separate history soft-owner; it does not define a general open ACIS semantic interchange. Group420's documented true-color representation is 24-bit `0x00RRGGBB`. FreeCAD's published DXF/DWG format page describes its stock route as 2D-only because the modeler blob cannot be consumed there. | Maintain three independent claims: (1) exact opaque payload/container preservation, (2) independent kernel geometry validity/dimensions, and (3) acceptance by a named stock or optional consumer route. The normal FreeCAD DXF/DWG gate remains a 2D consumer contract; polygonal explicit geometry can qualify only entity/profile combinations actually imported. Keep ACIS geometry on an optional capable-kernel/vendor route, and never make a stock FreeCAD ACIS rejection a libdxfrw failure. |
+
+### Updated fast implementation order
+
+1. Preserve the current fail-closed output and publish the completed LAYOUT
+   BLOCK_RECORD linkage; do not bypass the present VISUALSTYLE carrier-coverage
+   rejection by dropping styles or inventing raw-source evidence.
+2. Add the MESH property-override wire/readback control to the existing fast
+   fixture executable. This is a small implemented-field coverage gap and is
+   independent of ACIS or external qualifications.
+3. Finish f.3c descriptor/model alignment checks, then field-level wire
+   evidence: primary group, companion, CMC method/RGB, lighting and raw source
+   value. Serializer admission remains per-profile and fail-closed until
+   producer-authored values and an independent parser/readback agree.
+4. Complete modern AcDs graph read census before writer expansion. First test
+   same-segment and split-segment extraction, exact nonmonotonic owner joins,
+   signatures, counts and unknown-schema preservation using locally authored
+   internal controls. Then implement one container/version route per commit;
+   avoid attempting a single cross-version “ACIS writer.”
+5. Gate old-format SAT and newer SAB output separately, including group1/3
+   token-safe chunking, R2007+ history-field boundaries, AcDs directory index
+   ordering, and atomic refusal for unsupported route/profile combinations.
+6. Compose one existing tracked-input CLI checkpoint after carrier admission
+   and rooted graph closure pass. Keep per-slice builds and tests focused;
+   reserve full suites and native platform/kernel runs for the phase gate.
+
+No PAR item or top-level subplan is added by this evidence refresh. Existing
+MESH and POLYFACE coverage is not relabeled as consumer geometry semantics.
+No fixture, dependency, registered test, native qualification, remote write,
+or support claim is added here. The six external-only J items remain
+`DEFERRED_EXTERNAL`; output agreement, source inventory, and peer PR status
+cannot promote them. Machine-readable receipt:
+[`3d-carrier-runtime-and-peer-writer-review-2026-10-15.json`](docs/research/3d-carrier-runtime-and-peer-writer-review-2026-10-15.json).
