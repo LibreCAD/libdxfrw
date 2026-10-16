@@ -13850,3 +13850,83 @@ authority. No findings/70-subplan/149-ledger count changes. `J256`, `J260`,
 `J268`, `J284`, `J293`, `J295` stay `DEFERRED_EXTERNAL` and cannot promote
 support. No DWG/DXF/SAB fixture, package, registered test or native qualification
 is added by this research; all new drawings remain temporary.
+
+## Named-root payload and writer-contract readiness review (2026-10-15)
+
+This broader pass cross-checked Autodesk's current DXF object tables against
+the actual callback, model and writer paths after`f6fb033`. It is static
+research only: no test executable, converter, native CAD application or
+geometry kernel ran. The source hashes and exact observations are in
+[`docs/research/broader-named-root-readiness-2026-10-15.json`](docs/research/broader-named-root-readiness-2026-10-15.json).
+
+### Contract details that change implementation readiness
+
+| Contract | Evidence and local consequence |
+| --- | --- |
+| DICTIONARY ownership and entry list | Autodesk's [DICTIONARY table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm) distinguishes the code-280 hard-owner flag, code-281 clone policy, and each `(3,350)` name/entry pair. The routed writer in`src/libdxfrw.cpp` currently writes281 and3/350 but omits its modeled`DRW_Dictionary::hardOwner`; add preservation or preflight refusal before claiming typed closure. Keep duplicate-key admission and code280 ownership semantics distinct. |
+| DICTIONARYWDFLT default edge | [ACDBDICTIONARYWDFLT](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A6605C05-1CF4-42A4-95EC-42190B2424EE.htm) adds subclass`AcDbDictionaryWithDefault` and code340 hard-pointer target, separate from child code350 entries. `DRW_DictionaryWithDefault` records code340 presence, but its copy constructor and assignment clear that presence bit; an owned CLI callback copy can lose the evidence used by`hasCompleteDxfPayload()`. Make presence/completeness survive semantic copies, while reset still clears it, and test valid/missing/duplicate default-pointer state across the callback copy. The default placeholder is a distinct object that must be retained and linked by exact handle. |
+| LAYOUT | Autodesk's [LAYOUT table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm) defines an embedded PlotSettings subclass followed by layout fields and independent paper-space BLOCK_RECORD330, last viewport331, optional UCS345/346 and shade-plot333 references. Current typed fields and`writeLayout` cover these slots and remap the references; the graph gate still needs exact handle-role joins, reciprocal block/layout checks, missing-target negatives and target-version checks. Do not confuse repeated code330 values in the owner preamble and layout body. |
+| MATERIAL | Autodesk's [MATERIAL table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm) defines a large color/map/illumination payload and ownership under NOD`ACAD_MATERIAL`; common graphical entities can point to a material by hard-pointer347 ([common entity codes](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)). Locally,`DRW_Material::parseCode` and`writeMaterial` cover only name and description. DXF-origin raw-net replay masks this on DXF→DXF, but cannot supply a raw DXF carrier for DWG-origin material. Add typed field/reference coverage or refuse complete DWG→DXF publication; callback retention alone is insufficient. |
+| TABLESTYLE | Autodesk's [TABLESTYLE table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm) repeats per-cell text, color, fill, type/unit and border fields. The local DXF parser keeps only top-level scalars and leaves nested row/cell state to the raw-net; there is no typed `writeTableStyle` method. DWG-origin TABLESTYLE must not be marked emitted based on its few decoded scalar values. Add a bounded subrecord decoder plus an exact typed writer, or block full-root conversion. |
+| DICTIONARYVAR and PLACEHOLDER | [DICTIONARYVAR](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm) has its own schema/value payload and owner dictionary; [ACDBPLACEHOLDER](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3BC75FF1-6139-49F4-AEBB-AE2AB4F437E4.htm) is a minimal object whose handle/owner identity matters in this graph. Preserve these as typed nodes, with role-aware links; never reinterpret a placeholder as an absent/default target. |
+| Group ordering and visual-style profile | Autodesk says DXF tables show usual ordering, not a fixed record grammar ([common entity codes](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)). Its [VISUALSTYLE table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm) establishes the public type/description fields and code291 position, but does not define the observed modern58-property tail. Keep the existing subclass/tail state machine and ODA-authored target-profile evidence; add only focused reordering controls for documented order-flexible fields. |
+
+### Existing-writer map and execution order
+
+The audit found existing typed DXF writers for SCALE, DICTIONARYVAR,
+MLINESTYLE, MLEADERSTYLE, LAYOUT and MATERIAL. That shortens implementation
+only where the model contains the full source payload and handle mapping is
+correct. `DRW_MLineElement` stores RGB and newer linetype-handle fields that
+the current writer does not emit; MLEADERSTYLE writes its four stored
+340–343 references without the writer's object-handle remapper. Put both on
+the exact field/reference mapping matrix before admitting them to root
+closure. LAYOUT currently remaps its documented links and is the strongest
+existing candidate for an early exact graph test. SCALE and DICTIONARYVAR are
+the shortest typed-emitter candidates.
+
+Use the following bounded order within existing7G.3f.4/7G.3f.5 work; no new
+PAR identifier or test target is needed:
+
+1. **f.4a storage:** own-copy the nine callback families already enumerated
+   above; preserve DICTIONARYWDFLT completeness through copies; test null
+   MLEADERSTYLE pointers, handle identity, reset, copy lifetime and following
+   callback sentinel. Keep optional interface defaults unchanged for
+   LibreCAD/LibreCAD_3.
+2. **f.4b.0 field map:** record source profile/field, current decoded member,
+   output group or typed object, reference role, remapping rule and explicit
+   loss/refusal policy for every admitted resource. Use the literal Autodesk
+   object tables and tracked file captures; avoid re-running unchanged broad
+   peers/converters.
+3. **f.4b.1 short writer path:** qualify SCALE and DICTIONARYVAR first, then
+   complete MLINESTYLE/MLEADERSTYLE field and reference remapping. Reuse
+   existing writers only after fast ASCII/binary writer→reader vectors prove
+   values, owner edges and non-colliding/minted-handle behavior.
+4. **f.4b.2 graph links:** qualify LAYOUT↔BLOCK_RECORD and its VIEWPORT/UCS/
+   shade-plot references, then entity material code347→MATERIAL and the
+   MATERIAL dictionary owner. Compare by handle and reference role, not file
+   order or callback count.
+5. **f.4b.3 payload blockers:** complete MATERIAL's modeled fields and
+   TABLESTYLE row/cell state plus writer; add typed writers for
+   DICTIONARYWDFLT/PLACEHOLDER and the present DETAILVIEWSTYLE/
+   SECTIONVIEWSTYLE payloads. If any rooted family remains undecoded, raw
+   replayable only from a DXF source, or unremappable, keep the strict full
+   conversion closed before destination publication.
+6. **f.4c composed checkpoint:** run the existing FreeCAD CLI cohort once
+   only after all source-reachable root keys and payloads have dispositions.
+   Then run one focused reader/graph/LC3 safety selection. Full suites and
+   native applications stay at their existing phase gates.
+
+Fast vectors should build tag streams and objects in memory or use the
+existing runtime scratch helpers; commit no new drawing fixture. Cover ASCII
+and binary tags where the same parser is shared, reordered legal tags,
+duplicate/missing/wrong-kind handles, duplicate dictionary names under each
+supported cloning mode, explicit default-pointer presence, entity-to-material
+references, multi-cell TABLESTYLE order, output-handle remapping and
+destination-preserving refusal. Require one source-field-level expectation
+per vector, not just counts. Show the resulting commit hash and focused result
+after every implementation slice.
+
+This refresh does not run or promote J256/J260/J268/J284/J293/J295; all remain
+`DEFERRED_EXTERNAL`. No support matrix/count changes:122 findings,70 top-level
+subplans,149 3D ledger items. No external drawing, package, new test
+registration, full suite or native qualification was added or run.

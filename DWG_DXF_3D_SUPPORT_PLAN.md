@@ -18,6 +18,19 @@ CLI closure;9d and six external J gates remain open/non-promoting. No new
 fixture/dependency/registration, full suite/sanitizer/ODA/native qualification.
 Private public-class state requires rebuild; no callback/default2D policy change.
 
+**Broader named-root readiness refresh (baseline`f6fb033`):** Autodesk's DXF
+object contracts and the current writers expose additional closure requirements:
+preserve DICTIONARY code280, DICTIONARYWDFLT's copied code340-presence proof,
+LAYOUT's independent block/viewport/UCS/shade links, entity-to-MATERIAL code347
+edges, complete MATERIAL map/color state, and TABLESTYLE row/cell subrecords.
+The current MATERIAL path emits only name/description; TABLESTYLE's nested DXF
+state is raw-net-only and has no typed writer. These are existing7G.3f.4/.5
+payload blockers, not new support findings. The detailed mapping and order are
+in the [parity plan's named-root readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#named-root-payload-and-writer-contract-readiness-review-2026-10-15)
+and [source-bound research receipt](docs/research/broader-named-root-readiness-2026-10-15.json).
+This was static review only: no code/test/application run, support matrix
+promotion, fixture or count change. All six external J gates remain deferred.
+
 **Latest research-only handoff (baseline`91d0a88`):** the
 [typed-readback and whole-root readiness review](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15)
 reproduces48 typed style-type collisions across two captured modern DXF
