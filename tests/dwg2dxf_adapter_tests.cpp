@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <iterator>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -236,24 +237,42 @@ bool rejectDynamicBlockWithoutSerializer() {
 }
 
 bool retainNamedObjectCallbacks() {
+    const auto makeDrawing = [](bool includeDefault, bool duplicateDefault,
+                                bool includeFollowingRecord) {
+        std::string drawing =
+            "0\nSECTION\n2\nOBJECTS\n"
+            "0\nDICTIONARY\n5\nC\n330\n0\n100\nAcDbDictionary\n"
+            "280\n1\n281\n1\n"
+            "0\nDICTIONARYWDFLT\n5\n10\n330\nC\n"
+            "100\nAcDbDictionary\n280\n1\n281\n1\n";
+        if (includeDefault)
+            drawing += "340\n11\n";
+        if (duplicateDefault)
+            drawing += "340\n12\n";
+        if (includeFollowingRecord) {
+            drawing +=
+                "0\nDICTIONARYVAR\n5\n12\n330\nC\n"
+                "100\nAcDbDictionaryVar\n280\n0\n1\nFOLLOWING_SENTINEL\n";
+        }
+        drawing += "0\nENDSEC\n0\nEOF\n";
+        return drawing;
+    };
+
     dx_data data;
     dx_iface iface;
     iface.cData = &data;
 
     // Exercise a real DXF parse: the WDFLT validity bit must survive both the
-    // parser-to-adapter copy and ordinary value copies afterward.
-    std::string drawing =
-        "0\nSECTION\n2\nOBJECTS\n"
-        "0\nDICTIONARY\n5\nC\n330\n0\n100\nAcDbDictionary\n"
-        "280\n1\n281\n1\n"
-        "0\nDICTIONARYWDFLT\n5\n10\n330\nC\n"
-        "100\nAcDbDictionary\n280\n1\n281\n1\n340\n11\n"
-        "0\nENDSEC\n0\nEOF\n";
+    // parser-to-adapter copy and ordinary value copies afterward; the next
+    // object callback must still be delivered.
+    std::string drawing = makeDrawing(true, false, true);
     dxfRW reader("named-object-callback-test");
     if (!reader.readAscii(&iface, true, drawing))
         return fail("could not parse generated DICTIONARYWDFLT callback control");
     if (data.dictionaryWithDefaults.size() != 1u
-        || !data.dictionaryWithDefaults.front().hasCompleteDxfPayload())
+        || !data.dictionaryWithDefaults.front().hasCompleteDxfPayload()
+        || data.dictionaryVars.size() != 1u
+        || data.dictionaryVars.front().m_value != "FOLLOWING_SENTINEL")
         return fail("DICTIONARYWDFLT adapter copy lost payload-completeness evidence");
 
     const DRW_DictionaryWithDefault parsed =
@@ -262,49 +281,70 @@ bool retainNamedObjectCallbacks() {
     assigned = parsed;
     if (!parsed.hasCompleteDxfPayload() || !assigned.hasCompleteDxfPayload())
         return fail("DICTIONARYWDFLT copies did not preserve parsed validity");
+    assigned.reset();
+    if (assigned.hasCompleteDxfPayload() || assigned.m_defaultEntryHandle != 0
+        || !parsed.hasCompleteDxfPayload())
+        return fail("DICTIONARYWDFLT reset did not clear only the reset object's evidence");
 
-    DRW_AcDbPlaceholder placeholder;
-    placeholder.handle = 0x101u;
-    iface.addAcDbPlaceholder(placeholder);
-    DRW_MLineStyle mline;
-    mline.handle = 0x102u;
-    iface.addMLineStyle(mline);
-    DRW_MLeaderStyle mleader;
-    mleader.handle = 0x103u;
-    iface.addMLeaderStyle(&mleader);
-    iface.addMLeaderStyle(nullptr);
-    DRW_TableStyle table;
-    table.handle = 0x104u;
-    iface.addTableStyle(table);
-    DRW_DetailViewStyle detail;
-    detail.handle = 0x105u;
-    iface.addDetailViewStyle(detail);
-    DRW_SectionViewStyle section;
-    section.handle = 0x106u;
-    iface.addSectionViewStyle(section);
-    DRW_Scale scale;
-    scale.handle = 0x107u;
-    iface.addScale(scale);
-    DRW_DictionaryVar dictionaryVar;
-    dictionaryVar.handle = 0x108u;
-    iface.addDictionaryVar(dictionaryVar);
+    for (const auto& malformed : {std::make_pair(false, false),
+                                   std::make_pair(true, true)}) {
+        dx_data rejectedData;
+        dx_iface rejectedIface;
+        rejectedIface.cData = &rejectedData;
+        std::string rejectedDrawing = makeDrawing(
+            malformed.first, malformed.second, false);
+        dxfRW rejectedReader("malformed-named-object-callback-test");
+        if (rejectedReader.readAscii(
+                &rejectedIface, true, rejectedDrawing)
+            || !rejectedData.dictionaryWithDefaults.empty())
+            return fail("missing or duplicate DICTIONARYWDFLT code 340 was accepted");
+    }
+
+    {
+        DRW_AcDbPlaceholder placeholder;
+        placeholder.handle = 0x101u;
+        iface.addAcDbPlaceholder(placeholder);
+        DRW_MLineStyle mline;
+        mline.handle = 0x102u;
+        iface.addMLineStyle(mline);
+        DRW_MLeaderStyle mleader;
+        mleader.handle = 0x103u;
+        iface.addMLeaderStyle(&mleader);
+        iface.addMLeaderStyle(nullptr);
+        DRW_TableStyle table;
+        table.handle = 0x104u;
+        iface.addTableStyle(table);
+        DRW_DetailViewStyle detail;
+        detail.handle = 0x105u;
+        iface.addDetailViewStyle(detail);
+        DRW_SectionViewStyle section;
+        section.handle = 0x106u;
+        iface.addSectionViewStyle(section);
+        DRW_Scale scale;
+        scale.handle = 0x107u;
+        iface.addScale(scale);
+        DRW_DictionaryVar dictionaryVar;
+        dictionaryVar.handle = 0x108u;
+        iface.addDictionaryVar(dictionaryVar);
+    }
 
     if (data.placeholders.size() != 1u
-        || data.placeholders.front().handle != placeholder.handle
+        || data.placeholders.front().handle != 0x101u
         || data.mLineStyles.size() != 1u
-        || data.mLineStyles.front().handle != mline.handle
+        || data.mLineStyles.front().handle != 0x102u
         || data.mLeaderStyles.size() != 1u
-        || data.mLeaderStyles.front().handle != mleader.handle
+        || data.mLeaderStyles.front().handle != 0x103u
         || data.tableStyles.size() != 1u
-        || data.tableStyles.front().handle != table.handle
+        || data.tableStyles.front().handle != 0x104u
         || data.detailViewStyles.size() != 1u
-        || data.detailViewStyles.front().handle != detail.handle
+        || data.detailViewStyles.front().handle != 0x105u
         || data.sectionViewStyles.size() != 1u
-        || data.sectionViewStyles.front().handle != section.handle
+        || data.sectionViewStyles.front().handle != 0x106u
         || data.scales.size() != 1u
-        || data.scales.front().handle != scale.handle
-        || data.dictionaryVars.size() != 1u
-        || data.dictionaryVars.front().handle != dictionaryVar.handle)
+        || data.scales.front().handle != 0x107u
+        || data.dictionaryVars.size() != 2u
+        || data.dictionaryVars.front().handle != 0x12u
+        || data.dictionaryVars.back().handle != 0x108u)
         return fail("named-object callbacks were not retained as owned values");
     return true;
 }

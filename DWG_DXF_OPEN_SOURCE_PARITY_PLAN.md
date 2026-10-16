@@ -13947,10 +13947,24 @@ stored payload remains complete through copy construction/assignment, invokes
 each remaining callback, checks owned handle identities and null MLEADERSTYLE
 handling, and leaves no drawing fixture. Target build and that single CTest
 passed; no full suite was run. This closes only the storage/copy portion of
-f.4a. The remaining f.4a readiness checks are explicit reset behavior, malformed
-missing/duplicate code-340 controls, and a following-record callback sentinel.
-No writer, graph closure, target interoperability or support claim is promoted;
-the f.4b/f.4c gates and all six `DEFERRED_EXTERNAL` items are unchanged.
+f.4a. The initially-open reset, malformed-pointer and following-record checks
+are closed by f.4a.2 below. No writer, graph closure, target interoperability
+or support claim is promoted; the f.4b/f.4c gates and all six
+`DEFERRED_EXTERNAL` items are unchanged.
 Implementation commit: `ed8d925` (parent `05240cf`). The source hashes,
 command results and bounded interpretation are recorded in
 [`docs/research/named-object-callback-storage-2026-10-15.json`](docs/research/named-object-callback-storage-2026-10-15.json).
+
+## Implementation progress — f.4a.2 (2026-10-15)
+
+Expanded the same generated/in-memory fast regression to verify that explicit
+reset clears only the reset DICTIONARYWDFLT's code-340 evidence; absent and
+duplicate code-340 records fail before a typed callback; and a following
+DICTIONARYVAR sentinel is delivered after the valid WDFLT record. The other
+eight callback-owned values are asserted after their input stack objects have
+left scope, and the MLEADERSTYLE null pointer remains a no-op. The focused
+adapter target rebuilds and the single named-object CTest passes 1/1. No full
+suite or drawing fixture is involved. This completes the bounded f.4a storage
+handoff checks, not writer qualification or f.4b graph closure. Commit and
+source-hash receipt follow in
+[`docs/research/named-object-callback-readiness-2026-10-15.json`](docs/research/named-object-callback-readiness-2026-10-15.json).

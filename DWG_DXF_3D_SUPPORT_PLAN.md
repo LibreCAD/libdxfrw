@@ -7443,15 +7443,19 @@ Research state remains narrow. ODA File Converter 27.1.0.0 represents the witnes
 
 **Deeper platform and independent-reader unblock research (2026-09-27):** The Linux/Windows FreeCAD gate does not require a new sample or an external DWG producer: the exact tracked LibreCAD `ordinary_enc_AC1027.dwg` already contains three LINE entities with bounds `(1,2,0)-(3,4,0)`, `(5,6,0)-(7,8,0)`, `(9,10,0)-(11,12,0)`, and its source hash/provenance are locked in `metadata/fixture-registry.json`. FreeCAD 1.1.3 is the available pinned consumer: the official release page identifies tag revision `145529f` and provides x86_64 Linux AppImage and Windows portable assets; the workflow verifies Linux SHA-256 `3a853eb69ee595f779f2255dbf80a765926981d8ff68903cefee4dfb03a8f5ef` and Windows portable SHA-256 `9c6959dc9c4dba64dd818a62447e3dfedb4221d776fb044b239d462f150bcec4` before launching. FreeCAD documents a headless `FreeCADCmd`/`freecadcmd` executable, so actual native import execution does not require desktop UI or cross-compilation. See [FreeCAD's downloads](https://www.freecad.org/downloads), [the pinned 1.1.3 release](https://github.com/FreeCAD/FreeCAD/releases/tag/1.1.3), [the Windows package hash manifest](https://github.com/ScoopInstaller/Extras/blob/master/bucket/freecad.json), and [headless FreeCAD documentation](https://github.com/FreeCAD/FreeCAD-documentation/wiki/Start_up_and_Configuration). S8.9.12 adds the manual-only native runner and tracked-fixture harness; dispatch it after the change is available on GitHub, review both platform logs, and then update S8.9.5/docs only from the observed receipts. The Linux artifact is about 783 MB, so it is intentionally not downloaded on normal push/PR CI.
 
-**Implementation progress (2026-10-15; f.4a.1 only):** The `dwg2dxf`
+**Implementation progress (2026-10-15; f.4a storage handoff):** The `dwg2dxf`
 adapter now owns the nine previously inherited-noop named-object callback
 families, and DICTIONARYWDFLT's required-code-340 evidence survives value
-copies. The fast generated-DXF callback/storage regression passes. This is
-metadata retention only: no graph writer/closure or 3D geometry behavior is
-qualified, and no DWG/DXF fixture or external support claim was added.
+copies. The fast generated-DXF callback/storage regression also verifies
+reset, missing/duplicate-pointer rejection, source-object lifetime and a
+following-record sentinel. This is metadata retention only: no graph
+writer/closure or 3D geometry behavior is qualified, and no DWG/DXF fixture
+or external support claim was added.
 Implementation commit: [`ed8d925`](https://github.com/LibreCAD/libdxfrw/commit/ed8d925).
 The detailed build/test receipt is recorded in
 [`docs/research/named-object-callback-storage-2026-10-15.json`](docs/research/named-object-callback-storage-2026-10-15.json).
+The readiness-test extension and its commit receipt are recorded in
+[`docs/research/named-object-callback-readiness-2026-10-15.json`](docs/research/named-object-callback-readiness-2026-10-15.json).
 
 For an independent ACIS reader, the best new lead is Ansys Workbench's current 2026 R1 standalone SAT/SAB Reader. Its official documentation says the reader does not require the ACIS system, supports files through ACIS 2023 on both Linux and Windows, imports solid/surface/line bodies, and transfers units when present; it excludes Non-Commercial and Education editions. Exact entitlements must be confirmed from current portal feature mapping. This is a potentially independent reader candidate; its parser/kernel lineage must be established before counting it, and no qualifying Ansys installation is available here and the version-family statement does not prove this exact `ASM 230.7` SAB profile. If a qualifying commercial license becomes available, run the identical extracted SAB hashes, record the Ansys build/license/profile and imported body counts, units, WCS bounds, area, and volume, and compare against the AutoCAD witness. Ansys can validate standalone SAB geometry, not DWG `AcDb:AcDsPrototype_1b` ownership/schema links, so exact ACDS linkage still needs ODA/source-native receipts. See [Ansys ACIS reader support](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadACIS.html) and [its installation/licensing feature mapping](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadInstallLicense.html).
 
