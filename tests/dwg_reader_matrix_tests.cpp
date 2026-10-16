@@ -754,10 +754,20 @@ struct AcDsBlobTestSection {
     std::vector<std::uint8_t> bytes;
     std::size_t secondPageHeaderOffset {0};
     std::size_t secondPageReferenceOffset {0};
+    std::size_t firstPageByteLength {0};
+    std::size_t secondPageByteLength {0};
     std::vector<std::uint8_t> payload;
 };
 
-AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
+AcDsBlobTestSection makeTwoPageAcDsSection(
+    std::uint32_t handle,
+    std::size_t firstPageBytes =
+        DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE,
+    std::size_t secondPageBytes = 48u) {
+    if (firstPageBytes == 0u || secondPageBytes == 0u
+        || firstPageBytes > DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+        || secondPageBytes > DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE)
+        return {};
     constexpr std::size_t segmentIndexOffset = 64u;
     constexpr std::size_t segmentIndexSize = 128u;
     constexpr std::size_t dataIndexOffset = segmentIndexOffset
@@ -766,16 +776,19 @@ AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
     constexpr std::size_t dataOffset = dataIndexOffset + dataIndexSize;
     constexpr std::size_t dataSegmentSize = 192u;
     constexpr std::size_t secondPageOffset = dataOffset + dataSegmentSize;
-    constexpr std::size_t secondPageSize = 128u;
-    constexpr std::size_t firstPageOffset = secondPageOffset + secondPageSize;
-    constexpr std::size_t firstPageSize = 0x100000u;
-    constexpr std::size_t sectionSize = firstPageOffset + firstPageSize;
+    const std::size_t secondPageSize =
+        (DRW_DataStorageConst::SEGMENT_HEADER_SIZE
+         + DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE
+         + secondPageBytes + 63u)
+        & ~std::size_t{63u};
+    const std::size_t firstPageOffset = secondPageOffset + secondPageSize;
+    const std::size_t firstPageSize =
+        (DRW_DataStorageConst::SEGMENT_HEADER_SIZE
+         + DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE
+         + firstPageBytes + 63u)
+        & ~std::size_t{63u};
+    const std::size_t sectionSize = firstPageOffset + firstPageSize;
     constexpr std::size_t segmentCount = 5u;
-    constexpr std::size_t firstPageBytes =
-        DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE;
-    constexpr std::size_t secondPageBytes = 48u;
-    constexpr std::size_t totalPayloadBytes =
-        firstPageBytes + secondPageBytes;
     constexpr std::size_t dataRecordHeaderOffset = dataOffset
         + DRW_DataStorageConst::SEGMENT_HEADER_SIZE;
     constexpr std::size_t dataRegionOffset =
@@ -791,7 +804,7 @@ AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
 
     AcDsBlobTestSection result;
     result.bytes.resize(sectionSize, 0u);
-    result.payload.resize(totalPayloadBytes);
+    result.payload.resize(firstPageBytes + secondPageBytes);
     static constexpr std::uint8_t signature[] = {
         'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
     std::copy(std::begin(signature), std::end(signature),
@@ -804,6 +817,8 @@ AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
               result.payload.end(), 0x5Au);
     result.secondPageHeaderOffset = secondPageHeaderOffset;
     result.secondPageReferenceOffset = secondPageReferenceOffset;
+    result.firstPageByteLength = firstPageBytes;
+    result.secondPageByteLength = secondPageBytes;
 
     const auto putU16 = [&result](std::size_t offset, std::uint16_t value) {
         result.bytes[offset] = static_cast<std::uint8_t>(value);
@@ -829,7 +844,7 @@ AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
         putU32(offset + 16u, size);
         putU32(offset + 24u, 1u);
     };
-    const auto putBlobPage = [&putU64, &putU32, &result, totalPayloadBytes](
+    const auto putBlobPage = [&putU64, &putU32, &result](
                                  std::size_t segmentOffset,
                                  std::uint64_t startOffset,
                                  std::uint32_t pageIndex,
@@ -837,7 +852,7 @@ AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
                                  std::size_t payloadSize) {
         const std::size_t header = segmentOffset
             + DRW_DataStorageConst::SEGMENT_HEADER_SIZE;
-        putU64(header, totalPayloadBytes);
+        putU64(header, result.payload.size());
         putU64(header + 8u, startOffset);
         putU32(header + 16u, pageIndex);
         putU32(header + 20u, 2u);
@@ -904,18 +919,17 @@ AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
     putU32(dataRecordHeaderOffset + 16u, 0u);
     putU32(dataRegionOffset,
            DRW_DataStorageConst::DATA_BLOB_REFERENCE_MARKER);
-    putU64(descriptorOffset, totalPayloadBytes);
+    putU64(descriptorOffset, result.payload.size());
     putU32(descriptorOffset + 8u, 2u);
     putU32(descriptorOffset + 12u,
            DRW_DataStorageConst::DATA_BLOB_REFERENCE_FIXED_SIZE
                + 2u * DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE);
-    putU32(descriptorOffset + 16u,
-           DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE);
+    putU32(descriptorOffset + 16u, static_cast<std::uint32_t>(firstPageBytes));
     putU32(descriptorOffset + 20u,
            static_cast<std::uint32_t>(secondPageBytes));
     putU32(descriptorOffset + 32u, 4u); // Page 0 is physically second.
     putU32(descriptorOffset + 36u,
-           DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE);
+           static_cast<std::uint32_t>(firstPageBytes));
     putU32(secondPageReferenceOffset, 3u);
     putU32(secondPageReferenceOffset + 4u,
            static_cast<std::uint32_t>(secondPageBytes));
@@ -1755,14 +1769,14 @@ void testModelerAcDsBlobPageChain(TestContext& t) {
         && record->blobTotalByteLength == generated.payload.size()
         && record->blobPageCount == 2u
         && record->blobPageByteSize
-               == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
-        && record->blobLastPageByteSize == 48u
+               == generated.firstPageByteLength
+        && record->blobLastPageByteSize == generated.secondPageByteLength
         && record->blobPages.size() == 2u
         && record->blobPages[0].segmentIndex == 4u
         && record->blobPages[0].byteLength
-               == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+               == generated.firstPageByteLength
         && record->blobPages[1].segmentIndex == 3u
-        && record->blobPages[1].byteLength == 48u
+        && record->blobPages[1].byteLength == generated.secondPageByteLength
         && record->blobPayloadRetained
         && record->payload == generated.payload;
     if (!captured || !pageMetadataMatches) {
@@ -1810,6 +1824,24 @@ void testModelerAcDsBlobPageChain(TestContext& t) {
     t.expect(linked && valid.reader->dataStorageLinkFailures() == 0u
                  && valid.reader->dataStorageOrphans() == 0u,
              "assembled Blob01 bytes link to their owning modeler entity without loss");
+
+    const AcDsBlobTestSection thresholdGenerated = makeTwoPageAcDsSection(
+        solidHandle,
+        DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE, 1u);
+    const DRW_DataStorageSection thresholdParsed = DRW_parseDataStorage(
+        thresholdGenerated.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* thresholdRecord =
+        thresholdParsed.findRecordByHandle(solidHandle);
+    t.expect(thresholdParsed.structurallyValid && thresholdRecord != nullptr
+                 && thresholdRecord->isBlobReference
+                 && thresholdRecord->blobTotalByteLength
+                        == DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE + 1u
+                 && thresholdRecord->blobPages.size() == 2u
+                 && thresholdRecord->blobPages[0].byteLength
+                        == DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE
+                 && thresholdRecord->blobPages[1].byteLength == 1u
+                 && thresholdRecord->payload == thresholdGenerated.payload,
+             "first payload byte above the direct-record limit uses Blob01 pages");
 
     const auto putU32 = [](std::vector<std::uint8_t>& bytes,
                            std::size_t offset, std::uint32_t value) {
