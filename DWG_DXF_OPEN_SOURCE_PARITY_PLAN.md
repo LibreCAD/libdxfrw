@@ -15128,8 +15128,36 @@ new case without a new assertion failure but exits 1 on the two existing
 `DICTIONARYWDFLT` copy/assignment parser-state assertions earlier in that same
 executable. No production code, raw DWG/DXF fixture, external reader, full
 suite, or support claim changed. This closes only the multi-owner in-memory
-link mapping control: combining the raw-byte `DRW_parseDataStorage` output with
-entity parsing/publication and target-side body semantics remains open. Next,
-add that parser-to-link integration at the narrow generated boundary, then
-continue to the planned AcDs passthrough invalidation rules. All six J items
-remain `DEFERRED_EXTERNAL` and non-promoting; plan counts remain 122/70.
+link mapping control. The narrow raw-parser-to-link boundary is now covered by
+`33c4fce`; `0c8c277` extends it to two parsed records, reverse body traversal,
+distinct owners, opaque suffix retention and a separate orphan pass (see the
+later progress entry). Entity `parseDwg` dispatch/publication, actual
+block/INSERT reachability and target-side body semantics remain open. Next,
+probe a bounded source-generated DWG section-discovery seam; then continue to
+the planned AcDs passthrough invalidation rules. All six J items remain
+`DEFERRED_EXTERNAL` and non-promoting; plan counts remain 122/70.
+
+## Implementation progress — parsed multi-record AcDs link ordering (2026-10-15)
+
+Implementation commit: `0c8c277` (`Test multi-record AcDs link ordering`).
+
+The generated two-page section is passed as raw bytes through
+`DRW_parseDataStorage`, and its two parsed records are linked to different
+modeler bodies with different parent handles. The second stored record is
+linked first, then the first; exact bytes and handles must follow the explicit
+numeric/canonical-key pairs, not traversal order. The non-SAB suffix remains
+opaque and cannot normalize the body version. A separate reader pass links
+only the first body and confirms finalization reports the second record as an
+orphan. All data is generated in memory.
+
+Validation: `libdxfrw_graph_preservation_tests` builds,
+`libdxfrw_graph_preservation` passes 1/1 (0.46 seconds), and
+`git diff --check` passes. This still injects the parsed section and
+already-constructed body objects directly: it is not end-to-end DWG section
+discovery/entity parse, block/INSERT traversal, writer replay, or semantic
+geometry. Next: probe a source-generated DWG section-discovery/publication
+seam; if that cannot be bounded in the fast lane, proceed with existing
+in-memory ownership seams and implement untouched-section passthrough
+invalidation. No full suite, external tool, disk drawing fixture, dependency
+or support promotion. Findings/subplans remain 122/70; J256, J260, J268, J284,
+J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
