@@ -494,6 +494,7 @@ void testDataStorageBounds(TestContext& t) {
 void testDataStorageBlobPages(TestContext& t) {
     struct BlobFixture {
         std::vector<std::uint8_t> bytes;
+        std::size_t pageZeroHeaderOffset = 0;
         std::size_t pageOneHeaderOffset = 0;
         std::size_t descriptorOffset = 0;
     };
@@ -645,6 +646,7 @@ void testDataStorageBlobPages(TestContext& t) {
         putBlobPage(pageOneSegmentOffset, 1u, firstPageSize,
                     payload.size() - firstPageSize);
         putBlobPage(pageZeroSegmentOffset, 0u, 0u, firstPageSize);
+        fixture.pageZeroHeaderOffset = pageZeroSegmentOffset + 48u;
         fixture.pageOneHeaderOffset = pageOneSegmentOffset + 48u;
 
         const std::size_t suffixRecordOffset = dataRegionOffset + 52u;
@@ -725,6 +727,24 @@ void testDataStorageBlobPages(TestContext& t) {
     putU32(badPageCount.bytes, badPageCount.pageOneHeaderOffset + 20u, 3u);
     rejectsBlobAndKeepsSuffix(std::move(badPageCount),
                               "DataStorage rejects blob page-count disagreement");
+
+    BlobFixture aliasedPage = makeFixture();
+    putU32(aliasedPage.bytes, aliasedPage.descriptorOffset + 40u, 4u);
+    rejectsBlobAndKeepsSuffix(std::move(aliasedPage),
+                              "DataStorage rejects a Blob01 page segment "
+                              "referenced twice");
+
+    BlobFixture mismatchedTotal = makeFixture();
+    const std::uint64_t declaredTotal = payload.size() + 1u;
+    putU64(mismatchedTotal.bytes, mismatchedTotal.descriptorOffset,
+           declaredTotal);
+    putU64(mismatchedTotal.bytes,
+           mismatchedTotal.pageZeroHeaderOffset, declaredTotal);
+    putU64(mismatchedTotal.bytes,
+           mismatchedTotal.pageOneHeaderOffset, declaredTotal);
+    rejectsBlobAndKeepsSuffix(std::move(mismatchedTotal),
+                              "DataStorage rejects page-chain total unequal "
+                              "to assembled bytes");
 
     BlobFixture wrongSegmentKind = makeFixture();
     putU32(wrongSegmentKind.bytes, wrongSegmentKind.descriptorOffset + 32u, 2u);
