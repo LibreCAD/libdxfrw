@@ -2,6 +2,25 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
+**Latest cross-project carrier and consumer review (2026-10-15; baseline
+`11c8fe7`):** a broader pass across LibreDWG, ezdxf, FreeCAD, GDAL, and
+IxMilia strengthens an important version boundary: DXF R2000–R2010 carries
+SAT inline through groups 1/3, while current ezdxf 1.4.4 ACIS docs place
+R2013+ SAB in ACDSDATA. Current ezdxf source shows a version-specific entity
+marker/metadata and a section-side `ACDSRECORD`/`ASM_Data` record associated
+with a modeler entity handle; this is a valuable test-design reference, not a
+normative substitute for Autodesk/ODA or producer output. Do not conflate
+that DXF section with DWG's `AcDb:AcDsPrototype_1b`, or use the general
+3DSOLID group table as proof that both versions share one carrier. ezdxf's
+current ACIS API docs support limited generated SAT/SAB profiles, but its old
+FAQ (explicitly labeled old) still says it writes SAT only; resolve peer
+evidence by exact release/API and an observed output, never by the stale FAQ
+or an unpinned branch. Class registration, raw inspection, bounded
+polyhedron projection, and native acceptance remain distinct from arbitrary
+ACIS preservation or B-rep semantics. Existing S8 work is clarified, not
+expanded with a new finding or test target. Receipt:
+[`cross-project-3d-carrier-and-consumer-boundary-review-2026-10-15.json`](docs/research/cross-project-3d-carrier-and-consumer-boundary-review-2026-10-15.json).
+
 **Latest deeper/broader format and runtime review (2026-10-15; baseline
 `873eb76`):** the local ODA v5.4.1 text explicitly summarizes R2018 as
 structurally identical to R2013, but its AcDs chapter still caveats its
@@ -10534,9 +10553,19 @@ order, table order and destination transactionality.
   claiming general record support. Reuse7S.3 accounting rather than add a
   second budget framework.
 - **S8.4 / Keep the carriers versioned and distinct:** cover pre-R2013 DWG
-  inline modeler payloads separately from AC1027+ external DataStorage, and
-  DXF's `AcDbModelerGeometry` group70 plus group1/group3 SAT/SAB payload lines
-  and group350 history handle separately from DWG links. For output downgrades,
+  inline modeler payloads separately from AC1027+ external DataStorage. For
+  DXF, test legacy R2000–R2010 SAT carried inline by groups 1/3 separately
+  from R2013+ SAB carried through ACDSDATA. Current ezdxf source describes
+  the modern entity-side metadata (`group 2` UID and `group 290` flag, with
+  legacy `70/1/3` absent) and section-side `ACDSRECORD` to `ASM_Data` records,
+  including a `group 320` associated-entity handle and bounded `group 94/310`
+  SAB data. Treat those as peer-derived generated-vector fields to verify,
+  not as normative claims; pin the peer source and inspect actual output.
+  Do not infer modern SAB placement from the general Autodesk 3DSOLID group
+  table or assume DXF ACDSDATA is byte-for-byte the DWG
+  `AcDb:AcDsPrototype_1b` container. Keep entity group70 (modeler format
+  version), inner SAT/SAB stream version, and group350 history-object handle
+  as separate fields/edges. For output downgrades,
   require an explicit supported SAT/SAB conversion policy; otherwise report a
   bounded unsupported/loss outcome and keep the format claim out of scope.
   ODA §20.4.41 explicitly says its ACIS body decoding is incomplete; use its
@@ -15273,3 +15302,63 @@ DataStorage-link claims; actual BLOCK_RECORD/INSERT reachability, DWG
 entity-body publication, same-version writer replay, and B-rep semantics
 remain open. Findings/subplans remain 122/70, and J256, J260, J268, J284,
 J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Cross-project 3D carrier and consumer boundary review (2026-10-15; plan-only)
+
+This pass rechecked the 3D comparison against current Autodesk DXF tables and
+project documentation/source for ezdxf, LibreDWG, FreeCAD, GDAL, and IxMilia.
+It focused on version-specific carriers and what each open-source project
+actually proves, rather than counting entity classes. ODA v5.4.1 remains
+authoritative for DWG byte layout; Autodesk governs the published DXF group
+contract; peer docs/issues define comparator limits, not normative layout. No
+peer was installed or executed, no fixture was downloaded or committed, and
+no local support or J disposition is promoted. Durable source/evidence
+receipt:
+[`cross-project-3d-carrier-and-consumer-boundary-review-2026-10-15.json`](docs/research/cross-project-3d-carrier-and-consumer-boundary-review-2026-10-15.json).
+
+| Evidence | Finding and confidence boundary | Plan consequence |
+| --- | --- | --- |
+| Autodesk [3DSOLID DXF group-code contract](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm); ezdxf 1.4.4 [ACIS tools](https://ezdxf.readthedocs.io/en/stable/acis.html), [ACIS browser](https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst), [ACIS entity source](https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/acis.py#L1931-L1991), and [FAQ](https://ezdxf.readthedocs.io/en/stable/faq.html) | Autodesk specifies group70, proprietary groups1/3 and group350 history reference, but that general entity table does not state the modern SAB storage route. Current ezdxf docs/source distinguish SAT inline for DXF R2000–R2010 from SAB in ACDSDATA for R2013+. The current source documents entity-side group2 UID/group290 flag with legacy 70/1/3 absent, plus an `ACDSRECORD`/`ASM_Data` section route with group320 associated-entity handle and group94 size/group310 binary SAB payload. The API docs expose separate `export_sat`/`export_sab` profiles. The FAQ labels itself old (through late 2023) and contradicts the current API by saying ezdxf only writes SAT. These are peer-source implementation details, not normative DXF layout proof. | Keep S8.4 split into R2000–R2010 inline SAT versus R2013+ SAB/ACDSDATA, separate from DWG `AcDb:AcDsPrototype_1b`. Resolve comparator disputes against a pinned package's actual API and generated output, not stale FAQ text. For the modern DXF route, test entity marker fields, section record type, explicit entity-handle association, payload-size bound and exact bytes against a pinned generated output. Inspect actual target version, inner SAT/SAB version, owner/history references and exact payload disposition. Do not assume equal DXF and DWG envelopes. |
+| ezdxf [ACIS API limits](https://ezdxf.readthedocs.io/en/stable/acis.html) and [drawing add-on limits](https://ezdxf.readthedocs.io/en/stable/addons/drawing.html) | The project says its ACIS tools handle selected structures; unsupported nodes load as `NONE_ENTITY` and lose data, arbitrary load/edit/re-export is not a goal, and mesh extraction returns flat polygonal faces only. Curved/spline surfaces are lost in that projection, and its drawing add-on does not render ACIS or general 3D. A known cube generator is narrower than general ACIS preservation. | Keep ezdxf as a pinned syntax/carrier generator and limited parser/projection comparator. Record unsupported/raw/lost node counts and require preserved source bytes on the libdxfrw path; never use ezdxf re-export as arbitrary-carrier preservation evidence or its flat projection as curved B-rep truth. Keep the existing planar generated cube as a bounded control only. |
+| LibreDWG [NEWS](https://github.com/LibreDWG/libredwg/blob/master/NEWS) and [open issue #1411](https://github.com/LibreDWG/libredwg/issues/1411) | A versioned NEWS entry describes AcDsPrototype_1b as not fully implemented at that point and SAB extraction as brute-force; current open issue #1411 reports silent SAB loss in an identified 0.14.8593 build while preserving REGION shells. This is version-bound peer evidence; neither historical NEWS nor the issue establishes current `master` behavior or complete presence/absence of a current code path. | Bind comparator reports to release/commit, configure profile, executable hash, carrier type and exact output. Keep #1411 as a loss-pattern test-design lead only. Do not promote it into a libdxfrw finding or use entity-count equality as carrier preservation. |
+| FreeCAD [DXF importer guide](https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext), [native format guide](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md), and [issue #18454](https://github.com/FreeCAD/FreeCAD/issues/18454) | The published guide distinguishes built-in C++ and legacy Python importer support and reports different 3DFACE coverage; the issue says stock FreeCAD cannot consume embedded ACIS blobs. Documentation may lag a particular build and does not certify either importer today. | Keep native FreeCAD qualification route-specific: record exact app/build, platform, converter and selected importer. Treat explicit polygonal entities such as 3DFACE as per-importer cases; treat stock ACIS rejection as consumer scope, not libdxfrw carrier loss. Do not extrapolate one importer mode or platform to another. |
+| GDAL [DXF driver](https://gdal.org/en/stable/drivers/vector/dxf.html), IxMilia [DXF compatibility notes](https://github.com/ixmilia/dxf), and ACadSharp open [writer PR #1150](https://github.com/DomCR/ACadSharp/pull/1150)/[#1240](https://github.com/DomCR/ACadSharp/pull/1240) | GDAL exposes a bounded modern-DXF raw ASM/transform path but is not an ACIS geometry kernel; IxMilia warns that listed 3DSOLID/BODY/REGION classes may still be rejected by AutoCAD; ACadSharp writer routes remain proposals unless merged and released. These limitations are not evidence of a libdxfrw defect. | Retain GDAL as a carrier/transform comparator only; use IxMilia as evidence that class registration is not writer acceptance; pin ACadSharp to a built revision before runtime comparison. Across peers, report parse, typed/raw/skipped, write, reopen, and semantic outcomes separately. |
+
+### Updated implementation-ready checks
+
+1. Amend the existing S8.4 matrix (no new PAR finding or CTest):
+   - R2010 DXF: one SAT body carried in ordered groups1/3; verify split/join,
+     chunk boundaries, group70 and group350 closure.
+   - R2013+ DXF: one generated SAB body routed through ACDSDATA; verify section,
+     record/index-to-entity association, handle closure and bounded exact bytes.
+   - AC1024 DWG inline SAT and AC1027+ DWG AcDs/SAB remain separate DWG lanes.
+     Do not share route code/tests merely because the inner payload is SAT/SAB.
+2. For each conversion leg, record source entity handle/owner, source carrier,
+   target requested/actual version, emitted entity/carrier/section, callback or
+   refusal, reopened carrier, and independent geometry outcome. For the
+   modern DXF ACDSDATA route, also assert entity UID/flags and each record's
+   associated handle; those peer-derived tags must be confirmed by the pinned
+   generated output before being treated as a local contract. A 3DSOLID shell
+   with absent/empty SAB is loss even if handles and entity totals match.
+3. Pin the exact ezdxf package and check its public generator functions before
+   the optional composed run. The current API docs offer limited SAT/SAB
+   generation, while the FAQ is explicitly stale. Current source's resource
+   mapping removes SAB when a body is mapped to pre-R2013 DXF and removes SAT
+   when mapped to R2013+; this is not an ACIS format conversion, and the
+   inspected method is not proof of every SaveAs path. The local writer must
+   report/refuse unsupported downgrades rather than treating such a peer
+   informational drop as acceptable. Keep generated drawings temporary; do
+   not install a required dependency or commit generated DXF/DWG/SAT/SAB.
+4. Keep 3DFACE/POLYFACE/MESH explicit geometry separate from ACIS carriers.
+   In native FreeCAD checks, name the importer implementation and test each
+   claimed entity family independently. Preserve the ordinary 2D LibreCAD and
+   LibreCAD_3 compatibility gates.
+5. Per-slice validation remains focused CTest, strict changed-target build,
+   `lc3_compat_check`, and `git diff --check`. Run whole suites and optional
+   peer/native readers once at the composed gate; absent tools remain `NOT RUN`,
+   not a reason to defer local fixes.
+
+This is a research/readiness refinement only. No source/test code, drawing
+fixture, dependency, finding/subplan count, support claim, or remote state
+changed. Findings/subplans remain 122/70. J256, J260, J268, J284, J293 and
+J295 remain `DEFERRED_EXTERNAL` and non-promoting.
