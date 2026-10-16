@@ -15458,6 +15458,39 @@ pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.28 seconds);
 native application, peer executable, drawing fixture, dependency, or semantic
 geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
 J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice:
-check for an eligible source-authored, nonempty ACIS producer/readback path;
-otherwise add a narrowly scoped body-boundary/preservation control and keep
-all geometry and cross-consumer claims deferred.
+extend the carrier-dispatch control to the separately documented `REGION`
+route, then connect raw AcDs section capture to an actual parsed entity if the
+existing fast seam remains bounded. Keep `BODY` outside AcDs support claims
+until a real producer establishes that mapping.
+
+## Implementation progress — AC1027 modeler/AcDs callback closure (2026-10-15)
+
+Implementation commit: `6612514` (`Test AC1027 modeler payload dispatch`).
+
+Added a generated, nonempty AC1027 `3DSOLID` shell with `has_ds_data`, passed
+through the real object-frame classifier, `DRW_ModelerGeometry::parseDwg`,
+AcDs record linker, and `BLOCK_RECORD` callback. The callback must retain the
+same entity/owner handles, keep the exact full DWG frame in `m_rawBytes`, and
+keep the linked DataStorage bytes in `dataStorageData` rather than merging
+them into the DWG frame or inline `m_dwgAcisPayload`. Finalization reports one
+linked record and no orphan/failure. The typed section is injected at the
+already-parsed record seam; raw section/page capture is separately covered by
+earlier generated tests.
+
+The payload is deliberately only the `ACIS BinaryFile` marker plus two bytes:
+it is an association/preservation control, not a valid SAB body, and makes no
+geometry claim. Local preflight found no installed ezdxf, CadQuery, or OCP
+module; `/Applications/FreeCAD.app` exists but is not an ACIS semantic reader.
+No peer or ACIS tool was installed or downloaded. The previously selected
+official macOS ARM64 reader remains a future optional gate, not a per-slice
+dependency.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.38 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
+external reader, native application, drawing fixture, dependency, or semantic
+geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
+J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice:
+add an equivalent ODA-listed `REGION` dispatch/link case with its own source
+handle and marker-only record; keep `BODY` separate until external producer
+evidence proves its AcDs carrier mapping.
