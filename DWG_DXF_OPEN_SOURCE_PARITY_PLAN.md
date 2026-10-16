@@ -15249,3 +15249,27 @@ The plan census remains 122/70. J256, J260, J268, J284, J293 and J295 remain
 `DEFERRED_EXTERNAL` and non-promoting. No C++ code, test fixture, dependency,
 peer runtime, native CAD qualification, or full test suite changed in this
 research pass.
+
+## Implementation progress — fail-closed DataStorage body claims (2026-10-15)
+
+Implementation commit: `6fa2c83` (`Deepen 3D parity plan and DataStorage link tests`).
+
+The existing parsed two-record section/linker control now also proves that a
+body whose explicit numeric handle and canonical hexadecimal key identify
+different records is rejected atomically: neither record is attached, the
+link-failure count increments once, and both records remain visible as
+orphans. A second control has a REGION claim a record already linked to a
+3DSOLID; the duplicate claimant remains untouched, the first body's exact
+payload remains attached, and the other record is still reported as an
+orphan. All bytes are generated in memory; no production parser behavior,
+fixture, dependency, or public API changed.
+
+Validation: `libdxfrw_graph_preservation_tests` builds, focused CTest
+`libdxfrw_graph_preservation` passes 1/1 (0.59 seconds),
+`lc3_compat_check` is up to date, `jq empty` accepts the research receipt,
+and `git diff --check` passes. No full suite, native application, external
+reader, or semantic solid check ran. This closes only conflicting/duplicate
+DataStorage-link claims; actual BLOCK_RECORD/INSERT reachability, DWG
+entity-body publication, same-version writer replay, and B-rep semantics
+remain open. Findings/subplans remain 122/70, and J256, J260, J268, J284,
+J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
