@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -537,6 +538,8 @@ void testDataStorageBlobPages(TestContext& t) {
         std::size_t pageZeroHeaderOffset = 0;
         std::size_t pageOneHeaderOffset = 0;
         std::size_t descriptorOffset = 0;
+        std::size_t pageZeroSegmentSizeOffset = 0;
+        std::uint32_t pageSegmentSize = 0;
     };
 
     constexpr std::size_t segmentIndexOffset = 64u;
@@ -562,6 +565,10 @@ void testDataStorageBlobPages(TestContext& t) {
         const std::size_t pageOneSegmentOffset = dataOffset + 192u;
         const std::size_t pageZeroSegmentOffset =
             pageOneSegmentOffset + pageSegmentSize;
+        fixture.pageZeroSegmentSizeOffset =
+            segmentIndexOffset + DRW_DataStorageConst::SEGMENT_HEADER_SIZE
+            + 4u * DRW_DataStorageConst::SEGMENT_INDEX_ENTRY_SIZE + 8u;
+        fixture.pageSegmentSize = static_cast<std::uint32_t>(pageSegmentSize);
         const std::size_t sectionSize =
             pageZeroSegmentOffset + pageSegmentSize;
         fixture.bytes.assign(sectionSize, 0u);
@@ -827,6 +834,33 @@ void testDataStorageBlobPages(TestContext& t) {
     rejectsBlobAndKeepsSuffix(std::move(mismatchedTotal),
                               "DataStorage rejects page-chain total unequal "
                               "to assembled bytes");
+
+    BlobFixture overflowingTotal = makeFixture();
+    const std::uint64_t maximumTotal =
+        (std::numeric_limits<std::uint64_t>::max)();
+    putU64(overflowingTotal.bytes, overflowingTotal.descriptorOffset,
+           maximumTotal);
+    putU64(overflowingTotal.bytes, overflowingTotal.pageZeroHeaderOffset,
+           maximumTotal);
+    putU64(overflowingTotal.bytes, overflowingTotal.pageOneHeaderOffset,
+           maximumTotal);
+    rejectsBlobAndKeepsSuffix(std::move(overflowingTotal),
+                              "DataStorage rejects maximal declared total without losing suffix");
+
+    BlobFixture truncatedPageSegment = makeFixture();
+    putU32(truncatedPageSegment.bytes,
+           truncatedPageSegment.pageZeroSegmentSizeOffset,
+           truncatedPageSegment.pageSegmentSize - 1u);
+    const DRW_DataStorageSection rejectedTruncatedPage =
+        DRW_parseDataStorage(truncatedPageSegment.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* truncatedPageSuffix =
+        rejectedTruncatedPage.findRecordByHandle(0xa18u);
+    t.expect(!rejectedTruncatedPage.structurallyValid
+                 && !rejectedTruncatedPage.replayAllowed
+                 && rejectedTruncatedPage.findRecordByHandle(0xa17u) == nullptr
+                 && truncatedPageSuffix != nullptr
+                 && truncatedPageSuffix->payload == sentinel,
+             "DataStorage rejects a page segment truncated by one byte and preserves suffix");
 
     BlobFixture wrongSegmentKind = makeFixture();
     putU32(wrongSegmentKind.bytes, wrongSegmentKind.descriptorOffset + 32u, 2u);
