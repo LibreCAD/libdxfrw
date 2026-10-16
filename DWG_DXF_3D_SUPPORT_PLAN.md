@@ -19,11 +19,15 @@ The visual-style-only f.3b.1 import provenance slice is now implemented: it
 binds exact typed/raw collection bounds to one successful, versioned import
 and refuses authored, reused/mixed, failed, incomplete or source-format-
 mismatched style sets. This receipt is not output admission or payload
-completeness; f.3b range binding for the other named-resource families and
-f.3c source-profile serialization admission remain prerequisites to f.4b.1a.
-Separately, `dx_data` now retains raw DXF companions for SCALE, DICTIONARYVAR,
-MLINESTYLE and MLEADERSTYLE; unique typed/raw matching and graph/emitter
-dispatch remain open.
+completeness. f.3b.2 now also binds SCALE, DICTIONARYVAR, MLINESTYLE and
+MLEADERSTYLE to one successful source generation and validates their DXF
+typed/raw owner-handle joins; other OBJECTS families remain outside this
+receipt. f.3c source-profile serialization admission remains a prerequisite
+to typed f.4b output.
+Separately, `dx_data` retains raw DXF companions and has a bounded one-to-one
+typed/raw join for SCALE, DICTIONARYVAR, MLINESTYLE and MLEADERSTYLE. A fast
+test verifies the typed-only DWG route using the existing tracked
+`rtext_arctext.dwg`; graph and emitter dispatch remain open.
 No writer behavior, full conversion, external qualification, or support claim
 is implied. All six J gates remain `DEFERRED_EXTERNAL`. Focused implementation
 status and commands are recorded in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--f3b1-visual-style-import-provenance-2026-10-15).
@@ -38,10 +42,11 @@ Current probe matches72 literal producer types, repairing the48 modern
 collisions while leaving24 older types/other observed fields unchanged.
 Focused fixture/reader/object gates3/3 in5.15s and strict two-TU/build/lc3 pass.
 Receipt: `docs/research/visualstyle-type-scope-7g-3f-3a-2026-10-15.json`.
-f.4a owned family handoff is now complete. f.3b.1 now covers only the exact
-visual-style range; remaining named-resource origin/generation binding and
-f.3c serializer admission precede whole-root f.4b and CLI f.4c closure;9d and
-six external J gates remain open/non-promoting. No new
+f.4a owned family handoff is now complete. f.3b.1 binds the VisualStyle range,
+and f.3b.2 binds exact typed/raw ranges for SCALE, DICTIONARYVAR, MLINESTYLE
+and MLEADERSTYLE. Other OBJECTS families are not yet covered. f.3c serializer
+admission precedes whole-root f.4b and CLI f.4c closure;9d and six external J
+gates remain open/non-promoting. No new
 fixture/dependency/registration, full suite/sanitizer/ODA/native qualification.
 Private public-class state requires rebuild; no callback/default2D policy change.
 

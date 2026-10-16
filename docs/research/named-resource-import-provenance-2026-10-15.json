@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-implementation-slice-receipt-v1",
+  "slice": "f.3b.2 named-resource import provenance",
+  "date": "2026-10-15",
+  "baseline_commit": "2fc64c0",
+  "source_sha256": {
+    "dwg2dxf/dx_data.h": "2aa5ee5aac9d28a8cb6425871464fc38b6c5a28d45a9a720eed63de5b7b6382e",
+    "dwg2dxf/dx_iface.cpp": "a173c10979ebf3a84e064ab7ba18addb4cd913347bbd32308f4dd86cc3c373f3",
+    "tests/dwg2dxf_adapter_tests.cpp": "c01257f4e65cd9cc8f60692fdca073a9ac189123ba914f4ff9e810ded39208b7",
+    "tests/CMakeLists.txt": "942c55b8ad8f89aa3184d9ea4c0b6833ce100179f130b3360ca20c45ace4acfc",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "2f42c65c04d913821658325ff9cb86547ff41f3b4d13ef6b1a538af60a3c54a4",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "36599c71bfea796822c44d5f28f07177b1e5eabd21edf5cd35355d983020880b",
+    "tests/fixtures/dwg/rtext_arctext.dwg": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511"
+  },
+  "families": ["SCALE", "DICTIONARYVAR", "MLINESTYLE", "MLEADERSTYLE"],
+  "contract": {
+    "receipt": [
+      "per-container import generation",
+      "source format and accepted version",
+      "matching DXF/DWG read outcome",
+      "per-family typed collection bounds",
+      "raw DXF collection bounds"
+    ],
+    "dxf_pairing": "One-to-one unique join by family, handle and owner; raw carrier source version must equal the accepted import version. ASCII raw spelling vectors must match group cardinality.",
+    "dwg_pairing": "Successful source-DWG read with typed callback ranges and no DXF raw carriers.",
+    "lookup_limit_records": 1000000,
+    "refused_states": [
+      "authored/unknown source context or unknown version",
+      "failed read",
+      "reused or mixed-generation container",
+      "collection mutation after the receipt was captured",
+      "missing, duplicate, wrong-family, wrong-handle, or wrong-owner DXF carrier",
+      "cross-format carrier state"
+    ],
+    "does_not_claim": [
+      "record payload/schema completeness",
+      "profile-qualified typed serializer",
+      "root-key and whole-object graph closure",
+      "handle remapping or DXF emission",
+      "consumer interoperability or support promotion"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^(libdxfrw_named_resource_import_evidence|libdxfrw_visual_style_import_evidence|libdxfrw_extension_graph_limits)$' --output-on-failure",
+      "result": "PASS",
+      "tests_passed": 3,
+      "tests_total": 3,
+      "elapsed_seconds": 1.16
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "inputs": {
+    "generated_controls": "Minimal rooted AC1027 OBJECTS DXFs are authored at runtime in ASCII and binary form under the build test directory.",
+    "existing_dwg": "tests/fixtures/dwg/rtext_arctext.dwg is an existing tracked fixture; no drawing file was added or changed."
+  },
+  "scope_boundary": "This closes import origin/range binding for the first four named-resource emitter candidates only. f.3c profile/payload admission and f.4b graph/emission remain open."
+}

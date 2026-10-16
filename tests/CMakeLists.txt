@@ -110,6 +110,12 @@ add_test(NAME libdxfrw_visual_style_import_evidence
         ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(libdxfrw_visual_style_import_evidence PROPERTIES
     LABELS "fast;dxf;graph;adapter;visualstyle" TIMEOUT 30)
+add_test(NAME libdxfrw_named_resource_import_evidence
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --named-resource-import-evidence
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_SOURCE_DIR}/tests/fixtures/dwg/rtext_arctext.dwg)
+set_tests_properties(libdxfrw_named_resource_import_evidence PROPERTIES
+    LABELS "fast;dxf;graph;adapter;objects" TIMEOUT 30)
 add_executable(libdxfrw_block_owner_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/block_owner_tests.cpp
     ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)

@@ -13,15 +13,17 @@ found unremapped MLEADERSTYLE resource references, unchecked MLINESTYLE DXF
 element counts/partial tuples, and unconditional MLEADERSTYLE 179/298 writes
 despite source-spec version gates. f.4b is now ordered as an exact raw/typed
 origin and graph bridge, then SCALE/DICTIONARYVAR, MLINESTYLE and MLEADERSTYLE
-as progressively more complex bounded slices. The f.3b.1 provenance-only
-prerequisite is now implemented: a visual-style range is bound to one
-successful import generation, accepted source format/version and matching
-callback outcomes. Authored, reused/mixed, failed, incomplete raw-pair and
-DWG-with-DXF-raw contexts are refused by that predicate. It is not connected
-to output selection and does not certify decoded payload completeness. f.3c
-source-profile serializer admission still blocks f.4b; do not use current
-`sourceFormat` alone to legitimize data. No writer/support claim is promoted;
-six J gates remain `DEFERRED_EXTERNAL`. Receipt:
+as progressively more complex bounded slices. f.3b.1 binds VisualStyle ranges
+to one successful source generation. f.3b.2 now binds SCALE, DICTIONARYVAR,
+MLINESTYLE and MLEADERSTYLE typed ranges and requires a one-to-one DXF
+typed/raw join by family, handle, owner and source version; DWG imports require
+successful typed-read evidence and no DXF raw carrier. Authored, reused/mixed,
+failed, incomplete, unknown-version and cross-format contexts are refused.
+These provenance checks are not connected to output selection and do not
+certify decoded payload completeness. f.3c source-profile serializer
+admission still blocks f.4b; do not use current `sourceFormat` alone to
+legitimize data. No writer/support claim is promoted; six J gates remain
+`DEFERRED_EXTERNAL`. Receipt:
 `docs/research/named-resource-emitter-readiness-2026-10-15.json`.
 
 **Latest research delta (2026-10-15, committed baseline `91d0a88`; plan-only):**
@@ -13810,12 +13812,15 @@ fixture tests; run strict touched-TU compile plus the focused DXF fixture gate.
 do not introduce a second extension-based detector or infer DWG from absent
 raw style. Version is assigned after successful reading, and the container can
 retain older data on reuse: document-wide flags alone do not certify every
-carrier. Bind the appended/imported style range to its successful generation
-and version (or reject mixed/reused unsupported models), with owned copying
-and bounded lookup. Require source-profile metadata/completeness, not editable
-`m_bodyDecoded` alone. Fast negatives: unknown/authored context, failed import,
-mixed/reused generation, DWG claiming raw DXF and DXF missing a raw companion;
-corrected same-model retry must not retain stale staging. Preserve the existing
+carrier. Bind the appended/imported VisualStyle and SCALE/DICTIONARYVAR/
+MLINESTYLE/MLEADERSTYLE ranges to their successful generation and version (or
+reject mixed/reused unsupported models), with owned copying and bounded
+lookup. For DXF, require exact type/handle/owner/version matching between each
+typed resource and raw carrier. Require source-profile metadata/completeness,
+not editable `m_bodyDecoded` alone. Fast negatives: unknown/authored context,
+failed import, mixed/reused generation, duplicate/missing/wrong-owner raw
+carrier, DWG claiming raw DXF and DXF missing a raw companion; corrected
+same-model retry must not retain stale staging. Preserve the existing
 DXF-origin raw replay lane and ordinary manual/2D controls.
 
 **f.3c — descriptor-driven typed serializer.** Freeze one slot table of value
@@ -14128,9 +14133,9 @@ created under the build test directory at runtime; no fixture was added and no
 full suite/native/external test ran.
 
 Remaining f.3b work is limited to extending equivalent origin/range binding to
-the named-resource families before f.4b output dispatch. f.3c still owns
-descriptor-driven source-profile completeness and serialization admission;
-f.4b writers/graph and f.4c composed qualification remain open. No support
+the remaining named-resource families before f.4b output dispatch. f.3c still
+owns descriptor-driven source-profile completeness and serialization
+admission; f.4b writers/graph and f.4c composed qualification remain open. No support
 matrix, count or J disposition changes: J256/J260/J268/J284/J293/J295 remain
 `DEFERRED_EXTERNAL`. Validation and source hashes are bound by
 [`visual-style-import-provenance-2026-10-15.json`](docs/research/visual-style-import-provenance-2026-10-15.json).
@@ -14160,3 +14165,42 @@ remapping, class metadata and raw-versus-typed output selection. No support
 matrix/count or J disposition changes; J256/J260/J268/J284/J293/J295 remain
 `DEFERRED_EXTERNAL`. Validation and source hashes are bound by
 [`named-resource-raw-carriers-2026-10-15.json`](docs/research/named-resource-raw-carriers-2026-10-15.json).
+
+## Implementation progress — f.3b.2 named-resource import provenance (2026-10-15)
+
+`fileImport` now records per-family typed collection bounds plus the raw-carrier
+range for SCALE, DICTIONARYVAR, MLINESTYLE and MLEADERSTYLE. The new
+`dx_data::hasSingleSuccessfulNamedResourceImport()` verifies a single fresh
+successful import, known source version, matching read outcome and unchanged
+collection extents. For DXF it additionally requires exactly one raw companion
+per typed record and joins by normalized family, handle and owner; the raw
+carrier's version must equal the accepted source version. Duplicate, missing,
+wrong-family, wrong-owner, mixed-generation, manually appended, and failed
+read states fail closed. Successful DWG provenance requires no DXF raw
+carriers. This does not claim payload/schema completeness and is not yet wired
+to output selection or a writer. The temporary identity index is capped at
+1,000,000 records, aligned with the adapter's existing default graph-node
+budget.
+
+The generated `libdxfrw_named_resource_import_evidence` fast CTest writes
+minimal rooted AC1027 OBJECTS controls from scratch at runtime, imports both
+ASCII and binary forms, and checks valid joins plus wrong-owner, wrong-family,
+duplicate/missing-raw, reused-container, failed-read and authored-data
+negatives. It also imports the already-tracked
+`tests/fixtures/dwg/rtext_arctext.dwg`, requiring successful versioned DWG
+evidence, nonempty typed values for all four families, and zero fabricated DXF
+raw carriers. The strict adapter target builds; this gate and the existing
+VisualStyle provenance and extension-graph fast tests pass 3/3 in1.16s.
+`git diff --check` passes. No drawing fixture is committed and no full
+suite/native/external gate was run. This extends, but does not replace, the
+f.4b.1a.0 raw-retention slice recorded above; that slice's then-open
+typed/raw-join status is now closed for these four families only.
+
+This closes f.3b origin/range binding for the four initial emitter candidates,
+including a source-DWG typed-only path, not f.3b for every OBJECTS family,
+f.3c source-profile/payload admission, or
+f.4b graph/emission. Continue with the descriptor-driven AC1027 profile gate
+and then the planned SCALE/DICTIONARYVAR graph bridge. No support matrix/count
+or J disposition changes; all six J items remain `DEFERRED_EXTERNAL`. Source
+hashes and command receipts:
+[`named-resource-import-provenance-2026-10-15.json`](docs/research/named-resource-import-provenance-2026-10-15.json).

@@ -671,6 +671,196 @@ bool visualStyleImportEvidence(const std::filesystem::path& directory) {
     return true;
 }
 
+bool generateNamedResourceImportControl(const std::filesystem::path& path,
+                                        bool binary) {
+    std::ofstream output(path, std::ios::binary);
+    if (!output)
+        return fail("could not create named-resource import control");
+    std::unique_ptr<dxfWriter> writer;
+    if (binary) {
+        output.write("AutoCAD Binary DXF\r\n\x1A\0", 22);
+        writer = std::make_unique<dxfWriterBinary>(&output);
+    } else {
+        writer = std::make_unique<dxfWriterAscii>(&output);
+    }
+    writer->setVersion("AC1027", true);
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "HEADER");
+    writer->writeString(9, "$ACADVER");
+    writer->writeString(1, "AC1027");
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "SECTION");
+    writer->writeString(2, "OBJECTS");
+    writer->writeString(0, "DICTIONARY");
+    writer->writeString(5, "C");
+    writer->writeString(330, "0");
+    writer->writeString(100, "AcDbDictionary");
+    writer->writeInt16(280, 1);
+    writer->writeInt16(281, 1);
+    for (const auto& entry : std::array<std::pair<const char*, const char*>, 4>{{
+             {"ACAD_SCALELIST", "A"}, {"ACAD_VARIABLES", "B"},
+             {"ACAD_MLINESTYLE", "D"}, {"ACAD_MLEADERSTYLE", "E"}}}) {
+        writer->writeString(3, entry.first);
+        writer->writeString(350, entry.second);
+    }
+    const auto writeChildDictionary = [&writer](const char* handle,
+                                                  const char* key,
+                                                  const char* child) {
+        writer->writeString(0, "DICTIONARY");
+        writer->writeString(5, handle);
+        writer->writeString(330, "C");
+        writer->writeString(100, "AcDbDictionary");
+        writer->writeInt16(280, 1);
+        writer->writeInt16(281, 1);
+        writer->writeString(3, key);
+        writer->writeString(350, child);
+    };
+    writeChildDictionary("A", "1:10", "11");
+    writeChildDictionary("B", "LIGHTINGUNITS", "12");
+    writeChildDictionary("D", "STANDARD", "13");
+    writeChildDictionary("E", "STANDARD", "14");
+
+    writer->writeString(0, "SCALE");
+    writer->writeString(5, "11");
+    writer->writeString(330, "A");
+    writer->writeString(100, "AcDbScale");
+    writer->writeInt16(70, 0);
+    writer->writeString(300, "1:10");
+    writer->writeDouble(140, 1.0);
+    writer->writeDouble(141, 10.0);
+    writer->writeBool(290, false);
+
+    writer->writeString(0, "DICTIONARYVAR");
+    writer->writeString(5, "12");
+    writer->writeString(330, "B");
+    writer->writeString(100, "DictionaryVariables");
+    writer->writeInt16(280, 0);
+    writer->writeString(1, "1");
+
+    writer->writeString(0, "MLINESTYLE");
+    writer->writeString(5, "13");
+    writer->writeString(330, "D");
+    writer->writeString(100, "AcDbMlineStyle");
+    writer->writeString(2, "STANDARD");
+    writer->writeInt16(70, 0);
+    writer->writeString(3, "generated mline style");
+    writer->writeInt16(62, 256);
+    writer->writeDouble(51, 0.0);
+    writer->writeDouble(52, 0.0);
+    writer->writeInt16(71, 0);
+
+    writer->writeString(0, "MLEADERSTYLE");
+    writer->writeString(5, "14");
+    writer->writeString(330, "E");
+    writer->writeString(100, "AcDbMLeaderStyle");
+    writer->writeInt16(179, 2);
+    writer->writeInt16(170, 0);
+    writer->writeInt32(90, 0);
+    writer->writeString(0, "ENDSEC");
+    writer->writeString(0, "EOF");
+    return !writer->hasWriteError() && output.good();
+}
+
+bool namedResourceImportEvidence(const std::filesystem::path& directory,
+                                 const std::string& dwgFixture) {
+    std::filesystem::create_directories(directory);
+    for (const bool binary : {false, true}) {
+        const auto path = directory / (binary ? "named-resource-import-bin.dxf"
+                                              : "named-resource-import-ascii.dxf");
+        if (!generateNamedResourceImportControl(path, binary))
+            return false;
+
+        dx_data imported;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &imported, false)
+            || !imported.hasSingleSuccessfulNamedResourceImport()
+            || imported.namedResourceImport.generation != 1
+            || imported.namedResourceImport.sourceFormat != dx_source_format::DXF
+            || imported.namedResourceImport.sourceVersion != DRW::AC1027
+            || imported.scales.size() != 1u
+            || imported.dictionaryVars.size() != 1u
+            || imported.mLineStyles.size() != 1u
+            || imported.mLeaderStyles.size() != 1u
+            || imported.rawNamedResourceObjects.size() != 4u
+            || imported.namedResourceImport.scaleRange.begin != 0u
+            || imported.namedResourceImport.scaleRange.end != 1u
+            || imported.namedResourceImport.dictionaryVarRange.begin != 0u
+            || imported.namedResourceImport.dictionaryVarRange.end != 1u
+            || imported.namedResourceImport.mLineStyleRange.begin != 0u
+            || imported.namedResourceImport.mLineStyleRange.end != 1u
+            || imported.namedResourceImport.mLeaderStyleRange.begin != 0u
+            || imported.namedResourceImport.mLeaderStyleRange.end != 1u
+            || imported.namedResourceImport.rawRange.begin != 0u
+            || imported.namedResourceImport.rawRange.end != 4u)
+            return fail("single-import typed/raw named-resource ranges did not close");
+
+        imported.rawNamedResourceObjects.front().parentHandle++;
+        if (imported.hasSingleSuccessfulNamedResourceImport())
+            return fail("named-resource carrier with a mismatched owner was admitted");
+
+        dx_data missingRaw;
+        if (!reader.fileImport(path.string(), &missingRaw, false)
+            || !missingRaw.hasSingleSuccessfulNamedResourceImport())
+            return fail("fresh named-resource provenance retry was not admitted");
+        missingRaw.rawNamedResourceObjects.pop_back();
+        if (missingRaw.hasSingleSuccessfulNamedResourceImport())
+            return fail("named-resource set missing a raw carrier was admitted");
+
+        dx_data wrongFamily;
+        if (!reader.fileImport(path.string(), &wrongFamily, false))
+            return fail("could not create wrong-family named-resource control");
+        wrongFamily.rawNamedResourceObjects.front().name = "UNRELATED_OBJECT";
+        if (wrongFamily.hasSingleSuccessfulNamedResourceImport())
+            return fail("named-resource carrier joined through a wrong family");
+
+        dx_data duplicateRaw;
+        if (!reader.fileImport(path.string(), &duplicateRaw, false))
+            return fail("could not create duplicate named-resource control");
+        duplicateRaw.rawNamedResourceObjects.push_back(
+            duplicateRaw.rawNamedResourceObjects.front());
+        if (duplicateRaw.hasSingleSuccessfulNamedResourceImport())
+            return fail("duplicate named-resource raw carrier was admitted");
+
+        dx_data reused;
+        if (!reader.fileImport(path.string(), &reused, false)
+            || !reader.fileImport(path.string(), &reused, false)
+            || reused.hasSingleSuccessfulNamedResourceImport()
+            || reused.namedResourceImport.generation != 2)
+            return fail("reused named-resource container mixed import generations");
+
+        const std::size_t rawCountBeforeFailure = reused.rawNamedResourceObjects.size();
+        const auto badPath = directory / (binary ? "bad-named-resource-bin.dxf"
+                                                 : "bad-named-resource-ascii.dxf");
+        { std::ofstream invalid(badPath); invalid << "not a DXF drawing\n"; }
+        if (reader.fileImport(badPath.string(), &reused, false)
+            || reused.hasSingleSuccessfulNamedResourceImport()
+            || reused.sourceVersion != DRW::UNKNOWNV
+            || reused.rawNamedResourceObjects.size() != rawCountBeforeFailure)
+            return fail("failed named-resource retry retained stale provenance or erased carriers");
+    }
+
+    dx_data authored;
+    DRW_Scale scale;
+    scale.handle = 0x11u;
+    scale.parentHandle = 0x10u;
+    authored.scales.push_back(scale);
+    if (authored.hasSingleSuccessfulNamedResourceImport())
+        return fail("authored named-resource data incorrectly gained import provenance");
+
+    if (!dwgFixture.empty()) {
+        dx_data dwgImported;
+        dx_iface dwgReader;
+        if (!dwgReader.fileImport(dwgFixture, &dwgImported, false)
+            || !dwgImported.hasSingleSuccessfulNamedResourceImport()
+            || dwgImported.sourceFormat != dx_source_format::DWG
+            || dwgImported.rawNamedResourceObjects.size() != 0u
+            || dwgImported.scales.empty() || dwgImported.dictionaryVars.empty()
+            || dwgImported.mLineStyles.empty() || dwgImported.mLeaderStyles.empty())
+            return fail("existing DWG fixture did not retain one typed-only named-resource generation");
+    }
+    return true;
+}
+
 bool visualStyleGraphRejectsDanglingReference(
     const std::filesystem::path& directory, bool binary) {
     const auto path = directory / (binary ? "visual-style-reject-bin.dxf"
@@ -1137,6 +1327,10 @@ int main(int argc, char** argv) {
         std::filesystem::create_directories(argv[2]);
         return visualStyleImportEvidence(argv[2]) ? 0 : 1;
     }
+    if ((argc == 3 || argc == 4)
+        && std::string(argv[1]) == "--named-resource-import-evidence")
+        return namedResourceImportEvidence(argv[2], argc == 4 ? argv[3] : "")
+            ? 0 : 1;
     if (argc != 3) {
         std::cerr << "usage: dwg2dxf_adapter_tests --generate|--verify <file>\n";
         return 2;

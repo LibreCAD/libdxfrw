@@ -137,6 +137,26 @@ struct dx_visualStyleImportReceipt {
     bool successful{false};
 };
 
+struct dx_importedRecordRange {
+    std::size_t begin{0};
+    std::size_t end{0};
+};
+
+// Import provenance for the four named-resource records whose raw DXF
+// companions are retained by this adapter. Payload/profile qualification is a
+// separate gate and is intentionally not represented here.
+struct dx_namedResourceImportReceipt {
+    std::uint64_t generation{0};
+    dx_source_format sourceFormat{dx_source_format::Unknown};
+    DRW::Version sourceVersion{DRW::UNKNOWNV};
+    dx_importedRecordRange scaleRange;
+    dx_importedRecordRange dictionaryVarRange;
+    dx_importedRecordRange mLineStyleRange;
+    dx_importedRecordRange mLeaderStyleRange;
+    dx_importedRecordRange rawRange;
+    bool successful{false};
+};
+
 //container class to store full dwg/dxf data.
 class dx_data {
 public:
@@ -159,6 +179,7 @@ public:
     dx_dxfReadOutcome dxfReadOutcome;     //owned most-recent DXF import evidence
     dx_dwgReadOutcome dwgReadOutcome;     //bounded most-recent-import evidence
     dx_visualStyleImportReceipt visualStyleImport;
+    dx_namedResourceImportReceipt namedResourceImport;
     std::list<DRW_LType>lineTypes;      //stores a copy of all line types
     std::list<DRW_Layer>layers;         //stores a copy of all layers
     std::list<DRW_Dimstyle>dimStyles;   //stores a copy of all dimension styles
@@ -237,6 +258,11 @@ public:
         }
         return false;
     }
+
+    // Verifies one fresh, successful import and (for DXF) a one-to-one
+    // type/handle/owner join between typed values and their raw carriers.
+    // It does not certify each family's decoded payload or writer profile.
+    bool hasSingleSuccessfulNamedResourceImport() const;
 
 
 };

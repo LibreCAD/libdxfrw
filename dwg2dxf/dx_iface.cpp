@@ -2287,6 +2287,106 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
         cData->rawNamedResourceObjects.push_back(data);
 }
 
+bool dx_data::hasSingleSuccessfulNamedResourceImport() const {
+    constexpr std::size_t kMaxIndexedNamedResources = 1000000u;
+    const dx_namedResourceImportReceipt& receipt = namedResourceImport;
+    if (!receipt.successful || importGeneration != 1
+        || receipt.generation != importGeneration
+        || receipt.sourceVersion == DRW::UNKNOWNV
+        || sourceFormat != receipt.sourceFormat
+        || sourceVersion != receipt.sourceVersion
+        || receipt.rawRange.begin != 0
+        || receipt.rawRange.end != rawNamedResourceObjects.size())
+        return false;
+
+    const std::array<std::size_t, 4> currentSizes{
+        scales.size(), dictionaryVars.size(), mLineStyles.size(),
+        mLeaderStyles.size()};
+    const std::array<dx_importedRecordRange, 4> typedRanges{
+        receipt.scaleRange, receipt.dictionaryVarRange,
+        receipt.mLineStyleRange, receipt.mLeaderStyleRange};
+    std::size_t typedCount = 0;
+    for (std::size_t index = 0; index < currentSizes.size(); ++index) {
+        const dx_importedRecordRange& range = typedRanges[index];
+        if (range.begin != 0 || range.end != currentSizes[index])
+            return false;
+        if (currentSizes[index] > kMaxIndexedNamedResources - typedCount)
+            return false;
+        typedCount += currentSizes[index];
+    }
+    const std::size_t rawCount = receipt.rawRange.end - receipt.rawRange.begin;
+    if (typedCount > kMaxIndexedNamedResources
+        || rawCount > kMaxIndexedNamedResources)
+        return false;
+
+    if (receipt.sourceFormat == dx_source_format::DXF) {
+        if (!dxfReadOutcome.attempted || !dxfReadOutcome.readReturned
+            || !dxfReadOutcome.operationSucceeded
+            || dxfReadOutcome.sourceVersion != receipt.sourceVersion
+            || typedCount != rawCount)
+            return false;
+    } else if (receipt.sourceFormat == dx_source_format::DWG) {
+        if (!dwgReadOutcome.attempted || !dwgReadOutcome.operationSucceeded
+            || dwgReadOutcome.sourceVersion != receipt.sourceVersion
+            || receipt.rawRange.end != receipt.rawRange.begin)
+            return false;
+        return true;
+    } else {
+        return false;
+    }
+
+    // Family IDs are part of the key so equal numeric handles in distinct
+    // DXF object classes cannot alias one another.
+    std::unordered_map<std::uint64_t, std::uint32_t> expected;
+    expected.reserve(typedCount);
+    const auto addTyped = [&expected](const auto& record, std::uint32_t family) {
+        if (record.handle == 0 || record.handle == DRW::NoHandle
+            || record.parentHandle == 0 || record.parentHandle == DRW::NoHandle)
+            return false;
+        const std::uint64_t key = (static_cast<std::uint64_t>(family) << 32)
+            | record.handle;
+        return expected.emplace(key, record.parentHandle).second;
+    };
+    for (const DRW_Scale& record : scales)
+        if (!addTyped(record, 1u)) return false;
+    for (const DRW_DictionaryVar& record : dictionaryVars)
+        if (!addTyped(record, 2u)) return false;
+    for (const DRW_MLineStyle& record : mLineStyles)
+        if (!addTyped(record, 3u)) return false;
+    for (const DRW_MLeaderStyle& record : mLeaderStyles)
+        if (!addTyped(record, 4u)) return false;
+    if (expected.size() != rawCount)
+        return false;
+
+    const auto familyForName = [](const std::string& input) {
+        std::string name = input;
+        for (char& character : name) {
+            if (character >= 'a' && character <= 'z')
+                character = static_cast<char>(character - 'a' + 'A');
+        }
+        if (name == "SCALE") return 1u;
+        if (name == "DICTIONARYVAR") return 2u;
+        if (name == "MLINESTYLE") return 3u;
+        if (name == "MLEADERSTYLE") return 4u;
+        return 0u;
+    };
+    for (const DRW_RawDxfObject& raw : rawNamedResourceObjects) {
+        const std::uint32_t family = familyForName(raw.name);
+        if (family == 0 || raw.m_version != receipt.sourceVersion
+            || raw.handle == 0 || raw.handle == DRW::NoHandle
+            || raw.parentHandle == 0 || raw.parentHandle == DRW::NoHandle
+            || (raw.hasRawValues && raw.rawValues.size() != raw.groups.size()))
+            return false;
+        const std::uint64_t key = (static_cast<std::uint64_t>(family) << 32)
+            | raw.handle;
+        const auto typed = expected.find(key);
+        if (typed == expected.end() || typed->second != raw.parentHandle)
+            return false;
+        expected.erase(typed);
+    }
+    return expected.empty();
+}
+
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
     if (fData == nullptr || fData->importGeneration
@@ -2297,6 +2397,13 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     fData->visualStyleImport.generation = fData->importGeneration;
     fData->visualStyleImport.visualStyleBegin = fData->visualStyles.size();
     fData->visualStyleImport.rawVisualStyleBegin = fData->rawVisualStyleObjects.size();
+    fData->namedResourceImport = {};
+    fData->namedResourceImport.generation = fData->importGeneration;
+    fData->namedResourceImport.scaleRange.begin = fData->scales.size();
+    fData->namedResourceImport.dictionaryVarRange.begin = fData->dictionaryVars.size();
+    fData->namedResourceImport.mLineStyleRange.begin = fData->mLineStyles.size();
+    fData->namedResourceImport.mLeaderStyleRange.begin = fData->mLeaderStyles.size();
+    fData->namedResourceImport.rawRange.begin = fData->rawNamedResourceObjects.size();
     fData->dxfReadOutcome = {};
     fData->dwgReadOutcome = {};
     fData->sourceFormat = dx_source_format::Unknown;
@@ -2312,6 +2419,17 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         receipt.sourceVersion = fData->sourceVersion;
         receipt.visualStyleEnd = fData->visualStyles.size();
         receipt.rawVisualStyleEnd = fData->rawVisualStyleObjects.size();
+        receipt.successful = success;
+    };
+    const auto finishNamedResourceImport = [fData](bool success) {
+        dx_namedResourceImportReceipt& receipt = fData->namedResourceImport;
+        receipt.sourceFormat = fData->sourceFormat;
+        receipt.sourceVersion = fData->sourceVersion;
+        receipt.scaleRange.end = fData->scales.size();
+        receipt.dictionaryVarRange.end = fData->dictionaryVars.size();
+        receipt.mLineStyleRange.end = fData->mLineStyles.size();
+        receipt.mLeaderStyleRange.end = fData->mLeaderStyles.size();
+        receipt.rawRange.end = fData->rawNamedResourceObjects.size();
         receipt.successful = success;
     };
 
@@ -2333,6 +2451,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             fData->dxfReadOutcome.readThrew = true;
             snapshotDxfReadOutcome(*fData, dxf);
             finishVisualStyleImport(false);
+            finishNamedResourceImport(false);
             throw;
         }
         fData->dxfReadOutcome.readReturned = true;
@@ -2342,6 +2461,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             fData->sourceVersion = sourceVersionFromDxfHeader(
                 fData->headerC, dxf.getVersion());
         finishVisualStyleImport(success);
+        finishNamedResourceImport(success);
         if (!success) {
             std::cout << "DXF file error: format " << dxf.getVersion() << " error " << dxf.getError() << std::endl;
         }
@@ -2363,6 +2483,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         if (success)
             fData->sourceVersion = dwg.getVersion();
         finishVisualStyleImport(success);
+        finishNamedResourceImport(success);
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;
         }
@@ -2371,6 +2492,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         return success;
     }
     finishVisualStyleImport(false);
+    finishNamedResourceImport(false);
     std::cout << "file extension can be dxf or dwg" << std::endl;
     return false;
 }
