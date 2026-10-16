@@ -2261,6 +2261,32 @@ void snapshotDxfReadOutcome(dx_data& data, const dxfRW& reader) noexcept {
 
 } // namespace
 
+void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
+    if (cData == nullptr)
+        return;
+    if (data.name == "ACAD_PROXY_OBJECT") {
+        cData->rawProxyObjects.push_back(data);
+        return;
+    }
+    if (data.name == "VISUALSTYLE") {
+        cData->rawVisualStyleObjects.push_back(data);
+        return;
+    }
+
+    std::string normalizedName = data.name;
+    for (char& character : normalizedName) {
+        if (character >= 'a' && character <= 'z')
+            character = static_cast<char>(character - 'a' + 'A');
+    }
+    static constexpr std::array<const char*, 4> namedResourceTypes{
+        "SCALE", "DICTIONARYVAR", "MLINESTYLE", "MLEADERSTYLE"};
+    if (std::any_of(namedResourceTypes.begin(), namedResourceTypes.end(),
+            [&normalizedName](const char* type) {
+                return normalizedName == type;
+            }))
+        cData->rawNamedResourceObjects.push_back(data);
+}
+
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
     if (fData == nullptr || fData->importGeneration

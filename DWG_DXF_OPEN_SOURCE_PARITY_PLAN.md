@@ -14134,3 +14134,29 @@ f.4b writers/graph and f.4c composed qualification remain open. No support
 matrix, count or J disposition changes: J256/J260/J268/J284/J293/J295 remain
 `DEFERRED_EXTERNAL`. Validation and source hashes are bound by
 [`visual-style-import-provenance-2026-10-15.json`](docs/research/visual-style-import-provenance-2026-10-15.json).
+
+## Implementation progress — f.4b.1a.0 raw named-resource retention (2026-10-15)
+
+`dx_iface::addRawDxfObject` now owns DXF raw companions for SCALE,
+DICTIONARYVAR, MLINESTYLE and MLEADERSTYLE in `dx_data::rawNamedResourceObjects`;
+the name check is ASCII-case-insensitive and the captured name/groups/handle/
+owner/version/raw spelling and text lease remain intact. This is the raw
+retention prerequisite only. It does not pair a carrier to a unique typed
+record by handle, bind these four record ranges to an import receipt, select a
+source-origin route, extend the bounded root graph, or invoke any writer.
+DWG frames/bodies are not put into this DXF carrier collection.
+
+The existing runtime-generated `dwg2dxf_named_object_callback_storage` fast
+test now verifies a real in-memory DXF parse retains a DICTIONARYVAR raw
+companion and verifies mixed-case SCALE/DICTIONARYVAR/MLINESTYLE/MLEADERSTYLE
+callback names are retained without normalizing the stored carrier identity.
+`libdxfrw_dwg2dxf_adapter_tests` builds with strict project warning settings;
+that named-object CTest passes. `git diff --check` passes. No drawing fixture,
+new CTest, full suite, native/external test or support claim was added/run.
+
+The next f.4b.1a work still needs per-family typed/raw handle joins and graph
+leaf admission after f.3b/f.3c, plus exact source profile, owner/key identity,
+remapping, class metadata and raw-versus-typed output selection. No support
+matrix/count or J disposition changes; J256/J260/J268/J284/J293/J295 remain
+`DEFERRED_EXTERNAL`. Validation and source hashes are bound by
+[`named-resource-raw-carriers-2026-10-15.json`](docs/research/named-resource-raw-carriers-2026-10-15.json).

@@ -185,6 +185,9 @@ public:
     std::list<DRW_Material>materials;    //typed MATERIAL objects
     std::list<DRW_VisualStyle>visualStyles; //typed visual style metadata
     std::list<DRW_RawDxfObject>rawVisualStyleObjects; //full DXF style tag carrier
+    // DXF tag companions for the named-resource families whose adapter
+    // callbacks also retain typed values. DWG bodies are never stored here.
+    std::list<DRW_RawDxfObject>rawNamedResourceObjects;
     std::list<DRW_ProxyObject>proxyObjects; //typed ACAD_PROXY_OBJECT records
     std::list<DRW_RawDxfObject>rawProxyObjects; //lossless DXF proxy passthrough
     std::vector<DRW_RawDxfSection> rawDxfSections; //opaque DXF section passthrough

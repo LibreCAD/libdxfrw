@@ -21,6 +21,9 @@ and refuses authored, reused/mixed, failed, incomplete or source-format-
 mismatched style sets. This receipt is not output admission or payload
 completeness; f.3b range binding for the other named-resource families and
 f.3c source-profile serialization admission remain prerequisites to f.4b.1a.
+Separately, `dx_data` now retains raw DXF companions for SCALE, DICTIONARYVAR,
+MLINESTYLE and MLEADERSTYLE; unique typed/raw matching and graph/emitter
+dispatch remain open.
 No writer behavior, full conversion, external qualification, or support claim
 is implied. All six J gates remain `DEFERRED_EXTERNAL`. Focused implementation
 status and commands are recorded in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--f3b1-visual-style-import-provenance-2026-10-15).

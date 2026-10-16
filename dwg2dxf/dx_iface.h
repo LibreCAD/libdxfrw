@@ -214,14 +214,7 @@ public:
         if (cData != nullptr)
             cData->proxyObjects.push_back(data);
     }
-    virtual void addRawDxfObject(const DRW_RawDxfObject& data) override {
-        if (cData == nullptr)
-            return;
-        if (data.name == "ACAD_PROXY_OBJECT")
-            cData->rawProxyObjects.push_back(data);
-        else if (data.name == "VISUALSTYLE")
-            cData->rawVisualStyleObjects.push_back(data);
-    }
+    virtual void addRawDxfObject(const DRW_RawDxfObject& data) override;
     virtual void addEvaluationGraph(const DRW_EvaluationGraph& data) override {
         if (cData != nullptr)
             cData->evaluationGraphs.push_back(data);

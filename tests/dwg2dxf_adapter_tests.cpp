@@ -2,6 +2,8 @@
 #include "intern/dxfwriter.h"
 #include "libdxfrw.h"
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -272,7 +274,11 @@ bool retainNamedObjectCallbacks() {
     if (data.dictionaryWithDefaults.size() != 1u
         || !data.dictionaryWithDefaults.front().hasCompleteDxfPayload()
         || data.dictionaryVars.size() != 1u
-        || data.dictionaryVars.front().m_value != "FOLLOWING_SENTINEL")
+        || data.dictionaryVars.front().m_value != "FOLLOWING_SENTINEL"
+        || data.rawNamedResourceObjects.size() != 1u
+        || data.rawNamedResourceObjects.front().name != "DICTIONARYVAR"
+        || data.rawNamedResourceObjects.front().handle != 0x12u
+        || data.rawNamedResourceObjects.front().parentHandle != 0xCu)
         return fail("DICTIONARYWDFLT adapter copy lost payload-completeness evidence");
 
     const DRW_DictionaryWithDefault parsed =
@@ -326,6 +332,18 @@ bool retainNamedObjectCallbacks() {
         DRW_DictionaryVar dictionaryVar;
         dictionaryVar.handle = 0x108u;
         iface.addDictionaryVar(dictionaryVar);
+
+        const std::array<std::pair<const char*, std::uint32_t>, 4> rawNames{{
+            {"scale", 0x107u}, {"dictionaryvar", 0x108u},
+            {"mLiNeStYle", 0x102u}, {"mleaderstyle", 0x103u}}};
+        for (const auto& entry : rawNames) {
+            DRW_RawDxfObject raw;
+            raw.name = entry.first;
+            raw.handle = entry.second;
+            raw.parentHandle = 0xCu;
+            raw.groups.emplace_back(5, std::string("FACE"));
+            iface.addRawDxfObject(raw);
+        }
     }
 
     if (data.placeholders.size() != 1u
@@ -344,8 +362,19 @@ bool retainNamedObjectCallbacks() {
         || data.scales.front().handle != 0x107u
         || data.dictionaryVars.size() != 2u
         || data.dictionaryVars.front().handle != 0x12u
-        || data.dictionaryVars.back().handle != 0x108u)
+        || data.dictionaryVars.back().handle != 0x108u
+        || data.rawNamedResourceObjects.size() != 5u)
         return fail("named-object callbacks were not retained as owned values");
+    for (const char* expectedName : {"scale", "dictionaryvar", "mLiNeStYle",
+                                     "mleaderstyle"}) {
+        if (std::none_of(data.rawNamedResourceObjects.begin(),
+                data.rawNamedResourceObjects.end(),
+                [expectedName](const DRW_RawDxfObject& raw) {
+                    return raw.name == expectedName;
+                }))
+            return fail(std::string("raw named-resource companion was dropped: ")
+                + expectedName);
+    }
     return true;
 }
 
