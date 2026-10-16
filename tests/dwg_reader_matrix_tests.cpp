@@ -736,6 +736,75 @@ void testModelerBlockRecordDispatch(TestContext& t) {
              "INSERT reaches its named block's solid; a second block's solid stays stored but outside this reference");
 }
 
+void testModelerBlockWalkRejectsBadOwnership(TestContext& t) {
+    constexpr std::uint32_t blockHandle = 0x600u;
+    constexpr std::uint32_t wrongOwnerHandle = 0x601u;
+    constexpr std::uint32_t solidHandle = 0xA00u;
+    constexpr std::uint32_t wrongOwnerSolidHandle = 0xA01u;
+    constexpr std::uint32_t missingSolidHandle = 0xA02u;
+    std::ofstream output;
+    DRW_Header header;
+    ModelerDispatchFrameWriter validWriter(&output, &header);
+    ModelerDispatchFrameWriter wrongOwnerWriter(&output, &header);
+    const bool generated = validWriter.encodeEmptySolid(solidHandle, blockHandle)
+        && wrongOwnerWriter.encodeEmptySolid(wrongOwnerSolidHandle,
+                                             wrongOwnerHandle);
+    t.expect(generated, "in-memory AC1027 ownership-failure frames are generated");
+    if (!generated)
+        return;
+
+    struct WalkResult {
+        bool walked;
+        std::size_t callbacks;
+    };
+    const auto runWalk = [](const std::vector<std::uint8_t>& bytes,
+                            std::uint32_t mappedHandle,
+                            std::uint32_t blockHandle,
+                            std::vector<std::uint32_t> ownership,
+                            bool seedObject) {
+        std::vector<std::uint8_t> sourceBytes = bytes;
+        dwgRW parent("");
+        auto blockOwner = std::make_unique<DRW_Block_Record>();
+        DRW_Block_Record* block = blockOwner.get();
+        block->handle = blockHandle;
+        block->name = "BAD_OWNERSHIP_TEST";
+        DwgBlockOwnershipTestAccess::setEntityHandles(*block,
+                                                     std::move(ownership));
+        ModelerDispatchReader reader(
+            std::unique_ptr<dwgBuffer>(new dwgBuffer(
+                sourceBytes.data(), sourceBytes.size())),
+            &parent);
+        reader.setFormatVersion(DRW::AC1027);
+        reader.blockRecordmap.emplace(blockHandle, block);
+        (void)blockOwner.release(); // dwgReader owns blockRecordmap values.
+        if (seedObject) {
+            reader.ObjectMap.emplace(mappedHandle,
+                                     objHandle(38u, mappedHandle, 0u));
+        }
+        dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
+        ModelerDispatchSink sink;
+        const bool walked = reader.walkBlockRecordEntities(
+            block, &objectStream, sink, blockHandle, blockHandle);
+        return WalkResult{walked, sink.modeler.size()};
+    };
+
+    const WalkResult duplicate = runWalk(
+        validWriter.buffer(), solidHandle, blockHandle,
+        {solidHandle, solidHandle}, true);
+    const WalkResult missing = runWalk(
+        validWriter.buffer(), missingSolidHandle, blockHandle,
+        {missingSolidHandle}, false);
+    const WalkResult wrongOwner = runWalk(
+        wrongOwnerWriter.buffer(), wrongOwnerSolidHandle, blockHandle,
+        {wrongOwnerSolidHandle}, true);
+    t.expect(!duplicate.walked && duplicate.callbacks == 0u,
+             "duplicate BLOCK_RECORD entity handle is rejected before callback");
+    t.expect(missing.walked && missing.callbacks == 0u,
+             "missing BLOCK_RECORD entity frame is skipped without failing the block walk");
+    t.expect(!wrongOwner.walked && wrongOwner.callbacks == 0u,
+             "entity whose encoded owner differs from BLOCK_RECORD is quarantined");
+}
+
 void testR2004SectionMapPublication(TestContext& t) {
     std::stringbuf streamBuffer(std::ios::out | std::ios::binary);
     std::ofstream output;
@@ -2918,6 +2987,7 @@ int main() {
     testExactUnknownSectionNames(context);
     testR2004SectionMapPublication(context);
     testModelerBlockRecordDispatch(context);
+    testModelerBlockWalkRejectsBadOwnership(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
