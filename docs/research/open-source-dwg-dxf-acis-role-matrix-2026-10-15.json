@@ -31,13 +31,14 @@
       "sourceFamily": "Rust DWG/DXF codec plus separate Rust modeling/render kernel",
       "usefulComparison": ["cross-platform document consumer", "entity/body inventory", "rendered body and mesh-completeness diagnostics"],
       "notEstablishedByDocsAlone": ["exact B-rep equivalence", "complete ACIS surface coverage", "independent codec lineage when testing the app against its own codec"],
-      "evidence": "OpenCADStudio states that it uses ACadRust as its native DWG/DXF engine and advertises ACIS tessellation. opencadkernel describes itself as early, says most operations are not written yet, and lists ACIS lift/lower plus source provenance for unedited B-rep nodes. The separate kernel/display stage is a distinct lineage but its supported shape profile and exact behavior need runtime verification; the app and codec remain one DWG parser lineage.",
+      "evidence": "OpenCADStudio states that it uses ACadRust as its native DWG/DXF engine and advertises ACIS tessellation. opencadkernel describes itself as early, says most operations are not written yet, and lists ACIS lift/lower plus source provenance for unedited B-rep nodes. Current ACadRust source documents a direct handle/data-offset table path across multiple _data_ segments, but falls back to ordered/positional attachment when no parseable table is found; its generated unit vector uses synthetic marker bodies. It also strips 80-byte blob01 continuation frames at 1 MiB boundaries. These are useful parser/test-design leads, not independent producer or kernel evidence. The separate kernel/display stage is a distinct lineage but its supported shape profile and exact behavior need runtime verification; the app and codec remain one DWG parser lineage.",
       "sources": [
         "https://github.com/hakanaktt/acadrust",
         "https://github.com/HakanSeven12/OpenCADStudio",
         "https://github.com/HakanSeven12/opencadkernel",
         "https://github.com/HakanSeven12/opencadcodec",
-        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md"
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+        "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_reader.rs.html"
       ],
       "confidence": "Project declarations/source relationships; not executed and no expected-shape dataset independently compared."
     },
@@ -69,12 +70,15 @@
       "sourceFamily": "independent C# DWG/DXF reader/writer and object model",
       "usefulComparison": ["DWG/DXF entity/object inventory", "document graph and reader diagnostics"],
       "notEstablishedByDocsAlone": ["ACIS body extraction", "shape-kernel validity", "cross-version solid writer acceptance"],
-      "evidence": "Its public README/API overview establishes DWG/DXF read/write and geometric entity object models. Open issue #1195 reports that ACadSharp 3.4.9 reads 3DSOLID/REGION into an ACIS-bearing model but silently omits those entities from DXF output, including solids nested in blocks. This is a maintainer/user report, not an independently reproduced current-master result; it demonstrates the specific read-model-to-writer omission risk.",
+      "evidence": "Its public README/API overview establishes DWG/DXF read/write and geometric entity object models. Open issue #1195 reports that ACadSharp 3.4.9 reads 3DSOLID/REGION into an ACIS-bearing model but silently omits those entities from DXF output, including solids nested in blocks. The v3.6.51 line includes Prototype1b parser PR #1154, while issue #1152 records a challenge to assumptions in earlier Prototype1b work (#1139/#1150) and a claim that the newer reader was tested against hundreds of drawings; neither claim was independently run here. Keep the release reader and writer branches separated and pin the exact code used.",
       "sources": [
         "https://github.com/DomCR/ACadSharp",
         "https://github.com/DomCR/ACadSharp/blob/master/docs/api/index.md",
         "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Examples/ReaderExamples.cs",
-        "https://github.com/DomCR/ACadSharp/issues/1195"
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/releases"
       ],
       "confidence": "Primary project docs plus an open issue report; report is version-pinned to 3.4.9 and was not independently run here."
     },
@@ -173,6 +177,9 @@
     "Use cq-acis only for explicitly supported SAT/SAB shape profiles and as an independent parser path; group its CadQuery/OpenCascade shapes with the OCCT/FreeCAD kernel lineage, not as a second kernel.",
     "Do not count cad-viewer's open-source DWG route as independent from LibreDWG or treat partial SAB wireframe/bounds fallback as exact B-rep evidence.",
     "Use peer decode-budget and per-loss reporting patterns as test-report design references; do not import peer corpus files or add a new framework/dependency solely for this comparison.",
+    "Treat ACadRust's direct _data_ handle/offset path as a parser-implementation reference only; independently test its no-table fallback and 1 MiB blob01 continuation framing against ODA-defined indexed page/owner semantics, and keep its synthetic-marker tests out of semantic evidence.",
+    "ACadSharp Prototype1b claims and challenges are conflicting static evidence: pin and execute an exact released parser revision before relying on its data-storage or owner association, and keep its open DXF writer work separate.",
+    "Do not tighten the blob descriptor's `Record size` field to exact inclusive/exclusive byte semantics without a real producer trace: ODA names the quantity but does not state in the reviewed table whether it includes the preceding 4-byte marker; retain compatible zero/observed conventions and the proven descriptor lower bound until resolved.",
     "Require a per-case evidence vector for source identity, carrier bytes/hash, body handle/owner join, parser status, geometry-kernel status, target consumer result, and explicit loss disposition.",
     "Keep generated local controls ephemeral or source-generated; do not add external DWG/DXF/SAT/SAB samples to the repository."
   ],

@@ -51,11 +51,17 @@ profile-limited parser candidate (not a DWG/AcDs reader); adds experimental
 `cq-acis` as a separate parser whose supported shape conversion shares the
 CadQuery/OpenCascade kernel lineage with FreeCAD; and classifies the open CAD
 viewer path as LibreDWG-derived with partial SAB wireframe/bounds fallback.
-No new independent, executed end-to-end AC1027+ AcDs-to-exact-B-rep oracle was
-established. The plan now distinguishes independent parser from independent
-kernel, and prioritizes local descriptor/chain and handle-owner closure before
-optional peer execution. No software was installed or run; counts and all six
-external J dispositions remain unchanged. Receipt:
+ACadRust's current source adds a direct handle/offset-table path but retains a
+magic/order fallback and uses synthetic marker bodies in its unit test;
+ACadSharp's Prototype1b reader evidence includes both a later released parser
+and a public challenge to earlier assumptions, so exact pins/runs are required.
+ODA's `Record size` label also leaves marker inclusion unresolved in the
+reviewed table, so the plan prohibits speculative exact-byte tightening. No
+new independent, executed end-to-end AC1027+ AcDs-to-exact-B-rep oracle was
+established. The plan distinguishes parser from kernel lineage and prioritizes
+local page/owner closure before optional peer execution. No software was
+installed or run; counts and all six external J dispositions remain unchanged.
+Receipt:
 [`open-source-dwg-dxf-acis-role-matrix-2026-10-15.json`](docs/research/open-source-dwg-dxf-acis-role-matrix-2026-10-15.json).
 
 ## Deeper AcDs, polyface-reader, and geometry-kernel boundary review (2026-10-15; research only)
@@ -14957,20 +14963,31 @@ structured evidence receipt is
 | [`cadmpeg-codec-sat` 0.6.1](https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/), [cadmpeg architecture](https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md) | This is a bare SAT/SAB stream codec outside a DWG container. Its published support is L1/profile: the docs identify SAB 217/218 as verified 32-bit grammar profiles and route other binary header bands through an explicitly unverified recovery path. The wider project documents bounded decode budgets, source layers and explicit loss reports. That is useful parser/profile and diagnostics evidence, not AcDs extraction or shape-kernel validation. | Add it as an optional, version-pinned raw-stream parser comparator only after local container and handle/body closure is ready. Record exact crate/source revision, observed inner profile, admitted vs unverified path and losses. Never count it as a DWG reader, AcDs owner oracle or kernel; do not add a Rust dependency to libdxfrw. |
 | [`cq-acis`](https://github.com/monozukuri-ai/cq-acis), [`acis-core`](https://docs.rs/acis-core/latest/acis_core/) | The project is explicitly experimental. It documents SAT versions 105/400/600/700 and selected SAB/ASM profiles, a restricted analytic subset, raw preservation for unknown records, and conversion failure when a supported shape cannot be built at source precision. Its own API documentation warns that reference closure does not establish B-rep validity. Its shape conversion uses CadQuery/OpenCascade. | It can be an independently authored *parser and supported-subset conversion path* for generated analytic SAT/SAB controls. It is not a second geometry-kernel lineage beside FreeCAD/OCCT/CAD Assistant. Assert exact source profile, parse diagnostics, validity, body count, volume/area/bounds, units and transforms; unsupported faces or healing/fallback must fail the exact-semantic case rather than silently count as a pass. |
 | [`cad-viewer` parser disclosure](https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md) and [open-source LibreDWG converter](https://github.com/mlightcad/libredwg-web) | The viewer identifies its default open-source DWG path as LibreDWG-based. Its separate proprietary parser disclosure says SAB decoding is partial and full B-rep tessellation is unavailable, exposing best-effort wireframe or bounding-box fallback. Thus neither viewer label nor visible 3D bounds implies a new parser lineage or valid solid. | Do not count the default viewer as independent of LibreDWG. If used for display diagnostics, capture the selected parser, body-level fallback, and whether geometry is exact/tessellated/box-only. Exclude wireframe/bounds-only results from semantic parity and external support promotion. |
+| [ACadRust current AcDs reader source](https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_reader.rs.html) | The code describes a handle/data-offset table path across multiple `_data_` segments, extracts per-record blobs, and falls back to magic/order pairing when no parseable table exists. It strips an 80-byte `blob01` frame at a 1 MiB boundary, consistent arithmetically with ODA's `0xFFFB0` page plus 48-byte segment header and 32-byte Blob01 header. The embedded unit test constructs marker-bearing synthetic bodies, so it tests framing/association logic rather than a valid SAB grammar. The source is a moving docs.rs `latest` page, not an executed pin. | Use this as a design lead for generated multi-segment, record-order and continuation-frame controls. Test the indexed path separately from the heuristic fallback; require exact page descriptors/owner mappings and fail closed or mark unverified when they are absent. Do not copy the fixed 1 MiB stripping heuristic into libdxfrw where ODA page references can reconstruct the payload directly. Never count the peer's generated marker body as semantic evidence. |
+| [ACadSharp issue #1152](https://github.com/DomCR/ACadSharp/issues/1152), [Prototype1b parser PR #1154](https://github.com/DomCR/ACadSharp/pull/1154), and [release history](https://github.com/DomCR/ACadSharp/releases) | Static evidence is mixed: the issue challenges assumptions in earlier Prototype1b work (#1139/#1150), while proposing a full read-only parser based on ODA and claiming tests over hundreds of drawings; the ACadSharp v3.6.51 release line later includes parser PR #1154. That claim has not been independently reproduced here and says nothing about SAB geometry validity or the separate DXF writer path. | Treat the released parser as a candidate to inspect/run at an exact version, not as an oracle inferred from release notes or issue claims. Keep Prototype1b extraction, DXF ACIS writing (#1240), and shape semantics separate; test record ordering, multiple schemas/segments, page limits, nested blocks and explicit losses on our own generated vectors. |
 | Cross-lineage comparison across LibreDWG, ACadRust/OpenCADStudio, cadmpeg, cq-acis, ezdxf and OCCT-based tools | The survey did not find a currently documented, independently run end-to-end implementation that proves the full chain from AC1027+ AcDs index/page extraction through owner association to exact ACIS B-rep semantics. There are useful partial implementations at each layer, but their scopes and kernel lineages differ. This is a bounded result of the reviewed sources, not proof that no such implementation exists. | Retain five separate evidence stages: DWG section/container, AcDs record/page/owner closure, raw DXF/SAT/SAB carrier, ACIS parser/geometry result, target application open/save. Promote no stage transitively. Keep FreeCAD standard import as a 2D consumer check; treat a separately licensed ACIS importer as optional only after an exact local preflight. |
 
 ### Readiness refinement after the wider survey
 
-1. Finish the local fast DataStorage checks already ordered above: descriptor
-   declared-size consistency, checked page-chain totals/offsets, duplicate or
-   aliased page rejection, and following-record survival. Do not spend time
-   installing another ACIS reader before these source-generated controls pass.
+1. Finish the local fast DataStorage checks already ordered above: checked
+   page-chain totals/offsets, explicit duplicate/aliased page rejection, and
+   following-record survival. ODA labels the blob descriptor's `Record size`
+   but the reviewed table does not say whether it includes the preceding
+   4-byte marker. Keep the current zero-compatible/descriptor-lower-bound
+   behavior until a real producer trace settles inclusive versus exclusive
+   semantics; then test both the observed profile and malformed over/under
+   declarations. Do not install another ACIS reader before these generated
+   controls pass.
 2. For owner association, generate two different body records whose physical
    record order, sorted-handle rank, entity traversal order and block/INSERT
    reachability all disagree. Assert one-to-one handle → schema/index → record
    → page chain → body attachment; separately report duplicate, missing,
    orphan, wrong-type and unreferenced rows. Keep expected mappings in the
-   test generator, not a committed drawing payload.
+   test generator, not a committed drawing payload. Exercise the direct
+   indexed path with real descriptor structures; exercise fallback/no-table
+   logic only as `unverified`/loss behavior. ACadRust's marker-based unit
+   vectors show useful adversarial shapes but are not valid-SAB or producer
+   qualification.
 3. Keep carrier preservation and semantic conversion separate: one no-op
    section replay, one unrelated 2D edit with unchanged body bytes, then
    explicit refusal/invalidation after solid edit/delete, owner change, source
