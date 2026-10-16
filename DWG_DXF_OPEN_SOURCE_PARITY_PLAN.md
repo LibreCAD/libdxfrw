@@ -14708,3 +14708,30 @@ It does not solve second-kernel independence or native platform qualification.
 No J state changes: J256/J260/J268/J284/J293/J295 all remain
 `DEFERRED_EXTERNAL` and non-promoting. Finding/subplan totals remain122/70;
 no new feature claim or repository dependency is added.
+
+## Implementation progress — generated AC1027 DataStorage page-chain regression (2026-10-15)
+
+The local page-chain gap identified above is now covered in the existing
+`libdxfrw_graph_preservation_tests` executable. The control creates a bounded
+AC1027 DataStorage section entirely in memory: a two-page `blob01` payload
+whose logical page order is opposite physical segment order, with a 16-byte
+first page and shorter final page; two data records; exact handle-based lookup;
+payload bytes containing the ACIS marker; and a normal suffix record after the
+blob descriptor. Positive assertions cover retained bytes, both page refs and
+lengths, page-size fields, marker metadata, owner handle, and suffix payload.
+Three malformed controls reject a noncontiguous page start, inconsistent
+page-count header, and a descriptor reference to a non-blob segment; each
+keeps the independent suffix record readable while disabling structural
+replay. This is container assembly coverage, not a valid SAB or solid-semantic
+fixture.
+
+The strict test target and `lc3_compat_check` build; the single
+`libdxfrw_graph_preservation` CTest passes. `git diff --check` passes. No
+production parser change, new CTest, filesystem DWG/DXF/SAT/SAB fixture,
+external binary, or full test suite was used. The next local ACIS work remains
+direct-vs-blob boundary and multi-page malformed-boundary expansion, then
+association through real producer records; external geometry semantics and
+native FreeCAD qualification remain composed phase gates, not per-slice tests.
+All six external-only J items remain `DEFERRED_EXTERNAL`; support counts and
+claims are unchanged. Exact commands and assertion scope are recorded in
+[`acds-blob-pages-fast-test-2026-10-15.json`](docs/research/acds-blob-pages-fast-test-2026-10-15.json).

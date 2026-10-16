@@ -491,6 +491,236 @@ void testDataStorageBounds(TestContext& t) {
              "DataStorage over-count is bounded by the schema segment end");
 }
 
+void testDataStorageBlobPages(TestContext& t) {
+    struct BlobFixture {
+        std::vector<std::uint8_t> bytes;
+        std::size_t pageOneHeaderOffset = 0;
+        std::size_t descriptorOffset = 0;
+    };
+
+    constexpr std::size_t sectionSize = 832u;
+    constexpr std::size_t segmentIndexOffset = 64u;
+    constexpr std::size_t dataIndexOffset = 256u;
+    constexpr std::size_t dataOffset = 384u;
+    constexpr std::size_t pageOneSegmentOffset = 576u;
+    constexpr std::size_t pageZeroSegmentOffset = 704u;
+    constexpr std::size_t firstPageSize = 16u;
+    const std::string payloadText = "ACIS BinaryFile\nbody=10x20x30";
+    const std::vector<std::uint8_t> payload(payloadText.begin(),
+                                            payloadText.end());
+    const std::string sentinelText = "SENTINEL_AFTER_BLOB";
+    const std::vector<std::uint8_t> sentinel(sentinelText.begin(),
+                                             sentinelText.end());
+
+    const auto makeFixture = [&]() {
+        BlobFixture fixture;
+        fixture.bytes.assign(sectionSize, 0u);
+        const auto putU16 = [&fixture](std::size_t offset,
+                                       std::uint16_t value) {
+            fixture.bytes[offset] = static_cast<std::uint8_t>(value & 0xffu);
+            fixture.bytes[offset + 1u] = static_cast<std::uint8_t>(value >> 8);
+        };
+        const auto putU32 = [&fixture](std::size_t offset,
+                                       std::uint32_t value) {
+            for (unsigned byte = 0; byte < 4u; ++byte)
+                fixture.bytes[offset + byte] =
+                    static_cast<std::uint8_t>(value >> (byte * 8u));
+        };
+        const auto putU64 = [&putU32](std::size_t offset,
+                                      std::uint64_t value) {
+            putU32(offset, static_cast<std::uint32_t>(value));
+            putU32(offset + 4u, static_cast<std::uint32_t>(value >> 32));
+        };
+        const auto putSegment = [&fixture, &putU16, &putU32](
+            std::size_t offset, const char* name, std::uint32_t index,
+            std::uint32_t size) {
+            putU16(offset, DRW_DataStorageConst::SEGMENT_SIGNATURE);
+            for (std::size_t byte = 0; byte < 6u; ++byte)
+                fixture.bytes[offset + 2u + byte] =
+                    static_cast<std::uint8_t>(name[byte]);
+            putU32(offset + 8u, index);
+            putU32(offset + 16u, size);
+            putU32(offset + 24u, 1u);
+        };
+
+        putU32(4u, DRW_DataStorageConst::HEADER_SIZE);
+        putU32(12u, 1u);
+        putU32(20u, 1u);
+        putU32(24u, static_cast<std::uint32_t>(segmentIndexOffset));
+        putU32(32u, 5u);
+        putU32(36u, 0xffffffffu); // no schema-index segment
+        putU32(40u, 1u); // data-index segment
+        putU32(44u, 0xffffffffu); // no search segment
+        putU32(48u, 0xffffffffu); // no previous-save segment
+        putU32(52u, static_cast<std::uint32_t>(sectionSize));
+
+        const std::array<std::pair<std::size_t, std::uint32_t>, 5> segments{{
+            {segmentIndexOffset, 192u},
+            {dataIndexOffset, 128u},
+            {dataOffset, 192u},
+            {pageOneSegmentOffset, 128u},
+            {pageZeroSegmentOffset, 128u}}};
+        const std::array<const char*, 5> names{{
+            "segidx", "datidx", "_data_", "blob01", "blob01"}};
+        for (std::size_t index = 0; index < segments.size(); ++index) {
+            putSegment(segments[index].first, names[index],
+                       static_cast<std::uint32_t>(index),
+                       segments[index].second);
+            const std::size_t entry = segmentIndexOffset + 48u + index * 12u;
+            putU64(entry, segments[index].first);
+            putU32(entry + 8u, segments[index].second);
+        }
+
+        // Two data records share the _data_ segment. The second ordinary
+        // record is a suffix sentinel after the blob descriptor.
+        putU32(dataIndexOffset + 48u, 2u);
+        putU32(dataIndexOffset + 56u, 2u);
+        putU32(dataIndexOffset + 60u, 0u);
+        putU32(dataIndexOffset + 64u, 7u);
+        putU32(dataIndexOffset + 68u, 2u);
+        putU32(dataIndexOffset + 72u, 20u);
+        putU32(dataIndexOffset + 76u, 7u);
+
+        const std::size_t firstRecordHeader = dataOffset + 48u;
+        putU32(firstRecordHeader, DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+        putU64(firstRecordHeader + 8u, 0xa17u);
+        putU32(firstRecordHeader + 16u, 0u);
+        putU32(firstRecordHeader + 20u,
+               DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+        putU64(firstRecordHeader + 28u, 0xa18u);
+        putU32(firstRecordHeader + 36u, 52u);
+
+        const std::size_t afterHeaders = dataOffset + 48u + 40u;
+        const std::size_t dataRegionOffset = (afterHeaders + 15u) & ~15u;
+        putU32(dataRegionOffset,
+               DRW_DataStorageConst::DATA_BLOB_REFERENCE_MARKER);
+        fixture.descriptorOffset = dataRegionOffset + 4u;
+        putU64(fixture.descriptorOffset, payload.size());
+        putU32(fixture.descriptorOffset + 8u, 2u);
+        putU32(fixture.descriptorOffset + 12u,
+               DRW_DataStorageConst::DATA_BLOB_REFERENCE_FIXED_SIZE
+                   + 2u * DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE);
+        putU32(fixture.descriptorOffset + 16u,
+               static_cast<std::uint32_t>(firstPageSize));
+        putU32(fixture.descriptorOffset + 20u,
+               static_cast<std::uint32_t>(payload.size() - firstPageSize));
+        putU32(fixture.descriptorOffset + 24u, 0x12345678u);
+        putU32(fixture.descriptorOffset + 28u, 0x87654321u);
+        // Logical order is page 0 then page 1, but physical segments are
+        // intentionally reversed to prove the reader follows references.
+        putU32(fixture.descriptorOffset + 32u, 4u);
+        putU32(fixture.descriptorOffset + 36u,
+               static_cast<std::uint32_t>(firstPageSize));
+        putU32(fixture.descriptorOffset + 40u, 3u);
+        putU32(fixture.descriptorOffset + 44u,
+               static_cast<std::uint32_t>(payload.size() - firstPageSize));
+
+        const auto putBlobPage = [&](std::size_t segmentOffset,
+                                     std::uint32_t pageIndex,
+                                     std::size_t sourceOffset,
+                                     std::size_t byteLength) {
+            const std::size_t pageHeader = segmentOffset + 48u;
+            putU64(pageHeader, payload.size());
+            putU64(pageHeader + 8u, sourceOffset);
+            putU32(pageHeader + 16u, pageIndex);
+            putU32(pageHeader + 20u, 2u);
+            putU64(pageHeader + 24u, byteLength);
+            std::copy(payload.begin() + static_cast<std::ptrdiff_t>(sourceOffset),
+                      payload.begin() + static_cast<std::ptrdiff_t>(sourceOffset
+                                                                    + byteLength),
+                      fixture.bytes.begin()
+                          + static_cast<std::ptrdiff_t>(pageHeader + 32u));
+        };
+        putBlobPage(pageOneSegmentOffset, 1u, firstPageSize,
+                    payload.size() - firstPageSize);
+        putBlobPage(pageZeroSegmentOffset, 0u, 0u, firstPageSize);
+        fixture.pageOneHeaderOffset = pageOneSegmentOffset + 48u;
+
+        const std::size_t suffixRecordOffset = dataRegionOffset + 52u;
+        putU32(suffixRecordOffset,
+               static_cast<std::uint32_t>(sentinel.size()));
+        std::copy(sentinel.begin(), sentinel.end(),
+                  fixture.bytes.begin()
+                      + static_cast<std::ptrdiff_t>(suffixRecordOffset + 4u));
+        return fixture;
+    };
+
+    const BlobFixture fixture = makeFixture();
+    const DRW_DataStorageSection parsed =
+        DRW_parseDataStorage(fixture.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* record = parsed.findRecordByHandle(0xa17u);
+    const DRW_DataStorageRecord* suffix = parsed.findRecordByHandle(0xa18u);
+    t.expect(!parsed.parseFailed && parsed.structurallyValid
+                 && parsed.replayAllowed && parsed.records.size() == 2u
+                 && record != nullptr && record->isBlobReference
+                 && record->blobPayloadRetained && record->blobPageCount == 2u
+                 && record->blobTotalByteLength == payload.size()
+                 && record->blobPageByteSize == firstPageSize
+                 && record->blobLastPageByteSize
+                        == payload.size() - firstPageSize
+                 && record->blobPages.size() == 2u
+                 && record->blobPages[0].segmentIndex == 4u
+                 && record->blobPages[0].byteLength == firstPageSize
+                 && record->blobPages[1].segmentIndex == 3u
+                 && record->blobPages[1].byteLength
+                        == payload.size() - firstPageSize
+                 && record->payload == payload
+                 && record->hasPayloadMarker
+                 && record->payloadMarkerOffset == 0u
+                 && record->payloadMarkerLength == 15u
+                 && record->handleKey == "A17"
+                 && suffix != nullptr && !suffix->isBlobReference
+                 && suffix->payload == sentinel,
+             "DataStorage assembles reversed physical blob pages and preserves following record");
+
+    const auto putU32 = [](std::vector<std::uint8_t>& bytes,
+                           std::size_t offset, std::uint32_t value) {
+        for (unsigned byte = 0; byte < 4u; ++byte)
+            bytes[offset + byte] =
+                static_cast<std::uint8_t>(value >> (byte * 8u));
+    };
+    const auto putU64 = [&putU32](std::vector<std::uint8_t>& bytes,
+                                  std::size_t offset, std::uint64_t value) {
+        putU32(bytes, offset, static_cast<std::uint32_t>(value));
+        putU32(bytes, offset + 4u, static_cast<std::uint32_t>(value >> 32));
+    };
+    const auto rejectsBlobAndKeepsSuffix = [&](BlobFixture changed,
+                                                const std::string& label) {
+        const DRW_DataStorageSection rejected =
+            DRW_parseDataStorage(changed.bytes, DRW::AC1027);
+        const DRW_DataStorageRecord* suffixRecord =
+            rejected.findRecordByHandle(0xa18u);
+        const bool hasPageDiagnostic = std::any_of(
+            rejected.diagnostics.cbegin(), rejected.diagnostics.cend(),
+            [](const DRW_DataStorageDiagnostic& diagnostic) {
+                return diagnostic.code
+                    == "datastorage-blob-page-segment-invalid";
+            });
+        t.expect(!rejected.structurallyValid && !rejected.replayAllowed
+                     && rejected.findRecordByHandle(0xa17u) == nullptr
+                     && suffixRecord != nullptr
+                     && suffixRecord->payload == sentinel
+                     && hasPageDiagnostic,
+                 label);
+    };
+
+    BlobFixture badStart = makeFixture();
+    putU64(badStart.bytes, badStart.pageOneHeaderOffset + 8u,
+           firstPageSize + 1u);
+    rejectsBlobAndKeepsSuffix(std::move(badStart),
+                              "DataStorage rejects noncontiguous blob page start");
+
+    BlobFixture badPageCount = makeFixture();
+    putU32(badPageCount.bytes, badPageCount.pageOneHeaderOffset + 20u, 3u);
+    rejectsBlobAndKeepsSuffix(std::move(badPageCount),
+                              "DataStorage rejects blob page-count disagreement");
+
+    BlobFixture wrongSegmentKind = makeFixture();
+    putU32(wrongSegmentKind.bytes, wrongSegmentKind.descriptorOffset + 32u, 2u);
+    rejectsBlobAndKeepsSuffix(std::move(wrongSegmentKind),
+                              "DataStorage rejects blob reference to non-blob segment");
+}
+
 void testFramePublicationContract(TestContext& t) {
     const auto terminal = [](DRW_DwgFrameDisposition disposition) {
         return disposition == DRW_DwgFrameDisposition::Published
@@ -637,6 +867,7 @@ int main() {
     TestContext context;
     testFramePublicationContract(context);
     testDataStorageBounds(context);
+    testDataStorageBlobPages(context);
     testAcisBoundaries(context);
     testAcisWireframeGraph(context);
     testModelerLazyDecode(context);
