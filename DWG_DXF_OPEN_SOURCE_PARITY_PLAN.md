@@ -2,6 +2,24 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
+**Latest AcDs peer-maturity update (2026-10-15; local baseline `09bb237`):**
+ACadSharp's full DWG `Prototype1b` reader is no longer merely an open-PR lead:
+PR [#1154](https://github.com/DomCR/ACadSharp/pull/1154) was merged and is
+included in released v3.6.51 (later v3.7.1 is available). The implementation
+was prompted by a public review challenging earlier signature-scan and fixed
+schema assumptions; the merged reader is a useful pinned structural comparator,
+but its large/private corpus reports are not a reproduced local result. A
+separate follow-up [#1156](https://github.com/DomCR/ACadSharp/pull/1156) was
+closed as redundant after its author reported `ResolveDataEntry` covered
+`blob01` reassembly and restored the per-entity ACIS handoff. This highlights
+the plan's key distinction: section/DataStorage retention is not enough unless
+the exact payload reaches its owning modeler entity. ACadSharp's writer work
+([#1150](https://github.com/DomCR/ACadSharp/pull/1150) and
+[#1240](https://github.com/DomCR/ACadSharp/pull/1240)) remains separate and
+unmerged in the reviewed snapshot. This refresh tightens only existing S8.2 / S8.3 /
+S8.4 readiness; it adds no finding, fixture, dependency, or support claim. All six
+external J items remain `DEFERRED_EXTERNAL` and non-promoting.
+
 **Latest cross-project carrier and consumer review (2026-10-15; baseline
 `11c8fe7`):** a broader pass across LibreDWG, ezdxf, FreeCAD, GDAL, and
 IxMilia strengthens an important version boundary: DXF R2000–R2010 carries
@@ -1465,7 +1483,7 @@ owners only. No additional libdxfrw defect is asserted from a peer report.
 | Area | Source evidence | Implementation/readiness consequence |
 | --- | --- | --- |
 | R2013+ AcDs in LibreDWG | At pinned source snapshot [`34f02f54`](https://github.com/LibreDWG/libredwg/tree/34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43), [`acds.spec`](https://github.com/LibreDWG/libredwg/blob/34f02f54b9aacb5708c1d3d2070efb3e4b2d8c43/src/acds.spec) parses segment names/metadata and several `datidx`, schema-index, schema-data and search structures. The `_data_` and `blob01` segments are still unhandled; a later decoder block searches decompressed bytes for ACIS start/end markers and shifts queued solid handles in encounter order. | Correct the shorthand that LibreDWG “does not read AcDs” to “partial structural parsing with an unhandled payload/blob path and marker-scan association fallback.” Retain it as a useful reader, but not as sole evidence for arbitrary record-order or handle-link correctness. Issue [#1411](https://github.com/LibreDWG/libredwg/issues/1411) reports end-to-end loss for a specific 0.14.8593 build; it is not a characterization of every source snapshot. |
-| AcDs implementation split in ACadSharp | ACadSharp release notes list [PR #1154](https://github.com/DomCR/ACadSharp/pull/1154), a full Prototype1b parser, in the v3.6.51 line. Separately, current [PR #1240](https://github.com/DomCR/ACadSharp/pull/1240) proposes DXF ACIS-entity writing for issue #1195 and depends on schema/storage work (#1174); it remains an unmerged branch in this snapshot. | Keep section/header parsing, modeler payload extraction, DXF carrier writing, and geometry interpretation as separate milestones. If ACadSharp is run, identify the exact release/branch and test whether its writer PR is in that binary; do not infer modern DXF output support from the merged reader parser. |
+| AcDs implementation split and review in ACadSharp | The [v3.6.51 release](https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51) includes merged [#1154](https://github.com/DomCR/ACadSharp/pull/1154), a full DWG Prototype1b reader. The linked [#1152 discussion](https://github.com/DomCR/ACadSharp/issues/1152) records a concrete challenge to earlier signature-scan/fixed-schema assumptions; the merged lineage adds a direct payload-area anchor ([#1146](https://github.com/DomCR/ACadSharp/pull/1146)) and full section parsing. [#1156](https://github.com/DomCR/ACadSharp/pull/1156), which proposed an explicit `blob01` reader, was closed after its author reported that #1154's `ResolveDataEntry` path reassembled pages and restored the per-entity payload handoff on a private corpus. The same release does not merge its separate writer work: [#1150](https://github.com/DomCR/ACadSharp/pull/1150) and [#1240](https://github.com/DomCR/ACadSharp/pull/1240) remain distinct, unmerged candidates. | Use a pinned released reader (v3.6.51 first containing #1154, or later v3.7.1) as an optional structural cross-check, not as the format authority or an ACIS semantic oracle. Test section parsing, DataStorage record resolution, and `ModelerGeometry` attachment as separate outcomes; verify each by stable entity/owner/record identity and payload bytes. Treat #1156's closure and corpus results as maintainer/contributor-reported until independently reproduced. Do not treat either open writer branch as released behavior or combine its status with reader parity. |
 | Acadrust order and semantics | The reviewed [`e1f6c0b` round-trip tests](https://github.com/hakanaktt/acadrust/blob/e1f6c0b8816aeaed81a877e6b5209dd386224fd6/tests/roundtrip.rs) explicitly fabricate marker-bearing fake SAB bytes to exercise AcDs association and separately write/read a locally constructed planar body using the same implementation. The tests themselves explain the bug class: handle-sorted order can differ from object-stream order. | Use these as precise test-design signals for two-handle, two-body, permuted-order controls. They are internal transport/self-consistency tests—not independent producer, SAB grammar, AutoCAD acceptance, or second-kernel evidence. Preserve the plan's requirement for independent source geometry and external semantic decoding. |
 | LibreCAD compatibility fork | The [generated fork inventory](https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md) marks fixed DWG REGION/3DSOLID and DXF SOLID3D/REGION routes as typed, but marks them `fixture-needed` and explicitly disclaims byte-level conformance. | Add/retain this as a migration-compatibility lane: keep LibreCAD and LibreCAD_3's existing 2D callbacks and consumer behavior stable while planning richer 3D carriers. The inventory does not promote any 3D support claim or replace a fixture, reader, or native application check. |
 | Cross-cutting 2D/object leads in LibreDWG | The current 0.14.1 milestone lists reports for [XREF BLOCK flags/path](https://github.com/LibreDWG/libredwg/issues/1431), [annotation-scale context import](https://github.com/LibreDWG/libredwg/issues/1432), [DIMASSOC reference/order handling](https://github.com/LibreDWG/libredwg/issues/1434), and [R2007+ material/plotstyle handle confusion](https://github.com/LibreDWG/libredwg/issues/1436). The same peer docs identify some objects, including DIMASSOC and annotative context classes, as unstable or incompletely tested. | Map #1431 to existing PAR-65, #1434 to PAR-45, and #1436 to PAR-33 as comparator-calibration/test-shaping leads. Put #1432 through PAR-06/7F.1's source inventory before assigning a libdxfrw finding: verify version dispatch, object handle/type, context scale values, graph ownership, callback/raw outcome, and DXF handoff. A peer's unstable decoder cannot validate these semantics by itself. |
@@ -15572,3 +15590,96 @@ remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice: use the same
 raw-section route for `REGION` (currently direct typed-record injection), then
 audit the no-op body-preservation and edit/refusal contract before any writer
 work.
+
+## Deep ACadSharp / LibreDWG AcDs readiness research (2026-10-15; plan-only)
+
+This follow-up re-resolved the ACadSharp Prototype1b reader/writer state and
+read the linked design discussion instead of relying on feature labels or PR
+titles. Sources: [ACadSharp #1152](https://github.com/DomCR/ACadSharp/issues/1152),
+merged [#1154](https://github.com/DomCR/ACadSharp/pull/1154), the
+[v3.6.51 release](https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51),
+the [#1156 Blob01 follow-up](https://github.com/DomCR/ACadSharp/pull/1156),
+open writer candidates [#1150](https://github.com/DomCR/ACadSharp/pull/1150)
+and [#1240](https://github.com/DomCR/ACadSharp/pull/1240), and LibreDWG's
+open [#1411 AcDs-loss report](https://github.com/LibreDWG/libredwg/issues/1411).
+No peer was installed, built, or run; no customer corpus or external drawing
+was used.
+
+The key status correction is that ACadSharp #1154 is released, not merely a
+candidate: v3.6.51 (`219e5fc`) includes the full DWG Prototype1b reader, with
+v3.7.1 (`d7dc111`) as a later pin. The #1152 discussion challenged earlier
+signature-scanning and fixed-schema assumptions. The maintainers/contributors
+describe a direct segment payload-area anchor (#1146), subsequent full section
+parsing, and comparisons over 423/hundreds of private DWGs. These are strong
+implementation leads but remain report-only here; ACadSharp and libdxfrw both
+use ODA as the format authority, and those private inputs are unavailable for
+reproduction.
+
+The #1156 Blob01 follow-up exposed an important API boundary: parsing the
+section into document-level DataStorage is not sufficient unless
+`ResolveDataEntry` reassembles page payloads and connects each one back to its
+own `ModelerGeometry`. #1156 was closed after its author reported this whole
+path working over their corpus. Preserve this as a reported peer result, not a
+local pass. The just-completed source-generated raw-section path verifies
+inline record capture and exact attachment to separate `3DSOLID` and `REGION`
+callbacks; multi-page Blob01 parsing remains unimplemented in this local test
+path and stays a distinct S8.2/S8.3 gate.
+
+The writer evidence remains different: ACadSharp #1150 and #1240 are separate,
+unmerged candidates. One author reports TrueView/ODA checks for #1150, while
+#1240 is linked to the silent omission issue #1195 and has no review recorded
+in the checked snapshot. Neither branch is a released writer baseline. Keep
+R2013+ DWG AcDs, R2013+ DXF ACDSDATA, legacy inline SAT DXF, and legacy inline
+DWG modeler output as four route-specific gates. For any future peer run, pin
+the exact release or branch SHA and record each stage separately:
+section/index parse → record/page resolution → entity-owner attachment → typed
+or raw callback → writer disposition → independent reopen. Counts and file
+creation alone must not hide an empty block or a missing body.
+
+### Implementation order after this research
+
+1. Retain the committed raw-section 3DSOLID/REGION tests as structural
+   transport controls only; their short marker bodies are not valid SAB.
+2. Continue the local same-version complete-frame preservation and
+   no-op/edit/refusal audit before adding writer support.
+3. Add compact source-generated Blob01 reference/page-chain cases to the
+   existing reader test executable (threshold, reverse physical page order,
+   invalid/missing page, length/offset mismatch, exact payload join, and
+   following-record integrity); do not add a CTest per scalar or commit a
+   drawing fixture.
+4. If an optional peer is locally available, compare against a pinned
+   ACadSharp release at the section, resolved-record, and per-entity handoff
+   boundaries. Do not make the peer a build dependency or wait for it to
+   continue local parser tests.
+5. Keep valid shape semantics gated on independently authored dimensions and
+   an eligible reader/kernel; keep FreeCAD's 2D consumer qualification
+   independent from ACIS B-rep qualification.
+
+No finding or top-level subplan is added; totals remain 122/70. No peer
+execution, fixture, dependency, test registration, support claim or J status
+changed. J256, J260, J268, J284, J293 and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — raw AcDs section to AC1027 REGION dispatch (2026-10-15)
+
+Implementation commit: `09bb237` (`Test AC1027 REGION raw AcDs dispatch`).
+
+Replaced the earlier direct typed-record injection for REGION with the same
+source-generated raw-section route already used for 3DSOLID. The section is
+captured through the virtual decoded-page seam, parsed/indexed by
+`DRW_parseDataStorage`, resolved by owner handle, and attached before the real
+REGION entity/block callback. Assertions keep the exact section bytes, raw DWG
+frame, entity/owner handles, linked record bytes and modeler-version
+normalization distinct. This remains an in-memory section/entity composition;
+physical DWG page decoding is not exercised. Marker bytes are not valid SAB and
+make no geometry claim. No production behavior or fixture changed.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.29 seconds);
+`lc3_compat_check` reports no work; `git diff --check` passes. No full suite,
+external peer, native CAD app, drawing fixture, dependency, or geometry
+semantics ran. Counts remain 122/70 and J256, J260, J268, J284, J293 and J295
+remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice: audit
+same-version complete-frame preservation and the no-op/edit/refusal boundary;
+then add bounded Blob01/page-chain controls under the existing data-storage
+test owner.
