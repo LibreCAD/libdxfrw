@@ -8046,9 +8046,29 @@ bool runDxfAcdsRegionWithoutHistoryProjection(
     // emit the stale section or silently drop the changed bytes. DXF import
     // retains ACDSDATA as a raw section, so exercise the source DWG handoff
     // where the typed modeler-to-record link exists.
+    const std::filesystem::path handleEdited = directory /
+        ("libdxfrw-ac1027-acds-region-handle-edited-" + encoding + ".dxf");
     const std::filesystem::path edited = directory /
         ("libdxfrw-ac1027-acds-region-edited-" + encoding + ".dxf");
     const std::string sentinel = "existing ACDSDATA destination\n";
+    if (result && sourceRegion != nullptr) {
+        sourceRegion->handle = sourceHandle + 1u;
+        {
+            std::ofstream outputFile(handleEdited, std::ios::binary);
+            outputFile << sentinel;
+            result = static_cast<bool>(outputFile);
+        }
+        if (result) {
+            dx_iface editedHandleExporter;
+            const bool rejected = !editedHandleExporter.fileExport(
+                handleEdited.string(), DRW::AC1027, binary, &source, false);
+            std::ifstream input(handleEdited, std::ios::binary);
+            const std::string retained(
+                (std::istreambuf_iterator<char>(input)), {});
+            result = rejected && retained == sentinel;
+        }
+        sourceRegion->handle = sourceHandle;
+    }
     if (result && sourceRegion != nullptr
         && !sourceRegion->dataStorageData.empty()) {
         sourceRegion->dataStorageData.back() ^= 0x01u;
@@ -8073,6 +8093,7 @@ bool runDxfAcdsRegionWithoutHistoryProjection(
     if (!keepOutputs) {
         std::filesystem::remove(output, ec);
         std::filesystem::remove(replay, ec);
+        std::filesystem::remove(handleEdited, ec);
         std::filesystem::remove(edited, ec);
     }
     return result;
