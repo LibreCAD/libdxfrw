@@ -15763,11 +15763,15 @@ kernel supplied evidence.
 2. **Done (`8f5d927`):** extend the existing `dwg_reader_matrix` source builder
    for `_data_` record-directory order variation and prove exact handle/offset
    attachment across four disagreeing orders. Keep future cases in this same
-   executable; next implement Blob01 page-chain descriptors and boundaries.
-3. Add direct-vs-Blob01 transition and multi-page descriptor vectors to the
-   same test owner, including malformed-index controls and a next-record
-   sentinel. Resolve candidate 80-byte frame fields against ODA and source
-   traces before production use.
+   executable.
+3. **Partial (`a471583`):** the same test owner now builds a 2-page Blob01
+   chain whose physical page order differs from descriptor order, checks the
+   assembled bytes and owning-entity link, and rejects a missing referenced
+   segment, duplicate page ordinal, incorrect start offset, and mismatched
+   page-reference length without publishing partial section state. Still add
+   the direct/blob transition boundaries, record-span and following-record
+   sentinel controls, plus cumulative/alias rejection. Resolve candidate
+   80-byte frame fields against ODA and producer traces before production use.
 4. Audit entity raw-frame passthrough and edit invalidation separately from
    record-section linking. Then assess whether a production change is actually
    required; no speculative AcDs writer is in scope for a read-DWG/DXF-write
@@ -15832,3 +15836,29 @@ Blob01 descriptor/page-chain tests in the same matrix, starting with a valid
 two-page chain and then malformed missing/duplicate/wrong-start/length cases;
 the peer's 80-byte frame pattern remains only a test hypothesis until tied to
 ODA or producer-trace evidence.
+
+## Implementation progress — Blob01 page-chain validation (2026-10-15)
+
+Implementation commit: `a471583` (`Test AcDs Blob01 page chain validation`).
+
+Added an in-memory Prototype1b section containing a maximum-size first Blob01
+page and a 48-byte final page. The final page appears earlier in the physical
+section, while the DataStorage descriptor identifies logical page order. The
+focused DWG reader test checks page headers/references, exact assembled payload
+retention, and delivery of those bytes to the matching 3DSOLID. Four separate
+mutations (missing page segment, duplicate ordinal, wrong start offset, and
+wrong referenced length) must fail section capture atomically with no raw
+section or typed record published. The payload is a marker plus generated
+bytes; it is deliberately not asserted as valid SAB or 3D geometry.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` target build passes;
+focused `libdxfrw_dwg_reader_matrix` CTest passes 1/1 in 1.62 seconds;
+`git diff --check` passes. The first fixture draft exposed a test-builder error:
+the `_data_` payload stream is 16-byte aligned after its 20-byte record header;
+correcting that alignment made the positive and malformed cases pass without a
+production change. No external DWG/DXF fixture, peer executable, full suite,
+native app or semantic geometry check ran. Findings/subplans remain 122/70;
+J256, J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and
+non-promoting. Next implement direct/blob threshold and next-record boundary
+controls, then cumulative/alias malformed chains; keep the ACadRust 80-byte
+frame interpretation untrusted until verified against ODA and producer traces.
