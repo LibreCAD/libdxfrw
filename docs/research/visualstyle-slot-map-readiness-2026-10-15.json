@@ -1,0 +1,163 @@
+{
+  "schema": "libdxfrw-visualstyle-slot-map-readiness-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "9d8477c0f745493dde8caeebd8467bd57c87cd0e",
+  "scope": "Source-level R2010b/R2013b VisualStyle field and DXF group-code crosswalk; no emitted DXF was runtime-qualified",
+  "sources": {
+    "autodeskDxf": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "authority": "Published DXF object group-code table",
+      "limit": "Documents the basic face/edge/display fields and groups 290/291, but not group 177, group 176, the R2013b 58-slot expansion, or its CMC extension policy."
+    },
+    "libreDwg": {
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "workingTree": "Dirty/untracked unrelated build artifacts observed; reviewed file contents are bound by the SHA-256 values below.",
+      "dwgAndDxfSpecification": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/dwg2.spec",
+      "dxfImportPath": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/in_dxf.c",
+      "propertyTypeTable": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/common.c",
+      "dynapiGenerator": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/gen-dynapi.pl",
+      "generatedApiMetadata": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/dynapi.c",
+      "unitTest": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/test/unit-testing/visualstyle.c",
+      "limit": "Independent implementation evidence and a candidate map, not a normative contract or native CAD qualification. No LibreDWG runtime was executed."
+    },
+    "libdxfrw": {
+      "dwgParser": "src/drw_objects.cpp:24343-24600",
+      "model": "src/drw_objects.h:6589-6707",
+      "observation": "Current upstream typed DXF parse only retains description/type in its model; the full property tail remains in the raw DXF carrier. DWG-origin property values are decoded into the typed body and 58 interleaved source companions."
+    }
+  },
+  "peerDiscrepancies": [
+    {
+      "slots": [31, 33],
+      "fields": ["bProp1f", "bProp21"],
+      "dwg2Spec": "Declares value group 290 and the companion field with DXF group 0.",
+      "dynapiGeneratorAndMetadata": "The generator special-cases VISUALSTYLE *_int fields to group 176; generated metadata reports group 176.",
+      "dxfImporter": "Reads value group 90 and companion group 176.",
+      "assessment": "The spec declaration, generated API metadata, and DXF importer disagree on the value group and one declarative companion mapping. These source paths do not by themselves establish what the active LibreDWG runtime emits.",
+      "requiredAction": "Inspect and execute a pinned LibreDWG writer, then compare with producer-authored ASCII/binary DXF and independent readback; test default and non-default values."
+    },
+    {
+      "slots": [45],
+      "fields": ["bProp2d"],
+      "dwg2SpecAndMetadata": "Value group 290 and companion group 176.",
+      "dxfImporter": "Primary Boolean read is commented out; only the group-176 companion is read.",
+      "assessment": "The peer importer omits this primary Boolean despite the spec and generated metadata assigning it group 290; runtime output/readback was not tested.",
+      "requiredAction": "Require non-default producer witness and parse/write/readback comparison before selecting a local encoding policy."
+    },
+    {
+      "fields": ["extLightingModel", "internalOnly", "numProps"],
+      "dwg2SpecWriter": "Uses candidate DXF groups 177, 291 and 70 respectively; group 70 is a second contextual use after the property-tail boundary.",
+      "dxfImporter": "The dynamic-property reader supplies fallback ext_lighting_model values when absent; the R2013b reader requires num_props 58; group-176 companions are consumed in property order.",
+      "assessment": "This profile has defaults and contextual tag reuse that a name/type-only serializer would miss. The Autodesk page does not describe the extended profile.",
+      "requiredAction": "Preserve source values/provenance separately from peer defaults, validate subclass/291 boundaries, and refuse unqualified target profiles."
+    }
+  ],
+  "slotEvidence": {
+    "indexing": "Zero-based R2010b first 28 slots followed by R2013b slots 28-57; ordering follows the local DWG parser and LibreDWG dwg2.spec.",
+    "primitiveLegend": "B=bit; BS=bit-short; BL=bit-long; BD=bit-double; CMC=DWG color; T=variable text. The local source reader uses version-specific primitive variants for some fields (notably faceModifier, edge widths, halo gap, isolines, style apply, and brightness).",
+    "companionLegend": "The local AC1024+ DWG parser captures one bit-short companion immediately after every property. For VisualStyle, LibreDWG's generated API metadata maps *_int companions to group 176; dwg2.spec declares group 0 for indices 31 and 33 while its importer expects 176. The active writer's actual emitted tags remain unverified.",
+    "colorSlots": [6, 9, 10, 15, 20, 41, 44, 51],
+    "slots": [
+      {"index":0,"field":"faceLightingModel","dwg":"BL","groupR2010":71,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":1,"field":"faceLightingQuality","dwg":"BL","groupR2010":72,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":2,"field":"faceColorMode","dwg":"BL","groupR2010":73,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":3,"field":"faceModifier","dwg":"BS/BL versioned","groupR2010":90,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":4,"field":"faceOpacity","dwg":"BD","groupR2010":40,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":5,"field":"faceSpecular","dwg":"BD","groupR2010":41,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":6,"field":"faceMonoColor","dwg":"CMC","groupR2010":63,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":7,"field":"edgeModel","dwg":"BL","groupR2010":74,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":8,"field":"edgeStyle","dwg":"BL","groupR2010":91,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":9,"field":"edgeIntersectionColor","dwg":"CMC","groupR2010":64,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":10,"field":"edgeObscuredColor","dwg":"CMC","groupR2010":65,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":11,"field":"edgeObscuredLtype","dwg":"BLd/BL versioned","groupR2010":75,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":12,"field":"edgeIntersectionLtype","dwg":"BL/BS versioned","groupR2010":175,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":13,"field":"edgeCreaseAngle","dwg":"BD","groupR2010":42,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":14,"field":"edgeModifier","dwg":"BL","groupR2010":92,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":15,"field":"edgeColor","dwg":"CMC","groupR2010":66,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":16,"field":"edgeOpacity","dwg":"BD","groupR2010":43,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":17,"field":"edgeWidth","dwg":"BS/BL versioned","groupR2010":76,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":18,"field":"edgeOverhang","dwg":"BS/BL versioned","groupR2010":77,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":19,"field":"edgeJitter","dwg":"BL","groupR2010":78,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":20,"field":"edgeSilhouetteColor","dwg":"CMC","groupR2010":67,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":21,"field":"edgeSilhouetteWidth","dwg":"BS/BL versioned","groupR2010":79,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":22,"field":"edgeHaloGap","dwg":"RC/BL versioned","groupR2010":170,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":23,"field":"edgeIsolines","dwg":"BS/BL versioned","groupR2010":171,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":24,"field":"edgeDoHidePrecision","dwg":"B","groupR2010":290,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":25,"field":"displaySettings","dwg":"BL","groupR2010":93,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":26,"field":"displayBrightness","dwg":"BLd/BD versioned","groupR2010":44,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":27,"field":"displayShadowType","dwg":"BL","groupR2010":173,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":28,"field":"bProp1c","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":29,"field":"bProp1d","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":30,"field":"bProp1e","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":31,"field":"bProp1f","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerSpecCompanionGroup":null,"peerGeneratedMetadataCompanionGroup":176,"importerCandidateValueGroup":90,"importerCandidateCompanionGroup":176,"status":"peer source-path mismatch; runtime output unknown"},
+      {"index":32,"field":"bProp20","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":33,"field":"bProp21","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerSpecCompanionGroup":null,"peerGeneratedMetadataCompanionGroup":176,"importerCandidateValueGroup":90,"importerCandidateCompanionGroup":176,"status":"peer source-path mismatch; runtime output unknown"},
+      {"index":34,"field":"bProp22","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":35,"field":"bProp23","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":36,"field":"bProp24","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":37,"field":"blProp25","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":38,"field":"bdProp26","dwg":"BD","groupR2010":null,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":39,"field":"bdProp27","dwg":"BD","groupR2010":null,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":40,"field":"blProp28","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":41,"field":"cProp29","dwg":"CMC","groupR2010":null,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":42,"field":"blProp2a","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":43,"field":"blProp2b","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":44,"field":"cProp2c","dwg":"CMC","groupR2010":null,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":45,"field":"bProp2d","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176,"importerCandidateValueGroup":null,"status":"peer importer skips primary value"},
+      {"index":46,"field":"blProp2e","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":47,"field":"blProp2f","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":48,"field":"blProp30","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":49,"field":"bProp31","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":50,"field":"blProp32","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":51,"field":"cProp33","dwg":"CMC","groupR2010":null,"groupR2013bCandidate":62,"peerCompanionGroup":176},
+      {"index":52,"field":"bdProp34","dwg":"BD","groupR2010":null,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":53,"field":"edgeWiggle","dwg":"BL","groupR2010":null,"groupR2013bCandidate":90,"peerCompanionGroup":176},
+      {"index":54,"field":"strokes","dwg":"T","groupR2010":null,"groupR2013bCandidate":1,"peerCompanionGroup":176},
+      {"index":55,"field":"bProp37","dwg":"B","groupR2010":null,"groupR2013bCandidate":290,"peerCompanionGroup":176},
+      {"index":56,"field":"bdProp38","dwg":"BD","groupR2010":null,"groupR2013bCandidate":40,"peerCompanionGroup":176},
+      {"index":57,"field":"bdProp39","dwg":"BD","groupR2010":null,"groupR2013bCandidate":40,"peerCompanionGroup":176}
+    ]
+  },
+  "implementationReadiness": {
+    "safeLocalWork": "Generate a descriptor/crosswalk validation test that asserts the 58 local model fields, primitive families, eight CMC slots, and interleaved companion count match this pinned candidate manifest. Keep the emitted DXF values behind a target-profile admission result.",
+    "fieldSerializationAdmission": "Do not serialize the 58-slot body until group code, version boundary, companion behavior, CMC method policy, description/type/tail boundaries, owner/handle remap, and semantic readback are explicitly resolved for the selected target profile.",
+    "minimumConflictControls": [
+      "bProp1f and bProp21: dwg2.spec/generated metadata use 290 but importer uses 90; spec says companion group 0 while generated metadata/importer say 176; actual writer output is unknown until executed",
+      "bProp2d: value group 290 emitted but omitted by peer DXF importer",
+      "R2013b group 70 style type vs tail count, split by group 291 state",
+      "group 177 extLightingModel presence/default and 291 internalOnly preservation",
+      "all eight CMC slots: explicit RGB black, indexed fallback, unknown method, name/book flags, and loss/refusal policy",
+      "parse-write-parse order-independent audit; do not rely on Autodesk's typical tag order"
+    ],
+    "fixturePolicy": "Use generated temporary documents or existing tracked DWG/DXF only; add no third-party drawing fixture until its repository provenance and license are verified."
+  },
+  "sourceSha256": {
+    "libdxfrw/src/drw_objects.h": "2c19ba960300e913b852fb512483d0d0ff0b047e76d5b42f7af265ffb7ab6a8f",
+    "libdxfrw/src/drw_objects.cpp": "a13ea4f02b4eb335c5179402493da37f011fc2e10e78b62c676694247917707e",
+    "libredwg/src/dwg2.spec": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "libredwg/src/in_dxf.c": "e52609c4762ca71940b4c8b778501e9b9e47deb13111c0379e1ab4c1043eb144",
+    "libredwg/src/common.c": "6b6e116026830e276115e76c3fc90372fb9ddb77c55e12f47f0cee70c5c65aa3",
+    "libredwg/src/gen-dynapi.pl": "0101195f2fa42192ef9262e9b74ad949853c546b1e31578740a6daf9536cf999",
+    "libredwg/src/dynapi.c": "7f605d7de91f8a9e216a71cd40df8851930279b00a47afa754f0417d1a982f35",
+    "libredwg/test/unit-testing/visualstyle.c": "0237d54d76f8584a1060292d56946f361060e53424f6a317d610c6f3658a03b2"
+  },
+  "validation": {
+    "kind": "static source crosswalk only",
+    "peerRuntime": "NOT RUN",
+    "nativeCad": "NOT RUN",
+    "producerAuthored58SlotDxf": "NOT AVAILABLE in inspected peer test corpus",
+    "supportClaimsPromoted": false
+  },
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

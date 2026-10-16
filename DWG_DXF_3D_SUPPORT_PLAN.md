@@ -40,6 +40,24 @@ implementing a typed serializer. Peer comparisons remain architecture clues,
 not semantic authorities; all six external J gates remain
 `DEFERRED_EXTERNAL`.
 
+**Deeper f.3c evidence update (2026-10-15):** a pinned LibreDWG crosswalk now
+provides candidate DXF groups for all58 AC1032 VisualStyle values, with source
+primitive types and the eight CMC slots. It also exposes source-path
+asymmetries: Boolean slots31 and33 are tagged 290 with companion group0 in
+`dwg2.spec`, tagged with companion176 by generated API metadata, but read as
+90/176 by the DXF importer; actual runtime writer output remains unverified.
+Slot45's primary Boolean is skipped by the importer. The public Autodesk table
+does not define these extended groups; LibreDWG also normalizes absent group177
+lighting values. Accordingly the next step is not
+to emit this candidate map: validate the local 58-field model against the
+crosswalk, resolve those conflicts against producer-authored ASCII/binary
+documents and independent readback, and refuse unqualified profiles. Details,
+all58 candidate slots, pinned file hashes, and bounded sub-plan are in the
+[parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-visualstyle-slot-map-and-peer-asymmetry-audit-2026-10-15-research-only)
+and [`visualstyle-slot-map-readiness-2026-10-15.json`](docs/research/visualstyle-slot-map-readiness-2026-10-15.json).
+No peer runtime, native CAD, ACIS, full-suite or semantic support claim was
+added. All six external J gates remain deferred.
+
 **Latest named-root implementation state (2026-10-15):**
 f.4a callback-owned retention/copy/lifetime/reset checks are complete. The
 deeper writer/readback review found that SCALE, DICTIONARYVAR, MLINESTYLE and

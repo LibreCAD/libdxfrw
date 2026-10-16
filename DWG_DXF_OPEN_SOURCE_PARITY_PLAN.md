@@ -14314,3 +14314,72 @@ cross-library CLASS/output-count and FreeCAD converter-handoff work remains in
 its existing f.4b/f.4c order. Finding/subplan/ledger counts and all support
 claims are unchanged; J256/J260/J268/J284/J293/J295 remain
 `DEFERRED_EXTERNAL` and non-promoting.
+
+## Deeper VisualStyle slot-map and peer-asymmetry audit (2026-10-15; research-only)
+
+The next f.3c readiness pass pinned a second, more complete implementation
+crosswalk: LibreDWG snapshot `6d6a33987a1a97095b069c799c3d8a793320f812`
+defines the R2013b VisualStyle 58-value body/DXF candidate map in `dwg2.spec`,
+has a separate DXF group consumer in `in_dxf.c`, lists the 58 wire value kinds
+in `common.c`, and has typed API checks in `test/unit-testing/visualstyle.c`.
+Exact source hashes and a 58-slot crosswalk are in
+[`visualstyle-slot-map-readiness-2026-10-15.json`](docs/research/visualstyle-slot-map-readiness-2026-10-15.json).
+LibreDWG's checked-out tree was dirty, so the receipt binds the exact inspected
+file blobs; no LibreDWG runtime was run. Autodesk's published
+[VISUALSTYLE DXF table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm)
+defines the conventional face/edge/display groups, but not the complete
+R2013b 58-slot extension, group176 companions, or group177 lighting profile.
+Therefore LibreDWG gives us a concrete candidate descriptor, not a normative
+contract.
+
+The source comparison reveals implementation asymmetries requiring explicit
+tests before using that candidate as a writer map. For slots31 (`bProp1f`)
+and33 (`bProp21`), LibreDWG's `dwg2.spec` declares value group290 and companion
+group0, while its DXF importer consumes value group90 plus group176. Its
+`gen-dynapi.pl` separately forces all VisualStyle `*_int` companion metadata to
+group176, and the generated API reference also records176. The active writer
+output was not executed here, so the three source paths document a mismatch;
+they do not yet establish the emitted file behavior. For slot45 (`bProp2d`),
+the spec and generated metadata assign group290 plus group176, but the DXF
+import path comments out the primary Boolean read. The base R2010b serializer
+and R2013b extension also use distinct group layouts; group70 represents the
+style type before the code291 property-tail boundary and the 58-slot count
+after that boundary. The importer supplies default `extLightingModel` values
+when that field is absent, which is not preservation of the source value.
+These findings are source-derived risks, not a reproduced failure in a peer
+file.
+
+### Ready sub-plan: freeze candidates, then resolve conflicts without broadening claims
+
+1. Treat the JSON crosswalk as a candidate manifest with explicit source
+   confidence: Autodesk-documented conventional groups versus
+   LibreDWG-derived R2013b extension groups. Preserve source primitive kind,
+   slot index, group candidates, companion slot/value and source version
+   separately; do not fold them into a single “DXF schema” enum.
+2. Add a fast generated crosswalk consistency test that checks all58 local
+   source slots, 8 CMC indices, version boundary (28 versus58), and group176
+   companion cardinality against the manifest. This is a descriptor alignment
+   test only; it cannot validate group codes or values.
+3. Before typed serialization, execute a pinned LibreDWG writer on a generated
+   uniquely-valued 58-slot control to determine actual output tags, then
+   resolve 31/33/45 and group70/177/291 semantics against producer-authored
+   ASCII and binary R2013b DXF plus an independent parser/readback. Record the
+   writer version, argv, warnings, and output hash; do not treat its own
+   self-roundtrip as an oracle. Add unique non-default scalar, explicit RGB
+   black, unknown CMC method and color name/book controls.
+4. If no independent witness is available, the affected field/profile stays
+   non-emittable and the converter must refuse before destination replacement;
+   do not silently omit a companion, invent a default, clamp, or infer
+   semantics from property names. Keep raw DXF-origin replay intact.
+5. Only after the conflicts are resolved should f.3c add a per-slot typed
+   serializer and parse-back tests. Whole-root f.4b graph/class admission,
+   target 177 policy, native FreeCAD qualification and external J gates remain
+   subsequent, distinct checkpoints.
+
+This refines f.3c from “implement a candidate table” to “pin the candidate,
+test source/model alignment, resolve wire conflicts, then enable only the
+evidenced serializer profile.” It adds no PAR IDs or counts; no fixture,
+dependency, CTest registration, support claim or external status changes.
+All six J items remain `DEFERRED_EXTERNAL` and non-promoting. This review used
+static primary-documentation and pinned open-source source only; no peer
+runtime, native application, full suite or semantic CAD qualification ran.
