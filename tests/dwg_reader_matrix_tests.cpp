@@ -764,10 +764,11 @@ AcDsBlobTestSection makeTwoPageAcDsSection(
     std::size_t firstPageBytes =
         DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE,
     std::size_t secondPageBytes = 48u) {
-    if (firstPageBytes == 0u || secondPageBytes == 0u
+    if (firstPageBytes == 0u
         || firstPageBytes > DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
         || secondPageBytes > DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE)
         return {};
+    const std::uint32_t pageCount = secondPageBytes == 0u ? 1u : 2u;
     constexpr std::size_t segmentIndexOffset = 64u;
     constexpr std::size_t segmentIndexSize = 128u;
     constexpr std::size_t dataIndexOffset = segmentIndexOffset
@@ -844,7 +845,7 @@ AcDsBlobTestSection makeTwoPageAcDsSection(
         putU32(offset + 16u, size);
         putU32(offset + 24u, 1u);
     };
-    const auto putBlobPage = [&putU64, &putU32, &result](
+    const auto putBlobPage = [&putU64, &putU32, &result, pageCount](
                                  std::size_t segmentOffset,
                                  std::uint64_t startOffset,
                                  std::uint32_t pageIndex,
@@ -855,7 +856,7 @@ AcDsBlobTestSection makeTwoPageAcDsSection(
         putU64(header, result.payload.size());
         putU64(header + 8u, startOffset);
         putU32(header + 16u, pageIndex);
-        putU32(header + 20u, 2u);
+        putU32(header + 20u, pageCount);
         putU64(header + 24u, payloadSize);
         std::copy_n(result.payload.begin()
                         + static_cast<std::ptrdiff_t>(payloadOffset),
@@ -920,24 +921,31 @@ AcDsBlobTestSection makeTwoPageAcDsSection(
     putU32(dataRegionOffset,
            DRW_DataStorageConst::DATA_BLOB_REFERENCE_MARKER);
     putU64(descriptorOffset, result.payload.size());
-    putU32(descriptorOffset + 8u, 2u);
+    putU32(descriptorOffset + 8u, pageCount);
     putU32(descriptorOffset + 12u,
            DRW_DataStorageConst::DATA_BLOB_REFERENCE_FIXED_SIZE
-               + 2u * DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE);
+               + pageCount
+                   * DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE);
     putU32(descriptorOffset + 16u, static_cast<std::uint32_t>(firstPageBytes));
     putU32(descriptorOffset + 20u,
-           static_cast<std::uint32_t>(secondPageBytes));
+           static_cast<std::uint32_t>(pageCount == 1u
+                                          ? firstPageBytes
+                                          : secondPageBytes));
     putU32(descriptorOffset + 32u, 4u); // Page 0 is physically second.
     putU32(descriptorOffset + 36u,
            static_cast<std::uint32_t>(firstPageBytes));
-    putU32(secondPageReferenceOffset, 3u);
-    putU32(secondPageReferenceOffset + 4u,
-           static_cast<std::uint32_t>(secondPageBytes));
+    if (pageCount > 1u) {
+        putU32(secondPageReferenceOffset, 3u);
+        putU32(secondPageReferenceOffset + 4u,
+               static_cast<std::uint32_t>(secondPageBytes));
+    }
 
     // Page 1 precedes page 0 in the physical section. Descriptor order and
     // page metadata, rather than segment order, define the assembled payload.
-    putBlobPage(secondPageOffset, firstPageBytes, 1u, firstPageBytes,
-                secondPageBytes);
+    if (pageCount > 1u) {
+        putBlobPage(secondPageOffset, firstPageBytes, 1u, firstPageBytes,
+                    secondPageBytes);
+    }
     putBlobPage(firstPageOffset, 0u, 0u, 0u, firstPageBytes);
     return result;
 }
@@ -1842,6 +1850,40 @@ void testModelerAcDsBlobPageChain(TestContext& t) {
                  && thresholdRecord->blobPages[1].byteLength == 1u
                  && thresholdRecord->payload == thresholdGenerated.payload,
              "first payload byte above the direct-record limit uses Blob01 pages");
+
+    const AcDsBlobTestSection onePageAtCap = makeTwoPageAcDsSection(
+        solidHandle, DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE, 0u);
+    const DRW_DataStorageSection onePageParsed = DRW_parseDataStorage(
+        onePageAtCap.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* onePageRecord =
+        onePageParsed.findRecordByHandle(solidHandle);
+    t.expect(onePageParsed.structurallyValid && onePageRecord != nullptr
+                 && onePageRecord->isBlobReference
+                 && onePageRecord->blobTotalByteLength
+                        == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+                 && onePageRecord->blobPageCount == 1u
+                 && onePageRecord->blobPages.size() == 1u
+                 && onePageRecord->blobPages.front().byteLength
+                        == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+                 && onePageRecord->payload == onePageAtCap.payload,
+             "one-page Blob01 accepts the exact page-size cap");
+
+    const AcDsBlobTestSection twoPagesOverCap = makeTwoPageAcDsSection(
+        solidHandle, DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE, 1u);
+    const DRW_DataStorageSection twoPagesParsed = DRW_parseDataStorage(
+        twoPagesOverCap.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* twoPagesRecord =
+        twoPagesParsed.findRecordByHandle(solidHandle);
+    t.expect(twoPagesParsed.structurallyValid && twoPagesRecord != nullptr
+                 && twoPagesRecord->blobPageCount == 2u
+                 && twoPagesRecord->blobTotalByteLength
+                        == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE + 1u
+                 && twoPagesRecord->blobPages.size() == 2u
+                 && twoPagesRecord->blobPages[0].byteLength
+                        == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+                 && twoPagesRecord->blobPages[1].byteLength == 1u
+                 && twoPagesRecord->payload == twoPagesOverCap.payload,
+             "Blob01 rolls into a second page immediately above the page-size cap");
 
     const auto putU32 = [](std::vector<std::uint8_t>& bytes,
                            std::size_t offset, std::uint32_t value) {
