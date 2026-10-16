@@ -16047,3 +16047,25 @@ This update adds no PAR finding or top-level subplan; totals remain 122/70.
 No code, fixture, dependency, peer execution, native qualification, or support
 claim changed. J256, J260, J268, J284, J293, and J295 remain
 `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — proxy-shell counted-list framing regression (2026-10-15)
+
+Implementation commit: `74d2545` (`Test proxy shell face-list framing`). The
+source-path audit found a related counted face-list in
+`DRW_ProxyGraphicDecoder::doShell`: the local DXF proxy-graphics shell reads a
+face-entry count and advances by each face's count plus its indices. This is
+not the same wire grammar as ACadSharp's DWG proxy-shell parser, so its fix is
+not treated as evidence of a shared defect. The local counted-list path now has
+a generated in-memory regression: a four-vertex shell with two faces is
+followed by a circle carrying a distinct center and radius. The decoder must
+preserve both face index lists, emit that exact following circle, and consume
+the complete stream. No external DWG/DXF/SAT/SAB file was added.
+
+Validation: strict `libdxfrw_graph_preservation_tests` target build passes;
+focused `libdxfrw_graph_preservation` CTest passes 1/1 in 0.65 seconds;
+`git diff --check` passes. No production behavior, full suite, external peer,
+native application, dependency, or semantic-geometry claim changed. Findings
+and subplans remain 122/70; J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting. Continue the separate AC1027
+AcDs/block-closure and composed consumer subplans; the proxy regression only
+closes the targeted parser-failure-pattern test follow-through.
