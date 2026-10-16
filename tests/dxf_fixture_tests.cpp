@@ -2267,11 +2267,17 @@ bool literalMeshWireFieldsMatch(const std::filesystem::path& path,
     const std::vector<std::pair<int, double>> expected{
         {71, 2.0}, {72, 1.0}, {94, 2.0}, {95, 2.0},
         {140, 0.25}, {140, 0.75}};
+    const std::vector<std::pair<int, int>> expectedOverrides{
+        {90, 2}, {91, 4}, {92, 2}, {90, 0}, {90, 2},
+        {91, 7}, {92, 1}, {90, 1}};
     std::vector<std::pair<int, double>> actualFields;
+    std::vector<std::pair<int, int>> actualOverrides;
     bool inMesh = false;
     bool sawMesh = false;
     bool sawFollowingLine = false;
     bool sawEof = false;
+    bool sawCreaseCount = false;
+    int creaseValuesRemaining = 0;
     int code = 0;
     while (reader->readRec(&code)) {
         if (code == 0) {
@@ -2288,13 +2294,25 @@ bool literalMeshWireFieldsMatch(const std::filesystem::path& path,
         }
         if (!inMesh)
             continue;
-        if (code == 71 || code == 72 || code == 94 || code == 95)
-            actualFields.emplace_back(code, reader->getInt32());
-        else if (code == 140)
+        if (code == 71 || code == 72 || code == 94 || code == 95) {
+            const int value = reader->getInt32();
+            actualFields.emplace_back(code, value);
+            if (code == 95) {
+                sawCreaseCount = true;
+                creaseValuesRemaining = value;
+            }
+        } else if (code == 140) {
             actualFields.emplace_back(code, reader->getDouble());
+            if (sawCreaseCount && creaseValuesRemaining > 0)
+                --creaseValuesRemaining;
+        } else if (sawCreaseCount && creaseValuesRemaining == 0
+                   && (code == 90 || code == 91 || code == 92)) {
+            actualOverrides.emplace_back(code, reader->getInt32());
+        }
     }
     return sawEof && sawMesh && sawFollowingLine
-        && actualFields == expected;
+        && actualFields == expected
+        && actualOverrides == expectedOverrides;
 }
 
 struct DxfTableSnapshot {
@@ -5792,6 +5810,7 @@ void testMeshRawFieldTags(TestContext& t) {
         mesh->faces = {{0, 1, 2}};
         mesh->edges = {{0, 1}, {1, 2}};
         mesh->creases = {0.25, 0.75};
+        mesh->propertyOverrides = {{4, {0, 2}}, {7, {1}}};
         source.mBlock->ent.push_back(mesh.release());
         auto* following = new DRW_Line;
         following->basePoint = {10.0, 20.0, 30.0};
@@ -5805,8 +5824,8 @@ void testMeshRawFieldTags(TestContext& t) {
                  binary ? "generated binary MESH exports"
                         : "generated ASCII MESH exports");
         t.expect(exported && literalMeshWireFieldsMatch(path, binary),
-                 binary ? "binary MESH raw 71/72/94/95/140 fields retain order and LINE framing"
-                        : "ASCII MESH raw 71/72/94/95/140 fields retain order and LINE framing");
+                 binary ? "binary MESH raw topology, crease, override tags retain order and LINE framing"
+                        : "ASCII MESH raw topology, crease, override tags retain order and LINE framing");
 
         dx_data decoded;
         dx_iface reader;
@@ -5828,9 +5847,16 @@ void testMeshRawFieldTags(TestContext& t) {
                             == std::vector<std::pair<std::int32_t, std::int32_t>>{
                                 {0, 1}, {1, 2}}
                      && decodedMesh->creases
-                            == std::vector<double>{0.25, 0.75},
-                 binary ? "binary MESH typed self-read retains generated fields"
-                        : "ASCII MESH typed self-read retains generated fields");
+                            == std::vector<double>{0.25, 0.75}
+                     && decodedMesh->propertyOverrides.size() == 2u
+                     && decodedMesh->propertyOverrides[0].subEntityMarker == 4
+                     && decodedMesh->propertyOverrides[0].propertyTypes
+                            == std::vector<std::int32_t>{0, 2}
+                     && decodedMesh->propertyOverrides[1].subEntityMarker == 7
+                     && decodedMesh->propertyOverrides[1].propertyTypes
+                            == std::vector<std::int32_t>{1},
+                 binary ? "binary MESH typed self-read retains topology, creases, overrides"
+                        : "ASCII MESH typed self-read retains topology, creases, overrides");
         const DRW_Line* decodedLine = imported && decoded.mBlock != nullptr
             && decoded.mBlock->ent.size() == 2u
             ? dynamic_cast<const DRW_Line*>(decoded.mBlock->ent.back())
