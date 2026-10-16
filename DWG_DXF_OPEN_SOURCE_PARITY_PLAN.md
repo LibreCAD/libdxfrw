@@ -14767,8 +14767,8 @@ unexecuted leads, not qualification. The evidence receipt is
 1. **Completed in the current S8.3 slice:** ODA adjacent-record spans,
    direct/blob threshold, malformed-overlap rejection and suffix preservation.
    This local defect needed no external tool or fixture.
-2. Continue multi-page aggregate-size/page-chain hardening, then finish the
-   AcDs read path and entity-handle/body-page closure; after that add a
+2. Continue remaining multi-page aggregate-size/page-chain hardening, then
+   finish the AcDs read path and entity-handle/body-page closure; after that add a
    conservative same-version unchanged-section passthrough option with stale
    source-section/body/handle fingerprint refusal. Do not conflate it with
    arbitrary new or edited SAB serialization.
@@ -14853,3 +14853,26 @@ multi-page size/limit hardening, then real-record owner/body association and
 same-version untouched-section passthrough. All six J items remain
 `DEFERRED_EXTERNAL`; support claims and 122/70 counts are unchanged. Receipt:
 [`acds-record-boundary-fast-test-2026-10-15.json`](docs/research/acds-record-boundary-fast-test-2026-10-15.json).
+
+## Implementation progress — ODA AcDs Blob01 page limits (2026-10-15)
+
+ODA v5.4.1 §24.2.2.3–24.2.2.3.1 defines the storage boundary: arrays through
+`0x40000` bytes use direct records; larger arrays use Blob01 pages, each capped
+at `0xFFFB0` bytes. The parser now rejects blob descriptors at/below the direct
+threshold, zero page counts, invalid nominal/final page sizes, zero-length
+pages and referenced page lengths above `0xFFFB0`, preserving the following
+independent record after malformed input. The generated in-memory positive
+fixture uses two full `0xFFFB0` pages in reverse physical order, proving exact
+page-limit acceptance and byte-identical logical reconstruction. Negative
+vectors cover a page over the maximum, a blob at the direct-size boundary, and
+zero pages; the existing page-order/start/count, wrong-segment, descriptor
+overlap and suffix controls remain.
+
+The focused graph-preservation test and `lc3_compat_check` build pass;
+`libdxfrw_graph_preservation` passes 1/1 in 0.36 seconds and `git diff --check`
+is clean. This is container assembly coverage only: payload bytes are
+synthetic, not valid SAB and not evidence for a producer profile. No disk
+fixture, dependency, new test registration, external executable, or full suite
+was used. Remaining local work is hostile/overflow page-chain accounting and
+same-page alias rejection, followed by real producer handle/body association.
+Receipt: [`acds-blob-page-limits-fast-test-2026-10-15.json`](docs/research/acds-blob-page-limits-fast-test-2026-10-15.json).

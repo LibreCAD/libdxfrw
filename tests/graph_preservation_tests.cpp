@@ -498,22 +498,31 @@ void testDataStorageBlobPages(TestContext& t) {
         std::size_t descriptorOffset = 0;
     };
 
-    constexpr std::size_t sectionSize = 832u;
     constexpr std::size_t segmentIndexOffset = 64u;
     constexpr std::size_t dataIndexOffset = 256u;
     constexpr std::size_t dataOffset = 384u;
-    constexpr std::size_t pageOneSegmentOffset = 576u;
-    constexpr std::size_t pageZeroSegmentOffset = 704u;
-    constexpr std::size_t firstPageSize = 16u;
-    const std::string payloadText = "ACIS BinaryFile\nbody=10x20x30";
-    const std::vector<std::uint8_t> payload(payloadText.begin(),
-                                            payloadText.end());
+    constexpr std::size_t firstPageSize =
+        DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE;
+    std::vector<std::uint8_t> payload(firstPageSize * 2u);
+    for (std::size_t byte = 0; byte < payload.size(); ++byte)
+        payload[byte] = static_cast<std::uint8_t>(byte % 251u + 1u);
+    const std::string payloadMarker = "ACIS BinaryFile\n";
+    std::copy(payloadMarker.begin(), payloadMarker.end(), payload.begin());
     const std::string sentinelText = "SENTINEL_AFTER_BLOB";
     const std::vector<std::uint8_t> sentinel(sentinelText.begin(),
                                              sentinelText.end());
 
     const auto makeFixture = [&]() {
         BlobFixture fixture;
+        const std::size_t pageSegmentSize =
+            DRW_DataStorageConst::SEGMENT_HEADER_SIZE
+            + DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE
+            + firstPageSize;
+        const std::size_t pageOneSegmentOffset = dataOffset + 192u;
+        const std::size_t pageZeroSegmentOffset =
+            pageOneSegmentOffset + pageSegmentSize;
+        const std::size_t sectionSize =
+            pageZeroSegmentOffset + pageSegmentSize;
         fixture.bytes.assign(sectionSize, 0u);
         const auto putU16 = [&fixture](std::size_t offset,
                                        std::uint16_t value) {
@@ -558,8 +567,10 @@ void testDataStorageBlobPages(TestContext& t) {
             {segmentIndexOffset, 192u},
             {dataIndexOffset, 128u},
             {dataOffset, 192u},
-            {pageOneSegmentOffset, 128u},
-            {pageZeroSegmentOffset, 128u}}};
+            {pageOneSegmentOffset,
+             static_cast<std::uint32_t>(pageSegmentSize)},
+            {pageZeroSegmentOffset,
+             static_cast<std::uint32_t>(pageSegmentSize)}}};
         const std::array<const char*, 5> names{{
             "segidx", "datidx", "_data_", "blob01", "blob01"}};
         for (std::size_t index = 0; index < segments.size(); ++index) {
@@ -719,6 +730,59 @@ void testDataStorageBlobPages(TestContext& t) {
     putU32(wrongSegmentKind.bytes, wrongSegmentKind.descriptorOffset + 32u, 2u);
     rejectsBlobAndKeepsSuffix(std::move(wrongSegmentKind),
                               "DataStorage rejects blob reference to non-blob segment");
+
+    BlobFixture oversizedPage = makeFixture();
+    putU32(oversizedPage.bytes, oversizedPage.descriptorOffset + 36u,
+           DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE + 1u);
+    const DRW_DataStorageSection rejectedOversizedPage =
+        DRW_parseDataStorage(oversizedPage.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* oversizedPageSuffix =
+        rejectedOversizedPage.findRecordByHandle(0xa18u);
+    const bool hasPageSizeDiagnostic = std::any_of(
+        rejectedOversizedPage.diagnostics.cbegin(),
+        rejectedOversizedPage.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code
+                == "datastorage-blob-page-size-over-limit";
+        });
+    t.expect(!rejectedOversizedPage.structurallyValid
+                 && !rejectedOversizedPage.replayAllowed
+                 && rejectedOversizedPage.findRecordByHandle(0xa17u) == nullptr
+                 && oversizedPageSuffix != nullptr
+                 && oversizedPageSuffix->payload == sentinel
+                 && hasPageSizeDiagnostic,
+             "DataStorage rejects a blob page above the ODA page-size limit");
+
+    const auto rejectsInvalidBlobDescriptor = [&](BlobFixture changed,
+                                                   const std::string& label) {
+        const DRW_DataStorageSection rejected =
+            DRW_parseDataStorage(changed.bytes, DRW::AC1027);
+        const DRW_DataStorageRecord* suffixRecord =
+            rejected.findRecordByHandle(0xa18u);
+        const bool hasDescriptorDiagnostic = std::any_of(
+            rejected.diagnostics.cbegin(), rejected.diagnostics.cend(),
+            [](const DRW_DataStorageDiagnostic& diagnostic) {
+                return diagnostic.code
+                    == "datastorage-blob-reference-invalid";
+            });
+        t.expect(!rejected.structurallyValid && !rejected.replayAllowed
+                     && rejected.findRecordByHandle(0xa17u) == nullptr
+                     && suffixRecord != nullptr
+                     && suffixRecord->payload == sentinel
+                     && hasDescriptorDiagnostic,
+                 label);
+    };
+
+    BlobFixture undersizedBlob = makeFixture();
+    putU64(undersizedBlob.bytes, undersizedBlob.descriptorOffset,
+           DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE);
+    rejectsInvalidBlobDescriptor(std::move(undersizedBlob),
+                                 "DataStorage rejects blob use at inline size limit");
+
+    BlobFixture zeroPageBlob = makeFixture();
+    putU32(zeroPageBlob.bytes, zeroPageBlob.descriptorOffset + 8u, 0u);
+    rejectsInvalidBlobDescriptor(std::move(zeroPageBlob),
+                                 "DataStorage rejects zero-page blob descriptor");
 
     BlobFixture overlappingRecord = makeFixture();
     putU32(overlappingRecord.bytes,

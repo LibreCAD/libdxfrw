@@ -38,6 +38,8 @@ constexpr std::uint32_t DATA_BLOB_REFERENCE_MARKER = 0xbb106bb1u;
 constexpr std::uint32_t DATA_BLOB_REFERENCE_FIXED_SIZE = 32;
 constexpr std::uint32_t DATA_BLOB_PAGE_ENTRY_SIZE = 8;
 constexpr std::uint32_t DATA_BLOB_PAGE_HEADER_SIZE = 32;
+//! Largest payload stored in one Blob01 page (ODA §24.2.2.3).
+constexpr std::uint32_t DATA_BLOB_PAGE_MAX_SIZE = 0xFFFB0u;
 constexpr std::uint32_t SCHEMA_INDEX_ENTRY_SIZE = 12;
 constexpr std::uint32_t SCHEMA_PROPERTY_TYPE_COUNT = 16;
 constexpr std::uint32_t SCHEMA_PROPERTY_NO_NAME = 0xffffffffu;

@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-acds-blob-page-limits-fast-test-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "ec00ebb",
+  "scope": "ODA §24.2.2.3-24.2.2.3.1 DataStorage direct/blob threshold and Blob01 page size/count limits",
+  "sourceAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["24.2.2.3", "24.2.2.3.1"],
+    "printedPages": "254-256",
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "rules": [
+      "Direct byte arrays are at most 0x40000 bytes; larger arrays use a blob reference.",
+      "A blob reference names one or more Blob01 pages.",
+      "Each Blob01 page payload is at most 0xFFFB0 bytes.",
+      "The blob descriptor and each page header redundantly encode sizes/counts/offsets; assembled page data must equal total data size."
+    ]
+  },
+  "changes": [
+    {
+      "file": "src/drw_datastorage.h",
+      "detail": "Named the ODA 0xFFFB0 Blob01 page payload maximum."
+    },
+    {
+      "file": "src/drw_datastorage.cpp",
+      "detail": "Rejects blob descriptors at/below the direct-record limit, zero pages, invalid nominal/final page sizes, zero-length pages, and individual referenced page lengths above 0xFFFB0. Existing checked page sum and metadata closure remain."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "detail": "Expands the generated in-memory two-page reversed-physical-order blob to exactly two maximum-size pages (2 MiB total), and adds over-limit page, under-threshold blob, and zero-page negatives with suffix-preservation assertions."
+    }
+  ],
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS",
+    "ctest": "libdxfrw_graph_preservation 1/1 passed in 0.36 seconds",
+    "fullSuite": "NOT RUN",
+    "externalPrograms": "NOT RUN",
+    "diskFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1382,7 +1382,13 @@ void readDataRecords(const ByteReader& r,
             std::uint64_t pageEntriesSize = 0;
             std::uint64_t descriptorSize = 0;
             std::uint64_t blobRecordSize = 0;
-            if (pageCount > HARD_MAX_ENTRIES
+            if (totalByteLength <= DATA_RECORD_INLINE_MAX_SIZE
+                || pageCount == 0 || pageCount > HARD_MAX_ENTRIES
+                || (pageCount > 1u
+                    && (pageByteSize == 0
+                        || pageByteSize > DATA_BLOB_PAGE_MAX_SIZE))
+                || lastPageByteSize == 0
+                || lastPageByteSize > DATA_BLOB_PAGE_MAX_SIZE
                 || !checkedMultiply(pageCount, DATA_BLOB_PAGE_ENTRY_SIZE,
                                     pageEntriesSize)
                 || !checkedAdd(DATA_BLOB_REFERENCE_FIXED_SIZE, pageEntriesSize,
@@ -1437,6 +1443,17 @@ void readDataRecords(const ByteReader& r,
                         * DATA_BLOB_PAGE_ENTRY_SIZE;
                 const std::uint32_t segmentIndex = r.u32(pageOffset);
                 const std::uint32_t byteLength = r.u32(pageOffset + 4);
+                if (byteLength == 0
+                    || byteLength > DATA_BLOB_PAGE_MAX_SIZE) {
+                    pushDiag(section,
+                             "datastorage-blob-page-size-over-limit",
+                             "DataStorage blob page for handle "
+                                 + handleKey(handle)
+                                 + " has an invalid page byte length",
+                             handle, true, pageOffset + 4u, true);
+                    pageReferenceValid = false;
+                    break;
+                }
                 if (static_cast<std::size_t>(segmentIndex)
                         >= section.segments.size()
                     || section.segments[segmentIndex].kind
