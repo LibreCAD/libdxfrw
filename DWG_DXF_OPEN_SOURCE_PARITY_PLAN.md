@@ -13,12 +13,15 @@ found unremapped MLEADERSTYLE resource references, unchecked MLINESTYLE DXF
 element counts/partial tuples, and unconditional MLEADERSTYLE 179/298 writes
 despite source-spec version gates. f.4b is now ordered as an exact raw/typed
 origin and graph bridge, then SCALE/DICTIONARYVAR, MLINESTYLE and MLEADERSTYLE
-as progressively more complex bounded slices. Execution remains behind the
-already-planned f.3b import-origin/generation binding and f.3c source-profile
-serializer admission; do not use current `sourceFormat` alone to legitimize
-reused or mixed data. This is a plan/research update, not an implementation or
-support promotion; six J gates remain
-`DEFERRED_EXTERNAL`. Receipt:
+as progressively more complex bounded slices. The f.3b.1 provenance-only
+prerequisite is now implemented: a visual-style range is bound to one
+successful import generation, accepted source format/version and matching
+callback outcomes. Authored, reused/mixed, failed, incomplete raw-pair and
+DWG-with-DXF-raw contexts are refused by that predicate. It is not connected
+to output selection and does not certify decoded payload completeness. f.3c
+source-profile serializer admission still blocks f.4b; do not use current
+`sourceFormat` alone to legitimize data. No writer/support claim is promoted;
+six J gates remain `DEFERRED_EXTERNAL`. Receipt:
 `docs/research/named-resource-emitter-readiness-2026-10-15.json`.
 
 **Latest research delta (2026-10-15, committed baseline `91d0a88`; plan-only):**
@@ -14099,3 +14102,35 @@ commit hash and focused result immediately. Continue after a completed slice
 to the next unblocked local child. No changes to finding/subplan/ledger counts,
 LibreCAD/LibreCAD_3 optional callback policy, native/external qualification, or
 J256/J260/J268/J284/J293/J295 dispositions.
+
+## Implementation progress — f.3b.1 visual-style import provenance (2026-10-15)
+
+The adapter now assigns each `fileImport` attempt a monotonic per-container
+generation, clears stale top-level source-version evidence at attempt start,
+and records the exact typed/raw VisualStyle collection bounds, source format,
+accepted source version and operation result. The new
+`dx_data::hasSingleSuccessfulVisualStyleImport()` predicate admits only the
+complete style range from generation one when the matching DXF or DWG read
+outcome succeeded. It rejects authored data, reused/mixed ranges, failed
+imports, missing DXF raw companions, unknown versions and DXF-raw data falsely
+presented as DWG-origin. This is only f.3b's provenance binding: it does not
+use `m_bodyDecoded`, establish profile/payload completeness or enable typed
+serialization. Existing DXF raw replay is unchanged.
+
+The new runtime-generated `libdxfrw_visual_style_import_evidence` test covers
+ASCII and binary controls plus fresh success, authored context, repeated import,
+failed read, corrected same-container retry, missing companion and an invalid
+DWG-origin/raw combination. The existing extension-graph fast test also
+continues to exercise successful VisualStyle graph round trips. The adapter
+test target builds with project warning settings; both focused CTests pass
+(2/2, under one second), and `git diff --check` passes. All drawings are
+created under the build test directory at runtime; no fixture was added and no
+full suite/native/external test ran.
+
+Remaining f.3b work is limited to extending equivalent origin/range binding to
+the named-resource families before f.4b output dispatch. f.3c still owns
+descriptor-driven source-profile completeness and serialization admission;
+f.4b writers/graph and f.4c composed qualification remain open. No support
+matrix, count or J disposition changes: J256/J260/J268/J284/J293/J295 remain
+`DEFERRED_EXTERNAL`. Validation and source hashes are bound by
+[`visual-style-import-provenance-2026-10-15.json`](docs/research/visual-style-import-provenance-2026-10-15.json).

@@ -465,7 +465,8 @@ bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
     if (readback.visualStyles.size() != 2u
         || readback.rawVisualStyleObjects.size() != 2u
         || readback.dictionaries.empty()
-        || !readback.hasNamedObjectDictionary) {
+        || !readback.hasNamedObjectDictionary
+        || !readback.hasSingleSuccessfulVisualStyleImport()) {
         return fail("VisualStyle typed/raw/root records were not all retained (styles="
             + std::to_string(readback.visualStyles.size()) + ", raw="
             + std::to_string(readback.rawVisualStyleObjects.size())
@@ -566,6 +567,78 @@ bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
     }
     if (viewport == nullptr || !matchesStyle(viewport->visualStyleHandle))
         return fail("VIEWPORT VisualStyle reference did not follow remap");
+    return true;
+}
+
+bool visualStyleImportEvidence(const std::filesystem::path& directory) {
+    for (const bool binary : {false, true}) {
+        const auto path = directory / (binary ? "visual-style-evidence-bin.dxf"
+                                              : "visual-style-evidence-ascii.dxf");
+        dx_data authored;
+        populateVisualStyleGraph(authored);
+        dx_iface writer;
+        if (!writer.fileExport(path.string(), DRW::AC1027, binary, &authored,
+                               false, true))
+            return fail("could not write VisualStyle provenance control");
+
+        dx_data imported;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &imported, false)
+            || !imported.hasSingleSuccessfulVisualStyleImport()
+            || imported.visualStyleImport.generation != 1
+            || imported.visualStyleImport.sourceFormat != dx_source_format::DXF
+            || imported.visualStyleImport.sourceVersion != DRW::AC1027
+            || imported.visualStyleImport.visualStyleBegin != 0
+            || imported.visualStyleImport.visualStyleEnd != 2
+            || imported.visualStyleImport.rawVisualStyleBegin != 0
+            || imported.visualStyleImport.rawVisualStyleEnd != 2)
+            return fail("successful DXF VisualStyle import was not bound to its exact range");
+
+        dx_data authoredOnly;
+        populateVisualStyleGraph(authoredOnly);
+        if (authoredOnly.hasSingleSuccessfulVisualStyleImport())
+            return fail("authored VisualStyles incorrectly gained import provenance");
+
+        if (!reader.fileImport(path.string(), &imported, false)
+            || imported.hasSingleSuccessfulVisualStyleImport()
+            || imported.visualStyleImport.generation != 2
+            || imported.visualStyleImport.visualStyleBegin != 2
+            || imported.visualStyleImport.rawVisualStyleBegin != 2)
+            return fail("reused container mixed VisualStyle ranges across imports");
+
+        const std::size_t retainedRawCount = imported.rawVisualStyleObjects.size();
+        const auto badPath = directory / (binary ? "invalid-style-evidence-bin.dxf"
+                                                 : "invalid-style-evidence-ascii.dxf");
+        { std::ofstream invalid(badPath); invalid << "not a DXF drawing\n"; }
+        if (reader.fileImport(badPath.string(), &imported, false)
+            || imported.hasSingleSuccessfulVisualStyleImport()
+            || imported.sourceVersion != DRW::UNKNOWNV
+            || imported.rawVisualStyleObjects.size() != retainedRawCount)
+            return fail("failed retry retained stale source evidence or erased raw style data");
+        if (!reader.fileImport(path.string(), &imported, false)
+            || imported.hasSingleSuccessfulVisualStyleImport()
+            || imported.visualStyleImport.generation != 4)
+            return fail("corrected same-container retry admitted stale style staging");
+
+        dx_data missingCompanion;
+        if (!reader.fileImport(path.string(), &missingCompanion, false)
+            || !missingCompanion.hasSingleSuccessfulVisualStyleImport())
+            return fail("fresh VisualStyle retry did not recover valid provenance");
+        missingCompanion.rawVisualStyleObjects.pop_back();
+        if (missingCompanion.hasSingleSuccessfulVisualStyleImport())
+            return fail("DXF style range without all raw companions was admitted");
+
+        dx_data falseDwg;
+        if (!reader.fileImport(path.string(), &falseDwg, false))
+            return fail("could not make DWG-origin mismatch control");
+        falseDwg.sourceFormat = dx_source_format::DWG;
+        falseDwg.visualStyleImport.sourceFormat = dx_source_format::DWG;
+        falseDwg.dwgReadOutcome.attempted = true;
+        falseDwg.dwgReadOutcome.operationSucceeded = true;
+        falseDwg.dwgReadOutcome.sourceVersion = DRW::AC1027;
+        if (falseDwg.hasSingleSuccessfulVisualStyleImport())
+            return fail("DWG-origin VisualStyle evidence admitted DXF raw carriers");
+    }
     return true;
 }
 
@@ -1031,6 +1104,10 @@ int main(int argc, char** argv) {
         return rejectDynamicBlockWithoutSerializer() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--retain-named-object-callbacks")
         return retainNamedObjectCallbacks() ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--visual-style-import-evidence") {
+        std::filesystem::create_directories(argv[2]);
+        return visualStyleImportEvidence(argv[2]) ? 0 : 1;
+    }
     if (argc != 3) {
         std::cerr << "usage: dwg2dxf_adapter_tests --generate|--verify <file>\n";
         return 2;

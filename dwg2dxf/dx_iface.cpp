@@ -2263,17 +2263,35 @@ void snapshotDxfReadOutcome(dx_data& data, const dxfRW& reader) noexcept {
 
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
+    if (fData == nullptr || fData->importGeneration
+            == std::numeric_limits<std::uint64_t>::max())
+        return false;
+    ++fData->importGeneration;
+    fData->visualStyleImport = {};
+    fData->visualStyleImport.generation = fData->importGeneration;
+    fData->visualStyleImport.visualStyleBegin = fData->visualStyles.size();
+    fData->visualStyleImport.rawVisualStyleBegin = fData->rawVisualStyleObjects.size();
     fData->dxfReadOutcome = {};
     fData->dwgReadOutcome = {};
     fData->sourceFormat = dx_source_format::Unknown;
+    fData->sourceVersion = DRW::UNKNOWNV;
     unsigned int found = fileI.find_last_of(".");
     std::string fileExt = fileI.substr(found+1);
     std::transform(fileExt.begin(), fileExt.end(),fileExt.begin(), ::toupper);
     cData = fData;
     currentBlock = cData->mBlock;
+    const auto finishVisualStyleImport = [fData](bool success) {
+        dx_visualStyleImportReceipt& receipt = fData->visualStyleImport;
+        receipt.sourceFormat = fData->sourceFormat;
+        receipt.sourceVersion = fData->sourceVersion;
+        receipt.visualStyleEnd = fData->visualStyles.size();
+        receipt.rawVisualStyleEnd = fData->rawVisualStyleObjects.size();
+        receipt.successful = success;
+    };
 
     if (fileExt == "DXF"){
         fData->sourceFormat = dx_source_format::DXF;
+        fData->visualStyleImport.sourceFormat = fData->sourceFormat;
         //loads dxf
         fData->dxfReadOutcome.attempted = true;
         fData->dxfReadOutcome.requestedCodePagePolicy = codePagePolicy;
@@ -2288,6 +2306,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         } catch (...) {
             fData->dxfReadOutcome.readThrew = true;
             snapshotDxfReadOutcome(*fData, dxf);
+            finishVisualStyleImport(false);
             throw;
         }
         fData->dxfReadOutcome.readReturned = true;
@@ -2296,12 +2315,14 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         if (success)
             fData->sourceVersion = sourceVersionFromDxfHeader(
                 fData->headerC, dxf.getVersion());
+        finishVisualStyleImport(success);
         if (!success) {
             std::cout << "DXF file error: format " << dxf.getVersion() << " error " << dxf.getError() << std::endl;
         }
         return success;
     } else if (fileExt == "DWG"){
         fData->sourceFormat = dx_source_format::DWG;
+        fData->visualStyleImport.sourceFormat = fData->sourceFormat;
         //loads dwg
         dwgRW dwg(fileI.c_str());
         fData->dwgReadOutcome.attempted = true;
@@ -2315,6 +2336,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dwgReadOutcome.observations = dwg.getReadObservations();
         if (success)
             fData->sourceVersion = dwg.getVersion();
+        finishVisualStyleImport(success);
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;
         }
@@ -2322,6 +2344,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             reportDwgReadOutcome(std::cerr, fData->dwgReadOutcome);
         return success;
     }
+    finishVisualStyleImport(false);
     std::cout << "file extension can be dxf or dwg" << std::endl;
     return false;
 }

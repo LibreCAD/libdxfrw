@@ -3,7 +3,7 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
-**Latest named-root implementation state (2026-10-15, baseline `d5f5e4a`):**
+**Latest named-root implementation state (2026-10-15):**
 f.4a callback-owned retention/copy/lifetime/reset checks are complete. The
 deeper writer/readback review found that SCALE, DICTIONARYVAR, MLINESTYLE and
 MLEADERSTYLE raw companions are discarded by the CLI adapter, no current
@@ -15,11 +15,15 @@ name resolution. The refreshed implementation-ready order is documented in
 the [open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-named-resource-emitter-and-cross-implementation-readiness-review-2026-10-15)
 with source-bound receipt
 [`named-resource-emitter-readiness-2026-10-15.json`](docs/research/named-resource-emitter-readiness-2026-10-15.json).
-Next are the already-planned f.3b import-origin/generation binding and f.3c
-source-profile serializer admission; after they pass, f.4b.1a can bridge the
-SCALE/DICTIONARYVAR graph/emitter path. No writer behavior, full conversion,
-external qualification, or support claim is implied by this research. All six
-J gates remain `DEFERRED_EXTERNAL`.
+The visual-style-only f.3b.1 import provenance slice is now implemented: it
+binds exact typed/raw collection bounds to one successful, versioned import
+and refuses authored, reused/mixed, failed, incomplete or source-format-
+mismatched style sets. This receipt is not output admission or payload
+completeness; f.3b range binding for the other named-resource families and
+f.3c source-profile serialization admission remain prerequisites to f.4b.1a.
+No writer behavior, full conversion, external qualification, or support claim
+is implied. All six J gates remain `DEFERRED_EXTERNAL`. Focused implementation
+status and commands are recorded in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--f3b1-visual-style-import-provenance-2026-10-15).
 
 **Current parity7G.3f.3a / LOCAL_IMPLEMENTATION_COMPLETE (baseline`7b753cf`):**
 Typed DXF VISUALSTYLE description/type respect subclass and291 boundaries;
@@ -31,9 +35,10 @@ Current probe matches72 literal producer types, repairing the48 modern
 collisions while leaving24 older types/other observed fields unchanged.
 Focused fixture/reader/object gates3/3 in5.15s and strict two-TU/build/lc3 pass.
 Receipt: `docs/research/visualstyle-type-scope-7g-3f-3a-2026-10-15.json`.
-f.4a owned family handoff is now complete. Next are f.3b origin/generation
-binding and f.3c serializer admission, then whole-root f.4b and CLI f.4c
-closure;9d and six external J gates remain open/non-promoting. No new
+f.4a owned family handoff is now complete. f.3b.1 now covers only the exact
+visual-style range; remaining named-resource origin/generation binding and
+f.3c serializer admission precede whole-root f.4b and CLI f.4c closure;9d and
+six external J gates remain open/non-promoting. No new
 fixture/dependency/registration, full suite/sanitizer/ODA/native qualification.
 Private public-class state requires rebuild; no callback/default2D policy change.
 

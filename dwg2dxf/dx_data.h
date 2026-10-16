@@ -16,6 +16,7 @@
 #include "libdwgr.h"
 
 #include <array>
+#include <cstdint>
 #include <list>
 #include <vector>
 
@@ -122,6 +123,20 @@ enum class dx_source_format : std::uint8_t {
     DWG
 };
 
+// Binds the visual-style records appended during one successful import to
+// that import's source profile. This is provenance only: it does not certify
+// the decoded payload or make an unsupported profile writable.
+struct dx_visualStyleImportReceipt {
+    std::uint64_t generation{0};
+    dx_source_format sourceFormat{dx_source_format::Unknown};
+    DRW::Version sourceVersion{DRW::UNKNOWNV};
+    std::size_t visualStyleBegin{0};
+    std::size_t visualStyleEnd{0};
+    std::size_t rawVisualStyleBegin{0};
+    std::size_t rawVisualStyleEnd{0};
+    bool successful{false};
+};
+
 //container class to store full dwg/dxf data.
 class dx_data {
 public:
@@ -139,8 +154,11 @@ public:
     DRW_Header headerC;                 //stores a copy of the header vars
     DRW::Version sourceVersion;          //detected source DXF/DWG revision
     dx_source_format sourceFormat {dx_source_format::Unknown};
+    // Monotonic per-container import attempt identity. Zero means no attempt.
+    std::uint64_t importGeneration{0};
     dx_dxfReadOutcome dxfReadOutcome;     //owned most-recent DXF import evidence
     dx_dwgReadOutcome dwgReadOutcome;     //bounded most-recent-import evidence
+    dx_visualStyleImportReceipt visualStyleImport;
     std::list<DRW_LType>lineTypes;      //stores a copy of all line types
     std::list<DRW_Layer>layers;         //stores a copy of all layers
     std::list<DRW_Dimstyle>dimStyles;   //stores a copy of all dimension styles
@@ -186,6 +204,36 @@ public:
     std::list<dx_ifaceImg*>images;      //temporary list to find images for link with DRW_ImageDef. Do not delete it!!
 
     dx_ifaceBlock* mBlock;              //container to store model entities
+
+    // True only while the entire typed/raw style set still belongs to one
+    // successful, versioned import. Authored/mixed/reused containers fail
+    // closed; this does not gate the existing DXF raw-replay path.
+    bool hasSingleSuccessfulVisualStyleImport() const noexcept {
+        const dx_visualStyleImportReceipt& receipt = visualStyleImport;
+        if (!receipt.successful || receipt.generation != 1
+            || receipt.visualStyleBegin != 0 || receipt.rawVisualStyleBegin != 0
+            || receipt.visualStyleEnd != visualStyles.size()
+            || receipt.rawVisualStyleEnd != rawVisualStyleObjects.size()
+            || receipt.visualStyleEnd == 0
+            || receipt.sourceVersion == DRW::UNKNOWNV
+            || sourceFormat != receipt.sourceFormat
+            || sourceVersion != receipt.sourceVersion)
+            return false;
+
+        if (receipt.sourceFormat == dx_source_format::DXF) {
+            return dxfReadOutcome.attempted && dxfReadOutcome.readReturned
+                && dxfReadOutcome.operationSucceeded
+                && dxfReadOutcome.sourceVersion == receipt.sourceVersion
+                && receipt.rawVisualStyleEnd - receipt.rawVisualStyleBegin
+                    == receipt.visualStyleEnd - receipt.visualStyleBegin;
+        }
+        if (receipt.sourceFormat == dx_source_format::DWG) {
+            return dwgReadOutcome.attempted && dwgReadOutcome.operationSucceeded
+                && dwgReadOutcome.sourceVersion == receipt.sourceVersion
+                && receipt.rawVisualStyleEnd == receipt.rawVisualStyleBegin;
+        }
+        return false;
+    }
 
 
 };
