@@ -7953,8 +7953,8 @@ bool runDxfAcdsRegionWithoutHistoryProjection(
         'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
         0x01u, 0x02u, 0x03u, 0x04u};
     dx_data source;
-    addLocalAcdsDataStorageModeler(source, sourceHandle, payload,
-                                   DRW::REGION, false);
+    DRW_ModelerGeometry* sourceRegion = addLocalAcdsDataStorageModeler(
+        source, sourceHandle, payload, DRW::REGION, false);
 
     const auto hasExpectedRegionAndStorage = [&payload](const dx_data& data) {
         if (data.mBlock == nullptr || data.rawDxfSections.size() != 1u
@@ -8041,9 +8041,39 @@ bool runDxfAcdsRegionWithoutHistoryProjection(
             && hasExpectedRegionAndStorage(replayed);
     }
 
+    // Editing only the linked payload would make the entity disagree with
+    // its owner-keyed DataStorage record. The writer must refuse rather than
+    // emit the stale section or silently drop the changed bytes. DXF import
+    // retains ACDSDATA as a raw section, so exercise the source DWG handoff
+    // where the typed modeler-to-record link exists.
+    const std::filesystem::path edited = directory /
+        ("libdxfrw-ac1027-acds-region-edited-" + encoding + ".dxf");
+    const std::string sentinel = "existing ACDSDATA destination\n";
+    if (result && sourceRegion != nullptr
+        && !sourceRegion->dataStorageData.empty()) {
+        sourceRegion->dataStorageData.back() ^= 0x01u;
+        {
+            std::ofstream outputFile(edited, std::ios::binary);
+            outputFile << sentinel;
+            result = static_cast<bool>(outputFile);
+        }
+        if (result) {
+            dx_iface editedExporter;
+            const bool rejected = !editedExporter.fileExport(
+                edited.string(), DRW::AC1027, binary, &source, false);
+            std::ifstream input(edited, std::ios::binary);
+            const std::string retained(
+                (std::istreambuf_iterator<char>(input)), {});
+            result = rejected && retained == sentinel;
+        }
+    } else {
+        result = false;
+    }
+
     if (!keepOutputs) {
         std::filesystem::remove(output, ec);
         std::filesystem::remove(replay, ec);
+        std::filesystem::remove(edited, ec);
     }
     return result;
 }
