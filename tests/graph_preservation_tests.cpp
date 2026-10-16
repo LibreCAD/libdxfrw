@@ -1029,17 +1029,21 @@ void testDataStorageBlobPages(TestContext& t) {
     body.setHasDataStorageBinaryData(true);
     body.dataStorageHandle = 0xa17u;
     body.dataStorageHandleKey = "A17";
+    DRW_ModelerGeometry suffixBody(DRW::BODY);
+    suffixBody.handle = 0xb18u;
+    suffixBody.parentHandle = 0xc00u;
+    suffixBody.setHasDataStorageBinaryData(true);
+    suffixBody.dataStorageHandle = 0xa18u;
+    suffixBody.dataStorageHandleKey = "A18";
+    suffixBody.m_modelerVersion = 168u;
+    // Traverse the later stored record first; the suffix remains opaque and
+    // must not be mistaken for a valid SAB carrier.
+    reader.linkDataStorage(suffixBody);
     reader.linkDataStorage(body);
     reader.finalizeDataStorageLinks();
 
     const DRW_DataStorageSection& linkedSection =
         reader.m_dataStorageSections.front();
-    const bool hasOrphanDiagnostic = std::any_of(
-        linkedSection.diagnostics.cbegin(), linkedSection.diagnostics.cend(),
-        [](const DRW_DataStorageDiagnostic& diagnostic) {
-            return diagnostic.code == "datastorage-orphan-record"
-                && diagnostic.handle == 0xa18u;
-        });
     t.expect(body.hasDataStorageRecord
                  && body.dataStorageHandle == 0xa17u
                  && body.dataStorageHandleKey == "A17"
@@ -1053,12 +1057,46 @@ void testDataStorageBlobPages(TestContext& t) {
                  && body.m_dwgSourceVersion == DRW::AC1027
                  && body.m_modelerVersion == 2u
                  && body.m_hasModelerData && !body.m_isEmpty
+                 && suffixBody.hasDataStorageRecord
+                 && suffixBody.dataStorageHandle == 0xa18u
+                 && suffixBody.dataStorageHandleKey == "A18"
+                 && suffixBody.dataStorageData == sentinel
+                 && !suffixBody.hasDataStoragePayloadMarker
+                 && suffixBody.m_modelerVersion == 168u
+                 && suffixBody.parentHandle == 0xc00u
                  && reader.m_dataStorageLinkFailures == 0u
-                 && reader.m_dataStorageLinkedRecords.size() == 1u
-                 && reader.m_dataStorageOrphanRecords == 1u
-                 && linkedSection.orphanRecordCount == 1u
+                 && reader.m_dataStorageLinkedRecords.size() == 2u
+                 && reader.m_dataStorageOrphanRecords == 0u
+                 && linkedSection.orphanRecordCount == 0u,
+             "parsed DataStorage records link to bodies across reversed traversal order");
+
+    std::vector<std::uint8_t> orphanReaderBacking{0u};
+    dwgRW orphanParent(nullptr);
+    DataStorageLinkTestReader orphanReader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(
+            orphanReaderBacking.data(), orphanReaderBacking.size())),
+        &orphanParent);
+    orphanReader.setFormatVersion(DRW::AC1027);
+    orphanReader.m_dataStorageSections.push_back(
+        DRW_parseDataStorage(fixture.bytes, DRW::AC1027));
+    DRW_ModelerGeometry onlyFirstBody(DRW::E3DSOLID);
+    onlyFirstBody.setHasDataStorageBinaryData(true);
+    onlyFirstBody.dataStorageHandle = 0xa17u;
+    onlyFirstBody.dataStorageHandleKey = "A17";
+    orphanReader.linkDataStorage(onlyFirstBody);
+    orphanReader.finalizeDataStorageLinks();
+    const DRW_DataStorageSection& orphanSection =
+        orphanReader.m_dataStorageSections.front();
+    const bool hasOrphanDiagnostic = std::any_of(
+        orphanSection.diagnostics.cbegin(), orphanSection.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code == "datastorage-orphan-record"
+                && diagnostic.handle == 0xa18u;
+        });
+    t.expect(orphanReader.m_dataStorageOrphanRecords == 1u
+                 && orphanSection.orphanRecordCount == 1u
                  && hasOrphanDiagnostic,
-             "DataStorage parser output links exact blob carrier and accounts for unreferenced record");
+             "parsed DataStorage finalization reports unattached record by handle");
 }
 
 void testFramePublicationContract(TestContext& t) {
