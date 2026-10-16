@@ -569,6 +569,29 @@ public:
         return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
     }
 
+    bool encodeAcDsSolid(std::uint32_t handle, std::uint32_t ownerHandle) {
+        ModelerDispatchSource source(DRW::E3DSOLID);
+        source.setObjectType(38u); // ODA v5.4.1 §20.4.41: 3DSOLID
+        source.handle = handle;
+        source.parentHandle = ownerHandle;
+        source.setHasDataStorageBinaryData(true);
+
+        dwgBufferW& body = beginObject(handle);
+        if (!source.encodeCommon(m_version, body, m_objectStrings))
+            return false;
+        body.putBit(0u); // nonempty modeler data; SAB is in AcDs
+        body.putBit(0u); // modeler-data unknown bit
+        body.putBitShort(168u); // opaque AC1027-local field, not SAB version
+        body.putBit(0u); // empty R2007+ string stream
+        body.alignToByte();
+        if (!body.isGood()
+            || !source.encodeHandles(m_version, body, m_objectHandles))
+            return false;
+
+        finishObject();
+        return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
+    }
+
     bool encodeInsert(std::uint32_t handle, std::uint32_t ownerHandle,
                       std::uint32_t targetBlockHandle) {
         InsertDispatchSource source;
@@ -594,6 +617,33 @@ public:
     void setFormatVersion(DRW::Version value) {
         version = value;
         decoder.setVersion(value, false);
+    }
+
+    void appendDataStorageRecord(std::uint64_t handle,
+                                 const std::string& handleKey,
+                                 std::vector<std::uint8_t> payload) {
+        DRW_DataStorageSection section;
+        section.m_version = version;
+        DRW_DataStorageRecord record;
+        record.handle = handle;
+        record.handleKey = handleKey;
+        record.payload = std::move(payload);
+        record.segmentIndex = 3u;
+        record.schemaIndex = 5u;
+        section.records.push_back(std::move(record));
+        section.recordIndexByHandle.emplace(handle, 0u);
+        section.recordIndexByHandleKey.emplace(handleKey, 0u);
+        section.recordIndexesByHandle[handle].push_back(0u);
+        section.recordIndexesByHandleKey[handleKey].push_back(0u);
+        m_dataStorageSections.push_back(std::move(section));
+    }
+
+    void finalizeDataStorage() { finalizeDataStorageLinks(); }
+    std::size_t dataStorageLinkFailures() const {
+        return m_dataStorageLinkFailures;
+    }
+    std::size_t dataStorageOrphans() const {
+        return m_dataStorageOrphanRecords;
     }
 };
 
@@ -876,6 +926,76 @@ void testModelerInsertTargetResolution(TestContext& t) {
                  && missing.targetHandle == missingTargetHandle
                  && missing.targetName.empty(),
              "unresolved INSERT target preserves its handle and leaves the name empty");
+}
+
+void testModelerAcDsBodyDispatch(TestContext& t) {
+    constexpr std::uint32_t blockHandle = 0x720u;
+    constexpr std::uint32_t solidHandle = 0xA20u;
+    static constexpr std::uint8_t signature[] = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
+    // Marker-only association bytes, deliberately not a valid SAB body.
+    std::vector<std::uint8_t> payload(std::begin(signature),
+                                      std::end(signature));
+    payload.insert(payload.end(), {0xA5u, 0x5Au});
+
+    std::ofstream output;
+    DRW_Header header;
+    ModelerDispatchFrameWriter writer(&output, &header);
+    const bool generated = writer.encodeAcDsSolid(solidHandle, blockHandle);
+    t.expect(generated,
+             "in-memory AC1027 nonempty modeler shell and AcDs payload are generated");
+    if (!generated)
+        return;
+
+    std::vector<std::uint8_t> sourceBytes = writer.buffer();
+    dwgRW parent("");
+    auto blockOwner = std::make_unique<DRW_Block_Record>();
+    DRW_Block_Record* block = blockOwner.get();
+    block->handle = blockHandle;
+    block->name = "ACDS_SOLID_TEST";
+    DwgBlockOwnershipTestAccess::setEntityHandles(*block, {solidHandle});
+    ModelerDispatchReader reader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(
+            sourceBytes.data(), sourceBytes.size())),
+        &parent);
+    reader.setFormatVersion(DRW::AC1027);
+    reader.blockRecordmap.emplace(blockHandle, block);
+    (void)blockOwner.release(); // reader owns block-record values.
+    reader.ObjectMap.emplace(solidHandle, objHandle(38u, solidHandle, 0u));
+    // This begins at the already-parsed record/link seam; raw section parsing
+    // and page-chain reconstruction have their own generated controls.
+    reader.appendDataStorageRecord(solidHandle, "A20", payload);
+
+    dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
+    ModelerDispatchSink sink;
+    sink.activeWalkOwner = blockHandle;
+    const bool walked = reader.walkBlockRecordEntities(
+        block, &objectStream, sink, blockHandle, blockHandle);
+    reader.finalizeDataStorage();
+
+    bool carrierMatches = walked && sink.modeler.size() == 1u;
+    if (carrierMatches) {
+        const ModelerDispatchSink::OwnedSolid& solid = sink.modeler.front();
+        carrierMatches = solid.walkOwner == blockHandle
+            && solid.entity.handle == solidHandle
+            && solid.entity.parentHandle == blockHandle
+            && solid.entity.eType == DRW::E3DSOLID
+            && solid.entity.hasDataStorageBinaryData()
+            && solid.entity.m_hasModelerData
+            && !solid.entity.m_isEmpty
+            && solid.entity.m_modelerVersion == 2u
+            && solid.entity.hasDataStorageRecord
+            && solid.entity.dataStorageHandle == solidHandle
+            && solid.entity.dataStorageHandleKey == "A20"
+            && solid.entity.dataStorageData == payload
+            && solid.entity.m_dwgAcisPayload.empty()
+            && !solid.entity.m_rawBytes.empty();
+    }
+    t.expect(carrierMatches,
+             "3DSOLID callback retains owner, full frame, and exact linked AcDs bytes separately");
+    t.expect(reader.dataStorageLinkFailures() == 0u
+                 && reader.dataStorageOrphans() == 0u,
+             "dispatched solid consumes exactly one generated AcDs record");
 }
 
 void testR2004SectionMapPublication(TestContext& t) {
@@ -3062,6 +3182,7 @@ int main() {
     testModelerBlockRecordDispatch(context);
     testModelerBlockWalkRejectsBadOwnership(context);
     testModelerInsertTargetResolution(context);
+    testModelerAcDsBodyDispatch(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
