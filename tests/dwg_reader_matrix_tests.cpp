@@ -44,6 +44,14 @@
 #include "intern/dwgwriter32.h"
 #include "intern/dwgsafety.h"
 
+class DwgBlockOwnershipTestAccess {
+public:
+    static void setEntityHandles(DRW_Block_Record& record,
+                                 std::vector<std::uint32_t> handles) {
+        record.entMap = std::move(handles);
+    }
+};
+
 namespace {
 
 static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TemplateDescriptionUnsupported) == 20u,
@@ -513,6 +521,117 @@ public:
     std::size_t lines{0};
     DRW_Coord end;
 };
+
+class ModelerDispatchSource final : public DRW_ModelerGeometry {
+public:
+    explicit ModelerDispatchSource(DRW::ETYPE type) : DRW_ModelerGeometry(type) {}
+
+    void setObjectType(std::uint16_t value) { oType = value; }
+    bool encodeCommon(DRW::Version version, dwgBufferW& body,
+                      dwgBufferW& strings) {
+        return encodeDwgCommon(version, &body, &strings);
+    }
+    bool encodeHandles(DRW::Version version, dwgBufferW& body,
+                       dwgBufferW& handles) {
+        return encodeDwgEntHandle(version, &body, &handles);
+    }
+};
+
+class ModelerDispatchFrameWriter final : public dwgWriter27 {
+public:
+    ModelerDispatchFrameWriter(std::ofstream* stream, DRW_Header* header)
+        : dwgWriter27(stream, header) {}
+
+    bool encodeEmptySolid(std::uint32_t handle, std::uint32_t ownerHandle) {
+        ModelerDispatchSource source(DRW::E3DSOLID);
+        source.setObjectType(38u); // ODA v5.4.1 §20.4.41: 3DSOLID
+        source.handle = handle;
+        source.parentHandle = ownerHandle;
+
+        dwgBufferW& body = beginObject(handle);
+        if (!source.encodeCommon(m_version, body, m_objectStrings))
+            return false;
+        body.putBit(1u); // empty modeler data: no ACIS body follows
+        body.putBit(0u); // modeler-data unknown bit
+        if (!body.isGood()
+            || !source.encodeHandles(m_version, body, m_objectHandles))
+            return false;
+
+        finishObject();
+        return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
+    }
+};
+
+class ModelerDispatchReader final : public dwgReader27 {
+public:
+    using dwgReader::walkBlockRecordEntities;
+
+    ModelerDispatchReader(std::unique_ptr<dwgBuffer> buffer, dwgRW* parent)
+        : dwgReader27(std::move(buffer), parent) {}
+
+    void setFormatVersion(DRW::Version value) {
+        version = value;
+        decoder.setVersion(value, false);
+    }
+};
+
+class ModelerDispatchSink final : public dx_iface {
+public:
+    ModelerDispatchSink() {
+        cData = &data;
+        currentBlock = data.mBlock;
+    }
+
+    void addModelerGeometry(const DRW_ModelerGeometry& value) override {
+        modeler.push_back(value);
+    }
+
+    dx_data data;
+    std::vector<DRW_ModelerGeometry> modeler;
+};
+
+void testModelerBlockRecordDispatch(TestContext& t) {
+    constexpr std::uint32_t blockHandle = 0x500u;
+    constexpr std::uint32_t solidHandle = 0x900u;
+    std::ofstream output;
+    DRW_Header header;
+    ModelerDispatchFrameWriter writer(&output, &header);
+    const bool generated = writer.encodeEmptySolid(solidHandle, blockHandle);
+    t.expect(generated,
+             "in-memory AC1027 writer frames an empty 3DSOLID with a block owner");
+    if (!generated)
+        return;
+
+    std::vector<std::uint8_t> frameBytes = writer.buffer();
+    dwgRW parent("");
+    auto blockOwner = std::make_unique<DRW_Block_Record>();
+    auto* block = blockOwner.get();
+    block->handle = blockHandle;
+    block->name = "MODEL_SOLID_OWNER";
+    DwgBlockOwnershipTestAccess::setEntityHandles(*block, {solidHandle});
+    ModelerDispatchReader reader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(frameBytes.data(), frameBytes.size())),
+        &parent);
+    reader.setFormatVersion(DRW::AC1027);
+    reader.blockRecordmap.emplace(blockHandle, block);
+    (void)blockOwner.release(); // dwgReader owns and deletes blockRecordmap values.
+    reader.ObjectMap.emplace(solidHandle,
+                             objHandle(38u, solidHandle, 0u));
+
+    dwgBuffer objectStream(frameBytes.data(), frameBytes.size());
+    ModelerDispatchSink sink;
+    const bool walked = reader.walkBlockRecordEntities(
+        block, &objectStream, sink, blockHandle, blockHandle);
+    t.expect(walked && sink.modeler.size() == 1u,
+             "AC1027 BLOCK_RECORD walk dispatches the generated 3DSOLID once");
+    if (sink.modeler.size() == 1u) {
+        const DRW_ModelerGeometry& parsed = sink.modeler.front();
+        t.expect(parsed.eType == DRW::E3DSOLID && parsed.handle == solidHandle
+                     && parsed.parentHandle == blockHandle && parsed.m_isEmpty
+                     && parsed.m_dwgAcisPayload.empty(),
+                 "typed modeler callback retains entity type, handle, owner, and empty-body state");
+    }
+}
 
 void testR2004SectionMapPublication(TestContext& t) {
     std::stringbuf streamBuffer(std::ios::out | std::ios::binary);
@@ -2695,6 +2814,7 @@ int main() {
     testDisjointRangeIndex(context);
     testExactUnknownSectionNames(context);
     testR2004SectionMapPublication(context);
+    testModelerBlockRecordDispatch(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
