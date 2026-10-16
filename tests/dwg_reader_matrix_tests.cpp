@@ -617,9 +617,84 @@ public:
     }
 };
 
+std::vector<std::uint8_t> makeInlineAcDsSection(
+    std::uint32_t handle, const std::vector<std::uint8_t>& payload) {
+    constexpr std::size_t sectionSize = 448u;
+    constexpr std::size_t segmentIndexOffset = 64u;
+    constexpr std::size_t dataIndexOffset = 192u;
+    constexpr std::size_t dataOffset = 320u;
+    constexpr std::size_t recordDataOffset = 400u;
+    if (payload.size() > sectionSize - recordDataOffset - 4u
+        || payload.size() > std::numeric_limits<std::uint32_t>::max())
+        return {};
+
+    std::vector<std::uint8_t> bytes(sectionSize, 0u);
+    const auto putU16 = [&bytes](std::size_t offset, std::uint16_t value) {
+        bytes[offset] = static_cast<std::uint8_t>(value);
+        bytes[offset + 1u] = static_cast<std::uint8_t>(value >> 8);
+    };
+    const auto putU32 = [&bytes](std::size_t offset, std::uint32_t value) {
+        for (unsigned index = 0; index < 4u; ++index)
+            bytes[offset + index] =
+                static_cast<std::uint8_t>(value >> (index * 8u));
+    };
+    const auto putU64 = [&putU32](std::size_t offset, std::uint64_t value) {
+        putU32(offset, static_cast<std::uint32_t>(value));
+        putU32(offset + 4u, static_cast<std::uint32_t>(value >> 32));
+    };
+    const auto putSegment = [&putU16, &putU32, &bytes](
+                                std::size_t offset, const char* name,
+                                std::uint32_t index) {
+        putU16(offset, DRW_DataStorageConst::SEGMENT_SIGNATURE);
+        for (std::size_t byte = 0; byte < 6u; ++byte)
+            bytes[offset + 2u + byte] =
+                static_cast<std::uint8_t>(name[byte]);
+        putU32(offset + 8u, index);
+        putU32(offset + 16u, 128u);
+        putU32(offset + 24u, 1u);
+    };
+
+    putU32(4u, DRW_DataStorageConst::HEADER_SIZE);
+    putU32(12u, 1u);
+    putU32(20u, 1u);
+    putU32(24u, static_cast<std::uint32_t>(segmentIndexOffset));
+    putU32(32u, 3u);
+    putU32(36u, 0xffffffffu); // No schema-index segment.
+    putU32(40u, 1u); // Data-index segment.
+    putU32(44u, 0xffffffffu); // No search segment.
+    putU32(48u, 0xffffffffu); // No previous-save segment.
+    putU32(52u, static_cast<std::uint32_t>(sectionSize));
+
+    putSegment(segmentIndexOffset, "segidx", 0u);
+    putSegment(dataIndexOffset, "datidx", 1u);
+    putSegment(dataOffset, "_data_", 2u);
+    const std::array<std::pair<std::size_t, std::uint32_t>, 3> segments{{
+        {segmentIndexOffset, 128u}, {dataIndexOffset, 128u},
+        {dataOffset, 128u}}};
+    for (std::size_t index = 0; index < segments.size(); ++index) {
+        const std::size_t entry = segmentIndexOffset + 48u + index * 12u;
+        putU64(entry, segments[index].first);
+        putU32(entry + 8u, segments[index].second);
+    }
+
+    putU32(dataIndexOffset + 48u, 1u);
+    putU32(dataIndexOffset + 56u, 2u);
+    putU32(dataIndexOffset + 60u, 0u);
+    putU32(dataIndexOffset + 64u, 0u);
+
+    putU32(dataOffset + 48u, DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+    putU64(dataOffset + 56u, handle);
+    putU32(dataOffset + 64u, 0u);
+    putU32(recordDataOffset, static_cast<std::uint32_t>(payload.size()));
+    std::copy(payload.begin(), payload.end(),
+              bytes.begin() + static_cast<std::ptrdiff_t>(recordDataOffset + 4u));
+    return bytes;
+}
+
 class ModelerDispatchReader final : public dwgReader27 {
 public:
     using dwgReader::walkBlockRecordEntities;
+    using dwgReader18::captureRawDwgDataSections;
 
     ModelerDispatchReader(std::unique_ptr<dwgBuffer> buffer, dwgRW* parent)
         : dwgReader27(std::move(buffer), parent) {}
@@ -648,6 +723,34 @@ public:
         m_dataStorageSections.push_back(std::move(section));
     }
 
+    void setPrototypeSectionData(std::vector<std::uint8_t> data) {
+        m_prototypeSectionData = std::move(data);
+        dwgSectionInfo section;
+        section.Id = 1;
+        section.size = m_prototypeSectionData.size();
+        section.compressed = 1u;
+        sections[secEnum::PROTOTYPE] = std::move(section);
+    }
+
+    bool captureDataStorageSection() {
+        return captureRawDwgDataSections();
+    }
+
+    std::size_t rawDataStorageSections() const {
+        return m_rawDwgSections.size();
+    }
+
+    std::size_t parsedDataStorageRecords() const {
+        return m_dataStorageSections.empty()
+            ? 0u : m_dataStorageSections.front().records.size();
+    }
+
+    bool rawDataStorageSectionEquals(
+        const std::vector<std::uint8_t>& expected) const {
+        return m_rawDwgSections.size() == 1u
+            && m_rawDwgSections.front().m_data == expected;
+    }
+
     void finalizeDataStorage() { finalizeDataStorageLinks(); }
     std::size_t dataStorageLinkFailures() const {
         return m_dataStorageLinkFailures;
@@ -655,6 +758,23 @@ public:
     std::size_t dataStorageOrphans() const {
         return m_dataStorageOrphanRecords;
     }
+
+protected:
+    bool parseDataPage(const dwgSectionInfo& section,
+                       std::unique_ptr<std::uint8_t[]>& sectionData,
+                       std::uint64_t& sectionSize) override {
+        if (section.size != m_prototypeSectionData.size())
+            return false;
+        sectionSize = section.size;
+        sectionData.reset(new std::uint8_t[
+            static_cast<std::size_t>(sectionSize)]);
+        std::copy(m_prototypeSectionData.begin(),
+                  m_prototypeSectionData.end(), sectionData.get());
+        return true;
+    }
+
+private:
+    std::vector<std::uint8_t> m_prototypeSectionData;
 };
 
 class ModelerDispatchSink final : public dx_iface {
@@ -957,6 +1077,13 @@ void testModelerAcDsBodyDispatch(TestContext& t) {
     if (!generated)
         return;
 
+    const std::vector<std::uint8_t> rawSection =
+        makeInlineAcDsSection(solidHandle, payload);
+    t.expect(!rawSection.empty(),
+             "source-authored one-record AcDs section is generated in memory");
+    if (rawSection.empty())
+        return;
+
     std::vector<std::uint8_t> sourceBytes = writer.buffer();
     dwgRW parent("");
     auto blockOwner = std::make_unique<DRW_Block_Record>();
@@ -972,9 +1099,14 @@ void testModelerAcDsBodyDispatch(TestContext& t) {
     reader.blockRecordmap.emplace(blockHandle, block);
     (void)blockOwner.release(); // reader owns block-record values.
     reader.ObjectMap.emplace(solidHandle, objHandle(38u, solidHandle, 0u));
-    // This begins at the already-parsed record/link seam; raw section parsing
-    // and page-chain reconstruction have their own generated controls.
-    reader.appendDataStorageRecord(solidHandle, "A20", payload);
+    reader.setPrototypeSectionData(rawSection);
+    const bool captured = reader.captureDataStorageSection();
+    t.expect(captured && reader.rawDataStorageSections() == 1u
+                 && reader.parsedDataStorageRecords() == 1u
+                 && reader.rawDataStorageSectionEquals(rawSection),
+             "generated AcDs bytes pass through raw page capture and typed indexing");
+    if (!captured)
+        return;
 
     dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
     ModelerDispatchSink sink;
