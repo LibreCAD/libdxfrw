@@ -15155,9 +15155,36 @@ Validation: `libdxfrw_graph_preservation_tests` builds,
 `git diff --check` passes. This still injects the parsed section and
 already-constructed body objects directly: it is not end-to-end DWG section
 discovery/entity parse, block/INSERT traversal, writer replay, or semantic
-geometry. Next: probe a source-generated DWG section-discovery/publication
-seam; if that cannot be bounded in the fast lane, proceed with existing
-in-memory ownership seams and implement untouched-section passthrough
-invalidation. No full suite, external tool, disk drawing fixture, dependency
-or support promotion. Findings/subplans remain 122/70; J256, J260, J268, J284,
-J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+geometry. Section capture and transactional publication are covered in
+`896257d` (next progress entry). Physical DWG page decoding, entity parsing,
+block/INSERT traversal, writer replay and semantic geometry remain open. No
+full suite, external tool, disk drawing fixture, dependency or support
+promotion. Findings/subplans remain 122/70; J256, J260, J268, J284, J293 and
+J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — DWG DataStorage section capture (2026-10-15)
+
+Implementation commit: `896257d` (`Test DWG DataStorage section capture`).
+
+The test calls the actual R2004+ `captureRawDwgDataSections` staging path
+with a generated prototype-section descriptor. A narrow virtual page-loader
+seam on the internal `dwgReader18` class lets the test provide already-decoded
+section bytes without manufacturing an entire physical DWG page stream. The
+valid path checks fallback section naming, exact raw-byte retention and the
+two-record typed index. A subsequent malformed one-byte replacement must be
+rejected while both the previously published raw section and typed index
+remain unchanged. Default production page decoding is unchanged; no public
+interface or installed header is altered.
+
+Validation: `libdxfrw_graph_preservation_tests` builds,
+`libdxfrw_graph_preservation` passes 1/1 (0.58 seconds),
+`lc3_compat_check` is up to date, and `git diff --check` passes. The page bytes
+are injected after the physical reader's decompression stage, and the bodies
+remain preconstructed test objects; actual physical DWG page decoding,
+entity-body parsing/publication, block/INSERT reachability, writer replay and
+semantic geometry remain open. Next: use the existing fast in-memory reader
+seams for block/owner closure, then implement same-version untouched-section
+passthrough with explicit mutation/deletion/owner/version/remap refusal. No
+full suite, disk fixture, external executable, dependency, or support promotion.
+Findings/subplans remain 122/70; J256, J260, J268, J284, J293 and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.
