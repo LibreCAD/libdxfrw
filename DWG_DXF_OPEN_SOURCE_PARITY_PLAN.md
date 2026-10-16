@@ -67,8 +67,13 @@ a two-page maximum-size chain in reverse physical order. Existing generated
 cases also cover record-span bounds, a following-record sentinel, aliased page
 references and unequal assembled totals; the latest focused slices add
 missing-segment, duplicate-ordinal, wrong-start and wrong-reference-length
-rejection plus atomic section-capture assertions. Explicit hostile truncation
-and arithmetic-overflow vectors still need a final audit against parser bounds.
+rejection plus atomic section-capture assertions. A one-byte-short Blob01
+segment extent and `UINT64_MAX` declared total now fail without losing the
+suffix record. Under the current `HARD_MAX_ENTRIES` and per-page cap, the
+maximum accumulated page bytes are far below `UINT64_MAX`, so the checked
+aggregate addition cannot overflow for an admitted page count; retain this
+bound as an invariant and test declaration/segment truncation, not an
+unreachable arithmetic state.
 Autodesk also documents
 inaccurate polyface header counts and noncanonical child order as cases
 tolerant readers must accept; those generated read-tolerance controls remain
@@ -15771,14 +15776,16 @@ kernel supplied evidence.
    attachment across four disagreeing orders. Keep future cases in this same
    executable.
 3. **Local Blob01 structural coverage implemented (`a471583`, `a9d1efc`,
-   `00b9ea4`, `4f4c9e5`; with existing graph-preservation controls):** test
+   `00b9ea4`, `4f4c9e5`, `c82b487`; with existing graph-preservation controls):** test
    exact direct/blob and page-cap transitions, one-/two-page payload assembly,
    reverse physical order, correct modeler-owner attachment, malformed
    references/page headers, alias and assembled-total rejection, record-span
-   limits, suffix survival, and atomic section capture. The remaining local
-   test audit is explicit truncation/overflow coverage where it reaches a
-   distinct parser branch. Resolve candidate 80-byte frame fields against ODA
-   and producer traces before production use.
+   limits, suffix survival, atomic section capture, one-byte page-segment
+   truncation and maximum declared-total refusal. The remaining local test
+   audit is any distinct untested descriptor/page-header truncation branch;
+   aggregate-byte arithmetic overflow is unreachable under the count/size
+   caps. Resolve candidate 80-byte frame fields against ODA and producer
+   traces before production use.
 4. Audit entity raw-frame passthrough and edit invalidation separately from
    record-section linking. Then assess whether a production change is actually
    required; no speculative AcDs writer is in scope for a read-DWG/DXF-write
@@ -15867,9 +15874,31 @@ rerun after the `0x3ffff` addition and passes in 0.58 seconds. `git diff
 peer executable, dependency or semantic-geometry check ran. No production code
 or support claim changed. Findings/subplans remain 122/70; J256, J260, J268,
 J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next: audit
-the remaining hostile truncation/overflow parser branches, then separate
-raw-frame passthrough/edit invalidation from section-record association; do
-not adopt ACadRust's 80-byte frame rule without producer/spec evidence.
+the remaining distinct descriptor/page-header truncation branches, then
+separate raw-frame passthrough/edit invalidation from section-record
+association; do not adopt ACadRust's 80-byte frame rule without producer/spec
+evidence.
+
+## Implementation progress — AcDs hostile page-bound controls (2026-10-15)
+
+Implementation commit: `c82b487` (`Test malformed AcDs page bounds`). The
+existing source-authored two-page Blob01 fixture now has two additional
+fail-closed checks: a page segment declared one byte shorter than its final
+referenced payload byte, and a descriptor/page-header total set to
+`UINT64_MAX` while actual page lengths remain bounded. Both reject the blob
+record and preserve the later sentinel record. The maximum-total case verifies
+bounded handling rather than triggering arithmetic overflow: with at most
+1,000,000 pages and each page bounded by `0xFFFB0`, their sum is below the
+64-bit limit.
+
+Validation: strict `libdxfrw_graph_preservation_tests` target build passes;
+focused `libdxfrw_graph_preservation` CTest passes 1/1 in 0.59 seconds;
+`git diff --check` passes. No full suite, external drawing, peer executable,
+native application, dependency or semantic geometry check ran. No production
+code or support claim changed. The next task is a bounds-path audit for
+descriptor/page-header truncation cases that exercise a distinct branch, then
+the independent raw-frame passthrough/edit-invalidation review. All six
+external J items remain `DEFERRED_EXTERNAL` and non-promoting.
 
 ## Implementation progress — Blob01 page-chain validation (2026-10-15)
 
