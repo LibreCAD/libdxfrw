@@ -15079,3 +15079,27 @@ This research changes validation sequencing only: no C++ code, test fixture,
 dependency, support count, external qualification, or consumer claim changed.
 Findings/subplans remain 122/70. J256, J260, J268, J284, J293, and J295 remain
 `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — multi-owner AcDs link-order regression (2026-10-15)
+
+Implementation commit: `bccf2b2` (`Test AcDs body links across block owners`).
+
+The existing generated linker test now associates three different modeler
+entity types with records whose storage order (`70, 10, 90`), numeric-handle
+order (`10, 70, 90`), and visitation order (`90, 10, 70`) disagree. Each body
+has a different parent block/model-space handle and a distinct segment/schema
+index. The assertion checks exact handle→payload/index association, preserves
+the owning parent handle, normalizes linked SAB carriers, and requires zero
+link failures/orphans. All inputs are source-generated in memory.
+
+Validation: `libdxfrw_hardening_tests` builds; `lc3_compat_check` is up to date;
+`git diff --check` passes. The focused `libdxfrw_hardening` CTest executes the
+new case without a new assertion failure but exits 1 on the two existing
+`DICTIONARYWDFLT` copy/assignment parser-state assertions earlier in that same
+executable. No production code, raw DWG/DXF fixture, external reader, full
+suite, or support claim changed. This closes only the multi-owner in-memory
+link mapping control: combining the raw-byte `DRW_parseDataStorage` output with
+entity parsing/publication and target-side body semantics remains open. Next,
+add that parser-to-link integration at the narrow generated boundary, then
+continue to the planned AcDs passthrough invalidation rules. All six J items
+remain `DEFERRED_EXTERNAL` and non-promoting; plan counts remain 122/70.
