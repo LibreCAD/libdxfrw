@@ -15188,3 +15188,64 @@ passthrough with explicit mutation/deletion/owner/version/remap refusal. No
 full suite, disk fixture, external executable, dependency, or support promotion.
 Findings/subplans remain 122/70; J256, J260, J268, J284, J293 and J295 remain
 `DEFERRED_EXTERNAL` and non-promoting.
+
+## Broader 3D carrier, display, semantic, and writer-boundary review (2026-10-15; research only)
+
+This pass widened the comparison from parser/section coverage to the distinct
+3D contracts a consumer may depend on: stored ACIS bytes, cached display data,
+valid end-state B-rep geometry, and editable model/history behavior. It also
+rechecked the currently open ACadSharp ACIS writer proposals and DXF-only
+comparators. The ODA specification remains authoritative for DWG layout;
+peer issues and PRs are implementation/test leads only. No peer was built or
+run and no generated drawing was added. Durable evidence:
+[`open-source-3d-contract-and-writer-boundary-review-2026-10-15.json`](docs/research/open-source-3d-contract-and-writer-boundary-review-2026-10-15.json).
+
+| Evidence | Deeper finding and boundary | Plan consequence |
+| --- | --- | --- |
+| ODA v5.4.1 [§20.4.41](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf) and [§24.2.2.3](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf) | The modeler entity body has separate ACIS, optional wireframe/isoline, and silhouette portions; R2007+ also has a History ID handle. Separately, §24's AcDs data-record description explicitly identifies SAB records for `REGION` and `3DSOLID`. This is not a normative statement that every `BODY` uses the same external AcDs record mapping. The spec itself says the ACIS stream is incompletely decrypted and puts detailed SAB grammar outside scope. | Keep four claims independent: (1) exact SAT/SAB and container/handle preservation, (2) wireframe/silhouette display-cache preservation, (3) valid end-state B-rep semantics, and (4) history/parametric editability. Treat `BODY` as its own version/profile row; do not route it through the REGION/3DSOLID AcDs path absent a producer trace. Capture and test wireframe/history boundaries without using them as a substitute for the solid payload. |
+| LibreDWG maintainer [SAT-parser discussion #1160](https://github.com/LibreDWG/libredwg/discussions/1160) | A project maintainer describes the ACIS representation as the result of kernel computation, with modeling operations/history elsewhere in DWG objects, and says basic IO need not implement a full solid kernel. This is peer architecture guidance, not a format rule. | Do not make a geometry kernel a dependency of the file IO library. Keep raw carrier read/write as a separately useful layer, while documenting that it does not provide kernel operations or recover the feature tree. A renderable cache is not proof of editable solid semantics. |
+| ezdxf maintainer [3DSOLID discussion #1295](https://github.com/mozman/ezdxf/discussions/1295) | The reported generated body opens as a solid and AutoCAD `MASSPROP` succeeds, but the downstream Dynamo intersection differs from native-created solids; the maintainer characterizes ezdxf ACIS support as basic. This is an issue/discussion report, not an independently reproduced failure. | Extend the semantic manifest beyond parse success, body count, and mass properties: include at least one known-answer topology/Boolean operation (e.g. intersection/subtract) when the chosen kernel exposes it. Record unsupported/healed/fallback status and the exact operation result. Do not promote carrier transport or mass properties into general modeling compatibility. |
+| LibreDWG [issue #1411](https://github.com/LibreDWG/libredwg/issues/1411) and ezdxf [ACIS generator documentation](https://ezdxf.readthedocs.io/en/stable/acis.html) | The issue supplies a reproducible AC1032 `REGION` recipe from a cube mesh that creates a 5,489-byte SAB body, then reports that a specific LibreDWG build silently loses it through DXF→DWG→DXF. This creates a no-proprietary-source input lead, but the issue's output has not been rerun here and ezdxf's own documentation says ACIS support is limited. | Add a source-authored, ephemeral cube generator/control to the composed integration harness if a pinned ezdxf installation is already available; do not add ezdxf as a runtime/test dependency or commit the generated DXF/DWG/SAB. Treat it as a container/writer regression only until a separate kernel verifies the intended shape. Keep a locally authored manifest and assert the whole entity→AcDs record→payload chain in both conversion directions. |
+| ACadSharp open [PR #1150](https://github.com/DomCR/ACadSharp/pull/1150), [PR #1240](https://github.com/DomCR/ACadSharp/pull/1240), and linked [issue #1195](https://github.com/DomCR/ACadSharp/issues/1195) | As reviewed on 2026-10-15, both writer PRs remain open. #1150's author reports format-specific SAT/SAB routing and a sorted-handle-rank bug found by an unsorted-record case; its comments report TrueView/ODA checks, but there is no merge/release receipt. #1240 is a separate maintainer proposal and depends on schema/storage work. These are not current released-writer capabilities. | Use their adversarial cases as local readiness requirements, not code to port blindly: directory order must differ from sorted handle rank; test group 1/3 SAT splits at token boundaries; gate `AcDb3dSolid` history fields by DXF version; test old inline versus modern AcDs carriers separately. Require output reopen, body inventory, no-loss report, and a named native-target check at the composed gate. |
+| IxMilia [DXF compatibility notes](https://github.com/ixmilia/dxf) | This independent DXF library lists `3DSOLID`, `BODY`, and `REGION` models yet warns that files it writes for these entity classes may not open in AutoCAD. It also has a bounded version/family support matrix. | Continue treating a registered class or successful DXF parse as structural evidence only. Keep target-reader acceptance versioned and per family; preserve 2D LibreCAD/LibreCAD_3 gates separately. |
+
+### Superseding implementation-ready sequence
+
+1. Finish the current in-memory DWG section and owner/body closure path. Add
+   block-only `3DSOLID`/`REGION` plus `INSERT` reachability and explicit
+   duplicate, missing, wrong-type, orphan, and unreferenced dispositions;
+   keep traversal, record, page, and sorted-handle order deliberately distinct.
+2. Before writer work, retain the *complete bounded modeler-body span* for
+   same-version replay, including versioned payload boundaries and any
+   wireframe/silhouette bytes. Attach source version, entity handle, history
+   handle, owner and mutation fingerprints. Reuse only for unchanged bodies;
+   invalidate on edit/delete/owner change/version conversion/handle remap.
+   Empty-payload entities must not be emitted as successful solids.
+3. Implement and test format routes as separate slices: (a) older DXF SAT
+   groups 1/3 with character transform and token-safe chunking; (b) DXF
+   R2007+ history subclass/handle only where the target version defines it;
+   (c) pre-2013 DWG inline modeler stream; (d) R2013+ DWG AcDs and modern DXF
+   ACDSDATA with indexed owner association. Keep `BODY` outside the AcDs
+   route until a real producer establishes its mapping.
+4. Add a focused writer-side negative gate: an unsupported or stale body,
+   missing history/owner target, or incompatible target version must produce
+   a structured loss/refusal result before destination publication. Include
+   a following-entity sentinel and verify unrelated 2D entities are unchanged.
+5. At one composed checkpoint, use only source-authored/generated controls:
+   the marker-bearing vectors continue to prove framing/link logic; a valid
+   generated cube proves container round-trip; an independent kernel checks
+   per-body count, units, asymmetric transform, bounds, area/volume, topology,
+   and one operation result. Run target-native interoperability only when the
+   exact tool is already available. Missing optional tools are `NOT RUN`.
+6. Keep per-slice checks to focused CTest, `lc3_compat_check`, strict warnings,
+   and diff checks; run the full suite and external reader/native apps once at
+   the composed checkpoint. Generate files only in temporary locations or
+   from source in tests; do not commit peer or downloaded DWG/DXF/SAT/SAB
+   fixtures and do not add a runtime dependency.
+
+This refresh narrows version/profile assumptions and adds an operation-level
+semantic witness; it does not add findings/subplans or change support counts.
+The plan census remains 122/70. J256, J260, J268, J284, J293 and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting. No C++ code, test fixture, dependency,
+peer runtime, native CAD qualification, or full test suite changed in this
+research pass.

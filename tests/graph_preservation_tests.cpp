@@ -1166,6 +1166,63 @@ void testDataStorageBlobPages(TestContext& t) {
                  && orphanSection.orphanRecordCount == 1u
                  && hasOrphanDiagnostic,
              "parsed DataStorage finalization reports unattached record by handle");
+
+    std::vector<std::uint8_t> mismatchReaderBacking{0u};
+    dwgRW mismatchParent(nullptr);
+    DataStorageLinkTestReader mismatchReader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(
+            mismatchReaderBacking.data(), mismatchReaderBacking.size())),
+        &mismatchParent);
+    mismatchReader.setFormatVersion(DRW::AC1027);
+    mismatchReader.m_dataStorageSections.push_back(
+        DRW_parseDataStorage(fixture.bytes, DRW::AC1027));
+    DRW_ModelerGeometry mismatchedIdentity(DRW::E3DSOLID);
+    mismatchedIdentity.setHasDataStorageBinaryData(true);
+    mismatchedIdentity.dataStorageHandle = 0xa17u;
+    mismatchedIdentity.dataStorageHandleKey = "A18";
+    mismatchReader.linkDataStorage(mismatchedIdentity);
+    mismatchReader.finalizeDataStorageLinks();
+    const DRW_DataStorageSection& mismatchSection =
+        mismatchReader.m_dataStorageSections.front();
+    t.expect(!mismatchedIdentity.hasDataStorageRecord
+                 && mismatchedIdentity.dataStorageData.empty()
+                 && mismatchReader.m_dataStorageLinkFailures == 1u
+                 && mismatchReader.m_dataStorageLinkedRecords.empty()
+                 && mismatchReader.m_dataStorageOrphanRecords == 2u
+                 && mismatchSection.orphanRecordCount == 2u,
+             "DataStorage rejects conflicting lexical and numeric body identities atomically");
+
+    std::vector<std::uint8_t> duplicateReaderBacking{0u};
+    dwgRW duplicateParent(nullptr);
+    DataStorageLinkTestReader duplicateReader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(
+            duplicateReaderBacking.data(), duplicateReaderBacking.size())),
+        &duplicateParent);
+    duplicateReader.setFormatVersion(DRW::AC1027);
+    duplicateReader.m_dataStorageSections.push_back(
+        DRW_parseDataStorage(fixture.bytes, DRW::AC1027));
+    DRW_ModelerGeometry firstClaim(DRW::E3DSOLID);
+    firstClaim.setHasDataStorageBinaryData(true);
+    firstClaim.dataStorageHandle = 0xa17u;
+    firstClaim.dataStorageHandleKey = "A17";
+    DRW_ModelerGeometry duplicateClaim(DRW::REGION);
+    duplicateClaim.setHasDataStorageBinaryData(true);
+    duplicateClaim.dataStorageHandle = 0xa17u;
+    duplicateClaim.dataStorageHandleKey = "A17";
+    duplicateReader.linkDataStorage(firstClaim);
+    duplicateReader.linkDataStorage(duplicateClaim);
+    duplicateReader.finalizeDataStorageLinks();
+    const DRW_DataStorageSection& duplicateSection =
+        duplicateReader.m_dataStorageSections.front();
+    t.expect(firstClaim.hasDataStorageRecord
+                 && firstClaim.dataStorageData == payload
+                 && !duplicateClaim.hasDataStorageRecord
+                 && duplicateClaim.dataStorageData.empty()
+                 && duplicateReader.m_dataStorageLinkFailures == 1u
+                 && duplicateReader.m_dataStorageLinkedRecords.size() == 1u
+                 && duplicateReader.m_dataStorageOrphanRecords == 1u
+                 && duplicateSection.orphanRecordCount == 1u,
+             "DataStorage rejects a second entity claim without stealing the first body link");
 }
 
 void testFramePublicationContract(TestContext& t) {
