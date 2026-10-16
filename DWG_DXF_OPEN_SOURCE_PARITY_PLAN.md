@@ -15240,11 +15240,11 @@ run and no generated drawing was added. Durable evidence:
 
 ### Superseding implementation-ready sequence
 
-1. Continue from the generated AC1027 `BLOCK_RECORD` dispatch regression
-   recorded below. That test proves a single empty `3DSOLID` frame reaches the
-   typed callback with its owner handle intact; it does not prove payload
-   closure. Next add block-only `3DSOLID`/`REGION` plus `INSERT` reachability
-   and explicit duplicate, missing, wrong-type, orphan, and unreferenced
+1. Continue from the generated AC1027 `BLOCK_RECORD`/`INSERT` regressions
+   recorded below. They prove two empty `3DSOLID` frames reach typed callbacks
+   under distinct owners, and the modelspace INSERT resolves to only its
+   referenced block; they do not prove payload closure. Next add REGION and
+   explicit duplicate, missing, wrong-type, orphan, and unreferenced
    dispositions; keep traversal, record, page, and sorted-handle order
    deliberately distinct.
 2. Before writer work, retain the *complete bounded modeler-body span* for
@@ -15370,14 +15370,17 @@ J295 remain `DEFERRED_EXTERNAL` and non-promoting.
 
 Implementation commit: `85e5d58` (`Test AC1027 modeler block dispatch`).
 
-Added a source-authored, in-memory AC1027 object frame using the production
-writer's frame assembler, then fed it through the real `walkBlockRecordEntities`
-path with a `BLOCK_RECORD` entMap entry and the matching owner handle. The test
-asserts one typed `3DSOLID` callback with the exact entity and owner handles,
-empty-modeler state, and no invented ACIS payload. This closes the local
-dispatch/owner verification gap only; it does not qualify nonempty SAT/SAB,
-AcDs linkage, a block-only solid reached through an INSERT, REGION, complete
-DWG container handling, writer replay, or B-rep semantics.
+Added source-authored, in-memory AC1027 entity frames using the production
+writer's object-frame assembler, then fed them through the real
+`walkBlockRecordEntities` path with three `BLOCK_RECORD` entMap entries. The
+modelspace INSERT's `blockRecH` resolves to the named live block; two typed
+`3DSOLID` callbacks retain their distinct owner handles, and the reachability
+control counts only the solid in that referenced block while retaining the
+second solid as stored-but-unreferenced. Both modeler bodies are intentionally
+empty, so the test does not invent or claim ACIS data. It closes only local
+dispatch, owner, and one-level INSERT graph verification; it does not qualify
+nonempty SAT/SAB, AcDs linkage, REGION, nested INSERTs, a complete DWG
+container, writer replay, or B-rep semantics.
 
 Validation: `libdxfrw_dwg_reader_matrix_tests` builds with strict warnings;
 focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.30 seconds);
@@ -15388,3 +15391,26 @@ unblocked local slice is an in-memory multi-entity/block reachability control
 that distinguishes stored block contents from INSERT-driven reachability and
 records per-entity disposition. Findings/subplans remain 122/70; J256, J260,
 J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — AC1027 INSERT/block reachability (2026-10-15)
+
+Implementation commit: `e18e017` (`Test AC1027 INSERT block reachability`).
+
+Extended the generated-frame test to two distinct block owners and one
+modelspace INSERT. The production reader parses all three frames via the
+`BLOCK_RECORD` walker. Assertions verify the INSERT's target handle and
+resolved block name, exact owner handles on both typed solids, one-level
+reference reachability to the matching stored solid, and a second stored
+solid outside that reference. This is source-authored and in memory; both
+solids are intentionally empty. It does not test block expansion or nested
+INSERTs, REGION, real SAT/SAB/AcDs bytes, conversion, or semantics.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.29 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
+native app, peer executable, fixture, or semantic geometry check ran. Next
+local target: adversarial block graph controls for missing/wrong targets and
+duplicate ownership, followed by one nonempty locally generated payload only
+if an eligible grammar producer/readback is available. Findings/subplans
+remain 122/70; J256, J260, J268, J284, J293 and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.
