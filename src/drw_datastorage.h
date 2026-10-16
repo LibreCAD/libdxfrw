@@ -31,6 +31,8 @@ constexpr std::uint16_t SEGMENT_SIGNATURE = 0xd5acu;
 constexpr std::uint32_t SEGMENT_SIZE_ALIGNMENT = 0x40u;
 constexpr std::uint32_t DATA_INDEX_ENTRY_SIZE = 12;
 constexpr std::uint32_t DATA_RECORD_HEADER_SIZE = 20;
+//! Largest DataStorage record payload stored inline (ODA §24.2.2.3).
+constexpr std::uint32_t DATA_RECORD_INLINE_MAX_SIZE = 0x40000u;
 //! Marker used instead of a byte count for a multi-segment blob reference.
 constexpr std::uint32_t DATA_BLOB_REFERENCE_MARKER = 0xbb106bb1u;
 constexpr std::uint32_t DATA_BLOB_REFERENCE_FIXED_SIZE = 32;

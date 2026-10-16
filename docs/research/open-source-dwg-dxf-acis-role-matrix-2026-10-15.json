@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-open-source-dwg-dxf-acis-role-matrix-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "5eaa61a",
+  "scope": "Broader capability and independence review of open-source DWG/DXF/ACIS implementations",
+  "method": {
+    "kind": "primary project docs/source and maintainer issue reports; static review only",
+    "peerProgramsExecuted": false,
+    "nativeCadExecuted": false,
+    "versionsPinnedForExecution": false,
+    "evidenceRule": "Separate file/container parsing, raw carrier preservation, ACIS structure, exact geometry, and target-application acceptance. A project feature list or supported entity class is not evidence for all five."
+  },
+  "implementationRoles": [
+    {
+      "project": "LibreDWG",
+      "sourceFamily": "independent C implementation",
+      "usefulComparison": ["DWG container and object inventory", "DXF/DWG conversion disposition", "AcDs/SAB extraction status"],
+      "notEstablishedByDocsAlone": ["complete AcDs owner/body association", "exact ACIS shape validity", "AutoCAD/FreeCAD acceptance"],
+      "evidence": "Its current release notes document active DWG parser corrections, while open issue #1411 provides a reproducible R2018 DXF→DWG→DXF missing-SAB report. Section dispatch and entity decode must be assessed separately from complete SAB attachment.",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "confidence": "Primary repository source/release history and issue repro; current exact revision not pinned or executed in this pass."
+    },
+    {
+      "project": "ACadRust / OpenCADStudio",
+      "sourceFamily": "Rust DWG/DXF codec plus separate Rust modeling/render kernel",
+      "usefulComparison": ["cross-platform document consumer", "entity/body inventory", "rendered body and mesh-completeness diagnostics"],
+      "notEstablishedByDocsAlone": ["exact B-rep equivalence", "complete ACIS surface coverage", "independent codec lineage when testing the app against its own codec"],
+      "evidence": "OpenCADStudio states that it uses ACadRust as its native DWG/DXF engine and advertises kernel-backed ACIS tessellation. Its source/docs describe an early kernel and incomplete fallback paths. The app and codec therefore are not two independent DWG parsers; the separate geometry kernel can be a distinct display/geometry path only after version pinning and fallback auditing.",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/HakanSeven12/opencadcodec"
+      ],
+      "confidence": "Project declarations/source relationships; not executed and no expected-shape dataset independently compared."
+    },
+    {
+      "project": "ezdxf",
+      "sourceFamily": "independent Python DXF parser/writer with ACIS carrier utilities",
+      "usefulComparison": ["DXF entity/tag/handle inventory", "SAT/SAB raw carrier extraction", "DXF raw-carrier roundtrip and version behavior"],
+      "notEstablishedByDocsAlone": ["DWG/AcDs container reading", "ACIS B-rep construction", "ACIS display or geometry semantics"],
+      "evidence": "Current docs support ASCII/binary DXF across R12-R2018 and provide ACIS entity browsing/raw SAT/SAB export. Their entity-creation docs require an external ACIS producer and their rendering backend explicitly does not render ACIS or provide 3D rendering. This is valuable for carrier and DXF structure checks, not a shape kernel.",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/README.md",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "confidence": "Primary project documentation; code/runtime behavior should be pinned before differential testing."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "sourceFamily": "independent .NET DXF parser/writer",
+      "usefulComparison": ["DXF tags and entity inventory", "target-version reader/writer interoperability"],
+      "notEstablishedByDocsAlone": ["DWG reading", "ACIS semantic interpretation", "valid 3DSOLID output for AutoCAD"],
+      "evidence": "The repository lists 3DSOLID as an entity type but explicitly warns that AutoCAD may not open writer-produced 3DSOLID, BODY and REGION entities; its stated DXF coverage is R10-R2014 with MESH, MLEADER, SURFACE, TABLE and VIEWPORT gaps. Entity class presence must not be treated as 3D conformance.",
+      "sources": ["https://github.com/ixmilia/dxf"],
+      "confidence": "Primary project README statement; no execution in this pass."
+    },
+    {
+      "project": "ACadSharp",
+      "sourceFamily": "independent C# DWG/DXF reader/writer and object model",
+      "usefulComparison": ["DWG/DXF entity/object inventory", "document graph and reader diagnostics"],
+      "notEstablishedByDocsAlone": ["ACIS body extraction", "shape-kernel validity", "cross-version solid writer acceptance"],
+      "evidence": "Its public README/API overview establishes DWG/DXF read/write and geometric entity object models but does not, in the reviewed pages, make a verifiable ACIS/SAB semantic-support claim. Treat as structural differential only until specific source paths and runnable ACIS cases are reviewed.",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/api/index.md",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Examples/ReaderExamples.cs"
+      ],
+      "confidence": "Primary project overview/API examples; ACIS path was not established, not proof that no such code exists."
+    }
+  ],
+  "planChanges": [
+    "Use ezdxf as a DXF carrier/structure oracle, never as an ACIS kernel; do not count its ACIS utility and rendering stack as 3D semantic validation.",
+    "Treat ACadSharp and IxMilia as structural interop candidates until exact ACIS source paths or target-reader acceptance are demonstrated.",
+    "Count OpenCADStudio and ACadRust as one file-codec lineage. Its separate kernel may add a geometry/display path only after exact build and fallback pinning.",
+    "Require a per-case evidence vector for source identity, carrier bytes/hash, body handle/owner join, parser status, geometry-kernel status, target consumer result, and explicit loss disposition.",
+    "Keep generated local controls ephemeral or source-generated; do not add external DWG/DXF/SAT/SAB samples to the repository."
+  ],
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

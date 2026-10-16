@@ -10498,10 +10498,16 @@ order, table order and destination transactionality.
   queued-handle association from a peer fallback; preserve the ODA
   index/handle relationship.
 - **S8.3 / Large records as a separate bounded step:** first accept/reject
-  inline records around the ODA `0x40000` byte threshold. Only after that path
-  is stable, implement blob references and Blob01 pages for payloads above
-  that size; check total-size/page-count/page-size/last-page-size consistency,
-  segment references, per-page maximum `0xFFFB0`, checked sum/offsets, and
+  inline records around ODA's `0x40000` byte threshold. Compute the per-record
+  span from the next greater payload-local offset in the same data segment;
+  the final record is bounded by that segment's end. Require the 4-byte length
+  prefix plus direct payload to fit this span, reject direct payloads above
+  `0x40000`, and bound the complete blob marker/descriptor by the same span so
+  neither form can consume its successor. These local checks are now covered
+  in `testDataStorageBlobPages` / generated direct-record controls. Only after
+  the inline path is stable, broaden multi-page Blob01 cases: check
+  total-size/page-count/page-size/last-page-size consistency, segment
+  references, per-page maximum `0xFFFB0`, checked sum/offsets, and
   streaming/cumulative-byte budget before concatenation. Keep source-created
   vectors in memory; do not commit generated binary drawings. Include a second
   schema and distinguish index-addressed inline data from Blob01 pages before
@@ -14735,3 +14741,113 @@ native FreeCAD qualification remain composed phase gates, not per-slice tests.
 All six external-only J items remain `DEFERRED_EXTERNAL`; support counts and
 claims are unchanged. Exact commands and assertion scope are recorded in
 [`acds-blob-pages-fast-test-2026-10-15.json`](docs/research/acds-blob-pages-fast-test-2026-10-15.json).
+
+## Deeper open-source 3D stack and exact AcDs record-boundary review (2026-10-15; research update)
+
+This pass broadened the comparison beyond codecs and OCCT-based readers to the
+current OpenCADStudio/opencadcodec/opencadkernel stack, refreshed the current
+LibreDWG AcDs loss report, rechecked FreeCAD's stock importer boundary, and
+read ODA v5.4.1 §24.2.2.3 directly against `readDataRecords()`. The baseline
+record-boundary gap was then reproduced with generated in-memory vectors and
+fixed by the S8.3 slice below. Mutable upstream pages and issue reports remain
+unexecuted leads, not qualification. The evidence receipt is
+[`broader-open-source-3d-stack-and-acds-boundary-review-2026-10-15.json`](docs/research/broader-open-source-3d-stack-and-acds-boundary-review-2026-10-15.json).
+
+| Evidence | Finding and confidence boundary | Plan refinement |
+| --- | --- | --- |
+| OpenCADStudio [format/platform docs](https://github.com/HakanSeven12/OpenCADStudio), its [codec](https://github.com/HakanSeven12/opencadcodec), [kernel](https://github.com/HakanSeven12/opencadkernel), and [entity tessellation route](https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md) | This is a newly useful cross-platform consumer candidate: project docs advertise DWG/DXF R14–R2018 and Linux/Windows/Apple-Silicon desktop builds. Its 3D path uses a non-OCCT Rust kernel to lift supported ACIS data into B-rep and tessellate; its documentation marks the project/kernel early and says operations remain incomplete. ACIS mesh fallback is explicitly marked incomplete. `opencadcodec` is forked from ACadRust, so its codec is not a clean independent parser lineage from ACadRust. These are source declarations, not local runs. | Add it as a candidate Linux/Windows/macOS display/consumer checkpoint after pinning its app and kernel revisions. Require the exact source hash, body/handle inventory, supported SAT/SAB profile, no incomplete surface fallback, and an independently authored expected manifest. It can supply a separate custom-kernel/display path, but not yet a stand-alone exact B-rep oracle or automatic support promotion. |
+| OpenCADStudio [issue #1078](https://github.com/HakanSeven12/OpenCADStudio/issues/1078) | The maintainer reports a same-version DWG correction retaining non-entity AcDs links alongside an unchanged source section, with a 613-segment AcDs section byte-identical on the supplied case. The report also describes earlier Layout/MLeader corruption, so raw-byte section preservation cannot substitute for object/handle integrity. | Split same-profile untouched AcDs pass-through from edited/new-body serialization. Bind reuse to source-version, raw section hash, linked modeler handle set, geometry/body fingerprints and owner/history graph; any solid edit/erase, owner change or handle remap invalidates raw reuse unless the section is rebuilt. Add no-op, unrelated-2D-edit, and stale-body/handle rejection vectors before authorizing a broader writer path. |
+| LibreDWG [issue #1411](https://github.com/LibreDWG/libredwg/issues/1411), [R2007 AcDs source](https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c), and [AcDs spec source](https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec) | The open issue reports an R2018 generated REGION whose 5,489-byte SAB body disappears across a DXF→DWG→DXF trip while the REGION entity remains; a separate confidential file reportedly loses 88 bodies. The reader source recognizing AcDs does not contradict the report: section recognition, schema/index decoding, page extraction, owner join and attached body publication are distinct completeness stages. None was independently run here. | Retain per-leg, per-handle stages: shell present, has-data/empty flags, AcDs record, page/body bytes and hash, owner/history closure, destination disposition. Entity counts and process success cannot mask an empty or missing body. |
+| ODA v5.4.1 §24.2.2.3, local [DataStorage reader](src/drw_datastorage.cpp), and generated [`testDataStorageBlobPages`](tests/graph_preservation_tests.cpp) | ODA defines `maxRecordSize` as the span to the next consecutive payload stream offset, or the segment end for the last record; `dataSize + 4` must fit. Inline byte arrays are capped at `0x40000`; larger arrays use the blob marker. Baseline `5eaa61a` checked only the containing segment end and lacked the neighboring-record bound and direct-size cap. The generated overlap and exact-threshold vectors reproduced the gap; the current S8.3 implementation enforces both limits and passes its focused regression. | Keep the per-segment ordered payload-local offsets and checked record span as the parser invariant. The regression accepts exact `0x40000`, rejects direct `0x40001`, rejects inline and blob-descriptor overlap, and proves suffix survival. Continue with multi-page aggregate/page-chain limits; the local boundary defect itself is closed. Keep test data generated in memory. |
+| FreeCAD [format manual](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md) and [issue #18454](https://github.com/FreeCAD/FreeCAD/issues/18454) | FreeCAD's ordinary DXF/DWG route is still documented as 2D-only for proprietary ACIS payloads; issue #18454 says the stock import path cannot build those blobs. Exact platform builds and importer choices still need native execution. | Keep standard Linux/Windows FreeCAD qualification on 2D, explicit geometry and truthful-loss handling. ACIS semantics require a separately named plugin/kernel route; expected stock importer rejection is not evidence of a libdxfrw carrier defect. |
+| ACadRust [SAB docs](https://docs.rs/acadrust/latest/acadrust/entities/acis/sab/index.html), [acis-core docs](https://docs.rs/acis-core/latest/acis_core/), and [cq-acis](https://github.com/monozukuri-ai/cq-acis) | The Rust implementation documents SAT/SAB parsing, but `acis-core` explicitly says reference closure is not B-rep validity; `cq-acis` is experimental and converts only supported profiles through CadQuery/OCCT. InventorLoader remains an optional SAT/SAB parser through the same OCCT lineage as FreeCAD, and its GitHub LICENSE text conflicts with FreeCAD Addon Report's LGPL metadata. | Keep Rust parser output structural only and FreeCAD/InventorLoader/cq-acis grouped under the OCCT lineage. Use InventorLoader only as a pinned external parser candidate after license/source audit; do not copy it or count it as another kernel. |
+
+### Updated implementation order
+
+1. **Completed in the current S8.3 slice:** ODA adjacent-record spans,
+   direct/blob threshold, malformed-overlap rejection and suffix preservation.
+   This local defect needed no external tool or fixture.
+2. Continue multi-page aggregate-size/page-chain hardening, then finish the
+   AcDs read path and entity-handle/body-page closure; after that add a
+   conservative same-version unchanged-section passthrough option with stale
+   source-section/body/handle fingerprint refusal. Do not conflate it with
+   arbitrary new or edited SAB serialization.
+3. At the first composed consumer checkpoint, pin OpenCADStudio's codec/kernel/app
+   revisions and profile; record if a body fell back to per-face sampling or an
+   incomplete mesh. Use it as an additional consumer/display comparator, not a
+   semantic oracle until its exact-shape operations and independent expected
+   values are demonstrated.
+4. Keep FreeCAD standard DXF/DWG and its optional ACIS/plugin/kernel routes
+   separate, with Linux/Windows platform/importer/converter recorded.
+5. Keep all six J items `DEFERRED_EXTERNAL` and non-promoting. Findings/subplans
+   remain 122/70; no support claims, external drawing fixtures, dependencies or
+   native qualifications changed in this research pass.
+
+## Broader DWG/DXF/ACIS implementation-role review (2026-10-15)
+
+This pass widens the peer set with current `ezdxf`, IxMilia.Dxf and ACadSharp
+primary documentation, and rechecks the boundary between feature inventory,
+carrier preservation and geometric semantics. It does not execute peer
+programs, claim that unreviewed source paths do not exist, or qualify any peer
+version. The structured evidence and capability boundaries are recorded in
+[`open-source-dwg-dxf-acis-role-matrix-2026-10-15.json`](docs/research/open-source-dwg-dxf-acis-role-matrix-2026-10-15.json).
+
+| Implementation | Evidence-backed role | Plan consequence |
+| --- | --- | --- |
+| [LibreDWG](https://github.com/LibreDWG/libredwg/blob/master/NEWS), [AcDs reader](https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c), and [open SAB-loss report](https://github.com/LibreDWG/libredwg/issues/1411) | Independent C DWG/DXF parser/writer lineage and useful object/conversion differential. The current issue gives a reproducible R2018 SAB-loss case, while release history records ongoing AcDs/SAB changes; reader section dispatch alone is not body extraction/association proof. | Pin the exact executable commit and options; collect warnings and per-body disposition at every conversion leg. Cross-check shells, `has_ds_data`, AcDs records, body bytes and owners separately. Do not use a successful process exit or equal entity count as the 3D pass criterion. |
+| [ACadRust](https://github.com/hakanaktt/acadrust) and [OpenCADStudio](https://github.com/HakanSeven12/OpenCADStudio) | OpenCADStudio explicitly identifies ACadRust as its native DWG/DXF engine and separately advertises kernel-backed ACIS tessellation. This makes the app/codec one file-parser lineage; its separate kernel may provide a non-OCCT display comparison. Project docs also mark the kernel/workflows early and incomplete. | Never count ACadRust and OpenCADStudio as two independent readers. For an app run, pin the codec source and kernel/app revisions, capture body/handle inventory and per-face fallback flags, and credit only the separate kernel/display stage. No exact-shape oracle status until an independently authored expected geometry set and complete supported-profile evidence exist. |
+| [ezdxf version support](https://github.com/mozman/ezdxf/blob/master/README.md), [ACIS browser](https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst), [entity creation guidance](https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst), and [renderer limitations](https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst) | Independent DXF-level carrier/structure tool: it documents ASCII/binary DXF R12–R2018, raw SAT/SAB inspection/export, and says ACIS body creation requires an external library. Its drawing add-on does not render ACIS and has no 3D renderer. | Add as a pinned DXF tag/handle/raw-carrier differential only. It can help verify chunk reconstruction, marker/version preservation and DXF re-emission, but cannot validate DWG AcDs storage or solid B-rep semantics. |
+| [IxMilia.Dxf](https://github.com/ixmilia/dxf) | Independent DXF parser/writer that lists 3DSOLID as an entity class, but its README warns that generated 3DSOLID/BODY/REGION may not open in AutoCAD. Its stated coverage is R10–R2014 with named MESH/MLEADER/SURFACE/TABLE/VIEWPORT gaps. | Treat entity-class presence as structural coverage only. A pinned target-reader open/save and body inventory are required for writer compatibility; do not cite a successful class parse as ACIS support. |
+| [ACadSharp](https://github.com/DomCR/ACadSharp), [API overview](https://github.com/DomCR/ACadSharp/blob/master/docs/api/index.md) and [reader example](https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Examples/ReaderExamples.cs) | Independent C# DWG/DXF reader/writer with an entity/object model. The reviewed public overview demonstrates file I/O but does not establish SAB extraction or shape-kernel behavior; that absence is an evidence gap, not proof that no implementation exists. | Candidate for pinned DWG/DXF entity/object inventory and diagnostics only after its exact ACIS-related source paths are inspected. Do not assign semantic weight until a reproducible SAB/body test exists. |
+
+### Validation layers and implementation-ready comparator contract
+
+The peer research shows that “supports 3D” is not one interoperable capability.
+Every future test case must record five independent layers: (1) file/version
+and entity/object shell inventory, (2) exact SAT/SAB carrier and transform
+bytes, (3) AcDs schema/index/page/body/owner closure, (4) parser or kernel
+geometry result, and (5) target-application open/save/render result. Each stage
+must report `present`, `valid`, `unsupported`, `lost`, or `not-tested`; absence
+must not be inferred from another stage. Kernel results additionally record
+validity, solid/body count, volume, area, bounding box, units, transform,
+healing/tolerance settings and any approximate/incomplete fallback. Raw-byte
+identity is a preservation result, not semantic equivalence.
+
+For speedy implementation, use a source-generated in-memory vector for every
+container rule; use one scratch DXF generated locally from scratch for external
+tag/carrier comparisons, with its generator and expected handle/body manifest
+in source. Keep such generated files in a temporary directory and never add
+peer/proprietary DWG/DXF/SAT/SAB files to the repository. The quick gate for a
+slice remains the focused parser/test target plus compatibility compile; run
+the full suite only at composed gates. Pin peer revisions/builds once before a
+composed differential batch, not on every local slice.
+
+This role matrix changes no support count or consumer claim. ACadSharp, IxMilia
+and ezdxf are structural/carrier candidates only; ACadRust/OpenCADStudio share
+one codec lineage; `ezdxf` has no 3D renderer; and no new exact-kernel semantic
+oracle has been established. All six J items remain `DEFERRED_EXTERNAL` and
+non-promoting.
+
+## Implementation progress — ODA AcDs direct-record boundaries (2026-10-15)
+
+The S8.3 direct-record pass now uses each segment's ordered payload-local
+offsets to compute a record's maximum readable span. Inline byte arrays above
+the ODA `0x40000` limit are rejected; valid inline records must fit their
+length prefix and payload before the next indexed record; the final record is
+bounded by its segment end. Blob-reference fixed headers and full descriptors
+are also bounded by the current record span, preventing descriptor reads from
+crossing into a following record.
+
+The in-memory graph-preservation test covers exact `0x40000` acceptance,
+`0x40001` direct rejection, an inline payload crossing into its successor, a
+blob descriptor crossing into its successor, valid suffix preservation, and
+the prior reversed-physical-order two-page blob case. The library/test target
+and `lc3_compat_check` build; the single `libdxfrw_graph_preservation` CTest
+passes, and `git diff --check` is clean. No on-disk DWG/DXF/SAT/SAB fixture,
+new CTest, dependency, full suite, or external program was used. This closes
+only the local DataStorage record-boundary slice, not producer-profile coverage,
+ACIS shape semantics, or native consumer support. Next ready work is
+multi-page size/limit hardening, then real-record owner/body association and
+same-version untouched-section passthrough. All six J items remain
+`DEFERRED_EXTERNAL`; support claims and 122/70 counts are unchanged. Receipt:
+[`acds-record-boundary-fast-test-2026-10-15.json`](docs/research/acds-record-boundary-fast-test-2026-10-15.json).

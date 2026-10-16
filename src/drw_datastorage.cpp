@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <string>
@@ -1176,6 +1177,8 @@ void readDataRecords(const ByteReader& r,
                      DRW_DataStorageSection& section,
                      bool retainPayloads) {
     std::unordered_map<std::uint64_t, std::uint64_t> dataRegionBaseByOffset;
+    std::unordered_map<std::uint32_t, std::vector<std::uint32_t>>
+        recordLocalOffsetsBySegment;
     const std::uint32_t maxRecords =
         capCount(static_cast<std::uint32_t>(section.dataIndexEntries.size()),
                  r.length(), DATA_RECORD_HEADER_SIZE, section, "records");
@@ -1183,6 +1186,48 @@ void readDataRecords(const ByteReader& r,
     if (!DRW::reserve(section.records, static_cast<int>(maxRecords))) {
         pushDiag(section, "datastorage-records-reserve-failed",
                  "DataStorage records reserve failed");
+        return;
+    }
+
+    try {
+        recordLocalOffsetsBySegment.reserve(section.dataIndexEntries.size());
+        for (const DRW_DataStorageIndexEntry& entry
+             : section.dataIndexEntries) {
+            if (static_cast<std::size_t>(entry.segmentIndex)
+                >= section.segments.size())
+                continue;
+            const DRW_DataStorageSegment& segment =
+                section.segments[entry.segmentIndex];
+            if (!isDataSegment(segment))
+                continue;
+
+            std::uint64_t segmentDataOffset = 0;
+            std::uint64_t segmentEndOffset = 0;
+            std::uint64_t recordHeaderOffset = 0;
+            if (!checkedAdd(segment.offset, SEGMENT_HEADER_SIZE,
+                            segmentDataOffset)
+                || !checkedAdd(segment.offset, segment.size,
+                               segmentEndOffset)
+                || !checkedAdd(segmentDataOffset, entry.localOffset,
+                               recordHeaderOffset)
+                || !isRangeWithin(recordHeaderOffset,
+                                  DATA_RECORD_HEADER_SIZE, segmentEndOffset)
+                || !r.has(recordHeaderOffset, DATA_RECORD_HEADER_SIZE)
+                || r.u32(recordHeaderOffset) < DATA_RECORD_HEADER_SIZE)
+                continue;
+
+            recordLocalOffsetsBySegment[entry.segmentIndex].push_back(
+                r.u32(recordHeaderOffset + 16));
+        }
+        for (auto& segmentOffsets : recordLocalOffsetsBySegment) {
+            std::vector<std::uint32_t>& offsets = segmentOffsets.second;
+            std::sort(offsets.begin(), offsets.end());
+            offsets.erase(std::unique(offsets.begin(), offsets.end()),
+                          offsets.end());
+        }
+    } catch (...) {
+        pushDiag(section, "datastorage-record-boundary-index-failed",
+                 "DataStorage record-boundary index could not be built");
         return;
     }
 
@@ -1224,6 +1269,31 @@ void readDataRecords(const ByteReader& r,
         const std::uint64_t handle = r.u64(recordHeaderOffset + 8);
         const std::uint32_t recordLocalOffset = r.u32(recordHeaderOffset + 16);
 
+        const auto segmentOffsets =
+            recordLocalOffsetsBySegment.find(entry.segmentIndex);
+        if (segmentOffsets == recordLocalOffsetsBySegment.end()) {
+            pushDiag(section, "datastorage-record-boundary-missing",
+                     "DataStorage record handle " + handleKey(handle)
+                         + " has no segment boundary index",
+                     handle, true, recordHeaderOffset, true);
+            continue;
+        }
+        const std::vector<std::uint32_t>& offsets = segmentOffsets->second;
+        const auto currentOffset =
+            std::lower_bound(offsets.begin(), offsets.end(), recordLocalOffset);
+        if (currentOffset == offsets.end() || *currentOffset != recordLocalOffset) {
+            pushDiag(section, "datastorage-record-boundary-missing",
+                     "DataStorage record handle " + handleKey(handle)
+                         + " has no payload-stream offset",
+                     handle, true, recordHeaderOffset, true);
+            continue;
+        }
+        std::uint64_t maxRecordSize = 0;
+        if (std::next(currentOffset) != offsets.end()) {
+            maxRecordSize = static_cast<std::uint64_t>(
+                *std::next(currentOffset) - recordLocalOffset);
+        }
+
         std::uint64_t dataRegionBase = 0;
         const auto cached = dataRegionBaseByOffset.find(segment.offset);
         if (cached != dataRegionBaseByOffset.end()) {
@@ -1258,6 +1328,9 @@ void readDataRecords(const ByteReader& r,
             continue;
         }
 
+        if (std::next(currentOffset) == offsets.end())
+            maxRecordSize = segmentEndOffset - recordOffset;
+
         const std::uint32_t dataSize = r.u32(recordOffset);
         std::uint64_t dataOffset = 0;
         if (!checkedAdd(recordOffset, 4, dataOffset)) {
@@ -1284,8 +1357,12 @@ void readDataRecords(const ByteReader& r,
             // Actual bytes live in blob01 segments. Keep exact section replay
             // authoritative, while exposing a validated payload when it fits
             // the normal retention cap.
-            if (!isRangeWithin(dataOffset, DATA_BLOB_REFERENCE_FIXED_SIZE,
-                               segmentEndOffset)
+            std::uint64_t fixedBlobRecordSize = 0;
+            if (!checkedAdd(4u, DATA_BLOB_REFERENCE_FIXED_SIZE,
+                            fixedBlobRecordSize)
+                || fixedBlobRecordSize > maxRecordSize
+                || !isRangeWithin(dataOffset, DATA_BLOB_REFERENCE_FIXED_SIZE,
+                                  segmentEndOffset)
                 || !r.has(dataOffset, DATA_BLOB_REFERENCE_FIXED_SIZE)) {
                 pushDiag(section, "datastorage-blob-reference-truncated",
                          "DataStorage blob reference header for handle "
@@ -1304,11 +1381,14 @@ void readDataRecords(const ByteReader& r,
 
             std::uint64_t pageEntriesSize = 0;
             std::uint64_t descriptorSize = 0;
+            std::uint64_t blobRecordSize = 0;
             if (pageCount > HARD_MAX_ENTRIES
                 || !checkedMultiply(pageCount, DATA_BLOB_PAGE_ENTRY_SIZE,
                                     pageEntriesSize)
                 || !checkedAdd(DATA_BLOB_REFERENCE_FIXED_SIZE, pageEntriesSize,
                                descriptorSize)
+                || !checkedAdd(4u, descriptorSize, blobRecordSize)
+                || blobRecordSize > maxRecordSize
                 || !isRangeWithin(dataOffset, descriptorSize,
                                   segmentEndOffset)
                 || !r.has(dataOffset, descriptorSize)
@@ -1479,6 +1559,23 @@ void readDataRecords(const ByteReader& r,
                 }
             }
         } else {
+            std::uint64_t inlineRecordSize = 0;
+            if (dataSize > DATA_RECORD_INLINE_MAX_SIZE) {
+                pushDiag(section, "datastorage-record-inline-size-over-limit",
+                         "Inline DataStorage payload for handle "
+                             + handleKey(handle)
+                             + " exceeds the ODA direct-record limit",
+                         handle, true, dataOffset, true);
+                continue;
+            }
+            if (!checkedAdd(4u, dataSize, inlineRecordSize)
+                || inlineRecordSize > maxRecordSize) {
+                pushDiag(section, "datastorage-record-payload-out-of-record",
+                         "DataStorage payload for handle " + handleKey(handle)
+                             + " crosses the next record boundary",
+                         handle, true, dataOffset, true);
+                continue;
+            }
             if (!r.has(dataOffset, dataSize)) {
                 pushDiag(section, "datastorage-record-payload-truncated",
                          "DataStorage payload for handle " + handleKey(handle)

@@ -719,6 +719,200 @@ void testDataStorageBlobPages(TestContext& t) {
     putU32(wrongSegmentKind.bytes, wrongSegmentKind.descriptorOffset + 32u, 2u);
     rejectsBlobAndKeepsSuffix(std::move(wrongSegmentKind),
                               "DataStorage rejects blob reference to non-blob segment");
+
+    BlobFixture overlappingRecord = makeFixture();
+    putU32(overlappingRecord.bytes,
+           static_cast<std::size_t>(record->recordOffset), 100u);
+    const DRW_DataStorageSection rejectedOverlap =
+        DRW_parseDataStorage(overlappingRecord.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* overlapSuffix =
+        rejectedOverlap.findRecordByHandle(0xa18u);
+    const bool hasOverlapDiagnostic = std::any_of(
+        rejectedOverlap.diagnostics.cbegin(), rejectedOverlap.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code
+                == "datastorage-record-payload-out-of-record";
+        });
+    t.expect(!rejectedOverlap.structurallyValid
+                 && !rejectedOverlap.replayAllowed
+                 && rejectedOverlap.findRecordByHandle(0xa17u) == nullptr
+                 && overlapSuffix != nullptr
+                 && overlapSuffix->payload == sentinel
+                 && hasOverlapDiagnostic,
+             "DataStorage prevents inline payload from crossing next-record boundary");
+
+    BlobFixture oversizedBlobDescriptor = makeFixture();
+    putU32(oversizedBlobDescriptor.bytes,
+           oversizedBlobDescriptor.descriptorOffset + 8u, 3u);
+    const DRW_DataStorageSection rejectedDescriptor =
+        DRW_parseDataStorage(oversizedBlobDescriptor.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* descriptorSuffix =
+        rejectedDescriptor.findRecordByHandle(0xa18u);
+    t.expect(!rejectedDescriptor.structurallyValid
+                 && !rejectedDescriptor.replayAllowed
+                 && rejectedDescriptor.findRecordByHandle(0xa17u) == nullptr
+                 && descriptorSuffix != nullptr
+                 && descriptorSuffix->payload == sentinel,
+             "DataStorage prevents blob descriptor from crossing next-record boundary");
+
+    struct DirectFixture {
+        std::vector<std::uint8_t> bytes;
+        std::vector<std::uint8_t> suffix;
+    };
+    const auto makeDirectFixture = [&](std::uint32_t directSize) {
+        constexpr std::size_t segmentIndexOffset = 64u;
+        constexpr std::size_t dataIndexOffset = 256u;
+        constexpr std::size_t dataOffset = 384u;
+        constexpr std::size_t dataRegionRelativeOffset = 96u;
+        DirectFixture directFixture;
+        const std::string directSuffixText = "DIRECT_RECORD_TAIL";
+        directFixture.suffix.assign(directSuffixText.begin(),
+                                    directSuffixText.end());
+        const std::size_t secondRecordLocalOffset =
+            static_cast<std::size_t>(directSize) + 4u;
+        const std::size_t requiredSegmentSize = dataRegionRelativeOffset + 4u
+            + static_cast<std::size_t>(directSize) + 4u
+            + directFixture.suffix.size();
+        const std::size_t dataSegmentSize = (requiredSegmentSize + 63u) & ~63u;
+        const std::size_t sectionSize = dataOffset + dataSegmentSize;
+        directFixture.bytes.assign(sectionSize, 0u);
+
+        const auto putU16Local = [&directFixture](std::size_t offset,
+                                                   std::uint16_t value) {
+            directFixture.bytes[offset] =
+                static_cast<std::uint8_t>(value & 0xffu);
+            directFixture.bytes[offset + 1u] =
+                static_cast<std::uint8_t>(value >> 8);
+        };
+        const auto putU64Local = [&directFixture](std::size_t offset,
+                                                 std::uint64_t value) {
+            for (unsigned byte = 0; byte < 8u; ++byte)
+                directFixture.bytes[offset + byte] =
+                    static_cast<std::uint8_t>(value >> (byte * 8u));
+        };
+        const auto putSegmentLocal = [&directFixture, &putU16Local,
+                                      &putU32](std::size_t offset,
+                                              const char* name,
+                                              std::uint32_t index,
+                                              std::uint32_t size) {
+            putU16Local(offset, DRW_DataStorageConst::SEGMENT_SIGNATURE);
+            for (std::size_t byte = 0; byte < 6u; ++byte)
+                directFixture.bytes[offset + 2u + byte] =
+                    static_cast<std::uint8_t>(name[byte]);
+            putU32(directFixture.bytes, offset + 8u, index);
+            putU32(directFixture.bytes, offset + 16u, size);
+            putU32(directFixture.bytes, offset + 24u, 1u);
+        };
+
+        putU32(directFixture.bytes, 4u,
+               DRW_DataStorageConst::HEADER_SIZE);
+        putU32(directFixture.bytes, 12u, 1u);
+        putU32(directFixture.bytes, 20u, 1u);
+        putU32(directFixture.bytes, 24u,
+               static_cast<std::uint32_t>(segmentIndexOffset));
+        putU32(directFixture.bytes, 32u, 3u);
+        putU32(directFixture.bytes, 36u, 0xffffffffu);
+        putU32(directFixture.bytes, 40u, 1u);
+        putU32(directFixture.bytes, 44u, 0xffffffffu);
+        putU32(directFixture.bytes, 48u, 0xffffffffu);
+        putU32(directFixture.bytes, 52u,
+               static_cast<std::uint32_t>(sectionSize));
+
+        const std::array<std::pair<std::size_t, std::uint32_t>, 3> segments{{
+            {segmentIndexOffset, 192u},
+            {dataIndexOffset, 128u},
+            {dataOffset, static_cast<std::uint32_t>(dataSegmentSize)}}};
+        const std::array<const char*, 3> names{{"segidx", "datidx", "_data_"}};
+        for (std::size_t index = 0; index < segments.size(); ++index) {
+            putSegmentLocal(segments[index].first, names[index],
+                            static_cast<std::uint32_t>(index),
+                            segments[index].second);
+            const std::size_t entry =
+                segmentIndexOffset + 48u + index * 12u;
+            putU64Local(entry, segments[index].first);
+            putU32(directFixture.bytes, entry + 8u, segments[index].second);
+        }
+
+        putU32(directFixture.bytes, dataIndexOffset + 48u, 2u);
+        putU32(directFixture.bytes, dataIndexOffset + 56u, 2u);
+        putU32(directFixture.bytes, dataIndexOffset + 60u, 0u);
+        putU32(directFixture.bytes, dataIndexOffset + 64u, 0u);
+        putU32(directFixture.bytes, dataIndexOffset + 68u, 2u);
+        putU32(directFixture.bytes, dataIndexOffset + 72u,
+               DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+        putU32(directFixture.bytes, dataIndexOffset + 76u, 0u);
+
+        const std::size_t firstRecordHeader = dataOffset + 48u;
+        putU32(directFixture.bytes, firstRecordHeader,
+               DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+        putU64Local(firstRecordHeader + 8u, 0xa17u);
+        putU32(directFixture.bytes, firstRecordHeader + 16u, 0u);
+        const std::size_t secondRecordHeader =
+            firstRecordHeader + DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE;
+        putU32(directFixture.bytes, secondRecordHeader,
+               DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+        putU64Local(secondRecordHeader + 8u, 0xa18u);
+        putU32(directFixture.bytes, secondRecordHeader + 16u,
+               static_cast<std::uint32_t>(secondRecordLocalOffset));
+
+        const std::size_t dataRegionOffset =
+            dataOffset + dataRegionRelativeOffset;
+        putU32(directFixture.bytes, dataRegionOffset, directSize);
+        for (std::size_t byte = 0; byte < directSize; ++byte)
+            directFixture.bytes[dataRegionOffset + 4u + byte] =
+                static_cast<std::uint8_t>(byte % 251u + 1u);
+        const std::size_t suffixRecordOffset =
+            dataRegionOffset + secondRecordLocalOffset;
+        putU32(directFixture.bytes, suffixRecordOffset,
+               static_cast<std::uint32_t>(directFixture.suffix.size()));
+        std::copy(directFixture.suffix.begin(), directFixture.suffix.end(),
+                  directFixture.bytes.begin()
+                      + static_cast<std::ptrdiff_t>(suffixRecordOffset + 4u));
+        return directFixture;
+    };
+
+    const DirectFixture directLimitFixture = makeDirectFixture(
+        DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE);
+    const DRW_DataStorageSection directLimit = DRW_parseDataStorage(
+        directLimitFixture.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* directRecord =
+        directLimit.findRecordByHandle(0xa17u);
+    const DRW_DataStorageRecord* directSuffix =
+        directLimit.findRecordByHandle(0xa18u);
+    t.expect(directLimit.structurallyValid && directLimit.replayAllowed
+                 && directRecord != nullptr && !directRecord->isBlobReference
+                 && directRecord->dataByteLength
+                        == DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE
+                 && directRecord->payload.size()
+                        == DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE
+                 && directRecord->payload.front() == 1u
+                 && directRecord->payload.back()
+                        == static_cast<std::uint8_t>(
+                            (DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE
+                             - 1u) % 251u + 1u)
+                 && directSuffix != nullptr
+                 && directSuffix->payload == directLimitFixture.suffix,
+             "DataStorage accepts exact ODA inline limit and following record");
+
+    const DirectFixture oversizedDirectFixture = makeDirectFixture(
+        DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE + 1u);
+    const DRW_DataStorageSection oversizedDirect = DRW_parseDataStorage(
+        oversizedDirectFixture.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* oversizedSuffix =
+        oversizedDirect.findRecordByHandle(0xa18u);
+    const bool hasInlineLimitDiagnostic = std::any_of(
+        oversizedDirect.diagnostics.cbegin(), oversizedDirect.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code
+                == "datastorage-record-inline-size-over-limit";
+        });
+    t.expect(!oversizedDirect.structurallyValid
+                 && !oversizedDirect.replayAllowed
+                 && oversizedDirect.findRecordByHandle(0xa17u) == nullptr
+                 && oversizedSuffix != nullptr
+                 && oversizedSuffix->payload == oversizedDirectFixture.suffix
+                 && hasInlineLimitDiagnostic,
+             "DataStorage rejects oversized direct record and preserves suffix");
 }
 
 void testFramePublicationContract(TestContext& t) {
