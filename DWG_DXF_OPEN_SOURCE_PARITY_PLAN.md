@@ -14969,15 +14969,16 @@ structured evidence receipt is
 
 ### Readiness refinement after the wider survey
 
-1. Finish the local fast DataStorage checks already ordered above: checked
-   page-chain totals/offsets, explicit duplicate/aliased page rejection, and
-   following-record survival. ODA labels the blob descriptor's `Record size`
-   but the reviewed table does not say whether it includes the preceding
-   4-byte marker. Keep the current zero-compatible/descriptor-lower-bound
-   behavior until a real producer trace settles inclusive versus exclusive
-   semantics; then test both the observed profile and malformed over/under
-   declarations. Do not install another ACIS reader before these generated
-   controls pass.
+1. **Completed fast controls:** checked page-chain assembly totals, same-page
+   alias rejection and following-record survival are now explicit generated
+   regressions (see progress receipt below). ODA labels the blob descriptor's
+   `Record size` but the reviewed table does not say whether it includes the
+   preceding 4-byte marker. Keep the current zero-compatible/descriptor-lower-
+   bound behavior until a real producer trace settles inclusive versus
+   exclusive semantics; then test the observed profile and malformed
+   over/under declarations. This field ambiguity does not block independent
+   owner/body-association work. Do not install another ACIS reader before the
+   remaining local generated controls pass.
 2. For owner association, generate two different body records whose physical
    record order, sorted-handle rank, entity traversal order and block/INSERT
    reachability all disagree. Assert one-to-one handle → schema/index → record
@@ -15010,3 +15011,24 @@ structured evidence receipt is
 No implementation, fixture, dependency, support count or consumer qualification
 changed in this research pass. Findings/subplans remain 122/70; J256, J260,
 J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — Blob01 alias and aggregate-total controls (2026-10-15)
+
+Implementation commit: `ed92737` (`Cover DataStorage page-chain alias and totals`).
+
+The existing generated two-page maximum-size Blob01 test now also mutates the
+second reference to reuse page zero's segment and requires rejection while the
+following independent record remains readable. A separate malformed vector
+raises the descriptor total and both page-header totals together while leaving
+the referenced page lengths unchanged; this reaches and verifies the final
+assembled-byte-total equality check, again without losing the suffix record.
+These cases exercise parser checks already present; no production parser code
+or diagnostic behavior changed. The focused
+`libdxfrw_graph_preservation_tests` target and `lc3_compat_check` build pass;
+`libdxfrw_graph_preservation` passes 1/1 in 0.36 seconds and `git diff --check`
+is clean. No full suite, disk fixture, external executable, dependency or
+support promotion was used. Next: proceed with generated owner/body association
+and block/INSERT closure; keep the `Record size` inclusion convention deferred
+until a real producer trace resolves whether its count includes the 4-byte
+marker. All six J items remain `DEFERRED_EXTERNAL`; support counts remain
+122/70.
