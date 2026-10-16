@@ -15032,3 +15032,50 @@ and block/INSERT closure; keep the `Record size` inclusion convention deferred
 until a real producer trace resolves whether its count includes the 4-byte
 marker. All six J items remain `DEFERRED_EXTERNAL`; support counts remain
 122/70.
+
+## Broader peer-test and headless-consumer harness review (2026-10-15; research only)
+
+This pass looked past peer capability claims into the actual regression-test
+shape and consumer automation available in two active Rust CAD projects. It
+adds a faster optional composed-check route and tightens the evidence boundary;
+it does not add a new parser, serializer, finding, or support claim. Sources
+were read statically; neither project was built or run, and no test drawings
+were downloaded. Durable evidence:
+[`open-source-codec-headless-consumer-readiness-2026-10-15.json`](docs/research/open-source-codec-headless-consumer-readiness-2026-10-15.json).
+
+| Evidence | What it does—and does not—show | Plan update |
+| --- | --- | --- |
+| [ACadRust 0.5.5 project documentation](https://github.com/hakanaktt/acadrust) and [current roundtrip tests](https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs) | The tests include (a) synthetic marker-bearing SAB bytes used to catch byte/body mis-pairing and retain `has_ds_data`, and (b) a source-generated cube SAT body written and read by ACadRust’s own R2018 path. The cube check establishes entity presence, nonempty ACIS data and its `has_ds_data` flag; it does not compare B-rep topology, dimensions, or an independent reader’s interpretation. These are valuable parser/writer structural tests, not external semantic validation. | Keep the distinction already used locally: generated marker streams test container/link/framing only; valid grammar bodies test parse/serialization; semantic checks additionally need source-authored geometry metrics and a different reader/kernel lineage. Reuse the *test decomposition* (pairing control plus a generated known body) as a design pattern, but create local vectors in our own test generator and do not import their fixture/code as a dependency. |
+| [OpenCADStudio automation guide](https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md) and [project automation overview](https://github.com/HakanSeven12/OpenCADStudio) | The desktop app documents `--serve`/`--mcp`, target-version `audit`, `dropped_on_save`, entity/block/bounds and raw-reference diagnostics, and `save_verified` that writes, reopens, checks the version and entity manifest, and hashes output. Its documented acceptance script emits R2000/R2013/R2018 DWG and R2000 DXF and can run a separate Windows reference-CAD read-only AUDIT script. These operations make an optional composed consumer check reproducible; they are app-internal read/write consistency, not independent semantics, and the entity-manifest comparison is not itself a B-rep metrics assertion. | Add a pinned-binary, opt-in harness stage after local fast tests: open one generated/source-generated output, record app/build version, source/output hashes, target format/version, loss/dangling-reference report and reopened entity/body manifest. If kernel measurements are available for that exact entity/profile, compare them to an authored manifest; otherwise report only structural reopen. Invoke the separate native reference-CAD audit only when its executable is locally available. Do not install/build this large app on every slice or replace FreeCAD/native qualification with its self-check. |
+| [OpenCADStudio issue #1615](https://github.com/HakanSeven12/OpenCADStudio/issues/1615) | The issue remains open as reviewed on 2026-10-15. Its reporter says some 3D files emitted by the app fail in AutoCAD/ProgeCAD; the maintainer later reported improvement and a pyramid/cylinder subtraction opening in a strict third-party DWG reader, but the report does not identify that reader as AutoCAD and requests a minimal reproducer for remaining failures. This is a mixed, issue-reported interoperability signal, not a confirmed defect in every current build. | Use OpenCADStudio as a candidate 3D reader/diagnostic and possible custom-kernel lineage, not as a sole writer acceptance target. For emitted DWG, still require an independent parser plus the named target’s native audit/open test; pin the exact build and profile, and report the open issue rather than treating its self-read as AutoCAD compatibility. |
+
+### Faster implementation and validation sequence
+
+1. Continue each implementation slice with the existing fastest in-tree gate:
+   generated in-memory/container tests, the focused CTest, `lc3_compat_check`,
+   strict warnings, and `git diff --check`. Do not add the external app to the
+   per-slice loop.
+2. At the next relevant ACIS/AcDs composed checkpoint, first emit one transient
+   source-generated body with a nontrivial known manifest (body count, bounds,
+   units, and available area/volume or topology invariants). Exercise the
+   output through the OpenCADStudio `--serve`/MCP audit and verified-reopen
+   path only if a pinned native binary is already available. Record losses,
+   entity/body IDs, hashes, build and format versions; a screenshot/render is
+   supplementary only.
+3. Run a second, separate structural reader on the exact hashed output, then
+   one eligible geometry-kernel/native route. Record parser lineage and kernel
+   lineage independently: ACadRust and OpenCADStudio share codec ancestry, and
+   an app’s own write/reopen pair is not two implementations. Group all
+   OCCT-derived measurements into one kernel lineage.
+4. Keep native LibreCAD/LibreCAD_3 and FreeCAD 2D compatibility checks in the
+   2D contract lane; use an explicitly ACIS-capable route for body semantics.
+   A missing optional executable is `NOT RUN`, never a pass and never a reason
+   to delay local parser/test work.
+5. Run the full suite only at the planned composed gate. Keep all generated
+   body data temporary or source-generated; add no external DWG/DXF/SAT/SAB
+   fixture or new runtime dependency.
+
+This research changes validation sequencing only: no C++ code, test fixture,
+dependency, support count, external qualification, or consumer claim changed.
+Findings/subplans remain 122/70. J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.
