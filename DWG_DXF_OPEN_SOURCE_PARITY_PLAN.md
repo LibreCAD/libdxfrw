@@ -2,6 +2,25 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
+**Latest research/implementation delta (2026-10-15, implementation baseline `d5f5e4a`):**
+f.4a owned retention is now complete through reset/malformed-default,
+lifetime, copy and following-record fast controls. The deeper
+[named-resource emitter and cross-implementation review](#deeper-named-resource-emitter-and-cross-implementation-readiness-review-2026-10-15)
+found that the adapter drops DXF raw companions for SCALE, DICTIONARYVAR,
+MLINESTYLE and MLEADERSTYLE; the existing typed DXF methods have no `dx_iface`
+dispatch; and named-root closure does not recognize these node types. It also
+found unremapped MLEADERSTYLE resource references, unchecked MLINESTYLE DXF
+element counts/partial tuples, and unconditional MLEADERSTYLE 179/298 writes
+despite source-spec version gates. f.4b is now ordered as an exact raw/typed
+origin and graph bridge, then SCALE/DICTIONARYVAR, MLINESTYLE and MLEADERSTYLE
+as progressively more complex bounded slices. Execution remains behind the
+already-planned f.3b import-origin/generation binding and f.3c source-profile
+serializer admission; do not use current `sourceFormat` alone to legitimize
+reused or mixed data. This is a plan/research update, not an implementation or
+support promotion; six J gates remain
+`DEFERRED_EXTERNAL`. Receipt:
+`docs/research/named-resource-emitter-readiness-2026-10-15.json`.
+
 **Latest research delta (2026-10-15, committed baseline `91d0a88`; plan-only):**
 the [typed-readback and whole-root readiness review](#typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15)
 adds a reproduced current-code packet and12 locally authored producer controls.
@@ -100,7 +119,7 @@ checkpoint. Its subsequent implementation receipt is recorded in the current
 handoff below, not inferred from the research. No finding/subplan or support
 claim is added; all six external J gates retain their disposition.
 
-**Current handoff (2026-10-15, provenance`7b753cf`;
+**Prior implementation handoff (2026-10-15, provenance`7b753cf`;
 Plan-Slice:7G.3f.3a / LOCAL_IMPLEMENTATION_COMPLETE):**
 VISUALSTYLE basic description/type now respect subclass/291 boundaries;
 post291 property counts do not overwrite type and repeated markers cannot
@@ -113,11 +132,14 @@ fixture/reader/object gates pass3/3 in5.15s, strict two-TU/build/lc3 pass.
 Freshly rebuilt probe readback matches72 literal producer types (48 repaired,
 24 older unaffected), with all other exposed fields unchanged. Receipt:
 `docs/research/visualstyle-type-scope-7g-3f-3a-2026-10-15.json`.
-Next f.4a owned root-resource handoff and f.3b import origin/generation, then
-f.3c property/color mapping and f.4b/c whole-root/full CLI9d. f.2b writer root
-remains separately ready. No fixture/dependency/CTest, full suite/new sanitizer/
-ODA/native or support/J promotion; source consumers must rebuild. Historical
-research's48 mismatches are now locally repaired, not erased from its receipt.
+The next implementation prerequisites are f.3b import origin/generation and
+f.3c property/color mapping, followed by f.4b whole-root emitters/graph and
+f.4c full CLI9d. f.4a owned callback storage is now complete in commits
+`ed8d925`/`705bd89`, as recorded in the latest delta above. f.2b writer root
+remains separately ready. No fixture/dependency/CTest, full suite/new
+sanitizer/ODA/native or support/J promotion; source consumers must rebuild.
+Historical research's48 mismatches are now locally repaired, not erased from
+its receipt.
 
 **Prior7G.3f.2 handoff (2026-10-15, provenance `49427d0`;
 Plan-Slice:7G.3f.2 / LOCAL_IMPLEMENTATION_COMPLETE):**
@@ -13968,3 +13990,112 @@ suite or drawing fixture is involved. This completes the bounded f.4a storage
 handoff checks, not writer qualification or f.4b graph closure. Commit and
 source-hash receipt follow in
 [`docs/research/named-object-callback-readiness-2026-10-15.json`](docs/research/named-object-callback-readiness-2026-10-15.json).
+
+## Deeper named-resource emitter and cross-implementation readiness review (2026-10-15)
+
+This pass compared current Autodesk DXF object tables, the ODA DWG
+specification, LibreDWG's current `dwg2.spec`, LibreCAD's current bundled
+adapter/writer integration, ezdxf's data-model guidance, and this checkout's
+parser/model/writer/CLI graph. It is static source/spec research; the only
+runtime check intentionally deferred is the next focused implementation gate.
+Source URLs, local source hashes, exact route observations, and the review
+boundary are recorded in
+[`docs/research/named-resource-emitter-readiness-2026-10-15.json`](docs/research/named-resource-emitter-readiness-2026-10-15.json).
+
+### Newly resolved implementation facts
+
+| Family | Format contract and comparison | Exact local gap / consequence |
+| --- | --- | --- |
+| SCALE | ODA's [DWG specification](https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf) and LibreDWG's [`dwg2.spec`](https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec) agree on `AcDbScale`: flag70, name300, paper/drawing units140/141, unit-scale bit290, then owner/reactor/xDict handles. The LibreDWG spec calls this section20.4.92 (p.221). | The local [DRW_Scale DXF writer](src/libdxfrw.cpp) and parser exist, but `dx_iface` never calls the writer. Its graph target lookup accepts only DICTIONARY, XRECORD and VISUALSTYLE; it cannot close a NOD dictionary entry to a SCALE leaf. The local source comment says ODA §20.4.93, a likely off-by-one documentation error that should be corrected when touching that block. SCALE remains a custom DXF class: output CLASSES registration/count must accompany emitted objects. |
+| DICTIONARYVAR | Autodesk's [object table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm) defines subclass `DictionaryVariables`, schema280 (currently0), value1, and owner330 `ACDBVARIABLEDICTIONARY`. LibreDWG's decoded `LIGHTINGUNITS` example confirms the live NOD→dictionary→variable path, not just a record-local payload. | Local `parseCode` and `writeDictionaryVar` cover typed values, but no adapter dispatch or graph leaf type exists. The raw callback is delivered by `dxfRW::processDictionaryVar` but discarded by `dx_iface::addRawDxfObject`; unknown DXF groups would therefore be lost if only the typed writer were enabled. The class registration mapping exists but the DWG-origin output count/registration path does not yet include this family. |
+| MLINESTYLE | Autodesk's [MLINESTYLE table](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm) specifies name2, flags70, description3, fill ACI62, angles51/52, count71, then repeated offset49/color62/linetype-name6. It says the MLINE entity's style reference340 is authoritative and name2 is redundant. MLINESTYLE is a fixed built-in DXF object (no CLASS record). | Local `parseCode` ignores count71 and accepts incomplete per-element tuples, relying on defaults; no exact count/ordered-tuple validation exists. The model additionally carries DWG R2018+ linetype handles and optional true color that the DXF writer does not emit. For R2018+ each linetype handle must resolve uniquely to the output LTYPE name for code6; unresolved or ambiguous references cannot be silently blanked. True-color handling is not present in Autodesk's documented MLINESTYLE field list: preserve only under separately evidenced target semantics, otherwise fail closed for a complete-conversion claim. The raw companion is also discarded by the adapter. |
+| MLEADERSTYLE | Autodesk's [MLEADERSTYLE table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm) documents scalar payload and four resource handles:340 LTYPE,341 arrowhead BLOCK,342 text STYLE,343 content BLOCK. LibreDWG [`dwg2.spec`](https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec) gates class-version179 at R2010/AC1024 and `text_extended`298 at R2013/AC1027. | Local `writeMLeaderStyle` is AC1021-gated but emits179 and298 unconditionally and serializes all four nested handle values directly, bypassing the writer's structural/source remapper. Missing/wrong-kind referenced resources can become dangling output handles. The model has no per-field source-presence bits, so target-version admission must use source version/profile evidence or conservative defaults. The raw companion is dropped. The output path also needs the exact MLEADERSTYLE CLASS record and instance count. |
+
+### Field-level output contract for the first four families
+
+Common object identity must be handled once across all rows: preserve/remap the
+record's group5 handle; emit the exact source owner in group330; preserve
+reactors under the 102/330 group and extension-dictionary link under 102/360;
+then preserve typed XDATA. Resolve owner/child links from the rooted dictionary
+graph, not by callback order. `writeTableEntryAppData`/`writeObjectOwner` are
+the existing common writer helpers; typed writers may be selected only when
+the origin/profile permits them.
+
+| Record | Exact typed payload groups → modeled member | Reference/output constraint |
+| --- | --- | --- |
+| SCALE | 70→`flag`; 300→`name`; 140→`paperUnits`; 141→`drawingUnits`; 290→`isUnitScale`. | Custom class `SCALE` requires its matching CLASS metadata for typed DWG-origin output. Resolve only as a leaf owned by the exact parent dictionary; no additional style-resource pointer is present. |
+| DICTIONARYVAR | 100 `DictionaryVariables`; 280→`m_schema`; 1→`m_value`. | Custom class `DICTIONARYVAR` requires CLASS metadata for typed DWG-origin output. Required owner is the actual `ACDBVARIABLEDICTIONARY` under NOD; never manufacture the owner edge from the variable's name. |
+| MLINESTYLE | 2→`name`; 70→`flags`; 3→`description`; 62 before first element→`fillColor`; 51/52→start/end angle; 71→`elements.size()`; for each element in order: 49→`offset`, 62→`color`, 6→`linetype` name. | Fixed built-in object, no CLASS. Reject count mismatch and missing/ambiguous required tuple state rather than silently using defaults. Map each DWG R2018+ `linetypeHandle` to exactly one output LTYPE name for group6; for pre-R2018 resolve the inline index through source line-type order/name evidence. Do not serialize a DWG handle as DXF group6. `color24` has no separately evidenced documented MLINESTYLE output field: retain through a verified raw/profile route or refuse a full-preservation claim. |
+| MLEADERSTYLE (base) | 2→`name`; 70→`flags`; 170/171/172→content/draw-MLeader/draw-leader order; 90→`maxLeaderPoints`; 40/41→segment-angle constraints; 173→`leaderType`; 91/92→leader line color/weight; 290/291→landing/dogleg booleans; 42/43→landing gap/distance; 3→description; 341→arrowhead block handle; 44→arrowhead size; 300→default MText; 342→text-style handle; 174/178/175/176→attachment/angle/alignment; 93/45/292/297/46→text color/height/frame/left-align/spacing; 343→content block; 94/47/49/140/293/141/294/177/142/295/296/143→block color/XYZ scale/scale-enabled/rotation/rotation-enabled/connection/scale factor/changed/annotative/break gap; 271/272/273→MText attachment directions. | 340→leader-line LTYPE; 341→arrowhead BLOCK; 342→STYLE; 343→content BLOCK. For each nonzero target require one matching target of the correct kind, remap through the output identity map, and fail before publication for dangling, ambiguous or wrong-kind targets. 179→`styleVersion` only for AC1024+; 298→`textExtended` only for AC1027+; retain base writer floor AC1021. The 179/298 gates follow LibreDWG's versioned schema cross-check; test both boundaries. Register exactly one MLEADERSTYLE CLASS entry with the emitted typed object count. |
+
+For DXF-origin records, pair the raw carrier with the typed value by exact
+record name, handle, parent and version; raw is emitted once when its replay
+profile is admitted, preserving unknown tags. For DWG-origin records there is
+no DXF raw carrier, so typed field coverage and version/reference preflight
+are mandatory. A raw carrier that fails source/profile or identity matching
+cannot be silently dropped in favor of an incomplete typed projection.
+
+Two architectural findings apply to all four families:
+
+1. `dxfRW::processScale`, `processDictionaryVar`, `processMLineStyle` and
+   `processMLeaderStyle` publish typed values **and** a raw `DRW_RawDxfObject`.
+   `dx_iface::addRawDxfObject` currently stores only ACAD_PROXY_OBJECT and
+   VISUALSTYLE. Thus, the branch has no raw-object preservation lane for these
+   four DXF families; it is incorrect to assume DXF-origin raw-net replay
+   masks incomplete typed emission. Add source-origin-aware raw retention and
+   one-record identity pairing before claiming exact DXF pass-through. For
+   DWG-origin records (which have no raw DXF carrier), typed emission remains
+   mandatory. If a raw carrier and typed record coexist, require exact unique
+   handle/type/owner agreement and emit exactly once.
+2. The writer methods' existence is not integration. No `dx_iface` call site
+   currently reaches `writeScale`, `writeDictionaryVar`, `writeMLineStyle` or
+   `writeMLeaderStyle`; `writeObjects()` emits the existing dictionary,
+   XRECORD, LAYOUT, VISUALSTYLE and selected MATERIAL routes only. The bounded
+   extension DFS and root-entry resolver must admit a typed leaf only after
+   proving unique source identity, exact owner dictionary, root-key/child
+   agreement, handle reservation/remapping, and every non-null property edge.
+   Use one existing graph service; do not create a second graph or copy
+   LibreCAD's owner fallback.
+
+LibreCAD's [current filter integration](https://github.com/LibreCAD/LibreCAD/blob/master/librecad/src/lib/filters/rs_filterdxfrw.cpp)
+is a valuable implementation reference: it emits typed-only DWG resources,
+deduplicates matching raw/typed records by source handle, remaps own handles,
+and generates custom-class metadata for typed classes. Its permissive fallback
+that reparents an unreachable object to the NOD is not a safe strict policy
+for this adapter because it changes ownership semantics. Its DWG writer also
+shows the necessary name/handle joins for MLEADERSTYLE's line type, text style
+and block references. ezdxf's [data-model guide](https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst)
+reinforces the distinct OBJECTS ownership graph and handle-indexed identity
+model. These peers inform structure and test design; neither is treated as a
+semantic oracle for the local output.
+
+### Revised implementation order and fast acceptance slices
+
+The previous f.4b order understated raw-companion loss and class/version
+gates. Use this dependency order; close a row only with its bounded generated
+test and receipt.
+
+| Slice | Implementation and exact fast gate | Ready when |
+| --- | --- | --- |
+| **f.4b.0 — exact field/origin matrix** | The field groups and cross-source mapping above close the static field/readiness matrix. Correct SCALE's stale ODA section comment when next touching its DWG parser block. Use the generated receipt to pin source hashes and primary URLs. | No unclassified field/reference for these four families; source/profile and loss decisions are explicit. This is research readiness, not implementation qualification. |
+| **Before f.4b — f.3b/f.3c prerequisites** | Bind the imported record range to one successful source generation and source version; reject reused/mixed/failed import state. Complete the descriptor-driven source-profile serializer and output admission that f.3c requires. Use f.3b/f.3c's existing focused controls before wiring output-origin selection; `sourceFormat` alone is not sufficient. | Strictly known accepted source profile/generation for each emitted model; stale carriers cannot be selected as raw fallback. |
+| **f.4b.1a — shared leaf bridge, SCALE + DICTIONARYVAR** | After f.3b/f.3c, extend the existing bounded graph index/DFS and root-entry resolver with exactly these leaf types. Pair raw DXF carriers with typed callbacks; replay raw once on DXF-origin input, use typed writers on DWG-origin input. Reserve/remap own handles, preserve exact dictionary owner and dictionary key; generate correct SCALE/DICTIONARYVAR CLASS records and instance counts only for typed output. Test both record types under their actual NOD dictionary roots, high and fixed-colliding handles, wrong owner/type, missing/wrong root child, duplicate identities, raw/typed mismatch, no duplicate output, output parse-back values, ASCII and binary, and failed-export destination preservation followed by same-facade corrected retry. | Every selected entry points to one emitted record owned by its source dictionary; unsupported/unknown raw data is not lost; no fallback rehome; common graph limits still bound scanning. |
+| **f.4b.1b — MLINESTYLE** | Add schema checks for count71 and the ordered repeated tuple shape; distinguish documented DXF ACI/name fields from DWG-only data. Resolve R2018+ DWG linetype handles against one output LTYPE record by handle/name and emit code6; reject unresolved/ambiguous identity. Exact raw replay for DXF source, typed writer for DWG source. Generated case: zero/one/multiple line, legal field reorder, missing/duplicate count, missing tuple members, repeated elements, handle remapping and linetype-resolution negatives. | Count and all per-element values round-trip; no claimed loss for `color24` or linetype identity; MLINE entity code340 resolves to the emitted style. |
+| **f.4b.1c — MLEADERSTYLE** | Add version-gated serialization for179 (R2010+) and298 (`text_extended`, R2013+) in addition to existing AC1021 base floor; inspect all version-conditioned fields against ODA/LibreDWG before writing. Remap each nonzero 340–343 handle and validate target kind/uniqueness (LTYPE, BLOCK, STYLE, BLOCK); distinguish absent optional refs from bad non-null refs. Update/generated CLASS count. Tests cover AC1021/1024/1027 boundaries, all four refs, deliberate handle collisions, wrong-kind/dangling references, content type combinations, raw/typed dedup and MLEADER entity-to-style closure. | No version-inappropriate tag, unremapped reference, class-count mismatch or silent dangling link. |
+| **f.4b.2+ — remaining rooted models** | Continue LAYOUT↔BLOCK_RECORD/VIEWPORT/UCS/shade links, MATERIAL entity347 and full MATERIAL payload, TABLESTYLE row/cell decoder/writer, DICTIONARYWDFLT default340/PLACEHOLDER, then detailed/section view styles. Every family gets a field/reference/disposition row first. | Every source-reachable NOD root key and accepted property link has an exact emitted target or pre-publication refusal. |
+| **f.4c — one composed checkpoint** | Only after all above paths pass their focused gates: run the existing FreeCAD CLI cohort once, then the retained reader/graph/LC3 safety selection and affected sanitizer. Do not repeat the full suite for each family; never weaken a failure to close the gate. | Full intended local conversion cohort passes unchanged; remaining six external/platform gates stay separate and non-promoting. |
+
+Implementation-speed constraints: extend the existing maps/frames with explicit
+family branches, not a new generic object framework; reuse `DRW_RawDxfObject`,
+`writeRawDxfObject`, class lookup helpers and existing temp-output/ASCII-binary
+test utilities; keep each slice limited to one family or the shared two-leaf
+bridge; generate all vectors in memory or scratch space; rebuild the adapter
+test target once per slice and run only its named CTest. Run full test suites
+once at the already planned composed checkpoint. Do not commit test DWG/DXF
+fixtures unless already present in LibreCAD/libdxfrw or generated locally from
+scratch for a separate evidence need; none are required here. After each slice,
+update this plan and its source-hash receipt, commit the slice, and report the
+commit hash and focused result immediately. Continue after a completed slice
+to the next unblocked local child. No changes to finding/subplan/ledger counts,
+LibreCAD/LibreCAD_3 optional callback policy, native/external qualification, or
+J256/J260/J268/J284/J293/J295 dispositions.

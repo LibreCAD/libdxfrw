@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw-named-resource-emitter-readiness-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "d5f5e4a",
+  "scope": "Deeper/broader source and cross-implementation review of SCALE, DICTIONARYVAR, MLINESTYLE, and MLEADERSTYLE adapter retention, raw capture, writer reachability, root graph closure, handle remapping, and version compatibility",
+  "method": {
+    "kind": "static primary-source/spec review",
+    "runtimeTestsRun": false,
+    "sourceBranches": "LibreCAD/LibreCAD master and LibreDWG/libredwg master are mutable upstream branches; the URLs below identify reviewed files, not immutable source commits",
+    "principle": "Autodesk DXF and ODA DWG references establish format contracts; open-source implementations are cross-checks and integration examples, not semantic qualification of this checkout"
+  },
+  "localFindings": [
+    {
+      "family": "SCALE",
+      "source": ["src/drw_objects.cpp:16567", "src/libdxfrw.cpp:18072", "src/libdxfrw.cpp:14596"],
+      "evidence": "Typed DXF parsing/writing exists for flag 70, name 300, paper/drawing units 140/141, and unit-scale bool 290. The DXF parser also produces a raw companion. No dx_iface call site invokes writeScale; dx_iface does not retain this family raw companion. Current source comment labels the ODA section 20.4.93; the ODA PDF search and LibreDWG dwg2.spec identify SCALE as 20.4.92, page 221.",
+      "readiness": "BLOCKED_ON_ADAPTER_AND_GRAPH_LEAF_AND_CLASS_REGISTRATION"
+    },
+    {
+      "family": "DICTIONARYVAR",
+      "source": ["src/drw_objects.cpp:DRW_DictionaryVar::parseCode", "src/libdxfrw.cpp:18100", "src/libdxfrw.cpp:14646", "dwg2dxf/dx_iface.h:193", "dwg2dxf/dx_iface.h:addRawDxfObject"],
+      "evidence": "Typed parsing/writing covers schema 280 and value 1 under subclass DictionaryVariables. processDictionaryVar supplies typed and raw callbacks; dx_iface retains only ACAD_PROXY_OBJECT and VISUALSTYLE raw carriers. No dx_iface call site invokes writeDictionaryVar; the root graph cannot index DICTIONARYVAR as a child leaf.",
+      "readiness": "BLOCKED_ON_ADAPTER_AND_GRAPH_LEAF_AND_CLASS_REGISTRATION"
+    },
+    {
+      "family": "MLINESTYLE",
+      "source": ["src/drw_objects.cpp:14229", "src/libdxfrw.cpp:18776", "src/libdxfrw.cpp:14621", "src/drw_objects.h:4892"],
+      "evidence": "DXF parser ignores code 71 and does not validate complete per-element tuples. The model can hold DWG per-element color24 and R2018+ linetypeHandle, which the DXF writer does not emit. DXF parser supplies a raw companion which the adapter drops. No dx_iface call site invokes writeMLineStyle. The standard DXF representation identifies each linetype by its code-6 name, so DWG linetype handles require unique source-table name resolution rather than direct handle serialization.",
+      "readiness": "BLOCKED_ON_SCHEMA_VALIDATION_RAW_RETENTION_DWG_ONLY_FIELD_POLICY_GRAPH_LEAF"
+    },
+    {
+      "family": "MLEADERSTYLE",
+      "source": ["src/drw_objects.cpp:14489", "src/drw_objects.h:4948", "src/libdxfrw.cpp:18703", "src/libdxfrw.cpp:13927", "src/libdxfrw.cpp:17376"],
+      "evidence": "Typed writer is limited to AC1021+ but emits 179 and 298 at every admitted version and writes the stored 340-343 references directly, without remapObjectHandle. LibreDWG's DWG spec gates 179 to R2010+ and text_extended 298 to R2013+. The four resource handles denote LTYPE, arrowhead BLOCK, text STYLE, and content BLOCK. processRawCapturedObject publishes a raw companion which dx_iface currently discards. No dx_iface call site invokes writeMLeaderStyle; a typed path also needs MLEADERSTYLE CLASS registration and the correct instance count.",
+      "readiness": "BLOCKED_ON_RAW_RETENTION_VERSIONED_WRITER_REFERENCE_CLOSURE_GRAPH_LEAF_AND_CLASS_REGISTRATION"
+    },
+    {
+      "family": "shared_graph_and_raw_contract",
+      "source": ["dwg2dxf/dx_iface.cpp:1582", "dwg2dxf/dx_iface.cpp:prepareExtensionObjectGraph", "dwg2dxf/dx_iface.h:writeObjects", "dwg2dxf/dx_iface.cpp:rootEntries"],
+      "evidence": "The current bounded traversal target resolver and visited sets cover dictionaries, XRecords and VisualStyles (plus linetypes for specific permitted references). Root-entry admission only recognizes closed dictionaries/XRecords. New leaf dispatch requires unique identity, exact owner and root-entry linkage, handle reservation/remapping, and validation of every admitted non-null reference before publication.",
+      "readiness": "BLOCKED_ON_SHARED_GRAPH_EXTENSION"
+    }
+  ],
+  "crossImplementationFindings": [
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "claim": "DICTIONARYVAR has owner dictionary code 330, subclass DictionaryVariables, schema code 280 and value code 1; the reference names ACDBVARIABLEDICTIONARY as owner."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "claim": "MLINESTYLE uses 2/70/3/62/51/52/71 then repeated 49/62/6 groups; owner is the ACAD_MLINESTYLE NOD dictionary. The MLINE entity's 340 style handle is authoritative over redundant name code 2."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+      "claim": "MLEADERSTYLE scalar fields and codes 340-343 are defined as leader-line-type, arrowhead, MText-style and block-content resource IDs. The published table does not enumerate code 179 or 298."
+    },
+    {
+      "source": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "claim": "Authoritative DWG byte-layout source. SCALE is listed in section 20.4.92, page 221; MLEADERSTYLE in section 20.4.87."
+    },
+    {
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+      "claim": "Open-source DWG schema corroborates SCALE fields and identifies MLEADERSTYLE class-version 179 as R2010+ and text_extended 298 as R2013+. Its master branch is a moving implementation cross-check, not a normative authority."
+    },
+    {
+      "source": "https://github.com/LibreCAD/LibreCAD/blob/master/librecad/src/lib/filters/rs_filterdxfrw.cpp",
+      "claim": "Current LibreCAD integration emits typed-only DWG-origin records, avoids duplicate raw/typed output by handle for DXF-origin records, registers custom classes, and remaps MLEADERSTYLE line-type/text-style/block references in the DWG output path. Its fallback rehomes unreachable records to the NOD; this plan explicitly rejects that behavior for strict graph-preserving output."
+    },
+    {
+      "source": "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst",
+      "claim": "Independent DXF-only implementation describes OBJECTS as an ownership graph with handle-indexed identity, supporting graph-first implementation and testing. This does not qualify libdxfrw output semantics."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+      "claim": "DXF persistent inter-object handles distinguish pointer and ownership references; references must remain valid through transformations. The local serializer must map them consistently with newly emitted identities."
+    }
+  ],
+  "implementationPlanChanges": {
+    "f4a": "CLOSED for owned callback values, copy/lifetime/reset/malformed WDFLT pointer and following-record checks; does not qualify output.",
+    "f4b0": "Field/origin/reference/class/version/loss matrix plus correction of the SCALE ODA section comment.",
+    "f4b1a": "Extend existing graph with SCALE and DICTIONARYVAR leaf nodes; pair/retain raw carriers; DXF source uses raw exactly once, DWG source uses typed emitter; preserve exact owners/root links; register custom classes and instance counts for typed output.",
+    "f4b1b": "Validate MLINESTYLE code-71 count and repeated tuples; map unique R2018+ DWG linetype handles to DXF code-6 names; explicit disposition for DWG true color; fixed built-in class, no CLASS record.",
+    "f4b1c": "Version-gate MLEADERSTYLE code179 at AC1024 and code298 at AC1027; remap and type-check 340-343 references; register custom class and instance count; exact raw/typed dedup.",
+    "f4c": "One composed FreeCAD cohort and retained reader/graph/LibreCAD_3 safety selection only after focused family gates pass."
+  },
+  "validation": {
+    "build": "NOT RUN; research and plan update only",
+    "tests": "NOT RUN; next work is the focused f.4b.1a implementation gate",
+    "fullSuite": "NOT RUN",
+    "drawingFixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "nativeApplicationsRun": 0
+  },
+  "readiness": {
+    "callbackStorageF4a": "CLOSED by commits ed8d925 and 705bd89; receipts named-object-callback-storage-2026-10-15.json and named-object-callback-readiness-2026-10-15.json",
+    "typedEmitterReachability": "OPEN",
+    "rawCompanionRetentionAndDedup": "OPEN",
+    "namedRootGraphLeafCoverage": "OPEN",
+    "MLINESTYLECompleteTupleAndR2018NameMapping": "OPEN",
+    "MLEADERSTYLEVersionGatesAndReferenceRemapping": "OPEN",
+    "composedFreeCADCheckpointF4c": "OPEN"
+  },
+  "scopeBoundaries": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "threeDSupportLedgerItems": 149,
+    "supportClaimsPromoted": false,
+    "LibreCADAndLibreCAD3OptionalCallbackPolicyChanged": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_iface.cpp": "463d7faf9e7fd1ce77e137a38f3141a72e3700d01d9a5cbe6b71d173c93c4a4b",
+    "dwg2dxf/dx_iface.h": "9213e931328d9e41afcd6f3b29f7976369f7f5700b3a0b1475e6c48f67e45710",
+    "dwg2dxf/dx_data.h": "20874bf9aeaeda0d01a6a14440d56fbbd1c33bb9ab354670fe8e8dbe8bf22f54",
+    "src/drw_objects.cpp": "a13ea4f02b4eb335c5179402493da37f011fc2e10e78b62c676694247917707e",
+    "src/drw_objects.h": "2c19ba960300e913b852fb512483d0d0ff0b047e76d5b42f7af265ffb7ab6a8f",
+    "src/libdxfrw.cpp": "1b62a9b68d055c3a6e5887f209cabb94e1779995f5e1048abfd1ca0f031609aa",
+    "src/libdxfrw.h": "2baa52bc1d20ec8bf4229eb13aee19468c3733b3a983536266d39f4ebded2c2b",
+    "src/intern/dwgwriter15.cpp": "e97bf1bef57a47bdd32d6ba2c4c4c314093d800e44365f3a03d636bc359040bd",
+    "src/intern/dwgwriter15.h": "faa88ce8f8af5ed695d032a83bf79e6821eae6842ab4e024bc4a939434546429",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "0ea70ef021b27d38d909ccfce79ff7097e3efb29bb52228f11f2a801de4bb272",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "b9e93ccbb54a19aeae6474444dbbb486754b83e03449b59127b60c543886b8e9"
+  }
+}

@@ -3,6 +3,24 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
+**Latest named-root implementation state (2026-10-15, baseline `d5f5e4a`):**
+f.4a callback-owned retention/copy/lifetime/reset checks are complete. The
+deeper writer/readback review found that SCALE, DICTIONARYVAR, MLINESTYLE and
+MLEADERSTYLE raw companions are discarded by the CLI adapter, no current
+adapter call site reaches their typed writers, and the named-root graph does
+not index these record kinds. MLEADERSTYLE also needs 179/298 version gates
+and all four 340–343 references remapped/validated; MLINESTYLE needs code-71
+count and complete repeated-element validation plus R2018+ linetype-handle to
+name resolution. The refreshed implementation-ready order is documented in
+the [open-source parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-named-resource-emitter-and-cross-implementation-readiness-review-2026-10-15)
+with source-bound receipt
+[`named-resource-emitter-readiness-2026-10-15.json`](docs/research/named-resource-emitter-readiness-2026-10-15.json).
+Next are the already-planned f.3b import-origin/generation binding and f.3c
+source-profile serializer admission; after they pass, f.4b.1a can bridge the
+SCALE/DICTIONARYVAR graph/emitter path. No writer behavior, full conversion,
+external qualification, or support claim is implied by this research. All six
+J gates remain `DEFERRED_EXTERNAL`.
+
 **Current parity7G.3f.3a / LOCAL_IMPLEMENTATION_COMPLETE (baseline`7b753cf`):**
 Typed DXF VISUALSTYLE description/type respect subclass and291 boundaries;
 post-tail70 no longer aliases type, even across repeated markers. Markerless
@@ -13,8 +31,9 @@ Current probe matches72 literal producer types, repairing the48 modern
 collisions while leaving24 older types/other observed fields unchanged.
 Focused fixture/reader/object gates3/3 in5.15s and strict two-TU/build/lc3 pass.
 Receipt: `docs/research/visualstyle-type-scope-7g-3f-3a-2026-10-15.json`.
-Next f.4a owned family handoff/f.3b origin binding, then serializer/whole-root
-CLI closure;9d and six external J gates remain open/non-promoting. No new
+f.4a owned family handoff is now complete. Next are f.3b origin/generation
+binding and f.3c serializer admission, then whole-root f.4b and CLI f.4c
+closure;9d and six external J gates remain open/non-promoting. No new
 fixture/dependency/registration, full suite/sanitizer/ODA/native qualification.
 Private public-class state requires rebuild; no callback/default2D policy change.
 
