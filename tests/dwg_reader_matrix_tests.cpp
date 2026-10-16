@@ -750,6 +750,184 @@ std::vector<std::uint8_t> makeInlineAcDsSection(
     return bytes;
 }
 
+struct AcDsBlobTestSection {
+    std::vector<std::uint8_t> bytes;
+    std::size_t secondPageHeaderOffset {0};
+    std::size_t secondPageReferenceOffset {0};
+    std::vector<std::uint8_t> payload;
+};
+
+AcDsBlobTestSection makeTwoPageAcDsSection(std::uint32_t handle) {
+    constexpr std::size_t segmentIndexOffset = 64u;
+    constexpr std::size_t segmentIndexSize = 128u;
+    constexpr std::size_t dataIndexOffset = segmentIndexOffset
+        + segmentIndexSize;
+    constexpr std::size_t dataIndexSize = 128u;
+    constexpr std::size_t dataOffset = dataIndexOffset + dataIndexSize;
+    constexpr std::size_t dataSegmentSize = 192u;
+    constexpr std::size_t secondPageOffset = dataOffset + dataSegmentSize;
+    constexpr std::size_t secondPageSize = 128u;
+    constexpr std::size_t firstPageOffset = secondPageOffset + secondPageSize;
+    constexpr std::size_t firstPageSize = 0x100000u;
+    constexpr std::size_t sectionSize = firstPageOffset + firstPageSize;
+    constexpr std::size_t segmentCount = 5u;
+    constexpr std::size_t firstPageBytes =
+        DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE;
+    constexpr std::size_t secondPageBytes = 48u;
+    constexpr std::size_t totalPayloadBytes =
+        firstPageBytes + secondPageBytes;
+    constexpr std::size_t dataRecordHeaderOffset = dataOffset
+        + DRW_DataStorageConst::SEGMENT_HEADER_SIZE;
+    constexpr std::size_t dataRegionOffset =
+        (dataRecordHeaderOffset
+         + DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE + 15u)
+        & ~std::size_t{15u};
+    constexpr std::size_t descriptorOffset = dataRegionOffset + 4u;
+    constexpr std::size_t secondPageHeaderOffset = secondPageOffset
+        + DRW_DataStorageConst::SEGMENT_HEADER_SIZE;
+    constexpr std::size_t secondPageReferenceOffset = descriptorOffset
+        + DRW_DataStorageConst::DATA_BLOB_REFERENCE_FIXED_SIZE
+        + DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE;
+
+    AcDsBlobTestSection result;
+    result.bytes.resize(sectionSize, 0u);
+    result.payload.resize(totalPayloadBytes);
+    static constexpr std::uint8_t signature[] = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
+    std::copy(std::begin(signature), std::end(signature),
+              result.payload.begin());
+    std::fill(result.payload.begin() + static_cast<std::ptrdiff_t>(
+                  sizeof(signature)),
+              result.payload.begin() + static_cast<std::ptrdiff_t>(firstPageBytes),
+              0xA5u);
+    std::fill(result.payload.begin() + static_cast<std::ptrdiff_t>(firstPageBytes),
+              result.payload.end(), 0x5Au);
+    result.secondPageHeaderOffset = secondPageHeaderOffset;
+    result.secondPageReferenceOffset = secondPageReferenceOffset;
+
+    const auto putU16 = [&result](std::size_t offset, std::uint16_t value) {
+        result.bytes[offset] = static_cast<std::uint8_t>(value);
+        result.bytes[offset + 1u] = static_cast<std::uint8_t>(value >> 8u);
+    };
+    const auto putU32 = [&result](std::size_t offset, std::uint32_t value) {
+        for (unsigned index = 0; index < 4u; ++index)
+            result.bytes[offset + index] = static_cast<std::uint8_t>(
+                value >> (index * 8u));
+    };
+    const auto putU64 = [&putU32](std::size_t offset, std::uint64_t value) {
+        putU32(offset, static_cast<std::uint32_t>(value));
+        putU32(offset + 4u, static_cast<std::uint32_t>(value >> 32u));
+    };
+    const auto putSegment = [&putU16, &putU32, &result](
+                                std::size_t offset, const char* name,
+                                std::uint32_t index, std::uint32_t size) {
+        putU16(offset, DRW_DataStorageConst::SEGMENT_SIGNATURE);
+        for (std::size_t byte = 0; byte < 6u; ++byte)
+            result.bytes[offset + 2u + byte] =
+                static_cast<std::uint8_t>(name[byte]);
+        putU32(offset + 8u, index);
+        putU32(offset + 16u, size);
+        putU32(offset + 24u, 1u);
+    };
+    const auto putBlobPage = [&putU64, &putU32, &result, totalPayloadBytes](
+                                 std::size_t segmentOffset,
+                                 std::uint64_t startOffset,
+                                 std::uint32_t pageIndex,
+                                 std::size_t payloadOffset,
+                                 std::size_t payloadSize) {
+        const std::size_t header = segmentOffset
+            + DRW_DataStorageConst::SEGMENT_HEADER_SIZE;
+        putU64(header, totalPayloadBytes);
+        putU64(header + 8u, startOffset);
+        putU32(header + 16u, pageIndex);
+        putU32(header + 20u, 2u);
+        putU64(header + 24u, payloadSize);
+        std::copy_n(result.payload.begin()
+                        + static_cast<std::ptrdiff_t>(payloadOffset),
+                    payloadSize,
+                    result.bytes.begin() + static_cast<std::ptrdiff_t>(
+                        header + DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE));
+    };
+
+    putU32(4u, DRW_DataStorageConst::HEADER_SIZE);
+    putU32(12u, 1u);
+    putU32(20u, 1u);
+    putU32(24u, static_cast<std::uint32_t>(segmentIndexOffset));
+    putU32(32u, static_cast<std::uint32_t>(segmentCount));
+    putU32(36u, 0xffffffffu); // No schema-index segment.
+    putU32(40u, 1u);
+    putU32(44u, 0xffffffffu); // No search segment.
+    putU32(48u, 0xffffffffu); // No previous-save segment.
+    putU32(52u, static_cast<std::uint32_t>(sectionSize));
+
+    putSegment(segmentIndexOffset, "segidx", 0u,
+               static_cast<std::uint32_t>(segmentIndexSize));
+    putSegment(dataIndexOffset, "datidx", 1u,
+               static_cast<std::uint32_t>(dataIndexSize));
+    putSegment(dataOffset, "_data_", 2u,
+               static_cast<std::uint32_t>(dataSegmentSize));
+    putSegment(secondPageOffset, "blob01", 3u,
+               static_cast<std::uint32_t>(secondPageSize));
+    putSegment(firstPageOffset, "blob01", 4u,
+               static_cast<std::uint32_t>(firstPageSize));
+
+    const std::array<std::pair<std::size_t, std::uint32_t>, segmentCount>
+        segments {{{segmentIndexOffset,
+                    static_cast<std::uint32_t>(segmentIndexSize)},
+                   {dataIndexOffset,
+                    static_cast<std::uint32_t>(dataIndexSize)},
+                   {dataOffset,
+                    static_cast<std::uint32_t>(dataSegmentSize)},
+                   {secondPageOffset,
+                    static_cast<std::uint32_t>(secondPageSize)},
+                   {firstPageOffset,
+                    static_cast<std::uint32_t>(firstPageSize)}}};
+    for (std::size_t index = 0; index < segments.size(); ++index) {
+        const std::size_t entry = segmentIndexOffset
+            + DRW_DataStorageConst::SEGMENT_HEADER_SIZE
+            + index * DRW_DataStorageConst::SEGMENT_INDEX_ENTRY_SIZE;
+        putU64(entry, segments[index].first);
+        putU32(entry + 8u, segments[index].second);
+    }
+
+    const std::size_t dataIndexEntry = dataIndexOffset
+        + DRW_DataStorageConst::SEGMENT_HEADER_SIZE + 8u;
+    putU32(dataIndexOffset
+               + DRW_DataStorageConst::SEGMENT_HEADER_SIZE,
+           1u);
+    putU32(dataIndexEntry, 2u);
+    putU32(dataIndexEntry + 4u, 0u);
+
+    putU32(dataRecordHeaderOffset,
+           DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
+    putU64(dataRecordHeaderOffset + 8u, handle);
+    putU32(dataRecordHeaderOffset + 16u, 0u);
+    putU32(dataRegionOffset,
+           DRW_DataStorageConst::DATA_BLOB_REFERENCE_MARKER);
+    putU64(descriptorOffset, totalPayloadBytes);
+    putU32(descriptorOffset + 8u, 2u);
+    putU32(descriptorOffset + 12u,
+           DRW_DataStorageConst::DATA_BLOB_REFERENCE_FIXED_SIZE
+               + 2u * DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE);
+    putU32(descriptorOffset + 16u,
+           DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE);
+    putU32(descriptorOffset + 20u,
+           static_cast<std::uint32_t>(secondPageBytes));
+    putU32(descriptorOffset + 32u, 4u); // Page 0 is physically second.
+    putU32(descriptorOffset + 36u,
+           DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE);
+    putU32(secondPageReferenceOffset, 3u);
+    putU32(secondPageReferenceOffset + 4u,
+           static_cast<std::uint32_t>(secondPageBytes));
+
+    // Page 1 precedes page 0 in the physical section. Descriptor order and
+    // page metadata, rather than segment order, define the assembled payload.
+    putBlobPage(secondPageOffset, firstPageBytes, 1u, firstPageBytes,
+                secondPageBytes);
+    putBlobPage(firstPageOffset, 0u, 0u, 0u, firstPageBytes);
+    return result;
+}
+
 class ModelerDispatchReader final : public dwgReader27 {
 public:
     using dwgReader::walkBlockRecordEntities;
@@ -783,6 +961,18 @@ public:
     std::size_t parsedDataStorageRecords() const {
         return m_dataStorageSections.empty()
             ? 0u : m_dataStorageSections.front().records.size();
+    }
+
+    const DRW_DataStorageRecord* parsedDataStorageRecord(
+        std::uint64_t handle) const {
+        if (m_dataStorageSections.empty())
+            return nullptr;
+        const auto& records = m_dataStorageSections.front().records;
+        const auto found = std::find_if(
+            records.begin(), records.end(), [handle](const auto& record) {
+                return record.handle == handle;
+            });
+        return found == records.end() ? nullptr : &*found;
     }
 
     bool rawDataStorageSectionEquals(
@@ -1508,6 +1698,159 @@ void testModelerAcDsDataIndexOrder(TestContext& t) {
     t.expect(reader.dataStorageLinkFailures() == 0u
                  && reader.dataStorageOrphans() == 0u,
              "all reordered AcDs records resolve exactly once without orphans");
+}
+
+void testModelerAcDsBlobPageChain(TestContext& t) {
+    constexpr std::uint32_t blockHandle = 0x760u;
+    constexpr std::uint32_t solidHandle = 0xA80u;
+    const AcDsBlobTestSection generated = makeTwoPageAcDsSection(solidHandle);
+    t.expect(!generated.bytes.empty() && !generated.payload.empty(),
+             "source-authored two-page Blob01 AcDs chain is generated in memory");
+    if (generated.bytes.empty() || generated.payload.empty())
+        return;
+
+    std::ofstream output;
+    DRW_Header header;
+    ModelerDispatchFrameWriter writer(&output, &header);
+    const bool frameGenerated = writer.encodeAcDsSolid(solidHandle, blockHandle);
+    t.expect(frameGenerated,
+             "modeler frame for two-page AcDs linkage is generated in memory");
+    if (!frameGenerated)
+        return;
+    std::vector<std::uint8_t> sourceBytes = writer.buffer();
+
+    dwgRW parent("");
+    struct ReaderFixture {
+        std::unique_ptr<ModelerDispatchReader> reader;
+        DRW_Block_Record* block = nullptr;
+    };
+    const auto makeReader = [&](const std::vector<std::uint8_t>& sectionBytes) {
+        ReaderFixture fixture;
+        fixture.reader.reset(new ModelerDispatchReader(
+            std::unique_ptr<dwgBuffer>(new dwgBuffer(
+                sourceBytes.data(), sourceBytes.size())),
+            &parent));
+        fixture.reader->setFormatVersion(DRW::AC1027);
+        auto blockOwner = std::make_unique<DRW_Block_Record>();
+        fixture.block = blockOwner.get();
+        fixture.block->handle = blockHandle;
+        fixture.block->name = "ACDS_BLOB_PAGE_CHAIN_TEST";
+        DwgBlockOwnershipTestAccess::setEntityHandles(
+            *fixture.block, {solidHandle});
+        fixture.reader->blockRecordmap.emplace(blockHandle, fixture.block);
+        (void)blockOwner.release(); // Reader owns block-record values.
+        fixture.reader->ObjectMap.emplace(
+            solidHandle, objHandle(38u, solidHandle,
+                                   writer.modelerObjectOffset(solidHandle)));
+        fixture.reader->setPrototypeSectionData(sectionBytes);
+        return fixture;
+    };
+
+    ReaderFixture valid = makeReader(generated.bytes);
+    const bool captured = valid.reader->captureDataStorageSection();
+    const DRW_DataStorageRecord* record =
+        valid.reader->parsedDataStorageRecord(solidHandle);
+    const bool pageMetadataMatches = record != nullptr
+        && record->isBlobReference
+        && record->blobTotalByteLength == generated.payload.size()
+        && record->blobPageCount == 2u
+        && record->blobPageByteSize
+               == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+        && record->blobLastPageByteSize == 48u
+        && record->blobPages.size() == 2u
+        && record->blobPages[0].segmentIndex == 4u
+        && record->blobPages[0].byteLength
+               == DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+        && record->blobPages[1].segmentIndex == 3u
+        && record->blobPages[1].byteLength == 48u
+        && record->blobPayloadRetained
+        && record->payload == generated.payload;
+    if (!captured || !pageMetadataMatches) {
+        std::cerr << "AcDs Blob01 chain diagnostic: captured=" << captured
+                  << " raw=" << valid.reader->rawDataStorageSections()
+                  << " records=" << valid.reader->parsedDataStorageRecords()
+                  << " record=" << (record != nullptr);
+        if (record != nullptr) {
+            std::cerr << " blob=" << record->isBlobReference
+                      << " handle=" << record->handle
+                      << " segment=" << record->segmentIndex
+                      << " local=" << record->localOffset
+                      << " recordLocal=" << record->recordLocalOffset
+                      << " entrySize=" << record->entrySize
+                      << " dataSize=" << record->dataByteLength
+                      << " recordOffset=" << record->recordOffset
+                      << " dataOffset=" << record->dataOffset
+                      << " total=" << record->blobTotalByteLength
+                      << " pages=" << record->blobPageCount
+                      << " pageSize=" << record->blobPageByteSize
+                      << " lastPage=" << record->blobLastPageByteSize
+                      << " retained=" << record->blobPayloadRetained
+                      << " payload=" << record->payload.size();
+        }
+        std::cerr << '\n';
+    }
+    t.expect(captured && valid.reader->rawDataStorageSections() == 1u
+                 && valid.reader->parsedDataStorageRecords() == 1u
+                 && valid.reader->rawDataStorageSectionEquals(generated.bytes)
+                 && pageMetadataMatches,
+             "out-of-physical-order Blob01 pages assemble from validated descriptor order");
+    if (!captured || !pageMetadataMatches)
+        return;
+
+    dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
+    ModelerDispatchSink sink;
+    sink.activeWalkOwner = blockHandle;
+    const bool walked = valid.reader->walkBlockRecordEntities(
+        valid.block, &objectStream, sink, blockHandle, blockHandle);
+    valid.reader->finalizeDataStorage();
+    const bool linked = walked && sink.modeler.size() == 1u
+        && sink.modeler.front().entity.handle == solidHandle
+        && sink.modeler.front().entity.hasDataStorageRecord
+        && sink.modeler.front().entity.dataStorageData == generated.payload;
+    t.expect(linked && valid.reader->dataStorageLinkFailures() == 0u
+                 && valid.reader->dataStorageOrphans() == 0u,
+             "assembled Blob01 bytes link to their owning modeler entity without loss");
+
+    const auto putU32 = [](std::vector<std::uint8_t>& bytes,
+                           std::size_t offset, std::uint32_t value) {
+        for (unsigned index = 0; index < 4u; ++index)
+            bytes[offset + index] = static_cast<std::uint8_t>(
+                value >> (index * 8u));
+    };
+    const auto putU64 = [&putU32](std::vector<std::uint8_t>& bytes,
+                                  std::size_t offset, std::uint64_t value) {
+        putU32(bytes, offset, static_cast<std::uint32_t>(value));
+        putU32(bytes, offset + 4u, static_cast<std::uint32_t>(value >> 32u));
+    };
+    struct Mutation {
+        const char* name;
+        std::size_t offset;
+        std::uint64_t value;
+        bool wide;
+    };
+    const std::array<Mutation, 4> malformedCases {{
+        {"missing page segment", generated.secondPageReferenceOffset, 99u, false},
+        {"duplicate page ordinal", generated.secondPageHeaderOffset + 16u, 0u, false},
+        {"incorrect page start offset", generated.secondPageHeaderOffset + 8u, 0u, true},
+        {"mismatched page reference length", generated.secondPageReferenceOffset + 4u, 47u, false}}};
+    for (const Mutation& mutation : malformedCases) {
+        std::vector<std::uint8_t> malformed = generated.bytes;
+        if (mutation.wide)
+            putU64(malformed, mutation.offset, mutation.value);
+        else
+            putU32(malformed, mutation.offset,
+                   static_cast<std::uint32_t>(mutation.value));
+        ReaderFixture invalid = makeReader(malformed);
+        const bool invalidAccepted =
+            invalid.reader->captureDataStorageSection();
+        t.expect(!invalidAccepted
+                     && invalid.reader->rawDataStorageSections() == 0u
+                     && invalid.reader->parsedDataStorageRecords() == 0u
+                     && invalid.reader->parsedDataStorageRecord(solidHandle)
+                            == nullptr,
+                 std::string("malformed Blob01 chain is rejected atomically: ")
+                     + mutation.name);
+    }
 }
 
 void testR2004SectionMapPublication(TestContext& t) {
@@ -3698,6 +4041,7 @@ int main() {
     testModelerAcDsRegionDispatch(context);
     testModelerAcDsRecordDispositions(context);
     testModelerAcDsDataIndexOrder(context);
+    testModelerAcDsBlobPageChain(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
