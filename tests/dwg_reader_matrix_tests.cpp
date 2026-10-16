@@ -578,6 +578,8 @@ public:
         source.parentHandle = ownerHandle;
         source.setHasDataStorageBinaryData(true);
 
+        m_modelerObjectOffsets[handle] =
+            static_cast<std::uint32_t>(m_buf.size());
         dwgBufferW& body = beginObject(handle);
         if (!source.encodeCommon(m_version, body, m_objectStrings))
             return false;
@@ -615,23 +617,47 @@ public:
         finishObject();
         return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
     }
+
+    std::uint32_t modelerObjectOffset(std::uint32_t handle) const {
+        const auto found = m_modelerObjectOffsets.find(handle);
+        return found == m_modelerObjectOffsets.end() ? 0u : found->second;
+    }
+
+private:
+    std::map<std::uint32_t, std::uint32_t> m_modelerObjectOffsets;
 };
 
 using AcDsTestRecord =
     std::pair<std::uint32_t, std::vector<std::uint8_t>>;
 
 std::vector<std::uint8_t> makeInlineAcDsSection(
-    const std::vector<AcDsTestRecord>& records) {
+    const std::vector<AcDsTestRecord>& records,
+    const std::vector<std::size_t>& dataIndexOrder = {}) {
     constexpr std::size_t sectionSize = 576u;
     constexpr std::size_t segmentIndexOffset = 64u;
     constexpr std::size_t dataIndexOffset = 192u;
     constexpr std::size_t dataOffset = 320u;
     constexpr std::size_t segmentDataOffset = dataOffset + 48u;
-    if (records.size() > 2u
+    if (records.size() > 4u
         || records.size()
             > (sectionSize - segmentDataOffset) /
                    DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE)
         return {};
+
+    std::vector<std::size_t> rowOrder = dataIndexOrder;
+    if (rowOrder.empty()) {
+        rowOrder.resize(records.size());
+        for (std::size_t index = 0; index < rowOrder.size(); ++index)
+            rowOrder[index] = index;
+    }
+    if (rowOrder.size() != records.size())
+        return {};
+    std::vector<bool> recordSeen(records.size(), false);
+    for (std::size_t recordIndex : rowOrder) {
+        if (recordIndex >= records.size() || recordSeen[recordIndex])
+            return {};
+        recordSeen[recordIndex] = true;
+    }
 
     const std::size_t headerBytes =
         records.size() * DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE;
@@ -697,14 +723,17 @@ std::vector<std::uint8_t> makeInlineAcDsSection(
 
     putU32(dataIndexOffset + 48u,
            static_cast<std::uint32_t>(records.size()));
-    std::size_t payloadLocalOffset = 0u;
     for (std::size_t index = 0; index < records.size(); ++index) {
+        const std::size_t recordIndex = rowOrder[index];
         const std::size_t dataIndexEntry = dataIndexOffset + 56u + index * 12u;
         putU32(dataIndexEntry, 2u);
         putU32(dataIndexEntry + 4u, static_cast<std::uint32_t>(
-            index * DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE));
+            recordIndex * DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE));
         putU32(dataIndexEntry + 8u, 0u);
+    }
 
+    std::size_t payloadLocalOffset = 0u;
+    for (std::size_t index = 0; index < records.size(); ++index) {
         const std::size_t header = segmentDataOffset
             + index * DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE;
         putU32(header, DRW_DataStorageConst::DATA_RECORD_HEADER_SIZE);
@@ -1359,6 +1388,126 @@ void testModelerAcDsRecordDispositions(TestContext& t) {
                  && duplicate.parsedRecords == 2u
                  && duplicate.linkFailures == 0u && duplicate.orphans == 1u,
              "duplicate AcDs revisions attach the preferred exact record and expose the other as orphan");
+}
+
+void testModelerAcDsDataIndexOrder(TestContext& t) {
+    constexpr std::uint32_t blockHandle = 0x750u;
+    const std::vector<std::uint32_t> callbackOrder {
+        0xA54u, 0xA53u, 0xA52u, 0xA51u};
+    const auto makePayload = [](std::uint8_t marker) {
+        static constexpr std::uint8_t signature[] = {
+            'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
+        std::vector<std::uint8_t> payload(std::begin(signature),
+                                          std::end(signature));
+        payload.push_back(marker);
+        return payload;
+    };
+    const std::map<std::uint32_t, std::vector<std::uint8_t>> payloadByHandle {
+        {0xA51u, makePayload(0x51u)}, {0xA52u, makePayload(0x52u)},
+        {0xA53u, makePayload(0x53u)}, {0xA54u, makePayload(0x54u)}};
+    // The directory rows, physical record stream, numeric handle order, and
+    // entity callback order are four distinct permutations.
+    const std::vector<AcDsTestRecord> physicalRecords {
+        {0xA52u, payloadByHandle.at(0xA52u)},
+        {0xA54u, payloadByHandle.at(0xA54u)},
+        {0xA51u, payloadByHandle.at(0xA51u)},
+        {0xA53u, payloadByHandle.at(0xA53u)}};
+    const std::vector<std::size_t> dataIndexOrder {3u, 2u, 0u, 1u};
+
+    std::ofstream output;
+    DRW_Header header;
+    ModelerDispatchFrameWriter writer(&output, &header);
+    bool generated = true;
+    for (std::uint32_t handle : callbackOrder)
+        generated = generated && writer.encodeAcDsSolid(handle, blockHandle);
+    t.expect(generated,
+             "four source-authored AC1027 modeler frames are generated in callback order");
+    if (!generated)
+        return;
+
+    const std::vector<std::uint8_t> rawSection =
+        makeInlineAcDsSection(physicalRecords, dataIndexOrder);
+    t.expect(!rawSection.empty(),
+             "four-record AcDs directory and physical order are generated in memory");
+    if (rawSection.empty())
+        return;
+
+    std::vector<std::uint8_t> sourceBytes = writer.buffer();
+    dwgRW parent("");
+    auto blockOwner = std::make_unique<DRW_Block_Record>();
+    DRW_Block_Record* block = blockOwner.get();
+    block->handle = blockHandle;
+    block->name = "ACDS_INDEX_ORDER_TEST";
+    DwgBlockOwnershipTestAccess::setEntityHandles(*block, callbackOrder);
+    ModelerDispatchReader reader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(
+            sourceBytes.data(), sourceBytes.size())),
+        &parent);
+    reader.setFormatVersion(DRW::AC1027);
+    reader.blockRecordmap.emplace(blockHandle, block);
+    (void)blockOwner.release(); // reader owns block-record values.
+    for (std::uint32_t handle : callbackOrder)
+        reader.ObjectMap.emplace(
+            handle, objHandle(38u, handle,
+                              writer.modelerObjectOffset(handle)));
+    reader.setPrototypeSectionData(rawSection);
+    const bool captured = reader.captureDataStorageSection();
+    t.expect(captured && reader.rawDataStorageSections() == 1u
+                 && reader.parsedDataStorageRecords() == callbackOrder.size()
+                 && reader.rawDataStorageSectionEquals(rawSection),
+             "reordered DataIndex rows retain exact raw section and all typed records");
+    if (!captured)
+        return;
+
+    dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
+    ModelerDispatchSink sink;
+    sink.activeWalkOwner = blockHandle;
+    const bool walked = reader.walkBlockRecordEntities(
+        block, &objectStream, sink, blockHandle, blockHandle);
+    reader.finalizeDataStorage();
+
+    bool linksMatch = walked && sink.modeler.size() == callbackOrder.size();
+    const auto handleKey = [](std::uint32_t handle) {
+        std::ostringstream text;
+        text << std::uppercase << std::hex << handle;
+        return text.str();
+    };
+    if (linksMatch) {
+        for (std::size_t index = 0; index < callbackOrder.size(); ++index) {
+            const auto& modeler = sink.modeler[index];
+            const std::uint32_t expectedHandle = callbackOrder[index];
+            const auto expectedPayload = payloadByHandle.find(expectedHandle);
+            if (expectedPayload == payloadByHandle.end()
+                || modeler.walkOwner != blockHandle
+                || modeler.entity.handle != expectedHandle
+                || !modeler.entity.hasDataStorageRecord
+                || modeler.entity.dataStorageHandle != expectedHandle
+                || modeler.entity.dataStorageHandleKey
+                       != handleKey(expectedHandle)
+                || modeler.entity.dataStorageData != expectedPayload->second) {
+                linksMatch = false;
+                break;
+            }
+        }
+    }
+    if (!linksMatch) {
+        std::cerr << "AcDs DataIndex order diagnostic: walked=" << walked
+                  << " callbacks=" << sink.modeler.size()
+                  << " linkFailures=" << reader.dataStorageLinkFailures()
+                  << " orphans=" << reader.dataStorageOrphans() << '\n';
+        for (const auto& modeler : sink.modeler) {
+            std::cerr << "  handle=" << std::hex << modeler.entity.handle
+                      << " linked=" << modeler.entity.hasDataStorageRecord
+                      << " linkedHandle=" << modeler.entity.dataStorageHandle
+                      << " payloadBytes=" << std::dec
+                      << modeler.entity.dataStorageData.size() << '\n';
+        }
+    }
+    t.expect(linksMatch,
+             "DataIndex handle/offset links beat physical, numeric, and callback ordering");
+    t.expect(reader.dataStorageLinkFailures() == 0u
+                 && reader.dataStorageOrphans() == 0u,
+             "all reordered AcDs records resolve exactly once without orphans");
 }
 
 void testR2004SectionMapPublication(TestContext& t) {
@@ -3548,6 +3697,7 @@ int main() {
     testModelerAcDsBodyDispatch(context);
     testModelerAcDsRegionDispatch(context);
     testModelerAcDsRecordDispositions(context);
+    testModelerAcDsDataIndexOrder(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
