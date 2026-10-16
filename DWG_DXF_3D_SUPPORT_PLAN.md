@@ -7449,6 +7449,9 @@ families, and DICTIONARYWDFLT's required-code-340 evidence survives value
 copies. The fast generated-DXF callback/storage regression passes. This is
 metadata retention only: no graph writer/closure or 3D geometry behavior is
 qualified, and no DWG/DXF fixture or external support claim was added.
+Implementation commit: [`ed8d925`](https://github.com/LibreCAD/libdxfrw/commit/ed8d925).
+The detailed build/test receipt is recorded in
+[`docs/research/named-object-callback-storage-2026-10-15.json`](docs/research/named-object-callback-storage-2026-10-15.json).
 
 For an independent ACIS reader, the best new lead is Ansys Workbench's current 2026 R1 standalone SAT/SAB Reader. Its official documentation says the reader does not require the ACIS system, supports files through ACIS 2023 on both Linux and Windows, imports solid/surface/line bodies, and transfers units when present; it excludes Non-Commercial and Education editions. Exact entitlements must be confirmed from current portal feature mapping. This is a potentially independent reader candidate; its parser/kernel lineage must be established before counting it, and no qualifying Ansys installation is available here and the version-family statement does not prove this exact `ASM 230.7` SAB profile. If a qualifying commercial license becomes available, run the identical extracted SAB hashes, record the Ansys build/license/profile and imported body counts, units, WCS bounds, area, and volume, and compare against the AutoCAD witness. Ansys can validate standalone SAB geometry, not DWG `AcDb:AcDsPrototype_1b` ownership/schema links, so exact ACDS linkage still needs ODA/source-native receipts. See [Ansys ACIS reader support](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadACIS.html) and [its installation/licensing feature mapping](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadInstallLicense.html).
 

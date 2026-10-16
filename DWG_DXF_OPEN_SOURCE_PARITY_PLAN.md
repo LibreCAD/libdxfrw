@@ -13951,3 +13951,6 @@ f.4a. The remaining f.4a readiness checks are explicit reset behavior, malformed
 missing/duplicate code-340 controls, and a following-record callback sentinel.
 No writer, graph closure, target interoperability or support claim is promoted;
 the f.4b/f.4c gates and all six `DEFERRED_EXTERNAL` items are unchanged.
+Implementation commit: `ed8d925` (parent `05240cf`). The source hashes,
+command results and bounded interpretation are recorded in
+[`docs/research/named-object-callback-storage-2026-10-15.json`](docs/research/named-object-callback-storage-2026-10-15.json).
