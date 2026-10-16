@@ -858,6 +858,22 @@ bool namedResourceImportEvidence(const std::filesystem::path& directory,
             || dwgImported.mLineStyles.empty() || dwgImported.mLeaderStyles.empty())
             return fail("existing DWG fixture did not retain one typed-only named-resource generation");
 
+        if (dwgImported.layouts.empty())
+            return fail("existing DWG fixture did not retain its LAYOUT records");
+        for (const DRW_Layout& layout : dwgImported.layouts) {
+            const auto record = std::find_if(
+                dwgImported.blockRecords.begin(), dwgImported.blockRecords.end(),
+                [&layout](const DRW_Block_Record& candidate) {
+                    return candidate.handle
+                        == layout.paperSpaceBlockRecordHandle.ref;
+                });
+            if (layout.paperSpaceBlockRecordHandle.ref == 0
+                || record == dwgImported.blockRecords.end()
+                || record->layoutHandle != layout.handle
+                || record->name.empty())
+                return fail("DWG LAYOUT callback graph did not retain its BLOCK_RECORD target");
+        }
+
         if (!dwgImported.hasCompleteAc1032VisualStyleSourceProfile())
             return fail("existing AC1032 styles did not satisfy the structural 58/8 source-capture profile");
 
@@ -943,6 +959,9 @@ bool visualStyleGraphRejectsWrongOwner(const std::filesystem::path& directory,
     if (iface.fileExport(path.string(), DRW::AC1027, binary, &data, false,
                          true))
         return fail("wrong-owner VisualStyle carrier was accepted");
+    if (iface.extensionGraphFailureDetail()
+        != "raw VISUALSTYLE carrier identity/owner mismatch at handle 28")
+        return fail("VisualStyle graph rejection did not identify its owner mismatch");
     std::ifstream input(path, std::ios::binary);
     const std::string actual((std::istreambuf_iterator<char>(input)),
                              std::istreambuf_iterator<char>());

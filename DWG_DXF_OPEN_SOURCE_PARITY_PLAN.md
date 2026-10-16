@@ -26,6 +26,25 @@ legitimize data. No writer/support claim is promoted; six J gates remain
 `DEFERRED_EXTERNAL`. Receipt:
 `docs/research/named-resource-emitter-readiness-2026-10-15.json`.
 
+**Latest implementation delta (2026-10-15; tracked-fixture LAYOUT handoff):**
+ODA §20.4.84 confirms that each LAYOUT's group-330 soft pointer identifies
+its associated BLOCK_RECORD. `dwgReader::readDwgBlocks()` had parsed that
+record but delivered only the corresponding BLOCK delimiter/entity scope, so
+the adapter could not close the already-retained LAYOUT graph. The reader now
+publishes the parsed record, with the full name taken from the validated BLOCK
+header, inside the same transactional block-source scope. The existing
+`rtext_arctext.dwg` fast adapter test now checks each retained LAYOUT 330 target
+and reciprocal layout handle; `libdxfrw_named_resource_import_evidence` passes.
+The FreeCAD-form CLI check advances past layout admission and now stops at the
+separate, known f.3c/f.4b gap: 24 typed AC1032 VISUALSTYLE rows have no DXF
+carrier. Debug output identifies `VISUALSTYLE carrier coverage`; it does not
+justify dropping styles or manufacturing “raw” evidence. Keep the CLI and
+style-serialization gates open. Next freeze and resolve the per-slot 58-field
+descriptor against producer-authored documents and readback before any
+serializer is admitted. The three recorded AC1032 integrity observations are
+not the current failing stage. No external evidence, fixture, dependency, or
+support claim is promoted; all six J items remain `DEFERRED_EXTERNAL`.
+
 **Latest research delta (2026-10-15, committed baseline `91d0a88`; plan-only):**
 the [typed-readback and whole-root readiness review](#typed-readback-whole-root-and-profile-discriminator-readiness-review-2026-10-15)
 adds a reproduced current-code packet and12 locally authored producer controls.

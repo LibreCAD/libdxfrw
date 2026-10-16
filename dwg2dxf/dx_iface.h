@@ -76,6 +76,9 @@ public:
     ExtensionGraphFailure extensionGraphFailure() const noexcept {
         return m_extensionGraphFailure;
     }
+    const std::string& extensionGraphFailureDetail() const noexcept {
+        return m_extensionGraphFailureDetail;
+    }
     const char* extensionGraphFailureName() const noexcept {
         switch (m_extensionGraphFailure) {
         case ExtensionGraphFailure::None: return "none";
@@ -741,6 +744,7 @@ private:
     ExtensionGraphLimits m_extensionGraphLimits;
     ExtensionGraphStats m_extensionGraphStats;
     ExtensionGraphFailure m_extensionGraphFailure{ExtensionGraphFailure::None};
+    std::string m_extensionGraphFailureDetail;
     ExtensionGraphLimits m_hatchGraphLimits;
     ExtensionGraphStats m_hatchGraphStats;
     ExtensionGraphFailure m_hatchGraphFailure{ExtensionGraphFailure::None};

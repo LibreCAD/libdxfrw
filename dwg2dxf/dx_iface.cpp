@@ -1586,13 +1586,20 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_extensionVisualStyleHandles.clear();
     m_extensionGraphStats = {};
     m_extensionGraphFailure = ExtensionGraphFailure::None;
-    const auto reject = [this](ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph) {
+    m_extensionGraphFailureDetail.clear();
+    std::string inventoryFamily = "extension graph";
+    const auto reject = [this, &inventoryFamily](
+            ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph,
+            const std::string& detail = std::string()) {
         // No partial traversal result may leak into a later export attempt.
         m_extensionDictionaryHandles.clear();
         m_extensionXRecordHandles.clear();
         m_extensionVisualStyleHandles.clear();
-        if (m_extensionGraphFailure == ExtensionGraphFailure::None)
+        if (m_extensionGraphFailure == ExtensionGraphFailure::None) {
             m_extensionGraphFailure = reason;
+            m_extensionGraphFailureDetail = detail.empty()
+                ? inventoryFamily : detail;
+        }
         return false;
     };
     const auto examineEdge = [this, &reject]() {
@@ -1618,21 +1625,28 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> sourceHandles;
         std::unordered_set<std::uint32_t> linetypeHandles;
         if (includeNamedObjectRoot && data->hasNamedObjectDictionary) {
+            inventoryFamily = "named-object dictionary root";
             const std::uint32_t rootHandle =
                 data->namedObjectDictionary.handle;
             if (rootHandle == 0 || rootHandle == DRW::NoHandle
                 || !sourceHandles.insert(rootHandle).second)
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "invalid or duplicate NOD handle "
+                    + std::to_string(rootHandle));
         }
+        inventoryFamily = "LTYPE records";
         for (const DRW_LType& lineType : data->lineTypes) {
             if (!examineSourceRecord())
                 return false;
             if (lineType.handle == 0)
                 continue;
             if (!sourceHandles.insert(lineType.handle).second)
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "duplicate source handle " + std::to_string(lineType.handle)
+                    + " while indexing LTYPE records");
             linetypeHandles.insert(lineType.handle);
         }
+        inventoryFamily = "DICTIONARY records";
         for (const DRW_Dictionary& dictionary : data->dictionaries) {
             if (!examineSourceRecord())
                 return false;
@@ -1640,8 +1654,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 continue;
             if (!sourceHandles.insert(dictionary.handle).second
                 || !dictionaries.emplace(dictionary.handle, &dictionary).second)
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "duplicate or ambiguous DICTIONARY handle "
+                    + std::to_string(dictionary.handle));
         }
+        inventoryFamily = "XRECORD records";
         for (const DRW_XRecord& record : data->xRecords) {
             if (!examineSourceRecord())
                 return false;
@@ -1649,16 +1666,22 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 continue;
             if (!sourceHandles.insert(record.handle).second
                 || !xrecords.emplace(record.handle, &record).second)
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "duplicate or ambiguous XRECORD handle "
+                    + std::to_string(record.handle));
         }
+        inventoryFamily = "VISUALSTYLE records";
         for (const DRW_VisualStyle& style : data->visualStyles) {
             if (!examineSourceRecord())
                 return false;
             if (style.handle == 0 || style.handle == DRW::NoHandle
                 || !sourceHandles.insert(style.handle).second
                 || !visualStyles.emplace(style.handle, &style).second)
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "invalid or duplicate VISUALSTYLE handle "
+                    + std::to_string(style.handle));
         }
+        inventoryFamily = "raw VISUALSTYLE carrier records";
         for (const DRW_RawDxfObject& object : data->rawVisualStyleObjects) {
             if (!examineSourceRecord())
                 return false;
@@ -1669,16 +1692,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || typed == visualStyles.end()
                 || typed->second->parentHandle != object.parentHandle
                 || !rawVisualStyles.emplace(object.handle, &object).second)
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "raw VISUALSTYLE carrier identity/owner mismatch at handle "
+                    + std::to_string(object.handle));
         }
-        if (rawVisualStyles.size() != visualStyles.size())
+        if (rawVisualStyles.size() != visualStyles.size()) {
+            inventoryFamily = "VISUALSTYLE carrier coverage";
             return reject();
+        }
+        inventoryFamily = "EvaluationGraph records";
         for (const DRW_EvaluationGraph& graph : data->evaluationGraphs) {
             if (!examineSourceRecord())
                 return false;
             if (graph.handle == 0
                 || !sourceHandles.insert(graph.handle).second)
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "invalid or duplicate EvaluationGraph handle "
+                    + std::to_string(graph.handle));
         }
 
         std::unordered_set<std::uint32_t> visiting;
@@ -2508,9 +2538,13 @@ std::string layoutSymbolKey(std::string value) {
     return value;
 }
 
-bool validateLayoutGraph(const dx_data& data, const char*& failure) {
+bool validateLayoutGraph(const dx_data& data, std::string& failure) {
     failure = "layout graph is incomplete or ambiguous";
-    const auto validateUcsTargets = [&data](
+    const auto reject = [&failure](const std::string& reason) {
+        failure = reason;
+        return false;
+    };
+    const auto validateUcsTargets = [&data, &reject](
             std::unordered_set<std::uint32_t>* structuralHandles) {
         std::unordered_map<std::uint32_t, const DRW_UCS*> ucsByHandle;
         std::unordered_set<std::string> ucsNames;
@@ -2522,7 +2556,7 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
                 || !ucsByHandle.emplace(ucs.handle, &ucs).second
                 || (structuralHandles != nullptr
                     && !structuralHandles->insert(ucs.handle).second))
-                return false;
+                return reject("UCS record handle/name identity is invalid");
         }
 
         std::unordered_set<std::uint32_t> entityHandles;
@@ -2542,25 +2576,25 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
         }
         for (const auto& ucs : ucsByHandle) {
             if (entityHandles.count(ucs.first) != 0)
-                return false;
+                return reject("UCS handle collides with an entity handle");
         }
 
         for (const DRW_UCS& ucs : data.ucsList) {
             if (ucs.baseUcsHandle.ref != 0
                 && ucsByHandle.count(ucs.baseUcsHandle.ref) != 1u)
-                return false;
+                return reject("UCS base-UCS handle does not resolve uniquely");
         }
         for (const DRW_Layout& layout : data.layouts) {
             if (layout.orthoViewType < 0 || layout.orthoViewType > 6
                 || (layout.baseUcsHandle.ref != 0
                     && layout.orthoViewType == 0))
-                return false;
+                return reject("LAYOUT orthographic UCS fields are inconsistent");
             const std::uint32_t refs[] = {
                 layout.namedUcsHandle.ref, layout.baseUcsHandle.ref
             };
             for (const std::uint32_t handle : refs) {
                 if (handle != 0 && ucsByHandle.count(handle) != 1u)
-                    return false;
+                    return reject("LAYOUT UCS handle does not resolve uniquely");
             }
         }
         return true;
@@ -2589,11 +2623,11 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
     if (!data.hasNamedObjectDictionary
         || data.namedObjectDictionary.handle == 0
         || data.layouts.empty())
-        return false;
+        return reject("NOD or ACAD_LAYOUT records are missing");
 
     std::unordered_set<std::uint32_t> structuralHandles;
     if (!structuralHandles.insert(data.namedObjectDictionary.handle).second)
-        return false;
+        return reject("NOD handle is invalid");
 
     std::size_t rootLayoutEntryCount = 0;
     std::uint32_t layoutDictionaryHandle = 0;
@@ -2602,14 +2636,14 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
          data.namedObjectDictionary.m_entries) {
         const std::string key = layoutSymbolKey(entry.m_name);
         if (key.empty() || !rootNames.insert(key).second)
-            return false;
+            return reject("NOD dictionary contains an empty or duplicate entry name");
         if (key == "ACAD_LAYOUT") {
             ++rootLayoutEntryCount;
             layoutDictionaryHandle = entry.m_handle;
         }
     }
     if (rootLayoutEntryCount != 1 || layoutDictionaryHandle == 0)
-        return false;
+        return reject("NOD must reference exactly one ACAD_LAYOUT dictionary");
 
     const DRW_Dictionary* layoutDictionary = nullptr;
     std::unordered_set<std::uint32_t> dictionaryHandles;
@@ -2617,13 +2651,13 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
         if (dictionary.handle == 0
             || !dictionaryHandles.insert(dictionary.handle).second
             || !structuralHandles.insert(dictionary.handle).second)
-            return false;
+            return reject("dictionary handle is invalid or duplicated");
         if (dictionary.handle == layoutDictionaryHandle)
             layoutDictionary = &dictionary;
     }
     if (layoutDictionary == nullptr
         || layoutDictionary->parentHandle != data.namedObjectDictionary.handle)
-        return false;
+        return reject("ACAD_LAYOUT dictionary is missing or has the wrong owner");
 
     std::unordered_map<std::uint32_t, const DRW_Layout*> layoutsByHandle;
     std::unordered_map<std::string, std::uint32_t> layoutsByName;
@@ -2634,10 +2668,10 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
             || !structuralHandles.insert(layout.handle).second
             || !layoutsByHandle.emplace(layout.handle, &layout).second
             || !layoutsByName.emplace(key, layout.handle).second)
-            return false;
+            return reject("LAYOUT handle/name/owner identity is invalid");
     }
     if (layoutDictionary->m_entries.size() != data.layouts.size())
-        return false;
+        return reject("ACAD_LAYOUT entry count does not match parsed LAYOUT records");
     std::unordered_set<std::uint32_t> dictionaryTargets;
     std::unordered_set<std::string> dictionaryNames;
     for (const DRW_Dictionary::Entry& entry : layoutDictionary->m_entries) {
@@ -2647,18 +2681,24 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
             || layoutSymbolKey(layout->second->name) != key
             || !dictionaryTargets.insert(entry.m_handle).second
             || !dictionaryNames.insert(key).second)
-            return false;
+            return reject("ACAD_LAYOUT entry does not uniquely match a LAYOUT record");
     }
 
     std::unordered_map<std::uint32_t, const DRW_Block_Record*> recordsByHandle;
     std::unordered_map<std::string, std::uint32_t> recordsByName;
     for (const DRW_Block_Record& record : data.blockRecords) {
-        if (record.handle == 0 || record.name.empty()
-            || !structuralHandles.insert(record.handle).second
-            || !recordsByHandle.emplace(record.handle, &record).second
-            || !recordsByName.emplace(layoutSymbolKey(record.name),
-                                      record.handle).second)
-            return false;
+        if (record.handle == 0)
+            return reject("BLOCK_RECORD has a null handle");
+        if (record.name.empty())
+            return reject("BLOCK_RECORD has an empty name");
+        if (!structuralHandles.insert(record.handle).second)
+            return reject("BLOCK_RECORD handle collides with another structural object");
+        if (!recordsByHandle.emplace(record.handle, &record).second)
+            return reject("BLOCK_RECORD handle is duplicated");
+        if (!recordsByName.emplace(layoutSymbolKey(record.name),
+                                   record.handle).second)
+            return reject("BLOCK_RECORD name '" + record.name
+                + "' is duplicated");
     }
     if (!validateUcsTargets(&structuralHandles))
         return false;
@@ -2667,10 +2707,16 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
         const std::uint32_t blockRecordHandle =
             layout.paperSpaceBlockRecordHandle.ref;
         const auto record = recordsByHandle.find(blockRecordHandle);
-        if (blockRecordHandle == 0 || record == recordsByHandle.end()
-            || record->second->layoutHandle != layout.handle
-            || !associatedRecords.insert(blockRecordHandle).second)
-            return false;
+        if (blockRecordHandle == 0)
+            return reject("LAYOUT has a null paper-space BLOCK_RECORD handle");
+        if (record == recordsByHandle.end())
+            return reject("LAYOUT '" + layout.name
+                + "' paper-space BLOCK_RECORD handle "
+                + std::to_string(blockRecordHandle) + " does not resolve");
+        if (record->second->layoutHandle != layout.handle)
+            return reject("LAYOUT and paper-space BLOCK_RECORD backlinks disagree");
+        if (!associatedRecords.insert(blockRecordHandle).second)
+            return reject("multiple LAYOUT records share one paper-space BLOCK_RECORD");
     }
 
     // A non-null LAYOUT 331 is a last-active paper-space VIEWPORT entity,
@@ -2709,7 +2755,7 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
         const auto layout = layoutsByHandle.find(record.layoutHandle);
         if (layout == layoutsByHandle.end()
             || layout->second->paperSpaceBlockRecordHandle.ref != record.handle)
-            return false;
+            return reject("BLOCK_RECORD layout backlink does not match its LAYOUT");
     }
     for (const DRW_Layout& layout : data.layouts) {
         const std::uint32_t viewportHandle =
@@ -2718,9 +2764,10 @@ bool validateLayoutGraph(const dx_data& data, const char*& failure) {
             && !hasOwnedViewport(
                 viewportHandle,
                 layout.paperSpaceBlockRecordHandle.ref))
-            return false;
+            return reject("LAYOUT last-active viewport is missing or has the wrong owner");
     }
-    return associatedRecords.size() == data.layouts.size();
+    return associatedRecords.size() == data.layouts.size()
+        || reject("not every LAYOUT has a unique paper-space BLOCK_RECORD");
 }
 
 } // namespace
@@ -3119,7 +3166,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_acdsTypedHistoryObjects.clear();
     m_acdsTypedEvaluationGraphs.clear();
     m_acdsMaterialHandles.clear();
-    const auto reportPreflightFailure = [debug](const char* stage) {
+    const auto reportPreflightFailure = [debug](const std::string& stage) {
         if (debug) {
             std::cerr << "DXF export preflight failed: " << stage << '\n';
         }
@@ -3134,7 +3181,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         reportPreflightFailure("HATCH boundary identity/owner graph validation");
         return false;
     }
-    const char* layoutGraphFailure = nullptr;
+    std::string layoutGraphFailure;
     if (!validateLayoutGraph(*cData, layoutGraphFailure)) {
         reportPreflightFailure(layoutGraphFailure);
         return false;
@@ -3205,7 +3252,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                       << " nodes=" << m_extensionGraphStats.visitedNodes
                       << " edges=" << m_extensionGraphStats.examinedEdges
                       << " staged-handles=" << m_extensionGraphStats.stagedHandles
-                      << " source-records=" << m_extensionGraphStats.sourceRecords << '\n';
+                      << " source-records=" << m_extensionGraphStats.sourceRecords
+                      << " detail=" << extensionGraphFailureDetail() << '\n';
         }
         return false;
     }

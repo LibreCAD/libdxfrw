@@ -7764,9 +7764,16 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
             deliveryBlock.parentHandle == DRW::NoHandle;
         if (deferredEntityWalk)
           deliveryBlock.parentHandle = bkr->handle;
+        DRW_Block_Record deliveryRecord = *bkr;
+        deliveryRecord.name = bk.name;
 
         if (journalled) {
+          // LAYOUT 330 references a BLOCK_RECORD (ODA §20.4.84). Preserve the
+          // parsed table record alongside its BLOCK scope so consumers can
+          // close that graph; keep the callback inside the block transaction.
           auto blockScope = transaction.output().bindSource(blockSource);
+          transaction.output().appendValue(deliveryRecord,
+                                           &DRW_Interface::addBlockRecord);
           transaction.output().appendValue(deliveryBlock,
                                            &DRW_Interface::addBlock);
         }
@@ -7930,10 +7937,12 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
     bool blockScopeFailure = false;
     bool blockEntityWalkSucceeded = true;
     try {
+      // LAYOUT 330 references this table record, independently of the BLOCK
+      // delimiter entity. Deliver it only with the validated block scope.
+      bkr->name = bk.name;
+      intfa.addBlockRecord(*bkr);
       intfa.addBlock(bk);
       blockScopeOpened = true;
-      // and update block record name
-      bkr->name = bk.name;
 
       if (!deferredEntityWalk) {
         const bool walked = walkBlockRecordEntities(

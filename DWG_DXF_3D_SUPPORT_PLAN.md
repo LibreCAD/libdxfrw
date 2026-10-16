@@ -40,6 +40,19 @@ No fixtures, dependencies, code, qualification receipts, support claims,
 ledger counts or J statuses changed; the six external items remain
 `DEFERRED_EXTERNAL`.
 
+**Implementation follow-through (2026-10-15):** a tracked AC1032 conversion
+triage isolated a separate adapter handoff defect: LAYOUT 330 targets were
+decoded, but their associated BLOCK_RECORDs were not delivered from
+`readDwgBlocks()`. The transactional callback now preserves that record and
+its full BLOCK name; the existing-fixture fast test asserts the reciprocal
+LAYOUT/BLOCK_RECORD identity and passes. This unblocks layout preflight only.
+The same FreeCAD-form CLI test next rejects 24 typed AC1032 VISUALSTYLE objects
+without DXF carriers. The plan therefore keeps typed source capture, validated
+58-slot DXF serialization, rooted graph closure, and composed CLI acceptance
+as separate steps; the research crosswalk's group-176/Boolean disagreements
+must be resolved before emitting any carrier. This does not change the six
+external J dispositions or any 3D/consumer support claim.
+
 **Latest implementation slice — f.3c.1 source-profile classifier (2026-10-15):**
 the adapter now has a narrow structural gate for a complete AC1032
 DWG-origin VisualStyle capture (decoded body, R2013b expansion, 58 companion
