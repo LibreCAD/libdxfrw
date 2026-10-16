@@ -14394,3 +14394,70 @@ dependency, CTest registration, support claim or external status changes.
 All six J items remain `DEFERRED_EXTERNAL` and non-promoting. This review used
 static primary-documentation and pinned open-source source only; no peer
 runtime, native application, full suite or semantic CAD qualification ran.
+
+## Broader 3D representation and consumer-boundary review (2026-10-15; research only)
+
+This pass widens the comparison beyond “does the library know this entity
+name?” to five non-interchangeable outcomes: byte/opaque retention, typed
+structure and reference closure, explicit-coordinate geometry, kernel-level
+solid/surface semantics, and acceptance by a named consumer configuration.
+A pass at one level must not be reported as a pass at the next. In particular,
+an entity count that survives conversion does not show that its geometry
+payload survived, and a valid SAT/SAB byte stream does not establish a valid
+body, unit scale, topology, placement, or history graph.
+
+| Representation / peer evidence | What it establishes | Implementation-plan refinement |
+| --- | --- | --- |
+| Autodesk [3DFACE](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm), [MESH](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm), [OCS/WCS](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm), and [polyface VERTEX](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm) contracts | `3DFACE` carries WCS corners and invisible-edge bits; MESH carries subdivision level, vertex and face-index streams, edges/creases, and per-subentity overrides; 3D entity coordinates are not uniformly OCS. Polyface face records use signed indices to encode invisible edges and a separate vertex ordering contract. | Build explicit-geometry tests around coordinates **and connectivity**: WCS asymmetric/non-planar 3DFACE triangles/quads and edge flags; mesh face index loops, crease/override data, polyface negative indices, nested INSERT transforms, units, and duplicate/degenerate topology. Do not qualify a mesh from vertex count or a top-view rendering alone. Keep OCS transforms entity-family-specific. |
+| Autodesk [3DSOLID](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm) and [ACAD_PROXY_ENTITY](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm) tables | A 3DSOLID DXF record has modeler version, proprietary payload chunks, and a separate soft-owner history handle. Proxy entities separately carry graphics bytes, custom-entity bytes, application class ID, format-version metadata and possible object IDs. These payloads have different semantics and reference edges. | Keep 3DSOLID/REGION/BODY ACIS bodies, tessellated/proxy graphics and custom-object payloads as separate lanes. Validate each payload size/continuation boundary and graph link; raw bytes are preservation, not a B-rep or editable custom object. When unsupported data cannot be preserved losslessly, report/refuse before destination publication rather than writing an empty shell silently. |
+| LibreDWG open [issue #1411](https://github.com/LibreDWG/libredwg/issues/1411), current [`NEWS`](https://github.com/LibreDWG/libredwg/blob/master/NEWS), [`acds.spec`](https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec), and R2007 reader path | Issue #1411 reports a generated AC1032 `REGION` whose 5,489-byte SAB carrier disappears through dxf2dwg/dwg2dxf while the entity remains; its real confidential R2018 report describes 88 empty-body regions. The issue author states the entity reports `acis_empty=1` plus `has_ds_data=1`. LibreDWG NEWS separately says AcDsPrototype_1b handling is incomplete and uses brute-force extraction for newer SAB blobs; the current source has a named AcDs section path. This is a peer-reported reproduction/source limitation, not rerun here and not a normative format definition. | Put AC1027+ AcDsDataStorage parsing, typed DataStorage records, owner/prototype association, and payload transfer ahead of any claim that inline entity serialization is sufficient. Add an in-memory/generated regression that rejects or preserves the *entity-to-AcDs-to-SAB* chain as a unit; specifically test exact body count, empty-body state, owner/reference integrity, and handle remap after serialization. Keep AC1018–AC1024 inline SAT/SAB conversion as a separate version profile. |
+| ACadSharp open [issue #1195](https://github.com/DomCR/ACadSharp/issues/1195), linked [PR #1240](https://github.com/DomCR/ACadSharp/pull/1240), and separate [PR #1150](https://github.com/DomCR/ACadSharp/pull/1150) | Issue #1195 reports 252 solids lost in one file and 51 solids plus 3 regions lost inside block definitions in another, despite DWG-reader entity counts; it asks for a notification or opaque pass-through. PR #1240 is open and depends on ACDS/ACIS schema work #1174; PR #1150 is another open serialization proposal. Neither open PR is treated as merged, runtime-qualified, or authoritative. | Extend no-silent-loss and closure controls to solids nested in BLOCKS/INSERTs, not just modelspace/OBJECTS totals. Count and report by source handle, owner block, entity type, payload carrier and disposition. Compare the candidate approaches only after pinning merged/runtime revisions; a peer's proposed writer is a test lead, not a serialization contract. |
+| ezdxf [ACIS browser](https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst) and [renderer limitations](https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst); IxMilia [DXF compatibility notes](https://github.com/ixmilia/dxf) | ezdxf can expose SAT/SAB carriers, create some ACIS DXF bodies and retain data, while documenting that its renderer does not support ACIS or general 3D rendering and its ACIS support is basic. IxMilia declares 3DSOLID/proxy model types but cautions that some such output may not be accepted by AutoCAD and still lists MESH/SURFACE gaps. | Use ezdxf for raw-tag/ACIS carrier inspection and authored controls, not the semantic solid or display oracle. Treat API type registration as inventory only. Output interoperability still needs a separate parser readback plus independent kernel measurements/validity and target-consumer acceptance. |
+| FreeCAD current [`ImpExpDxf.cpp`](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp), [Draft DXF guide](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md), and DWG [import guide](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md) | Current mutable main source includes a generic `TopoDS_Shape`→`Part::Feature` path with a 3DFACE example comment; current importer acceptance for every 3DFACE/MESH/polyface form is not proven by that snippet. The documentation repository was archived 2026-04-01; its guide distinguishes C++ and legacy importer support, says legacy supports 3D faces, and says stock import cannot read ACIS blobs. Its DWG guide says standard DWG converters hand their DXF output to the normal importer, while CAD Exchanger is the documented separate 3D-DWG route. | Keep native FreeCAD Linux/Windows qualification, but split it by actual route and entity profile: standard DWG-converter + stock DXF importer for the 2D compatibility cohort and only explicitly supported 3D entity cases; optional CAD Exchanger/FreeCAD is a separately identified commercial 3D route. Pin FreeCAD build, importer (C++/legacy), converter, settings, platform and input/output hashes. Never mark stock-FreeCAD ACIS failure as a libdxfrw loss when the importer cannot consume ACIS; never infer 3DFACE/MESH acceptance from source comments alone. |
+
+### Revised 3D implementation-ready slice order
+
+This is a sequencing refinement within existing 3D and f.4 plan IDs; it adds
+no finding, top-level subplan, ledger entry or status count.
+
+1. **Preserve the 2D adapter boundary and make losses observable.** Keep new
+   callbacks non-pure and typed 3D state orthogonal to existing 2D fields.
+   Before adding a family writer, produce a fast disposition census by handle,
+   entity/object kind, modelspace/block owner, payload presence, raw/typed
+   route, and emitted/refused reason. A successful converter exit/entity count
+   cannot mask empty or omitted geometry.
+2. **Separate existing explicit 3D from modeler bodies.** Characterize current
+   `3DFACE`, 3D `POLYLINE`/polyface, `MESH`, and `SURFACE` parser/writer state
+   by format version and coordinates; add generated tests for WCS/OCS,
+   topology/index winding, visibility/crease, units, nested INSERT transforms,
+   and malformed boundaries. Preserve unsupported schemas opaquely where
+   exact safe replay exists; otherwise fail closed with a precise loss report.
+3. **Split ACIS by container and version.** For pre-AC1027 DXF/DWG, gate
+   inline SAT/SAB body/chunk/profile preservation, version conversion and
+   history references. For AC1027+, first decode and close the AcDs data
+   storage owner/prototype/history graph and attach SAB to the right entity;
+   then version-gate DXF inline serialization. Missing AcDs link, inconsistent
+   `has_ds_data`/empty flags, unresolved owner or lossy version conversion
+   must prevent publishing the target.
+4. **Only then claim semantic solids/surfaces.** Require a source-native
+   known-dimension manifest (bounds, units, volume/area, body count and needed
+   topology/history properties) and exact input hashes checked by at least two
+   independent kernel/parser lineages. A converter/parser's successful read,
+   its own self-roundtrip, a mesh proxy, or a visualization is structural or
+   display evidence, not independent semantics.
+5. **Qualify named consumers last and narrowly.** Run FreeCAD Linux/Windows
+   on the tracked eligible cohorts with the actual configured importer and
+   converter. Keep stock FreeCAD's standard route distinct from its optional
+   CAD Exchanger route; require mass/topology assertions only from a capable
+   kernel. Never let external platform receipts promote unrelated J items.
+
+This makes container-loss diagnosis and block-nested silent omission first
+priority, moves exact AcDs linkage ahead of “ACIS writer” work, and reserves
+long native/kernel validation for composed checkpoints. The faster per-slice
+gates remain generated in-memory cases, structural output parsing, targeted
+receipts and existing tracked samples; no new external DWG/DXF fixture or
+dependency is introduced. The evidence manifest is
+[`broad-3d-consumer-capability-review-2026-10-15.json`](docs/research/broad-3d-consumer-capability-review-2026-10-15.json).
+The update is research-only: no code, tests, support matrix/count, or platform
+receipt changed; J256/J260/J268/J284/J293/J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.

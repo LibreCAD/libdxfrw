@@ -20,6 +20,26 @@ broader peer-capability audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-peer-c
 [`broader-peer-capability-readiness-2026-10-15.json`](docs/research/broader-peer-capability-readiness-2026-10-15.json),
 and [`class-emission-contract-readiness-2026-10-15.json`](docs/research/class-emission-contract-readiness-2026-10-15.json).
 
+**Broader representation/consumer research (2026-10-15):** a fresh
+cross-project pass separates opaque-byte retention, typed/graph preservation,
+explicit WCS geometry, kernel-level ACIS semantics, and named-consumer
+acceptance. LibreDWG issue #1411 reports silent R2013+ AcDs/SAB geometry loss
+while the `REGION` entity survives; ACadSharp issue #1195 reports real solids
+silently omitted inside block definitions and links open serializer work. The
+new ordering therefore makes per-handle/container loss census and block-nested
+cases precede writer claims, and requires AC1027+ AcDs owner/prototype closure
+before assuming inline SAT/SAB serialization covers modern DWG. Autodesk's
+3DFACE/MESH/OCS tables also make connectivity, edge flags, and coordinate
+frame tests explicit—not just entity/vertex counts. FreeCAD qualification is
+split by stock converter/importer versus its optional commercial 3D route;
+current source and its archived importer guide do not justify treating every
+3D entity or ACIS body as consumed. Detailed source limits and the revised
+five-slice sequence are in the [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-3d-representation-and-consumer-boundary-review-2026-10-15-research-only)
+and [`broad-3d-consumer-capability-review-2026-10-15.json`](docs/research/broad-3d-consumer-capability-review-2026-10-15.json).
+No fixtures, dependencies, code, qualification receipts, support claims,
+ledger counts or J statuses changed; the six external items remain
+`DEFERRED_EXTERNAL`.
+
 **Latest implementation slice — f.3c.1 source-profile classifier (2026-10-15):**
 the adapter now has a narrow structural gate for a complete AC1032
 DWG-origin VisualStyle capture (decoded body, R2013b expansion, 58 companion
