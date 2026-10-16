@@ -15409,8 +15409,30 @@ Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
 pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.29 seconds);
 `lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
 native app, peer executable, fixture, or semantic geometry check ran. Next
-local target: adversarial block graph controls for missing/wrong targets and
-duplicate ownership, followed by one nonempty locally generated payload only
-if an eligible grammar producer/readback is available. Findings/subplans
-remain 122/70; J256, J260, J268, J284, J293 and J295 remain
-`DEFERRED_EXTERNAL` and non-promoting.
+local target: malformed INSERT target controls, followed by one nonempty
+locally generated payload only if an eligible grammar producer/readback is
+available. Findings/subplans remain 122/70; J256, J260, J268, J284, J293 and
+J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — AC1027 malformed block ownership controls (2026-10-15)
+
+Implementation commit: `d4cf3b5` (`Test AC1027 block ownership failures`).
+
+Added source-authored, in-memory negative controls through the production
+`walkBlockRecordEntities` path. Duplicate entMap membership and a typed solid
+whose encoded owner differs from the containing `BLOCK_RECORD` fail before a
+callback is published. A missing source frame is intentionally a recoverable
+warning: the walk completes but publishes no callback. During test design,
+`ObjectMap.type` was confirmed not to be the authoritative modeler discriminator;
+the physical frame's encoded type is, so no fabricated type-map mismatch case
+or support claim was retained. No reader behavior changed.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.30 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
+native application, peer executable, drawing fixture, dependency, or semantic
+geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
+J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. The next local
+slice is a generated INSERT with a missing or incorrect target, with assertions
+limited to handle/name resolution and callback/refusal behavior; no geometry
+interpretation will be inferred.
