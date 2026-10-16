@@ -2,6 +2,7 @@
   "schema": "libdxfrw-acds-record-boundary-fast-test-v1",
   "reviewedAt": "2026-10-15",
   "baselineCommit": "5eaa61a",
+  "implementationCommit": "3792076",
   "scope": "ODA v5.4.1 DataStorage inline/blob record span enforcement and generated tests",
   "sourceAuthority": {
     "document": "Open Design Specification for .dwg files v5.4.1",

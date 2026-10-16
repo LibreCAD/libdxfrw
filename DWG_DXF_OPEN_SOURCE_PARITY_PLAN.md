@@ -14830,6 +14830,8 @@ non-promoting.
 
 ## Implementation progress — ODA AcDs direct-record boundaries (2026-10-15)
 
+Implementation commit: `3792076` (`Enforce DataStorage record boundaries`).
+
 The S8.3 direct-record pass now uses each segment's ordered payload-local
 offsets to compute a record's maximum readable span. Inline byte arrays above
 the ODA `0x40000` limit are rejected; valid inline records must fit their

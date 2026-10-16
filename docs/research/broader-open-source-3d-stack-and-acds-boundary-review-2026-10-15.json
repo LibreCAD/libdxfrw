@@ -108,6 +108,7 @@
     }
   },
   "validation": {
+    "followOnImplementationCommit": "3792076",
     "projectBuild": "Targeted libdxfrw_graph_preservation_tests and lc3_compat_check build PASS after the follow-on local parser change",
     "tests": "libdxfrw_graph_preservation CTest PASS 1/1; full suite not run",
     "externalFixturesAdded": 0,
