@@ -2,6 +2,21 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
+**Latest deeper/broader format and runtime review (2026-10-15; baseline
+`873eb76`):** the local ODA v5.4.1 text explicitly summarizes R2018 as
+structurally identical to R2013, but its AcDs chapter still caveats its
+historical knowledge and does not define ACIS/SAB semantics. It specifies the
+`0x40000` direct-record/blob transition, bounded `blob01` page chains, and an
+asymmetric search-index rule: a reader may ignore search data, but AutoCAD
+ignores emitted objects without the required mapping. The local parser already
+validates blob-page metadata, while current fast tests lack a page-chain
+control. Autodesk also documents inaccurate polyface header counts and
+noncanonical child order as cases tolerant readers must accept. The plan adds
+generated local controls for both gaps and tightens kernel/reader lineage
+qualification; no support, finding count, fixture, dependency or J state
+changes. Receipt:
+[`broader-acds-polyface-and-kernel-boundary-review-2026-10-15.json`](docs/research/broader-acds-polyface-and-kernel-boundary-review-2026-10-15.json).
+
 **Latest broader 3D carrier/runtime research (2026-10-15; baseline `8ee7b90`):**
 the first pinned LibreDWG 0.14 writer run on the already-tracked AC1032 input
 now supplies output evidence for the 58-slot VisualStyle hypothesis. Both
@@ -17,6 +32,40 @@ bounded ACDS segmentation/ownership before writer or semantic claims. No
 support claim, fixture, dependency, J disposition, or full-suite cadence is
 promoted. Full evidence and command/hash receipt:
 [`3d-carrier-runtime-and-peer-writer-review-2026-10-15.json`](docs/research/3d-carrier-runtime-and-peer-writer-review-2026-10-15.json).
+
+## Deeper AcDs, polyface-reader, and geometry-kernel boundary review (2026-10-15; research only)
+
+This pass re-read the local Open Design Specification v5.4.1 pages for R2018,
+ACIS modeler objects and AcDs DataStorage, then compared its exact byte/count
+requirements with the current parser tests and current Autodesk DXF, ezdxf,
+Open Cascade, Ansys and CAD Exchanger documentation. It is static primary-source
+and implementation-coverage research: no parser code/test was changed or run,
+no external product was installed, and no support/qualification gate moved.
+
+| Evidence | Finding and confidence boundary | Readiness refinement |
+| --- | --- | --- |
+| ODA v5.4.1 [R2018 organization and DataStorage specification](https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf), §§8, 20.4.41, 24; the local reference copy is Version 5.4.1, created 2018-02-15 | Chapter 8 says R2018 is structurally identical to R2013 and summarizes the known deltas (including three zero shorts at the end of AuxHeader and selected entity/object changes). That does **not** close the semantics of every 2018 AcDs/ACIS payload: §24 retains a December-2012 knowledge caveat, §20.4.41 says the modeler stream is not completely decrypted, and §24 explicitly puts detailed ACIS/SAB bytes outside its scope. | Keep the R2018 section/header deltas, AcDs container structure, entity linkage, and ACIS grammar as distinct evidence rows. Use ODA's explicit R2018 changes where stated; continue to pin actual AC1032 segment revision, page/index metadata and payload marker from real samples. Do not infer profile completeness from “structurally identical.” |
+| ODA §24.2.2.2–24.2.2.4 and current `src/drw_datastorage.cpp`; `tests/graph_preservation_tests.cpp::testDataStorageBounds` | ODA says byte arrays up to `0x40000` are direct records; larger values use a blob reference to one or more `blob01` segments, each capped at `0xfffb0` bytes. Data-index rows identify the segment, local offset and schema index; the record supplies a handle; page metadata redundantly describes total length, page ordinal/count, start offset and byte size. The code has validation, page concatenation and a bounded-retention path, but current tests have no generated blob-reference/page-chain case. | Before ACDS writer expansion, generate direct records at `0x3ffff` and `0x40000`, a `0x40001` blob and a multi-page vector. Assert total/page lengths, page indexes and starts, segment/schema/record-handle joins, exact concatenated bytes, and the non-retained large-payload path. Add malformed missing/wrong/out-of-order page, length, offset, overflow and truncation cases; require no partial payload publication and preserve the following record. Keep buffers synthetic/in-memory; do not add DWG/DXF/SAB fixture files. |
+| ODA §24.2.2.7–24.2.2.7.1 | The specification says schema-search data can be ignored while reading, but says AutoCAD ignores the entity if the required search-index object/handle mapping is not created. Read-acceptance and writer-acceptance therefore have different requirements. | Keep extraction allowed to consume the data index directly where proven, but do not declare a DWG AcDs writer interoperable until it emits and verifies the complete sorted/search-index-to-object-handle mapping. Mutate physical data-record order independently from sorted handle rank. |
+| Autodesk [Polyface Meshes](https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm) and [VERTEX](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm) references; current classic POLYLINE tests | Group 71/72 polyface header counts are not required to be accurate; readers should tolerate unusual coordinate/face child ordering. Writers should output coordinates first. Face group 71–74 values are signed 1-based indexes, negative values mark the edge starting at that corner invisible, zero terminates the face, and face records are limited to four corners. The existing generated test covers interleaved caller input, canonical output and signed visibility but not the read-tolerance cases. | Add fast ASCII/binary read vectors with inaccurate declared counts and face-first/interleaved records; assert typed face/index/visibility identity and following-entity framing. Keep writer canonical. Reject out-of-range or malformed indexes transactionally rather than relaxing reference validation. This is structural interpretation, not a rendered/topology-kernel claim. |
+| ezdxf [ACIS browser](https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst) / [renderer limits](https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst), [Open Cascade extension catalog](https://github.com/Open-Cascade-SAS/OCCT-Samples), [Ansys ACIS interface](https://ansyshelp.ansys.com/public/views/secured/corp/v251/en/ref_cad/cadACIS.html), and [CAD Exchanger SDK licensing](https://cadexchanger.com/products/sdk/pricing/) | ezdxf documents raw SAT/SAB inspection but no ACIS/general-3D renderer; Open Cascade classifies ACIS-SAT as a separate commercial component, not a built-in open-source core reader; Ansys documents a standalone SAT/SAB body reader but exact entitlement must be verified; CAD Exchanger components are licensed per format/configuration. The existing cq-acis route is an independent parser but shares OCCT geometry lineage with FreeCAD. | Record parser and geometry-kernel lineage separately. Use ezdxf for carrier checks only; treat cq-acis/FreeCAD as same-kernel corroboration; do not equate a product matrix with exact-profile acceptance. Before optional runs, pin release/platform/license, observe the payload's actual inner SAT/SAB version and require a source-native dimension manifest. Keep native consumer acceptance as a separate gate. |
+
+### Refined fast order
+
+1. Keep f.3c descriptor/model alignment ahead of any VisualStyle writer; the
+   observed peer outputs remain non-authoritative.
+2. Add the generated AcDs page-chain vectors against the existing parser,
+   including `0x40000` direct/blob boundary and malformed index/page cases.
+3. Add polyface inaccurate-count and noncanonical-read-order vectors while
+   retaining canonical writer order and safe child-record boundaries.
+4. Close object/page/owner joins and required search-index output before an
+   AcDs writer route is admitted; keep pre-AC1027 inline SAT/SAB separate.
+5. Only then spend time on native/kernel qualification, tied to exact payload
+   profile, source-authored dimensions and declared reader/kernel lineage.
+
+No finding or top-level-subplan count changes. No new code, test, fixture,
+dependency, native qualification or support claim resulted from this research
+pass. The six external J items remain `DEFERRED_EXTERNAL` and non-promoting.
 
 **Latest implementation slice (2026-10-15; `f8d802d`):** the generated MESH
 ASCII/binary fixture now emits two distinct subentity property-override
@@ -14538,8 +14587,10 @@ outputs remain scratch artifacts.
 4. Complete modern AcDs graph read census before writer expansion. First test
    same-segment and split-segment extraction, exact nonmonotonic owner joins,
    signatures, counts and unknown-schema preservation using locally authored
-   internal controls. Then implement one container/version route per commit;
-   avoid attempting a single cross-version “ACIS writer.”
+   internal controls. Extend the current fast parser tests with the ODA
+   `0x40000` direct-record/blob boundary and validated `blob01` page-chain
+   cases before writer expansion. Then implement one container/version route
+   per commit; avoid attempting a single cross-version “ACIS writer.”
 5. Gate old-format SAT and newer SAB output separately, including group1/3
    token-safe chunking, R2007+ history-field boundaries, AcDs directory index
    ordering, and atomic refusal for unsupported route/profile combinations.

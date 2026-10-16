@@ -3,6 +3,19 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
+**Latest deeper AcDs/polyface/kernel review (2026-10-15; baseline
+`873eb76`):** local ODA v5.4.1 §24 defines the `0x40000` direct-record/blob
+boundary, page-index/offset invariants and a writer search-index requirement;
+the parser has blob validation/assembly, but the fast test suite has no
+generated `blob01` page-chain vector. Autodesk also requires tolerant polyface
+readers despite inaccurate declared counts and unusual child order. Reader
+lineage and kernel lineage are now explicit qualification fields: an
+independent parser sharing OCCT with FreeCAD is parser corroboration, not an
+independent-kernel result. The parity plan records the exact proposed controls
+and source limits; no code, fixture, external product, support claim or J
+status changed. Receipt:
+[`broader-acds-polyface-and-kernel-boundary-review-2026-10-15.json`](docs/research/broader-acds-polyface-and-kernel-boundary-review-2026-10-15.json).
+
 **Latest deeper carrier/writer research (2026-10-15):** the broader review
 now includes an executed LibreDWG 0.14 AC1032→R2018 DXF conversion compared
 with the hash-matched ODA R2018 output from the same already-tracked drawing.
@@ -4532,6 +4545,12 @@ Steps:
    publication. S3.2.2 completes only one AC1027 3DSOLID handle-linked SAB
    record; missing/conflicting/orphan records, other modeler entities,
    AC1032, and every writer route remain unqualified.
+   **Fast parser-control prerequisite:** before expanding accepted profiles,
+   exercise the existing AcDs page-reference parser in memory at the ODA
+   `0x40000` direct-record/blob boundary and with a multi-page `blob01` chain;
+   validate segment/schema/handle joins, page ordinal/start/length totals,
+   exact retained bytes and atomic failure for corrupted page metadata. This
+   tests the implemented container parser only and does not unblock a writer.
 6. **S3.6 — raw replay.** Keep raw same-version frame replay as a separate
    operation and report whether a result is typed, raw-replayed, typed-and-raw,
    or unsupported. Treat the open [LibreDWG ACDS/ACIS report](https://github.com/LibreDWG/libredwg/issues/1411)
@@ -4646,8 +4665,10 @@ Steps:
    out of directory order and whose directory order differs from sorted-handle
    rank. Assert one zero-based search entry per data-segment record and a
    matching handle/index pair for every object, with no duplicate, missing,
-   or stale entries. ODA v5.4.1 §24.2.2.7.1 says AutoCAD ignores an entity if
-   the schema-search data is omitted; ACadSharp PR #1150 reports that using
+   or stale entries. Preserve the read/write asymmetry: ODA permits the reader
+   to ignore search data, but §24.2.2.7.1 says AutoCAD ignores a stored entity
+   if the required schema-search object/handle mapping is absent. ACadSharp
+   PR #1150 reports that using
    directory position where sorted-handle rank is required passed already-
    sorted tests but failed an AutoCAD-saved out-of-order case. Implement the
    spec-matched rank rule only after resolving any ambiguity in the ODA text
