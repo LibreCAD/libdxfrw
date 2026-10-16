@@ -219,6 +219,17 @@ set_tests_properties(dwg2dxf_dynamic_block_fail_closed PROPERTIES
     TIMEOUT 10
 )
 
+# The concrete converter adapter must own every decoded named-object callback;
+# the in-memory WDFLT control also guards copied parse-validity evidence.
+add_test(
+    NAME dwg2dxf_named_object_callback_storage
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks
+)
+set_tests_properties(dwg2dxf_named_object_callback_storage PROPERTIES
+    LABELS "fast;dxf;adapter;objects"
+    TIMEOUT 10
+)
+
 # Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
 # through generated DXF, two exact FreeCAD-argv CLI passes, and public readback.
 add_test(

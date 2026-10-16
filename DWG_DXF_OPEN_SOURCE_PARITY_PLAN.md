@@ -13930,3 +13930,24 @@ This refresh does not run or promote J256/J260/J268/J284/J293/J295; all remain
 `DEFERRED_EXTERNAL`. No support matrix/count changes:122 findings,70 top-level
 subplans,149 3D ledger items. No external drawing, package, new test
 registration, full suite or native qualification was added or run.
+
+## Implementation progress — f.4a.1 (2026-10-15)
+
+The first owned-storage slice is implemented in `dwg2dxf`: `dx_data` now owns
+all nine callback families listed in f.4a, and `dx_iface` copies each callback
+into the matching collection (including a null-safe pointer callback for
+MLEADERSTYLE). No pure virtual was added and interface default behavior for
+LibreCAD/LibreCAD_3 is unchanged. `DRW_DictionaryWithDefault` copy construction
+and assignment now preserve the parsed code-340 presence bit, so
+`hasCompleteDxfPayload()` stays meaningful across the adapter-owned copy.
+
+The runtime-generated `dwg2dxf_named_object_callback_storage` fast regression
+parses a minimal NOD plus DICTIONARYWDFLT from an in-memory DXF, verifies the
+stored payload remains complete through copy construction/assignment, invokes
+each remaining callback, checks owned handle identities and null MLEADERSTYLE
+handling, and leaves no drawing fixture. Target build and that single CTest
+passed; no full suite was run. This closes only the storage/copy portion of
+f.4a. The remaining f.4a readiness checks are explicit reset behavior, malformed
+missing/duplicate code-340 controls, and a following-record callback sentinel.
+No writer, graph closure, target interoperability or support claim is promoted;
+the f.4b/f.4c gates and all six `DEFERRED_EXTERNAL` items are unchanged.

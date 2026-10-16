@@ -155,6 +155,43 @@ public:
         if (cData != nullptr)
             cData->dictionaries.push_back(data);
     }
+    void addDictionaryWithDefault(
+            const DRW_DictionaryWithDefault& data) override {
+        if (cData != nullptr)
+            cData->dictionaryWithDefaults.push_back(data);
+    }
+    void addAcDbPlaceholder(const DRW_AcDbPlaceholder& data) override {
+        if (cData != nullptr)
+            cData->placeholders.push_back(data);
+    }
+    void addMLineStyle(const DRW_MLineStyle& data) override {
+        if (cData != nullptr)
+            cData->mLineStyles.push_back(data);
+    }
+    void addMLeaderStyle(const DRW_MLeaderStyle* data) override {
+        if (cData != nullptr && data != nullptr)
+            cData->mLeaderStyles.push_back(*data);
+    }
+    void addTableStyle(const DRW_TableStyle& data) override {
+        if (cData != nullptr)
+            cData->tableStyles.push_back(data);
+    }
+    void addDetailViewStyle(const DRW_DetailViewStyle& data) override {
+        if (cData != nullptr)
+            cData->detailViewStyles.push_back(data);
+    }
+    void addSectionViewStyle(const DRW_SectionViewStyle& data) override {
+        if (cData != nullptr)
+            cData->sectionViewStyles.push_back(data);
+    }
+    void addScale(const DRW_Scale& data) override {
+        if (cData != nullptr)
+            cData->scales.push_back(data);
+    }
+    void addDictionaryVar(const DRW_DictionaryVar& data) override {
+        if (cData != nullptr)
+            cData->dictionaryVars.push_back(data);
+    }
     virtual void addNamedObjectDictionary(
         const DRW_Dictionary& data) override {
         if (cData != nullptr) {

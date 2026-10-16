@@ -152,6 +152,15 @@ public:
     std::vector<DRW_Block_Record> blockRecords; //owned source identity/metadata
     std::vector<DRW_Layout> layouts; //typed DXF LAYOUT graph records
     std::list<DRW_Dictionary>dictionaries; //typed OBJECTS dictionaries
+    std::list<DRW_DictionaryWithDefault>dictionaryWithDefaults;
+    std::list<DRW_AcDbPlaceholder>placeholders;
+    std::list<DRW_MLineStyle>mLineStyles;
+    std::list<DRW_MLeaderStyle>mLeaderStyles;
+    std::list<DRW_TableStyle>tableStyles;
+    std::list<DRW_DetailViewStyle>detailViewStyles;
+    std::list<DRW_SectionViewStyle>sectionViewStyles;
+    std::list<DRW_Scale>scales;
+    std::list<DRW_DictionaryVar>dictionaryVars;
     DRW_Dictionary namedObjectDictionary; //position-identified DXF NOD
     bool hasNamedObjectDictionary {false};
     std::list<DRW_XRecord>xRecords;      //typed XRECORD objects

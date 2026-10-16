@@ -3091,14 +3091,14 @@ public:
   DRW_DictionaryWithDefault() { reset(); }
   DRW_DictionaryWithDefault(const DRW_DictionaryWithDefault& o):
       DRW_Dictionary(o), m_defaultEntryHandle(o.m_defaultEntryHandle),
-      m_dxfDefaultEntrySeen(false) {
+      m_dxfDefaultEntrySeen(o.m_dxfDefaultEntrySeen) {
     tType = DRW::DICTIONARYWDFLT;
   }
   DRW_DictionaryWithDefault& operator=(const DRW_DictionaryWithDefault& o) {
     if (this != &o) {
       DRW_Dictionary::operator=(o);
       m_defaultEntryHandle = o.m_defaultEntryHandle;
-      m_dxfDefaultEntrySeen = false;
+      m_dxfDefaultEntrySeen = o.m_dxfDefaultEntrySeen;
       tType = DRW::DICTIONARYWDFLT;
     }
     return *this;
