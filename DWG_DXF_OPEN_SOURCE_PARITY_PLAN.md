@@ -15543,6 +15543,32 @@ pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.32 seconds);
 native application, peer executable, downloaded fixture, dependency, or
 semantic geometry check ran. Findings/subplans remain 122/70. J256, J260,
 J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next
-local slice: produce raw-section variants whose handle binding is missing,
-duplicated or wrong, and verify explicit orphan/failure disposition without
-aborting unrelated 2D/block records.
+local slice: pass the separate `REGION` entity through raw section capture,
+then inspect same-version body preservation/refusal boundaries; no fixture or
+semantic solid promotion is needed for either structural control.
+
+## Implementation progress — raw AcDs missing/duplicate/wrong-handle controls (2026-10-15)
+
+Implementation commit: `a12c608` (`Test AC1027 AcDs record dispositions`).
+
+Expanded the source-generated one-record section builder to emit zero, one, or
+two inline records and exercised three raw-section dispositions through the
+actual capture and 3DSOLID callback path. With no record, the typed callback
+survives but keeps `has_ds_data` unresolved, leaves the local modeler version
+at its encoded value, and records one link failure. A record under a different
+handle is not attached and is reported as one orphan. When two same-handle
+records are present, the parser's preferred later payload is attached exactly,
+the unselected duplicate remains an orphan, and no link failure is reported.
+The section parser classifies duplicate-handle history as informational, not
+as malformed input. All payloads are marker-only controls, not valid SAB.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.30 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. The virtual page
+loader still begins after physical DWG decompression. No full suite, native
+app, peer executable, drawing fixture, dependency, or semantic geometry check
+ran. Findings/subplans remain 122/70; J256, J260, J268, J284, J293 and J295
+remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice: use the same
+raw-section route for `REGION` (currently direct typed-record injection), then
+audit the no-op body-preservation and edit/refusal contract before any writer
+work.
