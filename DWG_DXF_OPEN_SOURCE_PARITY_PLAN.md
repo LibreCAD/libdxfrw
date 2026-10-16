@@ -2,6 +2,21 @@
 
 **Status:**122 findings tracked across70 top-level implementation subplans.
 
+**Latest broader AcDs implementation comparison (2026-10-15; local baseline
+`88dc0d5`):** a source-level comparison now includes LibreDWG's current
+`acds.spec`, released ACadSharp 3.6.51+, and ACadRust 0.6.4. They are not
+interchangeable evidence: LibreDWG parses part of the directory then uses a
+signature/order fallback; ACadSharp has the strongest released full-section
+reader claim and a reported per-entity Blob01 resolver, while its DWG writer
+work remains separate; ACadRust has a handle/offset association path but also
+retains a scan/order fallback and a peer-specific 80-byte Blob01-frame
+stripping rule. The plan now prioritizes adversarial owner/offset order, frame
+boundary and unchanged-versus-edited passthrough controls, all generated
+in-memory. FreeCAD's documented DWG route remains external-converter-to-DXF;
+that supports a separate 2D consumer gate, not an ACIS-kernel claim. No peer
+was installed or executed, no finding count changed, and J256, J260, J268,
+J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
 **Latest AcDs peer-maturity update (2026-10-15; local baseline `09bb237`):**
 ACadSharp's full DWG `Prototype1b` reader is no longer merely an open-PR lead:
 PR [#1154](https://github.com/DomCR/ACadSharp/pull/1154) was merged and is
@@ -15683,3 +15698,137 @@ remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice: audit
 same-version complete-frame preservation and the no-op/edit/refusal boundary;
 then add bounded Blob01/page-chain controls under the existing data-storage
 test owner.
+
+## Broader DWG/DXF open-source AcDs implementation review (2026-10-15)
+
+This pass compared implementation source, rather than support-matrix labels,
+across LibreDWG, ACadSharp, ACadRust, and FreeCAD's documented DWG route. It
+used public repository sources and the existing local ODA v5.4.1 reference.
+This is static research only: no peer executable or dependency was installed
+or run; no external drawing was downloaded; and no proprietary file or CAD
+kernel supplied evidence.
+
+| Implementation/source | What the source supports | Correctness boundary and plan action |
+| --- | --- | --- |
+| LibreDWG [`acds.spec`](https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec) and [`decode_r2007.c`](https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c) | The AcDs parser decodes the file header, segment directory, DataIndex, SchemaIndex, SchemaData, and search metadata. Its current segment switch still marks `_data_` and `blob01` unhandled; a trailing decoder block scans raw bytes for an ACIS signature/end marker, consumes a queued modeler handle, and writes the payload onto a 3DSOLID. | This is a valuable implementation and failure-pattern comparator, not a complete owner/page oracle. Do not copy its signature-scan/queue path as a successful mapping, and do not use a missing/empty JSON field as proof that the source AcDs section lacked data. Add a source-generated case where physical section order, DataIndex row order, and numeric handle order differ; assert that the decoded offset/handle association—not scan order—wins. Keep REGION/BODY/SURFACE eligibility independent until each type is tied by a producer trace. LibreDWG issue [#1411](https://github.com/LibreDWG/libredwg/issues/1411) describes an AC1032 loss case for the specific 0.14.8593 build; it is not evidence for current-master status or a defect report against libdxfrw. |
+| Released ACadSharp Prototype1b reader: [#1154](https://github.com/DomCR/ACadSharp/pull/1154), [v3.6.51 release](https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51), and [Blob01 follow-up #1156](https://github.com/DomCR/ACadSharp/pull/1156) | ACadSharp supplies the strongest reviewed released full-section parser comparator. The #1156 discussion reports that `ResolveDataEntry` reconstructs Blob01 pages and passes each resulting payload to its owning ModelerGeometry. | Treat merged/released code as a high-value optional structural peer, but the reported private corpus and successful per-entity resolution are not locally reproduced. Pin v3.6.51 or later by exact package and source SHA when available; record each observable boundary (section parse, DataStorage row, resolved bytes, owner attachment). Its still-separate writer candidates [#1150](https://github.com/DomCR/ACadSharp/pull/1150) and [#1240](https://github.com/DomCR/ACadSharp/pull/1240) do not establish released writer behavior. |
+| ACadRust [0.6.4 reader source](https://docs.rs/acadrust/0.6.4/src/acadrust/io/dwg/dwg_reader.rs.html), [document passthrough state](https://docs.rs/acadrust/0.6.4/src/acadrust/document.rs.html), and [round-trip tests](https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs) | The reader attempts to find `_data_` record tables, uses each record's handle and offset range for association, and includes fallback magic scanning followed by object-stream handle order or positional order. It recognizes 3DSOLID, REGION, BODY, and SURFACE, stores the decompressed source section with a `(handle,length,hash)` SAB fingerprint for guarded same-version reuse, and strips a peer-specific 80-byte `blob01` continuation frame with exact marker/field/padding checks. | This is an additional peer implementation, not an independent semantic oracle: its fallback can misassociate by construction, its frame-removal predicate is peer evidence until reconciled against ODA/sample traces, and its checked-in tests include generated round-trips. Add local negative and boundary controls, not a source port: disable positional fallback as a support path; keep raw-section retention independent from typed payload attachment; test no-op preservation, one-byte body change, handle change, and missing/incomplete fingerprint disposition. Never strip bytes from the SAB payload unless the segment-chain grammar proves they are continuation frames. Pin the exact 0.6.4 crate/source before any optional runtime comparison. |
+| FreeCAD [DWG import/export preferences](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md) and [Draft converter path](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py) | FreeCAD documents DWG as requiring an external converter (LibreDWG, ODA, or QCAD/ODA route); its Draft adapter converts DWG to DXF and then uses DXF import. | Keep the native FreeCAD gate as a converter/2D-import qualification tied to exact OS, app, converter/version, importer mode, and DXF version. It does not exercise a direct libdxfrw callback or prove ACIS/B-rep semantics. Run native Windows/Linux qualification only as an explicit later gate; do not make it block fast local parser slices. |
+
+### Readiness changes from the comparison
+
+1. **Keep four observable layers separate:** (a) physical DWG section/page
+   decode; (b) Prototype1b segment/index/schema parsing; (c) record payload
+   assembly and exact modeler-owner association; (d) valid ACIS/SAB and
+   consumer/kernel geometry. A pass at one layer never implies the next.
+2. **Use identity, not order, as the primary link:** commit `8f5d927` now
+   generates four records whose physical record stream, DataIndex row order,
+   numeric handle order, and entity callback order are all distinct, then
+   verifies exact per-handle payload attachment through the real block walk.
+   Continue with multi-segment/page permutations and assert exact handle,
+   length, offset, page index/count/start, and bytes; separately assert
+   unresolved, duplicate, orphan, and wrong-owner dispositions. A fallback
+   may be diagnostic-only and must not publish a guessed payload.
+3. **Make Blob01 tests discriminating and bounded:** cover direct-record sizes
+   `0x3ffff` and `0x40000`, the first blob-reference size `0x40001`, one-page
+   and two-page payloads around the ODA `0xfffb0` page cap, reverse physical
+   page order, one missing page, duplicate page index, wrong start/length,
+   overflow, and a sentinel next record. The 80-byte ACadRust frame is a
+   hypothesis to characterize, not a constant to hard-code into production
+   without ODA or traced producer confirmation. Assert no partial publish and
+   linear bounded work; avoid one CTest per scalar.
+4. **Close passthrough/edit disposition:** the DXF path retains modern
+   ACDSDATA raw groups separately from modeler entity fields. Its imported
+   entity does not acquire per-entity `dataStorageData` merely because raw
+   ACDSDATA was captured. Test edits against the typed DWG-source link (where
+   it exists), and test raw DXF section replay as a separate opaque-preserve
+   case. Missing typed link must not be described as a linked-payload edit.
+5. **Protect 2D consumers:** keep all new `DRW_Interface` callbacks non-pure;
+   preserve entity shell, handle, layer/owner, transform and raw carrier for
+   LibreCAD and LibreCAD_3. FreeCAD stays a separately recorded converter
+   route. Do not invoke an ACIS parser/kernel on the ordinary 2D consumer path.
+6. **Keep the fast loop cheap:** each implementation slice uses the existing
+   focused test executable and one focused CTest, plus strict `-Werror` build,
+   `git diff --check`, and the LC3 compatibility check when interfaces change.
+   Run broader/full CTest only at the planned composed checkpoint; native
+   consumer and optional peer runs remain opt-in, exact-version gates. Generate
+   all new sample bytes in memory or from source in temporary output locations;
+   commit no external DWG/DXF fixtures.
+
+### Revised implementation order
+
+1. Preserve the now-tested modeler payload mismatch refusal as a fast control;
+   add an explicit raw-DXF ACDSDATA replay assertion without pretending the DXF
+   entity has a resolved DataStorage link.
+2. **Done (`8f5d927`):** extend the existing `dwg_reader_matrix` source builder
+   for `_data_` record-directory order variation and prove exact handle/offset
+   attachment across four disagreeing orders. Keep future cases in this same
+   executable; next implement Blob01 page-chain descriptors and boundaries.
+3. Add direct-vs-Blob01 transition and multi-page descriptor vectors to the
+   same test owner, including malformed-index controls and a next-record
+   sentinel. Resolve candidate 80-byte frame fields against ODA and source
+   traces before production use.
+4. Audit entity raw-frame passthrough and edit invalidation separately from
+   record-section linking. Then assess whether a production change is actually
+   required; no speculative AcDs writer is in scope for a read-DWG/DXF-write
+   library.
+5. At a composed checkpoint, optionally run pinned ACadSharp and ACadRust
+   readers on source-authored generated bytes and compare bytes/handles at the
+   same layer. Complete native 2D converter checks separately. Require an
+   eligible independent parser/kernel and authored geometry manifest before
+   any solid-semantic claim.
+
+No finding or top-level subplan is added; totals remain 122/70. No software,
+external fixture, generated drawing fixture, dependency, native app, or peer
+was installed or executed. No support claim was promoted. J256, J260, J268,
+J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
+
+## Implementation progress — linked AcDs payload mismatch refusal (2026-10-15)
+
+Implementation commit: `88dc0d5` (`Test ACDS linked payload edit refusal`).
+
+Extended the generated ASCII and binary AC1027 REGION round-trip control. After
+the successful projection, import and replay checks, the test mutates only the
+source-side typed `dataStorageData` while leaving its owner-keyed DataStorage
+record unchanged. Export must fail and leave a pre-existing destination
+sentinel byte-for-byte intact. The first test draft incorrectly expected DXF
+import to populate that typed DWG-side link; the failure led to confirming the
+actual contract: DXF import retains `ACDSDATA` as a raw section, separately
+from the entity. The corrected test uses the source DWG handoff where the
+typed link exists. It proves mismatch refusal, not SAB validity or geometry.
+
+Validation: strict `libdxfrw_dwg_local_roundtrip` target build passes; focused
+CTest passes 1/1 in 2.71 seconds; `git diff --check` passes. No full suite,
+native app, external peer, disk drawing fixture, dependency or semantic
+geometry check ran. No production code changed. Findings/subplans remain
+122/70; J256, J260, J268, J284, J293 and J295 remain `DEFERRED_EXTERNAL` and
+non-promoting. Next local slice: generated `_data_` directory/offset order
+controls in the existing fast DWG reader matrix, then Blob01 boundary and
+continuation-page cases after reconciling peer frame markers with ODA and
+sample-trace evidence.
+
+## Implementation progress — AcDs DataIndex order and owner-link control (2026-10-15)
+
+Implementation commit: `8f5d927` (`Test reordered AcDs record index links`).
+
+Expanded the source-authored in-memory Prototype1b section builder to emit four
+records with a permuted DataIndex row list. The synthetic drawing uses four
+different permutations for numeric handle sort, physical record stream,
+directory rows, and block/entity callback order. Each modeler callback is
+checked against its exact owning handle and unique payload after the real raw
+section capture, parser, link finalization and block walk. The payloads only
+carry short ACIS signature markers; this is an identity/transport test, not
+valid SAB or geometry evidence. The test writer also records real per-frame
+offsets so the multi-entity object walk is exercised rather than replaying the
+first frame.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` target build passes;
+focused `libdxfrw_dwg_reader_matrix` CTest passes 1/1 in 1.54 seconds;
+`git diff --check` passes. No production code, drawing fixture, dependency,
+peer executable, full suite, native app or semantic geometry check ran.
+Findings/subplans remain 122/70; J256, J260, J268, J284, J293 and J295 remain
+`DEFERRED_EXTERNAL` and non-promoting. Next local slice: source-generated
+Blob01 descriptor/page-chain tests in the same matrix, starting with a valid
+two-page chain and then malformed missing/duplicate/wrong-start/length cases;
+the peer's 80-byte frame pattern remains only a test hypothesis until tied to
+ODA or producer-trace evidence.
