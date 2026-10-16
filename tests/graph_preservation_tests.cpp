@@ -1037,6 +1037,28 @@ void testDataStorageBlobPages(TestContext& t) {
         return directFixture;
     };
 
+    const DirectFixture belowDirectLimitFixture = makeDirectFixture(
+        DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE - 1u);
+    const DRW_DataStorageSection belowDirectLimit = DRW_parseDataStorage(
+        belowDirectLimitFixture.bytes, DRW::AC1027);
+    const DRW_DataStorageRecord* belowLimitRecord =
+        belowDirectLimit.findRecordByHandle(0xa17u);
+    const DRW_DataStorageRecord* belowLimitSuffix =
+        belowDirectLimit.findRecordByHandle(0xa18u);
+    t.expect(belowDirectLimit.structurallyValid
+                 && belowDirectLimit.replayAllowed
+                 && belowLimitRecord != nullptr
+                 && !belowLimitRecord->isBlobReference
+                 && belowLimitRecord->dataByteLength
+                        == DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE - 1u
+                 && belowLimitRecord->payload.size()
+                        == DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE - 1u
+                 && belowLimitRecord->payload.front() == 1u
+                 && belowLimitSuffix != nullptr
+                 && belowLimitSuffix->payload
+                        == belowDirectLimitFixture.suffix,
+             "DataStorage accepts one byte below ODA inline limit and following record");
+
     const DirectFixture directLimitFixture = makeDirectFixture(
         DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE);
     const DRW_DataStorageSection directLimit = DRW_parseDataStorage(
