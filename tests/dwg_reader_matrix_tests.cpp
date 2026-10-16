@@ -537,6 +537,14 @@ public:
     }
 };
 
+class InsertDispatchSource final : public DRW_Insert {
+public:
+    bool encode(DRW::Version version, dwgBufferW& body,
+                dwgBufferW& strings, dwgBufferW& handles) {
+        return encodeDwg(version, &body, 0u, &strings, &handles);
+    }
+};
+
 class ModelerDispatchFrameWriter final : public dwgWriter27 {
 public:
     ModelerDispatchFrameWriter(std::ofstream* stream, DRW_Header* header)
@@ -560,6 +568,20 @@ public:
         finishObject();
         return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
     }
+
+    bool encodeInsert(std::uint32_t handle, std::uint32_t ownerHandle,
+                      std::uint32_t targetBlockHandle) {
+        InsertDispatchSource source;
+        source.handle = handle;
+        source.parentHandle = ownerHandle;
+        source.blockRecH.ref = targetBlockHandle;
+
+        dwgBufferW& body = beginObject(handle);
+        if (!source.encode(m_version, body, m_objectStrings, m_objectHandles))
+            return false;
+        finishObject();
+        return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
+    }
 };
 
 class ModelerDispatchReader final : public dwgReader27 {
@@ -577,60 +599,141 @@ public:
 
 class ModelerDispatchSink final : public dx_iface {
 public:
+    struct OwnedSolid {
+        std::uint32_t walkOwner;
+        DRW_ModelerGeometry entity;
+    };
+    struct OwnedInsert {
+        std::uint32_t walkOwner;
+        DRW_Insert entity;
+    };
+
     ModelerDispatchSink() {
         cData = &data;
         currentBlock = data.mBlock;
     }
 
     void addModelerGeometry(const DRW_ModelerGeometry& value) override {
-        modeler.push_back(value);
+        modeler.push_back({activeWalkOwner, value});
+    }
+
+    void addInsert(const DRW_Insert& value) override {
+        inserts.push_back({activeWalkOwner, value});
     }
 
     dx_data data;
-    std::vector<DRW_ModelerGeometry> modeler;
+    std::uint32_t activeWalkOwner{DRW::NoHandle};
+    std::vector<OwnedSolid> modeler;
+    std::vector<OwnedInsert> inserts;
 };
 
 void testModelerBlockRecordDispatch(TestContext& t) {
-    constexpr std::uint32_t blockHandle = 0x500u;
-    constexpr std::uint32_t solidHandle = 0x900u;
+    constexpr std::uint32_t modelSpaceHandle = 0x400u;
+    constexpr std::uint32_t liveBlockHandle = 0x500u;
+    constexpr std::uint32_t unusedBlockHandle = 0x510u;
+    constexpr std::uint32_t liveSolidHandle = 0x900u;
+    constexpr std::uint32_t unusedSolidHandle = 0x901u;
+    constexpr std::uint32_t insertHandle = 0x902u;
     std::ofstream output;
     DRW_Header header;
-    ModelerDispatchFrameWriter writer(&output, &header);
-    const bool generated = writer.encodeEmptySolid(solidHandle, blockHandle);
+    ModelerDispatchFrameWriter liveWriter(&output, &header);
+    ModelerDispatchFrameWriter unusedWriter(&output, &header);
+    ModelerDispatchFrameWriter insertWriter(&output, &header);
+    const bool generated =
+        liveWriter.encodeEmptySolid(liveSolidHandle, liveBlockHandle)
+        && unusedWriter.encodeEmptySolid(unusedSolidHandle, unusedBlockHandle)
+        && insertWriter.encodeInsert(insertHandle, modelSpaceHandle,
+                                     liveBlockHandle);
     t.expect(generated,
-             "in-memory AC1027 writer frames an empty 3DSOLID with a block owner");
+             "in-memory AC1027 writer frames two block-owned solids and one INSERT");
     if (!generated)
         return;
 
-    std::vector<std::uint8_t> frameBytes = writer.buffer();
+    std::vector<std::uint8_t> liveBytes = liveWriter.buffer();
+    std::vector<std::uint8_t> unusedBytes = unusedWriter.buffer();
+    std::vector<std::uint8_t> insertBytes = insertWriter.buffer();
     dwgRW parent("");
-    auto blockOwner = std::make_unique<DRW_Block_Record>();
-    auto* block = blockOwner.get();
-    block->handle = blockHandle;
-    block->name = "MODEL_SOLID_OWNER";
-    DwgBlockOwnershipTestAccess::setEntityHandles(*block, {solidHandle});
+    auto makeBlock = [](std::uint32_t handle, const std::string& name,
+                        std::uint32_t entityHandle) {
+        auto block = std::make_unique<DRW_Block_Record>();
+        block->handle = handle;
+        block->name = name;
+        DwgBlockOwnershipTestAccess::setEntityHandles(*block, {entityHandle});
+        return block;
+    };
     ModelerDispatchReader reader(
-        std::unique_ptr<dwgBuffer>(new dwgBuffer(frameBytes.data(), frameBytes.size())),
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(liveBytes.data(), liveBytes.size())),
         &parent);
     reader.setFormatVersion(DRW::AC1027);
-    reader.blockRecordmap.emplace(blockHandle, block);
-    (void)blockOwner.release(); // dwgReader owns and deletes blockRecordmap values.
-    reader.ObjectMap.emplace(solidHandle,
-                             objHandle(38u, solidHandle, 0u));
+    const auto registerBlock = [&reader](std::unique_ptr<DRW_Block_Record> value) {
+        DRW_Block_Record* raw = value.get();
+        reader.blockRecordmap.emplace(raw->handle, raw);
+        (void)value.release(); // dwgReader owns and deletes blockRecordmap values.
+    };
+    registerBlock(makeBlock(modelSpaceHandle, "*Model_Space", insertHandle));
+    registerBlock(makeBlock(liveBlockHandle, "LIVE_SOLID", liveSolidHandle));
+    registerBlock(makeBlock(unusedBlockHandle, "UNUSED_SOLID", unusedSolidHandle));
+    reader.ObjectMap.emplace(liveSolidHandle,
+                             objHandle(38u, liveSolidHandle, 0u));
+    reader.ObjectMap.emplace(unusedSolidHandle,
+                             objHandle(38u, unusedSolidHandle, 0u));
+    reader.ObjectMap.emplace(insertHandle, objHandle(7u, insertHandle, 0u));
 
-    dwgBuffer objectStream(frameBytes.data(), frameBytes.size());
+    dwgBuffer liveStream(liveBytes.data(), liveBytes.size());
+    dwgBuffer unusedStream(unusedBytes.data(), unusedBytes.size());
+    dwgBuffer insertStream(insertBytes.data(), insertBytes.size());
     ModelerDispatchSink sink;
-    const bool walked = reader.walkBlockRecordEntities(
-        block, &objectStream, sink, blockHandle, blockHandle);
-    t.expect(walked && sink.modeler.size() == 1u,
-             "AC1027 BLOCK_RECORD walk dispatches the generated 3DSOLID once");
-    if (sink.modeler.size() == 1u) {
-        const DRW_ModelerGeometry& parsed = sink.modeler.front();
-        t.expect(parsed.eType == DRW::E3DSOLID && parsed.handle == solidHandle
-                     && parsed.parentHandle == blockHandle && parsed.m_isEmpty
-                     && parsed.m_dwgAcisPayload.empty(),
-                 "typed modeler callback retains entity type, handle, owner, and empty-body state");
+    sink.activeWalkOwner = modelSpaceHandle;
+    const bool modelWalk = reader.walkBlockRecordEntities(
+        reader.blockRecordmap.at(modelSpaceHandle), &insertStream, sink,
+        modelSpaceHandle, modelSpaceHandle);
+    sink.activeWalkOwner = liveBlockHandle;
+    const bool liveWalk = reader.walkBlockRecordEntities(
+        reader.blockRecordmap.at(liveBlockHandle), &liveStream, sink,
+        liveBlockHandle, liveBlockHandle);
+    sink.activeWalkOwner = unusedBlockHandle;
+    const bool unusedWalk = reader.walkBlockRecordEntities(
+        reader.blockRecordmap.at(unusedBlockHandle), &unusedStream, sink,
+        unusedBlockHandle, unusedBlockHandle);
+    t.expect(modelWalk && liveWalk && unusedWalk && sink.inserts.size() == 1u
+                 && sink.modeler.size() == 2u,
+             "AC1027 BLOCK_RECORD walks dispatch one INSERT and two stored solids");
+
+    bool graphMatches = sink.inserts.size() == 1u && sink.modeler.size() == 2u;
+    if (graphMatches) {
+        const ModelerDispatchSink::OwnedInsert& insert = sink.inserts.front();
+        graphMatches = insert.walkOwner == modelSpaceHandle
+            && insert.entity.handle == insertHandle
+            && insert.entity.parentHandle == modelSpaceHandle
+            && insert.entity.blockRecH.ref == liveBlockHandle
+            && insert.entity.name == "LIVE_SOLID";
+        std::size_t reachableSolids = 0;
+        bool liveSolidFound = false;
+        bool unusedSolidStored = false;
+        for (const ModelerDispatchSink::OwnedSolid& solid : sink.modeler) {
+            const bool isLive = solid.entity.handle == liveSolidHandle
+                && solid.walkOwner == liveBlockHandle
+                && solid.entity.parentHandle == liveBlockHandle
+                && solid.entity.eType == DRW::E3DSOLID
+                && solid.entity.m_isEmpty
+                && solid.entity.m_dwgAcisPayload.empty();
+            const bool isUnused = solid.entity.handle == unusedSolidHandle
+                && solid.walkOwner == unusedBlockHandle
+                && solid.entity.parentHandle == unusedBlockHandle
+                && solid.entity.eType == DRW::E3DSOLID
+                && solid.entity.m_isEmpty
+                && solid.entity.m_dwgAcisPayload.empty();
+            graphMatches = graphMatches && (isLive || isUnused);
+            liveSolidFound = liveSolidFound || isLive;
+            unusedSolidStored = unusedSolidStored || isUnused;
+            if (insert.entity.blockRecH.ref == solid.walkOwner)
+                ++reachableSolids;
+        }
+        graphMatches = graphMatches && liveSolidFound && unusedSolidStored
+            && reachableSolids == 1u;
     }
+    t.expect(graphMatches,
+             "INSERT reaches its named block's solid; a second block's solid stays stored but outside this reference");
 }
 
 void testR2004SectionMapPublication(TestContext& t) {
