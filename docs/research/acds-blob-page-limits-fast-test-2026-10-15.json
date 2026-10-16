@@ -2,6 +2,7 @@
   "schema": "libdxfrw-acds-blob-page-limits-fast-test-v1",
   "reviewedAt": "2026-10-15",
   "baselineCommit": "ec00ebb",
+  "implementationCommit": "630f66c",
   "scope": "ODA §24.2.2.3-24.2.2.3.1 DataStorage direct/blob threshold and Blob01 page size/count limits",
   "sourceAuthority": {
     "document": "Open Design Specification for .dwg files v5.4.1",

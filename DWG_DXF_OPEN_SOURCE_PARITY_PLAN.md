@@ -14856,6 +14856,8 @@ same-version untouched-section passthrough. All six J items remain
 
 ## Implementation progress — ODA AcDs Blob01 page limits (2026-10-15)
 
+Implementation commit: `630f66c` (`Enforce DataStorage blob page limits`).
+
 ODA v5.4.1 §24.2.2.3–24.2.2.3.1 defines the storage boundary: arrays through
 `0x40000` bytes use direct records; larger arrays use Blob01 pages, each capped
 at `0xFFFB0` bytes. The parser now rejects blob descriptors at/below the direct
