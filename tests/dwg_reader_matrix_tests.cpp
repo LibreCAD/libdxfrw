@@ -805,6 +805,79 @@ void testModelerBlockWalkRejectsBadOwnership(TestContext& t) {
              "entity whose encoded owner differs from BLOCK_RECORD is quarantined");
 }
 
+void testModelerInsertTargetResolution(TestContext& t) {
+    constexpr std::uint32_t modelSpaceHandle = 0x700u;
+    constexpr std::uint32_t insertHandle = 0xB00u;
+    constexpr std::uint32_t resolvedTargetHandle = 0x710u;
+    constexpr std::uint32_t missingTargetHandle = 0x7FFu;
+
+    struct InsertWalkResult {
+        bool walked;
+        std::size_t callbacks;
+        std::uint32_t targetHandle;
+        std::string targetName;
+    };
+    const auto runWalk = [=](std::uint32_t targetHandle, bool registerTarget) {
+        std::ofstream output;
+        DRW_Header header;
+        ModelerDispatchFrameWriter writer(&output, &header);
+        const bool generated = writer.encodeInsert(insertHandle,
+                                                   modelSpaceHandle,
+                                                   targetHandle);
+        if (!generated)
+            return InsertWalkResult{false, 0u, DRW::NoHandle, std::string()};
+
+        std::vector<std::uint8_t> sourceBytes = writer.buffer();
+        dwgRW parent("");
+        auto modelSpaceOwner = std::make_unique<DRW_Block_Record>();
+        DRW_Block_Record* modelSpace = modelSpaceOwner.get();
+        modelSpace->handle = modelSpaceHandle;
+        modelSpace->name = "*Model_Space";
+        DwgBlockOwnershipTestAccess::setEntityHandles(*modelSpace,
+                                                     {insertHandle});
+        ModelerDispatchReader reader(
+            std::unique_ptr<dwgBuffer>(new dwgBuffer(
+                sourceBytes.data(), sourceBytes.size())),
+            &parent);
+        reader.setFormatVersion(DRW::AC1027);
+        reader.blockRecordmap.emplace(modelSpaceHandle, modelSpace);
+        (void)modelSpaceOwner.release(); // reader owns block-record values.
+        if (registerTarget) {
+            auto targetOwner = std::make_unique<DRW_Block_Record>();
+            targetOwner->handle = resolvedTargetHandle;
+            targetOwner->name = "RESOLVED_TARGET";
+            reader.blockRecordmap.emplace(resolvedTargetHandle,
+                                           targetOwner.get());
+            (void)targetOwner.release();
+        }
+        reader.ObjectMap.emplace(insertHandle,
+                                 objHandle(7u, insertHandle, 0u));
+
+        dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
+        ModelerDispatchSink sink;
+        sink.activeWalkOwner = modelSpaceHandle;
+        const bool walked = reader.walkBlockRecordEntities(
+            modelSpace, &objectStream, sink, modelSpaceHandle,
+            modelSpaceHandle);
+        if (sink.inserts.empty())
+            return InsertWalkResult{walked, 0u, DRW::NoHandle, std::string()};
+        const DRW_Insert& insert = sink.inserts.front().entity;
+        return InsertWalkResult{walked, sink.inserts.size(),
+                                insert.blockRecH.ref, insert.name};
+    };
+
+    const InsertWalkResult resolved = runWalk(resolvedTargetHandle, true);
+    const InsertWalkResult missing = runWalk(missingTargetHandle, false);
+    t.expect(resolved.walked && resolved.callbacks == 1u
+                 && resolved.targetHandle == resolvedTargetHandle
+                 && resolved.targetName == "RESOLVED_TARGET",
+             "INSERT target handle resolves to the matching registered block name");
+    t.expect(missing.walked && missing.callbacks == 1u
+                 && missing.targetHandle == missingTargetHandle
+                 && missing.targetName.empty(),
+             "unresolved INSERT target preserves its handle and leaves the name empty");
+}
+
 void testR2004SectionMapPublication(TestContext& t) {
     std::stringbuf streamBuffer(std::ios::out | std::ios::binary);
     std::ofstream output;
@@ -2988,6 +3061,7 @@ int main() {
     testR2004SectionMapPublication(context);
     testModelerBlockRecordDispatch(context);
     testModelerBlockWalkRejectsBadOwnership(context);
+    testModelerInsertTargetResolution(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
