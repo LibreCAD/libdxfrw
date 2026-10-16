@@ -857,6 +857,54 @@ bool namedResourceImportEvidence(const std::filesystem::path& directory,
             || dwgImported.scales.empty() || dwgImported.dictionaryVars.empty()
             || dwgImported.mLineStyles.empty() || dwgImported.mLeaderStyles.empty())
             return fail("existing DWG fixture did not retain one typed-only named-resource generation");
+
+        if (!dwgImported.hasCompleteAc1032VisualStyleSourceProfile())
+            return fail("existing AC1032 styles did not satisfy the structural 58/8 source-capture profile");
+
+        DRW_VisualStyle& profile = dwgImported.visualStyles.front();
+        const DRW_VisualStyle originalProfile = profile;
+        const auto rejectsMutation = [&dwgImported, &profile,
+                                      &originalProfile](auto mutate) {
+            profile = originalProfile;
+            mutate(profile);
+            const bool rejected =
+                !dwgImported.hasCompleteAc1032VisualStyleSourceProfile();
+            profile = originalProfile;
+            return rejected;
+        };
+        if (!rejectsMutation([](DRW_VisualStyle& style) {
+                style.m_bodyDecoded = false;
+            })
+            || !rejectsMutation([](DRW_VisualStyle& style) {
+                style.m_body.m_encoding.companionCount = 57u;
+            })
+            || !rejectsMutation([](DRW_VisualStyle& style) {
+                style.m_body.hasR2013bExpansion = false;
+            })
+            || !rejectsMutation([](DRW_VisualStyle& style) {
+                style.m_body.m_encoding.colorCount = 7u;
+            })
+            || !rejectsMutation([](DRW_VisualStyle& style) {
+                style.m_body.m_encoding.colors[0].present = false;
+            })
+            || !rejectsMutation([](DRW_VisualStyle& style) {
+                style.m_body.m_encoding.colors[0].modern = false;
+            })
+            || !rejectsMutation([](DRW_VisualStyle& style) {
+                style.m_body.m_encoding.sourceIsolines =
+                    DRW_VisualStyleBody::kMaxEdgeIsolines + 1;
+                style.m_body.edgeIsolines =
+                    DRW_VisualStyleBody::kMaxEdgeIsolines;
+            }))
+            return fail("incomplete or clamped VisualStyle body passed the structural profile gate");
+
+        profile.m_body.m_encoding.colors[0].rawRgb = 0xFF123456u;
+        const bool opaqueColorMethodRemainsStructurallyCaptured =
+            dwgImported.hasCompleteAc1032VisualStyleSourceProfile();
+        profile = originalProfile;
+        if (!opaqueColorMethodRemainsStructurallyCaptured
+            || !dwgImported.hasCompleteAc1032VisualStyleSourceProfile())
+            return fail("source completeness was conflated with an unqualified CMC output policy");
     }
     return true;
 }

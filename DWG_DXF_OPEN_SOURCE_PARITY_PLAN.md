@@ -14087,9 +14087,9 @@ test and receipt.
 | --- | --- | --- |
 | **f.4b.0 — exact field/origin matrix** | The field groups and cross-source mapping above close the static field/readiness matrix. Correct SCALE's stale ODA section comment when next touching its DWG parser block. Use the generated receipt to pin source hashes and primary URLs. | No unclassified field/reference for these four families; source/profile and loss decisions are explicit. This is research readiness, not implementation qualification. |
 | **Before f.4b — f.3b/f.3c prerequisites** | Bind the imported record range to one successful source generation and source version; reject reused/mixed/failed import state. Complete the descriptor-driven source-profile serializer and output admission that f.3c requires. Use f.3b/f.3c's existing focused controls before wiring output-origin selection; `sourceFormat` alone is not sufficient. | Strictly known accepted source profile/generation for each emitted model; stale carriers cannot be selected as raw fallback. |
-| **f.4b.1a — shared leaf bridge, SCALE + DICTIONARYVAR** | After f.3b/f.3c, extend the existing bounded graph index/DFS and root-entry resolver with exactly these leaf types. Pair raw DXF carriers with typed callbacks; replay raw once on DXF-origin input, use typed writers on DWG-origin input. Reserve/remap own handles, preserve exact dictionary owner and dictionary key; generate correct SCALE/DICTIONARYVAR CLASS records and instance counts only for typed output. Test both record types under their actual NOD dictionary roots, high and fixed-colliding handles, wrong owner/type, missing/wrong root child, duplicate identities, raw/typed mismatch, no duplicate output, output parse-back values, ASCII and binary, and failed-export destination preservation followed by same-facade corrected retry. | Every selected entry points to one emitted record owned by its source dictionary; unsupported/unknown raw data is not lost; no fallback rehome; common graph limits still bound scanning. |
+| **f.4b.1a — shared leaf bridge, SCALE + DICTIONARYVAR** | After f.3b/f.3c, extend the existing bounded graph index/DFS and root-entry resolver with exactly these leaf types. Pair raw DXF carriers with typed callbacks; replay raw once on DXF-origin input, use typed writers on DWG-origin input. Reserve/remap own handles, preserve exact dictionary owner and dictionary key. Build and freeze the typed custom-CLASS manifest before `dxfRW::write()` emits CLASSES: one validated CLASS identity per actual custom record name, with AC1018+ instance counts computed from the final admitted raw/typed output selection (after dedup), not copied from source counts. Test both record types under their actual NOD dictionary roots, high and fixed-colliding handles, wrong owner/type, missing/wrong root child, duplicate identities, raw/typed mismatch, no duplicate output, output parse-back values, ASCII and binary, and failed-export destination preservation followed by same-facade corrected retry. | Every selected entry points to one emitted record owned by its source dictionary; unsupported/unknown raw data is not lost; class metadata/counts match emitted instances; no fallback rehome; common graph limits still bound scanning. |
 | **f.4b.1b — MLINESTYLE** | Add schema checks for count71 and the ordered repeated tuple shape; distinguish documented DXF ACI/name fields from DWG-only data. Resolve R2018+ DWG linetype handles against one output LTYPE record by handle/name and emit code6; reject unresolved/ambiguous identity. Exact raw replay for DXF source, typed writer for DWG source. Generated case: zero/one/multiple line, legal field reorder, missing/duplicate count, missing tuple members, repeated elements, handle remapping and linetype-resolution negatives. | Count and all per-element values round-trip; no claimed loss for `color24` or linetype identity; MLINE entity code340 resolves to the emitted style. |
-| **f.4b.1c — MLEADERSTYLE** | Add version-gated serialization for179 (R2010+) and298 (`text_extended`, R2013+) in addition to existing AC1021 base floor; inspect all version-conditioned fields against ODA/LibreDWG before writing. Remap each nonzero 340–343 handle and validate target kind/uniqueness (LTYPE, BLOCK, STYLE, BLOCK); distinguish absent optional refs from bad non-null refs. Update/generated CLASS count. Tests cover AC1021/1024/1027 boundaries, all four refs, deliberate handle collisions, wrong-kind/dangling references, content type combinations, raw/typed dedup and MLEADER entity-to-style closure. | No version-inappropriate tag, unremapped reference, class-count mismatch or silent dangling link. |
+| **f.4b.1c — MLEADERSTYLE** | Add version-gated serialization for179 (R2010+) and298 (`text_extended`, R2013+) in addition to existing AC1021 base floor; inspect all version-conditioned fields against ODA/LibreDWG before writing. Remap each nonzero 340–343 handle and validate target kind/uniqueness (LTYPE, BLOCK, STYLE, BLOCK); distinguish absent optional refs from bad non-null refs. Register its custom CLASS and derive the AC1018+ count from the final admitted output set before CLASSES emission. Tests cover AC1021/1024/1027 boundaries, all four refs, deliberate handle collisions, wrong-kind/dangling references, content type combinations, raw/typed dedup and MLEADER entity-to-style closure. | No version-inappropriate tag, unremapped reference, class-count mismatch or silent dangling link. |
 | **f.4b.2+ — remaining rooted models** | Continue LAYOUT↔BLOCK_RECORD/VIEWPORT/UCS/shade links, MATERIAL entity347 and full MATERIAL payload, TABLESTYLE row/cell decoder/writer, DICTIONARYWDFLT default340/PLACEHOLDER, then detailed/section view styles. Every family gets a field/reference/disposition row first. | Every source-reachable NOD root key and accepted property link has an exact emitted target or pre-publication refusal. |
 | **f.4c — one composed checkpoint** | Only after all above paths pass their focused gates: run the existing FreeCAD CLI cohort once, then the retained reader/graph/LC3 safety selection and affected sanitizer. Do not repeat the full suite for each family; never weaken a failure to close the gate. | Full intended local conversion cohort passes unchanged; remaining six external/platform gates stay separate and non-promoting. |
 
@@ -14204,3 +14204,113 @@ and then the planned SCALE/DICTIONARYVAR graph bridge. No support matrix/count
 or J disposition changes; all six J items remain `DEFERRED_EXTERNAL`. Source
 hashes and command receipts:
 [`named-resource-import-provenance-2026-10-15.json`](docs/research/named-resource-import-provenance-2026-10-15.json).
+
+## Broader peer-capability, object-graph, and CLASS contract audit (2026-10-15; research-only)
+
+This refresh widened the comparison to LibreDWG, ACadSharp, ezdxf, and the
+current LibreCAD-bundled libdxfrw inventory, then checked the findings against
+Autodesk's DXF contract and the actual upstream writer order. It is a static
+source/spec review only: no peer binary, CAD application, converter, or local
+test ran. The revision-pinned local source hashes, primary URLs, evidence
+grading, and implementation decisions are recorded in
+[`broader-peer-capability-readiness-2026-10-15.json`](docs/research/broader-peer-capability-readiness-2026-10-15.json).
+
+### What broader implementations establish—and what they do not
+
+| Project/source | New observation | Plan consequence |
+| --- | --- | --- |
+| LibreDWG [manual and coverage notes](https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi) | Its manual describes roughly99% DWG coverage across R1.2–R2018, while the same coverage chapter separately lists R2007 DWG writing as unimplemented, TABLESTYLE as working only pre-2010, and multiple objects as unstable/undertested. A closed [issue #1107](https://github.com/LibreDWG/libredwg/issues/1107) retains a historical conversion log with TABLESTYLE unhandled and MATERIAL/MLEADERSTYLE class warnings; its closed status means this is not a claim that current master still fails those cases. | Treat project-wide percentages/version lists as orientation only. For comparisons, pin commit/tool version and target release, capture per-record warning/skip counts, then compare field values, graph edges, and output readback. The old issue is a warning-pattern exemplar, not a local defect or current peer failure. |
+| ACadSharp [README/version matrix](https://github.com/DomCR/ACadSharp) and [reader guidance](https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md) | The matrix distinguishes DXF read/write and DWG read/write by file version; its reader API exposes notifications. Neither a supported version cell nor successful document construction proves a particular OBJECTS family was retained or emitted. | Keep ACadSharp optional and family-scoped. A useful differential packet includes notifications, unsupported/skipped object names, source/output object census, and exact values; a version check alone cannot close any f.3/f.4 gate. |
+| ACadSharp pinned local source at [`3a52a52047e84670759c1f9ad3916ec3ce85ff56`](https://github.com/DomCR/ACadSharp/tree/3a52a52047e84670759c1f9ad3916ec3ce85ff56): [`CadWriterBase.Write`](https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/IO/CadWriterBase.cs), [`CadDocument.GetInstanceCount`](https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/CadDocument.cs), [`DxfClassesSectionWriter`](https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfClassesSectionWriter.cs), and [`DxfObjectsSectionWriter`](https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs) | The writer refreshes class metadata from `GetInstanceCount()`, which counts the full `_cadObjects` collection; class rows are emitted before OBJECTS. The same revision's `isObjectSupported()` deliberately skips MATERIAL, VISUALSTYLE, DIMASSOC, EVALUATION_GRAPH, MLEADER context and other types. Thus the counter's input population and the serializer's admitted population are observably different; whenever one of these counted records is skipped, group91 can describe source inventory rather than output instances. This is a static source-derived risk, not a peer runtime or a claim that a specific DXF was observed malformed. | Treat peer CLASS-count implementations as patterns to audit, not oracles. Keep the local immutable class manifest based on the exact final emitted set after graph admission, raw/typed dedup and refusal. Add a generated same-class positive/filtered control (input count two, emitted count one), plus raw/typed duplicate and fully-refused controls; assert AC1018+ group91 in ASCII and binary parse-back. Count emitted records across every output section that can use the class, not just the current OBJECTS branch. |
+| ezdxf [entity/object model](https://ezdxf.readthedocs.io/en/stable/concepts/entities.html), [OBJECTS section](https://ezdxf.readthedocs.io/en/stable/dxfinternals/sections/objects_section.html), and [XREF limitations](https://ezdxf.readthedocs.io/en/stable/xref.html) | ezdxf preserves unsupported record tags in `TagStorage`, but raw preservation is not semantic support. Its docs also state that extension dictionaries and graphical-entity XRECORDs can sit outside the NOD tree; its XREF copier supports a bounded dependency subset and ignores unsupported features. | Retain the existing separation among opaque retention, typed interpretation, NOD reachability, and whole-document object closure. Keep owner/reactor/xDict/reference scans distinct from NOD traversal; do not use a successful raw save or an XREF copy operation as proof of complete conversion. This confirms existing graph policy rather than adding a new graph root or support claim. |
+| LibreCAD pinned local source at [`41678d97626c05ab652ceaa02cf0ac7f7f6205cf`](https://github.com/LibreCAD/LibreCAD/tree/41678d97626c05ab652ceaa02cf0ac7f7f6205cf), [`dxfClassForRecordName`](https://github.com/LibreCAD/LibreCAD/blob/41678d97626c05ab652ceaa02cf0ac7f7f6205cf/libraries/libdxfrw/src/libdxfrw.cpp) | Its custom-class helper supplies identity/flags and deliberately initializes group91 to zero with a comment that the caller must fill it. This is a useful structural port reference, but confirms that the helper itself does not calculate the final count. | Keep class registration and output counting as separate responsibilities. Reuse field identity where justified, but compute a fresh emitted-set count in the preflight manifest; do not inherit zero or a copied source count. No writer/helper API inventory is treated as output qualification. |
+| FreeCAD [current DWG wrapper](https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py), [import/export preferences](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md), and [format guide](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md) | The current `convertToDxf()` waits for each LibreDWG/ODA/QCAD child but tests result-file existence rather than the child's return code; in automatic mode, a file left by a nonzero child can be handed to `importDXF` and prevent fallback. The preferences also select C++ versus optional Python DXF import and affect scale, layout/text/point/block inclusion, geometry joining and grouping. This is current-branch source/documentation review, not a new native-app run; `main` is mutable and must be pinned before qualification. | At the native FreeCAD gate, record the requested and actual converter, argv, exit status, fresh output hash, independent DXF parse/sanity result, fallback children and exact handoff path before judging `open()`/`insert()` semantics. Snapshot the effective importer and feature-changing preferences; keep a controlled `DWGConversion=1` result separate from Automatic fallback tests. Continue to assert converter failure leaves no new partial destination, since FreeCAD itself does not enforce that boundary. Stock FreeCAD's documented 2D-only ACIS limitation still makes it inapplicable as a B-rep oracle. |
+
+### CLASS metadata reconciliation and concrete implementation-order refinement
+
+The comparator pass exposed a documentation conflict worth resolving before
+changing class admission. Autodesk's [CLASSES group-code table](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-DBD5351C-E408-4CED-9336-3BD489179EF5.htm)
+describes both code1 (DXF record name) and code2 (C++ class name) as always
+unique. ezdxf's current documentation retains an older empirical note that
+some Architectural Desktop 2007 files reused code1 with different code2.
+The local `dxfRW::preflightDxfClasses()` currently enforces uniqueness for
+both fields; the official table supports retaining that fail-closed contract.
+Do not loosen it based only on the peer note. If a producer-authored
+counterexample is obtained later, preserve the exact product/version/file and
+resolve the conflict before changing policy.
+
+A second, directly actionable ordering constraint comes from the local writer:
+`dxfRW::write()` validates/freezes the class list and emits CLASSES before
+`writeObjects()`. Group91 is the custom-class instance count for AC1018+.
+The adapter currently composes counts for selected ACDS/evaluation-graph
+routes, but the upcoming named-resource routes need the same explicit
+pre-emission planning. Therefore f.4b must compute each custom class's count
+from the final admitted output set (after raw-versus-typed dedup and all
+refusal checks), then freeze class metadata before writer entry. Never copy a
+source count when records have been filtered/remapped; never count fixed
+classes such as MLINESTYLE; never attempt to repair counts after CLASSES has
+already been written. The fast contract should assert separate code1/code2
+uniqueness, exact one-row registration per emitted custom record class, and
+group91 equal to the emitted count for AC1018+ in ASCII and binary readback.
+
+The implementation order is sharpened without new PAR IDs or changed ledger
+counts: f.3c still owns profile-complete VISUALSTYLE admission; f.4b.0 must
+finish the source/target field and handle map plus an immutable output-class
+manifest; f.4b.1a / .1c consume that manifest for exact counts before the one
+writer invocation. Its fast class-count controls now include a filtered same-
+class record and assert counts over the final cross-section emission plan,
+not source object inventory. At f.4c, pin the FreeCAD build and importer
+profile, distinguish explicit converter mode from Automatic fallback, and
+record child status plus output validation before checking consumer semantics.
+Peer output is useful for locating a discrepancy, but only the ODA/Autodesk
+contract, trace-backed source profiles, and the existing consumer-specific
+gates can promote claims. No code, fixture, dependency, CTest registration,
+finding/subplan/ledger count, support claim, or J status changed in this
+research pass; J256/J260/J268/J284/J293/J295 remain `DEFERRED_EXTERNAL`.
+The peer-source line mapping, SHA-256 values, and static-only evidence limits
+are recorded in
+[`class-emission-contract-readiness-2026-10-15.json`](docs/research/class-emission-contract-readiness-2026-10-15.json).
+
+## Implementation progress — f.3c.1 AC1032 VisualStyle source-profile completeness (2026-10-15)
+
+The broader comparison does not provide a safe VISUALSTYLE serializer oracle:
+ACadSharp explicitly skips VISUALSTYLE in its pinned writer, Autodesk's DXF
+page does not define the 58-property expansion, and the ODA DWG specification
+does not provide a complete VisualStyle body layout. To keep implementation
+moving without turning peer behavior into a format contract, the first
+f.3c implementation child is limited to a structural admission predicate in
+`dx_data`: exactly one successful DWG-origin AC1032 import; nonempty typed
+styles and no raw DXF carriers; every style has a decoded body, the R2013b
+58-operation expansion, all eight modern CMC captures, and an un-clamped
+source isoline value; and the captured extended-lighting model fits its
+encoded word. The code comment and tests explicitly keep value-to-tag mapping,
+unchanged-body proof, RGB/ACI output policy and graph/owner closure outside this
+predicate. In particular, setting an opaque captured RGB method does not
+upgrade its output policy.
+
+Mutation controls use the already-tracked `tests/fixtures/dwg/rtext_arctext.dwg`;
+they reject missing body decode, a 57-slot body, missing R2013b expansion,
+incomplete color count, absent/legacy CMC capture and a source isoline that
+would otherwise be hidden by clamping. No DWG/DXF fixture was added. The strict
+adapter, production CLI and LC3 compatibility targets build. The three
+focused tests (`libdxfrw_named_resource_import_evidence`,
+`libdxfrw_visual_style_import_evidence`, `libdxfrw_extension_graph_limits`)
+pass. The existing `dwg2dxf_freecad_cli_compat` composed test remains red on
+`rtext_arctext.dwg`, reporting `classesCrcMismatch=1` and integrity offsets
+16/773; this predicate is not called by the CLI and no exporter/adapter source
+changed in this slice, so the failure is recorded as an unresolved independent
+input/conversion gate, not as a classifier regression. Do not loosen that test
+or claim a passing FreeCAD-form conversion until its fixture/reader evidence is
+resolved. No full suite, native application, peer runtime, external semantic
+test or support claim was added. The exact receipt is
+[`visualstyle-source-profile-7g-3f-3c-1-2026-10-15.json`](docs/research/visualstyle-source-profile-7g-3f-3c-1-2026-10-15.json).
+
+Next local slice: freeze the 58-slot kind/width/source-field/output-group
+descriptor from trace-backed captures and the existing candidate DXF contract;
+for every field, label the evidence as specified, empirically captured,
+policy-qualified, or unresolved. Implement serializer admission only after
+those slots and CMC policy have explicit decisions. The broader audit's
+cross-library CLASS/output-count and FreeCAD converter-handoff work remains in
+its existing f.4b/f.4c order. Finding/subplan/ledger counts and all support
+claims are unchanged; J256/J260/J268/J284/J293/J295 remain
+`DEFERRED_EXTERNAL` and non-promoting.

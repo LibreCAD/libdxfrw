@@ -3,6 +3,43 @@
 Status: implementation in progress; DWG reader edits remain evidence-gated.
 Review date: 2026-10-15. Historical evidence retains its original date/source.
 
+**Latest broader peer-capability / CLASS readiness review (2026-10-15):**
+cross-implementation version matrices, type inventories, raw-preservation
+routes, and semantic qualification are now explicitly kept as separate
+evidence levels. The current f.4b sequence also requires the final admitted
+custom-class manifest and AC1018+ instance counts to be computed before
+CLASSES emission, after graph admission and raw/typed dedup; peer source shows
+why input inventory counts can diverge from records actually written. The
+FreeCAD gate now explicitly captures converter return status, output
+validation, fallback selection, and effective import preferences. Autodesk's
+published uniqueness contract remains the gate despite a conflicting ezdxf
+historical note; no policy was relaxed. This was static source/spec research
+only—no code, tests, support claims, findings, ledger counts, or external J
+statuses changed. Details and source-bound receipts are in the [parity plan's
+broader peer-capability audit](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#broader-peer-capability-object-graph-and-class-contract-audit-2026-10-15-research-only),
+[`broader-peer-capability-readiness-2026-10-15.json`](docs/research/broader-peer-capability-readiness-2026-10-15.json),
+and [`class-emission-contract-readiness-2026-10-15.json`](docs/research/class-emission-contract-readiness-2026-10-15.json).
+
+**Latest implementation slice — f.3c.1 source-profile classifier (2026-10-15):**
+the adapter now has a narrow structural gate for a complete AC1032
+DWG-origin VisualStyle capture (decoded body, R2013b expansion, 58 companion
+operations, eight modern CMC captures, un-clamped source isolines, bounded
+extended-lighting word). Existing-fixture mutation controls pass alongside
+the named-resource provenance and extension-graph fast tests (3/3); production
+and LC3 compatibility targets build. This is not a serializer, field mapping,
+proof that captured values are unchanged, CMC output qualification, graph
+closure, 3D semantic support or a promoted support claim. No test drawing was
+added. The separate `dwg2dxf_freecad_cli_compat` composed test still fails on
+integrity checks for the tracked AC1032 fixture (`classesCrcMismatch=1` and
+reported offsets 16/773); the new predicate is unused by that conversion path,
+so keep its gate open and diagnose the reader/fixture evidence independently.
+See the [parity-plan progress entry](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress--f3c1-ac1032-visualstyle-source-profile-completeness-2026-10-15)
+and [source/test receipt](docs/research/visualstyle-source-profile-7g-3f-3c-1-2026-10-15.json).
+Next: freeze the 58-slot descriptor with per-field evidence grades before
+implementing a typed serializer. Peer comparisons remain architecture clues,
+not semantic authorities; all six external J gates remain
+`DEFERRED_EXTERNAL`.
+
 **Latest named-root implementation state (2026-10-15):**
 f.4a callback-owned retention/copy/lifetime/reset checks are complete. The
 deeper writer/readback review found that SCALE, DICTIONARYVAR, MLINESTYLE and

@@ -259,6 +259,41 @@ public:
         return false;
     }
 
+    // Structural source-capture gate for the first DWG-origin VISUALSTYLE
+    // serializer profile. This verifies one successful AC1032 import and the
+    // complete 58-operation / 8-CMC R2013b body. It does not prove that body
+    // values remain unedited, map to DXF tags, or satisfy the separate CMC
+    // output policy; those are serializer-admission checks.
+    bool hasCompleteAc1032VisualStyleSourceProfile() const noexcept {
+        if (!hasSingleSuccessfulVisualStyleImport()
+            || visualStyleImport.sourceFormat != dx_source_format::DWG
+            || visualStyleImport.sourceVersion != DRW::AC1032
+            || visualStyles.empty() || !rawVisualStyleObjects.empty())
+            return false;
+
+        for (const DRW_VisualStyle& style : visualStyles) {
+            const DRW_VisualStyleBody& body = style.m_body;
+            const DRW_VisualStyleEncoding& encoding = body.m_encoding;
+            if (!style.m_bodyDecoded || !body.hasR2013bExpansion
+                || encoding.companionCount
+                    != DRW_VisualStyleEncoding::kPropertyCount
+                || encoding.colorCount != DRW_VisualStyleEncoding::kColorCount
+                || !encoding.hasSourceIsolines
+                || encoding.sourceIsolines < 0
+                || encoding.sourceIsolines > DRW_VisualStyleBody::kMaxEdgeIsolines
+                || body.edgeIsolines != encoding.sourceIsolines
+                || body.extLightingModel < 0
+                || body.extLightingModel > 0xFFFF)
+                return false;
+
+            for (const DRW_VisualStyleColor& color : encoding.colors) {
+                if (!color.present || !color.modern)
+                    return false;
+            }
+        }
+        return true;
+    }
+
     // Verifies one fresh, successful import and (for DXF) a one-to-one
     // type/handle/owner join between typed values and their raw carriers.
     // It does not certify each family's decoded payload or writer profile.
