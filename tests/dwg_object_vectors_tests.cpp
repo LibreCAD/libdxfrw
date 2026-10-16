@@ -264,23 +264,72 @@ const std::vector<DRW::Version> kVersions {
     DRW::AC1024, DRW::AC1027, DRW::AC1032};
 
 enum class StyleField { Long, Short, Double, Color, Bit, Text };
-const std::array<StyleField, 58> kStyleFields{{
-    StyleField::Long, StyleField::Long, StyleField::Long, StyleField::Short,
-    StyleField::Double, StyleField::Double, StyleField::Color,
-    StyleField::Long, StyleField::Long, StyleField::Color, StyleField::Color,
-    StyleField::Long, StyleField::Long, StyleField::Double, StyleField::Long,
-    StyleField::Color, StyleField::Double, StyleField::Long, StyleField::Long,
-    StyleField::Long, StyleField::Color, StyleField::Long, StyleField::Long,
-    StyleField::Long, StyleField::Bit, StyleField::Long, StyleField::Double,
-    StyleField::Long,
-    StyleField::Bit, StyleField::Bit, StyleField::Bit, StyleField::Bit,
-    StyleField::Bit, StyleField::Bit, StyleField::Bit, StyleField::Bit,
-    StyleField::Bit, StyleField::Long, StyleField::Double, StyleField::Double,
-    StyleField::Long, StyleField::Color, StyleField::Long, StyleField::Long,
-    StyleField::Color, StyleField::Bit, StyleField::Long, StyleField::Long,
-    StyleField::Long, StyleField::Bit, StyleField::Long, StyleField::Color,
-    StyleField::Double, StyleField::Long, StyleField::Text, StyleField::Bit,
-    StyleField::Double, StyleField::Double
+struct StyleSlot {
+    StyleField field;
+    const char* name;
+};
+// Decoder/model order, not a normative DXF group-code map. Names are kept
+// beside primitive families so the synthetic vector checks cannot silently
+// lose one of the 58 typed destinations.
+const std::array<StyleSlot, 58> kStyleSlots{{
+    {StyleField::Long, "faceLightingModel"},
+    {StyleField::Long, "faceLightingQuality"},
+    {StyleField::Long, "faceColorMode"},
+    {StyleField::Short, "faceModifier"},
+    {StyleField::Double, "faceOpacity"},
+    {StyleField::Double, "faceSpecular"},
+    {StyleField::Color, "faceMonoColor"},
+    {StyleField::Long, "edgeModel"},
+    {StyleField::Long, "edgeStyle"},
+    {StyleField::Color, "edgeIntersectionColor"},
+    {StyleField::Color, "edgeObscuredColor"},
+    {StyleField::Long, "edgeObscuredLtype"},
+    {StyleField::Long, "edgeIntersectionLtype"},
+    {StyleField::Double, "edgeCreaseAngle"},
+    {StyleField::Long, "edgeModifier"},
+    {StyleField::Color, "edgeColor"},
+    {StyleField::Double, "edgeOpacity"},
+    {StyleField::Long, "edgeWidth"},
+    {StyleField::Long, "edgeOverhang"},
+    {StyleField::Long, "edgeJitter"},
+    {StyleField::Color, "edgeSilhouetteColor"},
+    {StyleField::Long, "edgeSilhouetteWidth"},
+    {StyleField::Long, "edgeHaloGap"},
+    {StyleField::Long, "edgeIsolines"},
+    {StyleField::Bit, "edgeDoHidePrecision"},
+    {StyleField::Long, "displaySettings"},
+    {StyleField::Double, "displayBrightness"},
+    {StyleField::Long, "displayShadowType"},
+    {StyleField::Bit, "bProp1c"},
+    {StyleField::Bit, "bProp1d"},
+    {StyleField::Bit, "bProp1e"},
+    {StyleField::Bit, "bProp1f"},
+    {StyleField::Bit, "bProp20"},
+    {StyleField::Bit, "bProp21"},
+    {StyleField::Bit, "bProp22"},
+    {StyleField::Bit, "bProp23"},
+    {StyleField::Bit, "bProp24"},
+    {StyleField::Long, "blProp25"},
+    {StyleField::Double, "bdProp26"},
+    {StyleField::Double, "bdProp27"},
+    {StyleField::Long, "blProp28"},
+    {StyleField::Color, "cProp29"},
+    {StyleField::Long, "blProp2a"},
+    {StyleField::Long, "blProp2b"},
+    {StyleField::Color, "cProp2c"},
+    {StyleField::Bit, "bProp2d"},
+    {StyleField::Long, "blProp2e"},
+    {StyleField::Long, "blProp2f"},
+    {StyleField::Long, "blProp30"},
+    {StyleField::Bit, "bProp31"},
+    {StyleField::Long, "blProp32"},
+    {StyleField::Color, "cProp33"},
+    {StyleField::Double, "bdProp34"},
+    {StyleField::Long, "edgeWiggle"},
+    {StyleField::Text, "strokes"},
+    {StyleField::Bit, "bProp37"},
+    {StyleField::Double, "bdProp38"},
+    {StyleField::Double, "bdProp39"}
 }};
 const std::array<std::uint16_t, 8> kStyleColorIndexes{{7, 256, 0, 0, 0, 5, 0, 7}};
 const std::array<std::uint32_t, 8> kStyleColorWords{{
@@ -289,6 +338,87 @@ const std::array<std::uint32_t, 8> kStyleColorWords{{
 
 std::uint16_t styleCompanion(std::size_t index) {
     return index == 57u ? 0xFFFFu : static_cast<std::uint16_t>(index % 3u);
+}
+
+double visualStyleSlotValue(const DRW_VisualStyleBody& body,
+                            std::size_t index) {
+    switch (index) {
+    case 0: return body.faceLightingModel;
+    case 1: return body.faceLightingQuality;
+    case 2: return body.faceColorMode;
+    case 3: return body.faceModifier;
+    case 4: return body.faceOpacity;
+    case 5: return body.faceSpecular;
+    case 6: return body.faceMonoColor;
+    case 7: return body.edgeModel;
+    case 8: return body.edgeStyle;
+    case 9: return body.edgeIntersectionColor;
+    case 10: return body.edgeObscuredColor;
+    case 11: return body.edgeObscuredLtype;
+    case 12: return body.edgeIntersectionLtype;
+    case 13: return body.edgeCreaseAngle;
+    case 14: return body.edgeModifier;
+    case 15: return body.edgeColor;
+    case 16: return body.edgeOpacity;
+    case 17: return body.edgeWidth;
+    case 18: return body.edgeOverhang;
+    case 19: return body.edgeJitter;
+    case 20: return body.edgeSilhouetteColor;
+    case 21: return body.edgeSilhouetteWidth;
+    case 22: return body.edgeHaloGap;
+    case 23: return body.edgeIsolines;
+    case 24: return body.edgeDoHidePrecision ? 1.0 : 0.0;
+    case 25: return body.displaySettings;
+    case 26: return body.displayBrightness;
+    case 27: return body.displayShadowType;
+    case 28: return body.bProp1c ? 1.0 : 0.0;
+    case 29: return body.bProp1d ? 1.0 : 0.0;
+    case 30: return body.bProp1e ? 1.0 : 0.0;
+    case 31: return body.bProp1f ? 1.0 : 0.0;
+    case 32: return body.bProp20 ? 1.0 : 0.0;
+    case 33: return body.bProp21 ? 1.0 : 0.0;
+    case 34: return body.bProp22 ? 1.0 : 0.0;
+    case 35: return body.bProp23 ? 1.0 : 0.0;
+    case 36: return body.bProp24 ? 1.0 : 0.0;
+    case 37: return body.blProp25;
+    case 38: return body.bdProp26;
+    case 39: return body.bdProp27;
+    case 40: return body.blProp28;
+    case 41: return body.cProp29;
+    case 42: return body.blProp2a;
+    case 43: return body.blProp2b;
+    case 44: return body.cProp2c;
+    case 45: return body.bProp2d ? 1.0 : 0.0;
+    case 46: return body.blProp2e;
+    case 47: return body.blProp2f;
+    case 48: return body.blProp30;
+    case 49: return body.bProp31 ? 1.0 : 0.0;
+    case 50: return body.blProp32;
+    case 51: return body.cProp33;
+    case 52: return body.bdProp34;
+    case 53: return body.edgeWiggle;
+    case 55: return body.bProp37 ? 1.0 : 0.0;
+    case 56: return body.bdProp38;
+    case 57: return body.bdProp39;
+    default: return std::numeric_limits<double>::quiet_NaN();
+    }
+}
+
+double literalStyleSlotValue(std::size_t index) {
+    switch (kStyleSlots[index].field) {
+    case StyleField::Long:
+        return index == 23u ? 3.0 : static_cast<double>(index + 17u);
+    case StyleField::Short:
+        return static_cast<double>(index + 17u);
+    case StyleField::Double:
+        return static_cast<double>(index + 1u) / 8.0;
+    case StyleField::Bit:
+        return static_cast<double>(index & 1u);
+    case StyleField::Color:
+    case StyleField::Text:
+        break;
+    }
+    return std::numeric_limits<double>::quiet_NaN();
 }
 
 void literalStyleBody(DRW::Version version, dwgBufferW& body,
@@ -303,7 +433,7 @@ void literalStyleBody(DRW::Version version, dwgBufferW& body,
     const auto count = version >= DRW::AC1027 ? 58u : 28u;
     std::size_t color = 0;
     for (std::size_t i = 0; i < count; ++i) {
-        switch (kStyleFields[i]) {
+        switch (kStyleSlots[i].field) {
         case StyleField::Long: body.putBitLong(i == 23u ? isolines : static_cast<int>(i + 17u)); break;
         case StyleField::Short: body.putBitShort(static_cast<std::uint16_t>(i + 17u)); break;
         case StyleField::Double: body.putBitDouble(static_cast<double>(i + 1u) / 8.0); break;
@@ -387,6 +517,32 @@ void testVisualStyleSourceMetadata(TestContext& t) {
         const auto colors = version >= DRW::AC1027 ? 8u : 5u;
         t.expect(source.companionCount == properties && source.colorCount == colors,
                  "VISUALSTYLE source metadata has exact versioned counts");
+        std::size_t colorOrdinal = 0;
+        for (std::size_t i = 0; i < properties; ++i) {
+            t.expect(kStyleSlots[i].name != nullptr,
+                     "VISUALSTYLE slot descriptor has a model destination");
+            if (kStyleSlots[i].field == StyleField::Color) {
+                t.expect(colorOrdinal < source.colorCount
+                             && visualStyleSlotValue(parsed.m_body, i)
+                                 == source.colors[colorOrdinal].normalizedIndex,
+                         std::string("VISUALSTYLE CMC maps to typed field ")
+                             + kStyleSlots[i].name);
+                ++colorOrdinal;
+            } else if (kStyleSlots[i].field == StyleField::Text) {
+                t.expect(i == 54u && parsed.m_body.strokes == "local-strokes.tif",
+                         std::string("VISUALSTYLE text maps to typed field ")
+                             + kStyleSlots[i].name);
+            } else {
+                const auto actual = visualStyleSlotValue(parsed.m_body, i);
+                const auto expected = literalStyleSlotValue(i);
+                t.expect(std::isfinite(actual)
+                             && std::fabs(actual - expected) < 1e-12,
+                         std::string("VISUALSTYLE primitive maps to typed field ")
+                             + kStyleSlots[i].name);
+            }
+        }
+        t.expect(colorOrdinal == colors,
+                 "VISUALSTYLE CMC descriptor count matches retained color metadata");
         for (std::size_t i = 0; i < properties; ++i)
             t.expect(source.companions[i] == styleCompanion(i),
                      "VISUALSTYLE retains each nonconstant BS companion");

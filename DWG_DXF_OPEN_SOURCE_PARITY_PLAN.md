@@ -1056,6 +1056,7 @@ Its historical binary diff SHA-256 is
 | Item | State | Evidence / next action |
 | --- | --- | --- |
 | Explicit MESH property overrides | COMMITTED | `f8d802d`: generated ASCII/binary MESH output now checks two distinct subentity markers and differing property lists in literal `90/91/92` wire order, typed self-readback and following-LINE framing. `cmake --build build --target libdxfrw_dxf_fixture_tests -j2`, the executable, `cmake --build build --target lc3_compat_check -j2` (no work), and `ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure` pass; focused CTest is 1/1. Test-only: no fixture, CTest registration, production behavior, callback-contract, native geometry or support change. Receipt: `docs/research/mesh-property-overrides-fast-test-2026-10-15.json`. Next: continue f.3c field-evidence resolution and bounded ACDS graph controls; native/full suites remain phase-gated. |
+| f.3c candidate descriptor/model alignment | COMMITTED | `tests/dwg_object_vectors_tests.cpp` now gives all58 VisualStyle decoder slots named primitive descriptors and asserts each synthetic value reaches its intended typed destination for AC1024's28-slot body and AC1027/AC1032's58-slot body. The fast manifest check compares all58 names/kinds, eight CMC positions and the candidate group176 companion cardinality to the pinned crosswalk; the vector checks actual captured companion counts. This is alignment/source-vector coverage only: no DXF tag is promoted to normative or emitter-approved. Build target, focused CTests `libdxfrw_dwg_object_vectors` and `libdxfrw_visualstyle_slot_manifest` pass2/2 in0.05s; `lc3_compat_check` returned success with no work; `git diff --check` passes. No fixture, parser/writer behavior, support claim or external status change. Receipt: `docs/research/visualstyle-model-slot-alignment-test-2026-10-15.json`. Next: read-only characterization of the tracked LibreDWG AC1027 pair, then continue field-level wire conflict resolution and bounded ACDS graph controls; slow/full suites remain phase-gated. |
 | Slice3.3c.2b.2 / PAR-05 explicit CLI input selection | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | Complete exact/compatible tokens forward through positional/FreeCAD/batch paths; defaults/DWG/source-target-owner/overwrite contracts retained. Actual22 option refusals/32 two-pass/10 independent/24 atomic source refusals/12 corrected retries/one mixed batch and three generated DWG routes pass. Scoped CLI/version/codec3/3 in11.46s, strict two-TU and focused ASan/UBSan CLI pass; receipt docs/research/codec-exact-cli-3-3c-2b-2-2026-10-15.json. Wider selection remains3/4 due the tracked RTEXT first-header failure, reproduced with parent CLI source and byte-identical core; packet retained, not greenwashed. Next7BE/7F/Slice5 ODA/trace-driven reader follow-up. No fixture/dependency/registration/installed-library API/native/J/support promotion. |
 | Slice3.3c.2b.1 / PAR-05 consumed input profiles | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS |23 closed effective primary profiles partition semantic decode calls in fixed counters/mask. Exact admission validates total/mask/identity/overflow/saturation and explicitly permits17 existing compatibility profiles, not raw ISO4 producer qualification.28 canonical handoffs/16 strict two-pass exports, mixed-version false-intersection/cumulative ISO/actual-decoder/Unicode controls and six evidence mutations pass; existing adapter8/16/8 pass. Selected reader/header/CLI6/6 in22.68s, strict five TUs/affected-lc3, focused ASan/UBSan and140 unchanged frozen defaults pass. Receipt docs/research/codec-consumed-profiles-3-3c-2b-1-2026-10-15.json. Next2b.2 CLI option/actual end-to-end controls; no new fixture/dependency/registration/DWG parser/native/J/support promotion. Public observation layout requires rebuild, not binary ABI. |
 | Slice3.3c.2a / PAR-05 explicit adapter input/outcome | LOCAL_IMPLEMENTATION_COMPLETE / PARENT_IN_PROGRESS | Defaulted input-policy argument is applied before read; owned requested/applied policies survive returned/throwing exits, copied evidence and reset/reuse. Unknown/disagreeing policy evidence refuses strict conversion; coexisting exact/nonASCII counts conservatively refuse pending closed profile review, without last-HEADER laundering. Eight handoffs,16 two-pass exports/readbacks,eight atomic strict-source refusals plus early/late/reuse/ASCII/unavailable/callback-allocation controls pass. Existing outcome/source handoffs36/40 and final codec/CLI2/2 in8.90s, strict two-TU and focused ASan/UBSan pass. Receipt docs/research/codec-exact-adapter-3-3c-2a-2026-10-15.json. CLI/default input remains Compatible; no new registration/fixture/dependency/installed API/native/DWG/support/J promotion. Next3.3c.2b cumulative profile identity/closed compatibility contract; keep the guard until replacement is verified. |
@@ -14459,10 +14460,12 @@ slot-map receipt.
    LibreDWG-derived R2013b extension groups. Preserve source primitive kind,
    slot index, group candidates, companion slot/value and source version
    separately; do not fold them into a single “DXF schema” enum.
-2. Add a fast generated crosswalk consistency test that checks all58 local
-   source slots, 8 CMC indices, version boundary (28 versus58), and group176
-   companion cardinality against the manifest. This is a descriptor alignment
-   test only; it cannot validate group codes or values.
+2. **Completed locally:** the fast generated vector and manifest checks now
+   cover all58 decoder/model field names and primitive families, 8 CMC
+   positions, the28-versus58 version boundary, and58 candidate group176
+   companions; the DWG vector separately asserts the captured companion
+   count. The manifest check is deliberately pinned to candidate metadata and
+   not a DXF wire oracle. It cannot validate emitted group codes or values.
 3. Before typed serialization, first characterize the already-tracked peer
    AC1027 pair read-only. Then execute a pinned LibreDWG writer on a generated
    uniquely-valued 58-slot control to determine actual output tags, and
@@ -14487,6 +14490,32 @@ dependency, CTest registration, support claim or external status changes.
 All six J items remain `DEFERRED_EXTERNAL` and non-promoting. This review used
 static primary-documentation and pinned open-source source only; no peer
 runtime, native application, full suite or semantic CAD qualification ran.
+
+## Implementation progress — f.3c candidate descriptor/model alignment (2026-10-15)
+
+The local synthetic VisualStyle vector now names each of the58 source-order
+primitive descriptors and checks the decoded value against its typed model
+destination. It exercises the28-field AC1024 body and58-field AC1027/AC1032
+body, checks all eight CMC destination links against captured normalized-index
+metadata, checks the text slot, and retains the existing one-companion-per-slot
+controls. A new fast Python manifest test cross-checks the58 names/kinds, CMC
+positions, version boundary, and generated-metadata group176 candidate count
+against `visualstyle-slot-map-readiness-2026-10-15.json`. It is explicitly not
+a group-code, producer, or serializer qualification; the known31/33/45
+peer-source conflicts and CMC policy remain open.
+
+`cmake --build build --target libdxfrw_dwg_object_vectors_tests -j4`, the two
+focused CTests (`libdxfrw_dwg_object_vectors` and
+`libdxfrw_visualstyle_slot_manifest`, 2/2 in0.05s),
+`cmake --build build --target lc3_compat_check -j4` (target reported no work),
+and `git diff --check` pass. No drawing fixture, production behavior, DXF
+emission rule, support claim, or external-gate status changed. Full suites and
+native applications were not run. Receipt:
+[`visualstyle-model-slot-alignment-test-2026-10-15.json`](docs/research/visualstyle-model-slot-alignment-test-2026-10-15.json).
+Next: characterize the already-tracked LibreDWG AC1027 pair read-only and
+continue the 31/33/45 wire-conflict resolution. Preserve the prior independent
+producer/readback requirement before admitting any field profile. J256,
+J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL` and non-promoting.
 
 ## Broader 3D representation and consumer-boundary review (2026-10-15; research only)
 

@@ -768,6 +768,13 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dwg_object_vectors_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_object_vectors
         COMMAND libdxfrw_dwg_object_vectors_tests)
+    add_test(NAME libdxfrw_visualstyle_slot_manifest
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_visualstyle_slot_manifest.py
+            --manifest
+            ${CMAKE_CURRENT_SOURCE_DIR}/docs/research/visualstyle-slot-map-readiness-2026-10-15.json
+            --vectors
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg_object_vectors_tests.cpp)
 
     add_executable(libdxfrw_hardening_tests
         tests/hardening_tests.cpp)
