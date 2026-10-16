@@ -36,8 +36,35 @@ public:
 
     using dwgReader::finalizeDataStorageLinks;
     using dwgReader::linkDataStorage;
+    using dwgReader18::captureRawDwgDataSections;
 
     void setFormatVersion(DRW::Version value) noexcept { version = value; }
+
+    void setPrototypeSectionData(std::vector<std::uint8_t> data) {
+        m_prototypeSectionData = std::move(data);
+        dwgSectionInfo section;
+        section.Id = 1;
+        section.size = m_prototypeSectionData.size();
+        section.compressed = 1;
+        sections[secEnum::PROTOTYPE] = std::move(section);
+    }
+
+protected:
+    bool parseDataPage(const dwgSectionInfo& section,
+                       std::unique_ptr<std::uint8_t[]>& sectionData,
+                       std::uint64_t& sectionSize) override {
+        if (section.size != m_prototypeSectionData.size())
+            return false;
+        sectionSize = section.size;
+        sectionData.reset(new std::uint8_t[
+            static_cast<std::size_t>(sectionSize)]);
+        std::copy(m_prototypeSectionData.begin(),
+                  m_prototypeSectionData.end(), sectionData.get());
+        return true;
+    }
+
+private:
+    std::vector<std::uint8_t> m_prototypeSectionData;
 };
 
 void appendU32(std::vector<std::uint8_t>& bytes, std::uint32_t value) {
@@ -674,6 +701,48 @@ void testDataStorageBlobPages(TestContext& t) {
     const BlobFixture fixture = makeFixture();
     DRW_DataStorageSection parsed =
         DRW_parseDataStorage(fixture.bytes, DRW::AC1027);
+    std::vector<std::uint8_t> captureReaderBacking{0u};
+    dwgRW captureOwner(nullptr);
+    DataStorageLinkTestReader captureReader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(
+            captureReaderBacking.data(), captureReaderBacking.size())),
+        &captureOwner);
+    captureReader.setFormatVersion(DRW::AC1027);
+    captureReader.setPrototypeSectionData(fixture.bytes);
+    const bool capturedSection = captureReader.captureRawDwgDataSections();
+    t.expect(capturedSection
+                 && captureReader.m_rawDwgSections.size() == 1u
+                 && captureReader.m_rawDwgSections.front().m_name
+                        == "AcDb:AcDsPrototype_1b"
+                 && captureReader.m_rawDwgSections.front().m_data
+                        == fixture.bytes
+                 && captureReader.m_dataStorageSections.size() == 1u
+                 && captureReader.m_dataStorageSections.front().records.size()
+                        == 2u
+                 && captureReader.m_dataStorageSections.front()
+                        .findRecordByHandle(0xa17u) != nullptr
+                 && captureReader.m_dataStorageSections.front()
+                        .findRecordByHandle(0xa17u)->payload == payload,
+             "DWG reader capture publishes exact raw and typed DataStorage sections");
+    if (!capturedSection)
+        return;
+
+    captureReader.setPrototypeSectionData({0u});
+    const bool rejectedMalformedReplacement =
+        !captureReader.captureRawDwgDataSections();
+    t.expect(rejectedMalformedReplacement
+                 && captureReader.m_rawDwgSections.size() == 1u
+                 && captureReader.m_rawDwgSections.front().m_data
+                        == fixture.bytes
+                 && captureReader.m_dataStorageSections.size() == 1u
+                 && captureReader.m_dataStorageSections.front().records.size()
+                        == 2u
+                 && captureReader.m_dataStorageSections.front()
+                        .findRecordByHandle(0xa17u) != nullptr
+                 && captureReader.m_dataStorageSections.front()
+                        .findRecordByHandle(0xa17u)->payload == payload,
+             "malformed DataStorage capture cannot replace published raw or typed section");
+
     const DRW_DataStorageRecord* record = parsed.findRecordByHandle(0xa17u);
     const DRW_DataStorageRecord* suffix = parsed.findRecordByHandle(0xa18u);
     t.expect(!parsed.parseFailed && parsed.structurallyValid
