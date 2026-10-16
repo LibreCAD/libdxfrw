@@ -61,9 +61,15 @@ historical knowledge and does not define ACIS/SAB semantics. It specifies the
 `0x40000` direct-record/blob transition, bounded `blob01` page chains, and an
 asymmetric search-index rule: a reader may ignore search data, but AutoCAD
 ignores emitted objects without the required mapping. The committed S8.3
-controls now cover a two-page maximum-size Blob01 chain in reverse physical
-order, direct/blob thresholds, record-span bounds and malformed page lengths;
-cumulative-chain/alias rejection remains queued. Autodesk also documents
+controls now cover direct sizes `0x3ffff` and `0x40000`, the first blob size
+`0x40001`, one page at the exact `0xfffb0` cap, a two-page chain at cap+1, and
+a two-page maximum-size chain in reverse physical order. Existing generated
+cases also cover record-span bounds, a following-record sentinel, aliased page
+references and unequal assembled totals; the latest focused slices add
+missing-segment, duplicate-ordinal, wrong-start and wrong-reference-length
+rejection plus atomic section-capture assertions. Explicit hostile truncation
+and arithmetic-overflow vectors still need a final audit against parser bounds.
+Autodesk also documents
 inaccurate polyface header counts and noncanonical child order as cases
 tolerant readers must accept; those generated read-tolerance controls remain
 planned. The plan tightens kernel/reader lineage qualification; no support,
@@ -15764,14 +15770,15 @@ kernel supplied evidence.
    for `_data_` record-directory order variation and prove exact handle/offset
    attachment across four disagreeing orders. Keep future cases in this same
    executable.
-3. **Partial (`a471583`):** the same test owner now builds a 2-page Blob01
-   chain whose physical page order differs from descriptor order, checks the
-   assembled bytes and owning-entity link, and rejects a missing referenced
-   segment, duplicate page ordinal, incorrect start offset, and mismatched
-   page-reference length without publishing partial section state. Still add
-   the direct/blob transition boundaries, record-span and following-record
-   sentinel controls, plus cumulative/alias rejection. Resolve candidate
-   80-byte frame fields against ODA and producer traces before production use.
+3. **Local Blob01 structural coverage implemented (`a471583`, `a9d1efc`,
+   `00b9ea4`, `4f4c9e5`; with existing graph-preservation controls):** test
+   exact direct/blob and page-cap transitions, one-/two-page payload assembly,
+   reverse physical order, correct modeler-owner attachment, malformed
+   references/page headers, alias and assembled-total rejection, record-span
+   limits, suffix survival, and atomic section capture. The remaining local
+   test audit is explicit truncation/overflow coverage where it reaches a
+   distinct parser branch. Resolve candidate 80-byte frame fields against ODA
+   and producer traces before production use.
 4. Audit entity raw-frame passthrough and edit invalidation separately from
    record-section linking. Then assess whether a production change is actually
    required; no speculative AcDs writer is in scope for a read-DWG/DXF-write
@@ -15836,6 +15843,33 @@ Blob01 descriptor/page-chain tests in the same matrix, starting with a valid
 two-page chain and then malformed missing/duplicate/wrong-start/length cases;
 the peer's 80-byte frame pattern remains only a test hypothesis until tied to
 ODA or producer-trace evidence.
+
+## Implementation progress — AcDs direct/blob and page-cap boundaries (2026-10-15)
+
+This boundary slice is split across three test commits:
+
+- `a9d1efc` (`Test AcDs direct-to-blob threshold`) parameterizes the in-memory
+  DWG section generator and accepts the first blob size, `0x40001`, as two
+  pages of `0x40000` and one byte, preserving the exact concatenated payload.
+- `00b9ea4` (`Test AcDs inline size below threshold`) adds the `0x3ffff`
+  positive direct-record boundary and checks its payload and following-record
+  sentinel. The existing graph test already checks `0x40000` direct acceptance
+  and rejects a larger direct record.
+- `4f4c9e5` (`Test Blob01 page-count boundaries`) covers one page at the exact
+  `0xfffb0` cap and two pages totaling `0xfffb1`, in addition to the prior
+  full-size reverse-physical-order chain and small final-page integration case.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` and
+`libdxfrw_graph_preservation_tests` target builds pass. The focused matrix and
+graph-preservation CTests pass 1/1 each (1.68 and 0.58 seconds); the latter was
+rerun after the `0x3ffff` addition and passes in 0.58 seconds. `git diff
+--check` passes. No full suite, external file fixture, native application,
+peer executable, dependency or semantic-geometry check ran. No production code
+or support claim changed. Findings/subplans remain 122/70; J256, J260, J268,
+J284, J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next: audit
+the remaining hostile truncation/overflow parser branches, then separate
+raw-frame passthrough/edit invalidation from section-record association; do
+not adopt ACadRust's 80-byte frame rule without producer/spec evidence.
 
 ## Implementation progress — Blob01 page-chain validation (2026-10-15)
 
