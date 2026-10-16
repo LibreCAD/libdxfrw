@@ -15491,6 +15491,29 @@ pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.38 seconds);
 external reader, native application, drawing fixture, dependency, or semantic
 geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
 J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice:
-add an equivalent ODA-listed `REGION` dispatch/link case with its own source
-handle and marker-only record; keep `BODY` separate until external producer
-evidence proves its AcDs carrier mapping.
+join generated raw AcDs section capture to an actual parsed `3DSOLID`/`REGION`
+entity if the fast page-loader seam permits it; keep `BODY` separate until
+external producer evidence proves its AcDs carrier mapping.
+
+## Implementation progress — AC1027 REGION/AcDs callback closure (2026-10-15)
+
+Implementation commit: `26106c2` (`Test AC1027 REGION AcDs dispatch`).
+
+Added a separate generated AC1027 `REGION` frame (encoded object type 37) and
+marker-only AcDs record, then exercised the actual classifier, modeler parser,
+DataStorage linker, and `BLOCK_RECORD` callback. Assertions preserve the
+REGION entity/owner identity, keep its full DWG frame and linked record bytes
+separate, normalize only the signature-bound carrier version, and account for
+one link with no orphan. This is intentionally distinct from the 3DSOLID
+control; `BODY` is not included because no producer trace establishes the same
+AcDs mapping. The payload is not valid SAB and proves no geometry.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.28 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
+native application, peer executable, drawing fixture, dependency, or semantic
+geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
+J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice:
+connect the existing generated raw AcDs page-chain capture to an actual parsed
+`3DSOLID` or `REGION` entity, preserving the fast test boundary and without
+promoting marker bytes to valid payload evidence.
