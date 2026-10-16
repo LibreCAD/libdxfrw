@@ -12,6 +12,7 @@
 
 #include "drw_acis.h"
 #include "drw_datastorage.h"
+#include "drw_entities.h"
 #include "libdwgr.h"
 #include "intern/dwgreader27.h"
 #include "intern/dwgutil.h"
@@ -80,6 +81,26 @@ void appendDouble(std::vector<std::uint8_t>& bytes, double value) {
     std::memcpy(raw.data(), &value, raw.size());
     bytes.insert(bytes.end(), raw.begin(), raw.end());
 }
+
+class ProxyGraphicCapture final : public DRW_ProxyGraphicSink {
+public:
+    bool addArc(const DRW_Arc&) override { return true; }
+    bool addCircle(const DRW_Circle& value) override {
+        circles.push_back(value);
+        return true;
+    }
+    bool addEllipse(const DRW_Ellipse&) override { return true; }
+    bool addLWPolyline(const DRW_LWPolyline&) override { return true; }
+    bool addMesh(const DRW_Mesh& value) override {
+        meshes.push_back(value);
+        return true;
+    }
+    bool addPolyline(const DRW_Polyline&) override { return true; }
+    bool addText(const DRW_Text&) override { return true; }
+
+    std::vector<DRW_Circle> circles;
+    std::vector<DRW_Mesh> meshes;
+};
 
 void appendSabString(std::vector<std::uint8_t>& bytes, const std::string& value) {
     bytes.push_back(static_cast<std::uint8_t>(DRW_SabTag::Str));
@@ -1453,6 +1474,66 @@ void testProxyBounds(TestContext& t) {
              "proxy inspector enforces chunk resource limit");
 }
 
+void appendProxyChunk(std::vector<std::uint8_t>& stream,
+                      std::uint32_t opcode,
+                      const std::vector<std::uint8_t>& payload) {
+    appendU32(stream, static_cast<std::uint32_t>(payload.size() + 8u));
+    appendU32(stream, opcode);
+    stream.insert(stream.end(), payload.begin(), payload.end());
+}
+
+void testProxyShellMultiFaceFraming(TestContext& t) {
+    // A proxy stream has an eight-byte header followed by independently sized
+    // chunks. The shell face-entry count is a count of longs, not faces.
+    std::vector<std::uint8_t> stream(8u, 0u);
+    std::vector<std::uint8_t> shell;
+    appendU32(shell, 4u); // vertices
+    appendDouble(shell, 0.0); appendDouble(shell, 0.0); appendDouble(shell, 0.0);
+    appendDouble(shell, 1.0); appendDouble(shell, 0.0); appendDouble(shell, 0.0);
+    appendDouble(shell, 1.0); appendDouble(shell, 1.0); appendDouble(shell, 0.0);
+    appendDouble(shell, 0.0); appendDouble(shell, 1.0); appendDouble(shell, 0.0);
+    appendU32(shell, 8u); // two faces, four longs each
+    const std::uint32_t faceEntries[] = {3u, 0u, 1u, 2u, 3u, 0u, 2u, 3u};
+    for (const std::uint32_t value : faceEntries)
+        appendU32(shell, value);
+    appendProxyChunk(stream, 9u, shell); // SHELL
+
+    std::vector<std::uint8_t> circle;
+    appendDouble(circle, 123.5); appendDouble(circle, -67.25);
+    appendDouble(circle, 9.0); // center: unique next-chunk sentinel
+    appendDouble(circle, 2.25); // radius
+    appendDouble(circle, 0.0); appendDouble(circle, 0.0);
+    appendDouble(circle, 1.0); // normal
+    appendProxyChunk(stream, 2u, circle); // CIRCLE after the shell
+
+    const std::string encoded(
+        reinterpret_cast<const char*>(stream.data()), stream.size());
+    DRW_Point parent;
+    ProxyGraphicCapture capture;
+    const DRW_ProxyGraphicDecodeResult decoded = DRW_ProxyGraphicDecoder::decode(
+        encoded, DRW::AC1027, capture, parent);
+
+    t.expect(decoded.completed()
+                 && decoded.consumedByteCount == encoded.size()
+                 && decoded.recognizedPrimitiveChunkCount == 2u
+                 && decoded.emittedPrimitiveCount == 2u,
+             "multi-face proxy shell consumes exactly its chunk and next primitive");
+    t.expect(capture.meshes.size() == 1u
+                 && capture.meshes[0].vertices.size() == 4u
+                 && capture.meshes[0].faces.size() == 2u
+                 && capture.meshes[0].faces[0]
+                        == std::vector<std::int32_t>({0, 1, 2})
+                 && capture.meshes[0].faces[1]
+                        == std::vector<std::int32_t>({0, 2, 3}),
+             "multi-face proxy shell preserves both counted face lists");
+    t.expect(capture.circles.size() == 1u
+                 && capture.circles[0].basePoint.x == 123.5
+                 && capture.circles[0].basePoint.y == -67.25
+                 && capture.circles[0].basePoint.z == 9.0
+                 && capture.circles[0].radious == 2.25,
+             "following proxy circle sentinel retains its identity and payload");
+}
+
 void testDataStorageCapabilities(TestContext& t) {
     std::vector<DwgDataStorageWriterCapability> capabilities;
     t.expect(getDwgDataStorageWriterCapabilities(capabilities)
@@ -1492,6 +1573,7 @@ int main() {
     testAcisWireframeGraph(context);
     testModelerLazyDecode(context);
     testProxyBounds(context);
+    testProxyShellMultiFaceFraming(context);
     testDataStorageCapabilities(context);
     if (context.failures != 0) {
         std::cerr << context.failures
