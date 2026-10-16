@@ -569,9 +569,11 @@ public:
         return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
     }
 
-    bool encodeAcDsSolid(std::uint32_t handle, std::uint32_t ownerHandle) {
-        ModelerDispatchSource source(DRW::E3DSOLID);
-        source.setObjectType(38u); // ODA v5.4.1 §20.4.41: 3DSOLID
+    bool encodeAcDsModeler(DRW::ETYPE entityType, std::uint16_t objectType,
+                           std::uint32_t handle,
+                           std::uint32_t ownerHandle) {
+        ModelerDispatchSource source(entityType);
+        source.setObjectType(objectType);
         source.handle = handle;
         source.parentHandle = ownerHandle;
         source.setHasDataStorageBinaryData(true);
@@ -590,6 +592,14 @@ public:
 
         finishObject();
         return !objectWriteFailed() && m_buf.isGood() && !m_buf.data().empty();
+    }
+
+    bool encodeAcDsSolid(std::uint32_t handle, std::uint32_t ownerHandle) {
+        return encodeAcDsModeler(DRW::E3DSOLID, 38u, handle, ownerHandle);
+    }
+
+    bool encodeAcDsRegion(std::uint32_t handle, std::uint32_t ownerHandle) {
+        return encodeAcDsModeler(DRW::REGION, 37u, handle, ownerHandle);
     }
 
     bool encodeInsert(std::uint32_t handle, std::uint32_t ownerHandle,
@@ -996,6 +1006,74 @@ void testModelerAcDsBodyDispatch(TestContext& t) {
     t.expect(reader.dataStorageLinkFailures() == 0u
                  && reader.dataStorageOrphans() == 0u,
              "dispatched solid consumes exactly one generated AcDs record");
+}
+
+void testModelerAcDsRegionDispatch(TestContext& t) {
+    constexpr std::uint32_t blockHandle = 0x730u;
+    constexpr std::uint32_t regionHandle = 0xA30u;
+    static constexpr std::uint8_t signature[] = {
+        'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
+    // Marker-only association bytes, deliberately not a valid SAB body.
+    std::vector<std::uint8_t> payload(std::begin(signature),
+                                      std::end(signature));
+    payload.insert(payload.end(), {0x31u, 0x73u});
+
+    std::ofstream output;
+    DRW_Header header;
+    ModelerDispatchFrameWriter writer(&output, &header);
+    const bool generated = writer.encodeAcDsRegion(regionHandle, blockHandle);
+    t.expect(generated,
+             "in-memory AC1027 REGION shell and AcDs record are generated");
+    if (!generated)
+        return;
+
+    std::vector<std::uint8_t> sourceBytes = writer.buffer();
+    dwgRW parent("");
+    auto blockOwner = std::make_unique<DRW_Block_Record>();
+    DRW_Block_Record* block = blockOwner.get();
+    block->handle = blockHandle;
+    block->name = "ACDS_REGION_TEST";
+    DwgBlockOwnershipTestAccess::setEntityHandles(*block, {regionHandle});
+    ModelerDispatchReader reader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(
+            sourceBytes.data(), sourceBytes.size())),
+        &parent);
+    reader.setFormatVersion(DRW::AC1027);
+    reader.blockRecordmap.emplace(blockHandle, block);
+    (void)blockOwner.release(); // reader owns block-record values.
+    reader.ObjectMap.emplace(regionHandle, objHandle(37u, regionHandle, 0u));
+    reader.appendDataStorageRecord(regionHandle, "A30", payload);
+
+    dwgBuffer objectStream(sourceBytes.data(), sourceBytes.size());
+    ModelerDispatchSink sink;
+    sink.activeWalkOwner = blockHandle;
+    const bool walked = reader.walkBlockRecordEntities(
+        block, &objectStream, sink, blockHandle, blockHandle);
+    reader.finalizeDataStorage();
+
+    bool carrierMatches = walked && sink.modeler.size() == 1u;
+    if (carrierMatches) {
+        const ModelerDispatchSink::OwnedSolid& region = sink.modeler.front();
+        carrierMatches = region.walkOwner == blockHandle
+            && region.entity.handle == regionHandle
+            && region.entity.parentHandle == blockHandle
+            && region.entity.eType == DRW::REGION
+            && region.entity.hasDataStorageBinaryData()
+            && region.entity.m_hasModelerData
+            && !region.entity.m_isEmpty
+            && region.entity.m_modelerVersion == 2u
+            && region.entity.hasDataStorageRecord
+            && region.entity.dataStorageHandle == regionHandle
+            && region.entity.dataStorageHandleKey == "A30"
+            && region.entity.dataStorageData == payload
+            && region.entity.m_dwgAcisPayload.empty()
+            && !region.entity.m_rawBytes.empty();
+    }
+    t.expect(carrierMatches,
+             "REGION callback retains owner, full frame, and exact linked AcDs bytes separately");
+    t.expect(reader.dataStorageLinkFailures() == 0u
+                 && reader.dataStorageOrphans() == 0u,
+             "dispatched REGION consumes exactly one generated AcDs record");
 }
 
 void testR2004SectionMapPublication(TestContext& t) {
@@ -3183,6 +3261,7 @@ int main() {
     testModelerBlockWalkRejectsBadOwnership(context);
     testModelerInsertTargetResolution(context);
     testModelerAcDsBodyDispatch(context);
+    testModelerAcDsRegionDispatch(context);
     testBoundedFork(context);
     testHeaderSectionBounds(context);
     testHeaderVersionEnvelopes(context);
