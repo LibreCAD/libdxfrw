@@ -52,6 +52,15 @@
       "requiredAction": "Preserve source values/provenance separately from peer defaults, validate subclass/291 boundaries, and refuse unqualified target profiles."
     }
   ],
+  "peerFixtureObservation": {
+    "path": "LibreDWG/test/test-data/example_2013.dxf",
+    "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+    "pairedFile": "LibreDWG/test/test-data/example_2013.dwg",
+    "introducingCommit": "ebbefbf870006db9d4bc116276ab5466170bc74d",
+    "commitMessage": "add better example DWG and DXF for test coverage; convert the better example coverage test file to all versions",
+    "observedTags": "A VISUALSTYLE record contains group 70 style type, group 177 value 3, group 291 internal-only flag, group 70 property count 58, repeated group-176 companions, and Boolean values in group 290. The tracked file therefore supplies a concrete peer-produced R2013b shape including group 290/176 values.",
+    "evidenceLimit": "The commit history says the example was converted across versions; its original producer/exporter and independent AutoCAD/ODA acceptance are not established here. It is evidence of a historical LibreDWG repository file representation, not a normative or independent semantic oracle."
+  },
   "slotEvidence": {
     "indexing": "Zero-based R2010b first 28 slots followed by R2013b slots 28-57; ordering follows the local DWG parser and LibreDWG dwg2.spec.",
     "primitiveLegend": "B=bit; BS=bit-short; BL=bit-long; BD=bit-double; CMC=DWG color; T=variable text. The local source reader uses version-specific primitive variants for some fields (notably faceModifier, edge widths, halo gap, isolines, style apply, and brightness).",
@@ -145,7 +154,7 @@
     "kind": "static source crosswalk only",
     "peerRuntime": "NOT RUN",
     "nativeCad": "NOT RUN",
-    "producerAuthored58SlotDxf": "NOT AVAILABLE in inspected peer test corpus",
+    "producerAuthored58SlotDxf": "NOT ESTABLISHED; a tracked LibreDWG AC1027 example pair was found, but commit history indicates cross-version conversion and does not identify an independent producer.",
     "supportClaimsPromoted": false
   },
   "scopeBoundary": {

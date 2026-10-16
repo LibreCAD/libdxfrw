@@ -14349,6 +14349,16 @@ when that field is absent, which is not preservation of the source value.
 These findings are source-derived risks, not a reproduced failure in a peer
 file.
 
+One additional bounded artifact is available: the tracked LibreDWG
+`test/test-data/example_2013.dxf` has a same-named DWG pair and contains a
+VISUALSTYLE with groups70/177/291, a later group70 count58, repeated group176,
+and group290 Boolean values. Its introducing commit says the example was
+converted across releases; its original producer and independent application
+acceptance are not established. Use it to characterize a real repository
+sample and exercise candidate parser paths, but not as an independent writer
+or semantic oracle. The path, hash, and provenance limit are recorded in the
+slot-map receipt.
+
 ### Ready sub-plan: freeze candidates, then resolve conflicts without broadening claims
 
 1. Treat the JSON crosswalk as a candidate manifest with explicit source
@@ -14360,10 +14370,11 @@ file.
    source slots, 8 CMC indices, version boundary (28 versus58), and group176
    companion cardinality against the manifest. This is a descriptor alignment
    test only; it cannot validate group codes or values.
-3. Before typed serialization, execute a pinned LibreDWG writer on a generated
-   uniquely-valued 58-slot control to determine actual output tags, then
+3. Before typed serialization, first characterize the already-tracked peer
+   AC1027 pair read-only. Then execute a pinned LibreDWG writer on a generated
+   uniquely-valued 58-slot control to determine actual output tags, and
    resolve 31/33/45 and group70/177/291 semantics against producer-authored
-   ASCII and binary R2013b DXF plus an independent parser/readback. Record the
+   ASCII/binary R2013b DXF plus an independent parser/readback. Record the
    writer version, argv, warnings, and output hash; do not treat its own
    self-roundtrip as an oracle. Add unique non-default scalar, explicit RGB
    black, unknown CMC method and color name/book controls.

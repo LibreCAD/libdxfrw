@@ -55,8 +55,11 @@ documents and independent readback, and refuse unqualified profiles. Details,
 all58 candidate slots, pinned file hashes, and bounded sub-plan are in the
 [parity plan](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-visualstyle-slot-map-and-peer-asymmetry-audit-2026-10-15-research-only)
 and [`visualstyle-slot-map-readiness-2026-10-15.json`](docs/research/visualstyle-slot-map-readiness-2026-10-15.json).
-No peer runtime, native CAD, ACIS, full-suite or semantic support claim was
-added. All six external J gates remain deferred.
+The tracked LibreDWG AC1027 example shows a group290/176 encoding, but its
+history identifies cross-version conversion rather than an independent
+producer; it is a parser-path probe, not validation. No peer runtime, native
+CAD, ACIS, full-suite or semantic support claim was added. All six external J
+gates remain deferred.
 
 **Latest named-root implementation state (2026-10-15):**
 f.4a callback-owned retention/copy/lifetime/reset checks are complete. The
