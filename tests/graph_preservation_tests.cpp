@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "drw_acis.h"
 #include "drw_datastorage.h"
 #include "libdwgr.h"
+#include "intern/dwgreader27.h"
 #include "intern/dwgutil.h"
 #include "intern/proxygraphicdecoder.h"
 
@@ -25,6 +27,17 @@ struct TestContext {
             std::cerr << "FAIL: " << label << '\n';
         }
     }
+};
+
+class DataStorageLinkTestReader final : public dwgReader27 {
+public:
+    DataStorageLinkTestReader(std::unique_ptr<dwgBuffer> buffer, dwgRW* parent)
+        : dwgReader27(std::move(buffer), parent) {}
+
+    using dwgReader::finalizeDataStorageLinks;
+    using dwgReader::linkDataStorage;
+
+    void setFormatVersion(DRW::Version value) noexcept { version = value; }
 };
 
 void appendU32(std::vector<std::uint8_t>& bytes, std::uint32_t value) {
@@ -659,7 +672,7 @@ void testDataStorageBlobPages(TestContext& t) {
     };
 
     const BlobFixture fixture = makeFixture();
-    const DRW_DataStorageSection parsed =
+    DRW_DataStorageSection parsed =
         DRW_parseDataStorage(fixture.bytes, DRW::AC1027);
     const DRW_DataStorageRecord* record = parsed.findRecordByHandle(0xa17u);
     const DRW_DataStorageRecord* suffix = parsed.findRecordByHandle(0xa18u);
@@ -997,6 +1010,55 @@ void testDataStorageBlobPages(TestContext& t) {
                  && oversizedSuffix->payload == oversizedDirectFixture.suffix
                  && hasInlineLimitDiagnostic,
              "DataStorage rejects oversized direct record and preserves suffix");
+
+    // Compose the real generated-section parser with the DWG record linker.
+    // The carrier is deliberately only a structural link control: its bytes
+    // have an SAB signature but are not asserted to be valid SAB geometry.
+    std::vector<std::uint8_t> readerBacking{0u};
+    dwgRW parent(nullptr);
+    DataStorageLinkTestReader reader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(readerBacking.data(),
+                                                 readerBacking.size())),
+        &parent);
+    reader.setFormatVersion(DRW::AC1027);
+    reader.m_dataStorageSections.push_back(std::move(parsed));
+
+    DRW_ModelerGeometry body(DRW::E3DSOLID);
+    body.handle = 0xb17u;
+    body.parentHandle = 0xb00u;
+    body.setHasDataStorageBinaryData(true);
+    body.dataStorageHandle = 0xa17u;
+    body.dataStorageHandleKey = "A17";
+    reader.linkDataStorage(body);
+    reader.finalizeDataStorageLinks();
+
+    const DRW_DataStorageSection& linkedSection =
+        reader.m_dataStorageSections.front();
+    const bool hasOrphanDiagnostic = std::any_of(
+        linkedSection.diagnostics.cbegin(), linkedSection.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code == "datastorage-orphan-record"
+                && diagnostic.handle == 0xa18u;
+        });
+    t.expect(body.hasDataStorageRecord
+                 && body.dataStorageHandle == 0xa17u
+                 && body.dataStorageHandleKey == "A17"
+                 && body.dataStorageData == payload
+                 && body.dataStorageSegmentIndex == 2u
+                 && body.dataStorageSchemaIndex == 7u
+                 && body.hasDataStoragePayloadMarker
+                 && body.dataStoragePayloadMarkerOffset == 0u
+                 && body.dataStoragePayloadMarkerLength == 15u
+                 && body.parentHandle == 0xb00u
+                 && body.m_dwgSourceVersion == DRW::AC1027
+                 && body.m_modelerVersion == 2u
+                 && body.m_hasModelerData && !body.m_isEmpty
+                 && reader.m_dataStorageLinkFailures == 0u
+                 && reader.m_dataStorageLinkedRecords.size() == 1u
+                 && reader.m_dataStorageOrphanRecords == 1u
+                 && linkedSection.orphanRecordCount == 1u
+                 && hasOrphanDiagnostic,
+             "DataStorage parser output links exact blob carrier and accounts for unreferenced record");
 }
 
 void testFramePublicationContract(TestContext& t) {
