@@ -15433,6 +15433,31 @@ pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.30 seconds);
 native application, peer executable, drawing fixture, dependency, or semantic
 geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
 J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. The next local
-slice is a generated INSERT with a missing or incorrect target, with assertions
-limited to handle/name resolution and callback/refusal behavior; no geometry
-interpretation will be inferred.
+slice is a source-authored nonempty ACIS payload only if an eligible producer
+and independent local readback are available; otherwise improve bounded
+preservation/refusal coverage without asserting geometry semantics.
+
+## Implementation progress — AC1027 INSERT target resolution (2026-10-15)
+
+Implementation commit: `4675300` (`Test AC1027 insert target resolution`).
+
+Added source-authored, in-memory INSERT frames to check a registered target and
+an unresolved target through the real block walker. A registered
+`BLOCK_RECORD` resolves the INSERT's handle to its name. For an unregistered
+target, the reader still publishes the INSERT callback, preserves the exact
+`blockRecH` value, and leaves the resolved name empty. This confirms the current
+reader's observable contract; it does not prove that an unresolved or
+incorrectly-intended link is semantically usable. DWG stores the INSERT target
+as a handle, so a different but existing target cannot be labeled wrong from
+the INSERT bytes alone without an independent expected graph/model. No reader
+behavior changed.
+
+Validation: strict `libdxfrw_dwg_reader_matrix_tests` build and executable
+pass; focused CTest `libdxfrw_dwg_reader_matrix` passes 1/1 (1.28 seconds);
+`lc3_compat_check` is up to date; `git diff --check` passes. No full suite,
+native application, peer executable, drawing fixture, dependency, or semantic
+geometry check ran. Findings/subplans remain 122/70. J256, J260, J268, J284,
+J293 and J295 remain `DEFERRED_EXTERNAL` and non-promoting. Next local slice:
+check for an eligible source-authored, nonempty ACIS producer/readback path;
+otherwise add a narrowly scoped body-boundary/preservation control and keep
+all geometry and cross-consumer claims deferred.
