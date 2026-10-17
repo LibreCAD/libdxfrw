@@ -9424,7 +9424,9 @@ bool runModelerDwgSatV1Extraction() {
 bool buildModelerInlineSabFrame(DRW::Version version,
                                 const std::vector<std::uint8_t>& payload,
                                 std::vector<std::uint8_t>& bytes,
-                                std::uint32_t& handleBitSize) {
+                                std::uint32_t& handleBitSize,
+                                std::uint64_t* payloadStartBit = nullptr,
+                                std::uint64_t* bodyEndBit = nullptr) {
     constexpr std::uint16_t modelerObjectType = 38; // §20.4.41 3DSOLID
     LocalModelerGeometry source(DRW::E3DSOLID);
     source.setDwgType(modelerObjectType);
@@ -9437,13 +9439,37 @@ bool buildModelerInlineSabFrame(DRW::Version version,
     body.putBit(0); // non-empty ACIS body
     body.putBit(0); // modeler data unknown bit
     body.putBitShort(2);
+    if (payloadStartBit != nullptr)
+        *payloadStartBit = body.bitCount();
     body.putBytes(payload.data(), payload.size());
-    body.putBit(0); // empty R2007+ string stream
-    body.alignToByte();
+    if (version == DRW::AC1018) {
+        // ODA §20.4.41 R2004 tail: one generated wireframe point and one
+        // silhouette with distinct values, followed by the empty secondary
+        // ACIS bit. None of these bytes belongs to the preceding SAB.
+        body.putBit(1); // wireframe data present
+        body.putBit(1); // wireframe point present
+        body.put3BitDouble({1.25, -2.5, 3.75});
+        body.putBitLong(0); // num isolines
+        body.putBit(0); // isolines absent
+        body.putBitLong(0); // num wires
+        body.putBitLong(1); // num silhouettes
+        body.putBitLong(7); // viewport id
+        body.put3BitDouble({11.0, 12.0, 13.0}); // viewport target
+        body.put3BitDouble({0.0, 0.0, 1.0}); // direction from target
+        body.put3BitDouble({0.0, 1.0, 0.0}); // up direction
+        body.putBit(1); // perspective
+        body.putBitLong(0); // silhouette num wires
+        body.putBit(1); // secondary ACIS body empty
+    } else {
+        body.putBit(0); // empty R2007+ string stream
+        body.alignToByte();
+    }
     if (!body.isGood())
         return false;
+    if (bodyEndBit != nullptr)
+        *bodyEndBit = body.bitCount();
 
-    if (version == DRW::AC1021) {
+    if (version == DRW::AC1018 || version == DRW::AC1021) {
         if (body.bitCount() > std::numeric_limits<std::uint32_t>::max())
             return false;
         const std::uint32_t objectSizeBits =
@@ -9453,10 +9479,14 @@ bool buildModelerInlineSabFrame(DRW::Version version,
             return false;
         const std::uint64_t sizeFieldBit = typeReader.getPosition() * 8u
             + typeReader.getBitPos();
-        // R2007 carries the object-data bit size in its common prefix and
-        // appends handles in the same object body (R2010 splits them out).
+        // R2004/R2007 carry object-data size in the common prefix and append
+        // handles in the same frame (R2010 splits them out).
         if (!source.encodeDwgEntHandle(version, &body)
             || !body.isGood())
+            return false;
+        if (version == DRW::AC1018)
+            body.putRawChar8(0xD7u); // following-record sentinel
+        if (!body.isGood())
             return false;
         bytes = body.data();
         handleBitSize = 0;
@@ -9593,9 +9623,14 @@ bool runModelerDwgVersionValidation() {
     sab.insert(sab.end(), {0xA5, 0x5A}); // wireframe/body bytes after ACIS
 
     const auto checkVersion = [&](DRW::Version version) {
+        const std::vector<std::uint8_t>& body =
+            version == DRW::AC1018 ? exactSab : sab;
         std::vector<std::uint8_t> frame;
         std::uint32_t handleBits = 0;
-        if (!buildModelerInlineSabFrame(version, sab, frame, handleBits)) {
+        std::uint64_t payloadStartBit = 0;
+        std::uint64_t bodyEndBit = 0;
+        if (!buildModelerInlineSabFrame(version, body, frame, handleBits,
+                                        &payloadStartBit, &bodyEndBit)) {
             std::cerr << "modeler inline SAB frame builder failed for version "
                       << static_cast<int>(version) << '\n';
             return false;
@@ -9614,7 +9649,14 @@ bool runModelerDwgVersionValidation() {
             || parsed.m_payloadRanges.front().m_confidence
                    != DRW_ModelerPayloadRange::Confidence::Marker
             || parsed.m_payloadRanges.front().m_length != exactSab.size()
-            || parsed.m_payloadRanges.front().m_bitOffset > 7) {
+            || parsed.m_payloadRanges.front().m_offset
+                   != static_cast<std::size_t>(payloadStartBit >> 3)
+            || parsed.m_payloadRanges.front().m_bitOffset
+                   != static_cast<std::uint8_t>(payloadStartBit & 7u)
+            || payloadStartBit + exactSab.size() * 8u > bodyEndBit
+            || !parsed.m_rawBytes.empty()
+            || (version == DRW::AC1018 && buffer.getRawChar8() != 0xD7u)
+            || !buffer.isGood()) {
             std::cerr << "modeler inline SAB parse/check failed: version="
                       << static_cast<int>(version)
                       << " parse=" << parseSucceeded
@@ -9627,10 +9669,19 @@ bool runModelerDwgVersionValidation() {
             return false;
         }
 
-        // A duplicate terminator makes the boundary ambiguous; absence also
-        // remains a successful typed read with no promoted payload.
+        // Ambiguous, missing, truncated, and text-SAT carriers remain a
+        // successful typed read but never receive a qualified SAB payload.
         std::vector<std::uint8_t> ambiguous = exactSab;
         ambiguous.insert(ambiguous.end(), std::begin(marker), std::end(marker));
+        std::vector<std::uint8_t> missingMarker{
+            'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
+            0xFC, 0x53, 0x00, 0x00};
+        std::vector<std::uint8_t> truncatedMarker = missingMarker;
+        truncatedMarker.insert(truncatedMarker.end(), std::begin(marker),
+                               std::end(marker) - 1);
+        std::vector<std::uint8_t> nonSab{
+            'A', 'C', 'I', 'S', ' ', 'S', 'A', 'T', ' ', 'C', 'O', 'N', 'T', 'R', 'O', 'L'};
+        nonSab.insert(nonSab.end(), std::begin(marker), std::end(marker));
         const auto rejectsExtraction = [version](
             const std::vector<std::uint8_t>& body) {
             std::vector<std::uint8_t> frameBytes;
@@ -9646,7 +9697,11 @@ bool runModelerDwgVersionValidation() {
             const bool localParse = local.parseDwg(version, &localBuffer,
                                                    frameHandleBits);
             if (!localParse || !local.m_dwgAcisPayload.empty()
-                || !local.m_payloadRanges.empty()) {
+                || !local.m_payloadRanges.empty()
+                || local.m_dwgSourceVersion != DRW::UNKNOWNV
+                || (version == DRW::AC1018
+                    && localBuffer.getRawChar8() != 0xD7u)
+                || !localBuffer.isGood()) {
                 std::cerr << "modeler negative parse failed: version="
                           << static_cast<int>(version)
                           << " parse=" << localParse
@@ -9665,9 +9720,12 @@ bool runModelerDwgVersionValidation() {
             return decodeRejected;
         };
         return rejectsExtraction(ambiguous)
-            && rejectsExtraction({0xFC, 0x53, 0x00, 0x00, 0xA5, 0x5A});
+            && rejectsExtraction(missingMarker)
+            && rejectsExtraction(truncatedMarker)
+            && rejectsExtraction(nonSab);
     };
-    return checkVersion(DRW::AC1021) && checkVersion(DRW::AC1024);
+    return checkVersion(DRW::AC1018) && checkVersion(DRW::AC1021)
+        && checkVersion(DRW::AC1024);
 }
 
 dwgHandle localRawObjectHandle(std::uint8_t code, std::uint32_t ref) {

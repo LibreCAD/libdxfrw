@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-ac1018-inline-sab-extraction-fast-slice-v1",
+  "date": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planSlice": "S3.2.4 AC1018/R2004 version-2 inline SAB extraction",
+  "scope": "Enable bounded extraction of the exact inline SAB envelope for AC1018 without broadening the DXF writer or semantic ACIS support claims.",
+  "implementation": {
+    "productionChange": "DRW_ModelerGeometry::parseDwg now applies the existing exact ACIS BinaryFile signature and unique tagged End-of-ACIS-data boundary checks to AC1018, AC1021, and AC1024. Payload bytes/range are published separately from the DWG frame only after common handle parsing succeeds.",
+    "generatedControls": [
+      "No-length AC1018 version-2 frame with exact SAB signature and tagged terminal",
+      "Distinct wireframe-point and silhouette tail fields plus secondary-empty bit",
+      "Exact extracted payload bytes and source bit-range identity; tail excluded",
+      "Common entity handles and following-record sentinel remain correctly bounded",
+      "Missing, truncated, duplicate-marker, and non-SAB-signature variants parse as opaque carriers",
+      "Existing AC1021 and AC1024 inline-SAB controls remain covered"
+    ],
+    "failClosedPolicy": "Unique-marker requirement is unchanged. Ambiguous or incomplete carriers remain opaque; no token-aware SAT/SAB parser or DXF SAB writer was added."
+  },
+  "localSourceChecks": [
+    {
+      "input": "ET-Drawing-with-Border.dwg",
+      "result": "DWG read completed, but debug trace contained no REGION/3DSOLID/BODY modeler record; later DXF export failed on SORTENTSTABLE graph validation."
+    },
+    {
+      "input": "Extruder2.dwg",
+      "result": "DWG read stopped at the existing AC1018 table-read error 9 before modeler records were reached."
+    }
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j 2",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "results": {
+      "strictTargetBuild": "PASS",
+      "focusedCtest": "PASS (1/1)",
+      "gitDiffCheck": "PASS"
+    },
+    "fullSuiteRun": false,
+    "externalPeerOrKernelRun": false,
+    "nativeCadRun": false
+  },
+  "evidenceDisposition": {
+    "ac1018SourceBoundPositive": "NOT_AVAILABLE",
+    "independentBoundaryCorroboration": "NOT_RUN",
+    "status": "VERSION_WITNESS_REQUIRED",
+    "supportClaimsPromoted": 0,
+    "externalJStatusesChanged": 0,
+    "externalJStatus": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "fixturesAdded": 0,
+  "dependenciesAdded": 0,
+  "testRegistrationsAdded": 0,
+    "implementationStatus": "committed local slice; source-bound qualification remains open"
+}
