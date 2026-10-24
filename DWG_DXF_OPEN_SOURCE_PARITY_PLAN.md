@@ -1,4 +1,6 @@
-**Newest checkpoint — RPP-5bi implementation committed as `70b5af2` (2026-10-24):** the dependency-complete DWG/DXF parity work through RPP-5bh and its evidence are committed:98 modified tracked paths,21 required support sources and2,057 research receipts. A clean archive of the committed tree builds the library, CLI, adapter tests and LibreCAD_3 compile check, with3/3 raster regressions passing in3.11 s. All17 unverified DWG fixtures and local configuration/caches/build outputs remain excluded. Prior47/47 fast,43/43 ASan and5/5 owning results remain scoped to their recorded validation; no full-project suite or new external qualification is claimed. Strict admission stays CLOSED and the six J items stay DEFERRED_EXTERNAL. [Commit record and next steps](#commit-checkpoint-rpp-5bi-dependency-complete-implementation-and-plan-update-2026-10-24) · [receipt](docs/research/rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5bj audited test-adapter build sharing (2026-10-24):** four identical tests/ adapter compilations now share one private, uninstalled OBJECT configuration; the CLI, fixture-defined root tests and MSVC Wave 1 seam remain separate. Total adapter compile commands fall from13 to10. Compile-context guards, explicit opt-out and PIC/export fallbacks retain correctness;11 configure controls pass with Makefiles and Ninja Multi-Config. Final56/56 fast,47/47 ASan and5/5 owning suites pass, with normal/ASan LibreCAD_3 builds. One local four-target adapter rebuild measured51.791 s separate versus28.918 s pooled; this is not a full-build performance claim. The tests-on/CLI-off configuration gap is reproduced on both baseline and candidate and has an implementation-ready follow-up below. No parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED. [Implementation record](#implementation-progress-rpp-5bj-audited-test-adapter-build-sharing-2026-10-24) · [receipt](docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json).
+
+**Previous checkpoint — RPP-5bi implementation committed as `70b5af2` (2026-10-24):** the dependency-complete DWG/DXF parity work through RPP-5bh and its evidence are committed:98 modified tracked paths,21 required support sources and2,057 research receipts. A clean archive of the committed tree builds the library, CLI, adapter tests and LibreCAD_3 compile check, with3/3 raster regressions passing in3.11 s. All17 unverified DWG fixtures and local configuration/caches/build outputs remain excluded. Prior47/47 fast,43/43 ASan and5/5 owning results remain scoped to their recorded validation; no full-project suite or new external qualification is claimed. Strict admission stays CLOSED and the six J items stay DEFERRED_EXTERNAL. [Commit record and next steps](#commit-checkpoint-rpp-5bi-dependency-complete-implementation-and-plan-update-2026-10-24) · [receipt](docs/research/rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json).
 
 **Previous implementation progress — RPP-5bh selected-reactor metadata and exact raster output proof (2026-10-24; uncommitted):** class-version2 selected reactors retain modeled extension/reactor links, application data and XDATA; only their generated identity/image owner changes. Independent staged ASCII/binary token checks cover exact IMAGEDEF/reactor fields and actual IMAGE340/360 edges, followed by final source/identity/target checks.12 authored/reexport cells,12 native projections,296 field/role fault retries,30 graph/late-source retries,10 inspector guards, frozen literals, BLOCKS, chunked-XDATA, compatible-unqualified text and accounted-budget controls pass. Final47/47 fast,43/43 ASan and5/5 owning suites, strict compilation and normal/ASan lc3 checks pass. No new pure callback, drawing fixture, commit, remote mutation or support promotion. Strict admission remains CLOSED; CLASSES/text/producer semantics, full IMAGE/document closure and external qualification remain open. [Implementation record](#implementation-progress-rpp-5bh-selected-reactor-metadata-and-exact-raster-output-proof-2026-10-24) · [receipt](docs/research/rpp5bh-selected-reactor-metadata-and-exact-raster-output-proof-fast-slice-2026-10-24.json).
 
@@ -118882,3 +118884,92 @@ commit request. Strict admission remains **CLOSED**; the broader plan is unfinis
 
 Receipt:
 [`rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json`](docs/research/rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json).
+
+## Implementation progress — RPP-5bj audited test-adapter build sharing (2026-10-24)
+
+This slice completes the conservative, measured build-deduplication item for the
+four identical tests/ adapter configurations. It does not merge nonidentical
+variants or complete the DWG/DXF semantic plan. Implementation, this checklist
+and its receipt are recorded together in the local commit reported at handoff;
+no remote mutation is part of this checkpoint.
+
+1. [x] Audit all13 `dx_iface.cpp` compile commands. The adapter, block-owner,
+   optional-DIMSTYLE and numeric-locale executables have identical compiler
+   binary hashes, C++ standard, definitions, ordered includes and warning flags
+   after normalizing source roots and output paths. Pool only those four into
+   `libdxfrw_test_adapter`; total adapter compilations become10. Keep the CLI's
+   CoreFoundation framework context, fixture-specific macros/includes, differing
+   warnings and MSVC Wave 1 seams in their existing separate configurations.
+2. [x] Keep the OBJECT target uninstalled and out of public/exported link
+   interfaces. Preserve every executable's direct dxfrw link and existing
+   compile settings. Separate normal/ASan build directories retain distinct
+   instrumented objects. `LIBDXFRW_DEDUP_TEST_ADAPTER=OFF` restores the original
+   source-per-target layout. Global PIC or executable-export configurations
+   also retain that layout rather than mixing OBJECT/PIC and executable/PIE
+   flags. No library/API, parser/writer, wire or fixture change is involved.
+3. [x] Guard the allowlisted targets against compile/dependency-context drift,
+   including definitions, ordered includes, options, language mode, runtime,
+   IPO, PCH and diagnostic tooling. Reject mismatched variants with an explicit
+   separate-variant/opt-out instruction. Eleven scratch configure controls
+   cover pooling, explicit exports-OFF, opt-out, PIC/export fallbacks and six
+   context mismatches. They pass with Makefiles and Ninja Multi-Config. Reuse
+   compiler detection inside the scratch test, clearing case-specific options;
+   do not repeatedly build the library or use drawing fixtures for these checks.
+4. [x] Final strict normal/ASan affected-target and LibreCAD_3 builds pass.
+   The composed checkpoint passes56/56 fast selectors in19.29 s,47/47 ASan
+   selectors in23.74 s and5/5 owning suites in27.06 s, at parallelism3.
+   Timings reflect overlapping cohorts on the local shared host, not a new
+   validation-speed benchmark. The fast cohort includes the build-context
+   guard plus block-owner, DIMSTYLE and numeric ASCII/Binary CLI checks.
+   No full-project suite, UBSan/LSan or native external qualification was run.
+5. [x] Measure actual four-target rebuilds with the same Makefiles build tree,
+   compiler, cached library/test translation units and parallelism3. Delete
+   only the exact generated adapter object files, then compile/relink the
+   affected targets: four separate compiles take51.791 s; one pooled compile
+   takes28.918 s. The successful run serializes OFF/ON reconfiguration inside
+   one process. An earlier overlapping reconfiguration invalidated its run;
+   discard those timings and rebuild before the final correctness checkpoint.
+   The retained pair is one local observation with ordinary host/guard-test and
+   automatic-regeneration overhead, not an isolated or full-project speed claim.
+6. [x] Library-only and CLI-only/shared configurations generate without a test
+   adapter target; the CLI-only shared library/converter build passes. The
+   installed static library/CLI package contains no pooled object or target.
+   A shared-library pooled numeric/LibreCAD_3 build and3/3 numeric/context
+   CTests also pass in1.21 s. Preserve unrelated settings, caches and17 excluded
+   DWGs. Add, download and commit no DWG/DXF fixtures for this slice.
+
+Newly confirmed local follow-up — tests enabled with CLI disabled:
+
+- [ ] Baseline and candidate both fail generation when
+  `LIBDXFRW_BUILD_TESTS=ON; LIBDXFRW_BUILD_DWG2DXF=OFF`: existing CLI-dependent
+  CTests reference a nonexistent `dwg2dxf` target. This is a reproduced prior
+  configuration gap, not a new pooled-object failure or external blocker.
+- [ ] Inventory root/tests CTest registrations and fixture dependencies that
+  invoke/reference dwg2dxf. Guard CLI-only registration with actual target
+  availability; keep standalone adapter, parser and compile-only tests enabled.
+  Do not manufacture an executable/imported target merely to satisfy generation.
+- [ ] Verify tests-on/CLI-off generation, the four adapter executables and
+  LibreCAD_3 builds, then fast non-CLI selectors. Compare CTest JSON listings to
+  ensure the default CLI-on cohort is unchanged and the CLI-off cohort has no
+  orphan setup/dependent tests. Check static/shared configurations proportionally.
+
+Remaining semantic/platform queue (unchanged by this build-only item):
+
+- [ ] Independent source CLASSES/text and producer LAYER/codepage byte-order
+  evidence; keep unknown/unbound/profile-issue states until qualified.
+- [ ] Full IMAGE geometry/common state, complete NOD/image-dictionary entry and
+  owner semantics, unmodeled extensions and composed document closure.
+- [ ] Broader APPID/LAYER, legacy XRECORD, AC1024/container/SUN, TABLE/extension,
+  MATERIAL, warning debt and composed integration.
+- [ ] J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+  Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+  remain **NOT_RUN**. No support claim is promoted; strict admission is **CLOSED**.
+
+After each item, refresh evidence, completion and the next executable action;
+resolve safe local blockers and continue. Report actual committed slices only.
+Prefer focused fast checks and affected owning checkpoints, not a full-project
+suite after every edit. Nonidentical adapter variants require their own audit,
+not normalization that removes relevant flags merely to increase the sharing count.
+
+Receipt:
+[`rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json`](docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json).

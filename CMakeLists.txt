@@ -8,6 +8,8 @@ option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
 option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
 option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
 option(LIBDXFRW_BUILD_TESTS "Build dependency-free Wave 1 tests" OFF)
+option(LIBDXFRW_DEDUP_TEST_ADAPTER
+    "Share the identical, uninstalled tests/ converter adapter objects" ON)
 # CMake 3.28 sets CMP0077 to NEW, so a parent project's normal variable is
 # preserved when this project is added as a subdirectory.
 option(LIBDXFRW_INSTALL_DEV

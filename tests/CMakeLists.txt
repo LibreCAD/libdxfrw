@@ -77,9 +77,10 @@ set_tests_properties(dwg2dxf_version_policy PROPERTIES
 # Keep the concrete dwg2dxf adapter's cross-callback image link alive. The
 # source DXF is generated at test time, passed through the real CLI twice, and
 # read back through the same adapter; no image/DXF fixture is committed.
+include(${CMAKE_SOURCE_DIR}/cmake/libdxfrwTestAdapter.cmake)
 add_executable(libdxfrw_dwg2dxf_adapter_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf_adapter_tests.cpp
-    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp
+    ${_libdxfrw_test_adapter_source}
 )
 target_compile_features(libdxfrw_dwg2dxf_adapter_tests PRIVATE cxx_std_17)
 target_compile_options(libdxfrw_dwg2dxf_adapter_tests
@@ -273,7 +274,7 @@ set_tests_properties(libdxfrw_dictionary_default_adapter_roundtrip PROPERTIES
     LABELS "fast;dxf;graph;adapter;objects" TIMEOUT 30)
 add_executable(libdxfrw_block_owner_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/block_owner_tests.cpp
-    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)
+    ${_libdxfrw_test_adapter_source})
 target_compile_features(libdxfrw_block_owner_tests PRIVATE cxx_std_17)
 target_compile_options(libdxfrw_block_owner_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
 target_include_directories(libdxfrw_block_owner_tests PRIVATE
@@ -1790,7 +1791,7 @@ endif()
 # target closure is qualified. All drawing controls are generated at runtime.
 add_executable(libdxfrw_dimstyle_optional_handle_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dimstyle_optional_handle_tests.cpp
-    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)
+    ${_libdxfrw_test_adapter_source})
 target_compile_features(libdxfrw_dimstyle_optional_handle_tests PRIVATE cxx_std_17)
 target_compile_options(libdxfrw_dimstyle_optional_handle_tests
     PRIVATE ${LIBDXFRW_WARNING_FLAGS})
@@ -1823,7 +1824,7 @@ endforeach()
 
 add_executable(libdxfrw_numeric_locale_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/numeric_locale_tests.cpp
-    ${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp)
+    ${_libdxfrw_test_adapter_source})
 target_compile_features(libdxfrw_numeric_locale_tests PRIVATE cxx_std_17)
 target_compile_options(libdxfrw_numeric_locale_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
 target_include_directories(libdxfrw_numeric_locale_tests PRIVATE
@@ -1854,6 +1855,24 @@ foreach(_numeric_encoding IN ITEMS ascii binary)
     set_tests_properties(dwg2dxf_numeric_locale_${_numeric_encoding}_cli
         PROPERTIES LABELS "dxf;numeric;cli;fast" TIMEOUT 30)
 endforeach()
+
+# Keep this after every local target customization. A differing compile/link
+# context must get its own adapter, not silently reuse these object files.
+libdxfrw_check_test_adapter_context(
+    libdxfrw_dwg2dxf_adapter_tests libdxfrw_block_owner_tests
+    libdxfrw_dimstyle_optional_handle_tests libdxfrw_numeric_locale_tests)
+add_test(NAME libdxfrw_adapter_build_context
+    COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+        ${CMAKE_CURRENT_SOURCE_DIR}/adapter_build_context_tests.py
+        --cmake "${CMAKE_COMMAND}"
+        --module "${CMAKE_SOURCE_DIR}/cmake/libdxfrwTestAdapter.cmake"
+        --compiler "${CMAKE_CXX_COMPILER}"
+        --generator "${CMAKE_GENERATOR}"
+        --generator-platform "${CMAKE_GENERATOR_PLATFORM}"
+        --generator-toolset "${CMAKE_GENERATOR_TOOLSET}"
+        --toolchain "${CMAKE_TOOLCHAIN_FILE}")
+set_tests_properties(libdxfrw_adapter_build_context PROPERTIES
+    LABELS "fast;build;adapter" TIMEOUT 120)
 
 set(_dwg_test_versions AC1021 AC1024 AC1027 AC1032)
 

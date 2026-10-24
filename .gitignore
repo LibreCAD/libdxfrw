@@ -27,6 +27,7 @@ Makefile*
 *.dll
 *.exe
 *.cmake
+!/cmake/libdxfrwTestAdapter.cmake
 tools/__pycache__/
 *.patch
 *~
