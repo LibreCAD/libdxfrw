@@ -1,4 +1,10 @@
-**Newest implementation checkpoint — RPP-5bl independent CLASSES record/text observer (2026-10-24):** a standalone allocation-free C++14 observer now records class scalar/text spans, validates canonical UTF-8 comparisons and supports exact-record or prefix-stream consumption without libdxfrw linkage. ODA bit-short and observed producer bit-long version trailers remain explicit, including common compact-value ambiguity. Literal, eight-revision/profile/alignment, truncation and Unicode controls pass:163 positive,20,670 refusal/truncation and10 text cases. Focused4/4, ASan and standalone ASan/UBSan checks pass; all385 prior CTest commands/properties remain unchanged. This completes a needed record-observer prerequisite, **not** whole CLASSES-section or native-source qualification: bounded source capture, independent framing and immutable identity joins remain open. No production parser/API, fixture or support claim changed; strict admission stays CLOSED. [Implementation record](#implementation-progress-rpp-5bl-independent-classes-recordtext-observer-2026-10-24) · [receipt](docs/research/rpp5bl-independent-classes-record-text-observer-2026-10-24.json).
+**Newest committed implementation checkpoint — RPP-5bs actual-read-scoped raster EED names (`f5bef43689fd7ca3028bca63c7eabec7b3b0c427`, 2026-10-24):** immutable per-read APPID/LAYER receipts resolve the six historical EED capture failures without merging document roots or promoting semantic support. Six same-version histories and six mixed-version third imports pass; mutation/restoration, bounded capture, atomic refusal and fresh-import retry controls are recorded below. The implementation checkpoint passed8 focused,5 owning,4 reader/consumer and3 ASan tests. A subsequent documentation-only checkpoint reran3 focused source/join/header tests successfully; the earlier broader results are not presented as fresh runs. Next: RPP-5bt actual custom IMAGEDEF aliases with selected/rooted output. Strict admission stays **CLOSED**; the six J items stay **DEFERRED_EXTERNAL**. [Implementation record](#implementation-progress-rpp-5bs-actual-read-scoped-raster-eed-names-2026-10-24) · [commit checkpoint and next slice](#commit-checkpoint-rpp-5bs-and-ready-next-slice-rpp-5bt-2026-10-24) · [implementation receipt](docs/research/rpp5bs-read-scoped-raster-eed-names-2026-10-24.json).
+
+Checkpoint summaries below are historical records. Their then-current
+"uncommitted" or "open" wording does not override a later commit/checkpoint;
+use the newest checkpoint and its explicit remaining work for current status.
+
+**Previous implementation checkpoint — RPP-5bl independent CLASSES record/text observer (2026-10-24):** a standalone allocation-free C++14 observer now records class scalar/text spans, validates canonical UTF-8 comparisons and supports exact-record or prefix-stream consumption without libdxfrw linkage. ODA bit-short and observed producer bit-long version trailers remain explicit, including common compact-value ambiguity. Literal, eight-revision/profile/alignment, truncation and Unicode controls pass:163 positive,20,670 refusal/truncation and10 text cases. Focused4/4, ASan and standalone ASan/UBSan checks pass; all385 prior CTest commands/properties remain unchanged. This completes a needed record-observer prerequisite, **not** whole CLASSES-section or native-source qualification: bounded source capture, independent framing and immutable identity joins remain open. No production parser/API, fixture or support claim changed; strict admission stays CLOSED. [Implementation record](#implementation-progress-rpp-5bl-independent-classes-recordtext-observer-2026-10-24) · [receipt](docs/research/rpp5bl-independent-classes-record-text-observer-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5bk CLI-optional test registration and ownership regression controls (2026-10-24):** tests-enabled/CLI-disabled configurations now generate and build without a dummy converter target. Only actual CLI-dependent registrations are omitted; all384 prior default test commands/properties are unchanged, plus one new matrix regression. Static/shared and Makefiles/Ninja Multi-Config matrices pass, including14 explicit-control diagnostics and dependency/orphan checks. Final78/78 fresh CLI-off fast,58/58 CLI-on fast,51/51 ASan CLI-off,7/7 shared CLI-off and5/5 owning checks pass. Broader validation also corrected stale NOD-350 normalization assertions to the implemented RPP-5ao source-role preservation contract, with exact350/360 and hard-owner readback controls. No production parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED; external qualification remains deferred. [Implementation record](#implementation-progress-rpp-5bk-cli-optional-test-registration-and-ownership-regression-controls-2026-10-24) · [receipt](docs/research/rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json).
 
@@ -119926,3 +119932,85 @@ receipt, remote branch, PR or issue is changed.
 
 Receipt:
 [`rpp5bs-read-scoped-raster-eed-names-2026-10-24.json`](docs/research/rpp5bs-read-scoped-raster-eed-names-2026-10-24.json).
+
+## Commit checkpoint — RPP-5bs and ready next slice RPP-5bt (2026-10-24)
+
+- [x] Verify RPP-5bs implementation, tests, plan and receipt are committed as
+  `f5bef43689fd7ca3028bca63c7eabec7b3b0c427`
+  (`Bind raster EED names to immutable actual-read receipts`). The working
+  tree had no pending tracked implementation changes at this checkpoint.
+- [x] Reconcile the front-page checkpoint with the committed implementation.
+  Preserve earlier receipts and distinguish historical results from fresh
+  validation; no implementation or support claim is changed by this update.
+- [x] Fresh fast validation: `libdxfrw_dwg_class_source`,
+  `libdxfrw_class_source_join` and `libdxfrw_public_header_hygiene` pass3/3 in
+  10.06 s with parallelism3. Log: `/tmp/rpp5bs-plan-checkpoint-tests.log`.
+  No full suite or repeat owning/ASan cohort is needed for this plan-only
+  change. Earlier8/5/4/3 results remain scoped to the implementation receipt.
+
+### RPP-5bt — actual custom IMAGEDEF alias and rooted-output controls
+
+Status: **READY / NOT IMPLEMENTED**. Complete this bounded local integration
+slice before moving to the broader document-closure contract. Reuse existing
+native scratch authors, public writer APIs and independent output observers;
+do not manufacture private qualified source frames or weaken admission masks.
+
+1. [ ] Extend the actual-source custom IMAGEDEF scratch author with one IMAGE,
+   its selected reactor and a real image dictionary rooted in the NOD.
+   Preserve source handle/reference relationships and reserve authored handles
+   before the write; register classes and the image-dictionary root before
+   CLASSES freezes. Retain the existing unreferenced-object control separately.
+   Use a dedicated fast test/mode with an exclusively owned temporary directory;
+   generate every drawing locally and commit only source/tests/evidence.
+2. [ ] Cover AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 and four class-table
+   conditions: unique identity, full identity alias, record-name-only alias,
+   and C++-name-only alias. This is a planned24-source matrix, not a measured
+   result. Scratch class numbers are authoring choices, not empirical dispatch
+   assertions. Verify actual imports, raw encoded versus resolved identity,
+   immutable row ownership and class state. Aliases must remain advisory;
+   preserve `ClassEnvelope` and `TextSemanticsNotIndependent` where unresolved.
+3. [ ] Prove actual source ownership: IMAGE to definition and selected reactor,
+   reactor back to IMAGE, definition's reactor list, definition to its owning
+   image dictionary, dictionary entry to definition, and NOD entry to image
+   dictionary. Missing, duplicated, wrong-role or mismatched relationships
+   must not pass merely because raw bytes were retained.
+4. [ ] For compatible ASCII and binary exports, inspect emitted IMAGEDEF and
+   reactor fields/references with the existing independent wire observer and
+   verify ordinary readback. Plan48 projections; record only actual passing
+   counts. Check remapped output identities/owners, IMAGE340/360 references,
+   path, modeled size/pixel metadata and EED names, with no phantom duplicate
+   definitions, reactors or image roots. Compatibility is not qualification.
+5. [ ] Exercise selected-source edits and graph faults, covering definition
+   path, dictionary target/owner, reactor owner and IMAGE references. Require
+   destination preservation on refusal; prove restored-source retries where
+   restoration is permitted and fresh actual-import recovery for sticky
+   snapshot invalidation. Repeated finish/export must not refresh evidence.
+   Attribute each refusal to the intended gate, not an earlier root failure.
+6. [ ] Run the new focused mode plus affected raster/class tests and scoped
+   sanitizer controls. Reuse the committed owning/reader checkpoint if only
+   the harness changes; run the affected owning cohort once if production
+   code changes. Keep strict warnings and LibreCAD/LibreCAD_3 compatibility.
+   Record failures, fix safe local causes, rerun only affected tests, update
+   this plan/receipt and commit the completed slice before advancing.
+
+### Remaining dependencies and unchanged boundaries
+
+- [ ] NOD/image-dictionary/document closure: duplicate ACAD_GROUP/NOD roots
+  still refuse. A positive per-import EED join or rooted single drawing does
+  not establish multi-document merge, ownership or remapping semantics.
+- [ ] Independent name/body/path/EED semantics, explicit source profiles,
+  complete output-field/reference proof and full IMAGE/common-state coverage.
+  Carry external producer profiles, sparse native class cardinality and
+  remaining APPID/LAYER/XRECORD dependencies forward; do not silently close
+  the broader DWG/DXF or2D/3D consumer scope.
+- [ ] External qualification remains unchanged: J256/J260/J268/J284/J293/J295
+  are **DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent
+  ACIS/ACDS semantic/kernel qualification are **NOT_RUN**. Strict admission
+  remains **CLOSED**; local compatibility evidence cannot promote these claims.
+
+After each implemented item, update its evidence/status, resolve safe local
+blockers and continue to the next executable dependency; report progress after
+each slice commit. Stop only for a genuine missing authorization or external
+decision, without bypassing the gate. This checkpoint preserves all17 existing
+untracked drawings and unrelated files. No drawing, previous receipt, remote
+branch, pull request or issue is changed.
