@@ -119276,3 +119276,122 @@ excluded from staging.
 
 Receipt:
 [`rpp5bm-opt-in-native-classes-source-lease-2026-10-24.json`](docs/research/rpp5bm-opt-in-native-classes-source-lease-2026-10-24.json).
+
+## Implementation progress — RPP-5bn independent CLASSES section framing (2026-10-24)
+
+The independent whole-envelope observer and its native-byte correlations are
+implemented. This completes the framing primitive following RPP-5bl/5bm; it
+does not complete frozen import/class joins, a universal producer profile,
+external semantic qualification or strict raster admission. Implementation,
+tests, this plan and the receipt are checkpointed together in the local commit
+reported at handoff. No remote mutation or new drawing fixture is included.
+
+1. [x] Re-read and visually inspect ODA5.4.1 pages16–17,54–55,86–88 and104.
+   Correct an earlier overgeneralization: ODA5.8 documents R2007 version and
+   maintenance fields as BL, while ODA10.2's general R2004+ table says BS.
+   Preserve explicit candidates; neither a peer reader nor matching small
+   values selects a universal schema. The specification's footer prose also
+   mixes byte/bit step wording. The implemented16-bit-short candidate is
+   separately evidenced by scratch and actual native footer spans and primary
+   [LibreDWG reader code](https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/decode_r2007.c).
+   No historical receipt is rewritten or turned into a stronger claim.
+2. [x] Add uninstalled, allocation-free `dx_dwg_class_section_wire.h`. Discover
+   class records directly from source section bytes, with no production
+   buffer/parser/codec/writer or per-record row boundaries. Check START/END
+   sentinels, bounded RL/bit sizes, explicit high-size presence/counting rules,
+   inline/detached streams, short/extended backward string footer, full stream
+   consumption, duplicate/range/highest class numbers and source CRC. A zero
+   stored CRC is not a waiver. Keep unused byte-alignment bits distinct from
+   verified content; optional decoded envelope padding must be zero and is
+   explicitly accounted for. Bound input to64 MiB and class identities to
+   their16-bit domain with a fixed8 KiB seen set; no per-record allocation.
+3. [x] Iterate independently to the stream end; do not use max-class-minus499
+   as a record count. Keep sparse valid identities and observed cardinality
+   distinct, including empty max-class499. Retain unknown item-class flags,
+   header bits, trailer extensions and raw text issues without inventing their
+   semantics. Header-false, scalar byte-alignment, high-size and trailer
+   conventions are explicit profiles, not an automatic best-match selector.
+4. [x] Add an explicit single-terminal-NUL UTF-8 comparison convention. Verify
+   the final encoded unit and independently revalidate the entire prefix.
+   Refuse interior/repeated NULs, invalid Unicode and unknown legacy codepages,
+   even if a caller clears issue bits. Do not change the existing exact-text
+   comparator or silently normalize all DWG text. This permits exact name
+   comparison for the four tracked fixtures' actual terminated source names.
+5. [x] Independently frame and correlate255 unique class rows across the four
+   existing AC1015/1018/1021/1027 fixtures: every scalar field, ordinal,
+   descriptor, complete name, bit span, address-space/relative flag and
+   publication observation matches. The modern fixtures have a false header
+   bit; the Unicode captures also have five scalar alignment bits. Those
+   conventions are retained explicitly rather than mislabeled ODA10.2's
+   true-bit profile. All three modern captures still fit both BS/BL candidates
+   for their small version values; no schema is selected from matching rows.
+   These tests compare public rows before mutation, not a trusted frozen join.
+6. [x] Resolve the AC1027 END-sentinel blocker from actual bytes: matched CRC
+   is at byte5948, a single zero byte follows it, and END starts at5951 and
+   ends at5967. Add an explicit one-byte observer trailer candidate and the
+   same bounded probe to production `readDwgClassesTail`. Preserve the existing
+   8/2/0-byte probes, independent cursor/error state and malformed-tail
+   warn-only fallback. Do not infer the intervening byte's meaning or change
+   class-record widths. Test all four reader probes, every sub16-byte bound,
+   malformed fallback and native read/no-copy/retry compatibility.
+7. [x] Strict C++14 standalone framing tests pass:1,767 positive cases and
+   10,456 refusal/truncation cases, including eight revisions, trailer/size
+   candidates, all footer bit alignments, every shorter byte prefix, every
+   bit mutation of small complete sections, sparse/duplicate/max identities,
+   zero CRC, large/extended names and explicit padding/profile controls.
+   Record observer controls pass163 positive/20,670 refused plus28 text
+   controls. Native/source checks pass1,781 assertions, including allocation
+   failures enabled during the independent framing calls.
+8. [x] Rebuild and verify the affected library, converter, test executables and
+   LibreCAD_3 gate with strict warnings. Eight focused checks pass (11.51 s),
+   then final native/source checks pass again after additional row assertions.
+   Five owning checkpoints pass (9.90 s), four reader/fixture/adapter/3D
+   consumer checks pass (2.29 s), and three ASan checks pass (0.65 s).
+   Standalone record/framing ASan+UBSan controls pass. The framing test links
+   only libc++/libSystem, not libdxfrw. Run owning cohorts sequentially; no
+   full-suite, external/platform qualification or performance claim is made.
+
+Implementation-ready continuation (parent source-evidence item remains open):
+
+- [ ] **Freeze the metadata side of joins.** At the actual import callbacks,
+  retain bounded immutable class metadata and its source/profile/generation
+  context beside the already private source-byte lease. Reuse the existing
+  optional channel; do not alter the established DRW_Interface vtable. Charge
+  strings/capacities/indexes before retention, reject duplicate/late callbacks,
+  and poison failures without allocation. Do not trust mutable public class
+  rows, outcome flags or a user-edited generation as independent authority.
+  Verify exact/over budgets, allocation/callback failure, mutation, cross-import
+  reuse and later-generation recovery before connecting any admission issue.
+- [ ] **Join through independently discovered spans.** Recompute explicit
+  candidate observations from the private source lease, then join every
+  ordinal, field, normalized name and physical/decoded range to the frozen
+  metadata and actual IMAGEDEF/reactor class identities. Retain BS/BL ambiguity
+  and unknown header/trailer semantics; do not pick a candidate because its
+  values match expected output. Keep `ClassEnvelope` and
+  `TextSemanticsNotIndependent` until their complete profile/independence gates
+  actually pass. Native AC1024/AC1032 and independent >=256 producer evidence
+  remain unqualified by these four small-version fixtures.
+- [ ] **Investigate the production density assumption.** ODA describes reading
+  records until exhaustion; the new observer accepts scratch sections with
+  identities500/502 and reports two records, not three. Existing production
+  R2004+ loops still derive cardinality from max-class-minus499. Create a
+  scratch-native reader/section reproduction and capture its failure before
+  changing that loop. Keep CRC/footer boundaries, uniqueness/range validation,
+  atomic class publication and current 2D compatibility. A speculative sparse
+  section or a peer writer alone is not native support qualification.
+- [ ] Continue producer LAYER/codepage evidence, full IMAGE/common state,
+  NOD/image-dictionary/document closure, APPID/LAYER/XRECORD, AC1024/container/
+  SUN, TABLE/extension, MATERIAL and consumer integration in the existing
+  dependency order. No unrelated item is completed by this framing primitive.
+
+Self-update/unblock after each implemented item: record new evidence and its
+limits, resolve safe local blockers, refresh the next action and continue.
+Report actual slice commits only. Strict admission stays **CLOSED**.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. All17 pre-existing untracked drawings and unrelated files remain
+excluded. No drawing was added, downloaded or committed; earlier receipts
+remain unchanged capture-time records.
+
+Receipt:
+[`rpp5bn-independent-classes-section-framing-2026-10-24.json`](docs/research/rpp5bn-independent-classes-section-framing-2026-10-24.json).

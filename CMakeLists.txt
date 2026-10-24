@@ -1080,6 +1080,14 @@ if(LIBDXFRW_BUILD_TESTS)
     add_test(NAME libdxfrw_class_dwg_independent_wire COMMAND libdxfrw_class_dwg_wire_tests)
     set_tests_properties(libdxfrw_class_dwg_independent_wire PROPERTIES
         LABELS "fast;dwg;classes;wire;generated;independent" TIMEOUT 15)
+    add_executable(libdxfrw_class_section_wire_tests tests/dwg_class_section_wire_tests.cpp)
+    target_include_directories(libdxfrw_class_section_wire_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
+    target_compile_options(libdxfrw_class_section_wire_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    set_target_properties(libdxfrw_class_section_wire_tests PROPERTIES
+        CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
+    add_test(NAME libdxfrw_class_section_independent_wire COMMAND libdxfrw_class_section_wire_tests)
+    set_tests_properties(libdxfrw_class_section_independent_wire PROPERTIES
+        LABELS "fast;dwg;classes;framing;generated;independent" TIMEOUT 30)
     add_test(NAME libdxfrw_dwg_residual_entity_sweep
         COMMAND libdxfrw_dwg_reader_matrix_tests --residual-entity-sweep)
     set_tests_properties(libdxfrw_dwg_residual_entity_sweep PROPERTIES

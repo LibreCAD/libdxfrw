@@ -7179,11 +7179,13 @@ bool dwgReader::readDwgClassesTail(dwgBuffer &buffer) {
   if (start > buffer.size() || buffer.size() - start < 16)
     return false;
 
-  // Prefer the current eight-byte form, then the legacy R2007 two-byte
-  // field, and finally the R2004 no-tail form.  Probe each candidate without
+  // Prefer the current eight-byte form, then the two-byte and empirically
+  // observed one-byte forms, and finally the R2004 no-tail form. The tracked
+  // ordinary_enc_AC1027 source has one byte between its matched CRC and END
+  // sentinel. Its meaning is not inferred here. Probe each candidate without
   // poisoning the publishing cursor when a candidate is not the file's
   // actual trailer layout.
-  constexpr std::array<std::size_t, 3> candidateSizes = {8, 2, 0};
+  constexpr std::array<std::size_t, 4> candidateSizes = {8, 2, 1, 0};
   for (const std::size_t tailSize : candidateSizes) {
     if (tailSize > buffer.size() - start ||
         buffer.size() - start - tailSize < 16)

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
+#include "dx_dwg_class_section_wire.h"
 #include "intern/dwgreader21.h"
 #include <cstdlib>
 #include <filesystem>
@@ -86,6 +87,7 @@ public:
     using dwgReader::captureDwgClassSource;
     using dwgReader::capturePhysicalDwgClassSource;
     using dwgReader::finalizeDwgClassSourceNoThrow;
+    using dwgReader::readDwgClassesTail;
     void cap(std::size_t value) { m_dwgClassSourceByteLimit = value; }
 };
 
@@ -169,6 +171,25 @@ bool captureContracts() {
     reader.captureDwgClassSource(bytes.data(), 16u, 3, 16u);
     reader.finalizeDwgClassSourceNoThrow(true);
     CHECK(sink.report.m_status == Status::Captured);
+    return true;
+}
+bool readerTails() {
+    const std::vector<std::uint8_t> sentinel{
+        0x72,0x5E,0x3B,0x47,0x3B,0x56,0x07,0x3A,0x3F,0x23,0x0B,0xA0,0x18,0x30,0x49,0x75};
+    Probe reader;
+    for (auto size : {0u,1u,2u,8u}) {
+        std::vector<std::uint8_t> bytes(size, 0u);
+        bytes.insert(bytes.end(), sentinel.begin(), sentinel.end());
+        dwgBuffer buffer(bytes.data(), bytes.size());
+        CHECK(reader.readDwgClassesTail(buffer) && buffer.isGood() && buffer.getPosition() == size);
+    }
+    for (unsigned size = 0u; size < 16u; ++size) {
+        dwgBuffer buffer(sentinel.data(), size);
+        CHECK(!reader.readDwgClassesTail(buffer) && buffer.isGood() && buffer.getPosition() == 0u);
+    }
+    const std::vector<std::uint8_t> malformed(24u, 0u);
+    dwgBuffer buffer(malformed.data(), malformed.size());
+    CHECK(reader.readDwgClassesTail(buffer) && buffer.isGood() && buffer.getPosition() == 0u);
     return true;
 }
 
@@ -284,6 +305,93 @@ bool adapterContracts() {
 class NoCaptureAdapter : public dx_iface {
     bool wantsDwgClassSource() const override { return false; }
 };
+// Diagnostic/test correlation only: the public class rows below are not a
+// frozen import baseline and cannot authorize production support admission.
+bool nativeFraming(const Report& source, const DRW_DwgClassCoverageReport& rows, const char* name) {
+    namespace wire = dx_class_wire;
+    wire::SectionProfile profile;
+    switch (source.m_version) {
+    case DRW::AC1015: profile.revision = 2000u; break;
+    case DRW::AC1018: profile.revision = 2004u; break;
+    case DRW::AC1021: profile.revision = 2007u; break;
+    case DRW::AC1027: profile.revision = 2013u; break;
+    default: return false;
+    }
+    profile.maintenance = source.m_appMaintenanceVersion;
+    profile.requireTrueHeaderFlag = false; // Explicit false-bit source profile, not ODA10.2 qualification.
+    profile.scalarByteAlignment = true;
+    profile.zeroEnvelopePadding = source.m_offsetSpace == Space::DecodedBuffer;
+    const bool high = profile.revision >= 2010u && profile.maintenance > 3u;
+    unsigned observed = 0u;
+    for (auto trailer : {wire::Trailer::OdaBitShort, wire::Trailer::ProducerBitLong})
+    for (unsigned size = 0; size < (high ? 2u : 1u); ++size)
+    for (auto tail : {wire::ClassTail::SentinelOnly, wire::ClassTail::BeforeOne, wire::ClassTail::BeforeTwo,
+                     wire::ClassTail::BeforeEight, wire::ClassTail::AfterEight}) {
+        if (profile.revision < 2004u && trailer == wire::Trailer::ProducerBitLong) continue;
+        if (profile.revision < 2004u && tail != wire::ClassTail::SentinelOnly) continue;
+        profile.trailer = trailer; profile.tail = tail;
+        profile.sizeLayout = size ? wire::ClassSizeLayout::ExcludesHighWord : wire::ClassSizeLayout::IncludesHighWord;
+        wire::SectionProof proof;
+        { AllocationFailure failure(0);
+          proof = wire::observeSection(source.m_bytes->data(), source.m_bytes->size(), profile); }
+        std::cout << name << " independent candidate: trailer=" << static_cast<unsigned>(trailer)
+                  << " size=" << size << " tail=" << static_cast<unsigned>(tail)
+                  << " status=" << static_cast<unsigned>(proof.status)
+                  << " reason=" << static_cast<unsigned>(proof.reason) << " records=" << proof.records
+                  << " headerFlag=" << proof.headerFlag
+                  << " cursors=" << proof.dataCursor << '/' << proof.data.end << ','
+                  << proof.stringCursor << '/' << proof.strings.end
+                  << " crc=" << proof.storedCrc << '/' << proof.calculatedCrc << '\n';
+        if (proof.status != wire::Status::Observed) continue;
+        ++observed;
+        CHECK(proof.crcChecked && proof.crcMatches && proof.records == rows.m_entries.size());
+        const auto expectedTail = source.m_version == DRW::AC1027
+            ? wire::ClassTail::BeforeOne : wire::ClassTail::SentinelOnly;
+        CHECK(tail == expectedTail && (source.m_version == DRW::AC1015 || !proof.headerFlag));
+        CHECK(!proof.split || proof.scalarPadding.end - proof.scalarPadding.begin == 5u);
+        auto data = proof.data, strings = proof.strings;
+        for (std::size_t ordinal = 0; ordinal < rows.m_entries.size(); ++ordinal) {
+            const auto& row = rows.m_entries[ordinal];
+            const auto record = wire::scan(data, strings, profile.revision, profile.trailer);
+            CHECK(record.status == wire::Status::Observed && row.m_streamOrdinal == ordinal
+                && row.m_sectionDescriptorId == source.m_sectionDescriptorId
+                && row.m_state == DRW_DwgClassCoverageState::Published
+                && row.m_reason == DRW_DwgClassCoverageReason::NoReason
+                && record.number == row.m_classNumber && record.proxy == row.m_proxyFlag
+                && record.zombie == (row.m_wasAProxyFlag != 0) && record.itemClass == row.m_entityFlagRaw
+                && row.m_entityFlag == (record.itemClass == 0x1F2u ? 1 : 0)
+                && record.instances == row.m_instanceCount && record.dwgVersion == row.m_dwgVersion
+                && record.maintenance == row.m_maintenanceVersion && record.unknown1 == row.m_unknown1
+                && record.unknown2 == row.m_unknown2);
+            const auto names = record.split ? strings : data;
+            const auto matches = [&](const wire::Text& text, const std::string& expected) {
+                // These tracked native fixtures encode exactly one trailing
+                // NUL in each name. This explicit convention is not a codec,
+                // arbitrary trim or universal DWG text-profile selection.
+                return wire::equalsTerminatedUtf8(names, text, record.split, expected.data(), expected.size());
+            };
+            const bool namesMatch = matches(record.text[0], row.m_appName)
+                && matches(record.text[1], row.m_className) && matches(record.text[2], row.m_recordName);
+            CHECK(namesMatch);
+            const auto base = source.m_baseByteOffset * 8u;
+            CHECK(row.m_dataRange.m_present && row.m_stringRange.m_present
+                && row.m_dataRange.m_offsetSpace == source.m_offsetSpace
+                && row.m_stringRange.m_offsetSpace == source.m_offsetSpace
+                && row.m_dataRange.m_sectionRelative == (source.m_offsetSpace == Space::DecodedBuffer)
+                && row.m_stringRange.m_sectionRelative == (source.m_offsetSpace == Space::DecodedBuffer)
+                && row.m_dataRange.m_startBit == base + data.begin
+                && row.m_dataRange.m_endBit == base + record.dataEnd
+                && row.m_stringRange.m_startBit == base + (record.split ? strings.begin : data.begin)
+                && row.m_stringRange.m_endBit == base + record.stringEnd);
+            data.begin = record.dataEnd;
+            if (record.split) strings.begin = record.stringEnd;
+        }
+        CHECK(data.begin == data.end && (!proof.split || strings.begin == strings.end));
+    }
+    CHECK(observed == (profile.revision < 2004u ? 1u : 2u));
+    std::cout << name << ": " << observed << " explicit framing candidates; schema not selected\n";
+    return true;
+}
 bool native(const std::filesystem::path& root) {
     for (const char* name : {"ordinary_enc_AC1015.dwg", "ordinary_enc_AC1018.dwg",
                             "ordinary_enc_AC1021.dwg", "ordinary_enc_AC1027.dwg"}) {
@@ -321,6 +429,7 @@ bool native(const std::filesystem::path& root) {
             CHECK(std::equal(report->m_bytes->begin(), report->m_bytes->end(),
                 file.begin() + static_cast<std::ptrdiff_t>(report->m_baseByteOffset)));
         } else CHECK(report->m_offsetSpace == Space::DecodedBuffer && report->m_baseByteOffset == 0u);
+        CHECK(nativeFraming(*report, captured.dwgClassCoverage, name));
         const auto lease = report->m_bytes;
         captured.dwgClassCoverage = {};
         CHECK(captured.dwgClassSource()->m_bytes == lease && !lease->empty());
@@ -350,7 +459,7 @@ int main(int argc, char** argv) {
     { std::ofstream out(path, std::ios::binary); out.write(reinterpret_cast<const char*>(bytes.data()), bytes.size()); }
     std::ifstream input(path, std::ios::binary), reference(path, std::ios::binary);
     dwgBuffer file(&input), fileControl(&reference);
-    if (!captureContracts() || !physicalCursor(memory, control, bytes)
+    if (!captureContracts() || !readerTails() || !physicalCursor(memory, control, bytes)
         || !physicalCursor(file, fileControl, bytes) || !adapterContracts() || !native(argv[1])) return 1;
     std::cout << "DWG class source: " << checks << " checks PASS; no framing/semantic qualification\n";
     return 0;

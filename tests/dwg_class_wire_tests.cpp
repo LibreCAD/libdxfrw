@@ -277,10 +277,42 @@ bool prefixStreams() {
     }
     return true;
 }
+bool terminalConvention() {
+    for (auto revision : {2000u, 2007u}) {
+        const bool unicode = revision >= 2007u;
+        const auto checkText = [&](const std::vector<std::uint16_t>& units, const char* expected,
+                                   std::size_t size, bool accepted) {
+            const auto record = make(revision, wire::Trailer::OdaBitShort, 0u, 257u, 329u, units);
+            const auto proof = observe(record);
+            const auto view = unicode ? record.stringView() : record.dataView();
+            ++texts;
+            return proof.status == wire::Status::Observed
+                && wire::equalsTerminatedUtf8(view, proof.text[0], unicode, expected, size) == accepted;
+        };
+        if (!require(checkText({'A',0}, "A", 1u, true)
+            && checkText({0}, "", 0u, true) && checkText({}, "", 0u, false)
+            && checkText({'A'}, "A", 1u, false)
+            && checkText({'A',0,0}, "A", 1u, false)
+            && checkText({'A',0,'B',0}, "AB", 2u, false)
+            && checkText({0xD800u,0}, "A", 1u, false), "single-terminal-NUL convention failed")) return false;
+        if (!unicode && !require(checkText({0x80u,0}, "A", 1u, false),
+                                 "terminal convention invented legacy codepage semantics")) return false;
+        if (unicode && !require(checkText({0xD83Du,0xDE00u,0}, "\xF0\x9F\x98\x80", 4u, true),
+                                "terminal convention rejected a valid Unicode scalar")) return false;
+        const auto record = make(revision, wire::Trailer::OdaBitShort, 0u, 257u, 329u, {'A',0,'B',0});
+        auto text = observe(record).text[0];
+        text.issues = 0u;
+        const auto view = unicode ? record.stringView() : record.dataView();
+        if (!require(!wire::equalsTerminatedUtf8(view, text, unicode, "AB", 2u),
+                     "cleared issue mask bypassed interior-NUL validation")) return false;
+        ++texts;
+    }
+    return true;
+}
 } // namespace
 int main() {
     if (!literal() || !matrix() || !profiles() || !textCases() || !invalidViews()
-        || !primitiveAndFaultControls() || !prefixStreams()) return 1;
+        || !primitiveAndFaultControls() || !prefixStreams() || !terminalConvention()) return 1;
     std::cout << "independent class records: " << positives << " positive, " << refusals
               << " refused/truncated, " << texts << " text controls\n";
 }

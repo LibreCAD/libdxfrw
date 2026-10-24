@@ -13,7 +13,8 @@ namespace dx_class_wire {
 enum class Status { Malformed, Unsupported, Observed };
 // Do not infer the profile from successful parsing: common compact values
 // have identical representations. The long variant is an observed producer
-// compatibility layout, NOT the BS version fields documented by ODA10.2.
+// compatibility layout for ODA10.2's BS fields. ODA5.8 separately documents
+// BL version fields for R2007; do not flatten that distinction into one schema.
 enum class Trailer { OdaBitShort, ProducerBitLong };
 enum class Field : std::size_t {
     Number, Proxy, App, Cpp, Record, Zombie, ItemClass, Instances,
@@ -222,6 +223,26 @@ inline bool equalsUtf8(View source, const Text& text, bool unicode,
                    || !emit(0x80u | ((scalar >> 6u) & 63u)) || !emit(0x80u | (scalar & 63u))) return false;
     }
     return bits.good && pos == size;
+}
+
+// Explicit single-terminal-NUL convention, not a tolerant trim or a codec.
+// The original count and final encoded unit are independently checked; the
+// prefix comparator revalidates every unit, refusing interior/repeated NULs,
+// invalid Unicode and unknown legacy codepage bytes even if issue bits change.
+inline bool equalsTerminatedUtf8(View source, const Text& text, bool unicode,
+                                 const char* expected, std::size_t size) noexcept {
+    const auto width = unicode ? 16u : 8u;
+    if (!detail::extentValid(source) || text.count == 0u || text.units.begin < source.begin
+        || text.units.end > source.end || text.units.end < text.units.begin
+        || text.units.end - text.units.begin != static_cast<std::uint32_t>(text.count) * width)
+        return false;
+    detail::Bits last({source.bytes, source.size, text.units.end - width, text.units.end});
+    if (last.little(unicode ? 2u : 1u) != 0u || !last.good) return false;
+    auto prefix = text;
+    --prefix.count;
+    prefix.units.end -= width;
+    prefix.issues &= ~EmbeddedNull;
+    return equalsUtf8(source, prefix, unicode, expected, size);
 }
 } // namespace dx_class_wire
 #endif
