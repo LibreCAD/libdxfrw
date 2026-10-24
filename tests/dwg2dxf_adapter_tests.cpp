@@ -3440,6 +3440,258 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
     return true;
 }
 
+bool generatedDictionaryBinaryChunks(bool faultsOnly = false) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-dictionary-chunks-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("dictionary chunk temporary directory failed");
+    }
+    if (directory.empty()) return fail("dictionary chunk temporary directory exhausted");
+    const auto path = directory / "chunks.dxf";
+    struct Cleanup { std::filesystem::path path, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path,error); std::filesystem::remove(directory,error);
+    } } cleanup{path,directory};
+    const auto bytes = [](std::size_t size, std::size_t fragment) {
+        std::vector<std::uint8_t> result(size);
+        for (std::size_t n = 0u; n < size; ++n) result[n] = static_cast<std::uint8_t>(0xABu + 17u * n + 31u * fragment);
+        return result;
+    };
+    const auto hex = [](const std::vector<std::uint8_t>& data, bool mixed) {
+        const char* digits = mixed ? "0123456789aBcDeF" : "0123456789ABCDEF";
+        std::string result;
+        for (const auto byte : data) { result += digits[byte >> 4u]; result += digits[byte & 15u]; }
+        return result;
+    };
+    const auto configure = [&](dx_data& data, unsigned kind, bool hexadecimal, const std::vector<std::size_t>& sizes) -> DRW_Dictionary* {
+        dx_iface author; author.cData = &data; author.currentBlock = data.mBlock;
+        DRW_AppId app; app.name = "CHUNK_APP"; author.addAppId(app);
+        DRW_Layer layer; layer.name = "CHUNK_LAYER"; author.addLayer(layer);
+        data.hasNamedObjectDictionary = true; data.namedObjectDictionary.handle = 0xA000u;
+        DRW_Dictionary* root = &data.namedObjectDictionary;
+        if (kind) {
+            data.namedObjectDictionary.m_entries = {{kind == 1u ? "ACAD_GROUP" : "ACAD_IMAGE_DICT",0xA010u,DRW_Dictionary::Entry::DxfHandleCode::HardOwner}};
+            DRW_Dictionary target; target.handle = 0xA010u; target.parentHandle = 0xA000u; data.dictionaries.push_back(target);
+            root = &data.dictionaries.back();
+        }
+        root->cloning = 2; root->hardOwner = 1;
+        root->extData.push_back(new DRW_Variant(1001,std::string("CHUNK_APP")));
+        root->extData.push_back(new DRW_Variant(1000,std::string("before-chunks")));
+        for (std::size_t n = 0u; n < sizes.size(); ++n) {
+            const auto payload = bytes(sizes[n],n);
+            root->extData.push_back(hexadecimal ? new DRW_Variant(1004,hex(payload,true)) : new DRW_Variant(1004,payload));
+        }
+        root->extData.push_back(new DRW_Variant(1000,std::string("after-chunks")));
+        root->extData.push_back(new DRW_Variant(1070,static_cast<std::int32_t>(65535)));
+        root->extData.push_back(new DRW_Variant(1071,static_cast<std::int32_t>(-1234567)));
+        std::ostringstream self; self << std::uppercase << std::hex << root->handle;
+        root->extData.push_back(new DRW_Variant(1005,self.str()));
+        auto* layerName = new DRW_Variant(1003,std::string("CHUNK_LAYER")); layerName->setLayerRefName("CHUNK_LAYER"); root->extData.push_back(layerName);
+        return root;
+    };
+    const auto check = [&](const dx_data& data, unsigned kind, const std::vector<std::size_t>& sizes) {
+        const DRW_Dictionary* root = data.hasNamedObjectDictionary ? &data.namedObjectDictionary : nullptr;
+        if (kind && root) {
+            const char* key = kind == 1u ? "ACAD_GROUP" : "ACAD_IMAGE_DICT";
+            const auto entry = std::find_if(root->m_entries.begin(),root->m_entries.end(),[&](const auto& value) { return value.m_name == key; });
+            if (entry == root->m_entries.end()) return false;
+            const auto target = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[&](const auto& value) { return value.handle == entry->m_handle; });
+            if (target == data.dictionaries.end() || target->parentHandle != root->handle) return false;
+            root = &*target;
+        }
+        if (!root || root->cloning != 2 || root->hardOwner != 1) return false;
+        std::vector<std::string> chunks;
+        for (std::size_t n = 0u; n < sizes.size(); ++n) {
+            const auto payload = bytes(sizes[n],n);
+            for (std::size_t offset = 0u; offset < payload.size() || (offset == 0u && payload.empty()); offset += 127u) {
+                const auto count = std::min<std::size_t>(127u,payload.size() - offset);
+                chunks.push_back(hex(std::vector<std::uint8_t>(payload.begin() + offset,payload.begin() + offset + count),false));
+            }
+        }
+        if (root->extData.size() != chunks.size() + 7u) return false;
+        const auto text = [&](std::size_t n, int code, const char* expected) {
+            const auto* value = root->extData[n]; return value && value->code() == code && value->c_str() && std::string(value->c_str()) == expected;
+        };
+        if (!text(0u,1001,"CHUNK_APP") || !text(1u,1000,"before-chunks")) return false;
+        for (std::size_t n = 0u; n < chunks.size(); ++n) {
+            const auto* value = root->extData[n + 2u];
+            if (!value || value->code() != 1004 || !value->c_str()) return false;
+            std::string actual(value->c_str());
+            for (auto& c : actual) if (c >= 'a' && c <= 'f') c = static_cast<char>(c - 'a' + 'A');
+            if (actual != chunks[n]) return false;
+        }
+        const auto next = chunks.size() + 2u;
+        std::uint32_t self = 0u;
+        return text(next,1000,"after-chunks") && root->extData[next + 1u]->code() == 1070
+            && static_cast<std::uint16_t>(root->extData[next + 1u]->i_val()) == 65535u
+            && root->extData[next + 2u]->code() == 1071 && root->extData[next + 2u]->i_val() == -1234567
+            && root->extData[next + 3u]->code() == 1005 && root->extData[next + 3u]->c_str()
+            && dx_raster_output::integer(std::string_view(root->extData[next + 3u]->c_str()),self,16) && self == root->handle
+            && text(next + 4u,1003,"CHUNK_LAYER");
+    };
+    unsigned cells = 0u, reexports = 0u;
+    std::vector<std::vector<std::size_t>> cases;
+    for (const auto size : {0u,1u,126u,127u,128u,254u,255u,256u,1024u}) cases.push_back({size});
+    cases.push_back({1u,0u,126u,128u,0u,2u});
+    if (!faultsOnly) {
+        for (unsigned kind = 0u; kind != 3u; ++kind) for (const bool hexadecimal : {false,true}) for (const auto& sizes : cases) {
+            dx_data data; (void)configure(data,kind,hexadecimal,sizes); dx_iface exporter, reader;
+            for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
+                if (!exporter.fileExport(path.string(),version,binary,&data,false,true))
+                    return fail("generated dictionary XDATA chunk export refused kind=" + std::to_string(kind) + " hex=" + std::to_string(hexadecimal)
+                        + " firstSize=" + std::to_string(sizes.front()) + " version=" + std::to_string(version) + " binary=" + std::to_string(binary));
+                if ((kind == 2u && !Access::rasterDictionaryCommon(exporter))
+                    || (kind != 2u && Access::generatedRootCommonCount(exporter) != (kind == 1u ? 2u : 1u))) return fail("dictionary binary chunk comparison was skipped");
+                dx_data first;
+                if (!reader.fileImport(path.string(),&first,false) || !check(first,kind,sizes)) return fail("generated dictionary chunk output/readback changed bytes or boundaries");
+                ++cells;
+                if (!exporter.fileExport(path.string(),version,!binary,&first,false,true)) return fail("actual-import dictionary chunks failed cross-encoding reexport");
+                dx_data second;
+                if (!reader.fileImport(path.string(),&second,false) || !check(second,kind,sizes)) return fail("actual-import chunk reexport/readback changed bytes or boundaries");
+                ++reexports;
+            }
+        }
+        if (cells != 720u || reexports != 720u) return fail("generated dictionary chunk matrix skipped a cell");
+        std::cout << "Generated dictionary chunk authored cells=" << cells << " actual-import cross-encoding reexports=" << reexports << '\n';
+        return true;
+    }
+    class Direct final : public dx_iface {
+    public:
+        std::function<void()> afterObjects, beforeFinalize;
+        void writeObjects() override { if (afterObjects) afterObjects(); }
+        bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
+    };
+    const auto sizes = cases.back();
+    unsigned wireRetries = 0u, repartitionRetries = 0u, guardRetries = 0u, lateRetries = 0u, budgets = 0u;
+    for (unsigned kind = 0u; kind != 3u; ++kind) for (const bool hexadecimal : {false,true}) for (const bool binary : {false,true}) {
+        dx_data data; auto* root = configure(data,kind,hexadecimal,sizes); const auto baseline = *root;
+        Direct direct; direct.cData = &data; direct.currentBlock = data.mBlock;
+        dxfRW codec(path.string().c_str()); direct.dxfW = &codec;
+        std::map<std::uint32_t,std::uint32_t> aliases{{0xA000u,0xCu}};
+        if (kind == 1u) aliases.emplace(0xA010u,0xDu);
+        codec.setHandleRemap(aliases); codec.setDxfWriteRecordInventoryEnabled(true);
+        if (!codec.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(data.namedObjectDictionary),
+                kind == 1u ? std::make_unique<DRW_Dictionary>(*root) : nullptr,
+                kind == 2u ? std::make_unique<DRW_Dictionary>(*root) : nullptr,0u)) return fail("dictionary chunk direct plan setup failed");
+        int selected = -1; unsigned fault = 0u, guard = 0u; bool applied = false, repartition = false;
+        codec.setDxfObjectsWriteInspector([&](auto view) {
+            if (guard == 1u) throw std::runtime_error("dictionary chunk inspector exception");
+            if (guard == 2u) (void)codec.write(&direct,DRW::AC1032,binary);
+            if (guard == 3u) (void)codec.setDxfObjectsWriteInspector({});
+            if (guard == 4u) (void)codec.read(&direct,false);
+            if (guard == 5u) codec.setDxfWriteRecordInventoryEnabled(false);
+            std::string changed(view.bytes);
+            if (selected >= 0 || repartition) {
+                struct Span { std::size_t begin, end; std::string payload; };
+                std::vector<Span> chunks;
+                dx_raster_output::Cursor input(view.bytes,view.binary); dx_raster_output::Token token;
+                const auto target = kind == 0u ? 0xCu : kind == 1u ? 0xDu : codec.dxfWriteImageDictionaryHandle();
+                bool targetRecord = false;
+                while (!input.done()) {
+                    const auto begin = input.position(); if (!input.next(token)) return false;
+                    if (token.code == 0) {
+                        dx_raster_output::Cursor peek(view.bytes.substr(input.position()),view.binary); dx_raster_output::Token self; std::uint32_t handle = 0u;
+                        targetRecord = token.text == "DICTIONARY" && peek.next(self) && self.code == 5
+                            && dx_raster_output::integer(self.text,handle,16) && handle == target;
+                    }
+                    if (targetRecord && token.code == 1004) chunks.push_back({begin,input.position(),std::string(token.text)});
+                }
+                if (chunks.size() != 7u) return false;
+                if (repartition) {
+                    // Preserve concatenated bytes and field count, but move
+                    // one byte across a source boundary: 126/127 -> 127/126.
+                    const auto unit = binary ? 1u : 2u;
+                    const auto a = chunks[2].payload + chunks[3].payload.substr(0u,unit);
+                    const auto b = chunks[3].payload.substr(unit);
+                    if (a + b != chunks[2].payload + chunks[3].payload) return false;
+                    const auto encode = [&](const std::string& payload) {
+                        if (!binary) return std::string("1004\n") + payload + "\n";
+                        std::string result; result.push_back(static_cast<char>(1004u & 255u)); result.push_back(static_cast<char>(1004u >> 8u));
+                        result.push_back(static_cast<char>(payload.size())); result += payload; return result;
+                    };
+                    changed.replace(chunks[2].begin,chunks[3].end - chunks[2].begin,encode(a) + encode(b)); applied = true;
+                } else {
+                    const auto& chunk = chunks.at(static_cast<std::size_t>(selected));
+                    if (fault == 1u) changed.erase(chunk.begin,chunk.end - chunk.begin);
+                    else if (fault == 2u) changed.insert(chunk.end,changed.substr(chunk.begin,chunk.end - chunk.begin));
+                    else if (fault == 3u) {
+                        if (binary) changed[chunk.begin] = static_cast<char>(1005u & 255u);
+                        else changed.replace(chunk.begin,changed.find('\n',chunk.begin) - chunk.begin,"1005");
+                    } else if (binary) {
+                        if (chunk.payload.empty()) { changed[chunk.begin + 2u] = 1; changed.insert(chunk.begin + 3u,1u,'\0'); }
+                        else changed[chunk.begin + 3u] ^= 1;
+                    } else {
+                        const auto start = changed.find('\n',chunk.begin) + 1u;
+                        if (chunk.payload.empty()) changed.insert(start,"00");
+                        else changed[start] = changed[start] == '0' ? '1' : '0';
+                    }
+                    applied = true;
+                }
+            }
+            view.bytes = changed;
+            return (kind != 2u || Access::rasterObjects(direct,view)) && Access::generatedRoots(direct,view);
+        });
+        if (kind == 2u) codec.setDxfEntitySectionsWriteInspector([&](const auto& view, auto section) { return Access::rasterImages(direct,view,section); });
+        const auto write = [&]() { Access::resetRasterOutput(direct); return codec.write(&direct,DRW::AC1032,binary); };
+        dx_iface reader;
+        const auto readback = [&]() {
+            dx_data result;
+            return reader.fileImport(path.string(),&result,false) && check(result,kind,sizes)
+                && Access::generatedRootsFinal(direct,kind == 1u ? 2u : 1u)
+                && (kind != 2u || Access::rasterFinal(direct,0u));
+        };
+        if (!write() || !readback()) return fail("dictionary chunk direct positive/readback failed");
+        const auto budget = [&](std::size_t value) { if (kind == 2u) Access::rasterOutputBudget(direct,value); else Access::generatedRootBudget(direct,value); };
+        std::size_t low = 0u, high = 1024u * 1024u;
+        while (low < high) { const auto middle = low + (high - low) / 2u; budget(middle); if (write()) high = middle; else low = middle + 1u; }
+        budget(low ? low - 1u : 0u); const bool below = write(); budget(low);
+        if (!low || below || !write() || !readback()) return fail("dictionary chunk output one-under/exact budget retry failed");
+        budget(dx_iface::ImageDefinitionCaptureMaxRetainedBytes); ++budgets;
+        const auto atomicFailure = [&]() {
+            const std::string sentinel = "DICTIONARY_CHUNK_ATOMIC_DESTINATION";
+            { std::ofstream output(path,std::ios::binary); output << sentinel; }
+            const bool wrote = write(); std::ifstream input(path,std::ios::binary);
+            return !wrote && std::string((std::istreambuf_iterator<char>(input)),{}) == sentinel;
+        };
+        for (selected = 0; selected != 7; ++selected) for (fault = 0u; fault != 4u; ++fault) {
+            applied = false; const bool failed = atomicFailure(); const auto saved = selected; selected = -1;
+            if (!applied || !failed || !write() || !readback()) return fail("dictionary chunk byte/framing fault or restored-byte retry failed");
+            selected = saved; ++wireRetries;
+        }
+        selected = -1; repartition = true; applied = false; const bool failed = atomicFailure(); repartition = false;
+        if (!applied || !failed || !write() || !readback()) return fail("same-byte XDATA chunk repartition was accepted or did not retry");
+        ++repartitionRetries;
+        for (guard = 1u; guard != 6u; ++guard) {
+            const bool refused = atomicFailure(); const auto saved = guard; guard = 0u;
+            if (!refused || !write() || !readback()) return fail("dictionary chunk inspector guard/exception retry failed");
+            guard = saved; ++guardRetries;
+        }
+        guard = 0u;
+        const std::vector<std::function<void()>> mutations{
+            [&]() { if (hexadecimal) (*root->extData[2]->content.s)[0] = '0'; else (*root->extData[2]->content.b)[0] ^= 1; },
+            [&]() { root->extData[1]->addString(1000,"late-before"); },
+            [&]() { root->extData[root->extData.size() - 2u]->addString(1005,"DEAD"); },
+            [&]() { delete root->extData.back(); root->extData.pop_back(); }
+        };
+        for (const auto& mutation : mutations) for (const bool final : {false,true}) {
+            if (final) direct.beforeFinalize = mutation; else direct.afterObjects = mutation;
+            if (!atomicFailure()) return fail("dictionary chunk late source mutation was published");
+            direct.beforeFinalize = {}; direct.afterObjects = {}; *root = baseline;
+            if (!write() || !readback()) return fail("dictionary chunk restored source did not retry");
+            ++lateRetries;
+        }
+        direct.dxfW = nullptr;
+    }
+    if (wireRetries != 336u || repartitionRetries != 12u || guardRetries != 60u || lateRetries != 96u || budgets != 12u)
+        return fail("dictionary chunk fault matrix skipped a control");
+    std::cout << "Dictionary chunk wire retries=" << wireRetries << " same-byte repartition retries=" << repartitionRetries
+              << " inspector retries=" << guardRetries << " late-source retries=" << lateRetries << " output budget controls=" << budgets << '\n';
+    return true;
+}
+
 bool generatedRootCommonReferenceClosure() {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -32232,6 +32484,10 @@ int main(int argc, char** argv) {
         return rasterDwgSourceProfileEed(false, false, true) && rootedImageDictionaryUnselectedControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-root-common-closure")
         return generatedRootCommonReferenceClosure() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-binary-chunks")
+        return generatedDictionaryBinaryChunks() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-chunk-faults")
+        return generatedDictionaryBinaryChunks(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--image-dictionary-imported-common")
         return rootedImageDictionaryUnselectedControls(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")

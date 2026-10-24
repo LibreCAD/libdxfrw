@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5by generated-dictionary XDATA binary transport",
+  "date": "2026-10-24",
+  "parentCommit": "16e33e04507d7c1b863b62b7110db354f4859d9d",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "GENERATED_ROOT_BINARY_CHUNK_COMPARISON_FIXED_BROADER_SOURCE_AND_SEMANTIC_QUALIFICATION_OPEN",
+  "baseline": {
+    "result": "GAP_REPRODUCED", "testExitCode": 8, "wallSeconds": 0.99,
+    "observation": "NOD/BINARY128-byte authored XDATA to AC1015 ASCII refuses during OBJECTS emission after smaller cases pass",
+    "cause": "Writer emits one source1004 value as multiple127-byte transport chunks; decoded variants therefore differ in cardinality from the source model",
+    "allMatrixCellsExercisedBeforeBaselineAbort": false,
+    "buildLog": "/tmp/rpp5by-baseline-build.log", "testLog": "/tmp/rpp5by-baseline-tests.log"
+  },
+  "implementation": {
+    "writerContract": "Existing writeExtDataRange accepts BINARY/valid HEX1004 and emits each source value in127-byte chunks, with one empty chunk for an empty value; writer encoding unchanged",
+    "comparison": "Allocation-free ordered per-source-value transport comparison checks exact chunk count/length/content, explicit empty and adjacent values, HEX byte equivalence across casing/encodings and surrounding nonbinary fields",
+    "noConcatenation": "No aggregate byte join, normalized chunk-array allocation or cardinality waiver; malformed/repartitioned transport refuses",
+    "remainingCommonChecks": "Entire XDATA sequence is verified before deep-copied payload ownership is moved into local RAII holders and remaining common-link/appData checks execute",
+    "accounting": "Precharge projected item count, decoded HEX expansion and additional variant/string slots for decoded model and comparison copy, retaining existing logical allowance",
+    "sourceAndFinalization": "Frozen/public source models remain unchanged; existing snapshots, source identity/owner joins, reserved groups, physical framing and final reference cardinality remain required",
+    "publicApiDataRecordLayoutOrDrwInterfaceVirtualsChanged": false,
+    "dwgParserGrammarDispatchOrWriterEncodingChanged": false,
+    "documentMergePolicyChanged": false,
+    "issueMasksWaivedOrSupportClaimsPromoted": false
+  },
+  "controls": {
+    "newCTests": ["dwg2dxf_generated_dictionary_binary_chunks", "dwg2dxf_generated_dictionary_chunk_faults"],
+    "unitBinarySelectors": ["--generated-dictionary-binary-chunks", "--generated-dictionary-chunk-faults"],
+    "source": "Public scratch authoring followed by actual DXF imports and cross-encoding reexports; not independent native producer/source evidence",
+    "dictionaryKinds": ["NOD", "ACAD_GROUP DICTIONARY", "ACAD_IMAGE_DICT DICTIONARY"],
+    "sourceRepresentations": ["BINARY byte vector", "Mixed-case HEX STRING"],
+    "targetRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "binary"],
+    "singlePayloadByteLengths": [0, 1, 126, 127, 128, 254, 255, 256, 1024],
+    "adjacentSourceFragmentByteLengths": [1, 0, 126, 128, 0, 2],
+    "authoredExportReadbackCells": 720,
+    "actualImportCrossEncodingReexportReadbackCells": 720,
+    "readbackAssertions": ["Exact per-field byte content/chunk lengths", "Explicit empty chunks", "Surrounding markers and field order", "APPID/LAYER names", "Signed-short bit transport", "Signed1071 sentinel", "Remapped self references", "Dictionary ownership/flags", "Common comparison was not skipped"],
+    "wireAtomicRefusalRestoredByteReadbackRetries": 336,
+    "wireFaultKinds": ["Changed payload, including empty-to-nonempty", "Chunk deletion", "Chunk duplication", "Wrong group code"],
+    "sameAggregateBytesRepartitionRefusalRetries": 12,
+    "repartitionControl": "Assert aggregate bytes and field count remain unchanged while126/127-byte adjacent fields become127/126; prescribed source-to-wire correspondence must still reject",
+    "inspectorGuardExceptionRetries": 60,
+    "lateSourceAtomicRefusalRestorationRetries": 96,
+    "latePhases": ["After object callback before inspection", "Before consumer finalization"],
+    "lateSourceMutations": ["Payload byte or HEX nibble", "Prefix marker", "Mapped self-reference", "Erased field"],
+    "outputOneUnitUnderExactBudgetControls": 12,
+    "destinationSentinelsPreservedOnRefusal": true,
+    "correctedBytesSourcesAndPoliciesRetryOnSameCodec": true,
+    "independentNativeProducerOrApplicationSemanticQualification": "NOT_RUN"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS", "strictWarnings": true, "warningSuppression": false,
+      "affectedSeparatelyCompiledAdaptersRebuiltBeforeFinalChecks": true,
+      "normalLog": "/tmp/rpp5by-final-build.log", "asanLog": "/tmp/rpp5by-asan-build.log"
+    },
+    "focused": {
+      "result": "PASS", "passed": 16, "total": 16, "wallSeconds": 24.52, "parallelism": 3,
+      "tests": ["dwg2dxf_generated_dictionary_binary_chunks", "dwg2dxf_generated_dictionary_chunk_faults", "dwg2dxf_image_dictionary_imported_common", "dwg2dxf_generated_root_common_closure", "dwg2dxf_rooted_image_dictionary_closure", "dwg2dxf_rooted_custom_imagedef", "dwg2dxf_selected_raster_reactor_metadata", "libdxfrw_group_adapter_roundtrip", "dwg2dxf_xrecord_group_reference_admission", "libdxfrw_extension_graph_limits", "libdxfrw_generated_dictionary_source_metadata", "libdxfrw_generated_dictionary_metadata_allocation", "libdxfrw_graph_preservation", "libdxfrw_public_header_hygiene", "dwg2dxf_generated_image_dictionary_source_identity", "libdxfrw_material_root_output_compatibility"],
+      "log": "/tmp/rpp5by-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS", "passed": 5, "total": 5, "wallSeconds": 11.91, "parallelism": 3,
+      "tests": ["libdxfrw_wave1", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg_object_vectors", "libdxfrw_hardening", "libdxfrw_dxf_fixtures"],
+      "log": "/tmp/rpp5by-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS", "passed": 4, "total": 4, "wallSeconds": 2.47, "parallelism": 3,
+      "tests": ["libdxfrw_dwg_reader_matrix", "libdxfrw_dwg_fixtures", "libdxfrw_named_resource_import_evidence", "libdxfrw_3d_consumer_probe"],
+      "log": "/tmp/rpp5by-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS", "passed": 10, "total": 10, "wallSeconds": 54.83, "parallelism": 3,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "tests": ["dwg2dxf_generated_dictionary_binary_chunks", "dwg2dxf_generated_dictionary_chunk_faults", "dwg2dxf_image_dictionary_imported_common", "dwg2dxf_generated_root_common_closure", "dwg2dxf_rooted_image_dictionary_closure", "dwg2dxf_selected_raster_reactor_metadata", "libdxfrw_group_adapter_roundtrip", "dwg2dxf_xrecord_group_reference_admission", "libdxfrw_extension_graph_limits", "libdxfrw_material_root_output_compatibility"],
+      "log": "/tmp/rpp5by-asan-final.log"
+    },
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "independentProducerPlatformSemanticOrThroughputMemoryBenchmarkClaim": false
+  },
+  "remaining": [
+    "Audit/reproduce transport-cardinality behavior in standard non-generated DICTIONARY/GROUP/XRECORD proof using actual admitted source frames before generalizing comparison",
+    "Probe remaining scalar representation corners such as writer-accepted INTEGER64 source1071 within32-bit range; code-inspection hypothesis, not a reproduced gap",
+    "Independent APPID/LAYER/XRECORD source-profile evidence, native sparse class cardinality, full IMAGE geometry/common state and broader named-root/document closure",
+    "Explicit verified ownership/remapping contract before multi-document composition"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0, "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false, "unrelatedUntrackedFilesPreserved": true, "remoteMutations": false
+  }
+}
