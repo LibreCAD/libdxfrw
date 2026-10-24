@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5bk CLI-optional test registration and ownership regression controls (2026-10-24):** tests-enabled/CLI-disabled configurations now generate and build without a dummy converter target. Only actual CLI-dependent registrations are omitted; all384 prior default test commands/properties are unchanged, plus one new matrix regression. Static/shared and Makefiles/Ninja Multi-Config matrices pass, including14 explicit-control diagnostics and dependency/orphan checks. Final78/78 fresh CLI-off fast,58/58 CLI-on fast,51/51 ASan CLI-off,7/7 shared CLI-off and5/5 owning checks pass. Broader validation also corrected stale NOD-350 normalization assertions to the implemented RPP-5ao source-role preservation contract, with exact350/360 and hard-owner readback controls. No production parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED; external qualification remains deferred. [Implementation record](#implementation-progress-rpp-5bk-cli-optional-test-registration-and-ownership-regression-controls-2026-10-24) · [receipt](docs/research/rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5bl independent CLASSES record/text observer (2026-10-24):** a standalone allocation-free C++14 observer now records class scalar/text spans, validates canonical UTF-8 comparisons and supports exact-record or prefix-stream consumption without libdxfrw linkage. ODA bit-short and observed producer bit-long version trailers remain explicit, including common compact-value ambiguity. Literal, eight-revision/profile/alignment, truncation and Unicode controls pass:163 positive,20,670 refusal/truncation and10 text cases. Focused4/4, ASan and standalone ASan/UBSan checks pass; all385 prior CTest commands/properties remain unchanged. This completes a needed record-observer prerequisite, **not** whole CLASSES-section or native-source qualification: bounded source capture, independent framing and immutable identity joins remain open. No production parser/API, fixture or support claim changed; strict admission stays CLOSED. [Implementation record](#implementation-progress-rpp-5bl-independent-classes-recordtext-observer-2026-10-24) · [receipt](docs/research/rpp5bl-independent-classes-record-text-observer-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5bk CLI-optional test registration and ownership regression controls (2026-10-24):** tests-enabled/CLI-disabled configurations now generate and build without a dummy converter target. Only actual CLI-dependent registrations are omitted; all384 prior default test commands/properties are unchanged, plus one new matrix regression. Static/shared and Makefiles/Ninja Multi-Config matrices pass, including14 explicit-control diagnostics and dependency/orphan checks. Final78/78 fresh CLI-off fast,58/58 CLI-on fast,51/51 ASan CLI-off,7/7 shared CLI-off and5/5 owning checks pass. Broader validation also corrected stale NOD-350 normalization assertions to the implemented RPP-5ao source-role preservation contract, with exact350/360 and hard-owner readback controls. No production parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED; external qualification remains deferred. [Implementation record](#implementation-progress-rpp-5bk-cli-optional-test-registration-and-ownership-regression-controls-2026-10-24) · [receipt](docs/research/rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5bj audited test-adapter build sharing (2026-10-24):** four identical tests/ adapter compilations now share one private, uninstalled OBJECT configuration; the CLI, fixture-defined root tests and MSVC Wave 1 seam remain separate. Total adapter compile commands fall from13 to10. Compile-context guards, explicit opt-out and PIC/export fallbacks retain correctness;11 configure controls pass with Makefiles and Ninja Multi-Config. Final56/56 fast,47/47 ASan and5/5 owning suites pass, with normal/ASan LibreCAD_3 builds. One local four-target adapter rebuild measured51.791 s separate versus28.918 s pooled; this is not a full-build performance claim. The tests-on/CLI-off configuration gap is reproduced on both baseline and candidate and has an implementation-ready follow-up below. No parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED. [Implementation record](#implementation-progress-rpp-5bj-audited-test-adapter-build-sharing-2026-10-24) · [receipt](docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json).
 
@@ -119072,3 +119074,104 @@ fixture for this slice. Earlier receipts remain capture-time snapshots unchanged
 
 Receipt:
 [`rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json`](docs/research/rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json).
+
+## Implementation progress — RPP-5bl independent CLASSES record/text observer (2026-10-24)
+
+The independent record-byte/text primitive is implemented and verified. The
+parent CLASSES/text/source-profile item remains open: this is its required
+decoder prerequisite, not a substitute for source capture, section framing,
+native-file correlation or external semantic qualification. This implementation,
+plan and capture-time receipt are checkpointed together in the local commit
+reported at handoff. No remote mutation is included.
+
+1. [x] Read ODA v5.4.1 sections2/10 and visually inspect complete pages7–9 and
+   86–88 from the verified local PDF copy identified in the receipt. Its class
+   DWG/maintenance fields are BS, whereas the current library uses BL for
+   observed producer compatibility. LibreDWG's active decoder uses BS; the
+   ACadSharp reader and writer use BL. Common compact values can encode alike;
+   parser agreement or self-writer readback cannot resolve that distinction.
+   Keep the documented and producer layouts explicit rather than treating a
+   compatible layout as specification evidence. Primary peer sources:
+   [LibreDWG](https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/decode.c),
+   [ACadSharp](https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgClassesReader.cs).
+   LibreDWG's inspected active path also stores both trailing unknown reads
+   into `unknown_1`; ACadSharp discards them. Neither peer's resulting metadata
+   is sufficient evidence for the distinct unknown fields. Keep source spans
+   and values separate; the scratch control uses distinct0/-1 unknown values.
+2. [x] Add uninstalled `dx_dwg_class_wire.h`, independent of production buffers,
+   parsers, writers and codecs. Observe class number, proxy/zombie/item flags,
+   instance count and version/unknown trailer fields, with exact scalar and
+   app/C++/record text length/unit spans. Cover eight revision profiles, inline
+   byte strings and detached Unicode streams. Retain unknown item-class flags
+   as unknown metadata; do not introduce object-type dispatch from these tests.
+3. [x] Separate exact-record observation from one-record prefix scanning.
+   Prefix results return scalar/string cursors for the future independent
+   section iterator; they do not certify the remaining bytes, padding, count,
+   CRC, sentinels or section completion. Bound every view/read and the per-record
+   work window. Invalid/truncated input and unconsumed exact-record bits fail.
+4. [x] Compare canonical UTF-8 without production Unicode helpers. Verify
+   UTF-16LE scalar/surrogate sequences and keep NUL/invalid-scalar issues
+   explicit. Non-ASCII legacy bytes retain unknown-codepage status and cannot
+   acquire Unicode semantics by matching an expected decoded name. Wire-shape
+   observation is distinct from text/class semantic qualification.
+5. [x] Add literal93-bit class and26-bit Unicode anchors, scalar boundaries,
+   eight revisions × two explicit trailer profiles × eight bit alignments,
+   every shorter scalar/string prefix, large-profile disagreement, common-value
+   ambiguity, invalid views/BL tags/counts, surrogate/NUL/codepage controls and
+   two-record prefix consumption. Final counts:163 positive cases,20,670
+   refusal/truncation cases and10 text controls. No production encoder or
+   external drawing fixture supplies these scratch-authored byte controls.
+6. [x] Build under actual strict C++14; the binary links only libc++/libSystem,
+   not libdxfrw. Focused four-test checkpoint passes in5.85 s, ASan passes in
+   0.15 s and standalone combined ASan/UBSan controls pass. Existing LibreCAD_3
+   compile gate passes; all385 predecessor CTest commands/properties are
+   unchanged, with one new independent test. No production source/API, public
+   callback, parser, output behavior or installed interface changed. No full
+   project/native/external qualification or performance claim is implied.
+
+Implementation-ready continuation of the still-open source-evidence item:
+
+- [ ] **Source lease.** Add opt-in bounded immutable CLASSES bytes beside the
+  existing parser-derived coverage report. Query the consumer before class
+  reading; a new request virtual must default false, not pure. Capture once
+  for consumers requesting evidence, with explicit failure/too-large/not-captured
+  states and a charged pre-allocation cap. Preserve the ordinary 2D path and
+  require source-compatibility rebuild checks if public types/virtuals change.
+- [ ] **All extraction paths.** Bind version, application-maintenance byte,
+  section descriptor, address space and actual physical/decoded base. Account
+  for reader15 physical data, reader18 decoded cleanup lifetime and reader21
+  temporary decoded storage. Do not reconstruct purported source bytes from
+  decoded class metadata or let failed capture look like an empty valid table.
+- [ ] **Independent framing.** Discover/count records from actual section
+  framing, not production per-record boundaries. Validate sentinels, lengths,
+  string footer/end, CRC status and complete consumption, including empty
+  max-class499 sections. Use the prefix observer and retain BS/BL candidate
+  ambiguity/disagreement; do not select a schema from expected output values.
+- [ ] **Immutable joins.** Match stream ordinal, class number, all fields,
+  independent name bytes and range/address-space evidence to frozen import
+  metadata and actual IMAGEDEF/reactor class identities. Reject changed,
+  duplicate, cross-generation and late-added source envelopes. Do not clear
+  `ClassEnvelope` or `TextSemanticsNotIndependent` merely because these unit
+  controls pass or a parser-derived report says complete.
+- [ ] **Failure/readiness gates.** Exercise cap/allocation/callback failures,
+  malformed framing, partial reads, source/profile mutation, retries and byte
+  truncation before native-file joins. Preserve default 2D consumers and the
+  opt-in 3D path. Verify producer-specific ≥256 fields using actual captured
+  source evidence; do not change the production class parser universally based
+  on its own writer or a peer decoder alone.
+- [ ] Producer LAYER/codepage byte-order evidence, full IMAGE/common-state,
+  NOD/image-dictionary and document closure, broader APPID/LAYER/XRECORD,
+  AC1024/container/SUN, TABLE/extension, MATERIAL and integration remain open.
+  J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
+  FreeCAD and independent ACIS/ACDS semantic/kernel qualification stay **NOT_RUN**.
+
+Keep strict admission **CLOSED** and promote no support claim from this
+prerequisite. Refresh completion/evidence/next action after each implemented
+item, resolve safe local blockers and continue. Report actual commits only.
+Prefer focused fast checks and affected checkpoints; do not repeat full suites
+for unchanged production paths. No DWG/DXF fixture was added/downloaded/committed;
+all17 existing untracked drawings and unrelated files remain excluded. Earlier
+receipts remain unchanged capture-time snapshots.
+
+Receipt:
+[`rpp5bl-independent-classes-record-text-observer-2026-10-24.json`](docs/research/rpp5bl-independent-classes-record-text-observer-2026-10-24.json).

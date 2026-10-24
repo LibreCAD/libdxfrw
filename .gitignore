@@ -10,6 +10,7 @@ dwg2dxf
 !/dwg2dxf/
 /dwg2dxf/*
 !/dwg2dxf/dx_raster_dwg_wire.h
+!/dwg2dxf/dx_dwg_class_wire.h
 !/dwg2dxf/dx_raster_output.h
 !/dwg2dxf/dx_standard_output.h
 !/dwg2dxf/dx_symbol_output.h
