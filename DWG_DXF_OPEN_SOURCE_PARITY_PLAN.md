@@ -1,4 +1,6 @@
-**Newest implementation progress — RPP-5bh selected-reactor metadata and exact raster output proof (2026-10-24; uncommitted):** class-version2 selected reactors retain modeled extension/reactor links, application data and XDATA; only their generated identity/image owner changes. Independent staged ASCII/binary token checks cover exact IMAGEDEF/reactor fields and actual IMAGE340/360 edges, followed by final source/identity/target checks.12 authored/reexport cells,12 native projections,296 field/role fault retries,30 graph/late-source retries,10 inspector guards, frozen literals, BLOCKS, chunked-XDATA, compatible-unqualified text and accounted-budget controls pass. Final47/47 fast,43/43 ASan and5/5 owning suites, strict compilation and normal/ASan lc3 checks pass. No new pure callback, drawing fixture, commit, remote mutation or support promotion. Strict admission remains CLOSED; CLASSES/text/producer semantics, full IMAGE/document closure and external qualification remain open. [Implementation record](#implementation-progress-rpp-5bh-selected-reactor-metadata-and-exact-raster-output-proof-2026-10-24) · [receipt](docs/research/rpp5bh-selected-reactor-metadata-and-exact-raster-output-proof-fast-slice-2026-10-24.json).
+**Newest checkpoint — RPP-5bi implementation committed as `70b5af2` (2026-10-24):** the dependency-complete DWG/DXF parity work through RPP-5bh and its evidence are committed:98 modified tracked paths,21 required support sources and2,057 research receipts. A clean archive of the committed tree builds the library, CLI, adapter tests and LibreCAD_3 compile check, with3/3 raster regressions passing in3.11 s. All17 unverified DWG fixtures and local configuration/caches/build outputs remain excluded. Prior47/47 fast,43/43 ASan and5/5 owning results remain scoped to their recorded validation; no full-project suite or new external qualification is claimed. Strict admission stays CLOSED and the six J items stay DEFERRED_EXTERNAL. [Commit record and next steps](#commit-checkpoint-rpp-5bi-dependency-complete-implementation-and-plan-update-2026-10-24) · [receipt](docs/research/rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json).
+
+**Previous implementation progress — RPP-5bh selected-reactor metadata and exact raster output proof (2026-10-24; uncommitted):** class-version2 selected reactors retain modeled extension/reactor links, application data and XDATA; only their generated identity/image owner changes. Independent staged ASCII/binary token checks cover exact IMAGEDEF/reactor fields and actual IMAGE340/360 edges, followed by final source/identity/target checks.12 authored/reexport cells,12 native projections,296 field/role fault retries,30 graph/late-source retries,10 inspector guards, frozen literals, BLOCKS, chunked-XDATA, compatible-unqualified text and accounted-budget controls pass. Final47/47 fast,43/43 ASan and5/5 owning suites, strict compilation and normal/ASan lc3 checks pass. No new pure callback, drawing fixture, commit, remote mutation or support promotion. Strict admission remains CLOSED; CLASSES/text/producer semantics, full IMAGE/document closure and external qualification remain open. [Implementation record](#implementation-progress-rpp-5bh-selected-reactor-metadata-and-exact-raster-output-proof-2026-10-24) · [receipt](docs/research/rpp5bh-selected-reactor-metadata-and-exact-raster-output-proof-fast-slice-2026-10-24.json).
 
 **Previous implementation progress — RPP-5bg DWG raster source profiles and EED dependencies (2026-10-24; uncommitted):** bounded revision/layout/fixed-or-custom-class profiles now include independent EED chunk/item spans, APPID role5 and eight-byte LAYER observations, frozen string/codepage metadata and source-name dependency joins. Custom IMAGEDEF raw callbacks retain the original encoded class envelope while preserving typed linkImage compatibility; six native revisions observe remapped class505. New controls pass12 projections,32 raw-EED atomic refusal/retries and18 dependency-name mutation/restore retries.46/46 fast tests pass in14.98 s,42/42 ASan in25.40 s and five owning suites in41.28 s; builds, strict checks and lc3 pass. Byte-order disagreements, independent CLASSES/text semantics and exact output qualification stay explicit and unqualified; strict admission stays closed and all six J items remain DEFERRED_EXTERNAL. No drawing fixture, commit or remote mutation. [Implementation record](#implementation-progress-rpp-5bg-raster-source-profiles-and-eed-dependency-evidence-2026-10-24) · [receipt](docs/research/rpp5bg-raster-dwg-source-profiles-and-eed-dependencies-fast-slice-2026-10-24.json).
 
@@ -118815,3 +118817,68 @@ unfinished and strict admission stays CLOSED.
 
 Receipt:
 [`rpp5bh-selected-reactor-metadata-and-exact-raster-output-proof-fast-slice-2026-10-24.json`](docs/research/rpp5bh-selected-reactor-metadata-and-exact-raster-output-proof-fast-slice-2026-10-24.json).
+
+## Commit checkpoint — RPP-5bi dependency-complete implementation and plan update (2026-10-24)
+
+Implementation commit: `70b5af27d38e2b5bb9c3d2362c4131925fc2587e` —
+**Checkpoint DWG/DXF parity implementation and raster output proofs**.
+Parent: `de27a3391a624aba03ca71f3583c4b3a6e6396a9`.
+Verified tree: `795f2f291df87932805211eb73adb0f2f6fc01fc`.
+
+1. [x] Commit the implementation and prerequisites through RPP-5bh as one
+   dependency-complete checkpoint. The latest slice could not be committed as
+   a buildable standalone change against the prior HEAD: its earlier plan code
+   was also uncommitted. The checkpoint includes98 modified tracked paths,
+   21 required new implementation/support files and2,057 research receipts:
+   2,176 paths in total. It is not represented as a raster-only diff or as a
+   fresh review/qualification of every earlier change.
+2. [x] Fix source visibility for the five required converter support files
+   hidden by the historical directory ignore. Include those sources explicitly
+   alongside the two raster headers. Keep development settings, caches, build
+   outputs, scratch files and all17 unverified DWG fixtures outside the commit.
+   No new DWG/DXF fixture was committed, no local file was deleted, and no
+   remote was changed.
+3. [x] Validate the exact staged tree in a new temporary archive without any
+   untracked/ignored workspace dependency or the excluded sample drawings.
+   Configure with tests/CLI enabled, build dxfrw, dwg2dxf,
+   libdxfrw_dwg2dxf_adapter_tests and lc3_compat_check under the existing strict
+   warning policy. All builds pass;3/3 raster regression selectors pass in3.11 s
+   at parallelism3. The same three existing-worktree tests pass in3.14 s.
+   The committed tree ID exactly equals the archive's validated tree ID.
+4. [x] Preserve the prior RPP-5bh evidence as capture-time snapshots:
+   47/47 fast,43/43 ASan and5/5 affected owning suites passed there. This commit
+   operation adds source visibility only, not another parser/writer change.
+   No full-project test sweep or new native/external qualification ran. Earlier
+   receipts, including their original uncommitted-state and historical file
+   hashes, remain unchanged rather than being retrospectively re-attested.
+5. [x] Update this plan with the implementation commit, actual committed scope,
+   clean-tree verification, exclusions and the next executable work. Historical
+   "uncommitted" statements in preceding sections describe their capture time;
+   this checkpoint supersedes them for the implementation now committed.
+
+Remaining / implementation-ready queue:
+
+- [ ] Independent source CLASSES/text and producer LAYER/codepage byte-order
+  qualification; retain every unknown/unbound/profile-issue state until actual
+  independent evidence resolves it. A local native writer is not that evidence.
+- [ ] Full IMAGE geometry/common-state, complete NOD/image-dictionary entry and
+  owner semantics, unmodeled extension kinds and composed document closure.
+  Current field/edge facts cannot promote strict whole-document admission.
+- [ ] Audited converter build deduplication: compare compile definitions,
+  options, include/framework/link interfaces; share only identical uninstalled
+  object configurations; keep sanitizer variants distinct; measure build
+  effects and rerun focused CLI/lc3/owning gates. Do not assert an unmeasured gain.
+- [ ] Broader APPID/LAYER, legacy XRECORD, AC1024/container/SUN, TABLE/extension,
+  MATERIAL, warning-debt and composed integration work remain in the queue.
+- [ ] J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native
+  Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+  remain **NOT_RUN**. These limits do not stop safe local work or promote claims.
+
+After each implemented item, update completion/evidence/next action, resolve safe
+local blockers and continue. Report progress after actual commits. Prefer fast
+tests during slices and owning suites at composed checkpoints; repeat when code
+corrections invalidate a checkpoint. No push/PR/merge is authorized by this local
+commit request. Strict admission remains **CLOSED**; the broader plan is unfinished.
+
+Receipt:
+[`rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json`](docs/research/rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json).
