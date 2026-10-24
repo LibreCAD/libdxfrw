@@ -1,4 +1,6 @@
-**Newest committed implementation checkpoint — RPP-5bs actual-read-scoped raster EED names (`f5bef43689fd7ca3028bca63c7eabec7b3b0c427`, 2026-10-24):** immutable per-read APPID/LAYER receipts resolve the six historical EED capture failures without merging document roots or promoting semantic support. Six same-version histories and six mixed-version third imports pass; mutation/restoration, bounded capture, atomic refusal and fresh-import retry controls are recorded below. The implementation checkpoint passed8 focused,5 owning,4 reader/consumer and3 ASan tests. A subsequent documentation-only checkpoint reran3 focused source/join/header tests successfully; the earlier broader results are not presented as fresh runs. Next: RPP-5bt actual custom IMAGEDEF aliases with selected/rooted output. Strict admission stays **CLOSED**; the six J items stay **DEFERRED_EXTERNAL**. [Implementation record](#implementation-progress-rpp-5bs-actual-read-scoped-raster-eed-names-2026-10-24) · [commit checkpoint and next slice](#commit-checkpoint-rpp-5bs-and-ready-next-slice-rpp-5bt-2026-10-24) · [implementation receipt](docs/research/rpp5bs-read-scoped-raster-eed-names-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5bt rooted custom IMAGEDEF class integration (2026-10-24):** actual imports cover 24 selected/rooted native sources across six revisions and unique/full/partial class-alias tables. Independent staged output checks and readback pass 48 primary projections, 624 source/graph refusal-restoration retries, 48 late-class fresh-import retries and 12 wrong-owner-role callback refusal/fresh-import retries. Six missing-row sources stay unknown, and cache-only IMAGE paths cannot override the bound definition name. Nine focused tests pass (14.96 s); three ASan tests pass (23.40 s), with strict builds and LibreCAD_3 compile checks. This is an integration/harness slice, not a production grammar change or semantic support promotion. Next: the existing document-root/ownership and independent semantic gates. Strict admission stays **CLOSED** and all six J items stay **DEFERRED_EXTERNAL**. [Implementation record](#implementation-progress-rpp-5bt-rooted-custom-imagedef-class-integration-2026-10-24) · [receipt](docs/research/rpp5bt-rooted-custom-imagedef-class-integration-2026-10-24.json).
+
+**Previous committed implementation checkpoint — RPP-5bs actual-read-scoped raster EED names (`f5bef43689fd7ca3028bca63c7eabec7b3b0c427`, 2026-10-24):** immutable per-read APPID/LAYER receipts resolve the six historical EED capture failures without merging document roots or promoting semantic support. Six same-version histories and six mixed-version third imports pass; mutation/restoration, bounded capture, atomic refusal and fresh-import retry controls are recorded below. The implementation checkpoint passed8 focused,5 owning,4 reader/consumer and3 ASan tests. A subsequent documentation-only checkpoint reran3 focused source/join/header tests successfully; the earlier broader results are not presented as fresh runs. Its then-next RPP-5bt integration is completed by the newer checkpoint above. Strict admission stays **CLOSED**; the six J items stay **DEFERRED_EXTERNAL**. [Implementation record](#implementation-progress-rpp-5bs-actual-read-scoped-raster-eed-names-2026-10-24) · [commit checkpoint and next slice](#commit-checkpoint-rpp-5bs-and-ready-next-slice-rpp-5bt-2026-10-24) · [implementation receipt](docs/research/rpp5bs-read-scoped-raster-eed-names-2026-10-24.json).
 
 Checkpoint summaries below are historical records. Their then-current
 "uncommitted" or "open" wording does not override a later commit/checkpoint;
@@ -119906,7 +119908,7 @@ composition, independent name/text semantics, or support admission.
 
 Implementation-ready continuation:
 
-- [ ] Complete actual custom IMAGEDEF class-alias integration alongside the
+- [x] Complete actual custom IMAGEDEF class-alias integration (RPP-5bt) alongside the
   existing reactor aliases, with selected/rooted output where required. Keep
   aliased/missing identities unqualified; verify ordinary compatible behavior,
   refusal, restoration and fresh-attempt recovery without source-frame forgery.
@@ -119950,43 +119952,44 @@ Receipt:
 
 ### RPP-5bt — actual custom IMAGEDEF alias and rooted-output controls
 
-Status: **READY / NOT IMPLEMENTED**. Complete this bounded local integration
-slice before moving to the broader document-closure contract. Reuse existing
-native scratch authors, public writer APIs and independent output observers;
-do not manufacture private qualified source frames or weaken admission masks.
+Status: **LOCAL INTEGRATION IMPLEMENTED / SEMANTIC QUALIFICATION OPEN**.
+The result and measured counts are recorded in the RPP-5bt implementation
+checkpoint below; broader document closure is still pending. Existing native
+scratch authors, public writer APIs and independent output observers are reused.
+No private qualified source frame is manufactured and no admission mask waived.
 
-1. [ ] Extend the actual-source custom IMAGEDEF scratch author with one IMAGE,
+1. [x] Extend the actual-source custom IMAGEDEF scratch author with one IMAGE,
    its selected reactor and a real image dictionary rooted in the NOD.
    Preserve source handle/reference relationships and reserve authored handles
    before the write; register classes and the image-dictionary root before
    CLASSES freezes. Retain the existing unreferenced-object control separately.
    Use a dedicated fast test/mode with an exclusively owned temporary directory;
    generate every drawing locally and commit only source/tests/evidence.
-2. [ ] Cover AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 and four class-table
+2. [x] Cover AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 and four class-table
    conditions: unique identity, full identity alias, record-name-only alias,
-   and C++-name-only alias. This is a planned24-source matrix, not a measured
-   result. Scratch class numbers are authoring choices, not empirical dispatch
+   and C++-name-only alias. All 24 sources now pass; six additional missing-row
+   sources remain unknown. Scratch class numbers are authoring choices, not empirical dispatch
    assertions. Verify actual imports, raw encoded versus resolved identity,
    immutable row ownership and class state. Aliases must remain advisory;
    preserve `ClassEnvelope` and `TextSemanticsNotIndependent` where unresolved.
-3. [ ] Prove actual source ownership: IMAGE to definition and selected reactor,
+3. [x] Prove actual source ownership for this matrix: IMAGE to definition and selected reactor,
    reactor back to IMAGE, definition's reactor list, definition to its owning
    image dictionary, dictionary entry to definition, and NOD entry to image
    dictionary. Missing, duplicated, wrong-role or mismatched relationships
    must not pass merely because raw bytes were retained.
-4. [ ] For compatible ASCII and binary exports, inspect emitted IMAGEDEF and
+4. [x] For compatible ASCII and binary exports, inspect emitted IMAGEDEF and
    reactor fields/references with the existing independent wire observer and
-   verify ordinary readback. Plan48 projections; record only actual passing
-   counts. Check remapped output identities/owners, IMAGE340/360 references,
+   verify ordinary readback. All 48 primary AC1032 projections pass; other
+   target-version coverage remains in its existing tests. Check remapped output identities/owners, IMAGE340/360 references,
    path, modeled size/pixel metadata and EED names, with no phantom duplicate
    definitions, reactors or image roots. Compatibility is not qualification.
-5. [ ] Exercise selected-source edits and graph faults, covering definition
+5. [x] Exercise selected-source edits and graph faults, covering definition
    path, dictionary target/owner, reactor owner and IMAGE references. Require
    destination preservation on refusal; prove restored-source retries where
    restoration is permitted and fresh actual-import recovery for sticky
    snapshot invalidation. Repeated finish/export must not refresh evidence.
    Attribute each refusal to the intended gate, not an earlier root failure.
-6. [ ] Run the new focused mode plus affected raster/class tests and scoped
+6. [x] Run the new focused mode plus affected raster/class tests and scoped
    sanitizer controls. Reuse the committed owning/reader checkpoint if only
    the harness changes; run the affected owning cohort once if production
    code changes. Keep strict warnings and LibreCAD/LibreCAD_3 compatibility.
@@ -120014,3 +120017,110 @@ each slice commit. Stop only for a genuine missing authorization or external
 decision, without bypassing the gate. This checkpoint preserves all17 existing
 untracked drawings and unrelated files. No drawing, previous receipt, remote
 branch, pull request or issue is changed.
+
+## Implementation progress — RPP-5bt rooted custom IMAGEDEF class integration (2026-10-24)
+
+Actual custom IMAGEDEF class aliases are now exercised in a selected IMAGE
+graph with a real NOD-owned image dictionary, not only an unreferenced raw
+object. This closes the bounded RPP-5bt integration task. It does not complete
+the broader document-root/ownership, full IMAGE schema or independent text/
+producer qualification requirements. Production parser/writer/API/evidence
+policy code is unchanged.
+
+1. [x] Share the existing actual-source scratch custom-definition author with
+   an optional rooted mode. Register raw custom IMAGEDEF and typed selected
+   reactor classes before CLASSES freezes, reserve retained graph identities,
+   emit an IMAGE-only reference and emit the selected reactor and image
+   dictionary through existing public writer APIs. Preserve the original
+   unreferenced-object test. The new dedicated `dwg2dxf_rooted_custom_imagedef`
+   CTest uses an exclusively owned temporary directory and deletes only its
+   known scratch files and empty directory; no drawing fixture is added.
+2. [x] Resolve a scratch-author dependency error instead of weakening the
+   checks: reserving retained handles raises the new writer's allocation
+   cursor, so the new APPID/LAYER handles differ from the replayed body's
+   references. Consult ODA v5.4.1 chapter28/page269 and the object/IMAGEDEF
+   layouts. Rebind only independently observed EED value spans to the actual
+   newly assigned table handles, refusing width changes. Preserve role5,
+   lengths, boundaries and the existing local LAYER byte-order profile. This
+   is test authoring, not production raw-object remapping or independent
+   producer qualification; byte-order disagreement stays unresolved.
+3. [x] Import all 24 native source cells: six R2000–R2018 revisions times a
+   unique class identity, full identity alias, record-only alias and C++-only
+   alias. Assert actual encoded versus resolved type, class-stream ordinal,
+   private read/publication identity and immutable table owner. Custom
+   IMAGEDEF remains semantically resolved as IMAGEDEF; aliases stay
+   `AliasedIdentity`, the selected reactor remains uniquely joined, and
+   `ClassEnvelope`/`TextSemanticsNotIndependent` remain set. No dispatch
+   number is inferred from scratch authoring ordinals.
+4. [x] Verify the actual HEADER-selected DWG NOD and its complete dictionary,
+   NOD-to-image-dictionary entry, dictionary owner/key-to-definition entry,
+   definition owner/reactor list, IMAGE definition/reactor edges and reactor
+   back-owner. Check generation-qualified identities, filename, modeled size/
+   pixel values, selected reactor class-version2 and all four fixture EED
+   values. All 48 primary AC1032 ASCII/binary projections pass the existing
+   independent staged IMAGEDEF/reactor field/reference inspector and ordinary
+   readback, with exactly one selected image/definition/reactor/root. Other
+   target-version controls remain scoped to their existing tests.
+5. [x] Add 624 atomic public-source/graph refusal and restored-source readback
+   retries: 13 single mutations times24 sources times2 encodings. Cover
+   definition filename/owner/reactor list, reactor owner, IMAGE definition/
+   reactor/generation, dictionary target/owner/duplicate, NOD image-root target/
+   duplicate and EED APPID edit. Successful restored output surrounds the
+   fault; raster mutations require the exact immutable-correlation diagnostic,
+   not a pre-existing ACAD_GROUP refusal. Repeat finish/restoration preserves
+   immutable class bindings and raster/name/class retained-byte charges.
+6. [x] Preserve an existing compatibility rule discovered during the controls:
+   a linked IMAGE's path is a display cache, while its source-keyed IMAGEDEF
+   name is authoritative. Add 48 positive cache-edit projections/readbacks;
+   do not invent a cache-mismatch refusal or change direct/authored image
+   filename behavior. Editing the actual retained definition still refuses.
+7. [x] Add six genuine missing-class-row imports. Both custom frames remain
+   `TableUnavailable`, with joined body/name receipts but no table authority.
+   A late public coverage callback and repeated finishing cannot fill that
+   sealed unknown authority or change its charge. Twelve compatible unknown-
+   class projections and twelve corrected fresh-import projections pass.
+   Separately, 48 late-class-callback atomic refusals recover through fresh
+   actual imports. No private frame is fabricated for these cases.
+8. [x] Add six custom-definition owner-role callback faults during genuine
+   native reads, changing only the independently observed Owner nibble to a
+   wrong role. The actual class table remains joined; source correlation
+   rejects, with12 atomic ASCII/binary refusals and corrected fresh-import
+   readbacks. These are public raw-callback fault controls, not malformed
+   producer-authored DWG files or external semantic evidence.
+9. [x] Strict normal/ASan adapter builds and LibreCAD_3 compile gates pass.
+   Nine focused raster/class/source/header tests pass in14.96 s, parallelism3;
+   three ASan raster tests pass in23.40 s, parallelism3, with no sanitizer
+   finding. The new mode takes10.70 s normally and23.39 s under concurrent
+   ASan load. No production change requires another owning/full-suite run;
+   the RPP-5bs owning/reader checkpoint remains historical, not a fresh result.
+
+Implementation-ready continuation, with the full parity scope retained:
+
+- [ ] Continue the existing document-root/ownership contract. First inspect
+  the current HEADER/NOD, standard-object and image-dictionary receipt paths
+  against the specification; reproduce the next missing invariant with a
+  locally generated single-document control. Keep duplicate ACAD_GROUP/NOD
+  roots closed. An ownership/remapping policy must be explicit and verified
+  before any multi-document composition behavior changes; do not select a
+  convenient root, discard data or treat the RPP-5bs EED history as a merge.
+- [ ] Complete independent name/body/path/EED semantics and explicit source
+  profiles, exact complete output fields/references and full IMAGE/common
+  state. The new matrix checks the modeled fixture and existing inspector,
+  not every IMAGE field/profile/producer. External producer profiles, sparse
+  native class cardinality and remaining APPID/LAYER/XRECORD dependencies
+  remain in the broader queue. Scratch output is not independent producer
+  semantics and cannot clear unresolved profile issues.
+- [ ] Keep external/platform qualification separate: J256/J260/J268/J284/
+  J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and
+  independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+  Strict admission remains **CLOSED**. Preserve2D LibreCAD/LibreCAD_3 behavior
+  while continuing the original3D/dwg2dxf consumer scope.
+
+Self-update/unblock after each implemented item, record actual evidence, fix
+safe local failures and continue the next executable dependency. Report each
+slice after its commit. All17 existing untracked drawings and unrelated files
+are preserved/excluded. No drawing, prior receipt, remote, PR or issue is
+changed.
+
+Receipt:
+[`rpp5bt-rooted-custom-imagedef-class-integration-2026-10-24.json`](docs/research/rpp5bt-rooted-custom-imagedef-class-integration-2026-10-24.json).

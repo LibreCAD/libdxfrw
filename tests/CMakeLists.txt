@@ -557,6 +557,10 @@ add_test(NAME dwg2dxf_raster_class_history
     COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-class-history)
 set_tests_properties(dwg2dxf_raster_class_history PROPERTIES
     LABELS "fast;dwg;dxf;image;classes;history;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_rooted_custom_imagedef
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --rooted-custom-imagedef)
+set_tests_properties(dwg2dxf_rooted_custom_imagedef PROPERTIES
+    LABELS "fast;dwg;dxf;image;classes;graph;adapter;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_selected_raster_reactor_metadata
     COMMAND libdxfrw_dwg2dxf_adapter_tests --selected-raster-reactor-metadata)
 set_tests_properties(dwg2dxf_selected_raster_reactor_metadata PROPERTIES
