@@ -6482,6 +6482,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> linetypeHandles;
         std::unordered_set<std::uint32_t> groupReferenceHandles;
         std::unordered_map<std::uint32_t, const DRW_TableEntry*> imageDefinitionOwners;
+        std::unordered_map<std::uint32_t, const DRW_Dictionary*> generatedDictionaryOwners;
         std::map<dx_data::ImageDefinitionKey, dx_data::ImageDefinitionKey> sourceImageReactors;
         const DRW_Dictionary* rootedImageDictionary = nullptr;
         std::unordered_set<std::uint32_t> backgroundHandles;
@@ -7300,6 +7301,43 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             }
         }
 
+        // Generated NOD/GROUP records are emitted outside DFS; their common
+        // references are not optional merely because their bodies are rebuilt.
+        if (data->hasNamedObjectDictionary) {
+            const auto& nod = data->namedObjectDictionary;
+            const DRW_Dictionary* groupDictionary = nullptr;
+            std::size_t ownerNameBytes = 0u;
+            inventoryFamily = "generated NOD/GROUP owner lookup";
+            if (nod.m_entries.size() > DRW_Dictionary::kMaxEntries
+                || !preflightEdgeCandidateCount(nod.m_entries.size(),
+                    "generated NOD/GROUP owner lookup limit")) return reject();
+            for (const auto& entry : nod.m_entries) {
+                if (!examineEdge()) return false;
+                if (!addStringPayloadBytes(entry.m_name, ownerNameBytes))
+                    return reject(ExtensionGraphFailure::SourceRecordLimit,
+                        "generated NOD/GROUP owner name byte budget");
+                if (!asciiIdentifierEquals(entry.m_name, "ACAD_GROUP")) continue;
+                const auto found = dictionaries.find(entry.m_handle);
+                if (groupDictionary || found == dictionaries.end()) return reject();
+                groupDictionary = found->second;
+            }
+            const bool commonReferences = nod.xDictHandle || !nod.reactorHandles.empty()
+                || (groupDictionary && (groupDictionary->xDictHandle || !groupDictionary->reactorHandles.empty()));
+            if (commonReferences) {
+                inventoryFamily = "generated NOD/GROUP common owners";
+                if (!examineSourceRecord() || !validateNamedObjectRootForExport(*data, "ACAD_GROUP")
+                    || !nod.hasCompleteDwgEntries() || !nod.hasCompleteDxfEntries()
+                    || (groupDictionary && (!groupDictionary->hasCompleteDwgEntries() || !groupDictionary->hasCompleteDxfEntries())))
+                    return reject();
+                const auto header = data->headerC.dwgNamedObjectDictionaryReference();
+                if (header && (!DRW_Header::isUsableDwgNamedObjectDictionaryReference(*header)
+                    || (header->ref64 && header->ref64 != nod.handle))) return reject();
+                if (!includeNamedObjectRoot && !sourceHandles.insert(nod.handle).second) return reject();
+                generatedDictionaryOwners.emplace(nod.handle, &nod);
+                if (groupDictionary) generatedDictionaryOwners.emplace(groupDictionary->handle, groupDictionary);
+            }
+        }
+
         // The generated IMAGE dictionary is deliberately outside this DFS, but
         // selected IMAGEDEF extension dictionaries are real source graph roots.
         // Use the same generation-qualified entity selection as the image plan;
@@ -7889,6 +7927,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         if (linetypeHandles.count(reactor) == 0
                             && groupReferenceHandles.count(reactor) == 0
                             && imageDefinitionOwners.count(reactor) == 0
+                            && generatedDictionaryOwners.count(reactor) == 0
                             && blockDelimiterHandles.count(reactor) == 0
                             && visiting.count(reactor) == 0
                             && !queueTarget(reactor, false))
@@ -8154,6 +8193,26 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             }
         }
 
+        inventoryFamily = "generated NOD/GROUP extension/reactor roots";
+        for (const auto& owner : generatedDictionaryOwners) {
+            const auto& root = *owner.second;
+            if (root.xDictHandle) {
+                if (!examineEdge()) return false;
+                const auto extension = dictionaries.find(root.xDictHandle);
+                if (extension == dictionaries.end() || extension->second->parentHandle != root.handle)
+                    return reject(ExtensionGraphFailure::InvalidGraph, "generated dictionary extension is missing, wrong-kind, or nonreciprocal");
+                if (!visit(root.xDictHandle, true)) return false;
+            }
+            for (const auto reactor : root.reactorHandles) {
+                if (!examineEdge()) return false;
+                if (!reactor || reactor == DRW::NoHandle) return reject();
+                if (generatedDictionaryOwners.count(reactor) || imageDefinitionOwners.count(reactor)
+                    || groupReferenceHandles.count(reactor) || linetypeHandles.count(reactor)
+                    || blockDelimiterHandles.count(reactor)) continue;
+                if (!visit(reactor, false)) return false;
+            }
+        }
+
         inventoryFamily = "IMAGEDEF extension/reactor roots";
         for (const auto& entry : imageDefinitionOwners) {
             const auto& definition = *entry.second;
@@ -8232,7 +8291,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 &visitedRenderSettings,
                                 &linetypeHandles, &backgroundHandles,
                                 &blockDelimiterHandles, &blockRecordHandles,
-                                &sourceEntityHandles, data,
+                                &sourceEntityHandles, &generatedDictionaryOwners, data,
                                 includeNamedObjectRoot](
                                    std::uint32_t parent) {
             return parent == 0 || parent == 0xCu || parent == 0xDu
@@ -8246,6 +8305,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || blockDelimiterHandles.count(parent) != 0
                 || blockRecordHandles.count(parent) != 0
                 || sourceEntityHandles.count(parent) != 0
+                || generatedDictionaryOwners.count(parent) != 0
                 || (dictionaries.count(parent) != 0
                     && visitedDictionaries.count(parent) != 0)
                 || (dictionariesWithDefault.count(parent) != 0
@@ -8422,7 +8482,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const auto image = imageDefinitionOwners.find(dictionary->parentHandle);
             const bool imageExtension = image != imageDefinitionOwners.end()
                 && image->second->xDictHandle == handle;
-            if (!groupExtension && !imageExtension && !hasParent(dictionary->parentHandle))
+            const auto generated = generatedDictionaryOwners.find(dictionary->parentHandle);
+            const bool generatedExtension = generated != generatedDictionaryOwners.end() && generated->second->xDictHandle == handle;
+            if (!groupExtension && !imageExtension && !generatedExtension && !hasParent(dictionary->parentHandle))
                 return reject();
         }
         for (std::uint32_t handle :
@@ -8445,6 +8507,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 [&isHandleCode, &linetypeHandles,
                  &groupReferenceHandles,
                  &imageDefinitionOwners,
+                 &generatedDictionaryOwners,
                  &blockDelimiterHandles, &visitedDictionaries,
                  &visitedXRecords, &visitedDictionaryVars,
                  &visitedVisualStyles,
@@ -8463,6 +8526,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         || linetypeHandles.count(targetHandle) != 0
                         || groupReferenceHandles.count(targetHandle) != 0
                         || imageDefinitionOwners.count(targetHandle) != 0
+                        || generatedDictionaryOwners.count(targetHandle) != 0
                         || blockDelimiterHandles.count(targetHandle) != 0
                         || visitedDictionaries.count(targetHandle) != 0
                         || visitedXRecords.count(targetHandle) != 0

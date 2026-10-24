@@ -3425,6 +3425,169 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
     return true;
 }
 
+bool generatedRootCommonReferenceClosure() {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-generated-root-common-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate, error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("generated root temporary directory failed");
+    }
+    if (directory.empty()) return fail("generated root temporary directory exhausted");
+    const auto path = directory / "roots.dxf";
+    struct Cleanup { std::filesystem::path path, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error); std::filesystem::remove(directory, error);
+    } } cleanup{path, directory};
+    const auto configure = [](dx_data& data, unsigned mode) {
+        dx_iface author; author.cData = &data; author.currentBlock = data.mBlock;
+        DRW_AppId app; app.name = "GENERATED_ROOT_APP"; author.addAppId(app);
+        data.hasNamedObjectDictionary = true;
+        auto& nod = data.namedObjectDictionary; nod.handle = 0xA000u; nod.cloning = 2; nod.hardOwner = 1;
+        nod.m_entries = {{"ACAD_GROUP", 0xA010u, DRW_Dictionary::Entry::DxfHandleCode::HardOwner}};
+        DRW_Dictionary groups; groups.handle = 0xA010u; groups.parentHandle = nod.handle; groups.cloning = 3;
+        groups.m_entries = {{"ROOT_GROUP", 0xA020u, DRW_Dictionary::Entry::DxfHandleCode::SoftOwner}};
+        DRW_Line line; line.handle = 0xA300u; line.secPoint.x = 1.0; author.addLine(line);
+        DRW_Group group; group.handle = 0xA020u; group.parentHandle = groups.handle; group.name = "ROOT_GROUP";
+        group.m_entityHandles = {line.handle}; author.addGroup(group);
+        const auto common = [&](DRW_Dictionary& root, std::uint32_t extension, std::uint32_t other) {
+            root.xDictHandle = extension; root.reactorHandles = {other, extension + 1u};
+            root.extData.push_back(new DRW_Variant(1001, std::string("GENERATED_ROOT_APP")));
+            root.extData.push_back(new DRW_Variant(1000, std::string("generated-root-eed")));
+            root.appData.push_back({{102, std::string("{ROOT_META")}, {1, std::string("generated-root-appdata")},
+                {330, [&]() { std::ostringstream value; value << std::uppercase << std::hex << (extension + 1u); return value.str(); }()},
+                {320, std::string("DEADBEEF")}, {102, std::string("}")}});
+            DRW_Dictionary dictionary; dictionary.handle = extension; dictionary.parentHandle = root.handle;
+            dictionary.hardOwner = 1; dictionary.m_entries = {{"ROOT_VALUE", extension + 1u}};
+            data.dictionaries.push_back(dictionary);
+            DRW_XRecord record; record.handle = extension + 1u; record.parentHandle = extension;
+            record.m_values = {{1, std::string("root-child")}, {330, static_cast<dint64>(root.handle)}};
+            record.m_dataEntries = record.m_values; data.xRecords.push_back(record);
+        };
+        if (mode != 1u) common(nod, 0xA100u, groups.handle);
+        if (mode != 0u) common(groups, 0xA200u, nod.handle);
+        data.dictionaries.push_back(groups);
+    };
+    const auto inspect = [](const dx_data& data, unsigned mode) {
+        if (!data.hasNamedObjectDictionary || data.namedObjectDictionary.handle != 0xCu || data.groups.size() != 1u
+            || data.mBlock->ent.size() != 1u || data.groups.front().m_entityHandles != std::vector<std::uint32_t>{data.mBlock->ent.front()->handle}) return false;
+        const DRW_Dictionary* groups = nullptr;
+        for (const auto& root : data.namedObjectDictionary.m_entries) if (root.m_name == "ACAD_GROUP")
+            for (const auto& dictionary : data.dictionaries) if (dictionary.handle == root.m_handle) groups = &dictionary;
+        if (!groups || groups->handle != 0xDu || groups->parentHandle != 0xCu || groups->m_entries.size() != 1u
+            || groups->cloning != 3 || groups->hardOwner != 0 || data.namedObjectDictionary.cloning != 2
+            || data.namedObjectDictionary.hardOwner != 1 || groups->m_entries.front().m_name != "ROOT_GROUP"
+            || groups->m_entries.front().m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+            || groups->m_entries.front().m_handle != data.groups.front().handle) return fail("generated root dictionary flags, key, edge role or identity changed");
+        const auto common = [&](const DRW_Dictionary& root, std::uint32_t other, const char* opaqueHandle) {
+            if (!root.xDictHandle || root.reactorHandles.size() != 2u || root.reactorHandles.front() != other
+                || root.extData.size() != 2u || !root.extData.back()->c_str()
+                || std::string(root.extData.back()->c_str()) != "generated-root-eed") return false;
+            const auto extension = std::find_if(data.dictionaries.begin(), data.dictionaries.end(), [&](const auto& d) { return d.handle == root.xDictHandle; });
+            if (extension == data.dictionaries.end() || extension->parentHandle != root.handle || extension->m_entries.size() != 1u
+                || extension->m_entries.front().m_handle != root.reactorHandles.back()) return false;
+            const auto metadata = std::find_if(root.appData.begin(), root.appData.end(), [](const auto& group) {
+                return !group.empty() && group.front().c_str() && std::string(group.front().c_str()) == "ROOT_META";
+            });
+            if (metadata == root.appData.end() || metadata->size() != 5u) return fail("generated root custom appData framing changed");
+            auto field = std::next(metadata->begin());
+            if (!field->c_str() || std::string(field->c_str()) != "generated-root-appdata") return fail("generated root custom appData text changed");
+            ++field;
+            // Unknown custom-group schemas remain opaque; this is lexical
+            // preservation, not proof of translated application semantics.
+            if (field->code() != 330 || !field->c_str() || std::string(field->c_str()) != opaqueHandle) return fail("generated root custom appData opaque handle changed");
+            ++field;
+            if (field->code() != 320 || !field->c_str() || std::string(field->c_str()) != "DEADBEEF") return fail("generated root custom appData opaque handle changed");
+            const auto record = std::find_if(data.xRecords.begin(), data.xRecords.end(), [&](const auto& r) { return r.handle == root.reactorHandles.back(); });
+            return record != data.xRecords.end() && record->parentHandle == extension->handle
+                && record->m_dataEntries.size() == 2u && record->m_dataEntries.back().i64_val() == root.handle;
+        };
+        return (mode == 1u || common(data.namedObjectDictionary, groups->handle, "A101"))
+            && (mode == 0u || common(*groups, data.namedObjectDictionary.handle, "A201"));
+    };
+    unsigned cells = 0u, compatibleCells = 0u, retries = 0u, limitRetries = 0u;
+    for (unsigned mode = 0u; mode != 3u; ++mode) {
+        dx_data data; configure(data, mode); dx_iface exporter;
+        for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
+            if (!exporter.fileExport(path.string(), version, binary, &data, false, true))
+                return fail("generated root common-reference closure refused its valid authored graph: " + exporter.extensionGraphFailureDetail());
+            dx_data first; dx_iface reader;
+            if (!reader.fileImport(path.string(), &first, false) || !inspect(first, mode)) return fail("generated root common-reference output/readback lost metadata or ownership");
+            if (!exporter.fileExport(path.string(), version, binary, &first, false, true)) return fail("generated root actual-import reexport failed");
+            dx_data second;
+            if (!reader.fileImport(path.string(), &second, false) || !inspect(second, mode)) return fail("generated root reexport/readback lost metadata or ownership");
+            ++cells;
+        }
+        for (const bool binary : {false, true}) {
+            if (!exporter.fileExport(path.string(), DRW::AC1032, binary, &data, false))
+                return fail("generated root compatible export refused a valid common graph");
+            dx_data actual; dx_iface reader;
+            if (!reader.fileImport(path.string(), &actual, false) || !inspect(actual, mode))
+                return fail("generated root compatible export lost its common graph");
+            ++compatibleCells;
+        }
+    }
+    dx_data data; configure(data, 2u); dx_iface exporter, reader;
+    const auto nod = data.namedObjectDictionary;
+    const auto dictionaries = data.dictionaries;
+    const auto records = data.xRecords;
+    const auto restore = [&]() { data.namedObjectDictionary = nod; data.dictionaries = dictionaries; data.xRecords = records; };
+    const auto writeAndCheck = [&](bool binary) {
+        if (!exporter.fileExport(path.string(), DRW::AC1032, binary, &data, false, true)) return false;
+        dx_data actual;
+        return reader.fileImport(path.string(), &actual, false) && inspect(actual, 2u);
+    };
+    const auto refused = [&](bool binary) {
+        const std::string sentinel = "GENERATED_ROOT_ATOMIC_DESTINATION";
+        { std::ofstream output(path, std::ios::binary); output << sentinel; }
+        const bool wrote = exporter.fileExport(path.string(), DRW::AC1032, binary, &data, false, true);
+        std::ifstream input(path, std::ios::binary);
+        return !wrote && std::string((std::istreambuf_iterator<char>(input)), {}) == sentinel;
+    };
+    const std::vector<std::function<void()>> faults{
+        [&]() { data.namedObjectDictionary.xDictHandle = 0xDEADu; },
+        [&]() { data.namedObjectDictionary.xDictHandle = 0xA101u; },
+        [&]() { data.namedObjectDictionary.reactorHandles.push_back(0xDEADu); },
+        [&]() { data.namedObjectDictionary.reactorHandles.push_back(0u); },
+        [&]() { data.dictionaries.front().parentHandle = 0xDEADu; },
+        [&]() { data.dictionaries.back().xDictHandle = 0xDEADu; },
+        [&]() { data.dictionaries.back().reactorHandles.push_back(0xDEADu); },
+        [&]() { data.dictionaries.back().reactorHandles.push_back(DRW::NoHandle); },
+        [&]() { data.dictionaries.back().m_entries.front().m_handle = 0xDEADu; },
+        [&]() { data.xRecords.clear(); },
+        [&]() { data.namedObjectDictionary.m_entries.push_back(data.namedObjectDictionary.m_entries.front()); },
+        [&]() { data.dictionaries.back().handle = data.namedObjectDictionary.handle; }
+    };
+    for (const auto& fault : faults) for (const bool binary : {false, true}) {
+        fault();
+        if (!refused(binary)) return fail("generated root invalid common graph was not atomically refused");
+        restore();
+        if (!writeAndCheck(binary)) return fail("generated root restored source did not retry on the same facade");
+        ++retries;
+    }
+    const auto observed = exporter.extensionGraphStats();
+    dx_iface::ExtensionGraphLimits exact;
+    exact.maxNodes = observed.visitedNodes; exact.maxEdges = observed.examinedEdges;
+    exact.maxStagedHandles = observed.stagedHandles; exact.maxSourceRecords = observed.sourceRecords;
+    exact.maxXRecordPayloadSlots = observed.inspectedXRecordPayloadSlots;
+    using Limits = dx_iface::ExtensionGraphLimits;
+    for (const auto member : {&Limits::maxNodes, &Limits::maxEdges, &Limits::maxStagedHandles,
+            &Limits::maxSourceRecords, &Limits::maxXRecordPayloadSlots}) {
+        if (exact.*member == 0u) return fail("generated root fixture missed a resource dimension");
+        auto below = exact; --(below.*member); exporter.setExtensionGraphLimits(below);
+        if (!refused(false)) return fail("generated root graph exceeded its resource allowance");
+        exporter.setExtensionGraphLimits(exact);
+        if (!writeAndCheck(false)) return fail("generated root exact resource retry failed");
+        ++limitRetries;
+    }
+    exporter.setExtensionGraphLimits({});
+    if (cells != 36u || compatibleCells != 6u || retries != 24u || limitRetries != 5u)
+        return fail("generated root common-reference matrix skipped a control");
+    std::cout << "Generated NOD/GROUP authored/imported reexport cells=" << cells << " compatible cells=" << compatibleCells
+              << " graph restoration retries=" << retries << " exact-budget retries=" << limitRetries << '\n';
+    return true;
+}
+
 bool rootedImageDictionaryUnselectedControls() {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     std::filesystem::path directory;
@@ -31670,6 +31833,8 @@ int main(int argc, char** argv) {
     if (argc == 2 && (std::string(argv[1]) == "--rooted-imagedef-entry-closure"
         || std::string(argv[1]) == "--probe-rooted-imagedef-entry-closure"))
         return rasterDwgSourceProfileEed(false, false, true) && rootedImageDictionaryUnselectedControls() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--generated-root-common-closure")
+        return generatedRootCommonReferenceClosure() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")
         return rasterDxfLiteralControls() && selectedRasterReactorMetadata() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-image-dictionary-source-identity")
