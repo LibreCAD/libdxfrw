@@ -156,10 +156,10 @@ endif()
 if(LIBDXFRW_BUILD_TESTS)
     enable_testing()
     # Keep the standalone compatibility and sample-driven harness in the
-    # dedicated tests/ directory.  It is added here (after dwg2dxf) so the
-    # compile-only LibreCAD_3 source-compatibility gate can resolve the CLI
-    # target when sample tests are enabled, while remaining absent from normal
-    # library builds.
+    # dedicated tests/ directory. Add it after the optional converter so CLI
+    # integration registrations can check actual target availability. Adapter,
+    # parser and LibreCAD_3 compile-only gates also work with the CLI disabled,
+    # while all tests remain absent from normal library builds.
     # Resolve and validate Python before tests/ captures it in command vectors.
     find_program(LIBDXFRW_PYTHON_EXECUTABLE NAMES python3)
     if(NOT LIBDXFRW_PYTHON_EXECUTABLE)

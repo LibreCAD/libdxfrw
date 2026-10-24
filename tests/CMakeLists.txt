@@ -23,6 +23,13 @@
 # Optional external qualification for AC1015 SAT-v1 modeler carriers. Neither
 # the DWG nor independent reference DXF is vendored; callers provide paths to
 # their local evidence. The generated input/output copies remain in build/.
+function(libdxfrw_require_test_cli control)
+    if(NOT TARGET dwg2dxf)
+        message(FATAL_ERROR
+            "${control} requires LIBDXFRW_BUILD_DWG2DXF=ON")
+    endif()
+endfunction()
+
 option(LIBDXFRW_ENABLE_EXTERNAL_SAT_V1_CLI_CONTROL
     "Enable external AC1015 SAT-v1 dwg2dxf comparison" OFF)
 set(LIBDXFRW_SAT_V1_DWG "" CACHE FILEPATH
@@ -30,6 +37,7 @@ set(LIBDXFRW_SAT_V1_DWG "" CACHE FILEPATH
 set(LIBDXFRW_SAT_V1_REFERENCE_DXF "" CACHE FILEPATH
     "Independent DXF export of the same AC1015 SAT-v1 DWG")
 if(LIBDXFRW_ENABLE_EXTERNAL_SAT_V1_CLI_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_EXTERNAL_SAT_V1_CLI_CONTROL)
     foreach(_sat_v1_input IN ITEMS
             LIBDXFRW_SAT_V1_DWG LIBDXFRW_SAT_V1_REFERENCE_DXF)
         if(NOT EXISTS "${${_sat_v1_input}}")
@@ -103,14 +111,16 @@ add_test(NAME libdxfrw_field_graph_export_refusal
     COMMAND libdxfrw_dwg2dxf_adapter_tests --field-graph-export-refusal)
 set_tests_properties(libdxfrw_field_graph_export_refusal PROPERTIES
     LABELS "fast;dxf;graph;adapter;field" TIMEOUT 30)
-add_test(NAME libdxfrw_extension_graph_limits
-    COMMAND ${CMAKE_COMMAND}
-        "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
-        "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-        "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_extension_graph_limits_test.cmake)
-set_tests_properties(libdxfrw_extension_graph_limits PROPERTIES
-    LABELS "fast;dxf;graph;adapter;cli" TIMEOUT 30)
+if(TARGET dwg2dxf)
+    add_test(NAME libdxfrw_extension_graph_limits
+        COMMAND ${CMAKE_COMMAND}
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
+            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_extension_graph_limits_test.cmake)
+    set_tests_properties(libdxfrw_extension_graph_limits PROPERTIES
+        LABELS "fast;dxf;graph;adapter;cli" TIMEOUT 30)
+endif()
 add_test(NAME libdxfrw_table_callback_owner_order
     COMMAND libdxfrw_dwg2dxf_adapter_tests --retain-table-callback)
 set_tests_properties(libdxfrw_table_callback_owner_order PROPERTIES
@@ -282,101 +292,103 @@ target_include_directories(libdxfrw_block_owner_tests PRIVATE
 target_link_libraries(libdxfrw_block_owner_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_block_owners COMMAND libdxfrw_block_owner_tests)
 set_tests_properties(libdxfrw_block_owners PROPERTIES LABELS "fast;dxf;graph;adapter" TIMEOUT 30)
-add_test(NAME dwg2dxf_block_owner_rejection_cli
-    COMMAND ${CMAKE_COMMAND}
-        "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_block_owner_tests>"
-        "-DNOD_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
-        "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-        "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_block_owner_rejection_test.cmake)
-set_tests_properties(dwg2dxf_block_owner_rejection_cli PROPERTIES
-    LABELS "fast;dxf;graph;cli" TIMEOUT 30)
-foreach(_owner_mode IN ITEMS ascii binary)
-    set(_owner_generate --generate)
-    set(_owner_options "")
-    if(_owner_mode STREQUAL "binary")
-        set(_owner_generate --generate-binary)
-        set(_owner_options -b)
-    endif()
-    add_test(NAME dwg2dxf_block_owners_${_owner_mode}_cli
+if(TARGET dwg2dxf)
+    add_test(NAME dwg2dxf_block_owner_rejection_cli
         COMMAND ${CMAKE_COMMAND}
             "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_block_owner_tests>"
+            "-DNOD_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
             "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
             "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=block-owners-${_owner_mode}"
-            "-DGENERATE_MODE=${_owner_generate}"
-            "-DVERIFY_MODE=--verify"
-            "-DCONVERSION_OPTIONS=${_owner_options}"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
-    set_tests_properties(dwg2dxf_block_owners_${_owner_mode}_cli PROPERTIES
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_block_owner_rejection_test.cmake)
+    set_tests_properties(dwg2dxf_block_owner_rejection_cli PROPERTIES
         LABELS "fast;dxf;graph;cli" TIMEOUT 30)
-endforeach()
-add_test(
-    NAME dwg2dxf_image_path_cli
-    COMMAND ${CMAKE_COMMAND}
-        "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
-        "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-        "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-        "-DBINARY_GENERATE_MODE=--generate-binary"
-        "-DBINARY_VERIFY_MODE=--verify-binary"
-        "-DBINARY_CONVERSION_OPTIONS=-b"
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
-)
-set_tests_properties(dwg2dxf_image_path_cli PROPERTIES
-    LABELS "cli;fast;dxf;adapter"
-    TIMEOUT 30
-)
-
-# HEADER group 90 is 32-bit in AC1032. Generate the literal source without
-# DRW_Header, then exercise two real converter invocations and public readback.
-foreach(_header_mode IN ITEMS ascii binary)
-    set(_header_generate_mode --generate-maintenance-header)
-    set(_header_conversion_options "")
-    if(_header_mode STREQUAL "binary")
-        set(_header_generate_mode --generate-maintenance-header-binary)
-        set(_header_conversion_options -b)
-    endif()
+    foreach(_owner_mode IN ITEMS ascii binary)
+        set(_owner_generate --generate)
+        set(_owner_options "")
+        if(_owner_mode STREQUAL "binary")
+            set(_owner_generate --generate-binary)
+            set(_owner_options -b)
+        endif()
+        add_test(NAME dwg2dxf_block_owners_${_owner_mode}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_block_owner_tests>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=block-owners-${_owner_mode}"
+                "-DGENERATE_MODE=${_owner_generate}"
+                "-DVERIFY_MODE=--verify"
+                "-DCONVERSION_OPTIONS=${_owner_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+        set_tests_properties(dwg2dxf_block_owners_${_owner_mode}_cli PROPERTIES
+            LABELS "fast;dxf;graph;cli" TIMEOUT 30)
+    endforeach()
     add_test(
-        NAME dwg2dxf_header_maintenance_${_header_mode}_cli
+        NAME dwg2dxf_image_path_cli
         COMMAND ${CMAKE_COMMAND}
             "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
             "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
             "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=header-maintenance-${_header_mode}"
-            "-DGENERATE_MODE=${_header_generate_mode}"
-            "-DVERIFY_MODE=--verify-maintenance-header"
-            "-DNEGATIVE_MODE=--reject-maintenance-downgrade"
-            "-DCONVERSION_OPTIONS=${_header_conversion_options}"
+            "-DBINARY_GENERATE_MODE=--generate-binary"
+            "-DBINARY_VERIFY_MODE=--verify-binary"
+            "-DBINARY_CONVERSION_OPTIONS=-b"
             -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
     )
-    set_tests_properties(dwg2dxf_header_maintenance_${_header_mode}_cli PROPERTIES
-        LABELS "cli;fast;dxf;header;adapter"
+    set_tests_properties(dwg2dxf_image_path_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter"
         TIMEOUT 30
     )
-endforeach()
 
-# Source-generated model/paper ellipses downgrade to R12 through two actual
-# CLI passes; ordinary POLYLINE controls distinguish derivation from policy.
-foreach(_ellipse_mode IN ITEMS ascii binary)
-    set(_ellipse_generate --generate-ellipse-carriers)
-    set(_ellipse_options -R12)
-    if(_ellipse_mode STREQUAL "binary")
-        set(_ellipse_generate --generate-ellipse-carriers-binary)
-        list(APPEND _ellipse_options -b)
-    endif()
-    add_test(NAME dwg2dxf_r12_ellipse_carriers_${_ellipse_mode}_cli
-        COMMAND ${CMAKE_COMMAND}
-            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
-            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=r12-ellipse-carriers-${_ellipse_mode}"
-            "-DGENERATE_MODE=${_ellipse_generate}"
-            "-DVERIFY_MODE=--verify-ellipse-carriers"
-            "-DCONVERSION_OPTIONS=${_ellipse_options}"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
-    set_tests_properties(dwg2dxf_r12_ellipse_carriers_${_ellipse_mode}_cli PROPERTIES
-        LABELS "fast;dxf;cli;ellipse" TIMEOUT 30)
-endforeach()
+    # HEADER group 90 is 32-bit in AC1032. Generate the literal source without
+    # DRW_Header, then exercise two real converter invocations and public readback.
+    foreach(_header_mode IN ITEMS ascii binary)
+        set(_header_generate_mode --generate-maintenance-header)
+        set(_header_conversion_options "")
+        if(_header_mode STREQUAL "binary")
+            set(_header_generate_mode --generate-maintenance-header-binary)
+            set(_header_conversion_options -b)
+        endif()
+        add_test(
+            NAME dwg2dxf_header_maintenance_${_header_mode}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=header-maintenance-${_header_mode}"
+                "-DGENERATE_MODE=${_header_generate_mode}"
+                "-DVERIFY_MODE=--verify-maintenance-header"
+                "-DNEGATIVE_MODE=--reject-maintenance-downgrade"
+                "-DCONVERSION_OPTIONS=${_header_conversion_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+        )
+        set_tests_properties(dwg2dxf_header_maintenance_${_header_mode}_cli PROPERTIES
+            LABELS "cli;fast;dxf;header;adapter"
+            TIMEOUT 30
+        )
+    endforeach()
+
+    # Source-generated model/paper ellipses downgrade to R12 through two actual
+    # CLI passes; ordinary POLYLINE controls distinguish derivation from policy.
+    foreach(_ellipse_mode IN ITEMS ascii binary)
+        set(_ellipse_generate --generate-ellipse-carriers)
+        set(_ellipse_options -R12)
+        if(_ellipse_mode STREQUAL "binary")
+            set(_ellipse_generate --generate-ellipse-carriers-binary)
+            list(APPEND _ellipse_options -b)
+        endif()
+        add_test(NAME dwg2dxf_r12_ellipse_carriers_${_ellipse_mode}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=r12-ellipse-carriers-${_ellipse_mode}"
+                "-DGENERATE_MODE=${_ellipse_generate}"
+                "-DVERIFY_MODE=--verify-ellipse-carriers"
+                "-DCONVERSION_OPTIONS=${_ellipse_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+        set_tests_properties(dwg2dxf_r12_ellipse_carriers_${_ellipse_mode}_cli PROPERTIES
+            LABELS "fast;dxf;cli;ellipse" TIMEOUT 30)
+    endforeach()
+endif()
 
 # The converter transfers its completed AcDs section into its owned document
 # model. Existing consumers retain the default const-reference callback.
@@ -655,137 +667,139 @@ set_tests_properties(dwg2dxf_associative_strict_loss_gate PROPERTIES
     TIMEOUT 15
 )
 
-# Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
-# through generated DXF, two exact FreeCAD-argv CLI passes, and public readback.
-add_test(
-    NAME dwg2dxf_3dline_adapter_cli
-    COMMAND ${CMAKE_COMMAND}
-        "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
-        "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-        "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-        "-DCASE_NAME=3dline-adapter"
-        "-DGENERATE_MODE=--generate-3dline"
-        "-DVERIFY_MODE=--verify-3dline"
-        "-DNEGATIVE_MODE=--reject-3dline-ac1014"
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
-)
-set_tests_properties(dwg2dxf_3dline_adapter_cli PROPERTIES
-    LABELS "cli;fast;dxf;adapter;3d"
-    TIMEOUT 30
-)
-
-# Exercise the same generated adapter subtype through binary-DXF input and
-# output, with public readback after two exact CLI conversion passes.
-add_test(
-    NAME dwg2dxf_3dline_binary_adapter_cli
-    COMMAND ${CMAKE_COMMAND}
-        "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
-        "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-        "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-        "-DCASE_NAME=3dline-binary-adapter"
-        "-DGENERATE_MODE=--generate-3dline-binary"
-        "-DVERIFY_MODE=--verify-3dline"
-        "-DCONVERSION_OPTIONS=-b"
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
-)
-set_tests_properties(dwg2dxf_3dline_binary_adapter_cli PROPERTIES
-    LABELS "cli;fast;dxf;adapter;3d;binary"
-    TIMEOUT 30
-)
-
-# Retain zero-fit HATCH tangent metadata through two exact-argv CLI passes.
-# The local-roundtrip executable authors both encodings at runtime.
-foreach(_hatch_encoding IN ITEMS ascii binary)
-    set(_hatch_generate_mode "--generate-hatch-tangents")
-    set(_hatch_conversion_options "")
-    if(_hatch_encoding STREQUAL "binary")
-        set(_hatch_generate_mode "--generate-hatch-tangents-binary")
-        set(_hatch_conversion_options "-b")
-    endif()
+if(TARGET dwg2dxf)
+    # Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
+    # through generated DXF, two exact FreeCAD-argv CLI passes, and public readback.
     add_test(
-        NAME dwg2dxf_hatch_tangents_${_hatch_encoding}_cli
+        NAME dwg2dxf_3dline_adapter_cli
         COMMAND ${CMAKE_COMMAND}
-            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
             "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
             "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=hatch-tangents-${_hatch_encoding}"
-            "-DGENERATE_MODE=${_hatch_generate_mode}"
-            "-DVERIFY_MODE=--verify-hatch-tangents"
-            "-DCONVERSION_OPTIONS=${_hatch_conversion_options}"
+            "-DCASE_NAME=3dline-adapter"
+            "-DGENERATE_MODE=--generate-3dline"
+            "-DVERIFY_MODE=--verify-3dline"
+            "-DNEGATIVE_MODE=--reject-3dline-ac1014"
             -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
     )
-    set_tests_properties(dwg2dxf_hatch_tangents_${_hatch_encoding}_cli PROPERTIES
-        LABELS "cli;fast;dxf;adapter;hatch"
+    set_tests_properties(dwg2dxf_3dline_adapter_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter;3d"
         TIMEOUT 30
     )
-endforeach()
 
-# LEADER group76 is advisory on OPEN; literal source counts differ from the
-# actual arrays and must canonicalize through two real CLI passes.
-foreach(_leader_encoding IN ITEMS ascii binary)
-    set(_leader_generate_mode --generate-leader-advisory-counts)
-    set(_leader_options "")
-    if(_leader_encoding STREQUAL "binary")
-        set(_leader_generate_mode --generate-leader-advisory-counts-binary)
-        set(_leader_options -b)
-    endif()
-    add_test(NAME dwg2dxf_leader_advisory_count_${_leader_encoding}_cli
-        COMMAND ${CMAKE_COMMAND}
-            -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>
-            -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
-            -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-            -DCASE_NAME=leader-advisory-count-${_leader_encoding}
-            -DGENERATE_MODE=${_leader_generate_mode}
-            -DVERIFY_MODE=--verify-leader-advisory-counts
-            -DCONVERSION_OPTIONS=${_leader_options}
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
-    set_tests_properties(dwg2dxf_leader_advisory_count_${_leader_encoding}_cli
-        PROPERTIES LABELS "cli;fast;dxf;adapter;leader" TIMEOUT 30)
-endforeach()
-
-# Independently authored version/fill pairs with polyline/bulge boundaries.
-# Read back after both exact-argv CLI passes; no drawing payload is vendored.
-foreach(_mpolygon_encoding IN ITEMS ascii binary)
-    set(_mpolygon_generate_mode "--generate-mpolygon-header")
-    set(_mpolygon_conversion_options "")
-    if(_mpolygon_encoding STREQUAL "binary")
-        set(_mpolygon_generate_mode "--generate-mpolygon-header-binary")
-        set(_mpolygon_conversion_options "-b")
-    endif()
+    # Exercise the same generated adapter subtype through binary-DXF input and
+    # output, with public readback after two exact CLI conversion passes.
     add_test(
-        NAME dwg2dxf_mpolygon_header_${_mpolygon_encoding}_cli
+        NAME dwg2dxf_3dline_binary_adapter_cli
         COMMAND ${CMAKE_COMMAND}
-            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
             "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
             "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=mpolygon-header-${_mpolygon_encoding}"
-            "-DGENERATE_MODE=${_mpolygon_generate_mode}"
-            "-DVERIFY_MODE=--verify-mpolygon-header"
-            "-DCONVERSION_OPTIONS=${_mpolygon_conversion_options}"
+            "-DCASE_NAME=3dline-binary-adapter"
+            "-DGENERATE_MODE=--generate-3dline-binary"
+            "-DVERIFY_MODE=--verify-3dline"
+            "-DCONVERSION_OPTIONS=-b"
             -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
     )
-    set_tests_properties(dwg2dxf_mpolygon_header_${_mpolygon_encoding}_cli PROPERTIES
-        LABELS "cli;fast;dxf;adapter;mpolygon"
+    set_tests_properties(dwg2dxf_3dline_binary_adapter_cli PROPERTIES
+        LABELS "cli;fast;dxf;adapter;3d;binary"
         TIMEOUT 30
     )
-    string(REPLACE "header" "metadata" _mpolygon_metadata_mode "${_mpolygon_generate_mode}")
-    add_test(
-        NAME dwg2dxf_mpolygon_metadata_${_mpolygon_encoding}_cli
-        COMMAND ${CMAKE_COMMAND}
-            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
-            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=mpolygon-metadata-${_mpolygon_encoding}"
-            "-DGENERATE_MODE=${_mpolygon_metadata_mode}"
-            "-DVERIFY_MODE=--verify-mpolygon-metadata"
-            "-DCONVERSION_OPTIONS=${_mpolygon_conversion_options}"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
-    )
-    set_tests_properties(dwg2dxf_mpolygon_metadata_${_mpolygon_encoding}_cli PROPERTIES
-        LABELS "cli;fast;dxf;adapter;mpolygon"
-        TIMEOUT 30
-    )
-endforeach()
+
+    # Retain zero-fit HATCH tangent metadata through two exact-argv CLI passes.
+    # The local-roundtrip executable authors both encodings at runtime.
+    foreach(_hatch_encoding IN ITEMS ascii binary)
+        set(_hatch_generate_mode "--generate-hatch-tangents")
+        set(_hatch_conversion_options "")
+        if(_hatch_encoding STREQUAL "binary")
+            set(_hatch_generate_mode "--generate-hatch-tangents-binary")
+            set(_hatch_conversion_options "-b")
+        endif()
+        add_test(
+            NAME dwg2dxf_hatch_tangents_${_hatch_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=hatch-tangents-${_hatch_encoding}"
+                "-DGENERATE_MODE=${_hatch_generate_mode}"
+                "-DVERIFY_MODE=--verify-hatch-tangents"
+                "-DCONVERSION_OPTIONS=${_hatch_conversion_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+        )
+        set_tests_properties(dwg2dxf_hatch_tangents_${_hatch_encoding}_cli PROPERTIES
+            LABELS "cli;fast;dxf;adapter;hatch"
+            TIMEOUT 30
+        )
+    endforeach()
+
+    # LEADER group76 is advisory on OPEN; literal source counts differ from the
+    # actual arrays and must canonicalize through two real CLI passes.
+    foreach(_leader_encoding IN ITEMS ascii binary)
+        set(_leader_generate_mode --generate-leader-advisory-counts)
+        set(_leader_options "")
+        if(_leader_encoding STREQUAL "binary")
+            set(_leader_generate_mode --generate-leader-advisory-counts-binary)
+            set(_leader_options -b)
+        endif()
+        add_test(NAME dwg2dxf_leader_advisory_count_${_leader_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>
+                -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
+                -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                -DCASE_NAME=leader-advisory-count-${_leader_encoding}
+                -DGENERATE_MODE=${_leader_generate_mode}
+                -DVERIFY_MODE=--verify-leader-advisory-counts
+                -DCONVERSION_OPTIONS=${_leader_options}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+        set_tests_properties(dwg2dxf_leader_advisory_count_${_leader_encoding}_cli
+            PROPERTIES LABELS "cli;fast;dxf;adapter;leader" TIMEOUT 30)
+    endforeach()
+
+    # Independently authored version/fill pairs with polyline/bulge boundaries.
+    # Read back after both exact-argv CLI passes; no drawing payload is vendored.
+    foreach(_mpolygon_encoding IN ITEMS ascii binary)
+        set(_mpolygon_generate_mode "--generate-mpolygon-header")
+        set(_mpolygon_conversion_options "")
+        if(_mpolygon_encoding STREQUAL "binary")
+            set(_mpolygon_generate_mode "--generate-mpolygon-header-binary")
+            set(_mpolygon_conversion_options "-b")
+        endif()
+        add_test(
+            NAME dwg2dxf_mpolygon_header_${_mpolygon_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=mpolygon-header-${_mpolygon_encoding}"
+                "-DGENERATE_MODE=${_mpolygon_generate_mode}"
+                "-DVERIFY_MODE=--verify-mpolygon-header"
+                "-DCONVERSION_OPTIONS=${_mpolygon_conversion_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+        )
+        set_tests_properties(dwg2dxf_mpolygon_header_${_mpolygon_encoding}_cli PROPERTIES
+            LABELS "cli;fast;dxf;adapter;mpolygon"
+            TIMEOUT 30
+        )
+        string(REPLACE "header" "metadata" _mpolygon_metadata_mode "${_mpolygon_generate_mode}")
+        add_test(
+            NAME dwg2dxf_mpolygon_metadata_${_mpolygon_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=mpolygon-metadata-${_mpolygon_encoding}"
+                "-DGENERATE_MODE=${_mpolygon_metadata_mode}"
+                "-DVERIFY_MODE=--verify-mpolygon-metadata"
+                "-DCONVERSION_OPTIONS=${_mpolygon_conversion_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+        )
+        set_tests_properties(dwg2dxf_mpolygon_metadata_${_mpolygon_encoding}_cli PROPERTIES
+            LABELS "cli;fast;dxf;adapter;mpolygon"
+            TIMEOUT 30
+        )
+    endforeach()
+endif()
 
 add_test(
     NAME dxf_mpolygon_metadata_boundary_roundtrip
@@ -879,161 +893,163 @@ set_tests_properties(libdxfrw_dwg_read_outcome_policy PROPERTIES
     TIMEOUT 30
 )
 
-foreach(_dimension_encoding IN ITEMS ascii binary)
-    set(_dimension_generate_mode --generate-dimension-frames)
-    set(_dimension_conversion_options "")
-    if(_dimension_encoding STREQUAL "binary")
-        set(_dimension_generate_mode --generate-dimension-frames-binary)
-        set(_dimension_conversion_options -b)
-    endif()
-    add_test(
-        NAME dwg2dxf_dimension_frames_${_dimension_encoding}_cli
-        COMMAND ${CMAKE_COMMAND}
-            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
-            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=dimension-frames-${_dimension_encoding}"
-            "-DGENERATE_MODE=${_dimension_generate_mode}"
-            "-DVERIFY_MODE=--verify-dimension-frames"
-            "-DCONVERSION_OPTIONS=${_dimension_conversion_options}"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
-    )
-    set_tests_properties(dwg2dxf_dimension_frames_${_dimension_encoding}_cli PROPERTIES
-        LABELS "cli;fast;dxf;adapter;dimension"
-        TIMEOUT 30
-    )
-endforeach()
+if(TARGET dwg2dxf)
+    foreach(_dimension_encoding IN ITEMS ascii binary)
+        set(_dimension_generate_mode --generate-dimension-frames)
+        set(_dimension_conversion_options "")
+        if(_dimension_encoding STREQUAL "binary")
+            set(_dimension_generate_mode --generate-dimension-frames-binary)
+            set(_dimension_conversion_options -b)
+        endif()
+        add_test(
+            NAME dwg2dxf_dimension_frames_${_dimension_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=dimension-frames-${_dimension_encoding}"
+                "-DGENERATE_MODE=${_dimension_generate_mode}"
+                "-DVERIFY_MODE=--verify-dimension-frames"
+                "-DCONVERSION_OPTIONS=${_dimension_conversion_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+        )
+        set_tests_properties(dwg2dxf_dimension_frames_${_dimension_encoding}_cli PROPERTIES
+            LABELS "cli;fast;dxf;adapter;dimension"
+            TIMEOUT 30
+        )
+    endforeach()
 
-foreach(_mtext_encoding IN ITEMS ascii binary)
-    set(_mtext_generate_mode --generate-mtext-orientation)
-    set(_mtext_conversion_options "")
-    if(_mtext_encoding STREQUAL "binary")
-        set(_mtext_generate_mode --generate-mtext-orientation-binary)
-        set(_mtext_conversion_options -b)
-    endif()
-    add_test(
-        NAME dwg2dxf_mtext_orientation_${_mtext_encoding}_cli
-        COMMAND ${CMAKE_COMMAND}
-            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
-            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=mtext-orientation-${_mtext_encoding}"
-            "-DGENERATE_MODE=${_mtext_generate_mode}"
-            "-DVERIFY_MODE=--verify-mtext-orientation"
-            "-DCONVERSION_OPTIONS=${_mtext_conversion_options}"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
-    )
-    set_tests_properties(dwg2dxf_mtext_orientation_${_mtext_encoding}_cli PROPERTIES
-        LABELS "cli;fast;dxf;adapter;mtext"
-        TIMEOUT 30
-    )
-endforeach()
+    foreach(_mtext_encoding IN ITEMS ascii binary)
+        set(_mtext_generate_mode --generate-mtext-orientation)
+        set(_mtext_conversion_options "")
+        if(_mtext_encoding STREQUAL "binary")
+            set(_mtext_generate_mode --generate-mtext-orientation-binary)
+            set(_mtext_conversion_options -b)
+        endif()
+        add_test(
+            NAME dwg2dxf_mtext_orientation_${_mtext_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dxf_fixture_tests>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=mtext-orientation-${_mtext_encoding}"
+                "-DGENERATE_MODE=${_mtext_generate_mode}"
+                "-DVERIFY_MODE=--verify-mtext-orientation"
+                "-DCONVERSION_OPTIONS=${_mtext_conversion_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+        )
+        set_tests_properties(dwg2dxf_mtext_orientation_${_mtext_encoding}_cli PROPERTIES
+            LABELS "cli;fast;dxf;adapter;mtext"
+            TIMEOUT 30
+        )
+    endforeach()
 
-foreach(_arc_encoding IN ITEMS ascii binary)
-    set(_arc_generate_mode --generate-arc-dimension-flags)
-    set(_arc_conversion_options "")
-    if(_arc_encoding STREQUAL "binary")
-        set(_arc_generate_mode --generate-arc-dimension-flags-binary)
-        set(_arc_conversion_options -b)
-    endif()
-    add_test(
-        NAME dwg2dxf_arc_dimension_flags_${_arc_encoding}_cli
-        COMMAND ${CMAKE_COMMAND}
-            "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
-            "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
-            "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-            "-DCASE_NAME=arc-dimension-flags-${_arc_encoding}"
-            "-DGENERATE_MODE=${_arc_generate_mode}"
-            "-DVERIFY_MODE=--verify-arc-dimension-flags"
-            "-DCONVERSION_OPTIONS=${_arc_conversion_options}"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
-    )
-    set_tests_properties(dwg2dxf_arc_dimension_flags_${_arc_encoding}_cli PROPERTIES
-        LABELS "cli;fast;dxf;adapter;dimension"
-        TIMEOUT 30
-    )
-endforeach()
+    foreach(_arc_encoding IN ITEMS ascii binary)
+        set(_arc_generate_mode --generate-arc-dimension-flags)
+        set(_arc_conversion_options "")
+        if(_arc_encoding STREQUAL "binary")
+            set(_arc_generate_mode --generate-arc-dimension-flags-binary)
+            set(_arc_conversion_options -b)
+        endif()
+        add_test(
+            NAME dwg2dxf_arc_dimension_flags_${_arc_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                "-DCASE_NAME=arc-dimension-flags-${_arc_encoding}"
+                "-DGENERATE_MODE=${_arc_generate_mode}"
+                "-DVERIFY_MODE=--verify-arc-dimension-flags"
+                "-DCONVERSION_OPTIONS=${_arc_conversion_options}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
+        )
+        set_tests_properties(dwg2dxf_arc_dimension_flags_${_arc_encoding}_cli PROPERTIES
+            LABELS "cli;fast;dxf;adapter;dimension"
+            TIMEOUT 30
+        )
+    endforeach()
 
-# Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
-# FreeCAD installation. The DWG fixture is already tracked in this repository.
-set(_freecad_cli_sample
-    ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/ordinary_enc_AC1027.dwg
-)
-set(_freecad_cli_rtext_sample
-    ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/rtext_arctext.dwg
-)
-set(_freecad_cli_mpolygon_sample
-    ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/mpolygon_solid.dwg
-)
-if(EXISTS "${_freecad_cli_sample}"
-        AND EXISTS "${_freecad_cli_rtext_sample}"
-        AND EXISTS "${_freecad_cli_mpolygon_sample}")
+    # Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
+    # FreeCAD installation. The DWG fixture is already tracked in this repository.
+    set(_freecad_cli_sample
+        ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/ordinary_enc_AC1027.dwg
+    )
+    set(_freecad_cli_rtext_sample
+        ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/rtext_arctext.dwg
+    )
+    set(_freecad_cli_mpolygon_sample
+        ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/mpolygon_solid.dwg
+    )
+    if(EXISTS "${_freecad_cli_sample}"
+            AND EXISTS "${_freecad_cli_rtext_sample}"
+            AND EXISTS "${_freecad_cli_mpolygon_sample}")
+        add_test(
+            NAME dwg2dxf_freecad_cli_compat
+            COMMAND ${CMAKE_COMMAND}
+                -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
+                -DSAMPLE=${_freecad_cli_sample}
+                -DRTEXT_SAMPLE=${_freecad_cli_rtext_sample}
+                -DMPOLYGON_SAMPLE=${_freecad_cli_mpolygon_sample}
+                "-DPYTHON=${LIBDXFRW_PYTHON_EXECUTABLE}"
+                -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_dwg2dxf_compat_test.cmake
+        )
+        set_tests_properties(dwg2dxf_freecad_cli_compat PROPERTIES
+            LABELS "dwg_read;freecad;cli;fast"
+        )
+
+        # Exercise the artifact FreeCAD actually launches, not just the build-tree
+        # executable. Keep this test inside the chosen install prefix and skip
+        # non-relocatable GNUInstallDirs layouts rather than risking a host install.
+        set(_freecad_install_dirs_safe TRUE)
+        foreach(_install_dir IN ITEMS
+                "${CMAKE_INSTALL_BINDIR}" "${CMAKE_INSTALL_LIBDIR}")
+            if(IS_ABSOLUTE "${_install_dir}"
+                    OR "${_install_dir}" MATCHES "(^|/)\\.\\.(/|$)")
+                set(_freecad_install_dirs_safe FALSE)
+            endif()
+        endforeach()
+        if(_freecad_install_dirs_safe)
+            add_test(
+                NAME dwg2dxf_freecad_installed_cli_compat
+                COMMAND ${CMAKE_COMMAND}
+                    "-DBUILD_DIR=${CMAKE_BINARY_DIR}"
+                    "-DBUILD_DWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                    "-DINSTALL_BINDIR=${CMAKE_INSTALL_BINDIR}"
+                    "-DINSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+                    "-DEXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}"
+                    "-DSAMPLE=${_freecad_cli_sample}"
+                    "-DRTEXT_SAMPLE=${_freecad_cli_rtext_sample}"
+                    "-DMPOLYGON_SAMPLE=${_freecad_cli_mpolygon_sample}"
+                    "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                    "-DCMAKE_CONFIG=$<CONFIG>"
+                    -P "${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_installed_dwg2dxf_test.cmake"
+            )
+            set_tests_properties(dwg2dxf_freecad_installed_cli_compat PROPERTIES
+                LABELS "freecad;cli;fast;installed"
+                TIMEOUT 180
+            )
+        else()
+            message(STATUS
+                "Skipping installed FreeCAD CLI test: GNUInstallDirs destinations are absolute or escape the install prefix")
+        endif()
+    endif()
+
+    # The core codec can replay raw sections, but dwg2dxf must also retain them
+    # through its concrete DXF import/export adapter. Generate the tiny opaque
+    # ACDSDATA-shaped control in the build tree; it is not a schema-validity oracle.
     add_test(
-        NAME dwg2dxf_freecad_cli_compat
+        NAME dwg2dxf_raw_dxf_section_passthrough
         COMMAND ${CMAKE_COMMAND}
             -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
-            -DSAMPLE=${_freecad_cli_sample}
-            -DRTEXT_SAMPLE=${_freecad_cli_rtext_sample}
-            -DMPOLYGON_SAMPLE=${_freecad_cli_mpolygon_sample}
-            "-DPYTHON=${LIBDXFRW_PYTHON_EXECUTABLE}"
             -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_dwg2dxf_compat_test.cmake
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_raw_dxf_section_test.cmake
     )
-    set_tests_properties(dwg2dxf_freecad_cli_compat PROPERTIES
-        LABELS "dwg_read;freecad;cli;fast"
+    set_tests_properties(dwg2dxf_raw_dxf_section_passthrough PROPERTIES
+        LABELS "cli;fast;dxf"
+        TIMEOUT 20
     )
-
-    # Exercise the artifact FreeCAD actually launches, not just the build-tree
-    # executable. Keep this test inside the chosen install prefix and skip
-    # non-relocatable GNUInstallDirs layouts rather than risking a host install.
-    set(_freecad_install_dirs_safe TRUE)
-    foreach(_install_dir IN ITEMS
-            "${CMAKE_INSTALL_BINDIR}" "${CMAKE_INSTALL_LIBDIR}")
-        if(IS_ABSOLUTE "${_install_dir}"
-                OR "${_install_dir}" MATCHES "(^|/)\\.\\.(/|$)")
-            set(_freecad_install_dirs_safe FALSE)
-        endif()
-    endforeach()
-    if(_freecad_install_dirs_safe)
-        add_test(
-            NAME dwg2dxf_freecad_installed_cli_compat
-            COMMAND ${CMAKE_COMMAND}
-                "-DBUILD_DIR=${CMAKE_BINARY_DIR}"
-                "-DBUILD_DWG2DXF=$<TARGET_FILE:dwg2dxf>"
-                "-DINSTALL_BINDIR=${CMAKE_INSTALL_BINDIR}"
-                "-DINSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
-                "-DEXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}"
-                "-DSAMPLE=${_freecad_cli_sample}"
-                "-DRTEXT_SAMPLE=${_freecad_cli_rtext_sample}"
-                "-DMPOLYGON_SAMPLE=${_freecad_cli_mpolygon_sample}"
-                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-                "-DCMAKE_CONFIG=$<CONFIG>"
-                -P "${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_installed_dwg2dxf_test.cmake"
-        )
-        set_tests_properties(dwg2dxf_freecad_installed_cli_compat PROPERTIES
-            LABELS "freecad;cli;fast;installed"
-            TIMEOUT 180
-        )
-    else()
-        message(STATUS
-            "Skipping installed FreeCAD CLI test: GNUInstallDirs destinations are absolute or escape the install prefix")
-    endif()
 endif()
-
-# The core codec can replay raw sections, but dwg2dxf must also retain them
-# through its concrete DXF import/export adapter. Generate the tiny opaque
-# ACDSDATA-shaped control in the build tree; it is not a schema-validity oracle.
-add_test(
-    NAME dwg2dxf_raw_dxf_section_passthrough
-    COMMAND ${CMAKE_COMMAND}
-        -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
-        -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_raw_dxf_section_test.cmake
-)
-set_tests_properties(dwg2dxf_raw_dxf_section_passthrough PROPERTIES
-    LABELS "cli;fast;dxf"
-    TIMEOUT 20
-)
 
 add_test(
     NAME libdxfrw_image_definition_plan_failure_retry
@@ -1057,6 +1073,7 @@ set(LIBDXFRW_FREECAD_GUI_EXECUTABLE "" CACHE FILEPATH
 set(LIBDXFRW_FREECAD_APP_BUNDLE "" CACHE PATH
     "FreeCAD .app bundle path (required on macOS)")
 if(LIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL)
     if(NOT EXISTS "${LIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE}")
         message(FATAL_ERROR
             "LIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL requires the installed "
@@ -1097,6 +1114,7 @@ option(LIBDXFRW_ENABLE_FREECAD_SAT_V1_RUNTIME_CONTROL
 set(LIBDXFRW_FREECADCMD_EXECUTABLE "" CACHE FILEPATH
     "FreeCAD freecadcmd executable for the SAT-v1 runtime control")
 if(LIBDXFRW_ENABLE_FREECAD_SAT_V1_RUNTIME_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_SAT_V1_RUNTIME_CONTROL)
     if(NOT LIBDXFRW_ENABLE_EXTERNAL_SAT_V1_CLI_CONTROL)
         message(FATAL_ERROR
             "The FreeCAD SAT-v1 runtime control also requires "
@@ -1152,6 +1170,7 @@ set(LIBDXFRW_ACDS_FREECAD_REVISION "" CACHE STRING
 set(LIBDXFRW_ACDS_BASELINE_DXF "" CACHE FILEPATH
     "Optional caller-supplied libdxfrw AC1027 DXF for strict ACDSDATA comparison")
 if(LIBDXFRW_ENABLE_FREECAD_ACDS_RUNTIME_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_ACDS_RUNTIME_CONTROL)
     foreach(_acds_path IN ITEMS LIBDXFRW_ACDS_DWG
             LIBDXFRW_ACDS_INSTALLED_DWG2DXF LIBDXFRW_FREECADCMD_EXECUTABLE)
         if(NOT EXISTS "${${_acds_path}}")
@@ -1210,6 +1229,7 @@ endif()
 option(LIBDXFRW_ENABLE_FREECAD_FAILURE_CONTROL
     "Enable the opt-in FreeCAD DWG conversion failure-path check" OFF)
 if(LIBDXFRW_ENABLE_FREECAD_FAILURE_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_FAILURE_CONTROL)
     if(NOT EXISTS "${LIBDXFRW_FREECADCMD_EXECUTABLE}")
         message(FATAL_ERROR
             "LIBDXFRW_ENABLE_FREECAD_FAILURE_CONTROL requires "
@@ -1240,6 +1260,7 @@ endif()
 option(LIBDXFRW_ENABLE_FREECAD_INSTALLED_3D_LINE_CONTROL
     "Enable installed dwg2dxf FreeCAD 3D LINE open/insert checks" OFF)
 if(LIBDXFRW_ENABLE_FREECAD_INSTALLED_3D_LINE_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_INSTALLED_3D_LINE_CONTROL)
     find_program(LIBDXFRW_DWGADD_EXECUTABLE NAMES dwgadd)
     if(NOT LIBDXFRW_DWGADD_EXECUTABLE)
         message(FATAL_ERROR
@@ -1282,6 +1303,7 @@ endif()
 option(LIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL
     "Enable pinned FreeCAD checks using the tracked AC1027 three-LINE DWG" OFF)
 if(LIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL)
     if(NOT EXISTS "${LIBDXFRW_FREECADCMD_EXECUTABLE}")
         message(FATAL_ERROR
             "Set LIBDXFRW_FREECADCMD_EXECUTABLE to FreeCAD's FreeCADCmd/freecadcmd")
@@ -1327,6 +1349,7 @@ endif()
 option(LIBDXFRW_ENABLE_FREECAD_SHARED_INSTALLED_3D_LINE_CONTROL
     "Enable FreeCAD open/insert checks against this shared build's isolated install" OFF)
 if(LIBDXFRW_ENABLE_FREECAD_SHARED_INSTALLED_3D_LINE_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_SHARED_INSTALLED_3D_LINE_CONTROL)
     if(NOT BUILD_SHARED_LIBS OR NOT UNIX)
         message(FATAL_ERROR
             "LIBDXFRW_ENABLE_FREECAD_SHARED_INSTALLED_3D_LINE_CONTROL requires a shared Unix build")
@@ -1373,6 +1396,7 @@ endif()
 option(LIBDXFRW_ENABLE_FREECAD_AUTOMATIC_3D_LINE_CONTROL
     "Enable FreeCAD Automatic-mode dwg2dxf 3D LINE open/insert checks" OFF)
 if(LIBDXFRW_ENABLE_FREECAD_AUTOMATIC_3D_LINE_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_AUTOMATIC_3D_LINE_CONTROL)
     find_program(LIBDXFRW_DWGADD_EXECUTABLE NAMES dwgadd)
     if(NOT LIBDXFRW_DWGADD_EXECUTABLE)
         message(FATAL_ERROR
@@ -1415,6 +1439,7 @@ option(LIBDXFRW_ENABLE_FREECAD_AUTOCAD_POINT3D_CONTROL
 set(LIBDXFRW_AUTOCAD_POINT3D_DWG "" CACHE FILEPATH
     "External AutoCAD 2016 AC1027 DWG containing POINT (50,50,50)")
 if(LIBDXFRW_ENABLE_FREECAD_AUTOCAD_POINT3D_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_AUTOCAD_POINT3D_CONTROL)
     if(NOT EXISTS "${LIBDXFRW_AUTOCAD_POINT3D_DWG}")
         message(FATAL_ERROR
             "Set LIBDXFRW_AUTOCAD_POINT3D_DWG to the external point3d_2013.dwg")
@@ -1449,6 +1474,7 @@ endif()
 option(LIBDXFRW_ENABLE_DWGADD_FREECAD_CONTROL
     "Enable the LibreDWG-generated FreeCAD 3D LINE converter control" OFF)
 if(LIBDXFRW_ENABLE_DWGADD_FREECAD_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_DWGADD_FREECAD_CONTROL)
     find_program(LIBDXFRW_DWGADD_EXECUTABLE NAMES dwgadd)
     if(NOT LIBDXFRW_DWGADD_EXECUTABLE)
         message(FATAL_ERROR
@@ -1531,6 +1557,7 @@ endif()
 option(LIBDXFRW_ENABLE_ODAFILECONVERTER_FREECAD_CONTROL
     "Enable ODA-generated FreeCAD 3D converter controls" OFF)
 if(LIBDXFRW_ENABLE_ODAFILECONVERTER_FREECAD_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_ODAFILECONVERTER_FREECAD_CONTROL)
     find_program(LIBDXFRW_ODAFILECONVERTER_EXECUTABLE NAMES ODAFileConverter)
     find_program(LIBDXFRW_LIBREDWG_DWGREAD_EXECUTABLE NAMES dwgread)
     if(NOT LIBDXFRW_ODAFILECONVERTER_EXECUTABLE)
@@ -1672,6 +1699,7 @@ endif()
 option(LIBDXFRW_ENABLE_FREECAD_3DFACE_RUNTIME_CONTROL
     "Enable the opt-in FreeCAD 3DFACE converter/importer outcome check" OFF)
 if(LIBDXFRW_ENABLE_FREECAD_3DFACE_RUNTIME_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_FREECAD_3DFACE_RUNTIME_CONTROL)
     find_program(LIBDXFRW_ODAFILECONVERTER_EXECUTABLE NAMES ODAFileConverter)
     if(NOT LIBDXFRW_ODAFILECONVERTER_EXECUTABLE)
         message(FATAL_ERROR
@@ -1711,6 +1739,7 @@ endif()
 option(LIBDXFRW_ENABLE_LIBREDWG_API_FREECAD_CONTROL
     "Enable the LibreDWG API-generated FreeCAD oblique OCS control" OFF)
 if(LIBDXFRW_ENABLE_LIBREDWG_API_FREECAD_CONTROL)
+    libdxfrw_require_test_cli(LIBDXFRW_ENABLE_LIBREDWG_API_FREECAD_CONTROL)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBREDWG_API REQUIRED IMPORTED_TARGET libredwg)
     add_executable(libdxfrw_freecad_oblique_arc_circle_generator
@@ -1772,7 +1801,7 @@ set_tests_properties(libdxfrw_3d_consumer_probe PROPERTIES
 set(_dxf_roundtrip_spline_sample
     ${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_conference_room.dwg
 )
-if(EXISTS "${_dxf_roundtrip_spline_sample}")
+if(TARGET dwg2dxf AND EXISTS "${_dxf_roundtrip_spline_sample}")
     add_test(
         NAME dxf_roundtrip_splinepoints
         COMMAND ${CMAKE_COMMAND}
@@ -1802,25 +1831,27 @@ add_test(NAME libdxfrw_dimstyle_optional_handles
     COMMAND libdxfrw_dimstyle_optional_handle_tests)
 set_tests_properties(libdxfrw_dimstyle_optional_handles PROPERTIES
     LABELS "dxf;fast;adapter")
-foreach(_encoding IN ITEMS ascii binary)
-    set(_dimstyle_generate --generate)
-    set(_dimstyle_options "")
-    if(_encoding STREQUAL "binary")
-        set(_dimstyle_generate --generate-binary)
-        set(_dimstyle_options -b)
-    endif()
-    add_test(NAME dwg2dxf_dimstyle_optional_handles_${_encoding}_cli
-        COMMAND ${CMAKE_COMMAND}
-            -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dimstyle_optional_handle_tests>
-            -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
-            -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-            -DCASE_NAME=dimstyle-optional-handles-${_encoding}
-            -DGENERATE_MODE=${_dimstyle_generate}
-            -DCONVERSION_OPTIONS=${_dimstyle_options}
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
-    set_tests_properties(dwg2dxf_dimstyle_optional_handles_${_encoding}_cli
-        PROPERTIES LABELS "dxf;fast;adapter;cli")
-endforeach()
+if(TARGET dwg2dxf)
+    foreach(_encoding IN ITEMS ascii binary)
+        set(_dimstyle_generate --generate)
+        set(_dimstyle_options "")
+        if(_encoding STREQUAL "binary")
+            set(_dimstyle_generate --generate-binary)
+            set(_dimstyle_options -b)
+        endif()
+        add_test(NAME dwg2dxf_dimstyle_optional_handles_${_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dimstyle_optional_handle_tests>
+                -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
+                -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                -DCASE_NAME=dimstyle-optional-handles-${_encoding}
+                -DGENERATE_MODE=${_dimstyle_generate}
+                -DCONVERSION_OPTIONS=${_dimstyle_options}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+        set_tests_properties(dwg2dxf_dimstyle_optional_handles_${_encoding}_cli
+            PROPERTIES LABELS "dxf;fast;adapter;cli")
+    endforeach()
+endif()
 
 add_executable(libdxfrw_numeric_locale_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/numeric_locale_tests.cpp
@@ -1836,25 +1867,27 @@ add_test(NAME libdxfrw_numeric_process_locale
 set_tests_properties(libdxfrw_numeric_locale libdxfrw_numeric_process_locale
     PROPERTIES LABELS "dxf;numeric;fast" TIMEOUT 30)
 set_tests_properties(libdxfrw_numeric_process_locale PROPERTIES SKIP_RETURN_CODE 77)
-foreach(_numeric_encoding IN ITEMS ascii binary)
-    set(_numeric_generate --generate)
-    set(_numeric_options "")
-    if(_numeric_encoding STREQUAL "binary")
-        set(_numeric_generate --generate-binary)
-        set(_numeric_options -b)
-    endif()
-    add_test(NAME dwg2dxf_numeric_locale_${_numeric_encoding}_cli
-        COMMAND ${CMAKE_COMMAND}
-            -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_numeric_locale_tests>
-            -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
-            -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-            -DCASE_NAME=numeric-locale-${_numeric_encoding}
-            -DGENERATE_MODE=${_numeric_generate}
-            -DCONVERSION_OPTIONS=${_numeric_options}
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
-    set_tests_properties(dwg2dxf_numeric_locale_${_numeric_encoding}_cli
-        PROPERTIES LABELS "dxf;numeric;cli;fast" TIMEOUT 30)
-endforeach()
+if(TARGET dwg2dxf)
+    foreach(_numeric_encoding IN ITEMS ascii binary)
+        set(_numeric_generate --generate)
+        set(_numeric_options "")
+        if(_numeric_encoding STREQUAL "binary")
+            set(_numeric_generate --generate-binary)
+            set(_numeric_options -b)
+        endif()
+        add_test(NAME dwg2dxf_numeric_locale_${_numeric_encoding}_cli
+            COMMAND ${CMAKE_COMMAND}
+                -DADAPTER_TEST=$<TARGET_FILE:libdxfrw_numeric_locale_tests>
+                -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
+                -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                -DCASE_NAME=numeric-locale-${_numeric_encoding}
+                -DGENERATE_MODE=${_numeric_generate}
+                -DCONVERSION_OPTIONS=${_numeric_options}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake)
+        set_tests_properties(dwg2dxf_numeric_locale_${_numeric_encoding}_cli
+            PROPERTIES LABELS "dxf;numeric;cli;fast" TIMEOUT 30)
+    endforeach()
+endif()
 
 # Keep this after every local target customization. A differing compile/link
 # context must get its own adapter, not silently reuse these object files.
@@ -1873,6 +1906,27 @@ add_test(NAME libdxfrw_adapter_build_context
         --toolchain "${CMAKE_TOOLCHAIN_FILE}")
 set_tests_properties(libdxfrw_adapter_build_context PROPERTIES
     LABELS "fast;build;adapter" TIMEOUT 120)
+add_test(NAME libdxfrw_cli_optional_build
+    COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+        ${CMAKE_CURRENT_SOURCE_DIR}/cli_optional_build_tests.py
+        --source "${CMAKE_SOURCE_DIR}"
+        --cmake "${CMAKE_COMMAND}"
+        --ctest "${CMAKE_CTEST_COMMAND}"
+        --compiler "${CMAKE_CXX_COMPILER}"
+        --generator "${CMAKE_GENERATOR}"
+        --generator-platform "${CMAKE_GENERATOR_PLATFORM}"
+        --generator-toolset "${CMAKE_GENERATOR_TOOLSET}"
+        --generator-instance "${CMAKE_GENERATOR_INSTANCE}"
+        --toolchain "${CMAKE_TOOLCHAIN_FILE}"
+        --make-program "${CMAKE_MAKE_PROGRAM}"
+        --compiler-target "${CMAKE_CXX_COMPILER_TARGET}"
+        --sysroot "${CMAKE_SYSROOT}"
+        --system-name "${CMAKE_SYSTEM_NAME}"
+        --system-version "${CMAKE_SYSTEM_VERSION}"
+        --system-processor "${CMAKE_SYSTEM_PROCESSOR}"
+        --configuration "$<CONFIG>")
+set_tests_properties(libdxfrw_cli_optional_build PROPERTIES
+    LABELS "fast;build;consumer;cli-optional" TIMEOUT 120)
 
 set(_dwg_test_versions AC1021 AC1024 AC1027 AC1032)
 

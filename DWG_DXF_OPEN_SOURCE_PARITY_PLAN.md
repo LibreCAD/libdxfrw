@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5bj audited test-adapter build sharing (2026-10-24):** four identical tests/ adapter compilations now share one private, uninstalled OBJECT configuration; the CLI, fixture-defined root tests and MSVC Wave 1 seam remain separate. Total adapter compile commands fall from13 to10. Compile-context guards, explicit opt-out and PIC/export fallbacks retain correctness;11 configure controls pass with Makefiles and Ninja Multi-Config. Final56/56 fast,47/47 ASan and5/5 owning suites pass, with normal/ASan LibreCAD_3 builds. One local four-target adapter rebuild measured51.791 s separate versus28.918 s pooled; this is not a full-build performance claim. The tests-on/CLI-off configuration gap is reproduced on both baseline and candidate and has an implementation-ready follow-up below. No parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED. [Implementation record](#implementation-progress-rpp-5bj-audited-test-adapter-build-sharing-2026-10-24) · [receipt](docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5bk CLI-optional test registration and ownership regression controls (2026-10-24):** tests-enabled/CLI-disabled configurations now generate and build without a dummy converter target. Only actual CLI-dependent registrations are omitted; all384 prior default test commands/properties are unchanged, plus one new matrix regression. Static/shared and Makefiles/Ninja Multi-Config matrices pass, including14 explicit-control diagnostics and dependency/orphan checks. Final78/78 fresh CLI-off fast,58/58 CLI-on fast,51/51 ASan CLI-off,7/7 shared CLI-off and5/5 owning checks pass. Broader validation also corrected stale NOD-350 normalization assertions to the implemented RPP-5ao source-role preservation contract, with exact350/360 and hard-owner readback controls. No production parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED; external qualification remains deferred. [Implementation record](#implementation-progress-rpp-5bk-cli-optional-test-registration-and-ownership-regression-controls-2026-10-24) · [receipt](docs/research/rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5bj audited test-adapter build sharing (2026-10-24):** four identical tests/ adapter compilations now share one private, uninstalled OBJECT configuration; the CLI, fixture-defined root tests and MSVC Wave 1 seam remain separate. Total adapter compile commands fall from13 to10. Compile-context guards, explicit opt-out and PIC/export fallbacks retain correctness;11 configure controls pass with Makefiles and Ninja Multi-Config. Final56/56 fast,47/47 ASan and5/5 owning suites pass, with normal/ASan LibreCAD_3 builds. One local four-target adapter rebuild measured51.791 s separate versus28.918 s pooled; this is not a full-build performance claim. The tests-on/CLI-off configuration gap is reproduced on both baseline and candidate and has an implementation-ready follow-up below. No parser/writer/API, fixture or support claim changes. Strict admission remains CLOSED. [Implementation record](#implementation-progress-rpp-5bj-audited-test-adapter-build-sharing-2026-10-24) · [receipt](docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json).
 
 **Previous checkpoint — RPP-5bi implementation committed as `70b5af2` (2026-10-24):** the dependency-complete DWG/DXF parity work through RPP-5bh and its evidence are committed:98 modified tracked paths,21 required support sources and2,057 research receipts. A clean archive of the committed tree builds the library, CLI, adapter tests and LibreCAD_3 compile check, with3/3 raster regressions passing in3.11 s. All17 unverified DWG fixtures and local configuration/caches/build outputs remain excluded. Prior47/47 fast,43/43 ASan and5/5 owning results remain scoped to their recorded validation; no full-project suite or new external qualification is claimed. Strict admission stays CLOSED and the six J items stay DEFERRED_EXTERNAL. [Commit record and next steps](#commit-checkpoint-rpp-5bi-dependency-complete-implementation-and-plan-update-2026-10-24) · [receipt](docs/research/rpp5bi-committed-implementation-checkpoint-and-plan-update-2026-10-24.json).
 
@@ -118973,3 +118975,100 @@ not normalization that removes relevant flags merely to increase the sharing cou
 
 Receipt:
 [`rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json`](docs/research/rpp5bj-audited-test-adapter-build-sharing-2026-10-24.json).
+
+## Implementation progress — RPP-5bk CLI-optional test registration and ownership regression controls (2026-10-24)
+
+The local tests-on/CLI-off follow-up identified under RPP-5bj is now implemented
+and verified. This section supersedes its historical unchecked follow-up list;
+it does not close the remaining semantic/platform plan. Implementation, plan
+and capture-time receipt are checkpointed together in the local commit reported
+at handoff. No remote mutation is included.
+
+1. [x] Inventory actual converter dependencies rather than test-name/label
+   prefixes. Guard the six CLI-only registration groups and the sample-backed
+   spline CLI test with `TARGET dwg2dxf`. Keep version-policy, concrete adapter,
+   parser, named-object, numeric, DIMSTYLE, 3D-consumer and LibreCAD_3 compile
+   checks available without the converter. Do not create a dummy executable or
+   imported target to satisfy unresolved generator expressions.
+2. [x] Check actual CLI availability before external prerequisites for all14
+   explicitly enabled CLI/runtime controls. An incompatible explicit request
+   reports `<control> requires LIBDXFRW_BUILD_DWG2DXF=ON`; do not silently omit
+   requested external qualification or claim it ran. Their other prerequisite
+   checks remain unchanged when the converter target exists.
+3. [x] Add the configure-only `libdxfrw_cli_optional_build` regression. Static
+   and shared pairs retain exactly the same non-CLI CTest metadata; only tests
+   carrying the actual converter path disappear. Validate dependency and
+   fixture-setup closure, including one valid and two orphan fault controls.
+   Repeat all14 incompatible-option refusals. Reuse compiler detection while
+   explicitly resetting case options; build no library or drawing corpus for
+   this registration test. Makefiles and Ninja Multi-Config/Debug pass.
+4. [x] Compare the real default build's CTest JSON before/after: all384 prior
+   test names, commands and properties are exactly unchanged; only the new
+   regression is added. The local paired matrix has385 CLI-on versus349 CLI-off
+   registrations, omitting exactly36 converter-dependent tests. These local
+   registration counts include existing sample filenames and are not hardcoded
+   into the regression or interpreted as sample qualification.
+5. [x] Build a fresh CLI-off static tree with the four adapter executables,
+   version-policy test, 3D-consumer probe and LibreCAD_3 compile check under the
+   existing strict flags. It contains no built converter executable. Shared
+   CLI-off and ASan CLI-off builds of the same consumer/adapter targets pass.
+   Restore the pre-existing normal/ASan build directories to CLI-on afterward.
+6. [x] Unblock the broader standalone cohort without hiding a real failure:
+   `libdxfrw_named_resource_import_evidence` also failed in the CLI-on baseline
+   because its old assertions required a source NOD360 edge to normalize to350.
+   RPP-5ao and the existing production source-metadata path instead preserve the
+   selected source role. Compare mixed-control output against the inspected
+   source codes, require HardOwner readback, preserve the all-hard360 control,
+   and add the canonical soft350 counterpart plus hard-owner flag/owner readback.
+   Both ASCII/Binary paths run in the owning named-resource selector. This is
+   a regression-expectation correction and stronger local contract coverage,
+   not a production serializer change or independent standards acceptance.
+7. [x] Final composed verification after that test correction:
+
+   - Fresh CLI-off fast:78/78 in12.09 s, parallelism3.
+   - Default CLI-on fast:58/58 in34.74 s, parallelism3.
+   - ASan CLI-off:51/51 in55.02 s, parallelism3, with
+     `halt_on_error=1:detect_leaks=0`.
+   - Shared CLI-off:7/7 in2.07 s; owning checkpoint:5/5 in48.16 s.
+   - CTest JSON audit, strict builds and scoped whitespace check pass.
+   Timings are shared-host observations, not speed benchmarks. An oversubscribed
+   overlapping run hit the existing10-second callback-suite timeout; repeat
+   the full78-selector cohort separately, which passes. Do not relax timeouts,
+   suppress warnings or remove a failing selector to obtain this checkpoint.
+   No full-project sweep, native GUI/platform or external semantic qualification
+   is represented by these results.
+
+For subsequent local checkpoints, sequence the heavier normal/ASan/owning
+cohorts instead of running several three-job cohorts simultaneously. Keep
+within-cohort parallelism3 and the existing limits; avoid preventable
+oversubscription/timeouts and repeat work without reducing validation coverage.
+
+Readiness / next executable work:
+
+- [x] Close the reproduced local CLI-disabled configuration gap and stale NOD
+  regression control. Preserve the safe build-sharing optimization and its
+  explicit opt-out/PIC/export fallbacks.
+- [ ] Resume independent source CLASSES/text and producer LAYER/codepage
+  byte-order qualification. Read the relevant authoritative ODA chapters before
+  DWG layout/reader edits; bind independent observations to actual source
+  spans, profiles and identities rather than inferring them from local writer
+  round trips. Keep all unknown/unbound/profile-issue states until resolved.
+- [ ] Complete full IMAGE geometry/common state, NOD/image-dictionary entry and
+  owner semantics, unmodeled extensions and composed document closure. The new
+  local source-role controls are not whole-document semantic support evidence.
+- [ ] Continue broader APPID/LAYER, legacy XRECORD, AC1024/container/SUN,
+  TABLE/extension, MATERIAL, warning-debt and composed integration items.
+- [ ] J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native
+  Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+  stay **NOT_RUN**. Strict admission remains **CLOSED**; no support claim is
+  promoted by this build/test-readiness slice.
+
+After every item, update evidence, completion and the next executable action;
+resolve safe local blockers and continue. Report progress after actual commits.
+Use focused fast checks during changes and affected owning checks at composed
+checkpoints, repeating them after corrective code when needed. Preserve unrelated
+local files, build outputs and all17 excluded DWGs; add/download/commit no DWG/DXF
+fixture for this slice. Earlier receipts remain capture-time snapshots unchanged.
+
+Receipt:
+[`rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json`](docs/research/rpp5bk-cli-optional-test-registration-and-ownership-controls-2026-10-24.json).

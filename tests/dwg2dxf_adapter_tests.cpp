@@ -26389,10 +26389,10 @@ bool rootDictionaryVarWriterClosure(const std::filesystem::path& directory,
             "ROOT_VARIABLE", firstOutputCodes)
         || !readDictionaryEntryReferenceCodes(compatibilityOutput, binary,
             "ROOT_VARIABLE_2", secondOutputCodes)
-        || rootOutputCodes != std::vector<int>{350}
+        || rootOutputCodes != rootInputCodes
         || firstOutputCodes != std::vector<int>{350}
         || secondOutputCodes != std::vector<int>{360})
-        return fail("libdxfrw output did not normalize the NOD entry while preserving mixed child edge codes");
+        return fail("libdxfrw output did not preserve the source NOD and mixed child edge codes");
     dx_data compatibilityReadback;
     dx_iface compatibilityOutputReader;
     const DRW_Dictionary* compatibilityReadbackDictionary = nullptr;
@@ -26432,8 +26432,8 @@ bool rootDictionaryVarWriterClosure(const std::filesystem::path& directory,
             == compatibilityReadback.namedObjectDictionary.m_entries.end()
         || emittedNodEntryCount != 1u
         || emittedNodEntry->m_dxfHandleCode
-            != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
-        return fail("strict adapter readback lost the normalized NOD or mixed per-entry edge-code metadata");
+            != DRW_Dictionary::Entry::DxfHandleCode::HardOwner)
+        return fail("strict adapter readback lost the source NOD or mixed per-entry edge-code metadata");
     std::vector<std::pair<std::string, std::string>> objectRecordOrder;
     if (!readDxfObjectsRecordOrder(compatibilityOutput, binary,
                                    objectRecordOrder)
@@ -26521,10 +26521,23 @@ bool rootDictionaryVarWriterClosure(const std::filesystem::path& directory,
             "ROOT_VARIABLE", firstHardOwnerOutputCodes)
         || !readDictionaryEntryReferenceCodes(hardOwnerOutput, binary,
             "ROOT_VARIABLE_2", secondHardOwnerOutputCodes)
-        || rootHardOwnerOutputCodes != std::vector<int>{350}
+        || rootHardOwnerOutputCodes != std::vector<int>{360}
         || firstHardOwnerOutputCodes != std::vector<int>{360}
         || secondHardOwnerOutputCodes != std::vector<int>{360})
-        return fail("libdxfrw output did not preserve regenerated-NOD and hard-owner entry-code rules");
+        return fail("libdxfrw output did not preserve source NOD and hard-owner entry-code rules");
+    dx_data hardOwnerReadback;
+    dx_iface hardOwnerOutputReader;
+    const DRW_Dictionary* hardOwnerOutputDictionary = nullptr;
+    if (!hardOwnerOutputReader.fileImport(hardOwnerOutput.string(),
+                                         &hardOwnerReadback, false)
+        || !hardOwnerReadback.hasNamedObjectDictionary
+        || hardOwnerReadback.namedObjectDictionary.hardOwner != 1
+        || (hardOwnerOutputDictionary =
+                findVariableDictionary(hardOwnerReadback)) == nullptr
+        || hardOwnerOutputDictionary->hardOwner != 1
+        || hardOwnerOutputDictionary->parentHandle
+            != hardOwnerReadback.namedObjectDictionary.handle)
+        return fail("hard-owner DICTIONARYVAR output lost its source flags or owner closure");
 
     dx_data imported;
     dx_iface reader;
@@ -26576,6 +26589,14 @@ bool rootDictionaryVarWriterClosure(const std::filesystem::path& directory,
                               &imported, false, true))
         return fail("strict DXF-source root DICTIONARYVAR export failed: "
             + rawWriter.extensionGraphFailureDetail());
+    // RPP-5ao preserves selected source NOD roles, not a universal 350 or
+    // 360 normalization. Check the soft-owner counterpart independently of
+    // the mixed/hard-owner controls above, in both ASCII and Binary DXF.
+    std::vector<int> canonicalRootCodes;
+    if (!readDictionaryEntryReferenceCodes(rawOutput, binary,
+            "AcDbVariableDictionary", canonicalRootCodes)
+        || canonicalRootCodes != std::vector<int>{350})
+        return fail("source soft-owner NOD entry was not preserved");
 
     dx_data rawReadback;
     dx_iface rawReader;
