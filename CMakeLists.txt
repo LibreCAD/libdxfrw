@@ -1746,6 +1746,10 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dxf_fixture_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dxf_fixtures
         COMMAND libdxfrw_dxf_fixture_tests)
+    add_test(NAME libdxfrw_material_root_output_compatibility
+        COMMAND libdxfrw_dxf_fixture_tests --material-object-order)
+    set_tests_properties(libdxfrw_material_root_output_compatibility PROPERTIES
+        LABELS "fast;dxf;adapter;material;generated" TIMEOUT 30)
     add_test(NAME libdxfrw_dxf_consumer_finalization
         COMMAND libdxfrw_dxf_fixture_tests --dxf-consumer-finalization)
     set_tests_properties(libdxfrw_dxf_consumer_finalization PROPERTIES

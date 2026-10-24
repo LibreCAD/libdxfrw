@@ -1521,6 +1521,18 @@ private:
     std::uint32_t m_rasterDictionaryEmitted{0u};
     bool inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool hasUnchangedRasterDictionaryOutputSource(bool final = false) const;
+    struct GeneratedRootOutputProof {
+        std::uint32_t source{0u}, emitted{0u}, owner{0u}, extension{0u};
+        bool groups{false}, commonCompared{false};
+        std::vector<std::uint32_t> references;
+    };
+    std::vector<GeneratedRootOutputProof> m_generatedRootOutputProofs;
+    std::size_t m_generatedRootOutputBytes{0u};
+    std::size_t m_generatedRootOutputByteLimit{ImageDefinitionCaptureMaxRetainedBytes};
+    bool m_generatedRootOutputInspected{false}, m_generatedRootOutputFinalized{false}, m_generatedRootOutputPublished{false};
+    bool inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool hasUnchangedGeneratedRootSources(bool final) const;
+    bool finalizeGeneratedRootOutput() noexcept;
     struct RasterImageEdges {
         std::uint32_t source{0}, emitted{0}, owner{0}, definition{0}, reactor{0};
         dxfRW::ImageDefinitionKey sourceDefinition;

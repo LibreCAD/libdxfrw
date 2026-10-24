@@ -51,6 +51,17 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool generatedRoots(dx_iface& iface, const dxfRW::DxfObjectsWriteView& view) { return iface.inspectGeneratedRootOutput(view); }
+    static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
+        return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
+            && iface.m_generatedRootOutputProofs.size() == count && (!published || iface.m_generatedRootOutputPublished);
+    }
+    static void generatedRootBudget(dx_iface& iface, std::size_t bytes) { iface.m_generatedRootOutputByteLimit = bytes; }
+    static std::size_t generatedRootCommonCount(const dx_iface& iface) {
+        return static_cast<std::size_t>(std::count_if(iface.m_generatedRootOutputProofs.begin(), iface.m_generatedRootOutputProofs.end(),
+            [](const auto& proof) { return proof.commonCompared; }));
+    }
+    static void preserveGraphIdentities(dx_iface& iface) { iface.m_preserveGraphSourceIdentities = true; }
     static bool rasterOutputPublished(const dx_iface& iface, std::size_t fields, std::size_t images) {
         return iface.m_rasterOutputPublished && iface.m_rasterOutputFinalized
             && iface.m_rasterOutputProofs.size() == fields && iface.m_rasterImageEdges.size() == images;
@@ -3426,6 +3437,7 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
 }
 
 bool generatedRootCommonReferenceClosure() {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
     for (unsigned n = 0u; n != 64u; ++n) {
@@ -3505,11 +3517,18 @@ bool generatedRootCommonReferenceClosure() {
         return (mode == 1u || common(data.namedObjectDictionary, groups->handle, "A101"))
             && (mode == 0u || common(*groups, data.namedObjectDictionary.handle, "A201"));
     };
-    unsigned cells = 0u, compatibleCells = 0u, retries = 0u, limitRetries = 0u;
+    class Exporter : public dx_iface {
+    public:
+        std::function<void()> afterObjects, beforeFinalize;
+        void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
+        bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
+    };
+    unsigned cells = 0u, compatibleCells = 0u, retries = 0u, limitRetries = 0u, lateRetries = 0u, emptyCells = 0u;
     for (unsigned mode = 0u; mode != 3u; ++mode) {
-        dx_data data; configure(data, mode); dx_iface exporter;
+        dx_data data; configure(data, mode); Exporter exporter;
         for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
-            if (!exporter.fileExport(path.string(), version, binary, &data, false, true))
+            if (!exporter.fileExport(path.string(), version, binary, &data, false, true) || !Access::generatedRootsFinal(exporter, 2u, true)
+                || Access::generatedRootCommonCount(exporter) != 2u)
                 return fail("generated root common-reference closure refused its valid authored graph: " + exporter.extensionGraphFailureDetail());
             dx_data first; dx_iface reader;
             if (!reader.fileImport(path.string(), &first, false) || !inspect(first, mode)) return fail("generated root common-reference output/readback lost metadata or ownership");
@@ -3527,7 +3546,7 @@ bool generatedRootCommonReferenceClosure() {
             ++compatibleCells;
         }
     }
-    dx_data data; configure(data, 2u); dx_iface exporter, reader;
+    dx_data data; configure(data, 2u); Exporter exporter; dx_iface reader;
     const auto nod = data.namedObjectDictionary;
     const auto dictionaries = data.dictionaries;
     const auto records = data.xRecords;
@@ -3581,10 +3600,161 @@ bool generatedRootCommonReferenceClosure() {
         ++limitRetries;
     }
     exporter.setExtensionGraphLimits({});
-    if (cells != 36u || compatibleCells != 6u || retries != 24u || limitRetries != 5u)
+    // Existing compatible text may lack an exact modeled comparison. Keep
+    // physical fields/references and final source guards without a false
+    // common/text certificate or a newly narrowed consumer contract.
+    for (const auto version : {DRW::AC1015, DRW::AC1032}) for (const bool binary : {false, true}) {
+        std::next(data.namedObjectDictionary.appData.back().begin())->addString(1, "unqualified\\path");
+        if (!exporter.fileExport(path.string(), version, binary, &data, false, true)
+            || !Access::generatedRootsFinal(exporter, 2u, true) || Access::generatedRootCommonCount(exporter) != 1u)
+            return fail("generated root compatible-unqualified text gained a common certificate or was refused");
+        restore();
+    }
+    for (const bool binary : {false, true}) {
+        data.namedObjectDictionary.extData.push_back(new DRW_Variant(1070, static_cast<std::int32_t>(65535)));
+        data.namedObjectDictionary.appData.back().insert(std::prev(data.namedObjectDictionary.appData.back().end()), {70, static_cast<std::int32_t>(65535)});
+        if (!exporter.fileExport(path.string(), DRW::AC1032, binary, &data, false, true)
+            || Access::generatedRootCommonCount(exporter) != 2u) return fail("generated root signed short transport comparison failed");
+        restore();
+    }
+    const std::vector<std::function<void()>> lateFaults{
+        [&]() { data.namedObjectDictionary.cloning = 4; },
+        [&]() { data.namedObjectDictionary.xDictHandle = 0u; },
+        [&]() { data.namedObjectDictionary.reactorHandles.clear(); },
+        [&]() { data.namedObjectDictionary.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner; },
+        [&]() { data.namedObjectDictionary.extData.back()->addString(1000, "late-edit"); },
+        [&]() { data.dictionaries.back().cloning = 4; },
+        [&]() { data.dictionaries.back().parentHandle = 0u; },
+        [&]() { data.dictionaries.back().appData.clear(); },
+        [&]() { data.dictionaries.back().m_entries.clear(); },
+        [&]() { data.hasNamedObjectDictionary = false; }
+    };
+    for (const auto& fault : lateFaults) for (const bool final : {false, true}) for (const bool binary : {false, true}) {
+        if (final) exporter.beforeFinalize = fault; else exporter.afterObjects = fault;
+        if (!refused(binary)) return fail("generated root late source mutation was published");
+        exporter.beforeFinalize = {}; exporter.afterObjects = {}; restore(); data.hasNamedObjectDictionary = true;
+        if (!writeAndCheck(binary) || !Access::generatedRootsFinal(exporter, 2u, true)) return fail("generated root late-source restoration retry failed");
+        ++lateRetries;
+    }
+    for (const bool groupRoot : {false, true}) {
+        dx_data empty; empty.hasNamedObjectDictionary = true; empty.namedObjectDictionary.handle = 0xA000u;
+        if (groupRoot) {
+            empty.namedObjectDictionary.m_entries = {{"ACAD_GROUP", 0xA010u}};
+            DRW_Dictionary groups; groups.handle = 0xA010u; groups.parentHandle = 0xA000u; empty.dictionaries.push_back(groups);
+        }
+        for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
+            if (!exporter.fileExport(path.string(), version, binary, &empty, false, true)
+                || !Access::generatedRootsFinal(exporter, groupRoot ? 2u : 1u, true)) return fail("empty generated root proof failed");
+            dx_data actual;
+            if (!reader.fileImport(path.string(), &actual, false) || !actual.groups.empty() || !actual.hasNamedObjectDictionary)
+                return fail("empty generated root output/readback failed");
+            ++emptyCells;
+        }
+    }
+    class Direct : public dx_iface {
+    public:
+        bool earlyViewsHidden{true};
+        void writeHeader(DRW_Header& header) override {
+            earlyViewsHidden = !dxfW->dxfWriteGeneratedRootSource(false) && !dxfW->dxfWriteGeneratedRootSource(true)
+                && !dxfW->dxfWriteRootEntries() && !dxfW->dxfWriteImageDictionaryHandle();
+            dx_iface::writeHeader(header);
+        }
+        void writeObjects() override {
+            for (auto& dictionary : cData->dictionaries) if (dictionary.handle != 0xA010u) (void)dxfW->writeDictionary(&dictionary);
+            for (auto& record : cData->xRecords) (void)dxfW->writeXRecord(&record);
+        }
+    } direct;
+    direct.cData = &data; direct.currentBlock = data.mBlock; Access::preserveGraphIdentities(direct);
+    unsigned wireRetries = 0u, guardRetries = 0u;
+    struct Field { int code; unsigned occurrence; };
+    const std::vector<Field> fields{{0,0},{5,0},{330,0},{330,1},{330,2},{330,3},{360,0},{100,0},
+        {280,0},{281,0},{3,0},{-1,0},{1001,0},{1000,0},{1,0},{320,0},{102,4}};
+    for (const bool binary : {false, true}) {
+        dxfRW codec(path.string().c_str()); direct.dxfW = &codec;
+        codec.setHandleRemap({{nod.handle, 0xCu}, {0xA010u, 0xDu}});
+        codec.setGroups(std::vector<DRW_Group>(data.groups.begin(), data.groups.end()));
+        if (!codec.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(nod),
+                std::make_unique<DRW_Dictionary>(data.dictionaries.back()), nullptr, 0u)) return fail("direct generated root setup failed");
+        for (const auto handle : {0xA100u,0xA101u,0xA200u,0xA201u,0xA300u}) (void)codec.reserveHandle(handle);
+        codec.setDxfWriteRecordInventoryEnabled(true);
+        const Field* selected = nullptr; unsigned mode = 0u, guard = 0u; bool groups = false, applied = false;
+        codec.setDxfObjectsWriteInspector([&](auto view) {
+            if (guard == 1u) throw std::runtime_error("generated root inspector exception");
+            if (guard == 2u) (void)codec.write(&direct, DRW::AC1032, binary);
+            if (guard == 3u) (void)codec.setDxfObjectsWriteInspector({});
+            if (guard == 4u) (void)codec.read(&direct, false);
+            if (guard == 5u) codec.setDxfWriteRecordInventoryEnabled(false);
+            std::string changed(view.bytes);
+            if (selected) {
+                dx_raster_output::Cursor input(view.bytes, view.binary); dx_raster_output::Token token;
+                bool target = false; unsigned occurrence = 0u;
+                const int code = selected->code == -1 ? (groups ? 350 : 360) : selected->code;
+                const unsigned wanted = selected->code == -1 && !groups ? 1u : selected->occurrence;
+                while (!input.done()) {
+                    const auto begin = input.position(); if (!input.next(token)) break;
+                    if (token.code == 0) {
+                        occurrence = 0u; target = false;
+                        dx_raster_output::Cursor peek(view.bytes.substr(input.position()), view.binary); dx_raster_output::Token self; std::uint32_t handle = 0u;
+                        target = token.text == "DICTIONARY" && peek.next(self) && self.code == 5
+                            && dx_raster_output::integer(self.text, handle, 16) && handle == (groups ? 0xDu : 0xCu);
+                    }
+                    if (!target || token.code != code || occurrence++ != wanted) continue;
+                    const auto end = input.position();
+                    if (mode == 1u) changed.erase(begin, end - begin);
+                    else if (mode == 2u) changed.insert(end, changed.substr(begin, end - begin));
+                    else if (mode == 3u) {
+                        if (view.binary) changed[begin] = static_cast<char>(code + 1);
+                        else changed.replace(begin, changed.find('\n', begin) - begin, std::to_string(code + 1));
+                    } else {
+                        const auto value = view.binary ? begin + 2u : view.bytes.find('\n', begin) + 1u;
+                        if (view.binary) changed[value] ^= 1;
+                        else changed[value] = changed[value] == '2' ? '3' : '2';
+                    }
+                    applied = true; break;
+                }
+            }
+            view.bytes = changed; return Access::generatedRoots(direct, view);
+        });
+        const auto write = [&]() { Access::resetRasterOutput(direct); return codec.write(&direct, DRW::AC1032, binary); };
+        const auto check = [&]() { dx_data actual; return reader.fileImport(path.string(), &actual, false) && inspect(actual, 2u); };
+        if (!write() || !check() || !direct.earlyViewsHidden || !Access::generatedRootsFinal(direct, 2u)) return fail("direct generated root positive/readback proof failed");
+        if (codec.dxfWriteGeneratedRootSource(false) || codec.dxfWriteGeneratedRootSource(true)
+            || codec.dxfWriteRootEntries() || codec.dxfWriteImageDictionaryHandle()) return fail("generated root view escaped its write attempt");
+        std::size_t low = 0u, high = 65536u;
+        while (low < high) { const auto middle = low + (high - low) / 2u; Access::generatedRootBudget(direct, middle); if (write()) high = middle; else low = middle + 1u; }
+        Access::generatedRootBudget(direct, low ? low - 1u : 0u); const bool below = write(); Access::generatedRootBudget(direct, low);
+        if (!low || below || !write() || !check()) return fail("generated root output one-under/exact budget retry failed");
+        Access::generatedRootBudget(direct, dx_iface::ImageDefinitionCaptureMaxRetainedBytes);
+        const auto atomicFailure = [&]() {
+            const std::string sentinel = "GENERATED_ROOT_OUTPUT_DESTINATION";
+            { std::ofstream output(path, std::ios::binary); output << sentinel; }
+            const bool wrote = write(); std::ifstream input(path, std::ios::binary);
+            return !wrote && std::string((std::istreambuf_iterator<char>(input)), {}) == sentinel;
+        };
+        for (groups = false; ; groups = true) {
+            for (const auto& field : fields) for (mode = 0u; mode < 4u; ++mode) {
+                selected = &field; applied = false; const bool failed = atomicFailure(); selected = nullptr;
+                if (!applied || !failed || !write() || !check()) {
+                    std::cerr << "generated root fault groups=" << groups << " code=" << field.code << " mode=" << mode << " applied=" << applied << '\n';
+                    return fail("generated root field/role fault or same-codec retry failed");
+                }
+                ++wireRetries;
+            }
+            if (groups) break;
+        }
+        for (guard = 1u; guard != 6u; ++guard) {
+            const bool failed = atomicFailure(); const auto saved = guard; guard = 0u;
+            if (!failed || !write() || !check()) return fail("generated root inspector guard/exception retry failed");
+            guard = saved; ++guardRetries;
+        }
+        direct.dxfW = nullptr;
+    }
+    if (cells != 36u || compatibleCells != 6u || retries != 24u || limitRetries != 5u || lateRetries != 40u || emptyCells != 24u
+        || wireRetries != 272u || guardRetries != 10u)
         return fail("generated root common-reference matrix skipped a control");
     std::cout << "Generated NOD/GROUP authored/imported reexport cells=" << cells << " compatible cells=" << compatibleCells
-              << " graph restoration retries=" << retries << " exact-budget retries=" << limitRetries << '\n';
+              << " graph restoration retries=" << retries << " exact-budget retries=" << limitRetries << " late retries=" << lateRetries
+              << " empty cells=" << emptyCells << " wire retries=" << wireRetries << " inspector retries=" << guardRetries << '\n';
     return true;
 }
 

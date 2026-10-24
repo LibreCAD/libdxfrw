@@ -2708,6 +2708,19 @@ const DRW_Dictionary* dxfRW::dxfWriteImageDictionarySource(std::uint32_t& emitte
     return m_generatedImageDictionarySource.get();
 }
 
+const DRW_Dictionary* dxfRW::dxfWriteGeneratedRootSource(bool groups) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfGroupPlanFrozen || writer == nullptr) return nullptr;
+    return groups ? m_generatedGroupDictionarySource.get() : m_generatedNodSource.get();
+}
+
+const std::vector<std::pair<std::string, std::string>>* dxfRW::dxfWriteRootEntries() const noexcept {
+    return m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && writer != nullptr ? &m_rootDictEntries : nullptr;
+}
+
+std::uint32_t dxfRW::dxfWriteImageDictionaryHandle() const noexcept {
+    return m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && writer != nullptr ? m_plannedImageDictionaryHandle : 0u;
+}
+
 bool dxfRW::reserveHandle(std::uint32_t h) {
     if (!preflightDxfSetup())
         return false;
@@ -13793,6 +13806,7 @@ bool dxfRW::writeObjects() {
             imageDictionaryHandle = m_plannedImageDictionaryHandle;
             if (imageDictionaryHandle == 0u && !allocateDxfHandle(imageDictionaryHandle))
                 return false;
+            m_plannedImageDictionaryHandle = imageDictionaryHandle;
             imgDictH = toHexStr(imageDictionaryHandle);
             imageDictionaryKeys.reserve(imageDef.size());
             std::set<std::string> normalizedKeys;

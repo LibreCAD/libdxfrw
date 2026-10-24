@@ -14577,6 +14577,9 @@ bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
 }
 
 void dx_iface::resetStandardDwgOutputProofs() noexcept {
+    std::vector<GeneratedRootOutputProof>().swap(m_generatedRootOutputProofs);
+    m_generatedRootOutputBytes = 0u;
+    m_generatedRootOutputInspected = m_generatedRootOutputFinalized = m_generatedRootOutputPublished = false;
     std::vector<RasterOutputProof>().swap(m_rasterOutputProofs);
     std::vector<std::uint32_t>().swap(m_rasterDictionaryReferences); m_rasterDictionaryEmitted = 0u;
     m_rasterOutputBytes = 0u;
@@ -14807,6 +14810,275 @@ bool dx_iface::inspectRasterImageEdges(const dxfRW::DxfObjectsWriteView& view, s
             m_rasterOutputBytes += sizeof(RasterImageEdges) + 5u * sizeof(void*);
             return true;
         }) && seen.size() == expected.size();
+    } catch (...) { return false; }
+}
+
+namespace {
+// DXF retains explicit reserved groups in addition to typed common links.
+// Validate their exact correspondence before removing this duplicate syntax
+// from the modeled comparison. Unknown application schemas stay lexical.
+template<class Mapper> bool generatedDictionaryCommonEqual(const DRW_Dictionary& source,
+        const DRW_Dictionary& actual, Mapper map, std::vector<std::uint32_t>& references, bool binary = false) {
+    DRW_Dictionary projected, decoded;
+    static_cast<DRW_TableEntry&>(projected) = static_cast<const DRW_TableEntry&>(source);
+    static_cast<DRW_TableEntry&>(decoded) = static_cast<const DRW_TableEntry&>(actual);
+    unsigned reactors = 0u, extension = 0u;
+    for (const auto& group : source.appData) {
+        const auto name = dx_standard_output::appName(group);
+        if (name == "ACAD_REACTORS" && (++reactors != 1u || !dx_standard_output::reservedGroupExact(group, source, true))) return false;
+        if (name == "ACAD_XDICTIONARY" && (++extension != 1u || !dx_standard_output::reservedGroupExact(group, source, false))) return false;
+    }
+    const auto reserved = [](const auto& group) {
+        const auto name = dx_standard_output::appName(group);
+        return name == "ACAD_REACTORS" || name == "ACAD_XDICTIONARY";
+    };
+    auto expected = source.appData.begin();
+    for (auto group = decoded.appData.begin(); group != decoded.appData.end();) {
+        if (reserved(*group)) { ++group; continue; }
+        while (expected != source.appData.end() && reserved(*expected)) ++expected;
+        if (expected == source.appData.end() || group->empty() || expected->size() != group->size()
+            || dx_standard_output::appName(*expected) != dx_standard_output::appName(*group)) return false;
+        auto a = std::next(expected->begin());
+        auto b = std::next(group->cbegin());
+        for (; a != expected->end(); ++a, ++b) {
+            if (retainedVariantEqual(*a, *b)) continue;
+            const int code = a->code();
+            const bool shortValue = (code >= 60 && code <= 79) || (code >= 170 && code <= 179)
+                || (code >= 270 && code <= 289) || (code >= 370 && code <= 389) || (code >= 400 && code <= 409);
+            if (!binary || !shortValue || code != b->code() || a->type() != DRW_Variant::INTEGER
+                || b->type() != DRW_Variant::INTEGER || static_cast<std::int16_t>(a->i_val()) != b->i_val()) return false;
+        }
+        ++expected; group = decoded.appData.erase(group);
+    }
+    while (expected != source.appData.end() && reserved(*expected)) ++expected;
+    if (expected != source.appData.end()) return false;
+    projected.appData.clear();
+    if (binary) for (auto* value : projected.extData)
+        if (value && value->code() == 1070 && value->type() == DRW_Variant::INTEGER)
+            value->addInt(1070, static_cast<std::int16_t>(value->i_val()));
+    const auto layer = [](const DRW_Variant& a, const DRW_Variant& b, std::vector<std::uint32_t>&) {
+        return a.code() == 1003 && b.code() == 1003 && a.c_str() && b.c_str() && std::string_view(a.c_str()) == b.c_str();
+    };
+    auto verifyLayer = layer;
+    return dx_standard_output::commonEqual(projected, decoded, dx_standard_output::Family::Dictionary,
+        map, references, verifyLayer);
+}
+}
+
+bool dx_iface::hasUnchangedGeneratedRootSources(bool final) const {
+    if (!cData || !dxfW) return false;
+    if (!validateNamedObjectRootForExport(*cData, "ACAD_GROUP")) return false;
+    const auto header = cData->headerC.dwgNamedObjectDictionaryReference();
+    if (header && (!DRW_Header::isUsableDwgNamedObjectDictionaryReference(*header)
+        || (header->ref64 && (!cData->hasNamedObjectDictionary || header->ref64 != cData->namedObjectDictionary.handle)))) return false;
+    for (const auto& proof : m_generatedRootOutputProofs) {
+        const auto* frozen = dxfW->dxfWriteGeneratedRootSource(proof.groups);
+        const DRW_Dictionary* current = nullptr;
+        if (!proof.groups) {
+            if (cData->hasNamedObjectDictionary) current = &cData->namedObjectDictionary;
+        } else {
+            for (const auto& dictionary : cData->dictionaries) if (dictionary.handle == proof.source) {
+                if (current) return false;
+                current = &dictionary;
+            }
+        }
+        if (!frozen || !current || !current->hasCompleteDxfEntries()
+            || !standardDwgModelsEqual(*frozen, *current, cData->sourceVersion, dwgObjType::DICTIONARY)) return false;
+        if (!final) continue;
+        if (!dxfW->dxfWriteSourceObjectHasIdentity(proof.source, proof.emitted, "DICTIONARY", "OBJECTS", proof.owner)) return false;
+        if (proof.extension && (!dxfW->dxfWriteRecordHasIdentity(proof.extension, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(proof.extension, proof.emitted))) return false;
+        for (const auto reference : proof.references) if (dxfW->dxfWriteRecordHandleCount(reference) != 1u) return false;
+    }
+    return true;
+}
+
+bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (!cData || !dxfW || m_generatedRootOutputInspected) return false;
+    m_generatedRootOutputInspected = true;
+    try {
+        const auto* context = dxfW->getWritingContext();
+        const auto* roots = dxfW->dxfWriteRootEntries();
+        if (!context || !roots) return false;
+        const auto map = [this, context](std::uint32_t source, std::uint32_t& output) {
+            output = 0u; if (!source) return true;
+            if (context->ambiguousSourceHandles.count(source)) return false;
+            for (const auto* bindings : {&context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToWrittenTableMap, &context->sourceHandleToMintedMap}) {
+                const auto found = bindings->find(source);
+                if (found != bindings->end()) { output = found->second; return output != 0u; }
+            }
+            output = dxfW->remapHandle(source); return output != 0u;
+        };
+        const auto charge = [this](std::size_t bytes) {
+            if (m_generatedRootOutputBytes > m_generatedRootOutputByteLimit
+                || bytes > m_generatedRootOutputByteLimit - m_generatedRootOutputBytes) return false;
+            m_generatedRootOutputBytes += bytes; return true;
+        };
+        struct Entry { std::string_view name; std::uint32_t target; int role; };
+        if (!charge(2u * sizeof(GeneratedRootOutputProof))) return false;
+        m_generatedRootOutputProofs.reserve(2u);
+        for (const bool groups : {false, true}) {
+            const auto* frozen = dxfW->dxfWriteGeneratedRootSource(groups);
+            if (!frozen) continue;
+            std::size_t bytes = 0u, items = 0u;
+            if (!estimateDictionaryTypedBytes(*frozen, bytes, items)
+                || !charge(bytes) || !charge(bytes) || !charge(bytes)) return false;
+            std::vector<Entry> selected, expected;
+            std::map<std::string, std::size_t> keys;
+            const auto select = [&](std::string_view name, std::uint32_t target) {
+                if (selected.size() >= DRW_Dictionary::kMaxEntries || !target
+                    || !charge(sizeof(Entry) + sizeof(std::pair<const std::string, std::size_t>) + 6u * sizeof(void*) + name.size())
+                    || !keys.emplace(layoutSymbolKey(std::string(name)), selected.size()).second) return false;
+                selected.push_back({name, target, 350}); return true;
+            };
+            if (!groups) {
+                if (!select("ACAD_GROUP", 0xDu)) return false;
+                const auto image = dxfW->dxfWriteImageDictionaryHandle();
+                if (image && !select("ACAD_IMAGE_DICT", image)) return false;
+                for (const auto& root : *roots) {
+                    std::uint32_t target = 0u;
+                    if (!dx_raster_output::integer(root.second, target, 16) || !select(root.first, target)) return false;
+                }
+            }
+            const auto count = groups ? frozen->m_entries.size() : selected.size();
+            if (count > DRW_Dictionary::kMaxEntries || !charge(count * (sizeof(Entry) + sizeof(bool)))) return false;
+            expected.reserve(count); std::vector<bool> used(selected.size(), false);
+            for (const auto& entry : frozen->m_entries) {
+                std::uint32_t target = 0u;
+                if (groups) {
+                    if (!map(entry.m_handle, target)) return false;
+                } else {
+                    const auto found = keys.find(layoutSymbolKey(entry.m_name));
+                    if (found == keys.end()) continue; // Explicit existing NOD export projection.
+                    if (used[found->second]) return false;
+                    used[found->second] = true; target = selected[found->second].target;
+                    std::uint32_t actual = 0u, image = 0u;
+                    const auto* imageSource = dxfW->dxfWriteImageDictionarySource(image);
+                    if ((found->first != "ACAD_IMAGE_DICT" || imageSource || !dxfW->dxfWriteImageDictionaryHandle())
+                        && (!map(entry.m_handle, actual) || actual != target)) return false;
+                }
+                using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                const int role = entry.m_dxfHandleCode == Role::Unspecified
+                    ? (frozen->hardOwner == 1 ? 360 : 350) : static_cast<int>(entry.m_dxfHandleCode);
+                expected.push_back({entry.m_name, target, role});
+            }
+            for (std::size_t index = 0u; index < selected.size(); ++index) if (!used[index]) expected.push_back(selected[index]);
+            GeneratedRootOutputProof proof;
+            proof.groups = groups; proof.source = frozen->handle; proof.emitted = groups ? 0xDu : 0xCu; proof.owner = groups ? 0xCu : 0u;
+            if (!map(frozen->xDictHandle, proof.extension)) return false;
+            if (frozen->reactorHandles.size() > 500000u || frozen->extData.size() > 1000000u) return false;
+            const auto slots = 2u * frozen->reactorHandles.size() + expected.size() + frozen->extData.size() + 4u;
+            if (slots > 1000000u || !charge(slots * sizeof(std::uint32_t))) return false;
+            proof.references.reserve(slots);
+            bool seen = false;
+            std::string_view matchedBody;
+            if (!dx_raster_output::inspect(view.bytes, view.binary, [&](std::string_view name, std::uint32_t self, std::string_view body) {
+                    if (name == "DICTIONARY" && !self) return false;
+                    if (self != proof.emitted) return true;
+                    if (name != "DICTIONARY" || seen) return false;
+                    seen = true;
+                    matchedBody = body;
+                    dx_raster_output::Cursor input(body, view.binary); dx_raster_output::Token token;
+                    unsigned depth = 0u, selves = 0u, owners = 0u, classes = 0u, hard = 0u, cloning = 0u, reactors = 0u, extensions = 0u;
+                    std::string_view app; std::size_t reactor = 0u, entry = 0u; bool pending = false, xdata = false;
+                    const auto reference = [&](std::uint32_t source, std::uint32_t actual) {
+                        std::uint32_t output = 0u;
+                        if (!map(source, output) || output != actual) return false;
+                        if (output) proof.references.push_back(output);
+                        return true;
+                    };
+                    while (!input.done()) {
+                        if (!input.next(token)) return false;
+                        if (token.code == 102) {
+                            if (classes || xdata) return false;
+                            if (!token.text.empty() && token.text.front() == '{') {
+                                if (++depth > DRW::kMaxDxfApplicationGroupNesting) return false;
+                                if (depth == 1u) {
+                                    app = token.text.substr(1); reactor = 0u;
+                                    if (app == "ACAD_REACTORS" && ++reactors != 1u) return false;
+                                    if (app == "ACAD_XDICTIONARY" && ++extensions != 1u) return false;
+                                } else if (app == "ACAD_REACTORS" || app == "ACAD_XDICTIONARY") return false;
+                            } else if (token.text == "}" && depth) {
+                                if (--depth == 0u && ((app == "ACAD_REACTORS" && reactor != frozen->reactorHandles.size())
+                                    || (app == "ACAD_XDICTIONARY" && reactor != 1u))) return false;
+                            } else return false;
+                            continue;
+                        }
+                        std::uint32_t value = 0u;
+                        if (depth) {
+                            if (app == "ACAD_REACTORS") {
+                                if (depth != 1u || token.code != 330 || reactor >= frozen->reactorHandles.size()
+                                    || !dx_raster_output::integer(token.text, value, 16) || !reference(frozen->reactorHandles[reactor++], value)) return false;
+                            } else if (app == "ACAD_XDICTIONARY") {
+                                if (depth != 1u || token.code != 360 || reactor++ || !frozen->xDictHandle
+                                    || !dx_raster_output::integer(token.text, value, 16) || !reference(frozen->xDictHandle, value)) return false;
+                            }
+                            continue;
+                        }
+                        if (token.code >= 1000) { if (!classes || pending || (!xdata && token.code != 1001)) return false; xdata = true; continue; }
+                        if (xdata) return false;
+                        if (!classes && token.code == 5) {
+                            if (++selves != 1u || !dx_raster_output::integer(token.text, value, 16) || value != proof.emitted) return false;
+                        } else if (!classes && token.code == 330) {
+                            if (++owners != 1u || !dx_raster_output::integer(token.text, value, 16) || value != proof.owner) return false;
+                        } else if (token.code == 100) {
+                            if (++classes != 1u || token.text != "AcDbDictionary") return false;
+                        } else if (classes && token.code == 280 && !pending) {
+                            if (++hard != 1u || token.number != frozen->hardOwner) return false;
+                        } else if (classes && token.code == 281 && !pending) {
+                            if (++cloning != 1u || token.number != frozen->cloning) return false;
+                        } else if (classes && token.code == 3 && !pending && entry < expected.size()) pending = true;
+                        else if (pending && entry < expected.size() && token.code == expected[entry].role) {
+                            if (!dx_raster_output::integer(token.text, value, 16) || value != expected[entry].target) return false;
+                            proof.references.push_back(value); ++entry; pending = false;
+                        } else return false;
+                    }
+                    return !depth && !pending && selves == 1u && owners == 1u && classes == 1u && hard == 1u && cloning == 1u
+                        && entry == expected.size() && reactors == (frozen->reactorHandles.empty() ? 0u : 1u) && extensions == (frozen->xDictHandle ? 1u : 0u);
+                }) || !seen) return false;
+            // Decode only the independently selected root. Reading unrelated
+            // records here would impose this dictionary observer's classifier
+            // on other supported profiles (e.g. MATERIAL unsigned colors).
+            dx_standard_output::Decoder decoder(view);
+            if (!decoder.good() || !decoder.decodeRecord<DRW_Dictionary>(matchedBody, [&](const auto& actual) {
+                        if (actual.m_entries.size() != expected.size()) return false;
+                        const auto textProfile = [&](std::string_view value) {
+                            return value.find('\\') == std::string_view::npos && value.find('\0') == std::string_view::npos
+                                && (view.version >= DRW::AC1021 || std::all_of(value.begin(), value.end(), [](unsigned char c) { return c < 128u; }));
+                        };
+                        for (std::size_t index = 0u; index < expected.size(); ++index) {
+                            const auto& a = actual.m_entries[index]; const auto& e = expected[index];
+                            if ((textProfile(e.name) && a.m_name != e.name) || a.m_handle != e.target || static_cast<int>(a.m_dxfHandleCode) != e.role) return false;
+                            if (!dxfW->dxfWriteRecordHasOwner(e.target, proof.emitted)) return false;
+                            if (groups && !dxfW->dxfWriteRecordHasIdentity(e.target, "GROUP", "OBJECTS")) return false;
+                            if (!groups && (layoutSymbolKey(std::string(e.name)) == "ACAD_GROUP" || layoutSymbolKey(std::string(e.name)) == "ACAD_IMAGE_DICT")
+                                && !dxfW->dxfWriteRecordHasIdentity(e.target, "DICTIONARY", "OBJECTS")) return false;
+                        }
+                        bool qualified = frozen->flags == 0 && frozen->name.empty() && !frozen->hasDataStorageBinaryData();
+                        for (const auto& app : frozen->appData) for (const auto& value : app)
+                            if (value.dwgCmColorValue() || (value.type() == DRW_Variant::STRING && (!value.c_str() || !textProfile(value.c_str())))) qualified = false;
+                        for (const auto* value : frozen->extData)
+                            if (!value || value->dwgCmColorValue() || (value->type() == DRW_Variant::STRING && (!value->c_str() || !textProfile(value->c_str())))) qualified = false;
+                        // Compatible/unqualified text retains its established
+                        // route without earning a common/text certificate.
+                        if (!qualified) return true;
+                        proof.commonCompared = generatedDictionaryCommonEqual(*frozen, actual, map, proof.references, view.binary);
+                        return proof.commonCompared;
+                    })) return false;
+            if (proof.references.size() > slots) return false;
+            m_generatedRootOutputProofs.push_back(std::move(proof));
+        }
+        return hasUnchangedGeneratedRootSources(false);
+    } catch (...) { return false; }
+}
+
+bool dx_iface::finalizeGeneratedRootOutput() noexcept {
+    if (!m_generatedRootOutputInspected) return true;
+    if (m_generatedRootOutputFinalized) return false;
+    try {
+        if (!hasUnchangedGeneratedRootSources(true)) return false;
+        m_generatedRootOutputFinalized = true; return true;
     } catch (...) { return false; }
 }
 
@@ -20878,7 +21150,8 @@ bool dx_iface::finalizeDxfWrite() {
         || (cData != nullptr && !hasUnchangedStandardDwgObjectSources())
         || (cData != nullptr && !hasUnchangedRasterDwgSources())
         || !finalizeStandardDwgOutputProofs()
-        || !finalizeRasterOutputProofs())
+        || !finalizeRasterOutputProofs()
+        || !finalizeGeneratedRootOutput())
         return false;
     for (const auto& table : m_tableFallbacks) {
         if (m_emittedTableHandles.count(table.first) != 1u)
@@ -21676,7 +21949,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     struct OutputProofScope {
         dx_iface& owner;
         ~OutputProofScope() {
-            if (!owner.m_standardDwgOutputPublished && !owner.m_rasterOutputPublished) owner.resetStandardDwgOutputProofs();
+            if (!owner.m_standardDwgOutputPublished && !owner.m_rasterOutputPublished && !owner.m_generatedRootOutputPublished) owner.resetStandardDwgOutputProofs();
         }
     } outputProofScope{*this};
     m_standardDwgBorrowedGroups = nullptr;
@@ -24345,7 +24618,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     dxfW->setDxfWriteRecordInventoryEnabled(
         !m_hatchTargets.empty() || rawXdataHandleInventory
         || !cData->m_standardDwgObjectFrames.empty()
-        || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty());
+        || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
+        || cData->hasNamedObjectDictionary);
     const bool needsStandardNames = std::any_of(cData->m_standardDwgObjectFrames.begin(),
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
@@ -24356,10 +24630,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         delete dxfW; dxfW = nullptr; return false;
     }
     const bool needsRasterOutput = !cData->imageDefinitions.empty() || sourceImageDictionary;
-    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput)
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput](const auto& view) {
+    const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
+    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots)
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots](const auto& view) {
             return (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
-                && (!needsRasterOutput || inspectRasterOutput(view));
+                && (!needsRasterOutput || inspectRasterOutput(view))
+                && (!needsGeneratedRoots || inspectGeneratedRootOutput(view));
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }
@@ -24664,6 +24940,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         m_standardDwgOutputPublished = true;
     if (success && m_rasterOutputInspected && m_rasterOutputFinalized)
         m_rasterOutputPublished = true;
+    if (success && m_generatedRootOutputInspected && m_generatedRootOutputFinalized)
+        m_generatedRootOutputPublished = true;
     delete dxfW;
     dxfW = nullptr;
     return success;
