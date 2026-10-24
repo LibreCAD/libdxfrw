@@ -70,7 +70,7 @@ void fixCrc(Built& value) {
 }
 Built make(wire::SectionProfile profile, std::vector<unsigned> numbers = {500u},
            unsigned textUnits = 1u, unsigned version = 257u, unsigned declaredMax = 0u,
-           bool extraStringBit = false, unsigned itemClass = 0x1F3u, unsigned classMaintenance = 329u) {
+           unsigned extraStringBits = 0u, unsigned itemClass = 0x1F3u, unsigned classMaintenance = 329u) {
     Built out;
     out.profile = profile;
     const bool modern = profile.revision >= 2004u, split = profile.revision >= 2007u;
@@ -107,7 +107,7 @@ Built make(wire::SectionProfile profile, std::vector<unsigned> numbers = {500u},
             while (body.bits % 8u) body.put(body.bits % 3u == 0u, 1u);
         out.stringsBegin = body.bits;
         body.append(strings);
-        if (extraStringBit) { body.put(1u, 1u); ++strings.bits; }
+        for (unsigned bit = 0u; bit < extraStringBits; ++bit) { body.put(bit % 2u, 1u); ++strings.bits; }
         if (strings.bits != 0u) {
             if (strings.bits >= 0x8000u) { out.high = body.bits; body.little(strings.bits >> 15u, 2u); }
             out.low = body.bits;
@@ -327,6 +327,29 @@ bool sameProof(const wire::SectionProof& a, const wire::SectionProof& b) {
     };
     return values(a) == values(b);
 }
+bool paddingNeverText() {
+    for (const auto revision : {2007u,2010u,2013u,2018u})
+    for (unsigned count = 1u; count <= 8u; ++count) {
+        // Each local one-unit name has10 BS bits plus16 code-unit bits.
+        const auto padding = (8u - (count * 3u * 26u) % 8u) % 8u;
+        if (padding == 0u) continue;
+        wire::SectionProfile profile; profile.revision = revision; profile.maintenance = 4u;
+        profile.trailer = wire::Trailer::ProducerBitLong; profile.scalarByteAlignment = true;
+        std::vector<unsigned> numbers;
+        for (unsigned n = 0u; n < count; ++n) numbers.push_back(500u + n);
+        CHECK(observe(make(profile, numbers)).status == wire::Status::Observed);
+        ++positives;
+        const auto padded = make(profile, numbers, 1u, 257u, 0u, padding);
+        const auto proof = observe(padded);
+        CHECK(proof.status == wire::Status::Malformed
+            && (proof.reason == wire::SectionReason::Record || proof.reason == wire::SectionReason::Consumption));
+        const auto stored = static_cast<std::uint16_t>(padded.bytes[padded.crcByte]
+            | (static_cast<unsigned>(padded.bytes[padded.crcByte + 1u]) << 8u));
+        CHECK(stored == wire::section_detail::crc(padded.bytes.data() + 16u, padded.crcByte - 16u));
+        ++refusals; // Valid CRC is not permission to ignore declared text bits.
+    }
+    return true;
+}
 bool batchedTails() {
     for (auto revision : {13u,14u,2000u,2004u,2007u,2010u,2013u,2018u})
     for (auto trailer : {wire::Trailer::OdaBitShort, wire::Trailer::ProducerBitLong})
@@ -351,7 +374,7 @@ bool batchedTails() {
 }
 }
 int main() {
-    if (!anchors() || !matrix() || !failures() || !boundaries() || !batchedTails()) return 1;
+    if (!anchors() || !matrix() || !failures() || !boundaries() || !paddingNeverText() || !batchedTails()) return 1;
     std::cout << "independent class sections: " << positives << " positive, " << refusals
               << " refused/truncated, " << batchControls << " batch/single controls; no support qualification\n";
 }

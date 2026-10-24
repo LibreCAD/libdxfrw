@@ -29,6 +29,7 @@
 #include "dxf_entity_identity_test_helpers.h"
 #include "dwg2dxf/dx_iface.h"
 #include "dwg2dxf/dx_standard_output.h"
+#include "dwg2dxf/dx_dwg_class_section_wire.h"
 #include "libdwgr.h"
 #include "libdxfrw.h"
 #include "intern/dwgbuffer.h"
@@ -2490,7 +2491,9 @@ public:
 
 struct Ac1024ClassesIntegrityReceipt {
     bool valid {false};
+    bool completeStreams {false};
     bool usedExtendedStringSize {false};
+    std::uint32_t recordCount {0};
     std::uint32_t classDataSize {0};
     std::uint32_t bitSize {0};
     std::uint16_t maxClassNumber {0};
@@ -2766,7 +2769,16 @@ Ac1024ClassesIntegrityReceipt inspectAc1024ClassesIntegrity(
     receipt.storedCrc = readLe16(section, receipt.footerCrcOffset);
     receipt.calculatedCrc = independentOdaCrc16(
         section, beginSentinel.size(), receipt.footerCrcOffset);
-    receipt.valid = true;
+    dx_class_wire::SectionProfile profile;
+    profile.revision = 2010u; profile.trailer = dx_class_wire::Trailer::ProducerBitLong;
+    profile.tail = dx_class_wire::ClassTail::BeforeEight;
+    profile.requireTrueHeaderFlag = false; profile.scalarByteAlignment = true;
+    const auto proof = dx_class_wire::observeSection(section.data(), section.size(), profile);
+    receipt.recordCount = proof.records;
+    receipt.completeStreams = proof.status == dx_class_wire::Status::Observed
+        && proof.dataCursor == proof.data.end && proof.stringCursor == proof.strings.end
+        && proof.strings.end - proof.strings.begin == receipt.stringBitSize;
+    receipt.valid = receipt.completeStreams;
     return receipt;
 }
 
@@ -33676,8 +33688,9 @@ int main(int argc, char** argv) {
             expect(classes.maxClassNumber == 1328u,
                    "AC1024 CLASSES reaches class 1328", failures);
             expect(classes.usedExtendedStringSize
-                       && classes.stringBitSize == 536312u,
-                   "AC1024 CLASSES uses the expected extended string footer",
+                       && classes.stringBitSize == 536310u
+                       && classes.completeStreams && classes.recordCount == 829u,
+                   "AC1024 CLASSES extended footer covers exact text bits with no rounded padding",
                    failures);
             expect(classes.declaredCrcOffset == classes.footerCrcOffset,
                    "AC1024 CLASSES RL and footer identify the same CRC byte",

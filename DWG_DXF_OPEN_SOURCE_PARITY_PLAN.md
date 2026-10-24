@@ -119587,16 +119587,15 @@ commit reported at handoff. Strict admission remains **CLOSED**.
 
 Implementation-ready continuation, without weakening evidence gates:
 
-- [ ] **Diagnose the R2007+ scratch-producer framing refusal first.** Retain
-  the actual bounded callback source/profile and record each explicit observer
-  candidate's failure stage; inspect the relevant authoritative ODA CLASSES/
-  string-footer/CRC specification before changing layout code. Distinguish a
-  producer framing defect, unsupported explicit profile and observer defect
-  with independently authored CRC/footer controls. Do not waive CRC, END,
-  complete consumption or all-candidate agreement to match production rows.
-  Rerun the six-revision capture and compatibility matrix after the smallest
-  evidenced fix. Native AC1024/AC1032 and independently qualified >=256 producer
-  semantics still require their separate evidence; scratch readback is not it.
+- [x] **Diagnose the R2007+ scratch-producer framing refusal (RPP-5bq).** Actual
+  source diagnostics locate extra text bits after all65 records; the writer
+  rounds text to bytes and advertises the padding as text. Preserve the exact
+  encoded bit count instead. The unchanged observer now joins the full class
+  sources in all six scratch revisions, and independent valid-CRC padded-text
+  controls remain refused. External-producer AC1024/AC1032 profiles and independently
+  qualified >=256 producer semantics still require separate evidence; local scratch
+  correlation is not that qualification. Other source-profile conventions
+  remain explicit and unqualified, not selected from expected metadata.
 - [ ] **Complete profile/text/output admission separately.** Resolve explicit
   header/alignment/trailer/high-size/schema conventions, body/path/EED text
   semantics, output fields/references and full IMAGE/common state before
@@ -119619,3 +119618,100 @@ push or PR change is included.
 
 Receipt:
 [`rpp5bp-raster-import-class-bindings-2026-10-24.json`](docs/research/rpp5bp-raster-import-class-bindings-2026-10-24.json).
+
+## Implementation progress — RPP-5bq exact R2007+ CLASSES text-bit lengths (2026-10-24)
+
+The current writer's R2007+ CLASSES framing refusal is resolved. It had padded
+the detached Unicode stream to bytes and included the extra bits in its footer
+length. Source-only framing, metadata joins and raster bindings now pass across
+all six locally authored revisions without relaxing the observer or admission
+policy. This supersedes RPP-5bp's capture-time `TableUnavailable` observation for
+these scratch files, not its external qualification boundaries. Earlier receipts
+remain unchanged; code, tests, plan and this receipt are committed together.
+
+1. [x] Read authoritative ODA v5.4.1 chapters5.8/10.1/10.2/20.1 (complete
+   pages54/55/86/87/88/104; render54/87). Observe actual bounded callback bytes
+   before editing layout code. R2007/R2010 sections consume65 rows, then leave
+   four scalar bits and two declared text bits; R2013 shows the same remainder
+   with its high-size prefix. Both scalar-width candidates refuse at `Record`,
+   before CRC is evaluated. The R2018 low-maintenance/no-high-word candidate
+   refuses its header; its separate high-word convention remains explicit.
+   RPP-5bp already records zero complete candidates for all four revisions.
+2. [x] Cross-check independent primary implementations, without copying their
+   code into the observer. [ACadSharp's merged-stream writer](https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgMergedStreamWriter.cs)
+   uses actual text bit positions rather than rounded storage length; its
+   [class writer](https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgClassesWriter.cs)
+   delegates stream merging and then seals length/CRC. Peer agreement does not
+   select universal header, version-width, high-size or trailer semantics.
+3. [x] Fix `dwgWriter24::writeDwgClasses`, inherited by the R2007/R2013/R2018
+   writers: use `classStrings.bitCount()`, copy whole bytes plus at most seven
+   remaining bits, and write the exact short/extended length at that boundary.
+   An absent text stream now has a false presence bit and no synthetic size
+   footer. Preserve scalar alignment, size/high-word conventions, final byte
+   alignment and CRC/tail handling. No reader/parser, installed API, dispatch,
+   source-evidence observer or compatibility policy change.
+4. [x] Add128 production section cases: four modern revisions, zero through
+   seven classes, name lengths1/254/255/700 (including BS256), all four possible
+   text-footer bit alignments,16 empty cases,44 short and68 extended footers.
+   The independent observer verifies exact bounds, CRC, every row/name and
+   nondefault metadata257/329/41/73; flipped CRCs are refused. This section-
+   authoring seam is not an independent native-producer qualification.
+5. [x] Extend the independent scratch author with2/4/6-bit declared-text
+   padding controls. Add24 positive and24 refusal cases across all four modern
+   revisions. Each malformed stream has a valid independently calculated CRC;
+   it still fails complete consumption. Total observer controls are now1,791
+   positive,10,480 refused/truncated and480 batch/single comparisons. Observer
+   production code remains unchanged and allocation-free C++14.
+6. [x] Actual full-container imports now bind18 custom raster frames plus six
+   fixed IMAGEDEF frames across R2000/R2004/R2007/R2010/R2013/R2018. Require
+   source-joined class tables in every revision; no longer accept a refused
+   modern table as this test's expected result. Expand actual callback faults
+   to all six revisions:66 conflicting imports,132 atomic ASCII/binary
+   destination refusals with corrected-source/readback retries, and66 fresh
+   imports recovering on the same adapter. Existing12 compatible projections,
+   32 wire retries and18 dependency/name retries remain green. Custom
+   `ClassEnvelope` and text-semantic issues are retained; no support promotion.
+7. [x] Update the owning AC1024 large-section regression:536312 was a rounded
+   size, not encoded text. Require536310 bits and independent full scalar/text
+   consumption through829 class records in the reconstructed multipage section,
+   in addition to the original length/footer/CRC cross-checks. The initial
+   owning cohort had four passes and this one stale assertion failure. Rebuild
+   and rerun only the affected owning test after strengthening it: PASS5.48 s.
+   Do not spend another full owning cohort merely to repeat unchanged passes.
+8. [x] Relink affected static-library consumers, not just the adapter. Strict
+   library/CLI/test and LibreCAD_3 builds pass. Ten focused tests pass2.74 s;
+   all five affected owning checkpoints are green after the targeted repair;
+   four reader/fixture/adapter/3D-consumer checks pass1.84 s. Four ASan tests
+   pass6.18 s; standalone section controls pass combined ASan+UBSan. Keep
+   owning cohorts sequential at parallelism3. No full suite or throughput claim.
+
+Implementation-ready continuation:
+
+- [ ] Add actual-import unavailable-table, role-alias and multi-import history
+  integration cases to complement RPP-5bp's private fault microcontracts. Prove
+  that compatible unknown states stay unknown, class failure cannot borrow
+  prior authority, genuine later imports retain their own immutable table,
+  late poison cannot refresh earlier frames, and atomic output/retry behavior
+  survives these transitions. Do this before changing admission policy.
+- [ ] Complete explicit class source-profile conventions, body/path/EED text,
+  output fields/references and full IMAGE/common state as separate gates.
+  Preserve all-candidate agreement, CRC/END/consumption and actual import
+  identity; current scratch producer, header false bits, scalar alignment,
+  unknown trailers and small BS/BL ambiguity do not waive qualification.
+  External-producer AC1024/AC1032 profile qualification and independent >=256
+  producer semantics remain pending.
+- [ ] Carry forward sparse native cardinality reproduction before changing
+  max-class-minus499 loops, then NOD/image-dictionary/document closure,
+  producer LAYER/codepage, APPID/LAYER/XRECORD and broader dependencies in their
+  existing order. The separate header/object string-stream assembler is not
+  qualified or changed by this CLASSES-specific fix.
+
+Self-update/unblock after each implemented item and report committed slices.
+Strict admission remains **CLOSED**; J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No drawing is added,
+downloaded or committed. Preserve all17 untracked drawings and unrelated files;
+no earlier receipt, remote branch, PR or issue is changed.
+
+Receipt:
+[`rpp5bq-classes-exact-text-bit-lengths-2026-10-24.json`](docs/research/rpp5bq-classes-exact-text-bit-lengths-2026-10-24.json).

@@ -117,11 +117,8 @@ public:
         using State = dx_class_evidence::RasterState;
         for (const auto& source : data.m_rasterDwgSources) {
             const auto& frame = source.second;
-            const bool joined = frame.raw.m_version == DRW::AC1015 || frame.raw.m_version == DRW::AC1018;
-            if (data.dwgClassEvidence().state != (joined ? dx_class_evidence::State::Joined
-                : dx_class_evidence::State::FramingRefused)) return false;
-            const auto expected = !frame.raw.m_isCustomClass ? State::FixedType
-                : joined ? State::Joined : State::TableUnavailable;
+            if (data.dwgClassEvidence().state != dx_class_evidence::State::Joined) return false;
+            const auto expected = !frame.raw.m_isCustomClass ? State::FixedType : State::Joined;
             std::cout << "Raster class binding version=" << frame.raw.m_version << " type=" << frame.raw.m_objectType
                 << " state=" << static_cast<unsigned>(frame.classBinding.state)
                 << " table=" << static_cast<unsigned>(data.dwgClassEvidence().state) << '\n';
@@ -2623,7 +2620,7 @@ bool rasterDwgSourceProfileEed() {
             if (!Access::rasterUnchanged(customReader)) return fail("custom-class IMAGEDEF source restoration did not retry");
         }
     }
-    if (classRefusals != 44u) return fail("raster class contradiction matrix was unexpectedly skipped");
+    if (classRefusals != 132u) return fail("raster class contradiction matrix was unexpectedly skipped");
     std::cout << "Raster source-profile/EED native projections=" << cells << " wire refusal/retries=" << wireRefusals
               << " name-source refusal/retries=" << sourceRefusals << " class refusal/retries=" << classRefusals << '\n';
     return true;

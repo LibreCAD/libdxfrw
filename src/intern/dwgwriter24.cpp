@@ -176,27 +176,30 @@ bool dwgWriter24::writeDwgClasses() {
         return false;
 
     m_buf.alignToByte();
-    classStrings.alignToByte();
-
-    if (classStrings.size() > 0)
-        m_buf.putBytes(classStrings.data().data(), classStrings.size());
-    const std::uint64_t stringBitSize =
-        static_cast<std::uint64_t>(classStrings.size()) * 8u;
+    // The footer describes encoded text bits, not the backing byte capacity.
+    // Rounding this stream up inserts trailing non-text bits that an ordinary
+    // count-driven reader skips but a complete stream observer must refuse.
+    const std::uint64_t stringBitSize = classStrings.bitCount();
     if (stringBitSize > 0x7FFFFFFFu)
         return false;
+    const auto wholeBytes = static_cast<std::size_t>(stringBitSize / 8u);
+    if (wholeBytes != 0u)
+        m_buf.putBytes(classStrings.data().data(), wholeBytes);
+    for (unsigned bit = 0; bit < stringBitSize % 8u; ++bit)
+        m_buf.putBit((classStrings.data()[wholeBytes] >> (7u - bit)) & 1u);
     if (stringBitSize > 0x7FFFu) {
         // The extended footer is written high word first because the reader
         // walks backwards from the low word at the end of the stream.
         m_buf.putRawShort16(static_cast<std::uint16_t>(stringBitSize >> 15));
         m_buf.putRawShort16(static_cast<std::uint16_t>(
             0x8000u | (stringBitSize & 0x7FFFu)));
-    } else {
+    } else if (stringBitSize != 0u) {
         m_buf.putRawShort16(static_cast<std::uint16_t>(stringBitSize));
     }
-    // The class string stream terminates with a true endbit.  bitSize includes
+    // The class string stream terminates with its presence bit. bitSize includes
     // its own 32-bit field and everything through that marker; the reader's
     // 159/191-bit base then lands on the marker's first bit.
-    m_buf.putBit(1);
+    m_buf.putBit(stringBitSize != 0u ? 1u : 0u);
     const std::uint64_t endBit =
         m_buf.bitCount()
         - static_cast<std::uint64_t>(sectionStart) * 8u;

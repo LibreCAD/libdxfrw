@@ -1717,7 +1717,9 @@ if(LIBDXFRW_BUILD_TESTS)
     target_compile_features(libdxfrw_writer_version_matrix_tests PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_writer_version_matrix_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
+    target_compile_options(libdxfrw_writer_version_matrix_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
     target_link_libraries(libdxfrw_writer_version_matrix_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_writer_version_matrix
         COMMAND libdxfrw_writer_version_matrix_tests)
