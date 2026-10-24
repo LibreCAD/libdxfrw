@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5bw generated NOD/GROUP staged output and final-source guards (2026-10-24):** bounded private checks now inspect actual generated root framing, identities, owners, flags, admitted entry order/roles/targets and supported common links, then compare current sources with frozen copies before publication. Actual-import/reexport, empty roots,40 late-source retries,272 field/role fault retries, ten inspector guard/exception retries and exact-budget controls extend RPP-5bv. Modeled common/text equality is profile-limited; opaque custom application data and compatible-unqualified text do not earn independent semantic support. A whole-section modeled-read MATERIAL regression was resolved by decoding only the independently selected dictionary body, with a new fast compatibility test. Final13 focused, five owning, four reader/consumer and seven ASan checks pass, with both LibreCAD_3 compile gates. Strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5bw-generated-nodgroup-output-and-final-source-guards-2026-10-24) · [receipt](docs/research/rpp5bw-generated-root-output-and-final-source-guards-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5bx IMAGE dictionary actual-DXF common metadata (2026-10-24):** a reproduced imported-DXF reexport refusal is fixed. IMAGE-dictionary comparison now validates/normalizes explicit reserved source groups, preserves unknown application data lexically and checks physical common links even when text is unqualified. Only the independently selected dictionary body is modeled-decoded. Twelve actual-DXF sources pass144 reexports across six target revisions and both encodings, plus20 malformed-source retries,24 late-source retries,176 wire fault retries, ten inspector retries, two output-budget controls and two unrelated-profile isolation probes. Final14 focused, five owning, four reader/consumer and eight ASan checks pass, with both LibreCAD_3 compile gates. These are bounded projection/readback controls, not independent native/source/text qualification; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5bx-image-dictionary-actual-dxf-common-metadata-2026-10-24) · [receipt](docs/research/rpp5bx-image-dictionary-imported-common-metadata-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5bw generated NOD/GROUP staged output and final-source guards (2026-10-24):** bounded private checks now inspect actual generated root framing, identities, owners, flags, admitted entry order/roles/targets and supported common links, then compare current sources with frozen copies before publication. Actual-import/reexport, empty roots,40 late-source retries,272 field/role fault retries, ten inspector guard/exception retries and exact-budget controls extend RPP-5bv. Modeled common/text equality is profile-limited; opaque custom application data and compatible-unqualified text do not earn independent semantic support. A whole-section modeled-read MATERIAL regression was resolved by decoding only the independently selected dictionary body, with a new fast compatibility test. Final13 focused, five owning, four reader/consumer and seven ASan checks pass, with both LibreCAD_3 compile gates. Strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5bw-generated-nodgroup-output-and-final-source-guards-2026-10-24) · [receipt](docs/research/rpp5bw-generated-root-output-and-final-source-guards-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5bv generated NOD/GROUP common-reference traversal (2026-10-24):** the adapter now follows the generated NOD and ACAD_GROUP dictionary's extension/reactor roots instead of silently omitting their supported children. Source ownership, XRECORD back-references, graph budgets and atomic refusal/restored-source retries are checked. The scratch-authored matrix covers36 version/encoding/root-mode cells with actual import/reexport, plus six default-compatible exports,24 graph restoration retries and five exact-budget retries. This is a bounded traversal fix; independent generated-root output certificates, late-source mutation proof, native root-source qualification and broader document closure remain open. Strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5bv-generated-nodgroup-common-reference-traversal-2026-10-24) · [receipt](docs/research/rpp5bv-generated-root-common-reference-traversal-2026-10-24.json).
 
@@ -120475,7 +120477,7 @@ one verified slice; do not add generated drawings or local build outputs.
 
 Next executable local work, without narrowing the original parity objective:
 
-1. [ ] Audit the generated IMAGE dictionary's modeled common comparison using
+1. [x] Audit the generated IMAGE dictionary's modeled common comparison using
    actual DXF-import/reexport controls with explicit reserved common groups,
    opaque custom data and EED. Reproduce any gap before reusing normalization;
    existing selected-raster checks and NOD/GROUP success do not prove that
@@ -120509,3 +120511,107 @@ remain excluded; no drawing fixture is added or committed.
 
 Receipt:
 [`rpp5bw-generated-root-output-and-final-source-guards-2026-10-24.json`](docs/research/rpp5bw-generated-root-output-and-final-source-guards-2026-10-24.json).
+
+## Implementation progress — RPP-5bx IMAGE dictionary actual-DXF common metadata (2026-10-24)
+
+RPP-5bw is committed as `8215785a27c55a625cf74590da6cd7ab44e1f9b1`.
+This slice resolves its next imported-common metadata dependency. It does not
+change DWG byte grammar, parser dispatch or the broader parity/support scope.
+
+1. [x] Reproduce a real refusal before changing production code. Generate a
+   scratch native AC1032 seed through public APIs, export a complex unselected
+   IMAGEDEF/image-dictionary graph to DXF, then actually import that DXF. The
+   source has typed extension/reactor links and explicit reserved groups; add
+   an opaque application group with unrelated330/320 lexemes. Baseline export
+   of this valid imported source refuses during OBJECTS emission (0.41 s).
+   Register a positive fast control, not a known-refusal support gate. The
+   baseline aborts on its first imported reexport, not all144 intended cells.
+2. [x] Inspect the comparison path: its source appData handling does not
+   normalize retained reserved groups, and its generic custom handle handling
+   treats group330 as a translated dependency. Reuse the bounded, validated
+   generated-dictionary common comparison introduced in RPP-5bw. Do not erase
+   malformed source groups, translate unknown application schemas, refresh
+   immutable source evidence or clear source/profile issue masks.
+3. [x] Extend the independent physical IMAGE-dictionary check to validate
+   known reserved groups, nesting/counts, ordered reactor/extension references
+   and group roles against typed source links. Reject wrong-kind/self-conflicting
+   records and empty phantom dictionaries. Preserve existing exact owner/flags/
+   entry-role/target checks. Finalization still requires frozen-source equality,
+   actual identities/owners and unique referenced records, including when
+   compatible-unqualified text cannot earn a modeled-common comparison flag.
+4. [x] Decode only the independently selected dictionary body. Do not impose
+   dictionary modeled-reader rules on unrelated OBJECTS profiles. Charge the
+   decoded/common comparison copies and bounded reference/index slots before
+   use, retaining the existing logical allowance. Keep compatible text on its
+   established route without a common/text certificate; qualified key/common
+   comparisons remain modeled, not independent source/text semantics.
+5. [x] Add fast `dwg2dxf_image_dictionary_imported_common`. Twelve actual DXF
+   sources (six revisions times ASCII/binary), all from the one scratch native
+   seed, pass144 target projections. Check both equal-filename definition
+   identities, key order/roles, EED names/text, supported common links,
+   reciprocal extension ownership and XRECORD back-references, plus opaque
+   custom application-group lexemes. No IMAGE entity is needed to keep these
+   dictionary-rooted definitions. This is not six independent native profiles.
+6. [x] Add20 atomic malformed-source refusal/restoration retries and24 late
+   source-edit retries at pre-inspection and pre-finalization phases. Cover
+   missing/wrong-kind targets, contradictory/duplicate reserved groups,
+   reciprocal owner failures, bad/duplicate children, erased XRECORDs and late
+   common/entry/EED/appData changes. Corrected exports on the same facade pass
+   actual readback; existing destination sentinels survive every refusal.
+7. [x] Add176 physical/modeled field fault controls (22 fields by four fault
+   kinds by two encodings) and successful same-codec readback retries. Exercise
+   ten inspector exception/reentry/setup guard retries and two one-unit-under/
+   exact output-budget controls. Two observer-input-only unrelated MATERIAL
+   unsigned-color probes verify profile isolation; these are neither emitted
+   MATERIAL fixtures nor MATERIAL semantic receipts. Four compatible-unqualified
+   text controls require successful export with no common-comparison flag.
+8. [x] Retain and strengthen the prior216 native unselected/empty projection
+   controls with explicit EED/link/back-reference readback assertions. Previous
+   selected-raster, generated-root, class-alias, material and consumer gates
+   remain in the affected checkpoint; no old fixture or receipt is replaced.
+
+9. [x] Final strict normal/ASan library, adapter and CLI targets and both
+   LibreCAD_3 compile gates pass. Final14 focused checks pass12.39 s, five
+   owning checks pass9.02 s, four reader/consumer checks pass2.10 s and eight
+   scoped ASan checks pass15.95 s. Rebuild all affected separately compiled
+   adapters before these checkpoints. Owning/reader cohorts run sequentially,
+   parallelism3 inside each. No full suite or external/platform qualification
+   is claimed; earlier intermediate runs are not final evidence.
+
+Record these results in the new receipt and commit the tested implementation,
+controls, plan and evidence together. No drawing or build output belongs to
+the verified slice.
+
+Next implementation-ready work, with the full parity objective retained:
+
+1. [ ] Probe common XDATA1004 writer chunk boundaries (127/128 and longer
+   payloads, explicit adjacent chunks, ASCII/binary) on generated NOD, GROUP
+   and IMAGE dictionaries using public scratch authoring and actual import/
+   reexport. Code inspection identifies a cardinality risk between modeled
+   variants and chunked transport; this is not yet a reproduced failure. If
+   reproduced, implement bounded transport-correlated comparison without
+   concatenating away source boundaries, waiving issue masks or labeling the
+   model a source semantic receipt. Add exact/under-budget and atomic retry
+   controls; keep full-suite frequency low.
+2. [ ] Continue broader named-root/full-document closure, full IMAGE geometry/
+   common state, APPID/LAYER/XRECORD dependencies and sparse native class
+   cardinality. Independent name/body/path/EED/source/text profile evidence
+   remains distinct from successful scratch output/readback and modeled
+   comparison. Native generated-root framing/identity qualification and
+   multi-document ownership/remapping policy remain open, not silently inferred.
+3. [ ] Rebuild affected adapter contexts at production checkpoints, prefer
+   fast tests, scope sanitizer checks and run owning/reader cohorts sequentially
+   rather than after each micro-edit. Self-update this plan after implemented
+   items, resolve safe local failures, record evidence, commit verified slices
+   and report progress after each commit. Continue the next executable local
+   dependency without asking for authority that is already in scope.
+
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 stay
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification stay **NOT_RUN**. Preserve2D LibreCAD/LibreCAD_3
+and the original3D/dwg2dxf consumer scope. No drawing is added/downloaded/
+committed, all17 untracked drawings and unrelated files remain excluded, and
+no previous receipt or remote state is changed.
+
+Receipt:
+[`rpp5bx-image-dictionary-imported-common-metadata-2026-10-24.json`](docs/research/rpp5bx-image-dictionary-imported-common-metadata-2026-10-24.json).

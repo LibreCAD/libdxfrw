@@ -51,6 +51,10 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool rasterDictionaryCommon(const dx_iface& iface) { return iface.m_rasterDictionaryCommonCompared; }
+    static bool rasterFinal(const dx_iface& iface, std::size_t count) {
+        return iface.m_rasterOutputFinalized && iface.m_rasterOutputProofs.size() == count && iface.m_rasterDictionaryCommonCompared;
+    }
     static bool generatedRoots(dx_iface& iface, const dxfRW::DxfObjectsWriteView& view) { return iface.inspectGeneratedRootOutput(view); }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
@@ -3758,7 +3762,7 @@ bool generatedRootCommonReferenceClosure() {
     return true;
 }
 
-bool rootedImageDictionaryUnselectedControls() {
+bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     std::filesystem::path directory;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -3827,9 +3831,12 @@ bool rootedImageDictionaryUnselectedControls() {
     class Exporter final : public dx_iface {
     public:
         unsigned late{0u};
+        std::function<void()> afterObjects, beforeFinalize;
+        void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
         bool finalizeDxfWrite() override {
             if (late == 1u) cData->imageDefinitions.begin()->second.u += 1.0;
             if (late == 2u) for (auto& d : cData->dictionaries) if (d.handle == 0xD201u) d.m_entries.front().m_name += "_LATE";
+            if (beforeFinalize) beforeFinalize();
             return dx_iface::finalizeDxfWrite();
         }
     } exporter;
@@ -3838,8 +3845,10 @@ bool rootedImageDictionaryUnselectedControls() {
             for (const auto& d : data.dictionaries) if (d.handle == entry.m_handle && d.parentHandle == data.namedObjectDictionary.handle) return &d;
         return nullptr;
     };
-    unsigned cells = 0u, retries = 0u, lateRetries = 0u, freshRetries = 0u;
+    unsigned cells = 0u, retries = 0u, lateRetries = 0u, freshRetries = 0u, importedSources = 0u, importedCells = 0u;
+    unsigned importedRetries = 0u, importedLateRetries = 0u, compatibleCells = 0u, wireRetries = 0u, guardRetries = 0u, isolationCells = 0u, outputBudgets = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned mode = 0u; mode != 3u; ++mode) {
+        if (importedCommonOnly && (version != DRW::AC1032 || mode != 1u)) continue;
         dwgRW writer(native.string().c_str()); Author author(writer, mode);
         dx_data data; dx_iface reader;
         if (!writer.write(&author, version, true) || !reader.fileImport(native.string(), &data, false)
@@ -3850,15 +3859,42 @@ bool rootedImageDictionaryUnselectedControls() {
                 dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
                 dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial);
         };
-        const auto check = [&]() {
+        const auto check = [&](bool importedCommon = false, const dx_iface* inspected = nullptr) {
+            const auto& proof = inspected ? *inspected : exporter;
             dx_data result; dx_iface importer;
             if (!importer.fileImport(target.string(), &result, false) || !result.images.empty()
                 || result.imageDefinitions.size() != (mode == 2u ? 0u : 2u)
-                || !Access::rasterOutputPublished(exporter, mode == 2u ? 0u : 2u, 0u)) return false;
+                || !(inspected ? Access::rasterFinal(proof, mode == 2u ? 0u : 2u)
+                    : Access::rasterOutputPublished(proof, mode == 2u ? 0u : 2u, 0u))) return false;
             const auto* root = dictionary(result);
             if (!root || root->cloning != 2 || root->hardOwner != 1 || root->m_entries.size() != result.imageDefinitions.size()) return false;
             if (mode == 1u && (root->xDictHandle == 0u || root->reactorHandles.size() != 1u || root->extData.size() != 3u
                 || result.xRecords.size() != 3u)) return false;
+            const auto common = [&](const DRW_TableEntry& owner) {
+                if (owner.extData.size() != 3u || !owner.extData[0]->c_str() || std::string(owner.extData[0]->c_str()) != "CLOSURE_APP"
+                    || !owner.extData[1]->c_str() || std::string(owner.extData[1]->c_str()) != "CLOSURE_LAYER"
+                    || !owner.extData[2]->c_str() || std::string(owner.extData[2]->c_str()) != "closure-text"
+                    || owner.reactorHandles.size() != 1u) return false;
+                const auto extension = std::find_if(result.dictionaries.begin(), result.dictionaries.end(), [&](const auto& value) { return value.handle == owner.xDictHandle; });
+                const auto child = std::find_if(result.xRecords.begin(), result.xRecords.end(), [&](const auto& value) { return value.handle == owner.reactorHandles.front(); });
+                return extension != result.dictionaries.end() && extension->parentHandle == owner.handle && extension->m_entries.size() == 1u
+                    && extension->m_entries.front().m_handle == owner.reactorHandles.front() && child != result.xRecords.end()
+                    && child->parentHandle == extension->handle && child->m_dataEntries.size() == 2u
+                    && child->m_dataEntries.back().i64_val() == owner.handle;
+            };
+            if (mode == 1u && !common(*root)) return false;
+            if (importedCommon) {
+                const auto app = std::find_if(root->appData.begin(), root->appData.end(), [](const auto& group) {
+                    return !group.empty() && group.front().c_str() && std::string(group.front().c_str()) == "IMAGE_ROOT_META";
+                });
+                if (app == root->appData.end() || app->size() != 5u || !Access::rasterDictionaryCommon(proof)) return false;
+                auto value = std::next(app->begin());
+                if (!value->c_str() || std::string(value->c_str()) != "opaque-image-root") return false;
+                ++value;
+                if (value->code() != 330 || !value->c_str() || std::string(value->c_str()) != "DEADBEEF") return false;
+                ++value;
+                if (value->code() != 320 || !value->c_str() || std::string(value->c_str()) != "CAFEBABE") return false;
+            }
             for (std::size_t n = 0u; n != root->m_entries.size(); ++n) {
                 const auto& entry = root->m_entries[n];
                 const auto* def = result.findImageDefinition(result.importGeneration, entry.m_handle);
@@ -3867,13 +3903,195 @@ bool rootedImageDictionaryUnselectedControls() {
                     || entry.m_name != (n ? "SECOND_UNUSED" : "FIRST_UNUSED")
                     || entry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::HardOwner) return false;
                 if (mode == 1u && (def->xDictHandle == 0u || def->reactorHandles.size() != 1u || def->extData.size() != 3u)) return false;
+                if (mode == 1u && !common(*def)) return false;
             }
             return true;
         };
         for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
             if (!write(targetVersion, binary) || !check()) return fail("unselected/empty IMAGEDEF closure output/readback failed: " + std::to_string(mode));
             ++cells;
+            if (importedCommonOnly) {
+                dx_data imported;
+                if (!reader.fileImport(target.string(), &imported, false)) return fail("image dictionary actual-DXF source import failed");
+                const auto* root = dictionary(imported);
+                if (!root || root->appData.size() != 2u || !root->xDictHandle || root->reactorHandles.size() != 1u)
+                    return fail("image dictionary source lacks the required explicit reserved common groups");
+                for (auto& item : imported.dictionaries) if (item.handle == root->handle) {
+                    item.appData.push_back({{102, std::string("{IMAGE_ROOT_META")}, {1, std::string("opaque-image-root")},
+                        {330, std::string("DEADBEEF")}, {320, std::string("CAFEBABE")}, {102, std::string("}")}});
+                }
+                ++importedSources;
+                for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool outputBinary : {false, true}) {
+                    if (!exporter.fileExport(target.string(), outputVersion, outputBinary, &imported, false, true) || !check(true))
+                        return fail("image dictionary actual-DXF common metadata reexport/readback failed");
+                    ++importedCells;
+                }
+                if (targetVersion != DRW::AC1032 || !binary) continue;
+                const auto sourceDictionaries = imported.dictionaries;
+                const auto sourceDefinitions = imported.imageDefinitions;
+                const auto sourceRecords = imported.xRecords;
+                const auto rootHandle = root->handle;
+                const auto restoreImported = [&]() { imported.dictionaries = sourceDictionaries; imported.imageDefinitions = sourceDefinitions; imported.xRecords = sourceRecords; };
+                const auto rootSource = [&]() -> DRW_Dictionary& {
+                    return *std::find_if(imported.dictionaries.begin(), imported.dictionaries.end(), [&](const auto& value) { return value.handle == rootHandle; });
+                };
+                const auto writeImported = [&](bool encoding) { return exporter.fileExport(target.string(), DRW::AC1032, encoding, &imported, false, true); };
+                const auto refusedImported = [&](bool encoding) {
+                    const std::string sentinel = "IMPORTED_IMAGE_ROOT_DESTINATION";
+                    { std::ofstream output(target, std::ios::binary); output << sentinel; }
+                    const bool wrote = writeImported(encoding); std::ifstream input(target, std::ios::binary);
+                    return !wrote && std::string((std::istreambuf_iterator<char>(input)), {}) == sentinel;
+                };
+                const std::vector<std::function<void()>> faults{
+                    [&]() { rootSource().xDictHandle = 0xDEADu; },
+                    [&]() { rootSource().xDictHandle = rootSource().reactorHandles.front(); },
+                    [&]() { rootSource().reactorHandles = {0xDEADu}; },
+                    [&]() { rootSource().appData.push_back(rootSource().appData.front()); },
+                    [&]() { rootSource().appData.front().front().addString(102, "{ACAD_XDICTIONARY"); },
+                    [&]() { std::next(rootSource().appData.front().begin())->addString(330, "DEAD"); },
+                    [&]() { rootSource().m_entries.front().m_handle = 0xDEADu; },
+                    [&]() { rootSource().m_entries.push_back(rootSource().m_entries.front()); },
+                    [&]() { imported.xRecords.clear(); },
+                    [&]() { for (auto& d : imported.dictionaries) if (d.handle == rootSource().xDictHandle) d.parentHandle = 0xDEADu; }
+                };
+                for (const auto& fault : faults) for (const bool encoding : {false, true}) {
+                    fault(); if (!refusedImported(encoding)) return fail("imported image dictionary malformed common metadata was not atomically refused");
+                    restoreImported(); if (!writeImported(encoding) || !check(true)) return fail("imported image dictionary restored source did not retry");
+                    ++importedRetries;
+                }
+                const std::vector<std::function<void()>> lateFaults{
+                    [&]() { rootSource().cloning = 4; },
+                    [&]() { rootSource().xDictHandle = 0u; },
+                    [&]() { rootSource().reactorHandles.clear(); },
+                    [&]() { rootSource().m_entries.front().m_name += "_LATE"; },
+                    [&]() { rootSource().extData.back()->addString(1000, "late-eed"); },
+                    [&]() { rootSource().appData.pop_back(); }
+                };
+                for (const auto& fault : lateFaults) for (const bool final : {false, true}) for (const bool encoding : {false, true}) {
+                    if (final) exporter.beforeFinalize = fault; else exporter.afterObjects = fault;
+                    if (!refusedImported(encoding)) return fail("imported image dictionary late source mutation was published");
+                    exporter.beforeFinalize = {}; exporter.afterObjects = {}; restoreImported();
+                    if (!writeImported(encoding) || !check(true)) return fail("imported image dictionary late-source restoration retry failed");
+                    ++importedLateRetries;
+                }
+                for (const auto outputVersion : {DRW::AC1015, DRW::AC1032}) for (const bool encoding : {false, true}) {
+                    std::next(rootSource().appData.back().begin())->addString(1, "unqualified\\path");
+                    if (!exporter.fileExport(target.string(), outputVersion, encoding, &imported, false, true)
+                        || Access::rasterDictionaryCommon(exporter)) return fail("imported image dictionary compatible-unqualified text was refused or falsely compared");
+                    restoreImported(); ++compatibleCells;
+                }
+                class Direct final : public dx_iface {
+                public:
+                    std::uint32_t imageRoot{0u}, groupRoot{0u};
+                    void writeObjects() override {
+                        for (const auto& source : cData->dictionaries) if (source.handle != imageRoot && source.handle != groupRoot) {
+                            auto value = source; (void)dxfW->writeDictionary(&value);
+                        }
+                        for (const auto& source : cData->xRecords) { auto value = source; (void)dxfW->writeXRecord(&value); }
+                    }
+                } direct;
+                direct.cData = &imported; direct.currentBlock = imported.mBlock; direct.imageRoot = rootHandle;
+                for (const auto& entry : imported.namedObjectDictionary.m_entries) if (entry.m_name == "ACAD_GROUP") direct.groupRoot = entry.m_handle;
+                const auto group = std::find_if(imported.dictionaries.begin(), imported.dictionaries.end(), [&](const auto& value) { return value.handle == direct.groupRoot; });
+                if (group == imported.dictionaries.end()) return fail("direct imported image test lacks its generated GROUP dictionary source");
+                Access::preserveGraphIdentities(direct);
+                struct Field { int code; unsigned occurrence; };
+                const std::vector<Field> fields{{0,0},{5,0},{330,0},{330,1},{330,2},{360,0},{100,0},{280,0},{281,0},
+                    {3,0},{3,1},{360,1},{360,2},{102,0},{102,2},{102,4},{102,5},{1,0},{320,0},{1001,0},{1003,0},{1000,0}};
+                for (const bool encoding : {false, true}) {
+                    dxfRW codec(target.string().c_str()); direct.dxfW = &codec;
+                    codec.setHandleRemap({{imported.namedObjectDictionary.handle,0xCu},{direct.groupRoot,0xDu}});
+                    codec.setDxfWriteRecordInventoryEnabled(true);
+                    for (const auto& item : imported.dictionaries) if (item.handle != direct.groupRoot) (void)codec.reserveHandle(item.handle);
+                    for (const auto& item : imported.xRecords) (void)codec.reserveHandle(item.handle);
+                    std::vector<dxfRW::ImageDefinitionPlanEntry> plan;
+                    for (const auto& item : imported.imageDefinitions) {
+                        (void)codec.reserveHandle(item.first.second); plan.push_back({item.first.first,item.first.second,item.second});
+                    }
+                    if (!codec.setImageDefinitionPlan(std::move(plan)) || !codec.setGeneratedDictionarySourceRecords(
+                            std::make_unique<DRW_Dictionary>(imported.namedObjectDictionary), std::make_unique<DRW_Dictionary>(*group),
+                            std::make_unique<DRW_Dictionary>(rootSource()), imported.importGeneration)) return fail("direct imported image source plan setup failed");
+                    const Field* selected = nullptr; unsigned faultMode = 0u, guard = 0u; bool applied = false, unrelated = false;
+                    codec.setDxfObjectsWriteInspector([&](auto view) {
+                        if (guard == 1u) throw std::runtime_error("image dictionary inspector exception");
+                        if (guard == 2u) (void)codec.write(&direct, DRW::AC1032, encoding);
+                        if (guard == 3u) (void)codec.setDxfObjectsWriteInspector({});
+                        if (guard == 4u) (void)codec.read(&direct, false);
+                        if (guard == 5u) codec.setDxfWriteRecordInventoryEnabled(false);
+                        std::string changed(view.bytes);
+                        if (selected) {
+                            dx_raster_output::Cursor input(view.bytes, view.binary); dx_raster_output::Token token;
+                            bool targetRecord = false; unsigned occurrence = 0u;
+                            while (!input.done()) {
+                                const auto begin = input.position(); if (!input.next(token)) break;
+                                if (token.code == 0) {
+                                    occurrence = 0u; targetRecord = false;
+                                    dx_raster_output::Cursor peek(view.bytes.substr(input.position()), view.binary); dx_raster_output::Token self; std::uint32_t handle = 0u;
+                                    targetRecord = token.text == "DICTIONARY" && peek.next(self) && self.code == 5
+                                        && dx_raster_output::integer(self.text, handle, 16) && handle == codec.dxfWriteImageDictionaryHandle();
+                                }
+                                if (!targetRecord || token.code != selected->code || occurrence++ != selected->occurrence) continue;
+                                const auto end = input.position();
+                                if (faultMode == 1u) changed.erase(begin, end - begin);
+                                else if (faultMode == 2u) changed.insert(end, changed.substr(begin, end - begin));
+                                else if (faultMode == 3u) {
+                                    if (view.binary) changed[begin] = static_cast<char>(selected->code + 1);
+                                    else changed.replace(begin, changed.find('\n', begin) - begin, std::to_string(selected->code + 1));
+                                } else {
+                                    const auto value = view.binary ? begin + 2u : view.bytes.find('\n', begin) + 1u;
+                                    if (view.binary) changed[value] ^= 1;
+                                    else changed[value] = changed[value] == '2' ? '3' : '2';
+                                }
+                                applied = true; break;
+                            }
+                        }
+                        if (unrelated) {
+                            // Observer-input profile-isolation probe only. It
+                            // is never written or treated as a MATERIAL receipt.
+                            if (!view.binary) changed += "0\nMATERIAL\n5\n7FFFFFFE\n330\nC\n100\nAcDbMaterial\n90\n4294967295\n";
+                            else {
+                                const auto word = [&](std::uint32_t value, unsigned count) { for (unsigned n = 0; n < count; ++n) changed.push_back(static_cast<char>((value >> (8u * n)) & 255u)); };
+                                const auto text = [&](unsigned code, const char* value) { word(code,2u); changed += value; changed.push_back('\0'); };
+                                text(0,"MATERIAL"); text(5,"7FFFFFFE"); text(330,"C"); text(100,"AcDbMaterial"); word(90,2u); word(0xFFFFFFFFu,4u);
+                            }
+                        }
+                        view.bytes = changed;
+                        return Access::rasterObjects(direct, view) && Access::generatedRoots(direct, view);
+                    });
+                    codec.setDxfEntitySectionsWriteInspector([&](const auto& view, auto section) { return Access::rasterImages(direct, view, section); });
+                    const auto directWrite = [&]() { Access::resetRasterOutput(direct); return codec.write(&direct, DRW::AC1032, encoding); };
+                    if (!directWrite() || !check(true, &direct) || !Access::generatedRootsFinal(direct, 2u)) return fail("direct imported image dictionary output/readback proof failed");
+                    std::size_t low = 0u, high = 1024u * 1024u;
+                    while (low < high) { const auto middle = low + (high - low) / 2u; Access::rasterOutputBudget(direct,middle); if (directWrite()) high = middle; else low = middle + 1u; }
+                    Access::rasterOutputBudget(direct,low ? low - 1u : 0u); const bool below = directWrite(); Access::rasterOutputBudget(direct,low);
+                    if (!low || below || !directWrite() || !check(true,&direct)) return fail("imported image output one-under/exact budget retry failed");
+                    Access::rasterOutputBudget(direct,dx_iface::ImageDefinitionCaptureMaxRetainedBytes); ++outputBudgets;
+                    const auto atomicFailure = [&]() {
+                        const std::string sentinel = "IMPORTED_IMAGE_OUTPUT_DESTINATION";
+                        { std::ofstream output(target,std::ios::binary); output << sentinel; }
+                        const bool wrote = directWrite(); std::ifstream input(target,std::ios::binary);
+                        return !wrote && std::string((std::istreambuf_iterator<char>(input)),{}) == sentinel;
+                    };
+                    for (const auto& field : fields) for (faultMode = 0u; faultMode != 4u; ++faultMode) {
+                        selected = &field; applied = false; const bool failed = atomicFailure(); selected = nullptr;
+                        if (!applied || !failed || !directWrite() || !check(true,&direct)) {
+                            std::cerr << "image dictionary field=" << field.code << " occurrence=" << field.occurrence << " mode=" << faultMode << " applied=" << applied << '\n';
+                            return fail("imported image dictionary field/role refusal or same-codec retry failed");
+                        }
+                        ++wireRetries;
+                    }
+                    for (guard = 1u; guard != 6u; ++guard) {
+                        const bool failed = atomicFailure(); const auto saved = guard; guard = 0u;
+                        if (!failed || !directWrite() || !check(true,&direct)) return fail("imported image inspector guard/exception retry failed");
+                        guard = saved; ++guardRetries;
+                    }
+                    guard = 0u; unrelated = true;
+                    if (!directWrite() || !check(true,&direct)) return fail("unrelated MATERIAL color profile contaminated IMAGE dictionary comparison");
+                    ++isolationCells; direct.dxfW = nullptr;
+                }
+            }
         }
+        if (importedCommonOnly) continue;
         if (mode != 1u || version != DRW::AC1032) continue;
         const auto definitions = data.imageDefinitions; const auto dictionaries = data.dictionaries; const auto records = data.xRecords;
         const auto nod = data.namedObjectDictionary;
@@ -3918,6 +4136,15 @@ bool rootedImageDictionaryUnselectedControls() {
                 return fail("unselected IMAGEDEF fresh native import retry failed");
             ++freshRetries;
         }
+    }
+    if (importedCommonOnly) {
+        if (cells != 12u || importedSources != 12u || importedCells != 144u || importedRetries != 20u || importedLateRetries != 24u || compatibleCells != 4u
+            || wireRetries != 176u || guardRetries != 10u || isolationCells != 2u || outputBudgets != 2u)
+            return fail("imported image dictionary common matrix skipped a cell");
+        std::cout << "Image dictionary actual-DXF sources=" << importedSources << " common metadata reexports=" << importedCells
+                  << " source retries=" << importedRetries << " late retries=" << importedLateRetries << " compatible text cells=" << compatibleCells
+                  << " wire retries=" << wireRetries << " inspector retries=" << guardRetries << " isolation cells=" << isolationCells << " output budget controls=" << outputBudgets << '\n';
+        return true;
     }
     if (cells != 216u || retries != 22u || lateRetries != 4u || freshRetries != 2u) return fail("unselected dictionary closure matrix skipped a control");
     std::cout << "Unselected/empty image dictionary projections=" << cells << " graph retry controls=" << retries << " late retries=" << lateRetries
@@ -32005,6 +32232,8 @@ int main(int argc, char** argv) {
         return rasterDwgSourceProfileEed(false, false, true) && rootedImageDictionaryUnselectedControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-root-common-closure")
         return generatedRootCommonReferenceClosure() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--image-dictionary-imported-common")
+        return rootedImageDictionaryUnselectedControls(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")
         return rasterDxfLiteralControls() && selectedRasterReactorMetadata() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-image-dictionary-source-identity")

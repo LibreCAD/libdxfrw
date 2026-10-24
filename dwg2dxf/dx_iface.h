@@ -1519,6 +1519,7 @@ private:
     std::vector<RasterOutputProof> m_rasterOutputProofs;
     std::vector<std::uint32_t> m_rasterDictionaryReferences;
     std::uint32_t m_rasterDictionaryEmitted{0u};
+    bool m_rasterDictionaryCommonCompared{false};
     bool inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool hasUnchangedRasterDictionaryOutputSource(bool final = false) const;
     struct GeneratedRootOutputProof {

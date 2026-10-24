@@ -14582,6 +14582,7 @@ void dx_iface::resetStandardDwgOutputProofs() noexcept {
     m_generatedRootOutputInspected = m_generatedRootOutputFinalized = m_generatedRootOutputPublished = false;
     std::vector<RasterOutputProof>().swap(m_rasterOutputProofs);
     std::vector<std::uint32_t>().swap(m_rasterDictionaryReferences); m_rasterDictionaryEmitted = 0u;
+    m_rasterDictionaryCommonCompared = false;
     m_rasterOutputBytes = 0u;
     m_rasterImageEdges.clear(); m_rasterEntitySectionsInspected = 0u;
     m_rasterOutputInspected = m_rasterOutputFinalized = m_rasterOutputPublished = false;
@@ -15128,12 +15129,15 @@ bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& v
         const auto* frozen = dxfW->dxfWriteImageDictionarySource(output);
         if (!frozen) return true;
         std::size_t bytes = 0u, items = 0u;
+        const auto charge = [this](std::size_t amount) {
+            if (m_rasterOutputBytes > m_rasterOutputByteLimit || amount > m_rasterOutputByteLimit - m_rasterOutputBytes) return false;
+            m_rasterOutputBytes += amount; return true;
+        };
         if (!output || !estimateDictionaryTypedBytes(*frozen, bytes, items)
-            || m_rasterOutputBytes > m_rasterOutputByteLimit || bytes > m_rasterOutputByteLimit - m_rasterOutputBytes) return false;
+            || !charge(bytes) || !charge(bytes) || !charge(bytes)) return false;
         // Charge a decoded comparison model and its reference slots before
         // inspection. This is a bounded modeled-output check, not independent
         // source/text qualification. Shape checks refuse duplicate framing.
-        m_rasterOutputBytes += bytes;
         const auto* context = dxfW->getWritingContext();
         if (!context) return false;
         const auto map = [this, context](std::uint32_t source, std::uint32_t& target) {
@@ -15147,34 +15151,62 @@ bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& v
             }
             target = dxfW->remapHandle(source); return target != 0u;
         };
-        const auto layer = [](const DRW_Variant& source, const DRW_Variant& actual, std::vector<std::uint32_t>&) {
-            return source.code() == 1003 && actual.code() == 1003 && source.c_str() && actual.c_str()
-                && std::string_view(source.c_str()) == actual.c_str();
+        if (frozen->reactorHandles.size() > 500000u || frozen->extData.size() > 1000000u) return false;
+        const auto commonSlots = 2u * frozen->reactorHandles.size() + frozen->extData.size() + 4u;
+        if (commonSlots > 1000000u || !charge(commonSlots * sizeof(std::uint32_t))) return false;
+        m_rasterDictionaryReferences.reserve(commonSlots);
+        const auto reference = [&](std::uint32_t source, std::uint32_t actual) {
+            std::uint32_t target = 0u;
+            if (!map(source, target) || target != actual) return false;
+            if (target) m_rasterDictionaryReferences.push_back(target);
+            return true;
         };
         // Independent physical framing/roles, including empty-record refusal.
         // Text decoding/common payload semantics are checked separately below
         // and remain modeled, not independent source/text qualification.
         bool physical = false;
+        std::string_view matchedBody;
+        std::size_t physicalEntries = 0u;
         if (!dx_raster_output::inspect(view.bytes, view.binary, [&](std::string_view name, std::uint32_t self, std::string_view body) {
-                if (name != "DICTIONARY") return true;
-                if (!self) return false;
+                if (name == "DICTIONARY" && !self) return false;
                 if (self != output) return true;
-                if (physical) return false;
+                if (name != "DICTIONARY" || physical) return false;
                 physical = true;
+                matchedBody = body;
                 dx_raster_output::Cursor input(body, view.binary); dx_raster_output::Token token;
-                unsigned depth = 0u, selves = 0u, owners = 0u, classes = 0u, hard = 0u, cloning = 0u;
+                unsigned depth = 0u, selves = 0u, owners = 0u, classes = 0u, hard = 0u, cloning = 0u, reactors = 0u, extensions = 0u;
+                std::string_view app; std::size_t reactor = 0u;
                 std::size_t entries = 0u; bool pending = false, xdata = false;
                 while (!input.done()) {
                     if (!input.next(token)) return false;
                     if (token.code == 102) {
-                        if (!token.text.empty() && token.text.front() == '{') ++depth;
-                        else if (token.text == "}" && depth) --depth; else return false;
+                        if (classes || xdata) return false;
+                        if (!token.text.empty() && token.text.front() == '{') {
+                            if (++depth > DRW::kMaxDxfApplicationGroupNesting) return false;
+                            if (depth == 1u) {
+                                app = token.text.substr(1); reactor = 0u;
+                                if (app == "ACAD_REACTORS" && ++reactors != 1u) return false;
+                                if (app == "ACAD_XDICTIONARY" && ++extensions != 1u) return false;
+                            } else if (app == "ACAD_REACTORS" || app == "ACAD_XDICTIONARY") return false;
+                        } else if (token.text == "}" && depth) {
+                            if (--depth == 0u && ((app == "ACAD_REACTORS" && reactor != frozen->reactorHandles.size())
+                                || (app == "ACAD_XDICTIONARY" && reactor != 1u))) return false;
+                        } else return false;
                         continue;
                     }
-                    if (depth) continue;
-                    if (token.code >= 1000) { if (!classes || pending) return false; xdata = true; continue; }
-                    if (xdata) return false;
                     std::uint32_t value = 0u;
+                    if (depth) {
+                        if (app == "ACAD_REACTORS") {
+                            if (depth != 1u || token.code != 330 || reactor >= frozen->reactorHandles.size()
+                                || !dx_raster_output::integer(token.text, value, 16) || !reference(frozen->reactorHandles[reactor++], value)) return false;
+                        } else if (app == "ACAD_XDICTIONARY") {
+                            if (depth != 1u || token.code != 360 || reactor++ || !frozen->xDictHandle
+                                || !dx_raster_output::integer(token.text, value, 16) || !reference(frozen->xDictHandle, value)) return false;
+                        }
+                        continue;
+                    }
+                    if (token.code >= 1000) { if (!classes || pending || (!xdata && token.code != 1001)) return false; xdata = true; continue; }
+                    if (xdata) return false;
                     if (!classes && token.code == 5) {
                         if (++selves != 1u || !dx_raster_output::integer(token.text, value, 16) || value != output) return false;
                     } else if (!classes && token.code == 330) {
@@ -15197,21 +15229,22 @@ bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& v
                         ++entries; pending = false;
                     } else return false;
                 }
+                physicalEntries = entries;
                 return !depth && !pending && selves == 1u && owners == 1u && classes == 1u
-                    && hard == 1u && cloning == 1u && entries >= frozen->m_entries.size();
+                    && hard == 1u && cloning == 1u && entries >= frozen->m_entries.size()
+                    && reactors == (frozen->reactorHandles.empty() ? 0u : 1u) && extensions == (frozen->xDictHandle ? 1u : 0u);
             }) || !physical) return false;
+        if (physicalEntries > 1000000u - commonSlots
+            || !charge(physicalEntries * (2u * sizeof(std::uint32_t) + 6u * sizeof(void*)))) return false;
+        m_rasterDictionaryReferences.reserve(commonSlots + physicalEntries);
         dx_standard_output::Decoder decoder(view);
-        bool seen = false;
-        if (!decoder.good() || !dx_standard_output::inspect(view, [&](const dx_standard_output::Shape& shape, std::string_view body) {
-                if (shape.handle != output) return true;
-                if (seen || shape.kind != dx_standard_output::Family::Dictionary || !shape.complete()) return false;
-                seen = true;
-                return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
-                    auto mapper = map;
-                    if (!dx_standard_output::commonEqual(*frozen, actual, dx_standard_output::Family::Dictionary,
-                            mapper, m_rasterDictionaryReferences, layer)
-                        || actual.cloning != frozen->cloning || actual.hardOwner != frozen->hardOwner
+        if (!decoder.good() || !decoder.decodeRecord<DRW_Dictionary>(matchedBody, [&](const DRW_Dictionary& actual) {
+                    if (actual.cloning != frozen->cloning || actual.hardOwner != frozen->hardOwner
                         || actual.m_entries.size() < frozen->m_entries.size()) return false;
+                    const auto textProfile = [&](std::string_view value) {
+                        return value.find('\\') == std::string_view::npos && value.find('\0') == std::string_view::npos
+                            && (view.version >= DRW::AC1021 || std::all_of(value.begin(), value.end(), [](unsigned char c) { return c < 128u; }));
+                    };
                     std::set<std::uint32_t> targets;
                     for (std::size_t n = 0u; n < actual.m_entries.size(); ++n) {
                         const auto& entry = actual.m_entries[n];
@@ -15221,19 +15254,25 @@ bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& v
                             using Role = DRW_Dictionary::Entry::DxfHandleCode;
                             const auto role = source.m_dxfHandleCode == Role::Unspecified
                                 ? (frozen->hardOwner ? Role::HardOwner : Role::SoftOwner) : source.m_dxfHandleCode;
-                            if (entry.m_name != source.m_name || entry.m_dxfHandleCode != role
+                            if ((textProfile(source.m_name) && entry.m_name != source.m_name) || entry.m_dxfHandleCode != role
                                 || entry.m_handle != dxfW->dxfWriteImageDefinitionHandle({cData->importGeneration, source.m_handle})) return false;
                         } else if (entry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner) return false;
                         if (!dxfW->dxfWriteRecordHasIdentity(entry.m_handle, "IMAGEDEF", "OBJECTS")
                             || !dxfW->dxfWriteRecordHasOwner(entry.m_handle, output)) return false;
                         m_rasterDictionaryReferences.push_back(entry.m_handle);
                     }
+                    bool qualified = frozen->flags == 0 && frozen->name.empty() && !frozen->hasDataStorageBinaryData();
+                    for (const auto& app : frozen->appData) for (const auto& value : app)
+                        if (value.dwgCmColorValue() || (value.type() == DRW_Variant::STRING && (!value.c_str() || !textProfile(value.c_str())))) qualified = false;
+                    for (const auto* value : frozen->extData)
+                        if (!value || value->dwgCmColorValue() || (value->type() == DRW_Variant::STRING && (!value->c_str() || !textProfile(value->c_str())))) qualified = false;
+                    if (qualified) {
+                        m_rasterDictionaryCommonCompared = generatedDictionaryCommonEqual(*frozen, actual, map, m_rasterDictionaryReferences, view.binary);
+                        if (!m_rasterDictionaryCommonCompared) return false;
+                    }
                     return true;
-                });
-            }) || !seen) return false;
-        const auto cost = m_rasterDictionaryReferences.capacity() * sizeof(std::uint32_t);
-        if (cost > m_rasterOutputByteLimit - m_rasterOutputBytes) return false;
-        m_rasterOutputBytes += cost;
+                })) return false;
+        if (m_rasterDictionaryReferences.size() > commonSlots + physicalEntries) return false;
         m_rasterDictionaryEmitted = output;
         return hasUnchangedRasterDictionaryOutputSource();
     } catch (...) { return false; }

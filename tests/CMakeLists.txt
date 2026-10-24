@@ -569,6 +569,10 @@ add_test(NAME dwg2dxf_generated_root_common_closure
     COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-root-common-closure)
 set_tests_properties(dwg2dxf_generated_root_common_closure PROPERTIES
     LABELS "fast;dxf;dictionary;graph;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_image_dictionary_imported_common
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --image-dictionary-imported-common)
+set_tests_properties(dwg2dxf_image_dictionary_imported_common PROPERTIES
+    LABELS "fast;dwg;dxf;image;dictionary;adapter;generated" TIMEOUT 45)
 add_test(NAME dwg2dxf_selected_raster_reactor_metadata
     COMMAND libdxfrw_dwg2dxf_adapter_tests --selected-raster-reactor-metadata)
 set_tests_properties(dwg2dxf_selected_raster_reactor_metadata PROPERTIES
