@@ -15,6 +15,7 @@
 #include "libdxfrw.h"
 #include "libdwgr.h"
 #include "dx_raster_dwg_wire.h"
+#include "dx_dwg_class_evidence.h"
 
 #include <array>
 #include <cstddef>
@@ -927,6 +928,20 @@ public:
         const auto found = m_classSourceReports.find(importGeneration);
         return found == m_classSourceReports.end() ? nullptr : &found->second;
     }
+    // Actual import-owned correlation, not the advisory public-generation
+    // lookup above. Even Joined does not qualify a schema or support claim.
+    const dx_class_evidence::Result& dwgClassEvidence() const noexcept {
+        if (!m_classEvidenceFallback) {
+            const auto found = m_classEvidenceImports.find(m_classEvidenceGeneration);
+            if (found != m_classEvidenceImports.end()
+                && found->second.result.attempt == m_classEvidenceAttempt)
+                return found->second.result;
+        }
+        return m_classEvidenceFailure;
+    }
+    // Checks public coverage/profile observations against the private actual
+    // read. It does not certify editable CLASS output, raster objects or DWG.
+    bool hasUnchangedDwgClassEvidence() const noexcept;
     bool hasStandardDwgObjectPayloadFailure() const noexcept {
         return m_standardDwgObjectPayloadFailed;
     }
@@ -935,6 +950,22 @@ public:
     bool hasUnchangedAcdsRawDxfSections() const noexcept;
 
 private:
+    struct ClassEvidenceImport {
+        dx_class_evidence::Result result;
+        DRW_DwgClassSourceReport source;
+        std::shared_ptr<const dx_class_evidence::Rows> rows;
+        std::size_t retainedBytes{0};
+        std::uint16_t codePage{0};
+        bool codePagePresent{false}, codePageRecognized{false};
+        bool rowsSeen{false}, sourceSeen{false}, closed{false};
+    };
+    std::map<std::uint64_t, ClassEvidenceImport> m_classEvidenceImports;
+    dx_class_evidence::Result m_classEvidenceFailure;
+    std::uint64_t m_classEvidenceAttempt{0}, m_classEvidenceGeneration{0}, m_classEvidenceHighWater{0};
+    const void* m_classEvidenceOwner{nullptr};
+    std::size_t m_classEvidenceBytes{0}, m_classEvidenceByteLimit{DRW::kMaxDwgClassSourceBytes};
+    std::size_t m_classEvidenceCountLimit{1024u};
+    bool m_classEvidenceFallback{true};
     std::map<std::uint64_t, DRW_DwgClassSourceReport> m_classSourceReports;
     DRW_DwgClassSourceReport m_classSourceFailure;
     std::uint64_t m_classSourceFailureGeneration{0};

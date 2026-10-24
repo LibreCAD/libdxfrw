@@ -76,10 +76,11 @@ inline SectionProof fail(SectionProof proof, SectionReason reason, bool unsuppor
 }
 } // namespace section_detail
 
-// Explicit candidates only. Do not choose a profile by comparing its decoded
-// fields with expected output, or silently drop failing CRC/sentinel candidates.
-inline SectionProof observeSection(const std::uint8_t* bytes, std::size_t size,
-                                    SectionProfile profile) noexcept {
+namespace section_detail {
+// Internal record/CRC prerequisite. Only finishEnvelope may turn this into a
+// complete envelope proof; this intermediate result is not a public observer.
+inline SectionProof recordCore(const std::uint8_t* bytes, std::size_t size,
+                               SectionProfile profile) noexcept {
     using namespace section_detail;
     SectionProof proof;
     proof.profile = profile;
@@ -204,6 +205,18 @@ inline SectionProof observeSection(const std::uint8_t* bytes, std::size_t size,
     proof.crcChecked = true;
     proof.crcMatches = proof.storedCrc == proof.calculatedCrc; // Zero is not an integrity waiver.
     if (!proof.crcMatches) return fail(proof, SectionReason::Crc);
+    proof.status = Status::Observed;
+    proof.reason = SectionReason::NoFailure;
+    return proof;
+}
+inline SectionProof finishEnvelope(SectionProof proof, const std::uint8_t* bytes,
+                                   std::size_t size, ClassTail tail) noexcept {
+    proof.profile.tail = tail;
+    if (proof.status != Status::Observed) return proof;
+    if ((proof.profile.revision < 2004u && tail != ClassTail::SentinelOnly)
+        || static_cast<unsigned>(tail) > static_cast<unsigned>(ClassTail::AfterEight))
+        return fail(proof, SectionReason::Profile, true);
+    const auto profile = proof.profile;
     const auto before = profile.tail == ClassTail::BeforeOne ? 1u : profile.tail == ClassTail::BeforeTwo ? 2u
         : profile.tail == ClassTail::BeforeEight ? 8u : 0u;
     const auto after = profile.tail == ClassTail::AfterEight ? 8u : 0u;
@@ -213,7 +226,7 @@ inline SectionProof observeSection(const std::uint8_t* bytes, std::size_t size,
     if (proof.sectionEndByte > size) return fail(proof, SectionReason::Length);
     proof.extension = before ? Span{(proof.crcByte + 2u) * 8u, proof.sentinelByte * 8u}
         : Span{(proof.sentinelByte + 16u) * 8u, proof.sectionEndByte * 8u};
-    proof.envelopePadding = {proof.sectionEndByte * 8u, bits};
+    proof.envelopePadding = {proof.sectionEndByte * 8u, static_cast<std::uint32_t>(size * 8u)};
     if (size != proof.sectionEndByte) {
         if (!profile.zeroEnvelopePadding) return fail(proof, SectionReason::Envelope);
         for (std::size_t n = proof.sectionEndByte; n < size; ++n)
@@ -222,6 +235,31 @@ inline SectionProof observeSection(const std::uint8_t* bytes, std::size_t size,
     proof.status = Status::Observed;
     proof.reason = SectionReason::NoFailure;
     return proof;
+}
+} // namespace section_detail
+
+// Explicit candidates only. Do not select by comparison with expected output.
+inline SectionProof observeSection(const std::uint8_t* bytes, std::size_t size,
+                                    SectionProfile profile) noexcept {
+    return section_detail::finishEnvelope(section_detail::recordCore(bytes, size, profile), bytes, size, profile.tail);
+}
+
+// All five explicit tail candidates, with one record/CRC traversal per common
+// profile. Every returned candidate still verifies its own END/extension/full
+// envelope consumption. The input tail member is replaced by these candidates.
+inline std::array<SectionProof, 5> observeSectionTails(const std::uint8_t* bytes, std::size_t size,
+                                                     SectionProfile profile) noexcept {
+    profile.tail = ClassTail::SentinelOnly;
+    const auto core = section_detail::recordCore(bytes, size, profile);
+    std::array<SectionProof, 5> proofs{};
+    for (unsigned n = 0; n < proofs.size(); ++n) {
+        const auto tail = static_cast<ClassTail>(n);
+        if (profile.revision < 2004u && n != 0u) {
+            profile.tail = tail;
+            proofs[n] = observeSection(bytes, size, profile); // Unsupported before any record/CRC traversal.
+        } else proofs[n] = section_detail::finishEnvelope(core, bytes, size, tail);
+    }
+    return proofs;
 }
 } // namespace dx_class_wire
 #endif

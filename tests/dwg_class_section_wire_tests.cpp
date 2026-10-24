@@ -2,11 +2,12 @@
 #include "dx_dwg_class_section_wire.h"
 #include <algorithm>
 #include <iostream>
+#include <tuple>
 #include <vector>
 
 namespace wire = dx_class_wire;
 namespace {
-std::size_t positives = 0u, refusals = 0u;
+std::size_t positives = 0u, refusals = 0u, batchControls = 0u;
 bool expect(bool value, int line) {
     if (!value) std::cerr << "class section check failed at line " << line << '\n';
     return value;
@@ -309,9 +310,48 @@ bool boundaries() {
         == wire::SectionReason::Profile); ++refusals;
     return true;
 }
+bool sameProof(const wire::SectionProof& a, const wire::SectionProof& b) {
+    const auto values = [](const wire::SectionProof& p) {
+        return std::make_tuple(p.status, p.reason, p.profile.revision, p.profile.maintenance,
+            p.profile.trailer, p.profile.sizeLayout, p.profile.highSizeRule, p.profile.tail,
+            p.profile.zeroEnvelopePadding, p.profile.requireTrueHeaderFlag, p.profile.scalarByteAlignment,
+            p.data.bytes, p.data.size, p.data.begin, p.data.end,
+            p.strings.bytes, p.strings.size, p.strings.begin, p.strings.end,
+            p.scalarPadding.begin, p.scalarPadding.end, p.bytePadding.begin, p.bytePadding.end,
+            p.stringFooter.begin, p.stringFooter.end, p.extension.begin, p.extension.end,
+            p.envelopePadding.begin, p.envelopePadding.end, p.sizeField, p.bitSize, p.records,
+            p.maximumClass, p.highestClass, p.crcByte, p.sentinelByte, p.sectionEndByte,
+            p.dataCursor, p.stringCursor, p.storedCrc, p.calculatedCrc, p.headerByte0, p.headerByte1,
+            p.textIssues, p.split, p.highSizePresent, p.extendedFooter, p.headerFlag,
+            p.crcChecked, p.crcMatches, p.denseNumbering, p.unknownItemClass);
+    };
+    return values(a) == values(b);
+}
+bool batchedTails() {
+    for (auto revision : {13u,14u,2000u,2004u,2007u,2010u,2013u,2018u})
+    for (auto trailer : {wire::Trailer::OdaBitShort, wire::Trailer::ProducerBitLong})
+    for (unsigned mode = 0; mode < 6u; ++mode) {
+        wire::SectionProfile profile; profile.revision = revision; profile.maintenance = 4u;
+        profile.trailer = trailer;
+        auto built = make(profile);
+        if (mode == 1u) built.bytes[0] ^= 1u;
+        if (mode == 2u) built.bytes[built.crcByte] ^= 1u;
+        if (mode == 3u) built.bytes.resize(20u);
+        if (mode == 4u) built.bytes.push_back(0xFFu);
+        if (mode == 5u) { built.bytes.insert(built.bytes.end(), 11u, 0u); profile.zeroEnvelopePadding = true; }
+        const auto batch = wire::observeSectionTails(built.bytes.data(), built.bytes.size(), profile);
+        for (unsigned n = 0; n < batch.size(); ++n) {
+            profile.tail = static_cast<wire::ClassTail>(n);
+            const auto single = wire::observeSection(built.bytes.data(), built.bytes.size(), profile);
+            CHECK(sameProof(batch[n], single));
+            ++batchControls;
+        }
+    }
+    return true;
+}
 }
 int main() {
-    if (!anchors() || !matrix() || !failures() || !boundaries()) return 1;
+    if (!anchors() || !matrix() || !failures() || !boundaries() || !batchedTails()) return 1;
     std::cout << "independent class sections: " << positives << " positive, " << refusals
-              << " refused/truncated; no support qualification\n";
+              << " refused/truncated, " << batchControls << " batch/single controls; no support qualification\n";
 }

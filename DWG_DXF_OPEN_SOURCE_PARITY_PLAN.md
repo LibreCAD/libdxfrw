@@ -119395,3 +119395,118 @@ remain unchanged capture-time records.
 
 Receipt:
 [`rpp5bn-independent-classes-section-framing-2026-10-24.json`](docs/research/rpp5bn-independent-classes-section-framing-2026-10-24.json).
+
+## Implementation progress — RPP-5bo import-owned class baselines and source joins (2026-10-24)
+
+The metadata side is now frozen inside the actual converter import, and every
+syntactically complete source interpretation is joined to that private baseline.
+This completes the metadata-capture and table-correlation prerequisites of
+RPP-5bn, not the remaining IMAGEDEF/reactor object-frame binding or profile/
+semantic/output qualification. Implementation, tests, this plan and the receipt
+are checkpointed in the local commit reported at handoff. No remote mutation is
+included; strict admission remains **CLOSED**.
+
+1. [x] Add a private import-attempt identity independent of mutable public
+   generation/outcome fields. Open the evidence context only around the actual
+   `dwg.read` call; seal it using the returned result and direct reader version/
+   codepage observations. Reject reentrant/redirected contexts, duplicate or late
+   callbacks, counter overflow and reused public labels. Reuse also poisons the
+   collided historical entry rather than making it available to future frame
+   lookups. Later genuine fresh imports can recover. A failed, DXF or unknown-
+   extension attempt cannot fall back to an older successful class table.
+2. [x] Freeze all class-row scalar fields, three complete names, ordinal,
+   descriptor, ranges/address-space flags and publication status at the actual
+   callback. Use one immutable shared owner containing a row vector and flat
+   UTF-8 name arena; no per-name snapshot allocation. Retain the source report
+   and existing immutable byte owner separately from the advisory public-
+   generation lookup. Do not rebuild metadata from edited public rows at export.
+3. [x] Preflight row/arena/source/index estimates against a separate aggregate
+   64 MiB/1024-import budget, then check actual vector capacities before
+   publication. Class identities bound the row count to65036. Failed active
+   attempts release/refund their private variable buffers and entry at seal;
+   the fixed failure result remains allocation-free. Successful historical
+   owners remain charged. Advisory source/public model storage has its own
+   budgets; this is not a whole-process peak-memory guarantee.
+4. [x] Add `dx_dwg_class_evidence.h`: source-only framing enumerates all explicit
+   width/high-size/length/trailer candidates before metadata comparison. Join
+   every field, name and independently discovered span to the frozen rows.
+   The matched-candidate mask must equal the entire framed-candidate mask;
+   matching only the desired interpretation is a failure. Name convention is
+   determined from encoded units, not expected output. Exact and single-final-
+   NUL names are distinct; unknown legacy bytes, invalid Unicode and interior/
+   repeated NULs cannot become qualified text by clearing issue flags.
+5. [x] Retain ambiguity and unknown profile conventions in the result. `Joined`
+   means import-owned table/source correlation, not a semantic/support/output
+   certificate. The read-only result and `hasUnchangedDwgClassEvidence()` expose
+   that narrow contract: the latter checks public coverage/profile observations
+   against the private actual read. It does not certify editable CLASS output,
+   images, dictionaries, the whole drawing or historical frames. Failure-state
+   zero counts mean unknown, not a qualified empty table.
+6. [x] Exercise a scratch counterexample to expected-value schema selection:
+   both BS and BL fully frame the same source bytes and CRC, but the version/
+   maintenance/unknown values differ. BS gives257/1024/67305985/100860417;
+   BL gives16777473/-1048559616/-1048559616/0. A baseline matching either one
+   alone is refused. Common small-value agreement stays explicitly ambiguous;
+   a uniquely framed candidate is a separate case. This is wire evidence, not
+   a claim that either synthetic interpretation is a qualified native producer.
+7. [x] Share the record/CRC traversal across five trailer candidates, and match
+   common record streams once while retaining every complete framing result.
+   END, extension and envelope consumption are still checked for each tail.
+   The internal record/CRC prerequisite is not a public full-envelope observer.
+   Compare all52 result components against the single-candidate API in480
+   positive/malformed differential controls. The standalone observer remains
+   allocation-free C++14; the converter metadata join uses its existing C++17
+   context and adds no installed interface or virtual callback.
+8. [x] Native/capture controls pass1,989 assertions. Verify immutable owners,
+   all27 row-field mutations, public profile/generation edits, exact/one-under
+   budgets, pre-allocation refusal, allocation/callback failures, missing/
+   duplicate/late/redirected events, failed reads, label collisions, overflow,
+   empty tables and fresh-attempt recovery. Real import callbacks drive the
+   four existing native fixtures; the friend seam supplies fault microcontracts
+   only and is not native qualification. The existing63+64+64+64 source rows
+   remain independently correlated. No drawing fixture is added or downloaded.
+9. [x] Rebuild library/CLI/test consumers with strict warnings and verify the
+   LibreCAD_3 compile gate. Eight focused tests pass (10.73 s), five affected
+   owning checkpoints pass (9.41 s), and four reader/fixture/adapter/3D-consumer
+   tests pass (2.40 s). Three ASan tests pass (0.95 s); standalone section and
+   binding ASan+UBSan controls pass. The17 binding controls link only libc++/
+   libSystem, not the production parser/library. Keep heavy owning cohorts
+   sequential. No full suite, external/platform qualification or throughput
+   claim is implied by these checks.
+
+Implementation-ready continuation:
+
+- [ ] **Bind IMAGEDEF/reactor frames, not just the table.** Capture the private
+  actual-import attempt on raw-frame/publication staging, before final class
+  callbacks arrive. At finish, require the same private attempt, file profile,
+  publication encoded/resolved type and `m_classStreamOrdinal`. Join that
+  ordinal and numeric class identity to the immutable table and source spans,
+  then compare every carried class field and exact IMAGEDEF/reactor names.
+  Preserve fixed-type handling without inventing a custom-class ordinal.
+  Reject missing, aliased, duplicate, changed, late and cross-attempt bindings;
+  a matching empty class table proves no omitted class. Do not use editable
+  public generation labels as the sole frame-to-table authority.
+- [ ] **Complete the admission contract separately.** Keep syntax/table joins
+  distinct from profile qualification, body/path/EED text semantics and output
+  references. The new `Joined` state is not an admission waiver. Resolve the
+  explicit header/alignment/trailer/high-size/schema conventions, and keep
+  `ClassEnvelope`/`TextSemanticsNotIndependent` unpromoted until their entire
+  required evidence gates pass. Native AC1024/AC1032 and independently qualified
+  >=256 producer semantics remain unproved by these four fixtures and scratch
+  controls. Add class-role mutation, frame-token, rollback and retry tests
+  before changing any issue mask or output policy.
+- [ ] Carry forward RPP-5bn's scratch-native reproduction of the production
+  max-class-minus499 density assumption before modifying cardinality loops.
+  Continue full IMAGE/common state, NOD/image-dictionary/document closure,
+  producer LAYER/codepage, APPID/LAYER/XRECORD, container/SUN, TABLE/extension,
+  MATERIAL and consumer integration in their existing dependency order.
+
+Self-update/unblock after each item: refresh evidence, its limits and the next
+action, resolve safe local failures and continue. Report actual slice commits
+only. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/
+Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. No support claim is promoted. Preserve all17 untracked drawings
+and unrelated files; stage no drawing or earlier receipt.
+
+Receipt:
+[`rpp5bo-import-owned-classes-source-joins-2026-10-24.json`](docs/research/rpp5bo-import-owned-classes-source-joins-2026-10-24.json).

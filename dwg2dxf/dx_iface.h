@@ -176,9 +176,7 @@ public:
             cData->dxfReadOutcome.headerDelivered = true;
     }
     void addDxfClass(const DRW_Class& data) override;
-    void addDwgClassCoverageReport(const DRW_DwgClassCoverageReport& data) override {
-        cData->dwgClassCoverage = data;
-    }
+    void addDwgClassCoverageReport(const DRW_DwgClassCoverageReport& data) override;
     bool wantsDwgClassSource() const override { return true; }
     void addDwgClassSourceReport(const DRW_DwgClassSourceReport& data) noexcept override;
 
@@ -1448,6 +1446,17 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    friend class DxIfaceDwgClassSourceTestAccess;
+    dx_data* m_classEvidenceReadData{nullptr};
+    std::uint64_t m_classEvidenceReadAttempt{0};
+    void rejectDwgClassEvidence(dx_data& data, dx_class_evidence::State reason) noexcept;
+    dx_data::ClassEvidenceImport* activeDwgClassEvidence() noexcept;
+    void beginDwgClassEvidenceRead(dx_data& data) noexcept;
+    void retainDwgClassEvidenceRows(const DRW_DwgClassCoverageReport& data) noexcept;
+    void retainDwgClassEvidenceSource(const DRW_DwgClassSourceReport& data) noexcept;
+    void finishDwgClassEvidenceRead(bool success, DRW::Version version, std::uint16_t codePage,
+                                   bool present, bool recognized) noexcept;
+    void abortDwgClassEvidenceRead() noexcept;
     friend class DxIfaceExtensionGraphTestAccess;
     friend class DxIfaceStandardDwgCaptureTestAccess;
     void rejectStandardDwgObjectCapture() noexcept;

@@ -34,6 +34,42 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 class DxIfaceDwgClassSourceTestAccess {
 public:
+    // Contract seam only. Native tests below must enter through fileImport.
+    static void open(dx_iface& adapter, dx_data& data, std::uint64_t generation) {
+        adapter.cData = &data;
+        data.importGeneration = generation; data.sourceFormat = dx_source_format::DWG;
+        data.dwgReadOutcome.attempted = true;
+        ++data.m_classEvidenceAttempt; data.m_classEvidenceGeneration = generation;
+        data.m_classEvidenceHighWater = generation; data.m_classEvidenceFallback = true;
+        data.m_classEvidenceFailure = {};
+        data.m_classEvidenceFailure.attempt = data.m_classEvidenceAttempt;
+        data.m_classEvidenceFailure.generation = generation;
+        data.m_classEvidenceFailure.state = dx_class_evidence::State::NotDwg;
+        adapter.beginDwgClassEvidenceRead(data);
+    }
+    static void rows(dx_iface& adapter, const DRW_DwgClassCoverageReport& report) {
+        adapter.retainDwgClassEvidenceRows(report);
+    }
+    static void source(dx_iface& adapter, const DRW_DwgClassSourceReport& report) {
+        adapter.retainDwgClassEvidenceSource(report);
+    }
+    static void finish(dx_iface& adapter, const DRW_DwgClassSourceReport& source, bool success = true) {
+        adapter.finishDwgClassEvidenceRead(success, source.m_version, source.m_codePageId,
+            source.m_codePagePresent, source.m_codePageRecognized);
+    }
+    static void evidenceLimits(dx_data& data, std::size_t bytes, std::size_t count = 1024u) {
+        data.m_classEvidenceByteLimit = bytes; data.m_classEvidenceCountLimit = count;
+    }
+    static std::size_t evidenceBytes(const dx_data& data) { return data.m_classEvidenceBytes; }
+    static std::size_t evidenceCount(const dx_data& data) { return data.m_classEvidenceImports.size(); }
+    static dx_class_evidence::State historyState(const dx_data& data, std::uint64_t generation) {
+        const auto found = data.m_classEvidenceImports.find(generation);
+        return found == data.m_classEvidenceImports.end() ? dx_class_evidence::State::NoAttempt : found->second.result.state;
+    }
+    static std::weak_ptr<const dx_class_evidence::Rows> owner(const dx_data& data) {
+        const auto found = data.m_classEvidenceImports.find(data.m_classEvidenceGeneration);
+        return found == data.m_classEvidenceImports.end() ? std::weak_ptr<const dx_class_evidence::Rows>{} : found->second.rows;
+    }
     static void limits(dx_data& data, std::size_t bytes, std::size_t reports = 1024u) {
         data.m_classSourceByteLimit = bytes;
         data.m_classSourceReportLimit = reports;
@@ -412,6 +448,12 @@ bool native(const std::filesystem::path& root) {
             && report->m_codePagePresent == captured.dwgReadOutcome.sourceCodePageFieldPresent
             && report->m_codePageRecognized == captured.dwgReadOutcome.sourceCodePageRecognized);
         CHECK(ignored && ignored->m_status == Status::NotRequested && !ignored->m_bytes);
+        CHECK(captured.dwgClassEvidence().state == dx_class_evidence::State::Joined
+            && captured.dwgClassEvidence().rows == captured.dwgClassCoverage.m_entries.size()
+            && captured.dwgClassEvidence().candidateMask == captured.dwgClassEvidence().matchedMask
+            && captured.hasUnchangedDwgClassEvidence());
+        CHECK(ordinary.dwgClassEvidence().state == dx_class_evidence::State::SourceUnavailable
+            && !ordinary.hasUnchangedDwgClassEvidence());
         CHECK(captured.dwgClassCoverage.m_entries.size() == ordinary.dwgClassCoverage.m_entries.size());
         for (std::size_t i = 0; i < captured.dwgClassCoverage.m_entries.size(); ++i) {
             const auto& left = captured.dwgClassCoverage.m_entries[i];
@@ -433,13 +475,257 @@ bool native(const std::filesystem::path& root) {
         const auto lease = report->m_bytes;
         captured.dwgClassCoverage = {};
         CHECK(captured.dwgClassSource()->m_bytes == lease && !lease->empty());
+        CHECK(!captured.hasUnchangedDwgClassEvidence());
         const auto generation = captured.importGeneration;
         CHECK(adapter.fileImport(path.string(), &captured, false));
         CHECK(captured.importGeneration == generation + 1u && captured.dwgClassSource()
             && captured.dwgClassSource()->m_status == Status::Captured
             && captured.dwgClassSource()->m_bytes != lease
             && *captured.dwgClassSource()->m_bytes == *lease);
+        CHECK(captured.hasUnchangedDwgClassEvidence() && captured.dwgClassEvidence().attempt == 2u);
         std::cout << name << ": source capture/no-copy parity PASS\n";
+    }
+    return true;
+}
+
+using EvidenceAccess = DxIfaceDwgClassSourceTestAccess;
+using EvidenceState = dx_class_evidence::State;
+void evidencePublic(dx_data& data, const Report& source, const DRW_DwgClassCoverageReport& rows) {
+    data.sourceVersion = source.m_version;
+    data.dwgReadOutcome.attempted = data.dwgReadOutcome.operationSucceeded = true;
+    data.dwgReadOutcome.error = DRW::BAD_NONE;
+    data.dwgReadOutcome.sourceVersion = source.m_version;
+    data.dwgReadOutcome.sourceCodePageId = source.m_codePageId;
+    data.dwgReadOutcome.sourceCodePageFieldPresent = source.m_codePagePresent;
+    data.dwgReadOutcome.sourceCodePageRecognized = source.m_codePageRecognized;
+    data.dwgClassCoverage = rows;
+}
+void evidenceCapture(dx_iface& adapter, dx_data& data, const Report& source,
+                     const DRW_DwgClassCoverageReport& rows, std::uint64_t generation = 1u) {
+    EvidenceAccess::open(adapter, data, generation);
+    evidencePublic(data, source, rows);
+    EvidenceAccess::rows(adapter, rows); EvidenceAccess::source(adapter, source);
+    EvidenceAccess::finish(adapter, source);
+}
+void mutateRow(DRW_DwgClassCoverageEntry& row, unsigned change) {
+    switch (change) {
+    case 0: ++row.m_streamOrdinal; break; case 1: ++row.m_classNumber; break;
+    case 2: row.m_appName += '!'; break; case 3: row.m_className += '!'; break;
+    case 4: row.m_recordName += '!'; break; case 5: row.m_proxyFlag ^= 1; break;
+    case 6: row.m_wasAProxyFlag ^= 1; break; case 7: row.m_entityFlagRaw ^= 1; break;
+    case 8: row.m_entityFlag ^= 1; break; case 9: ++row.m_instanceCount; break;
+    case 10: ++row.m_dwgVersion; break; case 11: ++row.m_maintenanceVersion; break;
+    case 12: ++row.m_unknown1; break; case 13: ++row.m_unknown2; break;
+    case 14: ++row.m_sectionDescriptorId; break; case 15: ++row.m_dataRange.m_startBit; break;
+    case 16: ++row.m_dataRange.m_endBit; break; case 17: ++row.m_stringRange.m_startBit; break;
+    case 18: ++row.m_stringRange.m_endBit; break; case 19: row.m_dataRange.m_present = false; break;
+    case 20: row.m_stringRange.m_present = false; break;
+    case 21: row.m_dataRange.m_sectionRelative = !row.m_dataRange.m_sectionRelative; break;
+    case 22: row.m_stringRange.m_sectionRelative = !row.m_stringRange.m_sectionRelative; break;
+    case 23: row.m_dataRange.m_offsetSpace = Space::Unknown; break;
+    case 24: row.m_stringRange.m_offsetSpace = Space::Unknown; break;
+    case 25: row.m_state = DRW_DwgClassCoverageState::Failed; break;
+    case 26: row.m_reason = DRW_DwgClassCoverageReason::Parse; break;
+    }
+}
+class EvidenceCallbackAdapter : public dx_iface {
+public:
+    unsigned mode{0u};
+    void addDwgClassCoverageReport(const DRW_DwgClassCoverageReport& data) override {
+        if (mode == 1u) { cData->dwgClassCoverage = data; return; } // Public copy is not authority.
+        dx_iface::addDwgClassCoverageReport(data);
+        if (mode == 2u) dx_iface::addDwgClassCoverageReport(data);
+        if (mode == 3u) throw 1;
+    }
+    void addDwgClassSourceReport(const Report& source) noexcept override {
+        if (mode != 4u) dx_iface::addDwgClassSourceReport(source);
+        if (mode == 6u) dx_iface::addDwgClassSourceReport(source);
+    }
+    bool wantsDwgClassSource() const override {
+        if (mode == 5u) throw 1;
+        return true;
+    }
+};
+bool evidenceContracts(const std::filesystem::path& root) {
+    const auto path = (root / "ordinary_enc_AC1015.dwg").string();
+    dx_iface importer;
+    dx_data seed;
+    CHECK(importer.fileImport(path, &seed, false) && seed.hasUnchangedDwgClassEvidence());
+    const Report source = *seed.dwgClassSource();
+    const DRW_DwgClassCoverageReport rows = seed.dwgClassCoverage;
+    CHECK(!rows.m_entries.empty());
+    const auto identity = EvidenceAccess::owner(seed).lock();
+    CHECK(identity && identity->entries.size() == rows.m_entries.size());
+    for (unsigned change = 0; change < 27u; ++change) {
+        mutateRow(seed.dwgClassCoverage.m_entries[0], change);
+        CHECK(!seed.hasUnchangedDwgClassEvidence());
+        CHECK(EvidenceAccess::owner(seed).lock() == identity
+            && dx_class_evidence::matches(*identity, rows));
+        seed.dwgClassCoverage = rows;
+        CHECK(seed.hasUnchangedDwgClassEvidence());
+        dx_iface adapter; dx_data changed;
+        auto report = rows; mutateRow(report.m_entries[0], change);
+        evidenceCapture(adapter, changed, source, report);
+        CHECK(changed.dwgClassEvidence().state == EvidenceState::RowMismatch
+            && !changed.hasUnchangedDwgClassEvidence() && EvidenceAccess::evidenceBytes(changed) == 0u);
+    }
+    for (unsigned change = 0; change < 7u; ++change) {
+        switch (change) {
+        case 0: ++seed.importGeneration; break;
+        case 1: seed.sourceFormat = dx_source_format::DXF; break;
+        case 2: seed.sourceVersion = DRW::UNKNOWNV; break;
+        case 3: seed.dwgReadOutcome.operationSucceeded = false; break;
+        case 4: seed.dwgReadOutcome.sourceVersion = DRW::UNKNOWNV; break;
+        case 5: ++seed.dwgReadOutcome.sourceCodePageId; break;
+        case 6: seed.dwgReadOutcome.sourceCodePageRecognized = !source.m_codePageRecognized; break;
+        }
+        CHECK(!seed.hasUnchangedDwgClassEvidence());
+        seed.importGeneration = 1u; seed.sourceFormat = dx_source_format::DWG;
+        evidencePublic(seed, source, rows);
+        CHECK(seed.hasUnchangedDwgClassEvidence());
+    }
+    dx_iface costAdapter; dx_data costData;
+    evidenceCapture(costAdapter, costData, source, rows);
+    const auto cost = EvidenceAccess::evidenceBytes(costData);
+    CHECK(costData.hasUnchangedDwgClassEvidence() && cost > source.m_byteCount);
+    for (const auto cap : {cost - 1u, cost}) {
+        dx_iface adapter; dx_data data;
+        EvidenceAccess::evidenceLimits(data, cap);
+        evidenceCapture(adapter, data, source, rows);
+        CHECK(data.dwgClassEvidence().state == (cap == cost ? EvidenceState::Joined : EvidenceState::TooLarge));
+        CHECK(EvidenceAccess::evidenceBytes(data) == (cap == cost ? cost : 0u));
+    }
+    {
+        dx_iface adapter; dx_data data;
+        EvidenceAccess::open(adapter, data, 1u);
+        EvidenceAccess::evidenceLimits(data, EvidenceAccess::evidenceBytes(data));
+        { AllocationFailure fault(0); EvidenceAccess::rows(adapter, rows); }
+        EvidenceAccess::finish(adapter, source);
+        CHECK(data.dwgClassEvidence().state == EvidenceState::TooLarge && EvidenceAccess::evidenceBytes(data) == 0u);
+    }
+    unsigned failures = 0u, successes = 0u;
+    for (long count = 0; count < 6; ++count) {
+        dx_iface adapter; dx_data data;
+        EvidenceAccess::open(adapter, data, 1u); evidencePublic(data, source, rows);
+        { AllocationFailure fault(count); EvidenceAccess::rows(adapter, rows); }
+        { AllocationFailure fault(0); EvidenceAccess::source(adapter, source); EvidenceAccess::finish(adapter, source); }
+        if (data.dwgClassEvidence().state == EvidenceState::CaptureFailed) {
+            ++failures;
+            CHECK(EvidenceAccess::evidenceBytes(data) == 0u && EvidenceAccess::evidenceCount(data) == 0u);
+            evidenceCapture(adapter, data, source, rows, 2u);
+            CHECK(data.hasUnchangedDwgClassEvidence());
+        } else { ++successes; CHECK(data.hasUnchangedDwgClassEvidence()); }
+    }
+    CHECK(failures >= 3u && successes != 0u);
+    for (unsigned mode = 0; mode < 4u; ++mode) {
+        dx_iface adapter; dx_data data;
+        if (mode == 0u) EvidenceAccess::evidenceLimits(data, DRW::kMaxDwgClassSourceBytes, 0u);
+        if (mode == 1u) { AllocationFailure fault(0); EvidenceAccess::open(adapter, data, 1u); }
+        else EvidenceAccess::open(adapter, data, 1u);
+        evidencePublic(data, source, rows);
+        if (mode >= 2u) EvidenceAccess::rows(adapter, rows);
+        if (mode == 2u) EvidenceAccess::rows(adapter, rows);
+        EvidenceAccess::source(adapter, source);
+        if (mode == 3u) EvidenceAccess::source(adapter, source);
+        EvidenceAccess::finish(adapter, source);
+        CHECK(data.dwgClassEvidence().state == (mode == 0u ? EvidenceState::TooLarge : EvidenceState::CaptureFailed)
+            && EvidenceAccess::evidenceBytes(data) == 0u && !data.hasUnchangedDwgClassEvidence());
+    }
+    for (unsigned mode = 0; mode < 5u; ++mode) {
+        dx_iface adapter; dx_data data;
+        EvidenceAccess::open(adapter, data, 1u); evidencePublic(data, source, rows);
+        auto partial = rows;
+        if (mode == 3u) partial.m_complete = false;
+        if (mode != 0u) EvidenceAccess::rows(adapter, partial);
+        if (mode != 1u) EvidenceAccess::source(adapter, source);
+        EvidenceAccess::finish(adapter, source, mode != 2u);
+        const auto expected = mode == 0u ? EvidenceState::MissingRows : mode == 1u ? EvidenceState::MissingSource
+            : mode == 2u ? EvidenceState::ReadFailed : mode == 3u ? EvidenceState::IncompleteRows : EvidenceState::Joined;
+        CHECK(data.dwgClassEvidence().state == expected);
+    }
+    for (unsigned mode = 0; mode < 11u; ++mode) {
+        dx_iface adapter; dx_data data;
+        EvidenceAccess::open(adapter, data, 1u); evidencePublic(data, source, rows);
+        EvidenceAccess::rows(adapter, rows);
+        auto changed = source;
+        auto expected = EvidenceState::ContextMismatch;
+        switch (mode) {
+        case 0: changed.m_version = DRW::AC1032; break;
+        case 1: ++changed.m_codePageId; break;
+        case 2: changed.m_codePagePresent = !changed.m_codePagePresent; break;
+        case 3: changed.m_offsetSpace = Space::Unknown; expected = EvidenceState::CaptureFailed; break;
+        case 4: ++changed.m_sectionDescriptorId; expected = EvidenceState::RowMismatch; break;
+        case 5: ++changed.m_baseByteOffset; expected = EvidenceState::RowMismatch; break;
+        case 6: --changed.m_byteCount; expected = EvidenceState::CaptureFailed; break;
+        case 7: ++changed.m_declaredSectionSize; expected = EvidenceState::CaptureFailed; break;
+        case 8: changed.m_bytes.reset(); expected = EvidenceState::CaptureFailed; break;
+        case 9: changed.m_classReadCompleted = false; expected = EvidenceState::SourceUnavailable; break;
+        case 10: {
+            auto bytes = std::make_shared<std::vector<std::uint8_t>>(*source.m_bytes);
+            (*bytes)[0] ^= 1u; changed.m_bytes = std::move(bytes); expected = EvidenceState::FramingRefused; break;
+        }
+        }
+        EvidenceAccess::source(adapter, changed); EvidenceAccess::finish(adapter, source);
+        CHECK(data.dwgClassEvidence().state == expected && !data.hasUnchangedDwgClassEvidence());
+    }
+    // Actual read boundary, not the friend seam: fake success/public generation
+    // cannot revive an old private report after a failed or repeated attempt.
+    importer.addDwgClassCoverageReport(rows);
+    CHECK(seed.dwgClassEvidence().state == EvidenceState::LateCallback && !seed.hasUnchangedDwgClassEvidence());
+    CHECK(importer.fileImport(path, &seed, false) && seed.hasUnchangedDwgClassEvidence());
+    CHECK(!importer.fileImport((root / "missing-class-evidence.dwg").string(), &seed, false));
+    CHECK(seed.dwgClassEvidence().state == EvidenceState::ReadFailed);
+    seed.importGeneration = 1u; evidencePublic(seed, source, rows);
+    CHECK(!seed.hasUnchangedDwgClassEvidence() && seed.dwgClassEvidence().state == EvidenceState::ReadFailed);
+    CHECK(importer.fileImport(path, &seed, false));
+    CHECK(seed.dwgClassEvidence().state == EvidenceState::ContextMismatch && !seed.hasUnchangedDwgClassEvidence());
+    CHECK(EvidenceAccess::historyState(seed, 2u) == EvidenceState::ContextMismatch);
+    seed.importGeneration = 3u;
+    CHECK(importer.fileImport(path, &seed, false) && seed.hasUnchangedDwgClassEvidence());
+    CHECK(!importer.fileImport("not-a-drawing.bin", &seed, false)
+        && seed.dwgClassEvidence().state == EvidenceState::NotDwg && !seed.hasUnchangedDwgClassEvidence());
+    for (unsigned mode = 1u; mode <= 6u; ++mode) {
+        EvidenceCallbackAdapter adapter; adapter.mode = mode; dx_data data;
+        CHECK(adapter.fileImport(path, &data, false));
+        const auto expected = mode == 1u ? EvidenceState::MissingRows : (mode == 2u || mode == 6u) ? EvidenceState::CaptureFailed
+            : mode == 4u ? EvidenceState::MissingSource : EvidenceState::SourceUnavailable;
+        CHECK(data.dwgClassEvidence().state == expected && !data.hasUnchangedDwgClassEvidence()
+            && EvidenceAccess::evidenceBytes(data) == 0u);
+    }
+    for (unsigned mode = 0; mode < 3u; ++mode) {
+        dx_iface adapter; dx_data data, redirected;
+        EvidenceAccess::open(adapter, data, 1u); evidencePublic(data, source, rows);
+        EvidenceAccess::rows(adapter, rows);
+        if (mode == 0u) adapter.cData = &redirected;
+        if (mode == 1u) ++data.importGeneration;
+        if (mode == 2u) CHECK(!adapter.fileImport(path, &redirected, false));
+        EvidenceAccess::source(adapter, source); EvidenceAccess::finish(adapter, source);
+        CHECK(data.dwgClassEvidence().state == EvidenceState::ContextMismatch
+            && !data.hasUnchangedDwgClassEvidence() && !redirected.hasUnchangedDwgClassEvidence()
+            && EvidenceAccess::evidenceBytes(data) == 0u);
+    }
+    dx_iface limited; dx_data capped;
+    EvidenceAccess::evidenceLimits(capped, DRW::kMaxDwgClassSourceBytes, 1u);
+    CHECK(limited.fileImport(path, &capped, false) && capped.hasUnchangedDwgClassEvidence());
+    CHECK(limited.fileImport(path, &capped, false) && capped.dwgClassEvidence().state == EvidenceState::TooLarge
+        && !capped.hasUnchangedDwgClassEvidence());
+    capped.importGeneration = (std::numeric_limits<std::uint64_t>::max)();
+    CHECK(!limited.fileImport(path, &capped, false) && capped.dwgClassEvidence().state == EvidenceState::ContextMismatch);
+    {
+        const std::vector<std::uint8_t> bytes{
+            0x8D,0xA1,0xC4,0xB8,0xC4,0xA9,0xF8,0xC5,0xC0,0xDC,0xF4,0x5F,0xE7,0xCF,0xB6,0x8A,
+            0,0,0,0,0x3D,0xC0,
+            0x72,0x5E,0x3B,0x47,0x3B,0x56,0x07,0x3A,0x3F,0x23,0x0B,0xA0,0x18,0x30,0x49,0x75};
+        auto empty = source;
+        empty.m_byteCount = empty.m_declaredSectionSize = bytes.size();
+        empty.m_bytes = std::make_shared<const std::vector<std::uint8_t>>(bytes);
+        auto noRows = rows; noRows.m_entries.clear();
+        dx_iface adapter; dx_data data;
+        evidenceCapture(adapter, data, empty, noRows);
+        CHECK(data.dwgClassEvidence().state == EvidenceState::Joined && data.dwgClassEvidence().rows == 0u
+            && data.hasUnchangedDwgClassEvidence());
+        data.dwgClassCoverage.m_entries.push_back(rows.m_entries[0]);
+        CHECK(!data.hasUnchangedDwgClassEvidence());
     }
     return true;
 }
@@ -460,7 +746,8 @@ int main(int argc, char** argv) {
     std::ifstream input(path, std::ios::binary), reference(path, std::ios::binary);
     dwgBuffer file(&input), fileControl(&reference);
     if (!captureContracts() || !readerTails() || !physicalCursor(memory, control, bytes)
-        || !physicalCursor(file, fileControl, bytes) || !adapterContracts() || !native(argv[1])) return 1;
+        || !physicalCursor(file, fileControl, bytes) || !adapterContracts() || !native(argv[1])
+        || !evidenceContracts(argv[1])) return 1;
     std::cout << "DWG class source: " << checks << " checks PASS; no framing/semantic qualification\n";
     return 0;
 }

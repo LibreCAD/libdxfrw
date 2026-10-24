@@ -15414,7 +15414,215 @@ void dx_iface::addDxfClass(const DRW_Class& data) {
     retainDxfClassTyped(cData, data);
 }
 
+namespace {
+using ClassEvidenceState = dx_class_evidence::State;
+bool classEvidenceAdd(std::size_t addition, std::size_t& bytes) noexcept {
+    if (bytes > DRW::kMaxDwgClassSourceBytes || addition > DRW::kMaxDwgClassSourceBytes - bytes) return false;
+    bytes += addition;
+    return true;
+}
+bool classEvidenceFits(std::size_t retained, std::size_t addition, std::size_t cap) noexcept {
+    return retained <= cap && addition <= cap - retained;
+}
+bool classEvidenceRowsBytes(std::size_t rows, std::size_t text, std::size_t& bytes) noexcept {
+    bytes = sizeof(dx_class_evidence::Rows) + 4u * sizeof(void*);
+    return rows <= DRW::kMaxDwgClassSourceBytes / sizeof(dx_class_evidence::Row)
+        && classEvidenceAdd(rows * sizeof(dx_class_evidence::Row), bytes) && classEvidenceAdd(text, bytes);
+}
+}
+
+bool dx_data::hasUnchangedDwgClassEvidence() const noexcept {
+    if (m_classEvidenceFallback) return false;
+    const auto found = m_classEvidenceImports.find(m_classEvidenceGeneration);
+    if (found == m_classEvidenceImports.end()) return false;
+    const auto& frame = found->second;
+    return frame.closed && frame.rows && frame.result.state == ClassEvidenceState::Joined
+        && frame.result.attempt == m_classEvidenceAttempt && frame.result.generation == importGeneration
+        && sourceFormat == dx_source_format::DWG && sourceVersion == frame.result.version
+        && dwgReadOutcome.attempted && dwgReadOutcome.operationSucceeded && dwgReadOutcome.error == DRW::BAD_NONE
+        && dwgReadOutcome.sourceVersion == frame.result.version
+        && dwgReadOutcome.sourceCodePageId == frame.codePage
+        && dwgReadOutcome.sourceCodePageFieldPresent == frame.codePagePresent
+        && dwgReadOutcome.sourceCodePageRecognized == frame.codePageRecognized
+        && dx_class_evidence::matches(*frame.rows, dwgClassCoverage);
+}
+
+void dx_iface::rejectDwgClassEvidence(dx_data& data, ClassEvidenceState reason) noexcept {
+    auto* result = &data.m_classEvidenceFailure;
+    const auto found = data.m_classEvidenceImports.find(data.m_classEvidenceGeneration);
+    if (!data.m_classEvidenceFallback && found != data.m_classEvidenceImports.end()
+        && found->second.result.attempt == data.m_classEvidenceAttempt)
+        result = &found->second.result;
+    if (result->state == ClassEvidenceState::Pending || result->state == ClassEvidenceState::Joined
+        || result->state == ClassEvidenceState::NoAttempt || result->state == ClassEvidenceState::NotDwg)
+        result->state = reason;
+}
+
+dx_data::ClassEvidenceImport* dx_iface::activeDwgClassEvidence() noexcept {
+    if (m_classEvidenceReadData == nullptr) {
+        if (cData != nullptr) rejectDwgClassEvidence(*cData, ClassEvidenceState::LateCallback);
+        return nullptr;
+    }
+    auto& data = *m_classEvidenceReadData;
+    if (cData != &data || data.m_classEvidenceOwner != this
+        || data.m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || data.importGeneration != data.m_classEvidenceGeneration || data.sourceFormat != dx_source_format::DWG) {
+        rejectDwgClassEvidence(data, ClassEvidenceState::ContextMismatch);
+        return nullptr;
+    }
+    if (data.m_classEvidenceFallback) return nullptr;
+    const auto found = data.m_classEvidenceImports.find(data.m_classEvidenceGeneration);
+    if (found == data.m_classEvidenceImports.end() || found->second.closed
+        || found->second.result.attempt != m_classEvidenceReadAttempt) {
+        rejectDwgClassEvidence(data, ClassEvidenceState::ContextMismatch);
+        return nullptr;
+    }
+    return found->second.result.state == ClassEvidenceState::Pending ? &found->second : nullptr;
+}
+
+void dx_iface::beginDwgClassEvidenceRead(dx_data& data) noexcept {
+    m_classEvidenceReadData = &data;
+    m_classEvidenceReadAttempt = data.m_classEvidenceAttempt;
+    data.m_classEvidenceOwner = this;
+    if (data.m_classEvidenceFailure.state == ClassEvidenceState::ContextMismatch) return;
+    data.m_classEvidenceFailure.state = ClassEvidenceState::Pending;
+    const auto base = sizeof(dx_data::ClassEvidenceImport) + 6u * sizeof(void*);
+    if (data.m_classEvidenceImports.size() >= data.m_classEvidenceCountLimit
+        || !classEvidenceFits(data.m_classEvidenceBytes, base, data.m_classEvidenceByteLimit)) {
+        data.m_classEvidenceFailure.state = ClassEvidenceState::TooLarge; return;
+    }
+    try {
+        const auto inserted = data.m_classEvidenceImports.emplace(data.m_classEvidenceGeneration, dx_data::ClassEvidenceImport{});
+        if (!inserted.second) {
+            data.m_classEvidenceFailure.state = ClassEvidenceState::ContextMismatch; return;
+        }
+        auto& frame = inserted.first->second;
+        frame.result = data.m_classEvidenceFailure;
+        frame.retainedBytes = base;
+        data.m_classEvidenceBytes += base;
+        data.m_classEvidenceFallback = false;
+    } catch (...) { data.m_classEvidenceFailure.state = ClassEvidenceState::CaptureFailed; }
+}
+
+void dx_iface::retainDwgClassEvidenceRows(const DRW_DwgClassCoverageReport& report) noexcept {
+    auto* frame = activeDwgClassEvidence();
+    if (frame == nullptr) return;
+    auto& data = *m_classEvidenceReadData;
+    if (frame->rowsSeen) { rejectDwgClassEvidence(data, ClassEvidenceState::CaptureFailed); return; }
+    frame->rowsSeen = true;
+    std::size_t textBytes = 0u, bytes = 0u;
+    if (report.m_entries.size() > 65036u) { rejectDwgClassEvidence(data, ClassEvidenceState::TooLarge); return; }
+    for (const auto& row : report.m_entries)
+        if (!classEvidenceAdd(row.m_appName.size(), textBytes) || !classEvidenceAdd(row.m_className.size(), textBytes)
+            || !classEvidenceAdd(row.m_recordName.size(), textBytes)) {
+            rejectDwgClassEvidence(data, ClassEvidenceState::TooLarge); return;
+        }
+    if (!classEvidenceRowsBytes(report.m_entries.size(), textBytes, bytes)
+        || !classEvidenceFits(data.m_classEvidenceBytes, bytes, data.m_classEvidenceByteLimit)) {
+        rejectDwgClassEvidence(data, ClassEvidenceState::TooLarge); return;
+    }
+    try {
+        auto frozen = std::make_shared<dx_class_evidence::Rows>();
+        frozen->status = report.m_status; frozen->complete = report.m_complete;
+        frozen->entries.resize(report.m_entries.size()); frozen->text.resize(textBytes);
+        std::size_t at = 0u;
+        for (std::size_t n = 0; n < report.m_entries.size(); ++n) {
+            const auto& input = report.m_entries[n];
+            auto& output = frozen->entries[n]; output = dx_class_evidence::fields(input);
+            const std::array<const std::string*, 3> names{{&input.m_appName, &input.m_className, &input.m_recordName}};
+            for (unsigned index = 0u; index < names.size(); ++index) {
+                const auto& name = *names[index];
+                output.names[index] = {at, name.size()};
+                if (!name.empty())
+                    std::copy(name.begin(), name.end(), frozen->text.begin() + static_cast<std::ptrdiff_t>(at));
+                at += name.size();
+            }
+        }
+        if (!classEvidenceRowsBytes(frozen->entries.capacity(), frozen->text.capacity(), bytes)
+            || !classEvidenceFits(data.m_classEvidenceBytes, bytes, data.m_classEvidenceByteLimit)) {
+            rejectDwgClassEvidence(data, ClassEvidenceState::TooLarge); return;
+        }
+        if (frame->result.state != ClassEvidenceState::Pending) return;
+        frame->rows = std::move(frozen); frame->retainedBytes += bytes; data.m_classEvidenceBytes += bytes;
+    } catch (...) { rejectDwgClassEvidence(data, ClassEvidenceState::CaptureFailed); }
+}
+
+void dx_iface::retainDwgClassEvidenceSource(const DRW_DwgClassSourceReport& source) noexcept {
+    auto* frame = activeDwgClassEvidence();
+    if (frame == nullptr) return;
+    auto& data = *m_classEvidenceReadData;
+    if (frame->sourceSeen) { rejectDwgClassEvidence(data, ClassEvidenceState::CaptureFailed); return; }
+    frame->sourceSeen = true;
+    const bool captured = source.m_status == DRW_DwgClassSourceStatus::Captured;
+    if (static_cast<unsigned>(source.m_status) > static_cast<unsigned>(DRW_DwgClassSourceStatus::DeliveryFailed)
+        || (!captured && source.m_bytes)
+        || (captured && (!source.m_bytes || source.m_byteCount == 0u || source.m_byteCount != source.m_bytes->size()
+            || source.m_sectionDescriptorId < 0 || source.m_declaredSectionSize == 0u
+            || source.m_declaredSectionSize > source.m_byteCount
+            || (source.m_offsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && source.m_offsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || (source.m_offsetSpace == DRW_DwgFrameOffsetSpace::DecodedBuffer && source.m_baseByteOffset != 0u)
+            || (source.m_offsetSpace == DRW_DwgFrameOffsetSpace::PhysicalFile && source.m_declaredSectionSize != source.m_byteCount)
+            || source.m_baseByteOffset > (std::numeric_limits<std::uint64_t>::max)() - source.m_byteCount))) {
+        rejectDwgClassEvidence(data, ClassEvidenceState::CaptureFailed); return;
+    }
+    std::size_t bytes = 0u;
+    if (captured && (!classEvidenceAdd(sizeof(std::vector<std::uint8_t>) + 4u * sizeof(void*), bytes)
+        || !classEvidenceAdd(source.m_bytes->capacity(), bytes)
+        || !classEvidenceFits(data.m_classEvidenceBytes, bytes, data.m_classEvidenceByteLimit))) {
+        rejectDwgClassEvidence(data, ClassEvidenceState::TooLarge); return;
+    }
+    frame->source = source; frame->retainedBytes += bytes; data.m_classEvidenceBytes += bytes;
+}
+
+void dx_iface::finishDwgClassEvidenceRead(bool success, DRW::Version version, std::uint16_t page,
+                                        bool present, bool recognized) noexcept {
+    if (m_classEvidenceReadData == nullptr) return;
+    auto& data = *m_classEvidenceReadData;
+    auto* frame = activeDwgClassEvidence();
+    if (frame != nullptr) {
+        frame->codePage = page; frame->codePagePresent = present; frame->codePageRecognized = recognized;
+        if (!success || version == DRW::UNKNOWNV) frame->result.state = ClassEvidenceState::ReadFailed;
+        else if (!frame->rowsSeen || !frame->rows) frame->result.state = ClassEvidenceState::MissingRows;
+        else if (!frame->sourceSeen) frame->result.state = ClassEvidenceState::MissingSource;
+        else if (frame->source.m_status != DRW_DwgClassSourceStatus::Captured)
+            frame->result.state = ClassEvidenceState::SourceUnavailable;
+        else if (frame->source.m_version != version || frame->source.m_codePageId != page
+            || frame->source.m_codePagePresent != present || frame->source.m_codePageRecognized != recognized)
+            frame->result.state = ClassEvidenceState::ContextMismatch;
+        else frame->result = dx_class_evidence::observe(frame->source, *frame->rows);
+        frame->result.version = version; frame->result.attempt = m_classEvidenceReadAttempt;
+        frame->result.generation = data.m_classEvidenceGeneration;
+    }
+    const auto found = data.m_classEvidenceImports.find(data.m_classEvidenceGeneration);
+    if (!data.m_classEvidenceFallback && found != data.m_classEvidenceImports.end()
+        && found->second.result.attempt == m_classEvidenceReadAttempt) {
+        auto& value = found->second;
+        value.closed = true;
+        if (value.result.state != ClassEvidenceState::Joined) {
+            data.m_classEvidenceFailure = value.result;
+            data.m_classEvidenceBytes -= value.retainedBytes;
+            data.m_classEvidenceImports.erase(found);
+            data.m_classEvidenceFallback = true;
+        }
+    }
+    data.m_classEvidenceOwner = nullptr;
+    m_classEvidenceReadData = nullptr; m_classEvidenceReadAttempt = 0u;
+}
+
+void dx_iface::abortDwgClassEvidenceRead() noexcept {
+    if (m_classEvidenceReadData == nullptr) return;
+    rejectDwgClassEvidence(*m_classEvidenceReadData, ClassEvidenceState::ReadFailed);
+    finishDwgClassEvidenceRead(false, DRW::UNKNOWNV, 0u, false, false);
+}
+
+void dx_iface::addDwgClassCoverageReport(const DRW_DwgClassCoverageReport& data) {
+    retainDwgClassEvidenceRows(data);
+    if (cData != nullptr) cData->dwgClassCoverage = data;
+}
+
 void dx_iface::addDwgClassSourceReport(const DRW_DwgClassSourceReport& data) noexcept {
+    retainDwgClassEvidenceSource(data);
     if (cData == nullptr) return;
     const auto fail = [&](DRW_DwgClassSourceStatus status) noexcept {
         cData->m_classSourceFailure = {};
@@ -18773,15 +18981,44 @@ bool validateNamedObjectRootForExport(const dx_data& data,
 
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
-    if (fData == nullptr || fData->importGeneration
-            == std::numeric_limits<std::uint64_t>::max())
+    if (fData == nullptr) return false;
+    if (m_classEvidenceReadData != nullptr || fData->m_classEvidenceOwner != nullptr) {
+        if (m_classEvidenceReadData != nullptr)
+            rejectDwgClassEvidence(*m_classEvidenceReadData, ClassEvidenceState::ContextMismatch);
+        if (fData->m_classEvidenceOwner != nullptr)
+            rejectDwgClassEvidence(*fData, ClassEvidenceState::ContextMismatch);
         return false;
+    }
+    fData->m_classEvidenceFallback = true;
+    fData->m_classEvidenceGeneration = 0u;
+    fData->m_classEvidenceFailure = {};
+    if (fData->m_classEvidenceAttempt == (std::numeric_limits<std::uint64_t>::max)())
+        fData->m_classEvidenceFailure.state = ClassEvidenceState::ContextMismatch;
+    else {
+        ++fData->m_classEvidenceAttempt;
+        fData->m_classEvidenceFailure.state = ClassEvidenceState::NotDwg;
+    }
+    fData->m_classEvidenceFailure.attempt = fData->m_classEvidenceAttempt;
+    if (fData->importGeneration == (std::numeric_limits<std::uint64_t>::max)()) {
+        fData->m_classEvidenceFailure.state = ClassEvidenceState::ContextMismatch;
+        return false;
+    }
     const DRW::Version previousSourceVersion = fData->sourceVersion;
     const std::size_t groupBegin = fData->groups.size();
     const StandardDwgObjectImportRange standardObjectRange{
         fData->dictionaries.size(), groupBegin, fData->xRecords.size(),
         fData->appIds.size(), fData->layers.size()};
     ++fData->importGeneration;
+    fData->m_classEvidenceGeneration = fData->importGeneration;
+    fData->m_classEvidenceFailure.generation = fData->importGeneration;
+    if (fData->importGeneration <= fData->m_classEvidenceHighWater) {
+        fData->m_classEvidenceFailure.state = ClassEvidenceState::ContextMismatch;
+        const auto collided = fData->m_classEvidenceImports.find(fData->importGeneration);
+        if (collided != fData->m_classEvidenceImports.end()
+            && collided->second.result.state == ClassEvidenceState::Joined)
+            collided->second.result.state = ClassEvidenceState::ContextMismatch;
+    }
+    else fData->m_classEvidenceHighWater = fData->importGeneration;
     fData->visualStyleImport = {};
     fData->visualStyleImport.generation = fData->importGeneration;
     fData->visualStyleImport.visualStyleBegin = fData->visualStyles.size();
@@ -19028,7 +19265,14 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         if (debug) {
             dwg.setDebug(DRW::DebugLevel::Debug);
         }
+        beginDwgClassEvidenceRead(*fData);
+        struct ClassEvidenceReadScope {
+            dx_iface& owner;
+            ~ClassEvidenceReadScope() { owner.abortDwgClassEvidenceRead(); }
+        } classEvidenceScope{*this};
         const bool success = dwg.read(this, false);
+        finishDwgClassEvidenceRead(success && dwg.getError() == DRW::BAD_NONE, dwg.getVersion(),
+            dwg.getSourceCodePageId(), dwg.hasSourceCodePageField(), dwg.hasRecognizedSourceCodePage());
         fData->dwgReadOutcome.operationSucceeded = success;
         fData->dwgReadOutcome.error = dwg.getError();
         fData->dwgReadOutcome.sourceVersion = dwg.getVersion();
