@@ -13070,6 +13070,57 @@ void dx_iface::retainStandardDwgLayerSource(const DRW_Layer& data) {
     }
 }
 
+std::uint64_t dx_iface::rasterClassReadAttempt() noexcept {
+    if (m_classEvidenceReadData == nullptr) return 0u;
+    auto& data = *m_classEvidenceReadData;
+    if (cData != &data || data.m_classEvidenceOwner != this || data.m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || data.importGeneration != data.m_classEvidenceGeneration || data.sourceFormat != dx_source_format::DWG) {
+        rejectDwgClassEvidence(data, dx_class_evidence::State::ContextMismatch);
+        data.m_rasterDwgSourceFailed = true;
+        if (cData != nullptr) cData->m_rasterDwgSourceFailed = true;
+        return 0u;
+    }
+    return m_classEvidenceReadAttempt;
+}
+
+dx_class_evidence::RasterBinding dx_iface::rasterClassBinding(const dx_data::RasterDwgObjectFrame& frame) const noexcept {
+    using State = dx_class_evidence::RasterState;
+    dx_class_evidence::RasterBinding result;
+    result.attempt = frame.classReadAttempt;
+    const auto& raw = frame.raw; const auto& publication = frame.publication;
+    const bool definition = isRasterDwgDefinition(raw);
+    if (!frame.publicationSeen || frame.classReadAttempt != frame.classPublicationAttempt
+        || publication.m_version != raw.m_version || publication.m_encodedType != raw.m_objectType
+        || publication.m_resolvedType != (definition ? dwgObjType::IMAGEDEF : raw.m_objectType)
+        || publication.m_isEntity || raw.m_isEntity || publication.m_isCustomClass != raw.m_isCustomClass) {
+        result.state = State::Contradiction; return result;
+    }
+    if (!raw.m_isCustomClass) {
+        result.state = definition && raw.m_objectType == dwgObjType::IMAGEDEF && !raw.m_hasClassDefinition
+            && raw.m_recordName.empty() && raw.m_className.empty() && raw.m_classAppName.empty()
+            && publication.m_recordName.empty() && publication.m_className.empty() && !publication.m_classStreamOrdinal
+                ? State::FixedType : State::Contradiction;
+        return result;
+    }
+    if (frame.classReadAttempt == 0u) { result.state = State::NoReadContext; return result; }
+    if (cData == nullptr) { result.state = State::TableUnavailable; return result; }
+    const auto found = cData->m_classEvidenceImports.find(frame.generation);
+    if (found == cData->m_classEvidenceImports.end()) { result.state = State::TableUnavailable; return result; }
+    const auto& table = found->second;
+    if (!table.closed || table.result.state != dx_class_evidence::State::Joined || !table.rows
+        || table.result.attempt != frame.classReadAttempt) { result.state = State::TableUnavailable; return result; }
+    const auto page = frame.sourceProfileBound ? frame.sourceCodePageId : cData->dwgReadOutcome.sourceCodePageId;
+    const auto present = frame.sourceProfileBound ? frame.sourceCodePageFieldPresent : cData->dwgReadOutcome.sourceCodePageFieldPresent;
+    const auto recognized = frame.sourceProfileBound ? frame.sourceCodePageRecognized : cData->dwgReadOutcome.sourceCodePageRecognized;
+    if (table.result.version != raw.m_version || table.codePage != page || table.codePagePresent != present
+        || table.codePageRecognized != recognized) { result.state = State::Contradiction; return result; }
+    result.state = dx_class_evidence::matchRasterRow(*table.rows, raw, publication, definition);
+    result.rows = table.rows; result.profileIssues = table.result.profileIssues;
+    if (publication.m_classStreamOrdinal) result.ordinal = *publication.m_classStreamOrdinal;
+    if (raw.m_objectType >= 500 && raw.m_objectType <= 65535) result.number = static_cast<std::uint16_t>(raw.m_objectType);
+    return result;
+}
+
 void dx_iface::retainRasterDwgSource(const DRW_UnsupportedObject &data) noexcept {
     if (cData == nullptr || cData->m_rasterDwgSourceFailed)
         return;
@@ -13118,6 +13169,8 @@ void dx_iface::retainRasterDwgSource(const DRW_UnsupportedObject &data) noexcept
         dx_data::RasterDwgObjectFrame frame;
         frame.raw = data;
         frame.generation = key.first;
+        frame.classReadAttempt = rasterClassReadAttempt();
+        if (cData->m_rasterDwgSourceFailed) return;
         cData->m_rasterDwgSources.emplace(key, std::move(frame));
         cData->m_rasterDwgSourceBytes += bytes;
     } catch (...) {
@@ -13142,7 +13195,9 @@ void dx_iface::retainRasterDwgPublication(const DRW_DwgFramePublication &data) n
     const dx_data::StandardDwgLocationKey location{frame.generation,
                                                    {data.m_sourceOffsetSpace, data.m_sourceOffset}};
     std::size_t bytes = 0u;
-    if (frame.publicationSeen || frame.generation <= cData->m_rasterDwgClosedThrough
+    const auto classAttempt = rasterClassReadAttempt();
+    if (cData->m_rasterDwgSourceFailed || frame.publicationSeen || frame.generation <= cData->m_rasterDwgClosedThrough
+        || frame.classReadAttempt != classAttempt
         || data.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw || data.m_isEntity
         || data.m_isCustomClass != raw.m_isCustomClass
         || static_cast<bool>(data.m_classStreamOrdinal) != raw.m_isCustomClass
@@ -13177,6 +13232,7 @@ void dx_iface::retainRasterDwgPublication(const DRW_DwgFramePublication &data) n
     }
     try {
         frame.publication = data;
+        frame.classPublicationAttempt = classAttempt;
         cData->m_rasterDwgOrdinals.emplace(ordinal, data.m_handle);
         cData->m_rasterDwgLocations.emplace(location, data.m_handle);
         frame.publicationSeen = true;
@@ -13259,6 +13315,8 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
                 reject();
                 return;
             }
+            const auto classBinding = rasterClassBinding(frame);
+            if (classBinding.state == dx_class_evidence::RasterState::Contradiction) { reject(); return; }
             const auto visitReactor = [typed](std::uint32_t ordinal, std::uint32_t value,
                     dx_raster_wire::Span, std::uint8_t) noexcept {
                 return ordinal < typed->reactorHandles.size() && typed->reactorHandles[ordinal] == value;
@@ -13293,7 +13351,9 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
             if (wire.eedLayerEndianConflict) profileIssues |= dx_raster_wire::LayerByteOrderDisagreement;
             if (!outcome.sourceCodePageFieldPresent || !outcome.sourceCodePageRecognized)
                 profileIssues |= dx_raster_wire::UnboundCodepage;
-            if (raw.m_isCustomClass && (raw.m_classEntityFlagRaw != 0x1F3u || raw.m_classAppName.empty()))
+            // A matched class row is not qualified source-profile semantics.
+            // Keep this issue for every custom class until that separate gate.
+            if (raw.m_isCustomClass)
                 profileIssues |= dx_raster_wire::ClassEnvelope;
             if (raw.m_isCustomClass && (raw.m_classWasProxy || raw.m_classDwgVersion < 0
                 || raw.m_classMaintenanceVersion < 0 || raw.m_classUnknown1 || raw.m_classUnknown2
@@ -13415,6 +13475,7 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
             }
             if (frame.typedBaseline) {
                 if (!rasterDwgModelEqual(*frame.typedBaseline, *typed, raw.m_version, definition)
+                    || !frame.classBindingObserved || !dx_class_evidence::sameRasterBinding(frame.classBinding, classBinding)
                     || !frame.wireObserved || !dx_raster_wire::sameProof(frame.wire, wire)
                     || !frame.dependenciesObserved || frame.profileIssues != profileIssues
                     || frame.eedDependencies.size() != dependencies.size() || frame.eedStrings.size() != strings.size()) {
@@ -13463,6 +13524,8 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
                 snapshot = std::make_shared<const DRW_ImageDefinitionReactor>(
                     dynamic_cast<const DRW_ImageDefinitionReactor &>(*typed));
             frame.typedBaseline = std::move(snapshot);
+            frame.classBinding = classBinding;
+            frame.classBindingObserved = true;
             frame.wire = wire;
             frame.profile = profile;
             frame.profileIssues = profileIssues;
@@ -13499,6 +13562,7 @@ bool dx_iface::hasUnchangedRasterDwgSources() const noexcept {
         if (!definition && reactor != cData->imageDefinitionReactors.end())
             typed = &reactor->second;
         if (!typed || !frame.typedBaseline || !frame.sourceProfileBound || !frame.payloadMatched
+            || !frame.classBindingObserved || !dx_class_evidence::sameRasterBinding(frame.classBinding, rasterClassBinding(frame))
             || !frame.wireObserved || !frame.dependenciesObserved || frame.wire.status == dx_raster_wire::Status::Malformed
             || !frame.publicationSeen || source.first.first != frame.generation
             || source.first.second != frame.raw.m_handle
@@ -15542,6 +15606,7 @@ void dx_iface::retainDwgClassEvidenceRows(const DRW_DwgClassCoverageReport& repo
             || !classEvidenceFits(data.m_classEvidenceBytes, bytes, data.m_classEvidenceByteLimit)) {
             rejectDwgClassEvidence(data, ClassEvidenceState::TooLarge); return;
         }
+        dx_class_evidence::indexRasterRoles(*frozen);
         if (frame->result.state != ClassEvidenceState::Pending) return;
         frame->rows = std::move(frozen); frame->retainedBytes += bytes; data.m_classEvidenceBytes += bytes;
     } catch (...) { rejectDwgClassEvidence(data, ClassEvidenceState::CaptureFailed); }

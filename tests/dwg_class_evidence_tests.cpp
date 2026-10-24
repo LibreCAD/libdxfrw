@@ -141,8 +141,97 @@ bool textConventions() {
     CHECK(compare({0x3Du,0xD8u,0u,0xDEu,0u,0u}, true, wire::EmbeddedNull, "\xF0\x9F\x98\x80"));
     return true;
 }
+bool rasterRows() {
+    for (const bool definition : {false, true}) {
+        evidence::Rows rows;
+        rows.complete = true; rows.status = DRW_DwgClassCoverageStatus::FinalizedComplete;
+        evidence::Row row;
+        row.number = 532u; row.itemClass = 0x1F3u; row.proxy = 7; row.wasProxy = 1;
+        row.instances = 4; row.version = 257; row.maintenance = 329;
+        row.unknown1 = 41; row.unknown2 = 73; row.descriptor = 3;
+        row.state = DRW_DwgClassCoverageState::Published;
+        row.data = row.strings = {160u, 240u, true, true, DRW_DwgFrameOffsetSpace::DecodedBuffer};
+        const std::array<std::string_view, 3> names{{"SCRATCH", evidence::rasterClass(definition), evidence::rasterRecord(definition)}};
+        for (unsigned index = 0u; index < names.size(); ++index) {
+            const auto name = names[index];
+            row.names[index] = {rows.text.size(), name.size()};
+            rows.text.insert(rows.text.end(), name.begin(), name.end());
+        }
+        rows.entries.push_back(row); evidence::indexRasterRoles(rows);
+        DRW_UnsupportedObject raw;
+        raw.m_objectType = row.number; raw.m_isCustomClass = raw.m_hasClassDefinition = true;
+        raw.m_recordName = evidence::rasterRecord(definition); raw.m_className = evidence::rasterClass(definition);
+        raw.m_classAppName = "SCRATCH"; raw.m_classProxyFlag = row.proxy; raw.m_classWasProxy = true;
+        raw.m_classEntityFlagRaw = row.itemClass; raw.m_classDwgVersion = row.version;
+        raw.m_classMaintenanceVersion = row.maintenance; raw.m_classUnknown1 = row.unknown1; raw.m_classUnknown2 = row.unknown2;
+        DRW_DwgFramePublication publication;
+        publication.m_isCustomClass = true; publication.m_encodedType = row.number; publication.m_classStreamOrdinal = 0u;
+        publication.m_recordName = raw.m_recordName; publication.m_className = raw.m_className;
+        const auto match = [&](const auto& table, const auto& object, const auto& receipt) {
+            return evidence::matchRasterRow(table, object, receipt, definition);
+        };
+        CHECK(match(rows, raw, publication) == evidence::RasterState::Joined);
+        for (unsigned mode = 0; mode != 27u; ++mode) {
+            auto badRows = rows; auto badRaw = raw; auto badReceipt = publication;
+            auto& bad = badRows.entries.front();
+            switch (mode) {
+            case 0: badRaw.m_isCustomClass = false; break;
+            case 1: badRaw.m_hasClassDefinition = false; break;
+            case 2: badRaw.m_isEntity = true; break;
+            case 3: badReceipt.m_isEntity = true; break;
+            case 4: badReceipt.m_isCustomClass = false; break;
+            case 5: badReceipt.m_classStreamOrdinal.reset(); break;
+            case 6: badReceipt.m_classStreamOrdinal = 1u; break;
+            case 7: ++badReceipt.m_encodedType; break;
+            case 8: badRaw.m_objectType = badReceipt.m_encodedType = 499u; break;
+            case 9: badReceipt.m_recordName += "_EDIT"; break;
+            case 10: badReceipt.m_className += "_EDIT"; break;
+            case 11: ++bad.ordinal; break;
+            case 12: ++bad.number; break;
+            case 13: bad.state = DRW_DwgClassCoverageState::Parsed; break;
+            case 14: bad.descriptor = -1; break;
+            case 15: bad.data.m_present = false; break;
+            case 16: bad.strings.m_present = false; break;
+            case 17: ++badRaw.m_classProxyFlag; break;
+            case 18: badRaw.m_classWasProxy = false; break;
+            case 19: ++badRaw.m_classEntityFlagRaw; break;
+            case 20: ++bad.entity; break;
+            case 21: ++badRaw.m_classDwgVersion; break;
+            case 22: ++badRaw.m_classMaintenanceVersion; break;
+            case 23: ++badRaw.m_classUnknown1; break;
+            case 24: ++badRaw.m_classUnknown2; break;
+            case 25: bad.names[0].offset = badRows.text.size() + 1u; break;
+            case 26: bad.itemClass = badRaw.m_classEntityFlagRaw = 0x1F2u; bad.entity = 1; break;
+            }
+            CHECK(match(badRows, badRaw, badReceipt) == evidence::RasterState::Contradiction);
+        }
+        for (unsigned name = 0; name < 3u; ++name) {
+            auto bad = raw;
+            (name == 0u ? bad.m_classAppName : name == 1u ? bad.m_className : bad.m_recordName) += "_EDIT";
+            CHECK(match(rows, bad, publication) == evidence::RasterState::Contradiction);
+        }
+        auto count = rows; ++count.entries.front().instances;
+        CHECK(match(count, raw, publication) == evidence::RasterState::Joined); // Not carried by raw object.
+        for (unsigned alias = 0; alias < 3u; ++alias) {
+            auto ambiguous = rows;
+            auto other = row; other.ordinal = 1u; ++other.number;
+            if (alias < 2u) other.names[alias == 0u ? 1u : 2u] = other.names[0];
+            ambiguous.entries.push_back(other); evidence::indexRasterRoles(ambiguous);
+            CHECK(match(ambiguous, raw, publication) == evidence::RasterState::AliasedIdentity);
+        }
+    }
+    evidence::RasterBinding a, b;
+    a.state = b.state = evidence::RasterState::Joined;
+    CHECK(evidence::sameRasterBinding(a, b));
+    ++b.attempt; CHECK(!evidence::sameRasterBinding(a, b)); b = a;
+    ++b.ordinal; CHECK(!evidence::sameRasterBinding(a, b)); b = a;
+    ++b.number; CHECK(!evidence::sameRasterBinding(a, b)); b = a;
+    ++b.profileIssues; CHECK(!evidence::sameRasterBinding(a, b)); b = a;
+    b.rows = std::make_shared<const evidence::Rows>(); CHECK(!evidence::sameRasterBinding(a, b));
+    return true;
+}
 }
 int main() {
-    if (!ambiguity() || !textConventions()) return 1;
+    if (!ambiguity() || !textConventions() || !rasterRows()) return 1;
     std::cout << "class source joins: " << checks << " controls PASS; schema/support not promoted\n";
 }

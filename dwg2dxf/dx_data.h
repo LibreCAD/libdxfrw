@@ -1026,6 +1026,9 @@ private:
         Binding binding{Binding::MissingSource};
     };
     struct RasterDwgObjectFrame : StandardDwgObjectFrame {
+        std::uint64_t classReadAttempt{0}, classPublicationAttempt{0};
+        dx_class_evidence::RasterBinding classBinding;
+        bool classBindingObserved{false};
         dx_raster_wire::Proof wire;
         dx_raster_wire::Profile profile;
         std::vector<RasterDwgDependency> eedDependencies;

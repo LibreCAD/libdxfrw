@@ -28,6 +28,9 @@ struct Result {
     std::uint64_t candidateMask{0}, matchedMask{0};
 };
 struct Name { std::size_t offset{0}, size{0}; };
+struct RasterRoleIndex {
+    std::uint32_t matches{0}, ordinal{(std::numeric_limits<std::uint32_t>::max)()};
+};
 struct Row {
     std::uint64_t ordinal{0};
     std::uint16_t number{0}, itemClass{0};
@@ -43,6 +46,7 @@ struct Rows {
     bool complete{false};
     std::vector<Row> entries;
     std::vector<char> text; // One bounded arena, not three allocations per row.
+    std::array<RasterRoleIndex, 2> rasterRoles{}; // Definition, reactor; built once before freezing.
     std::string_view name(const Row& row, unsigned index) const noexcept {
         if (index >= row.names.size()) return {};
         const auto span = row.names[index];
@@ -50,6 +54,72 @@ struct Rows {
         return {text.empty() ? "" : text.data() + span.offset, span.size};
     }
 };
+inline std::string_view rasterRecord(bool definition) noexcept {
+    return definition ? "IMAGEDEF" : "IMAGEDEF_REACTOR";
+}
+inline std::string_view rasterClass(bool definition) noexcept {
+    return definition ? "AcDbRasterImageDef" : "AcDbRasterImageDefReactor";
+}
+inline void indexRasterRoles(Rows& rows) noexcept {
+    rows.rasterRoles = {};
+    for (std::size_t n = 0; n < rows.entries.size(); ++n) {
+        const auto& row = rows.entries[n];
+        for (unsigned role = 0u; role < 2u; ++role) {
+            const bool definition = role == 0u;
+            const auto record = rows.name(row, 2u), cls = rows.name(row, 1u);
+            if (record != rasterRecord(definition) && cls != rasterClass(definition)) continue;
+            auto& index = rows.rasterRoles[role];
+            ++index.matches;
+            if (record == rasterRecord(definition) && cls == rasterClass(definition)
+                && n < (std::numeric_limits<std::uint32_t>::max)()) index.ordinal = static_cast<std::uint32_t>(n);
+        }
+    }
+}
+enum class RasterState : std::uint8_t {
+    Unobserved, FixedType, NoReadContext, TableUnavailable, AliasedIdentity, Joined, Contradiction
+};
+struct RasterBinding {
+    RasterState state{RasterState::Unobserved};
+    std::uint64_t attempt{0}, ordinal{(std::numeric_limits<std::uint64_t>::max)()};
+    std::uint16_t number{0};
+    std::uint32_t profileIssues{0};
+    std::shared_ptr<const Rows> rows;
+};
+inline bool sameRasterBinding(const RasterBinding& a, const RasterBinding& b) noexcept {
+    return a.state == b.state && a.attempt == b.attempt && a.ordinal == b.ordinal
+        && a.number == b.number && a.profileIssues == b.profileIssues && a.rows == b.rows;
+}
+// The caller must first bind the actual read/table authority. This compares
+// one custom class row, not the object's body, output or source qualification.
+inline RasterState matchRasterRow(const Rows& rows, const DRW_UnsupportedObject& raw,
+                                  const DRW_DwgFramePublication& publication, bool definition) noexcept {
+    if (!raw.m_isCustomClass || !raw.m_hasClassDefinition || raw.m_isEntity || publication.m_isEntity
+        || !publication.m_isCustomClass || !publication.m_classStreamOrdinal
+        || publication.m_encodedType != raw.m_objectType || raw.m_objectType < 500
+        || *publication.m_classStreamOrdinal >= rows.entries.size()
+        || raw.m_recordName != rasterRecord(definition) || raw.m_className != rasterClass(definition)
+        || publication.m_recordName != raw.m_recordName || publication.m_className != raw.m_className)
+        return RasterState::Contradiction;
+    const auto ordinal = *publication.m_classStreamOrdinal;
+    const auto& row = rows.entries[static_cast<std::size_t>(ordinal)];
+    for (const auto name : row.names)
+        if (name.offset > rows.text.size() || name.size > rows.text.size() - name.offset) return RasterState::Contradiction;
+    if (row.ordinal != ordinal || row.number != publication.m_encodedType
+        || row.state != DRW_DwgClassCoverageState::Published || row.reason != DRW_DwgClassCoverageReason::NoReason
+        || row.descriptor < 0 || !row.data.m_present || !row.strings.m_present
+        || row.proxy != raw.m_classProxyFlag || row.wasProxy != static_cast<int>(raw.m_classWasProxy)
+        || row.itemClass != raw.m_classEntityFlagRaw || row.entity != static_cast<int>(raw.m_isEntity)
+        || row.entity != (row.itemClass == 0x1F2u ? 1 : 0)
+        || row.version != raw.m_classDwgVersion || row.maintenance != raw.m_classMaintenanceVersion
+        || row.unknown1 != raw.m_classUnknown1 || row.unknown2 != raw.m_classUnknown2
+        || rows.name(row, 0u) != raw.m_classAppName || rows.name(row, 1u) != raw.m_className
+        || rows.name(row, 2u) != raw.m_recordName) return RasterState::Contradiction;
+    // Instance count is observed in the table, but intentionally absent from
+    // raw object carriers: the writer recomputes emitted counts, never guesses.
+    const auto& index = rows.rasterRoles[definition ? 0u : 1u];
+    if (index.matches > 1u) return RasterState::AliasedIdentity;
+    return index.matches == 1u && index.ordinal == ordinal ? RasterState::Joined : RasterState::Contradiction;
+}
 inline Row fields(const DRW_DwgClassCoverageEntry& input) noexcept {
     Row row;
     row.ordinal = input.m_streamOrdinal; row.number = input.m_classNumber;

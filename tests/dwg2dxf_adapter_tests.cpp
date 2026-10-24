@@ -113,6 +113,109 @@ public:
     static bool rasterUnchanged(const dx_iface& iface) {
         return iface.hasUnchangedRasterDwgSources();
     }
+    static bool rasterClassBindings(const dx_data& data) {
+        using State = dx_class_evidence::RasterState;
+        for (const auto& source : data.m_rasterDwgSources) {
+            const auto& frame = source.second;
+            const bool joined = frame.raw.m_version == DRW::AC1015 || frame.raw.m_version == DRW::AC1018;
+            if (data.dwgClassEvidence().state != (joined ? dx_class_evidence::State::Joined
+                : dx_class_evidence::State::FramingRefused)) return false;
+            const auto expected = !frame.raw.m_isCustomClass ? State::FixedType
+                : joined ? State::Joined : State::TableUnavailable;
+            std::cout << "Raster class binding version=" << frame.raw.m_version << " type=" << frame.raw.m_objectType
+                << " state=" << static_cast<unsigned>(frame.classBinding.state)
+                << " table=" << static_cast<unsigned>(data.dwgClassEvidence().state) << '\n';
+            if (!frame.classBindingObserved || frame.classBinding.state != expected || !frame.classReadAttempt
+                || frame.classReadAttempt != frame.classPublicationAttempt
+                || frame.classBinding.attempt != frame.classReadAttempt
+                || (expected == State::Joined && !frame.classBinding.rows)
+                || (frame.raw.m_isCustomClass && !(frame.profileIssues & dx_raster_wire::ClassEnvelope))) return false;
+        }
+        return true;
+    }
+    static bool rasterClassBindingControls(dx_data& data, dx_iface& iface) {
+        using State = dx_class_evidence::RasterState;
+        for (const auto& source : data.m_rasterDwgSources) {
+            const auto& original = source.second;
+            const auto binding = iface.rasterClassBinding(original);
+            if (!dx_class_evidence::sameRasterBinding(binding, original.classBinding)) return false;
+            for (unsigned fault = 0; fault != 5u; ++fault) {
+                auto bad = original;
+                if (fault == 0u) ++bad.classReadAttempt;
+                if (fault == 1u) ++bad.classPublicationAttempt;
+                if (fault == 2u) ++bad.publication.m_encodedType;
+                if (fault == 3u) ++bad.publication.m_resolvedType;
+                if (fault == 4u) bad.publication.m_isEntity = true;
+                if (iface.rasterClassBinding(bad).state != State::Contradiction) return false;
+            }
+            if (!original.raw.m_isCustomClass) {
+                auto bad = original; bad.publication.m_classStreamOrdinal = 0u;
+                if (iface.rasterClassBinding(bad).state != State::Contradiction) return false;
+                continue;
+            }
+            auto manual = original; manual.classReadAttempt = manual.classPublicationAttempt = 0u;
+            if (iface.rasterClassBinding(manual).state != State::NoReadContext) return false; // No borrowing by public label.
+            if (binding.state != State::Joined) continue;
+            for (unsigned fault = 0; fault != 11u; ++fault) {
+                auto bad = original;
+                switch (fault) {
+                case 0: bad.publication.m_classStreamOrdinal.reset(); break;
+                case 1: bad.publication.m_classStreamOrdinal = binding.rows->entries.size(); break;
+                case 2: ++bad.raw.m_classProxyFlag; break;
+                case 3: bad.raw.m_classWasProxy = !bad.raw.m_classWasProxy; break;
+                case 4: ++bad.raw.m_classEntityFlagRaw; break;
+                case 5: ++bad.raw.m_classDwgVersion; break;
+                case 6: ++bad.raw.m_classMaintenanceVersion; break;
+                case 7: ++bad.raw.m_classUnknown1; break;
+                case 8: ++bad.raw.m_classUnknown2; break;
+                case 9: bad.raw.m_classAppName += "_EDIT"; break;
+                case 10: bad.sourceCodePageId ^= 1u; break;
+                }
+                if (iface.rasterClassBinding(bad).state != State::Contradiction) return false;
+            }
+            auto& table = data.m_classEvidenceImports.at(original.generation);
+            const auto state = table.result.state;
+            table.result.state = dx_class_evidence::State::LateCallback;
+            const bool refused = iface.rasterClassBinding(original).state == State::TableUnavailable
+                && !iface.hasUnchangedRasterDwgSources();
+            table.result.state = state;
+            if (!refused || !iface.hasUnchangedRasterDwgSources()) return false;
+            const auto rows = table.rows;
+            table.rows = std::make_shared<const dx_class_evidence::Rows>(*rows);
+            const bool replaced = !iface.hasUnchangedRasterDwgSources();
+            table.rows = rows;
+            if (!replaced || !iface.hasUnchangedRasterDwgSources()) return false;
+        }
+        const auto coverage = data.dwgClassCoverage;
+        data.dwgClassCoverage.m_entries.clear();
+        const bool publicAdvisory = iface.hasUnchangedRasterDwgSources();
+        data.dwgClassCoverage = coverage;
+        if (!publicAdvisory) return false; // Private source authority is not rebuilt from this public copy.
+        const auto bytes = data.m_rasterDwgSourceBytes;
+        iface.finishRasterDwgSources(true);
+        return bytes == data.m_rasterDwgSourceBytes && iface.hasUnchangedRasterDwgSources();
+    }
+    static bool rasterClassContextControls() {
+        for (unsigned fault = 0; fault != 6u; ++fault) {
+            dx_data data, redirected; dx_iface iface;
+            iface.cData = &data; iface.m_classEvidenceReadData = &data; iface.m_classEvidenceReadAttempt = 7u;
+            data.m_classEvidenceOwner = &iface; data.m_classEvidenceAttempt = 7u;
+            data.importGeneration = data.m_classEvidenceGeneration = 41u; data.sourceFormat = dx_source_format::DWG;
+            data.m_classEvidenceFailure.state = dx_class_evidence::State::Pending;
+            if (fault == 1u) data.m_classEvidenceOwner = nullptr;
+            if (fault == 2u) ++data.m_classEvidenceAttempt;
+            if (fault == 3u) ++data.importGeneration;
+            if (fault == 4u) data.sourceFormat = dx_source_format::DXF;
+            if (fault == 5u) iface.cData = &redirected;
+            const auto token = iface.rasterClassReadAttempt();
+            iface.m_classEvidenceReadData = nullptr; iface.m_classEvidenceReadAttempt = 0u; data.m_classEvidenceOwner = nullptr;
+            if (fault == 0u ? token != 7u || data.m_rasterDwgSourceFailed
+                : token != 0u || !data.m_rasterDwgSourceFailed
+                    || data.m_classEvidenceFailure.state != dx_class_evidence::State::ContextMismatch) return false;
+            if (fault == 5u && !redirected.m_rasterDwgSourceFailed) return false;
+        }
+        return true;
+    }
     static bool rasterReady(const dx_data& data, std::size_t expected) {
         if (data.m_rasterDwgSources.size() != expected || data.m_rasterDwgSourceFailed) return false;
         for (const auto& entry : data.m_rasterDwgSources) {
@@ -2290,6 +2393,7 @@ bool imageReactorCaptureControls() {
 
 bool rasterDwgSourceProfileEed() {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
+    if (!Access::rasterClassContextControls()) return fail("raster active class-read context mismatch was softened to unknown");
     const auto stamp = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     const auto path = std::filesystem::temp_directory_path() / ("libdxfrw-raster-eed-" + std::to_string(stamp));
     const auto native = std::filesystem::path(path.string() + ".dwg");
@@ -2360,7 +2464,7 @@ bool rasterDwgSourceProfileEed() {
             && def.extData[1] && def.extData[1]->c_str()
             && std::string(def.extData[1]->c_str()) == "RASTER_EED_LAYER";
     };
-    unsigned cells = 0u, wireRefusals = 0u, sourceRefusals = 0u;
+    unsigned cells = 0u, wireRefusals = 0u, sourceRefusals = 0u, classRefusals = 0u;
     for (auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) {
         dwgRW output(native.string().c_str()); Author author(output);
         dx_data data; dx_iface reader;
@@ -2368,11 +2472,12 @@ bool rasterDwgSourceProfileEed() {
         const bool imported = authored && reader.fileImport(native.string(), &data, false);
         if (!authored || !imported
             || !Access::rasterReady(data, 3u) || !Access::rasterEedReady(data, 4u)
-            || !Access::rasterUnchanged(reader)) return fail("raster native EED/profile source did not bind: " + std::to_string(version)
+            || !Access::rasterUnchanged(reader) || !Access::rasterClassBindings(data)) return fail("raster native EED/profile source did not bind: " + std::to_string(version)
                 + " authored=" + std::to_string(authored) + " imported=" + std::to_string(imported)
                 + " definitions=" + std::to_string(data.imageDefinitions.size()) + " reactors=" + std::to_string(data.imageDefinitionReactors.size())
                 + " tables=" + std::to_string(author.tables) + " objects=" + std::to_string(author.wrote)
                 + " image=" + std::to_string(author.definitionHandle) + " code=" + output.getLastDiagnostic().code);
+        if (!Access::rasterClassBindingControls(data, reader)) return fail("raster class ownership/metadata/retry controls failed");
         for (bool binary : {false, true}) {
             if (!write(data, binary) || !readback()) return fail("raster EED compatibility projection/readback failed");
             ++cells;
@@ -2433,6 +2538,55 @@ bool rasterDwgSourceProfileEed() {
                 ++sourceRefusals;
             }
         }
+        if (data.dwgClassEvidence().state == dx_class_evidence::State::Joined) {
+            class ClassFault final : public dx_iface {
+            public:
+                unsigned fault{0u}; bool changed{false}, enabled{true};
+                void addUnsupportedObject(const DRW_UnsupportedObject& original) override {
+                    auto raw = original;
+                    if (enabled && raw.m_recordName == "IMAGEDEF_REACTOR") {
+                        if (fault == 0u) ++raw.m_classProxyFlag;
+                        if (fault == 1u) raw.m_classWasProxy = !raw.m_classWasProxy;
+                        if (fault == 2u) ++raw.m_classDwgVersion;
+                        if (fault == 3u) ++raw.m_classMaintenanceVersion;
+                        if (fault == 4u) ++raw.m_classUnknown1;
+                        if (fault == 5u) ++raw.m_classUnknown2;
+                        if (fault == 6u) raw.m_classAppName += "_EDIT";
+                        changed = changed || fault < 7u;
+                    }
+                    dx_iface::addUnsupportedObject(raw);
+                }
+                void addDwgFramePublication(const DRW_DwgFramePublication& original) override {
+                    auto publication = original;
+                    if (enabled && publication.m_recordName == "IMAGEDEF_REACTOR") {
+                        if (fault == 7u) publication.m_classStreamOrdinal.reset();
+                        if (fault == 8u) publication.m_classStreamOrdinal = UINT64_MAX;
+                        if (fault == 9u) ++publication.m_encodedType;
+                        if (fault == 10u) ++publication.m_resolvedType;
+                        changed = changed || fault >= 7u;
+                    }
+                    dx_iface::addDwgFramePublication(publication);
+                }
+            };
+            for (unsigned fault = 0; fault != 11u; ++fault) {
+                ClassFault importer; importer.fault = fault; dx_data bad;
+                if (!importer.fileImport(native.string(), &bad, false) || !importer.changed
+                    || Access::rasterUnchanged(importer)) return fail("actual raster class contradiction did not reject source binding");
+                for (const bool binary : {false, true}) {
+                    const std::string sentinel = "RASTER_CLASS_DESTINATION";
+                    { std::ofstream file(target, std::ios::binary); file << sentinel; }
+                    const bool wrote = write(bad, binary);
+                    std::ifstream file(target, std::ios::binary);
+                    const std::string kept((std::istreambuf_iterator<char>(file)), {}); file.close();
+                    if (wrote || kept != sentinel || !write(data, binary) || !readback())
+                        return fail("raster class atomic refusal/corrected-source retry failed");
+                    ++classRefusals;
+                }
+                importer.enabled = false; dx_data recovered;
+                if (!importer.fileImport(native.string(), &recovered, false) || !Access::rasterUnchanged(importer))
+                    return fail("raster class fresh-import recovery failed");
+            }
+        }
         {
             class CustomAuthor final : public dx_iface {
             public:
@@ -2458,8 +2612,10 @@ bool rasterDwgSourceProfileEed() {
             dx_data importedCustom; dx_iface customReader;
             if (!customOutput.reserveHandle(custom.raw.m_handle) || !customOutput.write(&custom, version, true)
                 || !customReader.fileImport(native.string(), &importedCustom, false)
-                || !Access::customDefinitionReady(importedCustom) || !Access::rasterUnchanged(customReader))
+                || !Access::customDefinitionReady(importedCustom) || !Access::rasterUnchanged(customReader)
+                || !Access::rasterClassBindings(importedCustom))
                 return fail("custom-class IMAGEDEF encoded/resolved source profile failed");
+            if (!Access::rasterClassBindingControls(importedCustom, customReader)) return fail("custom IMAGEDEF class binding controls failed");
             auto& definition = importedCustom.imageDefinitions.begin()->second;
             const auto name = definition.name; definition.name += "_EDIT";
             if (Access::rasterUnchanged(customReader)) return fail("custom-class IMAGEDEF source edit was refreshed");
@@ -2467,8 +2623,9 @@ bool rasterDwgSourceProfileEed() {
             if (!Access::rasterUnchanged(customReader)) return fail("custom-class IMAGEDEF source restoration did not retry");
         }
     }
+    if (classRefusals != 44u) return fail("raster class contradiction matrix was unexpectedly skipped");
     std::cout << "Raster source-profile/EED native projections=" << cells << " wire refusal/retries=" << wireRefusals
-              << " name-source refusal/retries=" << sourceRefusals << '\n';
+              << " name-source refusal/retries=" << sourceRefusals << " class refusal/retries=" << classRefusals << '\n';
     return true;
 }
 

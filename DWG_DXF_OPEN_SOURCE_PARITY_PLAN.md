@@ -119476,16 +119476,19 @@ included; strict admission remains **CLOSED**.
 
 Implementation-ready continuation:
 
-- [ ] **Bind IMAGEDEF/reactor frames, not just the table.** Capture the private
+- [x] **Bind IMAGEDEF/reactor frames, not just the table (RPP-5bp).** Capture the private
   actual-import attempt on raw-frame/publication staging, before final class
   callbacks arrive. At finish, require the same private attempt, file profile,
   publication encoded/resolved type and `m_classStreamOrdinal`. Join that
   ordinal and numeric class identity to the immutable table and source spans,
   then compare every carried class field and exact IMAGEDEF/reactor names.
   Preserve fixed-type handling without inventing a custom-class ordinal.
-  Reject missing, aliased, duplicate, changed, late and cross-attempt bindings;
-  a matching empty class table proves no omitted class. Do not use editable
-  public generation labels as the sole frame-to-table authority.
+  Reject proven contradictions, duplicate/changed/late bindings and active
+  cross-attempt/context conflicts. Missing authority and class aliases stay
+  explicitly unqualified, never a support waiver; preserve the existing
+  compatibility projection when no contradiction is proved. A matching empty
+  class table proves no omitted class. Do not use editable public generation
+  labels as the sole frame-to-table authority. Qualification remains separate.
 - [ ] **Complete the admission contract separately.** Keep syntax/table joins
   distinct from profile qualification, body/path/EED text semantics and output
   references. The new `Joined` state is not an admission waiver. Resolve the
@@ -119493,8 +119496,8 @@ Implementation-ready continuation:
   `ClassEnvelope`/`TextSemanticsNotIndependent` unpromoted until their entire
   required evidence gates pass. Native AC1024/AC1032 and independently qualified
   >=256 producer semantics remain unproved by these four fixtures and scratch
-  controls. Add class-role mutation, frame-token, rollback and retry tests
-  before changing any issue mask or output policy.
+  controls. RPP-5bp adds class-role mutation, frame-token, atomic destination
+  refusal and retry controls; it does not clear an issue or qualify output.
 - [ ] Carry forward RPP-5bn's scratch-native reproduction of the production
   max-class-minus499 density assumption before modifying cardinality loops.
   Continue full IMAGE/common state, NOD/image-dictionary/document closure,
@@ -119510,3 +119513,109 @@ and unrelated files; stage no drawing or earlier receipt.
 
 Receipt:
 [`rpp5bo-import-owned-classes-source-joins-2026-10-24.json`](docs/research/rpp5bo-import-owned-classes-source-joins-2026-10-24.json).
+
+## Implementation progress — RPP-5bp raster frames bound to import-owned class evidence (2026-10-24)
+
+IMAGEDEF/reactor source frames now retain the private actual-read identity on
+both raw capture and publication, then bind to the frozen class/source table
+after its final callbacks. This completes RPP-5bo's object-frame binding slice,
+not source-profile, text-semantic, output-reference or support qualification.
+Code, tests, this plan and the receipt are checkpointed together in the local
+commit reported at handoff. Strict admission remains **CLOSED**.
+
+1. [x] Capture the private read-attempt token before final class metadata is
+   available. Raw/publication tokens must agree. An invalid active owner,
+   generation, format or attempt poisons the raster capture explicitly; it
+   cannot be softened into a context-free observation. Context-free advisory
+   callbacks use `NoReadContext` and cannot borrow an old table by public label.
+2. [x] Resolve each custom frame against its own closed, source-joined private
+   import entry and frozen version/codepage profile. Match encoded/resolved
+   type, publication class-stream ordinal, numeric class identity, exact role
+   names and every carried class field: proxy flag, was-proxy, item/entity flag,
+   DWG/maintenance versions, both unknown values and application name. Table
+   instance count is deliberately not invented on raw objects. Fixed IMAGEDEF
+   remains a fixed type without a synthetic custom-class ordinal.
+3. [x] Build two role indexes once when freezing the class table. Detect both
+   full and partial record/C++-name aliases without a class-table scan for every
+   raster frame. A matching selected row with aliases is `AliasedIdentity`, not
+   qualified role identity; missing/refused table authority is `TableUnavailable`.
+   Preserve ordinary compatible projection for those unknown states. Proven
+   source conflicts reject capture/export; they do not change the reader's
+   ordinary operation result or force unrelated classes to be interpreted.
+4. [x] Freeze the binding state, private owner, attempt, ordinal, numeric identity
+   and profile issues with the first typed baseline. Repeated finishing and
+   pre-export checks must reproduce that binding; no owner replacement or
+   later evidence can refresh it. A poisoned late class result invalidates an
+   earlier join. Public coverage edits cannot replace the private source, and
+   historical frames consult their own retained entry rather than the latest
+   public report. No installed API, DRW_Interface virtual, DWG parser grammar
+   or dispatch code changes. Frame/row structure growth is included in existing
+   `sizeof`-based retention charges; joining adds no snapshot allocation.
+5. [x] Keep nondefault carried metadata comparable, not blanket-rejected for
+   being nondefault. Scratch row controls cover both roles with proxy/was-proxy,
+   versions257/329 and nonzero unknown values. These controls are not native
+   producer qualification. Every custom raster class still has `ClassEnvelope`;
+   no `TextSemanticsNotIndependent` issue is cleared. A successful `Joined`
+   binding is source correlation only, not an admission waiver.
+6. [x] Add76 standalone controls (93 total including previous source-join
+   controls): both raster roles, missing/wrong ordinals, type/role/name/scalar
+   mutations, malformed arena, entity disagreement, instance-count boundary,
+   full/partial aliases and binding identity. Add six active-context controls,
+   token/type/metadata/profile/owner mutations, public-copy isolation and
+   repeated-finish checks around actual imports. The friend seam exercises
+   fault microcontracts only and is not independent native qualification.
+7. [x] Exercise actual scratch DWG imports across R2000/R2004/R2007/R2010/R2013/
+   R2018: six fixed IMAGEDEF frames, six custom source-joined frames and twelve
+   custom `TableUnavailable` frames. This last distinction is intentional:
+   independent full-section framing refuses the locally authored R2007+ class
+   sections, so those four revisions are not promoted by their passing body
+   reads. Existing four tracked native class fixtures retain their prior
+   correlation checks. No new drawing fixture is stored or downloaded.
+8. [x] In source-joined R2000/R2004 imports, inject11 actual callback faults per
+   revision (seven metadata fields and four publication ordinal/type faults).
+   All22 reads preserve their ordinary parse result while rejecting the raster
+   binding;44 ASCII/binary export attempts preserve the destination sentinel,
+   and corrected-source output/readback retries pass. All22 fresh imports on
+   the same adapter recover. Existing12 compatible projections,32 wire-fault
+   retries and18 dependency/name-source retries also pass.
+9. [x] Strict library/CLI/test rebuild and LibreCAD_3 compile gate pass. Eight
+   focused tests pass in3.01 s; five affected owning checkpoints pass in9.22 s;
+   four reader/fixture/adapter/3D-consumer tests pass in1.87 s. Three ASan tests
+   pass in3.37 s; all93 standalone binding controls also pass ASan+UBSan.
+   Owning test cohorts remain sequential, each at parallelism3. No full suite,
+   external/platform qualification or throughput claim is implied.
+
+Implementation-ready continuation, without weakening evidence gates:
+
+- [ ] **Diagnose the R2007+ scratch-producer framing refusal first.** Retain
+  the actual bounded callback source/profile and record each explicit observer
+  candidate's failure stage; inspect the relevant authoritative ODA CLASSES/
+  string-footer/CRC specification before changing layout code. Distinguish a
+  producer framing defect, unsupported explicit profile and observer defect
+  with independently authored CRC/footer controls. Do not waive CRC, END,
+  complete consumption or all-candidate agreement to match production rows.
+  Rerun the six-revision capture and compatibility matrix after the smallest
+  evidenced fix. Native AC1024/AC1032 and independently qualified >=256 producer
+  semantics still require their separate evidence; scratch readback is not it.
+- [ ] **Complete profile/text/output admission separately.** Resolve explicit
+  header/alignment/trailer/high-size/schema conventions, body/path/EED text
+  semantics, output fields/references and full IMAGE/common state before
+  clearing `ClassEnvelope` or `TextSemanticsNotIndependent`. Unknown/aliased/
+  unavailable class bindings cannot satisfy that gate. Add missing-table,
+  alias and history integration cases alongside any future policy change;
+  current alias/context controls do not qualify an external producer.
+- [ ] Carry forward the scratch-native sparse-cardinality reproduction before
+  changing max-class-minus499 loops, then NOD/image-dictionary/document closure,
+  producer LAYER/codepage, APPID/LAYER/XRECORD, container/SUN, TABLE/extension,
+  MATERIAL and consumer integration in the existing dependency order.
+
+Self-update/unblock after each item: record evidence and limits, resolve safe
+local failures, refresh the next executable action and report committed slices.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**; native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. No support claim is promoted. All17 pre-existing untracked drawings
+and unrelated files remain excluded; no earlier receipt is modified and no
+push or PR change is included.
+
+Receipt:
+[`rpp5bp-raster-import-class-bindings-2026-10-24.json`](docs/research/rpp5bp-raster-import-class-bindings-2026-10-24.json).

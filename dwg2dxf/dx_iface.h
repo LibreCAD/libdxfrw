@@ -1464,6 +1464,8 @@ private:
     void finishStandardDwgObjectCapture(bool successfulRead) noexcept;
     void retainRasterDwgSource(const DRW_UnsupportedObject& data) noexcept;
     void retainRasterDwgPublication(const DRW_DwgFramePublication& data) noexcept;
+    std::uint64_t rasterClassReadAttempt() noexcept;
+    dx_class_evidence::RasterBinding rasterClassBinding(const dx_data::RasterDwgObjectFrame& frame) const noexcept;
     void finishRasterDwgSources(bool successfulRead) noexcept;
     bool hasUnchangedRasterDwgSources() const noexcept;
     struct StandardDwgObjectImportRange {
