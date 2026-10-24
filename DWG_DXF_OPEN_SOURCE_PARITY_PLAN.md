@@ -119687,12 +119687,13 @@ remain unchanged; code, tests, plan and this receipt are committed together.
 
 Implementation-ready continuation:
 
-- [ ] Add actual-import unavailable-table, role-alias and multi-import history
-  integration cases to complement RPP-5bp's private fault microcontracts. Prove
-  that compatible unknown states stay unknown, class failure cannot borrow
-  prior authority, genuine later imports retain their own immutable table,
-  late poison cannot refresh earlier frames, and atomic output/retry behavior
-  survives these transitions. Do this before changing admission policy.
+- [x] Add actual-import class-context integration controls (RPP-5br): unavailable
+  tables, full/partial reactor-role aliases, failed and mixed-version reads,
+  historical row owners/tokens, label reuse and isolated late-callback output
+  refusal/retry. Unknown class authority stays unknown. These controls do not
+  complete EED-bearing history or combined-document export: repeated global
+  APPID/LAYER handles and duplicate ACAD_GROUP roots still close those paths.
+  Resolve those separate dependency/document contracts before admission changes.
 - [ ] Complete explicit class source-profile conventions, body/path/EED text,
   output fields/references and full IMAGE/common state as separate gates.
   Preserve all-candidate agreement, CRC/END/consumption and actual import
@@ -119715,3 +119716,108 @@ no earlier receipt, remote branch, PR or issue is changed.
 
 Receipt:
 [`rpp5bq-classes-exact-text-bit-lengths-2026-10-24.json`](docs/research/rpp5bq-classes-exact-text-bit-lengths-2026-10-24.json).
+
+## Implementation progress — RPP-5br actual raster class-context integration (2026-10-24)
+
+Actual converter imports now exercise the unavailable/alias/history contracts,
+not only friend-created private frames. This is a test/harness and readiness
+slice: no production parser, writer, installed API, evidence policy or support
+claim changes. Class authority survives the tested transitions; broader EED
+history and combined-document projection are explicitly still incomplete.
+
+1. [x] Add `dwg2dxf_raster_class_history`, using the existing scratch native
+   author through actual `fileImport` calls across all six R2000–R2018 targets.
+   Friend access inspects immutable results, adjusts the explicit budget seam,
+   and snapshots bindings; it does not manufacture qualified class frames.
+   Fault subclasses alter/drop public callbacks during genuine reads. No
+   external fixture or new DWG dispatch code is introduced.
+2. [x] Exercise48 unavailable-table cases: missing row/source deliveries,
+   declined source capture, changed row metadata, duplicate row/source events,
+   zero private budget and a copied source-report byte mutation. The ordinary
+   read succeeds, custom raster bindings stay `TableUnavailable`, fixed
+   IMAGEDEF remains fixed, and class issues remain unqualified. All96 ASCII/
+   binary compatible projections read back the expected image and EED names.
+   A late public row callback cannot refresh the frozen binding; all48 adapters
+   recover on a fresh actual import after fault/budget correction.
+3. [x] Author18 real reactor-role alias tables: full record/C++ identity alias,
+   record-only alias and C++-only alias in each revision. Register an extra
+   zero-instance scratch class using the existing writer API. Full source/table
+   joins still succeed, but the selected custom reactor binds as
+   `AliasedIdentity`, not qualified identity. All36 compatible projections and
+   readbacks pass. Fixed IMAGEDEF does not acquire a fabricated class ordinal.
+   Custom-class IMAGEDEF alias integration remains a separate follow-up; its
+   pure row matcher controls are not substituted for actual import evidence.
+4. [x] Exercise six actual class histories: generation1 source-joined,
+   generation2 missing rows/unavailable, generation3 failed open/read, and
+   generation4 source-joined. Preserve every earlier binding and immutable row
+   owner; successful attempts have distinct private tokens and table owners.
+   Failed attempts refund their private class budget and cannot report old
+   current authority. Late callbacks poison the latest joined entry, never
+   refresh prior snapshots. Fresh data on the same adapter recovers.
+5. [x] Add six mixed-version, no-EED histories (each revision paired with
+   R2018, or R2018 with R2000). Earlier frames retain their own source version/
+   codepage/table and do not consult the latest global profile. Add six actual
+   reused-public-label conflicts: both old raster authority and the collided
+   class entry are rejected; fresh-data recovery succeeds. None of these
+   class-context checks claims complete merged-document support.
+6. [x] Isolate late class poisoning on otherwise exportable single drawings.
+   Verify successful output/readback before the mutation,12 atomic ASCII/
+   binary destination refusals after it, then12 fresh-data output/readback
+   retries. Combined-history destinations are also preserved, but their
+   ACAD_GROUP root ambiguity can reject earlier than the raster gate; do not
+   count those refusals as causal proof of class poisoning.
+7. [x] Reproduce the EED history gap in every revision: the first real import
+   has a valid raster baseline, while the second has a joined class table but
+   raster EED capture rejects repeated global APPID/LAYER handles. Earlier
+   class snapshots remain unchanged and fresh-data import recovers. Keep this
+   path closed until generation-aware dependency evidence exists; do not drop
+   EED, pick a convenient row or waive duplicate detection to make it pass.
+8. [x] Isolate scratch artifacts in exclusively created, mode-specific temporary
+   directories. The initial parallel sanitizer run failed at publication/open,
+   with no memory-sanitizer finding; both modes had shared a timestamp-only
+   filename pattern. Atomic directory acquisition prevents cross-run fixture
+   collisions, and cleanup removes only known scratch files and the empty
+   owned directory. The parallel rerun passes.
+9. [x] Strict adapter build, LibreCAD_3 compile gate and eight focused tests
+   pass (4.01 s); the cohort includes the3D consumer probe. Three ASan tests
+   pass (6.21 s), including both parallel raster modes and native class-source
+   controls. Production code is unchanged: do not rerun the full owning suite
+   merely for this test-only slice. RPP-5bq remains the earlier owning/reader
+   checkpoint; no fresh full-suite or platform qualification is claimed.
+
+Implementation-ready continuation, retaining the full original scope:
+
+- [ ] **Implement generation-scoped raster EED dependency evidence.** Capture
+  actual-read identity and table-event provenance for APPID/LAYER references;
+  resolve each frame only within its own import and codepage profile. The
+  existing public lists and content-based `sameDwgNameSource` equality alone
+  do not prove a private read identity. Choose a bounded private representation
+  and validate mutation/restoration behavior before replacing global indexes.
+  Same-import duplicate handles and cloned/edited/authored rows must still
+  refuse; distinct historical imports must not alias solely by handle. Keep
+  failed/budget-limited source evidence unknown. Turn the six current EED
+  refusals into positive per-import evidence only after that proof is present;
+  retain fresh-data, late-edit, atomic-refusal and retry controls. Do not infer
+  a whole-document merge contract from a successful dependency join.
+- [ ] **Complete the alias/document integration boundaries.** Add actual custom
+  IMAGEDEF class-alias controls alongside the existing reactor cases, including
+  genuinely selected/rooted output where required. Carry duplicate ACAD_GROUP/
+  NOD roots into the existing document-closure work. Preserve refusal until an
+  explicit, verified ownership/remapping contract exists; do not silently pick
+  one root or invent multi-document merge semantics.
+- [ ] Continue explicit class profiles, body/path/EED text, exact output fields/
+  references and full IMAGE/common state as separate admission gates. Keep
+  native external producer qualification, sparse native class cardinality,
+  NOD/document, LAYER/codepage and APPID/LAYER/XRECORD dependencies in their
+  established order. The no-EED history controls do not close EED semantics.
+
+Self-update/unblock after each item: record evidence, preserve limitations,
+resolve safe local failures and continue the next executable dependency.
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 stay
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification stay **NOT_RUN**. Preserve all17 untracked
+drawings and unrelated files; no drawing or earlier receipt is committed,
+and no remote, PR or issue mutation is included.
+
+Receipt:
+[`rpp5br-raster-class-context-integration-2026-10-24.json`](docs/research/rpp5br-raster-class-context-integration-2026-10-24.json).

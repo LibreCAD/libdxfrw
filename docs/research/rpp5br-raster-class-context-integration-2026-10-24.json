@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5br",
+  "date": "2026-10-24",
+  "parentCommit": "329a27e1109c30221807ad846d54c734b227a221",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "ACTUAL_RASTER_CLASS_CONTEXT_CONTROLS_READY_EED_HISTORY_AND_DOCUMENT_CLOSURE_PENDING",
+  "scope": {
+    "test": "dwg2dxf_raster_class_history",
+    "argument": "--raster-class-history",
+    "entry": "Scratch native writer then actual dx_iface::fileImport; callback subclasses inject public-boundary faults",
+    "friendSeam": "Read-only binding/state inspection and snapshots, explicit budget adjustment; no manufactured qualified raster frames",
+    "revisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "productionParserWriterOrEvidencePolicyChanged": false,
+    "installedAPIOrDRWInterfaceVtableChanged": false,
+    "newDispatchCodes": false,
+    "supportClaimsPromoted": false
+  },
+  "controls": {
+    "unavailable": {
+      "cases": 48,
+      "faults": ["Drop row delivery", "Drop source delivery", "Decline source capture", "Change row metadata", "Duplicate row delivery", "Duplicate source delivery", "Zero private budget", "Clone source report bytes and change first sentinel byte"],
+      "readResult": "Ordinary operation remains successful",
+      "rasterCustomResult": "TableUnavailable; never borrowed or qualified",
+      "fixedDefinitionResult": "FixedType, no custom ordinal",
+      "compatibleAsciiBinaryProjectionReadbacks": 96,
+      "latePublicRowsCannotRefreshFrozenBinding": true,
+      "freshActualImportRecoveries": 48
+    },
+    "reactorAliases": {
+      "cases": 18,
+      "kinds": ["Full record and C++ role identity", "Record-only role alias", "C++-only role alias"],
+      "origin": "Additional zero-instance scratch class registered through the public writer API, not edited private metadata",
+      "ordinalBoundary": "650 is a local authoring choice, not an asserted source dispatch code",
+      "tableSourceResult": "Joined",
+      "selectedRasterResult": "AliasedIdentity; remains unqualified",
+      "compatibleAsciiBinaryProjectionReadbacks": 36,
+      "customImageDefAliasIntegrationClaim": false
+    },
+    "histories": {
+      "cases": 6,
+      "transitions": ["Generation1 Joined", "Generation2 MissingRows with TableUnavailable frames", "Generation3 failed read with refunded private class charge", "Generation4 Joined with distinct token/immutable owner", "Late callback poisons current joined authority", "Fresh-data actual import recovers"],
+      "earlierSnapshotsNeverRefreshed": true,
+      "privateTokensAndOwnersIndependent": true,
+      "mixedVersionNoEedHistories": 6,
+      "mixedVersionRule": "Each version to AC1032, AC1032 to AC1015; old frames retain their own frozen profile",
+      "actualPublicLabelReuseConflicts": 6,
+      "isolatedSingleDrawingLateAtomicRefusalAndFreshDataReadbackRetries": 12,
+      "isolatedPrePoisonProjectionReadbacks": 12,
+      "combinedHistoryDestinationRefusals": 12,
+      "combinedRefusalCausalityBoundary": "Duplicate ACAD_GROUP/NOD roots can reject before the raster gate; these are not counted as causal proof of class poisoning",
+      "completeMergedDocumentSupportClaim": false
+    },
+    "eedHistoryGap": {
+      "reproductions": 6,
+      "firstActualImport": "Raster baseline accepted",
+      "secondActualImport": "Class table Joined but raster EED capture refuses repeated handles in global public APPID/LAYER indexes",
+      "oldClassSnapshotsUnchanged": true,
+      "freshDataRecoveries": 6,
+      "status": "FAIL_CLOSED_IMPLEMENTATION_PENDING",
+      "mustNotUnblockBy": ["Dropping EED", "Picking one convenient global table row", "Waiving duplicate detection", "Treating content equality as private import identity"]
+    }
+  },
+  "harnessIsolation": {
+    "initialParallelResult": "Two publication/open failures, no sanitizer memory diagnostic",
+    "initialLog": "/tmp/rpp5br-asan-before-isolation.log",
+    "possibleSharedFixtureHazard": "Both raster modes previously used one timestamp-only filename prefix",
+    "fix": "Distinct mode prefix and atomic exclusive temporary-directory creation with bounded retries",
+    "cleanup": "Known locally authored DWG/DXF files, then only the empty owned directory; no recursive broad removal",
+    "parallelRerun": "PASS"
+  },
+  "validation": {
+    "build": {"result": "PASS", "strictWarnings": true, "logs": ["/tmp/rpp5br-final-build.log", "/tmp/rpp5br-compat-build.log"]},
+    "focused": {"result": "PASS", "passed": 8, "total": 8, "wallSeconds": 4.01, "parallelism": 3, "tests": ["dwg2dxf_raster_class_history", "dwg2dxf_raster_dwg_source_profile_eed", "dwg2dxf_selected_raster_reactor_metadata", "dwg2dxf_generated_image_dictionary_source_identity", "libdxfrw_dwg_class_source", "libdxfrw_class_source_join", "libdxfrw_class_section_independent_wire", "libdxfrw_3d_consumer_probe"], "log": "/tmp/rpp5br-fast-tests.log"},
+    "asan": {"result": "PASS", "passed": 3, "total": 3, "wallSeconds": 6.21, "parallelism": 3, "options": "halt_on_error=1:detect_leaks=0", "tests": ["dwg2dxf_raster_class_history", "dwg2dxf_raster_dwg_source_profile_eed", "libdxfrw_dwg_class_source"], "buildLog": "/tmp/rpp5br-asan-build.log", "log": "/tmp/rpp5br-asan-tests.log"},
+    "libreCAD3CompileGate": "PASS",
+    "owningAndReaderCohorts": "NOT_RERUN_TEST_ONLY_SLICE; earlier RPP-5bq receipt remains the prior checkpoint, not new evidence",
+    "fullSuite": "NOT_RUN",
+    "externalPlatformSemanticOrThroughputQualificationClaim": false
+  },
+  "next": [
+    "Generation-scoped private actual-read/table-event evidence for raster APPID/LAYER dependencies; preserve mutation/restoration, duplicate refusal and budget/failed-read unknowns",
+    "Replace global dependency indexes only after the source scope/provenance contract is implemented and checked; then make the six EED history controls positive within their proper imports",
+    "Actual custom IMAGEDEF alias integration, including genuinely selected/rooted output where needed",
+    "Keep combined-document root/ownership/remapping semantics separate; preserve fail-closed ACAD_GROUP/NOD ambiguity until an explicit verified contract exists",
+    "Continue class profile, body/path/EED text, output field/reference, full IMAGE/common state, sparse native cardinality and broader plan dependencies"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

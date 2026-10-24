@@ -130,6 +130,47 @@ public:
         }
         return true;
     }
+    static bool rasterClassGeneration(const dx_data& data, std::uint64_t generation,
+                                      dx_class_evidence::RasterState customState) {
+        unsigned fixed = 0u, custom = 0u;
+        for (const auto& source : data.m_rasterDwgSources) {
+            if (source.first.first != generation) continue;
+            const auto& frame = source.second;
+            const auto expected = frame.raw.m_isCustomClass ? customState : dx_class_evidence::RasterState::FixedType;
+            if (!frame.classBindingObserved || frame.classBinding.state != expected
+                || !frame.classReadAttempt || frame.classReadAttempt != frame.classPublicationAttempt
+                || frame.classBinding.attempt != frame.classReadAttempt
+                || (frame.raw.m_isCustomClass && !(frame.profileIssues & dx_raster_wire::ClassEnvelope))
+                || ((customState == dx_class_evidence::RasterState::Joined
+                        || customState == dx_class_evidence::RasterState::AliasedIdentity)
+                    && frame.raw.m_isCustomClass && !frame.classBinding.rows)) return false;
+            if (frame.raw.m_isCustomClass) ++custom; else ++fixed;
+        }
+        return fixed == 1u && custom == 2u;
+    }
+    static std::vector<dx_class_evidence::RasterBinding> rasterClassSnapshot(const dx_data& data, std::uint64_t generation) {
+        std::vector<dx_class_evidence::RasterBinding> result;
+        for (const auto& source : data.m_rasterDwgSources)
+            if (source.first.first == generation) result.push_back(source.second.classBinding);
+        return result;
+    }
+    static bool rasterClassSnapshotUnchanged(const dx_data& data, std::uint64_t generation,
+                                             const std::vector<dx_class_evidence::RasterBinding>& original) {
+        const auto current = rasterClassSnapshot(data, generation);
+        if (current.size() != original.size()) return false;
+        for (std::size_t n = 0u; n < current.size(); ++n)
+            if (!dx_class_evidence::sameRasterBinding(current[n], original[n])) return false;
+        return true;
+    }
+    static bool rasterClassSnapshotsIndependent(const std::vector<dx_class_evidence::RasterBinding>& a,
+                                                const std::vector<dx_class_evidence::RasterBinding>& b) {
+        if (a.empty() || a.size() != b.size()) return false;
+        for (std::size_t n = 0u; n < a.size(); ++n)
+            if (a[n].attempt == b[n].attempt || (a[n].rows && a[n].rows == b[n].rows)) return false;
+        return true;
+    }
+    static void rasterClassBudget(dx_data& data, std::size_t bytes) { data.m_classEvidenceByteLimit = bytes; }
+    static std::size_t rasterClassBytes(const dx_data& data) { return data.m_classEvidenceBytes; }
     static bool rasterClassBindingControls(dx_data& data, dx_iface& iface) {
         using State = dx_class_evidence::RasterState;
         for (const auto& source : data.m_rasterDwgSources) {
@@ -2388,11 +2429,24 @@ bool imageReactorCaptureControls() {
     return true;
 }
 
-bool rasterDwgSourceProfileEed() {
+bool rasterDwgSourceProfileEed(bool historyOnly = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     if (!Access::rasterClassContextControls()) return fail("raster active class-read context mismatch was softened to unknown");
     const auto stamp = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-    const auto path = std::filesystem::temp_directory_path() / ("libdxfrw-raster-eed-" + std::to_string(stamp));
+    std::filesystem::path directory;
+    const auto prefix = historyOnly ? "libdxfrw-raster-class-history-" : "libdxfrw-raster-eed-";
+    for (unsigned attempt = 0u; attempt < 64u; ++attempt) {
+        const auto candidate = std::filesystem::temp_directory_path()
+            / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate, error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("could not create isolated raster fixture directory");
+    }
+    if (directory.empty()) return fail("raster fixture directory names exhausted");
+    struct DirectoryCleanup { std::filesystem::path path;
+        ~DirectoryCleanup() { std::error_code ignored; std::filesystem::remove(path, ignored); }
+    } directoryCleanup{directory};
+    const auto path = directory / "raster";
     const auto native = std::filesystem::path(path.string() + ".dwg");
     const auto target = std::filesystem::path(path.string() + ".dxf");
     struct Cleanup { std::filesystem::path path;
@@ -2400,7 +2454,8 @@ bool rasterDwgSourceProfileEed() {
     } nativeCleanup{native}, targetCleanup{target};
     class Author final : public dx_iface {
     public:
-        explicit Author(dwgRW& writer) : output(writer) {
+        explicit Author(dwgRW& writer, bool includeEed = true, unsigned alias = 0u)
+            : output(writer), withEed(includeEed), aliasMode(alias) {
             cData = &storage; currentBlock = storage.mBlock;
             app.name = "RASTER_EED_APP"; layer.name = "RASTER_EED_LAYER";
         }
@@ -2408,7 +2463,18 @@ bool rasterDwgSourceProfileEed() {
         void collectDwgAppIds() override { tables = output.addAppId(&app) && tables; }
         void writeAppId() override {}
         void writeLayers() override { tables = output.addLayer(&layer); }
-        void writeDwgClasses() override { registered = output.registerDwgNamedObjectDictionaryEntry("ACAD_IMAGE_DICT", 0xD101u); }
+        void writeDwgClasses() override {
+            registered = output.registerDwgNamedObjectDictionaryEntry("ACAD_IMAGE_DICT", 0xD101u);
+            if (aliasMode != 0u) {
+                DRW_UnsupportedObject alias;
+                // Scratch-author ordinal only; not an asserted DWG dispatch code.
+                alias.m_objectType = 650; alias.m_isCustomClass = alias.m_hasClassDefinition = true;
+                alias.m_classAppName = "ACAD"; alias.m_classEntityFlagRaw = 0x1F3u;
+                alias.m_recordName = aliasMode == 3u ? "SCRATCH_REACTOR_ALIAS" : "IMAGEDEF_REACTOR";
+                alias.m_className = aliasMode == 2u ? "ScratchReactorAlias" : "AcDbRasterImageDefReactor";
+                registered = output.registerRawDwgObjectClass(&alias) && registered;
+            }
+        }
         static void eed(DRW_TableEntry& record) {
             record.extData.push_back(new DRW_Variant(1001, std::string("RASTER_EED_APP")));
             auto* layer = new DRW_Variant(1003, std::string("RASTER_EED_LAYER"));
@@ -2421,7 +2487,8 @@ bool rasterDwgSourceProfileEed() {
             image.secPoint = DRW_Coord(1.0, 0.0, 0.0); image.vVector = DRW_Coord(0.0, 1.0, 0.0);
             DRW_ImageDef definition; definition.parentHandle = 0xD101u;
             definition.u = 16.0; definition.v = 8.0; definition.up = 0.25; definition.vp = 0.5;
-            definition.loaded = 1; definition.resolution = 5; eed(definition);
+            definition.loaded = 1; definition.resolution = 5;
+            if (withEed) eed(definition);
             const std::string name = "scratch-raster-eed.png";
             if (output.writeImage(&image, &name, &definition)) definitionHandle = image.ref;
         }
@@ -2429,7 +2496,7 @@ bool rasterDwgSourceProfileEed() {
             DRW_Dictionary images; images.handle = 0xD101u; images.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
             images.m_entries = {{"SOURCE_IMAGE", definitionHandle}};
             DRW_ImageDefinitionReactor reactor; reactor.handle = output.allocNextHandle(); reactor.m_classVersion = 2;
-            eed(reactor); // Unselected retained reactor is not an invented output root.
+            if (withEed) eed(reactor); // Unselected retained reactor is not an invented output root.
             wrote = output.writeDictionary(&images) && output.writeImageDefinitionReactor(&reactor);
         }
         bool finalizeDwgWrite() override { return tables && registered && wrote && definitionHandle; }
@@ -2437,6 +2504,7 @@ bool rasterDwgSourceProfileEed() {
         dwgRW& output; dx_data storage; DRW_AppId app; DRW_Layer layer;
         bool tables{false}, registered{false}, wrote{false};
         std::uint32_t definitionHandle{0u};
+        bool withEed{true}; unsigned aliasMode{0u};
     };
     class Exporter final : public dx_iface {
     public:
@@ -2462,6 +2530,8 @@ bool rasterDwgSourceProfileEed() {
             && std::string(def.extData[1]->c_str()) == "RASTER_EED_LAYER";
     };
     unsigned cells = 0u, wireRefusals = 0u, sourceRefusals = 0u, classRefusals = 0u;
+    unsigned unknownCases = 0u, aliasCases = 0u, historyCases = 0u, lateRefusals = 0u, eedHistoryRefusals = 0u;
+    unsigned mixedHistories = 0u, labelConflicts = 0u;
     for (auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) {
         dwgRW output(native.string().c_str()); Author author(output);
         dx_data data; dx_iface reader;
@@ -2475,6 +2545,175 @@ bool rasterDwgSourceProfileEed() {
                 + " tables=" + std::to_string(author.tables) + " objects=" + std::to_string(author.wrote)
                 + " image=" + std::to_string(author.definitionHandle) + " code=" + output.getLastDiagnostic().code);
         if (!Access::rasterClassBindingControls(data, reader)) return fail("raster class ownership/metadata/retry controls failed");
+        if (historyOnly) {
+            using ClassState = dx_class_evidence::State;
+            using RasterState = dx_class_evidence::RasterState;
+            class EvidenceFault final : public dx_iface {
+            public:
+                unsigned mode{0u}; bool sourceCopyFailed{false};
+                bool wantsDwgClassSource() const override { return mode != 3u; }
+                void addDwgClassCoverageReport(const DRW_DwgClassCoverageReport& original) override {
+                    if (mode == 1u) return;
+                    auto rows = original;
+                    if (mode == 4u && !rows.m_entries.empty()) rows.m_entries.front().m_appName += "_EDIT";
+                    dx_iface::addDwgClassCoverageReport(rows);
+                    if (mode == 5u) dx_iface::addDwgClassCoverageReport(rows);
+                }
+                void addDwgClassSourceReport(const DRW_DwgClassSourceReport& original) noexcept override {
+                    try {
+                        if (mode == 2u) return;
+                        auto source = original;
+                        if (mode == 8u && source.m_bytes) {
+                            auto bytes = std::make_shared<std::vector<std::uint8_t>>(*source.m_bytes);
+                            bytes->front() ^= 1u; source.m_bytes = std::move(bytes);
+                        }
+                        dx_iface::addDwgClassSourceReport(source);
+                        if (mode == 6u) dx_iface::addDwgClassSourceReport(source);
+                    } catch (...) { sourceCopyFailed = true; }
+                }
+            };
+            for (unsigned mode = 1u; mode <= 8u; ++mode) {
+                dx_data unknown; EvidenceFault importer; importer.mode = mode;
+                if (mode == 7u) Access::rasterClassBudget(unknown, 0u);
+                const auto expected = mode == 1u ? ClassState::MissingRows : mode == 2u ? ClassState::MissingSource
+                    : mode == 3u ? ClassState::SourceUnavailable : mode == 4u ? ClassState::RowMismatch
+                    : mode == 7u ? ClassState::TooLarge : mode == 8u ? ClassState::FramingRefused : ClassState::CaptureFailed;
+                if (!importer.fileImport(native.string(), &unknown, false) || importer.sourceCopyFailed || unknown.dwgClassEvidence().state != expected
+                    || !Access::rasterClassGeneration(unknown, unknown.importGeneration, RasterState::TableUnavailable)
+                    || !Access::rasterUnchanged(importer)) return fail("actual unavailable class table did not stay advisory: " + std::to_string(mode));
+                const auto frozen = Access::rasterClassSnapshot(unknown, unknown.importGeneration);
+                for (const bool binary : {false, true})
+                    if (!write(unknown, binary) || !readback()) return fail("unavailable class compatibility projection/readback failed");
+                // Real late callbacks must not fill a failed private attempt.
+                importer.dx_iface::addDwgClassCoverageReport(data.dwgClassCoverage);
+                if (!Access::rasterUnchanged(importer)
+                    || !Access::rasterClassSnapshotUnchanged(unknown, unknown.importGeneration, frozen))
+                    return fail("late public class rows refreshed unavailable private raster authority");
+                Access::rasterClassBudget(unknown, DRW::kMaxDwgClassSourceBytes);
+                importer.mode = 0u; dx_data recovered;
+                if (!importer.fileImport(native.string(), &recovered, false)
+                    || !Access::rasterClassGeneration(recovered, recovered.importGeneration, RasterState::Joined))
+                    return fail("unavailable-table adapter did not recover on fresh actual import");
+                ++unknownCases;
+            }
+            // Isolate class poisoning on one otherwise exportable drawing:
+            // the later combined-document tests have separate root aliases.
+            for (const bool binary : {false, true})
+                if (!write(data, binary) || !readback()) return fail("isolated class-poison control was not initially exportable");
+            reader.addDwgClassCoverageReport(data.dwgClassCoverage);
+            if (data.dwgClassEvidence().state != ClassState::LateCallback || Access::rasterUnchanged(reader))
+                return fail("late class callback did not invalidate an otherwise exportable raster source");
+            for (const bool binary : {false, true}) {
+                const std::string sentinel = "RASTER_SINGLE_LATE_CLASS_DESTINATION";
+                { std::ofstream file(target, std::ios::binary); file << sentinel; }
+                const bool wrote = write(data, binary);
+                std::ifstream file(target, std::ios::binary); const std::string kept((std::istreambuf_iterator<char>(file)), {}); file.close();
+                dx_data recovered;
+                if (wrote || kept != sentinel || !reader.fileImport(native.string(), &recovered, false)
+                    || !write(recovered, binary) || !readback()) return fail("late class atomic refusal/fresh-data retry failed");
+                ++lateRefusals;
+            }
+            for (unsigned alias = 1u; alias <= 3u; ++alias) {
+                dwgRW aliasOutput(native.string().c_str()); Author aliasAuthor(aliasOutput, true, alias);
+                dx_data ambiguous; dx_iface importer;
+                if (!aliasOutput.write(&aliasAuthor, version, true) || !importer.fileImport(native.string(), &ambiguous, false)
+                    || ambiguous.dwgClassEvidence().state != ClassState::Joined
+                    || !Access::rasterClassGeneration(ambiguous, ambiguous.importGeneration, RasterState::AliasedIdentity)
+                    || !Access::rasterUnchanged(importer)) return fail("actual class role alias did not remain unqualified: " + std::to_string(alias));
+                for (const bool binary : {false, true})
+                    if (!write(ambiguous, binary) || !readback()) return fail("class role alias compatibility projection failed");
+                ++aliasCases;
+            }
+            {
+                dwgRW historyOutput(native.string().c_str()); Author historyAuthor(historyOutput, false);
+                dx_data history; EvidenceFault importer;
+                if (!historyOutput.write(&historyAuthor, version, true) || !importer.fileImport(native.string(), &history, false)
+                    || !Access::rasterClassGeneration(history, 1u, RasterState::Joined)) return fail("class history first actual import failed");
+                const auto first = Access::rasterClassSnapshot(history, 1u);
+                importer.mode = 1u;
+                if (!importer.fileImport(native.string(), &history, false) || history.dwgClassEvidence().state != ClassState::MissingRows
+                    || !Access::rasterClassGeneration(history, 2u, RasterState::TableUnavailable)
+                    || !Access::rasterClassSnapshotUnchanged(history, 1u, first) || !Access::rasterUnchanged(importer))
+                    return fail("class history missing table borrowed or poisoned another import");
+                const auto second = Access::rasterClassSnapshot(history, 2u);
+                const auto retained = Access::rasterClassBytes(history);
+                if (importer.fileImport(native.string() + ".missing.dwg", &history, false)
+                    || history.dwgClassEvidence().state != ClassState::ReadFailed || history.hasUnchangedDwgClassEvidence()
+                    || Access::rasterClassBytes(history) != retained
+                    || !Access::rasterClassSnapshotUnchanged(history, 1u, first)
+                    || !Access::rasterClassSnapshotUnchanged(history, 2u, second))
+                    return fail("failed actual history attempt borrowed current class authority or leaked its budget");
+                importer.mode = 0u;
+                if (!importer.fileImport(native.string(), &history, false) || !Access::rasterClassGeneration(history, 4u, RasterState::Joined)
+                    || !Access::rasterClassSnapshotUnchanged(history, 1u, first)
+                    || !Access::rasterClassSnapshotUnchanged(history, 2u, second) || !Access::rasterUnchanged(importer))
+                    return fail("genuine later class import refreshed historical bindings");
+                const auto fourth = Access::rasterClassSnapshot(history, 4u);
+                if (!Access::rasterClassSnapshotsIndependent(first, second) || !Access::rasterClassSnapshotsIndependent(first, fourth)
+                    || !Access::rasterClassSnapshotsIndependent(second, fourth)) return fail("actual histories reused a private read token or row owner");
+                importer.addDwgClassCoverageReport(history.dwgClassCoverage);
+                if (history.dwgClassEvidence().state != ClassState::LateCallback || Access::rasterUnchanged(importer))
+                    return fail("late actual class callback did not invalidate its joined raster frames");
+                for (const bool binary : {false, true}) {
+                    const std::string sentinel = "RASTER_HISTORY_DESTINATION";
+                    { std::ofstream file(target, std::ios::binary); file << sentinel; }
+                    const bool wrote = write(history, binary);
+                    std::ifstream file(target, std::ios::binary); const std::string kept((std::istreambuf_iterator<char>(file)), {});
+                    if (wrote || kept != sentinel) return fail("late class history conflict changed destination");
+                }
+                dx_data recovered;
+                if (!importer.fileImport(native.string(), &recovered, false) || !Access::rasterUnchanged(importer))
+                    return fail("late class-history adapter did not recover on fresh actual import");
+                ++historyCases;
+            }
+            {
+                const auto otherVersion = version == DRW::AC1032 ? DRW::AC1015 : DRW::AC1032;
+                dx_data mixed; dx_iface importer;
+                if (!importer.fileImport(native.string(), &mixed, false) || !Access::rasterUnchanged(importer))
+                    return fail("mixed-version class history initial import failed");
+                const auto first = Access::rasterClassSnapshot(mixed, 1u);
+                dwgRW mixedOutput(native.string().c_str()); Author mixedAuthor(mixedOutput, false);
+                if (!mixedOutput.write(&mixedAuthor, otherVersion, true) || !importer.fileImport(native.string(), &mixed, false)
+                    || !Access::rasterClassGeneration(mixed, 2u, RasterState::Joined)
+                    || !Access::rasterClassSnapshotUnchanged(mixed, 1u, first) || !Access::rasterUnchanged(importer)
+                    || !Access::rasterClassSnapshotsIndependent(first, Access::rasterClassSnapshot(mixed, 2u)))
+                    return fail("mixed-version raster history borrowed the latest global file profile");
+                ++mixedHistories;
+                dwgRW originalOutput(native.string().c_str()); Author originalAuthor(originalOutput, false);
+                if (!originalOutput.write(&originalAuthor, version, true)) return fail("history original source regeneration failed");
+            }
+            {
+                dx_data collision; dx_iface importer;
+                if (!importer.fileImport(native.string(), &collision, false) || !Access::rasterUnchanged(importer))
+                    return fail("class-label collision initial actual import failed");
+                collision.importGeneration = 0u;
+                if (!importer.fileImport(native.string(), &collision, false) || collision.dwgClassEvidence().state != ClassState::ContextMismatch
+                    || Access::rasterUnchanged(importer) || collision.hasUnchangedDwgClassEvidence())
+                    return fail("reused public label revived old raster/table authority");
+                dx_data recovered;
+                if (!importer.fileImport(native.string(), &recovered, false) || !Access::rasterUnchanged(importer))
+                    return fail("label-collision adapter did not recover with fresh data");
+                ++labelConflicts;
+            }
+            {
+                dwgRW historyOutput(native.string().c_str()); Author eedAuthor(historyOutput);
+                dx_data history; dx_iface importer;
+                if (!historyOutput.write(&eedAuthor, version, true) || !importer.fileImport(native.string(), &history, false)
+                    || !Access::rasterUnchanged(importer)) return fail("EED-bearing history first import failed");
+                const auto first = Access::rasterClassSnapshot(history, 1u);
+                // Known separate gap: global public table handles alias on a
+                // second import, even though class authority is per attempt.
+                // Keep this closed until EED dependency scopes are implemented.
+                if (!importer.fileImport(native.string(), &history, false) || history.dwgClassEvidence().state != ClassState::Joined
+                    || Access::rasterUnchanged(importer) || !Access::rasterClassSnapshotUnchanged(history, 1u, first))
+                    return fail("ambiguous cross-import EED names were silently accepted or class history changed");
+                dx_data recovered;
+                if (!importer.fileImport(native.string(), &recovered, false) || !Access::rasterUnchanged(importer))
+                    return fail("cross-import EED refusal did not recover with fresh data");
+                ++eedHistoryRefusals;
+            }
+            continue;
+        }
         for (bool binary : {false, true}) {
             if (!write(data, binary) || !readback()) return fail("raster EED compatibility projection/readback failed");
             ++cells;
@@ -2619,6 +2858,15 @@ bool rasterDwgSourceProfileEed() {
             definition.name = name;
             if (!Access::rasterUnchanged(customReader)) return fail("custom-class IMAGEDEF source restoration did not retry");
         }
+    }
+    if (historyOnly) {
+        if (unknownCases != 48u || aliasCases != 18u || historyCases != 6u || lateRefusals != 12u || eedHistoryRefusals != 6u
+            || mixedHistories != 6u || labelConflicts != 6u)
+            return fail("raster class history matrix skipped a case");
+        std::cout << "Raster class integration: unavailable=" << unknownCases << " aliases=" << aliasCases << " histories=" << historyCases
+                  << " isolated late refusal/retries=" << lateRefusals << " EED history refusals=" << eedHistoryRefusals
+                  << " mixed histories=" << mixedHistories << " label conflicts=" << labelConflicts << '\n';
+        return true;
     }
     if (classRefusals != 132u) return fail("raster class contradiction matrix was unexpectedly skipped");
     std::cout << "Raster source-profile/EED native projections=" << cells << " wire refusal/retries=" << wireRefusals
@@ -30682,6 +30930,8 @@ int main(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--raster-dwg-source-profile-eed")
         return rasterDwgSourceProfileEed() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--raster-class-history")
+        return rasterDwgSourceProfileEed(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")
         return rasterDxfLiteralControls() && selectedRasterReactorMetadata() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-image-dictionary-source-identity")
