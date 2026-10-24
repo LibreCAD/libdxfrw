@@ -2573,12 +2573,12 @@ bool imageReactorCaptureControls() {
     return true;
 }
 
-bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false, bool entryClosureProbe = false) {
+bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false, bool entryClosureOnly = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     if (!Access::rasterClassContextControls()) return fail("raster active class-read context mismatch was softened to unknown");
     const auto stamp = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
-    const auto prefix = entryClosureProbe ? "libdxfrw-rooted-imagedef-entry-probe-"
+    const auto prefix = entryClosureOnly ? "libdxfrw-rooted-imagedef-entry-closure-"
         : rootedOnly ? "libdxfrw-rooted-custom-imagedef-"
         : historyOnly ? "libdxfrw-raster-class-history-" : "libdxfrw-raster-eed-";
     for (unsigned attempt = 0u; attempt < 64u; ++attempt) {
@@ -2744,7 +2744,7 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
     unsigned rootedSources = 0u, rootedProjections = 0u, rootedRetries = 0u, rootedFreshRetries = 0u, cacheProjections = 0u;
     unsigned missingRowSources = 0u, missingRowProjections = 0u, missingRowRecoveries = 0u;
     unsigned ownerRoleRefusals = 0u;
-    unsigned entryClosureLosses = 0u;
+    unsigned entryClosureCells = 0u;
     const auto rootedGraph = [](const dx_data& value) {
         if (value.images.size() != 1u || value.imageDefinitions.size() != 1u
             || value.imageDefinitionReactors.size() != 1u || !value.hasNamedObjectDictionary) return false;
@@ -2792,21 +2792,19 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
             && Access::rasterOutputPublished(exporter, 2u, 1u);
     };
     for (auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) {
-        dwgRW output(native.string().c_str()); Author author(output, true, 0u, entryClosureProbe);
+        dwgRW output(native.string().c_str()); Author author(output, true, 0u, entryClosureOnly);
         dx_data data; dx_iface reader;
         const bool authored = output.write(&author, version, true);
         const bool imported = authored && reader.fileImport(native.string(), &data, false);
         if (!authored || !imported
-            || !Access::rasterReady(data, entryClosureProbe ? 4u : 3u) || !Access::rasterEedReady(data, 4u)
+            || !Access::rasterReady(data, entryClosureOnly ? 4u : 3u) || !Access::rasterEedReady(data, 4u)
             || !Access::rasterUnchanged(reader) || !Access::rasterClassBindings(data)) return fail("raster native EED/profile source did not bind: " + std::to_string(version)
                 + " authored=" + std::to_string(authored) + " imported=" + std::to_string(imported)
                 + " definitions=" + std::to_string(data.imageDefinitions.size()) + " reactors=" + std::to_string(data.imageDefinitionReactors.size())
                 + " tables=" + std::to_string(author.tables) + " objects=" + std::to_string(author.wrote)
                 + " image=" + std::to_string(author.definitionHandle) + " code=" + output.getLastDiagnostic().code);
         if (!Access::rasterClassBindingControls(data, reader)) return fail("raster class ownership/metadata/retry controls failed");
-        if (entryClosureProbe) {
-            // Deliberately NOT a passing CTest/support gate: this diagnostic
-            // reproduces a known incomplete projection, and main returns2.
+        if (entryClosureOnly) {
             // A dictionary-reachable definition is not an unreachable object
             // merely because no IMAGE entity references it (ODA ch20 p103).
             const auto imageDictionary = [](const dx_data& value) -> const DRW_Dictionary* {
@@ -2836,14 +2834,15 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
                 dx_data projected; dx_iface importer;
                 if (!importer.fileImport(target.string(), &projected, false)) return fail("entry-closure diagnostic output could not be read");
                 const auto* emitted = imageDictionary(projected);
-                if (projected.images.size() != 1u || projected.imageDefinitions.size() != 1u || !emitted
-                    || emitted->m_entries.size() != 1u || emitted->m_entries.front().m_name != "SOURCE_IMAGE"
-                    || projected.imageDefinitions.begin()->second.name != "scratch-raster-eed.png"
-                    || !Access::rasterOutputPublished(exporter, 2u, 1u))
-                    return fail("entry-closure diagnostic result changed; review before updating this known-gap probe");
-                std::cout << "KNOWN GAP rooted IMAGEDEF entry closure version=" << version << " binary=" << binary
-                    << " source-definitions=2 source-entries=2 output-definitions=1 output-entries=1\n";
-                ++entryClosureLosses;
+                if (projected.images.size() != 1u || projected.imageDefinitions.size() != 2u || !emitted
+                    || emitted->m_entries.size() != 2u || emitted->m_entries.front().m_name != "SOURCE_IMAGE"
+                    || emitted->m_entries.back().m_name != "UNUSED_IMAGE"
+                    || !Access::rasterOutputPublished(exporter, 3u, 1u)) return fail("rooted unused IMAGEDEF entry was lost");
+                const auto retained = projected.imageDefinitions.find({projected.importGeneration, emitted->m_entries.back().m_handle});
+                if (retained == projected.imageDefinitions.end() || retained->second.name != "rooted-unused-image.png"
+                    || retained->second.parentHandle != emitted->handle || retained->second.u != 32.0 || retained->second.v != 24.0
+                    || retained->second.up != 0.125 || retained->second.vp != 0.25) return fail("unused IMAGEDEF value/owner readback mismatch");
+                ++entryClosureCells;
             }
             continue;
         }
@@ -3394,9 +3393,9 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
             if (!Access::rasterUnchanged(customReader)) return fail("custom-class IMAGEDEF source restoration did not retry");
         }
     }
-    if (entryClosureProbe) {
-        if (entryClosureLosses != 12u) return fail("entry-closure diagnostic skipped a revision/encoding");
-        std::cout << "KNOWN GAP reproduced in " << entryClosureLosses << " projections; support/admission not promoted\n";
+    if (entryClosureOnly) {
+        if (entryClosureCells != 12u) return fail("entry-closure matrix skipped a revision/encoding");
+        std::cout << "Rooted mixed IMAGEDEF entry closure projections=" << entryClosureCells << "; semantic admission unchanged\n";
         return true;
     }
     if (rootedOnly) {
@@ -3423,6 +3422,173 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
     if (classRefusals != 132u) return fail("raster class contradiction matrix was unexpectedly skipped");
     std::cout << "Raster source-profile/EED native projections=" << cells << " wire refusal/retries=" << wireRefusals
               << " name-source refusal/retries=" << sourceRefusals << " class refusal/retries=" << classRefusals << '\n';
+    return true;
+}
+
+bool rootedImageDictionaryUnselectedControls() {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    std::filesystem::path directory;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    for (unsigned n = 0u; n != 64u; ++n) {
+        auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-rooted-image-closure-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate, error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("image closure temporary directory failed");
+    }
+    if (directory.empty()) return fail("image closure temporary directory exhausted");
+    const auto native = directory / "source.dwg", target = directory / "output.dxf";
+    struct Cleanup { std::filesystem::path a, b, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(a, error); std::filesystem::remove(b, error); std::filesystem::remove(directory, error);
+    } } cleanup{native, target, directory};
+    class Author final : public dx_iface {
+    public:
+        Author(dwgRW& writer, unsigned fixture) : output(writer), mode(fixture) {
+            cData = &storage; currentBlock = storage.mBlock;
+            app.name = "CLOSURE_APP"; layer.name = "CLOSURE_LAYER";
+            for (const auto h : {0xD201u,0xD210u,0xD211u,0xD230u,0xD231u,0xD240u,0xD241u,0xD250u,0xD251u})
+                reserved = output.reserveHandle(h) && reserved;
+        }
+        void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+        void writeDwgClasses() override { registered = output.registerDwgNamedObjectDictionaryEntry("ACAD_IMAGE_DICT", 0xD201u); }
+        void writeEntities() override {}
+        void writeAppId() override {}
+        void writeLayers() override { tables = output.addLayer(&layer); }
+        void collectDwgAppIds() override { tables = output.addAppId(&app) && tables; }
+        static void eed(DRW_TableEntry& record) {
+            record.extData.push_back(new DRW_Variant(1001, std::string("CLOSURE_APP")));
+            auto* value = new DRW_Variant(1003, std::string("CLOSURE_LAYER")); value->setLayerRefName("CLOSURE_LAYER");
+            record.extData.push_back(value); record.extData.push_back(new DRW_Variant(1000, std::string("closure-text")));
+        }
+        bool extension(std::uint32_t owner, std::uint32_t handle) {
+            DRW_Dictionary dictionary; dictionary.handle = handle; dictionary.parentHandle = owner; dictionary.hardOwner = 1;
+            dictionary.m_entries = {{"VALUE", handle + 1u}};
+            DRW_XRecord record; record.handle = handle + 1u; record.parentHandle = handle;
+            record.m_values = {{1, std::string("closure-child")}, {330, static_cast<dint64>(owner)}}; record.m_dataEntries = record.m_values;
+            return output.writeDictionary(&dictionary) && output.writeXRecord(&record);
+        }
+        void writeObjects() override {
+            DRW_Dictionary dictionary; dictionary.handle = 0xD201u; dictionary.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+            dictionary.cloning = 2; dictionary.hardOwner = 1;
+            wrote = true;
+            if (mode != 2u) for (unsigned n = 0u; n != 2u; ++n) {
+                DRW_ImageDef definition; definition.handle = 0xD210u + n; definition.parentHandle = dictionary.handle;
+                definition.name = "shared-unused.png"; definition.u = 32.0 + n; definition.v = 24.0 + n;
+                definition.up = 0.125; definition.vp = 0.25; definition.loaded = 1; definition.resolution = 5;
+                if (mode == 1u) {
+                    definition.xDictHandle = 0xD230u + 16u * n; definition.reactorHandles = {definition.xDictHandle + 1u}; eed(definition);
+                    wrote = extension(definition.handle, definition.xDictHandle) && wrote;
+                }
+                dictionary.m_entries.push_back({n ? "SECOND_UNUSED" : "FIRST_UNUSED", definition.handle});
+                wrote = output.writeImageDef(&definition) && wrote;
+            }
+            if (mode == 1u) {
+                dictionary.xDictHandle = 0xD250u; dictionary.reactorHandles = {0xD251u}; eed(dictionary);
+                wrote = extension(dictionary.handle, dictionary.xDictHandle) && wrote;
+            }
+            wrote = output.writeDictionary(&dictionary) && wrote;
+        }
+        bool finalizeDwgWrite() override { return reserved && registered && tables && wrote; }
+        dwgRW& output; unsigned mode; dx_data storage; DRW_AppId app; DRW_Layer layer;
+        bool reserved{true}, registered{false}, tables{false}, wrote{false};
+    };
+    class Exporter final : public dx_iface {
+    public:
+        unsigned late{0u};
+        bool finalizeDxfWrite() override {
+            if (late == 1u) cData->imageDefinitions.begin()->second.u += 1.0;
+            if (late == 2u) for (auto& d : cData->dictionaries) if (d.handle == 0xD201u) d.m_entries.front().m_name += "_LATE";
+            return dx_iface::finalizeDxfWrite();
+        }
+    } exporter;
+    const auto dictionary = [](const dx_data& data) -> const DRW_Dictionary* {
+        for (const auto& entry : data.namedObjectDictionary.m_entries) if (entry.m_name == "ACAD_IMAGE_DICT")
+            for (const auto& d : data.dictionaries) if (d.handle == entry.m_handle && d.parentHandle == data.namedObjectDictionary.handle) return &d;
+        return nullptr;
+    };
+    unsigned cells = 0u, retries = 0u, lateRetries = 0u, freshRetries = 0u;
+    for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned mode = 0u; mode != 3u; ++mode) {
+        dwgRW writer(native.string().c_str()); Author author(writer, mode);
+        dx_data data; dx_iface reader;
+        if (!writer.write(&author, version, true) || !reader.fileImport(native.string(), &data, false)
+            || !data.images.empty() || data.imageDefinitions.size() != (mode == 2u ? 0u : 2u)
+            || !Access::rasterUnchanged(reader) || !dictionary(data)) return fail("unselected/empty native image dictionary setup failed");
+        const auto write = [&](DRW::Version targetVersion, bool binary) {
+            return exporter.fileExport(target.string(), targetVersion, binary, &data, false, true,
+                dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
+                dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        const auto check = [&]() {
+            dx_data result; dx_iface importer;
+            if (!importer.fileImport(target.string(), &result, false) || !result.images.empty()
+                || result.imageDefinitions.size() != (mode == 2u ? 0u : 2u)
+                || !Access::rasterOutputPublished(exporter, mode == 2u ? 0u : 2u, 0u)) return false;
+            const auto* root = dictionary(result);
+            if (!root || root->cloning != 2 || root->hardOwner != 1 || root->m_entries.size() != result.imageDefinitions.size()) return false;
+            if (mode == 1u && (root->xDictHandle == 0u || root->reactorHandles.size() != 1u || root->extData.size() != 3u
+                || result.xRecords.size() != 3u)) return false;
+            for (std::size_t n = 0u; n != root->m_entries.size(); ++n) {
+                const auto& entry = root->m_entries[n];
+                const auto* def = result.findImageDefinition(result.importGeneration, entry.m_handle);
+                if (!def || def->parentHandle != root->handle || def->name != "shared-unused.png" || def->u != 32.0 + n
+                    || def->v != 24.0 + n || def->up != 0.125 || def->vp != 0.25
+                    || entry.m_name != (n ? "SECOND_UNUSED" : "FIRST_UNUSED")
+                    || entry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::HardOwner) return false;
+                if (mode == 1u && (def->xDictHandle == 0u || def->reactorHandles.size() != 1u || def->extData.size() != 3u)) return false;
+            }
+            return true;
+        };
+        for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
+            if (!write(targetVersion, binary) || !check()) return fail("unselected/empty IMAGEDEF closure output/readback failed: " + std::to_string(mode));
+            ++cells;
+        }
+        if (mode != 1u || version != DRW::AC1032) continue;
+        const auto definitions = data.imageDefinitions; const auto dictionaries = data.dictionaries; const auto records = data.xRecords;
+        const auto nod = data.namedObjectDictionary;
+        const auto restore = [&]() { data.imageDefinitions = definitions; data.dictionaries = dictionaries; data.xRecords = records; data.namedObjectDictionary = nod; };
+        const std::vector<std::function<void()>> faults{
+            [&]() { data.imageDefinitions.begin()->second.u += 1.0; },
+            [&]() { ++data.imageDefinitions.begin()->second.parentHandle; },
+            [&]() { data.imageDefinitions.begin()->second.xDictHandle = 0xDEADu; },
+            [&]() { data.imageDefinitions.begin()->second.reactorHandles = {0xDEADu}; },
+            [&]() { data.imageDefinitions.clear(); },
+            [&]() { data.xRecords.clear(); },
+            [&]() { for (auto& d : data.dictionaries) if (d.handle == 0xD201u) d.m_entries.back().m_handle = 0xDEADu; },
+            [&]() { for (auto& d : data.dictionaries) if (d.handle == 0xD201u) d.m_entries.push_back(d.m_entries.front()); },
+            [&]() { for (auto& d : data.dictionaries) if (d.handle == 0xD201u) d.m_entries.back().m_handle = 0xD231u; },
+            [&]() { data.imageDefinitions.emplace(dx_data::ImageDefinitionKey{99u, definitions.begin()->first.second}, definitions.begin()->second); },
+            [&]() { data.namedObjectDictionary.m_entries.push_back({"ACAD_IMAGE_DICT", 0xD201u}); }
+        };
+        const auto refused = [&](bool binary) {
+            const std::string sentinel = "IMAGE_ENTRY_CLOSURE_DESTINATION";
+            { std::ofstream file(target, std::ios::binary); file << sentinel; }
+            const bool wrote = write(DRW::AC1032, binary);
+            std::ifstream file(target, std::ios::binary); const std::string kept((std::istreambuf_iterator<char>(file)), {});
+            return !wrote && kept == sentinel;
+        };
+        for (const auto& fault : faults) for (const bool binary : {false, true}) {
+            fault(); if (!refused(binary)) return fail("unselected common graph edit was not atomically refused");
+            restore(); if (!write(DRW::AC1032, binary) || !check()) return fail("unselected graph restoration did not retry");
+            ++retries;
+        }
+        for (unsigned late = 1u; late != 3u; ++late) for (const bool binary : {false, true}) {
+            exporter.late = late; if (!refused(binary)) return fail("late rooted dictionary/definition edit was published");
+            exporter.late = 0u; restore();
+            if (!write(DRW::AC1032, binary) || !check()) return fail("late rooted edit restoration did not retry");
+            ++lateRetries;
+        }
+        for (const bool binary : {false, true}) {
+            dx_data fresh;
+            if (!reader.fileImport(native.string(), &fresh, false)
+                || !exporter.fileExport(target.string(), DRW::AC1032, binary, &fresh, false, true,
+                    dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
+                    dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial) || !check())
+                return fail("unselected IMAGEDEF fresh native import retry failed");
+            ++freshRetries;
+        }
+    }
+    if (cells != 216u || retries != 22u || lateRetries != 4u || freshRetries != 2u) return fail("unselected dictionary closure matrix skipped a control");
+    std::cout << "Unselected/empty image dictionary projections=" << cells << " graph retry controls=" << retries << " late retries=" << lateRetries
+              << " fresh native retries=" << freshRetries << '\n';
     return true;
 }
 
@@ -3642,7 +3808,10 @@ bool selectedRasterReactorMetadata() {
         {"IMAGEDEF_REACTOR", 1000, 0}, {"IMAGEDEF_REACTOR", 1070, 0},
         {"IMAGEDEF_REACTOR", 1004, 0}, {"IMAGEDEF_REACTOR", 1005, 0}, {"IMAGEDEF_REACTOR", 1071, 0},
         {"IMAGEDEF_REACTOR", 1040, 0}, {"IMAGEDEF_REACTOR", 1010, 0},
-        {"IMAGE", 340, 0}, {"IMAGE", 360, 0}
+        {"IMAGE", 340, 0}, {"IMAGE", 360, 0},
+        {"RASTER_DICTIONARY", 0, 0}, {"RASTER_DICTIONARY", 5, 0}, {"RASTER_DICTIONARY", 330, 0},
+        {"RASTER_DICTIONARY", 100, 0}, {"RASTER_DICTIONARY", 280, 0}, {"RASTER_DICTIONARY", 281, 0},
+        {"RASTER_DICTIONARY", 3, 0}, {"RASTER_DICTIONARY", 350, 0}
     };
     for (const bool binary : {false, true}) {
         dxfRW codec(path.string().c_str()); direct.dxfW = &codec;
@@ -3658,11 +3827,20 @@ bool selectedRasterReactorMetadata() {
             std::string result(view.bytes);
             if (!selected) return result;
             dx_raster_output::Cursor input(view.bytes, view.binary); dx_raster_output::Token token;
-            std::string_view name; unsigned occurrence = 0u;
+            std::string_view name; unsigned occurrence = 0u; bool rasterDictionary = false;
             while (!input.done()) {
                 const auto start = input.position(); if (!input.next(token)) break;
-                if (token.code == 0) { name = token.text; occurrence = 0u; if (selected->code != 0) continue; }
-                if (name != selected->name || token.code != selected->code || occurrence++ != selected->occurrence) continue;
+                if (token.code == 0) {
+                    name = token.text; occurrence = 0u; rasterDictionary = false;
+                    if (name == "DICTIONARY" && std::string_view(selected->name) == "RASTER_DICTIONARY") {
+                        std::uint32_t output = 0u, self = 0u;
+                        (void)codec.dxfWriteImageDictionarySource(output);
+                        dx_raster_output::Cursor peek(view.bytes.substr(input.position()), view.binary); dx_raster_output::Token next;
+                        rasterDictionary = peek.next(next) && next.code == 5 && dx_raster_output::integer(next.text, self, 16) && self == output;
+                    }
+                    if (selected->code != 0) continue;
+                }
+                if ((!rasterDictionary && name != selected->name) || token.code != selected->code || occurrence++ != selected->occurrence) continue;
                 const auto end = input.position();
                 if (mode == 1u) result.erase(start, end - start);
                 else if (mode == 2u) result.insert(end, result.substr(start, end - start));
@@ -3695,6 +3873,8 @@ bool selectedRasterReactorMetadata() {
         });
         const auto write = [&]() { Access::resetRasterOutput(direct); return codec.write(&direct, DRW::AC1032, binary); };
         if (!write()) return fail("direct staged raster proof positive failed");
+        std::uint32_t inactive = 1u;
+        if (codec.dxfWriteImageDictionarySource(inactive) || inactive != 0u) return fail("frozen image dictionary view escaped its write attempt");
         std::size_t low = 0u, high = 65536u;
         while (low < high) {
             const auto middle = low + (high - low) / 2u;
@@ -3779,6 +3959,7 @@ bool selectedRasterReactorMetadata() {
             ++nativeCells;
         }
     }
+    if (wireRefusals != 360u) return fail("raster dictionary/field fault matrix skipped a control");
     std::cout << "Selected raster metadata authored/reexports=" << cells << " native=" << nativeCells
         << " refusal/retries=" << retries << " exact field/role fault retries=" << wireRefusals
         << " inspector guards=" << guardRefusals << " accounted output allowance=" << outputBudget << '\n';
@@ -31486,8 +31667,9 @@ int main(int argc, char** argv) {
         return rasterDwgSourceProfileEed(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--rooted-custom-imagedef")
         return rasterDwgSourceProfileEed(false, true) ? 0 : 1;
-    if (argc == 2 && std::string(argv[1]) == "--probe-rooted-imagedef-entry-closure")
-        return rasterDwgSourceProfileEed(false, false, true) ? 2 : 1;
+    if (argc == 2 && (std::string(argv[1]) == "--rooted-imagedef-entry-closure"
+        || std::string(argv[1]) == "--probe-rooted-imagedef-entry-closure"))
+        return rasterDwgSourceProfileEed(false, false, true) && rootedImageDictionaryUnselectedControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")
         return rasterDxfLiteralControls() && selectedRasterReactorMetadata() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-image-dictionary-source-identity")

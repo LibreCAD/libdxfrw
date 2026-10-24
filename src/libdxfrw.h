@@ -725,6 +725,9 @@ public:
     // view supplies minted IDs only; it is not independent field evidence.
     const ImageDefinitionPlanEntry* dxfWriteImageSource(ImageDefinitionKey source) const noexcept;
     const DRW_ImageDef* dxfWriteGeneratedImageDefinition(ImageDefinitionKey source) const noexcept;
+    // Attempt-local frozen source metadata and its minted dictionary identity;
+    // neither is proof that the corresponding OBJECTS record was emitted.
+    const DRW_Dictionary* dxfWriteImageDictionarySource(std::uint32_t& emitted) const noexcept;
     /*!< Register source handles for complete TABLESTYLE raw records that the
      * same writer callback will emit. A TABLE's 342 reference is accepted only
      * when its style handle is present here; registration alone does not emit

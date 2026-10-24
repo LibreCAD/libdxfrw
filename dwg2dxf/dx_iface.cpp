@@ -53,6 +53,7 @@ bool estimateCellStyleMapTypedBytes(const DRW_CellStyleMap& styleMap,
                                     std::size_t& estimate,
                                     std::size_t& itemCount) noexcept;
 bool addStringPayloadBytes(const UTF8STRING& value, std::size_t& total) noexcept;
+bool addImageDefinitionRetainedBytes(const DRW_ImageDef& definition, std::size_t& estimate) noexcept;
 
 bool retainedDoubleEqual(double lhs, double rhs) noexcept {
     return std::memcmp(&lhs, &rhs, sizeof(double)) == 0;
@@ -3437,6 +3438,59 @@ bool asciiIdentifierEquals(std::string_view source,
     return true;
 }
 
+// A definition reachable through the image dictionary is a document root even
+// with no IMAGE user (ODA ch20). Use one inventory for graph traversal, planning
+// and final source checks; never join a global handle to an older import.
+template<class RecordVisitor, class EdgeVisitor>
+bool collectRootedImageDefinitions(const dx_data& data, const DRW_Dictionary*& dictionary,
+    std::map<dx_data::ImageDefinitionKey, const DRW_ImageDef*>& definitions,
+    RecordVisitor record, EdgeVisitor edge) {
+    dictionary = nullptr;
+    if (!data.hasNamedObjectDictionary) return true;
+    const auto& nod = data.namedObjectDictionary;
+    if (nod.m_entries.size() > DRW_Dictionary::kMaxEntries) return false;
+    const DRW_Dictionary::Entry* root = nullptr;
+    for (const auto& entry : nod.m_entries) if (asciiIdentifierEquals(entry.m_name, "ACAD_IMAGE_DICT")) {
+        if (root) return false;
+        root = &entry;
+    }
+    if (!root) return true; // Preserve the authored/filename-only route.
+    if (!nod.handle || nod.handle == DRW::NoHandle || nod.parentHandle != 0u
+        || !root->m_handle || root->m_handle == DRW::NoHandle
+        || !nod.hasCompleteDwgEntries() || !nod.hasCompleteDxfEntries()
+        || data.dictionaries.size() > dx_iface::ImageDefinitionCaptureMaxRecords
+        || data.imageDefinitions.size() > dx_iface::ImageDefinitionCaptureMaxRecords) return false;
+    for (const auto& entry : nod.m_entries) {
+        if (!edge() || (&entry != root && entry.m_handle == root->m_handle)) return false;
+    }
+    for (const auto& value : data.dictionaries) {
+        if (!record()) return false;
+        if (value.handle != root->m_handle) continue;
+        if (dictionary || value.parentHandle != nod.handle) return false;
+        dictionary = &value;
+    }
+    if (!dictionary || dictionary->countCap || !dictionary->hasCompleteDwgEntries()
+        || !dictionary->hasCompleteDxfEntries() || dictionary->m_entries.size() > DRW_Dictionary::kMaxEntries
+        || data.invalidImageDefinitionGenerations.count(data.importGeneration)) return false;
+    std::set<std::string> names;
+    std::size_t bytes = 0u;
+    for (const auto& entry : dictionary->m_entries) {
+        if (!edge() || !record() || entry.m_name.empty() || !addStringPayloadBytes(entry.m_name, bytes)
+            || !names.insert(layoutSymbolKey(entry.m_name)).second) return false;
+        const auto* definition = data.findImageDefinition(data.importGeneration, entry.m_handle);
+        if (!definition || !entry.m_handle || entry.m_handle == DRW::NoHandle
+            || definition->handle != entry.m_handle || definition->parentHandle != dictionary->handle
+            || definitions.size() >= dx_iface::ImageDefinitionCaptureMaxRecords
+            || !definitions.emplace(dx_data::ImageDefinitionKey{data.importGeneration, entry.m_handle}, definition).second) return false;
+    }
+    for (const auto& entry : data.imageDefinitions) {
+        if (!record()) return false;
+        if (data.sourceFormat != dx_source_format::Unknown && entry.first.first != data.importGeneration
+            && definitions.count({data.importGeneration, entry.first.second})) return false;
+    }
+    return true;
+}
+
 bool asciiIdentifierStartsWith(std::string_view source,
                                std::string_view prefix) noexcept {
     if (source.size() < prefix.size())
@@ -6429,6 +6483,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> groupReferenceHandles;
         std::unordered_map<std::uint32_t, const DRW_TableEntry*> imageDefinitionOwners;
         std::map<dx_data::ImageDefinitionKey, dx_data::ImageDefinitionKey> sourceImageReactors;
+        const DRW_Dictionary* rootedImageDictionary = nullptr;
         std::unordered_set<std::uint32_t> backgroundHandles;
         std::unordered_set<std::uint32_t> blockDelimiterHandles;
         std::unordered_set<std::uint32_t> blockRecordHandles;
@@ -7249,8 +7304,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         // selected IMAGEDEF extension dictionaries are real source graph roots.
         // Use the same generation-qualified entity selection as the image plan;
         // the temporary callback index is not an authoritative emission list.
-        if (!data->imageDefinitions.empty()) {
+        {
             std::map<dx_data::ImageDefinitionKey, const DRW_ImageDef*> selected;
+            if (!collectRootedImageDefinitions(*data, rootedImageDictionary, selected, examineSourceRecord, examineEdge))
+                return reject(ExtensionGraphFailure::InvalidGraph, "IMAGEDEF dictionary inventory is incomplete, ambiguous, or cross-generation");
             bool hasImageCommonReferences = false;
             const auto selectImages = [&](const dx_ifaceBlock* block) {
                 if (block == nullptr) return true;
@@ -7306,10 +7363,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return true;
             };
             inventoryFamily = "IMAGEDEF selected extension owners";
-            if (!selectImages(data->mBlock)) return false;
-            for (const dx_ifaceBlock* block : data->blocks)
-                if (block != data->mBlock && !selectImages(block)) return false;
+            if (!data->imageDefinitions.empty()) {
+                if (!selectImages(data->mBlock)) return false;
+                for (const dx_ifaceBlock* block : data->blocks)
+                    if (block != data->mBlock && !selectImages(block)) return false;
+            }
             for (const auto& entry : selected) {
+                hasImageCommonReferences = hasImageCommonReferences || entry.second->xDictHandle != 0u;
                 for (const auto reactor : entry.second->reactorHandles) {
                     if (!examineEdge()) return false;
                     const auto found = sourceImageReactors.find({entry.first.first, reactor});
@@ -7317,7 +7377,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         hasImageCommonReferences = true;
                 }
             }
-            if (hasImageCommonReferences) {
+            if (hasImageCommonReferences || rootedImageDictionary) {
                 // Global source aliases exist only for the owned, current-
                 // generation image dictionary. Never guess a cross-generation
                 // extension owner from its low-word handle or equal filename.
@@ -7340,6 +7400,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         "IMAGEDEF source image dictionary is missing or nonreciprocal");
                 for (const auto& entry : selected) {
                     const auto& definition = *entry.second;
+                    // Preserve the established authored multi-key IMAGE route:
+                    // it has no native import/root authority to compose. Only
+                    // isolated, reference-free authored companions may use it.
+                    if (data->sourceFormat == dx_source_format::Unknown && entry.first.first != data->importGeneration
+                        && !definition.xDictHandle && definition.reactorHandles.empty()) continue;
                     if (entry.first.first != data->importGeneration
                         || definition.handle == 0u || definition.handle == DRW::NoHandle
                         || definition.handle != entry.first.second
@@ -7357,6 +7422,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         return reject(ExtensionGraphFailure::InvalidGraph,
                             "selected IMAGEDEF_REACTOR extension owner is ambiguous or cross-generation");
                 }
+                // Generated image dictionary metadata is emitted outside DFS,
+                // but its extension/reactor targets must participate in closure.
+                imageDefinitionOwners.emplace(imageDictionary->handle, imageDictionary);
             }
         }
 
@@ -8235,8 +8303,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         || !data->rawBackgroundObjects.empty()))
                     continue;
                 if (key == "ACAD_LAYOUT" || key == "ACAD_GROUP"
-                    || (key == "ACAD_IMAGE_DICT"
-                        && !data->images.empty())
+                    || (key == "ACAD_IMAGE_DICT" && rootedImageDictionary)
                     || (key == "ACAD_MATERIAL"
                         && !data->dataStorageSections.empty()))
                     continue;
@@ -14447,6 +14514,7 @@ bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
 
 void dx_iface::resetStandardDwgOutputProofs() noexcept {
     std::vector<RasterOutputProof>().swap(m_rasterOutputProofs);
+    std::vector<std::uint32_t>().swap(m_rasterDictionaryReferences); m_rasterDictionaryEmitted = 0u;
     m_rasterOutputBytes = 0u;
     m_rasterImageEdges.clear(); m_rasterEntitySectionsInspected = 0u;
     m_rasterOutputInspected = m_rasterOutputFinalized = m_rasterOutputPublished = false;
@@ -14678,9 +14746,167 @@ bool dx_iface::inspectRasterImageEdges(const dxfRW::DxfObjectsWriteView& view, s
     } catch (...) { return false; }
 }
 
+bool dx_iface::hasUnchangedRasterDictionaryOutputSource(bool final) const {
+    std::uint32_t output = 0u;
+    const auto* frozen = dxfW->dxfWriteImageDictionarySource(output);
+    if (!frozen) return m_rasterDictionaryEmitted == 0u;
+    const DRW_Dictionary* current = nullptr;
+    std::map<dx_data::ImageDefinitionKey, const DRW_ImageDef*> definitions;
+    const auto accept = []() { return true; };
+    if (!output || output != m_rasterDictionaryEmitted
+        || !collectRootedImageDefinitions(*cData, current, definitions, accept, accept) || !current
+        || !standardDwgModelsEqual(*frozen, *current, cData->sourceVersion, dwgObjType::DICTIONARY)) return false;
+    std::map<dx_data::ImageDefinitionKey, std::uint32_t> emitted;
+    if (final) {
+        const auto scratch = m_rasterOutputProofs.size() * (sizeof(decltype(emitted)::value_type) + 6u * sizeof(void*));
+        if (m_rasterOutputBytes > m_rasterOutputByteLimit || scratch > m_rasterOutputByteLimit - m_rasterOutputBytes) return false;
+        for (const auto& proof : m_rasterOutputProofs)
+            if (!proof.reactor && !emitted.emplace(proof.definition, proof.emitted).second) return false;
+    }
+    for (const auto& entry : definitions) {
+        const auto* plan = dxfW->dxfWriteImageSource(entry.first);
+        const auto* generated = dxfW->dxfWriteGeneratedImageDefinition(entry.first);
+        if (!plan || !generated || !rasterDwgModelEqual(plan->definition, *entry.second, cData->sourceVersion, true)) return false;
+        if (final) {
+            const auto* context = dxfW->getWritingContext();
+            if (!context) return false;
+            const auto binding = context->sourceHandleToWrittenObjectMap.find(entry.first.second);
+            if (binding != context->sourceHandleToWrittenObjectMap.end()
+                && dxfW->dxfWriteSourceObjectHasIdentity(entry.first.second, binding->second, "IMAGEDEF", "OBJECTS", output)) continue;
+            // Only the pre-existing explicitly authored cross-key route can
+            // lack a global source binding. Its per-key field proof remains
+            // required; native/decoded imports cannot borrow that exception.
+            if (cData->sourceFormat != dx_source_format::Unknown) return false;
+            const auto actual = emitted.find(entry.first);
+            if (actual == emitted.end()
+                || !dxfW->dxfWriteRecordHasIdentity(actual->second, "IMAGEDEF", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(actual->second, output)) return false;
+        }
+    }
+    return !final || dxfW->dxfWriteSourceObjectHasIdentity(frozen->handle, output, "DICTIONARY", "OBJECTS", 0xCu);
+}
+
+bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    try {
+        std::uint32_t output = 0u;
+        const auto* frozen = dxfW->dxfWriteImageDictionarySource(output);
+        if (!frozen) return true;
+        std::size_t bytes = 0u, items = 0u;
+        if (!output || !estimateDictionaryTypedBytes(*frozen, bytes, items)
+            || m_rasterOutputBytes > m_rasterOutputByteLimit || bytes > m_rasterOutputByteLimit - m_rasterOutputBytes) return false;
+        // Charge a decoded comparison model and its reference slots before
+        // inspection. This is a bounded modeled-output check, not independent
+        // source/text qualification. Shape checks refuse duplicate framing.
+        m_rasterOutputBytes += bytes;
+        const auto* context = dxfW->getWritingContext();
+        if (!context) return false;
+        const auto map = [this, context](std::uint32_t source, std::uint32_t& target) {
+            target = 0u;
+            if (!source) return true;
+            if (context->ambiguousSourceHandles.count(source)) return false;
+            for (const auto* table : {&context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToWrittenTableMap, &context->sourceHandleToMintedMap}) {
+                const auto found = table->find(source);
+                if (found != table->end()) { target = found->second; return target != 0u; }
+            }
+            target = dxfW->remapHandle(source); return target != 0u;
+        };
+        const auto layer = [](const DRW_Variant& source, const DRW_Variant& actual, std::vector<std::uint32_t>&) {
+            return source.code() == 1003 && actual.code() == 1003 && source.c_str() && actual.c_str()
+                && std::string_view(source.c_str()) == actual.c_str();
+        };
+        // Independent physical framing/roles, including empty-record refusal.
+        // Text decoding/common payload semantics are checked separately below
+        // and remain modeled, not independent source/text qualification.
+        bool physical = false;
+        if (!dx_raster_output::inspect(view.bytes, view.binary, [&](std::string_view name, std::uint32_t self, std::string_view body) {
+                if (name != "DICTIONARY") return true;
+                if (!self) return false;
+                if (self != output) return true;
+                if (physical) return false;
+                physical = true;
+                dx_raster_output::Cursor input(body, view.binary); dx_raster_output::Token token;
+                unsigned depth = 0u, selves = 0u, owners = 0u, classes = 0u, hard = 0u, cloning = 0u;
+                std::size_t entries = 0u; bool pending = false, xdata = false;
+                while (!input.done()) {
+                    if (!input.next(token)) return false;
+                    if (token.code == 102) {
+                        if (!token.text.empty() && token.text.front() == '{') ++depth;
+                        else if (token.text == "}" && depth) --depth; else return false;
+                        continue;
+                    }
+                    if (depth) continue;
+                    if (token.code >= 1000) { if (!classes || pending) return false; xdata = true; continue; }
+                    if (xdata) return false;
+                    std::uint32_t value = 0u;
+                    if (!classes && token.code == 5) {
+                        if (++selves != 1u || !dx_raster_output::integer(token.text, value, 16) || value != output) return false;
+                    } else if (!classes && token.code == 330) {
+                        if (++owners != 1u || !dx_raster_output::integer(token.text, value, 16) || value != 0xCu) return false;
+                    } else if (token.code == 100) {
+                        if (++classes != 1u || token.text != "AcDbDictionary") return false;
+                    } else if (classes && token.code == 280 && !pending) {
+                        if (++hard != 1u || token.number != frozen->hardOwner) return false;
+                    } else if (classes && token.code == 281 && !pending) {
+                        if (++cloning != 1u || token.number != frozen->cloning) return false;
+                    } else if (classes && token.code == 3 && !pending && !token.text.empty()) pending = true;
+                    else if (pending && (token.code == 350 || token.code == 360)) {
+                        if (!dx_raster_output::integer(token.text, value, 16) || !value || entries >= DRW_Dictionary::kMaxEntries) return false;
+                        if (entries < frozen->m_entries.size()) {
+                            const auto& source = frozen->m_entries[entries];
+                            const auto role = source.m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                                ? (frozen->hardOwner ? 360 : 350) : static_cast<int>(source.m_dxfHandleCode);
+                            if (token.code != role || value != dxfW->dxfWriteImageDefinitionHandle({cData->importGeneration, source.m_handle})) return false;
+                        } else if (token.code != 350) return false;
+                        ++entries; pending = false;
+                    } else return false;
+                }
+                return !depth && !pending && selves == 1u && owners == 1u && classes == 1u
+                    && hard == 1u && cloning == 1u && entries >= frozen->m_entries.size();
+            }) || !physical) return false;
+        dx_standard_output::Decoder decoder(view);
+        bool seen = false;
+        if (!decoder.good() || !dx_standard_output::inspect(view, [&](const dx_standard_output::Shape& shape, std::string_view body) {
+                if (shape.handle != output) return true;
+                if (seen || shape.kind != dx_standard_output::Family::Dictionary || !shape.complete()) return false;
+                seen = true;
+                return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                    auto mapper = map;
+                    if (!dx_standard_output::commonEqual(*frozen, actual, dx_standard_output::Family::Dictionary,
+                            mapper, m_rasterDictionaryReferences, layer)
+                        || actual.cloning != frozen->cloning || actual.hardOwner != frozen->hardOwner
+                        || actual.m_entries.size() < frozen->m_entries.size()) return false;
+                    std::set<std::uint32_t> targets;
+                    for (std::size_t n = 0u; n < actual.m_entries.size(); ++n) {
+                        const auto& entry = actual.m_entries[n];
+                        if (!entry.m_handle || !targets.insert(entry.m_handle).second) return false;
+                        if (n < frozen->m_entries.size()) {
+                            const auto& source = frozen->m_entries[n];
+                            using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                            const auto role = source.m_dxfHandleCode == Role::Unspecified
+                                ? (frozen->hardOwner ? Role::HardOwner : Role::SoftOwner) : source.m_dxfHandleCode;
+                            if (entry.m_name != source.m_name || entry.m_dxfHandleCode != role
+                                || entry.m_handle != dxfW->dxfWriteImageDefinitionHandle({cData->importGeneration, source.m_handle})) return false;
+                        } else if (entry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner) return false;
+                        if (!dxfW->dxfWriteRecordHasIdentity(entry.m_handle, "IMAGEDEF", "OBJECTS")
+                            || !dxfW->dxfWriteRecordHasOwner(entry.m_handle, output)) return false;
+                        m_rasterDictionaryReferences.push_back(entry.m_handle);
+                    }
+                    return true;
+                });
+            }) || !seen) return false;
+        const auto cost = m_rasterDictionaryReferences.capacity() * sizeof(std::uint32_t);
+        if (cost > m_rasterOutputByteLimit - m_rasterOutputBytes) return false;
+        m_rasterOutputBytes += cost;
+        m_rasterDictionaryEmitted = output;
+        return hasUnchangedRasterDictionaryOutputSource();
+    } catch (...) { return false; }
+}
+
 bool dx_iface::inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if (!cData || !dxfW || m_rasterOutputInspected) return false;
     m_rasterOutputInspected = true;
+    if (!inspectRasterDictionaryOutput(view)) return false;
     try {
         struct Expected { dxfRW::ImageDefinitionKey key; const DRW_TableEntry* source;
             const DRW_ImageDef* generated; bool reactor; std::uint32_t owner; };
@@ -14891,6 +15117,9 @@ bool dx_iface::finalizeRasterOutputProofs() noexcept {
     if (!m_rasterOutputInspected) return true; // no inspector/record, no certificate
     if (!cData || !dxfW || m_rasterOutputFinalized) return false;
     try {
+        if (!hasUnchangedRasterDictionaryOutputSource(true)) return false;
+        for (const auto reference : m_rasterDictionaryReferences)
+            if (dxfW->dxfWriteRecordHandleCount(reference) != 1u) return false;
         if (m_rasterEntitySectionsInspected != 3u) return false;
         struct ImageSource { const dx_ifaceImg* image; std::uint32_t owner; bool blocks; };
         std::map<std::uint32_t, ImageSource> sourceImages;
@@ -22956,51 +23185,34 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         if (block != nullptr)
             collectImageDefinitions(block->ent);
     }
-    if (!imageDefinitionsToPlan.empty()
-        && cData->hasNamedObjectDictionary) {
-        const DRW_Dictionary::Entry* imageRoot = nullptr;
-        std::size_t imageRootCount = 0u;
-        for (const DRW_Dictionary::Entry& entry :
-             cData->namedObjectDictionary.m_entries) {
-            if (layoutSymbolKey(entry.m_name) != "ACAD_IMAGE_DICT")
-                continue;
-            imageRoot = &entry;
-            ++imageRootCount;
-        }
-        const bool imageRootAliased = imageRoot != nullptr
-            && std::count_if(
-                cData->namedObjectDictionary.m_entries.begin(),
-                cData->namedObjectDictionary.m_entries.end(),
-                [imageRoot](const DRW_Dictionary::Entry& entry) {
-                    return entry.m_handle == imageRoot->m_handle;
-                }) != 1;
-        if (imageRootCount > 1u || imageRootAliased
-            || (imageRoot != nullptr
-                && (imageRoot->m_handle == 0u
-                    || imageRoot->m_handle == DRW::NoHandle))) {
-            reportPreflightFailure(
-                "IMAGEDEF ACAD_IMAGE_DICT root is duplicated, aliased, or invalid");
-            delete dxfW;
-            dxfW = nullptr;
-            return false;
-        }
-        if (imageRoot != nullptr) {
-            for (const auto& dictionary : cData->dictionaries) {
-                if (dictionary.handle != imageRoot->m_handle) continue;
-                if (sourceImageDictionary != nullptr
-                    || dictionary.parentHandle != cData->namedObjectDictionary.handle) {
-                    reportPreflightFailure("IMAGE source dictionary is ambiguous or nonreciprocal");
-                    delete dxfW; dxfW = nullptr;
-                    return false;
+    {
+        std::map<dx_data::ImageDefinitionKey, const DRW_ImageDef*> rooted;
+        const auto accept = []() { return true; };
+        try {
+            if (!collectRootedImageDefinitions(*cData, sourceImageDictionary, rooted, accept, accept))
+                imageDefinitionPlanValid = false;
+            std::size_t retained = 0u;
+            for (const auto& entry : rooted) {
+                std::size_t bytes = 0u;
+                if (!addImageDefinitionRetainedBytes(*entry.second, bytes)
+                    || bytes > ImageDefinitionCaptureMaxRetainedBytes - retained) {
+                    imageDefinitionPlanValid = false; break;
                 }
-                sourceImageDictionary = &dictionary;
+                retained += bytes;
             }
-            if (sourceImageDictionary == nullptr) {
-                reportPreflightFailure("IMAGE source dictionary target is missing or wrong-kind");
-                delete dxfW; dxfW = nullptr;
-                return false;
+            if (!imageDefinitionPlanValid) {
+                reportPreflightFailure("IMAGE dictionary definition inventory is incomplete or over budget");
+                delete dxfW; dxfW = nullptr; return false;
             }
-        }
+            for (const auto& entry : rooted) {
+                auto inserted = imageDefinitionsToPlan.emplace(entry.first, dxfRW::ImageDefinitionPlanEntry{});
+                if (inserted.second) {
+                    inserted.first->second.importGeneration = entry.first.first;
+                    inserted.first->second.sourceHandle = entry.first.second;
+                    inserted.first->second.definition = *entry.second;
+                }
+            }
+        } catch (...) { imageDefinitionPlanValid = false; }
     }
     if (!imageDefinitionPlanValid) {
         reportPreflightFailure(
@@ -24079,7 +24291,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         })) {
         delete dxfW; dxfW = nullptr; return false;
     }
-    const bool needsRasterOutput = !cData->imageDefinitions.empty();
+    const bool needsRasterOutput = !cData->imageDefinitions.empty() || sourceImageDictionary;
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput)
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput](const auto& view) {
             return (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
@@ -24150,7 +24362,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && key == "ACAD_BACKGROUND")
                 continue;
             if (key == "ACAD_LAYOUT" || key == "ACAD_GROUP"
-                || (key == "ACAD_IMAGE_DICT" && !cData->images.empty()))
+                || (key == "ACAD_IMAGE_DICT" && sourceImageDictionary))
                 continue;
 
             if (key == "ACAD_MATERIAL"

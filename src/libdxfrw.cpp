@@ -2660,8 +2660,7 @@ bool dxfRW::materializeImageDefinitionPlan() noexcept {
             }
         }
         if (m_generatedImageDictionarySource) {
-            if (imageDef.empty()
-                || !allocateSourceTarget(m_generatedImageDictionarySource->handle,
+            if (!allocateSourceTarget(m_generatedImageDictionarySource->handle,
                                           m_plannedImageDictionaryHandle)) return false;
             m_plannedImageSourceHandles.emplace(m_generatedImageDictionarySource->handle,
                                                 m_plannedImageDictionaryHandle);
@@ -2700,6 +2699,13 @@ std::uint32_t dxfRW::dxfWriteImageReactorHandle(ImageDefinitionKey definition,
     if (replacements == m_regeneratedImageSourceReactors.end()) return 0u;
     const auto reactor = replacements->second.find(sourceReactor);
     return reactor == replacements->second.end() ? 0u : reactor->second;
+}
+
+const DRW_Dictionary* dxfRW::dxfWriteImageDictionarySource(std::uint32_t& emitted) const noexcept {
+    emitted = 0u;
+    if (!m_dxfWriteAttemptActive || writer == nullptr || !m_generatedImageDictionarySource) return nullptr;
+    emitted = m_plannedImageDictionaryHandle;
+    return m_generatedImageDictionarySource.get();
 }
 
 bool dxfRW::reserveHandle(std::uint32_t h) {
@@ -13737,7 +13743,7 @@ bool dxfRW::writeObjects() {
         DxfDictionaryEntryAdmission root;
         std::size_t sourceNameBytes = DRW::kMaxDxfBinaryPayloadBytes;
         root.accept("ACAD_GROUP", 0xDu);
-        if (!imageDef.empty())
+        if (!imageDef.empty() || m_generatedImageDictionarySource)
             root.accept("ACAD_IMAGE_DICT", 0);
         for (const auto& entry : m_rootDictEntries) {
             if (m_generatedNodSource) {
@@ -13783,7 +13789,7 @@ bool dxfRW::writeObjects() {
     std::vector<std::string> imageDictionaryKeys;
     std::vector<DxfDictionaryOutputEntry> imageDictionaryEntries;
     try {
-        if (!imageDef.empty()) {
+        if (!imageDef.empty() || m_generatedImageDictionarySource) {
             imageDictionaryHandle = m_plannedImageDictionaryHandle;
             if (imageDictionaryHandle == 0u && !allocateDxfHandle(imageDictionaryHandle))
                 return false;
@@ -13833,7 +13839,7 @@ bool dxfRW::writeObjects() {
                 for (const auto& entry : m_generatedImageDictionarySource->m_entries) {
                     const auto definition = m_plannedImageDefinitions.find(
                         {m_generatedImageDictionaryGeneration, entry.m_handle});
-                    if (definition == m_plannedImageDefinitions.end()) continue; // Existing selected-definition projection.
+                    if (definition == m_plannedImageDefinitions.end()) return failDxfWrite();
                     const auto index = indices.find(definition->second->handle);
                     if (index == indices.end() || selected[index->second]) return failDxfWrite();
                     selected[index->second] = true;
@@ -13863,7 +13869,7 @@ bool dxfRW::writeObjects() {
                 return true;
             };
             if (!select("ACAD_GROUP", 0xDu)
-                || (!imageDef.empty() && !select("ACAD_IMAGE_DICT", imageDictionaryHandle)))
+                || ((!imageDef.empty() || m_generatedImageDictionarySource) && !select("ACAD_IMAGE_DICT", imageDictionaryHandle)))
                 return failDxfWrite();
             for (const auto& entry : m_rootDictEntries) {
                 std::uint64_t target = 0;
@@ -13906,7 +13912,7 @@ bool dxfRW::writeObjects() {
     writer->writeInt16(281, 1);
     writer->writeString(3, "ACAD_GROUP");
     writer->writeString(350, "D");
-    if (imageDef.size() != 0) {
+    if (!imageDef.empty() || m_generatedImageDictionarySource) {
         writer->writeString(3, "ACAD_IMAGE_DICT");
         writer->writeString(350, imgDictH);
     }
@@ -14000,7 +14006,7 @@ bool dxfRW::writeObjects() {
             if (source != nullptr && !source->extData.empty() && !writeExtData(source->extData)) return false;
         }
     }
-    if (imageDef.size() != 0) {
+    if (!imageDef.empty() || m_generatedImageDictionarySource) {
         if (m_generatedImageDictionarySource) {
             if (!writeDictionaryRecord(*m_generatedImageDictionarySource,
                     imageDictionaryHandle, 0xCu, true, &imageDictionaryEntries)

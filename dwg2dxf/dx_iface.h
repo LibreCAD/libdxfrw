@@ -1517,6 +1517,10 @@ private:
         std::vector<std::uint32_t> references;
     };
     std::vector<RasterOutputProof> m_rasterOutputProofs;
+    std::vector<std::uint32_t> m_rasterDictionaryReferences;
+    std::uint32_t m_rasterDictionaryEmitted{0u};
+    bool inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool hasUnchangedRasterDictionaryOutputSource(bool final = false) const;
     struct RasterImageEdges {
         std::uint32_t source{0}, emitted{0}, owner{0}, definition{0}, reactor{0};
         dxfRW::ImageDefinitionKey sourceDefinition;

@@ -1,8 +1,10 @@
-**Newest implementation checkpoint — RPP-5bt rooted custom IMAGEDEF class integration (2026-10-24):** actual imports cover 24 selected/rooted native sources across six revisions and unique/full/partial class-alias tables. Independent staged output checks and readback pass 48 primary projections, 624 source/graph refusal-restoration retries, 48 late-class fresh-import retries and 12 wrong-owner-role callback refusal/fresh-import retries. Six missing-row sources stay unknown, and cache-only IMAGE paths cannot override the bound definition name. Nine focused tests pass (14.96 s); three ASan tests pass (23.40 s), with strict builds and LibreCAD_3 compile checks. This is an integration/harness slice, not a production grammar change or semantic support promotion. Next: the existing document-root/ownership and independent semantic gates. Strict admission stays **CLOSED** and all six J items stay **DEFERRED_EXTERNAL**. [Implementation record](#implementation-progress-rpp-5bt-rooted-custom-imagedef-class-integration-2026-10-24) · [receipt](docs/research/rpp5bt-rooted-custom-imagedef-class-integration-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5bu rooted IMAGEDEF entry preservation (2026-10-24):** dictionary-rooted definitions now enter the bounded graph and output plan even without an IMAGE user. Empty image dictionaries, shared filenames, EED, extension/reactor targets and translated back-references are preserved; unsupported/ambiguous targets refuse instead of disappearing. The former 12-loss probe is a positive CTest, plus 216 unselected/empty source-target projections, 22 graph-edit retries, four late-edit retries and two fresh-import retries. Eight new dictionary wire fields add64 atomic fault/retry cases. Final10/10 focused,5/5 owning,4/4 reader/consumer and5/5 ASan checks pass; strict builds and LibreCAD_3 compile gates pass. Existing authored cross-key and compatible-unqualified-text behavior is preserved without extending native merge authority or support claims. Strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5bu-rooted-imagedef-entry-preservation-2026-10-24) · [receipt](docs/research/rpp5bu-rooted-imagedef-entry-preservation-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5bt rooted custom IMAGEDEF class integration (2026-10-24):** actual imports cover 24 selected/rooted native sources across six revisions and unique/full/partial class-alias tables. Independent staged output checks and readback pass 48 primary projections, 624 source/graph refusal-restoration retries, 48 late-class fresh-import retries and 12 wrong-owner-role callback refusal/fresh-import retries. Six missing-row sources stay unknown, and cache-only IMAGE paths cannot override the bound definition name. Nine focused tests pass (14.96 s); three ASan tests pass (23.40 s), with strict builds and LibreCAD_3 compile checks. This is an integration/harness slice, not a production grammar change or semantic support promotion. Next: the existing document-root/ownership and independent semantic gates. Strict admission stays **CLOSED** and all six J items stay **DEFERRED_EXTERNAL**. [Implementation record](#implementation-progress-rpp-5bt-rooted-custom-imagedef-class-integration-2026-10-24) · [receipt](docs/research/rpp5bt-rooted-custom-imagedef-class-integration-2026-10-24.json).
 
 **Previous committed implementation checkpoint — RPP-5bs actual-read-scoped raster EED names (`f5bef43689fd7ca3028bca63c7eabec7b3b0c427`, 2026-10-24):** immutable per-read APPID/LAYER receipts resolve the six historical EED capture failures without merging document roots or promoting semantic support. Six same-version histories and six mixed-version third imports pass; mutation/restoration, bounded capture, atomic refusal and fresh-import retry controls are recorded below. The implementation checkpoint passed8 focused,5 owning,4 reader/consumer and3 ASan tests. A subsequent documentation-only checkpoint reran3 focused source/join/header tests successfully; the earlier broader results are not presented as fresh runs. Its then-next RPP-5bt integration is completed by the newer checkpoint above. Strict admission stays **CLOSED**; the six J items stay **DEFERRED_EXTERNAL**. [Implementation record](#implementation-progress-rpp-5bs-actual-read-scoped-raster-eed-names-2026-10-24) · [commit checkpoint and next slice](#commit-checkpoint-rpp-5bs-and-ready-next-slice-rpp-5bt-2026-10-24) · [implementation receipt](docs/research/rpp5bs-read-scoped-raster-eed-names-2026-10-24.json).
 
-**Next executable gap — RPP-5bu rooted IMAGEDEF entry closure (2026-10-24):** a new native scratch probe reproduces dictionary-reachable but IMAGE-unselected definitions being omitted in all 12 revision/encoding projections: two source definitions/entries become one output definition/entry. The same result is reproduced under ASan. The probe deliberately exits2 and is not a passing CTest/support gate; the fix is **NOT IMPLEMENTED**. [Gap, evidence and implementation sub-plan](#rpp-5bu-rooted-imagedef-entry-closure-gap-reproduced-2026-10-24) · [receipt](docs/research/rpp5bu-rooted-imagedef-entry-closure-gap-probe-2026-10-24.json).
+**Historical reproduced gap — RPP-5bu rooted IMAGEDEF entry closure:** commit `8b7e9d2` reproduced12 normal and12 ASan losses before the fix above. The old diagnostic's exit2 and receipt remain historical evidence, not the current implementation status. Both the new positive selector and the former probe selector now run preservation controls with ordinary success/failure status. [Original gap and sub-plan](#rpp-5bu-rooted-imagedef-entry-closure-gap-reproduced-2026-10-24) · [unchanged probe receipt](docs/research/rpp5bu-rooted-imagedef-entry-closure-gap-probe-2026-10-24.json).
 
 Checkpoint summaries below are historical records. Their then-current
 "uncommitted" or "open" wording does not override a later commit/checkpoint;
@@ -120129,9 +120131,10 @@ Receipt:
 
 ## RPP-5bu rooted IMAGEDEF entry closure — gap reproduced (2026-10-24)
 
-Status: **GAP REPRODUCED / FIX NOT IMPLEMENTED**. The next local dependency is
-now concrete; this is not an external blocker or completed document-closure
-claim. RPP-5bt is committed as `eb52f30860bf33fa7f591cd0beb4efbd2d2ffb69`.
+Historical status at `8b7e9d2`: **GAP REPRODUCED / FIX NOT IMPLEMENTED**.
+The implementation below now resolves this entry-preservation gap; broader
+document/source semantics remain open. RPP-5bt is committed as
+`eb52f30860bf33fa7f591cd0beb4efbd2d2ffb69`.
 
 Evidence and causal path:
 
@@ -120167,31 +120170,31 @@ Evidence and causal path:
 
 Implementation sub-plan — preserve the full entry/ownership contract:
 
-1. [ ] Resolve a unique, complete, current-document ACAD_IMAGE_DICT independent
+1. [x] Resolve a unique, complete, current-document ACAD_IMAGE_DICT independent
    of whether any IMAGE selects a definition. Build a bounded inventory of its
    actual entries and typed targets, keyed by the retained import identity;
    reject ambiguous handles/generations/keys instead of borrowing another
    import. Preserve existing authored filename behavior and duplicate NOD/
    ACAD_GROUP refusal. No multi-document merge policy is inferred.
-2. [ ] Add every valid dictionary-rooted definition to the source plan, not
+2. [x] Add every valid dictionary-rooted definition to the source plan, not
    merely those selected by IMAGE entities. Preserve names, order, entry edge
    roles, definition metadata/EED and immutable source correlation. Extend
    existing retained-item/byte and actual-emission identity accounting. The
    simple no-extension/no-reactor reproduction is a starting control, not a
    license to declare complex definitions supported or drop their metadata.
-3. [ ] Close extension dictionaries, independent/selected reactors and other
+3. [x] Close supported extension dictionaries, independent/selected reactors and other
    common references for these definitions through the same verified graph
    traversal/remapping contract. Unknown/wrong-kind/unresolvable targets must
    be retained by a proven supported route or refuse explicitly, never vanish
    behind the current selected-definition filter. Preserve strict issue masks
    and distinguish partial compatibility from qualified complete support.
-4. [ ] Update generated dictionary/materialization and independent output
+4. [x] Update generated dictionary/materialization and independent output
    proof expectations to cover the complete admitted root inventory. Check
    actual emitted identities and translated owner/child edges, not planned
    handles alone. Include a drawing with only unselected rooted definitions,
    mixed selected/unselected definitions and an empty image dictionary, plus
    shared filenames, key aliases and existing target-version boundaries.
-5. [ ] Replace this diagnostic loss expectation with positive source/output
+5. [x] Replace this diagnostic loss expectation with positive source/output
    preservation assertions and register its fast CTest. Add preflight/late
    mutation, output-fault, destination-preservation, corrected same-source and
    fresh-import retry controls. Run focused tests first, scoped ASan, then
@@ -120209,3 +120212,88 @@ unrelated local files stay excluded. No remote, PR or issue mutation occurs.
 
 Receipt:
 [`rpp5bu-rooted-imagedef-entry-closure-gap-probe-2026-10-24.json`](docs/research/rpp5bu-rooted-imagedef-entry-closure-gap-probe-2026-10-24.json).
+
+## Implementation progress — RPP-5bu rooted IMAGEDEF entry preservation (2026-10-24)
+
+The dictionary-reachable, IMAGE-unselected definition/entry loss reproduced in
+`8b7e9d2` is fixed. This is a production graph/planning/DXF-output change, not
+a DWG parser grammar change, document-merge policy or semantic admission.
+
+1. [x] Use a shared bounded root inventory for graph traversal, planning and
+   final source checks. Validate unique complete NOD/image-dictionary ownership,
+   keys, current-import targets and actual typed definitions, including an
+   empty root. Bound records/names, charge traversal work and preflight the
+   aggregate copied definition payload against the existing64 MiB allowance.
+   Native/decoded imports cannot borrow equal handles from another generation.
+2. [x] Plan every admitted dictionary child, not only IMAGE-selected objects.
+   Keep source entry order/roles and distinct identities for equal filenames.
+   Materialize and emit an empty source image dictionary as well as populated
+   roots. A low-level source dictionary child absent from the supplied plan
+   now refuses rather than silently disappearing. Existing authored/path-only
+   behavior and generated additional IMAGE definitions remain supported.
+3. [x] Root supported unselected definition common references and the generated
+   image dictionary's own extension/reactor references in the existing DFS.
+   Enforce reciprocal extension ownership, translate XRECORD back-references
+   and refuse wrong-kind/missing/ambiguous targets. Do not discard unknown
+   references or promote unmodeled extension/producer schemas.
+4. [x] Add an attempt-only read-only writer metadata/identity view; it returns
+   null/zero outside a write. No layout, virtual or callback change. Verify
+   physical DICTIONARY framing, owner, flags, ordered entry handle roles and
+   target values with the separate raw token observer, including empty-record
+   refusal. Compare decoded common/text metadata separately to the frozen
+   writer copy. This modeled comparison is not independent text/source proof.
+   Finalization rechecks current source/plan state and actual emitted identities,
+   owners and reference cardinality. Use bounded per-key indexes, not quadratic
+   scans or a transient generated model handle as final identity evidence.
+5. [x] Preserve two explicit compatibility contracts uncovered by validation:
+   the established reference-free authored cross-key IMAGE route is not a
+   native merged-document receipt, and compatible/unqualified text may project
+   without earning a field certificate. Native generation ambiguity still
+   refuses; unqualified text cannot promote support claims. No issue mask is
+   cleared to make these cases pass.
+6. [x] Convert the12-loss native probe into positive preservation controls and
+   register `dwg2dxf_rooted_image_dictionary_closure`. Both the positive flag
+   and former probe alias now return ordinary success/failure. Add216 native
+   projections: six source revisions by six target revisions by ASCII/binary,
+   for simple unselected-only, complex unselected-only and empty dictionaries.
+   Verify names/order/roles, same-filename separation, values, EED, common links
+   and extension/XRECORD inventory. Scratch files remain temporary and owned.
+7. [x] Add22 atomic graph/source mutation/restoration retries, four late source
+   edit/refusal/restoration retries and two fresh actual-import output retries.
+   Cover bad owners/targets, erased definitions/children, duplicate roots/keys,
+   wrong-kind children and historical handle shadows. Eight image-dictionary
+   wire fields add64 same-facade fault/refusal/retry controls to the existing
+   raster matrix (now360 total). A duplicate group0 exposed an empty phantom
+   DICTIONARY: the independent physical observer now rejects that case.
+8. [x] Strict library/adapter/CLI builds, public-header hygiene and normal/ASan
+   LibreCAD_3 compile checks pass. Final10 focused tests pass10.95 s; five
+   owning checks pass9.49 s; four reader/consumer checks pass2.10 s; five ASan
+   tests pass18.70 s. Rebuild the separately compiled DXF-fixture/reader adapters
+   before the final owning/reader checkpoint; earlier stale-object runs are
+   not substituted for final evidence. Owning and reader cohorts are sequential,
+   parallelism3 within each. No full suite or external qualification is claimed.
+
+Remaining implementation queue, with the original parity scope retained:
+
+- [ ] Audit the other generated roots' common-reference handoff (NOD/GROUP and
+  broader named dictionaries), using locally authored source controls before
+  changing traversal. This slice closes the image dictionary/definition entry
+  inventory, not every generated-root/common-field schema or document composition.
+- [ ] Continue independent name/body/path/EED and explicit source-profile
+  qualification, full IMAGE geometry/common state, sparse native class cardinality
+  and broader APPID/LAYER/XRECORD work. Physical output checks and modeled
+  frozen-copy equality cannot clear source/text/profile ambiguities.
+- [ ] Keep composed-document ambiguity closed until an explicit ownership/
+  remapping contract is verified. Preserve2D LibreCAD/LibreCAD_3 behavior and
+  continue the original3D/dwg2dxf consumer scope. Strict admission stays **CLOSED**;
+  J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/Windows
+  FreeCAD and independent ACIS/ACDS semantic/kernel qualification stay **NOT_RUN**.
+
+Self-update after each implemented item, resolve safe local failures, record
+actual evidence and continue the next executable dependency. Report each
+committed slice. No drawing is added/downloaded/committed; all17 untracked
+drawings and unrelated files remain excluded. No prior receipt, remote, PR or
+issue is changed.
+
+Receipt:
+[`rpp5bu-rooted-imagedef-entry-preservation-2026-10-24.json`](docs/research/rpp5bu-rooted-imagedef-entry-preservation-2026-10-24.json).
