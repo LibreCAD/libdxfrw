@@ -1300,6 +1300,7 @@ bool dwgReader18::readDwgClasses(){
     // The CLASSES string stream can occupy the unused tail of its final fixed
     // size data page. parseDataPage has already bounded and zero-filled this
     // decoded envelope, so use that capacity for the reader's physical bound.
+    captureDwgClassSource(objData.get(), uncompSize, si.Id, si.size);
     dwgBuffer dataBuf(objData.get(), uncompSize, &decoder);
 
     DRW_DBG("classes section sentinel= ");

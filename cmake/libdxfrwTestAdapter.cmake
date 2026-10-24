@@ -1,4 +1,4 @@
-# Only the four audited tests/ executables use this compile context. In
+# Only explicitly audited tests/ executables use this compile context. In
 # particular, do not pool the CLI (framework search paths), root tests
 # (different includes/fixture definitions/warnings), or MSVC Wave 1 seams.
 set(_libdxfrw_test_adapter_source "${CMAKE_SOURCE_DIR}/dwg2dxf/dx_iface.cpp")

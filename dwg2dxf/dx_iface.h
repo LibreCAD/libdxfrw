@@ -29,7 +29,8 @@
 
 class DxIfaceExtensionGraphTestAccess;
 
-class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler {
+class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
+                 public DRW_DwgClassSourceHandler {
 public:
     // Converter resource policy, not a DXF nesting/size restriction. Separate
     // limits also provide a small deterministic boundary-test seam.
@@ -178,6 +179,8 @@ public:
     void addDwgClassCoverageReport(const DRW_DwgClassCoverageReport& data) override {
         cData->dwgClassCoverage = data;
     }
+    bool wantsDwgClassSource() const override { return true; }
+    void addDwgClassSourceReport(const DRW_DwgClassSourceReport& data) noexcept override;
 
     //tables
     virtual void addLType(const DRW_LType& data) override;

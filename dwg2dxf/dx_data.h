@@ -919,6 +919,14 @@ public:
     bool hasStandardDwgObjectCaptureFailure() const noexcept {
         return m_standardDwgObjectCaptureFailed;
     }
+    // Read-only current-import source lease; null means no report, never an
+    // empty/qualified CLASSES section. Mutable public class rows are separate.
+    const DRW_DwgClassSourceReport* dwgClassSource() const noexcept {
+        if (importGeneration != 0u && m_classSourceFailureGeneration == importGeneration)
+            return &m_classSourceFailure;
+        const auto found = m_classSourceReports.find(importGeneration);
+        return found == m_classSourceReports.end() ? nullptr : &found->second;
+    }
     bool hasStandardDwgObjectPayloadFailure() const noexcept {
         return m_standardDwgObjectPayloadFailed;
     }
@@ -927,6 +935,13 @@ public:
     bool hasUnchangedAcdsRawDxfSections() const noexcept;
 
 private:
+    std::map<std::uint64_t, DRW_DwgClassSourceReport> m_classSourceReports;
+    DRW_DwgClassSourceReport m_classSourceFailure;
+    std::uint64_t m_classSourceFailureGeneration{0};
+    std::size_t m_classSourceRetainedBytes{0};
+    std::size_t m_classSourceByteLimit{DRW::kMaxDwgClassSourceBytes};
+    std::size_t m_classSourceReportLimit{1024u};
+    friend class DxIfaceDwgClassSourceTestAccess;
     struct AcdsRawDxfSectionBaseline {
         std::uint64_t generation{0};
         std::size_t sectionIndex{0};

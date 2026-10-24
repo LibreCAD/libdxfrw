@@ -15414,6 +15414,53 @@ void dx_iface::addDxfClass(const DRW_Class& data) {
     retainDxfClassTyped(cData, data);
 }
 
+void dx_iface::addDwgClassSourceReport(const DRW_DwgClassSourceReport& data) noexcept {
+    if (cData == nullptr) return;
+    const auto fail = [&](DRW_DwgClassSourceStatus status) noexcept {
+        cData->m_classSourceFailure = {};
+        cData->m_classSourceFailure.m_version = data.m_version;
+        cData->m_classSourceFailure.m_status = status;
+        cData->m_classSourceFailureGeneration = cData->importGeneration;
+    };
+    if (cData->importGeneration == 0u || cData->sourceFormat != dx_source_format::DWG
+        || !cData->dwgReadOutcome.attempted
+        || cData->m_classSourceFailureGeneration == cData->importGeneration
+        || cData->m_classSourceReports.count(cData->importGeneration) != 0u) {
+        fail(DRW_DwgClassSourceStatus::CaptureFailed);
+        return;
+    }
+    const bool captured = data.m_status == DRW_DwgClassSourceStatus::Captured;
+    if (static_cast<unsigned>(data.m_status)
+            > static_cast<unsigned>(DRW_DwgClassSourceStatus::DeliveryFailed)
+        || (!captured && data.m_bytes)
+        || (captured && (!data.m_bytes || data.m_byteCount == 0u
+            || data.m_bytes->size() != data.m_byteCount || data.m_sectionDescriptorId < 0
+            || data.m_declaredSectionSize == 0u
+            || (data.m_offsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && data.m_offsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || (data.m_offsetSpace == DRW_DwgFrameOffsetSpace::DecodedBuffer && data.m_baseByteOffset != 0u)
+            || data.m_baseByteOffset > (std::numeric_limits<std::uint64_t>::max)() - data.m_byteCount))) {
+        fail(DRW_DwgClassSourceStatus::CaptureFailed);
+        return;
+    }
+    std::size_t bytes = sizeof(DRW_DwgClassSourceReport) + 6u * sizeof(void*);
+    if ((captured && (!addAssociativeRetainedBytes(sizeof(std::vector<std::uint8_t>)
+                + 4u * sizeof(void*), bytes)
+            || !addAssociativeRetainedBytes(data.m_bytes->capacity(), bytes)))
+        || cData->m_classSourceReports.size() >= cData->m_classSourceReportLimit
+        || cData->m_classSourceRetainedBytes > cData->m_classSourceByteLimit
+        || bytes > cData->m_classSourceByteLimit - cData->m_classSourceRetainedBytes) {
+        fail(DRW_DwgClassSourceStatus::TooLarge);
+        return;
+    }
+    try {
+        cData->m_classSourceReports.emplace(cData->importGeneration, data);
+        cData->m_classSourceRetainedBytes += bytes;
+    } catch (...) {
+        fail(DRW_DwgClassSourceStatus::CaptureFailed);
+    }
+}
+
 void dx_iface::addVport(const DRW_Vport& data) {
     if (cData == nullptr)
         return;

@@ -866,6 +866,36 @@ struct DRW_DwgClassCoverageReport {
   std::vector<DRW_DwgClassCoverageEntry> m_entries;
 };
 
+namespace DRW {
+constexpr std::size_t kMaxDwgClassSourceBytes = 64u * 1024u * 1024u;
+}
+
+//! Optional byte-capture state, independent of parser/semantic completeness.
+enum class DRW_DwgClassSourceStatus : std::uint8_t {
+  NotRequested, NotCaptured, Captured, TooLarge, InvalidRange,
+  CaptureFailed, RequestFailed, DeliveryFailed
+};
+
+//! Actual physical/decoded CLASSES bytes, never reconstructed from class rows.
+//! Copied shared owners outlive the reader's temporary decoded storage. The
+//! immutable bytes and metadata do not certify CRCs, framing, text or support.
+struct DRW_DwgClassSourceReport {
+  DRW_DwgClassSourceStatus m_status = DRW_DwgClassSourceStatus::NotRequested;
+  DRW::Version m_version = DRW::UNKNOWNV;
+  std::uint8_t m_appMaintenanceVersion = 0;
+  std::uint16_t m_codePageId = 0;
+  bool m_codePagePresent = false;
+  bool m_codePageRecognized = false;
+  std::int32_t m_sectionDescriptorId = -1;
+  DRW_DwgFrameOffsetSpace m_offsetSpace = DRW_DwgFrameOffsetSpace::Unknown;
+  std::uint64_t m_baseByteOffset = 0;
+  std::uint64_t m_declaredSectionSize = 0;
+  std::uint64_t m_byteCount = 0;
+  bool m_classReadCompleted = false;
+  bool m_parserCoverageComplete = false;
+  std::shared_ptr<const std::vector<std::uint8_t>> m_bytes;
+};
+
 //! Read-side publication receipt for one fully validated DWG object/entity
 //! frame. It records which representation reached the consumer without
 //! inferring that fact from optional raw preservation callbacks.

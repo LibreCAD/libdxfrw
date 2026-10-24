@@ -6562,6 +6562,111 @@ void dwgReader::beginDwgClassCoverage() noexcept {
   m_dwgClassNumberOrdinals.clear();
   m_dwgClassCoveragePublished = false;
   m_dwgClassCoverageCaptureFailed = false;
+  m_dwgClassSourceReport = {};
+  m_dwgClassSourceReport.m_version = version;
+  m_dwgClassSourceReport.m_status = m_dwgClassSourceRequestFailed
+      ? DRW_DwgClassSourceStatus::RequestFailed
+      : m_dwgClassSourceRequested ? DRW_DwgClassSourceStatus::NotCaptured
+                                 : DRW_DwgClassSourceStatus::NotRequested;
+  m_dwgClassSourceDelivered = false;
+}
+
+void dwgReader::prepareDwgClassSource(DRW_DwgClassSourceHandler *handler) noexcept {
+  m_dwgClassSourceHandler = handler;
+  m_dwgClassSourceRequested = false;
+  m_dwgClassSourceRequestFailed = false;
+  if (handler != nullptr) {
+    try { m_dwgClassSourceRequested = handler->wantsDwgClassSource(); }
+    catch (...) { m_dwgClassSourceRequestFailed = true; }
+  }
+}
+
+std::shared_ptr<std::vector<std::uint8_t>> dwgReader::allocateDwgClassSource(
+    std::uint64_t size, std::int32_t descriptor, DRW_DwgFrameOffsetSpace space,
+    std::uint64_t base, std::uint64_t declaredSize, bool backingValid) noexcept {
+  if (!m_dwgClassSourceRequested || m_dwgClassSourceDelivered
+      || m_dwgClassSourceReport.m_status != DRW_DwgClassSourceStatus::NotCaptured)
+    return {};
+  auto &report = m_dwgClassSourceReport;
+  report.m_version = version;
+  report.m_appMaintenanceVersion = appMaintenanceVersion;
+  report.m_codePageId = getSourceCodePageId();
+  report.m_codePagePresent = hasSourceCodePageField();
+  report.m_codePageRecognized = hasSourceCodePage();
+  report.m_sectionDescriptorId = descriptor;
+  report.m_offsetSpace = space;
+  report.m_baseByteOffset = base;
+  report.m_declaredSectionSize = declaredSize;
+  report.m_byteCount = size;
+  const auto cap = std::min(m_dwgClassSourceByteLimit, DRW::kMaxDwgClassSourceBytes);
+  if (size > cap) {
+    report.m_status = DRW_DwgClassSourceStatus::TooLarge;
+    return {};
+  }
+  if (!backingValid || size == 0u || descriptor < 0 || declaredSize == 0u
+      || (space != DRW_DwgFrameOffsetSpace::PhysicalFile
+          && space != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+      || (space == DRW_DwgFrameOffsetSpace::DecodedBuffer && base != 0u)
+      || base > (std::numeric_limits<std::uint64_t>::max)() - size) {
+    report.m_status = DRW_DwgClassSourceStatus::InvalidRange;
+    return {};
+  }
+  try {
+    auto bytes = std::make_shared<std::vector<std::uint8_t>>(static_cast<std::size_t>(size));
+    if (bytes->capacity() > cap) {
+      report.m_status = DRW_DwgClassSourceStatus::TooLarge;
+      return {};
+    }
+    return bytes;
+  } catch (...) {
+    report.m_status = DRW_DwgClassSourceStatus::CaptureFailed;
+    return {};
+  }
+}
+
+void dwgReader::captureDwgClassSource(const std::uint8_t *data, std::uint64_t size,
+    std::int32_t descriptor, std::uint64_t declaredSize) noexcept {
+  auto bytes = allocateDwgClassSource(size, descriptor,
+      DRW_DwgFrameOffsetSpace::DecodedBuffer, 0u, declaredSize, data != nullptr);
+  if (!bytes) return;
+  std::copy(data, data + bytes->size(), bytes->begin());
+  m_dwgClassSourceReport.m_bytes = std::move(bytes);
+  m_dwgClassSourceReport.m_status = DRW_DwgClassSourceStatus::Captured;
+}
+
+void dwgReader::capturePhysicalDwgClassSource(dwgBuffer &buffer,
+    std::uint64_t base, std::uint64_t size, std::int32_t descriptor) noexcept {
+  auto bytes = allocateDwgClassSource(size, descriptor,
+      DRW_DwgFrameOffsetSpace::PhysicalFile, base, size,
+      buffer.isGood() && dwgSafety::range(base, size, buffer.size()));
+  if (!bytes) return;
+  try {
+    // Independent cursor/error state. File-stream clones seek from their own
+    // position on every read, so the original cursor/cache remains untouched.
+    auto probe = buffer.forkIndependent();
+    if (!probe.setPosition(base) || !probe.getBytes(bytes->data(), size) || !probe.isGood()) {
+      m_dwgClassSourceReport.m_status = DRW_DwgClassSourceStatus::CaptureFailed;
+      return;
+    }
+    m_dwgClassSourceReport.m_bytes = std::move(bytes);
+    m_dwgClassSourceReport.m_status = DRW_DwgClassSourceStatus::Captured;
+  } catch (...) {
+    m_dwgClassSourceReport.m_status = DRW_DwgClassSourceStatus::CaptureFailed;
+  }
+}
+
+void dwgReader::finalizeDwgClassSourceNoThrow(bool classReadCompleted) noexcept {
+  if (m_dwgClassSourceDelivered) return;
+  m_dwgClassSourceDelivered = true;
+  m_dwgClassSourceReport.m_classReadCompleted = classReadCompleted;
+  m_dwgClassSourceReport.m_parserCoverageComplete = m_dwgClassCoverageReport.m_complete;
+  if (m_dwgClassSourceHandler != nullptr) {
+    try { m_dwgClassSourceHandler->addDwgClassSourceReport(m_dwgClassSourceReport); }
+    catch (...) {
+      m_dwgClassSourceReport.m_status = DRW_DwgClassSourceStatus::DeliveryFailed;
+      m_dwgClassSourceReport.m_bytes.reset();
+    }
+  }
 }
 
 DRW_DwgClassCoverageEntry
@@ -6674,6 +6779,7 @@ void dwgReader::finalizeDwgClassCoverageNoThrow(
     m_dwgClassCoverageReport.m_status =
         DRW_DwgClassCoverageStatus::FinalizedPartial;
   }
+  finalizeDwgClassSourceNoThrow(classReadCompleted);
 }
 
 bool dwgReader::publishDwgClasses(std::vector<DwgStagedClass> &stagedClasses) {

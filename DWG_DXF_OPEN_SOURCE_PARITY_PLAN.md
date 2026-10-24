@@ -119175,3 +119175,104 @@ receipts remain unchanged capture-time snapshots.
 
 Receipt:
 [`rpp5bl-independent-classes-record-text-observer-2026-10-24.json`](docs/research/rpp5bl-independent-classes-record-text-observer-2026-10-24.json).
+
+## Implementation progress — RPP-5bm opt-in native CLASSES source lease (2026-10-24)
+
+The source-capture prerequisite is implemented. It supplies actual retained
+physical or decoded CLASSES bytes; it does **not** supply independent section
+framing, class/text semantics, output equivalence or a support certificate.
+This checkpoint supersedes the pending source-lease/extraction tasks in RPP-5bl.
+The parent source-evidence item remains open; strict admission remains
+**CLOSED**. Implementation, focused tests, this plan and its receipt are
+checkpointed together in the local commit reported at handoff. No remote
+mutation or drawing addition is part of this slice.
+
+1. [x] Add a separate optional `DRW_DwgClassSourceHandler` side channel. Its
+   request defaults false and is queried once per read. Existing `DRW_Interface`
+   vtable and parser-coverage report layout stay unchanged; ordinary consumers
+   need not derive from the handler or copy source bytes. The converter opts
+   in explicitly. New public report types require consumer rebuild validation,
+   not an assertion of universal binary compatibility.
+2. [x] Capture once from each extraction lineage: reader15 physical section
+   through an independent cursor; reader18 decoded envelope before cleanup;
+   reader21 decoded temporary before destruction. Reader24/27/32 inherit the
+   reader18 hook. Preserve version, application-maintenance byte, raw codepage
+   identity/presence/recognition, descriptor, address space, base, declared size
+   and copied count when captured (attempted extent on failure). Reader18's
+   bounded zero-filled decoded capacity
+   may exceed the declared section size: retain both values; do not call that
+   padding physical source or independently verified section content. No DWG
+   record grammar, section decoder or type dispatch was changed.
+3. [x] Bound payload copying before allocation to 64 MiB, reject invalid backing
+   ranges without poisoning the publishing cursor, and freeze the shared byte
+   owner. Distinguish not-requested, not-captured, too-large, invalid-range,
+   request, capture and delivery failures. Allocation/request/callback failure
+   cannot change the ordinary parse result or become an empty valid table.
+   Class-read/parser-completeness flags remain separate observations. A
+   throwing callback must invalidate its own partial retention; the reader
+   cannot revoke a shared owner already copied by arbitrary consumer code.
+4. [x] Give the converter private per-generation read-only source reports,
+   reject duplicate/failed-context callbacks and stale fallback, charge owner,
+   capacity and map-node estimates against a separate aggregate 64 MiB/1024
+   report budget, and retain explicit failure without allocation. Failure does
+   not consume the retained-byte charge; a later import generation can retry
+   within remaining container limits. Mutable public class rows do not refresh
+   or replace these source leases. No source lease alone clears any admission
+   issue; full frozen metadata/source joins are still required below.
+5. [x] Add focused allocation/request/delivery fault controls, exact/over-cap
+   and invalid-range checks, copied-byte lifetime, duplicate/retry controls,
+   adapter budget/allocation controls, and memory/file cursor-continuation
+   checks. Reuse the audited adapter-object compile context, guarded by the
+   existing context comparator. Native capture/no-copy comparisons use only
+   four already tracked fixtures (AC1015/1018/1021/1027), with repeat imports.
+   Inherited AC1024/AC1032 hooks are not independently native-qualified by
+   those four files. Scratch cursor bytes are generated at runtime, not drawing
+   fixtures. No new DWG/DXF file is added or downloaded.
+6. [x] Rebuild the affected library, converter, compatibility gate and test
+   executables with strict warnings. All 383 source-capture assertions pass
+   normally and under ASan. The six-test focused checkpoint passes (37.10 s),
+   five affected owning checkpoints pass (15.82 s), and four reader/fixture/
+   adapter/3D consumer checks pass (2.52 s), in sequential cohorts with at most
+   three tests per cohort. ASan passes (1.44 s); public-header hygiene and
+   LibreCAD_3 compile compatibility pass. Record actual results in the receipt
+   and commit this authorized local checkpoint. No full suite, external
+   semantic or native platform qualification is implied by these local checks.
+
+Implementation-ready continuation, in dependency order:
+
+- [ ] **Independent full-section framing.** Consume the immutable source lease
+  directly, not parser-supplied record bounds. Independently verify legacy and
+  decoded sentinels, lengths, record iteration/count, detached-string footer,
+  padding/consumption and CRC status. Preserve explicit ODA BS versus producer
+  BL candidates and unresolved ambiguity. Empty max-class499 is a separate
+  control. Start with small scratch-authored sections, then tracked native
+  captures; source capture success is not framing success.
+- [ ] **Frozen class/source joins.** Freeze import/profile metadata, stream
+  ordinal and every class field/name before mutable consumer edits; correlate
+  independent spans and names to IMAGEDEF/reactor class identities and their
+  actual source frames. Reject duplicate, mutated, late, missing and
+  cross-generation evidence. Keep `ClassEnvelope` and
+  `TextSemanticsNotIndependent` until their complete independent gates pass.
+- [ ] **Negative/readiness closure.** Add malformed/truncated framing,
+  BS/BL-disagreement and producer>=256 source controls, footer/CRC/count and
+  profile mutation, callback/allocation rollback and later-generation recovery.
+  Preserve 2D source compatibility and opt-in 3D consumers. Extend tracked or
+  scratch-generated native lineage coverage without claiming self-writer
+  equality as independent semantic evidence.
+- [ ] Continue producer LAYER/codepage byte-order evidence, full IMAGE/common
+  state, NOD/image-dictionary/document closure, broader APPID/LAYER/XRECORD,
+  AC1024/container/SUN, TABLE/extension, MATERIAL and consumer integration in
+  the existing dependency order. No unrelated open item is completed here.
+
+Self-update/unblock rule: after each implemented item, refresh its evidence and
+next action, resolve safe local failures and continue within authorized scope.
+Report progress only after an actual slice commit. Prefer focused fast tests
+and affected owning checkpoints; run heavy cohorts sequentially. Strict
+admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Earlier receipts stay
+immutable capture-time snapshots; unrelated untracked files/drawings stay
+excluded from staging.
+
+Receipt:
+[`rpp5bm-opt-in-native-classes-source-lease-2026-10-24.json`](docs/research/rpp5bm-opt-in-native-classes-source-lease-2026-10-24.json).

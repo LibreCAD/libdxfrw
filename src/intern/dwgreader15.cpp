@@ -198,6 +198,7 @@ bool dwgReader15::readDwgClasses(){
     if (!fileBuf->setPosition(si.address))
         return false;
 
+    capturePhysicalDwgClassSource(*fileBuf, si.address, si.size, si.Id);
     DRW_DBG("classes section sentinel= ");
     if (!checkSentinel(fileBuf.get(), secEnum::CLASSES, true))
         return false;

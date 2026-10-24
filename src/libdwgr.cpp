@@ -4371,6 +4371,7 @@ bool dwgRW::processDwg() {
         };
 
     try {
+    reader->prepareDwgClassSource(dynamic_cast<DRW_DwgClassSourceHandler*>(iface));
     reader->beginDwgClassCoverage();
     ret = reader->readDwgHeader(hdr);
     if (ret)

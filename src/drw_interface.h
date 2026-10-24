@@ -182,7 +182,7 @@ public:
   addDwgFrameCoverageReport(const DRW_DwgFrameCoverageReport &data) {
     (void)data;
   }
-  /** Called after a DWG reader finalizes its independent CLASSES report. */
+  /** Called after a DWG reader finalizes its parser-derived CLASSES report. */
   virtual void
   addDwgClassCoverageReport(const DRW_DwgClassCoverageReport &data) {
     (void)data;
@@ -695,6 +695,22 @@ class DRW_UnmodeledDxfObjectHandler {
 public:
   virtual ~DRW_UnmodeledDxfObjectHandler() = default;
   virtual void addUnmodeledDxfObject(const DRW_RawDxfObject &data) = 0;
+};
+
+/** Optional source-evidence side channel. Does not extend DRW_Interface's
+ * established vtable or require existing 2D consumers to retain source bytes.
+ * Request once per read; default false performs no source copy. Reports are
+ * delivered once after class accounting, including explicit capture failures.
+ * This is not a semantic/support certificate. A consumer whose callback throws
+ * must treat its own source capture as failed, not use partially retained data.
+ */
+class DRW_DwgClassSourceHandler {
+public:
+  virtual ~DRW_DwgClassSourceHandler() = default;
+  virtual bool wantsDwgClassSource() const { return false; }
+  virtual void addDwgClassSourceReport(const DRW_DwgClassSourceReport& data) {
+    (void)data;
+  }
 };
 
 #endif

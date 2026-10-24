@@ -1889,11 +1889,27 @@ if(TARGET dwg2dxf)
     endforeach()
 endif()
 
+add_executable(libdxfrw_dwg_class_source_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwg_class_source_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_dwg_class_source_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dwg_class_source_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dwg_class_source_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dwg_class_source_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dwg_class_source
+    COMMAND libdxfrw_dwg_class_source_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg
+        ${CMAKE_CURRENT_BINARY_DIR}/class-source)
+set_tests_properties(libdxfrw_dwg_class_source PROPERTIES
+    LABELS "dwg;classes;source;fast" TIMEOUT 30)
+
 # Keep this after every local target customization. A differing compile/link
 # context must get its own adapter, not silently reuse these object files.
 libdxfrw_check_test_adapter_context(
     libdxfrw_dwg2dxf_adapter_tests libdxfrw_block_owner_tests
-    libdxfrw_dimstyle_optional_handle_tests libdxfrw_numeric_locale_tests)
+    libdxfrw_dimstyle_optional_handle_tests libdxfrw_numeric_locale_tests
+    libdxfrw_dwg_class_source_tests)
 add_test(NAME libdxfrw_adapter_build_context
     COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter_build_context_tests.py

@@ -1449,6 +1449,16 @@ protected:
   void finalizeDwgFrameCoverageNoThrow(DRW_Interface &intfa,
                                        bool readCompleted) noexcept;
   void beginDwgClassCoverage() noexcept;
+  void prepareDwgClassSource(DRW_DwgClassSourceHandler *handler) noexcept;
+  void captureDwgClassSource(const std::uint8_t *bytes, std::uint64_t size,
+                            std::int32_t descriptor, std::uint64_t declaredSize) noexcept;
+  void capturePhysicalDwgClassSource(dwgBuffer &buffer, std::uint64_t base,
+                                    std::uint64_t size, std::int32_t descriptor) noexcept;
+  void finalizeDwgClassSourceNoThrow(bool classReadCompleted) noexcept;
+  [[nodiscard]] std::shared_ptr<std::vector<std::uint8_t>>
+  allocateDwgClassSource(std::uint64_t size, std::int32_t descriptor,
+                        DRW_DwgFrameOffsetSpace space, std::uint64_t base,
+                        std::uint64_t declaredSize, bool backingValid) noexcept;
   void finalizeDwgClassCoverage(DRW_Interface &intfa, bool classReadCompleted);
   void finalizeDwgClassCoverageNoThrow(DRW_Interface &intfa,
                                        bool classReadCompleted) noexcept;
@@ -2144,6 +2154,12 @@ public:
   bool m_dwgFrameCoverageIntegrityViolation{false};
   bool m_dwgFrameCoveragePublished{false};
   DRW_DwgClassCoverageReport m_dwgClassCoverageReport;
+  DRW_DwgClassSourceHandler *m_dwgClassSourceHandler{nullptr};
+  DRW_DwgClassSourceReport m_dwgClassSourceReport;
+  std::size_t m_dwgClassSourceByteLimit{DRW::kMaxDwgClassSourceBytes};
+  bool m_dwgClassSourceRequested{false};
+  bool m_dwgClassSourceRequestFailed{false};
+  bool m_dwgClassSourceDelivered{false};
   //    std::uint32_t currBlock;
   std::uint8_t maintenanceVersion{0};
   // Application maintenance release version (file-header byte 0x12). This —

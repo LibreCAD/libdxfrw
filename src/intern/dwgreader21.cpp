@@ -1568,6 +1568,7 @@ bool dwgReader21::readDwgClasses(){
         return ret;
     }
 
+    captureDwgClassSource(tmpClassesData.data(), si.size, si.Id, si.size);
     dwgBuffer buff(tmpClassesData.data(), si.size, &decoder);
     DRW_DBG("classes section sentinel= ");
     if (!checkSentinel(&buff, secEnum::CLASSES, true)) {
