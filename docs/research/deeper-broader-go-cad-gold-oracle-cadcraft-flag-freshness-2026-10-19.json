@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "go-cad gold-oracle boundary and CADCraft peer-status correction",
+  "mode": "Primary-source research and implementation-readiness update; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Deepen the already-screened go-cad candidate's evidence, corpus, and oracle classification.",
+    "Refresh CADCraft dimension-flag, absent-INSUNITS, and AutoCAD AUDIT report status.",
+    "Map peer observations to existing local test/consumer owners without duplicate validation or support promotion."
+  ],
+  "sources": [
+    {
+      "project": "unitedrhino/go-cad",
+      "urls": [
+        "https://github.com/unitedrhino/go-cad",
+        "https://github.com/unitedrhino/go-cad/blob/main/README_en.md",
+        "https://github.com/unitedrhino/go-cad/tree/main/testdata",
+        "https://github.com/unitedrhino/go-cad/blob/main/LICENSE"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-19; no immutable commit or tagged artifact was obtained.",
+      "observed": "The README claims R9-R2018 DWG reading, R2000-R2018 writing, 37 drawings with 34 strict gold-alignment rows, an official-corpus workflow, and DXF ASCII/Binary checks. It explicitly lists ACIS reconstruction as unsupported. Its named gold paths use LibreDWG dwgread -O JSON and dxf2dwg. The rendered repository page exposed test filenames and testdata but exact source/corpus contents could not be inspected in this pass.",
+      "evidenceCeiling": "A potentially source-distinct structural differential; not an independently authored semantic oracle, not a qualified artifact result, and not 3D/ACIS evidence."
+    },
+    {
+      "project": "CADCraft issue #1094 and PR #1096",
+      "urls": [
+        "https://github.com/storytold/cadcraft/issues/1094",
+        "https://github.com/storytold/cadcraft/pull/1096"
+      ],
+      "revision": "Issue and PR pages reviewed 2026-10-19; PR branch commit shown as 0d5eccb and remains open.",
+      "observed": "Issue #1094 is closed through #1096, but the PR page remains open and says the branch is not deployed. The PR describes a CADCraft bridge change mapping DXF group-70 DIMENSION bits to DWG Flags 1 in both directions and reports raw-byte vectors for four dimension families.",
+      "evidenceCeiling": "Unmerged application-bridge evidence in the ACadRust family; not released behavior, a separate parser lineage, or a libdxfrw defect."
+    },
+    {
+      "project": "CADCraft issue #1209",
+      "urls": [
+        "https://github.com/storytold/cadcraft/issues/1209"
+      ],
+      "revision": "Issue page reviewed 2026-10-19; issue open and no branch/PR linked on the page.",
+      "observed": "The report says a legacy DXF with no $INSUNITS was read from a new imperial document template and then rewritten with $INSUNITS=1. A maintainer proposes resetting imported files to unitless but no merged fix or retest is established.",
+      "evidenceCeiling": "Peer-specific import default behavior; does not define universal omitted-variable semantics or coordinate scaling."
+    },
+    {
+      "project": "CADCraft issue #604",
+      "urls": [
+        "https://github.com/storytold/cadcraft/issues/604"
+      ],
+      "revision": "Issue page reviewed 2026-10-19; issue remains open.",
+      "observed": "A user reports AutoCAD 2027 opening CADCraft's AC1018 output after an AC1032 input with plausible visuals but six AUDIT errors, including AcDbTableStyle(1109) - not fixed; no repairs or erasures were reported. The offered drawings were not downloaded.",
+      "evidenceCeiling": "Single user-reported native result; not an independently reproduced result or a libdxfrw failure."
+    }
+  ],
+  "localEvidence": [
+    "Existing local common DIMENSION Flags 1 writer and parser vectors exercise raw values 0/1/2/3 across AC1018, AC1021, and AC1024; existing DXF frame tests cover ASCII/Binary output.",
+    "Existing 7BJ.4 header tests preserve absent $INSUNITS separately from explicit 0/1/4 and assert coordinates are not implicitly rescaled.",
+    "Existing composed native-consumer plan records requested/actual output version, open outcome, AUDIT diagnostics, graph disposition, and visual/semantic result separately.",
+    "The plan already records the CADCraft/ACadRust parser-family relationship; this review adds status freshness and evidence-denominator detail only."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Classifies go-cad as an optional structural differential with a LibreDWG-correlated gold oracle and no ACIS semantics. Corrects CADCraft issue freshness while preserving existing local DIMENSION/header tests and the single composed native gate; no routine peer/native validation is added."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local source/test/plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "The go-cad default branch is mutable, its immutable commit and exact corpus manifest were not bound, and the rendered source-file pages were unavailable for line-level audit. CADCraft findings are reports from one ACadRust-related application lineage; issue closure, an open PR, visual appearance, and a successful native open are kept distinct from merged release behavior, clean AUDIT, or geometry semantics."
+  }
+}

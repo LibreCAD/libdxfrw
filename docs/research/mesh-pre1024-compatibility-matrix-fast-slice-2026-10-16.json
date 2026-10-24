@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-16",
+  "slice": "pre-AC1024 MESH DXF writer compatibility matrix",
+  "status": "implemented_local_fast_slice",
+  "scope": {
+    "profiles": [
+      {"version": "AC1014", "record": "MESH", "meaning": "compatibility characterization only"},
+      {"version": "AC1015", "record": "MESH", "meaning": "compatibility characterization only"},
+      {"version": "AC1018", "record": "MESH", "meaning": "compatibility characterization only"},
+      {"version": "AC1021", "record": "MESH", "meaning": "compatibility characterization only"},
+      {"version": "AC1024", "record": "SUBDIVISION", "meaning": "Autodesk-documented 2010 DXF profile"},
+      {"version": "AC1027", "record": "MESH", "meaning": "Autodesk-documented 2013 DXF profile"},
+      {"version": "AC1032", "record": "MESH", "meaning": "implementation compatibility profile, native acceptance unqualified"}
+    ],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Exact $ACADVER and entity record name",
+      "One AcDbSubDMesh subclass and one selected CLASS row",
+      "Version-gated CLASS group 91 instance count presence (AC1018+)",
+      "Topology, crease and property-override fields",
+      "Typed readback and following-LINE framing"
+    ],
+    "fixture_policy": "Runtime-generated temporary inputs only; no repository fixture added."
+  },
+  "investigation": {
+    "AC1012": "Excluded: current isSupportedDxfWriteVersion() does not enable it. It is not asserted valid or invalid as a DXF entity profile.",
+    "class_instance_count": "DRW_Class::write() emits code 91 only when target version is greater than AC1015; the test follows this existing format gate.",
+    "class_tuple": "Local SCENEOE/1025 tuple remains a serializer invariant only, not independently verified as an Autodesk MESH tuple."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "test": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "passed": "1/1",
+      "elapsed_seconds": 3.46
+    }
+  },
+  "not_run": [
+    "Full suite",
+    "Native AutoCAD/ODA/FreeCAD acceptance",
+    "Pinned independent peer application"
+  ],
+  "claims": {
+    "pre_AC1024_validity": "UNQUALIFIED",
+    "AC1024_and_AC1027_native_acceptance": "NOT_RUN",
+    "support_claim_promoted": false,
+    "finding_count": 125,
+    "top_level_subplan_count": 71
+  },
+  "external_items": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

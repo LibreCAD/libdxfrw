@@ -1,0 +1,105 @@
+{
+  "title": "Deeper/broader DXF peer-claims and Autodesk contract reconciliation",
+  "date": "2026-10-17",
+  "status": "research_only",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Reconcile ACadSharp issue #1253's CLASSES, HATCH, and DIMSTYLE claims with Autodesk's record-specific DXF references.",
+    "Check ACadSharp codepage, MTEXT, and SPLINE reports against already-existing local plan owners and generated tests.",
+    "Refine evidence grade and test ordering without adding implementation work."
+  ],
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "type": "primary_format_guidance",
+      "finding": "Advises DXF reader authors to ignore undefined groups and avoid assuming fixed group-code order within entities; this is implementation guidance, not a guarantee that every record scope accepts every sequence."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-DBD5351C-E408-4CED-9336-3BD489179EF5.htm",
+      "type": "primary_format_reference",
+      "finding": "Lists required CLASSES fields 0, 1, 2, 3, 90, 91, 280, and 281."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "type": "primary_format_reference",
+      "finding": "Defines HATCH group 47 as pixel size used for associative/flood computation and lists it before group 98 seed count; does not establish a zero-value omission rule."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+      "type": "primary_format_reference",
+      "finding": "Documents common symbol-table header group 70 as the maximum-entry count and DIMSTYLE record handle code 105."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+      "type": "primary_format_reference",
+      "finding": "Defines DIMSTYLE record group 71 as DIMTOL and group 340 as the DIMTXSTY STYLE handle; does not describe the disputed AcDbDimStyleTable subclass payload."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1253",
+      "type": "peer_report",
+      "finding": "Reporter says AutoCAD 2027 rejected three ACadSharp DXF output sequences; no raw AutoCAD DXF/hash or independent rerun was available in this review."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1259",
+      "type": "peer_report",
+      "finding": "Synthetic Korean example separates declared $DWGCODEPAGE from actual legacy payload encoding."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1260",
+      "type": "peer_change_candidate",
+      "finding": "Linked change remains non-release evidence and does not independently qualify output."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "type": "peer_report",
+      "finding": "Frame-only MTEXT flag report is version- and whole-file-scoped; cause is unresolved by the reporter."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "type": "peer_report",
+      "finding": "DWG-to-DXF SPLINE report lacks published offending entity identity, full curve arrays, exact downstream options, and independent expected geometry."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+      "type": "primary_format_reference",
+      "finding": "MTEXT fields are documented; the reference does not resolve the reported AC1032 whole-file rejection cause."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+      "type": "primary_format_reference",
+      "finding": "Documents SPLINE flags, counts, tolerances, knots, weights, control points, and fit points; does not establish expected geometry for the peer's private sample."
+    }
+  ],
+  "plan_changes": [
+    "Do not generalize ACadSharp #1253 into a globally strict ordered-DXF-parser rule; retain it as record/profile-specific AutoCAD acceptance evidence.",
+    "Keep HATCH group-47 zero behavior unresolved pending exact profile evidence.",
+    "Keep DIMSTYLE table-header 71/340 as a candidate census; separate it from table group 70 and record-level 71/340 semantics.",
+    "Reuse existing generated CP949, MTEXT, CLASS/HATCH, and SPLINE test owners; add no duplicate test or external fixture."
+  ],
+  "implementation_order_changed": false,
+  "findings_added": 0,
+  "top_level_subplans_added": 0,
+  "findings_subplans_current": "127/71",
+  "external_items": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "validation": {
+    "local_tests_run": false,
+    "peer_runtime_run": false,
+    "native_cad_run": false,
+    "external_file_downloaded": false,
+    "fixtures_or_dependencies_added": false,
+    "code_changed": false
+  },
+  "limitations": [
+    "ACadSharp issue observations remain peer-reported and do not establish libdxfrw defects or support claims.",
+    "Mutable project issue pages and current-source references are not release qualification.",
+    "Native AutoCAD acceptance remains a one-time composed checkpoint, not a per-slice requirement."
+  ]
+}

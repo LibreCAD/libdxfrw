@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-3 label attachment/alignment overlay insertion",
+  "mode": "generated ASCII/Binary fast implementation slice",
+  "scope": [
+    "Preserve typed SectionViewStyle label attachment and alignment values when raw group-3 code-90 occurrences are absent",
+    "Exercise the second group-3 long with a default first-slot placeholder",
+    "Verify ordered raw replay and typed same-version readback"
+  ],
+  "implementation": {
+    "production": [
+      "The same-version overlay inserts missing group-3 code-90 attachment/alignment values when typed values differ from defaults.",
+      "A changed alignment with a default/missing attachment value emits the signed DXF-long placeholder first, preserving the reader's two-occurrence mapping."
+    ],
+    "tests": [
+      "Generated ASCII and Binary controls remove both group-3 code-90 values, retain the default attachment, and change alignment.",
+      "The focused style selector checks the exact expected raw stream and same-version readback while retaining the adjacent group-3 double and group-2 color/weight controls."
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+      "result": "passed; ASCII and Binary"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    "compatibilityTarget": "lc3_compat_check passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "persistentGeneratedFiles": 0,
+    "commitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "disposition": {
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This verifies local generated same-version raw overlay and typed readback only. It does not qualify the group-code sequence against a native producer, cross-version serialization, or CAD display behavior."
+}

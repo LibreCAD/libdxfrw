@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "kind": "research-only-plan-update",
+  "date": "2026-10-19",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Refresh LibreDWG's current DWG/DXF regression families, compare one block-entity traversal issue to local strict-publication behavior, and verify that the active generated MATERIAL raw-replay case is schema-shaped; no code, test, fixture, dependency, or external execution.",
+  "sources": [
+    "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+    "https://github.com/LibreDWG/libredwg/issues/1357",
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36D-5C739878B272.htm",
+    "https://github.com/LibreDWG/libredwg-fuzz",
+    "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+  ],
+  "local_crosswalk": [
+    {
+      "peer": "LibreDWG 0.14.1 NEWS",
+      "peer_mechanisms": [
+        "Security and resource-safety fixes across decompression bounds, 3DSOLID size arithmetic, pre-R13 OOM/progress, and object/container handling.",
+        "DXF fixes for HATCH per-path state/rational splines, SEQEND-owned references, BLOCK_HEADER.entities, TABLESTYLE color, MATERIAL color/mapper subfields, group 310-319 binary chunks, and final SAT-block output."
+      ],
+      "local_owners": [
+        "Existing parser hardening and bounded-frame owners",
+        "tests/dwg_reader_matrix_tests.cpp block-owner and coverage controls",
+        "tests/hatch_reference_tests.cpp and tests/dwg_local_roundtrip_tests.cpp HATCH path/spline controls",
+        "tests/dxf_fixture_tests.cpp active MATERIAL raw replay control",
+        "tests/wave1_tests.cpp and tests/hardening_tests.cpp group 310-319 and modeler-carrier controls"
+      ],
+      "disposition": "Current upstream NEWS is an implementation/fix-history signal, not a pinned binary test result or evidence of a local defect. Reuse only exact adversarial shapes at existing owners; no peer build/fuzz run per slice."
+    },
+    {
+      "peer": "LibreDWG #1357",
+      "peer_mechanism": "The reporter describes a missing BLOCK_HEADER.entities reference causing the peer R2007 DXF traversal to end early; the reported drawing yielded 93 of 10847 references and was not fetched or independently reproduced.",
+      "local_owners": [
+        "src/intern/dwgreader.cpp walkBlockRecordEntities and readDwgEntities",
+        "dwg2dxf/dx_iface.cpp strictDwgReadOutcomeIsComplete",
+        "tests/dwg_reader_matrix_tests.cpp testMixedMissingBlockOwnership",
+        "dwg2dxf/main.cpp strict-complete fileExport call"
+      ],
+      "disposition": "Local AC1024+ traversal continues after missing handles with diagnostics; malformed owner closure is quarantined, and strict export requires finalized-complete coverage before publication. Add a sentinel assertion when this strict-complete test path is next touched; do not adopt lossy skip-and-publish as strict behavior."
+    },
+    {
+      "peer": "Autodesk MATERIAL DXF schema + LibreDWG color/mapper fix note",
+      "peer_mechanism": "Autodesk defines ambient/diffuse color method/factor/value fields and a 16-real row-major group-43 mapper transform. The existing local generated MATERIAL test writes group 43 once and contains no color 90/91 values.",
+      "local_owners": [
+        "tests/dxf_fixture_tests.cpp writeMaterialRawCaptureControl and testMaterialRawCapture",
+        "Existing PAR-20/7G.3f.4b.2 raw callback, graph-closure, remap, and same-profile replay implementation"
+      ],
+      "disposition": "Refine the existing generated test profile with color fields and a complete distinct-value mapper matrix. This closes a test-profile gap only; the current test remains valid as an ordered raw-replay control but not as a schema-complete matrix witness."
+    },
+    {
+      "peer": "LibreDWG generic binary chunk and final SAT block fixes",
+      "peer_mechanism": "The release notes identify group 310-319 binary chunk encoding and final SAT chunk off-by-one as separate DXF writer failure classes.",
+      "local_owners": [
+        "tests/wave1_tests.cpp group 310-319 writer matrix",
+        "tests/hardening_tests.cpp exact chunk framing",
+        "tests/modeler_dxf_writer_matrix_tests.cpp final chunk and following-record checks"
+      ],
+      "disposition": "Existing local generated controls already target these boundaries; add only a changed-branch discriminator if those writers are modified."
+    }
+  ],
+  "plan_delta": {
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "existing_owner_refinement": "Extend PAR-20/7G.3f.4b.2 generated MATERIAL controls with schema-valid ambient/diffuse color fields and a full 16-value row-major group-43 matrix; at the next strict-complete publication test edit, assert missing-reference refusal preserves a destination sentinel.",
+    "finding_count_after": 137,
+    "top_level_subplan_count_after": 77,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "support_claim_promoted": false
+  },
+  "verification": {
+    "local_source_test_inventory_only": true,
+    "build_run": false,
+    "test_run": false,
+    "peer_executable_run": false,
+    "peer_fuzzer_run": false,
+    "native_cad_run": false,
+    "external_drawings_downloaded": 0,
+    "issue_attachments_downloaded": 0,
+    "fixture_added": false,
+    "dependency_added": false,
+    "commit_attempted": false
+  }
+}

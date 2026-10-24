@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "title": "Deeper/broader LibreCAD fork and LibreCAD_3 consumer reconciliation",
+  "date": "2026-10-20",
+  "scope": "Read-only source/documentation comparison of the adjacent LibreCAD in-tree libdxfrw fork's generated coverage/roadmap documents, current LibreCAD_3 DWG policy/build integration, and the local compile-only compatibility guard. No sibling C++ function-by-function diff or build was performed. Refine integration readiness without counting correlated code as independent format evidence.",
+  "sources": [
+    {
+      "name": "Adjacent LibreCAD checkout",
+      "revision": "41678d97626c05ab652ceaa02cf0ac7f7f6205cf",
+      "subjectRevision": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "files": [
+        "../LibreCAD/libraries/libdxfrw/README.md",
+        "../LibreCAD/libraries/libdxfrw/DWG_ROADMAP.md",
+        "../LibreCAD/libraries/libdxfrw/DWG_REFERENCE_COVERAGE_STATUS.md"
+      ],
+      "evidence": "The in-tree fork documents DWG read/write surfaces and has a versioned active roadmap plus a generated source inventory distinguishing dispatch/raw classifications from fixture-backed validation. The active roadmap keeps AC1032 evidence separate from inheritance alone.",
+      "limit": "Same libdxfrw implementation lineage, not an independent parser/writer or semantic vote. The sibling working tree has unrelated dirty files; the cited documents themselves were unchanged. No sibling build or application run was performed."
+    },
+    {
+      "name": "LibreCAD_3 CMake build definition",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/CMakeLists.txt",
+      "evidence": "WITH_PERSISTENCE enables the vendored libdxfrw build; WITH_DWG_IMPORT is a separate OFF-by-default option. The build disables documentation/CLI/development-file installation and applies -Wno-error to dxfrw on non-MSVC compilers.",
+      "limit": "Mutable master source review only; no commit-bound checkout or build was used in this research pass. The warning policy makes the downstream build an integration check, not a replacement for strict upstream -Werror."
+    },
+    {
+      "name": "LibreCAD_3 DWG product policy",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "evidence": "The application documents optional experimental DWG reading through dwgRW and no DWG writing.",
+      "limit": "Consumer policy, not a library capability or independent implementation result."
+    },
+    {
+      "name": "Local LibreCAD_3 compatibility guard",
+      "files": [
+        "tests/lc3_compat_check.cpp",
+        "tests/CMakeLists.txt"
+      ],
+      "evidence": "The target is an object-library compile check mirroring callback overrides and selected public fields/signatures; it does not link or run LibreCAD_3 or parse a drawing.",
+      "limit": "Useful fast API/layout compatibility signal only; not full adapter integration, file import, display, save, or semantic acceptance."
+    }
+  ],
+  "findings": [
+    "LibreCAD's bundled fork is a related implementation snapshot and migration target. Its roadmap and source inventories can expand feature discovery, but static registration/counts and same-lineage behavior cannot independently establish correctness or support.",
+    "LibreCAD and LibreCAD_3 represent distinct downstream profiles: the former tracks in-tree DWG read/write development; the latter keeps DWG import opt-in/read-only and does not expose DWG writing.",
+    "The local lc3_compat_check target is narrower than an actual consumer source/build integration and must be described as compile-only API/layout evidence.",
+    "LibreCAD_3's non-MSVC -Wno-error integration policy does not satisfy the standalone library's strict -Werror requirement."
+  ],
+  "implementationReadyChecks": [
+    "Reconcile selected sibling-fork deltas by exact source revision, format version, direction, adapter, owner/reference closure, and validation evidence before porting; require ODA-backed local behavior checks for wire-level changes.",
+    "Keep focused affected-target tests and lc3_compat_check as the cheap per-slice gates; do not add third-party DWG/DXF fixtures.",
+    "At one existing coarse compatibility checkpoint after shared API/adapter work, compile pinned LibreCAD and LibreCAD_3 adapter/persistence sources against the intended standalone branch and record exact revisions/toolchain/options.",
+    "Keep LibreCAD_3 default persistence (DWG import off) separate from its optional DWG-read profile; neither is a DWG-write or 3D-semantic pass.",
+    "If consumer sources/toolchains are unavailable, record NOT_RUN and self-unblock to the next ready local implementation item without waiting for an external fixture or platform."
+  ],
+  "changes": {
+    "code": false,
+    "tests": false,
+    "fixtures": false,
+    "dependencies": false,
+    "supportClaimsPromoted": false,
+    "externalJStatusesChanged": false,
+    "findingsBeforeAfter": "141",
+    "topLevelSubplansBeforeAfter": "78",
+    "validationCadenceChanged": false
+  },
+  "validation": {
+    "receiptJsonValidation": "passed: python3 -m json.tool",
+    "planDiffCheck": "passed: git diff --check on modified plan files",
+    "peerExecutablesRun": false,
+    "nativeCadRun": false,
+    "applicationBuildRun": false,
+    "fullSuiteRun": false
+  }
+}

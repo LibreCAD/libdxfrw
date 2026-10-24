@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Modeler duplicate-source-handle refusal assertion fast slice",
+  "mode": "local generated-control test correction",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Align the modeler-block duplicate-source-handle negative test with the writer's diagnostic",
+    "Rebuild the owning test executable and run its focused selector",
+    "Preserve refusal, destination sentinel, retry, and compatibility assertions"
+  ],
+  "change": {
+    "file": "tests/modeler_block_census_tests.cpp",
+    "selector": "--modeler-block-failures",
+    "case": "fault 4: modeler solid source handle duplicates a sibling REGION source identity",
+    "before": "The selector expected the generic emit-failure diagnostic, so the correct specific refusal was reported as a test failure.",
+    "after": "The selector expects dxf-duplicate-source-entity-handle for fault 4.",
+    "productionCodeChanged": false
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 && build-gcc/libdxfrw_dwg_local_roundtrip --modeler-block-failures",
+    "build": "PASS",
+    "focusedSelector": "PASS",
+    "summary": "Modeler block converter failures B3: PASS (rejected=28, fresh-data retries=28, compatibility=4)",
+    "destinationPreservation": "The existing selector verifies the sentinel destination remains byte-for-byte unchanged for refused writes.",
+    "fullOwnerCTestRun": false,
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "newConfirmedDefects": 0,
+    "newSupportClaims": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "note": "This fixes a stale test expectation and confirms existing duplicate identity refusal. It does not broaden modeler geometry support or establish external/native acceptance."
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "filesChangedByThisSlice": [
+      "tests/modeler_block_census_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/modeler-duplicate-source-handle-refusal-assertion-fast-slice-2026-10-18.json"
+    ],
+    "reason": "The shared worktree is broadly dirty; the focused change was left unstaged and uncommitted, and unrelated state was preserved."
+  }
+}

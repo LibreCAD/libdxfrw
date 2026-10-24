@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "BLOCK_RECORD writer identity slim projection",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid deep-copying parser-only BLOCK_RECORD payloads into the short-lived DXF writer's source identity inventory.",
+    "Preserve all fields consumed by source block identity, layout-link, and extension-dictionary planning."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "dx_iface::fileExport",
+    "before": "Initialize the writer inventory by copying every complete DRW_Block_Record from cData, including preview bitmap, DWG INSERT indexes, and table-entry auxiliary values; later clear xDictHandle for non-SORT owners.",
+    "after": "Build writer inventory records field-by-field, copying only handle, name, layoutHandle, and xDictHandle, which are the fields read by dxfRW's source block identity planner and layout/extension link emitters. Preserve the existing non-SORT xDictHandle clearing and BLOCK-wrapper identity aliases.",
+    "effect": "Retains the necessary writer metadata while avoiding deep copies of unused parser payloads and dynamic auxiliary fields. Public data classes and source dx_data remain unchanged."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests libdxfrw_block_owner_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_block_owners|libdxfrw_sortents_adapter|libdxfrw_dxf_fixtures)$' --output-on-failure",
+        "result": "passed",
+        "count": "3/3",
+        "elapsedSeconds": 4.76,
+        "coverageNote": "Existing tests cover BLOCK_RECORD owner mapping, SORTENTSTABLE xDict ownership, layout and object graph writer/readback paths."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one adapter-to-writer whole-record copy by projecting only proven writer-consumed fields. Compatibility and support gates remain unchanged."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict adapter, fixture, and block-owner test target builds",
+      "Focused block-owner, SORTENTSTABLE, and DXF fixture CTests"
+    ],
+    "limitations": "No allocation instrumentation or peak-RSS measurement was run. The projection is justified by enumerating all m_sourceBlockRecords readers; it is not a general library memory bound."
+  }
+}

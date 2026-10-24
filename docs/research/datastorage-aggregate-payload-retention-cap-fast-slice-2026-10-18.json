@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1027 DataStorage aggregate payload-retention cap",
+  "mode": "local in-memory implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-07 / S8.3 / libdxfrw_graph_preservation_tests",
+  "implementation": {
+    "productionFiles": [
+      "src/drw_datastorage.cpp",
+      "src/drw_datastorage.h"
+    ],
+    "testFiles": ["tests/graph_preservation_tests.cpp"],
+    "changes": [
+      "Applied PAYLOAD_BLOB_SECTION_CAP cumulatively across inline and blob-backed retained record payload vectors.",
+      "When the cumulative budget is exceeded, preserve the record/descriptor structure, omit that payload copy, clear the section-level payloadsRetained flag, and emit a SupportedOpaque diagnostic without disabling replay.",
+      "Added an in-memory five-record fan-out control reusing the same two blob page segments. The section is smaller than the cap; the first four approximately 2 MiB payloads are retained and the fifth is omitted."
+    ],
+    "fixturesOrDependenciesAdded": false,
+    "newCTestRegistration": false,
+    "scopeLimit": "Bounds retained DRW_DataStorageRecord::payload copies in one parse only. It does not bound raw section storage, transient page buffers, or later copies during entity linking."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+    "buildResult": "PASS; strict target compiled and linked.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.81 seconds.",
+    "diffCheck": "PASS for scoped production, test, plan, and receipt paths.",
+    "fullSuite": "NOT RUN; fast-slice cadence retained.",
+    "peerRuntime": "NOT RUN.",
+    "nativeConsumer": "NOT RUN.",
+    "physicalDrawingFixture": "NOT CREATED; generated DataStorage bytes exist only in memory."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-07 / S8.3; linked entity-copy accounting remains in 7S.3.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "commitCreated": false,
+    "worktreeNote": "The shared worktree was already broadly dirty. Nothing was staged or committed."
+  }
+}

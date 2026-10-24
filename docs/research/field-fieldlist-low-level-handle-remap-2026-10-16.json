@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-field-fieldlist-low-level-handle-remap-progress-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE_LOW_LEVEL_WRITER_ONLY",
+  "scope": "Apply the existing one-step DXF object-handle remapper to low-level FIELD and FIELDLIST typed writers; retain the converter's fail-closed export gate.",
+  "modifiedFiles": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256AfterSlice": "039b97f8ea7338b4a0d742a95f1a9211d868a0743a7f9c785a1b444589fbe505"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256AfterSlice": "e8d1dbf38743a9d8d0480f88243e26a976cff66b76acc36c60b06e78d434e9bc"
+    }
+  ],
+  "implementation": {
+    "fieldSelfHandleRemapped": true,
+    "fieldOwnerRemapped": true,
+    "fieldChildHandlesRemapped": true,
+    "fieldObjectHandlesRemapped": true,
+    "primaryAndChildCadValueType64HandlesRemapped": true,
+    "fieldListSelfHandleRemapped": true,
+    "fieldListOwnerUsesExistingRemappingHelper": true,
+    "fieldListMemberHandlesRemapped": true,
+    "callerModelsMutated": false,
+    "sourceAndTargetChainedMappingAppliedOnce": true,
+    "converterFieldExportStillFailClosed": true
+  },
+  "validation": {
+    "redRegressionBeforeFix": {
+      "command": "build/libdxfrw_wave1_tests",
+      "exitCode": 1,
+      "result": "20 FIELD/FIELDLIST remapping assertions failed before production change"
+    },
+    "strictBuilds": [
+      {
+        "command": "cmake --build build --target libdxfrw_wave1_tests -j4",
+        "result": "passed"
+      },
+      {
+        "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+        "result": "passed; lc3_compat_check required no additional rebuild work"
+      }
+    ],
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_wave1|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "elapsedSeconds": 0.76
+    },
+    "diffCheck": "passed"
+  },
+  "doesNotEstablish": [
+    "the conflicting FIELD root group 301/9/98 semantics",
+    "producer-qualified FIELD or FIELDLIST schemas",
+    "that every FIELD graph target is emitted by the converter",
+    "post-write reference closure or native CAD acceptance",
+    "general DXF writer support for FIELD/FIELDLIST"
+  ],
+  "implementationReadiness": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The source and test files contained pre-existing uncommitted edits; committing those whole paths would include unrelated user work."
+  }
+}

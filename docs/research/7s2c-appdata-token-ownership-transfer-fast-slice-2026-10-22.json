@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c DXF appData token ownership transfer",
+  "scope": "Transfer current entity and table-entry appData marker/value strings into their final retained variants without a temporary token copy.",
+  "files": {
+    "CMakeLists.txt": "6b148402af12d205c4439f4cda94d70f59766dad3135000c0aae4a1e62dd26a1",
+    "src/intern/dxfreader.h": "cb3fb8f169a7845a6f077f803a17febf1a6b5715bc2bb117e68daf122e756c6d",
+    "src/drw_entities.cpp": "b68e667f17963218e32d5ec818682ffea652bd7fce480922aadc7a74df47c198",
+    "src/drw_objects.cpp": "42f944e5fa5d60396f20f9f46dd6b77e4cb142179acb7f034cb793d0d90681c7",
+    "tests/hardening_tests.cpp": "21938fa9d56757bbb015b1a7d45aac113e9644c4803c567b988bb2489c949687",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9cfe6a1b3c405ef7bbf4426df64aaca3f13ce5edda2a92a0e72b193ca7c116d9"
+  },
+  "evidence": {
+    "sourceAudit": "Entity and table-entry parseDxfGroups retain group-102 markers and generic appData strings directly from the reader token. Handle strings stay on getString because getHandleString subsequently normalizes the token.",
+    "generatedControls": "In-memory ASCII and Binary DXF groups exercise entity and table-entry parser routes, exact opener/payload/closer values, terminal-token consumption, identical measured transient peaks, 11 retained owner bytes, copy/reset owner lifetime, and one-byte-under rollback.",
+    "binaryGeneration": "Binary records are generated with dxfWriterBinary; no persistent drawing fixture is added."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-appdata-retained-owner-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_appdata_retained_owner_budget$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- src/intern/dxfreader.h src/drw_entities.cpp src/drw_objects.cpp tests/hardening_tests.cpp CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue the exact-source retained-string ownership and staging audit with generated controls and focused fast CTests. Keep proprietary DWG parser changes fail-closed unless normative or traceable class-frame evidence justifies a change."
+}

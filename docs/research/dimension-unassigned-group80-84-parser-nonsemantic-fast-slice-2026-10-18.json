@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DIMENSION unassigned direct groups 80-84 parser framing guard",
+  "mode": "Generated local implementation and focused regression validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Stop interpreting DIMENSION groups 80-84 through the reader integer cache when DXF framing classifies them as strings",
+    "Keep typed tolerance and text-movement values on their canonical ACAD/DSTYLE XDATA route",
+    "Verify ASCII/Binary string consumption, unchanged semantic fields, and following-record alignment using generated in-memory controls"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/dimension-unassigned-group80-84-parser-nonsemantic-fast-slice-2026-10-18.json"
+    ],
+    "productionCodeChanged": true,
+    "publicApiChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "testSetupCorrection": "Generated strict picture-BLOCK probes now clear the default DIMSTYLE name to isolate BLOCK admission/body closure from the separate DIMSTYLE gate; production writer behavior is unchanged.",
+    "generatedInMemoryOnly": true,
+    "focusedSelector": "--dimension-unassigned-direct-groups",
+    "behavior": "Direct DIMENSION groups 80-84 now follow the unknown-tag path after the reader consumes them according to their string wire type. The mapped public fields remain read/written through typed ACAD/DSTYLE XDATA; no semantics or preservation claim is made for those direct tags."
+  },
+  "testMatrix": {
+    "entity": "DIMENSION / DRW_DimAligned parser probe",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controlsPerEncoding": 1,
+    "recordSequence": [
+      "integer group 71 establishes a prior integer cache value",
+      "string groups 80, 81, 82, 83, and 84",
+      "distinctive group-0 WIRE_END sentinel"
+    ],
+    "assertions": [
+      "group 71 parses as the valid alignment control",
+      "groups 80-84 are consumed and observed as strings",
+      "all five DSTYLE-backed public fields remain unchanged",
+      "following sentinel stays aligned and then reaches end of generated input"
+    ]
+  },
+  "validation": {
+    "targetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_wave1_tests --dimension-unassigned-direct-groups",
+      "result": "passed",
+      "output": "DIMENSION unassigned direct groups: PASS"
+    },
+    "dxfBoundarySelector": {
+      "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+      "result": "passed",
+      "output": "DXF code-type boundaries and writer guards: PASS"
+    },
+    "canonicalDstyleRegression": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "passed"
+      },
+    "owningWave1Ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "result": "passed",
+      "notes": "An initial run exposed that the generated picture-BLOCK probes inherited a default Standard DIMSTYLE but emitted no style record. Clearing style in those probes isolated their intended BLOCK checks; production writer behavior was not changed."
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/drw_entities.cpp src/drw_entities.h tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed after final plan/receipt edit"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "DIMENSION typed DSTYLE field mapping and DXF group-code framing",
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "findingCount": 133,
+    "topLevelSubplanCount": 76,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "sourceHashes": {
+    "src/drw_entities.cpp": "ae53a56caeea2646d87dad25811f5bdcf3416dcc25cd45602ce3713d5456dbf0",
+    "src/drw_entities.h": "fee64184e6aed394a1a81dcd5e9d031dbc730392e340103b65f4c7abc74d688c",
+    "tests/wave1_tests.cpp": "ae83dfe86b051a9a934257f9220055c94a8e72ef511253352863843638a3680d",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "cde1f5b3e91ff3a0b300e97a427ca45b85e804a3b98d2689f9cfb43411f436b9",
+    "build-gcc/libdxfrw_wave1_tests": "911e38b5e9feeadfbdf71c8ccd0ae2679e9fd9eb0d6e2c18dc25e0651fa7b7d8"
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reasonUncommitted": "The shared worktree is broadly dirty, including unrelated user changes. This focused slice is left unstaged and uncommitted."
+  },
+  "limitations": [
+    "The focused control establishes local framing/cache safety only; it does not establish a producer that emits DIMENSION group 80-84 semantics.",
+    "Direct tags 80-84 are not retained as raw typed data by this change; no universal preservation claim is made.",
+    "No external CAD/peer, external drawing, full suite, or support qualification was run."
+  ]
+}

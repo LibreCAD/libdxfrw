@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS reference-count planner-slot accounting fast slice",
+  "mode": "local implementation and generated in-memory regression",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Account the temporary reference-count planner vector retained during SAB graph construction",
+    "Preserve graph order, reference resolution, exact cap admission, and fail-closed one-under behavior"
+  ],
+  "changes": [
+    {
+      "file": "src/drw_acis.cpp",
+      "summary": "Charge one graph item per SAB record before reserving the temporary referenceCounts vector."
+    },
+    {
+      "file": "src/drw_acis.h",
+      "summary": "Clarify that graphItemsAccounted includes nodes, copied tokens, references, and planner slots."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "summary": "Derive the expected graph-item total from node slots, planner slots, token slots, and pointer-reference slots for a generated SAB."
+    }
+  ],
+  "evidence": {
+    "counterFormula": "2 * records + token slots + pointer-reference slots",
+    "previousGap": "The previous graph item count included one node slot per record but did not include the second per-record referenceCounts planner slot.",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp src/drw_acis.h tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": [
+      "strict target build passed",
+      "direct graph/preservation executable passed",
+      "owning CTest passed 1/1 in 0.59 seconds"
+    ],
+    "budgetInterpretation": "Logical item bound; not allocation bytes, actual vector capacity, or resident memory."
+  },
+  "limitations": {
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "publicApiChanged": false,
+    "supportClaimsPromoted": 0,
+    "worktreeCommitted": false,
+    "reasonUncommitted": "The shared worktree contains extensive pre-existing modifications; staging or committing them together is unsafe."
+  },
+  "assessment": {
+    "findings": 132,
+    "topLevelSubplans": 75,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

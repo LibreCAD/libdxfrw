@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ft_model 2D DWG renderer evidence ceiling and comparator admission",
+  "mode": "Primary-source peer review; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen a newly identified open-source 2D DWG/DXF renderer as a possible differential observation route.",
+    "Separate implementation-source distinctness from independent semantic expected values.",
+    "Add a bounded, provenance-aware admission procedure without adding implementation or routine validation work."
+  ],
+  "sources": [
+    {
+      "project": "hhcme/ft_model README and repository overview",
+      "url": "https://github.com/hhcme/ft_model/blob/main/README.md",
+      "observed": "The project describes a C++20 2D rendering engine, direct DWG/DXF parsing, JSON scene export, Canvas/WebGL rendering, and claims DWG families R2000, R2004, R2007, R2010, R2013, and R2018. The README calls DXF support full and lists common 2D entities.",
+      "limitation": "These are mutable-branch, project-authored claims. No immutable revision, source audit, build, fixture inspection, or runtime was performed. The consulted documentation establishes scene/JSON projection, not DXF writing or lossless model preservation."
+    },
+    {
+      "project": "hhcme/ft_model historical project status",
+      "url": "https://github.com/hhcme/ft_model/blob/main/PROJECT_STATUS.md",
+      "observed": "The document labels itself historical and superseded by the V1.0.0 plan. Its 2026-04-23 snapshot describes a LibreDWG DWG-to-DXF plus ezdxf entity-extraction reference pipeline with tolerance-based entity matching. It reports selected-file matches of 99.8% for R2010, 99.99% for R2013, 97.0% for R2007, and 37.8% for one R2004 drawing, with a major object-map gap and missing entities. It also documents format deductions sourced from reading LibreDWG.",
+      "limitation": "The metrics are historical, selected-file results and are not current or version-wide qualification. Their LibreDWG-derived expected values are correlated with a common open-source oracle and cannot establish independent semantic correctness."
+    },
+    {
+      "project": "hhcme/ft_model V1.0.0 development plan",
+      "url": "https://github.com/hhcme/ft_model/blob/main/docs/V1.0.0-PLAN.md",
+      "observed": "The plan identifies ezdxf-generated synthetic DXF fixtures, automated tests/fuzzing, the ODA specification as a format reference, and LibreDWG source as a read-only format-understanding reference. It states a no-copy/no-link posture for GPL code.",
+      "limitation": "A project plan is not proof that every listed method is implemented or independently validated. The source page is mutable and no code provenance audit was performed."
+    },
+    {
+      "project": "hhcme/ft_model May 2026 final review report",
+      "url": "https://github.com/hhcme/ft_model/blob/main/FINAL_REVIEW_REPORT.md",
+      "observed": "The report independently reinforces that its documented R2004 sample had substantial entity loss and lists unresolved block/header, dimension, rendering, old-version fixture, and other gaps as of that review.",
+      "limitation": "This is a dated, project-authored report and may have been superseded. It is useful to bound claims, not to state current project status."
+    }
+  ],
+  "reconciliation": {
+    "peer_classification": "IMPLEMENTATION-DISTINCT-CANDIDATE / CORRELATED-ORACLE / NOT-QUALIFIED",
+    "decision": "Track ft_model as an optional candidate for a source-pinned 2D scene/render differential only. Its expected-value path shares LibreDWG lineage and its source provenance has not been audited, so it is not an independent semantic oracle.",
+    "evidence_ceiling": "A controlled runtime may report differences in named 2D geometry, explicit transforms, or styles in the rendered scene. It cannot establish raw object completeness, unknown-record preservation, DXF writing, round-trip fidelity, 3D topology, ACIS/ACDS semantics, or native LibreCAD/LibreCAD_3/FreeCAD acceptance.",
+    "implementation_readiness": [
+      "Before any optional run, pin the immutable source commit, source tree and executable hashes, build configuration, toolchain, and exact documentation snapshot; keep source review only if this identity cannot be bound.",
+      "Use only an already-owned, provenance-cleared overlapping DWG or locally-created-from-scratch controls with independently authored analytic expectations. Do not import peer DWGs, reference JSON, screenshots, or golden outputs.",
+      "Record version, file hash, operation, entity subset, coordinate frame, layout, rendering options, diagnostics, and skip counts; distinguish parser, scene projection, block expansion, and rendering dispositions.",
+      "Run only at an existing composed optional checkpoint when a named PAR/S8 question benefits. Do not add a dependency, per-slice test, CTest, fixture, or recurring peer-run gate.",
+      "Keep all support claims subject to their existing raw preservation, writer/reopen, independent semantics, and named native consumer gates."
+    ],
+    "plan_change": "Add the optional candidate and admission protocol only; no local finding or subplan was added, and no code, test, fixture, dependency, validation frequency, external qualification, or support claim changed."
+  },
+  "validation": {
+    "peer_runtime": "not run",
+    "source_checkout_or_build": false,
+    "peer_fixtures_downloaded_or_inspected": false,
+    "local_build_or_tests": false,
+    "fixtures_added": false,
+    "dependencies_changed": false,
+    "support_claim_changed": false,
+    "reported_plan_totals": "139 findings / 77 top-level subplans",
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

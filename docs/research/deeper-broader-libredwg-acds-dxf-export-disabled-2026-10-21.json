@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "LibreDWG AcDs DXF-export stage boundary",
+  "mode": "Deeper/broader primary-source research and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This pass changed only the implementation plan and this research receipt; it did not edit codec or test source.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-libredwg-acds-dxf-export-disabled-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "LibreDWG current ASCII DXF exporter",
+      "references": [
+        "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/out_dxf.c",
+        "https://storage.googleapis.com/oss-fuzz-coverage/libredwg/reports/20260617/linux/src/libredwg/src/out_dxf.c.html"
+      ],
+      "observation": "The current mutable source calls dxf_acds_write for non-minimal R2013+ output, but its only ACSDSDATA emission block is guarded by the literal false condition if (0 && _obj->num_segidx), then returns success. The source also has a CAN_ACIS_IN_DS_DATA-guarded fallback that changes modern inline ACIS conversion to an R2004 target. The coverage report snapshot is not bound here to a specific release binary.",
+      "planDisposition": "Do not use current-source LibreDWG dwg2dxf as positive ACDSDATA writer evidence. For any pinned build, inspect source and intermediate output separately; a successful exit or called function does not prove ACDSDATA emission."
+    },
+    {
+      "project": "LibreDWG AcDs reader and open issue #1411",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec"
+      ],
+      "observation": "Issue #1411 remains open and reports a named 0.14.8593 build losing modern ACIS/AcDs payloads. The public generated DXF-to-DWG-to-DXF route does not independently demonstrate that its intermediate DWG contains the AcDs section; a separate AutoCAD DWG report is confidential. Mutable current DWG-reader source contains an AcDs section/record path and queues modeler handles from has_ds_data, but that source path is not proof of complete per-build section/index/key/blob recovery.",
+      "planDisposition": "Collect per-stage hashes and inspect the intermediate DWG's section directory/pages, AcDs records, entity flags, exact owner/key join, and payload bytes. Diagnose only the first stage with proven loss. Use an independently observed known-good AcDs DWG for a reader claim; otherwise record NOT_QUALIFIED. The reported 5,489-byte value is not a conformance constant."
+    },
+    {
+      "project": "ACadRust current self-tests",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observation": "Current main contains an AC1032 planar-cube DWG self-roundtrip that checks ACIS data presence and has_ds_data linkage, plus synthetic marker/filler SAB pairing controls. These are carrier/link observations, not reported parsed topology, independent shape validity or analytic geometry, or native application acceptance. Mutable main is not an immutable release artifact.",
+      "planDisposition": "Keep ACadRust as an optional correlated codec route. A same-codec self-roundtrip is not geometry truth; pin source and artifact, and require separate expected geometry and semantic checks."
+    },
+    {
+      "project": "cq-acis supported-subset semantic route",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "docs/research/deeper-broader-acis-peer-local-0_3_12-observation-2026-10-21.json"
+      ],
+      "observation": "cq-acis starts from SAT/SAB payload bytes and converts a documented supported subset through CadQuery/OpenCascade. The existing 0.3.12 local receipt records a bounded valid-shape and analytic-metric observation but remains qualification-ineligible; it does not test DWG section extraction or AcDs ownership. CadQuery/FreeCAD Part share the OCCT kernel family.",
+      "planDisposition": "Use only after exact outer carrier and owner/key closure; do not count it as DWG AcDs evidence, arbitrary SAB support, or an independent-kernel vote. Reuse the exact receipt and add no routine dependency/run."
+    },
+    {
+      "project": "FreeCAD stock DXF importer",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observation": "The current documentation distinguishes C++ and legacy Python importer paths and states that stock FreeCAD cannot read embedded ACIS/SAT solids.",
+      "planDisposition": "Keep explicit-entity consumer results separate from ACIS/ACDS carrier and semantic outcomes; classify unsupported consumer geometry without attributing it to libdxfrw carrier loss."
+    }
+  ],
+  "assessment": {
+    "newFinding": null,
+    "existingOwners": [
+      "PAR-07/S8 AcDs carrier, owner/key, semantic, and consumer evidence",
+      "PAR-59 staged modeler-loss attribution and peer admission"
+    ],
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "defaultAction": "Reuse existing generated fast controls; only add a local test if a distinct uncovered local invariant is proven.",
+    "sequence": [
+      "At any selected peer checkpoint, pin exact source/build and inspect source-level AcDs read/write paths first.",
+      "Generate scratch-only inputs and inspect/hash every intermediate so the first stage of any loss is identifiable.",
+      "Require section/index/owner/key/payload closure before sending bytes to a SAT/SAB semantic reader.",
+      "Compare supported shape output with independently authored analytic expectations; keep OCCT-family evidence correlated.",
+      "If the exact independent input or build is unavailable, record NOT_RUN/NOT_QUALIFIED, complete local fast work, and self-unblock."
+    ],
+    "progressPolicy": "No implementation slice was performed. Existing self-update/self-unblock and progress-after-commit requirements remain unchanged."
+  },
+  "limitations": "No peer package or executable, native CAD application, test suite, or local codec implementation was run. No external drawing was downloaded. GitHub source pages are mutable and the current out_dxf.c page was not bound to a release artifact; the issue's confidential AutoCAD DWG is unavailable. This is peer-source/stage-boundary evidence, not a local reproduction or format authority. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+}

@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "acadrust-family screen and peer-reported DWG failure shapes",
+  "mode": "Broader primary-source codec, lineage, and issue-report review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen the current acadrust DWG/DXF codec family as a possible structural comparator.",
+    "Reconcile OpenCADStudio and opencadcodec source lineage to avoid counting forks as independent implementations.",
+    "Map peer-reported malformed-count, owner-closure, AC1032 auxiliary-object, and AC1027 3DSOLID failure shapes to existing local plan owners.",
+    "Keep J256, J260, J268, J284, J293, and J295 explicitly DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "method": {
+    "kind": "Mutable primary project documentation, package manifest, issue reports, and existing plan/source reconciliation",
+    "peerRepositoriesCloned": false,
+    "peerExecutablesOrPackagesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "candidatePin": null,
+    "evidenceRule": "Project declarations and issue reports are candidate-selection/failure-shape evidence only; no peer issue is a local reproduction or semantic support proof. DWG object codes/layouts remain governed by ODA v5.4.1 and local sample traces."
+  },
+  "evidence": [
+    {
+      "route": "acadrust",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/Cargo.toml"
+      ],
+      "observed": "The project advertises ASCII/binary DXF and DWG read/write through R2018+, SAT/SAB support, and a broad entity/object matrix. Cargo.toml identifies package version 0.6.5 and lists nom, flate2, encoding, and ordinary Rust dependencies without a declared LibreDWG or ACadSharp codec dependency. Project documentation says drawing-dependent tests for absent files are ignored by default.",
+      "limits": "Mutable branch/package declarations do not establish the exact source artifact used by downstream applications, complete version/entity coverage, source independence, or real-file test execution. Manifest dependencies are not a full provenance audit.",
+      "planUse": "Add as provisional candidate only. Pin version/commit/hash, inspect source and test lineage/license, select an exact direction/version/entity profile, then consider only matched fields with diagnostics and per-record disposition. No install/build is authorized by this screen."
+    },
+    {
+      "route": "OpenCADStudio and opencadcodec lineage",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/opencadcodec"
+      ],
+      "observed": "opencadcodec identifies itself as a fork of hakanaktt/acadrust. OpenCADStudio advertises native DWG/DXF workflows and ACIS tessellation; opencadkernel describes its own ACIS-to-B-rep layer.",
+      "limits": "Same-family codec and kernel/application results are not independent votes. App claims and visual/tessellation output are not independent analytic geometry expectations.",
+      "planUse": "Treat acadrust/opencadcodec as one codec lineage absent a source-history audit. Any application observation must pin app, codec, kernel, input and output and retain separate parser, shape-validity, and analytic-semantic outcomes."
+    },
+    {
+      "route": "acadrust malformed-data issue #123",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/123"
+      ],
+      "observed": "The report describes an AC1024 generated bit-flip path where misread array counts may be clamped and zero-filled or a stream-derived allocation may be unbounded; it also mentions a private real DWG. The report identifies acadrust 0.6.3 behavior.",
+      "limits": "Not run here; neither the peer issue nor its private DWG proves a libdxfrw failure. Peer code paths and fix status require a pinned source revision.",
+      "planUse": "Retain existing fast hardening controls for count-vs-remaining-data bounds, fail-closed truncation, and no plausible zero-padded entities. Add only a missing focused generated negative control."
+    },
+    {
+      "route": "acadrust owner/orphan issue #133",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/133"
+      ],
+      "observed": "The reporter says absent owner block references were re-homed into model space and produced phantom dimension pieces, based on a private corpus comparison with ODA. A maintainer linked a proposed change and asked for retest.",
+      "limits": "User/maintainer report only; private corpus and fix retest were not inspected. Does not establish current peer behavior or a local defect.",
+      "planUse": "Use as a test-design reminder for existing owner graph closure and orphan dispositions; do not infer membership from aggregate counts or commit the reported corpus."
+    },
+    {
+      "route": "acadrust AC1032 auxiliary-object issue #134",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "observed": "The issue reports version-0.6.4 failures in AC1032 MLeader context/associative objects after stricter bounded record parsing, with a maintainer-linked bounded auxiliary-object recovery change.",
+      "limits": "No private corpus or broad fix retest was available. It does not justify weakening general record bounds.",
+      "planUse": "Keep any optional-object recovery bounded and record-scoped; use existing generated controls and ODA/sample evidence before changing policy."
+    },
+    {
+      "route": "OpenCADStudio AC1027 modeler issue #1896",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1896"
+      ],
+      "observed": "The reporter describes a third-party AC1027 modeler-containing drawing rejected with an array-count error at handle 0x5B87 and peer text type_code=37. The report maps that number to the peer's 3DSOLID class and mentions an ASM/ACIS marker, but supplies no independently inspectable drawing artifact in the issue body.",
+      "limits": "The peer's internal type_code is not an ODA object type code and cannot be transferred to libdxfrw dispatch. No file, local trace, parser result, or independent semantic result was available.",
+      "planUse": "Keep as an unverified AC1027 modeler failure shape only. Require ODA v5.4.1 plus local empirical trace before parser changes; do not guess class codes, download customer data, or promote ACIS semantics."
+    },
+    {
+      "route": "Local plan reconciliation",
+      "sources": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Added the acadrust family as provisional, mapped reported failure shapes to existing parser-hardening/owner-closure/auxiliary-record/modeler lanes, and specified self-unblocking behavior when exact peer pins or external files are unavailable.",
+      "limits": "No production code, tests, fixtures, or dependencies were changed or run. The review adds no new finding or subplan.",
+      "planUse": "Continue local fast-gated implementation under existing owners; use a focused candidate-pin/source-lineage review only if it helps resolve a current matched route."
+    }
+  ],
+  "assessment": {
+    "newCandidateFamiliesScreened": 1,
+    "newEligibleIndependentComparatorRoutes": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8 comparator register: acadrust is a provisional candidate; opencadcodec is the same source family unless future provenance work establishes otherwise.",
+      "DWG hardening: retain remaining-data count/allocation bounds and fail-closed truncation.",
+      "Object graph: preserve explicit owner/orphan dispositions; never synthesize model-space ownership from a missing owner.",
+      "AC1032 auxiliary objects: scope recovery to bounded optional records and do not weaken general framing.",
+      "AC1027 modeler reads: ODA v5.4.1 and empirical local traces precede any dispatch/layout changes."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check for plan; untracked receipt validated with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

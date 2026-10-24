@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c ACIS ellipse-curve distance-within-tolerance predicate",
+  "repository": "LibreCAD/libdxfrw",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Test Euclidean distance from a query point to the full untrimmed geometric ellipse locus",
+    "tolerance_policy": "Require an explicit finite nonnegative caller-supplied linear tolerance and accept the inclusive boundary; no ACIS/modeler default is inferred",
+    "solver_policy": "Reuse the ellipse closest-point multiplier solver; permit a representative tied nearest point only inside the distance-only implementation so the predicate can correctly measure nonunique cases without publishing a point",
+    "numeric_policy": "Use std::hypot on the finite query-to-candidate displacement to avoid avoidable squared-distance overflow",
+    "refusal_policy": "Malformed/nonfinite ellipse or query, invalid frame/tolerance, unresolved numeric case, overflowing displacement, or distance outside tolerance returns false",
+    "non_claims": [
+      "native ACIS parameter direction or edge parameter range",
+      "finite edge trim, loop, or pcurve evaluation",
+      "body transform or source-unit application",
+      "B-rep validity or completeness",
+      "native CAD or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_on_locus_zero_tolerance": "PASS",
+    "parser_fed_off_plane_exact_and_just_outside_tolerance": "PASS",
+    "noncircular_ellipse_medial_axis_distance_is_defined": "PASS",
+    "circle_center_distance_is_defined": "PASS",
+    "negative_and_nonfinite_tolerances_refuse": "PASS",
+    "unsupported_curve_type_refuses": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1; 1.29 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_pointWithinToleranceOfAcisEllipseCurve)",
+    "language_standard_probe": "Changed translation unit compiles with -std=c++14 when suppressing the pre-existing inline-variable extension warning; the current CMake project sets C++17 and strict C++14 compilation is blocked by inline constexpr variables already present in src/drw_base.h",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

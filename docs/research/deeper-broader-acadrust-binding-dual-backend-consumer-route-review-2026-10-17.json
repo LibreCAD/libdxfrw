@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-acadrust-binding-dual-backend-consumer-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Review newly surfaced ACadRust bindings and dual-backend downstream consumers; recheck already-catalogued acad-ts and dwg2png lineage without duplicating or upgrading their prior evidence.",
+  "method": {
+    "kind": "Read-only primary-source web research plus local plan inspection",
+    "peerSourcesPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/monozukuri-ai/acadrust.js",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/milkway/dwg2geo",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/node-projects/acad-ts",
+      "https://github.com/diskd-ai/dwg2png"
+    ],
+    "sourceObservations": [
+      "acadrust.js states that its N-API package consumes the unmodified acadrust Cargo dependency. The wrapper adds a Node integration/package boundary but does not introduce an independent DWG/DXF codec.",
+      "dwg2geo documents two backend modes: a native ACadRust adapter and an external-process route through LibreDWG dwgread plus GDAL ogr2ogr. Its README warns against geographic-correctness claims without source CRS or control-point evidence and says unsupported entities must not be silently discarded.",
+      "The existing plan already catalogs acad-ts as an ACadSharp port and dwg2png as an ACadRust-backed 2D renderer; those relationships were rechecked and their prior evidence grades were not changed.",
+      "No source inspected in this pass supplies a new independent DWG/DXF parser, a 3D solid semantic oracle, or native-CAD acceptance evidence."
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: prior peer-lineage and dwg2png consumer entries; composed comparator intake and implementation/validation cadence"
+    ],
+    "evidenceRule": "A language binding or wrapper retains the lineage of the parser library it loads. A dual-backend converter must be reported as separate parser/converter chains; results from different chains or fallback routes cannot be pooled. Geographic projection evidence requires independently known CRS/units/transforms and feature-level disposition."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "newRouteClassifications": [
+      {
+        "route": "acadrust.js",
+        "classification": "ACADRUST_BINDING",
+        "eligibleIndependentParserVote": false
+      },
+      {
+        "route": "dwg2geo.native-backend",
+        "classification": "ACADRUST_PARSER_PLUS_GEOSPATIAL_CONSUMER",
+        "eligibleIndependentParserVote": false,
+        "optionalProjectionObservation": true
+      },
+      {
+        "route": "dwg2geo.external-backend",
+        "classification": "LIBREDWG_CLI_PLUS_GDAL_GEOPROCESSING",
+        "eligibleIndependentParserVote": false,
+        "optionalProjectionObservation": true
+      }
+    ],
+    "reconfirmedExistingRoutes": [
+      "acad-ts remains an ACadSharp-derived port, not an independent parser lineage.",
+      "dwg2png remains an ACadRust-backed 2D rendering consumer; its self-reported corpus does not supply independent parser or 3D-solid evidence."
+    ],
+    "peerExecutionReadinessRefinement": [
+      "For a binding, record wrapper artifact and resolved parser crate/library versions separately, including the effective native module actually loaded.",
+      "For dwg2geo, keep native ACadRust and external LibreDWG/GDAL runs in separate evidence rows and bind CRS, units, transform inputs, backend selection, and per-feature source disposition.",
+      "Do not add these routes to CI or the per-slice loop; run only if an existing scoped implementation question has reproducible authorized inputs and expected outputs."
+    ],
+    "planTotals": {
+      "findings": 128,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheck": true,
+    "testsRun": false
+  }
+}

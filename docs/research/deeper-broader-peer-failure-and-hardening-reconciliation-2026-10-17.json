@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-failure-hardening-reconciliation-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "RESEARCH_ONLY",
+  "scope": "Reconcile current open-source peer failure reports and LibreDWG parser-hardening disclosures with existing libdxfrw findings and implementation gates.",
+  "sources": [
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues",
+      "kind": "mutable open-issue index",
+      "observations": ["#1299 links an ACadSharp 3.8.0 DWG/DXF SPLINE conversion sample", "#1277 reports an AC1032 no-op DWG roundtrip loss of standalone MLEADER context objects", "#1264 reports block-cell Unknown-versus-empty value disagreement", "#1253 reports strict AutoCAD DXF rejection", "#1278 title reports R12 POLYLINE/VERTEX subclass handling"]
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-gp83-hcvh-g255",
+      "kind": "official security advisory",
+      "observations": ["CVE-2026-62254 describes num_classes-driven repeated reallocations in LibreDWG before 0.14; fixed in 0.14"]
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "kind": "official mutable release notes",
+      "observations": ["0.14.1 notes report additional peer-specific capacity, offset, arithmetic, SAT-size, forward-progress, and non-finite-writer fixes"]
+    }
+  ],
+  "crosswalk": {
+    "existingOwnersOnly": ["PAR-22/7H/7I/7AB SPLINE geometry and carrier distinction", "PAR-20/7F/7AA and PAR-07/S8 MLEADER entity versus standalone DWG context-object graph", "PAR-126/7G.3d TABLECONTENT and typed empty/unknown values", "7BQ.5 AC1024 DIMSTYLE strict-consumer candidate", "classic POLYLINE/VERTEX parser isolation", "PAR-14/7BE/S3.7 bounds, progress, and resource checks"],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limitations": [
+    "Peer reports are version-specific and are not local reproductions or format authority.",
+    "No external sample/archive was acquired or executed.",
+    "ACadSharp issue #1278 body was not retrievable; only its live-index title was used.",
+    "No peer binary, native CAD application, or kernel was run.",
+    "Mutable issue index and master branches require exact pinning for any later execution."
+  ],
+  "planUpdate": "Added bounded evidence crosswalk and a faster route that reuses local generated tests, requires exact artifacts only for unresolved producer questions, and keeps full suites, fuzz/sanitizer, peer, and native runs at composed checkpoints.",
+  "worktree": "uncommitted; shared checkout contains broad pre-existing changes"
+}

@@ -1,0 +1,137 @@
+{
+  "schema": "libdxfrw-deeper-broader-dxf-recovery-and-visualstyle-evidence-reconciliation-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile existing paired VisualStyle writer evidence with the evidence-grade sidecar and deepen the strict-versus-recovery DXF peer validation boundary using current primary project documentation.",
+  "method": {
+    "kind": "Existing receipt audit plus primary documentation review and local plan/validator consistency update",
+    "liveReferencesRecheckedAt": "2026-10-16",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuitesRun": false,
+    "evidenceBoundary": "Documentation and prior paired writer output establish route-specific observations only. Recovery, TagStorage, and partial ACIS decoding do not establish clean readback, semantics, or support. No peer rerun or support promotion occurred."
+  },
+  "pairedVisualStyleEvidence": {
+    "sourceReceipt": "3d-carrier-runtime-and-peer-writer-review-2026-10-15.json",
+    "source": {
+      "path": "tests/fixtures/dwg/rtext_arctext.dwg",
+      "version": "AC1032",
+      "producer": "Not established",
+      "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511"
+    },
+    "outputs": {
+      "libreDwg": {
+        "version": "dwg2dxf 0.14",
+        "executableSha256": "e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99",
+        "outputSha256": "f853965af242eddbcbe80c75e94d1b2c3bd183e0eb7104a88f7f885b66152bc9"
+      },
+      "oda": {
+        "version": "ODA File Converter 27.1.0.0",
+        "architecture": "arm64",
+        "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+        "outputSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15"
+      }
+    },
+    "observed": {
+      "record": "Flat",
+      "candidateSlotCount": 58,
+      "sameOrderedPrimaryTagCodeSequence": true,
+      "completeTypedSlotTuplesEqual": 52,
+      "differingSlotIndicesZeroBased": [6, 31, 33, 41, 44, 51],
+      "group176CompanionCounts": {
+        "libreDwg": 56,
+        "oda": 58,
+        "libreDwgMissingSlots": [31, 33]
+      },
+      "group177Counts": {
+        "libreDwg": 2,
+        "oda": 3
+      },
+      "libreDwgGroup420ValuesAbove24Bits": [
+        {"slot": 6, "hex": "0xC2FFFFFF"},
+        {"slot": 41, "hex": "0xC2000000"},
+        {"slot": 44, "hex": "0xC20000FF"}
+      ],
+      "cmcValueDifferenceSlots": [41, 51]
+    },
+    "interpretation": "Empirically observed writer output only. Primary tag-sequence concordance does not establish semantic slot mapping. Group-176 behavior, value disagreements, CMC method/value policy, group-177 policy, producer truth, and serializer admission remain unresolved. Neither output was an independent readback of the other."
+  },
+  "primaryDocumentation": [
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+        "https://ezdxf.readthedocs.io/en/stable/concepts/entities.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": [
+        "Ordinary readfile and recovery are distinct routes; recover may report decoding faults as unrecoverable AuditError.DECODE_ERRORS without raising DXFStructureError.",
+        "Documentation warns that writing a recovered file with such decoding errors may produce invalid DXF or lose information and provides errors='strict' to reject these decode errors.",
+        "Unsupported DXF entity types may be held as TagStorage and re-exported, which is raw retention rather than semantic understanding or graph closure.",
+        "Unsupported ACIS entities may load as NONE_ENTITY with data loss; exporting NONE_ENTITY raises ExportError. The documented geometry target focuses on flat polyhedral faces, not arbitrary B-rep coverage."
+      ],
+      "planUse": "Keep strict parse, recover/audit diagnostics, raw tag retention, and ACIS semantic outcomes as separate receipts and gates."
+    },
+    {
+      "project": "GDAL",
+      "references": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": [
+        "RawCodeValues is option-gated; block references can remain separate with INLINE_BLOCKS=NO.",
+        "Binary DXF reading is documented from GDAL 3.12; AC1027+ raw ASM extensibility is separately documented, so combined support must be demonstrated by the exact pinned runtime."
+      ],
+      "planUse": "Bind options and ASCII/binary profile per run; do not infer feature combinations from separate documentation entries."
+    }
+  ],
+  "planDelta": {
+    "filesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/visualstyle-slot-evidence-grades-2026-10-16.json",
+      "tests/check_visualstyle_slot_manifest.py",
+      "docs/research/deeper-broader-dxf-recovery-and-visualstyle-evidence-reconciliation-2026-10-16.json"
+    ],
+    "existingOwnersOnly": true,
+    "affectedOwners": [
+      "PAR-07 / composed DXF peer validation lane",
+      "f.3c VisualStyle evidence descriptor",
+      "S8.4 / S8.5 / S8.9.5 carrier and consumer qualification boundaries"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": false,
+    "serializerAdmission": "DENY",
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "status": "PASS",
+    "commands": [
+      "ctest --test-dir build-gcc -R '^libdxfrw_visualstyle_slot_manifest$' --output-on-failure",
+      "python3 -m json.tool docs/research/visualstyle-slot-evidence-grades-2026-10-16.json",
+      "python3 -m json.tool docs/research/deeper-broader-dxf-recovery-and-visualstyle-evidence-reconciliation-2026-10-16.json",
+      "git diff --check"
+    ],
+    "focusedManifestCTestPassed": true,
+    "jsonValidationPassed": true,
+    "gitDiffCheckPassed": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  }
+}

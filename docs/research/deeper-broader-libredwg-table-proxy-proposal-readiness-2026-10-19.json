@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "LibreDWG open TABLE/proxy proposal series and exact-profile readiness",
+  "mode": "Primary-source web review and local parity-plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planSha256": "a39743bdf9d9e57025c865bc1b522541115ad02dc0d3c0aac0e8408f74caaf31",
+  "scope": [
+    "Review open LibreDWG TABLE and proxy proposals as implementation leads, not released support evidence",
+    "Compare proposal caveats against the existing local PAR-126 TABLE and PAR-132 proxy work",
+    "Refine exact-version, direction, graph, payload, and claim boundaries without adding routine validation cost"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG TABLE/TABLECONTENT/TABLESTYLE proposal",
+      "url": "https://github.com/LibreDWG/libredwg/pull/1446",
+      "statusAtReview": "Open; 11 commits; proposal body dated 2026-10-12",
+      "observed": "The author reports TABLE/TABLECONTENT read support across R14-R2018, legacy ACAD_TABLE DXF import/export, R2000 down-conversion, TABLESTYLE changes, comparisons against AutoCAD-authored examples and ACadSharp 3.8.0, and passing make check on Ubuntu 24.04/gcc 13.3. The same proposal explicitly leaves TABLECONTENT DXF import as a placeholder, omits borders/row-column-table cell styles and fields in legacy conversion, and identifies guessed value/override rules without AutoCAD witnesses. These are branch-authored observations, not independently reproduced results."
+    },
+    {
+      "project": "LibreDWG proxy conversion proposal",
+      "url": "https://github.com/LibreDWG/libredwg/pull/1447",
+      "statusAtReview": "Open; five commits; proposal body dated 2026-10-12",
+      "observed": "The author proposes retaining undecodable custom-class entities/objects via ACAD_PROXY_ENTITY/ACAD_PROXY_OBJECT, carrying class identity, version data, raw data/string streams, and typed object IDs, including conversion to R2000. The body reports a 26-object comparison to a CAD-written DXF and ACadSharp 3.8.0 readback, notes that some proxy graphics differ, uses fallback when common handles do not match, and states no new automated test was added. This remains an open-branch report, not released capability or a semantic oracle."
+    },
+    {
+      "project": "Related LibreDWG proposal series",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/pull/1442",
+        "https://github.com/LibreDWG/libredwg/pull/1443",
+        "https://github.com/LibreDWG/libredwg/pull/1444",
+        "https://github.com/LibreDWG/libredwg/pull/1445"
+      ],
+      "statusAtReview": "Linked as related open PRs from #1446; individual bodies were not independently retrieved",
+      "observed": "Titles identify R13-R2018 reader work, multiline ATTRIB, R2000 output conversion, and DXF import/export. No claims were inferred from titles alone."
+    },
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "urls": [
+        "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "§20.4.90 and chapter 29 reviewed 2026-10-19",
+      "observed": "The specification distinguishes proxy class ID, pre-R2018 packed drawing/maintenance version versus R2018+ version fields, original data format, opaque data bits, and typed object references. Chapter 29 describes optional proxy graphics and their own padded framing, separate from the opaque data stream."
+    }
+  ],
+  "localEvidence": [
+    "The parity plan already assigns TABLE semantics and conversion to PAR-126/7G.3d and preserves version-specific legacy TABLE versus AC1024+ inline TABLECONTENT paths.",
+    "Existing PAR-126 work tracks unknown cell types, value-state ambiguity, owner/resource graph closure, and incomplete DATALINK/FIELD output; no new peer claim resolves the remaining semantic or producer gaps.",
+    "Existing PAR-132/7CB work covers generated AC1024/AC1032 proxy parsing and metadata/raw capture, but generated parser coverage is not proof of unknown custom-class graph replay through every DXF/DWG target route.",
+    "The current plan totals remain 139 findings / 77 top-level subplans; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ],
+  "planImpact": {
+    "existingOwnersRefined": ["PAR-126/7G.3d", "PAR-132/7CB", "7F/7G"],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "readiness": "For TABLE, separate legacy DWG, modern inline content, ASCII/Binary ACAD_TABLE DXF, and R2000 down-conversion; retain per-cell/content/resource identity and explicit incomplete states. For proxies, test entity/object, source/target version, encoding, class identity, exact bit/string payloads, typed object-ID roles, owner closure, and optional graphics independently. Admit peer comparisons only at the existing composed checkpoint with immutable provenance."
+  },
+  "method": {
+    "kind": "Read current upstream PR pages and authoritative ODA specification, then reconcile claims with existing local plan and source/test notes",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-libredwg-table-proxy-proposal-readiness-2026-10-19.json"
+    ],
+    "limitations": "LibreDWG PR pages are mutable and both material proposals remain open. Their test and cross-reader statements are self-reported; no peer branch, sample drawing, or external reader was executed in this pass. ODA remains authoritative for DWG layout; peer claims do not establish libdxfrw defects, semantics, or support."
+  },
+  "assessment": {
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCTestRegistrations": 0,
+    "fullSuiteRun": false,
+    "peerRun": false,
+    "nativeRun": false,
+    "supportPromotion": false
+  },
+  "validation": {
+    "commands": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/deeper-broader-libredwg-table-proxy-proposal-readiness-2026-10-19.json",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "planDiffCheck": true,
+    "receiptJsonValidation": true,
+    "planSha256Matches": true,
+    "buildRun": false,
+    "testsRun": false
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-layer unknown-record and paper-space writer boundaries",
+  "mode": "Primary-source web research and read-only local plan crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen current CADCraft reports about unknown custom-object visibility/preservation and multi-layout DWG output.",
+    "Trace the reported loss boundaries across decoder diagnostics, retained raw data, serialization, and downstream reopen/consumer stages.",
+    "Refresh the status caveat for ACadRust issue #121 and separate its AC1015 read path from writer-side layout ownership/naming reports.",
+    "Refine existing PAR-06/PAR-49 implementation readiness without introducing external fixtures or required peer execution."
+  ],
+  "sources": [
+    {
+      "project": "CADCraft",
+      "urls": [
+        "https://github.com/storytold/cadcraft/issues/1361",
+        "https://github.com/storytold/cadcraft/blob/main/crates/dwg/src/lib.rs",
+        "https://github.com/storytold/cadcraft/blob/main/docs/gaps.md"
+      ],
+      "revision": "Issue, mutable main source view, and gap inventory reviewed 2026-10-20",
+      "observed": "Issue #1361 is open. A maintainer describes a DXF unknown-entity route that retains raw tags/proxy graphics but is not rendered by CADCraft, and a DWG→DXF route where ACadRust's DxfWriter reportedly drops EntityType::Unknown records without raw DXF codes. Current dwg_to_dxf_noted source obtains notes from failsafe reader stats, then performs DxfWriter serialization and adds selected cleanup notes; this separates read-skip diagnostics from writer emission accounting. The gap inventory says its then-current DWG route still drops custom-class content. This does not establish behavior in libdxfrw or every ACadRust release."
+    },
+    {
+      "project": "CADCraft multi-layout writer and consumer route",
+      "urls": [
+        "https://github.com/storytold/cadcraft/issues/1463",
+        "https://github.com/storytold/cadcraft/pull/1080"
+      ],
+      "revision": "Issue and merged PR reviewed 2026-10-20",
+      "observed": "Open issue #1463 describes a synthetic ezdxf-created three-layout DXF converted by CADCraft 0.7.0. Same-ACadRust readback retained reported per-layout counts, while ZWCAD 2025 placed non-active paper-space entities on the first layout. CADCraft PR #1080 merged Oct 19 and changes entity ownership/mode for non-active layout blocks. A later issue comment reports a separate duplicate *Paper_Space-name failure in ACadSharp 3.8.0 and says ODA File Converter opened the file. No attachments were downloaded and no peer/native results were reproduced."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/121",
+        "https://github.com/hakanaktt/acadrust/commit/8346596",
+        "https://github.com/hakanaktt/acadrust/issues"
+      ],
+      "revision": "Issue page and issue index reviewed 2026-10-20; commit page not independently fetched",
+      "observed": "Issue #121 is marked closed/completed against commit 8346596. Its body describes AC1015 multi-layout paper-space entities being assigned to the active layout because the reader discarded first/last entity ranges, while AC1032 behaved differently. Activity on the issue says closure was expected after the commit merged into main; the reviewed page does not establish release inclusion. Treat status as closed issue with merge/release provenance unresolved, not as current-release behavior."
+    }
+  ],
+  "localEvidence": [
+    "PAR-06 per-object typed/raw/skipped/refused disposition and opaque-object handling",
+    "PAR-49 strict completeness, source-to-output identity accounting, and transactional publication",
+    "PAR-49/7G.3 generated block/layout owner coverage and AC1015 chain-walker regression",
+    "Existing plan note that DWG writer block-record metadata tests do not prove complete DXF-origin layout-object composition"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06 source-stage disposition: decoding, raw/adapter retention, serialization, and output identity",
+      "PAR-49 source-to-output completeness, strict independent reopen, and explicit loss/refusal",
+      "PAR-49/7G multi-layout identity and version-separated paper-space ownership"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullTestSuitesRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Do not treat parser skip/read diagnostics as writer-emission accounting; reconcile each known source identity through adapter retention, emitted record/carrier or explicit refusal, and post-write identity.",
+    "Treat proxy display graphics as a visual fallback channel, not as preservation of the custom object or its semantics.",
+    "For the next touched local multi-layout DWG writer slice, use a locally authored generated control that asserts unique reserved block names, layout-to-block-record identity, exact entity membership/mode, and a following model-space sentinel.",
+    "Keep the AC1015 first/last chain route separate from AC1018+ explicit-owner traversal and from writer-side entity-mode/name behavior; consult the authoritative ODA version branch before changing encoding.",
+    "Use same-codec reopen as internal consistency only; independent-reader and native acceptance remain at the existing composed checkpoint and do not block local slices."
+  ],
+  "limitations": [
+    "CADCraft issue content and issue comments are maintainer/reporter evidence; no peer behavior was independently reproduced.",
+    "No external drawing attachments were downloaded, and no peer repository, executable, native CAD application, or kernel was run.",
+    "The ACadRust #143 follow-up issue was not retrievable in this review; its reported status remains unresolved.",
+    "The ACadRust #121 issue page marks the report closed but does not establish that commit 8346596 is included in a current released artifact.",
+    "No local code or tests were changed or run; this was a plan and research-receipt update only."
+  ]
+}

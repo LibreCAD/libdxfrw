@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader independent-reader maturity, ACIS API consistency, and FreeCAD conversion target",
+  "mode": "Primary project documentation/source review; research-only plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen an additional specification-first DWG implementation for useful operation- and version-scoped comparison evidence.",
+    "Reconcile current ezdxf ACIS API declarations with its FAQ so SAB capabilities are not inferred from contradictory documentation alone.",
+    "Inspect the live FreeCAD DWG wrapper to bind platform qualification to its actual converter target and intermediate DXF route.",
+    "Refine existing PAR-07/S8 and external qualification admission without adding findings, dependencies, fixtures, or support claims."
+  ],
+  "method": {
+    "kind": "Read-only review of project primary sources and local plan/status",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Mutable project documentation is route-scoping evidence only. No peer behavior, local defect, native acceptance, ACIS semantic result, or external-only item was independently qualified by this pass."
+  },
+  "sources": [
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The pre-alpha Apache-2.0 implementation separates container/object-stream maturity from per-entity decode and reports per-version decoded/skipped/error counts over a small corpus. Its page contains an aggregate-rate inconsistency (88.0% in the detailed table versus 95.6% in the adjacent capability summary) and says DXF parsing, graph completion, and external CAD acceptance remain incomplete.",
+      "evidenceCeiling": "Self-reported, mutable project status with small denominators; useful as an optional parser-lineage and evidence-method reference, not an interoperability result or support vote."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "The current DWG wrapper composes an external converter with a selected DXF importer; its ODA branch requests ACAD2000 DXF and the inspected code treats expected output-file existence as success without checking the process exit status. The documentation repository is archived, and its generic 1:1 claim coexists with explicit route and entity exclusions.",
+      "evidenceCeiling": "Source-level route contract, not a Linux/Windows runtime result. Requires exact converter, actual intermediate version/hash, importer/backend, settings, process outcome, and per-source object disposition for any qualification."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "observed": "The ACIS API documents SAT and SAB export methods and version constraints while warning that unsupported nodes may be lost; the FAQ says ezdxf only writes SAT, creating a documentation conflict that must be resolved against a pinned runtime and exact profile.",
+      "evidenceCeiling": "API/documentation capability declaration, not an executed SAB result, kernel semantic evidence, DWG AcDs ownership proof, or full B-rep qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8 peer and evidence admission",
+      "FreeCAD native Linux/Windows converter/importer qualification",
+      "ACIS carrier versus parser versus kernel semantic qualification"
+    ],
+    "planEffect": "Bind FreeCAD qualification to the current ODA ACAD2000 DXF target and actual intermediate; separate this route from direct modern-DXF tests. Treat dwg-rs metrics as per-version, low-denominator optional evidence and resolve ezdxf SAB documentation conflict with a pinned runtime check only if selected.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c common raw-section write transfer",
+  "scope": "Avoid the ordinary dx_iface-to-dxfRW deep copy of adapter-owned raw DXF sections during synchronous export, while restoring adapter ownership before return.",
+  "files": {
+    "src/libdxfrw.h": "ef8c897446265606a3dfcdd8a85a87be48e44b92b03dc395f92722481f103231",
+    "dwg2dxf/dx_iface.cpp": "0bceb93f41030610afb5b94afc61a574a050f7102c99c7124579a0cfb465d034",
+    "tests/hardening_tests.cpp": "5bebf644e90a8efeb1b116d649e93503e116e9c1712c63fd38e54b66a70f0464",
+    "tests/dwg2dxf_adapter_tests.cpp": "a4abf84314bb742bbf3823ada2355b3f16058c9846561188f6b4f27dfd985993"
+  },
+  "change": {
+    "summary": "The ordinary raw-section export route transfers dx_data::rawDxfSections into the synchronous codec write and restores it with a scope guard. Existing copy/rvalue setters and the separate ACDSDATA projection route are unchanged.",
+    "publicApiMethodsAdded": true,
+    "publicDataMembersAdded": false,
+    "virtualMethodsAdded": false,
+    "classLayoutChanged": false,
+    "wireGrammarChanged": false,
+    "outputPolicyChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "generatedControl": {
+    "formatVersion": "AC1032 ASCII and Binary DXF exports",
+    "input": "Existing valid DIMENSION/picture-block full-conversion control with one generated CUSTOM_SECTION opaque section.",
+    "checks": [
+      "successful ASCII and Binary full conversions emit the custom section and opaque payload",
+      "adapter raw-section vector and nested group storage are restored after the synchronous write",
+      "focused transfer control checks nested group storage identity across adopt/return without a deep copy"
+    ]
+  },
+  "evidenceCeiling": "Focused tests establish ownership transfer, restoration, and section emission on the existing valid adapter conversion. They do not establish cross-implementation DXF interoperability, producer qualification, or broader format support.",
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-raw-section-writer-common-path",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimension_picture_block_full_conversion$' --output-on-failure",
+      "result": "PASS (1/1; 0.35 s)"
+    },
+    {
+      "command": "git diff --check -- src/libdxfrw.h dwg2dxf/dx_iface.cpp tests/hardening_tests.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s2c-common-raw-section-write-transfer-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "externalProducerOrNativeApplicationRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Continue the 7S.2c exact-source audit of remaining compound/class registries and parser staging owners. If no further local copy or budget gap is found, advance to the next source-backed PAR-03/PAR-04, HATCH, or DWG semantic issue. Native FreeCAD Linux/Windows and independent ACIS/ACDS qualification remain separate and do not pause local work."
+}

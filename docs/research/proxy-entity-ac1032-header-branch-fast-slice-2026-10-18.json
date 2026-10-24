@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Generated AC1032 proxy-entity header-branch control",
+  "mode": "Focused implementation slice; in-memory frame only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "authority": [
+    "ODA Open Design Specification for .dwg files v5.4.1 §20.4.90 PROXY"
+  ],
+  "scope": [
+    "Exercise the R2018+ proxy-header branch using dwgWriter32 and dwgReader32",
+    "Verify separate DWG version and maintenance version fields, packed compatibility metadata, opaque entity bits, and next-frame alignment",
+    "Retain AC1024 as the required generated baseline"
+  ],
+  "changes": {
+    "files": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Parameterize the generated proxy frame helper for AC1024 and AC1032 writer/reader pairs",
+      "Encode R2018+ DWG version 0x1122 and maintenance version 0x3344 as separate bit-long fields",
+      "Assert application class metadata, packed compatibility value 0x33441122, a 7-bit payload, and a following LINE sentinel",
+      "Record 7CB.2 as generated-control coverage without claiming R2018 page-map or complete-file support"
+    ],
+    "publicApiChanged": false,
+    "persistentDrawingFixtureAdded": false,
+    "dependencyAdded": false,
+    "ctestRegistrationChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --proxy-entity-dispatch",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/proxy-entity-dwg-dispatch-fast-slice-2026-10-18.json"
+    ],
+    "buildPassed": true,
+    "focusedSelectorPassed": true,
+    "owningCtestPassed": true,
+    "owningCtestCasesPassed": 1,
+    "fullSuiteRun": false,
+    "externalPeerOrNativeRun": false,
+    "scopedDiffCheckPassed": true,
+    "jsonValidationPassed": true
+  },
+  "supportBoundary": {
+    "proxySemanticSupportPromoted": false,
+    "r2018CompleteFileSupportPromoted": false,
+    "3dSupportPromoted": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": "Broadly modified, unstaged, and uncommitted; existing changes preserved."
+}

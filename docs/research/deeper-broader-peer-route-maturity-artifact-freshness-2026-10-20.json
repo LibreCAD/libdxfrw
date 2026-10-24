@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer-route maturity and artifact-freshness reconciliation",
+  "mode": "Primary-source project, release, documentation, issue, and PR review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh open-source DWG/DXF peer routes across native codecs, derivatives, DXF projections, downstream CAD consumers, and bare ACIS interpreters.",
+    "Distinguish issue reports and open fixes from released/deployed artifacts, and record route-specific evidence ceilings.",
+    "Refine existing PAR-07/S8, PAR-20/7G.3, and composed consumer gates without creating duplicate work or promoting support claims."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG native DWG/DXF codec",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Moving NEWS and issue pages reviewed 2026-10-20; issue names LibreDWG 0.14.8593 at commit 8a1ae764.",
+      "observed": "NEWS describes AcDsPrototype_1b/R2013+ SAB extraction as incomplete or heuristic; issue #1411 reports payload loss for a named build.",
+      "limits": "Peer project/issue evidence does not establish ODA wire layout, current-master behavior, libdxfrw behavior, or ACIS semantics."
+    },
+    {
+      "project": "ACadSharp CP949 issue and proposed fix",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1259",
+        "https://github.com/DomCR/ACadSharp/pull/1260"
+      ],
+      "revision": "Issue and PR pages reviewed 2026-10-20; report names ACadSharp 3.7.16 and 3.8.0; PR #1260 is open with one commit and no deployments.",
+      "observed": "The issue distinguishes code-page header token from payload bytes and shows both CP949-bytes/unknown-token and UTF-8-bytes/ANSI_949 as invalid pairings.",
+      "limits": "The PR is not a released fix or independent validation; the issue is a peer-authored report."
+    },
+    {
+      "project": "ACadRust and OpenCADStudio artifact relationship",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/Cargo.lock"
+      ],
+      "revision": "ACadRust v0.6.5 tag resolves to 289a616da6c68518218594aa80802cbe7fa71309; OpenCADStudio v2026.42 released 2026-10-18.",
+      "observed": "OpenCADStudio v2026.42 locks ACadRust 0.6.4; the separately tagged 0.6.5 package is not the codec in that application release. OpenCADStudio remains within the tracked ACadRust/ACadSharp-derived parser lineage.",
+      "limits": "No release binary hash was recorded or runtime executed; downstream app behavior cannot be attributed to a newer parser package."
+    },
+    {
+      "project": "ezdxf DXF and bounded ACIS routes",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/concepts/entities.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-20; entity pages identify version 1.4.5.",
+      "observed": "Unsupported entity tags may be retained in TagStorage; recovery/audit is an explicit route with lossy/invalid-output cautions; ACIS handling is limited and does not provide a general ACIS kernel.",
+      "limits": "Opaque tag retention, recovery success, and simple ACIS parsing are not typed or general semantic support and do not provide a DWG codec."
+    },
+    {
+      "project": "GDAL DXF projection route",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current stable documentation reviewed 2026-10-20.",
+      "observed": "Binary DXF reading begins with GDAL 3.12; AC1027+ DXF_3D_EXTENSIBLE_MODE can expose raw ASM data and a transform, while the driver does not create OGR solid geometry from these records and skips them by default.",
+      "limits": "OGR projection and raw-carrier exposure do not establish full CAD graph preservation, B-rep validity, or DWG AcDs association."
+    },
+    {
+      "project": "FreeCAD composed DWG/DXF consumer route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Public documentation and current source reviewed 2026-10-20.",
+      "observed": "DWG processing composes an external converter with a separately selected DXF importer; the documented C++ and optional legacy Python importer profiles differ, and stock FreeCAD documentation says ACIS/SAT solids cannot currently be read.",
+      "limits": "A converter result is not equivalent to FreeCAD object import or ACIS semantics; exact backend/build/settings must be pinned."
+    },
+    {
+      "project": "Bare ACIS interpreters",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "revision": "Current project documentation reviewed 2026-10-20; exact profile and lineage limitations are already tracked in PAR-07/S8 research.",
+      "observed": "These routes interpret extracted bare ACIS/ASM carriers rather than DWG/DXF container sections or AcDs ownership joins.",
+      "limits": "Only exact documented profiles and independently authored expected geometry can be assessed; parser, neutral topology transfer, kernel, and native consumer are separate evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: classify each comparator as codec, derivative, projection, composed consumer, or geometry interpreter before interpreting its result.",
+      "PAR-07/S8: bind a candidate to exact release/commit, artifact hash, route, direction, version, semantic layer, source denominator, and diagnostics; do not transfer results between PR head, package, and downstream application pins.",
+      "PAR-20/7G.3: retain current NOD/owner-root implementation order; external peer states do not block generated local fast slices.",
+      "CP949: preserve the existing ASCII label-plus-literal-byte control; binary-output byte-level validation remains a distinct future gate.",
+      "Consumer qualification: record the FreeCAD converter and importer as separate stages, including backend and intermediate DXF identity.",
+      "Validation cadence: fast local selector and focused CTest per slice; optional pinned peer/native checks only at existing composed milestones."
+    ],
+    "planFileChanged": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a compact cross-project route matrix distinguishing native codecs, derivatives, projections, composed application consumers, and bare geometry interpreters.",
+    "Recorded that ACadSharp CP949 PR #1260 is still open and undeployed; do not treat its proposed fix as a released peer result.",
+    "Recorded the OpenCADStudio v2026.42 to ACadRust 0.6.4 pin separately from ACadRust v0.6.5, preserving parser-lineage and artifact freshness boundaries.",
+    "Refined existing GDAL, FreeCAD, ezdxf, and ACIS comparator admission rules without adding dependencies, tests, fixtures, findings, or support claims.",
+    "Kept the local PAR-20/7G.3 fast implementation queue and reduced validation cadence unchanged; external unavailability remains self-unblocking."
+  ],
+  "limitations": [
+    "Issue and project pages are not normative format specifications and may change after review.",
+    "No peer package or executable was installed, built, or run; no native CAD application or geometry kernel was run.",
+    "No external drawing or issue attachment was downloaded; no local test suite was run in this research pass.",
+    "J256, J260, J268, J284, J293, and J295 remain external-only, advisory, and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

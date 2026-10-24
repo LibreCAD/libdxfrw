@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-dimension-placement-dxf-projection-review-v1",
+  "date": "2026-10-16",
+  "kind": "source-research-and-plan-refinement",
+  "planFinding": "PAR-71",
+  "planSubplan": "7O.3 anonymous dimension-picture scale and rotation",
+  "repositoryHead": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "sources": [
+    {
+      "name": "Autodesk 2024 Common Dimension Group Codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+      "observations": [
+        "Group 2 names the block containing the dimension picture.",
+        "Group 41 is dimension text-line spacing factor; group 42 is actual measurement; group 53 is text rotation; group 51 is horizontal direction.",
+        "The listed common DIMENSION grammar does not document anonymous-block XYZ scale or its placement rotation."
+      ],
+      "limitation": "Scoped DXF entity reference evidence; not proof against undocumented legacy extensions or application-private data."
+    },
+    {
+      "name": "Autodesk 2024 INSERT group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "observations": [
+        "INSERT uses 41/42/43 for XYZ scale and 50 for rotation.",
+        "These are block-reference fields and cannot be assumed to apply to a DIMENSION entity."
+      ]
+    },
+    {
+      "name": "Autodesk BLOCKS and BLOCK references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-9DDFC343-6C87-4AF8-B3B9-77E0AB5A3031.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm"
+      ],
+      "observations": [
+        "BLOCKS contains anonymous blocks used by associative dimensions.",
+        "Block contents may contain INSERT, and the BLOCK base point participates in the content coordinate definition."
+      ],
+      "limitation": "Suggests a possible transform-baking route, but does not specify a lossless DWG-DIMENSION-to-DXF transformation."
+    },
+    {
+      "name": "ezdxf dimension documentation/source",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/linear_dimension.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dimension.py"
+      ],
+      "observations": [
+        "AutoCAD requires the anonymous dimension-picture block for visible dimension lines according to the tutorial.",
+        "The renderer is approximate and does not implement every DIMSTYLE combination.",
+        "The API/source has a separate OCS/elevation transformation route for picture primitives."
+      ],
+      "limitation": "Implementation and parser lead only; no native application result and no mapping of DWG anonymous-block scale/rotation."
+    },
+    {
+      "name": "LibreDWG 0.13.4 generated DIMENSION API documentation",
+      "url": "https://www.gnu.org/software/libredwg/refman/struct__dwg__entity__DIMENSION__DIAMETER.html",
+      "observations": [
+        "Generated fields label ins_rotation as DXF 54, while Autodesk's common DIMENSION group-code table does not list code 54."
+      ],
+      "limitation": "No pinned LibreDWG build or exact output drawing was run; this is a source-documentation discrepancy, not proof of a valid standard mapping."
+    }
+  ],
+  "planDelta": {
+    "immediate": "Keep the DWG state/parser/writer retention. Add fail-closed DXF preflight for nonidentity anonymous-block scale or nonzero placement rotation before any record bytes are written; preserve ordinary identity-default DXF dimensions.",
+    "fastValidation": [
+      "Default-valued positive control",
+      "Nondefault XYZ scale and rotation refusal across shared DRW_Dimension subclasses including ARC and large radial delegation",
+      "No partial record output on direct-call refusal",
+      "Failed whole-file conversion leaves an existing destination unchanged",
+      "A fresh/default retry succeeds"
+    ],
+    "deferredAlternative": "Transforming the associated anonymous picture block requires graph ownership/reference proof, base-point and nested INSERT composition, supported entity/frame inventory, reflection/nonuniform-scale semantics, editable dimension/association preservation, and separate native render/edit acceptance.",
+    "peerFollowup": "Only if group 54 remains plausible, pin LibreDWG and inspect a literal DXF emitted from a generated nondefault DWG with an independent parser/consumer."
+  },
+  "executionBoundary": {
+    "peerBinaryRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": false,
+    "localTestRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "supportClaimPromoted": false,
+    "findingCountChanged": false,
+    "topLevelSubplanCountChanged": false,
+    "externalOnlyDeferred": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

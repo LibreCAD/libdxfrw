@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Named-resource raw companion adapter capture bounds",
+  "mode": "Local implementation slice with generated fast tests",
+  "scope": [
+    "Bound raw DXF companion copies for SCALE, DICTIONARYVAR, MLINESTYLE, and MLEADERSTYLE.",
+    "Bind successful raw callback/group/byte accounting to the import receipt.",
+    "Correct the previously premature conclusion that every direct raw OBJECTS-list callback store was bounded."
+  ],
+  "implementation": {
+    "limits": {
+      "aggregateRecords": 100000,
+      "aggregateRawGroups": 4000000,
+      "aggregateLogicalRetainedBytes": 67108864,
+      "lifetime": "dx_data container lifetime; prior failure and counters are not reset for appended imports"
+    },
+    "behavior": [
+      "Successful raw companion copies update container-lifetime and tracked-import counters only after list insertion.",
+      "Budget, stale-generation, unexpected DWG raw callback, and allocation failures are sticky and invalidate the named-resource import receipt.",
+      "Export refuses named-resource raw-capture failure before output publication.",
+      "Typed MLineStyle admission remains separate from raw DXF tag admission."
+    ],
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_gbk_codepage_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_named_resource_raw_capture_limits|dwg2dxf_mline_style_typed_capture_limits|dwg2dxf_field_carrier_typed_capture_limits|dwg2dxf_field_carrier_raw_capture_limits|libdxfrw_named_resource_import_evidence|libdxfrw_gbk_codepage|dwg2dxf_named_object_callback_storage|libdxfrw_dictionary_default_adapter_roundtrip|libdxfrw_sortents_adapter)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 9,
+      "failed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt",
+      "result": "PASS"
+    },
+    "fullTestSuiteRun": false,
+    "externalPeerOrNativeRuns": 0
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "repositoryDrawingFixturesAdded": 0,
+    "externalFixturesDownloaded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planEffect": "Closes the missed rawNamedResourceObjects append. The direct persistent raw OBJECTS-list callback-store census in addRawDxfObject is now complete; unrelated typed storage and semantic gates remain distinct."
+  },
+  "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "c011a7e86b2204f24bd294c72ad0f0a66c59da794eda669e7cce72f302f91aee"
+}

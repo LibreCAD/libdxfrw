@@ -89,10 +89,7 @@ if(_readback_version_pos EQUAL -1)
         "FreeCAD-form DXF readback downgraded the source revision from AC1027")
 endif()
 
-# Exercise special records through the exact converter argv FreeCAD uses, not
-# only through an in-process adapter test. The source files are tracked DWG
-# fixtures; outputs stay in this build-tree test directory.
-function(assert_freecad_entity_records sample stem)
+function(assert_freecad_entity_refusal sample stem diagnostic)
     set(_special_input "${_test_dir}/${stem} source.dwg")
     set(_special_output "${_test_dir}/${stem} result.dxf")
     execute_process(
@@ -110,24 +107,30 @@ function(assert_freecad_entity_records sample stem)
         ERROR_VARIABLE _stderr
         TIMEOUT 60
     )
-    if(NOT "${_result}" STREQUAL "0" OR NOT EXISTS "${_special_output}")
+    string(FIND "${_stderr}" "${diagnostic}" _diagnostic_pos)
+    if("${_result}" STREQUAL "0" OR EXISTS "${_special_output}"
+            OR _diagnostic_pos EQUAL -1)
         message(FATAL_ERROR
-            "FreeCAD-form ${stem} conversion failed (${_result})\n${_stdout}\n${_stderr}")
+            "FreeCAD-form ${stem} refusal was not explicit and atomic (${_result})\n"
+            "${_stdout}\n${_stderr}")
     endif()
-    file(READ "${_special_output}" _special_dxf)
-    foreach(_entity IN LISTS ARGN)
-        string(FIND "${_special_dxf}" "0\n${_entity}\n" _entity_pos)
-        if(_entity_pos EQUAL -1)
-            message(FATAL_ERROR
-                "FreeCAD-form ${stem} conversion dropped the ${_entity} DXF record")
-        endif()
-    endforeach()
+    file(GLOB _temporaries "${_special_output}.libdxfrw-*")
+    if(_temporaries)
+        message(FATAL_ERROR
+            "FreeCAD-form ${stem} refusal left output temporaries: ${_temporaries}")
+    endif()
 endfunction()
 
-assert_freecad_entity_records("${RTEXT_SAMPLE}" "rtext arctext"
-    RTEXT ARCALIGNEDTEXT)
-assert_freecad_entity_records("${MPOLYGON_SAMPLE}" "mpolygon"
-    MPOLYGON)
+# These tracked special-record drawings currently report a source-header or
+# class CRC mismatch. The strict FreeCAD route must surface that first read
+# completeness gate and leave no DXF behind; the adapter's typed-proxy gate is
+# checked separately by the CLI contract tests.
+set(_strict_read_refusal
+    "strict-complete conversion requires successful, complete DWG read disposition")
+assert_freecad_entity_refusal("${RTEXT_SAMPLE}" "rtext arctext"
+    "${_strict_read_refusal}")
+assert_freecad_entity_refusal("${MPOLYGON_SAMPLE}" "mpolygon"
+    "${_strict_read_refusal}")
 
 # Unix command-line arguments are byte strings (UTF-8 on the supported host
 # environments exercised here). Keep Windows Unicode argv qualification

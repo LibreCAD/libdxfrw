@@ -221,6 +221,13 @@ if(LIBDXFRW_BUILD_TESTS)
                 --converter $<TARGET_FILE:dwg2dxf>)
         set_tests_properties(dwg2dxf_cli_contract PROPERTIES
             LABELS "fast;cli;process" TIMEOUT 30)
+        add_test(NAME dwg2dxf_unsupported_source_codepage
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --unsupported-dwg-codepage-only)
+        set_tests_properties(dwg2dxf_unsupported_source_codepage PROPERTIES
+            LABELS "fast;cli;dwg;codepage" TIMEOUT 25)
     endif()
     add_test(NAME libdxfrw_independent_dxf_selftest
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
@@ -297,21 +304,9 @@ if(LIBDXFRW_BUILD_TESTS)
                 "${LIBDXFRW_LIBREDWG_DWGREAD}")
         endif()
 
-        add_executable(libdxfrw_semantic_adapter_standalone
-            tests/semantic_differential_adapter.cpp)
-        target_compile_features(libdxfrw_semantic_adapter_standalone
-            PRIVATE cxx_std_17)
-        target_compile_options(libdxfrw_semantic_adapter_standalone
-            PRIVATE ${LIBDXFRW_ADAPTER_WARNING_FLAGS})
-        target_compile_definitions(libdxfrw_semantic_adapter_standalone PRIVATE
-            LIBDXFRW_SEMANTIC_SIDE_STANDALONE=1
-            LIBDXFRW_SEMANTIC_ADAPTER_NAME="libdxfrw_semantic_adapter_standalone")
-        target_include_directories(libdxfrw_semantic_adapter_standalone PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
-        target_link_libraries(libdxfrw_semantic_adapter_standalone PRIVATE dxfrw)
         set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/generated_raw_dwg_object.h
             ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_admitted_candidate_fields.py
             ${LIBDXFRW_QUALIFIED_SEMANTIC_FIELDS_CONTRACT}
@@ -354,6 +349,7 @@ if(LIBDXFRW_BUILD_TESTS)
                 --manifest ${CMAKE_CURRENT_SOURCE_DIR}/metadata/libdxfrw-target-source-manifest.txt
                 --semantic-manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
                 --adapter-source ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+                --adapter-support-input ${CMAKE_CURRENT_SOURCE_DIR}/tests/generated_raw_dwg_object.h
                 --wrapper-source ${CMAKE_CURRENT_SOURCE_DIR}/cmake/semantic_adapter_target
                 --configuration $<CONFIG>
                 --parallel 2
@@ -362,6 +358,7 @@ if(LIBDXFRW_BUILD_TESTS)
             DEPENDS
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/generated_raw_dwg_object.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/semantic_adapter_target/CMakeLists.txt
                 ${CMAKE_CURRENT_SOURCE_DIR}/metadata/libdxfrw-target-lock.json
                 ${CMAKE_CURRENT_SOURCE_DIR}/metadata/libdxfrw-target-source-manifest.txt
@@ -372,26 +369,25 @@ if(LIBDXFRW_BUILD_TESTS)
         add_custom_target(libdxfrw_semantic_adapter_standalone_receipt
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
-                receipt-standalone
-                --executable $<TARGET_FILE:libdxfrw_semantic_adapter_standalone>
-                --static-library $<TARGET_FILE:dxfrw>
-                --cmake-build-dir ${CMAKE_CURRENT_BINARY_DIR}
+                build-standalone
+                --source-root ${CMAKE_CURRENT_SOURCE_DIR}
+                --source-list ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw_sources.cmake
+                --build-dir ${LIBDXFRW_SEMANTIC_QUALIFICATION_DIR}/standalone-build
+                --parent-cmake-build-dir ${CMAKE_CURRENT_BINARY_DIR}
                 --adapter-source ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
+                --adapter-support-input ${CMAKE_CURRENT_SOURCE_DIR}/tests/generated_raw_dwg_object.h
                 --semantic-manifest ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
-                --config-source ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
-                --config-source ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw_sources.cmake
                 --configuration $<CONFIG>
+                --parallel 2
                 --receipt ${LIBDXFRW_SEMANTIC_STANDALONE_RECEIPT}
                 --cmake ${CMAKE_COMMAND}
             DEPENDS
-                libdxfrw_semantic_adapter_standalone
-                dxfrw
                 ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_semantic_adapter.py
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/semantic_differential_adapter.cpp
-                ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/generated_raw_dwg_object.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/libdxfrw_sources.cmake
                 ${LIBDXFRW_QUALIFIED_DIFFERENTIAL_MANIFEST}
-            COMMENT "Attesting standalone semantic adapter build"
+            COMMENT "Building a fresh controlled standalone semantic adapter"
             VERBATIM)
         add_custom_target(libdxfrw_semantic_adapters ALL
             DEPENDS
@@ -696,6 +692,121 @@ if(LIBDXFRW_BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
     target_link_libraries(libdxfrw_wave1_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_wave1 COMMAND libdxfrw_wave1_tests)
+    add_test(NAME libdxfrw_dxf_standard_object_identities
+        COMMAND libdxfrw_wave1_tests --dxf-standard-object-identities)
+    set_tests_properties(libdxfrw_dxf_standard_object_identities PROPERTIES
+        LABELS "fast;dxf;writer;objects;identity;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_generated_dictionary_source_metadata
+        COMMAND libdxfrw_wave1_tests --generated-dictionary-source-metadata)
+    set_tests_properties(libdxfrw_generated_dictionary_source_metadata PROPERTIES
+        LABELS "fast;dxf;writer;objects;dictionary;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_dxf_objects_write_inspection
+        COMMAND libdxfrw_wave1_tests --dxf-objects-write-inspection)
+    set_tests_properties(libdxfrw_dxf_objects_write_inspection PROPERTIES
+        LABELS "fast;dxf;writer;objects;transaction;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_dxf_tables_write_inspection
+        COMMAND libdxfrw_symbol_output_tests --dxf-tables-write-inspection)
+    set_tests_properties(libdxfrw_dxf_tables_write_inspection PROPERTIES
+        LABELS "fast;dxf;writer;tables;transaction;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_symbol_name_wire_inspection
+        COMMAND libdxfrw_symbol_output_tests --symbol-name-wire-inspection)
+    set_tests_properties(libdxfrw_symbol_name_wire_inspection PROPERTIES
+        LABELS "fast;dxf;tables;identity;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_dxf_source_table_identities
+        COMMAND libdxfrw_symbol_output_tests --source-table-identities)
+    set_tests_properties(libdxfrw_dxf_source_table_identities PROPERTIES
+        LABELS "fast;dxf;writer;tables;identity;transaction;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_symbol_unicode_keys
+        COMMAND libdxfrw_symbol_output_tests --symbol-unicode-keys)
+    set_tests_properties(libdxfrw_symbol_unicode_keys PROPERTIES
+        LABELS "fast;dxf;tables;unicode;generated" TIMEOUT 15)
+    add_executable(libdxfrw_symbol_output_tests
+        tests/dxf_symbol_output_tests.cpp dwg2dxf/dx_iface.cpp)
+    target_compile_features(libdxfrw_symbol_output_tests PRIVATE cxx_std_17)
+    target_include_directories(libdxfrw_symbol_output_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
+    target_link_libraries(libdxfrw_symbol_output_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_standard_object_wire_comparison
+        COMMAND libdxfrw_wave1_tests --standard-object-wire-comparison)
+    set_tests_properties(libdxfrw_standard_object_wire_comparison PROPERTIES
+        LABELS "fast;dxf;objects;preservation;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_xrecord_xdata_channels
+        COMMAND libdxfrw_dxf_fixture_tests --xrecord-xdata-channels)
+    set_tests_properties(libdxfrw_xrecord_xdata_channels PROPERTIES
+        LABELS "fast;dxf;objects;xrecord;xdata;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_xrecord_writer_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --xrecord-writer-codepage)
+    set_tests_properties(libdxfrw_xrecord_writer_codepage PROPERTIES
+        LABELS "fast;dwg;writer;objects;codepage;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_text_decode_issue_accumulation
+        COMMAND libdxfrw_gbk_codepage_tests --text-decode-issue-accumulation)
+    set_tests_properties(libdxfrw_text_decode_issue_accumulation PROPERTIES
+        LABELS "fast;codepage;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_dwg_eed_text_provenance
+        COMMAND libdxfrw_gbk_codepage_tests --dwg-eed-text-provenance)
+    set_tests_properties(libdxfrw_dwg_eed_text_provenance PROPERTIES
+        LABELS "fast;dwg;codepage;xdata;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_xrecord_per_value_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --xrecord-per-value-codepage)
+    set_tests_properties(libdxfrw_xrecord_per_value_codepage PROPERTIES
+        LABELS "fast;dwg;codepage;xrecord;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_appid_name_source
+        COMMAND libdxfrw_gbk_codepage_tests --appid-name-source)
+    set_tests_properties(libdxfrw_appid_name_source PROPERTIES
+        LABELS "fast;dwg;codepage;appid;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_layer_name_source
+        COMMAND libdxfrw_gbk_codepage_tests --layer-name-source)
+    set_tests_properties(libdxfrw_layer_name_source PROPERTIES
+        LABELS "fast;dwg;codepage;layer;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_standard_dwg_output_allocation
+        COMMAND libdxfrw_gbk_codepage_tests --standard-dwg-output-allocation)
+    set_tests_properties(libdxfrw_standard_dwg_output_allocation PROPERTIES
+        LABELS "fast;dwg;dxf;objects;allocation;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_sectionobject_indicator_color_wire
+        COMMAND libdxfrw_wave1_tests --sectionobject-indicator-color-wire)
+    set_tests_properties(libdxfrw_sectionobject_indicator_color_wire PROPERTIES
+        LABELS "fast;dxf;writer;sectionobject" TIMEOUT 10)
+    add_test(NAME libdxfrw_mleader_writer_version
+        COMMAND libdxfrw_wave1_tests --mleader-writer-validation)
+    set_tests_properties(libdxfrw_mleader_writer_version PROPERTIES
+        LABELS "fast;dxf;writer;mleader"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_mline_style_validation
+        COMMAND libdxfrw_wave1_tests --mline-style-validation)
+    set_tests_properties(libdxfrw_mline_style_validation PROPERTIES
+        LABELS "fast;dxf;writer;mlinestyle;cmc"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_sun_cmc_dxf_projection
+        COMMAND libdxfrw_wave1_tests --sun-cmc-dxf-projection)
+    set_tests_properties(libdxfrw_sun_cmc_dxf_projection PROPERTIES
+        LABELS "fast;dxf;writer;sun;cmc"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_section_settings_cmc_dxf_projection
+        COMMAND libdxfrw_wave1_tests --section-settings-cmc-dxf-projection)
+    set_tests_properties(libdxfrw_section_settings_cmc_dxf_projection PROPERTIES
+        LABELS "fast;dxf;writer;section-settings;cmc"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_acad_field_writer_candidate
+        COMMAND libdxfrw_wave1_tests --acad-field-writer-candidate)
+    set_tests_properties(libdxfrw_acad_field_writer_candidate PROPERTIES
+        LABELS "fast;dxf;writer;field"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_solid_nondefault_ocs
+        COMMAND libdxfrw_wave1_tests --solid-nondefault-ocs)
+    set_tests_properties(libdxfrw_solid_nondefault_ocs PROPERTIES
+        LABELS "fast;dxf;reader;3d"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dwg_decompressor_size_bounds
+        COMMAND libdxfrw_wave1_tests --dwg-decompressor-size-bounds)
+    set_tests_properties(libdxfrw_dwg_decompressor_size_bounds PROPERTIES
+        LABELS "fast;dwg;hardening"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_code_type_boundaries
+        COMMAND libdxfrw_wave1_tests --dxf-code-type-boundaries)
+    set_tests_properties(libdxfrw_dxf_code_type_boundaries PROPERTIES
+        LABELS "fast;dxf;hardening"
+        TIMEOUT 10)
 
     add_executable(libdxfrw_gbk_codepage_tests
         tests/gbk_codepage_tests.cpp
@@ -710,6 +821,70 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_gbk_codepage_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_gbk_codepage
         COMMAND libdxfrw_gbk_codepage_tests)
+    add_test(NAME libdxfrw_dwg_codepage_snapshot
+        COMMAND libdxfrw_gbk_codepage_tests --dwg-codepage-snapshot)
+    set_tests_properties(libdxfrw_dwg_codepage_snapshot PROPERTIES
+        LABELS "fast;dwg;codepage")
+    add_test(NAME libdxfrw_standard_dwg_payload_profile_and_allocation
+        COMMAND libdxfrw_gbk_codepage_tests --standard-dwg-payload-profile-and-allocation)
+    add_test(NAME libdxfrw_generated_dictionary_metadata_allocation
+        COMMAND libdxfrw_gbk_codepage_tests --generated-dictionary-metadata-allocation)
+    set_tests_properties(libdxfrw_generated_dictionary_metadata_allocation PROPERTIES
+        LABELS "fast;dxf;dictionary;allocation;generated" TIMEOUT 15)
+    set_tests_properties(libdxfrw_standard_dwg_payload_profile_and_allocation PROPERTIES
+        LABELS "fast;dwg;codepage;adapter;allocation;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_mac_roman_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --mac-roman-codepage)
+    set_tests_properties(libdxfrw_mac_roman_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_2_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-2-codepage)
+    set_tests_properties(libdxfrw_iso8859_2_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_3_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-3-codepage)
+    set_tests_properties(libdxfrw_iso8859_3_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_5_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-5-codepage)
+    set_tests_properties(libdxfrw_iso8859_5_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_6_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-6-codepage)
+    set_tests_properties(libdxfrw_iso8859_6_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_7_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-7-codepage)
+    set_tests_properties(libdxfrw_iso8859_7_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_8_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-8-codepage)
+    set_tests_properties(libdxfrw_iso8859_8_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_9_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-9-codepage)
+    set_tests_properties(libdxfrw_iso8859_9_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_10_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-10-codepage)
+    set_tests_properties(libdxfrw_iso8859_10_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_11_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-11-codepage)
+    set_tests_properties(libdxfrw_iso8859_11_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_13_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-13-codepage)
+    set_tests_properties(libdxfrw_iso8859_13_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_14_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-14-codepage)
+    set_tests_properties(libdxfrw_iso8859_14_codepage PROPERTIES
+        LABELS "fast;dxf")
+    add_test(NAME libdxfrw_iso8859_15_codepage
+        COMMAND libdxfrw_gbk_codepage_tests --iso8859-15-codepage)
+    set_tests_properties(libdxfrw_iso8859_15_codepage PROPERTIES
+        LABELS "fast;dxf")
 
     add_executable(libdxfrw_dwg_local_roundtrip
         tests/dwg_local_roundtrip_tests.cpp
@@ -724,6 +899,104 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dwg_local_roundtrip PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_local_roundtrip
         COMMAND libdxfrw_dwg_local_roundtrip)
+    add_test(NAME libdxfrw_dxf_spline_helix_source_identities
+        COMMAND libdxfrw_dwg_local_roundtrip --dxf-spline-helix-source-identities)
+    set_tests_properties(libdxfrw_dxf_spline_helix_source_identities PROPERTIES
+        LABELS "fast;dxf;geometry;identity;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_table_content_dwg_object_roundtrip
+        COMMAND libdxfrw_dwg_local_roundtrip --table-content-dwg-object-roundtrip)
+    set_tests_properties(libdxfrw_table_content_dwg_object_roundtrip PROPERTIES
+        LABELS "fast;dwg;generated;tables;graph;writer" TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_group_dictionary_controls
+        COMMAND libdxfrw_dwg_local_roundtrip --dwg-group-dictionary-controls)
+    set_tests_properties(libdxfrw_dwg_group_dictionary_controls PROPERTIES
+        LABELS "fast;dwg;generated;group;graph"
+        TIMEOUT 60)
+    add_test(NAME libdxfrw_standard_dwg_source_baseline
+        COMMAND libdxfrw_dwg_local_roundtrip --standard-dwg-source-baseline)
+    set_tests_properties(libdxfrw_standard_dwg_source_baseline PROPERTIES
+        LABELS "fast;dwg;generated;objects;retention;transaction" TIMEOUT 15)
+    add_test(NAME libdxfrw_rooted_standard_dwg_output_proof
+        COMMAND libdxfrw_dwg_local_roundtrip --rooted-standard-dwg-output-proof)
+    add_test(NAME libdxfrw_standard_dwg_group_metadata
+        COMMAND libdxfrw_dwg_local_roundtrip --standard-dwg-group-metadata)
+    set_tests_properties(libdxfrw_standard_dwg_group_metadata PROPERTIES
+        LABELS "fast;dwg;dxf;objects;group;graph;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_rooted_standard_dwg_xrecord_eed
+        COMMAND libdxfrw_dwg_local_roundtrip --rooted-standard-dwg-xrecord-eed)
+    set_tests_properties(libdxfrw_rooted_standard_dwg_xrecord_eed PROPERTIES
+        LABELS "fast;dwg;dxf;objects;xrecord;xdata;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_rooted_standard_dwg_layer_reference
+        COMMAND libdxfrw_dwg_local_roundtrip --rooted-standard-dwg-layer-reference)
+    set_tests_properties(libdxfrw_rooted_standard_dwg_layer_reference PROPERTIES
+        LABELS "fast;dwg;dxf;objects;layer;xdata;generated" TIMEOUT 30)
+    set_tests_properties(libdxfrw_rooted_standard_dwg_output_proof PROPERTIES
+        LABELS "fast;dwg;dxf;generated;objects;preservation;graph" TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_header_cmc_metadata
+        COMMAND libdxfrw_dwg_local_roundtrip --header-cmc-metadata)
+    set_tests_properties(libdxfrw_dwg_header_cmc_metadata PROPERTIES
+        LABELS "fast;dwg;generated;header;cmc"
+        TIMEOUT 60)
+    add_test(NAME libdxfrw_section_settings_cmc
+        COMMAND libdxfrw_dwg_local_roundtrip --section-settings-cmc)
+    set_tests_properties(libdxfrw_section_settings_cmc PROPERTIES
+        LABELS "fast;dwg;generated;section-settings;cmc"
+        TIMEOUT 60)
+    add_test(NAME libdxfrw_mpolygon_fill_cmc
+        COMMAND libdxfrw_dwg_local_roundtrip --mpolygon-fill-cmc)
+    set_tests_properties(libdxfrw_mpolygon_fill_cmc PROPERTIES
+        LABELS "fast;dwg;generated;mpolygon;cmc"
+        TIMEOUT 60)
+    add_test(NAME dxf_ellipse_extrusion_policy
+        COMMAND libdxfrw_dwg_local_roundtrip --dxf-ellipse-extrusion)
+    set_tests_properties(dxf_ellipse_extrusion_policy PROPERTIES
+        LABELS "fast;dxf;generated;geometry;ocs"
+        TIMEOUT 60)
+    add_test(NAME dwg2dxf_modeler_dxf_writer_matrix
+        COMMAND libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix)
+    set_tests_properties(dwg2dxf_modeler_dxf_writer_matrix PROPERTIES
+        LABELS "fast;dxf;writer;modeler"
+        TIMEOUT 30)
+    add_test(NAME dwg2dxf_modeler_acds_r2013plus_projection
+        COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-r2013plus-projection)
+    set_tests_properties(dwg2dxf_modeler_acds_r2013plus_projection PROPERTIES
+        LABELS "fast;dxf;writer;modeler;acds"
+        TIMEOUT 60)
+    add_test(NAME dwg2dxf_acds_multi_record_projection
+        COMMAND libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage)
+    set_tests_properties(dwg2dxf_acds_multi_record_projection PROPERTIES
+        LABELS "fast;dxf;writer;modeler;acds;generated;multi-record"
+        TIMEOUT 60)
+    add_test(NAME dwg2dxf_modeler_acds_block_projection
+        COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-block-projection)
+    set_tests_properties(dwg2dxf_modeler_acds_block_projection PROPERTIES
+        LABELS "fast;dxf;dwg;modeler;acds;graph"
+        TIMEOUT 60)
+    add_test(NAME dwg_dxf_issue_1410_cross_codec
+        COMMAND libdxfrw_dwg_local_roundtrip --issue-1410-cross-codec)
+    set_tests_properties(dwg_dxf_issue_1410_cross_codec PROPERTIES
+        LABELS "fast;dxf;dwg;roundtrip"
+        TIMEOUT 60)
+    add_test(NAME dwg_hatch_rational_spline_weight_handoff
+        COMMAND libdxfrw_dwg_local_roundtrip --hatch-dwg-spline-weights)
+    set_tests_properties(dwg_hatch_rational_spline_weight_handoff PROPERTIES
+        LABELS "fast;dxf;dwg;hatch;semantic"
+        TIMEOUT 60)
+    add_test(NAME dwg_hatch_dwg_boundary_references
+        COMMAND libdxfrw_dwg_local_roundtrip --hatch-dwg-boundary-references)
+    set_tests_properties(dwg_hatch_dwg_boundary_references PROPERTIES
+        LABELS "fast;dxf;dwg;hatch;semantic"
+        TIMEOUT 60)
+    add_test(NAME dwg_hatch_reference_graph
+        COMMAND libdxfrw_dwg_local_roundtrip --hatch-references)
+    set_tests_properties(dwg_hatch_reference_graph PROPERTIES
+        LABELS "fast;dxf;hatch;graph"
+        TIMEOUT 60)
+    add_test(NAME dxf_hatch_derived_pixel_size_presence
+        COMMAND libdxfrw_dwg_local_roundtrip --hatch-pixel-presence)
+    set_tests_properties(dxf_hatch_derived_pixel_size_presence PROPERTIES
+        LABELS "fast;dxf;hatch;generated;group47"
+        TIMEOUT 60)
 
     add_executable(libdxfrw_dwg_reader_matrix_tests
         tests/dwg_reader_matrix_tests.cpp
@@ -738,6 +1011,96 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dwg_reader_matrix_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_reader_matrix
         COMMAND libdxfrw_dwg_reader_matrix_tests)
+    add_test(NAME libdxfrw_dwg_r2018_auxheader_trailer
+        COMMAND libdxfrw_dwg_reader_matrix_tests
+            --r2018-auxheader-trailer)
+    set_tests_properties(libdxfrw_dwg_r2018_auxheader_trailer PROPERTIES
+        LABELS "fast;dwg;header;generated;AC1027;AC1032"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_tablestyle_malformed_count_dispatch
+        COMMAND libdxfrw_dwg_reader_matrix_tests
+            --tablestyle-malformed-count-dispatch)
+    set_tests_properties(libdxfrw_dwg_tablestyle_malformed_count_dispatch
+        PROPERTIES LABELS "fast;dwg;tablestyle;generated;AC1032"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_acds_dataindex_order
+        COMMAND libdxfrw_dwg_reader_matrix_tests --acds-dataindex-order)
+    set_tests_properties(libdxfrw_dwg_acds_dataindex_order PROPERTIES
+        LABELS "fast;dwg;acds;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_r2007_class_string_footer
+        COMMAND libdxfrw_dwg_reader_matrix_tests --r2007-class-string-footer)
+    set_tests_properties(libdxfrw_dwg_r2007_class_string_footer PROPERTIES
+        LABELS "fast;dwg;framing;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_r2007_section_map_page_extent
+        COMMAND libdxfrw_dwg_reader_matrix_tests
+            --r2007-section-map-page-extent)
+    set_tests_properties(libdxfrw_dwg_r2007_section_map_page_extent PROPERTIES
+        LABELS "fast;dwg;section-map;generated;AC1021"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_insert_staging_index
+        COMMAND libdxfrw_dwg_reader_matrix_tests --insert-staging-index)
+    set_tests_properties(libdxfrw_dwg_insert_staging_index PROPERTIES
+        LABELS "fast;dwg;insert;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_block_record_xref_index
+        COMMAND libdxfrw_dwg_reader_matrix_tests --block-record-xref-index)
+    set_tests_properties(libdxfrw_dwg_block_record_xref_index PROPERTIES
+        LABELS "fast;dwg;xref;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_block_record_xref_roundtrip
+        COMMAND libdxfrw_dwg_local_roundtrip --block-record-xref-roundtrip)
+    set_tests_properties(libdxfrw_dwg_block_record_xref_roundtrip PROPERTIES
+        LABELS "fast;dwg;xref;generated;roundtrip"
+        TIMEOUT 60)
+    add_test(NAME libdxfrw_dwg_block_owner_membership_index
+        COMMAND libdxfrw_dwg_local_roundtrip --block-owner-membership-index)
+    set_tests_properties(libdxfrw_dwg_block_owner_membership_index PROPERTIES
+        LABELS "fast;dwg;ownership;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_image_compound_transaction
+        COMMAND libdxfrw_dwg_local_roundtrip --image-compound-transaction)
+    set_tests_properties(libdxfrw_dwg_image_compound_transaction PROPERTIES
+        LABELS "fast;dwg;image;transaction;generated"
+        TIMEOUT 30)
+    add_executable(libdxfrw_raster_dwg_wire_tests tests/raster_dwg_wire_tests.cpp)
+    target_include_directories(libdxfrw_raster_dwg_wire_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
+    target_compile_features(libdxfrw_raster_dwg_wire_tests PRIVATE cxx_std_14)
+    add_test(NAME libdxfrw_raster_dwg_independent_wire COMMAND libdxfrw_raster_dwg_wire_tests)
+    set_tests_properties(libdxfrw_raster_dwg_independent_wire PROPERTIES
+        LABELS "fast;dwg;image;wire;generated;independent" TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_residual_entity_sweep
+        COMMAND libdxfrw_dwg_reader_matrix_tests --residual-entity-sweep)
+    set_tests_properties(libdxfrw_dwg_residual_entity_sweep PROPERTIES
+        LABELS "fast;dwg;ordering;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_mixed_missing_block_ownership
+        COMMAND libdxfrw_dwg_reader_matrix_tests --mixed-missing-block-ownership)
+    set_tests_properties(libdxfrw_dwg_mixed_missing_block_ownership PROPERTIES
+        LABELS "fast;dwg;ownership;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_space_block_delimiter_owner
+        COMMAND libdxfrw_dwg_reader_matrix_tests --space-block-delimiter-owner)
+    set_tests_properties(libdxfrw_dwg_space_block_delimiter_owner PROPERTIES
+        LABELS "fast;dwg;ownership;generated"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_r11_paper_space_projection
+        COMMAND libdxfrw_dwg_reader_matrix_tests --r11-paper-space-projection)
+    set_tests_properties(libdxfrw_dwg_r11_paper_space_projection PROPERTIES
+        LABELS "fast;dwg;space;generated"
+        TIMEOUT 30)
+    if(LIBDXFRW_BUILD_DWG2DXF)
+        add_test(NAME libdxfrw_dwg_r11_paper_space_cli_refusal
+            COMMAND ${CMAKE_COMMAND}
+                "-DREADER_TEST=$<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>"
+                "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_r11_paper_space_cli_test.cmake.in)
+        set_tests_properties(libdxfrw_dwg_r11_paper_space_cli_refusal PROPERTIES
+            LABELS "fast;dwg;space;generated;cli"
+            TIMEOUT 30)
+    endif()
 
     add_executable(libdxfrw_graph_preservation_tests
         tests/graph_preservation_tests.cpp)
@@ -768,11 +1131,318 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dwg_object_vectors_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_object_vectors
         COMMAND libdxfrw_dwg_object_vectors_tests)
+    add_test(NAME libdxfrw_persistent_manager_exact_footer
+        COMMAND libdxfrw_dwg_object_vectors_tests --persistent-manager-exact-footer)
+    set_tests_properties(libdxfrw_persistent_manager_exact_footer PROPERTIES
+        LABELS "fast;dwg;object-vectors;associative;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_geodata_civil_tail_target_matrix
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --geodata-civil-tail-target-matrix)
+    set_tests_properties(libdxfrw_geodata_civil_tail_target_matrix
+        PROPERTIES LABELS "fast;dwg;object-vectors;geodata" TIMEOUT 10)
+    add_test(NAME libdxfrw_associative_action_value_kinds
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --associative-action-value-kinds)
+    set_tests_properties(libdxfrw_associative_action_value_kinds PROPERTIES
+        LABELS "fast;dwg;object-vectors" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_break_data_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-break-data-flag-domain)
+    set_tests_properties(libdxfrw_table_break_data_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_break_option_direction_domains
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-break-option-direction-domains)
+    set_tests_properties(libdxfrw_table_break_option_direction_domains PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_row_range_count_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-row-range-count-domain)
+    set_tests_properties(libdxfrw_table_row_range_count_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_manual_position_count_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-manual-position-count-domain)
+    set_tests_properties(libdxfrw_table_manual_position_count_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cell_state_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cell-state-flag-domain)
+    set_tests_properties(libdxfrw_table_cell_state_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cell_content_type_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cell-content-type-domain)
+    set_tests_properties(libdxfrw_table_cell_content_type_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_content_style_id_domains
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-content-style-id-domains)
+    set_tests_properties(libdxfrw_table_content_style_id_domains PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_content_dwg_payload_encoder
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-content-dwg-payload-encoder)
+    set_tests_properties(libdxfrw_table_content_dwg_payload_encoder PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_content_cell_style_border_alignment
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-content-cell-style-border-alignment)
+    set_tests_properties(libdxfrw_table_content_cell_style_border_alignment PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_content_override_style_types
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-content-override-style-types)
+    set_tests_properties(libdxfrw_table_content_override_style_types PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cell_unit_type_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cell-unit-type-domain)
+    set_tests_properties(libdxfrw_table_cell_unit_type_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cell_general_value_format_flag
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cell-general-value-format-flag)
+    set_tests_properties(libdxfrw_table_cell_general_value_format_flag PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_cadvalue_payload_presence
+        COMMAND libdxfrw_dwg_object_vectors_tests --cadvalue-payload-presence)
+    set_tests_properties(libdxfrw_cadvalue_payload_presence PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables;field;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cadvalue_long
+        COMMAND libdxfrw_dwg_object_vectors_tests --table-cadvalue-long)
+    set_tests_properties(libdxfrw_table_cadvalue_long PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cadvalue_string
+        COMMAND libdxfrw_dwg_object_vectors_tests --table-cadvalue-string)
+    set_tests_properties(libdxfrw_table_cadvalue_string PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cadvalue_date_payload
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cadvalue-date-payload)
+    set_tests_properties(libdxfrw_table_cadvalue_date_payload PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cadvalue_points
+        COMMAND libdxfrw_dwg_object_vectors_tests --table-cadvalue-points)
+    set_tests_properties(libdxfrw_table_cadvalue_points PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cadvalue_object_id
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cadvalue-object-id)
+    set_tests_properties(libdxfrw_table_cadvalue_object_id PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cadvalue_unknown_type
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cadvalue-unknown-type)
+    set_tests_properties(libdxfrw_table_cadvalue_unknown_type PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_table_cadvalue_unsupported_buffers
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-cadvalue-unsupported-buffers)
+    set_tests_properties(libdxfrw_table_cadvalue_unsupported_buffers PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_data_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests --tablestyle-data-flag)
+    set_tests_properties(libdxfrw_tablestyle_data_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_type_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests --tablestyle-type-domain)
+    set_tests_properties(libdxfrw_tablestyle_type_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_cellstylemap_dwg_encode_roundtrip
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --cellstylemap-dwg-encode-roundtrip)
+    set_tests_properties(libdxfrw_cellstylemap_dwg_encode_roundtrip
+        PROPERTIES LABELS "fast;dwg;object-vectors;tablestyle;generated"
+            TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_merge_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-merge-flag-domain)
+    set_tests_properties(libdxfrw_tablestyle_merge_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_margin_override_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-margin-override-flag-domain)
+    set_tests_properties(libdxfrw_tablestyle_margin_override_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_content_property_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-content-property-flag-domain)
+    set_tests_properties(libdxfrw_tablestyle_content_property_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_property_override_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-property-override-flag-domain)
+    set_tests_properties(libdxfrw_tablestyle_property_override_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_content_layout_flag_domain
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-content-layout-flag-domain)
+    set_tests_properties(libdxfrw_tablestyle_content_layout_flag_domain PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_border_flag_domains
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-border-flag-domains)
+    set_tests_properties(libdxfrw_tablestyle_border_flag_domains PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_identity_domains
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-identity-domains)
+    set_tests_properties(libdxfrw_tablestyle_identity_domains PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_cellstylemap_identity_domains
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --cellstylemap-identity-domains)
+    set_tests_properties(libdxfrw_cellstylemap_identity_domains PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_tablestyle_content_format_enum_domains
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --tablestyle-content-format-enum-domains)
+    set_tests_properties(libdxfrw_tablestyle_content_format_enum_domains PROPERTIES
+        LABELS "fast;dwg;object-vectors;tables" TIMEOUT 10)
+    add_test(NAME libdxfrw_dbcolor_unsupported_method_refusal
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --dbcolor-unsupported-method-refusal)
+    set_tests_properties(libdxfrw_dbcolor_unsupported_method_refusal PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc" TIMEOUT 10)
+    add_test(NAME libdxfrw_cmcolor_foreground_projection
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --cmcolor-foreground-projection)
+    set_tests_properties(libdxfrw_cmcolor_foreground_projection PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc" TIMEOUT 10)
+    add_test(NAME libdxfrw_enc_reserved_flags_refusal
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --enc-reserved-flags-refusal)
+    set_tests_properties(libdxfrw_enc_reserved_flags_refusal PROPERTIES
+        LABELS "fast;dwg;object-vectors;color" TIMEOUT 10)
+    add_test(NAME libdxfrw_visualstyle_cmc_source_replay
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --visualstyle-cmc-source-replay)
+    set_tests_properties(libdxfrw_visualstyle_cmc_source_replay PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;visualstyle" TIMEOUT 10)
+    add_test(NAME libdxfrw_viewport_ambient_color_method
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --viewport-ambient-color-method)
+    set_tests_properties(libdxfrw_viewport_ambient_color_method PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;viewport" TIMEOUT 10)
+    add_test(NAME libdxfrw_sun_cmc_retention
+        COMMAND libdxfrw_dwg_object_vectors_tests --sun-cmc-retention)
+    set_tests_properties(libdxfrw_sun_cmc_retention PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;sun" TIMEOUT 10)
+    add_test(NAME libdxfrw_modeldoc_view_style_cmc
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --modeldoc-view-style-cmc)
+    set_tests_properties(libdxfrw_modeldoc_view_style_cmc PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;view-style" TIMEOUT 10)
+    add_test(NAME libdxfrw_mlinestyle_cmc_retention
+        COMMAND libdxfrw_dwg_object_vectors_tests --mlinestyle-cmc-retention)
+    set_tests_properties(libdxfrw_mlinestyle_cmc_retention PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;mlinestyle" TIMEOUT 10)
+    add_test(NAME libdxfrw_light_cmc_rgb
+        COMMAND libdxfrw_dwg_object_vectors_tests --light-cmc-rgb)
+    set_tests_properties(libdxfrw_light_cmc_rgb PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;light" TIMEOUT 10)
+    add_test(NAME libdxfrw_sectionobject_cmc_rgb
+        COMMAND libdxfrw_dwg_object_vectors_tests --sectionobject-cmc-rgb)
+    set_tests_properties(libdxfrw_sectionobject_cmc_rgb PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;sectionobject" TIMEOUT 10)
+    add_test(NAME libdxfrw_mleaderstyle_cmc_rgb
+        COMMAND libdxfrw_dwg_object_vectors_tests --mleaderstyle-cmc-rgb)
+    set_tests_properties(libdxfrw_mleaderstyle_cmc_rgb PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;mleaderstyle" TIMEOUT 10)
+    add_test(NAME libdxfrw_mleader_line_cmc_rgb
+        COMMAND libdxfrw_dwg_object_vectors_tests --mleader-line-cmc-rgb)
+    set_tests_properties(libdxfrw_mleader_line_cmc_rgb PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;mleader" TIMEOUT 10)
+    add_test(NAME libdxfrw_dimstyle_dimclr_cmc
+        COMMAND libdxfrw_dwg_object_vectors_tests --dimstyle-dimclr-cmc)
+    set_tests_properties(libdxfrw_dimstyle_dimclr_cmc PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;dimstyle" TIMEOUT 10)
+    add_test(NAME libdxfrw_dimstyle_dimtfill_cmc
+        COMMAND libdxfrw_dwg_object_vectors_tests --dimstyle-dimtfill-cmc)
+    set_tests_properties(libdxfrw_dimstyle_dimtfill_cmc PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;dimstyle" TIMEOUT 10)
+    add_test(NAME libdxfrw_mtext_background_cmc
+        COMMAND libdxfrw_dwg_object_vectors_tests --mtext-background-cmc)
+    set_tests_properties(libdxfrw_mtext_background_cmc PROPERTIES
+        LABELS "fast;dwg;object-vectors;cmc;mtext" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_oversized_child_value_count
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-oversized-child-value-count)
+    set_tests_properties(libdxfrw_field_oversized_child_value_count PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_general_format_flag
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-general-format-flag)
+    set_tests_properties(libdxfrw_field_cadvalue_general_format_flag PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_unqualified_format_flags
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-unqualified-format-flags)
+    set_tests_properties(libdxfrw_field_unqualified_format_flags PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_unknown_type
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-unknown-type)
+    set_tests_properties(libdxfrw_field_cadvalue_unknown_type PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_long
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-long)
+    set_tests_properties(libdxfrw_field_cadvalue_long PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_double
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-double)
+    set_tests_properties(libdxfrw_field_cadvalue_double PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_string
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-string)
+    set_tests_properties(libdxfrw_field_cadvalue_string PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_date_payload
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-date-payload)
+    set_tests_properties(libdxfrw_field_cadvalue_date_payload PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_points
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-points)
+    set_tests_properties(libdxfrw_field_cadvalue_points PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_cadvalue_object_id
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-cadvalue-object-id)
+    set_tests_properties(libdxfrw_field_cadvalue_object_id PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_child_cadvalue_types
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-child-cadvalue-types)
+    set_tests_properties(libdxfrw_field_child_cadvalue_types PROPERTIES
+        LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_unsupported_child_cadvalue_buffers
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-unsupported-child-cadvalue-buffers)
+    set_tests_properties(libdxfrw_field_unsupported_child_cadvalue_buffers
+        PROPERTIES LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_unknown_child_cadvalue_versions
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-unknown-child-cadvalue-versions)
+    set_tests_properties(libdxfrw_field_unknown_child_cadvalue_versions
+        PROPERTIES LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
+    add_test(NAME libdxfrw_field_child_object_id_invalid_handle_role
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --field-child-object-id-invalid-handle-role)
+    set_tests_properties(libdxfrw_field_child_object_id_invalid_handle_role
+        PROPERTIES LABELS "fast;dwg;object-vectors;field" TIMEOUT 10)
     add_test(NAME libdxfrw_visualstyle_slot_manifest
         COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_visualstyle_slot_manifest.py
             --manifest
             ${CMAKE_CURRENT_SOURCE_DIR}/docs/research/visualstyle-slot-map-readiness-2026-10-15.json
+            --grades
+            ${CMAKE_CURRENT_SOURCE_DIR}/docs/research/visualstyle-slot-evidence-grades-2026-10-16.json
             --vectors
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg_object_vectors_tests.cpp)
 
@@ -785,6 +1455,209 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_hardening_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_hardening
         COMMAND libdxfrw_hardening_tests)
+    add_test(NAME libdxfrw_dxf_operation_admission
+        COMMAND libdxfrw_hardening_tests --dxf-operation-admission)
+    set_tests_properties(libdxfrw_dxf_operation_admission PROPERTIES
+        LABELS "fast;dxf;reader;writer;transaction;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_section_settings_color_code
+        COMMAND libdxfrw_hardening_tests --section-settings-color-code)
+    set_tests_properties(libdxfrw_section_settings_color_code PROPERTIES
+        LABELS "fast;dxf;reader;section-settings"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dbcolor_book_name_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-dbcolor-book-name-owner-budget)
+    set_tests_properties(libdxfrw_dbcolor_book_name_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;dbcolor;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_color_book_name_token_transfer
+        COMMAND libdxfrw_hardening_tests
+            --dxf-color-book-name-token-transfer)
+    set_tests_properties(libdxfrw_dxf_color_book_name_token_transfer PROPERTIES
+        LABELS "fast;dxf;reader;color-book;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_dimassoc_xref_token_transfer
+        COMMAND libdxfrw_hardening_tests
+            --dxf-dimassoc-xref-text-owner-budget)
+    set_tests_properties(libdxfrw_dxf_dimassoc_xref_token_transfer PROPERTIES
+        LABELS "fast;dxf;reader;dimassoc;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_entity_boundary_token_transfer
+        COMMAND libdxfrw_hardening_tests
+            --dxf-entity-boundary-token-transfer)
+    set_tests_properties(libdxfrw_dxf_entity_boundary_token_transfer PROPERTIES
+        LABELS "fast;dxf;reader;record-boundary"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_dimension_block_name_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-dimension-block-name-owner-budget)
+    set_tests_properties(libdxfrw_dxf_dimension_block_name_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;dimension;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_layer_text_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-layer-text-owner-budget)
+    set_tests_properties(libdxfrw_dxf_layer_text_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;layer;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_mline_style_name_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-mline-style-name-owner-budget)
+    set_tests_properties(libdxfrw_dxf_mline_style_name_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;mline;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_appdata_retained_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-appdata-retained-owner-budget)
+    set_tests_properties(libdxfrw_dxf_appdata_retained_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;appdata;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_appdata_handle_token_transfer
+        COMMAND libdxfrw_hardening_tests
+            --dxf-appdata-handle-token-transfer)
+    set_tests_properties(libdxfrw_dxf_appdata_handle_token_transfer PROPERTIES
+        LABELS "fast;dxf;reader;appdata;handle"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_xdata_string_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-xdata-string-owner-budget)
+    set_tests_properties(libdxfrw_dxf_xdata_string_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;xdata;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_class_parser_retained_text_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-class-parser-retained-text-budget)
+    set_tests_properties(libdxfrw_dxf_class_parser_retained_text_budget PROPERTIES
+        LABELS "fast;dxf;reader;classes;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_ltype_retained_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-ltype-retained-owner-budget)
+    set_tests_properties(libdxfrw_dxf_ltype_retained_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;ltype;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_block_record_parser_retained_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-block-record-parser-retained-budget)
+    set_tests_properties(libdxfrw_dxf_block_record_parser_retained_budget PROPERTIES
+        LABELS "fast;dxf;reader;block-record;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_modeler_text_direct_append
+        COMMAND libdxfrw_hardening_tests
+            --dxf-modeler-text-direct-append)
+    set_tests_properties(libdxfrw_dxf_modeler_text_direct_append PROPERTIES
+        LABELS "fast;dxf;reader;modeler;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_modeler_uid_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-modeler-uid-owner-budget)
+    set_tests_properties(libdxfrw_dxf_modeler_uid_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;modeler;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_group_310_direct_decode
+        COMMAND libdxfrw_hardening_tests
+            --dxf-group-310-direct-decode)
+    set_tests_properties(libdxfrw_dxf_group_310_direct_decode PROPERTIES
+        LABELS "fast;dxf;reader;binary-payload;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_mtext_borrowed_chunk_view
+        COMMAND libdxfrw_hardening_tests
+            --dxf-mtext-borrowed-chunk-view)
+    set_tests_properties(libdxfrw_dxf_mtext_borrowed_chunk_view PROPERTIES
+        LABELS "fast;dxf;reader;mtext;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_borrowed_subclass_markers
+        COMMAND libdxfrw_hardening_tests
+            --dxf-borrowed-subclass-markers)
+    set_tests_properties(libdxfrw_dxf_borrowed_subclass_markers PROPERTIES
+        LABELS "fast;dxf;reader;subclass-marker;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_shape_style_name_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-shape-style-name-owner-budget)
+    set_tests_properties(libdxfrw_dxf_shape_style_name_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;shape;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_raw_carrier_retention_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-raw-carrier-retention-budget)
+    set_tests_properties(libdxfrw_dxf_raw_carrier_retention_budget PROPERTIES
+        LABELS "fast;dxf;reader;raw-carrier;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_unknown_table_name_view
+        COMMAND libdxfrw_hardening_tests
+            --dxf-unknown-table-name-view)
+    set_tests_properties(libdxfrw_dxf_unknown_table_name_view PROPERTIES
+        LABELS "fast;dxf;reader;tables;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_viewstyle_subclass_marker_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-viewstyle-subclass-marker-budget)
+    set_tests_properties(libdxfrw_viewstyle_subclass_marker_budget PROPERTIES
+        LABELS "fast;dxf;reader;viewstyle;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_geodata_civil_marker_views
+        COMMAND libdxfrw_hardening_tests --dxf-geodata-civil-marker-views)
+    set_tests_properties(libdxfrw_geodata_civil_marker_views PROPERTIES
+        LABELS "fast;dxf;reader;geodata;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_section_text_owner_budget
+        COMMAND libdxfrw_hardening_tests --dxf-section-text-owner-budget)
+    set_tests_properties(libdxfrw_section_text_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;section;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_material_text_owner_budget
+        COMMAND libdxfrw_hardening_tests --dxf-material-text-owner-budget)
+    set_tests_properties(libdxfrw_dxf_material_text_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;material;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_table_cell_text_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-table-cell-text-owner-budget)
+    set_tests_properties(libdxfrw_dxf_table_cell_text_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;table;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_xrecord_string_owner_budget
+        COMMAND libdxfrw_hardening_tests --dxf-xrecord-string-owner-budget)
+    set_tests_properties(libdxfrw_dxf_xrecord_string_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;xrecord;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_datalink_text_owner_budget
+        COMMAND libdxfrw_hardening_tests --dxf-data-link-text-owner-budget)
+    set_tests_properties(libdxfrw_datalink_text_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;datalink;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_render_settings_text_owner_budget
+        COMMAND libdxfrw_hardening_tests
+            --dxf-render-settings-text-owner-budget)
+    set_tests_properties(libdxfrw_render_settings_text_owner_budget PROPERTIES
+        LABELS "fast;dxf;reader;render-settings;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_associative_subentity_handle_limit
+        COMMAND libdxfrw_hardening_tests
+            --dxf-associative-subentity-handle-limit)
+    set_tests_properties(libdxfrw_associative_subentity_handle_limit PROPERTIES
+        LABELS "fast;dxf;reader;associative;resource-budget"
+        TIMEOUT 10)
+    add_test(NAME libdxfrw_sectionobject_indicator_color_groups
+        COMMAND libdxfrw_hardening_tests
+            --sectionobject-indicator-color-groups)
+    set_tests_properties(libdxfrw_sectionobject_indicator_color_groups PROPERTIES
+        LABELS "fast;dxf;reader;sectionobject" TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_proxy_subclass_marker_view
+        COMMAND libdxfrw_hardening_tests
+            --dxf-proxy-subclass-marker-view)
+    set_tests_properties(libdxfrw_dxf_proxy_subclass_marker_view PROPERTIES
+        LABELS "fast;dxf;reader;proxy;allocation" TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_proxy_retained_budget
+        COMMAND libdxfrw_hardening_tests --dxf-proxy-retained-budget)
+    set_tests_properties(libdxfrw_dxf_proxy_retained_budget PROPERTIES
+        LABELS "fast;dxf;reader;proxy;resource-budget" TIMEOUT 10)
+    add_test(NAME libdxfrw_dxf_proxy_object_id_terminator
+        COMMAND libdxfrw_hardening_tests
+            --dxf-proxy-object-id-terminator)
+    set_tests_properties(libdxfrw_dxf_proxy_object_id_terminator PROPERTIES
+        LABELS "fast;dxf;reader;proxy;handles" TIMEOUT 10)
 
     add_executable(libdxfrw_debug_state_tests
         tests/debug_state_tests.cpp dwg2dxf/dx_iface.cpp)
@@ -845,6 +1718,83 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dxf_fixture_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dxf_fixtures
         COMMAND libdxfrw_dxf_fixture_tests)
+    add_test(NAME libdxfrw_dxf_consumer_finalization
+        COMMAND libdxfrw_dxf_fixture_tests --dxf-consumer-finalization)
+    set_tests_properties(libdxfrw_dxf_consumer_finalization PROPERTIES
+        LABELS "fast;dxf;writer;transaction;generated" TIMEOUT 15)
+    add_test(NAME libdxfrw_classic_vertex_xdata
+        COMMAND libdxfrw_dxf_fixture_tests --classic-vertex-xdata)
+    set_tests_properties(libdxfrw_classic_vertex_xdata PROPERTIES
+        LABELS "fast;dxf;identity;polyline;xdata" TIMEOUT 15)
+    add_test(NAME libdxfrw_dictionary_key_admission
+        COMMAND libdxfrw_dxf_fixture_tests --dictionary-key-admission)
+    set_tests_properties(libdxfrw_dictionary_key_admission PROPERTIES
+        LABELS "fast;dxf;writer;dictionary;graph" TIMEOUT 15)
+    add_test(NAME libdxfrw_mtext_column_object_scope
+        COMMAND libdxfrw_dxf_fixture_tests --mtext-column-object-scope)
+    set_tests_properties(libdxfrw_mtext_column_object_scope PROPERTIES
+        LABELS "fast;dxf;mtext;columns" TIMEOUT 30)
+    add_test(NAME libdxfrw_header_custom_property_roundtrip
+        COMMAND libdxfrw_dxf_fixture_tests --header-custom-property-roundtrip)
+    set_tests_properties(libdxfrw_header_custom_property_roundtrip PROPERTIES
+        LABELS "fast;dxf;header" TIMEOUT 60)
+    add_test(NAME libdxfrw_header_required_versions
+        COMMAND libdxfrw_dxf_fixture_tests --header-required-versions)
+    set_tests_properties(libdxfrw_header_required_versions PROPERTIES
+        LABELS "fast;dxf;header" TIMEOUT 60)
+    add_test(NAME libdxfrw_header_cepsnid
+        COMMAND libdxfrw_dxf_fixture_tests --header-cepsnid)
+    set_tests_properties(libdxfrw_header_cepsnid PROPERTIES
+        LABELS "fast;dxf;header;handles" TIMEOUT 60)
+    add_test(NAME libdxfrw_header_repeated_groups
+        COMMAND libdxfrw_dxf_fixture_tests --header-repeated-groups)
+    set_tests_properties(libdxfrw_header_repeated_groups PROPERTIES
+        LABELS "fast;dxf;header" TIMEOUT 60)
+    add_test(NAME libdxfrw_header_unknown_variable_roundtrip
+        COMMAND libdxfrw_dxf_fixture_tests
+            --header-unknown-variable-roundtrip)
+    set_tests_properties(libdxfrw_header_unknown_variable_roundtrip PROPERTIES
+        LABELS "fast;dxf;header" TIMEOUT 60)
+    add_test(NAME libdxfrw_ltype_mirror_authority
+        COMMAND libdxfrw_dxf_fixture_tests --ltype-mirror-authority)
+    set_tests_properties(libdxfrw_ltype_mirror_authority PROPERTIES
+        LABELS "fast;dxf;linetype" TIMEOUT 30)
+    add_test(NAME libdxfrw_linetype_extension_graph
+        COMMAND libdxfrw_dxf_fixture_tests --linetype-extension-graph)
+    set_tests_properties(libdxfrw_linetype_extension_graph PROPERTIES
+        LABELS "fast;dxf;graph;linetype" TIMEOUT 30)
+    add_test(NAME libdxfrw_layer_dwg_cmc_roundtrip
+        COMMAND libdxfrw_dxf_fixture_tests --layer-dxf-color-policy)
+    set_tests_properties(libdxfrw_layer_dwg_cmc_roundtrip PROPERTIES
+        LABELS "fast;dxf;dwg;color" TIMEOUT 30)
+    add_test(NAME libdxfrw_view_vport_ambient_cmc
+        COMMAND libdxfrw_dxf_fixture_tests --view-vport-ambient-cmc)
+    set_tests_properties(libdxfrw_view_vport_ambient_cmc PROPERTIES
+        LABELS "fast;dxf;dwg;color" TIMEOUT 30)
+    add_test(NAME libdxfrw_dictionary_with_default_writer
+        COMMAND libdxfrw_dxf_fixture_tests --dictionary-with-default-writer)
+    set_tests_properties(libdxfrw_dictionary_with_default_writer PROPERTIES
+        LABELS "fast;dxf;objects" TIMEOUT 30)
+    add_test(NAME libdxfrw_dxf_binary_group_width_guard
+        COMMAND libdxfrw_dxf_fixture_tests --dxf-binary-group-width-guard)
+    set_tests_properties(libdxfrw_dxf_binary_group_width_guard PROPERTIES
+        LABELS "fast;dxf;binary" TIMEOUT 30)
+    add_test(NAME libdxfrw_block_xref_path_roundtrip
+        COMMAND libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip)
+    set_tests_properties(libdxfrw_block_xref_path_roundtrip PROPERTIES
+        LABELS "fast;dxf;xref" TIMEOUT 30)
+    add_test(NAME libdxfrw_mline_vector_component_order
+        COMMAND libdxfrw_dxf_fixture_tests --mline-vector-component-order)
+    set_tests_properties(libdxfrw_mline_vector_component_order PROPERTIES
+        LABELS "fast;dxf;geometry" TIMEOUT 30)
+    add_test(NAME libdxfrw_classes_wire_census
+        COMMAND libdxfrw_dxf_fixture_tests --classes-wire-census)
+    set_tests_properties(libdxfrw_classes_wire_census PROPERTIES
+        LABELS "fast;dxf;classes;wire" TIMEOUT 30)
+    add_test(NAME libdxfrw_dimstyle_subclass_wire_census
+        COMMAND libdxfrw_dxf_fixture_tests --dimstyle-subclass-wire-census)
+    set_tests_properties(libdxfrw_dimstyle_subclass_wire_census PROPERTIES
+        LABELS "fast;dxf;dimstyle;wire" TIMEOUT 30)
 
     add_executable(libdxfrw_dwg_fixture_tests
         tests/dwg_fixture_tests.cpp

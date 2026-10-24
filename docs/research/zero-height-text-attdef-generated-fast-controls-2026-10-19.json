@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-05/7AR generated zero-height TEXT and ATTDEF fast controls",
+  "mode": "Local test-completeness implementation slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "900ef2e184a8f23641ebbd7c97f20733dd886105650011f20bd0fa79e45b604d",
+  "scope": [
+    "Exercise standalone TEXT and ATTDEF group-40 zero preservation in generated AC1021 ASCII and Binary DXF.",
+    "Assert exact callbacks/data values and a following LINE sentinel through the initialized dx_iface import path.",
+    "Keep the optional test-completeness delta inside the existing fixture-test executable without adding persistent fixtures or CTest registration."
+  ],
+  "implementation": {
+    "testFile": "tests/dxf_fixture_tests.cpp",
+    "selector": "--zero-height-text-family",
+    "generatedInput": "Runtime-created in the system temporary directory and removed after parsing.",
+    "assertions": [
+      "One standalone TEXT with the expected value and height exactly 0.0.",
+      "One ATTDEF with the expected value and height exactly 0.0.",
+      "The following LINE is parsed with its expected start X coordinate."
+    ],
+    "productionCodeChanged": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiOrLayoutChanged": false
+  },
+  "validation": {
+    "strictBuild": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dxf_fixture_tests --zero-height-text-family",
+    "owningCTest": "PASS on rerun: ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure. The initial run exposed two stale ASCII MTEXT caret-boundary expectations; a separate boundary-control update corrected the expected ASCII wire spelling/chunk sizes (Binary expectations unchanged), after which the owning CTest passed.",
+    "scopedDiffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dxf_fixture_tests.cpp",
+    "fullSuite": "NOT_RUN",
+    "peerOrNativeRun": "NOT_RUN",
+    "rendererRun": "NOT_RUN"
+  },
+  "planChanges": {
+    "updatedFinding": "PAR-05/7AR conditional zero-height text-family coverage refinement",
+    "status": "Completed as optional generated local coverage; not a confirmed parser defect and not a queue blocker.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "limitations": [
+    "Local parser preservation does not establish renderer behavior or external CAD acceptance.",
+    "No negative-height policy is inferred.",
+    "The owning CTest initially failed on stale ASCII MTEXT caret-boundary expectations; the separate boundary-control expectations were corrected and the owning CTest passed on rerun. This does not demonstrate a product-code failure or establish external CAD acceptance."
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commitCreated": false,
+  "worktree": "Shared worktree broadly modified; no unrelated changes staged or committed."
+}

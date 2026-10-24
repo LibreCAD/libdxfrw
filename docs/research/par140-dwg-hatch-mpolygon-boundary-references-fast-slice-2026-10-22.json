@@ -1,0 +1,38 @@
+{
+  "id": "par140-dwg-hatch-mpolygon-boundary-references",
+  "date": "2026-10-22",
+  "status": "local_implementation_verified_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "d6770b90dd624b26d05cb3b96b76249135ca92ca31ddaca2a356b49361fc6fd3",
+  "scope": {
+    "finding": "PAR-140 / 7N.4",
+    "entities": ["HATCH", "MPOLYGON"],
+    "versions": ["AC1018", "AC1021", "AC1024", "AC1027"],
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.75"
+  },
+  "evidence": {
+    "normative": "ODA defines a per-boundary-path handle count and a flattened soft-pointer H handle stream after common entity handles.",
+    "localImplementation": "Parser retains per-path counts and transactionally partitions bounded soft-pointer references; writer emits matching counts and flattened handles in path order.",
+    "testLimit": "The integration DWG producer and reader are both libdxfrw. A separate test bit/handle reader independently checks output bytes, but no independent producer-authored full DWG is used."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "cmake --build build-gcc --target lc3_compat_check -j2: PASS",
+    "ctest --test-dir build-gcc -R '^dwg_hatch_dwg_boundary_references$' --output-on-failure: PASS (1/1)",
+    "Test matrix: AC1018/AC1021/AC1024/AC1027 × HATCH/MPOLYGON; independent path-count and soft-pointer byte checks; hard-pointer, truncated, oversized absolute/relative handle, per-path count, and aggregate count refusal; DWG roundtrip; DWG→ASCII/Binary DXF; ASCII/Binary DXF→DWG; following LINE sentinels: PASS",
+    "git diff --check -- src/drw_entities.cpp src/drw_entities.h tests/dwg_local_roundtrip_tests.cpp CMakeLists.txt: PASS"
+  ],
+  "scratchFiles": "generated locally under a temporary directory and removed by the test",
+  "persistentFixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "independentProducerQualification": "pending",
+  "nativeAssociativeEditSemantics": "pending",
+  "externalQualificationPending": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

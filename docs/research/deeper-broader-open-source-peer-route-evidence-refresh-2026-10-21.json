@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source peer release, route, and evidence-boundary refresh",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the exact ACadRust 0.6.5 release/docs/source identity after stale indexed docs were observed",
+    "Compare peer version and direction claims across LibreDWG, ACadSharp, dxflib, and ezdxf",
+    "Extract implementation-readiness constraints for downgrade accounting, parser resource limits, recovery mode, and evidence denominators",
+    "Update existing PAR-07/S8, PAR-14, PAR-49, and PAR-144 plan owners without adding duplicate findings"
+  ],
+  "sources": [
+    {
+      "project": "ACadRust",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+        "https://github.com/hakanaktt/acadrust/tree/289a616",
+        "https://docs.rs/crate/acadrust/0.6.5",
+        "https://github.com/hakanaktt/acadrust/blob/289a616/CHANGELOG.md"
+      ],
+      "observation": "The current versioned docs.rs page and release identify v0.6.5, source tag commit 289a616. Release notes claim true opt-in R12 DXF output with entity expansions/approximations, configurable DWG mesh resource limits (including an unlimited override), bounded recovery behavior, ACIS carrier/history changes, and 1,957 default-feature / 2,022 all-feature test totals. The project docs state absent external-drawing tests are ignored and recovery is separately configured. These are maintainer-published claims, not independent results; no archive checksum or executable run was obtained in this research pass."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.pdf"
+      ],
+      "observation": "The current README distinguishes broad DWG read coverage from skipped advanced R2010+ objects and version-limited writers/converter directions. Its approximate percentages are project statements, not comparable per-object conformance evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "observation": "The published compatibility table shows version and direction asymmetry, including a DXF AC1009 read-only cell, unsupported DWG AC1012, and no DWG writer for AC1021 despite reader support. The table is capability documentation, not a measured libdxfrw comparison."
+    },
+    {
+      "project": "QCAD dxflib",
+      "references": [
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://www.qcad.org/en/what-is-dxflib"
+      ],
+      "observation": "The callback-based DXF library passes only supported entities/objects and explicitly does not retain the full drawing. It is not a DWG parser or complete-document round-trip oracle."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/index.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "observation": "The source separates raw tag storage of unsupported records from typed entities, while the drawing add-on has its own renderability limits. Raw retention, editable typed semantics, transformability, and rendering are separate capabilities."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: bind optional peer evidence to release/source checksum, exact direction/version, strict versus recovery mode, and ignored-input denominator",
+      "PAR-14: require explicit resource caps and preserve strict/recovery observations separately",
+      "PAR-49: classify R12/version-downsave approximations per source handle as explicit downgrades rather than exact preservation",
+      "PAR-144: keep all peer execution optional and composed; do not add peer dependencies or routine CI"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The latest source check resolved the current ACadRust release/docs version identity and sharpened the peer comparison boundaries for explicit downgrade, reader recovery, resource controls, ignored external inputs, and directional format matrices. No local defect or support claim was established."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-open-source-peer-route-evidence-refresh-2026-10-21.json"
+    ],
+    "limitations": "Evidence is documentation, release, and source-page review only. ACadRust release validation and all peer capability matrices are project-authored claims. No crate archive checksum, package execution, local repro, external drawing, or CAD application result was obtained; no result qualifies DWG/DXF semantics or native consumer acceptance."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

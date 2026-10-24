@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "MLEADER nested-text callback publication budget controls",
+  "mode": "local generated fast implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Extend retained-byte tests for MLEADER context text and legacy block-label text through full DXF reads",
+    "Prove callback suppression on cap-minus-one refusal and same-facade retry at the measured exact cap",
+    "Keep generated ASCII/Binary controls local and use the existing hardening test owner"
+  ],
+  "method": {
+    "kind": "Generated AC1027/AC1021 DXF output followed by file-backed parser callback tests",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": true,
+    "localBuildRun": true,
+    "fullSuiteRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "ctestRegistrationsAdded": 0,
+    "temporaryDrawingPolicy": "ASCII/Binary DXF bytes are generated from scratch by the existing test binary, written under a unique temporary directory, and removed after each case.",
+    "localFilesReviewed": [
+      "tests/hardening_tests.cpp",
+      "src/libdxfrw.cpp",
+      "src/drw_interface.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The test exercises library callback publication and the retained-byte budget only. It does not qualify DWG serialization, arbitrary consumer memory, post-callback mutation, writer/projection-copy accounting, native MLEADER semantics, or binary ABI."
+  },
+  "testMatrix": [
+    {
+      "acVersion": "AC1027",
+      "route": "MLEADER context text group 304",
+      "encodings": ["ASCII DXF", "Binary DXF"],
+      "nestedTextBytes": 512,
+      "followingSentinel": "LINE handle is nonzero; start=(3,4,5), end=(6,7,8)",
+      "assertions": [
+        "Exact-cap full read invokes MLEADER then LINE with exact copied text and coordinates",
+        "Cap-minus-one returns ResourceLimit/dxf-retained-byte-budget before either callback",
+        "Raising the same facade to the measured cap permits retry and publishes both callbacks in order"
+      ]
+    },
+    {
+      "acVersion": "AC1021",
+      "route": "MLEADER legacy block-label group 302 with group-330 label identities",
+      "encodings": ["ASCII DXF", "Binary DXF"],
+      "nestedTextBytes": [128, 512],
+      "followingSentinel": "LINE handle is nonzero; start=(3,4,5), end=(6,7,8)",
+      "assertions": [
+        "Exact-cap full read invokes MLEADER then LINE with both exact copied label strings and coordinates",
+        "Cap-minus-one returns ResourceLimit/dxf-retained-byte-budget before either callback",
+        "Raising the same facade to the measured cap permits retry and publishes both callbacks in order"
+      ]
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-mleader-text-callback-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-mleader-entity-text-owner-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0,
+        "elapsedSeconds": 0.32
+      },
+      {
+        "command": "git diff --check -- tests/hardening_tests.cpp",
+        "result": "PASS"
+      }
+    ]
+  },
+  "assessment": {
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestSelectors": 1,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes the full-read callback-publication gap for the MLEADER context-text and legacy block-label retained owners. Direct replacement/lease controls remain in the prior selector. DWG storage, consumer-owned copies, serialization, projection, and native semantic gates remain open."
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing user changes. This slice updates tests, the plan, and this receipt only; unrelated changes remain untouched and unstaged."
+  }
+}

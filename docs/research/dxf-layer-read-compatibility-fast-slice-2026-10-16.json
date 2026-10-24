@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-dxf-layer-read-compatibility-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "owner": "PAR-66 / 7AN",
+  "scope": "Preserve semantically invalid but parseable DXF LAYER values on tolerant read, emit bounded diagnostics, and require explicit repair before structured output.",
+  "implementation": {
+    "rawLineweight": "Group 370 values outside -3..211 retain their exact raw integer alongside the existing mapped enum; the marker is copied with DRW_Layer and cleared only by a later valid group 370 or explicit legal repair.",
+    "compatibilityRead": "Incomplete table records, invalid payloads and duplicate handles still fail. Representable semantic violations are published with one bounded non-fatal dxf-layer-value-preserved secondary diagnostic.",
+    "structuredOutput": "DXF LAYER output rejects invalid semantics; DWG LAYER encoding additionally refuses to serialize an unrepaired out-of-range raw group 370 as the compatibility-mapped default.",
+    "repairApi": "repairDxfLineweight accepts width00..width23 or widthDefault, rejects ByLayer/ByBlock for LAYER records, and clears the raw-invalid marker only after a legal value is selected."
+  },
+  "generatedControls": {
+    "encodings": ["ASCII", "binary"],
+    "semanticCases": [
+      "color 0 without truecolor",
+      "color 256 without truecolor",
+      "lineweight -1 (ByLayer) on a LAYER record",
+      "lineweight -2 (ByBlock) on a LAYER record",
+      "out-of-range lineweight -4 with exact raw-value retention",
+      "out-of-range lineweight 500 with exact raw-value retention",
+      "invalid group 370 followed by valid -3 uses the last value and clears the warning marker"
+    ],
+    "assertions": [
+      "semantic table rows and following two LINE entities are retained",
+      "each malformed semantic row has one non-fatal dxf-layer-value-preserved diagnostic",
+      "invalid row export refuses without replacing an existing valid destination",
+      "legal explicit repair permits structured DXF output",
+      "unrepaired raw-invalid lineweight refuses DWG encoding without output bytes"
+    ],
+    "testMode": "--layer-dxf-read-compatibility"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j 2",
+    "consumerSourceCompatibility": "PASS: cmake --build build-gcc --target lc3_compat_check -j 2 (source compile gate only; no binary-ABI claim)",
+    "focusedReadCompatibility": "PASS: build-gcc/libdxfrw_dxf_fixture_tests --layer-dxf-read-compatibility",
+    "focusedExistingColorRoute": "PASS: build-gcc/libdxfrw_dxf_fixture_tests --layer-dxf-color-policy",
+    "diffCheck": "PASS: git diff --check on touched source, tests and plan",
+    "fixtureCTest": "NOT RUN",
+    "fullTestSuite": "NOT RUN",
+    "nativeCadOrIndependentProducer": "NOT RUN",
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "claimBoundary": "Local generated ASCII/binary controls establish this library's tolerant-read and strict-writer policy only; they do not establish independent producer compatibility, native CAD display acceptance, or broad LAYER/DWG/DXF support.",
+  "planBoundary": {
+    "findingCount": 125,
+    "topLevelImplementationSubplans": 71,
+    "newFinding": false,
+    "planUpdated": true,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": "Pre-existing worktree was broadly dirty; this slice remains uncommitted to avoid committing unrelated shared changes."
+}

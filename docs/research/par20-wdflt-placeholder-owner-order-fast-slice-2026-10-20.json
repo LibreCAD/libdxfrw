@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 DICTIONARYWDFLT owner-before-PLACEHOLDER order fast slice",
+  "mode": "Locally generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Exercise the existing DICTIONARYWDFLT and ACDBPLACEHOLDER adapter graph with an out-of-owner-order generated OBJECTS input.",
+    "Assert that exported OBJECTS put the actual NOD first and the WDFLT owner before its PLACEHOLDER child.",
+    "Reuse the existing selector and CTest; keep fixtures, dependencies, and validation fast."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-wdflt-placeholder-owner-order-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "From-scratch OBJECTS source places ACDBPLACEHOLDER before its owning DICTIONARYWDFLT and retains the NOD root/default references.",
+      "Existing ASCII and Binary adapter output asserts NOD-first physical record order and DICTIONARYWDFLT-before-ACDBPLACEHOLDER order using remapped emitted handles.",
+      "Existing readback assertions continue to verify NOD root, WDFLT default handle, owner reciprocity, scoped reactor, and CLASS counts."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-adapter-roundtrip",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_adapter_roundtrip$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on plan and adapter test; receipt parsed by jq and trailing-whitespace scanned",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Physical output ordering for the existing DICTIONARYWDFLT-to-ACDBPLACEHOLDER owner route, including NOD-first output, in generated ASCII and Binary adapter controls.",
+    "doesNotClose": [
+      "Whether the deliberately out-of-owner-order input conforms to the DXF OBJECTS ordering requirement.",
+      "A generic owner-topological scheduler or every OBJECTS object family.",
+      "Native consumer acceptance or broad DWG/DXF/3D semantic support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

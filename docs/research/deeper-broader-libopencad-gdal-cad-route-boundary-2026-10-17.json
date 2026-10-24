@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-libopencad-gdal-cad-route-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Resolve the current libopencad source route and scope the existing optional GDAL CAD comparator without adding implementation dependencies, peer-run cadence, fixtures, or support claims.",
+  "method": {
+    "kind": "Read-only review of upstream repository README/API metadata and current GDAL driver documentation",
+    "peerRepositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesBuiltOrRun": false,
+    "gdalExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "sources": [
+      "https://github.com/sandyre/libopencad",
+      "https://github.com/nextgis-borsch/lib_opencad",
+      "https://github.com/nextgis-borsch/lib_opencad/blob/master/README.md",
+      "https://github.com/nextgis-borsch/lib_opencad/blob/master/lib/opencad_api.h",
+      "https://gdal.org/en/stable/drivers/vector/cad.html",
+      "https://gdal.org/en/stable/drivers/vector/dwg.html"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: prior GDAL CAD/libopencad versus ODA DWG distinction and optional comparator cadence",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: prior current-route and source-provenance constraints"
+    ],
+    "limitations": "Documentation establishes stated project scope and driver contracts only. No exact libopencad source commit was pinned or audited, no source-level parser-independence review was performed, and no runtime coverage or output behavior was reproduced. Enum constants were treated only as identifiers, not implementation evidence."
+  },
+  "routeFindings": [
+    {
+      "route": "libopencad successor",
+      "observed": "The original sandyre/libopencad repository identifies itself as abandoned and points to nextgis-borsch/lib_opencad. The successor README states that it supports only DWG R2000 (AC1015). Its public CADVersions enum includes AC1012 through AC1027 constants, but the enum is not evidence those readers exist or work.",
+      "evidenceCeiling": "Conditional AC1015 native-reader candidate pending exact source pin, dispatch audit, and source-lineage review; no run result.",
+      "planUse": "At most an optional composed 2D cross-read after source/build attribution. If exact route/coverage is unresolved, mark VERSION_UNRESOLVED / NOT_RUN."
+    },
+    {
+      "route": "GDAL CAD driver",
+      "observed": "GDAL documents an internal libopencad dependency, read-only operation, and projected support for POINT, LINE, CIRCLE, ARC, and 3DFACE. Rounded-polyline curves may be tessellated. OGR projection does not expose complete DWG object/owner graph or solid semantics.",
+      "evidenceCeiling": "Optional AC1015 2D projection comparator only, subject to exact build/backend attribution and parser-independence audit.",
+      "planUse": "Use only locally authored scratch controls for documented elements; compare the exposed projection and record tessellation, unsupported entities, and diagnostics explicitly. Do not use for modern-version, full-graph, write, or ACIS/AcDs claims."
+    },
+    {
+      "route": "GDAL DWG driver",
+      "observed": "GDAL documents a separate DWG driver requiring ODA Teigha; it is not the CAD/libopencad route.",
+      "evidenceCeiling": "Separately licensed external observation; not an open-source peer vote.",
+      "planUse": "Record driver short name, backend/build, exact version, options, and input version; never label a generic GDAL result as the open-source CAD route without attribution."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "optional GDAL CAD/libopencad route provenance and AC1015 version boundary",
+      "projected geometry versus full object/owner graph evidence separation",
+      "GDAL CAD/libopencad versus DWG/ODA backend and license attribution"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newRequiredPeerGates": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planUpdated": true,
+    "scopedDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

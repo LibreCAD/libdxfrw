@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-open-source-route-consumer-acceptance-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the open-source DWG/DXF comparison from advertised format/version claims to exact parser, carrier, projection, writer, and downstream-consumer operations, then refine existing 3D plan gates.",
+  "method": {
+    "kind": "Read-only primary-source web research and local plan cross-check",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/launcher.html#browse-acis",
+      "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html#common-limitations-to-all-backends",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing S2/S3/S5/S8 owners, carrier/semantic separation, comparator admission, FreeCAD workflow, and fast-versus-composed validation policy",
+      "DWG_DXF_3D_SUPPORT_PLAN.md: current FreeCAD, ACIS/ACDS, and optional modeler-consumer gates"
+    ],
+    "evidenceRule": "Mutable project documentation and issue responses describe their stated route only; source presence or advertised format support is not an exact-build runtime result. Separate parser acceptance, raw payload retention, graph closure, projection/rendering, semantic geometry, and native application behavior. Keep peer artifact, operation, input/output, backend, and expected-value provenance explicit."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG aggregate claims do not define one DWG writer/reader profile",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "observed": "The public README broadly describes all-version reading while qualifying advanced R2010+ objects as skipped. Its writer summary and build-option text give different boundaries. The current R2007+ decoder contains a named read_2007_section_acds path, but that source presence does not establish complete ACDS decoding, entity-to-payload ownership association, semantic-body delivery, or conversion preservation.",
+      "doesNotEstablish": [
+        "a pinned release's behavior on a particular input and output version",
+        "complete AcDs directory/schema interpretation or modeler ownership closure",
+        "successful modeler carrier conversion or valid B-rep geometry",
+        "that an open-source peer result independently resolves ODA specification ambiguities"
+      ],
+      "planUse": "For peer comparison, record exact source/release/build, actual input/output versions, operation, object/section disposition, diagnostics, and output hashes. For AcDs, separately compare section bytes, per-modeler owner/key association, emitted DXF carrier, and independent semantic result."
+    },
+    {
+      "topic": "ezdxf ACIS structural, raw-carrier, and visualization operations are distinct",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html#browse-acis",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html#common-limitations-to-all-backends"
+      ],
+      "observed": "The documented ACIS parser supports a limited entity subset; unsupported records become NONE_ENTITY and lose data on export. browse-acis exposes and exports raw SAT/SAB. The drawing add-on does not render ACIS and has no 3D engine, so 3D entities are projected into XY.",
+      "doesNotEstablish": [
+        "arbitrary ACIS edit/re-export fidelity",
+        "a valid or closed B-rep",
+        "curved-surface or full 3D rendering",
+        "native CAD application acceptance"
+      ],
+      "planUse": "Use a pinned ezdxf run only as a matching-profile parser/raw-carrier control and count unsupported/lost entities. Do not use audit/recovery, mesh projection, draw output, or visual appearance as ACIS semantic evidence."
+    },
+    {
+      "topic": "FreeCAD stock DWG/DXF route and ACIS consumer boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "The documented stock DWG workflow converts DWG to DXF and then applies the selected DXF importer limitations. The documentation identifies CAD Exchanger as its 3D DWG workflow, while a maintainer response says the stock FOSS route cannot read proprietary ACIS blobs. These are source/documentation boundaries, not guarantees for every plugin, backend, release, or platform.",
+      "doesNotEstablish": [
+        "the behavior of every FreeCAD importer/backend tuple",
+        "ACIS semantic acceptance through the stock converter-to-DXF route",
+        "ACDS ownership or history-graph correctness through CAD Exchanger",
+        "that a converter's successful output file is a successfully imported solid"
+      ],
+      "planUse": "Keep native Linux/Windows stock FreeCAD checks focused on converter discovery, exact handoff, packaging, and named explicit-entity results. Record stock ACIS as CONSUMER_NOT_APPLICABLE. Treat CAD Exchanger or another modeler plugin as a separately named optional route, requiring exact build/license, source-to-DXF inventory, units, shape validity, and independent expected metrics; it does not qualify the DWG AcDs graph."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

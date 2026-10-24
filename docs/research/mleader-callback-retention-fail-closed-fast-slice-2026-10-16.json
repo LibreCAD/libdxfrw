@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-mleader-callback-retention-fail-closed-fast-slice-v1",
+  "completedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Retain parser-delivered MLEADER values in the dwg2dxf adapter and prove export fails closed until a qualified serializer exists.",
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.h": "c02fcf50cbfd831d34788cfbe8ceb6b9084efe307f08e02fec2e342c734d5e61",
+      "tests/dwg2dxf_adapter_tests.cpp": "252313ae94e3bfa9eee57da32e4a7a363ac0a39b96a2dab91768fe7b1491dae2",
+      "tests/CMakeLists.txt": "33a1e04ccf15fdd6e40f20d70f00bc06e1f1432af2be79e66761b94ad2816cd8"
+    },
+    "behavior": [
+      "dx_iface::addMLeader now copies the entity into the active model/paper-space or block entity owner.",
+      "Generated ASCII and binary DXF sources contain one nested CONTEXT_DATA, one root, one leader line, and a following POINT.",
+      "Import retains the MLEADER nested context and keeps the following POINT as a separate entity.",
+      "Export reaches the MLEADER-specific no-qualified-serializer guard and does not replace a seeded destination."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_mleader_fail_closed|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": [
+      "Adapter test target build passed.",
+      "Focused CTest pair passed 2/2 in 0.07 seconds.",
+      "Scoped whitespace check passed."
+    ],
+    "fullSuiteRun": false,
+    "generatedFiles": "Temporary ASCII/binary DXF controls are created from scratch and deleted by the test; none is committed.",
+    "realDwgOriginWitness": false,
+    "nativeConsumerQualification": "NOT_RUN",
+    "testRegistrationAdded": true,
+    "dependencyAdded": false,
+    "gitCommitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "evidenceLimits": {
+    "serializer": "NOT_IMPLEMENTED",
+    "unknownNestedContextPreservation": "NOT_ESTABLISHED",
+    "referenceClosureAndRemapping": "NOT_ESTABLISHED",
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextReadySlice": "Define unknown nested-context handling as bounded raw preservation or fail-closed refusal; add an unknown-tag/following-record control before extending the MLEADER serializer."
+}

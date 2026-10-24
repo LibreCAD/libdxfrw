@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 DICTIONARYWDFLT root cardinality",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Require exactly one canonical ACAD_PLOTSTYLENAME root edge to the admitted DICTIONARYWDFLT object.",
+    "Assert owner-zero NOD identity and exact remapped root/default/owner edges after ASCII and Binary readback.",
+    "Refuse a duplicate canonical root key before publication while preserving the destination and allowing corrected retry."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "Extended dictionaryWithDefaultAdapterRoundTrip with exact root-key cardinality at input/readback, NOD owner-zero validation, and a duplicate ACAD_PLOTSTYLENAME key refusal control with destination preservation.",
+    "reason": "Production graph validation already requires one canonical key and one alias for the DICTIONARYWDFLT target, but the generated regression used find_if and could miss a duplicate key that names the same target.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-adapter-roundtrip",
+      "result": "PASS (ASCII and Binary generated routes)"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_adapter_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 0.03 sec)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

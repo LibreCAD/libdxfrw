@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-proxy-graphics-strict-loss-gate-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Close the existing 7AP.1 local strict-loss behavior test gate with a source-generated proxy circle recipe and atomic CLI/API refusal controls; do not implement cache replay or promote support.",
+  "method": {
+    "kind": "Source-generated in-memory codec test plus bounded CLI contract selector",
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "productionCodeChanged": false,
+    "publicApiChanged": false,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testFilesChanged": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py"
+    ],
+    "sourceRecipe": {
+      "lengthBytes": 72,
+      "chunkSizeBytes": 64,
+      "opcode": "OP_CIRCLE (2)",
+      "center": [2.0, 3.0, 4.0],
+      "radius": 5.0,
+      "normal": [0.0, 0.0, 1.0]
+    }
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy",
+      "result": "PASS",
+      "details": "Decoder exact callback, strict ASCII/Binary refusal for absent and existing destinations, compatible library round-trip, and unchanged source cache."
+    },
+    {
+      "command": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target dwg2dxf",
+      "result": "PASS"
+    },
+    {
+      "command": "python3 tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --proxy-graphics-only",
+      "result": "PASS",
+      "details": "8 bounded CLI cases: two output encodings × positional/FreeCAD forms × absent/existing destination. Each requires exit 1, exact typed-proxy-graphics-not-preserved diagnostic, no success message, and destination atomicity."
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dxf_fixture_tests.cpp tests/dwg2dxf_cli_contract_tests.py docs/research/proxy-graphics-strict-loss-gate-fast-slice-2026-10-17.json",
+      "result": "PASS"
+    },
+    {
+      "command": "jq -e . docs/research/proxy-graphics-strict-loss-gate-fast-slice-2026-10-17.json",
+      "result": "PASS"
+    }
+  ],
+  "planImpact": {
+    "completedLocalGate": "7AP.1 strict proxy-loss behavior regression coverage",
+    "stillOpen": [
+      "7AP.2 cache provenance, source/edit snapshot and resource/version closure",
+      "7AP.3 generic DXF proxy-byte emission and independent wire matrix"
+    ],
+    "fullSuiteRun": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "evidenceRule": "A proxy callback and its output carrier are separate: strict mode must refuse a typed cache that is not emitted, while compatibility mode only demonstrates historical behavior. Neither the decoder result nor opaque payload round-trip proves proxy rendering, application semantics, DWG, ACIS, or native-CAD acceptance."
+}

@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw-cross-implementation-route-boundaries-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary repository/documentation review plus local comparator availability audit",
+  "question": "Which open-source implementations are useful comparators for the current DWG/DXF plan, and what route-specific evidence can they actually provide?",
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "revision": "NEWS release 0.14.1 dated 2026-07-25 and current repository README/manual reviewed 2026-10-21; local Homebrew CLI reports 0.14",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg",
+        "https://www.gnu.org/software/libredwg/manual/html_node/DXF.html",
+        "https://www.gnu.org/software/libredwg/manual/html_node/ENTITIES.html"
+      ],
+      "observations": {
+        "peerValue": "The strongest directly relevant open DWG reader/writer comparator in this set, with separate DWG and DXF commands and extensive version-specific implementation history.",
+        "directionAndVersionLimits": "Its published project statements distinguish read and write routes and acknowledge advanced R2010+ objects that may be skipped and newer DWG write limitations. NEWS also reports continued per-object, round-trip, fuzzing, and memory-safety corrections. A release label or broad version table is not an entity-level guarantee.",
+        "localArtifactIdentity": "dwgread 0.14 SHA-256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff; dwg2dxf 0.14 SHA-256 e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99; dxf2dwg 0.14 SHA-256 d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8. These are local executable identities, not a source revision or a semantic test result."
+      },
+      "limitation": "No peer command was executed in this audit. Do not transfer C implementation behavior, limits, or security thresholds to libdxfrw. Any comparison must bind binary hash, route, input, version, diagnostics, and per-record disposition."
+    },
+    {
+      "project": "ACadSharp",
+      "revision": "Mutable master README and release page reviewed 2026-10-21",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/blob/master/README.md",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observations": {
+        "peerValue": "An independently implemented managed-code DWG/DXF reader/writer route; its published matrix claims read/write availability through AC1032 for both formats.",
+        "evidenceCeiling": "The matrix is project-level and does not establish per-entity, per-field, ACDS owner/key, or geometry-semantic completeness. Pin an exact release/source commit and compare only the overlap for the selected route."
+      },
+      "limitation": "No ACadSharp runtime, build, or current release behavior was exercised. A version-matrix checkbox cannot promote support."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "revision": "Mutable repository README reviewed 2026-10-21",
+      "references": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observations": {
+        "peerValue": "An independently implemented DXF-only reader/writer with a published R10-to-R2014 support statement.",
+        "declaredGaps": "Its README excludes MESH, MLEADER, SURFACE, TABLE, and VIEWPORT from the claimed supported entity set and warns that some written entities may not be accepted by AutoCAD without additional required data.",
+        "planUse": "A possible narrower DXF syntax/field observer for an overlapping, explicitly selected profile; not a modern modeler, DWG, native-CAD, or ACIS semantic oracle."
+      },
+      "limitation": "Self-reported compatibility is not an executed comparison or normative format specification."
+    },
+    {
+      "project": "ezdxf",
+      "revision": "Stable 1.4.5 documentation reviewed 2026-10-21; repository differential harness remains deliberately pinned to 1.4.4",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "observations": {
+        "peerValue": "Useful as a DXF structural parser/writer and carrier observer for selected generated cases; its documentation describes SAT for R2000-R2010 and SAB for R2013+ mesh-derived ACIS data.",
+        "acisLimit": "The documented ACIS implementation supports only a limited set of entities, loses unsupported entities on load, and cannot load/re-export arbitrary ACIS data or tessellate curved analytic faces without a kernel.",
+        "pinDecision": "Do not silently upgrade the executable harness from 1.4.4 to 1.4.5 because stable docs advanced. Keep the existing reproducible pin until a separate harness/profile audit, dependency pin, and expected-output review authorizes a version refresh."
+      },
+      "limitation": "No ezdxf runtime is installed in the current environment and no peer runtime was executed. Structural carrier presence is not B-rep semantic evidence."
+    },
+    {
+      "project": "FreeCAD",
+      "revision": "Official Draft DXF documentation on mutable main reviewed 2026-10-21",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "observations": {
+        "consumerValue": "A useful native consumer only for an exact backend/profile: C++ and optional legacy Python importers expose different entity subsets; DWG is converted to DXF before import.",
+        "boundary": "The docs state embedded binary ACIS/SAT solids cannot currently be read. Stock FreeCAD can therefore qualify selected 2D/explicit-entity converter routes but cannot qualify 3DSOLID/REGION/BODY ACIS semantics."
+      },
+      "limitation": "Documentation is not native Linux/Windows execution, and backend choice, converter identity, and settings must be recorded for a run."
+    },
+    {
+      "project": "LibreCAD bundled libdxfrw coverage inventory",
+      "revision": "Generated inventory on LibreCAD master reviewed 2026-10-21",
+      "references": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md"
+      ],
+      "observations": {
+        "peerValue": "A direct fork/source comparison and broad feature-discovery index; it explicitly describes itself as a deterministic inventory rather than byte-level conformance.",
+        "evidenceCeiling": "Rows marked typed-dispatch or raw-preserved and entries marked fixture-needed are implementation inventory, not proof of round-trip, field ownership, compatibility with this upstream checkout, or semantic parity. The bundled fork is not an independent parser vote."
+      }
+    }
+  ],
+  "localReadiness": {
+    "existingEzDxfHarness": "Pinned to ezdxf 1.4.4; no ezdxf module is installed in the current interpreter. Keep its hash/profile controls intact and do not widen the default test suite to solve this availability gap.",
+    "availablePeerBinaries": "Homebrew LibreDWG 0.14 tools are present and identified by SHA-256 above. One scratch-only route was attempted; its generated block graph was not sufficiently reconciled for a valid comparison, so no peer result is admitted.",
+    "noSuccessfulPeerComparison": true,
+    "noPersistentFixture": true
+  },
+  "localPeerAttempt": {
+    "input": "Temporary AC1015 ASCII DXF generated from scratch with LINE, 3DFACE, sentinel LINE, and basic TABLES/BLOCKS records. The file and outputs were deleted after inspection.",
+    "route": "LibreDWG 0.14 dxf2dwg -> AC1015 DWG -> LibreDWG dwgread/dwg2dxf and local libdxfrw dwg2dxf",
+    "executableHashes": {
+      "dxf2dwg": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8",
+      "dwgread": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "dwg2dxf": "e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99"
+    },
+    "peerStatus": "dxf2dwg, dwgread, and peer dwg2dxf returned success",
+    "localStatus": "libdxfrw rejected the generated AC1015 DWG at BAD_READ_OBJECTS (12); the failed frame was reported as routed as an entity, with handle 0x31 and type 49 observed in the peer JSON",
+    "peerGraphObservation": "LibreDWG JSON described handle 0x31 as a BLOCK_HEADER named *Model_Space, in addition to the model/paper headers named by BLOCK_CONTROL. ODA specification §§20.4.51–20.4.52 define the BLOCK_CONTROL handle list and BLOCK_HEADER records; this hand-authored DXF-to-DWG route did not establish a reconciled, one-to-one control/header graph.",
+    "disposition": "INADMISSIBLE_FIXTURE_GENERATION_CONTROL_NOT_RECONCILED. Do not call this a libdxfrw defect, peer pass, or support claim. A new comparison requires validated BLOCK_CONTROL entries, the special model/paper handles, BLOCK_HEADER/BLOCK/ENDBLK identity, and source entity dispositions before interpreting parser outcomes.",
+    "codeChange": false,
+    "fixtureRetained": false
+  },
+  "planDelta": {
+    "noNewParserDefectConfirmed": true,
+    "noNewSupportClaim": true,
+    "noNewDependency": true,
+    "composedCheckpoint": [
+      "Select a single peer from the required evidence question, not from its project-wide version matrix: LibreDWG for a pinned DWG/DXF conversion route, ezdxf for DXF structure/carrier retention, ACadSharp for a separately pinned DWG object comparison, or a precisely configured native FreeCAD 2D consumer run.",
+      "For the chosen run, record source identity/count, local typed/raw/emitted disposition, peer typed/raw/dropped/unsupported disposition, diagnostics, exact operation and version, and any independently calculated semantic result as separate columns.",
+      "Use only generated scratch input or repository/local scratch material with documented provenance; do not add external/customer DWG/DXF files to the repository.",
+      "A pass can inform only that route and field cohort. It cannot promote unsupported-family, 3D geometry, ACIS/ACDS, platform, or product-wide claims.",
+      "If the peer is unavailable, self-unblock to the next local owner test or disposition review; do not stop implementation awaiting an install, platform, or kernel gate."
+    ],
+    "deferredExternalItemsRemain": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

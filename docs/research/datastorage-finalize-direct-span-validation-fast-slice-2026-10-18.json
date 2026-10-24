@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DataStorage writer-finalization direct-span validation fast slice",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Remove duplicate typed AcDs payload materialization during DWG writer finalization",
+    "Preserve pending modeler-to-record exact-byte and marker validation for direct and Blob01 records",
+    "Keep the existing cumulative retention eligibility and orphan marker refusal behavior"
+  ],
+  "changes": {
+    "files": [
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter15.h",
+      "src/intern/dwgwriter18.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "implementation": "dwgWriter18::finalize now uses metadata-only DRW_parseDataStorage. The writer validates pending bytes against direct section spans or ordered Blob01 page spans without copying record payload vectors. A bounded KMP scan preserves ACIS BinaryFile marker detection across page boundaries. Pending replay retains the previous 8 MiB section and aggregate payload-retention admission rule; marker scanning for unbound records follows the prior per-record retention eligibility.",
+    "test": "Extended the existing --raw-modeler-acds-replay selector with a scratch-only two-record section containing a direct non-marker record and a 262145-byte, two-page blob linked to a generated modeler. The marker starts seven bytes before the page boundary. The positive test verifies exact payload, marker offset, modeler link, and raw section round trip; a negative writer run verifies the same cross-page marker is refused when the blob has no modeler peer.",
+    "generatedDwgDxfFixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+        "result": "passed; 1/1 tests, 3.09 seconds"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgwriter15.cpp src/intern/dwgwriter15.h src/intern/dwgwriter18.cpp tests/dwg_local_roundtrip_tests.cpp",
+        "result": "passed"
+      }
+    ],
+    "limitations": "This bounds removal of the finalizer's duplicate typed record payload copies, not the existing pending-modeler payload copy, raw section storage, consumer callback/document copies, allocator overhead, or whole-process RSS. No external peer or native semantic qualification was run."
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextLocalBoundary": "Consumer-owned callback/document staging remains separate; no cap or memory bound is claimed for copies owned by downstream consumers."
+  }
+}

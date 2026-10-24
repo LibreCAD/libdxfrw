@@ -20,6 +20,7 @@
 #include "dx_data.h"
 #include "dx_cli.h"
 #include "dx_batch_input.h"
+#include "dx_batch_output_names.h"
 
 void usage(){
     std::cout << "Usage: " << std::endl;
@@ -41,6 +42,9 @@ void usage(){
     std::cout << "   decoding and unsupported legacy Unicode profiles fail without publication." << std::endl;
     std::cout << "   --dxf-codepage-policy=compatible|exact-named selects DXF input mapping." << std::endl;
     std::cout << "   Default is compatible; exact input still requires an eligible source profile." << std::endl;
+    std::cout << "   --allow-partial-dwg-read permits bounded terminal DWG frame losses;" << std::endl;
+    std::cout << "   strict is the default; owner/reference checks remain strict and" << std::endl;
+    std::cout << "   partial output is not a complete DWG semantics/support claim." << std::endl;
     std::cout << "     version can be:" << std::endl;
     std::cout << "        -R12   dxf release 12 version" << std::endl;
     std::cout << "        -v2000 dxf version 2000" << std::endl;
@@ -52,7 +56,8 @@ void usage(){
 bool convertFile(std::string inName, std::string outName, DRW::Version ver,
                  bool binary, bool overwrite, bool debug,
                  bool nonInteractive = false,
-                 DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible){
+                 DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible,
+                 bool allowPartialDwgRead = false){
     bool badState = false;
     //verify if input file exist
     std::ifstream ifs;
@@ -101,13 +106,24 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
         }
     }
 
+    if (allowPartialDwgRead && fData.sourceFormat == dx_source_format::DWG) {
+        std::cerr << "WARNING: explicit partial DWG read mode; output may omit "
+                     "failed or unmodeled source content and is not a "
+                     "completeness/support claim. Owner/reference checks remain strict.\n";
+    }
+
     //And write a dxf file
     dx_iface output;
     // CLI complete-conversion admission is explicit and separate from owner
-    // resolution. Ordinary library reads/adapter exports remain tolerant.
+    // resolution and proxy-cache replay. Ordinary library exports retain the
+    // compatibility policy for both.
     badState = output.fileExport(outName, ver, binary, &fData, debug, true,
                                  dx_dxfSourceTextPolicy::RequireValidSource,
-                                 DRW::DxfTextWritePolicy::RequireLossless);
+                                 DRW::DxfTextWritePolicy::RequireLossless,
+                                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                                 allowPartialDwgRead
+                                     ? dx_dwgReadCompletenessPolicy::AllowPartial
+                                     : dx_dwgReadCompletenessPolicy::RequireComplete);
 
     return badState;
 }
@@ -157,7 +173,8 @@ int main(int argc, char *argv[]) {
 
         const bool ok = convertFile(fileName, outName, options.version,
                                     options.binary, options.overwrite,
-                                    options.debug, true, options.codePagePolicy);
+                                    options.debug, true, options.codePagePolicy,
+                                    options.allowPartialDwgRead);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -185,7 +202,8 @@ int main(int argc, char *argv[]) {
 
     if (!options.batch){ //no batch mode, only one file
         bool ok = convertFile(fileName, outName, options.version, options.binary,
-                              options.overwrite, options.debug, false, options.codePagePolicy);
+                              options.overwrite, options.debug, false, options.codePagePolicy,
+                              options.allowPartialDwgRead);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -231,7 +249,9 @@ int main(int argc, char *argv[]) {
         sourceNames.insert(normalized(fs::u8path(fileName)));
         for (const auto& name : inputs) {
             const auto source = fs::u8path(name);
-            const auto output = directory / source.filename();
+            auto outputName = source.filename();
+            outputName.replace_extension(".dxf");
+            const auto output = directory / outputName;
             if (source.filename().empty() || !outputNames.insert(normalized(output)).second) {
                 std::cout << "Batch mode: invalid or colliding output names\n";
                 return 2;
@@ -239,6 +259,17 @@ int main(int argc, char *argv[]) {
             sourceNames.insert(normalized(source));
             sources.push_back(source);
             outputs.push_back(output);
+        }
+        const auto outputNameCheck = dwg2dxfCli::checkBatchOutputNameCollisions(
+            directory, outputs, error);
+        if (outputNameCheck == dwg2dxfCli::BatchOutputNameCheck::Collision) {
+            std::cout << "Batch mode: invalid or colliding output names\n";
+            return 2;
+        }
+        if (outputNameCheck == dwg2dxfCli::BatchOutputNameCheck::Error) {
+            std::cout << "Batch mode: cannot safely validate output names: "
+                      << error << '\n';
+            return 2;
         }
         for (const auto& output : outputs) {
             if (sourceNames.count(normalized(output))) {
@@ -280,7 +311,8 @@ int main(int argc, char *argv[]) {
             const bool ok = regular && !ec
                 && convertFile(inputs[index], output, options.version,
                                options.binary, options.overwrite,
-                               options.debug, true, options.codePagePolicy);
+                               options.debug, true, options.codePagePolicy,
+                               options.allowPartialDwgRead);
             std::cout << (ok ? "Success: " : "Failed: ") << inputs[index]
                       << " -> " << output << '\n';
             allOk = ok && allOk;

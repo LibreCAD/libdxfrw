@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "IMAGEDEF staging-storage release fast slice",
+  "mode": "Implementation slice; generated fast controls and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Inspect the writer-owned IMAGEDEF staging and retry lifetimes.",
+    "Release consumed adapter staging storage after the final handoff without changing output semantics.",
+    "Retain the immutable codec source plan needed for same-writer retry."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "changes": [
+      "Clear imageDefinitionsToPlan after its definitions have moved into imageDefinitionPlan, freeing the consumed map nodes and duplicate keys.",
+      "After setImageDefinitionPlan(std::move(imageDefinitionPlan)) returns, swap the moved-from vector with an empty vector to free its element buffer before the remaining export work."
+    ],
+    "reason": "The staging map and vector are no longer read after plan handoff; their moved-from nodes/elements and storage do not need to remain live through the remainder of fileExport().",
+    "unchanged": [
+      "Image-definition identity, validation, duplicate handling, and handle reservation",
+      "The codec's ordered plan and serialized IMAGEDEF graph",
+      "The immutable codec-owned source plan across write retries",
+      "Failure atomicity, output ordering, and format behavior"
+    ],
+    "rejectedOptimization": "Moving definitions out of the codec-owned source plan during materialization would consume the retry source. The existing same-writer failure/retry contract requires it to remain intact.",
+    "performanceClaim": "No total deep-copy reduction or measured throughput/RSS improvement is claimed; the change shortens the lifetime of consumed staging storage."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_image_definition_plan_failure_retry|dwg2dxf_image_path_cli|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0,
+      "totalTimeSeconds": 4.80
+    },
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "jsonValidation": "jq empty passed"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

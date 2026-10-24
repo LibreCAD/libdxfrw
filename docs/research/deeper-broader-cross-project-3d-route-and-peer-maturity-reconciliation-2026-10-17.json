@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw-deeper-broader-cross-project-3d-route-and-peer-maturity-reconciliation-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile current primary-source DXF/ACIS carrier, parser, projection and consumer documentation with live open-source peer issue/PR status, then refine existing 3D implementation and comparator gates.",
+  "method": {
+    "kind": "Read-only web-source research plus local plan/source/receipt cross-check",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "implementationChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+      "https://ezdxf.readthedocs.io/en/stable/faq.html#how-to-add-edit-acis-based-entities-like-3dsolid-region-or-surface",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md already separates explicit geometry, modeler payload carriers, AcDs association, bounded parsers, semantic geometry, and native consumer evidence under existing S2/S3/S5/S8 owners.",
+      "DWG_DXF_3D_SUPPORT_PLAN.md is an implementation-status rollup; its latest header summary was refreshed to point to this reconciliation.",
+      "Existing repo guidance requires generated/ephemeral test inputs where suitable and no speculative ACIS semantic support claims."
+    ],
+    "evidenceRule": "Primary docs define their own route and stated limits; mutable issue/PR pages are status snapshots, not immutable release behavior. Peer reports do not prove an analogous local defect. Opaque carrier survival, typed topology, geometry semantics, writer acceptance and native-consumer behavior remain separate evidence grades."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk DXF modeler entity fields do not define inner ACIS semantics",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "The documented 3DSOLID fields include the AcDbModelerGeometry subclass, group 70 modeler-format value, proprietary group 1 and continuation group 3, plus group 350 soft-owner history handle. The page does not specify the inner ACIS/SAB grammar or establish validity of the body.",
+      "doesNotEstablish": [
+        "the SAT/SAB inner dialect based on DXF group 70",
+        "modern ACDSDATA/DWG AcDs association",
+        "closed or valid B-rep geometry",
+        "native CAD application acceptance"
+      ],
+      "planUse": "Retain repeated carrier order, subtype, history-handle closure, version-specific carrier location and semantic-body status as separate fields."
+    },
+    {
+      "topic": "ezdxf 1.4.5 current SAT/SAB API and bounded semantic capability",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html#how-to-add-edit-acis-based-entities-like-3dsolid-region-or-surface"
+      ],
+      "observed": "The current API documents load_dxf/export_dxf and separate export_sat/export_sab functions; SAT ACIS 700 is documented for DXF R2000-R2010, while SAB ACIS 21800 is documented for R2013/R2018. Current API docs therefore supersede the older FAQ's SAT-only wording for API availability. The API warns unsupported ACIS records become NONE_ENTITY and lose data; mesh_from_body covers flat polygonal faces only and no general ACIS kernel is supplied.",
+      "doesNotEstablish": [
+        "arbitrary existing ACIS edit/re-export fidelity",
+        "curved-surface tessellation or general B-rep validity",
+        "native AutoCAD/FreeCAD acceptance",
+        "that an exact locally generated DXF output was executed in this pass"
+      ],
+      "planUse": "Admit the pinned 1.4.5 route only as an optional matching-profile carrier/control author and bounded flat-polyhedron parser/projection. Require a generated exact-version smoke test before relying on emitted bytes; record unsupported/lost body entities and keep geometry expectations independent."
+    },
+    {
+      "topic": "GDAL DXF binary, ASM and output-version boundaries",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "The current docs state binary DXF read support starting with GDAL 3.12. 3DSOLID/REGION/BODY/SURFACE are skipped by default; DXF_3D_EXTENSIBLE_MODE exposes raw ASM bytes and a 12-value column-major transform only for AC1027+ and does not create OGR solids. The DXF writer emits AC2004.",
+      "doesNotEstablish": [
+        "AC1024 or older ACIS-carrier support through this mode",
+        "B-rep semantic interpretation",
+        "exact modern DXF version preservation on write",
+        "full block graph closure under default inlining/merge options"
+      ],
+      "planUse": "Keep separate optional explicit-geometry and AC1027+ raw ASM lanes. Pin version/options; disable block inlining/merging for owner checks; do not score omission-default or AC2004 output as a modern carrier round trip."
+    },
+    {
+      "topic": "FreeCAD DXF consumer profile and stock ACIS limit",
+      "sources": [
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "FreeCAD documents C++ and optional legacy Python DXF importers with differing entity coverage; the stock DXF route does not read proprietary ACIS solid blobs, and a maintainer response in #18454 describes ACIS support as unavailable in the stock FOSS route. DWG converter handoff is separate from the selected DXF importer.",
+      "doesNotEstablish": [
+        "runtime acceptance for every importer/backend/release/platform tuple",
+        "that explicit geometry and ACIS bodies share support status",
+        "that a DWG converter adds ACIS support to the importer"
+      ],
+      "planUse": "Pin FreeCAD release, platform, importer/backend and converter for each consumer result. Mark stock ACIS as not applicable and require a named modeler path plus complete shape/analytic checks for an ACIS claim."
+    },
+    {
+      "topic": "Current peer ACIS carrier/writer loss reports remain unqualified",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "LibreDWG #1411 remains open and reports R2013+ AcDs/SAB loss with the solid entity surviving. ACadSharp #1195 remains open and reports 3DSOLID/REGION omission, including solid-only blocks, on its stated 3.4.9 route. Linked PR #1240 remains open and undeployed, with a dependency on the ACDS/ACIS schema refactor #1174.",
+      "doesNotEstablish": [
+        "a matching libdxfrw defect",
+        "current released behavior of all peer versions",
+        "ACIS semantic correctness from issue repro steps",
+        "capability from an unmerged peer branch"
+      ],
+      "planUse": "Retain the existing per-owner entity→carrier→emitted-record ledger and visible loss disposition. Re-pin and test any future peer release; do not import external drawings or treat issue/PR status as qualification."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

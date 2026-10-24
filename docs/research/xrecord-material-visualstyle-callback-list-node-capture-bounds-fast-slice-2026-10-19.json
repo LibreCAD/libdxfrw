@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-19",
+  "type": "generated-fast-implementation-slice",
+  "owner": "7S.2c typed XRECORD/MATERIAL/VISUALSTYLE callback capture",
+  "scope": [
+    "Account two logical std::list link-pointer slots for every retained typed XRECORD callback copy",
+    "Account two logical std::list link-pointer slots for every retained typed MATERIAL callback copy",
+    "Account two logical std::list link-pointer slots for every retained typed VISUALSTYLE callback copy",
+    "Preserve existing aggregate byte limits, item/record limits, and fail-closed output behavior"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Each typed estimator now adds two logical list-link pointer slots before checking the remaining aggregate byte budget.",
+      "Existing generated expected-byte totals include the list-link slots; exact-cap admission and one-byte-over refusal remain covered."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focused_selectors": [
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-typed-capture-limits",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-typed-capture-limits",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-typed-capture-limits"
+    ],
+    "ctest": "ctest --test-dir build-gcc -R '^(dwg2dxf_xrecord_typed_capture_limits|dwg2dxf_material_typed_capture_limits|dwg2dxf_visual_style_typed_capture_limits)$' --output-on-failure",
+    "ctest_result": "passed (3/3, 0.05 sec)",
+    "diff_check": "passed for implementation, adapter test, plan, and receipt",
+    "full_suite": "not run"
+  },
+  "disposition": {
+    "new_finding": false,
+    "new_top_level_subplan": false,
+    "new_fixture_or_registration": false,
+    "new_dependency": false,
+    "support_claims_promoted": false,
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    },
+    "external_only_items_promoted": [],
+    "external_only_items_still_deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "List accounting represents two logical link-pointer slots per retained value, not allocator-specific node size or process RSS.",
+    "This closes only XRECORD, MATERIAL, and VISUALSTYLE typed callback list-link estimates; DICTIONARY list-versus-singleton accounting and the broader 7S.2c callback-store census remain open.",
+    "No external fixture, peer executable, native CAD application, or full test suite was used.",
+    "No changes were staged or committed because Git metadata is read-only in this environment."
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Opaque DXF section adapter capture bounds",
+  "mode": "Local implementation slice with generated fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound the persistent adapter-owned copy made by addRawDxfSection.",
+    "Account group slots, string/binary values, section names, and ASCII source spellings.",
+    "Fail closed on record/group/byte/allocation refusal before DXF output publication.",
+    "Add generated deep-copy and boundary controls and preserve the raw-section CLI passthrough regression."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_data.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "tests/run_dwg2dxf_raw_dxf_section_test.cmake",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limits": {
+      "records": 100000,
+      "groups": 4000000,
+      "logicalRetainedBytes": 67108864
+    },
+    "behavior": "Capture failure is sticky and blocks DXF output preflight. The logical retained-byte estimate is not an allocator-capacity or RSS limit."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+    "tests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_raw_dxf_entity_capture_limits)$' --output-on-failure",
+        "result": "passed 2/2"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_raw_dxf_section_passthrough$' --output-on-failure",
+        "result": "passed 1/1"
+      }
+    ],
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "fixturesAdded": 0,
+    "peerOrNativeRuntimeRun": false,
+    "planSha256": "a03cabce79178adf2b34db81caf11793fe92cb78ebe858118451653ec1971422"
+  },
+  "planImpact": {
+    "existingOwner": "7S.2c adapter-owned callback retention census",
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This bounds an adapter-owned DXF passthrough copy; it does not interpret arbitrary raw sections, prove DWG AcDs closure, establish ACIS semantics, or qualify a native consumer. All work remains uncommitted on top of the user's large existing worktree changes."
+}

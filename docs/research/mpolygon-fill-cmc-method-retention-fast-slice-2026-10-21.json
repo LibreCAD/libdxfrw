@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MPOLYGON fill CMC method, flags, and reserved-index retention",
+  "mode": "generated AC1018/AC1024/AC1032 DWG fast slice plus focused DXF refusal/retry",
+  "scope": [
+    "Retain MPOLYGON fill CMC source method, optional-string flags, and reserved index",
+    "Replay supported source C0-C3 metadata without losing flagged-empty names",
+    "Refuse unknown or inconsistent CMC state before DWG output",
+    "Prevent class-specific DXF output from silently normalizing unsupported source methods"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor"],
+      "finding": "R2004+ CMC contains a leading BS index that is always zero, a packed BL color/method, and an RC flag byte whose low bits indicate optional color-name and book-name TV strings. This slice preserves those source fields at the already-parsed MPOLYGON fill CMC location; it does not assert additional MPOLYGON body grammar or qualify unsupported methods."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp", "src/libdxfrw.cpp"],
+      "finding": "The MPOLYGON trailer parser previously retained normalized scalar/RGB/name/book data but omitted raw method, flags, and index. The writer inferred method from normalized state and regenerated flags from non-empty strings. The bounded color helper already decoded raw flags/index through dwgBuffer::getCmColor; it now exposes them as optional outputs."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append DWG-only MPOLYGON fill CMC provenance fields after existing members to preserve their offsets; copy, assignment, reset, and DXF scalar/name updates maintain or clear them.",
+      "DWG fill-color preflight verifies C0-C3 method/scalar agreement, zero reserved index, known optional-string flags, and string/flag consistency before output; supported source flags are replayed exactly, including a flagged empty color name.",
+      "MPOLYGON DXF output now runs class validation and refuses C5 or other unsupported/mismatched CMC methods instead of silently projecting the normalized scalar. Existing unsupported color-book DXF policy remains fail-closed."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtest": "libdxfrw_mpolygon_fill_cmc",
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "Appended fields increase DRW_MPolygon object size while preserving previous member offsets; downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgRoundtrip": "AC1018, AC1024, and AC1032 generated routes cover C0 ByLayer, C1 ByBlock, C2 black RGB, C3 indexed color, named fields, a flagged empty color name, and following-LINE alignment.",
+    "lifecycle": "Copy construction, assignment, and reset retain/clear method, flags, reserved index, and presence state.",
+    "failClosed": "Direct encoders reject C5, unknown optional-string flags, and a nonzero reserved index without changing body/string/handle buffers.",
+    "dxfProjection": "An ASCII DXF control refuses C5 Foreground while preserving an existing destination, then reuses the same writer for a corrected C3 retry."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dxf_fixture_tests dwg2dxf lc3_compat_check -j4",
+    "buildResult": "PASS (-Werror strict build)",
+    "focusedCtests": "ctest --test-dir build-gcc -R '^(libdxfrw_mpolygon_fill_cmc|libdxfrw_layer_dwg_cmc_roundtrip|libdxfrw_view_vport_ambient_cmc)$' --output-on-failure",
+    "focusedCtestResult": "PASS (3/3; 1.03 sec)",
+    "diffCheck": "git diff --check -- src/drw_entities.h src/drw_entities.cpp src/libdxfrw.cpp tests/dwg_local_roundtrip_tests.cpp",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated local writer/reader round-trips verify implementation consistency, not independent producer semantics for MPOLYGON CMC fields.",
+    "No persistent fixture, external CAD application, independent semantic reader, full suite, or native Linux/Windows FreeCAD qualification was run.",
+    "Unsupported methods remain observable and fail-closed; this slice does not qualify C5 payloads or C4/C6-C8 semantics.",
+    "Findings/subplans remain 144/78; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the PAR-134 CMC consumer and class-specific DXF projection audit, then resume exact-source PAR-03/PAR-04 associative-action classification. Keep the stage-1 malformed-HATCH read-outcome sentinel as a separate focused validation repair."
+}

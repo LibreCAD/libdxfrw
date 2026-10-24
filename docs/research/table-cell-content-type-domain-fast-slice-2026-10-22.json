@@ -1,0 +1,41 @@
+{
+  "id": "par134-ac1021-ac1024-table-cell-content-type-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE cell-content type enum",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.97"
+  },
+  "change": "Explicit content type 0 (Unknown) now marks semantic completeness false; unlisted values fail before assuming a payload grammar. AC1021 retains the explicit unknown type, while AC1024 preserves atomic withholding of incomplete embedded content.",
+  "regression": "Before the change, generated AC1021 and AC1024 cells with content types 0 and 3 were treated as semantically complete.",
+  "generated_controls": [
+    {
+      "cell_content_type": 0,
+      "expected": "known Unknown state parses as incomplete semantic content"
+    },
+    {
+      "cell_content_type": 3,
+      "expected": "unlisted type refuses typed payload parsing without guessing a layout"
+    }
+  ],
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check --parallel 2: PASS (-Werror)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-content-type-domain: PASS",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_table_.*|libdxfrw_tablestyle_.*|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (18/18; 0.29 s)",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

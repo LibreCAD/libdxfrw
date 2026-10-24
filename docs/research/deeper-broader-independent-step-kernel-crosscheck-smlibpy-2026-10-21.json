@@ -1,0 +1,55 @@
+{
+  "research": "Independent STEP kernel cross-check candidate (smlibpy / NVIDIA SMLib)",
+  "date": "2026-10-21",
+  "type": "primary-source review; package not installed or executed",
+  "scope": [
+    "Existing PAR-07/S8 independent ACIS semantic-evidence gate",
+    "Optional STEP handoff validation through the SMLib kernel family",
+    "Artifact availability, provenance, license, and evidence boundaries"
+  ],
+  "sources": [
+    {
+      "url": "https://pypi.org/project/smlibpy/0.3.5/",
+      "finding": "PyPI lists smlibpy 0.3.5 (released 2026-10-17), Python >=3.10, CPython wheels for Windows x86-64, Linux x86-64/aarch64, and macOS x86-64/arm64, with provenance metadata for all 26 release files. PyPI classifies the package Alpha and reports license expression MIT AND Apache-2.0 AND OFL-1.1. The CPython 3.14 macOS ARM64 wheel SHA-256 is 03824146913b002f8089544a8447e766e2b4ea77bcff75bef808efb54573858b; source archive SHA-256 is a7b7ef62caf0689dc3398fdf3ab7e15e1401291ef13586f7d18cf99282e06217. The provenance identifies source commit 316514b421285ae5abdfe5ed24936bd24ed9dec1."
+    },
+    {
+      "url": "https://github.com/awv-informatik/smlibpy/blob/316514b421285ae5abdfe5ed24936bd24ed9dec1/docs/files.md",
+      "finding": "The documented STEP importer accepts AP203/AP214/AP242, reads solid and surface B-reps with units/names, and permits heal=False to skip healing invalid bodies. The project reports testing against OpenCASCADE on more than 400 files; this remains a maintainer-reported claim not independently reproduced in this review."
+    },
+    {
+      "url": "https://github.com/awv-informatik/smlibpy/blob/316514b421285ae5abdfe5ed24936bd24ed9dec1/docs/kernel.md",
+      "finding": "smlibpy is a wrapper over NVIDIA's SMLib kernel. The package documentation says it builds the kernel as a submodule and carries local patches to two kernel source files; smlibpy also implements its own measurement path. Pin the source/submodule/patch state, not just the kernel family name."
+    },
+    {
+      "url": "https://github.com/NVIDIA-Omniverse/usd-brep",
+      "finding": "NVIDIA's usd-brep repository is the upstream source lineage for the SMLib kernel included by smlibpy. This establishes a kernel family distinct from OCCT, but not a direct DWG/DXF/ACIS parser."
+    },
+    {
+      "url": "https://github.com/awv-informatik/smlibpy/blob/316514b421285ae5abdfe5ed24936bd24ed9dec1/.github/workflows/release.yml",
+      "finding": "PyPI provenance associates the 0.3.5 release workflow with the exact smlibpy source commit 316514b421285ae5abdfe5ed24936bd24ed9dec1."
+    }
+  ],
+  "plan_changes": [
+    "Add smlibpy 0.3.5 only as an optional, one-time composed-gate downstream STEP re-import candidate nested under existing PAR-07/S8 semantic evidence; do not add a production/build/required-CI dependency.",
+    "Use the host-matching PyPI wheel with verified provenance and recorded SHA-256; pin Python/platform, source commit, SMLib submodule revision, and wrapper kernel patch manifest/hashes.",
+    "Invoke import_step with heal=False and record body count, solid/shell classification, validity, units, bounding box, volume, area, centroid, inertia/error estimates, diagnostics, and all stage hashes.",
+    "Compare only to independent analytic expectations or source-authoritative geometry; do not use face/edge counts or topology order as cross-kernel invariants. Without independent expected geometry, report CORROBORATION_ONLY.",
+    "Keep source SAT/SAB parsing, DXF carrier preservation, ACDSDATA key/owner association, and native FreeCAD qualification as separate gates; STEP re-import cannot promote these claims.",
+    "Keep peer package/sample unavailability non-blocking; mark the optional check DEFERRED_EXTERNAL or NOT_RUN and continue local implementation."
+  ],
+  "implementation_findings_added": 0,
+  "top_level_subplans_added": 0,
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "runtime_executed": [],
+  "native_cad_run": false,
+  "external_fixture_added": false,
+  "dependency_added": false
+}

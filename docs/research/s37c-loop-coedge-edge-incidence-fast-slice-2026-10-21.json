@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-s37c-loop-coedge-edge-incidence-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "scope": "Generated in-memory and parser-fed SAB structural projection",
+  "implementation": {
+    "source": [
+      "src/drw_acis.h",
+      "src/drw_acis.cpp"
+    ],
+    "tests": "tests/graph_preservation_tests.cpp",
+    "consumerContract": "docs/3D_CONSUMER_CONTRACT.md",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Expose one edge-node index aligned to each ordered face-loop coedge identity, using the admitted ACIS BinaryFile 21800 coedge edge pointer slot; preserve null/unresolved/unsupported-profile values as -1 and charge cache and per-face output storage.",
+    "edgePointerSemanticOrdinal": 4,
+    "cacheInsertionTransfersVectorOwnership": true,
+    "publicStructLayoutChanged": true,
+    "fixtureFileAdded": false,
+    "externalDependencyAdded": false
+  },
+  "generatedCoverage": {
+    "inMemoryOnly": true,
+    "multiLoopOrdering": true,
+    "repeatedEdgeUse": true,
+    "parserFedSab21800": true,
+    "explicitNullEdgeSlot": true,
+    "missingEdgeSlot": true,
+    "coedgeAndEdgeRowsAligned": true
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 1.20
+    },
+    {
+      "command": "jq empty docs/research/s37c-loop-coedge-edge-incidence-fast-slice-2026-10-21.json",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- src/drw_acis.h src/drw_acis.cpp tests/graph_preservation_tests.cpp docs/3D_CONSUMER_CONTRACT.md DWG_DXF_3D_SUPPORT_PLAN.md DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/s37c-loop-coedge-edge-incidence-fast-slice-2026-10-21.json",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "The edge-node row is structural incidence, not coedge sense/orientation or trim evaluation.",
+    "No face orientation, outer/inner loop classification, B-rep validity, independent geometry metrics, or native consumer acceptance is established.",
+    "The added public struct field changes layout; downstream consumers must rebuild. DRW_Interface and the 2D callback contract are unchanged.",
+    "No external drawing fixture, peer executable, native CAD application, full suite, or support claim was added or used.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The implementation remains uncommitted because the shared worktree is broadly dirty."
+  ],
+  "next": "Continue with the next dependency-ready local S3.7c topology invariant without waiting for external qualification."
+}

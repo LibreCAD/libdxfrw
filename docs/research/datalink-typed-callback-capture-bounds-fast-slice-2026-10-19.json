@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed DATALINK callback capture bounds",
+  "mode": "Local implementation slice with generated fast tests",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Bound adapter-owned copies retained through the typed DRW_DataLink callback.",
+    "Account for common table-entry state, DATALINK strings, custom-data slots, and nested text under aggregate record/item/byte limits.",
+    "Make budget or allocation failure sticky and stop export before preflight/publication while preserving existing fail-closed behavior for nonempty DATALINK graphs.",
+    "Add generated deep-copy/limit controls and register only focused fast tests."
+  ],
+  "implementation": {
+    "family": "DATALINK",
+    "limits": {
+      "aggregateRecords": 100000,
+      "aggregateCustomDataItems": 1000000,
+      "aggregateLogicalRetainedBytes": 67108864,
+      "lifetime": "dx_data container lifetime; counters and sticky failure persist across appended imports"
+    },
+    "accounting": "DRW_DataLink object, DRW_TableEntry dynamic state, metadata strings, custom-data vector slots, and nested custom-data text; counters advance only after successful insertion.",
+    "failureBehavior": "Capture failure is sticky and fileExport rejects it immediately after source-container validation. Nonempty DATALINK still fails later because no graph serializer is qualified.",
+    "semanticSupportPromoted": false
+  },
+  "tests": {
+    "generatedControls": [
+      "Exact record/item/byte accounting for a generated DATALINK with nested custom data",
+      "Deep-copy preservation after mutating source metadata and nested custom text",
+      "Aggregate record, custom-data-item, and retained-byte refusal",
+      "Sticky refusal after repeated callbacks and no counter advance on refusal",
+      "Specific export-preflight diagnostic and existing destination preservation",
+      "Existing ASCII DATALINK parse-to-adapter and unqualified-graph refusal"
+    ],
+    "fixturesAdded": 0,
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_datalink_typed_capture_limits|dwg2dxf_modeldoc_view_style_typed_capture_limits|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0
+    },
+    "build": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "passed": true
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the 7S.2c typed callback-store census, starting with typed DICTIONARYWDFLT and ACDBPLACEHOLDER callbacks; then re-inventory remaining common TABLES/OBJECTS callback stores. Do not infer serializer, owner-graph, or native-consumer qualification from capture limits.",
+    "commitState": "Not committed because .git is read-only and the worktree contains broader existing changes; no files were staged."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_datalink_typed_capture_limits|dwg2dxf_modeldoc_view_style_typed_capture_limits|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "filesChanged": [
+    "dwg2dxf/dx_data.h",
+    "dwg2dxf/dx_iface.h",
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/datalink-typed-callback-capture-bounds-fast-slice-2026-10-19.json"
+  ],
+  "planSha256": "a75dd53d31a2628d0efab0cab892b4ebd354e2f0a4d423ef2ccb156ead92522c"
+}

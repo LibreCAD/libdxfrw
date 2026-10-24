@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader independent-kernel STEP bridge and ACIS artifact-provenance screen",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen an independent B-rep kernel with STEP ingress as a possible secondary semantic route",
+    "Separate format ingress, carrier parsing, neutral-format transfer, kernel evaluation, and native-CAD acceptance",
+    "Reconcile Truck repository source versus published crate documentation and importer failure reports",
+    "Refresh cq-acis artifact/source provenance and compare with current release presentation",
+    "Update implementation readiness without adding fixtures, dependencies, tests, or support claims"
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and plan-ledger reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Truck repository documentation and source are mutable master; the review did not pin or build a Truck commit. Issue #133 is a maintainer-hosted report and was not independently reproduced here. PyPI reports a verified publication attestation, but this review did not independently verify its Sigstore bundle or download the artifact. Keel's published kernel claims were treated as project claims, not independently audited results. No B-rep, carrier, DWG/AcDs, or native-consumer behavior is inferred from documentation alone."
+  },
+  "sources": [
+    {
+      "project": "Truck CAD kernel",
+      "url": "https://github.com/ricosjp/truck",
+      "revision": "mutable master repository page reviewed 2026-10-17",
+      "observed": "The repository describes Truck as a Rust CAD kernel and identifies Apache-2.0 licensing. Its source tree includes truck-stepio. This establishes candidate identity, not successful import/export or independent semantic qualification."
+    },
+    {
+      "project": "Truck STEP I/O repository documentation",
+      "url": "https://github.com/ricosjp/truck/blob/master/truck-stepio/README.md",
+      "revision": "mutable master README reviewed 2026-10-17",
+      "observed": "The README says truck-stepio reads/writes STEP and documents a step-to-mesh example. It is not a pinned release artifact."
+    },
+    {
+      "project": "truck-stepio 0.3.0 published docs",
+      "url": "https://docs.rs/truck-stepio/0.3.0/truck_stepio/",
+      "revision": "published crate documentation version 0.3.0",
+      "observed": "The current-status section says truck-modeled output is possible, shapes created by set operations cannot yet be output, and STEP input is forthcoming. This conflicts with the current repository README/input module and requires source-versus-release pinning."
+    },
+    {
+      "project": "Truck issue #133",
+      "url": "https://github.com/ricosjp/truck/issues/133",
+      "revision": "open issue observed 2026-10-17; report identifies master source commit 8d03d8f and crate 0.3.0",
+      "observed": "The report says failed OFFSET_CURVE_3D conversion logs to stderr and drops an edge after numbering it, leaving later face edge references misindexed while the conversion returns success. The reported behavior was not independently reproduced."
+    },
+    {
+      "project": "Keel B-rep kernel",
+      "url": "https://github.com/redwoodrhetorica/keel",
+      "revision": "mutable master repository page reviewed 2026-10-17",
+      "observed": "The README describes alpha 0.1, GPL-3.0-or-later, STEP export, partial STEP import, and kernel-owned oracle/fuzz methods. The listed import/export surface does not include DWG, DXF, SAT, SAB, or ASM ingress."
+    },
+    {
+      "project": "cq-acis 0.3.12 PyPI artifact",
+      "url": "https://pypi.org/project/cq-acis/0.3.12/",
+      "revision": "release metadata reviewed 2026-10-17",
+      "observed": "PyPI reports an Oct. 16, 2026 publishing attestation for cq_acis-0.3.12.tar.gz, SHA-256 eba52992abcf6afce57b0f3526c3afeeed29cc60fbbb61c275958703d597de3a, from GitHub repository monozukuri-ai/cq-acis at commit e05a8f470d2f6799277f7b7df467d2fc35625889. This review did not download the file or independently verify the attestation."
+    },
+    {
+      "project": "cq-acis GitHub Releases",
+      "url": "https://github.com/monozukuri-ai/cq-acis/releases",
+      "revision": "release-list page snapshot reviewed 2026-10-17",
+      "observed": "The rendered release list contained tags through v0.3.8 and did not show v0.3.12, despite PyPI's 0.3.12 artifact. This is recorded as a channel/label mismatch, not proof of an invalid PyPI artifact or source mismatch."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "revision": "stable documentation reviewed 2026-10-17",
+      "observed": "The documentation says 3DSOLID, REGION, BODY, and SURFACE carry ASM data and are skipped by default because GDAL cannot transform them into OGR geometries. This supports a carrier/projection boundary only."
+    },
+    {
+      "project": "OCCT component catalog",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "revision": "mutable main documentation reviewed 2026-10-17",
+      "observed": "The catalog lists DXF Import-Export and ACIS Import-Export as Exchange components, separate from OCCT core; it does not establish availability or license authorization in any particular installation."
+    }
+  ],
+  "assessment": {
+    "routeClassification": {
+      "truck": "CANDIDATE_NOT_QUALIFIED; potential independent kernel only after a STEP bridge, not an outer DWG/DXF/ACIS parser",
+      "keel": "KERNEL_ONLY_NO_FORMAT_INGRESS; STEP-only secondary research lead, not parser evidence",
+      "cqAcis": "BOUNDED_SAT_SAB_PARSER_AND_OCCT_SHAPE_ROUTE; artifact must be hash/attestation/source pinned; not an independent kernel from FreeCAD/OCCT",
+      "gdal": "DXF carrier/projection route; not 3D solid geometry",
+      "occtExchange": "Commercial component route; not presumed available as open-source core"
+    },
+    "truckAdmissionRule": "Resolve the exact release/source mismatch, pin immutable source and dependencies, reproduce or fix issue #133's unsupported-edge behavior, and require complete references/topology plus locally-authored analytic controls before any semantic result is admitted.",
+    "stepBridgeRule": "If used, separately bind raw ACIS input, parser outcome, converted shape, STEP artifact/hash, secondary-kernel import result, and analytic metrics. STEP translation loss is its own boundary; Truck cannot validate raw ACIS or DWG AcDs association.",
+    "cqAcisArtifactRule": "Record exact file, platform, SHA-256, attestation subject/source commit, and runtime dependencies. Do not substitute mutable main documentation for inspected attested source.",
+    "fixtureRule": "Use generated/in-memory or locally-authored scratch-only controls. Add no external DWG/DXF/SAT/SAB/STEP fixture to this repository."
+  },
+  "planImpact": {
+    "existingComposedGateOnly": true,
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-kernel-ingress-route-review-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-kernel-ingress-route-review-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

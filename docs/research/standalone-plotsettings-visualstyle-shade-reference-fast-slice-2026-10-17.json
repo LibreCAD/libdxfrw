@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Standalone PLOTSETTINGS VisualStyle shade-reference fast slice",
+  "mode": "primary-source review plus local implementation with generated in-memory controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettingsShadePlotType.html",
+      "finding": "The shade-plot enum distinguishes VisualStyle (4) from RenderPreset (5)."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_SetShadePlot_PlotSettingsShadePlotType_ObjectId.html",
+      "finding": "VisualStyle and RenderPreset modes require an object ID of the corresponding family; AsDisplayed and Rendered do not use one."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "finding": "VISUALSTYLE is a standalone DXF object family."
+    }
+  ],
+  "scope": [
+    "Existing standalone PLOTSETTINGS graph remains DXF-source and R14+ target only",
+    "Modes 0-3 require null/omitted code 333",
+    "Mode 4 code 333 must target one rooted, owned, identity-consistent VISUALSTYLE",
+    "Mode 5 RenderPreset remains rejected pending its complete carrier and writer route",
+    "Group 333 uses the existing object-handle remap"
+  ],
+  "method": {
+    "kind": "Focused adapter, graph-preflight, writer/readback, and generated-test implementation",
+    "externalDrawingsDownloaded": 0,
+    "privateSamplesObtained": 0,
+    "peerRepositoriesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "Structural ASCII/Binary round-trip only. No printer/device behavior, semantic plotting, DWG-source standalone page setup, RenderPreset mode, or external CAD acceptance is qualified."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behaviors": [
+      "PLOTSETTINGS shade mode 4 requires a unique rooted ACAD_VISUALSTYLE dictionary target.",
+      "The target must have exactly one typed DRW_VisualStyle and one raw VISUALSTYLE carrier with matching ownership and identity.",
+      "The code-333 handle is remapped through the established object handle map.",
+      "Other shade mode/reference pairs outside the bounded profile fail before publication."
+    ],
+    "generatedControls": [
+      "ASCII and Binary export/readback of a mode-4 page setup whose VISUALSTYLE handle collides with a fixed output handle.",
+      "Typed/raw VISUALSTYLE, owner, and remapped code-333 identity checks.",
+      "Wrong-family dictionary target and mode-5 RenderPreset rejection.",
+      "Existing destination sentinel preservation and same-adapter retry after rejected cases."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --plotsettings-visualstyle-shade-reference",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-plotsettings-callback-and-fail-closed",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --extension-graph-limits",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-datalink-callback-and-fail-closed",
+      "cmake --build build-gcc --target dwg2dxf lc3_compat_check -j2",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "focusedBuildPassed": true,
+    "mode4AsciiBinarySelectorPassed": true,
+    "existingPlotSettingsSelectorPassed": true,
+    "extensionGraphSelectorPassed": true,
+    "dataLinkSelectorPassed": true,
+    "dwg2dxfBuildPassed": true,
+    "librecad3CompatibilityTargetPassed": true,
+    "fullSuiteRun": false,
+    "externalPeerOrNativeCadRun": false,
+    "semanticPlottingQualified": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  }
+}

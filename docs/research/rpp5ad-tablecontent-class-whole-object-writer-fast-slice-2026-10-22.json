@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "slice": "RPP-5ad",
+  "date": "2026-10-22",
+  "scope": "AC1021 TABLECONTENT dynamic class registration and transactional whole-object emission",
+  "sources": [
+    {
+      "repository": "DomCR/ACadSharp",
+      "localCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "path": "samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "method": "Read-only current dwg2dxf debug trace; class metadata only; whole drawing remains unqualified"
+    },
+    {
+      "repository": "DomCR/ACadSharp",
+      "localCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "path": "samples/sample_AC1021_ascii.dxf",
+      "sha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+      "method": "Read-only CLASS group inspection"
+    },
+    {
+      "repository": "mozman/ezdxf",
+      "localCommit": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+      "path": "examples_dxf/acad_table_simple.dxf",
+      "sha256": "2fc8d0e9517b36dd13db95740b37bc2f534005f16abc222faab036c3407d9e8d",
+      "method": "Read-only CLASS group inspection"
+    }
+  ],
+  "observedClass": {
+    "className": "AcDbTableContent",
+    "recordName": "TABLECONTENT",
+    "appName": "ObjectDBX Classes",
+    "proxyFlags": 1152,
+    "wasProxy": false,
+    "itemClassId": 499,
+    "dwgVersion": 25,
+    "maintenanceVersion": 21,
+    "unknown1": 0,
+    "unknown2": 0,
+    "sourceOrdinalNotHardcoded": 524,
+    "outputOrdinalPolicy": "Allocate file-local free ordinal and resolve by class identity"
+  },
+  "api": ["dwgRW::registerTableContentObjectClass", "dwgRW::writeTableContent"],
+  "validation": {
+    "strictBuildAndCompatibility": "PASS",
+    "newWholeFileTest": "libdxfrw_table_content_dwg_object_roundtrip PASS",
+    "supportedVersion": "AC1021",
+    "refusedVersions": ["AC1015", "AC1018", "AC1024", "AC1027", "AC1032"],
+    "checks": [
+      "Rooted NOD/dictionary/TABLESTYLE/extension-DICTIONARY/CELLSTYLEMAP graph",
+      "Custom column/cell base-style ID 101 and built-in row style ID 2",
+      "Unicode content, owned FIELD, CadValue soft object-ID reference and merged ranges",
+      "Typed/raw callback count, exact class metadata and completion receipt",
+      "Incomplete and late-text failure rollback followed by valid retry",
+      "Class-instance counts and following XRECORD sentinel"
+    ],
+    "finalSharedFocusedCohort": {"passed": 9, "failed": 0, "seconds": 1.38},
+    "overrideKindWireProfile": "Corrected by RPP-5af; retained known kinds, canonical defaults 3/1/2/4 for column/cell/row/content",
+    "fullSuiteRun": false,
+    "sanitizersRun": false,
+    "independentGeneratedDwgReaderRun": false,
+    "nativeConsumersRun": false
+  },
+  "remaining": [
+    "Legacy AC1021 TABLE entity and roundtrip extension graph",
+    "Arbitrary source-graph consumer handoff",
+    "AC1024+ inline TABLE writer",
+    "External source-profile and native acceptance qualification"
+  ],
+  "externalDrawingsCopiedOrCommitted": 0,
+  "persistentGeneratedFixturesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "worktree": "uncommitted and unstaged; pre-existing overlapping edits preserved"
+}

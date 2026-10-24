@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACIS scratch-authoring and evidence-lineage correction",
+  "mode": "primary documentation and exact-artifact metadata review with read-only local handoff reconciliation",
+  "scope": [
+    "Resolve the ezdxf 1.4.5 ACIS authoring documentation discrepancy",
+    "Identify an exact optional package artifact for locally authored AC1027 SAB controls",
+    "Check whether the existing local generator already covers the planned two-solid ACDSDATA route",
+    "Audit parser/model/kernel lineage so a peer self-roundtrip is not promoted as independent semantic evidence",
+    "Refine the composed 3D handoff without changing normal per-slice validation cost"
+  ],
+  "method": {
+    "kind": "Review versioned ezdxf API/FAQ documentation, PyPI artifact metadata, acis-core documentation, current cq-acis geometry limits, and the local generator/handoff",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tools/create_acis218_mesh_witness.py"
+    ],
+    "limitations": "No candidate was installed or executed. API and package metadata establish discovery and artifact-selection details only, not generated ACDSDATA bytes, libdxfrw round-trip behavior, B-rep validity, or native CAD acceptance. The exact PyPI wheel has a checksum but is not marked Trusted Publishing. Current cq-acis main documentation is mutable; docs.rs acis-core 0.3.11 and PyPI cq-acis 0.3.12 are not assumed to be a matched dependency set."
+  },
+  "sources": [
+    {
+      "project": "ezdxf 1.4.5 ACIS API",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "revision": "Stable documentation identifies itself as ezdxf 1.4.5; accessed 2026-10-18",
+      "observed": "The detailed ACIS API documents body_from_mesh(MeshBuilder), export_dxf() to ACIS-based DXF entities, and export_sab() with ACIS 21800 sufficient for R2013/R2018. Closed meshes create solid bodies; separate meshes can become separate lumps unless split before body construction. The FAQ says SAT-only/no creation, but its preamble labels it the old FAQ with new entries moved elsewhere after late 2023.",
+      "limits": "The documented writer is limited to simple known structures and polyhedra; ezdxf has no ACIS kernel, unsupported parsed entities may be lost, and the API guide's statement that Autodesk/BricsCAD load examples is not an executed acceptance result for this exact artifact."
+    },
+    {
+      "project": "PyPI ezdxf 1.4.5 wheel",
+      "urls": [
+        "https://pypi.org/project/ezdxf/1.4.5/#files"
+      ],
+      "revision": "CPython 3.12 macOS 11+ ARM64 wheel uploaded 2026-10-16",
+      "observed": "The wheel SHA-256 is e78a6b6aaac31f915026694f669cb3172636380caad9ec41007636f034013106. PyPI metadata reports Trusted Publishing: No.",
+      "limits": "The digest is useful for byte-exact repeatability, but no publisher attestation or source commit identity was established. This wheel was not downloaded or installed."
+    },
+    {
+      "project": "acis-core 0.3.11 and cq-acis",
+      "urls": [
+        "https://docs.rs/acis-core/0.3.11/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://pypi.org/project/cq-acis/0.3.12/"
+      ],
+      "revision": "docs.rs acis-core 0.3.11; PyPI cq-acis 0.3.12; current cq-acis geometry guide on mutable main, accessed 2026-10-18",
+      "observed": "acis-core documents an experimental source-free SAB author for one axis-aligned Asm23200MetricBox and states that reference closure does not prove B-rep validity or compatibility with a particular ASM version. cq-acis uses a shared model API with acis-core and converts supported models through CadQuery/OpenCascade. The reviewed package/docs versions were not established as a matching release dependency set.",
+      "limits": "This is a bounded experimental author/parser family, not a DXF/AcDs writer or independent parser/kernel vote. OCCT geometry is shared-kernel evidence with FreeCAD, not an independent-kernel result. Mutable main docs may include unreleased work."
+    },
+    {
+      "project": "Local source-generated ACIS witness helper",
+      "urls": [
+        "tools/create_acis218_mesh_witness.py"
+      ],
+      "revision": "Current shared worktree, read-only inspection",
+      "observed": "The helper builds one ACIS 218 polyhedral 3DSOLID at a time, currently with dimensions (5, 7, 11), writes an AC1027 DXF and a separate SAB file, and performs an ezdxf same-library version/entity/carrier equality self-check. Its module documentation explicitly says it does not create a DWG or ACDSDATA section. ezdxf is unavailable in the currently selected Python environment.",
+      "limits": "The helper is not the proposed two-body asymmetric manifest generator and cannot by itself validate ACDSDATA/key association, libdxfrw conversion, independent geometry, or native acceptance. Its dependency hint is not an exact artifact pin. No attempt was made to install ezdxf or run the helper."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8 versioned modeler-carrier and AcDs association chain",
+      "Optional source-generated AC1027 SAB control",
+      "Independent parser, B-rep, and native-application evidence matrix"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "routineValidationAdded": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Treat the ezdxf 1.4.5 detailed API as a concrete optional source-from-scratch polyhedron producer candidate, with the old FAQ discrepancy retained but chronologically qualified. At the existing composed 3D checkpoint, hash-pin and isolate the exact artifact, author two separate analytic 3DSOLID bodies, inspect actual AC1027 ACDSDATA/SAB payloads and per-entity associations, and then exercise the local conversion chain. The current one-body helper is not enough. Keep acis-core/cq-acis as one experimental project-family route; do not count shared OCCT or reference closure as an independent semantic/native pass. If optional external routes are unavailable, mark those stages not run and continue local implementation.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check for DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "localEzDxfAvailabilityProbe": "ezdxf unavailable; no install attempted",
+    "fullSuiteRun": false
+  }
+}

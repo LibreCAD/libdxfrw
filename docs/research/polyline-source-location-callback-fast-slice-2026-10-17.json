@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-polyline-source-location-callback-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Close the synthetic source-location and callback-publication gap in 7BA's existing POLYLINE stage/adopt test owner without adding fixtures or test registration.",
+  "method": {
+    "kind": "Local implementation and focused generated test slice",
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixtureFilesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false,
+    "fullTestSuiteRun": false,
+    "nativeCadApplicationRun": false,
+    "externalPeerRun": false
+  },
+  "implementation": {
+    "testTarget": "libdxfrw_dwg_reader_matrix_tests",
+    "selector": "--polyline-staging-growth",
+    "changedFile": "tests/dwg_reader_matrix_tests.cpp",
+    "coverage": [
+      "Synthetic source-map entries have distinct handles, decoded-buffer offsets, and map ordinals.",
+      "Child vertices stage out of order before the parent; no polyline or frame-publication callback occurs before SEQEND completes the declared child set.",
+      "The committed callback contains child vertices in parent-declared order.",
+      "Parent, child, and SEQEND each produce one publication callback with exact source offset, ordinal, offset space, version, and type.",
+      "The final source-frame coverage report is complete and every frame is Published exactly once.",
+      "Staging state and same-reader validation are clean after commit."
+    ],
+    "limits": [
+      "Source identities are seeded directly into the synthetic reader; actual HANDLE-map parsing and production ObjectMap seeding are not exercised.",
+      "No complete DWG parsing or block traversal is exercised.",
+      "No portable allocator/RSS or whole-reader speed claim follows."
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "compatibilityTarget": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": "PASS",
+    "receiptJsonSyntaxChecked": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "owner": "7BA compound child work bounds",
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "next": "Keep the actual HANDLE-map-to-POLYLINE production pipeline open. Continue with the next reproduction-backed plan item; revisit this path when production traversal is next modified or a real source-bound reader test is available."
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The shared checkout contains broad pre-existing uncommitted user changes; this slice remains uncommitted and no unrelated files were staged."
+  }
+}

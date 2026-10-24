@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 DetailViewStyle group-1 double insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert missing DetailViewStyle group-1 identifier height, arrow size, and identifier offset values (DXF group 40) from edited typed values during same-version raw-carrier export.",
+    "Preserve occurrence mapping when a later typed slot is changed by inserting any preceding missing slots with their current/default typed values.",
+    "Verify generated ASCII/Binary controls with typed readback, exact ordered raw-group replay, resource closure, and neighboring-record preservation."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/detailviewstyle-group1-double-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "The DetailViewStyle overlay finds the highest edited missing group-1 double occurrence and inserts each missing occurrence through that slot. Earlier values come from the typed record, including defaults needed as ordinal placeholders. Newly inserted values must be finite and are lexically encoded with max_digits10 round-trip precision.",
+    "testCases": [
+      "Remove all three group-1 group-40 doubles from a generated primary DetailViewStyle; confirm defaults, edit identifier offset to 0.75, export/read back in ASCII and Binary DXF, and assert height 0, arrow size 0, offset 0.75 in occurrence order.",
+      "Compare the complete ordered raw DetailViewStyle and SectionViewStyle carriers and verify the following POINT survives."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.51
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "Same-source-version DXF typed-field insertion/replay only; no DWG-origin typed serialization or cross-version projection qualification.",
+    "The generated control addresses one later-slot omission pattern; it does not establish semantic handling for malformed or ambiguous raw cardinalities.",
+    "No native style-rendering or broad DetailViewStyle semantic-completeness claim follows.",
+    "No commit was created because the shared worktree's .git directory is read-only."
+  ]
+}

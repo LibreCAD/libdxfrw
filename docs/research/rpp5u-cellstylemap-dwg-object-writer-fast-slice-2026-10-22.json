@@ -1,0 +1,76 @@
+{
+  "slice": "RPP-5u",
+  "title": "AC1021 CELLSTYLEMAP dynamic class and object-frame writer",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": [
+    "register AcDbCellStyleMap with a dynamically allocated file-local class ordinal",
+    "emit the standard AC1021 object preamble and validated CELLSTYLEMAP payload",
+    "expose typed class registration and object writing through dwgRW"
+  ],
+  "evidence_basis": [
+    "ODA Open Design Specification v5.4.1 section 20.4.102 identifies CELLSTYLEMAP as an R2007+ object and defines its body",
+    "the existing project DXF CLASS row provides CELLSTYLEMAP, AcDbCellStyleMap, ObjectDBX Classes, and group-90 flags 1152",
+    "the existing DWG reader resolves CELLSTYLEMAP from the class/record name rather than a hardcoded object type"
+  ],
+  "generated_controls": [
+    "local AC1021 whole-file writer/readback publishes one nested custom cell style",
+    "class identity, custom style ID/name, CMC RGB, and content-format values survive the object frame",
+    "non-AC1021 versions refuse the writer route",
+    "invalid nested value-unit type refuses without a reader callback",
+    "raw object carrier census includes the new typed frame"
+  ],
+  "validation": {
+    "dwg2dxf_build": {
+      "command": "cmake --build build-gcc --target dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "roundtrip_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 5.5
+    },
+    "compatibility_check": {
+      "command": "cmake --build build-gcc --target lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- <changed source/test paths>",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated locally by the existing whole-file round-trip harness"
+  },
+  "qualification_limits": {
+    "table_style_extension_dictionary_graph": "NOT_IMPLEMENTED",
+    "ac1024_plus_writer": "NOT_IMPLEMENTED",
+    "independent_producer_reopen": "NOT_RUN",
+    "full_test_suite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "src/intern/dwgwriter.h",
+    "src/intern/dwgwriter15.h",
+    "src/intern/dwgwriter15.cpp",
+    "src/libdwgr.h",
+    "src/libdwgr.cpp",
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5u-cellstylemap-dwg-object-writer-fast-slice-2026-10-22.json"
+  ],
+  "next": "Emit a rooted AC1021 TABLESTYLE extension DICTIONARY graph that owns the CELLSTYLEMAP under ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP; keep later versions and external qualification separate.",
+  "commit": "NONE"
+}

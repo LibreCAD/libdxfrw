@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader source-visible ACIS implementation and version-specific consumer review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile mutable ACadRust source claims with its published crate documentation and test shape",
+    "Refresh open-source ACIS parser versus B-rep kernel and mesh-projection boundaries",
+    "Screen a downstream DWG/DXF consumer with a version-specific 3DSOLID loss report and audit parser lineage",
+    "Clarify DXF SOLID versus modeler 3DSOLID terminology and optional comparator admission"
+  ],
+  "method": {
+    "kind": "Primary-source review of repository source, API documentation, project README/route notes, and Autodesk DXF references",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Mutable repository main and published docs.rs versions were not source-bound; no peer was run and no parser lineage audit was performed beyond the public acad-ts provenance statement. Maintainer feature matrices and app-reported loss establish route claims only. No independent B-rep/kernel or native CAD result was collected."
+  },
+  "sources": [
+    {
+      "project": "ACadRust source/package/API and tests",
+      "urls": [
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/Cargo.toml",
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/README.md",
+        "https://docs.rs/acadrust/latest/acadrust/",
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/primitives/index.html",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "revision": "Mutable main Cargo.toml reported 0.6.5; docs.rs latest page reviewed reported 0.5.5; no immutable commit/artifact pair bound",
+      "observed": "The project advertises DWG/DXF matrices and SAT/SAB typed topology/primitive building. The public round-trip test source includes generated same-implementation write/read cases and synthetic/fake SAB controls. This supports source-visible implementation and self-consistency only, not independent parser, kernel, semantic-solid, or native acceptance claims."
+    },
+    {
+      "project": "ezdxf ACIS route",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation snapshot reviewed 2026-10-18",
+      "observed": "The documentation explicitly excludes an ACIS kernel and arbitrary ACIS load/re-export, says unsupported entities become NONE_ENTITY with data loss, and documents mesh extraction of flat polygonal faces with curved faces lost."
+    },
+    {
+      "project": "ArrayCAD and acad-ts consumer/parser route",
+      "urls": [
+        "https://github.com/stoatworks-labs/arraycad/blob/master/README.md",
+        "https://github.com/stoatworks-labs/arraycad/blob/master/CLAUDE.md",
+        "https://github.com/node-projects/acad-ts/blob/master/README.md"
+      ],
+      "revision": "Mutable master/main documentation reviewed 2026-10-18; exact application/package commit not bound",
+      "observed": "ArrayCAD documents a domain-specific path that reads 3DSOLID data from R2000-R2004 DXF and DWG 2004 and reports that its DWG reader loses most 3DSOLIDs from R2018. Its route notes identify @node-projects/acad-ts, whose README says it is a TypeScript port of ACadSharp. This is an app-reported version-specific loss and a derived route, not an independent parser or general solid qualification result."
+    },
+    {
+      "project": "Autodesk DXF entity contracts",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "revision": "Autodesk published DXF reference pages reviewed 2026-10-18",
+      "observed": "The SOLID entity is corner-based and may carry thickness/extrusion; 3DSOLID uses the AcDbModelerGeometry subclass and proprietary modeler data with an optional history-object link. They must be tracked as distinct feature families."
+    },
+    {
+      "project": "Assimp DXF projection route",
+      "urls": [
+        "https://raw.githubusercontent.com/assimp/assimp/master/code/AssetLib/DXF/DXFLoader.cpp",
+        "https://github.com/assimp/assimp/issues/2645"
+      ],
+      "revision": "Mutable master source and issue status reviewed 2026-10-18",
+      "observed": "The reviewed DXF loader source contained no SOLID/3DSOLID entity-name handling, and issue #2645 requests SOLID support. The issue's SOLID request is distinct from ACIS-backed 3DSOLID support, so Assimp is not admitted as a modeler-semantic comparator."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing peer-admission and S8 ACIS evidence gates only. Require exact artifact/source/profile identity, separate carrier retention from parser/topology/mesh/kernel/native outcomes, represent ArrayCAD's ACadSharp-derived path as optional and version-specific, and distinguish DXF SOLID from ACIS-backed 3DSOLID. No implementation queue or validation cadence change."
+  },
+  "implementationReadyChecks": [
+    "Keep per-slice validation on generated local controls; do not add a peer installation, dependency, fixture, CTest, or full-suite requirement from this research.",
+    "If ACadRust is selected at a composed checkpoint, bind a release artifact hash to an immutable source commit and verify the exact format version, entity, carrier, read/write direction, and unsupported-record behavior; mark the route NOT_RUN if identity reconciliation is not quick.",
+    "Treat ACadRust self-round-trip tests as internal consistency only; use distinct typed/raw oracles and a separate kernel/native route for semantic claims.",
+    "If ArrayCAD is selected, pin its application and acad-ts revisions and report DWG R2004 versus R2018 results separately; count the route under ACadSharp-derived lineage.",
+    "Distinguish SOLID, 3DFACE, mesh entities, REGION, BODY, SURFACE, and 3DSOLID in feature matrices and test names; a SOLID result cannot promote ACIS/3DSOLID support.",
+    "For any ACIS mesh projection, record unsupported entities and curved-face loss; preserve and inspect raw carrier data independently of the typed projection.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL unless their separate external/platform and independent semantic-evidence conditions are met."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "workingTree": {
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer capability-matrix and DWG-lineage screen",
+  "mode": "Current primary-source project and route-admission research",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden the open-source CAD comparator inventory with current CADKernel and mlightcad CAD-Viewer primary documentation.",
+    "Resolve whether headline format support and 3D renderer claims establish operation-specific parser, writer, or geometry routes.",
+    "Refine existing PAR-07/S8 admission and fast composed-checkpoint execution without new routine peer work."
+  ],
+  "sources": [
+    {
+      "project": "CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel",
+        "https://github.com/kernalix7/CADKernel#supported-file-formats",
+        "https://github.com/kernalix7/CADKernel#faq"
+      ],
+      "revision": "Mutable GitHub main README inspected 2026-10-20; no source commit, release binary, or runtime was pinned or executed.",
+      "observed": "The README overview advertises 60+ formats including ACIS and marks DWG/DXF read/write supported. Its detailed format table marks ACIS SAT/SAB read/write planned. Its FAQ states proprietary CAD import is planned. These statements conflict at the documentation layer for broad import/format claims.",
+      "limits": "No source-code path or operation-specific test was inspected or run in this pass. The documentation inconsistency does not prove the implementation absent or defective; it is sufficient to withhold comparator admission until exact route and test evidence are identified."
+    },
+    {
+      "project": "mlightcad/cad-viewer",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer",
+        "https://github.com/mlightcad/cad-viewer#known-issues",
+        "https://github.com/mlightcad/cad-viewer#roadmap",
+        "https://github.com/mlightcad/cad-viewer#license"
+      ],
+      "revision": "Mutable GitHub main README inspected 2026-10-20; no source commit, package, browser runtime, or DWG converter was pinned or executed.",
+      "observed": "The README says DXF loading uses the built-in MIT parser. Open-source DWG loading is opt-in through a GPL-3.0 LibreDWG converter rather than registered by default. The rendering roadmap calls its pipeline 2D-only and marks R12-to-latest version compatibility in progress. It mentions Three.js but provides no ACIS parsing or B-rep semantic route in the inspected README.",
+      "limits": "The current README does not establish exact implemented entity coverage, DXF output-writer behavior, 3D semantics, or whole-file/owner-graph preservation. With the optional LibreDWG converter, DWG observations share LibreDWG parser lineage. No code, package, test, or native viewer was executed."
+    },
+    {
+      "project": "cq-acis comparator boundary refresh",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "revision": "Mutable main README inspected 2026-10-20; exact release/profile evidence remains in the existing cq-acis artifact receipt.",
+      "observed": "The project describes itself as experimental, scopes accepted SAT/SAB/ASM save versions and a limited analytic geometry subset, preserves unsupported records raw, and warns that parse success does not guarantee shape conversion.",
+      "limits": "It is a payload parser/converter route, not a DWG/DXF container reader/writer or AcDs owner-association oracle. This refresh does not replace its existing exact-artifact/profile gate or establish an independent kernel."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree plan inspected and updated 2026-10-20.",
+      "observed": "PAR-07/S8 now requires a cheap documentation/source/test admission sieve, explicit parser/converter/kernel lineage, operation/profile matching, and at most one pinned peer run at an existing composed checkpoint. Unsupported, unreconciled, or unavailable candidates do not delay local slices.",
+      "limits": "No peer candidate, executable, dependency, fixture, external drawing, geometry kernel, or native CAD application was run. The plan refinement does not promote any support claim."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConditionalProjectionCandidates": 1,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: require a source-level operation route and test evidence when a project's overview, capability matrix, FAQ, and roadmap disagree; otherwise reject before clone/build.",
+      "PAR-07/S8: record parser, converter, renderer/projection, and geometry-kernel lineage separately and count shared routes as correlated evidence.",
+      "PAR-07/S8: admit an external observation only for a matching input version, entity/carrier subset, operation direction, and strictness profile.",
+      "PAR-07/S8: select at most one exact-pinned peer at a composed checkpoint; preserve per-source disposition and unsupported/repair/fallback accounting.",
+      "PAR-07/S8 and 3D consumer gate: keep DXF projection, DWG parsing, opaque ACIS transport, B-rep semantics, and native acceptance independent."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-capability-matrix-dwg-lineage-screen-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added CADKernel to the discovery inventory but withheld admission because its README overview, format matrix, and FAQ conflict on current ACIS/proprietary-import status; exact source-route/test reconciliation is required before any tooling cost or evidence credit.",
+    "Refined mlightcad/cad-viewer to a conditional 2D DXF parser/projection observation. Its optional LibreDWG converter is correlated DWG lineage, and Three.js/3D-rendering wording does not establish ACIS or B-rep semantics.",
+    "Retained cq-acis only as a bounded raw-payload parser/conversion candidate under its existing exact profile and artifact gate, not as a DWG/DXF container or owner-join oracle.",
+    "Added a documentation-to-source/test admission sieve before cloning/building; at most one eligible pinned peer may run at an existing composed checkpoint, and rejected peers never block implementation."
+  ],
+  "limitations": [
+    "The CADKernel and mlightcad pages inspected are mutable main-branch documentation; no commit, release artifact, package, or executable was pinned.",
+    "No source tree was cloned and no peer test, converter, renderer, native CAD application, or geometry kernel was run.",
+    "Candidate statements are scoped to their inspected documentation and are not claims that the underlying software has no unadvertised implementation.",
+    "No external drawing or peer fixture was downloaded or added; repository fixture policy is unchanged.",
+    "ODA v5.4.1 and Autodesk DXF references remain authoritative for their respective format-layout questions."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "planUpdaterCheck": "Not run; research-only parity plan update",
+    "scopedDiffCheck": "PASS (git diff --check on DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree contains extensive pre-existing changes and Git metadata is read-only in this session."
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1024 LTYPE and AC1015 zero-child FIELD peer-shape fast controls",
+  "mode": "local implementation fast slices",
+  "scope": [
+    "Add a valid generated AC1024 LTYPE text record beside the existing malformed missing-74 negative",
+    "Add generated AC1015 zero-child FIELD controls with a primary value and following-object sentinel",
+    "Reuse existing test owners, selectors, and CTest registration"
+  ],
+  "implementation": {
+    "files": [
+      "tests/hardening_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "details": [
+      "Parameterized generated LTYPE header version, defaulting to AC1027; tested AC1024/AC1027 text-bearing records in ASCII and Binary DXF with exact text and following-row assertions.",
+      "Strengthened FIELD raw/typed callback pairing and zero-child checks; added AC1015 ASCII/Binary generated cases with primary typed value and a following sentinel object.",
+      "Added std::string TestContext::expect overload because the touched assertion labels use dynamically composed strings; preserved the const-char overload by forwarding."
+    ],
+    "productionCodeChanged": false,
+    "newCtestRegistration": false,
+    "persistentDrawingFixturesAdded": false,
+    "externalFixtureImported": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "./build-gcc/libdxfrw_hardening_tests --dxf-ltype-retained-owner-budget",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planStatus": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "Tests are generated local structural controls, not a reproduction of peer binaries and not independent format or native-application acceptance. Worktree contains broad unrelated changes; slice remains uncommitted to avoid capturing unrelated edits."
+}

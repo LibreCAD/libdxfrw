@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-18",
+  "kind": "implementation_slice_receipt",
+  "slice": "DICTIONARYWDFLT and default PLACEHOLDER low-level DXF serializers",
+  "scope": "Typed WDFLT and PLACEHOLDER record emission, plus one-import DXF/DWG origin and identity evidence; no root-graph routing or broad support claim.",
+  "implementation": [
+    "Added dxfRW::writeDictionaryWithDefault with remapped self, owner, child, and default handles.",
+    "Emits AcDbDictionary, optional post-R14 code 281, ordered group-3/group-350 child pairs, AcDbDictionaryWithDefault, and group 340.",
+    "Rejects nonzero hardOwner because the Autodesk DICTIONARYWDFLT DXF grammar has no group-280 carrier.",
+    "Rejects nonzero cloning for AC1014 output because group 281 is unavailable there.",
+    "Authored child keys and target identities use bounded uniqueness admission; remapped zero child/default handles are refused.",
+    "Added dxfRW::writeAcDbPlaceholder for object/handle, optional persistent reactors, and required owner; XDATA and extension-dictionary state are refused.",
+    "DICTIONARYWDFLT cloning is constrained to Autodesk's documented 0-5 enum; AC1014 nonzero cloning is refused because group 281 is absent.",
+    "The concrete adapter retains DXF-origin WDFLT and PLACEHOLDER raw companions in dedicated lists and records typed/raw ranges in a separate per-import receipt.",
+    "The receipt validator binds WDFLT typed/raw identity and owner, checks the default pointer against exactly one placeholder owned by the WDFLT, and enforces the source-format raw-versus-typed route."
+  ],
+  "authoritative_reference": {
+    "title": "Autodesk DXF Reference: DICTIONARYWDFLT",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A6605C05-1CF4-42A4-95EC-42190B2424EE.htm",
+    "use": "Subclass order, group-3/group-350 entries, AcDbDictionaryWithDefault subclass, group-340 default hard pointer, and 0-5 cloning enum; the published grammar has no group 280."
+  },
+  "placeholder_reference": {
+    "title": "Autodesk DXF Reference: ACDBPLACEHOLDER",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3BC75FF1-6139-49F4-AEBB-AE2AB4F437E4.htm",
+    "use": "Object name, handle, optional persistent reactors, and required owner; the published table has no subclass, XDATA, or extension-dictionary field."
+  },
+  "generated_controls": {
+    "source": "In-memory DXF authored locally at test time; no committed DWG/DXF fixture.",
+    "profiles": ["AC1014 ASCII", "AC1014 Binary", "AC1015 ASCII", "AC1015 Binary", "AC1027 ASCII", "AC1027 Binary"],
+    "assertions": [
+      "Literal wire ordering, group roles, class subclass sequence, group-280 absence, allowed cloning values, and remapped identities.",
+      "The code-340 default handle equals the placeholder code-5 handle; placeholder code-330 owner equals the WDFLT code-5 handle.",
+      "Typed parseback preserves complete WDFLT payload, child handles, default handle, and representable cloning value; raw placeholder parseback preserves its identity and owner.",
+      "Concrete dx_iface file import retains both raw companion families and admits exact generation/owner/default identity; wrong owner and duplicate raw identity are rejected.",
+      "A synthetic DWG-origin receipt control validates typed-only WDFLT/PLACEHOLDER pairing; this is not a real DWG witness.",
+      "Nonzero hardOwner, AC1014 nonzero cloning, cloning outside 0-5, and ownerless placeholder controls preserve an existing destination and permit same-writer retry after correction."
+    ]
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_with_default_writer$' --output-on-failure",
+    "result": "PASS (1/1; 0.28 seconds)",
+    "diff_check": "git diff --check -- CMakeLists.txt src/libdxfrw.h src/libdxfrw.cpp dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md — PASS"
+  },
+  "not_established": [
+    "NOD root admission or child reachability.",
+    "DXF-origin raw/typed deduplication or DWG-origin adapter routing.",
+    "Adapter-level exact-one graph closure, including NOD reachability and uniquely selected/emitted PLACEHOLDER across a complete document.",
+    "Final CLASS count/handle planning and output scheduling through the conversion adapter.",
+    "Real DWG-origin WDFLT/PLACEHOLDER behavior, native CAD acceptance, or complete support parity."
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "ae8d55cd1f49dcef02f65220c878f5cbffa21f66700396640f3bc1cb9205b5c0",
+    "src/libdxfrw.h": "cb1a539c638841c07c7c30d62ff63932bd382c849d87d0ed43b54f9e9cd574b1",
+    "src/libdxfrw.cpp": "d9fe2cb8ebd52e9d0b9ad766200eeafe0adc9cb780d075615ffcbba5dbb88bea",
+    "dwg2dxf/dx_data.h": "848503d29dc4598b7a7f079b44a160b1b54cd99029b13c282c6f594dd50416e5",
+    "dwg2dxf/dx_iface.cpp": "e9bf5531a090a91d2c6f3a6cb484e85f30a9dfce2869a6537a2653674f119512",
+    "tests/dxf_fixture_tests.cpp": "fe6560a71d50a9e227fa9dac827f35598ed06c63f00dbe70076b45e1101e1ce0",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "a0e07622370e82dbbe1e35c66779fffa503722b5c563f5fae7ab87ad6ca060a6"
+  },
+  "workspace_note": "Hashes cover the complete files in the shared worktree at receipt time; those files contain pre-existing unrelated changes outside this slice. No full suite, peer, or native CAD run was made."
+}

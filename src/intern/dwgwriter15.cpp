@@ -15,19 +15,23 @@
 #include "dwgtemplate.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <set>
 
 #include "../drw_base.h"
+#include "../drw_datastorage.h"
 #include "../drw_entities.h"
 #include "../drw_objects.h"
 #include "drw_dbg.h"
 #include "drw_reserve.h"
 #include "dwgbuffer.h"
 #include "dwgbufferw.h"
+#include "dwg_header_time.h"
 #include "dwg_fixed_handles.h"
 #include "dwgobjectframe.h"
 #include "dwgreader.h"
@@ -36,10 +40,151 @@
 
 namespace {
 
+constexpr std::uint32_t kMaxDwgBlockRecordPreviewBytes = 0xA00000u;
+constexpr int kDwgBlockRecordFlagsMask = 0x7Fu;
+
+struct DataStoragePayloadInspection {
+    bool hasAcisMarker = false;
+    std::uint32_t acisMarkerOffset = 0;
+};
+
+bool inspectDataStorageRecordPayload(
+    const std::uint8_t* sectionBytes, std::size_t sectionByteLength,
+    const DRW_DataStorageSection& section,
+    const DRW_DataStorageRecord& record,
+    const std::vector<std::uint8_t>* expectedPayload,
+    DataStoragePayloadInspection& inspection) {
+    static constexpr char marker[] = "ACIS BinaryFile";
+    constexpr std::size_t markerLength = sizeof(marker) - 1u;
+    constexpr std::uint64_t segmentHeaderSize =
+        DRW_DataStorageConst::SEGMENT_HEADER_SIZE;
+    constexpr std::uint64_t blobPageHeaderSize =
+        DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE;
+
+    const std::uint64_t expectedLength = record.isBlobReference
+        ? record.blobTotalByteLength : record.dataByteLength;
+    if (sectionBytes == nullptr || expectedLength
+            > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+        || (expectedPayload != nullptr
+            && expectedPayload->size() != expectedLength))
+        return false;
+
+    std::array<std::size_t, markerLength> prefix{};
+    for (std::size_t index = 1u, matched = 0u; index < markerLength; ++index) {
+        while (matched != 0u && marker[index] != marker[matched])
+            matched = prefix[matched - 1u];
+        if (marker[index] == marker[matched])
+            ++matched;
+        prefix[index] = matched;
+    }
+
+    std::uint64_t payloadOffset = 0;
+    std::size_t expectedOffset = 0;
+    std::size_t matchedMarkerBytes = 0;
+    const auto consumeSpan = [&](std::uint64_t sourceOffset,
+                                 std::uint64_t byteLength) {
+        if (sourceOffset > sectionByteLength
+            || byteLength > sectionByteLength - sourceOffset
+            || payloadOffset > expectedLength
+            || byteLength > expectedLength - payloadOffset
+            || (expectedPayload != nullptr
+                && (expectedOffset > expectedPayload->size()
+                    || byteLength > expectedPayload->size() - expectedOffset)))
+            return false;
+
+        const std::uint8_t* source = sectionBytes
+            + static_cast<std::size_t>(sourceOffset);
+        if (expectedPayload != nullptr && byteLength != 0u
+            && std::memcmp(source, expectedPayload->data() + expectedOffset,
+                           static_cast<std::size_t>(byteLength)) != 0)
+            return false;
+
+        for (std::uint64_t index = 0; index < byteLength; ++index) {
+            const char value = static_cast<char>(source[index]);
+            while (matchedMarkerBytes != 0u
+                   && value != marker[matchedMarkerBytes])
+                matchedMarkerBytes = prefix[matchedMarkerBytes - 1u];
+            if (value == marker[matchedMarkerBytes])
+                ++matchedMarkerBytes;
+            if (matchedMarkerBytes == markerLength) {
+                if (!inspection.hasAcisMarker) {
+                    const std::uint64_t markerStart = payloadOffset + index
+                        + 1u - markerLength;
+                    if (markerStart > UINT32_MAX)
+                        return false;
+                    inspection.hasAcisMarker = true;
+                    inspection.acisMarkerOffset =
+                        static_cast<std::uint32_t>(markerStart);
+                }
+                matchedMarkerBytes = prefix[matchedMarkerBytes - 1u];
+            }
+        }
+        payloadOffset += byteLength;
+        if (expectedPayload != nullptr)
+            expectedOffset += static_cast<std::size_t>(byteLength);
+        return true;
+    };
+
+    if (!record.isBlobReference) {
+        if (static_cast<std::size_t>(record.segmentIndex)
+                >= section.segments.size())
+            return false;
+        const DRW_DataStorageSegment& segment =
+            section.segments[record.segmentIndex];
+        if (segment.kind != DRW_DataStorageSegmentKind::Data
+            || segment.offset > sectionByteLength
+            || segment.size > sectionByteLength - segment.offset)
+            return false;
+        const std::uint64_t segmentEnd = segment.offset + segment.size;
+        if (segment.offset > UINT64_MAX - segmentHeaderSize)
+            return false;
+        const std::uint64_t segmentPayloadStart =
+            segment.offset + segmentHeaderSize;
+        if (record.dataOffset < segmentPayloadStart
+            || record.dataOffset > segmentEnd
+            || record.dataByteLength > segmentEnd - record.dataOffset
+            || !consumeSpan(record.dataOffset, record.dataByteLength))
+            return false;
+    } else {
+        if (record.blobPageCount == 0u
+            || record.blobPageCount != record.blobPages.size())
+            return false;
+        for (const DRW_DataStorageBlobPage& page : record.blobPages) {
+            if (static_cast<std::size_t>(page.segmentIndex)
+                    >= section.segments.size())
+                return false;
+            const DRW_DataStorageSegment& segment =
+                section.segments[page.segmentIndex];
+            if (segment.kind != DRW_DataStorageSegmentKind::Blob
+                || segment.offset > sectionByteLength
+                || segment.size > sectionByteLength - segment.offset
+                || segment.offset
+                       > UINT64_MAX - segmentHeaderSize - blobPageHeaderSize)
+                return false;
+            const std::uint64_t segmentEnd = segment.offset + segment.size;
+            const std::uint64_t pageDataOffset = segment.offset
+                + segmentHeaderSize + blobPageHeaderSize;
+            if (pageDataOffset > segmentEnd
+                || page.byteLength > segmentEnd - pageDataOffset
+                || !consumeSpan(pageDataOffset, page.byteLength))
+                return false;
+        }
+    }
+
+    return payloadOffset == expectedLength
+        && (expectedPayload == nullptr
+            || expectedOffset == expectedPayload->size());
+}
+
 bool isCompoundEntityChild(const DRW_Entity& entity) {
     return dynamic_cast<const DRW_Attrib*>(&entity) != nullptr
         || dynamic_cast<const DRW_SeqEnd*>(&entity) != nullptr
         || dynamic_cast<const DRW_Vertex*>(&entity) != nullptr;
+}
+
+std::uint64_t blockInsertReferenceKey(std::uint32_t ownerHandle,
+                                      std::uint32_t entityHandle) {
+    return (static_cast<std::uint64_t>(ownerHandle) << 32u) | entityHandle;
 }
 
 /// File-header CRC seed-XOR adjustment (matches reader at
@@ -121,6 +266,13 @@ bool isReplayableFixedModelerRawEntity(const DRW_UnsupportedObject& object) {
     return object.m_isEntity && !object.m_isCustomClass
         && (object.m_objectType == 34   // VIEWPORT (paper-space; no typed RS entity)
             || object.m_objectType == 37 || object.m_objectType == 38
+            || object.m_objectType == 39);
+}
+
+bool isReplayableFixedModelerBodyRawEntity(
+    const DRW_UnsupportedObject& object) {
+    return object.m_isEntity && !object.m_isCustomClass
+        && (object.m_objectType == 37 || object.m_objectType == 38
             || object.m_objectType == 39);
 }
 
@@ -232,25 +384,14 @@ double headerDoubleVar(const DRW_Header *header, const std::string& key) {
     return it->second->d_val();
 }
 
-void splitAuxDate(double stored, std::int32_t& day, std::int32_t& msec) {
-    // Canonical DWG aux-header date encoding: `stored` is julianDay + msec/86_400_000.
-    constexpr double kMsecPerDay = 86400000.0;
-    const double dayFloor = std::floor(stored);
-    day = static_cast<std::int32_t>(dayFloor);
-    const double frac = stored - dayFloor;
-    msec = static_cast<std::int32_t>(std::lround(frac * kMsecPerDay));
-    if (msec >= static_cast<std::int32_t>(kMsecPerDay)) {
-        day += 1;
-        msec = 0;
-    }
-}
-
-void putAuxDate(std::vector<std::uint8_t>& v, double stored) {
+bool putAuxDate(std::vector<std::uint8_t>& v, double stored) {
     std::int32_t day = 0;
     std::int32_t msec = 0;
-    splitAuxDate(stored, day, msec);
+    if (!dwgHeaderTime::split(stored, day, msec))
+        return false;
     putAuxRL(v, static_cast<std::uint32_t>(day));
     putAuxRL(v, static_cast<std::uint32_t>(msec));
+    return true;
 }
 
 std::vector<std::uint8_t> buildR2000AuxHeaderContent(const DRW_Header *header) {
@@ -280,8 +421,9 @@ std::vector<std::uint8_t> buildR2000AuxHeaderContent(const DRW_Header *header) {
     for (int i = 0; i < 5; ++i)
         putAuxRL(v, 0);
 
-    putAuxDate(v, headerDoubleVar(header, "TDCREATE"));
-    putAuxDate(v, headerDoubleVar(header, "TDUPDATE"));
+    if (!putAuxDate(v, headerDoubleVar(header, "TDCREATE"))
+        || !putAuxDate(v, headerDoubleVar(header, "TDUPDATE")))
+        return {};
 
     const std::uint32_t handSeed = header ? header->getHandSeed() : 0;
     putAuxRL(v, handSeed <= 0x7fffffffu ? handSeed : static_cast<std::uint32_t>(-1));
@@ -502,11 +644,14 @@ bool dwgWriter15::writeDwgHeader() {
     // For R2000 the handle stream is inline with the data stream — pass
     // the same accumulator for both buf and hBbuf.
     if (m_header != nullptr) {
-        const std::uint32_t dataStartBit = m_buf.bitCount();
+        const std::uint64_t dataStartBit = m_buf.bitCount();
         // Propagate encode failure: writeDwgHeader reports success as a bool.
-        if (!m_header->encodeDwg(m_version, &m_buf, &m_buf))
+        if (!m_header->encodeDwgForWriter(
+                m_version, &m_buf, &m_buf, nullptr,
+                DRW::DwgNamedObjectsDictionaryHandle))
             return false;
-        recordHeaderHandseedOffset(dataStartBit);
+        if (!recordHeaderHandseedOffset(dataStartBit))
+            return false;
     }
 
     endSentinelSection(sectionStart, sizeOffset, dwgSentinels::HEADER_END);
@@ -653,22 +798,195 @@ bool dwgWriter15::emitControlObject(
 std::uint32_t dwgWriter15::defineBlock(const std::string& name,
                                  const DRW_Coord& basePoint,
                                  int insUnits) {
-    if (m_blockControlEmitted || m_activeUserBlockRecordHandle != 0)
+    return defineBlockImpl(name, basePoint, insUnits, nullptr);
+}
+
+std::uint32_t dwgWriter15::defineBlock(
+    const DRW_Block_Record& record) {
+    if (record.flags < 0 || (record.flags & ~kDwgBlockRecordFlagsMask) != 0
+        || record.xrefIndex < -1 || record.xrefIndex > 65534
+        || (m_version > DRW::AC1018 && record.xrefIndex != -1)
+        || (m_version <= DRW::AC1018 && record.insUnits != 0)
+        || (m_version <= DRW::AC1018
+            && (!record.canExplode || record.blockScaling != 0))
+        || record.previewData.size() > kMaxDwgBlockRecordPreviewBytes
+        || record.previewData.size()
+               > static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+        || !record.extData.empty() || !record.appData.empty()
+        || !record.reactorHandles.empty() || record.xDictHandle != 0
+        || record.layoutHandle == DRW::NoHandle
+        || !record.insertHandles.empty()) {
         return 0;
+    }
+
+    // ODA §20.4.52 specifies this common hard-pointer slot as NULL. Preserve
+    // the parsed value in the model, but do not emit a non-null value whose
+    // meaning is not part of the specified BLOCK_RECORD wire form.
+    if (record.xrefBlockHandle.ref != DRW::NoHandle
+        || record.xrefBlockHandle.ref64 != DRW::NoHandle) {
+        return 0;
+    }
+
+    DwgBlockRecordWriteMetadata metadata;
+    try {
+        metadata.flags = record.flags;
+        metadata.xrefUnloaded = record.xrefUnloaded;
+        metadata.xrefIndex = record.xrefIndex;
+        metadata.xrefPath = record.xrefPath;
+        metadata.description = record.description;
+        metadata.previewData = record.previewData;
+        metadata.canExplode = record.canExplode;
+        metadata.blockScaling = record.blockScaling;
+    } catch (...) {
+        return 0;
+    }
+
+    const bool isXref = (metadata.flags & 4) != 0;
+    const bool isOverlay = (metadata.flags & 8) != 0;
+    if (isOverlay && !isXref)
+        return 0;
+    if (isXref && record.layoutHandle != 0)
+        return 0;
+    const bool carriesXrefState = (metadata.flags & (16 | 32 | 64)) != 0
+        || metadata.xrefUnloaded || metadata.xrefIndex >= 0
+        || !metadata.xrefPath.empty();
+    if (carriesXrefState && !isXref) {
+        return 0;
+    }
+    if (isXref && !record.entMap.empty()) {
+        return 0;
+    }
+
+    return defineBlockImpl(record.name, record.basePoint, record.insUnits,
+                           &metadata, record.layoutHandle);
+}
+
+bool dwgWriter15::ensureUserBlockIndex() const {
+    if (m_userBlockIndexReady)
+        return true;
+
+    std::vector<std::pair<std::uint32_t, std::size_t>> index;
+    try {
+        index.reserve(m_userBlocks.size());
+        for (std::size_t position = 0; position < m_userBlocks.size();
+             ++position) {
+            index.emplace_back(m_userBlocks[position].blockRecordHandle,
+                               position);
+        }
+        std::sort(index.begin(), index.end(),
+                  [](const std::pair<std::uint32_t, std::size_t>& left,
+                     const std::pair<std::uint32_t, std::size_t>& right) {
+                      return left.first < right.first;
+                  });
+    } catch (...) {
+        m_userBlockIndex.clear();
+        return false;
+    }
+
+    for (std::size_t position = 1; position < index.size(); ++position) {
+        if (index[position - 1].first == index[position].first) {
+            m_userBlockIndex.clear();
+            return false;
+        }
+    }
+    m_userBlockIndex.swap(index);
+    m_userBlockIndexReady = true;
+    return true;
+}
+
+dwgWriter15::PendingUserBlock* dwgWriter15::findUserBlock(
+    std::uint32_t blockRecordHandle) {
+    const dwgWriter15* constWriter = this;
+    return const_cast<PendingUserBlock*>(
+        constWriter->findUserBlock(blockRecordHandle));
+}
+
+const dwgWriter15::PendingUserBlock* dwgWriter15::findUserBlock(
+    std::uint32_t blockRecordHandle) const {
+    if (ensureUserBlockIndex()) {
+        const auto position = std::lower_bound(
+            m_userBlockIndex.cbegin(), m_userBlockIndex.cend(),
+            blockRecordHandle,
+            [](const std::pair<std::uint32_t, std::size_t>& entry,
+               std::uint32_t handle) { return entry.first < handle; });
+        if (position == m_userBlockIndex.cend()
+            || position->first != blockRecordHandle)
+            return nullptr;
+        return &m_userBlocks[position->second];
+    }
+
+    const auto block = std::find_if(
+        m_userBlocks.cbegin(), m_userBlocks.cend(),
+        [blockRecordHandle](const PendingUserBlock& candidate) {
+            return candidate.blockRecordHandle == blockRecordHandle;
+        });
+    return block == m_userBlocks.cend() ? nullptr : &*block;
+}
+
+void dwgWriter15::invalidateUserBlockIndex() noexcept {
+    m_userBlockIndex.clear();
+    m_userBlockIndexReady = false;
+}
+
+std::uint32_t dwgWriter15::defineBlockImpl(
+    const std::string& name, const DRW_Coord& basePoint, int insUnits,
+    DwgBlockRecordWriteMetadata* metadata, std::uint32_t layoutHandle) {
+    if (m_blockControlEmitted || m_activeUserBlockRecordHandle != 0) {
+        return 0;
+    }
     const std::string key = toUpperCase(name);
-    if (key.empty())
+    if (key.empty()) {
         return 0;
+    }
     if (insUnits < 0
         || static_cast<std::uint64_t>(insUnits)
-               > std::numeric_limits<std::uint16_t>::max())
+               > std::numeric_limits<std::uint16_t>::max()) {
         return 0;
+    }
     const auto existing = m_userBlockHandles.find(key);
-    if (existing != m_userBlockHandles.end())
+    if (existing != m_userBlockHandles.end()) {
+        PendingUserBlock* pending = findUserBlock(existing->second);
+        if (pending == nullptr || pending->name != name
+            || pending->layoutHandle != layoutHandle
+            || pending->insUnits != insUnits
+            || pending->basePoint.x != basePoint.x
+            || pending->basePoint.y != basePoint.y
+            || pending->basePoint.z != basePoint.z)
+            return 0;
+        if (metadata == nullptr)
+            return existing->second;
+        if (pending->hasWriteMetadata) {
+            const DwgBlockRecordWriteMetadata& prior =
+                pending->writeMetadata;
+            const bool same = prior.flags == metadata->flags
+                && prior.xrefUnloaded == metadata->xrefUnloaded
+                && prior.xrefIndex == metadata->xrefIndex
+                && prior.xrefPath == metadata->xrefPath
+                && prior.description == metadata->description
+                && prior.previewData == metadata->previewData
+                && prior.canExplode == metadata->canExplode
+                && prior.blockScaling == metadata->blockScaling;
+            return same ? existing->second : 0;
+        }
+        try {
+            pending->writeMetadata = std::move(*metadata);
+        } catch (...) {
+            return 0;
+        }
+        pending->hasWriteMetadata = true;
         return existing->second;
+    }
 
-    const CompoundWriteCheckpoint checkpoint = checkpointCompoundWrite();
-    const auto fail = [this, &checkpoint]() {
-        rollbackCompoundWrite(checkpoint);
+    const EntityFrameCheckpoint checkpoint = checkpointEntityFrame();
+    CompoundWriteCheckpoint classCheckpoint;
+    bool hasClassCheckpoint = false;
+    bool frameStarted = false;
+    const auto fail = [this, &checkpoint, &classCheckpoint,
+                       &hasClassCheckpoint, &frameStarted]() {
+        if (hasClassCheckpoint)
+            rollbackCompoundWrite(classCheckpoint);
+        else
+            rollbackEntityFrame(checkpoint, frameStarted);
         return std::uint32_t{0};
     };
 
@@ -676,6 +994,13 @@ std::uint32_t dwgWriter15::defineBlock(const std::string& name,
     std::uint32_t blockRecH  = m_handles.next();
     std::uint32_t blockH     = m_handles.next();
     std::uint32_t endBlockH  = m_handles.next();
+    if (m_dwgClassInstanceHandleOwners.find(blockH)
+            != m_dwgClassInstanceHandleOwners.end()
+        || m_dwgClassInstanceHandleOwners.find(endBlockH)
+            != m_dwgClassInstanceHandleOwners.end()) {
+        classCheckpoint = checkpointCompoundWrite();
+        hasClassCheckpoint = true;
+    }
 
     // Block entity for the start of the block body.
     DRW_Block bk;
@@ -686,6 +1011,7 @@ std::uint32_t dwgWriter15::defineBlock(const std::string& name,
     bk.parentHandle = blockRecH;
     bk.setIsEnd(false);
     {
+        frameStarted = true;
         dwgBufferW& body = beginObject(blockH);
         if (m_version > DRW::AC1018) {
             m_objectStrings.reset();
@@ -751,12 +1077,20 @@ std::uint32_t dwgWriter15::defineBlock(const std::string& name,
 
     PendingUserBlock block;
     block.blockRecordHandle = blockRecH;
+    block.layoutHandle = layoutHandle;
+    block.ownerKind = layoutHandle == 0
+        ? BlockOwnerKind::OrdinaryBlock : BlockOwnerKind::PaperLayout;
     block.blockHandle = blockH;
     block.endBlockHandle = endBlockH;
     block.name = name;
     block.basePoint = basePoint;
     block.insUnits = insUnits;
+    if (metadata != nullptr) {
+        block.hasWriteMetadata = true;
+        block.writeMetadata = std::move(*metadata);
+    }
     m_userBlocks.push_back(block);
+    invalidateUserBlockIndex();
     m_userBlockHandles.emplace(key, blockRecH);
     return blockRecH;
 }
@@ -764,13 +1098,13 @@ std::uint32_t dwgWriter15::defineBlock(const std::string& name,
 bool dwgWriter15::beginBlockContent(std::uint32_t blockRecordHandle) {
     if (m_blockControlEmitted || m_activeUserBlockRecordHandle != 0)
         return false;
-    for (const PendingUserBlock& block : m_userBlocks) {
-        if (block.blockRecordHandle == blockRecordHandle) {
-            m_activeUserBlockRecordHandle = blockRecordHandle;
-            return true;
-        }
-    }
-    return false;
+    const PendingUserBlock* block = findUserBlock(blockRecordHandle);
+    if (block == nullptr
+        || (block->hasWriteMetadata
+            && (block->writeMetadata.flags & (4 | 8)) != 0))
+        return false;
+    m_activeUserBlockRecordHandle = blockRecordHandle;
+    return true;
 }
 
 bool dwgWriter15::endBlockContent() {
@@ -780,13 +1114,227 @@ bool dwgWriter15::endBlockContent() {
     return true;
 }
 
+dwgWriter15::EntityFrameCheckpoint
+dwgWriter15::checkpointEntityFrame() const {
+    EntityFrameCheckpoint checkpoint;
+    checkpoint.bufferSize = m_buf.size();
+    checkpoint.lastDwgObjectFrameGeneration = m_lastDwgObjectFrameValid
+        ? m_lastDwgObjectFrame.generation : 0;
+    checkpoint.objectMapSize = m_objectMap.size();
+    checkpoint.emittedLayoutAssociationCount =
+        m_emittedLayoutAssociations.size();
+    checkpoint.emittedLayoutDictionaryCount =
+        m_emittedLayoutDictionaries.size();
+    checkpoint.currentHandle = m_currentHandle;
+    checkpoint.frameWriteError = m_frameWriteError;
+    checkpoint.entityEedWriteFailure = m_entityEedWriteFailure;
+    checkpoint.objectEedWriteFailure = m_objectEedWriteFailure;
+    checkpoint.pendingFrameProvenance = m_pendingDwgObjectFrameProvenance;
+    checkpoint.currentFrameProvenance = m_currentDwgObjectFrameProvenance;
+    return checkpoint;
+}
+
+void dwgWriter15::rollbackEntityFrame(
+    const EntityFrameCheckpoint& checkpoint, bool frameStarted) {
+    // Like full transaction rollback, retain a newly-discovered EED failure
+    // while discarding all other frame-local state.
+    const bool entityEedFailure = m_entityEedWriteFailure;
+    const bool objectEedFailure = m_objectEedWriteFailure;
+    if (checkpoint.bufferSize <= m_buf.size())
+        m_buf.truncate(checkpoint.bufferSize);
+    if (checkpoint.objectMapSize <= m_objectMap.size()) {
+        for (std::size_t index = checkpoint.objectMapSize;
+             index < m_objectMap.size(); ++index)
+            m_emittedDwgObjectHandles.erase(m_objectMap[index].first);
+        m_objectMap.resize(checkpoint.objectMapSize);
+    }
+    if (checkpoint.emittedLayoutAssociationCount
+        <= m_emittedLayoutAssociations.size()) {
+        m_emittedLayoutAssociations.resize(
+            checkpoint.emittedLayoutAssociationCount);
+    }
+    if (checkpoint.emittedLayoutDictionaryCount
+        <= m_emittedLayoutDictionaries.size()) {
+        m_emittedLayoutDictionaries.resize(
+            checkpoint.emittedLayoutDictionaryCount);
+    }
+
+    if (checkpoint.blockOwnedEntityRecorded) {
+        std::vector<std::uint32_t>* handles = nullptr;
+        const std::uint32_t ownerHandle = checkpoint.blockOwnerHandle;
+        if (ownerHandle == reservedHandle::BLOCK_MODEL_SPACE) {
+            handles = &m_modelSpaceEntityHandles;
+        } else if (ownerHandle == reservedHandle::BLOCK_PAPER_SPACE) {
+            handles = &m_paperSpaceEntityHandles;
+        } else {
+            PendingUserBlock* owner = findUserBlock(ownerHandle);
+            if (owner != nullptr) {
+                handles = &owner->entityHandles;
+            }
+        }
+        if (handles != nullptr && !handles->empty()
+            && handles->back() == checkpoint.entityHandle
+            && m_blockOwnedEntityHandles.erase(
+                   std::make_pair(ownerHandle, checkpoint.entityHandle)) != 0) {
+            handles->pop_back();
+            m_dwgGroupMemberTargetHandles.clear();
+            m_dwgGroupMemberTargetIndexReady = false;
+        }
+    }
+
+    if (checkpoint.blockInsertReferenceRecorded
+        && m_version > DRW::AC1014) {
+        std::vector<std::uint32_t>* handles = nullptr;
+        const std::uint32_t ownerHandle = checkpoint.insertOwnerHandle;
+        if (ownerHandle == reservedHandle::BLOCK_MODEL_SPACE) {
+            handles = &m_modelSpaceInsertHandles;
+        } else if (ownerHandle == reservedHandle::BLOCK_PAPER_SPACE) {
+            handles = &m_paperSpaceInsertHandles;
+        } else {
+            PendingUserBlock* owner = findUserBlock(ownerHandle);
+            if (owner != nullptr)
+                handles = &owner->insertHandles;
+        }
+        if (handles != nullptr && !handles->empty()
+            && handles->back() == checkpoint.entityHandle
+            && m_blockInsertReferenceHandles.erase(blockInsertReferenceKey(
+                   ownerHandle, checkpoint.entityHandle)) != 0)
+            handles->pop_back();
+    }
+
+    m_frameWriteError = checkpoint.frameWriteError;
+    m_entityEedWriteFailure = checkpoint.entityEedWriteFailure
+        || entityEedFailure;
+    m_objectEedWriteFailure = checkpoint.objectEedWriteFailure
+        || objectEedFailure;
+    m_pendingDwgObjectFrameProvenance = checkpoint.pendingFrameProvenance;
+    m_currentDwgObjectFrameProvenance = checkpoint.currentFrameProvenance;
+    m_currentHandle = checkpoint.currentHandle;
+    m_objectBody.reset();
+    m_objectStrings.reset();
+    m_objectHandles.reset();
+    if (frameStarted) {
+        m_lastDwgObjectFrame = {};
+        m_lastDwgObjectFrameValid = false;
+    }
+}
+
+bool dwgWriter15::rollbackEntityFrameBatch(
+    const std::vector<EntityFrameCheckpoint>& checkpoints) {
+    if (checkpoints.empty())
+        return false;
+
+    const std::uint32_t ownerHandle = checkpoints.front().blockOwnerHandle;
+    const std::size_t firstObjectMapSize = checkpoints.front().objectMapSize;
+    const std::size_t expectedObjectMapSize =
+        firstObjectMapSize + checkpoints.size();
+    if (expectedObjectMapSize < firstObjectMapSize
+        || m_objectMap.size() != expectedObjectMapSize
+        || !m_lastEntityWriteCheckpointValid
+        || m_lastEntityWriteUsesCompoundCheckpoint
+        || m_lastEntityFrameCheckpoint.entityHandle
+               != checkpoints.back().entityHandle)
+        return false;
+
+    std::vector<std::uint32_t>* ownerEntities = nullptr;
+    if (ownerHandle == reservedHandle::BLOCK_MODEL_SPACE) {
+        ownerEntities = &m_modelSpaceEntityHandles;
+    } else if (ownerHandle == reservedHandle::BLOCK_PAPER_SPACE) {
+        ownerEntities = &m_paperSpaceEntityHandles;
+    } else {
+        PendingUserBlock* owner = findUserBlock(ownerHandle);
+        if (owner != nullptr)
+            ownerEntities = &owner->entityHandles;
+    }
+    if (ownerEntities == nullptr || ownerEntities->size() < checkpoints.size())
+        return false;
+
+    std::size_t priorBufferSize = 0;
+    const EntityFrameCheckpoint* insertReference = nullptr;
+    for (std::size_t index = 0; index < checkpoints.size(); ++index) {
+        const EntityFrameCheckpoint& checkpoint = checkpoints[index];
+        const std::size_t expectedMapIndex = firstObjectMapSize + index;
+        if (checkpoint.objectMapSize != expectedMapIndex
+            || checkpoint.bufferSize > m_buf.size()
+            || (index != 0 && checkpoint.bufferSize <= priorBufferSize)
+            || checkpoint.blockOwnerHandle != ownerHandle
+            || !checkpoint.blockOwnedEntityRecorded
+            || checkpoint.entityHandle == 0
+            || m_objectMap[expectedMapIndex].first != checkpoint.entityHandle
+            || m_emittedDwgObjectHandles.find(checkpoint.entityHandle)
+                   == m_emittedDwgObjectHandles.end()
+            || m_blockOwnedEntityHandles.find(
+                   std::make_pair(ownerHandle, checkpoint.entityHandle))
+                   == m_blockOwnedEntityHandles.end())
+            return false;
+        priorBufferSize = checkpoint.bufferSize;
+        if (checkpoint.blockInsertReferenceRecorded) {
+            if (index != 0 || insertReference != nullptr
+                || checkpoint.entityHandle
+                    != checkpoints.front().entityHandle
+                || checkpoint.insertOwnerHandle == 0
+                || checkpoint.insertOwnerHandle == DRW::NoHandle)
+                return false;
+            insertReference = &checkpoint;
+        }
+    }
+
+    for (std::size_t offset = 0; offset < checkpoints.size(); ++offset) {
+        const std::uint32_t expectedHandle =
+            checkpoints[checkpoints.size() - 1 - offset].entityHandle;
+        if ((*ownerEntities)[ownerEntities->size() - 1 - offset]
+            != expectedHandle)
+            return false;
+    }
+
+    if (insertReference != nullptr) {
+        std::vector<std::uint32_t>* insertHandles = nullptr;
+        const std::uint32_t insertOwnerHandle =
+            insertReference->insertOwnerHandle;
+        if (insertOwnerHandle == reservedHandle::BLOCK_MODEL_SPACE) {
+            insertHandles = &m_modelSpaceInsertHandles;
+        } else if (insertOwnerHandle == reservedHandle::BLOCK_PAPER_SPACE) {
+            insertHandles = &m_paperSpaceInsertHandles;
+        } else {
+            PendingUserBlock* insertOwner = findUserBlock(insertOwnerHandle);
+            if (insertOwner != nullptr)
+                insertHandles = &insertOwner->insertHandles;
+        }
+        if (insertHandles == nullptr || insertHandles->empty()
+            || insertHandles->back() != insertReference->entityHandle
+            || m_blockInsertReferenceHandles.find(blockInsertReferenceKey(
+                   insertOwnerHandle, insertReference->entityHandle))
+                == m_blockInsertReferenceHandles.end())
+            return false;
+    }
+
+    for (auto checkpoint = checkpoints.crbegin();
+         checkpoint != checkpoints.crend(); ++checkpoint)
+        rollbackEntityFrame(*checkpoint, true);
+    clearLastEntityWriteCheckpoint();
+    return true;
+}
+
+void dwgWriter15::clearLastEntityWriteCheckpoint() noexcept {
+    m_lastEntityWriteCheckpointValid = false;
+    m_lastEntityWriteUsesCompoundCheckpoint = false;
+    m_lastEntityCompoundCheckpoint = {};
+    m_lastEntityFrameCheckpoint = {};
+}
+
 dwgWriter::CompoundWriteCheckpoint dwgWriter15::checkpointCompoundWrite() const {
     CompoundWriteCheckpoint checkpoint = dwgWriter::checkpointCompoundWrite();
+    checkpoint.lastDwgObjectFrameGeneration = m_lastDwgObjectFrameValid
+        ? m_lastDwgObjectFrame.generation : 0;
     checkpoint.objectMapSize = m_objectMap.size();
     checkpoint.modelSpaceEntityCount = m_modelSpaceEntityHandles.size();
     checkpoint.paperSpaceEntityCount = m_paperSpaceEntityHandles.size();
     checkpoint.modelSpaceInsertCount = m_modelSpaceInsertHandles.size();
     checkpoint.paperSpaceInsertCount = m_paperSpaceInsertHandles.size();
+    checkpoint.emittedLayoutAssociationCount =
+        m_emittedLayoutAssociations.size();
+    checkpoint.emittedLayoutDictionaryCount =
+        m_emittedLayoutDictionaries.size();
     checkpoint.userBlockEntityCounts.reserve(m_userBlocks.size());
     checkpoint.userBlockInsertCounts.reserve(m_userBlocks.size());
     for (const PendingUserBlock& block : m_userBlocks)
@@ -802,6 +1350,10 @@ dwgWriter::CompoundWriteCheckpoint dwgWriter15::checkpointCompoundWrite() const 
         m_emittedDwgNamedObjectDictionaryEntries;
     checkpoint.dwgNamedObjectDictionaryComplete =
         m_dwgNamedObjectDictionaryComplete;
+    checkpoint.emittedDwgGroupDictionaryEntries =
+        m_emittedDwgGroupDictionaryEntries;
+    checkpoint.emittedDwgGroupFrames = m_emittedDwgGroupFrames;
+    checkpoint.dwgGroupDictionaryComplete = m_dwgGroupDictionaryComplete;
     checkpoint.emittedDwgBlockRecords = m_emittedDwgBlockRecords;
     checkpoint.emittedDwgBlockEntityHandles = m_emittedDwgBlockEntityHandles;
     checkpoint.dwgBlockStructureComplete = m_dwgBlockStructureComplete;
@@ -848,6 +1400,8 @@ dwgWriter15::checkpointPublicTransaction() const {
     checkpoint.haveStandardDimstyle = m_haveStandardDimstyle;
     checkpoint.pendingDwgNamedObjectDictionaryEntries =
         m_pendingDwgNamedObjectDictionaryEntries;
+    checkpoint.pendingDwgGroupDictionaryEntries =
+        m_pendingDwgGroupDictionaryEntries;
     return checkpoint;
 }
 
@@ -857,33 +1411,108 @@ void dwgWriter15::rollbackCompoundWrite(
     // failure is a file-level error and must remain visible to dwgRW::write().
     const bool entityEedFailure = m_entityEedWriteFailure;
     const bool objectEedFailure = m_objectEedWriteFailure;
+    invalidatePendingViewportEntityHeaderIndex();
+    invalidatePendingDwgDictionaryIndexes();
+    invalidateEmittedDwgGroupEntryIndex();
+    invalidateEmittedDwgGroupFrameIndex();
+    m_dwgGroupMemberTargetHandles.clear();
+    m_dwgGroupMemberTargetIndexReady = false;
     dwgWriter::rollbackCompoundWrite(checkpoint);
-    if (checkpoint.objectMapSize <= m_objectMap.size())
+    if (checkpoint.emittedLayoutAssociationCount
+        <= m_emittedLayoutAssociations.size()) {
+        m_emittedLayoutAssociations.resize(
+            checkpoint.emittedLayoutAssociationCount);
+    }
+    if (checkpoint.emittedLayoutDictionaryCount
+        <= m_emittedLayoutDictionaries.size()) {
+        m_emittedLayoutDictionaries.resize(
+            checkpoint.emittedLayoutDictionaryCount);
+    }
+    const auto eraseRolledBackEntityHandles =
+        [this](std::uint32_t ownerHandle,
+               const std::vector<std::uint32_t>& handles,
+               std::size_t retainedCount) {
+            for (std::size_t index = retainedCount;
+                 index < handles.size(); ++index)
+                m_blockOwnedEntityHandles.erase(
+                    std::make_pair(ownerHandle, handles[index]));
+        };
+    const auto eraseRolledBackInsertReferences =
+        [this](std::uint32_t ownerHandle,
+               const std::vector<std::uint32_t>& handles,
+               std::size_t retainedCount) {
+            for (std::size_t index = retainedCount;
+                 index < handles.size(); ++index)
+                m_blockInsertReferenceHandles.erase(
+                    blockInsertReferenceKey(ownerHandle, handles[index]));
+        };
+    if (checkpoint.objectMapSize <= m_objectMap.size()) {
+        for (std::size_t index = checkpoint.objectMapSize;
+             index < m_objectMap.size(); ++index)
+            m_emittedDwgObjectHandles.erase(m_objectMap[index].first);
         m_objectMap.resize(checkpoint.objectMapSize);
-    if (checkpoint.modelSpaceEntityCount <= m_modelSpaceEntityHandles.size())
+    }
+    if (checkpoint.modelSpaceEntityCount <= m_modelSpaceEntityHandles.size()) {
+        eraseRolledBackEntityHandles(
+            reservedHandle::BLOCK_MODEL_SPACE, m_modelSpaceEntityHandles,
+            checkpoint.modelSpaceEntityCount);
         m_modelSpaceEntityHandles.resize(checkpoint.modelSpaceEntityCount);
-    if (checkpoint.paperSpaceEntityCount <= m_paperSpaceEntityHandles.size())
+    }
+    if (checkpoint.paperSpaceEntityCount <= m_paperSpaceEntityHandles.size()) {
+        eraseRolledBackEntityHandles(
+            reservedHandle::BLOCK_PAPER_SPACE, m_paperSpaceEntityHandles,
+            checkpoint.paperSpaceEntityCount);
         m_paperSpaceEntityHandles.resize(checkpoint.paperSpaceEntityCount);
-    if (checkpoint.modelSpaceInsertCount <= m_modelSpaceInsertHandles.size())
+    }
+    if (checkpoint.modelSpaceInsertCount <= m_modelSpaceInsertHandles.size()) {
+        eraseRolledBackInsertReferences(
+            reservedHandle::BLOCK_MODEL_SPACE, m_modelSpaceInsertHandles,
+            checkpoint.modelSpaceInsertCount);
         m_modelSpaceInsertHandles.resize(checkpoint.modelSpaceInsertCount);
-    if (checkpoint.paperSpaceInsertCount <= m_paperSpaceInsertHandles.size())
+    }
+    if (checkpoint.paperSpaceInsertCount <= m_paperSpaceInsertHandles.size()) {
+        eraseRolledBackInsertReferences(
+            reservedHandle::BLOCK_PAPER_SPACE, m_paperSpaceInsertHandles,
+            checkpoint.paperSpaceInsertCount);
         m_paperSpaceInsertHandles.resize(checkpoint.paperSpaceInsertCount);
+    }
     if (checkpoint.userBlockEntityCounts.size() == m_userBlocks.size()) {
         for (std::size_t index = 0; index < m_userBlocks.size(); ++index) {
             const std::size_t count = checkpoint.userBlockEntityCounts[index];
-            if (count <= m_userBlocks[index].entityHandles.size())
+            if (count <= m_userBlocks[index].entityHandles.size()) {
+                eraseRolledBackEntityHandles(
+                    m_userBlocks[index].blockRecordHandle,
+                    m_userBlocks[index].entityHandles, count);
                 m_userBlocks[index].entityHandles.resize(count);
+            }
         }
     }
     if (checkpoint.userBlockInsertCounts.size() == m_userBlocks.size()) {
         for (std::size_t index = 0; index < m_userBlocks.size(); ++index) {
             const std::size_t count = checkpoint.userBlockInsertCounts[index];
-            if (count <= m_userBlocks[index].insertHandles.size())
+            if (count <= m_userBlocks[index].insertHandles.size()) {
+                eraseRolledBackInsertReferences(
+                    m_userBlocks[index].blockRecordHandle,
+                    m_userBlocks[index].insertHandles, count);
                 m_userBlocks[index].insertHandles.resize(count);
+            }
         }
     }
-    if (checkpoint.userBlockCount <= m_userBlocks.size())
+    const std::size_t previousUserBlockCount = m_userBlocks.size();
+    if (checkpoint.userBlockCount <= m_userBlocks.size()) {
+        for (std::size_t index = checkpoint.userBlockCount;
+             index < m_userBlocks.size(); ++index) {
+            eraseRolledBackEntityHandles(
+                m_userBlocks[index].blockRecordHandle,
+                m_userBlocks[index].entityHandles, 0);
+            eraseRolledBackInsertReferences(
+                m_userBlocks[index].blockRecordHandle,
+                m_userBlocks[index].insertHandles, 0);
+        }
         m_userBlocks.resize(checkpoint.userBlockCount);
+    }
+    if (m_userBlocks.size() != previousUserBlockCount)
+        invalidateUserBlockIndex();
     m_userBlockHandles.clear();
     m_userBlockHandles.insert(checkpoint.userBlockHandles.cbegin(),
                               checkpoint.userBlockHandles.cend());
@@ -896,6 +1525,10 @@ void dwgWriter15::rollbackCompoundWrite(
         checkpoint.emittedDwgNamedObjectDictionaryEntries;
     m_dwgNamedObjectDictionaryComplete =
         checkpoint.dwgNamedObjectDictionaryComplete;
+    m_emittedDwgGroupDictionaryEntries =
+        checkpoint.emittedDwgGroupDictionaryEntries;
+    m_emittedDwgGroupFrames = checkpoint.emittedDwgGroupFrames;
+    m_dwgGroupDictionaryComplete = checkpoint.dwgGroupDictionaryComplete;
     m_emittedDwgBlockRecords = checkpoint.emittedDwgBlockRecords;
     m_emittedDwgBlockEntityHandles =
         checkpoint.emittedDwgBlockEntityHandles;
@@ -935,6 +1568,8 @@ void dwgWriter15::rollbackCompoundWrite(
         m_haveStandardDimstyle = checkpoint.haveStandardDimstyle;
         m_pendingDwgNamedObjectDictionaryEntries =
             checkpoint.pendingDwgNamedObjectDictionaryEntries;
+        m_pendingDwgGroupDictionaryEntries =
+            checkpoint.pendingDwgGroupDictionaryEntries;
     }
     m_objectBody.reset();
     m_objectStrings.reset();
@@ -942,6 +1577,7 @@ void dwgWriter15::rollbackCompoundWrite(
     m_currentHandle = 0;
     m_lastDwgObjectFrame = {};
     m_lastDwgObjectFrameValid = false;
+    clearLastEntityWriteCheckpoint();
 }
 
 bool dwgWriter15::emitDeferredBlockControl() {
@@ -958,6 +1594,28 @@ bool dwgWriter15::emitDeferredBlockControl() {
         rollbackCompoundWrite(checkpoint);
         return false;
     };
+
+    std::uint32_t modelLayoutHandle = 0;
+    std::uint32_t paperLayoutHandle = 0;
+    if (!validateDwgLayoutBlockAssociations(
+            modelLayoutHandle, paperLayoutHandle))
+        return fail();
+
+    // Reuse one bounded handle buffer for legacy ordering and membership
+    // validation. Modern BLOCK_RECORD lists keep source order and need no
+    // ownership copy during emission.
+    std::vector<std::uint32_t> entityHandleScratch;
+    const auto copyEntityHandlesToScratch =
+        [&entityHandleScratch](const std::vector<std::uint32_t>& handles) {
+            if (handles.size() > dwgSafety::MaxOwnedObjectCount)
+                return false;
+            try {
+                entityHandleScratch.assign(handles.cbegin(), handles.cend());
+            } catch (...) {
+                return false;
+            }
+            return true;
+        };
 
     if (m_version <= DRW::AC1015) {
         // Optional custom entities are valid in the legacy object map but may
@@ -985,53 +1643,58 @@ bool dwgWriter15::emitDeferredBlockControl() {
             }
             return true;
         };
-        std::vector<std::uint32_t> modelSpaceEntityHandles = m_modelSpaceEntityHandles;
-        std::vector<std::uint32_t> paperSpaceEntityHandles = m_paperSpaceEntityHandles;
-        modelSpaceEntityHandles.erase(
-            std::remove_if(modelSpaceEntityHandles.begin(),
-                           modelSpaceEntityHandles.end(),
+        if (!copyEntityHandlesToScratch(m_modelSpaceEntityHandles))
+            return fail();
+        entityHandleScratch.erase(
+            std::remove_if(entityHandleScratch.begin(),
+                           entityHandleScratch.end(),
                            isLegacyOptionalCustomEntity),
-            modelSpaceEntityHandles.end());
-        paperSpaceEntityHandles.erase(
-            std::remove_if(paperSpaceEntityHandles.begin(),
-                           paperSpaceEntityHandles.end(),
+            entityHandleScratch.end());
+        std::sort(entityHandleScratch.begin(), entityHandleScratch.end());
+        if (!isContiguousChain(entityHandleScratch))
+            return fail();
+
+        if (!copyEntityHandlesToScratch(m_paperSpaceEntityHandles))
+            return fail();
+        entityHandleScratch.erase(
+            std::remove_if(entityHandleScratch.begin(),
+                           entityHandleScratch.end(),
                            isLegacyOptionalCustomEntity),
-            paperSpaceEntityHandles.end());
-        std::sort(modelSpaceEntityHandles.begin(), modelSpaceEntityHandles.end());
-        std::sort(paperSpaceEntityHandles.begin(), paperSpaceEntityHandles.end());
-        if (!isContiguousChain(modelSpaceEntityHandles)
-            || !isContiguousChain(paperSpaceEntityHandles))
+            entityHandleScratch.end());
+        std::sort(entityHandleScratch.begin(), entityHandleScratch.end());
+        if (!isContiguousChain(entityHandleScratch))
             return fail();
         for (const PendingUserBlock& block : m_userBlocks) {
-            std::vector<std::uint32_t> entityHandles = block.entityHandles;
-            entityHandles.erase(
-                std::remove_if(entityHandles.begin(), entityHandles.end(),
+            if (!copyEntityHandlesToScratch(block.entityHandles))
+                return fail();
+            entityHandleScratch.erase(
+                std::remove_if(entityHandleScratch.begin(),
+                               entityHandleScratch.end(),
                                isLegacyOptionalCustomEntity),
-                entityHandles.end());
-            std::sort(entityHandles.begin(), entityHandles.end());
-            if (!isContiguousChain(entityHandles))
+                entityHandleScratch.end());
+            std::sort(entityHandleScratch.begin(), entityHandleScratch.end());
+            if (!isContiguousChain(entityHandleScratch))
                 return fail();
         }
     }
 
     // Every child listed by a BLOCK_RECORD must already have a committed
-    // object frame. Publishing an orphan handle would make the ownership
-    // graph disagree with HANDLES and leave the entity unreachable.
-    const auto validateEntityList = [this](
+    // object frame. Reuse a single per-list scratch buffer to detect duplicate
+    // entries in O(n log n), then resolve frame membership through the
+    // publication index. The final object-map sort belongs to HANDLES, after
+    // all structural frames have been appended.
+    const auto validateEntityList = [this, &entityHandleScratch,
+                                     &copyEntityHandlesToScratch](
             const std::vector<std::uint32_t>& handles) {
-        if (handles.size() > dwgSafety::MaxOwnedObjectCount)
+        if (!copyEntityHandlesToScratch(handles))
             return false;
-        for (std::size_t index = 0; index < handles.size(); ++index) {
-            const std::uint32_t handle = handles[index];
-            if (handle == 0
-                || std::find_if(m_objectMap.cbegin(), m_objectMap.cend(),
-                                [handle](const auto& entry) {
-                                    return entry.first == handle;
-                                }) == m_objectMap.cend()
-                || std::find(handles.cbegin(), handles.cbegin()
-                             + static_cast<std::ptrdiff_t>(index), handle)
-                       != handles.cbegin()
-                             + static_cast<std::ptrdiff_t>(index))
+        std::sort(entityHandleScratch.begin(), entityHandleScratch.end());
+        if (std::adjacent_find(entityHandleScratch.cbegin(),
+                               entityHandleScratch.cend())
+            != entityHandleScratch.cend())
+            return false;
+        for (const std::uint32_t handle : entityHandleScratch) {
+            if (handle == 0 || !hasEmittedDwgObjectHandle(handle))
                 return false;
         }
         return true;
@@ -1040,6 +1703,11 @@ bool dwgWriter15::emitDeferredBlockControl() {
         if (!validateEntityList(block.entityHandles)
             || !validateEntityList(block.insertHandles))
             return fail();
+        if (block.hasWriteMetadata
+            && (block.writeMetadata.flags & (4 | 8)) != 0) {
+            if (!block.entityHandles.empty() || !block.insertHandles.empty())
+                return fail();
+        }
     }
     if (!validateEntityList(m_modelSpaceEntityHandles)
         || !validateEntityList(m_paperSpaceEntityHandles)
@@ -1048,14 +1716,23 @@ bool dwgWriter15::emitDeferredBlockControl() {
         return fail();
 
     for (const PendingUserBlock& block : m_userBlocks) {
-        std::vector<std::uint32_t> entityHandles = block.entityHandles;
-        if (m_version <= DRW::AC1015)
-            std::sort(entityHandles.begin(), entityHandles.end());
+        const std::vector<std::uint32_t>* entityHandles =
+            &block.entityHandles;
+        if (m_version <= DRW::AC1015) {
+            if (!copyEntityHandlesToScratch(block.entityHandles))
+                return fail();
+            std::sort(entityHandleScratch.begin(),
+                      entityHandleScratch.end());
+            entityHandles = &entityHandleScratch;
+        }
         if (!emitBlockRecord(block.blockRecordHandle, block.name,
                              block.basePoint, block.blockHandle,
-                             block.endBlockHandle, entityHandles,
+                             block.endBlockHandle, *entityHandles,
                              block.insertHandles,
-                             block.insUnits))
+                             block.insUnits,
+                             block.hasWriteMetadata
+                                 ? &block.writeMetadata : nullptr,
+                             block.layoutHandle))
             return fail();
         if (m_emittedDwgBlockRecords.size() == 1
             && consumeWriteFailurePointForTest(kAfterFirstBlockRecord))
@@ -1067,21 +1744,39 @@ bool dwgWriter15::emitDeferredBlockControl() {
     // entities use ownerless entmode 2/1; the BLOCK_RECORD list is the
     // authoritative reachability graph.
     const DRW_Coord origin{0.0, 0.0, 0.0};
-    std::vector<std::uint32_t> modelSpaceEntityHandles = m_modelSpaceEntityHandles;
-    std::vector<std::uint32_t> paperSpaceEntityHandles = m_paperSpaceEntityHandles;
     if (m_version <= DRW::AC1015) {
-        std::sort(modelSpaceEntityHandles.begin(), modelSpaceEntityHandles.end());
-        std::sort(paperSpaceEntityHandles.begin(), paperSpaceEntityHandles.end());
-    }
-    if (!emitBlockRecord(reservedHandle::BLOCK_MODEL_SPACE, "*Model_Space",
-                         origin, reservedHandle::BLOCK_MODEL_ENTITY,
-                         reservedHandle::BLOCK_MODEL_END,
-                         modelSpaceEntityHandles, m_modelSpaceInsertHandles)
-        || !emitBlockRecord(reservedHandle::BLOCK_PAPER_SPACE, "*Paper_Space",
-                            origin, reservedHandle::BLOCK_PAPER_ENTITY,
-                            reservedHandle::BLOCK_PAPER_END,
-                            paperSpaceEntityHandles, m_paperSpaceInsertHandles))
+        if (!copyEntityHandlesToScratch(m_modelSpaceEntityHandles))
+            return fail();
+        std::sort(entityHandleScratch.begin(), entityHandleScratch.end());
+        if (!emitBlockRecord(reservedHandle::BLOCK_MODEL_SPACE, "*Model_Space",
+                             origin, reservedHandle::BLOCK_MODEL_ENTITY,
+                             reservedHandle::BLOCK_MODEL_END,
+                             entityHandleScratch, m_modelSpaceInsertHandles,
+                             0, nullptr, modelLayoutHandle))
+            return fail();
+        if (!copyEntityHandlesToScratch(m_paperSpaceEntityHandles))
+            return fail();
+        std::sort(entityHandleScratch.begin(), entityHandleScratch.end());
+        if (!emitBlockRecord(reservedHandle::BLOCK_PAPER_SPACE, "*Paper_Space",
+                             origin, reservedHandle::BLOCK_PAPER_ENTITY,
+                             reservedHandle::BLOCK_PAPER_END,
+                             entityHandleScratch, m_paperSpaceInsertHandles,
+                             0, nullptr, paperLayoutHandle))
+            return fail();
+    } else if (!emitBlockRecord(
+                   reservedHandle::BLOCK_MODEL_SPACE, "*Model_Space", origin,
+                   reservedHandle::BLOCK_MODEL_ENTITY,
+                   reservedHandle::BLOCK_MODEL_END, m_modelSpaceEntityHandles,
+                   m_modelSpaceInsertHandles, 0, nullptr,
+                   modelLayoutHandle)
+               || !emitBlockRecord(
+                   reservedHandle::BLOCK_PAPER_SPACE, "*Paper_Space", origin,
+                   reservedHandle::BLOCK_PAPER_ENTITY,
+                   reservedHandle::BLOCK_PAPER_END, m_paperSpaceEntityHandles,
+                   m_paperSpaceInsertHandles, 0, nullptr,
+                   paperLayoutHandle)) {
         return fail();
+    }
 
     // BLOCK_CONTROL: numEntries = user blocks count; +2 phantoms for
     // MODEL_SPACE + PAPER_SPACE are appended to the child handle list.
@@ -1175,11 +1870,23 @@ bool dwgWriter15::emitBlockRecord(std::uint32_t handle,
                                   std::uint32_t endBlockHandle,
                                   const std::vector<std::uint32_t>& entityHandles,
                                   const std::vector<std::uint32_t>& insertHandles,
-                                  int insUnits) {
+                                  int insUnits,
+                                  const DwgBlockRecordWriteMetadata* metadata,
+                                  std::uint32_t layoutHandle) {
     if (entityHandles.size() > dwgSafety::MaxOwnedObjectCount
         || insertHandles.size() > dwgSafety::MaxOwnedObjectCount)
         return false;
-
+    const int flags = metadata == nullptr ? 0 : metadata->flags;
+    const bool blockIsXref = (flags & 4) != 0;
+    const bool xrefOverlaid = (flags & 8) != 0;
+    if ((blockIsXref || xrefOverlaid)
+        && (!entityHandles.empty() || !insertHandles.empty()))
+        return false;
+    if (metadata != nullptr && metadata->xrefUnloaded && !blockIsXref)
+        return false;
+    if (metadata != nullptr
+        && metadata->previewData.size() > kMaxDwgBlockRecordPreviewBytes)
+        return false;
     dwgBufferW& body = beginObject(handle);
 
     // Common table-entry preamble.
@@ -1213,52 +1920,70 @@ bool dwgWriter15::emitBlockRecord(std::uint32_t handle,
         // R2007 derives is_xref_ref from the table-record form and stores
         // only the BS resolved-state value. The dependent bit is derived
         // only when that value is 256; it is not emitted separately.
-        body.putBitShort(0);               // is_xref_resolved
+        body.putBitShort((flags & 16) != 0 ? 256u : 0u);
     } else {
-        body.putBit(0);                    // flags bit 6 (xref-ref)
-        body.putBitShort(0);               // xrefindex BS (R2004-)
-        body.putBit(0);                    // flags bit 4 (xref dep)
+        body.putBit((flags & 64) != 0);    // XREF reference state
+        const std::uint16_t xrefIndexPlusOne = metadata != nullptr
+            && metadata->xrefIndex >= 0
+            ? static_cast<std::uint16_t>(metadata->xrefIndex + 1) : 0u;
+        body.putBitShort(xrefIndexPlusOne);
+        body.putBit((flags & 16) != 0);    // XREF dependent state
     }
-    body.putBit(0);                        // anon (*U bit)
-    body.putBit(0);                        // attdefs
-    body.putBit(0);                        // xref
-    body.putBit(0);                        // overlaid xref
-    body.putBit(0);                        // R2000+ loaded-xref
-    if (m_version > DRW::AC1015) {
+    body.putBit((flags & 1) != 0);         // anonymous (*U)
+    body.putBit((flags & 2) != 0);         // has attribute definitions
+    body.putBit(blockIsXref);
+    body.putBit(xrefOverlaid);
+    if (m_version > DRW::AC1014) {
+        // ODA §20.4.52 stores zero for a loaded XREF. This is the separate
+        // BLOCK group-71 unload state, not DXF group-70 bit 32 (resolved).
+        const bool xrefUnloaded = blockIsXref && metadata != nullptr
+            && metadata->xrefUnloaded;
+        body.putBit(xrefUnloaded);
+    }
+    if (m_version > DRW::AC1015 && !blockIsXref && !xrefOverlaid) {
         body.putBitLong(static_cast<std::int32_t>(entityHandles.size()));
     }
     body.put3BitDouble(basePoint);         // basePoint 3BD
-    strBuf->putVariableText(m_version, std::string{});  // xrefPath empty
+    strBuf->putVariableText(m_version,
+                            metadata == nullptr ? std::string{}
+                                                : metadata->xrefPath);
     for (std::size_t index = 0; index < insertHandles.size(); ++index) {
         body.putRawChar8(1);               // one RC marker per INSERT
     }
     body.putRawChar8(0);                   // insertCount terminator (R2000+)
-    strBuf->putVariableText(m_version, std::string{});  // bkdesc empty
-    body.putBitLong(0);                    // prevData BL = 0
+    strBuf->putVariableText(m_version,
+                            metadata == nullptr ? std::string{}
+                                                : metadata->description);
+    const std::size_t previewSize = metadata == nullptr
+        ? 0u : metadata->previewData.size();
+    body.putBitLong(static_cast<std::int32_t>(previewSize));
+    if (previewSize != 0u)
+        body.putBytes(metadata->previewData.data(), previewSize);
     if (m_version > DRW::AC1018) {
         body.putBitShort(static_cast<std::uint16_t>(insUnits));
-        body.putBit(0);                    // canExplode B (R2007+)
-        body.putRawChar8(0);               // bkScaling RC (R2007+)
+        body.putBit(metadata != nullptr && metadata->canExplode);
+        body.putRawChar8(metadata == nullptr ? 0u
+                                              : metadata->blockScaling);
     }
 
     // Handle stream.
     hdlBuf->putHandle(makeSoftPointer(reservedHandle::BLOCK_CONTROL)); // parent
     hdlBuf->putHandle(makeHardOwner(0));                              // XDic null
-    hdlBuf->putHandle(makeHardPointer(0));                            // NullH
+    hdlBuf->putHandle(makeHardPointer(0)); // ODA specifies NULL here.
     hdlBuf->putHandle(makeHardOwner(blockHandle));                    // BLOCK entity
-    if (m_version <= DRW::AC1015) {
+    if (m_version <= DRW::AC1015 && !blockIsXref && !xrefOverlaid) {
         const std::uint32_t first = entityHandles.empty() ? 0 : entityHandles.front();
         const std::uint32_t last = entityHandles.empty() ? 0 : entityHandles.back();
         hdlBuf->putHandle(makeSoftPointer(first));
         hdlBuf->putHandle(makeSoftPointer(last));
-    } else {
+    } else if (!blockIsXref && !xrefOverlaid) {
         for (std::uint32_t entityHandle : entityHandles)
             hdlBuf->putHandle(makeHardOwner(entityHandle));
     }
     hdlBuf->putHandle(makeHardOwner(endBlockHandle)); // ENDBLK entity
     for (std::uint32_t insertHandle : insertHandles)
         hdlBuf->putHandle(makeSoftPointer(insertHandle));
-    hdlBuf->putHandle(makeHardPointer(0));            // layoutH null
+    hdlBuf->putHandle(makeHardPointer(layoutHandle)); // associated LAYOUT
 
     finishObject();
     if (objectWriteFailed())
@@ -1426,25 +2151,214 @@ bool dwgWriter15::getEmittedDwgTableControlHandles(
     return true;
 }
 
+bool dwgWriter15::ensurePendingDwgDictionaryIndexes() const {
+    if (m_pendingDwgDictionaryIndexesReady)
+        return true;
+
+    std::unordered_set<std::string> namedObjectNames;
+    std::unordered_set<std::uint32_t> namedObjectChildHandles;
+    std::unordered_set<std::string> groupNames;
+    std::unordered_set<std::uint32_t> groupHandles;
+    try {
+        namedObjectNames.reserve(
+            m_pendingDwgNamedObjectDictionaryEntries.size());
+        namedObjectChildHandles.reserve(
+            m_pendingDwgNamedObjectDictionaryEntries.size());
+        groupNames.reserve(m_pendingDwgGroupDictionaryEntries.size());
+        groupHandles.reserve(m_pendingDwgGroupDictionaryEntries.size());
+        for (const auto& entry : m_pendingDwgNamedObjectDictionaryEntries) {
+            if (entry.name.empty() || entry.childHandle == 0
+                || !namedObjectNames.insert(entry.name).second)
+                return false;
+            namedObjectChildHandles.insert(entry.childHandle);
+        }
+        for (const auto& entry : m_pendingDwgGroupDictionaryEntries) {
+            const std::string key = toUpperCase(entry.name);
+            if (key.empty() || entry.childHandle == 0
+                || entry.childHandle == DRW::NoHandle
+                || !groupNames.insert(key).second
+                || !groupHandles.insert(entry.childHandle).second)
+                return false;
+        }
+    } catch (const std::exception&) {
+        return false;
+    }
+
+    m_pendingDwgNamedObjectDictionaryNames.swap(namedObjectNames);
+    m_pendingDwgNamedObjectDictionaryChildHandles.swap(
+        namedObjectChildHandles);
+    m_pendingDwgGroupNames.swap(groupNames);
+    m_pendingDwgGroupHandles.swap(groupHandles);
+    m_pendingDwgDictionaryIndexesReady = true;
+    return true;
+}
+
+void dwgWriter15::invalidatePendingDwgDictionaryIndexes() noexcept {
+    m_pendingDwgNamedObjectDictionaryNames.clear();
+    m_pendingDwgNamedObjectDictionaryChildHandles.clear();
+    m_pendingDwgGroupNames.clear();
+    m_pendingDwgGroupHandles.clear();
+    m_pendingDwgDictionaryIndexesReady = false;
+}
+
+bool dwgWriter15::ensurePendingViewportEntityHeaderIndex() const {
+    if (m_pendingViewportEntityHeaderIndexReady)
+        return true;
+
+    std::unordered_set<std::uint32_t> handles;
+    try {
+        handles.reserve(m_pendingViewportEntityHeaders.size());
+        for (const auto& entry : m_pendingViewportEntityHeaders)
+            handles.insert(entry.first);
+    } catch (const std::exception&) {
+        return false;
+    }
+
+    m_pendingViewportEntityHeaderHandles.swap(handles);
+    m_pendingViewportEntityHeaderIndexReady = true;
+    return true;
+}
+
+void dwgWriter15::invalidatePendingViewportEntityHeaderIndex() noexcept {
+    m_pendingViewportEntityHeaderHandles.clear();
+    m_pendingViewportEntityHeaderIndexReady = false;
+}
+
+bool dwgWriter15::ensureEmittedDwgGroupEntryIndex() const {
+    if (m_emittedDwgGroupEntryIndexReady)
+        return true;
+
+    std::unordered_map<std::uint32_t, std::size_t> indexes;
+    try {
+        indexes.reserve(m_emittedDwgGroupDictionaryEntries.size());
+        for (std::size_t index = 0;
+             index < m_emittedDwgGroupDictionaryEntries.size(); ++index) {
+            if (!indexes.emplace(
+                    m_emittedDwgGroupDictionaryEntries[index].childHandle,
+                    index).second)
+                return false;
+        }
+    } catch (const std::exception&) {
+        return false;
+    }
+
+    m_emittedDwgGroupEntryIndexes.swap(indexes);
+    m_emittedDwgGroupEntryIndexReady = true;
+    return true;
+}
+
+void dwgWriter15::invalidateEmittedDwgGroupEntryIndex() noexcept {
+    m_emittedDwgGroupEntryIndexes.clear();
+    m_emittedDwgGroupEntryIndexReady = false;
+}
+
+bool dwgWriter15::ensureEmittedDwgGroupFrameIndex() const {
+    if (m_emittedDwgGroupFrameIndexReady)
+        return true;
+
+    std::unordered_set<std::uint32_t> handles;
+    try {
+        handles.reserve(m_emittedDwgGroupFrames.size());
+        for (const auto& entry : m_emittedDwgGroupFrames) {
+            if (!handles.insert(entry.childHandle).second)
+                return false;
+        }
+    } catch (const std::exception&) {
+        return false;
+    }
+
+    m_emittedDwgGroupFrameHandles.swap(handles);
+    m_emittedDwgGroupFrameIndexReady = true;
+    return true;
+}
+
+void dwgWriter15::invalidateEmittedDwgGroupFrameIndex() noexcept {
+    m_emittedDwgGroupFrameHandles.clear();
+    m_emittedDwgGroupFrameIndexReady = false;
+}
+
 bool dwgWriter15::registerDwgNamedObjectDictionaryEntry(
     const std::string& name, std::uint32_t childHandle) {
     if (m_dwgTableRecordsComplete || name.empty() || childHandle == 0
         || childHandle == DRW::DwgNamedObjectsDictionaryHandle
         || childHandle == DRW::DwgAcadGroupDictionaryHandle
-        || name == "ACAD_GROUP"
-        || std::any_of(m_pendingDwgNamedObjectDictionaryEntries.cbegin(),
-                       m_pendingDwgNamedObjectDictionaryEntries.cend(),
-                       [&name](const auto& entry) {
-                           return entry.name == name;
-                       })) {
+        || toUpperCase(name) == "ACAD_GROUP"
+        || !ensurePendingDwgDictionaryIndexes()
+        || m_pendingDwgGroupHandles.find(childHandle)
+            != m_pendingDwgGroupHandles.end()
+        || m_pendingDwgNamedObjectDictionaryNames.find(name)
+            != m_pendingDwgNamedObjectDictionaryNames.end()) {
         return false;
     }
     try {
         m_handles.reserve(childHandle);
+        const auto nameResult = m_pendingDwgNamedObjectDictionaryNames.insert(
+            name);
+        if (!nameResult.second)
+            return false;
+        const auto handleResult =
+            m_pendingDwgNamedObjectDictionaryChildHandles.insert(childHandle);
+        try {
+            m_pendingDwgNamedObjectDictionaryEntries.push_back(
+                {name, childHandle});
+        } catch (...) {
+            m_pendingDwgNamedObjectDictionaryNames.erase(nameResult.first);
+            if (handleResult.second)
+                m_pendingDwgNamedObjectDictionaryChildHandles.erase(
+                    handleResult.first);
+            return false;
+        }
     } catch (const std::exception&) {
         return false;
     }
-    m_pendingDwgNamedObjectDictionaryEntries.push_back({name, childHandle});
+    return true;
+}
+
+bool dwgWriter15::registerDwgGroupDictionaryEntry(
+    const std::string& name, std::uint32_t groupHandle) {
+    if (m_dwgTableRecordsComplete || name.empty() || groupHandle == 0
+        || groupHandle == DRW::NoHandle
+        || groupHandle == DRW::DwgNamedObjectsDictionaryHandle
+        || groupHandle == DRW::DwgAcadGroupDictionaryHandle
+        || m_pendingDwgGroupDictionaryEntries.size()
+            >= DRW_Dictionary::kMaxEntries
+        || !ensurePendingDwgDictionaryIndexes()) {
+        return false;
+    }
+
+    std::string key;
+    try {
+        key = toUpperCase(name);
+    } catch (const std::exception&) {
+        return false;
+    }
+    if (key.empty()
+        || m_pendingDwgGroupNames.find(key) != m_pendingDwgGroupNames.end()
+        || m_pendingDwgGroupHandles.find(groupHandle)
+            != m_pendingDwgGroupHandles.end()
+        || m_pendingDwgNamedObjectDictionaryChildHandles.find(groupHandle)
+            != m_pendingDwgNamedObjectDictionaryChildHandles.end()) {
+        return false;
+    }
+
+    try {
+        m_handles.reserve(groupHandle);
+        const auto nameResult = m_pendingDwgGroupNames.insert(key);
+        if (!nameResult.second)
+            return false;
+        const auto handleResult =
+            m_pendingDwgGroupHandles.insert(groupHandle);
+        try {
+            m_pendingDwgGroupDictionaryEntries.push_back({name, groupHandle});
+        } catch (...) {
+            m_pendingDwgGroupNames.erase(nameResult.first);
+            if (handleResult.second)
+                m_pendingDwgGroupHandles.erase(handleResult.first);
+            return false;
+        }
+    } catch (const std::exception&) {
+        return false;
+    }
     return true;
 }
 
@@ -1459,17 +2373,15 @@ bool dwgWriter15::getEmittedDwgNamedObjectDictionaryEntries(
 
 bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
     if (!m_dwgNamedObjectDictionaryComplete
+        || !m_dwgGroupDictionaryComplete
         || m_emittedDwgNamedObjectDictionaryEntries.empty()) {
         return false;
     }
-    const auto frameCount = [this](std::uint32_t handle) {
-        return static_cast<std::size_t>(std::count_if(
-            m_objectMap.cbegin(), m_objectMap.cend(), [handle](const auto& entry) {
-                return entry.first == handle;
-            }));
+    const auto hasSingleFrame = [this](std::uint32_t handle) {
+        return hasEmittedDwgObjectHandle(handle);
     };
-    if (frameCount(DRW::DwgNamedObjectsDictionaryHandle) != 1
-        || frameCount(DRW::DwgAcadGroupDictionaryHandle) != 1) {
+    if (!hasSingleFrame(DRW::DwgNamedObjectsDictionaryHandle)
+        || !hasSingleFrame(DRW::DwgAcadGroupDictionaryHandle)) {
         return false;
     }
 
@@ -1477,13 +2389,31 @@ bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
     for (const auto& entry : m_emittedDwgNamedObjectDictionaryEntries) {
         if (entry.name.empty() || entry.childHandle == 0
             || !names.insert(entry.name).second
-            || frameCount(entry.childHandle) != 1) {
+            || !hasSingleFrame(entry.childHandle)) {
             return false;
         }
     }
     const auto group = m_emittedDwgNamedObjectDictionaryEntries.cbegin();
-    return group->name == "ACAD_GROUP"
-        && group->childHandle == DRW::DwgAcadGroupDictionaryHandle;
+    if (group->name != "ACAD_GROUP"
+        || group->childHandle != DRW::DwgAcadGroupDictionaryHandle
+        || m_emittedDwgGroupDictionaryEntries
+            != m_pendingDwgGroupDictionaryEntries
+        || m_emittedDwgGroupFrames != m_pendingDwgGroupDictionaryEntries) {
+        return false;
+    }
+
+    std::set<std::string> groupNames;
+    std::set<std::uint32_t> groupHandles;
+    for (const auto& entry : m_pendingDwgGroupDictionaryEntries) {
+        if (entry.name.empty() || entry.childHandle == 0
+            || entry.childHandle == DRW::NoHandle
+            || !groupNames.insert(toUpperCase(entry.name)).second
+            || !groupHandles.insert(entry.childHandle).second
+            || !hasSingleFrame(entry.childHandle)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool dwgWriter15::getEmittedDwgBlockWriteResult(
@@ -1916,8 +2846,7 @@ bool dwgWriter15::emitSunObject(
             &layerRefs, fileCodePageId())) {
         return false;
     }
-    DRW_UNUSED(sb);
-    if (!sun.encodeDwg(m_version, &body, hb))
+    if (!sun.encodeDwg(m_version, &body, hb, sb))
         return false;
 
     finishObject();
@@ -2245,6 +3174,71 @@ bool dwgWriter15::writeTableStyle(const DRW_TableStyle& style) {
     return true;
 }
 
+bool dwgWriter15::emitCellStyleMapObject(
+    std::uint32_t handle, const DRW_CellStyleMap& styleMap,
+    const std::vector<DRW_Entity::PendingHandleRef>& appIdRefs,
+    const std::vector<DRW_Entity::PendingHandleRef>& layerRefs) {
+    dwgBufferW& body = beginObject(handle);
+    dwgBufferW *sb, *hb;
+    if (!emitRecordPreamble(
+            body, m_version,
+            typedDwgClassNum("AcDbCellStyleMap", "CELLSTYLEMAP", 0),
+            handle, m_objectStrings, m_objectHandles, sb, hb,
+            styleMap.reactorCount(), styleMap.extensionDictionaryFlag(),
+            styleMap.hasDataStorageBinaryData(), &styleMap.extData,
+            &appIdRefs, &layerRefs, fileCodePageId())) {
+        return false;
+    }
+    if (!styleMap.encodeDwg(m_version, &body, sb, hb))
+        return false;
+
+    finishObject();
+    return !objectWriteFailed();
+}
+
+bool dwgWriter15::writeCellStyleMap(
+    const DRW_CellStyleMap& styleMap) {
+    // ODA v5.4.1 defines this object starting in R2007. Later versions stay
+    // gated until their class/graph compatibility is independently traced.
+    if (m_version != DRW::AC1021)
+        return false;
+    return writeTypedObject(
+        styleMap, DRW::AC1021,
+        &dwgWriter::registerCellStyleMapObjectClass,
+        &dwgWriter15::emitCellStyleMapObject);
+}
+
+bool dwgWriter15::emitTableContentObject(
+    std::uint32_t handle, const DRW_TableContentObject& content,
+    const std::vector<DRW_Entity::PendingHandleRef>& appIdRefs,
+    const std::vector<DRW_Entity::PendingHandleRef>& layerRefs) {
+    dwgBufferW& body = beginObject(handle);
+    dwgBufferW *sb, *hb;
+    if (!emitRecordPreamble(
+            body, m_version,
+            typedDwgClassNum("AcDbTableContent", "TABLECONTENT", 0),
+            handle, m_objectStrings, m_objectHandles, sb, hb,
+            content.reactorCount(), content.extensionDictionaryFlag(),
+            content.hasDataStorageBinaryData(), &content.extData,
+            &appIdRefs, &layerRefs, fileCodePageId()))
+        return false;
+    if (!content.encodeDwg(m_version, &body, sb, hb))
+        return false;
+    finishObject();
+    return !objectWriteFailed();
+}
+
+bool dwgWriter15::writeTableContent(const DRW_TableContentObject& content) {
+    // ODA §20.4.97: this standalone frame belongs to R21. R24+ puts the
+    // content inside TABLE and needs the enclosing entity/graph writer.
+    if (m_version != DRW::AC1021)
+        return false;
+    return writeTypedObject(
+        content, DRW::AC1021,
+        &dwgWriter::registerTableContentObjectClass,
+        &dwgWriter15::emitTableContentObject);
+}
+
 bool dwgWriter15::emitMaterialObject(
     std::uint32_t handle, const DRW_Material& material,
     const std::vector<DRW_Entity::PendingHandleRef>& appIdRefs,
@@ -2392,10 +3386,41 @@ bool dwgWriter15::writeDictionary(const DRW_Dictionary& dictionary) {
     } else {
         m_handles.reserve(object.handle);
     }
+
+    const auto layoutDictionaryRegistration = std::find_if(
+        m_pendingDwgNamedObjectDictionaryEntries.cbegin(),
+        m_pendingDwgNamedObjectDictionaryEntries.cend(),
+        [](const DRW::DwgNamedObjectDictionaryEntry& entry) {
+            return entry.name == "ACAD_LAYOUT";
+        });
+    const bool capturesLayoutDictionary =
+        layoutDictionaryRegistration
+            != m_pendingDwgNamedObjectDictionaryEntries.cend()
+        && layoutDictionaryRegistration->childHandle == object.handle;
+    EmittedLayoutDictionary emittedLayoutDictionary;
+    if (capturesLayoutDictionary) {
+        if (!m_emittedLayoutDictionaries.empty())
+            return false;
+        emittedLayoutDictionary.handle = object.handle;
+        emittedLayoutDictionary.parentHandle = object.parentHandle;
+        try {
+            emittedLayoutDictionary.entries.reserve(object.m_entries.size());
+            for (const DRW_Dictionary::Entry& entry : object.m_entries)
+                emittedLayoutDictionary.entries.push_back(
+                    {entry.m_name, entry.m_handle});
+            m_emittedLayoutDictionaries.reserve(
+                m_emittedLayoutDictionaries.size() + 1u);
+        } catch (...) {
+            return false;
+        }
+    }
     if (!emitDictionaryObject(object.handle, object, appIdRefs, layerRefs)) {
         m_objectEedWriteFailure = !object.extData.empty();
         return false;
     }
+    if (capturesLayoutDictionary)
+        m_emittedLayoutDictionaries.push_back(
+            std::move(emittedLayoutDictionary));
     return true;
 }
 
@@ -2542,10 +3567,22 @@ bool dwgWriter15::writeLayout(const DRW_Layout& layout) {
     if (layout.viewportCount < 0
         || layout.viewportCount > DRW_Layout::kMaxViewportCount
         || layout.viewportHandles.size()
-            != static_cast<std::size_t>(layout.viewportCount))
+            != static_cast<std::size_t>(layout.viewportCount)
+        || m_emittedLayoutAssociations.size()
+            >= dwgSafety::MaxDwgReadObjectCount)
         return false;
     DRW_Layout object = layout;
     if (!prepareDwgCommonObjectState(object, m_version))
+        return false;
+    const std::uint64_t associatedBlockRecord =
+        object.paperSpaceBlockRecordHandle.ref64 != 0
+            ? object.paperSpaceBlockRecordHandle.ref64
+            : object.paperSpaceBlockRecordHandle.ref;
+    if (associatedBlockRecord > std::numeric_limits<std::uint32_t>::max()
+        || associatedBlockRecord == DRW::NoHandle
+        || (object.paperSpaceBlockRecordHandle.ref != 0
+            && object.paperSpaceBlockRecordHandle.ref
+                   != associatedBlockRecord))
         return false;
     std::vector<DRW_Entity::PendingHandleRef> appIdRefs;
     std::vector<DRW_Entity::PendingHandleRef> layerRefs;
@@ -2558,9 +3595,148 @@ bool dwgWriter15::writeLayout(const DRW_Layout& layout) {
     } else {
         m_handles.reserve(object.handle);
     }
+    EmittedLayoutAssociation association;
+    association.layoutHandle = object.handle;
+    association.paperSpaceBlockRecordHandle =
+        static_cast<std::uint32_t>(associatedBlockRecord);
+    association.parentDictionaryHandle = object.parentHandle;
+    try {
+        association.name = object.name;
+        m_emittedLayoutAssociations.reserve(
+            m_emittedLayoutAssociations.size() + 1u);
+    } catch (...) {
+        return false;
+    }
     if (!emitLayoutObject(object.handle, object, appIdRefs, layerRefs)) {
         m_objectEedWriteFailure = !object.extData.empty();
         return false;
+    }
+    m_emittedLayoutAssociations.push_back(std::move(association));
+    return true;
+}
+
+bool dwgWriter15::validateDwgLayoutBlockAssociations(
+    std::uint32_t& modelLayoutHandle,
+    std::uint32_t& paperLayoutHandle) const {
+    modelLayoutHandle = 0;
+    paperLayoutHandle = 0;
+    if (m_emittedLayoutAssociations.size()
+        > dwgSafety::MaxDwgReadObjectCount)
+        return false;
+
+    std::vector<EmittedLayoutAssociation> layouts;
+    try {
+        layouts = m_emittedLayoutAssociations;
+        std::sort(layouts.begin(), layouts.end(),
+            [](const EmittedLayoutAssociation& left,
+               const EmittedLayoutAssociation& right) {
+                if (left.layoutHandle != right.layoutHandle)
+                    return left.layoutHandle < right.layoutHandle;
+                return left.paperSpaceBlockRecordHandle
+                    < right.paperSpaceBlockRecordHandle;
+            });
+    } catch (...) {
+        return false;
+    }
+    for (std::size_t index = 1; index < layouts.size(); ++index) {
+        if (layouts[index - 1].layoutHandle == layouts[index].layoutHandle)
+            return false;
+    }
+
+    std::uint32_t layoutDictionaryHandle = 0;
+    for (const DRW::DwgNamedObjectDictionaryEntry& entry
+         : m_pendingDwgNamedObjectDictionaryEntries) {
+        if (entry.name != "ACAD_LAYOUT")
+            continue;
+        if (layoutDictionaryHandle != 0 || entry.childHandle == 0
+            || entry.childHandle == DRW::NoHandle)
+            return false;
+        layoutDictionaryHandle = entry.childHandle;
+    }
+
+    if (layoutDictionaryHandle == 0) {
+        if (!m_emittedLayoutDictionaries.empty())
+            return false;
+    } else {
+        if (m_emittedLayoutDictionaries.size() != 1u)
+            return false;
+        const EmittedLayoutDictionary& dictionary =
+            m_emittedLayoutDictionaries.front();
+        if (dictionary.handle != layoutDictionaryHandle
+            || dictionary.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+            || dictionary.entries.size() != layouts.size())
+            return false;
+
+        std::set<std::string> names;
+        std::set<std::uint32_t> childHandles;
+        for (const DRW::DwgNamedObjectDictionaryEntry& entry
+             : dictionary.entries) {
+            if (entry.name.empty() || entry.childHandle == 0
+                || entry.childHandle == DRW::NoHandle
+                || !names.insert(entry.name).second
+                || !childHandles.insert(entry.childHandle).second)
+                return false;
+            const auto layout = std::lower_bound(
+                layouts.cbegin(), layouts.cend(), entry.childHandle,
+                [](const EmittedLayoutAssociation& candidate,
+                   std::uint32_t handle) {
+                    return candidate.layoutHandle < handle;
+                });
+            if (layout == layouts.cend()
+                || layout->layoutHandle != entry.childHandle
+                || layout->name != entry.name
+                || layout->parentDictionaryHandle != layoutDictionaryHandle)
+                return false;
+        }
+    }
+
+    for (std::size_t index = 0; index < layouts.size(); ++index) {
+        const EmittedLayoutAssociation& layout = layouts[index];
+        if (layout.layoutHandle == 0 || layout.layoutHandle == DRW::NoHandle)
+            return false;
+        const std::uint32_t blockRecordHandle =
+            layout.paperSpaceBlockRecordHandle;
+        if (blockRecordHandle == 0)
+            continue;
+        if (layoutDictionaryHandle == 0
+            || layout.parentDictionaryHandle != layoutDictionaryHandle)
+            return false;
+
+        if (blockRecordHandle == reservedHandle::BLOCK_MODEL_SPACE) {
+            if (modelLayoutHandle != 0)
+                return false;
+            modelLayoutHandle = layout.layoutHandle;
+            continue;
+        }
+        if (blockRecordHandle == reservedHandle::BLOCK_PAPER_SPACE) {
+            if (paperLayoutHandle != 0)
+                return false;
+            paperLayoutHandle = layout.layoutHandle;
+            continue;
+        }
+
+        const PendingUserBlock* owner = findUserBlock(blockRecordHandle);
+        if (owner == nullptr || owner->ownerKind != BlockOwnerKind::PaperLayout
+            || owner->layoutHandle != layout.layoutHandle)
+            return false;
+    }
+
+    for (const PendingUserBlock& owner : m_userBlocks) {
+        if (owner.ownerKind != BlockOwnerKind::PaperLayout
+            || owner.layoutHandle == 0)
+            continue;
+        const auto layout = std::lower_bound(
+            layouts.cbegin(), layouts.cend(), owner.layoutHandle,
+            [](const EmittedLayoutAssociation& candidate,
+               std::uint32_t handle) {
+                return candidate.layoutHandle < handle;
+            });
+        if (layout == layouts.cend() || layout->layoutHandle != owner.layoutHandle
+            || layout->paperSpaceBlockRecordHandle
+                != owner.blockRecordHandle
+            || layoutDictionaryHandle == 0
+            || layout->parentDictionaryHandle != layoutDictionaryHandle)
+            return false;
     }
     return true;
 }
@@ -2590,7 +3766,66 @@ bool dwgWriter15::emitGroupObject(std::uint32_t handle,
     return !objectWriteFailed();
 }
 
+bool dwgWriter15::ensureDwgGroupMemberTargetIndex() {
+    if (m_dwgGroupMemberTargetIndexReady)
+        return true;
+
+    if (m_blockOwnedEntityHandles.size()
+        > dwgSafety::MaxDwgReadObjectCount)
+        return false;
+
+    std::vector<std::uint32_t> handles;
+    try {
+        handles.reserve(m_blockOwnedEntityHandles.size());
+        for (const auto& ownerAndHandle : m_blockOwnedEntityHandles)
+            handles.push_back(ownerAndHandle.second);
+        std::sort(handles.begin(), handles.end());
+    } catch (...) {
+        return false;
+    }
+    handles.erase(std::unique(handles.begin(), handles.end()), handles.end());
+    m_dwgGroupMemberTargetHandles.swap(handles);
+    m_dwgGroupMemberTargetIndexReady = true;
+    return true;
+}
+
 bool dwgWriter15::writeGroup(const DRW_Group& group) {
+    if (!m_dwgGroupDictionaryComplete || group.handle == 0
+        || group.handle == DRW::NoHandle
+        || group.parentHandle != DRW::DwgAcadGroupDictionaryHandle
+        || group.name.empty()) {
+        return false;
+    }
+    if (!ensureEmittedDwgGroupEntryIndex()
+        || !ensureEmittedDwgGroupFrameIndex()) {
+        return false;
+    }
+    const auto registrationIndex = m_emittedDwgGroupEntryIndexes.find(
+        group.handle);
+    if (registrationIndex == m_emittedDwgGroupEntryIndexes.end()
+        || registrationIndex->second
+            >= m_emittedDwgGroupDictionaryEntries.size()
+        || m_emittedDwgGroupDictionaryEntries[registrationIndex->second].name
+            != group.name
+        || m_emittedDwgGroupFrameHandles.find(group.handle)
+            != m_emittedDwgGroupFrameHandles.end()) {
+        return false;
+    }
+    const DRW::DwgNamedObjectDictionaryEntry& registration =
+        m_emittedDwgGroupDictionaryEntries[registrationIndex->second];
+    if (!ensureDwgGroupMemberTargetIndex())
+        return false;
+    std::set<std::uint32_t> memberHandles;
+    for (const std::uint32_t memberHandle : group.m_entityHandles) {
+        if (memberHandle == 0 || memberHandle == DRW::NoHandle
+            || !memberHandles.insert(memberHandle).second
+            || !std::binary_search(m_dwgGroupMemberTargetHandles.cbegin(),
+                                   m_dwgGroupMemberTargetHandles.cend(),
+                                   memberHandle)) {
+            return false;
+        }
+    }
+
     DRW_Group object = group;
     if (!prepareDwgCommonObjectState(object, m_version))
         return false;
@@ -2605,7 +3840,18 @@ bool dwgWriter15::writeGroup(const DRW_Group& group) {
     } else {
         m_handles.reserve(object.handle);
     }
+    const auto frameResult = m_emittedDwgGroupFrameHandles.insert(group.handle);
+    if (!frameResult.second)
+        return false;
+    try {
+        m_emittedDwgGroupFrames.push_back(registration);
+    } catch (const std::exception&) {
+        m_emittedDwgGroupFrameHandles.erase(frameResult.first);
+        return false;
+    }
     if (!emitGroupObject(object.handle, object, appIdRefs, layerRefs)) {
+        m_emittedDwgGroupFrames.pop_back();
+        m_emittedDwgGroupFrameHandles.erase(frameResult.first);
         m_objectEedWriteFailure = !object.extData.empty();
         return false;
     }
@@ -4211,15 +5457,22 @@ bool dwgWriter15::addViewportEntityHeader(
     else
         m_handles.reserve(header.handle);
 
-    DRW_ViewportEntityHeader accepted = header;
+    if (!ensurePendingViewportEntityHeaderIndex())
+        return false;
+    if (m_pendingViewportEntityHeaderHandles.find(header.handle)
+        != m_pendingViewportEntityHeaderHandles.end()) {
+        return true;
+    }
 
-    const auto duplicate = std::find_if(
-        m_pendingViewportEntityHeaders.cbegin(),
-        m_pendingViewportEntityHeaders.cend(),
-        [&header](const auto& entry) { return entry.first == header.handle; });
-    if (duplicate == m_pendingViewportEntityHeaders.cend())
+    const auto inserted =
+        m_pendingViewportEntityHeaderHandles.insert(header.handle);
+    try {
         m_pendingViewportEntityHeaders.emplace_back(header.handle,
-                                                    std::move(accepted));
+                                                    header);
+    } catch (...) {
+        m_pendingViewportEntityHeaderHandles.erase(inserted.first);
+        throw;
+    }
     return true;
 }
 
@@ -4256,6 +5509,13 @@ std::uint32_t dwgWriter15::addAppId(const DRW_AppId& ai) {
     m_writingCtx.appidMap[upper] = h;
     m_pendingAppIds.emplace_back(h, ai);
     return h;
+}
+
+std::uint32_t dwgWriter15::findAppIdHandle(const std::string& name) const {
+    if (name.empty())
+        return 0;
+    const auto appId = m_writingCtx.appidMap.find(toUpperCase(name));
+    return appId == m_writingCtx.appidMap.end() ? 0u : appId->second;
 }
 
 bool dwgWriter15::collectPendingTableEedAppIds() {
@@ -4353,57 +5613,61 @@ bool dwgWriter15::canRecordBlockOwnedEntity(const DRW_Entity& entity) const {
     if (isCompoundChild && m_activeUserBlockRecordHandle != 0)
         return true;
 
-    const auto owner = std::find_if(
-        m_userBlocks.cbegin(), m_userBlocks.cend(),
-        [&entity](const PendingUserBlock& block) {
-            return block.blockRecordHandle == entity.parentHandle;
-        });
-    if (owner == m_userBlocks.cend()) {
+    const PendingUserBlock* owner = findUserBlock(entity.parentHandle);
+    if (owner == nullptr) {
         return isCompoundChild;
     }
     return m_activeUserBlockRecordHandle == 0
         || m_activeUserBlockRecordHandle == entity.parentHandle;
 }
 
-bool dwgWriter15::recordBlockOwnedEntity(const DRW_Entity& entity) {
+bool dwgWriter15::recordBlockOwnedEntity(const DRW_Entity& entity,
+                                        std::uint32_t *ownerHandleOut) {
+    if (m_blockOwnedEntityHandles.size()
+        >= dwgSafety::MaxDwgReadObjectCount)
+        return false;
     std::vector<std::uint32_t>* handles = nullptr;
+    std::uint32_t ownerHandle = DRW::NoHandle;
     const bool isCompoundChild = isCompoundEntityChild(entity);
     if (isCompoundChild && m_activeUserBlockRecordHandle != 0) {
-        const auto owner = std::find_if(
-            m_userBlocks.begin(), m_userBlocks.end(),
-            [this](const PendingUserBlock& block) {
-                return block.blockRecordHandle == m_activeUserBlockRecordHandle;
-            });
-        if (owner == m_userBlocks.end())
+        PendingUserBlock* owner = findUserBlock(
+            m_activeUserBlockRecordHandle);
+        if (owner == nullptr)
             return false;
         handles = &owner->entityHandles;
+        ownerHandle = owner->blockRecordHandle;
     } else if (entity.parentHandle == DRW::NoHandle
                || (isCompoundChild
-                   && std::find_if(m_userBlocks.cbegin(), m_userBlocks.cend(),
-                                   [&entity](const PendingUserBlock& block) {
-                                       return block.blockRecordHandle
-                                           == entity.parentHandle;
-                                   }) == m_userBlocks.cend())) {
+                   && findUserBlock(entity.parentHandle) == nullptr)) {
         handles = entity.space == DRW::PaperSpace
             ? &m_paperSpaceEntityHandles : &m_modelSpaceEntityHandles;
+        ownerHandle = entity.space == DRW::PaperSpace
+            ? reservedHandle::BLOCK_PAPER_SPACE
+            : reservedHandle::BLOCK_MODEL_SPACE;
     } else {
-        const auto owner = std::find_if(
-            m_userBlocks.begin(), m_userBlocks.end(),
-            [&entity](const PendingUserBlock& block) {
-                return block.blockRecordHandle == entity.parentHandle;
-            });
-        if (owner == m_userBlocks.end()
+        PendingUserBlock* owner = findUserBlock(entity.parentHandle);
+        if (owner == nullptr
             || (m_activeUserBlockRecordHandle != 0
                 && m_activeUserBlockRecordHandle != entity.parentHandle))
             return false;
         handles = &owner->entityHandles;
+        ownerHandle = owner->blockRecordHandle;
     }
 
-    if (std::find(handles->cbegin(), handles->cend(), entity.handle)
-        != handles->cend()) {
+    const auto inserted = m_blockOwnedEntityHandles.insert(
+        std::make_pair(ownerHandle, entity.handle));
+    if (!inserted.second)
         return false;
+    try {
+        handles->push_back(entity.handle);
+    } catch (...) {
+        m_blockOwnedEntityHandles.erase(inserted.first);
+        throw;
     }
-    handles->push_back(entity.handle);
+    if (ownerHandleOut != nullptr)
+        *ownerHandleOut = ownerHandle;
+    m_dwgGroupMemberTargetHandles.clear();
+    m_dwgGroupMemberTargetIndexReady = false;
     return true;
 }
 
@@ -4418,32 +5682,42 @@ bool dwgWriter15::recordBlockInsertReference(const DRW_Entity& entity) {
         return false;
 
     std::vector<std::uint32_t>* handles = nullptr;
+    std::uint32_t ownerHandle = insert->blockRecH.ref;
     if (insert->blockRecH.ref == reservedHandle::BLOCK_MODEL_SPACE) {
         handles = &m_modelSpaceInsertHandles;
     } else if (insert->blockRecH.ref == reservedHandle::BLOCK_PAPER_SPACE) {
         handles = &m_paperSpaceInsertHandles;
     } else {
-        const auto owner = std::find_if(
-            m_userBlocks.begin(), m_userBlocks.end(),
-            [insert](const PendingUserBlock& block) {
-                return block.blockRecordHandle == insert->blockRecH.ref;
-            });
-        if (owner == m_userBlocks.end())
+        PendingUserBlock* owner = findUserBlock(insert->blockRecH.ref);
+        if (owner == nullptr)
             return false;
         handles = &owner->insertHandles;
     }
 
     if (handles->size() >= dwgSafety::MaxOwnedObjectCount
-        || std::find(handles->cbegin(), handles->cend(), entity.handle)
-               != handles->cend())
+        || m_blockInsertReferenceHandles.size()
+               >= dwgSafety::MaxDwgReadObjectCount)
         return false;
-    handles->push_back(entity.handle);
+    const auto inserted = m_blockInsertReferenceHandles.insert(
+        blockInsertReferenceKey(ownerHandle, entity.handle));
+    if (!inserted.second)
+        return false;
+    try {
+        handles->push_back(entity.handle);
+    } catch (...) {
+        m_blockInsertReferenceHandles.erase(inserted.first);
+        throw;
+    }
     return true;
 }
 
 bool dwgWriter15::canRecordRawBlockOwnedEntity(
     const DRW_UnsupportedObject& object) const {
-    if (!isReplayableCustomRawEntity(object))
+    if (!isReplayableCustomRawEntity(object)
+        && !isReplayableFixedModelerBodyRawEntity(object))
+        return false;
+    if (m_blockOwnedEntityHandles.size()
+        >= dwgSafety::MaxDwgReadObjectCount)
         return false;
     if (object.m_blockOwnerHandle != DRW::NoHandle
         && object.m_parentHandle == DRW::NoHandle
@@ -4453,25 +5727,19 @@ bool dwgWriter15::canRecordRawBlockOwnedEntity(
     const std::uint32_t blockOwnerHandle = rawBlockOwnerHandle(object);
     if (blockOwnerHandle == reservedHandle::BLOCK_MODEL_SPACE
         || blockOwnerHandle == reservedHandle::BLOCK_PAPER_SPACE) {
-        const auto& handles = blockOwnerHandle == reservedHandle::BLOCK_PAPER_SPACE
-            ? m_paperSpaceEntityHandles : m_modelSpaceEntityHandles;
-        return std::find(handles.cbegin(), handles.cend(), object.m_handle)
-            == handles.cend();
+        return m_blockOwnedEntityHandles.find(
+            std::make_pair(blockOwnerHandle, object.m_handle))
+            == m_blockOwnedEntityHandles.end();
     }
-    if (blockOwnerHandle == DRW::NoHandle) {
-        return std::find(m_modelSpaceEntityHandles.cbegin(),
-                         m_modelSpaceEntityHandles.cend(), object.m_handle)
-            == m_modelSpaceEntityHandles.cend();
-    }
-    const auto owner = std::find_if(
-        m_userBlocks.cbegin(), m_userBlocks.cend(),
-        [blockOwnerHandle](const PendingUserBlock& block) {
-            return block.blockRecordHandle == blockOwnerHandle;
-        });
-    if (owner == m_userBlocks.cend())
+    if (blockOwnerHandle == DRW::NoHandle)
+        return m_blockOwnedEntityHandles.find(std::make_pair(
+            reservedHandle::BLOCK_MODEL_SPACE, object.m_handle))
+            == m_blockOwnedEntityHandles.end();
+    if (findUserBlock(blockOwnerHandle) == nullptr)
         return false;
-    return std::find(owner->entityHandles.cbegin(), owner->entityHandles.cend(),
-                     object.m_handle) == owner->entityHandles.cend();
+    return m_blockOwnedEntityHandles.find(
+        std::make_pair(blockOwnerHandle, object.m_handle))
+        == m_blockOwnedEntityHandles.end();
 }
 
 bool dwgWriter15::recordRawBlockOwnedEntity(
@@ -4482,19 +5750,37 @@ bool dwgWriter15::recordRawBlockOwnedEntity(
     if (blockOwnerHandle == reservedHandle::BLOCK_MODEL_SPACE
         || blockOwnerHandle == reservedHandle::BLOCK_PAPER_SPACE
         || blockOwnerHandle == DRW::NoHandle) {
+        const std::uint32_t ownerHandle =
+            blockOwnerHandle == reservedHandle::BLOCK_PAPER_SPACE
+                ? reservedHandle::BLOCK_PAPER_SPACE
+                : reservedHandle::BLOCK_MODEL_SPACE;
         auto& handles = blockOwnerHandle == reservedHandle::BLOCK_PAPER_SPACE
             ? m_paperSpaceEntityHandles : m_modelSpaceEntityHandles;
-        handles.push_back(object.m_handle);
+        const auto inserted = m_blockOwnedEntityHandles.insert(
+            std::make_pair(ownerHandle, object.m_handle));
+        if (!inserted.second)
+            return false;
+        try {
+            handles.push_back(object.m_handle);
+        } catch (...) {
+            m_blockOwnedEntityHandles.erase(inserted.first);
+            throw;
+        }
         return true;
     }
-    const auto owner = std::find_if(
-        m_userBlocks.begin(), m_userBlocks.end(),
-        [blockOwnerHandle](PendingUserBlock& block) {
-            return block.blockRecordHandle == blockOwnerHandle;
-        });
-    if (owner == m_userBlocks.end())
+    PendingUserBlock* owner = findUserBlock(blockOwnerHandle);
+    if (owner == nullptr)
         return false;
-    owner->entityHandles.push_back(object.m_handle);
+    const auto inserted = m_blockOwnedEntityHandles.insert(
+        std::make_pair(blockOwnerHandle, object.m_handle));
+    if (!inserted.second)
+        return false;
+    try {
+        owner->entityHandles.push_back(object.m_handle);
+    } catch (...) {
+        m_blockOwnedEntityHandles.erase(inserted.first);
+        throw;
+    }
     return true;
 }
 
@@ -4502,9 +5788,19 @@ bool dwgWriter15::encodeEntity(DRW_Entity *ent) {
     if (ent == nullptr || objectWriteFailed() || m_blockControlEmitted)
         return false;
 
-    const CompoundWriteCheckpoint checkpoint = checkpointCompoundWrite();
-    const auto fail = [this, &checkpoint]() {
-        rollbackCompoundWrite(checkpoint);
+    m_lastEntityWriteCheckpointValid = false;
+    m_lastEntityWriteUsesCompoundCheckpoint = false;
+    m_lastEntityCompoundCheckpoint = {};
+    EntityFrameCheckpoint checkpoint = checkpointEntityFrame();
+    CompoundWriteCheckpoint classCheckpoint;
+    bool hasClassCheckpoint = false;
+    bool frameStarted = false;
+    const auto fail = [this, &checkpoint, &classCheckpoint,
+                       &hasClassCheckpoint, &frameStarted]() {
+        if (hasClassCheckpoint)
+            rollbackCompoundWrite(classCheckpoint);
+        else
+            rollbackEntityFrame(checkpoint, frameStarted);
         return false;
     };
 
@@ -4522,6 +5818,14 @@ bool dwgWriter15::encodeEntity(DRW_Entity *ent) {
         ent->handle = handle;
     } else {
         m_handles.reserve(handle);
+    }
+    // Entity encoders normally write fixed object types.  If a caller has
+    // explicitly associated this handle with a custom class instance, keep
+    // the comprehensive rollback path for finishObject()'s class ledger.
+    if (m_dwgClassInstanceHandleOwners.find(handle)
+        != m_dwgClassInstanceHandleOwners.end()) {
+        classCheckpoint = checkpointCompoundWrite();
+        hasClassCheckpoint = true;
     }
     // Resolve layer name → handle.  Caller may have pre-set layerH.ref for
     // round-trip; only resolve from name when the handle is unset.
@@ -4572,6 +5876,7 @@ bool dwgWriter15::encodeEntity(DRW_Entity *ent) {
     if (!canRecordBlockOwnedEntity(*ent))
         return fail();
 
+    frameStarted = true;
     dwgBufferW& body = beginObject(handle);
     bool ok = false;
     if (m_version > DRW::AC1018) {
@@ -4596,10 +5901,34 @@ bool dwgWriter15::encodeEntity(DRW_Entity *ent) {
     if (objectWriteFailed())
         return fail();
 
-    if (!recordBlockOwnedEntity(*ent))
+    if (!recordBlockOwnedEntity(*ent, &checkpoint.blockOwnerHandle))
         return fail();
+    checkpoint.entityHandle = ent->handle;
+    checkpoint.blockOwnedEntityRecorded = true;
     if (!recordBlockInsertReference(*ent))
         return fail();
+    if (const auto* insert = dynamic_cast<const DRW_Insert*>(ent)) {
+        checkpoint.insertOwnerHandle = insert->blockRecH.ref;
+        checkpoint.blockInsertReferenceRecorded = m_version > DRW::AC1014;
+    }
+
+    m_lastEntityFrameCheckpoint = checkpoint;
+    if (hasClassCheckpoint) {
+        m_lastEntityCompoundCheckpoint = std::move(classCheckpoint);
+        m_lastEntityWriteUsesCompoundCheckpoint = true;
+    }
+    m_lastEntityWriteCheckpointValid = true;
+    return true;
+}
+
+bool dwgWriter15::rollbackLastEntityWrite() {
+    if (!m_lastEntityWriteCheckpointValid)
+        return false;
+    if (m_lastEntityWriteUsesCompoundCheckpoint)
+        rollbackCompoundWrite(m_lastEntityCompoundCheckpoint);
+    else
+        rollbackEntityFrame(m_lastEntityFrameCheckpoint, true);
+    clearLastEntityWriteCheckpoint();
     return true;
 }
 
@@ -4623,9 +5952,22 @@ bool dwgWriter15::writeDwgObjects() {
     m_dwgTableRecordsComplete = false;
     m_emittedDwgNamedObjectDictionaryEntries.clear();
     m_dwgNamedObjectDictionaryComplete = false;
+    m_emittedDwgGroupDictionaryEntries.clear();
+    m_emittedDwgGroupFrames.clear();
+    invalidateEmittedDwgGroupEntryIndex();
+    invalidateEmittedDwgGroupFrameIndex();
+    m_dwgGroupDictionaryComplete = false;
     m_emittedDwgBlockRecords.clear();
     m_emittedDwgBlockEntityHandles.clear();
     m_dwgBlockStructureComplete = false;
+    m_dwgGroupMemberTargetHandles.clear();
+    m_dwgGroupMemberTargetIndexReady = false;
+    try {
+        m_emittedDwgGroupFrames.reserve(
+            m_pendingDwgGroupDictionaryEntries.size());
+    } catch (const std::exception&) {
+        return false;
+    }
 
     // Ensure standard reserved entries are present.  The constructor
     // pre-seeds these; insert is a no-op if a key already exists, which
@@ -4854,6 +6196,9 @@ bool dwgWriter15::writeDwgObjects() {
     acadGroup.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
     acadGroup.cloning = 1;
     acadGroup.hardOwner = 0;
+    acadGroup.m_entries.reserve(m_pendingDwgGroupDictionaryEntries.size());
+    for (const auto& entry : m_pendingDwgGroupDictionaryEntries)
+        acadGroup.m_entries.push_back({entry.name, entry.childHandle});
     const std::vector<DRW_Entity::PendingHandleRef> noEedRefs;
     if (!emitDictionaryObject(namedObjects.handle, namedObjects, noEedRefs,
                               noEedRefs)
@@ -4868,6 +6213,10 @@ bool dwgWriter15::writeDwgObjects() {
         m_pendingDwgNamedObjectDictionaryEntries.cbegin(),
         m_pendingDwgNamedObjectDictionaryEntries.cend());
     m_dwgNamedObjectDictionaryComplete = true;
+    m_emittedDwgGroupDictionaryEntries =
+        m_pendingDwgGroupDictionaryEntries;
+    invalidateEmittedDwgGroupEntryIndex();
+    m_dwgGroupDictionaryComplete = true;
 
     m_dwgTableRecordsComplete = true;
     phaseGuard.committed = true;
@@ -5169,14 +6518,23 @@ bool patchRawEntityOwner(const std::vector<std::uint8_t>& raw,
 
 } // namespace
 
-bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
+bool dwgWriter15::replayRawObject(
+    const DRW_UnsupportedObject& object,
+    const DRW_ModelerGeometry* typedModeler) {
     m_lastDwgObjectFrame = {};
     m_lastDwgObjectFrameValid = false;
     m_currentDwgObjectFrameProvenance =
         m_pendingDwgObjectFrameProvenance;
     m_pendingDwgObjectFrameProvenance = {};
+    const bool replayableFixedModelerBody =
+        isReplayableFixedModelerBodyRawEntity(object);
+    const bool storageBackedModeler = object.m_hasDataStorage
+        || (typedModeler != nullptr
+            && (typedModeler->hasDataStorageBinaryData()
+                || typedModeler->hasDataStorageRecord));
     if ((blockControlEmitted() && object.m_isEntity)
         || object.m_version != m_version
+        || (typedModeler != nullptr && !replayableFixedModelerBody)
         || (object.m_isEntity && !isReplayableFixedModelerRawEntity(object)
             && !isReplayableFixedEntityShellRawEntity(object)
             && !isReplayableSurfaceRawEntity(object)
@@ -5197,22 +6555,411 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
             != static_cast<std::uint64_t>(object.m_rawBytes.size())) {
         return false;
     }
-    if (std::any_of(m_objectMap.cbegin(), m_objectMap.cend(),
-                    [&object](const auto& entry) {
-                        return entry.first == object.m_handle;
-                    })) {
+    if (hasEmittedDwgObjectHandle(object.m_handle)) {
         return false;
     }
 
     const bool replayableCustomEntity = isReplayableCustomRawEntity(object);
-    if (replayableCustomEntity
+    const bool replayableBlockOwnedEntity = replayableCustomEntity
+        || replayableFixedModelerBody;
+
+    // Modeler frames are opaque to the writer. Require an explicit typed
+    // peer, reparse the original frame as the baseline, and refuse the raw
+    // replay if any observable typed state has changed. A storage-backed
+    // frame is admitted only when its exact bounded SAB record is staged for
+    // section-level handle/payload closure during AC1027+ finalization.
+    if (replayableFixedModelerBody) {
+        DRW_DwgCommonLinkEvidence typedLinkEvidence =
+            DRW_DwgCommonLinkEvidence::Unknown;
+        if (typedModeler != nullptr
+            && typedModeler->hasDwgCommonLinkTail()) {
+            const bool hasTypedLinks =
+                typedModeler->parentHandle != DRW::NoHandle
+                || !typedModeler->reactorHandles.empty()
+                || typedModeler->dwgReactorCount() != 0
+                || typedModeler->xDictHandle != DRW::NoHandle;
+            typedLinkEvidence = hasTypedLinks
+                ? DRW_DwgCommonLinkEvidence::Validated
+                : DRW_DwgCommonLinkEvidence::ValidatedAbsent;
+        }
+        const std::uint32_t typedBlockOwner =
+            typedModeler == nullptr ? DRW::NoHandle
+            : typedModeler->parentHandle != DRW::NoHandle
+                ? typedModeler->parentHandle
+                : typedModeler->space == DRW::PaperSpace
+                    ? DRW::DwgPaperSpaceBlockRecordHandle
+                    : DRW::DwgModelSpaceBlockRecordHandle;
+        const bool isSupportedAcdsModeler = typedModeler != nullptr
+            && (typedModeler->eType == DRW::REGION
+                || typedModeler->eType == DRW::E3DSOLID);
+        static constexpr char sabMarker[] = "ACIS BinaryFile";
+        const std::size_t sabMarkerLength = sizeof(sabMarker) - 1u;
+        char expectedStorageHandleKey[32] = {};
+        if (typedModeler != nullptr) {
+            std::snprintf(expectedStorageHandleKey,
+                          sizeof(expectedStorageHandleKey), "%llX",
+                          static_cast<unsigned long long>(
+                              typedModeler->dataStorageHandle));
+        }
+        const bool hasExactStorageMarker = typedModeler != nullptr
+            && typedModeler->hasDataStoragePayloadMarker
+            && typedModeler->dataStoragePayloadMarkerSection == "datastore"
+            && typedModeler->dataStoragePayloadMarkerLength == sabMarkerLength
+            && typedModeler->dataStoragePayloadMarkerOffset
+                   <= typedModeler->dataStorageData.size()
+            && sabMarkerLength
+                   <= typedModeler->dataStorageData.size()
+                       - typedModeler->dataStoragePayloadMarkerOffset
+            && std::equal(sabMarker, sabMarker + sabMarkerLength,
+                typedModeler->dataStorageData.begin()
+                    + typedModeler->dataStoragePayloadMarkerOffset);
+        const bool storageBindingValid = storageBackedModeler
+            && m_version >= DRW::AC1027
+            && object.m_hasDataStorage
+            && typedModeler != nullptr
+            && typedModeler->hasDataStorageBinaryData()
+            && typedModeler->hasDataStorageRecord
+            && isSupportedAcdsModeler
+            && typedModeler->dataStorageHandle != DRW::NoHandle
+            && typedModeler->dataStorageHandleKey
+                   == expectedStorageHandleKey
+            && !typedModeler->dataStorageData.empty()
+            && typedModeler->dataStorageData.size()
+                   <= DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+            && hasExactStorageMarker
+            && typedModeler->m_dwgAcisPayload.empty()
+            && typedModeler->m_dwgSourceVersion == m_version
+            && typedModeler->m_modelerVersion == 2
+            && !typedModeler->m_isEmpty
+            && typedModeler->m_hasModelerData;
+        if (typedModeler == nullptr || object.m_isCustomClass
+            || object.m_hasDataStorage
+                   != typedModeler->hasDataStorageBinaryData()
+            || (storageBackedModeler && !storageBindingValid)
+            || (!storageBackedModeler
+                && (typedModeler->hasDataStorageRecord
+                    || !typedModeler->dataStorageData.empty()
+                    || typedModeler->hasDataStoragePayloadMarker))
+            || object.m_commonLinkEvidence ==
+                   DRW_DwgCommonLinkEvidence::Unknown
+            || object.m_commonLinkEvidence != typedLinkEvidence
+            || typedModeler->m_historyHandle != 0
+            || object.m_handle != typedModeler->handle
+            || rawBlockOwnerHandle(object) != typedBlockOwner
+            || object.m_parentHandle != typedModeler->parentHandle
+            || object.m_reactorHandles != typedModeler->reactorHandles
+            || object.m_xDictHandle != typedModeler->xDictHandle
+            || object.m_numReactors != typedModeler->dwgReactorCount()
+            || object.m_xDictFlag != typedModeler->dwgXDictionaryFlag()
+            || !drwDwgCommonLinkEvidenceValidated(
+                object.m_commonLinkEvidence)
+            || object.m_rawBytes != typedModeler->m_rawBytes
+            || object.m_bodyBitSize != typedModeler->m_bodyBitSize
+            || object.m_objectSize != typedModeler->m_objectSize
+            || (typedModeler->m_dwgSourceVersion != DRW::UNKNOWNV
+                && typedModeler->m_dwgSourceVersion != m_version)) {
+            return false;
+        }
+        const std::uint16_t expectedObjectType =
+            typedModeler->eType == DRW::REGION ? 37u
+            : typedModeler->eType == DRW::E3DSOLID ? 38u
+            : typedModeler->eType == DRW::BODY ? 39u
+            : 0u;
+        if (expectedObjectType == 0u
+            || object.m_objectType != expectedObjectType)
+            return false;
+
+        // object owns this immutable frame for the duration of the parse.
+        dwgBuffer sourceFrame(object.m_rawBytes.data(),
+                              object.m_rawBytes.size());
+        DRW_ModelerGeometry parsedPeer(typedModeler->eType);
+        if (!parsedPeer.parseDwg(m_version, &sourceFrame,
+                                 object.m_bodyBitSize)
+            || !sourceFrame.isGood())
+            return false;
+        // The retained raw frame was equality-checked before parsing. This
+        // peer validates decoded state; copying the input frame into it would
+        // only repeat that comparison after an extra full-frame allocation.
+        parsedPeer.m_bodyBitSize = object.m_bodyBitSize;
+        parsedPeer.m_objectSize = object.m_objectSize;
+        if (storageBackedModeler) {
+            // These fields are supplied by the exactly-linked AcDs record,
+            // not encoded in the entity frame. Validate their admitted
+            // profile above, then compare the remaining typed state against
+            // the raw-frame parse as usual.
+            parsedPeer.hasDataStorageRecord =
+                typedModeler->hasDataStorageRecord;
+            parsedPeer.dataStorageHandle = typedModeler->dataStorageHandle;
+            parsedPeer.dataStorageHandleKey =
+                typedModeler->dataStorageHandleKey;
+            // AcDs bytes are not encoded in the entity frame. Avoid making a
+            // temporary payload copy; finalization compares the pending owned
+            // payload snapshot with the linked section record.
+            parsedPeer.dataStorageSegmentIndex =
+                typedModeler->dataStorageSegmentIndex;
+            parsedPeer.dataStorageSchemaIndex =
+                typedModeler->dataStorageSchemaIndex;
+            parsedPeer.hasDataStoragePayloadMarker =
+                typedModeler->hasDataStoragePayloadMarker;
+            parsedPeer.dataStoragePayloadMarkerOffset =
+                typedModeler->dataStoragePayloadMarkerOffset;
+            parsedPeer.dataStoragePayloadMarkerLength =
+                typedModeler->dataStoragePayloadMarkerLength;
+            parsedPeer.dataStoragePayloadMarkerSection =
+                typedModeler->dataStoragePayloadMarkerSection;
+            parsedPeer.m_modelerVersion = typedModeler->m_modelerVersion;
+            parsedPeer.m_dwgSourceVersion = typedModeler->m_dwgSourceVersion;
+        }
+
+        const auto sameCoord = [](const DRW_Coord& lhs,
+                                  const DRW_Coord& rhs) {
+            return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+        };
+        const auto sameVariant = [this, &sameCoord](
+            const DRW_Variant& lhs, const DRW_Variant& rhs) {
+            if (lhs.type() != rhs.type() || lhs.code() != rhs.code()
+                || lhs.isLayerRef() != rhs.isLayerRef()
+                || lhs.canReplayDwgRawLayerReference(m_version)
+                    != rhs.canReplayDwgRawLayerReference(m_version))
+                return false;
+            if (lhs.canReplayDwgRawLayerReference(m_version)
+                && lhs.rawDwgLayerReference()
+                    != rhs.rawDwgLayerReference())
+                return false;
+            switch (lhs.type()) {
+            case DRW_Variant::STRING:
+                return std::strcmp(lhs.c_str(), rhs.c_str()) == 0;
+            case DRW_Variant::INTEGER:
+                return lhs.i_val() == rhs.i_val();
+            case DRW_Variant::INTEGER64:
+                return lhs.i64_val() == rhs.i64_val();
+            case DRW_Variant::DOUBLE:
+                return lhs.d_val() == rhs.d_val();
+            case DRW_Variant::COORD: {
+                const DRW_Coord* lhsCoord = lhs.coord();
+                const DRW_Coord* rhsCoord = rhs.coord();
+                return lhsCoord != nullptr && rhsCoord != nullptr
+                    && sameCoord(*lhsCoord, *rhsCoord);
+            }
+            case DRW_Variant::BINARY: {
+                const auto* lhsBytes = lhs.binary();
+                const auto* rhsBytes = rhs.binary();
+                return lhsBytes != nullptr && rhsBytes != nullptr
+                    && *lhsBytes == *rhsBytes;
+            }
+            case DRW_Variant::INVALID:
+                return true;
+            }
+            return false;
+        };
+        const auto sameExtData = [&sameVariant](
+            const std::vector<std::shared_ptr<DRW_Variant>>& lhs,
+            const std::vector<std::shared_ptr<DRW_Variant>>& rhs) {
+            if (lhs.size() != rhs.size())
+                return false;
+            for (std::size_t i = 0; i < lhs.size(); ++i) {
+                if (static_cast<bool>(lhs[i]) != static_cast<bool>(rhs[i])
+                    || (lhs[i] && !sameVariant(*lhs[i], *rhs[i])))
+                    return false;
+            }
+            return true;
+        };
+        const auto sameAppData = [&sameVariant](
+            const std::list<std::list<DRW_Variant>>& lhs,
+            const std::list<std::list<DRW_Variant>>& rhs) {
+            if (lhs.size() != rhs.size())
+                return false;
+            auto lhsGroup = lhs.cbegin();
+            auto rhsGroup = rhs.cbegin();
+            for (; lhsGroup != lhs.cend(); ++lhsGroup, ++rhsGroup) {
+                if (lhsGroup->size() != rhsGroup->size())
+                    return false;
+                auto lhsValue = lhsGroup->cbegin();
+                auto rhsValue = rhsGroup->cbegin();
+                for (; lhsValue != lhsGroup->cend(); ++lhsValue, ++rhsValue) {
+                    if (!sameVariant(*lhsValue, *rhsValue))
+                        return false;
+                }
+            }
+            return true;
+        };
+        const auto samePendingRefs = [](
+            const std::vector<DRW_Entity::PendingHandleRef>& lhs,
+            const std::vector<DRW_Entity::PendingHandleRef>& rhs) {
+            if (lhs.size() != rhs.size())
+                return false;
+            for (std::size_t i = 0; i < lhs.size(); ++i) {
+                if (lhs[i].indexInExtData != rhs[i].indexInExtData
+                    || lhs[i].handleRef != rhs[i].handleRef
+                    || lhs[i].rawHandleRef != rhs[i].rawHandleRef
+                    || lhs[i].useRawHandleRef != rhs[i].useRawHandleRef)
+                    return false;
+            }
+            return true;
+        };
+        const auto sameDwHandle = [](const dwgHandle& lhs,
+                                     const dwgHandle& rhs) {
+            return lhs.code == rhs.code && lhs.size == rhs.size
+                && lhs.ref == rhs.ref && lhs.ref64 == rhs.ref64;
+        };
+        const auto sameCommonState = [&](const DRW_ModelerGeometry& lhs,
+                                         const DRW_ModelerGeometry& rhs) {
+            return lhs.eType == rhs.eType && lhs.handle == rhs.handle
+                && lhs.parentHandle == rhs.parentHandle
+                && lhs.space == rhs.space && lhs.layer == rhs.layer
+                && lhs.lineType == rhs.lineType && lhs.material == rhs.material
+                && lhs.color == rhs.color && lhs.lWeight == rhs.lWeight
+                && lhs.ltypeScale == rhs.ltypeScale
+                && lhs.visible == rhs.visible
+                && lhs.numProxyGraph == rhs.numProxyGraph
+                && lhs.proxyGraphics == rhs.proxyGraphics
+                && lhs.color24 == rhs.color24 && lhs.colorName == rhs.colorName
+                && lhs.transparency == rhs.transparency
+                && lhs.plotStyle == rhs.plotStyle && lhs.shadow == rhs.shadow
+                && lhs.shadowHandle == rhs.shadowHandle
+                && lhs.fullVisualStyleHandle == rhs.fullVisualStyleHandle
+                && lhs.faceVisualStyleHandle == rhs.faceVisualStyleHandle
+                && lhs.edgeVisualStyleHandle == rhs.edgeVisualStyleHandle
+                && lhs.reactorHandles == rhs.reactorHandles
+                && lhs.xDictHandle == rhs.xDictHandle
+                && lhs.hasDataStorageRecord == rhs.hasDataStorageRecord
+                && lhs.dataStorageHandle == rhs.dataStorageHandle
+                && lhs.dataStorageHandleKey == rhs.dataStorageHandleKey
+                && lhs.dataStorageSegmentIndex == rhs.dataStorageSegmentIndex
+                && lhs.dataStorageSchemaIndex == rhs.dataStorageSchemaIndex
+                && lhs.hasDataStoragePayloadMarker
+                    == rhs.hasDataStoragePayloadMarker
+                && lhs.dataStoragePayloadMarkerOffset
+                    == rhs.dataStoragePayloadMarkerOffset
+                && lhs.dataStoragePayloadMarkerLength
+                    == rhs.dataStoragePayloadMarkerLength
+                && lhs.dataStoragePayloadMarkerSection
+                    == rhs.dataStoragePayloadMarkerSection
+                && lhs.hasDataStorageBinaryData()
+                    == rhs.hasDataStorageBinaryData()
+                && lhs.haveExtrusion == rhs.haveExtrusion
+                && sameExtData(lhs.extData, rhs.extData)
+                && sameAppData(lhs.appData, rhs.appData)
+                && samePendingRefs(lhs.pendingAppIdResolutions,
+                                   rhs.pendingAppIdResolutions)
+                && samePendingRefs(lhs.pendingLayerRefResolutions,
+                                   rhs.pendingLayerRefResolutions)
+                && lhs.haveNextLinks == rhs.haveNextLinks
+                && lhs.hasDsData == rhs.hasDsData
+                && lhs.plotFlags == rhs.plotFlags && lhs.ltFlags == rhs.ltFlags
+                && lhs.materialFlag == rhs.materialFlag
+                && lhs.shadowFlag == rhs.shadowFlag
+                && lhs.hasFullVisualStyle == rhs.hasFullVisualStyle
+                && lhs.hasFaceVisualStyle == rhs.hasFaceVisualStyle
+                && lhs.hasEdgeVisualStyle == rhs.hasEdgeVisualStyle
+                && lhs.hasAcDbColorH == rhs.hasAcDbColorH
+                && lhs.acDbColorHandle == rhs.acDbColorHandle
+                && sameDwHandle(lhs.lTypeH, rhs.lTypeH)
+                && sameDwHandle(lhs.layerH, rhs.layerH)
+                && lhs.nextEntLink == rhs.nextEntLink
+                && lhs.prevEntLink == rhs.prevEntLink
+                && lhs.ownerHandle == rhs.ownerHandle
+                && lhs.xDictFlag == rhs.xDictFlag
+                && lhs.numReactors == rhs.numReactors
+                && lhs.commonLinkTailValidated
+                    == rhs.commonLinkTailValidated
+                && lhs.objSize == rhs.objSize
+                && lhs.dwgDataEndBit == rhs.dwgDataEndBit
+                && lhs.oType == rhs.oType
+                && samePendingRefs(lhs.dwgEedAppIdWriteRefs,
+                                   rhs.dwgEedAppIdWriteRefs)
+                && samePendingRefs(lhs.dwgEedLayerWriteRefs,
+                                   rhs.dwgEedLayerWriteRefs)
+                && lhs.dwgEedCodePage == rhs.dwgEedCodePage
+                && sameCoord(lhs.extAxisX, rhs.extAxisX)
+                && sameCoord(lhs.extAxisY, rhs.extAxisY);
+        };
+        const auto samePayloadChunks = [](
+            const std::vector<DRW_ModelerPayloadChunk>& lhs,
+            const std::vector<DRW_ModelerPayloadChunk>& rhs) {
+            if (lhs.size() != rhs.size())
+                return false;
+            for (std::size_t i = 0; i < lhs.size(); ++i) {
+                if (lhs[i].m_groupCode != rhs[i].m_groupCode
+                    || lhs[i].m_offset != rhs[i].m_offset
+                    || lhs[i].m_length != rhs[i].m_length)
+                    return false;
+            }
+            return true;
+        };
+        const auto samePayloadRanges = [](
+            const std::vector<DRW_ModelerPayloadRange>& lhs,
+            const std::vector<DRW_ModelerPayloadRange>& rhs) {
+            if (lhs.size() != rhs.size())
+                return false;
+            for (std::size_t i = 0; i < lhs.size(); ++i) {
+                if (lhs[i].m_kind != rhs[i].m_kind
+                    || lhs[i].m_section != rhs[i].m_section
+                    || lhs[i].m_offset != rhs[i].m_offset
+                    || lhs[i].m_bitOffset != rhs[i].m_bitOffset
+                    || lhs[i].m_length != rhs[i].m_length
+                    || lhs[i].m_declaredByteSize
+                        != rhs[i].m_declaredByteSize
+                    || lhs[i].m_consistency != rhs[i].m_consistency
+                    || lhs[i].m_confidence != rhs[i].m_confidence
+                    || lhs[i].m_markerText != rhs[i].m_markerText)
+                    return false;
+            }
+            return true;
+        };
+        if (!sameCommonState(*typedModeler, parsedPeer)
+            || typedModeler->m_modelerVersion
+                != parsedPeer.m_modelerVersion
+            || typedModeler->m_hasDxfModelerFlag
+                != parsedPeer.m_hasDxfModelerFlag
+            || typedModeler->m_dxfModelerFlag
+                != parsedPeer.m_dxfModelerFlag
+            || typedModeler->m_hasDxfModelerUid
+                != parsedPeer.m_hasDxfModelerUid
+            || typedModeler->m_dxfModelerUid
+                != parsedPeer.m_dxfModelerUid
+            || typedModeler->m_dwgSourceVersion
+                != parsedPeer.m_dwgSourceVersion
+            || typedModeler->m_bodyBitSize != parsedPeer.m_bodyBitSize
+            || typedModeler->m_objectSize != parsedPeer.m_objectSize
+            || typedModeler->m_isEmpty != parsedPeer.m_isEmpty
+            || typedModeler->m_hasModelerData
+                != parsedPeer.m_hasModelerData
+            || typedModeler->m_modelerDataUnknownBit
+                != parsedPeer.m_modelerDataUnknownBit
+            || typedModeler->m_hasWireframe != parsedPeer.m_hasWireframe
+            || typedModeler->m_historyHandle != parsedPeer.m_historyHandle
+            || typedModeler->m_dwgAcisPayload
+                != parsedPeer.m_dwgAcisPayload
+            || !samePayloadChunks(typedModeler->m_dxfPayloadChunks,
+                                  parsedPeer.m_dxfPayloadChunks)
+            || !samePayloadRanges(typedModeler->m_payloadRanges,
+                                  parsedPeer.m_payloadRanges))
+            return false;
+    } else if (typedModeler != nullptr) {
+        return false;
+    }
+    if (replayableBlockOwnedEntity
         && object.m_blockOwnerHandle != DRW::NoHandle
         && object.m_parentHandle == DRW::NoHandle
         && object.m_blockOwnerHandle != reservedHandle::BLOCK_MODEL_SPACE
         && object.m_blockOwnerHandle != reservedHandle::BLOCK_PAPER_SPACE)
         return false;
-    if (replayableCustomEntity && !canRecordRawBlockOwnedEntity(object))
+    if (replayableBlockOwnedEntity && !canRecordRawBlockOwnedEntity(object))
         return false;
+
+    // Fixed modeler frames contain opaque body/handle data, including a
+    // history-object reference that this raw carrier cannot safely remap.
+    // Require the encoded entity handle to remain identical before reserving
+    // any target handle or mutating writer state. A typed modeler rewrite is
+    // required for handle remapping.
+    if (replayableFixedModelerBody) {
+        dwgHandle sourceEntityHandle;
+        if (!readRawObjectHandle(object.m_rawBytes, m_version,
+                                 sourceEntityHandle)
+            || sourceEntityHandle.ref64 != object.m_handle)
+            return false;
+    }
 
     m_handles.reserve(object.m_handle);
     const std::vector<DwgClassDefinition> classDefinitionsBefore =
@@ -5229,6 +6976,10 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
     const bool classConflictBefore = m_hasDwgClassConflict;
     const std::size_t outputStart = m_buf.size();
     const std::size_t objectMapStart = m_objectMap.size();
+    const std::size_t pendingStorageStart =
+        m_pendingModelerDataStorageReplay.size();
+    const std::size_t pendingStorageBytesStart =
+        m_pendingModelerDataStoragePayloadBytes;
     bool committed = false;
     const auto rollback = [&]() {
         if (committed)
@@ -5243,8 +6994,15 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
         m_rawObjectOverrides = rawObjectOverridesBefore;
         m_hasDwgClassConflict = classConflictBefore;
         m_buf.truncate(outputStart);
-        if (objectMapStart <= m_objectMap.size())
+        if (objectMapStart <= m_objectMap.size()) {
+            for (std::size_t index = objectMapStart;
+                 index < m_objectMap.size(); ++index)
+                m_emittedDwgObjectHandles.erase(m_objectMap[index].first);
             m_objectMap.resize(objectMapStart);
+        }
+        if (pendingStorageStart <= m_pendingModelerDataStorageReplay.size())
+            m_pendingModelerDataStorageReplay.resize(pendingStorageStart);
+        m_pendingModelerDataStoragePayloadBytes = pendingStorageBytesStart;
     };
     const auto fail = [&]() {
         m_currentDwgObjectFrameProvenance = {};
@@ -5253,6 +7011,48 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
         m_lastDwgObjectFrameValid = false;
         return false;
     };
+
+    PendingModelerDataStorageReplay pendingStorage;
+    if (storageBackedModeler) {
+        const std::size_t payloadSize = typedModeler->dataStorageData.size();
+        if (payloadSize > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+            || m_pendingModelerDataStoragePayloadBytes
+                   > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+                       - payloadSize)
+            return fail();
+        try {
+            pendingStorage.modelerHandle = object.m_handle;
+            pendingStorage.recordHandle = typedModeler->dataStorageHandle;
+            pendingStorage.recordHandleKey =
+                typedModeler->dataStorageHandleKey;
+            pendingStorage.ownerHandle = rawBlockOwnerHandle(object);
+            pendingStorage.segmentIndex =
+                typedModeler->dataStorageSegmentIndex;
+            pendingStorage.schemaIndex =
+                typedModeler->dataStorageSchemaIndex;
+            pendingStorage.payload = typedModeler->dataStorageData;
+            pendingStorage.hasPayloadMarker =
+                typedModeler->hasDataStoragePayloadMarker;
+            pendingStorage.payloadMarkerOffset =
+                typedModeler->dataStoragePayloadMarkerOffset;
+            pendingStorage.payloadMarkerLength =
+                typedModeler->dataStoragePayloadMarkerLength;
+            pendingStorage.payloadMarkerSection =
+                typedModeler->dataStoragePayloadMarkerSection;
+            m_pendingModelerDataStorageReplay.reserve(
+                m_pendingModelerDataStorageReplay.size() + 1u);
+        } catch (...) {
+            return fail();
+        }
+    }
+    const std::uint32_t sourceOwner = object.m_parentHandle;
+    const std::uint32_t targetOwner = rawBlockOwnerHandle(object);
+    // A fixed modeler body is replayed as an opaque same-version frame. Its
+    // owner relationship is part of that frame's provenance; moving it would
+    // require a typed modeler rewrite rather than an unqualified raw replay.
+    if (replayableFixedModelerBody && sourceOwner != DRW::NoHandle
+        && targetOwner != sourceOwner)
+        return fail();
     if (!registerRawObjectClass(object))
         return fail();
 
@@ -5294,8 +7094,6 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
             return fail();
         bodyBytes = &patchedDataSize;
     }
-    const std::uint32_t sourceOwner = object.m_parentHandle;
-    const std::uint32_t targetOwner = rawBlockOwnerHandle(object);
     if (replayableCustomEntity && sourceOwner != DRW::NoHandle
         && targetOwner != sourceOwner) {
         if (!patchRawEntityOwner(*bodyBytes, m_version, sourceOwner,
@@ -5340,8 +7138,16 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
         || m_buf.size() > std::numeric_limits<std::uint32_t>::max()) {
         return fail();
     }
-    m_objectMap.emplace_back(object.m_handle, frameStart);
-    if (replayableCustomEntity && !recordRawBlockOwnedEntity(object)) {
+    if (!publishDwgObjectMapEntry(object.m_handle, frameStart))
+        return fail();
+    if (storageBackedModeler) {
+        m_pendingModelerDataStoragePayloadBytes +=
+            pendingStorage.payload.size();
+        m_pendingModelerDataStorageReplay.push_back(
+            std::move(pendingStorage));
+    }
+    if (replayableBlockOwnedEntity
+        && !recordRawBlockOwnedEntity(object)) {
         return fail();
     }
     markDwgClassInstanceEmitted(object.m_handle);
@@ -5365,6 +7171,174 @@ bool dwgWriter15::replayRawObject(const DRW_UnsupportedObject& object) {
     committed = true;
     m_lastDwgObjectFrameValid = true;
     m_currentDwgObjectFrameProvenance = {};
+    return true;
+}
+
+bool dwgWriter15::validatePendingModelerDataStorageReplay(
+    const DRW_DataStorageSection* section,
+    const std::uint8_t* sectionBytes,
+    std::size_t sectionByteLength) const {
+    if (section == nullptr)
+        return m_pendingModelerDataStorageReplay.empty();
+    if (section->m_name != "AcDb:AcDsPrototype_1b"
+        || section->m_version != m_version || section->parseFailed
+        || !section->structurallyValid || !section->replayAllowed)
+        return false;
+    if (sectionBytes == nullptr
+        || sectionByteLength != section->sectionByteLength)
+        return false;
+
+    bool allPayloadsRetainable =
+        sectionByteLength <= DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP;
+    std::size_t retainedPayloadBytes = 0;
+    for (const DRW_DataStorageRecord& record : section->records) {
+        const std::uint64_t payloadLength = record.isBlobReference
+            ? record.blobTotalByteLength : record.dataByteLength;
+        if (!allPayloadsRetainable
+            || payloadLength
+                   > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+                       - retainedPayloadBytes) {
+            allPayloadsRetainable = false;
+            continue;
+        }
+        retainedPayloadBytes += static_cast<std::size_t>(payloadLength);
+    }
+    if (!m_pendingModelerDataStorageReplay.empty()
+        && (m_version < DRW::AC1027 || !allPayloadsRetainable))
+        return false;
+
+    std::set<std::uint32_t> modelerHandles;
+    std::set<std::uint64_t> recordHandles;
+    std::set<std::string> recordHandleKeys;
+    std::set<const DRW_DataStorageRecord*> boundRecords;
+    static constexpr char sabMarker[] = "ACIS BinaryFile";
+    constexpr std::size_t sabMarkerLength = sizeof(sabMarker) - 1u;
+
+    for (const PendingModelerDataStorageReplay& pending :
+         m_pendingModelerDataStorageReplay) {
+        if (pending.modelerHandle == 0 || pending.recordHandle == 0
+            || pending.recordHandleKey.empty() || pending.payload.empty()
+            || pending.payload.size()
+                   > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+            || !pending.hasPayloadMarker
+            || pending.payloadMarkerSection != "datastore"
+            || pending.payloadMarkerLength != sabMarkerLength
+            || pending.payloadMarkerOffset > pending.payload.size()
+            || sabMarkerLength
+                   > pending.payload.size() - pending.payloadMarkerOffset
+            || !std::equal(sabMarker, sabMarker + sabMarkerLength,
+                pending.payload.begin() + pending.payloadMarkerOffset)
+            || !modelerHandles.insert(pending.modelerHandle).second
+            || !recordHandles.insert(pending.recordHandle).second
+            || !recordHandleKeys.insert(pending.recordHandleKey).second)
+            return false;
+
+        const DRW_DataStorageRecord* byHandle =
+            section->findRecordByHandle(pending.recordHandle);
+        const DRW_DataStorageRecord* byKey =
+            section->findRecordByHandleKey(pending.recordHandleKey);
+        DataStoragePayloadInspection payloadInspection;
+        if (byHandle == nullptr || byKey == nullptr || byHandle != byKey
+            || byHandle->handle != pending.recordHandle
+            || byHandle->handleKey != pending.recordHandleKey
+            || !byHandle->isHandleSafe
+            || byHandle->segmentIndex != pending.segmentIndex
+            || byHandle->schemaIndex != pending.schemaIndex
+            || !inspectDataStorageRecordPayload(
+                sectionBytes, sectionByteLength, *section, *byHandle,
+                &pending.payload, payloadInspection)
+            || payloadInspection.hasAcisMarker != pending.hasPayloadMarker
+            || (payloadInspection.hasAcisMarker
+                && payloadInspection.acisMarkerOffset
+                       != pending.payloadMarkerOffset)
+            || (payloadInspection.hasAcisMarker
+                ? (pending.payloadMarkerLength != sabMarkerLength
+                    || pending.payloadMarkerSection != "datastore")
+                : (pending.payloadMarkerLength != 0u
+                    || !pending.payloadMarkerSection.empty()))
+            || (byHandle->isBlobReference
+                ? byHandle->blobTotalByteLength != pending.payload.size()
+                : byHandle->dataByteLength != pending.payload.size()))
+            return false;
+
+        const std::size_t recordIndex = static_cast<std::size_t>(
+            byHandle - section->records.data());
+        const auto handleIndexes =
+            section->recordIndexesByHandle.find(pending.recordHandle);
+        const auto keyIndexes =
+            section->recordIndexesByHandleKey.find(pending.recordHandleKey);
+        if (recordIndex >= section->records.size()
+            || handleIndexes == section->recordIndexesByHandle.end()
+            || keyIndexes == section->recordIndexesByHandleKey.end()
+            || handleIndexes->second.size() != 1u
+            || keyIndexes->second.size() != 1u
+            || handleIndexes->second.front() != recordIndex
+            || keyIndexes->second.front() != recordIndex
+            || !boundRecords.insert(byHandle).second)
+            return false;
+
+        // Frame publication rejects duplicate handles, so presence in the
+        // synchronized emitted-handle ledger means exactly one object frame.
+        if (!hasEmittedDwgObjectHandle(pending.modelerHandle))
+            return false;
+
+        std::uint32_t membershipOwner = pending.ownerHandle;
+        if (pending.ownerHandle == DRW::NoHandle
+            || pending.ownerHandle == reservedHandle::BLOCK_MODEL_SPACE) {
+            membershipOwner = reservedHandle::BLOCK_MODEL_SPACE;
+        } else if (pending.ownerHandle
+                   == reservedHandle::BLOCK_PAPER_SPACE) {
+            membershipOwner = reservedHandle::BLOCK_PAPER_SPACE;
+        }
+        if (m_blockOwnedEntityHandles.count(
+                std::make_pair(membershipOwner, pending.modelerHandle)) == 0u)
+            return false;
+    }
+
+    // A marker-bearing payload that the old retaining parse would have copied
+    // must have exactly one typed modeler peer; otherwise the writer would
+    // silently reproduce an orphan solid or attach it by encounter order.
+    std::size_t eligiblePayloadBytes = 0;
+    const bool sectionFitsRetentionCap = sectionByteLength
+        <= DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP;
+    for (const DRW_DataStorageRecord& record : section->records) {
+        const std::uint64_t payloadLength = record.isBlobReference
+            ? record.blobTotalByteLength : record.dataByteLength;
+        const bool payloadWouldHaveBeenRetained = sectionFitsRetentionCap
+            && payloadLength
+                   <= DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
+                       - eligiblePayloadBytes;
+        if (!payloadWouldHaveBeenRetained)
+            continue;
+        eligiblePayloadBytes += static_cast<std::size_t>(payloadLength);
+        DataStoragePayloadInspection payloadInspection;
+        if (!inspectDataStorageRecordPayload(
+                sectionBytes, sectionByteLength, *section, record, nullptr,
+                payloadInspection))
+            return false;
+        if (payloadInspection.hasAcisMarker
+            && boundRecords.count(&record) == 0u)
+            return false;
+    }
+    return true;
+}
+
+bool dwgWriter15::hasEmittedDwgObjectHandle(std::uint32_t handle) const {
+    return m_emittedDwgObjectHandles.find(handle)
+        != m_emittedDwgObjectHandles.end();
+}
+
+bool dwgWriter15::publishDwgObjectMapEntry(
+    std::uint32_t handle, std::uint32_t frameOffset) {
+    const auto inserted = m_emittedDwgObjectHandles.insert(handle);
+    if (!inserted.second)
+        return false;
+    try {
+        m_objectMap.emplace_back(handle, frameOffset);
+    } catch (...) {
+        m_emittedDwgObjectHandles.erase(inserted.first);
+        throw;
+    }
     return true;
 }
 
@@ -5510,13 +7484,10 @@ std::uint16_t dwgWriter15::fileCodePageId() const {
 }
 
 void dwgWriter15::finishObject() {
-    // Reject a duplicate before writing another frame.  The HANDLES pass also
-    // validates uniqueness, but admitting the frame here would leave the
-    // object stream and ownership bookkeeping inconsistent after failure.
-    if (std::any_of(m_objectMap.cbegin(), m_objectMap.cend(),
-                    [this](const auto& entry) {
-                        return entry.first == m_currentHandle;
-                    })) {
+    // Reject a duplicate before writing another frame. The final HANDLES pass
+    // retains its independent uniqueness validation as a defense-in-depth
+    // check on the serialized object map.
+    if (hasEmittedDwgObjectHandle(m_currentHandle)) {
         m_frameWriteError = true;
         return;
     }
@@ -5541,7 +7512,13 @@ void dwgWriter15::finishObject() {
         m_frameWriteError = true;
         return;
     }
-    const std::uint32_t dataBitCount = m_objectBody.bitCount();
+    const std::uint64_t dataBitCount64 = m_objectBody.bitCount();
+    if (dataBitCount64 > std::numeric_limits<std::uint32_t>::max()) {
+        m_frameWriteError = true;
+        return;
+    }
+    const std::uint32_t dataBitCount =
+        static_cast<std::uint32_t>(dataBitCount64);
 
     std::uint64_t mergedHandleBaseBit = 0;
     if (stagedLegacyHandles) {
@@ -5632,7 +7609,17 @@ void dwgWriter15::finishObject() {
         m_objectHandles.reset();
         return;
     }
-    m_objectMap.emplace_back(m_currentHandle, frameStart);
+    if (!publishDwgObjectMapEntry(m_currentHandle, frameStart)) {
+        m_buf.truncate(frameStart);
+        m_frameWriteError = true;
+        m_currentHandle = 0;
+        m_objectStrings.reset();
+        m_objectHandles.reset();
+        m_lastDwgObjectFrame = {};
+        m_lastDwgObjectFrameValid = false;
+        m_currentDwgObjectFrameProvenance = {};
+        return;
+    }
     markDwgClassInstanceEmitted(m_currentHandle);
     m_currentHandle = 0;
     m_objectStrings.reset();
@@ -5776,10 +7763,11 @@ bool dwgWriter15::writeDwgHandles() {
 
 bool dwgWriter15::validateEmittedHandleMap(std::uint32_t& maxHandle) const {
     maxHandle = 0;
-    std::set<std::uint32_t> handles;
+    if (m_emittedDwgObjectHandles.size() != m_objectMap.size())
+        return false;
     for (const auto& entry : m_objectMap) {
         if (entry.first == 0 || entry.second >= m_buf.size()
-            || !handles.insert(entry.first).second)
+            || !hasEmittedDwgObjectHandle(entry.first))
             return false;
         maxHandle = std::max(maxHandle, entry.first);
     }
@@ -5796,12 +7784,7 @@ bool dwgWriter15::validateDwgClassInstanceFrames() const {
         const auto owner = m_dwgClassInstanceHandleOwners.find(handle);
         if (owner == m_dwgClassInstanceHandleOwners.end())
             return false;
-        std::size_t frameCount = 0;
-        for (const auto& entry : m_objectMap) {
-            if (entry.first == handle)
-                ++frameCount;
-        }
-        if (frameCount != 1)
+        if (!hasEmittedDwgObjectHandle(handle))
             return false;
     }
     return true;
@@ -5821,9 +7804,10 @@ bool dwgWriter15::writeSecondHeader() {
     }
 
     const std::vector<std::uint8_t> auxHeader = buildR2000AuxHeaderContent(m_header);
+    if (auxHeader.empty())
+        return false;
     m_sectionOffsets[recno::AUXHEADER] = static_cast<std::uint32_t>(m_buf.size());
-    if (!auxHeader.empty())
-        m_buf.putBytes(auxHeader.data(), auxHeader.size());
+    m_buf.putBytes(auxHeader.data(), auxHeader.size());
     m_sectionSizes[recno::AUXHEADER] = static_cast<std::uint32_t>(auxHeader.size());
     return true;
 }

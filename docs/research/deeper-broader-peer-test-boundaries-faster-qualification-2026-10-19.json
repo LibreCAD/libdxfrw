@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer test boundaries and faster qualification selection",
+  "mode": "Primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare current LibreDWG capability disclosures with its explicit test-coverage and version-fallback notes.",
+    "Reconcile ezdxf strict parsing, recovery/audit, owner binding, and ACIS payload authoring boundaries.",
+    "Refresh GDAL DXF binary input, geometry projection, 3D carrier, and writer-version boundaries.",
+    "Review the LibreDWG fuzz/regression workflow for a low-frequency security-checkpoint practice.",
+    "Refine existing implementation gates without new fixtures, dependencies, peer execution, or validation cadence."
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG manual",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "evidence": "The approximate coverage headline coexists with explicit missing test-coverage entity/object lists and a note that some unhandled types remain opaque blobs without DXF codes."
+    },
+    {
+      "name": "LibreDWG NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "evidence": "NEWS records the R2004 DWG writer addition and states that R2007 output falls back to R2010 rather than direct R2007 encoding."
+    },
+    {
+      "name": "ezdxf loading design",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst",
+      "evidence": "DXF loading separates raw structure/tag binding from section/layout construction and owner linking; the design also describes resource repair and orphan cleanup behavior."
+    },
+    {
+      "name": "ezdxf recovery guide",
+      "url": "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+      "evidence": "Recovery/audit is a separate route from ordinary strict loading and can produce repaired output."
+    },
+    {
+      "name": "ezdxf ACIS entity authoring guide",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "evidence": "ACIS entity factory methods exist, but creation of required ACIS data is delegated to an external library."
+    },
+    {
+      "name": "GDAL DXF driver documentation",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "evidence": "Binary DXF read support starts at GDAL 3.12; DXF output is AutoCAD 2004 and feature-based; AC1027+ 3D extensible mode exposes raw ASM plus transform, while default mode skips those modeler entities."
+    },
+    {
+      "name": "LibreDWG AFL++ fuzz setup",
+      "url": "https://github.com/LibreDWG/libredwg-fuzz",
+      "evidence": "The setup separates route-specific fuzz targets, classifies crashes/hangs/leaks, and replays prior regressions through dedicated scripts."
+    }
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-test-boundaries-faster-qualification-2026-10-19.json"
+    ],
+    "limitations": "Peer documentation is mutable and describes declared behavior, not runtime results for a pinned artifact. Recovery success, OGR projection, and opaque pass-through are not strict CAD-object or semantic support evidence."
+  },
+  "localCrosswalk": {
+    "PAR-07/S8": "Keep strict independent DXF reopen separate from recovered/audited reopen; preserve input hashes and repair logs for diagnostic recovery; finish local generated profile-specific reference-remap tests before the existing composed independent-reopen gate.",
+    "DXF-writer": "Key support by exact version, direction, family, strict/recovery mode, raw/projected representation, and observed output version. Do not use GDAL OGR output or optional unhandled-code fields as full-fidelity serializer evidence.",
+    "GDAL": "Optional generated explicit-geometry projection and AC1027+ raw ASM/transform check only; record pinned version/options and source identity/disposition; Binary DXF route requires GDAL >=3.12.",
+    "security": "Use peer fuzz methodology only at the existing composed hostile-input/security checkpoint; no peer fuzz or full-suite run per fast implementation slice.",
+    "compatibility": "Preserve LibreCAD and LibreCAD_3 2D behavior while keeping optional 3D carrier and semantic claims distinct.",
+    "externalEvidence": "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  },
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-07/S8 strict reopen, modeler carrier, and consumer evidence",
+      "versioned DWG/DXF read/write capability matrix",
+      "optional GDAL geometry-projection and raw-carrier checkpoint",
+      "hostile-input/security composed checkpoint",
+      "LibreCAD and LibreCAD_3 compatibility boundary"
+    ],
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "localTestsRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "planSha256": "e6da1500142da861c46358078c257dc58ba39a47f8afa85d5ce526a99d672e37"
+  }
+}

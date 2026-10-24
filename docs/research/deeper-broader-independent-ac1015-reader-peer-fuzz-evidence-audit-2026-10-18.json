@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader independent AC1015 reader and peer fuzz-evidence audit",
+  "mode": "primary-source repository and issue research with local plan crosswalk",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen a newly surfaced open-source DWG reader for exact format/version/direction scope and independent evidence value",
+    "Check a recent public report about current fuzz-harness reach for the GDAL/libopencad peer route",
+    "Reconcile current LibreCAD source-inventory and synchronization documentation with existing migration-plan controls",
+    "Refine optional comparator readiness without changing implementation order or per-slice validation cadence"
+  ],
+  "method": {
+    "kind": "Read primary repository documentation, release metadata, a public issue report, and the current plan; no peer source checkout or execution",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "AGENTS.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "IFCX parser source, license/clean-room documentation, sample corpus, and per-record outputs were not independently audited or executed. Its stated 223-entity result and parser lineage are project claims. GDAL issue #15281 is an author-reported coverage snapshot; the OSS-Fuzz state was not independently queried or reproduced. LibreCAD inventory/sync documentation is a mutable target self-report and not an independent semantic result."
+  },
+  "sources": [
+    {
+      "project": "OpenAEC-Foundation/Ifc-Factory",
+      "urls": [
+        "https://github.com/OpenAEC-Foundation/Ifc-Factory/releases/tag/v0.1.0",
+        "https://github.com/OpenAEC-Foundation/Ifc-Factory/blob/main/README.md"
+      ],
+      "revision": "v0.1.0 release page identifies commit 3d5679d; mutable README also reviewed",
+      "observed": "Project claims from-scratch parsers without LibreDWG, ezdxf, or ODA SDK dependencies; its supported-format table lists DWG read at R2000/AC1015 only and no DWG writer, and its README reports 223 entities parsed from example_2000.dwg. The release includes multiple language ports from the same project family.",
+      "limits": "No source audit or peer execution was performed. The corpus, hashes, licensing/provenance artifacts, per-entity diagnostics, handle/owner output, expected values, and parser-language implementation relationships remain unverified. No modern DWG, DWG writing, AcDs/SAB, or B-rep capability was established."
+    },
+    {
+      "project": "OSGeo/gdal issue #15281 and GDAL CAD driver",
+      "urls": [
+        "https://github.com/OSGeo/gdal/issues/15281",
+        "https://gdal.org/en/stable/drivers/vector/cad.html"
+      ],
+      "revision": "Open issue report and mutable stable driver documentation reviewed 2026-10-18",
+      "observed": "The issue author reports a zero-coverage OSS-Fuzz snapshot for the CAD/libopencad target after a corpus issue, and 0.6% coverage for the full driver. GDAL documents the CAD route as read-only and libopencad-based, separate from its ODA-backed DWG route and independent DXF driver.",
+      "limits": "Coverage data was not independently obtained or reproduced. It does not demonstrate a parser defect, vulnerability, or local libdxfrw finding. Driver output is a projection, not a complete graph or semantic CAD oracle."
+    },
+    {
+      "project": "LibreCAD/LibreCAD generated DWG/DXF coverage inventory and LibreCAD/libdxfrw sync guide",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+        "https://github.com/LibreCAD/libdxfrw/blob/master/LIBRECAD_SYNC.md"
+      ],
+      "revision": "Mutable master documents reviewed 2026-10-18; exact target pins are recorded in the repository sync guide",
+      "observed": "The inventory labels itself source registration rather than byte-level conformance and distinguishes route presence from fixture-needed evidence. The sync guide documents immutable source/baseline pins and separates fast tests from writer matrix, fuzz, sanitizer, and consumer checkpoints.",
+      "limits": "These documents describe the migration target and its own process. They are not independent parser runs, native CAD outcomes, or semantic support evidence. The existing local plan already includes the inventory, sync-pin, and composed-gate rules, so no duplicate migration task was added."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newWatchlistCandidates": [
+      "OpenAEC Foundation IFCX — optional AC1015/R2000 reader differential only, contingent on exact source/build/sample/manifest audit",
+      "GDAL/libopencad fuzz status — source-reported hardening context only; require current target reach and corpus evidence before counting fuzz coverage"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "routineValidationAdded": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Keep IFCX off the implementation critical path and admit it only for a named AC1015 question at an existing composed comparator checkpoint. Select one exact language port; do not multiply independence by project ports. Compare per-record values, identity, owner, warnings, and dispositions to an independently authored manifest. Treat #15281 as an unverified external coverage report; no coverage credit without exact target revision, nonempty hash-bound corpus, coverage artifact/date, and replay path. Preserve all current support and external-J statuses.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check for DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The worktree has extensive pre-existing user modifications. This research pass edited only the parity plan and created this receipt; no code/tests were changed, and no files were staged or committed."
+  }
+}

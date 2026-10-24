@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-research-audit-receipt",
+  "date": "2026-10-16",
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "fafb341a45209c4657f04dca332bb079e7f168a9b4c05be5122c0d8b43b7decf"
+  },
+  "question": "Can the exact target and standalone adapters generate an opaque DWG OBJECT control without adding a stored drawing fixture, and what can each side truthfully observe on readback?",
+  "evidence": {
+    "standalone": {
+      "sourceCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+      "publicApi": [
+        "src/libdwgr.h:709 registerRawDwgObjectClass",
+        "src/libdwgr.h:712 writeRawDwgObject",
+        "src/libdwgr.h:800 getReadObservations"
+      ],
+      "readObservation": "available"
+    },
+    "lockedLibreCADTarget": {
+      "sourceCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+      "sourceSnapshot": "/private/tmp/libdxfrw-readback-control-20261016.JOory8/target/sources/7892fd2f35ff9ccf0b60eed13dfcb2bec818d40785b77661ddea86aa0a7d2139/libdxfrw/libraries/libdxfrw/src/libdwgr.h",
+      "publicApi": [
+        "libdxfrw/libraries/libdxfrw/src/libdwgr.h:566 registerRawDwgObjectClass",
+        "libdxfrw/libraries/libdxfrw/src/libdwgr.h:567 writeRawDwgObject"
+      ],
+      "readObservation": "unavailable; no getReadObservations declaration in locked public header"
+    },
+    "implementationConstraints": [
+      "The raw replay writer accepts source-version-bound DRW_UnsupportedObject bodies and class metadata; a synthetic object must include a valid, bounded object-type/handle/common-header body, not arbitrary payload bytes.",
+      "For an unknown custom class, standalone read observations can report skipped class/object names and frame coverage; target evidence is limited to read result, callbacks/carriers, and explicit unavailable observation capability.",
+      "The generated control should be temporary and self-cleaning; do not add an external DWG fixture or treat opaque preservation as typed semantic support."
+    ]
+  },
+  "method": {
+    "standaloneHeaderReviewed": "src/libdwgr.h",
+    "lockedTargetHeaderReviewed": true,
+    "targetSourceCommitFromBuilderReceipt": "2043e5254fbf71729e97bd54e48a184153161ff2",
+    "externalPeerExecution": false,
+    "newFixtureOrDependency": false
+  },
+  "result": {
+    "generationPath": "available in both public API snapshots via raw custom-object class registration and replay",
+    "readbackComparison": "asymmetric: standalone can assert counters; target must assert only observable callback/read behavior and report counters unavailable",
+    "qualification": "not-run; API presence is readiness evidence only",
+    "supportClaimsPromoted": false,
+    "externalJItemsChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next": "Implement a generated, ODA-layout-conformant custom OBJECT body only after confirming the minimal raw frame with the authoritative DWG spec and the existing writer's frame validator; make the test capability-aware and non-promoting on the locked target."
+}

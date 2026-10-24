@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw-new-peer-route-screen-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the open-source DWG/DXF peer survey to newly surfaced downstream 2D and explicit-mesh consumers, verify route lineage and the claimed 3D boundary from primary repository sources, and update the existing parity and 3D plans without adding validation burden.",
+  "method": {
+    "kind": "Read-only primary-source web research and local plan cross-check",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/backkem/codecad",
+      "https://github.com/backkem/codecad/blob/main/docs/architecture.md",
+      "https://github.com/backkem/codecad/blob/main/crates/cadview-core/Cargo.toml",
+      "https://github.com/Hbradroc/DXF2CAD",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/iyulab/uncad/blob/main/Cargo.toml",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/hakanaktt/acadrust"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing peer-lineage, parser/projection, explicit-mesh, ACIS/ACDS, and consumer-qualification entries",
+      "DWG_DXF_3D_SUPPORT_PLAN.md: existing modeler carrier, independent semantic evidence, and native FreeCAD qualification gates"
+    ],
+    "evidenceRule": "Project README, mutable source, dependency declarations, and self-reported coverage describe only their stated route. Distinguish parser lineage, entity scope, projection/tessellation, ACIS carrier handling, B-rep semantics, native consumer behavior, and independently authored expected values. An omitted entity family or unsupported matrix row is a bounded route exclusion, not evidence of behavior elsewhere."
+  },
+  "evidence": [
+    {
+      "topic": "New CodeCAD application route is same-lineage and 2D-scoped",
+      "sources": [
+        "https://github.com/backkem/codecad",
+        "https://github.com/backkem/codecad/blob/main/docs/architecture.md",
+        "https://github.com/backkem/codecad/blob/main/crates/cadview-core/Cargo.toml"
+      ],
+      "observed": "The README reports a browser DWG viewer/editor and self-reported modelspace/block entity coverage percentages. The architecture explicitly identifies ACadRust as its DWG reader; the core manifest declares acadrust = \"0.3\". Its published coverage inventory maps a bounded set of line, curve, text, hatch, insertion, and spline entities into 2D kurbo paths. The reviewed pages do not bind the percentages to exact corpus hashes/denominators or document 3DSOLID/REGION/BODY/SAB semantics.",
+      "doesNotEstablish": [
+        "an independent DWG parser or a second vote relative to ACadRust/OpenCADStudio",
+        "coverage of 3DSOLID, REGION, BODY, ACDSDATA, or SAB ownership",
+        "independent geometry semantics or native CAD acceptance",
+        "a reproducible coverage denominator from the README percentages"
+      ],
+      "planUse": "Classify CodeCAD as an ACadRust-lineage 2D viewer candidate only. Do not add it as a required test or semantic oracle. If browser rendering later fills a named consumer gap, pin exact source/build/lockfile and input identity, and report its entity disposition rather than its headline coverage percentages."
+    },
+    {
+      "topic": "New DXF2CAD route excludes ACIS and emits mesh-derived surfaces",
+      "sources": [
+        "https://github.com/Hbradroc/DXF2CAD"
+      ],
+      "observed": "The project README says DXF input is parsed through ezdxf and supports 3DFACE, MESH, PFACE/POLYMESH, and recursive INSERT expansion. It explicitly excludes 3DSOLID, BODY, and REGION ACIS blobs. The described export creates STL triangles or planar STEP/IGES faces; the STEP part is represented as an OPEN_SHELL. Vertex stitching/tolerance options can change component connectivity.",
+      "doesNotEstablish": [
+        "ACIS payload parsing or 3DSOLID/BODY/REGION consumer support",
+        "closed-solid B-rep validity or curved-surface preservation",
+        "an independent DXF parser, since the route uses ezdxf",
+        "owner/block/handle graph preservation through mesh expansion"
+      ],
+      "planUse": "Classify as an optional ezdxf-lineage explicit-mesh projection only. Do not count STEP readability or a generated mesh as solid or ACIS evidence. Consider a run only for a future named mesh-projection question, with face/vertex/transform inventory and stitching options captured; otherwise exclude it to keep the composed validation set small."
+    },
+    {
+      "topic": "Previously tracked peers rechecked with no new gate",
+      "sources": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/blob/main/Cargo.toml",
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/kernalix7/CADKernel#supported-file-formats",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "uncad remains a read-only application wrapper with DWG through LibreDWG FFI and DXF through undxf. dwg-rs remains a separately implemented, explicitly pre-alpha ODA-spec-based reader with project-reported per-version counts. CADKernel's detailed ACIS SAT/SAB row marks reading and writing unsupported despite broader format headlines. OpenCADStudio remains ACadRust-codec lineage with a separate early kernel path.",
+      "doesNotEstablish": [
+        "a new independent route beyond the plan's existing comparator matrix",
+        "ACIS/ACDS semantic support or the native FreeCAD Linux/Windows gate",
+        "a local defect or support promotion"
+      ],
+      "planUse": "Reuse existing route entries and evidence grades. Do not duplicate peer jobs or change implementation order."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

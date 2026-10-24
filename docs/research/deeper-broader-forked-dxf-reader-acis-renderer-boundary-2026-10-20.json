@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Follow-up on forked DXF candidate and ACIS renderer evidence boundary",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Re-audit the already inventoried open-source DXF reader/writer and sharpen its source-lineage limits",
+    "Inspect its DWG checking/conversion path for independent evidence value",
+    "Separate a documented ACIS/SAB edge projection from full B-rep semantics",
+    "Clarify optional peer admission without changing implementation order or validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "kedazo/dxf-go package documentation",
+      "reference": "https://pkg.go.dev/github.com/kedazo/dxf-go",
+      "status": "current_published_package_documentation_snapshot",
+      "observation": "The README declares text/binary DXF read/write from R12 to AC1032 and lists typed entity/model families plus UnknownEntity raw group-code retention. It explicitly identifies the project as a fork of ixmilia/dxf-go. The UnknownEntity API docs warn application group 102 and some OBJECTS references may not survive writing. The indexed v0.3.3 page says that version is not the latest module version; no package was downloaded, and no immutable current source commit was resolved or run."
+    },
+    {
+      "project": "kedazo/dxf-go dxfcheck documentation",
+      "reference": "https://pkg.go.dev/github.com/kedazo/dxf-go",
+      "status": "current_published_tool_documentation_snapshot",
+      "observation": "The package README says cmd/dxfcheck converts DWG and DWG xrefs with LibreDWG dwg2dxf and checks conversion against DWG entity counts using LibreDWG tools, including dwgread. This is useful as a conversion omission diagnostic but does not provide an independent DWG implementation or semantic oracle."
+    },
+    {
+      "project": "ProCad repository README",
+      "reference": "https://github.com/wieslawsoltes/ProCad",
+      "status": "current_repository_readme_snapshot",
+      "observation": "The README identifies ProCad.IO as ACadSharp-backed DWG/DXF load/save. It is an ACadSharp-derived application/consumer route, not an independent DWG/DXF codec."
+    },
+    {
+      "project": "ProGPU CAD architecture document",
+      "reference": "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+      "status": "mutable_architecture_document_snapshot",
+      "observation": "The architecture document states that ACadSharp owns the file-format object model; this assigns ProGPU's primary drawing IO route to ACadSharp lineage. The document was read but the repository was not cloned or executed."
+    },
+    {
+      "project": "ProGPU DXF and SAB technical document",
+      "reference": "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+      "status": "mutable_technical_document_snapshot",
+      "observation": "The document describes AcisSabParser scanning raw SAB tokens, isolating edge records, tracing vertices to points, and emitting Acis3dEdge start/end pairs for projection. The reviewed description does not establish full shell/face/loop/coedge/surface semantics, B-rep validity, solid operations, or analytic expected-volume validation. This is an edge-projection research lead only."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Refined the existing PAR-07/S8 optional comparator route ledger: kedazo/dxf-go is an IxMilia-derived DXF-only route; its DWG diagnostics depend on LibreDWG; ProCad/ProGPU drawing IO is ACadSharp-backed; and ProGPU's documented SAB path is limited to edge projection evidence. No local defect or support claim was added.",
+    "nextImplementation": "Continue the existing local-ready implementation queue. No peer run, dependency, or external qualification prerequisite is added.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-forked-dxf-reader-acis-renderer-boundary-2026-10-20.json"
+    ],
+    "limitations": "GitHub and pkg.go.dev pages are mutable documentation snapshots. The exact latest kedazo/dxf-go package-to-commit mapping was not established and no package was downloaded or run. ProGPU's SAB description is a project-authored algorithm scope document, not an independent validation result."
+  },
+  "validation": {
+    "planEdit": "Added the fork/lineage and ACIS edge-projection boundaries to the plan, with implementation-ready admission steps that preserve the current order and fast-validation cadence.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; new receipt trailing-whitespace scan found no matches",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

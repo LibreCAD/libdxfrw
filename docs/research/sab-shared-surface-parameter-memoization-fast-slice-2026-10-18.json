@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "7S.3/S3.7 shared-surface parameter memoization",
+  "planOwner": "PAR-07/S8; 7S.3/S3.7 bounded SAB extraction work",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": [
+    "Memoize the immutable scalar parameter projection of shared ACIS surface nodes within one wireframe extraction",
+    "Preserve ordered per-face projections and the existing surface parser's partial/default behavior",
+    "Add generated shared-surface work and exact/one-under budget controls to the existing test owner"
+  ],
+  "changedFiles": [
+    "src/drw_acis.cpp",
+    "tests/graph_preservation_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "behavior": {
+    "cacheKey": "source surface node index within one extractAcisWireframeImpl invocation",
+    "cachedData": "surfaceType, hasSurface, p0/p1/p2, hasUDir, ratio, sineAngle, cosineAngle, majorRadius, minorRadius from the existing surfaceParams routine",
+    "outputOrderChanged": false,
+    "perFaceRowsDeduplicated": false,
+    "surfaceParsingSemanticsChanged": false,
+    "transformUnitsTopologyOrValidityPolicyChanged": false,
+    "budgeting": "one maxOutputItems unit per distinct referenced surface cache entry, charged before parsing and insertion; this bounds cache entry count, not allocator bytes or RSS"
+  },
+  "generatedControls": {
+    "input": "In-memory ACIS 21800 SAB with one shared plane-surface and one or eight face records referencing it",
+    "assertions": [
+      "Each output face remains present in source order",
+      "Each face retains plane type, hasSurface, origin (1,2,3), normal (0,0,1), U direction (1,0,0), and hasUDir",
+      "Eight-face extraction work exceeds the one-face case but remains below eight times the one-face baseline",
+      "Exact extraction-work and output-item limits admit the projection",
+      "One-under extraction-work limit refuses and clears caller-visible output"
+    ],
+    "measurementLimit": "Deterministic extraction-work counter only; no wall-clock benchmark"
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp"
+    ],
+    "buildPassed": true,
+    "testExecutablePassed": true,
+    "owningCTest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.57
+    },
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextLocalAction": "Extend the existing per-loop projection cache to retain a loop's resolved next-loop index as well as its coedge-ring count; preserve per-face loop rows and cycle guards, and validate with the existing generated shared 4x4 loop graph.",
+  "workingTree": {
+    "preExistingBroadChangesPreserved": true,
+    "unrelatedChangesStaged": false,
+    "commitCreated": false,
+    "reasonUncommitted": "The shared worktree contains broad overlapping user changes; no isolated commit could be made safely."
+  }
+}

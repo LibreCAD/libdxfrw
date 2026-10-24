@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-implementation-slice-receipt",
+  "date": "2026-10-16",
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "191a014e976f506e63271470dcb0ff2ed1677474923501b7e849bacbb0d424fe"
+  },
+  "slice": "7F.1b generated partial DWG readback control",
+  "change": {
+    "adapterFile": "tests/semantic_differential_adapter.cpp",
+    "adapterSourceDigest": "dfa423ac5f08d785e02bc7f5c87c0dcbe281f6f712969ef0cd8bc70dab2953ff",
+    "behavior": "linked adapter self-tests generate an AC1027 DWG from a deliberately malformed HATCH followed by a LINE, read it back, and verify actual parse disposition, callbacks, and observation capability without saving a repository fixture",
+    "temporaryArtifact": "partial-readback.dwg is created in a unique system temporary directory and removed by RAII"
+  },
+  "observations": {
+    "standalone": {
+      "sourceCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+      "adapterBinarySha256": "0ad029e239cb66074a6b905b0d43fa16a7728174aae965f4a43a686e3bbac99c",
+      "staticLibrarySha256": "f275c6d2c529a073966a591f120c5429c7293a6cd6526ebf266be23615cff3f0",
+      "readDisposition": "operation succeeded; one entity parse failure; finalized-partial frame coverage; following LINE callback retained; malformed HATCH callback absent"
+    },
+    "lockedLibreCADTarget": {
+      "sourceCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+      "adapterBinarySha256": "3551cdfaeca0907f60bd8f5b1ab773fd86e741cf2e543e5837ad0d277c23c1c9",
+      "staticLibrarySha256": "420ed2409d1811908ae3ec02935405dcc7a75522829118695897895e8f5acd03",
+      "readDisposition": "operation failed at BAD_READ_BLOCKS (numeric 10); target read-observation API absent; envelope reports unavailable/readerApiNotPresent and sourceVersion AC1027",
+      "compileContractMode": "direct-options-only",
+      "compileContractEnforced": false
+    },
+    "interpretation": "malformed-input harness control and implementation difference only; not a valid-format witness, target/standalone semantic parity result, or support evidence"
+  },
+  "validation": {
+    "targetLinkedAdapterSelfTest": "pass",
+    "standaloneLinkedAdapterSelfTest": "pass",
+    "runnerSelfTest": "pass",
+    "pythonBytecodeCompilation": "pass",
+    "gitDiffCheck": "pass",
+    "fullTestSuiteRun": false,
+    "fixtureAdded": false,
+    "testRegistrationAdded": false,
+    "dependencyAdded": false
+  },
+  "qualification": {
+    "pairedDifferentialRun": "not-run",
+    "supportClaimsPromoted": false,
+    "externalJItemsChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next": "Add an opaque-object readback sentinel only when a real public write path can generate the object and the compared build can truthfully expose its read disposition; otherwise preserve explicit unavailable capability rather than synthesizing observation data."
+}

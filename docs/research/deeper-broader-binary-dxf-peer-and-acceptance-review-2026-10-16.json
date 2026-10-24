@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-deeper-broader-binary-dxf-peer-and-acceptance-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Screen an additional binary-DXF-only parser, refresh the DXF writer-versus-application acceptance boundary, and recheck the status of the BRL-CAD POLYFACE safety lead without promoting claims or introducing runtime dependencies.",
+  "method": {
+    "kind": "Public primary project repositories and package documentation",
+    "sourcesOpened": [
+      "https://github.com/xorgy/dxfscan",
+      "https://docs.rs/dxfscan/0.1.0/dxfscan/",
+      "https://docs.rs/dxfscan/0.1.0/dxfscan/all.html",
+      "https://github.com/ixmilia/dxf",
+      "https://github.com/BRL-CAD/brlcad/issues/228"
+    ],
+    "repositoriesCloned": false,
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "evidenceBoundary": "The review is static documentation/source-page research only. No exact source commit or crate archive checksum was captured for dxfscan, no parser output was inspected, and no output was opened by AutoCAD or another native CAD application. Peer feature descriptions are candidate-route metadata, not reproduced conformance."
+  },
+  "evidence": [
+    {
+      "topic": "dxfscan as a distinct binary-DXF-only parser candidate",
+      "sources": [
+        "https://github.com/xorgy/dxfscan",
+        "https://docs.rs/dxfscan/0.1.0/dxfscan/",
+        "https://docs.rs/dxfscan/0.1.0/dxfscan/all.html"
+      ],
+      "observed": "The public repository describes an ISC-licensed Rust parser accepting binary DXF R13+ and producing a single-pass, zero-copy, no_std-compatible typed drawing model. Its listed entity subset includes common geometry, INSERT, DIMENSION, LEADER, HATCH, WIPEOUT, ATTRIB and ATTDEF; its model includes lookup indices for layers, styles, blocks and entity handles, and an Entity::Unknown variant. The GitHub page lists one commit and no GitHub releases, while docs.rs exposes crate version 0.1.0.",
+      "doesNotEstablish": [
+        "DWG reading or any DXF writing/conversion route",
+        "full DXF OBJECTS, owner graph, reactor, XDATA, proxy, or unknown-record byte preservation",
+        "correctness across all listed entity versions or malformed-input safety",
+        "independent runtime agreement, application acceptance, or any 3D/ACIS semantics"
+      ],
+      "planUse": "Add only as DISCOVERY_ONLY in the comparator inventory: a possible optional binary-DXF parser cross-check for overlapping common entities after pinning the exact crate checksum and matching source commit. At a single composed checkpoint, compare binary parse results to independently authored literal tags and local expected values; report unsupported/unknown fields as unavailable, not empty or matching. Do not add the crate as a dependency, make it mandatory, treat its type list as support evidence, or block local implementation on it."
+    },
+    {
+      "topic": "IxMilia.Dxf self-documented writer acceptance caveats",
+      "sources": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "The current README states that although the project aims to read DXF R10 through R2014, AutoCAD may reject some output entity classes, explicitly listing 3DSOLID, ACAD_PROXY_ENTITY, ATTRIB/ATTDEF, BODY, REGION, several DIMENSION forms, MTEXT, TOLERANCE and others. It also says R13 output may not open reliably and lists additional entities whose missing required information can prevent opening. The README separately names MESH, MLEADER, SURFACE, TABLE and VIEWPORT as unsupported in its advertised version range.",
+      "doesNotEstablish": [
+        "a reproduced IxMilia defect or libdxfrw defect",
+        "the behavior of every AutoCAD release or another CAD consumer",
+        "that parser/writer route presence is equivalent to consumer acceptance"
+      ],
+      "planUse": "Refine the existing IxMilia comparator row and keep three outcomes separate: serialized output, independent parser readback, and application/consumer acceptance. If the optional route is used, pin the exact release/source, target version and selected entities, capture warnings, and do not count self-round-trip as native acceptance. This confirms existing comparator discipline and creates no new implementation finding."
+    },
+    {
+      "topic": "BRL-CAD dxf-g hostile POLYFACE report status",
+      "sources": [
+        "https://github.com/BRL-CAD/brlcad/issues/228"
+      ],
+      "observed": "The issue page remains open and reports an AddressSanitizer heap over-read in the normal dxf-g import path from attacker-controlled POLYFACE face indices outside the populated vertex pool. The report is not independently reproduced in this review and does not identify a fixed upstream revision.",
+      "doesNotEstablish": [
+        "a libdxfrw vulnerability or valid-file interoperability disagreement",
+        "that every BRL-CAD revision is affected",
+        "a peer result suitable for a malformed-input differential run"
+      ],
+      "planUse": "Retain the existing PAR-37/7V local generated bounds/transactional-rejection controls. Do not send hostile or malformed vectors to dxf-g, and do not count its current unpinned build as a consumer pass. Reconsider only after a specific fixed revision is pinned; any later peer run should use valid locally generated positive controls. No duplicate test or finding is added."
+    }
+  ],
+  "implementationReadiness": {
+    "binaryDxfPeerAdmissionFields": [
+      "exact crate version and archive checksum",
+      "matching source commit/repository license",
+      "binary-DXF-only route and actual ACADVER/version",
+      "entity types decoded, unknown, skipped, or rejected",
+      "handle, block, layer, and owner/reference disposition where exposed",
+      "independently authored expected tag/value manifest",
+      "warnings, exit status, and output hash if a conversion is introduced"
+    ],
+    "cadence": "No per-slice peer installation or run. Consider dxfscan at one composed binary-DXF checkpoint only if an exact pin is easy to establish and the result adds coverage beyond the already available GDAL/ezdxf lanes. Existing strict focused local checks remain the implementation gate.",
+    "acceptanceLanes": [
+      "DXF write and local emitted-wire checks",
+      "independent parser readback",
+      "native CAD/application acceptance",
+      "explicit-geometry projection",
+      "ACIS/ASM carrier and shape semantics"
+    ]
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

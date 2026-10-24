@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 ordered scalar curve fields fail closed",
+  "mode": "Generated parser-fed local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was already broadly modified. This slice changes ACIS scalar-curve projection, generated graph-preservation tests, the two plans, and this receipt only; no files were staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sab21800-ordered-scalar-curve-fields-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": {
+    "peerSource": "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/types.rs.html",
+    "peerObservation": "The mutable docs.rs latest SAT typed-layout page describes straight-curve origin/direction and ellipse-curve center/normal/major-axis/ratio order. It is corroborative record-layout context only; it does not establish exact SAB 21800 tag encodings, is not an immutable release source, and is not normative format authority.",
+    "localFinding": "The scalar curve reader used a scan-ahead token cursor. A malformed recognized 21800 curve could skip a field or remain silently unresolved rather than fail at its record.",
+    "scopeLimit": "Strict ordering applies only to ACIS BinaryFile version 21800 and only to straight-curve and ellipse-curve parameter fields. Either recognized vector tag is accepted to preserve existing stream behavior. Other signatures/versions retain the legacy path; curve evaluation, trims, transforms, topology, and B-rep semantics are unchanged."
+  },
+  "implementation": {
+    "productionChange": "Read two positional vector fields for straight curves and three positional vector fields plus a double for ellipse curves. Refuse a missing or shifted recognized field as InvalidModel, clear rooted output, and report the exact curve node.",
+    "generatedControls": [
+      "Parser-fed valid SAB 21800 straight curve projects its point and direction.",
+      "Parser-fed valid SAB 21800 ellipse curve projects center, frame, and ratio.",
+      "A Literal shifted into the straight-curve first-field position is rejected rather than skipped.",
+      "A Literal shifted into the ellipse-curve normal position is rejected rather than skipped.",
+      "Existing parser-fed straight/ellipse non-finite matrices and shared-root controls continue to run in the owning test."
+    ],
+    "assertions": [
+      "Malformed streams remain valid at the generic SAB framing layer, isolating the curve field reader.",
+      "Both malformed rooted projections refuse with InvalidModel and clear pre-seeded output.",
+      "Both malformed failures identify the exact curve node.",
+      "Positive controls verify the expected scalar/vector fields survive the parser-model-projection path.",
+      "Both LocationVec and DirectionVec are accepted as vector tokens; strictness is positional, not over-specific about vector tag kind."
+    ],
+    "claimBoundary": "Ordered field disposition only. No curve evaluation, edge parameterization, trimming, B-rep validation, producer conformance, broad ACIS semantic support, or native consumer qualification is established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.19 seconds)"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-sab21800-ordered-scalar-curve-fields-fast-slice-2026-10-21.json",
+        "result": "PASS (final scoped check)"
+      },
+      {
+        "command": "jq empty docs/research/s37c-sab21800-ordered-scalar-curve-fields-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "iterationNote": "The first test run after requiring DirectionVec specifically failed three existing generated rooted-vertex cases that encode direction-valued fields with LocationVec. The ordered reader was corrected to accept either vector tag while still refusing non-vector interleaving; the final target build and CTest passed.",
+    "fullSuiteRun": false,
+    "persistentFixtureAdded": false,
+    "testRegistrationAdded": false,
+    "dependencyAdded": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c bounded SAB 21800 rooted ACIS projection",
+    "completedSlice": "Strictly ordered straight/ellipse scalar curve field disposition with transactional malformed-input refusal and exact failure-node reporting.",
+    "nextAction": "Continue the next dependency-ready local S3.7c implementation invariant; keep peer/native semantic qualification at composed checkpoints and do not wait for unavailable external evidence.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    }
+  }
+}

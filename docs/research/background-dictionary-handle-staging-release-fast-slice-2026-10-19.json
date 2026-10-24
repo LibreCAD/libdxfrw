@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Background dictionary handle staging release",
+  "mode": "Local implementation fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Continue the 7S.2c fileExport lifetime census from the next verified post-use writer-owned temporary.",
+    "Release Background dictionary staging storage after transferring its validated handles to the retained extension-handle list.",
+    "Preserve graph validation, handle order, callback ownership, and emitted output behavior."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "changes": [
+      "After collectBackgroundDictionaryGraph succeeds and its dictionary handles have been deduplicated into m_extensionDictionaryHandles, swap the staging vector with an empty vector to release its storage before later export setup and serialization.",
+      "Leave the persistent extension-handle list, Background handles/root entries, failure behavior, and writer callback state unchanged."
+    ],
+    "lastUseAudit": "rg found backgroundDictionaryHandles only at declaration, collector output, merge loop, and the new release point; no read occurs after the merge loop.",
+    "behaviorChange": false,
+    "publicApiOrAbiChange": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "tests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "passed": 1,
+      "failed": 0,
+      "total": 1,
+      "elapsedSeconds": 4.27
+    },
+    "scopedDiffCheck": "PASS"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 139,
+    "topLevelSubplans": 77,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "implementationStatus": "UNCOMMITTED_SHARED_WORKTREE"
+  },
+  "method": {
+    "kind": "Source-level last-use audit plus focused build/CTest verification",
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The owning fixture CTest verifies compatibility over its existing generated controls, not peak memory. The change establishes an earlier storage-release boundary only; it does not close the broader 7S.2c lifetime/projection census."
+  }
+}

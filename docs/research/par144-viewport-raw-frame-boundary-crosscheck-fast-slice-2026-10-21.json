@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 generated VIEWPORT raw-frame boundary cross-check",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a33",
+  "scope": "Generated in-memory writer frames only; no persistent DWG/DXF fixture was created.",
+  "implementation": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "test": "testViewportObjectFrameSerialization",
+    "versions": [
+      "AC1015",
+      "AC1024"
+    ],
+    "checks": [
+      "One committed object-map pair points to the type-34 VIEWPORT frame at offset zero.",
+      "The raw modular-short prefix bounds the exact body and trailing CRC.",
+      "AC1015 object-size bits mark the data/merged-handle boundary; every merged handle token starts at or after the data boundary.",
+      "AC1024 UMC handle-bit count is byte-aligned, equals the frame receipt, and splits the serialized data and handle segments.",
+      "The raw object type is 34 and matches the frame receipt class number.",
+      "Every handle occurrence from the frame receipt is decoded from its serialized segment and matches code, reference, and end bit.",
+      "Exactly one handle-stream code-4 occurrence references the expected owner block handle.",
+      "Stored CRC16 matches the raw prefix plus complete body bytes."
+    ],
+    "notEstablished": [
+      "Final whole-file HANDLES-section bytes or map CRCs.",
+      "Full-file object-map closure.",
+      "Independent producer/reader acceptance.",
+      "Native CAD application behavior or semantic viewport behavior."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --viewport-object-frames",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "seconds": 1.50
+    },
+    "diffCheck": "PASS for scoped plan and test paths",
+    "receiptValidation": "PASS (jq empty)",
+    "fullSuite": "NOT RUN"
+  },
+  "changeManagement": {
+    "persistentFixturesAdded": 0,
+    "externalSamplesDownloaded": 0,
+    "externalDependenciesAdded": 0,
+    "peerRuntimesUsed": 0,
+    "nativeCadAppsRun": 0,
+    "supportClaimsPromoted": false,
+    "commitCreated": false,
+    "commitRationale": "The worktree contains broad mixed changes, and this test depends on existing uncommitted writer/receipt implementation. A partial commit would not build from HEAD; staging broad files would bundle unrelated work."
+  },
+  "planStatus": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextAction": "Add a generated scratch-only final DWG HANDLES-section parser check through normal writer finalization; verify page CRCs, unique handle/offset entries, frame-prefix targets, and equality with emitted frame receipts."
+}

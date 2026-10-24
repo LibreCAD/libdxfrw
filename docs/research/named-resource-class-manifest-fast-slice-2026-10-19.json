@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "slice": "f.4b.1a SCALE and DICTIONARYVAR CLASS manifest",
+  "status": "LOCAL_PARTIAL_COMPLETE",
+  "base_commit": "de27a33",
+  "changes": [
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "a655d1da0afad9151af44b5dec8d88be67ca4d291729dedf19acbe5153460e34",
+      "summary": "Adds canonical SCALE and DICTIONARYVAR CLASS rows using final graph-admitted counts, and validates one successful source-matched named-resource import receipt for all four families at export entry before later preflight work."
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "4f7dfc09d5e147bd3b86e26853a13c6c856e2fb8ed21e55213a83dc1539afd3a",
+      "summary": "Generated ASCII/Binary rooted SCALE and DICTIONARYVAR vectors each contain two leaves and assert exact CLASS instance count 2, identities, values, and owner closure on raw-replay and synthetic typed routes; they reject forged DWG origin without replacing a sentinel, retry on the same adapter with a valid synthetic receipt, and verify the generic group-91 AC1015/AC1018 boundary."
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "ba1bb52c7b2e8ba61c867dc2a7f0af12abd1fee1631882ffcf13fa49651ef128",
+      "summary": "Records the source-origin gap and focused implementation evidence, closes the cardinality-sensitive SCALE/DICTIONARYVAR CLASS group-91 check and generic AC1015/AC1018 wire boundary, and refreshes broader source-inventory, ACIS carrier-loss, silent-writer-omission, FreeCAD route, and lineage qualifications."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS (1/1, 0.08 s; rerun after two-leaf cardinality controls)"
+    },
+    {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    },
+    {
+      "command": "jq empty docs/research/deeper-broader-source-inventory-and-open-source-route-audit-2026-10-19.json",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-source-inventory-and-open-source-route-audit-2026-10-19.json docs/research/named-resource-class-manifest-fast-slice-2026-10-19.json tests/dwg2dxf_adapter_tests.cpp dwg2dxf/dx_iface.cpp",
+      "result": "PASS"
+    }
+  ],
+  "evidence_limits": [
+    "The typed DWG-route serializer control is synthesized from a local DXF control by changing the in-memory source-origin flag; it is not a real DWG-to-DXF output witness.",
+    "Wrong-owner retry controls validate local generated state and same-adapter recovery; they do not qualify a real DWG producer profile.",
+    "The typed DWG-route serializer test uses a synthetic receipt prepared from a local DXF control; it is not a real DWG import or output witness.",
+    "The generic CLASS field boundary is tested at AC1015 and AC1018, but that does not qualify SCALE or DICTIONARYVAR for those target profiles.",
+    "Two-leaf SCALE and DICTIONARYVAR tests defeat a hardcoded one-count result but do not exhaust cardinality, version, producer-profile, or broader root-graph combinations.",
+    "This closes only CLASS metadata/counting and source-origin refusal controls for SCALE and DICTIONARYVAR. Other graph, source-profile, real-DWG, and family gates remain open.",
+    "No full suite, peer executable, native CAD application, or support promotion was performed."
+  ],
+  "commit": {
+    "status": "NOT_COMMITTED",
+    "reason": "The task filesystem grant is read-only for .git metadata."
+  },
+  "external_items": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF OCS arbitrary-axis cutoff focused fast slice",
+  "mode": "local generated test only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise the Y predicate in the Autodesk arbitrary-axis cutoff",
+    "Exercise exact 1/64 equality on the X and Y strict-boundary predicates",
+    "Verify raw and projected OCS values through ASCII and binary DXF"
+  ],
+  "method": {
+    "kind": "Extend existing in-memory generated DXF policy vectors and focused selector",
+    "oracle": "Test-local arbitrary-axis basis transcription; does not call production calculateAxis or extrudePoint",
+    "target": "libdxfrw_dwg_local_roundtrip",
+    "selector": "--dxf-ocs-axis-boundary",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "readModes": ["applyExt=false raw values", "applyExt=true projected values"],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false
+  },
+  "vectors": [
+    {
+      "case": "Y-only below polar cap",
+      "normal": [0.0, 0.01, "sqrt(1 - 0.01^2)"],
+      "purpose": "Exercise Ny independently while Nx is zero"
+    },
+    {
+      "case": "X below and Y exactly at cutoff",
+      "normal": [0.01, "1/64", "sqrt(1 - 0.01^2 - (1/64)^2)"],
+      "purpose": "Verify equality does not take the strict polar-cap branch"
+    },
+    {
+      "case": "X exactly at cutoff and Y below",
+      "normal": ["1/64", 0.01, "sqrt(1 - 0.01^2 - (1/64)^2)"],
+      "purpose": "Verify the other equality edge independently"
+    }
+  ],
+  "results": {
+    "strictTargetBuild": "PASS",
+    "asciiAndBinaryFocusedSelector": "PASS",
+    "rawExtrusionAndCoordinatesRetained": "PASS",
+    "projectedCoordinatesMatchIndependentOracle": "PASS",
+    "arcReflectionExpectation": "PASS",
+    "initialTestFailure": "The first selector run exposed an index-based expected ARC reflection condition inherited by the newly added positive-Z boundary vectors. The test oracle was corrected to use the normalized normal's actual strict axial predicate; no production behavior was changed."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --dxf-ocs-axis-boundary",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp",
+      "jq empty docs/research/dxf-ocs-axis-boundary-fast-slice-2026-10-17.json"
+    ],
+    "focusedSelectorPassed": true,
+    "fullSuiteRun": false,
+    "ctestRegistrationAdded": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

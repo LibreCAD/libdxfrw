@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 duplicate DataIndex target generated fast slice",
+  "mode": "source-backed local implementation slice",
+  "scope": [
+    "Audit duplicate DataStorage DataIndex target handling against ODA v5.4.1 §24.2.2.2–.3",
+    "Lock duplicate-target diagnostics and replay refusal for exact and schema-index-variant rows with generated in-memory bytes",
+    "Reuse the existing AC1027 DataIndex-order fast test and CTest"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "specificationAuthority": "ODA Open Design Specification for .dwg files v5.4.1 §24.2.2.2–.3",
+    "localParserInspected": true,
+    "externalRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "persistentGeneratedDrawingsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testFilesUpdated": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ]
+  },
+  "sources": [
+    {
+      "project": "ODA Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "section": "§24.2.2.2–.3",
+      "observed": "DataIndex rows contain segment index, local offset, and schema index; the data-record algorithm uses each row's local offset to locate a record header containing the object handle and data-local offset.",
+      "limits": "The cited text does not explicitly state that duplicate (segmentIndex, localOffset) tuples are prohibited for every producer. The test records the local conservative ambiguity/replay-safety policy, not a universal normative validity conclusion."
+    },
+    {
+      "project": "Local libdxfrw DataStorage parser",
+      "localFiles": [
+        "src/drw_datastorage.cpp",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "observed": "readDataIndex already emits datastorage-duplicate-data-index-entry and omits a repeated (segmentIndex, localOffset) target tuple, regardless of schemaIndex; its structural diagnostic disables replay. The existing AC1027 generated DataIndex-order test lacked dedicated assertions for exact and schema-index-variant duplicate targets.",
+      "limits": "This slice adds regression coverage only; it does not change production handling, peer qualification, geometry semantics, or the overall support boundary."
+    }
+  ],
+  "decision": {
+    "productionDefectFound": false,
+    "regressionCoverageGapClosed": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "inventory": "141 findings / 78 top-level subplans",
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planDelta": "Added source/spec boundary analysis and generated negative controls for exact duplicate DataIndex tuples and the same physical target with a different schemaIndex. Both assert duplicate-target diagnosis, one omitted index/record, structural invalidity, and replay refusal. The normative gap is documented explicitly: ODA's cited text explains target resolution but does not expressly declare duplicate pairs universally invalid."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2 — passed",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-dataindex-order — passed",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_acds_dataindex_order$' --output-on-failure — 1/1 passed (0.02 s total)",
+    "fullSuiteRun": false,
+    "gitDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dwg_reader_matrix_tests.cpp — passed",
+    "commitCreated": false,
+    "commitBlocker": "No commit attempted; the shared worktree contains extensive unrelated user changes and Git metadata is read-only in this environment."
+  }
+}

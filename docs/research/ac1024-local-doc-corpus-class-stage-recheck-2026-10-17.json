@@ -1,0 +1,136 @@
+{
+  "schema": "libdxfrw-ac1024-local-corpus-stage-recheck-v1",
+  "title": "AC1024 local DWG corpus CLASSES-stage recheck",
+  "date": "2026-10-17",
+  "status": "scoped_non_reproduction",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": "Read-only sweep of existing /Users/dli/doc/dwg/*.dwg files whose first six bytes are AC1024; focused investigation of the historical BAD_READ_CLASSES/high-bit class-string-size report.",
+  "method": {
+    "commandShape": "build-gcc/dwg2dxf/dwg2dxf <input> -o <unique-temporary-output> -d",
+    "converter": "build-gcc/dwg2dxf/dwg2dxf",
+    "converterBuiltAt": "2026-10-17T06:22 local filesystem metadata",
+    "outputsAndLogsDirectory": "/private/tmp/libdxfrw-ac1024-check.szyKGZ",
+    "temporaryOnly": true,
+    "sourceFilesModified": false,
+    "fixturesAdded": 0,
+    "repositoryTestsRun": [
+      {
+        "target": "libdxfrw_dwg_reader_matrix_tests",
+        "result": "built successfully"
+      },
+      {
+        "ctest": "libdxfrw_dwg_reader_matrix",
+        "result": "passed",
+        "count": "1/1",
+        "durationSeconds": 1.75
+      }
+    ]
+  },
+  "summary": {
+    "ac1024Inputs": 9,
+    "badReadClassesFailures": 0,
+    "dwgReadSucceeded": 5,
+    "dwgReadFailedAtBadReadHeader": 4,
+    "classesCrcWarningsAmongBadReadHeader": 4,
+    "dxfOutputsCreated": 0,
+    "interpretation": "The current nine-file local AC1024 corpus did not reproduce a CLASSES-stage failure. This does not identify or reproduce the historical ten-file AutoCAD 2010 RTM set. Five reads succeeded but their CLI conversions were blocked by LAYOUT last-active viewport export preflight; four failed with sticky BAD_READ_HEADER (6), despite a warning-only CLASSES CRC mismatch."
+  },
+  "inputs": [
+    {
+      "file": "architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "read": true,
+      "dwgError": 0,
+      "classesCrcMismatches": 0,
+      "cliExit": 1,
+      "outputCreated": false,
+      "failureAfterRead": "LAYOUT last-active viewport is missing or has the wrong owner"
+    },
+    {
+      "file": "civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "read": true,
+      "dwgError": 0,
+      "classesCrcMismatches": 0,
+      "cliExit": 1,
+      "outputCreated": false,
+      "failureAfterRead": "LAYOUT last-active viewport is missing or has the wrong owner"
+    },
+    {
+      "file": "mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "read": true,
+      "dwgError": 0,
+      "classesCrcMismatches": 0,
+      "cliExit": 1,
+      "outputCreated": false,
+      "failureAfterRead": "LAYOUT last-active viewport is missing or has the wrong owner"
+    },
+    {
+      "file": "title_block-arch.dwg",
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "read": true,
+      "dwgError": 0,
+      "classesCrcMismatches": 0,
+      "cliExit": 1,
+      "outputCreated": false,
+      "failureAfterRead": "LAYOUT last-active viewport is missing or has the wrong owner"
+    },
+    {
+      "file": "title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc3",
+      "read": true,
+      "dwgError": 0,
+      "classesCrcMismatches": 0,
+      "cliExit": 1,
+      "outputCreated": false,
+      "failureAfterRead": "LAYOUT last-active viewport is missing or has the wrong owner"
+    },
+    {
+      "file": "visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "read": false,
+      "dwgError": 6,
+      "dwgErrorName": "BAD_READ_HEADER",
+      "classesCrcMismatches": 1,
+      "cliExit": 1,
+      "outputCreated": false
+    },
+    {
+      "file": "visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "read": false,
+      "dwgError": 6,
+      "dwgErrorName": "BAD_READ_HEADER",
+      "classesCrcMismatches": 1,
+      "cliExit": 1,
+      "outputCreated": false
+    },
+    {
+      "file": "visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "read": false,
+      "dwgError": 6,
+      "dwgErrorName": "BAD_READ_HEADER",
+      "classesCrcMismatches": 1,
+      "cliExit": 1,
+      "outputCreated": false
+    },
+    {
+      "file": "visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "read": false,
+      "dwgError": 6,
+      "dwgErrorName": "BAD_READ_HEADER",
+      "classesCrcMismatches": 1,
+      "cliExit": 1,
+      "outputCreated": false
+    }
+  ],
+  "limitations": [
+    "The local folder contains nine AC1024 files, not a verified identical copy of the historical ten RTM inputs.",
+    "Four cases end in BAD_READ_HEADER; their CLASSES CRC mismatch is diagnostic evidence but not the sticky first error.",
+    "Five cases prove DWG read success only; DXF conversion is rejected by a separate LAYOUT writer preflight, so there is no successful end-to-end conversion claim.",
+    "No file was added to the repository test corpus and no support claim is promoted."
+  ]
+}

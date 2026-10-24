@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "R2007 independent runtime metadata, CRC-stage, and de-interleave cross-check",
+  "mode": "focused existing-sample cross-check, test-only byte-transform/CRC diagnostics, and source review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Independently cross-check existing AC1021 data-page and system-page map records, including the file-header CRC seed",
+    "Compare libdxfrw's (255,251) and (255,239) message extraction with separate source-derived de-interleave references",
+    "Recompute only the ODA-defined data/system CRC input spans on existing samples and compare against stored fields",
+    "Reassess LibreDWG, dwg-rs, and ACadSharp as possible page-CRC evidence sources",
+    "Update the active plan's CRC evidence boundary and next independent-witness gate"
+  ],
+  "method": {
+    "kind": "Run installed LibreDWG on existing tablet and colorwh drawings; inspect R2007 decoder/checksum source in LibreDWG and ACadSharp; use manual-only test diagnostics with separate source-derived (255,251)/(255,239) de-interleave and bitwise ODA CRC calculations",
+    "peerRuntime": "LibreDWG dwgread 0.14, commands: dwgread -v9 -O JSON tests/samples/AC1021/tablet.dwg; dwgread -v9 -O JSON /Users/dli/doc/dwg/colorwh.dwg",
+    "peerSourceRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": true,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "localDwgFilesAddedOrModified": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullSuitesRun": 0,
+    "existingSamplesInspected": [
+      "tests/samples/AC1021/tablet.dwg: AcDb:Header data page 0x1c and Page Map system page 0x21",
+      "/Users/dli/doc/dwg/colorwh.dwg: Page Map system page 0x49",
+      "/Users/dli/doc/dwg/dwgreader21_230.dwg: system-page descriptor extraction probe did not resolve; NOT_RUN/NOT_COMPARABLE"
+    ],
+    "limitations": "LibreDWG's current source extracts systematic RS message bytes but comments out its RS correction call and reports stored page CRC metadata without independently recomputing the examined R2007 page CRCs. Its successful parses are not CRC/FEC passes. ACadSharp's reviewed checksum calculator implements a 32-bit modulo-65521 sum and the reviewed section base handles version flags/sentinels; no AC1021 page-CRC call path was established from those sources. Local source-rule de-interleave code and bitwise CRC code are separate test calculations, not third-party runtimes. Matching message bytes do not validate parity symbols; matching a separately coded CRC calculation to a stored value has not occurred. The LibreDWG runs also emit nonfatal section/preview diagnostics. The dwgreader21_230 probe did not independently extract a page descriptor and is not a negative parser result."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Official published v5.4.1 PDF; §§5.3, 5.4, 5.12 and 5.13 reviewed 2026-10-18",
+      "observed": "The active plan continues to use ODA's exact data-page/system-page CRC stages and the distinct R2007 RS configurations: (255,251) for data pages and (255,239) for system pages."
+    },
+    {
+      "project": "GNU LibreDWG runtime",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Installed Homebrew executable reported dwgread 0.14; run against existing tablet and colorwh AC1021 drawings on 2026-10-18",
+      "observed": "On tablet, the runtime returned SUCCESS 0x0 and independently reported AcDb:Header page 0x1c at offset 0x67680, physical size 0x400, cSize 779, uSize 857, stored checksum 0x8deb465b, stored CRC 0xfe7642845db5fda9, and file-header crc_seed 0. On colorwh, it independently reported Page Map page 0x49, section offset 0x1b25e0 plus page base 0x480 (physical offset 0x1b2a60), cSize 403, uSize 1152, correction factor 6, encoded seed 0x76cb0c4696515083, stored compressed CRC 0x578c72dccda3f31c, and stored uncompressed CRC 0x186ea5e9d33e7153. Both runs emitted nonfatal Invalid num_pages and Preview overflow messages. SUCCESS and reported stored fields are not page CRC assertions."
+    },
+    {
+      "project": "GNU LibreDWG R2007 decoder source",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "revision": "Mutable master source reviewed 2026-10-18; decode_rs around lines 3154-3218; read_data_page around lines 3421-3505",
+      "observed": "decode_rs gathers each interleaved data symbol by stepping the encoded input by block_count and copies data_size symbols per block; its RS correction call is commented out with a TODO. read_data_page uses 0xFB (251) data symbols for R2007 data-page payload. Page-map parsing logs the stored checksum and crc64 values; the examined path does not recompute the section data-page CRC."
+    },
+    {
+      "project": "DrunkOnJava/dwg-rs R2007 container",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/src/r2007.rs"
+      ],
+      "revision": "Mutable main branch and published capability ledger reviewed 2026-10-18; not built or run",
+      "observed": "The implementation documents an independent R2007 page/section container and the (255,251) data-page versus (255,239) system-page layouts, while explicitly describing message de-interleave separately from error correction. The repository labels the implementation pre-alpha and its Reed-Solomon read-side fallback wiring pending, so this is source-level triangulation, not a qualified runtime or CRC oracle."
+    },
+    {
+      "project": "ACadSharp R2007 support",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgStreamReaderAC21.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgLZ77AC21Decompressor.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgCheckSumCalculator.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/CRC.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgSectionIO.cs"
+      ],
+      "revision": "Mutable master support table and selected R21/checksum/section sources reviewed 2026-10-18; not built or run",
+      "observed": "The project advertises AC1021 DWG reading and has an R21-specific LZ decompressor. The reviewed DwgCheckSumCalculator uses a 32-bit sum with modulo-65521 reduction; the reviewed CRC utility and DwgSectionIO did not establish a call path that recomputes AC1021 page CRCs over the ODA §5.3/§5.4 spans. ACadSharp remains a possible structural/semantic differential, not a CRC oracle on this evidence."
+    },
+    {
+      "project": "libdxfrw focused R2007 page diagnostic",
+      "urls": [],
+      "revision": "Working-tree manual-only test selectors and independent scratch Python calculation run 2026-10-18",
+      "observed": "Tablet data page AcDb:Header 0x1c: physical offset 0x67680, extent 0x400, encoding 4, cSize 779, uSize 857, crc_seed 0, stored checksum 0x8deb465b and stored CRC 0xfe7642845db5fda9. Source-derived (255,251) de-interleave matches production bytes (0 differences); mirrored CRC computes 0x6b1cdfbc3715d1fc, while logical checksum matches. Tablet system page 0x21: physical offset 0x480, encoded extent 0x4fb, cSize 0xc2, uSize 0x1f0, correction factor 5, decoded seed 0; source-derived (255,239) de-interleave matches production bytes. Compressed and uncompressed CRCs compute 0x4de401459759be97 and 0x6ca187aa62a39be3, versus stored 0x10100fea5403d32f and 0x270e0216019558e1. Colorwh system page 0x49: physical offset 0x1b2a60, encoded extent 0xaf5, cSize 0x193, uSize 0x480, correction factor 6, encoded seed 0x76cb0c4696515083/decoded seed 0; compressed and uncompressed CRCs compute 0xfb92c8df5978a155 and 0xdce0c350db24f2d5, versus stored 0x578c72dccda3f31c and 0x186ea5e9d33e7153. Both test-local system-page de-interleave references match production payload bytes and parseSysPage succeeds despite CRC warnings. LibreDWG independently reports the colorwh page metadata and stored values. A separately written Python bitwise CRC calculation reproduces the compressed-span values for the tablet data/system pages and colorwh system page; no external CRC oracle has matched a stored page CRC."
+    }
+  ],
+  "assessment": {
+    "independentSectionAndPageMetadata": "CORROBORATED_BY_LIBREDWG_RUNTIME_WITH_NONFATAL_DIAGNOSTICS",
+    "fileHeaderCrcSeed": "CORROBORATED_AS_ZERO_BY_LIBREDWG_JSON",
+    "compressedPageMessageBytes": "MATCH_SOURCE_DERIVED_DEINTERLEAVE_AND_LIBDXFRW_RS_DECODER_FOR_SELECTED_779_BYTE_PREFIX",
+    "systemPageMessageBytes": "MATCH_SOURCE_DERIVED_DEINTERLEAVE_AND_LIBDXFRW_RS_DECODER_FOR_TABLET_AND_COLORWH_SELECTED_PREFIXES",
+    "rsParityOrFecValidity": "NOT_ESTABLISHED",
+    "dataPageCrcMismatch": "PERSISTS_FOR_TABLET_DATA_PAGE; EXACT_ODA_SPAN_AND_SEED_RECHECKED; CAUSE_UNKNOWN",
+    "systemPageCrcMismatch": "PERSISTS_FOR_TABLET_AND_COLORWH_COMPRESSED_AND_UNCOMPRESSED_SPANS; CAUSE_UNKNOWN",
+    "libreDwgPageCrcOracle": false,
+    "dwgRsQualifiedRuntimeOracle": false,
+    "acadSharpPageCrcOracle": false,
+    "dwgreader21_230Probe": "NOT_RUN_NOT_COMPARABLE; PAGE_DESCRIPTOR_NOT_INDEPENDENTLY_EXTRACTED",
+    "focusedBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "manualPageDiagnostic": "PASS; selected page CRC still reports mismatch",
+    "literalCrcSelector": "PASS",
+    "owningCtest": "PASS: libdxfrw_dwg_reader_matrix (1/1, 1.50 seconds)",
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Obtain a version-pinned implementation that explicitly recomputes AC1021 page CRCs, or a known-profile sample accompanied by explicit CRC-verification output and independently captured page bytes. Compare only the documented physical page association, decoded seed, and exact pre-padding/pre-RS spans. If no witness is available, preserve the CRC mismatches and continue unrelated implementation slices without weakening validation or promoting support claims."
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw-freecad-consumer-applicability-converter-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the FreeCAD downstream-consumer audit to distinguish direct DXF import from DWG converter handoff, record the selected importer/backend and converter success evidence, and determine whether stock FreeCAD or other public routes can qualify proprietary ACIS/AcDs semantics.",
+  "method": {
+    "kind": "Read-only review of primary project source, documentation, maintainer issue response, and component catalog",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "drawingsDownloadedOrUsed": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "FreeCAD main source and documentation pages are mutable and were reviewed on 2026-10-17; no source commit or packaged application was qualified. The older FreeCAD DWG guidance repository is archived. Any future executable result must pin its exact FreeCAD build/source, importer mode, converter artifact and command.",
+    "evidenceRule": "Converter handoff, strict intermediate-DXF validity, importer acceptance, explicit geometry semantics, opaque ACIS carrier retention, and ACIS/B-rep interpretation are separate evidence stages. Wrapper messages or file existence do not establish process success or semantic support."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD DWG converter-to-DXF-to-importer route and success signal",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "The current source routes DWG opening through convertToDxf() and then the selected importDXF open/insert function. Converter selection may choose LibreDWG, ODA, or QCAD; automatic mode can try routes in sequence. The wrapper invokes Popen() and communicate() but does not inspect the return code before checking for the output path and reporting conversion success. This is a mutable-source observation, not a test of a released/package-specific build.",
+      "doesNotEstablish": [
+        "that every FreeCAD release or package has identical converter behavior",
+        "that a produced DXF is complete or valid because a path exists",
+        "that a successful DXF import establishes correct source-DWG semantics",
+        "which converter produced output when automatic fallback is enabled"
+      ],
+      "planUse": "At the one composed native checkpoint, pin one explicit converter, capture executable identity, exact arguments, return code and logs, verify the output is fresh, strictly validate/hash the DXF and record its actual version before importing with a named importer. Keep direct-DXF and DWG-handoff cases separate."
+    },
+    {
+      "topic": "FreeCAD importer implementation and documentation scope",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "Current documentation distinguishes native C++ and legacy Python DXF importers and notes that the C++ implementation does not cover every feature. The older DWG guidance repository is archived (2026-04-01), so its broad 3D-DWG workflow statement is historical context rather than a current universal consumer contract.",
+      "doesNotEstablish": [
+        "runtime acceptance for an unpinned importer build or configuration",
+        "semantic correctness from the published feature matrix alone",
+        "that native and legacy importer results are interchangeable"
+      ],
+      "planUse": "Record exact FreeCAD source/build and selected importer mode. Preserve the existing source-scope split for explicit 3DFACE evidence and resolve it only using the exact selected route and asymmetric geometry checks at the composed checkpoint."
+    },
+    {
+      "topic": "Stock FreeCAD ACIS consumer applicability",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "A FreeCAD maintainer response says explicit DXF entities can open but proprietary ACIS solids in DXF are not read by stock FreeCAD; the issue is closed as not planned. This is direct evidence about the stock consumer route, not proof that a separately installed plugin or modeler can never consume ACIS.",
+      "doesNotEstablish": [
+        "that all FreeCAD plugins or separately installed modelers lack ACIS support",
+        "that ACIS/AcDs carrier bytes or ownership are valid",
+        "B-rep topology, shape validity, or native semantic acceptance"
+      ],
+      "planUse": "Classify the stock-FreeCAD ACIS/AcDs/SAB consumer cell as CONSUMER_NOT_APPLICABLE and do not repeatedly run that inapplicable check. Reopen only for a separately named and pinned modeler integration with a shape/topology inspection route; explicit-face/mesh tests remain separate."
+    },
+    {
+      "topic": "Commercial OCCT ACIS component is not an open-source reader",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://occt3d.com/components/acis-exchange/"
+      ],
+      "observed": "The public OCCT-Components repository describes a preview/documentation hub for commercial extensions and points to purchase the full components. ACIS SAT/SAB exchange is listed as a component. This may be a separately licensed observation route but is not a public open-source implementation and is not implied by stock OCCT or FreeCAD.",
+      "doesNotEstablish": [
+        "that stock OCCT or FreeCAD contains the component",
+        "that the component is available under this project's license or current environment",
+        "that it independently validates libdxfrw carrier/owner association"
+      ],
+      "planUse": "Do not acquire, install, or trial the commercial component in local implementation. Treat it as optional only after exact component/build, entitlement, permitted test use, platform, and inspectable shape/metrics API are established; keep any result separate from independent document/carrier evidence."
+    },
+    {
+      "topic": "CADKernel detailed SAT/SAB capability boundary",
+      "sources": [
+        "https://github.com/kernalix7/CADKernel#supported-file-formats"
+      ],
+      "observed": "The already-audited detailed format matrix marks SAT/SAB read and write as planned/unsupported despite broader ACIS mentions in overview prose. This corroborates the existing DISCOVERY_ONLY / ACIS_UNSUPPORTED disposition and does not identify a runnable independent reader.",
+      "doesNotEstablish": [
+        "a usable SAT/SAB parser or geometry kernel",
+        "that aggregate format-category prose is executable support evidence"
+      ],
+      "planUse": "Leave the existing disposition unchanged. Reassess only if an immutable revision changes the specific detailed rows and provides a runnable route."
+    }
+  ],
+  "implementationReadiness": {
+    "composedFreeCADCheckpoint": [
+      "Keep direct DXF import and DWG-to-DXF handoff as separate cases.",
+      "Pin OS/architecture, FreeCAD build/source, importer mode, converter artifact/version/hash, exact command, process exit code/logs, fresh output path/hash, and intermediate DXF version.",
+      "Strictly validate the intermediate DXF before import; compare source handle/type/owner/block placement and independently expected coordinates/topology for the explicit subset.",
+      "Treat file existence, a wrapper success message, GUI-open status, or entity count alone as insufficient.",
+      "Keep stock FreeCAD ACIS/AcDs consumer evidence not applicable; any later plugin or licensed modeler is a separate named route with no-fallback shape checks.",
+      "Run only at the existing composed native checkpoint after local controls are ready; if the exact route is unavailable, record NOT_AVAILABLE or NOT_RUN and continue local implementation."
+    ],
+    "validationCadence": "No per-slice native or peer execution is added. Per-slice local validation cadence is unchanged; the composed Linux/Windows consumer checkpoint remains a scheduled phase gate.",
+    "fixturesOrDependencies": "No downloaded or persistent drawings, test fixtures, dependencies, or test registrations were added."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "findingsAndSubplansRemain": "129/72"
+  }
+}

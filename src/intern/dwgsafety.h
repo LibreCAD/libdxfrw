@@ -15,6 +15,7 @@
 #define DWGSAFETY_H
 
 #include <cstdint>
+#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -105,6 +106,13 @@ constexpr std::uint32_t MaxReactorCount = 1000000;
 // handle sequences. Keep the allocation ceiling aligned with reactor lists;
 // the enclosing object-body bound remains the primary format limit.
 constexpr std::uint32_t MaxOwnedObjectCount = 1000000;
+// Temporary sorted-index, ordered-pointer, duplicate-marker, and child-handle
+// storage used while preparing one compound POLYLINE commit. This bounds the
+// preparation peak separately from the retained staged-child state.
+constexpr std::size_t MaxPolylinePreparationScratchBytes = 64u * 1024u * 1024u;
+// Aggregate retained POLYLINE child vectors and declared-membership indexes.
+// This is a reader resource ceiling, not a format-level child-count limit.
+constexpr std::size_t MaxPolylineStagingBytes = 256u * 1024u * 1024u;
 // A HANDLE map can contain many individually valid frames. Bound the total
 // object-map work per read while allowing callers to raise the ceiling for
 // intentionally larger drawings.
@@ -200,6 +208,29 @@ inline bool multiply(std::uint64_t lhs, std::uint64_t rhs,
         return false;
     result = lhs * rhs;
     return true;
+}
+
+inline bool bitPosition(std::uint64_t byteOffset, std::uint8_t bitOffset,
+                        std::uint64_t& result) {
+    if (bitOffset > 7u)
+        return false;
+    std::uint64_t byteBits = 0;
+    return multiply(byteOffset, 8u, byteBits)
+        && add(byteBits, bitOffset, result);
+}
+
+/// Return the total written bits represented by a byte-buffer size and its
+/// partial trailing-byte cursor. A zero bit offset means byte-aligned; a
+/// non-zero offset counts only the used bits in the final byte.
+inline bool bufferBitCount(std::uint64_t byteCount, std::uint8_t bitOffset,
+                           std::uint64_t& result) {
+    if (bitOffset > 7u || (byteCount == 0u && bitOffset != 0u))
+        return false;
+    if (bitOffset == 0u)
+        return multiply(byteCount, 8u, result);
+    std::uint64_t completeByteBits = 0;
+    return multiply(byteCount - 1u, 8u, completeByteBits)
+        && add(completeByteBits, bitOffset, result);
 }
 
 inline bool range(std::uint64_t offset, std::uint64_t length,

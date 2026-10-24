@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-deeper-broader-acis-analytic-control-author-review-v1",
+  "title": "Deeper/broader ACIS analytic-control author and evidence-boundary refresh",
+  "date": "2026-10-17",
+  "status": "research_only",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck source-free SAB authoring options for locally generated analytic controls.",
+    "Separate inner SAB save profile from drawing version, carrier/owner association, semantic geometry, and native acceptance.",
+    "Refine existing control-author and composed semantic gates without adding dependencies, fixtures, or support claims."
+  ],
+  "method": {
+    "kind": "Read-only review of versioned API documentation and project SAB support notes",
+    "peerSourceRevisionsPinned": false,
+    "peerPackagesInstalledOrRun": false,
+    "repositoriesClonedOrBuilt": false,
+    "peerOrNativeRuntimeRun": false,
+    "externalDrawingsDownloaded": 0,
+    "generatedOutputs": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "productionSourceChanged": false,
+    "sources": [
+      "https://docs.rs/acis-core/0.3.11/acis_core/",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://docs.rs/cadmpeg-codec-sat/0.6.1/",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+    ],
+    "evidenceRule": "Versioned authoring API documentation establishes only its declared generated profile. It does not establish independent producer behavior, a valid external ACIS solid, carrier/owner association, or native consumer acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "acis-core 0.3.11 source-free analytic SAB authoring",
+      "source": "https://docs.rs/acis-core/0.3.11/acis_core/",
+      "observed": "The docs describe a bounded BoxSpec/SabEncoder ASM23200MetricBox profile with 86 active entities and an experimental analytic BrepSpec profile for planes, circular cylinders, lines, circles, and ellipses. The analytic path has no pcurves; it expects kernel derivation. Arbitrary source history and whole-document IPT/DWG/DXF integration are not provided. AcisModel validation proves referential closure, not B-rep validity or producer/native compatibility.",
+      "doesNotEstablish": [
+        "General SAT/SAB authoring or support for unlisted record/topology families",
+        "AutoCAD producer compatibility or a valid independently authored DWG/DXF sample",
+        "DWG AcDs record/key/owner-to-payload association",
+        "Independent ACIS parser/kernel semantics or FreeCAD acceptance"
+      ],
+      "planUse": "Optional scratch-only control author when an existing implementation slice needs a matching documented profile. Pin archive/checksum, source, toolchain, features, save profile, and output bytes; keep metrics independently derived and do not commit generated drawings."
+    },
+    {
+      "topic": "SAB profile and evidence-lineage boundary",
+      "sources": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://docs.rs/cadmpeg-codec-sat/0.6.1/",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml"
+      ],
+      "observed": "The cq-acis/acis-core route is bounded by documented save profiles and supported record grammar; version acceptance does not promise every geometry layout. Unsupported records may remain raw, history remains opaque, and outer-container extraction is separate. acis-core and cq-acis are one project/parser lineage. CADMPEG is a distinct repository and published parser workspace; its docs cite CADMPEG format notes as tag-grammar context and the published dependency summaries do not list acis-core, but source overlap was not audited. CadQuery/OCCT conversion shares kernel lineage with FreeCAD.",
+      "doesNotEstablish": [
+        "An independent semantic oracle from same-lineage readback",
+        "Code-level independence between the CADMPEG and acis-core parser implementations",
+        "DWG/DXF carrier preservation or complete owner graph",
+        "Native Linux/Windows consumer qualification"
+      ],
+      "planUse": "Use CADMPEG only as a potentially separate parser candidate after exact source/release pinning, profile matching, and narrow source-overlap review. Keep source-authoring profile, parsed records, carrier/owner closure, kernel semantics, and native acceptance as separate receipt fields."
+    },
+    {
+      "topic": "Drawing-version and DXF-carrier boundary",
+      "source": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "observed": "Autodesk specifies DXF 3DSOLID group 70 as the modeler format version, group 1/3 as proprietary payload lines, and group 350 as a soft-owner history handle. This is distinct from an inner SAB save version and from DWG AcDs section/index records.",
+      "doesNotEstablish": [
+        "A conversion rule from ASM 23200 profile to a particular drawing version",
+        "ACIS record validity or history semantics",
+        "DWG AcDs association or native solid reconstruction"
+      ],
+      "planUse": "Keep payload save profile, drawing AC code, DXF group-70 marker/history link, and DWG AcDs container evidence as distinct versioned fields."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "externalFilesDownloaded": 0,
+    "generatedOutputs": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  },
+  "limitations": [
+    "The versioned documentation is a project contract, not a locally executed conformance result.",
+    "No crate archive, source revision, or generated payload was independently inspected in this research pass; CADMPEG/acis-core code overlap remains unaudited.",
+    "No new route closes the native Linux/Windows FreeCAD or independent semantic-evidence gates."
+  ]
+}

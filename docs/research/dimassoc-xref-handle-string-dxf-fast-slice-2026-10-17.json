@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-dimassoc-xref-handle-string-dxf-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Preserve the documented DIMASSOC osnap XREF handle strings in DXF without treating them as host-drawing handles, and record the focused verification boundary.",
+  "evidence": {
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbOsnapPointRef__setXrefHandles_AcDbHandleArrayPtRef_.html"
+    ],
+    "interpretation": "Groups 301 and 302 are retained as opaque DXF strings. The implementation does not parse their grammar, validate cross-database resolution, or remap them in the host drawing handle graph.",
+    "dwgBoundary": "DXF XREF strings do not establish a DWG field layout; the DWG encoder refuses this DXF-only metadata before output."
+  },
+  "implementation": {
+    "publicModelFieldsAdded": [
+      "m_hasXrefObjectHandleString",
+      "m_xrefObjectHandleString",
+      "m_hasIntersectionXrefObjectHandleString",
+      "m_intersectionXrefObjectHandleString"
+    ],
+    "behaviors": [
+      "Preserve group 301 and group 302 text in DXF parse/write paths.",
+      "Refuse duplicate or orphaned fields as unrepresentable typed details.",
+      "Keep XREF strings outside local host-handle resolution/remapping and emitted-entity closure.",
+      "Refuse DWG encoding when XREF string details are present or nonempty."
+    ],
+    "publicLayoutChanged": true,
+    "abiCompatibilityClaimed": false,
+    "dwgBytesChanged": false
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_wave1_tests lc3_compat_check dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dimassoc-documented-scalar-fields",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dimassoc-unsupported-detail",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --dimassoc-graph-closure",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "total": 1
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

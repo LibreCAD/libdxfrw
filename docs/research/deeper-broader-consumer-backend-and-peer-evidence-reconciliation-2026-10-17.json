@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader consumer-backend and peer-evidence reconciliation",
+  "mode": "Current project documentation/release research plus local plan cross-check",
+  "question": "Which peer and FreeCAD routes can independently qualify the planned 2D, explicit-3D, and ACIS/ACDS claims?",
+  "sources": [
+    {
+      "url": "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "finding": "Published FreeCAD DXF importer/exporter matrices give different entity and feature coverage to the C++ and legacy Python backends, including differences for LEADER, 3DFACE, block-contained annotations, text, dimensions, colors, and compounds."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "finding": "FreeCAD documents that its native C++ DXF backend is not feature-complete and that DWG conversion uses external tools."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "finding": "The mutable DWG wrapper routes through an external converter and intermediate DXF; import handoff checks expected output existence rather than exposing entity-level semantic success."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/README",
+      "finding": "LibreDWG describes broad reading while noting advanced R2010+ skips, approximate converter coverage, and version-specific writer limitations; these are not per-entity semantic results."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/releases",
+      "finding": "The latest listed signed release remains v3.8.0 at 3a1c66b (2026-09-21), with an assembly-visibility change rather than a new solid-writer capability claim."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+      "finding": "ezdxf distinguishes strict reading from recovery/audit, and documents recover.readfile as ASCII-only."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "finding": "ezdxf states that unsupported ACIS nodes become NONE_ENTITY with data loss and arbitrary ACIS cannot be loaded and re-exported."
+    }
+  ],
+  "conclusion": {
+    "qualificationMustBeRouteSpecific": true,
+    "freecadImportExportBackendsMustBeSeparated": true,
+    "freecadDwgConverterAndImporterAreSeparateStages": true,
+    "libredwgCoveragePercentagesAreSemanticOracle": false,
+    "acadrustReleasedBaseline": "v3.8.0 at signed commit 3a1c66b, verified 2026-10-17",
+    "ezdxfRecoveryReadfileBinaryQualification": false,
+    "ezdxfAcisApiIsGeneralLosslessOrBrepOracle": false,
+    "required2dContractRemainsSeparateFromExplicit3dAndAcisAcds": true,
+    "implementationDisposition": "Use existing focused local tests; add route/backend specificity to the already-scheduled composed qualification checkpoint only. Do not use backend exclusions as libdxfrw defects or promote claims from process success, recovery, aggregate counts, or wireframe projection."
+  },
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingFindingsAndSubplansOnly": true,
+    "findings": 128,
+    "topLevelSubplans": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "newTestsFixturesDependenciesOrPeerRuns": 0
+  },
+  "limitations": {
+    "mutableMainMasterOrStableDocsPinnedToCommit": false,
+    "peerPackageBuiltOrRun": false,
+    "freecadRuntimeOrConverterRun": false,
+    "drawingDownloaded": false,
+    "localTestsRun": false,
+    "supportClaimsPromoted": 0,
+    "notes": "Source review only. Recheck mutable documentation and release identities before any optional composed qualification run."
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw-ac1014-omitted-vertex-subtype-marker-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_FOCUSED_SLICE_WITH_BROADER_TEST_FAILURE",
+  "scope": "Add generated ASCII and Binary AC1014 coverage for a 2D POLYLINE VERTEX carrying AcDbVertex but omitting AcDb2dVertex; verify parent-derived typed behavior, neighboring-record alignment, canonical writer markers and second-read semantics.",
+  "implementation": {
+    "filesChanged": [
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedInScratchOnly": true,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "productionCodeChanged": false,
+    "publicApiChanged": false,
+    "focusedSelector": "--classic-vertex-subclass-omission"
+  },
+  "testCase": {
+    "inputVersion": "AC1014",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "inputVertexSubclassMarkers": [
+      "AcDbEntity",
+      "AcDbVertex"
+    ],
+    "inputOmits": "AcDb2dVertex",
+    "parentPolylineFlags": 1,
+    "assertions": [
+      "exactly one 2D POLYLINE is delivered between two LINE entities",
+      "parent flags, child flags, and distinct vertex XYZ coordinates are preserved",
+      "both preceding and following LINE coordinates remain unchanged",
+      "AC1014 re-export writes ordered AcDbEntity, AcDbVertex, AcDb2dVertex markers",
+      "second read preserves the vertex payload and trailing LINE alignment"
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --classic-vertex-subclass-omission",
+      "result": "PASS",
+      "output": "AC1014 classic VERTEX subclass-marker compatibility: PASS"
+    },
+    "compatibilityTarget": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "FAIL",
+      "durationSeconds": 3.84,
+      "observed": "WIPEOUT and NOD/layout/UCS assertion failures followed by a segmentation fault; this pass does not attribute the failures to the new selector or claim the owning CTest passes."
+    },
+    "diffCheck": {
+      "command": "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "classic POLYLINE/VERTEX compound-record test owner (7BS/7AS)",
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": {
+    "independentPeerRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": false,
+    "standardsConformanceClaim": false,
+    "generalVertexSupportClaim": false,
+    "dwgOr3dSupportClaim": false,
+    "commitAttempted": false,
+    "commitLimitation": "Repository Git metadata is read-only in this environment."
+  }
+}

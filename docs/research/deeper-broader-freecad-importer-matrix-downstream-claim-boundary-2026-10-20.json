@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader FreeCAD importer matrix and downstream claim boundary",
+  "mode": "primary-source web research and plan readiness refinement",
+  "scope": [
+    "Refresh exact FreeCAD DXF importer entity sets and ACIS disposition",
+    "Separate FreeCAD DWG conversion from intermediate-DXF importer behavior",
+    "Reconfirm LibreCAD_3 DWG product boundary and independent ACIS evidence limits",
+    "Update the parity and 3D-support plans without adding test or qualification gates"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "This is a documentation/source-page review, not runtime qualification. FreeCAD's published importer feature matrix is a route declaration; converter/importer selection, exact build, output, and object dispositions still require a pinned native run for any compatibility claim. The LibreDWG issue is a version-specific report, not a reproduced current result."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Public pages on main reviewed 2026-10-20",
+      "observed": "The documented DXF backends are distinct: built-in C++ and legacy Python. The published class matrix lists 3DFACE for legacy Python but not for C++; both are documented not to read embedded ACIS/SAT solids. The DWG workflow converts through an external converter to DXF and then uses the selected importer. Exported edge linework/flattened views are projection behavior, not 3D import or solid-roundtrip evidence.",
+      "limits": "The page does not prove the behavior of a particular installed binary or the exact optional legacy add-on revision. It must not replace native Linux/Windows qualification for a claimed route."
+    },
+    {
+      "project": "FreeCAD issue tracker",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "revision": "Issue opened 2024; maintainer response and closure as not planned reviewed 2026-10-20",
+      "observed": "The maintainer states that ACIS solids embedded in DXF are opaque proprietary blobs that FreeCAD cannot read and closes the issue as not planned; the proposed workaround is conversion to an open exchange format by a proprietary application.",
+      "limits": "This is a maintained project disposition, not a format specification or evidence about a separately selected third-party importer/kernel."
+    },
+    {
+      "project": "LibreCAD_3",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/README.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Public master pages reviewed 2026-10-20",
+      "observed": "The README says WITH_DWG_IMPORT is OFF by default and labels the route experimental. The DWG policy ledger is read-direction only, with no promoted claim and no DWG-write claim.",
+      "limits": "Product policy and documentation do not substitute for a consumer build/compatibility run and do not establish an independent parser or geometry kernel."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Public master page reviewed 2026-10-20",
+      "observed": "The browse-acis command documents viewing/exporting raw SAT/SAB carrier data.",
+      "limits": "Raw carrier inspection does not establish complete ACIS parsing, B-rep validity, topology, analytic geometry, or DWG AcDs association."
+    },
+    {
+      "project": "LibreDWG issue tracker",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Issue opened 2026-09-02 against LibreDWG 0.14.8593 / source 8a1ae764; page reviewed 2026-10-20",
+      "observed": "The report provides a locally generatable R2018 DXF ACIS-cube case and reports R2013+ AcDs/SAB loss through the named LibreDWG build, despite retaining REGION records.",
+      "limits": "The reproduction is issue-author evidence and was not rerun here; it is a failure-shape lead and demonstrates why entity presence is not payload or semantic evidence."
+    },
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification v5.4.1, §24; local spec review already recorded in the implementation receipt",
+      "observed": "DataStorage parsing and association expectations remain grounded in the specification's segment/index/record/page structure rather than peer behavior.",
+      "limits": "This route research does not revise the normative wire contract or qualify any parser."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans",
+    "planDelta": "Bind FreeCAD qualification to one exact converter-plus-importer route per platform, score only the selected backend's documented entities, mark stock ACIS/AcDs import expected unsupported, do not mistake exporter flattening for 3D import, and preserve LibreCAD_3 as an experimental read/2D/API compatibility consumer rather than an independent semantic or DWG-write witness."
+  },
+  "implementationReadyChecks": [
+    "Pin the FreeCAD build, operating system/architecture, converter executable/version/arguments/exit status, output DXF hash/version, selected importer backend/add-on/settings, and per-object dispositions.",
+    "Test 3DFACE only when the legacy Python importer is selected and its add-on revision is bound; do not expect it from the documented C++ importer.",
+    "Classify stock FreeCAD ACIS/AcDs solids as OUT_OF_PROFILE / EXPECTED_UNSUPPORTED and do not require this unsupported route to pass the Linux/Windows consumer gate.",
+    "At the existing composed checkpoint, keep converter carriage, importer object construction, and ACIS/B-rep semantics as separate evidence dimensions; do not add routine peer executions or a Cartesian importer/converter matrix.",
+    "Preserve the LibreCAD_3 2D/API compatibility test while treating opt-in DWG import as experimental and read-only.",
+    "If an independent ACIS/AcDs semantic route cannot be bound to an exact profile, parser, and kernel, record NOT_QUALIFIED once and self-unblock without promoting any deferred J item."
+  ],
+  "validation": {
+    "planDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md src/drw_datastorage.cpp tests/graph_preservation_tests.cpp — passed",
+    "receiptJsonValidation": "jq empty docs/research/deeper-broader-freecad-importer-matrix-downstream-claim-boundary-2026-10-20.json docs/research/par07-acds-dataindex-segment-kind-fast-slice-2026-10-20.json — passed",
+    "commitCreated": false
+  }
+}

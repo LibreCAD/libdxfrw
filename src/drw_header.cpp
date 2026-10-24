@@ -13,18 +13,156 @@
 ******************************************************************************/
 
 #include "drw_header.h"
+#include <algorithm>
+#include <array>
+#include <charconv>
 #include <cmath>
 #include <cstdio>
+#include <iterator>
+#include <limits>
 #include <optional>
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
+#include "intern/dxfcode.h"
+#include "intern/drw_dimvar_migration.h"
 #include "intern/drw_dbg.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "intern/dwg_header_time.h"
 #include "intern/dwgsafety.h"
 #include "intern/dwgheadersection.h"
 
 namespace {
+
+constexpr const char* kDxfCustomPropertyTag = "$CUSTOMPROPERTYTAG";
+constexpr const char* kDxfCustomPropertyValue = "$CUSTOMPROPERTY";
+constexpr const char* kDxfRequiredVersions = "$REQUIREDVERSIONS";
+constexpr const char* kDxfPlotStyleId = "$CEPSNID";
+
+bool isDxfPlotStyleIdVariable(const std::string& name) {
+    return name == kDxfPlotStyleId || name == "CEPSNID";
+}
+
+bool isDxfCustomPropertyVariable(const std::string& name) {
+    return name == kDxfCustomPropertyTag
+        || name == kDxfCustomPropertyValue;
+}
+
+// Keep unknown-variable fallback separate from the canonical writer: names in
+// this inventory are already emitted with field-specific defaults, aliases,
+// version gates, and migrations. The list is generated from the group-9 names
+// in DRW_Header::write plus its dynamic VisualStyle/property variables.
+constexpr char kCanonicalDxfHeaderVariableNames[] =
+    "3DDWFPREC ACADMAINTVER ACADVER ANGBASE ANGDIR ATTDIA ATTMODE ATTREQ "
+    "AUNITS AUPREC BLIPMODE CAMERADISPLAY CAMERAHEIGHT CECOLOR CELTSCALE "
+    "CELTYPE CELWEIGHT CEPSNID CEPSNTYPE CHAMFERA CHAMFERB CHAMFERC "
+    "CHAMFERD CLAYER CMLJUST CMLSCALE CMLSTYLE COORDS CSHADOW DGNFRAME "
+    "DIMADEC DIMALT DIMALTD DIMALTF DIMALTMZF DIMALTMZS DIMALTRND "
+    "DIMALTTD DIMALTTZ DIMALTU DIMALTZ DIMAPOST DIMARCSYM DIMASO "
+    "DIMASSOC DIMASZ DIMATFIT DIMAUNIT DIMAZIN DIMBLK DIMBLK1 DIMBLK2 "
+    "DIMCEN DIMCLRD DIMCLRE DIMCLRT DIMDEC DIMDLE DIMDLI DIMDSEP "
+    "DIMEXE DIMEXO DIMFIT DIMFRAC DIMFXL DIMFXLON DIMGAP DIMJOGANG "
+    "DIMJUST DIMLDRBLK DIMLFAC DIMLIM DIMLTEX1 DIMLTEX2 DIMLTYPE "
+    "DIMLUNIT DIMLWD DIMLWE DIMMZF DIMMZS DIMPOST DIMRND DIMSAH "
+    "DIMSCALE DIMSD1 DIMSD2 DIMSE1 DIMSE2 DIMSHO DIMSOXD DIMSTYLE "
+    "DIMTAD DIMTDEC DIMTFAC DIMTFILL DIMTFILLCLR DIMTIH DIMTIX DIMTM "
+    "DIMTMOVE DIMTOFL DIMTOH DIMTOL DIMTOLJ DIMTP DIMTSZ DIMTVP "
+    "DIMTXSTY DIMTXT DIMTXTDIRECTION DIMTZIN DIMUNIT DIMUPT DIMZIN "
+    "DISPSILH DRAGMODE DWFFRAME DWGCODEPAGE ELEVATION ENDCAPS EXTMAX "
+    "EXTMIN EXTNAMES FACETRES FILLETRAD FILLMODE FINGERPRINTGUID GRIDMODE "
+    "GRIDUNIT HALOGAP HANDLING HANDSEED HIDETEXT HYPERLINKBASE INDEXCTL "
+    "INSBASE INSUNITS INTERFERECOLOR INTERSECTIONCOLOR INTERSECTIONDISPLAY "
+    "ISOLINES JOINSTYLE LASTSAVEDBY LATITUDE LENSLENGTH LIGHTGLYPHDISPLAY "
+    "LIMCHECK LIMMAX LIMMIN LOFTANG1 LOFTANG2 LOFTMAG1 LOFTMAG2 "
+    "LOFTNORMALS LOFTPARAM LONGITUDE LTSCALE LUNITS LUPREC LWDISPLAY "
+    "MAXACTVP MEASUREMENT MENU MIRRTEXT NORTHDIRECTION OBSCOLOR OBSLTYPE "
+    "OLESTARTUP ORTHOMODE OSMODE PDMODE PDSIZE PELEVATION PELLIPSE "
+    "PEXTMAX PEXTMIN PINSBASE PLIMCHECK PLIMMAX PLIMMIN PLINEGEN "
+    "PLINEWID PROJECTNAME PROXYGRAPHICS PSLTSCALE PSOLHEIGHT PSOLWIDTH "
+    "PSTYLEMODE PSVPSCALE PUCSBASE PUCSNAME PUCSORG PUCSORGBACK "
+    "PUCSORGBOTTOM PUCSORGFRONT PUCSORGLEFT PUCSORGRIGHT PUCSORGTOP "
+    "PUCSORTHOREF PUCSORTHOVIEW PUCSXDIR PUCSYDIR QTEXTMODE REALWORLDSCALE "
+    "REGENMODE SHADEDGE SHADEDIF SHADOWPLANELOCATION SHOWHIST SKETCHINC "
+    "SKPOLY SNAPSTYLE SOLIDHIST SORTENTS SPLFRAME SPLINESEGS SPLINETYPE "
+    "STEPSIZE STEPSPERSEC STYLESHEET SURFTAB1 SURFTAB2 SURFTYPE SURFU "
+    "SURFV TDCREATE TDINDWG TDUPDATE TDUSRTIMER TEXTQLTY TEXTSIZE "
+    "TEXTSTYLE THICKNESS TILEMODE TILEMODELIGHTSYNCH TIMEZONE TRACEWID "
+    "TREEDEPTH TSTACKALIGN TSTACKSIZE UCSBASE UCSNAME UCSORG UCSORGBACK "
+    "UCSORGBOTTOM UCSORGFRONT UCSORGLEFT UCSORGRIGHT UCSORGTOP "
+    "UCSORTHOREF UCSORTHOVIEW UCSXDIR UCSYDIR UNITMODE USERI1 USERI2 "
+    "USERI3 USERI4 USERI5 USERR1 USERR2 USERR3 USERR4 USERR5 USRTIMER "
+    "VERSIONGUID VIEWCTR VISRETAIN WORLDVIEW XCLIPFRAME XEDIT "
+    "CUSTOMPROPERTY CUSTOMPROPERTYTAG REQUIREDVERSIONS INTERFEREOBJVS "
+    "INTERFEREVPVS DRAGVS";
+
+std::string_view canonicalDxfHeaderVariableName(std::string_view name) {
+    if (!name.empty() && name.front() == '$')
+        name.remove_prefix(1u);
+    return name;
+}
+
+bool isCanonicalDxfHeaderVariable(std::string_view name) {
+    name = canonicalDxfHeaderVariableName(name);
+    std::string_view inventory(kCanonicalDxfHeaderVariableNames);
+    while (!inventory.empty()) {
+        const std::size_t separator = inventory.find(' ');
+        const std::string_view candidate = inventory.substr(0, separator);
+        if (candidate == name)
+            return true;
+        if (separator == std::string_view::npos)
+            break;
+        inventory.remove_prefix(separator + 1u);
+    }
+    return false;
+}
+
+char foldHeaderNameByte(char value) noexcept {
+    return value >= 'a' && value <= 'z'
+        ? static_cast<char>(value - 'a' + 'A') : value;
+}
+
+bool headerNamesEqualIgnoringAsciiCase(std::string_view lhs,
+                                       std::string_view rhs) noexcept {
+    lhs = canonicalDxfHeaderVariableName(lhs);
+    rhs = canonicalDxfHeaderVariableName(rhs);
+    if (lhs.size() != rhs.size())
+        return false;
+    for (std::size_t index = 0; index < lhs.size(); ++index) {
+        if (foldHeaderNameByte(lhs[index]) != foldHeaderNameByte(rhs[index]))
+            return false;
+    }
+    return true;
+}
+
+bool isCanonicalDxfHeaderVariableIgnoringAsciiCase(
+    std::string_view name) noexcept {
+    name = canonicalDxfHeaderVariableName(name);
+    std::string_view inventory(kCanonicalDxfHeaderVariableNames);
+    while (!inventory.empty()) {
+        const std::size_t separator = inventory.find(' ');
+        const std::string_view candidate = inventory.substr(0, separator);
+        if (headerNamesEqualIgnoringAsciiCase(candidate, name))
+            return true;
+        if (separator == std::string_view::npos)
+            break;
+        inventory.remove_prefix(separator + 1u);
+    }
+    return false;
+}
+
+bool unknownHeaderNameIsWritable(std::string_view name) noexcept {
+    if (name.empty() || name.find('\0') != std::string_view::npos
+        || name.find('\r') != std::string_view::npos
+        || name.find('\n') != std::string_view::npos)
+        return false;
+    return !canonicalDxfHeaderVariableName(name).empty();
+}
+
+bool hasDedicatedDxfHeaderRepeatGrammar(const std::string& name) {
+    return isDxfCustomPropertyVariable(name)
+        || name == kDxfRequiredVersions
+        || isDxfPlotStyleIdVariable(name);
+}
 
 /// Resolve a $ACADVER spelling without touching the reader's state.
 /// DRW::Version is ordered by release with UNKNOWNV lowest, so the result is
@@ -36,6 +174,151 @@ DRW::Version dxfVersionFromName(const std::string& name) {
             return identifier;
     }
     return DRW::UNKNOWNV;
+}
+
+struct DxfHeaderVisualStyleReference {
+    const char* name;
+    int code;
+};
+
+constexpr std::array<DxfHeaderVisualStyleReference, 3>
+    dxfHeaderVisualStyleReferences{{
+        {"$INTERFEREOBJVS", 345},
+        {"$INTERFEREVPVS", 346},
+        {"$DRAGVS", 349}
+    }};
+
+bool parseDxfHeaderVisualStyleReferenceValue(const DRW_Variant* value,
+                                             int code,
+                                             std::uint32_t& handle) {
+    if (value == nullptr || value->type() != DRW_Variant::STRING
+        || value->code() != code || value->c_str() == nullptr)
+        return false;
+    const std::string_view text(value->c_str());
+    if (text.empty() || text.size() > 16u)
+        return false;
+    std::uint64_t parsedHandle = 0;
+    const char* begin = text.data();
+    const char* end = begin + text.size();
+    const std::from_chars_result result =
+        std::from_chars(begin, end, parsedHandle, 16);
+    if (result.ec != std::errc{} || result.ptr != end
+        || parsedHandle > (std::numeric_limits<std::uint32_t>::max)())
+        return false;
+    handle = static_cast<std::uint32_t>(parsedHandle);
+    return true;
+}
+
+bool unknownHeaderHandleIsNull(int code, const DRW_Variant* value) noexcept {
+    const DxfHandleRole role = dxfHandleRoleForCode(code);
+    if (role == DxfHandleRole::None)
+        return true;
+    if (value == nullptr || value->type() != DRW_Variant::STRING
+        || value->code() != code || value->c_str() == nullptr)
+        return false;
+    const std::string_view text(value->c_str());
+    if (text.empty() || text.size() > 16u)
+        return false;
+    std::uint64_t handle = 0;
+    const char* begin = text.data();
+    const char* end = begin + text.size();
+    const std::from_chars_result result =
+        std::from_chars(begin, end, handle, 16);
+    if (result.ec != std::errc{} || result.ptr != end)
+        return false;
+    return role == DxfHandleRole::Arbitrary || role == DxfHandleRole::Self
+        || handle == 0;
+}
+
+bool unknownHeaderVariantIsWritable(const DRW_Variant* value) noexcept {
+    if (value == nullptr || value->type() == DRW_Variant::INVALID)
+        return false;
+    const int code = value->code();
+    // Group 0 frames entities, group 9 opens the next HEADER variable, and
+    // 10-39 are coordinate components rather than independent scalar fields.
+    if (code == 0 || code == 9 || (code >= 10 && code <= 39))
+        return false;
+    const DxfValueKind kind = dxfValueKindForCode(code);
+    switch (value->type()) {
+    case DRW_Variant::STRING:
+        if (kind != DxfValueKind::Str && kind != DxfValueKind::Bin)
+            return false;
+        if (value->content.s == nullptr)
+            return false;
+        {
+            const std::string_view text(*value->content.s);
+            if (text.find('\0') != std::string_view::npos
+                || text.find('\r') != std::string_view::npos
+                || text.find('\n') != std::string_view::npos)
+                return false;
+        }
+        return unknownHeaderHandleIsNull(code, value);
+    case DRW_Variant::INTEGER:
+        if (kind == DxfValueKind::Bln)
+            return (value->i_val() == 0 || value->i_val() == 1);
+        if (kind == DxfValueKind::I16)
+            return value->i_val()
+                    >= (std::numeric_limits<std::int16_t>::min)()
+                && value->i_val()
+                    <= (std::numeric_limits<std::uint16_t>::max)();
+        return kind == DxfValueKind::I32
+            && value->i_val()
+                >= (std::numeric_limits<std::int32_t>::min)()
+            && value->i_val()
+                <= (std::numeric_limits<std::int32_t>::max)();
+    case DRW_Variant::INTEGER64:
+        return kind == DxfValueKind::I64;
+    case DRW_Variant::DOUBLE:
+        return kind == DxfValueKind::Dbl && std::isfinite(value->d_val());
+    case DRW_Variant::COORD:
+    case DRW_Variant::BINARY:
+    case DRW_Variant::INVALID:
+        return false;
+    }
+    return false;
+}
+
+bool writeUnknownHeaderVariant(const std::unique_ptr<dxfWriter>& writer,
+                              std::string_view name,
+                              const DRW_Variant* value) {
+    if (writer == nullptr || !unknownHeaderNameIsWritable(name)
+        || !unknownHeaderVariantIsWritable(value))
+        return false;
+    std::string emittedName;
+    if (name.front() == '$')
+        emittedName.assign(name.data(), name.size());
+    else {
+        emittedName.reserve(name.size() + 1u);
+        emittedName.push_back('$');
+        emittedName.append(name.data(), name.size());
+    }
+    if (!writer->writeString(9, emittedName))
+        return false;
+    const int code = value->code();
+    const DxfValueKind kind = dxfValueKindForCode(code);
+    switch (value->type()) {
+    case DRW_Variant::STRING:
+        if (kind == DxfValueKind::Bin || isDxfHandleCode(code))
+            return writer->writeString(code, value->c_str());
+        return writer->writeUtf8String(code, value->c_str());
+    case DRW_Variant::INTEGER:
+        if (kind == DxfValueKind::I16)
+            return writer->writeInt16(code, value->i_val());
+        if (kind == DxfValueKind::I32)
+            return writer->writeInt32(code, value->i_val());
+        if (kind == DxfValueKind::Bln)
+            return writer->writeBool(code, value->i_val() != 0);
+        return false;
+    case DRW_Variant::INTEGER64:
+        return writer->writeInt64(code, value->i64_val());
+    case DRW_Variant::DOUBLE:
+        return writer->writeDouble(code, value->d_val());
+    case DRW_Variant::COORD:
+    case DRW_Variant::BINARY:
+    case DRW_Variant::INVALID:
+        return false;
+    }
+    return false;
 }
 
 } // namespace
@@ -103,6 +386,8 @@ bool DRW_Header::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 
 bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,
                                bool deferText) {
+    DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
+        m_dxfUnknownHeaderLease);
     m_dwgNamedObjectDictionaryReference.reset();
     if (nullptr == curr && 9 != code) {
         DRW_DBG("invalid header code: ");
@@ -110,16 +395,132 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
         DRW_DBG("\n");
         return false;
     }
+    if (code == 9) {
+        m_dxfHeaderCurrentGroupCodes.reset();
+    } else if (code >= 0 && code < 1072) {
+        if (m_dxfHeaderCurrentGroupCodes.any()
+            && !isCanonicalDxfHeaderVariable(name)
+            && !hasDedicatedDxfHeaderRepeatGrammar(name))
+            m_dxfHeaderStructureWellFormed = false;
+        if (m_dxfHeaderCurrentGroupCodes.test(
+                static_cast<std::size_t>(code))
+            && !hasDedicatedDxfHeaderRepeatGrammar(name))
+            m_dxfHeaderStructureWellFormed = false;
+        m_dxfHeaderCurrentGroupCodes.set(static_cast<std::size_t>(code));
+    }
+    if (code != 9 && isDxfCustomPropertyVariable(name) && code != 1)
+        m_dxfCustomPropertiesWellFormed = false;
+    if (code != 9 && name == kDxfRequiredVersions && code != 160)
+        m_dxfRequiredVersionsWellFormed = false;
+    if (code != 9 && isDxfPlotStyleIdVariable(name) && code != 390)
+        m_dxfPlotStyleIdWellFormed = false;
+
+    if (code != 9 && !isCanonicalDxfHeaderVariable(name)) {
+        const DxfValueKind kind = dxfValueKindForCode(code);
+        if (code >= 10 && code <= 39)
+            m_dxfHeaderStructureWellFormed = false;
+        switch (kind) {
+        case DxfValueKind::Str:
+        case DxfValueKind::Bin: {
+            std::string text;
+            if (kind == DxfValueKind::Bin || isDxfHandleCode(code))
+                text = reader->takeString();
+            else if (deferText)
+                text = reader->getRawValue();
+            else
+                text = reader->getUtf8String();
+            if (!retainDxfReadBytes(m_dxfUnknownHeaderLease,
+                                    reader->retainedByteBudget(),
+                                    text.size()))
+                return false;
+            curr->addString(code, std::move(text));
+            break;
+        }
+        case DxfValueKind::Dbl:
+            curr->addDouble(code, reader->getDouble());
+            break;
+        case DxfValueKind::I16:
+        case DxfValueKind::I32:
+        case DxfValueKind::Bln:
+            curr->addInt(code, reader->getInt32());
+            break;
+        case DxfValueKind::I64:
+            curr->addInt64(code, reader->getInt64());
+            break;
+        case DxfValueKind::Unknown:
+            m_dxfHeaderStructureWellFormed = false;
+            break;
+        }
+        retainedCheckpoint.commit();
+        return true;
+    }
 
     switch (code) {
-    case 9:
-        name = reader->getString();
+    case 9: {
+        const std::string_view nextNameView = reader->getStringView();
+        if (!isCanonicalDxfHeaderVariable(nextNameView)
+            && !retainDxfReadBytes(m_dxfUnknownHeaderLease,
+                                   reader->retainedByteBudget(),
+                                   nextNameView.size()))
+            return false;
+        std::string nextName(nextNameView.data(), nextNameView.size());
+        if (vars.find(nextName) != vars.end()
+            && !hasDedicatedDxfHeaderRepeatGrammar(nextName))
+            m_dxfHeaderStructureWellFormed = false;
+        if (isDxfPlotStyleIdVariable(nextName)) {
+            const char* alternate = nextName == kDxfPlotStyleId
+                ? "CEPSNID" : kDxfPlotStyleId;
+            if (vars.find(nextName) != vars.end()
+                || vars.find(alternate) != vars.end()
+                || (isDxfPlotStyleIdVariable(name) && curr != nullptr
+                    && curr->type() == DRW_Variant::INVALID))
+                m_dxfPlotStyleIdWellFormed = false;
+        }
+        if (nextName == kDxfRequiredVersions
+            && vars.find(nextName) != vars.end())
+            m_dxfRequiredVersionsWellFormed = false;
+        if (isDxfCustomPropertyVariable(name)
+            && !m_customPropertyFieldValueSeen)
+            m_dxfCustomPropertiesWellFormed = false;
+        if (m_pendingCustomPropertyTag
+            && nextName != kDxfCustomPropertyValue) {
+            m_dxfCustomPropertiesWellFormed = false;
+            m_pendingCustomPropertyTag.reset();
+        }
+        if (nextName == kDxfCustomPropertyValue
+            && !m_pendingCustomPropertyTag)
+            m_dxfCustomPropertiesWellFormed = false;
+        name = std::move(nextName);
+        m_customPropertyFieldValueSeen = false;
+        if (!reader->chargeTypedVariantNode())
+            return false;
         storeVar(name, new DRW_Variant());
         break;
+    }
     case 1:
         curr->addString(code, deferText && name != "$ACADVER"
             ? reader->getRawValue() : (name == "$ACADVER"
                 ? reader->getMetadataUtf8String() : reader->getUtf8String()));
+        if (isDxfCustomPropertyVariable(name)) {
+            if (m_customPropertyFieldValueSeen) {
+                m_dxfCustomPropertiesWellFormed = false;
+            } else if (name == kDxfCustomPropertyTag) {
+                if (m_pendingCustomPropertyTag)
+                    m_dxfCustomPropertiesWellFormed = false;
+                m_pendingCustomPropertyTag = *curr->content.s;
+                m_customPropertyFieldValueSeen = true;
+            } else {
+                if (!m_pendingCustomPropertyTag) {
+                    m_dxfCustomPropertiesWellFormed = false;
+                } else {
+                    customProperties.emplace_back(
+                        std::move(*m_pendingCustomPropertyTag),
+                        *curr->content.s);
+                    m_pendingCustomPropertyTag.reset();
+                }
+                m_customPropertyFieldValueSeen = true;
+            }
+        }
         if (name =="$ACADVER") {
             // An unrecognised $ACADVER is reported, not fatal.  A file with NO
             // $ACADVER reads fine, so refusing one that merely names a revision
@@ -206,6 +607,12 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
     case 90:
         curr->addInt(code, reader->getInt32());
         break;
+    case 160:
+        if (name == kDxfRequiredVersions
+            && curr->type() != DRW_Variant::INVALID)
+            m_dxfRequiredVersionsWellFormed = false;
+        curr->addInt64(code, reader->getInt64());
+        break;
     case 280:
         curr->addInt(code, reader->getInt32());
         break;
@@ -219,12 +626,31 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
         curr->addInt(code, reader->getInt32());
         break;
     case 390:
-        curr->addString(code, reader->getUtf8String());
+        if (isDxfPlotStyleIdVariable(name)
+            && curr->type() != DRW_Variant::INVALID)
+            m_dxfPlotStyleIdWellFormed = false;
+        curr->addString(code, reader->takeString());
         break;
+    case 345:
+    case 346:
+    case 349: {
+        const char* expectedName = code == 345 ? "$INTERFEREOBJVS"
+            : code == 346 ? "$INTERFEREVPVS" : "$DRAGVS";
+        if (name != expectedName)
+            return false;
+        curr->addString(code, reader->takeString());
+        break;
+    }
     default:
+        // Known HEADER variables with an unimplemented group shape must not
+        // be silently normalized away. HANDSEED is emitted from the writer's
+        // current handle census, so its source value is intentionally rebuilt.
+        if (isCanonicalDxfHeaderVariable(name) && name != "$HANDSEED")
+            m_dxfHeaderStructureWellFormed = false;
         break;
     }
 
+    retainedCheckpoint.commit();
     return true;
 }
 
@@ -245,13 +671,141 @@ DRW_Header::DxfDimunitAliasState DRW_Header::dxfDimunitAliasState() const {
         ? DxfDimunitAliasState::Derived : DxfDimunitAliasState::StaleSource;
 }
 
-void DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
+bool DRW_Header::resolveDxfDimensionVariables(
+    DRW::Version target, int& legacyUnit, int& legacyFit,
+    int& linearUnit, int& fraction, int& textArrowFit, int& textMove) const {
+    const auto findInt = [this](const char* key, int& value) {
+        const auto found = vars.find(key);
+        if (found == vars.end() || found->second == nullptr
+            || found->second->type() != DRW_Variant::INTEGER)
+            return false;
+        value = found->second->content.i;
+        return true;
+    };
+    const auto hasKey = [this](const char* key) {
+        return vars.find(key) != vars.end();
+    };
+    int sourceLegacyUnit = 2;
+    int sourceLegacyFit = 3;
+    int sourceLinearUnit = 2;
+    int sourceFraction = 0;
+    int sourceTextArrowFit = 3;
+    int sourceTextMove = 0;
+    const bool hasLegacyUnit = findInt("$DIMUNIT", sourceLegacyUnit);
+    const bool hasLegacyFit = findInt("$DIMFIT", sourceLegacyFit);
+    const bool dimunitAlias = dxfDimunitAliasState()
+        != DxfDimunitAliasState::None;
+    const bool hasModernLinearUnit =
+        findInt("$DIMLUNIT", sourceLinearUnit) && !dimunitAlias;
+    const bool hasModernFraction = findInt("$DIMFRAC", sourceFraction);
+    const bool hasModernTextArrowFit =
+        findInt("$DIMATFIT", sourceTextArrowFit);
+    const bool hasModernTextMove = findInt("$DIMTMOVE", sourceTextMove);
+    if ((hasKey("$DIMUNIT") && !hasLegacyUnit)
+        || (hasKey("$DIMFIT") && !hasLegacyFit)
+        || (hasKey("$DIMLUNIT") && !dimunitAlias
+            && !hasModernLinearUnit)
+        || (hasKey("$DIMFRAC") && !hasModernFraction)
+        || (hasKey("$DIMATFIT") && !hasModernTextArrowFit)
+        || (hasKey("$DIMTMOVE") && !hasModernTextMove))
+        return false;
+    const bool hasModernUnitFamily =
+        hasModernLinearUnit || hasModernFraction;
+    const bool hasModernFitFamily =
+        hasModernTextArrowFit || hasModernTextMove;
+
+    if (!hasModernUnitFamily && hasLegacyUnit) {
+        const drwDimvarMigration::ModernDimensionUnit mapped =
+            drwDimvarMigration::fromLegacyUnit(sourceLegacyUnit);
+        sourceLinearUnit = mapped.linearUnit;
+        sourceFraction = mapped.fraction;
+    } else {
+        if (!hasModernLinearUnit)
+            sourceLinearUnit = 2;
+        if (!hasModernFraction)
+            sourceFraction = 0;
+    }
+    if (!hasModernFitFamily && hasLegacyFit) {
+        const drwDimvarMigration::ModernDimensionFit mapped =
+            drwDimvarMigration::fromLegacyFit(sourceLegacyFit);
+        sourceTextArrowFit = mapped.textArrowFit;
+        sourceTextMove = mapped.textMove;
+    } else {
+        if (!hasModernTextArrowFit)
+            sourceTextArrowFit = 3;
+        if (!hasModernTextMove)
+            sourceTextMove = 0;
+    }
+
+    if (target >= DRW::AC1015) {
+        linearUnit = sourceLinearUnit;
+        fraction = sourceFraction;
+        textArrowFit = sourceTextArrowFit;
+        textMove = sourceTextMove;
+        legacyUnit = hasLegacyUnit ? sourceLegacyUnit : 2;
+        legacyFit = hasLegacyFit ? sourceLegacyFit : 3;
+        return true;
+    }
+
+    if (hasModernUnitFamily) {
+        if (!drwDimvarMigration::toLegacyUnit(
+                sourceLinearUnit, sourceFraction, legacyUnit))
+            return false;
+    } else if (hasLegacyUnit) {
+        if (!drwDimvarMigration::isLegacyUnit(sourceLegacyUnit))
+            return false;
+        legacyUnit = sourceLegacyUnit;
+    } else {
+        legacyUnit = 2;
+    }
+    if (hasModernFitFamily) {
+        if (!drwDimvarMigration::toLegacyFit(
+                sourceTextArrowFit, sourceTextMove, legacyFit))
+            return false;
+    } else if (hasLegacyFit) {
+        if (!drwDimvarMigration::isLegacyFit(sourceLegacyFit))
+            return false;
+        legacyFit = sourceLegacyFit;
+    } else {
+        legacyFit = 3;
+    }
+    linearUnit = sourceLinearUnit;
+    fraction = sourceFraction;
+    textArrowFit = sourceTextArrowFit;
+    textMove = sourceTextMove;
+    return true;
+}
+
+bool DRW_Header::canWriteDxfDimensionVariables(DRW::Version target) const {
+    int legacyUnit = 0;
+    int legacyFit = 0;
+    int linearUnit = 0;
+    int fraction = 0;
+    int textArrowFit = 0;
+    int textMove = 0;
+    return resolveDxfDimensionVariables(target, legacyUnit, legacyFit,
+                                        linearUnit, fraction,
+                                        textArrowFit, textMove);
+}
+
+bool DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
     m_dxfSourceVersion = reader->getSourceVersion();
+    if (isDxfCustomPropertyVariable(name)
+        && !m_customPropertyFieldValueSeen)
+        m_dxfCustomPropertiesWellFormed = false;
+    if (m_pendingCustomPropertyTag) {
+        m_dxfCustomPropertiesWellFormed = false;
+        m_pendingCustomPropertyTag.reset();
+    }
+    // Mark the just-finished variable boundary as consumed so a following
+    // tolerated HEADER section does not mistake the previous section's last
+    // custom-property variable for a missing group-1 value.
+    m_customPropertyFieldValueSeen = true;
     // Repeated HEADER sections are invalid source but have historically been
     // tolerated. Their values keep the old eager interpretation; never decode
     // already-finalized strings again or fabricate a new source alias.
     if (m_dxfHeaderFinalized)
-        return;
+        return true;
     // A legacy version declaration resets the codec. Reapply the final page
     // after metadata discovery, then decode retained semantic HEADER strings
     // exactly once. R2007+ DXF still uses UTF-8 regardless of this legacy page.
@@ -265,8 +819,38 @@ void DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
             || item.first == "$ACADVER" || item.first == "$DWGCODEPAGE")
             continue;
         const int code = value->code();
-        if (code == 1 || code == 2 || code == 3 || code == 6 || code == 7 || code == 8)
-            value->addString(code, reader->toUtf8String(*value->content.s, code));
+        const bool unknownVariable =
+            !isCanonicalDxfHeaderVariable(item.first);
+        const DxfValueKind kind = dxfValueKindForCode(code);
+        const bool decodeCanonicalText = code == 1 || code == 2 || code == 3
+            || code == 6 || code == 7 || code == 8;
+        const bool decodeUnknownText = unknownVariable
+            && kind == DxfValueKind::Str && !isDxfHandleCode(code);
+        if (decodeCanonicalText || decodeUnknownText) {
+            std::string decoded = reader->toUtf8String(
+                *value->content.s, code);
+            if (unknownVariable && m_dxfUnknownHeaderLease != nullptr) {
+                const std::size_t oldSize = value->content.s->size();
+                const std::size_t newSize = decoded.size();
+                if (newSize > oldSize) {
+                    if (!m_dxfUnknownHeaderLease->add(newSize - oldSize))
+                        return false;
+                } else if (newSize < oldSize) {
+                    const std::size_t bytes =
+                        m_dxfUnknownHeaderLease->bytes();
+                    const std::size_t reduction = oldSize - newSize;
+                    if (reduction > bytes
+                        || !m_dxfUnknownHeaderLease->resizeTo(
+                            bytes - reduction))
+                        return false;
+                }
+            }
+            value->addString(code, std::move(decoded));
+        }
+    }
+    for (auto& property : customProperties) {
+        property.first = reader->toUtf8String(property.first, 1);
+        property.second = reader->toUtf8String(property.second, 1);
     }
 
     // Preserve physical legacy presence and expose the historical 2D alias
@@ -278,6 +862,8 @@ void DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
         && legacy != vars.end() && legacy->second != nullptr
         && legacy->second->type() == DRW_Variant::INTEGER
         && vars.find("$DIMLUNIT") == vars.end()) {
+        if (!reader->chargeTypedVariantNode())
+            return false;
         const DRW_Variant source(*legacy->second);
         storeVar("$DIMLUNIT", new DRW_Variant(source));
         m_dimunitSourceCode = source.code();
@@ -287,14 +873,37 @@ void DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
         m_hasDerivedDimunitAlias = true;
     }
     m_dxfHeaderFinalized = true;
+    return true;
 }
 
 void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver){
 /*RLZ: TODO complete all vars to AC1024*/
+    if (!canWriteDxfHeaderStructure()
+        || !canWriteDxfUnknownHeaderVariables()) {
+        writer->markWriteError();
+        return;
+    }
     double varDouble;
     int varInt;
     std::string varStr;
     DRW_Coord varCoord;
+    int legacyDimunit = 2;
+    int legacyDimfit = 3;
+    int dimlunit = 2;
+    int dimfrac = 0;
+    int dimatfit = 3;
+    int dimtmove = 0;
+    if (!resolveDxfDimensionVariables(ver, legacyDimunit, legacyDimfit,
+                                      dimlunit, dimfrac, dimatfit, dimtmove))
+        return;
+    if (!canWriteDxfVisualStyleReferences(ver))
+        return;
+    if (!canWriteDxfCustomProperties(ver))
+        return;
+    if (!canWriteDxfRequiredVersions(ver))
+        return;
+    if (!canWriteDxfPlotStyleId(ver))
+        return;
     writer->writeString(2, "HEADER");
     writer->writeString(9, "$ACADVER");
     switch (ver) {
@@ -344,12 +953,47 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeInt16(70, maintVer);
     }
 
+    // Preserve supported HEADER hard pointers as their own variables. These
+    // are not VIEWPORT fields even where the numeric group codes overlap.
+    for (const DxfHeaderVisualStyleReference& reference :
+         dxfHeaderVisualStyleReferences) {
+        const auto dollar = vars.find(reference.name);
+        const auto bare = vars.find(reference.name + 1);
+        const auto value = dollar != vars.end() ? dollar : bare;
+        if (value == vars.end())
+            continue;
+        writer->writeString(9, reference.name);
+        writer->writeString(reference.code, value->second->c_str());
+    }
+
     if (!getStr("$DWGCODEPAGE", &varStr)) {
         varStr = "ANSI_1252";
     }
     writer->writeString(9, "$DWGCODEPAGE");
     writer->setCodePage(varStr);
     writer->writeString(3, writer->getCodePage() );
+    if (!customProperties.empty()) {
+        // R2004+ drawing properties precede HANDSEED in the canonical header
+        // order. Keep LASTSAVEDBY present because some readers only accept the
+        // following custom-property pairs when this field is emitted.
+        writer->writeString(9, "$LASTSAVEDBY");
+        varStr.clear();
+        getStr("$LASTSAVEDBY", &varStr);
+        writer->writeUtf8String(1, varStr);
+        for (const auto& property : customProperties) {
+            writer->writeString(9, kDxfCustomPropertyTag);
+            writer->writeUtf8String(1, property.first);
+            writer->writeString(9, kDxfCustomPropertyValue);
+            writer->writeUtf8String(1, property.second);
+        }
+    }
+    const auto requiredVersions = vars.find(kDxfRequiredVersions);
+    if (requiredVersions != vars.end()) {
+        // Keep the signed 64-bit value intact; feature bits are deliberately
+        // not interpreted so unrecognized requirements survive unchanged.
+        writer->writeString(9, kDxfRequiredVersions);
+        writer->writeInt64(160, requiredVersions->second->i64_val());
+    }
     writer->writeString(9, "$INSBASE");
     if (getCoord("$INSBASE", &varCoord)) {
         writer->writeDouble(10, varCoord.x);
@@ -823,34 +1467,17 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         else
             writer->writeInt16(70, 44);
         writer->writeString(9, "$DIMATFIT");
-        if (getInt("$DIMATFIT", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 3);
+        writer->writeInt16(70, dimatfit);
         writer->writeString(9, "$DIMFRAC");
-        if (getInt("$DIMFRAC", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 0);
+        writer->writeInt16(70, dimfrac);
         writer->writeString(9, "$DIMLDRBLK");
         if (getStr("$DIMLDRBLK", &varStr))
             writer->writeUtf8String(1, varStr);
         else
             writer->writeString(1, "STANDARD");
-    //verify if exist "$DIMLUNIT" or obsolete "$DIMUNIT" (pre v2000)
-        if ( !getInt("$DIMLUNIT", &varInt) ){
-            if (!getInt("$DIMUNIT", &varInt))
-                varInt = 2;
-        }
-        //verify valid values from 1 to 6
-        if (varInt<1 || varInt>6)
-            varInt = 2;
         if (ver > DRW::AC1014) {
             writer->writeString(9, "$DIMLUNIT");
-            writer->writeInt16(70, varInt);
-        } else {
-            writer->writeString(9, "$DIMUNIT");
-            writer->writeInt16(70, varInt);
+            writer->writeInt16(70, dimlunit);
         }
         writer->writeString(9, "$DIMLWD");
         if (getInt("$DIMLWD", &varInt))
@@ -863,10 +1490,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         else
             writer->writeInt16(70, -2);
         writer->writeString(9, "$DIMTMOVE");
-        if (getInt("$DIMTMOVE", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 0);
+        writer->writeInt16(70, dimtmove);
 
         if (ver > DRW::AC1018) {// and post v2004 dim vars
             writer->writeString(9, "$DIMFXL");
@@ -1023,6 +1647,12 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
     else
         writer->writeInt16(70, 0);
     if (ver < DRW::AC1015) {
+        if (ver > DRW::AC1009) {
+            writer->writeString(9, "$DIMUNIT");
+            writer->writeInt16(70, legacyDimunit);
+            writer->writeString(9, "$DIMFIT");
+            writer->writeInt16(70, legacyDimfit);
+        }
         writer->writeString(9, "$BLIPMODE");
         if (getInt("$BLIPMODE", &varInt))
             writer->writeInt16(70, varInt);
@@ -1620,12 +2250,12 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         else
             writer->writeInt16(70, 1);
         int insunits {Units::None};
-        getInt("$INSUNITS", &insunits);     // get $INSUNITS now to evaluate $MEASUREMENT
-        int measurementValue = measurement(insunits);
-        if (getInt("$MEASUREMENT", &varInt))
-            measurementValue = varInt;
-        writer->writeString(9, "$MEASUREMENT");
-        writer->writeInt16(70, measurementValue);
+        const bool hasInsunits = getInt("$INSUNITS", &insunits);
+        int measurementValue {0};
+        if (getInt("$MEASUREMENT", &measurementValue)) {
+            writer->writeString(9, "$MEASUREMENT");
+            writer->writeInt16(70, measurementValue);
+        }
         writer->writeString(9, "$CELWEIGHT");
         if (getInt("$CELWEIGHT", &varInt))
             writer->writeInt16(370, varInt);
@@ -1646,9 +2276,9 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeBool(290, varInt != 0);
         else
             writer->writeBool(290, false);
-        if (ver > DRW::AC1014) {
+        if (ver > DRW::AC1014 && hasInsunits) {
             writer->writeString(9, "$INSUNITS");
-            writer->writeInt16(70, insunits);       // already fetched above for $MEASUREMENT
+            writer->writeInt16(70, insunits);
         }
         writer->writeString(9, "$HYPERLINKBASE");
         if (getStr("$HYPERLINKBASE", &varStr))
@@ -1670,6 +2300,17 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeInt16(380, varInt);
         else
             writer->writeInt16(380, 0);
+        bool hasPlotStyleHandle = false;
+        std::uint64_t plotStyleHandle = 0;
+        if (getDxfPlotStyleIdHandle(plotStyleHandle, hasPlotStyleHandle)
+            && hasPlotStyleHandle) {
+            const auto dollar = vars.find(kDxfPlotStyleId);
+            const auto value = dollar != vars.end()
+                ? dollar : vars.find("CEPSNID");
+            writer->writeString(9, "$CEPSNID");
+            writer->writeString(390, plotStyleHandle == 0
+                ? "0" : value->second->c_str());
+        }
         writer->writeString(9, "$PSTYLEMODE"); //RLZ bool flag, verify in bin version
         if (getInt("$PSTYLEMODE", &varInt))
             writer->writeBool(290, varInt != 0);
@@ -1924,6 +2565,26 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeDouble(40, 0.0);
     }
 
+    std::vector<std::pair<std::string_view, const DRW_Variant*>>
+        unknownVariables;
+    unknownVariables.reserve(vars.size() + customVars.size());
+    for (const auto& item : vars) {
+        if (!isCanonicalDxfHeaderVariable(item.first))
+            unknownVariables.emplace_back(item.first, item.second);
+    }
+    for (const auto& item : customVars)
+        unknownVariables.emplace_back(item.first, item.second);
+    std::sort(unknownVariables.begin(), unknownVariables.end(),
+        [](const auto& lhs, const auto& rhs) {
+            return lhs.first < rhs.first;
+        });
+    for (const auto& item : unknownVariables) {
+        if (!writeUnknownHeaderVariant(writer, item.first, item.second)) {
+            writer->markWriteError();
+            return;
+        }
+    }
+
 #ifdef DRW_DBG
     for ( auto it=vars.begin() ; it != vars.end(); ++it ){
         DRW_DBG((*it).first); DRW_DBG("\n");
@@ -1939,12 +2600,173 @@ void DRW_Header::addInt(std::string key, int value, int code){
     storeVar(key, new DRW_Variant(code, value));
 }
 
+void DRW_Header::addInt64(std::string key, std::int64_t value, int code){
+    storeVar(key, new DRW_Variant(code, value));
+}
+
 void DRW_Header::addStr(std::string key, std::string value, int code){
     storeVar(key, new DRW_Variant(code, value));
 }
 
 void DRW_Header::addCoord(std::string key, DRW_Coord value, int code){
     storeVar(key, new DRW_Variant(code, value));
+}
+
+bool DRW_Header::canWriteDxfVisualStyleReferences(DRW::Version target) const {
+    for (const DxfHeaderVisualStyleReference& reference :
+         dxfHeaderVisualStyleReferences) {
+        std::uint32_t handle = 0;
+        bool present = false;
+        if (!getDxfVisualStyleReferenceHandle(reference.name, handle,
+                                              present)
+            || (present && target < DRW::AC1021))
+            return false;
+    }
+    return true;
+}
+
+bool DRW_Header::canWriteDxfCustomProperties(DRW::Version target) const noexcept {
+    if (!m_dxfCustomPropertiesWellFormed || m_pendingCustomPropertyTag)
+        return false;
+    return customProperties.empty() || target >= DRW::AC1018;
+}
+
+bool DRW_Header::canWriteDxfUnknownHeaderVariables() const noexcept {
+    if (!m_dxfHeaderStructureWellFormed)
+        return false;
+    for (auto item = vars.begin(); item != vars.end(); ++item) {
+        const std::string_view name(item->first);
+        if (isCanonicalDxfHeaderVariable(name))
+            continue;
+        if (isCanonicalDxfHeaderVariableIgnoringAsciiCase(name)
+            || !unknownHeaderNameIsWritable(name)
+            || !unknownHeaderVariantIsWritable(item->second))
+            return false;
+        for (auto other = std::next(item); other != vars.end(); ++other) {
+            if (headerNamesEqualIgnoringAsciiCase(name, other->first))
+                return false;
+        }
+        for (const auto& custom : customVars) {
+            if (headerNamesEqualIgnoringAsciiCase(name, custom.first))
+                return false;
+        }
+    }
+    for (const auto& item : customVars) {
+        const std::string_view name(item.first);
+        if (isCanonicalDxfHeaderVariable(name)
+            || isCanonicalDxfHeaderVariableIgnoringAsciiCase(name)
+            || !unknownHeaderNameIsWritable(name)
+            || !unknownHeaderVariantIsWritable(item.second))
+            return false;
+        for (auto other = std::next(customVars.find(item.first));
+             other != customVars.end(); ++other) {
+            if (headerNamesEqualIgnoringAsciiCase(name, other->first))
+                return false;
+        }
+    }
+    return true;
+}
+
+bool DRW_Header::canWriteDxfRequiredVersions(
+    DRW::Version target) const noexcept {
+    if (!m_dxfRequiredVersionsWellFormed)
+        return false;
+    const auto value = vars.find(kDxfRequiredVersions);
+    if (value == vars.end())
+        return true;
+    return target >= DRW::AC1027 && value->second != nullptr
+        && value->second->type() == DRW_Variant::INTEGER64
+        && value->second->code() == 160;
+}
+
+void DRW_Header::clearDxfRequiredVersions() {
+    const auto value = vars.find(kDxfRequiredVersions);
+    if (value != vars.end()) {
+        if (curr == value->second)
+            curr = nullptr;
+        delete value->second;
+        vars.erase(value);
+    }
+    m_dxfRequiredVersionsWellFormed = true;
+}
+
+bool DRW_Header::getDxfPlotStyleIdHandle(std::uint64_t& handle,
+                                         bool& present) const noexcept {
+    handle = 0;
+    present = false;
+    const auto dollar = vars.find(kDxfPlotStyleId);
+    const auto bare = vars.find("CEPSNID");
+    if (dollar != vars.end() && bare != vars.end())
+        return false;
+    const auto value = dollar != vars.end() ? dollar : bare;
+    if (value == vars.end())
+        return true;
+    const DRW_Variant* variant = value->second;
+    if (variant == nullptr || variant->type() != DRW_Variant::STRING
+        || variant->code() != 390 || variant->c_str() == nullptr)
+        return false;
+    const std::string_view text(variant->c_str());
+    if (text.empty() || text.size() > 16u)
+        return false;
+    const char* begin = text.data();
+    const char* end = begin + text.size();
+    const std::from_chars_result result =
+        std::from_chars(begin, end, handle, 16);
+    if (result.ec != std::errc{} || result.ptr != end)
+        return false;
+    present = true;
+    return true;
+}
+
+bool DRW_Header::canWriteDxfPlotStyleId(DRW::Version target) const noexcept {
+    if (!m_dxfPlotStyleIdWellFormed)
+        return false;
+    std::uint64_t handle = 0;
+    bool present = false;
+    return getDxfPlotStyleIdHandle(handle, present)
+        && (!present || (target > DRW::AC1014
+                         && handle <= (std::numeric_limits<std::uint32_t>::max)()));
+}
+
+void DRW_Header::clearDxfPlotStyleId() {
+    for (const char* key : {kDxfPlotStyleId, "CEPSNID"}) {
+        const auto value = vars.find(key);
+        if (value == vars.end())
+            continue;
+        if (curr == value->second)
+            curr = nullptr;
+        delete value->second;
+        vars.erase(value);
+    }
+    m_dxfPlotStyleIdWellFormed = true;
+}
+
+bool DRW_Header::getDxfVisualStyleReferenceHandle(
+    const char* name, std::uint32_t& handle, bool& present) const {
+    handle = 0;
+    present = false;
+    if (name == nullptr)
+        return false;
+    const auto reference = std::find_if(
+        dxfHeaderVisualStyleReferences.begin(),
+        dxfHeaderVisualStyleReferences.end(),
+        [name](const DxfHeaderVisualStyleReference& candidate) {
+            return std::string_view(candidate.name) == name;
+        });
+    if (reference == dxfHeaderVisualStyleReferences.end())
+        return false;
+    const auto dollar = vars.find(reference->name);
+    const auto bare = vars.find(reference->name + 1);
+    if (dollar != vars.end() && bare != vars.end())
+        return false;
+    const auto value = dollar != vars.end() ? dollar : bare;
+    if (value == vars.end())
+        return true;
+    if (!parseDxfHeaderVisualStyleReferenceValue(
+            value->second, reference->code, handle))
+        return false;
+    present = true;
+    return true;
 }
 
 // Mirror the DWG-encoder findVar() convention: DXF reader stores "$NAME" keys,
@@ -2095,6 +2917,8 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
     std::uint32_t bitSize = 0;
     std::uint64_t stringStartBit = 0, stringEndBit = 0;
     const bool fullSection = headerStart == 16u && !consumeTrailer;
+    std::optional<dwgBuffer> boundedStrings;
+    dwgBuffer* strings = buf;
     std::uint64_t endBitPos = 160; //start bit: 16 sentinel + 4 size
     DRW_DBG("\nbyte size of data: "); DRW_DBG(size);
     if ((DRW::AC1024 <= version && 3 < maintenanceVersion)
@@ -2123,10 +2947,51 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
                 || stringStartBit < buf->getPosition() * 8u
                 || stringEndBit < stringStartBit)
                 return false;
+        } else if (!buf->getR2007StringStreamBounds(
+                       endBitPos, stringStartBit, stringEndBit)) {
+            return false;
         }
+        boundedStrings.emplace(buf->forkBounded((stringEndBit + 7u) / 8u));
+        strings = &*boundedStrings;
+        if (!strings->setPosition(stringStartBit >> 3u))
+            return false;
+        strings->setBitPos(static_cast<std::uint8_t>(stringStartBit & 7u));
         hBbuf->setPosition(endBitPos >>3);
         hBbuf->setBitPos(endBitPos&7);
     }
+
+    const auto readHeaderCmColor = [&](const char* key, int code) {
+        std::int32_t rgb24 = -1;
+        bool hasRgbColor = false;
+        std::uint8_t method = 0;
+        std::uint8_t flags = 0;
+        std::uint16_t index = 0;
+        UTF8STRING colorName;
+        UTF8STRING bookName;
+        const std::uint32_t scalar = buf->getCmColor(
+            version, &rgb24, strings, &colorName, &bookName, &hasRgbColor,
+            &method, &flags, &index);
+        if (!buf->isGood() || !strings->isGood()
+            || (flags & static_cast<std::uint8_t>(~0x03u)) != 0
+            || (version > DRW::AC1018
+                && strings->getPosition() * 8u + strings->getBitPos()
+                    > stringEndBit))
+            return false;
+        auto value = std::make_unique<DRW_Variant>(
+            code, static_cast<std::int32_t>(scalar));
+        DRW_DwgCmColor color;
+        color.method = method;
+        color.flags = flags;
+        color.index = index;
+        color.rgb24 = rgb24;
+        color.hasRgbColor = hasRgbColor;
+        color.colorName = std::move(colorName);
+        color.bookName = std::move(bookName);
+        color.sourceVersion = version;
+        value->setDwgCmColor(std::move(color));
+        storeVar(key, value.release());
+        return true;
+    };
 
     if (version > DRW::AC1024) {//2013+
         std::uint64_t requiredVersions = buf->getBitLongLong();
@@ -2280,7 +3145,8 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
     }
     storeVar("TDINDWG", new DRW_Variant(40, readJulianDate()));
     storeVar("TDUSRTIMER", new DRW_Variant(40, readJulianDate()));
-    storeVar("CECOLOR", new DRW_Variant(62, buf->getCmColor(version)));//RLZ: TODO read CMC or EMC color
+    if (!readHeaderCmColor("CECOLOR", 62))
+        return false;
     dwgHandle HANDSEED = buf->getHandle();//always present in data stream
     DRW_DBG("\nHANDSEED: "); DRW_DBGHL(HANDSEED.code, HANDSEED.size, HANDSEED.ref);
     handSeed = HANDSEED.ref;
@@ -2400,7 +3266,8 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
         storeVar("DIMFXL", new DRW_Variant(40, buf->getBitDouble()));//////////////////
         storeVar("DIMJOGANG", new DRW_Variant(40, buf->getBitDouble()));///////////////
         storeVar("DIMTFILL", new DRW_Variant(70, buf->getBitShort()));
-        storeVar("DIMTFILLCLR", new DRW_Variant(62, buf->getCmColor(version)));
+        if (!readHeaderCmColor("DIMTFILLCLR", 62))
+            return false;
     }
     if (version > DRW::AC1014) {//2000+
         storeVar("DIMTOL", new DRW_Variant(70, buf->getBit()));
@@ -2440,9 +3307,10 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
         storeVar("DIMTIX", new DRW_Variant(70, buf->getBit()));
         storeVar("DIMSOXD", new DRW_Variant(70, buf->getBit()));
     }
-    storeVar("DIMCLRD", new DRW_Variant(70, buf->getCmColor(version)));//RLZ: TODO read CMC or EMC color
-    storeVar("DIMCLRE", new DRW_Variant(70, buf->getCmColor(version)));//RLZ: TODO read CMC or EMC color
-    storeVar("DIMCLRT", new DRW_Variant(70, buf->getCmColor(version)));//RLZ: TODO read CMC or EMC color
+    if (!readHeaderCmColor("DIMCLRD", 70)
+        || !readHeaderCmColor("DIMCLRE", 70)
+        || !readHeaderCmColor("DIMCLRT", 70))
+        return false;
     if (version > DRW::AC1014) {//2000+
         storeVar("DIMADEC", new DRW_Variant(70, buf->getBitShort()));
         storeVar("DIMDEC", new DRW_Variant(70, buf->getBitShort()));
@@ -2632,7 +3500,8 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
         storeVar("DWFFRAME", new DRW_Variant(70, buf->getRawChar8()));
         storeVar("DGNFRAME", new DRW_Variant(70, buf->getRawChar8()));
         DRW_DBG("\nUnknown 2007+ BIT: "); DRW_DBG(buf->getBit());
-        storeVar("INTERFERECOLOR", new DRW_Variant(70, buf->getCmColor(version)));
+        if (!readHeaderCmColor("INTERFERECOLOR", 70))
+            return false;
         CONTROL = hBbuf->getHandle();
         DRW_DBG("\nINTERFEREOBJVS: "); DRW_DBGHL(CONTROL.code, CONTROL.size, CONTROL.ref);
         CONTROL = hBbuf->getHandle();
@@ -2660,19 +3529,10 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
     /**** RLZ: disabled, pending to read all data ***/
     //Start reading string stream for 2007 and further
     if (version > DRW::AC1018) {//2007+
-        std::optional<dwgBuffer> boundedStrings;
-        dwgBuffer* strings = buf;
         if (fullSection) {
             const auto dataEndBit = buf->getPosition() * 8u + buf->getBitPos();
             if (!buf->isGood() || !hBbuf->isGood() || dataEndBit > stringStartBit)
                 return false;
-            boundedStrings.emplace(buf->forkBounded((stringEndBit + 7u) / 8u));
-            strings = &*boundedStrings;
-            if (!strings->setPosition(stringStartBit >> 3u))
-                return false;
-            strings->setBitPos(static_cast<std::uint8_t>(stringStartBit & 7u));
-        } else if (!strings->seekR2007StringStream(endBitPos)) {
-            return false;
         }
         DRW_DBG("\nstring buf position: "); DRW_DBG(buf->getPosition());
         DRW_DBG("\nstring buf bit position: "); DRW_DBG(buf->getBitPos());
@@ -2697,8 +3557,8 @@ bool DRW_Header::parseDwgBody(DRW::Version version, dwgBuffer *buf,
         DRW_DBG("  string buf bit position: "); DRW_DBG(buf->getBitPos());
         storeVar("PROJECTNAME", new DRW_Variant(1, strings->getUCSText(false)));
         if (!strings->isGood()
-            || (fullSection && strings->getPosition() * 8u
-                + strings->getBitPos() > stringEndBit))
+            || strings->getPosition() * 8u + strings->getBitPos()
+                > stringEndBit)
             return false;
     }
 /***    ****/
@@ -2864,6 +3724,49 @@ namespace {
         if (it == hdr.vars.end() || !it->second) return def;
         return it->second->i_val();
     }
+    bool validDwgHeaderCmColor(const DRW_Variant* value,
+                               DRW::Version targetVersion) {
+        if (value == nullptr || value->dwgCmColorValue() == nullptr)
+            return true;
+        if (value->type() != DRW_Variant::INTEGER)
+            return false;
+        const DRW_DwgCmColor& color = *value->dwgCmColorValue();
+        const std::int32_t scalar = value->i_val();
+        const bool namedFlagsMatch = color.flags == static_cast<std::uint8_t>(
+            (color.colorName.empty() ? 0u : 1u)
+            | (color.bookName.empty() ? 0u : 2u));
+        if (!namedFlagsMatch || (color.flags & 0xFCu) != 0
+            || color.index != 0)
+            return false;
+
+        bool supported = false;
+        switch (color.method) {
+        case 0xC0u:
+            supported = scalar == 256 && !color.hasRgbColor
+                && color.rgb24 == -1;
+            break;
+        case 0xC1u:
+            supported = scalar == 0 && !color.hasRgbColor
+                && color.rgb24 == -1;
+            break;
+        case 0xC2u:
+            supported = scalar == 256 && color.hasRgbColor
+                && color.rgb24 >= 0 && color.rgb24 <= 0x00FFFFFF;
+            break;
+        case 0xC3u:
+            supported = scalar > 0 && scalar <= 255
+                && !color.hasRgbColor && color.rgb24 == -1;
+            break;
+        default:
+            break;
+        }
+        if (!supported)
+            return false;
+        if (targetVersion < DRW::AC1018
+            && (color.method == 0xC2u || color.flags != 0))
+            return false;
+        return true;
+    }
     /// Look up a BD float var; default 0.0 (or caller-supplied).
     double dblVar(const DRW_Header& hdr, const std::string& name, double def = 0.0) {
         auto it = findVar(hdr, name);
@@ -2916,35 +3819,94 @@ namespace {
         }
         return h;
     }
-    /// Decompose a stored TDCREATE-style double `julianDay + msec/86_400_000`
-    /// back into the two BLs encodeDwg writes.  Inverse of:
-    ///   day = getBitLong(); msec = getBitLong();
-    ///   stored = day + msec/86_400_000.0;
-    /// For an empty header (stored == 0.0) the result is (0, 0).  Round to the
-    /// nearest millisecond to absorb the FP error introduced by the division.
-    void splitTimeVar(double stored, std::int32_t& day, std::int32_t& msecOut) {
-        constexpr double kMsecPerDay = 86400000.0;
-        const double dayFloor = std::floor(stored);
-        day = static_cast<std::int32_t>(dayFloor);
-        const double frac = stored - dayFloor;
-        msecOut = static_cast<std::int32_t>(std::lround(frac * kMsecPerDay));
-        // A msec of exactly 86_400_000 occurs if `frac` is essentially 1 due
-        // to FP rounding; carry to the next day.
-        if (msecOut >= static_cast<std::int32_t>(kMsecPerDay)) {
-            day += 1;
-            msecOut = 0;
-        }
+    /// Build the hard-owner root link used by HEADER's Named Objects field.
+    dwgHandle makeHardOwner(std::uint32_t ref) {
+        dwgHandle h;
+        h.code = ref == 0 ? DRW::DwgNullReference : DRW::DwgHardOwnership;
+        h.ref = ref;
+        h.size = 0;
+        for (std::uint32_t value = ref; value != 0; value >>= 8)
+            ++h.size;
+        return h;
     }
 } // namespace
 
 bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
                            dwgBufferW *strBuf) {
-    const std::uint32_t encodeStartBit = buf->bitCount();
-    m_dwgHandseedBitOffset = kInvalidDwgHandseedBitOffset;
+    return encodeDwgForWriter(version, buf, hBbuf, strBuf, 0);
+}
+
+bool DRW_Header::encodeDwgForWriter(
+        DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
+        dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle) {
     if (version != DRW::AC1015 && version != DRW::AC1018 &&
         version != DRW::AC1021 && version != DRW::AC1024 &&
         version != DRW::AC1027 &&
         version != DRW::AC1032) return false;
+    if (buf == nullptr)
+        return false;
+
+    struct EncodedTime {
+        std::int32_t day;
+        std::int32_t milliseconds;
+    };
+    constexpr std::array<const char*, 4> timeKeys{{
+        "TDCREATE", "TDUPDATE", "TDINDWG", "TDUSRTIMER"
+    }};
+    std::array<EncodedTime, 4> encodedTimes{};
+    for (std::size_t index = 0; index < timeKeys.size(); ++index) {
+        if (!dwgHeaderTime::split(
+                dblVar(*this, timeKeys[index]),
+                encodedTimes[index].day,
+                encodedTimes[index].milliseconds))
+            return false;
+    }
+
+    const std::array<std::pair<const char*, bool>, 6> headerColors{{
+        {"CECOLOR", true}, {"DIMCLRD", true}, {"DIMCLRE", true},
+        {"DIMCLRT", true}, {"DIMTFILLCLR", version > DRW::AC1018},
+        {"INTERFERECOLOR", version > DRW::AC1018}
+    }};
+    for (const auto& entry : headerColors) {
+        if (!entry.second)
+            continue;
+        const auto found = findVar(*this, entry.first);
+        const DRW_Variant* value = found == vars.end() ? nullptr
+            : found->second;
+        if (!validDwgHeaderCmColor(value, version))
+            return false;
+        const DRW_DwgCmColor* color = value == nullptr ? nullptr
+            : value->dwgCmColorValue();
+        if (color != nullptr && version > DRW::AC1018
+            && (!color->colorName.empty() || !color->bookName.empty())
+            && strBuf == nullptr)
+            return false;
+    }
+
+    const auto putHeaderCmColor = [&](const char* name,
+                                      std::uint16_t fallback) {
+        const auto found = findVar(*this, name);
+        const DRW_Variant* value = found == vars.end() ? nullptr
+            : found->second;
+        const DRW_DwgCmColor* color = value == nullptr ? nullptr
+            : value->dwgCmColorValue();
+        if (color == nullptr || version < DRW::AC1018) {
+            buf->putCmColor(version, static_cast<std::uint16_t>(
+                value != nullptr && value->type() == DRW_Variant::INTEGER
+                    ? value->i_val() : fallback));
+        } else {
+            const std::uint16_t scalar = static_cast<std::uint16_t>(
+                value->i_val());
+            buf->putCmColor(version, color->method, scalar, color->rgb24,
+                            color->colorName, color->bookName, strBuf);
+        }
+        return buf->isGood() && (strBuf == nullptr || strBuf->isGood());
+    };
+
+    // All header times must be representable before either the output streams
+    // or the HANDSEED patch locator are changed.
+    const std::uint64_t encodeStartBit = buf->bitCount();
+    m_dwgHandseedBitOffset = kInvalidDwgHandseedBitOffset;
 
     // -------- REQUIREDVERSIONS (parseDwg:1786-1789) -------------------------
     if (version > DRW::AC1024) {
@@ -3070,38 +4032,23 @@ bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hB
     }
 
     // -------- TDCREATE / TDUPDATE / TDINDWG / TDUSRTIMER (4 pairs of BLs) ---
-    {
-        std::int32_t day, msec;
-        splitTimeVar(dblVar(*this, "TDCREATE"), day, msec);
-        buf->putBitLong(day);
-        buf->putBitLong(msec);
-    }
-    {
-        std::int32_t day, msec;
-        splitTimeVar(dblVar(*this, "TDUPDATE"), day, msec);
-        buf->putBitLong(day);
-        buf->putBitLong(msec);
-    }
+    buf->putBitLong(encodedTimes[0].day);
+    buf->putBitLong(encodedTimes[0].milliseconds);
+    buf->putBitLong(encodedTimes[1].day);
+    buf->putBitLong(encodedTimes[1].milliseconds);
     if (version > DRW::AC1015) {  // R2004+: 3 unknown BLs (parseDwg:1931-1935)
         buf->putBitLong(0);
         buf->putBitLong(0);
         buf->putBitLong(0);
     }
-    {
-        std::int32_t day, msec;
-        splitTimeVar(dblVar(*this, "TDINDWG"), day, msec);
-        buf->putBitLong(day);
-        buf->putBitLong(msec);
-    }
-    {
-        std::int32_t day, msec;
-        splitTimeVar(dblVar(*this, "TDUSRTIMER"), day, msec);
-        buf->putBitLong(day);
-        buf->putBitLong(msec);
-    }
+    buf->putBitLong(encodedTimes[2].day);
+    buf->putBitLong(encodedTimes[2].milliseconds);
+    buf->putBitLong(encodedTimes[3].day);
+    buf->putBitLong(encodedTimes[3].milliseconds);
 
     // -------- CECOLOR + first handle block (parseDwg:1947-1963) -------------
-    buf->putCmColor(version, static_cast<std::uint16_t>(intVar(*this, "CECOLOR", 256)));
+    if (!putHeaderCmColor("CECOLOR", 256))
+        return false;
     // HANDSEED — emitted into the DATA stream (`buf`), not hBbuf.
     // Stored in DRW_Header::handSeed (set by parseDwg on read; settable
     // by the writer caller from the HandleAllocator's high-water mark
@@ -3111,7 +4058,13 @@ bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hB
     // modified.  See Risk 4j.
     // Keep a fixed-width payload so the writer can patch HANDSEED after every
     // object has received a handle, without shifting later section offsets.
-    m_dwgHandseedBitOffset = buf->bitCount() - encodeStartBit + 8;
+    const std::uint64_t encodedBits = buf->bitCount();
+    if (encodedBits < encodeStartBit
+        || encodedBits - encodeStartBit
+               > (std::numeric_limits<std::uint32_t>::max)() - 8u)
+        return false;
+    m_dwgHandseedBitOffset = static_cast<std::uint32_t>(
+        encodedBits - encodeStartBit + 8u);
     buf->putFixedHandle(4, static_cast<std::uint8_t>(sizeof(handSeed)), handSeed);
     // The following 5 handles emit to the HANDLE stream.  For R2000 the
     // handle stream is inline (buf == hBbuf in our usage).
@@ -3185,7 +4138,8 @@ bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hB
         buf->putBitDouble(dblVar(*this, "DIMFXL", 1.0));
         buf->putBitDouble(dblVar(*this, "DIMJOGANG", 0.0));
         buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "DIMTFILL")));
-        buf->putCmColor(version, static_cast<std::uint16_t>(intVar(*this, "DIMTFILLCLR")));
+        if (!putHeaderCmColor("DIMTFILLCLR", 0))
+            return false;
     }
     // R2000+: 6 bits then 3 BS
     buf->putBit(boolVar(*this, "DIMTOL"));
@@ -3217,9 +4171,10 @@ bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hB
     buf->putBit(boolVar(*this, "DIMTIX"));
     buf->putBit(boolVar(*this, "DIMSOXD"));
     // 3 CMC colors
-    buf->putCmColor(version, static_cast<std::uint16_t>(intVar(*this, "DIMCLRD")));
-    buf->putCmColor(version, static_cast<std::uint16_t>(intVar(*this, "DIMCLRE")));
-    buf->putCmColor(version, static_cast<std::uint16_t>(intVar(*this, "DIMCLRT")));
+    if (!putHeaderCmColor("DIMCLRD", 0)
+        || !putHeaderCmColor("DIMCLRE", 0)
+        || !putHeaderCmColor("DIMCLRT", 0))
+        return false;
     // R2000+ DIM BS family
     buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "DIMADEC")));
     buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "DIMDEC", 4)));
@@ -3281,7 +4236,7 @@ bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hB
     }
     hBbuf->putHandle(makeSoftOwner(0));                 // DICT ACAD_GROUP (Phase 3.5: 0x0D)
     hBbuf->putHandle(makeSoftOwner(0));                 // DICT ACAD_MLINESTYLE (Phase 3.5: 0x0E)
-    hBbuf->putHandle(makeSoftOwner(0));                 // DICT NAMED OBJS (Phase 3.5: 0x0C)
+    hBbuf->putHandle(makeHardOwner(namedObjectDictionaryHandle)); // DICT NAMED OBJS
 
     // -------- Post-control TSTACKALIGN/TSTACKSIZE + 3 NOD-related dict handles
     buf->putBitShort(static_cast<std::uint16_t>(intVar(*this, "TSTACKALIGN", 1)));
@@ -3373,7 +4328,8 @@ bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hB
         buf->putRawChar8(static_cast<std::uint8_t>(intVar(*this, "DWFFRAME")));
         buf->putRawChar8(static_cast<std::uint8_t>(intVar(*this, "DGNFRAME")));
         buf->putBit(0);                  // unknown B
-        buf->putCmColor(version, static_cast<std::uint16_t>(intVar(*this, "INTERFERECOLOR", 1)));
+        if (!putHeaderCmColor("INTERFERECOLOR", 1))
+            return false;
         hBbuf->putHandle(makeHardPtr(0));  // INTERFEREOBJECT VS
         hBbuf->putHandle(makeHardPtr(0));  // INTERFEREVPVS
         hBbuf->putHandle(makeHardPtr(0));  // DRAGVS

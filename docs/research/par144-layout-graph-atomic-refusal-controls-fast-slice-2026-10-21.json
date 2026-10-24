@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 malformed layout graph atomic-refusal controls",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree remains broadly dirty from pre-existing implementation. This slice modified the existing generated DWG roundtrip test and plan only; unrelated changes were preserved.",
+    "changedFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par144-layout-graph-atomic-refusal-controls-fast-slice-2026-10-21.json"
+    ]
+  },
+  "slice": {
+    "finding": "PAR-144",
+    "scope": "Generated fail-closed controls for invalid LAYOUT dictionary/association graphs.",
+    "cases": [
+      "Nonreciprocal LAYOUT-to-BLOCK_RECORD association",
+      "Duplicate LAYOUT dictionary name",
+      "Duplicate LAYOUT dictionary target handle",
+      "Missing dictionary entry for an emitted LAYOUT"
+    ],
+    "invariant": "Each malformed generated write is rejected before publication, preserves the previous destination bytes, and permits a corrected write/read through the same dwgRW façade.",
+    "evidenceBoundary": "These are same-library generated transaction and structural-roundtrip checks; they do not establish independent-reader or native application acceptance."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+        "result": "passed",
+        "testsPassed": 1,
+        "testsFailed": 0,
+        "elapsedSeconds": 0.42
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerRun": false,
+    "nativeCadRun": false,
+    "persistentFixtureAdded": false,
+    "downloadedDrawingAdded": false
+  },
+  "commit": {
+    "created": false,
+    "reason": "The test source and plan contain broad pre-existing uncommitted changes. Whole-file staging would include unrelated work; no broad staging was performed."
+  },
+  "assessment": {
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0,
+    "nextLocalAction": "Directly inspect generated AC1015 VIEWPORT object frames/handle relationships to distinguish the reader's type-34 warning from writer omission; continue local graph-closure work without waiting for external qualification.",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

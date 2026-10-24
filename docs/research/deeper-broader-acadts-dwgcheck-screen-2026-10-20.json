@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader ACadSharp-derived parser and DWG structural-checker screen",
+  "mode": "primary-source web research and read-only local plan/test-owner reconciliation",
+  "scope": [
+    "Screen the acad-ts TypeScript reader/writer for independent implementation lineage and bounded comparison value",
+    "Screen dwg-verifier structural and composed validation scope, speed claims, and platform limitations",
+    "Reconcile candidate value with the existing fast-first DWG/DXF implementation queue and external-only gates"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acadts-dwgcheck-screen-2026-10-20.json"
+    ],
+    "limitations": "Assessment uses mutable public README/repository pages and project-reported benchmark/platform statements. No peer artifact was pinned or executed; no native route or local behavior was qualified."
+  },
+  "sources": [
+    {
+      "project": "node-projects/acad-ts",
+      "references": [
+        "https://github.com/node-projects/acad-ts",
+        "https://www.npmjs.com/package/%40node-projects/acad-ts"
+      ],
+      "status": "current_repository_readme_and_npm_listing_reviewed_2026-10-20",
+      "observation": "The README identifies acad-ts as a port from ACadSharp and names its upstream baseline and last-compared commits. It lists DWG/DXF read/write version availability while warning that the matrix is not complete object/property coverage; it also describes version-specific writer/reader limitations.",
+      "limits": "The mutable repository branch, npm listing, and a supported-version matrix do not prove artifact behavior or independent parser lineage. No package was downloaded or run."
+    },
+    {
+      "project": "realDragonium/dwg-verifier",
+      "references": [
+        "https://github.com/realDragonium/dwg-verifier",
+        "https://github.com/realDragonium/dwg-verifier#what-is-checked"
+      ],
+      "status": "repository_readme_and_validation-scope_documentation_reviewed_2026-10-20",
+      "observation": "Tier 1 is documented as AC1024/AC1027/AC1032 container validation and explicitly excludes drawing-object interpretation. Tier 2 composes ODA File Converter with ezdxf recovery/audit. The README reports 101 tests at about 2 seconds without ODA, about 17 seconds with it, and about 45 seconds for its corruption table; it also documents repair visibility and platform/version limitations.",
+      "limits": "Timing and coverage are project-reported. No repository was cloned, no tool run occurred, and the checker does not independently establish entity semantics, ACDSDATA associations, ACIS geometry, or native CAD acceptance."
+    },
+    {
+      "project": "Local libdxfrw plan and test-owner reconciliation",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "tests/dwg_fixture_tests.cpp::testTruncatedTargetFixtures",
+        "tests/hardening_tests.cpp::testRepeatedDxfRecordRobustness"
+      ],
+      "status": "read_only_local_plan_and_test-owner_reconciliation_2026-10-20",
+      "observation": "The plan already has distinct structural, object, semantic, association, ACIS, and native-acceptance gates; local generated fast tests are available for targeted coverage. The screen adds no confirmed gap and does not warrant a duplicate test, external dependency, or slower per-slice validation.",
+      "limits": "No local build or test was run; source/test-name inspection is not execution evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newIndependentParserLineages": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds acad-ts as an ACadSharp-derived comparison candidate rather than an independent parser vote, and dwg-verifier as a structural-corruption test-design reference rather than a semantic validator. Existing fast-first order, cadence, support claims, fixture policy, and external-only deferrals remain unchanged."
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-acis-loss-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Triangulate current open-source peer reports of ACIS body loss at DWG AcDs input/output and DXF writer boundaries; refine the existing local plan gates without claiming a libdxfrw defect or promoting support.",
+  "method": {
+    "kind": "Primary GitHub issue/PR pages plus read-only local plan/source inspection",
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadOrGeometryKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Public issue/PR pages describe reports and proposals; no peer release, peer executable, or local runtime was pinned or executed in this research pass.",
+    "evidenceRule": "Issue reports are test leads scoped to their named peer/version/route. Entity count, successful exit, section recognition, opaque bytes, and same-codec round-trip are separate from body association, independent geometry semantics, and native acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG R2013+ AcDs/SAB silent-loss report",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "Open issue #1411 describes an AC1032 REGION generated from a cube mesh with ezdxf, reporting a 5,489-byte SAB that disappears through a dxf2dwg/dwg2dxf path while the REGION record remains. The report also describes an unavailable R2018 customer file with 88 empty-body REGIONs. This pass did not reproduce either report or inspect the customer file.",
+      "doesNotEstablish": [
+        "the normative DWG AcDs format or every producer's storage profile",
+        "a defect in libdxfrw",
+        "valid ACIS topology from a nonempty payload",
+        "independent semantic proof from ezdxf self-generation/self-reading"
+      ],
+      "planUse": "At an optional composed transport gate, generate from scratch in temporary storage, hash the runtime SAB, and compare exact body presence/bytes across pinned tools. Treat the result only as carrier transport and do not commit the generated drawing."
+    },
+    {
+      "topic": "ACadSharp modeler entity omission at the DXF writer",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "observed": "Open issue #1195 reports that ACadSharp 3.4.9 read typed 3DSOLID/REGION objects but omitted them during DXF writing, including solid-only block definitions. The maintainer confirms the referenced Dxf writer did not support Solid3D, CadBody and Region; the linked pull requests are proposed work, not released/runtime evidence. Customer drawings are not attached.",
+      "doesNotEstablish": [
+        "current ACadSharp release behavior",
+        "a local libdxfrw writer defect",
+        "that entity census alone proves geometry preservation"
+      ],
+      "planUse": "At the existing composed output inventory gate, test a model-space case and a solid-only block plus INSERT. Carry source handle, class, block path, inline/AcDs origin, emitted identity, payload disposition and warning/refusal separately."
+    },
+    {
+      "topic": "Cross-boundary loss classification",
+      "sources": [
+        "local:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md:PAR-07/S8.2-S8.5",
+        "local:src/drw_datastorage.cpp",
+        "local:dwg2dxf/dx_iface.cpp"
+      ],
+      "observed": "The current working tree contains implementation for DWG DataStorage parsing and an adapter-side ACIS/AcDs projection boundary. This source audit does not execute those routes or prove full linkage, writer compatibility, or downstream shape semantics.",
+      "doesNotEstablish": [
+        "that every stored body is associated with the right modeler handle",
+        "that an emitted entity includes a nonempty valid modeler body",
+        "B-rep validity or native CAD rendering"
+      ],
+      "planUse": "Track body state separately from entity record state: inline-present, external-linked-and-resolved, not-required, expected-but-missing, ambiguous/unresolved, or malformed. The last three must fail closed or produce explicit non-success before output publication."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "validationCadence": "Per slice: touched strict build, one focused fast test, applicable LibreCAD/LibreCAD_3 compatibility check, and diff check. Run pinned peer transport/writer and independent shape semantics only at their composed gates.",
+    "fixturePolicy": "No downloaded or newly committed third-party DWG/DXF fixtures. Optional generated carrier files stay in disposable temporary storage; runtime-generated payload hash is captured rather than checked in.",
+    "nextActions": [
+      "Continue local AcDs/ACIS work independently of peer issue status.",
+      "Add explicit body-state and per-owner source-to-output dispositions to the existing owned tests and receipts.",
+      "At a composed optional peer gate, generate the minimal AC1032 carrier and test a solid-only block plus INSERT without adding dependencies to per-slice builds.",
+      "Keep carrier fidelity, body association, B-rep semantics, and native consumer outcome independent."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "peerRuntime": "NOT RUN",
+    "nativeOrKernelQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

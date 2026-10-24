@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader PLOTSETTINGS RenderPreset graph and version boundary",
+  "mode": "Autodesk primary-source research plus independent open-source implementation cross-check",
+  "question": "What is documented about standalone PLOTSETTINGS RenderPreset references, and do open-source readers establish code-76/code-333 wire and consumer behavior?",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-NET/files/GUID-A1309D38-A432-487C-B890-6666B891C701.htm",
+      "finding": "Modern RapidRT presets live in ACAD_RENDER_RAPIDRT_SETTINGS; ACAD_RENDER_PLOT_SETTINGS stores a copy for assignment to a Viewport or PlotSettings."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-NET/files/GUID-A1309D38-A432-487C-B890-6666B891C701.htm",
+      "finding": "Pre-2016 MentalRay presets use ACAD_RENDER_SETTINGS; ACAD_RENDER_PLOT_SETTINGS stores a copy for assignment to a Viewport or PlotSettings."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_SetShadePlot_PlotSettingsShadePlotType_ObjectId.html",
+      "finding": "RenderPreset requires an ObjectId to a RenderSettings object."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettingsShadePlotType.html",
+      "finding": "The current API enum defines VisualStyle as 4 and RenderPreset as 5."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm",
+      "finding": "The current PLOTSETTINGS DXF table documents shade modes 0–3 and optional code 333, but does not document mode 5; this is an evidence gap for serialized wire and consumer acceptance."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-427599C5-9562-4384-82E6-8B7B87492C57.htm",
+      "finding": "RAPIDRTRENDERSETTINGS is a typed DXF object with handle and owner-dictionary links and positional fields."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-69B42C9D-062D-4FEC-952E-CA0DDF7B4831.htm",
+      "finding": "MENTALRAYRENDERSETTINGS is a typed DXF object; the documentation notes the renderer is unavailable in later products while data is retained for backward compatibility."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "finding": "LibreDWG lists the RapidRT and MentalRay object families separately."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "finding": "LibreDWG marks these render-settings families unstable; its object-name mapping is only a family cross-check, not semantic evidence."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Objects/ShadePlotMode.cs",
+      "finding": "The current ACadSharp shade-mode enum enumerates values 0–3 only; this is implementation coverage evidence, not proof that higher AutoCAD API values are invalid."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Objects/PlotSettings.cs",
+      "finding": "ACadSharp maps PLOTSETTINGS code 76 to ShadePlotMode and code 333 to an ignored reference-valued handle property; the model does not document a rooted RenderSettings graph or mode-5 behavior."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfobjects/plotsettings.html",
+      "finding": "ezdxf documents shade_plot_mode 0–3 and explicitly says it is unsure whether standalone PLOTSETTINGS objects occur; it cannot corroborate standalone mode 5."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec",
+      "finding": "LibreDWG's DWG object schema carries PLOTSETTINGS shadeplot_type at DXF group 76 and shadeplot handle at group 333; this establishes a field model, not the typed mode-5 target family."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/programs/dwggrep.c",
+      "finding": "LibreDWG's cross-reference matcher associates PLOTSETTINGS shadeplot code 333 with VISUALSTYLE. Treat as conservative implementation evidence, not proof RenderSettings targets are invalid."
+    },
+    {
+      "url": "https://forums.autodesk.com/t5/autocad-electrical-ideas/visual-lisp-function-method-to-place-visual-style-settings-into/idc-p/11328659",
+      "finding": "An Autodesk Community post reports shade mode values 4 and 5 and code-333 associated targets, but it is user-authored and does not replace a producer-authored DXF witness or native save/reopen and plot check."
+    }
+  ],
+  "conclusion": {
+    "documentedNamedCopyRoute": "ACAD_RENDER_PLOT_SETTINGS stores a preset copy assignable to PlotSettings/Viewport",
+    "candidateTargetDictionary": "ACAD_RENDER_PLOT_SETTINGS",
+    "standaloneCode76And333WireGraphVerified": false,
+    "allowedInitialTargetFamilies": [
+      "RAPIDRTRENDERSETTINGS",
+      "MENTALRAYRENDERSETTINGS"
+    ],
+    "mode5SerializedWireSemanticsFullyEstablished": false,
+    "openSourceMode5Corroboration": "not found: ACadSharp and ezdxf document 0–3; LibreDWG maps shadeplot and its cross-reference matcher treats code 333 as VISUALSTYLE",
+    "implementationDisposition": "Keep only same-source-version DXF raw replay of a complete rooted typed/raw graph; treat it as local structural preservation only. Require release-specific native save/reopen plus actual plotted output before semantic support claims.",
+    "supportClaimsPromoted": 0
+  },
+  "implementationReadiness": [
+    "Require NOD[ACAD_RENDER_PLOT_SETTINGS] -> one complete NOD-owned dictionary -> one key/name-matched RapidRT or MentalRay typed/raw object; require PLOTSETTINGS code 333 to target that exact object.",
+    "Replay the raw positional RenderSettings groups at the identical source/target DXF version; use the existing object handle map for group 5, owner 330, and PlotSettings group 333.",
+    "Keep mode 0–3 null-only, mode 4 VISUALSTYLE-only, and reject wrong roots, duplicate roots/keys/handles, unpaired callbacks, mismatched owners, dangling targets, unsupported families, and version conversion.",
+    "Run generated in-memory ASCII/Binary controls for both RapidRT and MentalRay with collision, malformed-graph, sentinel-preservation, and same-adapter retry assertions; no checked-in drawing fixture and no new CTest registration.",
+    "Before release/version expansion, acquire one native-authored standalone PLOTSETTINGS mode-5 DXF witness for each renderer family; record code 76/333 order, owner/key graph, native reopen result, and plotted output.",
+    "Compare each qualified witness with targeted ACadSharp and LibreDWG runs; record acceptance and semantic loss rather than treating exit status as support evidence."
+  ],
+  "localStructuralSlice": {
+    "positiveGeneratedFamilies": [
+      "RAPIDRTRENDERSETTINGS",
+      "MENTALRAYRENDERSETTINGS"
+    ],
+    "asciiAndBinaryReadback": true,
+    "negativeControls": [
+      "wrong root",
+      "wrong owner",
+      "dictionary key mismatch",
+      "wrong record family",
+      "dangling code-333 target",
+      "source-version mismatch"
+    ],
+    "destinationSentinelPreservationAndSameAdapterRetry": true,
+    "checkedInDwgOrDxfFixtureAdded": false,
+    "newCTestAdded": false,
+    "focusedValidation": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j2",
+      "libdxfrw_dwg2dxf_adapter_tests --retain-render-settings-callback-and-fail-closed",
+      "libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "libdxfrw_dwg2dxf_adapter_tests --retain-plotsettings-callback-and-fail-closed",
+      "libdxfrw_dwg2dxf_adapter_tests --plotsettings-visualstyle-shade-reference",
+      "libdxfrw_dwg2dxf_adapter_tests --extension-graph-limits",
+      "libdxfrw_dwg2dxf_adapter_tests --retain-datalink-callback-and-fail-closed",
+      "scoped git diff --check"
+    ]
+  },
+  "limitations": {
+    "nativeCadApplicationRun": false,
+    "releaseSpecificSavedDxfExamined": false,
+    "peerRepositoryBuiltOrRun": false,
+    "semanticRenderOrPlotBehaviorQualified": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimsPromoted": 0
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 128,
+    "topLevelSubplans": 71
+  }
+}

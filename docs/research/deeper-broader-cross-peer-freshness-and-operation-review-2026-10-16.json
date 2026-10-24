@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw-deeper-broader-cross-peer-freshness-and-operation-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Broaden primary-source review of open-source DWG/DXF peers and downstream routes; tighten comparison readiness around operation kind and documentation/source/runtime freshness without inferring local defects or support claims.",
+  "method": {
+    "sourceTypes": [
+      "LibreDWG upstream NEWS and generated command manual plus GNU manual",
+      "ezdxf current xref and drawing add-on documentation",
+      "GDAL current DXF driver documentation",
+      "FreeCAD current converter/importer documentation and source",
+      "ACadSharp public feature/version matrix"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourceFreshnessLimit": "Public master/main and stable pages are mutable. Pages are discovery evidence; exact release/commit, local executable/build, and runtime options must be captured together for any differential. The reviewed LibreDWG manual identifies itself as 0.13.4 while upstream NEWS identifies a later 0.14.1 beta, and its generated dwgwrite man page states a narrower writer capability; no behavior was executed here.",
+    "evidenceRule": "A capability statement is scoped to an exact operation, direction, version, class/field, and route. Process success, a project matrix, opaque retention, a geometry projection, and same-codec rewrite are not semantic equivalence or native-application acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG source, manual, and generated CLI documentation freshness",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.1",
+        "https://www.gnu.org/software/libredwg/manual/html_node/CLASSES.html",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Encoding.html"
+      ],
+      "observed": "The upstream NEWS page identifies 0.14.1 as a 2026-07-25 beta. The generated dwgwrite.1 identifies itself as 0.14 and says ‘Only r2000 for now’ while listing several later --as values. The GNU manual landing page identifies 0.13.4 (2026-03-17); its class chapter distinguishes stable, unstable, debugging, and unhandled classes and warns that some unknown content is downgraded to placeholder-like output unless the full unknown-bit data survives a same-version rewrite.",
+      "doesNotEstablish": [
+        "which later DWG writer target is supported by a particular built LibreDWG executable",
+        "that the public manual and generated CLI page describe the same source snapshot",
+        "semantic support for every class/version from aggregate coverage language",
+        "cross-version preservation of unknown/proxy payloads"
+      ],
+      "planUse": "Treat docs/release/source disagreement as a qualification warning. Before using LibreDWG as a writer comparator, pin source or release, capture executable --version/hash/options, request a named target, inspect actual six-byte DWG magic, and reopen independently with per-class/handle disposition. Keep its class stability and unknown-bit policy in comparator metadata."
+    },
+    {
+      "topic": "ezdxf operation asymmetry: ordinary model support versus xref/copy and rendering",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observed": "The current xref docs explicitly exclude ACAD_TABLE and unknown entities represented by DXFTagStorage from supported copy/transform operations and state that unsupported entities are ignored without exceptions. The drawing add-on docs say ACIS rendering is unsupported and there is no 3D rendering engine; 3D entities are projected into the XY plane.",
+      "doesNotEstablish": [
+        "that ordinary parse/save has the same limits as xref/copy",
+        "that a successful xref result retained every unsupported source record",
+        "ACIS solid or general 3D rendering semantics",
+        "that ezdxf's documented limits reveal a matching local libdxfrw defect"
+      ],
+      "planUse": "Make the peer operation mode explicit. A zero exit with no exception is insufficient where documented unsupported records may be silently ignored; capture before/after handle and class disposition. Do not use the ezdxf renderer as a 3D/ACIS acceptance oracle."
+    },
+    {
+      "topic": "GDAL DXF: raw-carrier exposure is not a DWG reader or solid kernel",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "The current driver docs distinguish binary DXF support (GDAL 3.12+) from DWG. The DXF driver normally skips 3DSOLID/REGION/BODY/SURFACE because it cannot create OGR geometry; its optional AC1027+ extensible mode exposes raw ASM data and a 12-value affine transform.",
+      "doesNotEstablish": [
+        "DWG parsing or CAD object-graph preservation",
+        "solid reconstruction, ACIS interpretation, or B-rep validity",
+        "entity-to-payload association unless independently checked",
+        "that a projected OGR feature preserves exact CAD curve/annotation semantics"
+      ],
+      "planUse": "Keep GDAL in the optional DXF syntax/projection/raw-carrier lane. Assert carrier bytes and transform separately, and do not promote raw payload presence into 3D support."
+    },
+    {
+      "topic": "FreeCAD's DWG path is a multi-stage, configurable consumer pipeline",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py"
+      ],
+      "observed": "Current documentation says native C++ DXF import/export does not implement all DXF features and a legacy Python route remains available; DWG itself is handled by external converters. The DWG adapter creates/uses an intermediate DXF and invokes the DXF importer. The source supports multiple converter choices, so a product-level ‘FreeCAD import’ result does not identify which converter or importer backend ran.",
+      "doesNotEstablish": [
+        "behavior of any particular installed FreeCAD build or platform",
+        "which converter/importer preference was active in a given run",
+        "complete 3D or ACIS support in the stock importer",
+        "that successful conversion to DXF means successful semantic import"
+      ],
+      "planUse": "For native qualification, record FreeCAD build/platform, chosen converter executable/version/options and process outcome, intermediate DXF hash/version, selected C++ or legacy Python importer, preferences, warnings, and final semantic census as separate pipeline stages."
+    },
+    {
+      "topic": "ACadSharp advertised version matrix remains discovery-only",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "observed": "The public project page advertises distinct DXF/DWG read/write version matrices and a typed document model.",
+      "doesNotEstablish": [
+        "per-entity and per-field fidelity for each advertised route",
+        "graph closure or native application acceptance",
+        "the exact commit/release represented by the mutable page"
+      ],
+      "planUse": "Use the matrix only to shortlist route/version probes; bind any actual comparison to a release/commit, build, options, warnings, source/output versions, and feature-level expectations."
+    }
+  ],
+  "implementationReadinessDelta": {
+    "existingOwnersOnly": true,
+    "addOperationDimension": [
+      "ordinary read",
+      "same-document rewrite",
+      "cross-document copy/xref",
+      "transform/explode",
+      "projection/render",
+      "export"
+    ],
+    "addFreshnessFields": [
+      "peer release or exact source commit",
+      "documentation page release/date or retrieval date",
+      "runtime executable hash and build options",
+      "operation, route, and input/output version"
+    ],
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

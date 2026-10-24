@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw-peer-failure-mode-readiness-refresh-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Refresh selected open-source DWG/DXF peer reports and reconcile them against current local fast-test owners; sharpen the next AC1027/AC1032 MTEXT frame-flag implementation slice without promoting peer claims.",
+  "method": {
+    "kind": "Read-only primary-source web research and local plan/test-owner cross-check",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/DomCR/ACadSharp/issues/1297",
+      "https://github.com/DomCR/ACadSharp/issues/1194",
+      "https://github.com/DomCR/ACadSharp/pull/1201",
+      "https://github.com/DomCR/ACadSharp/issues/1280",
+      "https://github.com/DomCR/ACadSharp/issues/1281",
+      "https://github.com/DomCR/ACadSharp/issues/1282",
+      "https://github.com/DomCR/ACadSharp/issues/1283",
+      "https://github.com/DomCR/ACadSharp/issues/1253",
+      "https://github.com/DomCR/ACadSharp/issues/1259",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm",
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: current peer reports, 7BQ.5 DIMSTYLE gate, frame-flag route, and progress receipts",
+      "tests/dwg_object_vectors_tests.cpp: existing generated DWG object-vector owner",
+      "tests/dwg_local_roundtrip_tests.cpp: existing generated DWG full-file round-trip owner",
+      "tests/dxf_fixture_tests.cpp: existing frame-only DXF and zero-height ATTRIB controls",
+      "docs/research/turkish-locale-cp1254-end-to-end-fast-slice-2026-10-17.json",
+      "docs/research/cp949-ac1018-end-to-end-fast-slice-2026-10-17.json",
+      "docs/research/repeated-dxf-record-robustness-fast-slice-2026-10-17.json"
+    ],
+    "limitations": "ACadSharp issue pages are reporter-authored. Issue #1297 has no shareable DWG/hash or linked fix; #1282/#1283 full issue bodies were not retrievable in this review. The reported missing-style cause for #1297 is explicitly speculative. No peer/native runtime result was generated."
+  },
+  "evidence": [
+    {
+      "topic": "AC1032 MTEXT frame-only whole-file report",
+      "observed": "The ACadSharp reporter states that AC1032 BackgroundFillFlags=TextFrame (DXF group 90 value 16) is rejected by AutoCAD 2025 Core Console, while 17 and AC1027 value 16 are accepted. The report says matching the entity payload to an AutoCAD-authored object did not repair the whole file. Missing VISUALSTYLE/detail-style objects are a hypothesis only.",
+      "doesNotEstablish": [
+        "a libdxfrw defect or a normative rule that value 16 is invalid in AC1032",
+        "that value 17 should replace value 16",
+        "that adding VISUALSTYLE or detail-style objects fixes the DWG",
+        "whole-file compatibility without a shareable input, exact output, and independent rerun"
+      ],
+      "planUse": "Under existing PAR-19/PAR-29 and 7D/7E/7M owners, add generated AC1027 and AC1032 object vectors for flag values 0, 16, and 17 with decode/re-encode and following-object sentinel checks. If needed, extend the existing full-file generated round-trip owner. Keep native AutoCAD and independent-reader acceptance at the composed gate."
+    },
+    {
+      "topic": "Peer reports already mapped to local fast controls",
+      "observed": "ACadSharp #1194 was closed by merged #1201; local generated controls preserve hidden zero-height ATTRIB. ACadSharp #1280 reports a .NET Turkish/Azeri culture-sensitive codepage lookup; local CP1254 Turkish-locale and CP949 end-to-end controls already exist. ACadSharp #1281 reports recursive repeated-record paths; the local hardening test already covers bounded 20,000-record comment, XDATA, and WIPEOUT cases.",
+      "doesNotEstablish": [
+        "negative text-height validity based on the peer setter change",
+        "every locale-sensitive string/path operation based on a codepage test",
+        "a DXF record-size or count limit based on the peer's stress count",
+        "a matching local defect from another project's issue report"
+      ],
+      "planUse": "Reuse existing owners and receipts; avoid duplicate test targets, broader locale policy, or full-suite cadence changes. Require exact repro plus local source-path reproduction before changing the EED bounds or nested graph policies associated with #1282/#1283."
+    },
+    {
+      "topic": "Comparator maturity and typed-versus-opaque distinction",
+      "observed": "LibreDWG's project description distinguishes reader and writer limitations by release family. ezdxf's XREF documentation states that ACAD_TABLE is unsupported by that copier and that unknown entities/objects may be preserved in raw storage.",
+      "doesNotEstablish": [
+        "aligned release-to-release completeness or semantic support",
+        "typed interpretation from raw preservation",
+        "ACIS shape semantics or native consumer acceptance"
+      ],
+      "planUse": "Retain exact peer version × operation × entity/carrier × target consumer records; do not use aggregate matrix or successful raw replay to promote semantic parity."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "add a focused generated AC1027/AC1032 MTEXT flag vector under the existing DWG object-vector target",
+      "assert following-object framing and retain an optional full-file local round-trip diagnostic",
+      "reserve AutoCAD 2025 and independent-reader acceptance for the composed gate",
+      "do not duplicate already completed zero-height ATTRIB, Turkish CP1254, CP949, or repeated-record tests",
+      "do not treat mutable peer issues, raw preservation, or a speculative VisualStyle explanation as support evidence"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

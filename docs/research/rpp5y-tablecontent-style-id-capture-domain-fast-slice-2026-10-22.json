@@ -1,0 +1,76 @@
+{
+  "slice": "RPP-5y",
+  "title": "TABLECONTENT column, row, and cell style-ID capture and domain gate",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "spec_basis": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.97", "20.4.101.2", "20.4.101.4", "20.4.102"],
+    "correction": "TABLECONTENT has numeric base-style IDs for columns, rows, and cells. Table-level style is an override payload plus a TABLESTYLE handle; it is not a fourth numeric style ID.",
+    "domain": "0 means no base style; 1-3 are built-in styles; 4 is R24/AC1024+ built-in; custom IDs start at 101. Other signed values are retained but make semantic content incomplete."
+  },
+  "scope": [
+    "add signed 32-bit base-style ID fields to DRW_TableColumn and DRW_TableRow; retain the already parsed DRW_TableCell ID",
+    "read each numeric ID through the existing bounded BL parser in both AC1021 standalone TABLECONTENT and AC1024+ embedded TABLECONTENT routes",
+    "fail soft on out-of-domain IDs: preserve structural parse and ID observation while marking semantic content incomplete",
+    "correct the RPP-5x plan and receipt language that incorrectly described a fourth table-level numeric ID"
+  ],
+  "generated_controls": [
+    "AC1021 valid custom column/cell IDs and common built-in row ID",
+    "AC1021 refusal of R24-only ID 4, reserved ID 5, and negative IDs without structural parse failure",
+    "AC1024 acceptance of built-in ID 4, custom ID 101, and built-in ID 3",
+    "AC1024 refusal of reserved and negative IDs while withholding the incomplete typed snapshot at the optional-content boundary",
+    "existing AC1021/AC1024 TABLECONTENT reference-role vectors remain passing"
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_style_id_domains$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 0.17
+    },
+    "adjacent_vector": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-content-reference-roles",
+      "result": "PASS"
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/rpp5y-tablecontent-style-id-capture-domain-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    },
+    "receipt_json_parse": {
+      "command": "jq empty docs/research/rpp5y-tablecontent-style-id-capture-domain-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated locally in memory"
+  },
+  "qualification_limits": {
+    "custom_style_id_graph_resolution": "IMPLEMENTED_BY_RPP-5z_FOR_ADAPTER_PREFLIGHT; DXF style-ID editing/writing remains unavailable",
+    "custom_cell_style_authoring_beyond_name": "INCOMPLETE",
+    "production_graph_writer_handoff": "NOT_IMPLEMENTED",
+    "dwg_version_upconvert": "NOT_IMPLEMENTED",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "src/drw_entities.h",
+    "src/drw_entities.cpp",
+    "tests/dwg_object_vectors_tests.cpp",
+    "CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5x-cellstylemap-name-edit-fast-slice-2026-10-22.json",
+    "docs/research/rpp5y-tablecontent-style-id-capture-domain-fast-slice-2026-10-22.json"
+  ],
+  "next": "The RPP-5z bounded adapter-preflight census is implemented. Keep DXF output fail-closed because Autodesk's published TABLE DXF schema has no base-style-ID slots; continue with native DWG TABLE writing or another locally representable TABLESTYLE/CELLSTYLEMAP implementation slice.",
+  "commit": "NONE"
+}

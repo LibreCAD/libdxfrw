@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw-deeper-broader-open-source-dwg-dxf-3d-claim-normalization-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Recheck the normative DXF ACIS-carrier contract and compare current public open-source DWG/DXF implementation claims against their documented version, direction, and semantic limits; refine existing implementation/evidence owners without promoting support.",
+  "method": {
+    "kind": "Primary Autodesk DXF reference plus current upstream project documentation/source inventory",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+    ],
+    "liveReferencesRecheckedAt": "2026-10-16",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadOrKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localRuntimeTestsRun": false,
+    "evidenceBoundary": "Autodesk documents the listed DXF fields and ordering guidance. ezdxf and LibreDWG pages establish their own published scope and caveats only; mutable documentation, aggregate coverage statements, and class inventories are not pinned runtime observations, independent semantic validation, or proof of libdxfrw behavior. ODA v5.4.1 remains the authority for DWG byte layouts."
+  },
+  "evidence": [
+    {
+      "topic": "Shared DXF ACIS carrier fields and entity-specific history association",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm"
+      ],
+      "observed": [
+        "3DSOLID, REGION, and BODY each document AcDbModelerGeometry, group 70 modeler-format version currently 1, group 1 proprietary data, and optional group 3 continuation chunks.",
+        "3DSOLID additionally documents AcDb3dSolid and group 350 as a soft-owner handle to a history object.",
+        "The entity tables do not specify embedded SAT/SAB save-version semantics or B-rep validity."
+      ],
+      "planUse": "Keep carrier framing shared only for documented common fields; retain entity-specific subclass and history-handle handling. Preserve repeated chunk order and keep exact carrier retention, history closure, and semantic solid validity independent. Never infer inner ACIS version from group 70."
+    },
+    {
+      "topic": "DXF field order versus repeated opaque payload order",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "observed": [
+        "Autodesk says entity group order can vary and the reader should not rely on the displayed table order.",
+        "This general ordering guidance does not alter the payload meaning of repeated group 1/group 3 chunks or authorize moving data across subclass boundaries."
+      ],
+      "planUse": "Retain existing generated order-variation controls for independent fields while asserting the original concatenated order of repeated ACIS chunks, subclass boundaries, and history association. No new owner is required."
+    },
+    {
+      "topic": "ezdxf route scope and geometry ceiling",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": [
+        "ezdxf describes itself as a DXF interface, not a DWG/DXF version converter or CAD kernel.",
+        "Its ACIS module documents SAT for DXF R2000-R2010 and SAB for R2013/R2018.",
+        "Its mesh projection covers flat polygonal faces and explicitly loses curved ACIS faces; general curved geometry requires a kernel."
+      ],
+      "planUse": "Use only as a pinned DXF structural/flat-polyhedron peer. Keep DWG parsing, arbitrary ACIS/B-rep semantics, and curved-surface qualification outside its evidence grade."
+    },
+    {
+      "topic": "LibreDWG published coverage and per-version/direction caveats",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": [
+        "The current README advertises broad DWG read coverage while noting that some advanced R2010+ objects fail and are skipped.",
+        "Its documentation records writer limitations by DWG release and separates stable, unstable, unhandled, and test-coverage-gap inventories.",
+        "The linked master documentation is mutable and is not an exact peer runtime pin."
+      ],
+      "planUse": "At optional comparison time, pin a release/commit and report version, entity, direction, owner path, and emitted/typed/opaque/skipped/rejected disposition per case. Treat headline percentages as non-comparable and do not use peer implementation details as DWG layout authority."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "refinesExistingOwners": [
+      "PAR-07 peer/evidence admission",
+      "S2.2/S2.3 DXF ACIS carrier and ACDS routes",
+      "S3.7 rooted SAB projection",
+      "S5 explicit 3D geometry",
+      "S8 consumer qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "fixturesAdded": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "perSlicePeerRuns": false,
+    "localGeneratedControlsRemainPreferred": true,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue existing implementation slices using their focused local targets; do not repeat peer runs per slice.",
+      "For DXF modeler-carrier changes, vary independent field order but preserve and assert repeated payload chunk order and subclass boundaries.",
+      "At a composed peer checkpoint only, pin the peer artifact and report direction, entity, version, owner/block path, and disposition independently for parser, writer, carrier, geometry, and consumer outcomes."
+    ]
+  },
+  "planDelta": {
+    "filesChanged": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-dwg-dxf-3d-claim-normalization-2026-10-16.json"
+    ],
+    "validation": "Receipt JSON and git diff whitespace validation only; no code or runtime tests were required for this research-only plan refinement.",
+    "fullSuiteRun": false
+  }
+}

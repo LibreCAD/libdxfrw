@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-19",
+  "type": "generated-fast-implementation-slice",
+  "owner": "7S.2c IMAGE/WIPEOUT adapter retention",
+  "scope": [
+    "Bound adapter-owned copies of IMAGE/WIPEOUT clip-boundary coordinate vectors",
+    "Account the IMAGE lookup-list node in the existing typed-entity retained-byte budget",
+    "Preflight the IMAGE entity and lookup node together to avoid a quota-triggered partial callback"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Typed entity retained-byte estimation includes DRW_Image::clipPath storage, which also covers inherited DRW_Wipeout records.",
+      "IMAGE callback admission charges the std::list value pointer and two link pointers, and preflights that node together with the typed entity before retaining it.",
+      "Generated in-memory controls assert exact empty-IMAGE, IMAGE path, WIPEOUT path, deep-copy, clip-payload refusal, and lookup-node refusal behavior."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focused_selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --typed-entity-capture-limits",
+    "ctests": [
+      {
+        "name": "dwg2dxf_typed_entity_capture_limits",
+        "result": "passed"
+      },
+      {
+        "name": "dwg2dxf_image_path_cli",
+        "result": "passed"
+      }
+    ],
+    "diff_check": "passed for implementation, adapter, test, and plan files",
+    "full_suite": "not run"
+  },
+  "disposition": {
+    "new_finding": false,
+    "new_top_level_subplan": false,
+    "new_fixture_or_registration": false,
+    "new_dependency": false,
+    "support_claims_promoted": false,
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    },
+    "external_only_items_promoted": [],
+    "external_only_items_still_deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "The byte estimate is logical size-based, not allocator-capacity or RSS accounting.",
+    "This closes adapter retention only; image graph serialization, external raster availability, underlay support, and geometry semantics remain separate."
+  ]
+}

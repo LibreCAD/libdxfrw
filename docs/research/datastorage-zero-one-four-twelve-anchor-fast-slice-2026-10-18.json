@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1027 DataStorage zero/one/four/twelve-record explicit-anchor controls",
+  "mode": "local test-only implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Extend the existing PAR-07/S8.3 DataStorage alignment control beyond four records",
+    "Exercise empty, single-record, four-record, and twelve-record indexes with explicit data anchors",
+    "Preserve local fast-test cadence and repository fixture restrictions"
+  ],
+  "specification": {
+    "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sections": [
+      "24.2.1 file-segment header object-data alignment offset",
+      "24.2.2.2 data-index file segment",
+      "24.2.2.3 data file segment and record offsets"
+    ],
+    "summary": "The segment header object-data alignment value is an offset in 16-byte units from the data segment start. Data-index local offsets identify record headers, and record data is found from the explicit data-start marker plus each record-local offset."
+  },
+  "implementation": {
+    "productionFilesChanged": [],
+    "testFile": "tests/graph_preservation_tests.cpp",
+    "existingOwner": "PAR-07 / S8.3 / libdxfrw_graph_preservation_tests",
+    "changes": [
+      "Replaced the four-record-only test body with a shared in-memory profile builder for zero, one, four, and twelve data records.",
+      "Uses explicit object-data offsets of 64, 96, 192, and 320 bytes respectively, each beyond the count-derived aligned record-header end.",
+      "The twelve-record case expands the data-index segment, permutes index-row order independently of physical record order, assigns unique handles/payloads, and includes a trailing sentinel payload.",
+      "Checks segment anchor, structural validity, replay eligibility, record count, and exact handle-to-payload associations."
+    ],
+    "zeroRecordLimit": "The zero-record case verifies an empty data-record index in a minimal generated section. It does not claim to recreate the complete default schema-only DataStorage section shown in ODA §24.3.",
+    "fixturePolicy": "All DWG-section bytes are built in memory from scratch. No DWG/DXF/SAT/SAB fixture file was created or added.",
+    "testRegistrationOrDependencyAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+    "buildResult": "PASS; strict graph-preservation test target rebuilt and linked.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.76 seconds.",
+    "diffCheck": "PASS for tests/graph_preservation_tests.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, DWG_DXF_3D_SUPPORT_PLAN.md, and this receipt.",
+    "fullSuite": "NOT RUN per fast-slice cadence.",
+    "peerRuntime": "NOT RUN.",
+    "nativeCad": "NOT RUN."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-07 / S8.3 only.",
+    "findingStatus": "LOCAL_RECORD-COUNT/EXPLICIT-ANCHOR CONTROLS IMPLEMENTED; no production parser defect reproduced.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "worktreeNote": "The shared worktree was already broadly dirty. Changes were limited to the existing generated test owner and plan/receipt appendices; no files were staged."
+  }
+}

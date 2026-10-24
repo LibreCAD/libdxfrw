@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader current-release and ACIS carrier/operation boundary review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreDWG release 0.14.1 notes with the distinct open issue #1411 report against build 0.14.8593",
+    "Refresh ACadSharp issue #1195 and open ACIS/ACDS writer/refactor branch status",
+    "Cross-check ezdxf's documented ACIS parser, raw-carrier inspection, and rendering limits",
+    "Cross-check FreeCAD's DWG converter and DXF importer boundary",
+    "Refine existing S8/PAR-07 implementation and evidence gates without changing order or validation cadence"
+  ],
+  "method": {
+    "kind": "Read-only primary-source documentation, issue, release-note, and pull-request review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "Mutable GitHub pages and issue/PR reports are treated only as the current visible state or author/maintainer claims. No peer branch/source was checked out, and no report was reproduced. The LibreDWG 0.14.1 release note and the separate 0.14.8593 issue build are not conflated. No source claim here establishes libdxfrw behavior or geometry semantics."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG 0.14.1 release history",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "NEWS entry for 0.14.1 dated 2026-07-25; mutable master page reviewed 2026-10-18",
+      "observed": "The release notes list a 3DSOLID/REGION DXF-export off-by-one fix that dropped the last SAT block, plus separate hardening and other DXF fixes. The notes also describe the R2013+ AcDsPrototype_1b datastore as not fully implemented and modern SAB extraction as unreliable/brute-force in the documented history. This does not establish current-master runtime behavior or close modern AcDs."
+    },
+    {
+      "project": "LibreDWG issue #1411",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "revision": "Open issue reviewed 2026-10-18; reported build 0.14.8593 at 8a1ae764",
+      "observed": "The report supplies a scratch-generatable AC1032 DXF recipe using ezdxf to create a 5,489-byte SAB-bearing REGION, then reports that the named LibreDWG build loses the AcDs/SAB payload while retaining the entity after DXF→DWG→DXF. It is a version/build-scoped reported negative, not a test run in this research and not evidence about every current build."
+    },
+    {
+      "project": "ACadSharp issue #1195 and PR #1240",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Pages reviewed 2026-10-18; issue open; PR open, no deployment or review listed",
+      "observed": "Issue #1195 reports ACadSharp 3.4.9 omitting 3DSOLID/REGION from DWG→DXF output, including block contents. PR #1240 is an unmerged maintainer proposal to write dependent ACIS entities/ModelerGeometry with version checks and warnings. These claims do not qualify released ACadSharp behavior or libdxfrw."
+    },
+    {
+      "project": "ACadSharp PR #1150 and PR #1174",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "Pages reviewed 2026-10-18; both PRs open",
+      "observed": "PR #1174 proposes refactoring ACDS/ACIS schema and storage and remains open in the reviewed page. PR #1150 remains open; its Oct. 1 discussion says it needs reconciliation with the refactor and reports that the post-refactor DXF reader retained only the last repeated group-310 chunk. PR branch behavior and its tests are not released peer evidence."
+    },
+    {
+      "project": "ezdxf ACIS and drawing documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-18",
+      "observed": "The documentation bounds ACIS entity coverage, states ezdxf has no ACIS kernel and cannot arbitrarily preserve unsupported ACIS through load/re-export, and says its drawing add-on does not render ACIS or provide a 3D renderer. The browse-acis tool can expose raw SAT/SAB content but is not a shape-validity or complete-body oracle."
+    },
+    {
+      "project": "FreeCAD DWG/DXF documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.wikitext"
+      ],
+      "revision": "Current public documentation pages reviewed 2026-10-18",
+      "observed": "The documented DWG route is converter-to-DXF followed by the selected FreeCAD DXF importer. The DXF guide says embedded ACIS 3D solids are not currently readable by the importer and distinguishes C++ and legacy importer capability. This does not qualify a particular installed build/platform."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing carrier/version/operation evidence rows: pre-2013 DXF SAT group-1/3, modern DXF ACDSDATA group-310 chunks, pre-R2013 DWG inline/modeler data, and R2013+ DWG AcDs index/owner joins remain separate. Requires exact release/commit identity, full record/chunk and graph disposition, and independent validation stages. Keeps peer and native runs at composed gates and local implementation non-blocking.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not infer modern AcDs/SAB support from LibreDWG 0.14.1's specific legacy SAT last-block fix or from a different mutable/nightly build.",
+    "Bind optional peer comparisons to exact released artifact/source revision, version, direction, and carrier profile; open PRs are not released support.",
+    "For modern DXF ACDSDATA, assert every repeated group-310 chunk in order, complete reconstructed length/hash, correct owner, and following-record alignment.",
+    "For DWG AcDs, vary physical directory order independently from sorted-handle rank and entity traversal; verify the full index-to-record-to-owner join.",
+    "Compare per-entity outcomes across modelspace, layouts, and nested block definitions; count drops/refusals and require zero unexplained loss for a pass.",
+    "Treat same-library round-trip and ezdxf raw browsing as structural/inspection evidence only; complete-body validity, independent semantic invariants, and native application acceptance remain separate gates.",
+    "Keep FreeCAD platform qualification scoped to the exact converter and selected 2D importer unless a distinct 3D route is demonstrated.",
+    "Use generated local controls only; do not add external peer drawings, dependencies, or per-slice peer/native/full-suite runs.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL absent their specific external-platform and independent-semantic evidence."
+  ],
+  "validation": {
+    "receiptJsonValidation": true,
+    "planDiffCheck": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

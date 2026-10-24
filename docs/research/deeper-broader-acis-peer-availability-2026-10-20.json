@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader ACIS peer availability and reproducible validation route",
+  "mode": "Primary-source web research and local plan reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Recheck whether the reviewed open-source DWG/DXF peer set provides an independent ACIS semantic kernel suitable for general B-rep qualification.",
+    "Resolve the ezdxf SAT/SAB producer documentation boundary and distinguish carrier tools, record parsers, geometry kernels, DWG AcDs ownership, and native consumers.",
+    "Refine PAR-07/S8 validation so fast implementation slices remain local and external modeler checks stay optional at the composed gate."
+  ],
+  "sources": [
+    {
+      "project": "ezdxf ACIS API and FAQ",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html",
+        "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html#acis-entities"
+      ],
+      "revision": "Stable documentation identified as ezdxf 1.4.5, accessed 2026-10-20; no package or code was executed",
+      "observed": "The ACIS API documents loading, SAT and SAB export, and construction helpers. It also limits supported ACIS records, says unsupported records become NONE_ENTITY with data loss, and warns that arbitrary ACIS cannot be loaded and re-exported. The FAQ conflicts by claiming only SAT write support and no ACIS creation/editing.",
+      "limits": "Documentation does not prove the exact package operation works for every requested profile. Pin an artifact and run a narrow API probe before using the producer. ezdxf is not a general geometry kernel or semantic oracle."
+    },
+    {
+      "project": "Open CASCADE commercial ACIS component",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://www.occt3d.com/components/acis-exchange/"
+      ],
+      "revision": "Mutable catalog/product pages accessed 2026-10-20; no component package or kernel was installed or run",
+      "observed": "The public preview identifies ACIS SAT/SAB exchange as an added-value commercial component separate from the open-source OCCT core. An exact authorized component could provide a distinct translator implementation, but its shape kernel lineage is OCCT, shared with FreeCAD and cq-acis.",
+      "limits": "Not an available open-source-core reader, not required for local implementation, and not an independent-kernel vote against OCCT-derived paths."
+    },
+    {
+      "project": "LibreDWG AcDs evidence lead",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable issue/source/NEWS pages accessed 2026-10-20; issue names LibreDWG 0.14.8593 at commit 8a1ae764; no binary or drawing was obtained or executed",
+      "observed": "Issue #1411 describes a scratch-generatable AC1032 DXF REGION with SAB carried by ACDSDATA and reports empty ACIS geometry after conversion through the named build. LibreDWG source and NEWS describe AcDs handling as incomplete/fallback in relevant paths.",
+      "limits": "A reported peer failure is not a current reproduced result or a local libdxfrw defect. Use only as a generated-control design lead; do not import its confidential sample."
+    },
+    {
+      "project": "cq-acis, CADMPEG, and FreeCAD route lineage",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/cadmpeg/cadmpeg",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable project pages accessed 2026-10-20; no package, kernel, or native application executed",
+      "observed": "cq-acis is a subset ACIS-to-OCCT shape route with known kernel overlap with FreeCAD; existing research notes CADMPEG/ezdxf format-discovery overlap. Stock FreeCAD DXF import does not consume ACIS/SAT blobs.",
+      "limits": "These sources are not independent votes for one another and do not validate the DWG entity-to-AcDs key/record association."
+    },
+    {
+      "project": "Existing local qualification plan",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "docs/3D_SUPPORT_STATUS.md"
+      ],
+      "revision": "Shared local worktree inspected 2026-10-20",
+      "observed": "Existing PAR-07/S8 work distinguishes raw carrier retention, DataStorage ownership, ACIS record disposition, geometry construction, and native acceptance; J256, J260, J268, J284, J293, and J295 are deferred external items.",
+      "limits": "This research refines evidence admission and implementation readiness only; no local runtime result follows."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: make carrier parsing, ACIS record graph completeness, shape construction, DWG AcDs ownership, and native application acceptance separate outcomes",
+      "PAR-07/S8: use local generated SAT/SAB controls and hand-computed analytic expectations on the fast lane; defer optional external kernel work to one composed checkpoint",
+      "External evidence: do not mistake commercial OCCT add-ons or OCCT-derived parsers/consumers for an open-source independent-kernel vote"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Clarified that current ezdxf stable ACIS docs advertise SAT and SAB export, while the FAQ contradicts this; required a pinned exact operation probe before relying on either API claim.",
+    "Strengthened the restriction that ezdxf unsupported/NONE_ENTITY records are loss and cannot prove arbitrary ACIS round-trip semantics.",
+    "Reaffirmed that OCCT ACIS exchange is a commercial add-on, outside the open-source core, and shares OCCT kernel lineage with FreeCAD and cq-acis.",
+    "Added a generated AC1032 REGION/SAB/ACDSDATA test-design lead from LibreDWG issue #1411 without importing the confidential peer sample or treating the report as reproduced evidence.",
+    "Added a fast-lane/composed-gate sequence that preserves local 2D/DXF and DWG carrier/owner-graph progress when independent kernel evidence is unavailable."
+  ],
+  "limitations": [
+    "Repository and documentation pages are mutable; the ezdxf stable documentation exposes a direct internal inconsistency and must be checked against an exact package before relying on SAB generation.",
+    "No general independent open-source ACIS kernel was identified in the reviewed sources; this is a scoped research result, not proof that no such project exists anywhere.",
+    "No peer source was pinned to a commit except the commit named in the LibreDWG issue report; no package, application, converter, or kernel was executed.",
+    "No external drawing was downloaded; no peer fixture or mutated external corpus was added."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check on plan; receipt whitespace check)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

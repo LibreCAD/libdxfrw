@@ -1,0 +1,352 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5av",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "SELECTED_SOURCE_IMAGE_DICTIONARY_AND_EMITTED_ALIAS_HANDOFF_PASS_FULL_SOURCE_SCHEMA_OPEN",
+  "predecessor": "docs/research/rpp5au-group-common-metadata-and-extension-identity-fast-slice-2026-10-23.json",
+  "reproduction": {
+    "initialControl": "FAIL",
+    "log": "/tmp/rpp5av-initial-control.log",
+    "sourceConfirmedDefects": [
+      "Original image-dictionary keys/roles/flags/common metadata replaced by filename-derived generated content",
+      "Source image dictionary/IMAGEDEF plans lacked actual emitted-object source bindings"
+    ],
+    "scope": "Scratch-authored control plus source review; not a malformed external drawing or independent producer result."
+  },
+  "implemented": [
+    "Add image-aware setGeneratedDictionarySourceRecords overload while retaining the original three-argument symbol as a wrapper; NOD/GROUP/image owners share the existing64MiB/item allowance.",
+    "Validate reciprocal/unique source image roots and entry roles; immutable image-aware setup during a write; failed setup retains accepted owned configuration.",
+    "Plan source image-dictionary/IMAGEDEF destinations before callbacks, honor disjoint explicit destinations and preserve generation-qualified distinct definitions despite equal filenames.",
+    "Preserve selected source image keys/order/350-360 roles/flags/common metadata; unused source entries remain an explicit projection and extra authored definitions get unique fallback keys.",
+    "Bind source object identities only after actual dictionary/IMAGEDEF serialization; source-aware adapter route opts into physical record inventory for final type/section/owner queries.",
+    "Cross-generation duplicate source IDs remain globally ambiguous with no guessed alias while ordinary image instances/definitions stay separate.",
+    "Clear runtime image aliases on failed attempts/reset and retain caller setup for corrected retries.",
+    "Extend existing image CLI wire checker to recognize350/360 then require exact original hard-owner roles, keys, flags/order and reactor/owner closure; numeric framing is parsed rather than text-padding compared."
+  ],
+  "research": [
+    {
+      "title": "Autodesk DICTIONARY schema",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "usedFor": "Dictionary key/entry/owner/flag roles"
+    },
+    {
+      "title": "Autodesk common nongraphical object fields",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "usedFor": "Common application/reactor/extension/owner channels"
+    }
+  ],
+  "controls": {
+    "authoredVersionEncodingCells": 4,
+    "publicDxfReadbackReexports": 4,
+    "nativeDwgVersions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "dxfTargets": [
+      "AC1018",
+      "AC1032"
+    ],
+    "nativeSourceTargetEncodingCells": 16,
+    "nativeDictionaryModeledFactsPerCell": 3,
+    "invalidSourceAndLateCallbackSameAdapterRefusalRetries": 24,
+    "directExplicitDestinationSameCodecRefusalRetries": 2,
+    "aggregateMetadataExactOneBelowCells": 2,
+    "aggregateMetadataObservedBytes": 1472,
+    "aggregateBudgetPortableConstant": false,
+    "crossGenerationAmbiguityCells": 2,
+    "identicalFilenameDistinctPayloads": true,
+    "sourceModelsUnchanged": true,
+    "importOpaqueRetentionIncrement": 0,
+    "newRepositoryDrawingFixtureFiles": 0
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 22,
+      "failed": 0,
+      "seconds": 1.89,
+      "tests": [
+        "libdxfrw_dwg_eed_text_provenance",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_image_path_cli",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_generated_dictionary_source_metadata"
+      ],
+      "command": "ctest --test-dir build --output-on-failure -j3 -R '^(libdxfrw_dwg_eed_text_provenance|dwg2dxf_standard_dwg_source_eed_text_observations|dwg2dxf_standard_dwg_source_text_observations|libdxfrw_text_decode_issue_accumulation|libdxfrw_rooted_standard_dwg_xrecord_eed|libdxfrw_standard_dwg_source_baseline|libdxfrw_rooted_standard_dwg_output_proof|libdxfrw_standard_object_wire_comparison|libdxfrw_standard_dwg_output_allocation|libdxfrw_standard_dwg_payload_profile_and_allocation|dwg2dxf_standard_dwg_object_payload_correlation|libdxfrw_xrecord_writer_codepage|dwg2dxf_standard_dwg_object_source_capture|libdxfrw_standard_dwg_group_metadata|libdxfrw_group_adapter_roundtrip|libdxfrw_extension_graph_limits|libdxfrw_linetype_extension_graph|libdxfrw_dwg_group_dictionary_controls|dwg2dxf_generated_image_dictionary_source_identity|dwg2dxf_image_path_cli|libdxfrw_image_definition_plan_failure_retry|libdxfrw_generated_dictionary_source_metadata)$'"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 19,
+      "failed": 0,
+      "seconds": 3.21,
+      "tests": [
+        "libdxfrw_dwg_eed_text_provenance",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "libdxfrw_image_definition_plan_failure_retry"
+      ],
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "options": "halt_on_error=1",
+      "excluded": [
+        "Image CLI harness",
+        "Graph CLI harness",
+        "Wave1 dictionary-metadata selector"
+      ]
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "seconds": 9.52,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "scope": "Affected owning aggregates; implementation sources/binaries current, not a full project suite"
+    },
+    "literalSelector": {
+      "result": "PASS",
+      "command": "build/tests/libdxfrw_dwg2dxf_adapter_tests --generated-image-dictionary-source-identity",
+      "output": "Source-image dictionary identity cells=4 readback reexports=4 native cells=16 refusal/retries=26 aggregate metadata bytes=1472 cross-generation cells=2"
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "translationUnits": 3,
+      "command": "clang++ -std=c++17 -Wall -Wextra -pedantic -Werror -I. -Isrc -Isrc/intern -Idwg2dxf -fsyntax-only src/libdxfrw.cpp dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp"
+    },
+    "build": {
+      "result": "PASS",
+      "targets": [
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "libdxfrw_gbk_codepage_tests",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixture_tests",
+        "libdxfrw_wave1_tests",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ],
+      "finalState": "ninja: no work to do."
+    },
+    "diffCheck": "PASS",
+    "stagedChanges": false,
+    "interimFailures": "Initial22-test normal cohort had image CLI wire-check failure: old checker searched350 only; first expanded assertion also compared padded numeric wire strings literally. Corrected checker requires actual source360 hard-owner role, flags, ordered keys and existing closures. Final fresh22/22 supersedes both failures.",
+    "cliScope": "Scratch generated export, two exact input -o output CLI passes and public readback for ASCII/Binary; not a native FreeCAD application run."
+  },
+  "openLocal": [
+    "Full IMAGEDEF/common-field and regenerated source-reactor/extension dependency qualification",
+    "APPID/dependency-name decoding provenance and full source-schema/profile audit",
+    "Unmodeled CMC/layer state, application XRECORD per-value codepages/length conventions, binary segmentation, skipped fields and speculative decode observations",
+    "Strict per-attempt companion admission after relevant source and final output qualification",
+    "Three AC1024 visualization files/eight traced parser frames, separate CLASSES/container integrity and SUN output closure",
+    "Legacy TABLE entity/extension integration and separate AC1024+ inline authoring"
+  ],
+  "external": {
+    "deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "status": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "promotesSupportClaims": false
+  },
+  "notRun": [
+    "Full project suite",
+    "UBSan",
+    "LeakSanitizer",
+    "Native CAD application/platform qualification",
+    "Independent producer or semantic/kernel qualification"
+  ],
+  "limitations": [
+    "Selected source keys are preserved; unused source entries remain a projection, not completeness evidence.",
+    "Actual identity binding and three dictionary modeled facts do not certify complete IMAGEDEF/source reactor semantics or whole-document support.",
+    "Visible source metadata budget is not a heap/RSS bound.",
+    "Owned private class state grows; consumers must rebuild. No binary ABI or new public virtual callback claim.",
+    "No commit, push, GitHub mutation, dependency or support promotion."
+  ],
+  "commit": null,
+  "goalStatus": "ACTIVE",
+  "bindings": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "68dcfab0bb560f2b542de390ef75b500ee8d97caa437dde98ea32639f94368c3"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "002beec88179c905020c734e524de54c8e1931850fc94f6f5d4b06035dcc03cf"
+    },
+    {
+      "path": "src/libdwgr.cpp",
+      "sha256": "619ec8f0dbdc7932bb360773ac95874d1fc52ac531f877998f732f5705400337"
+    },
+    {
+      "path": "src/libdwgr.h",
+      "sha256": "de4388f8815c7587e5f141021c22b04a4919d3c7c66796fd22fe8ff74b008fad"
+    },
+    {
+      "path": "src/drw_objects.h",
+      "sha256": "48962c47560a7f9bb2563f529e3ce710c30ee2e5790245026699b920d368857d"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "d569d71bf1dc72a3bebc39db4f0cc569bb7a74f3667960ffdd5e5c8452865978"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "75e8e7c0bdda05f1930f0171720b0beaa240d732a1168c9ad3f034552fa28048"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "1265613bbb3f0b143144c185bb35f75dcf1f55ad9c1914d300b0101835fe226e"
+    },
+    {
+      "path": "dwg2dxf/dx_standard_output.h",
+      "sha256": "ce9c9572c427b123f244ebb97926c5d5172c29d61954244bd2cda0b178acecf1"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "35d93cd31c1e8d7a860fc79d47af276fc33b9daa4c91076858f68ffc3022abef"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "f677fa33b3f0e639b35b0f263268379bf64ae6b55587701cec6627e57754fa4e"
+    },
+    {
+      "path": "tests/run_dwg2dxf_image_path_test.cmake",
+      "sha256": "9d722c6c1f4fe96156a4f96e94a205d5ceb2dfd43f1b11322a623fd6407a0225"
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "sha256": "97346d8db9bdb6c1fea1d4aa2192224b6373912e373585808727b4b014ef59e9"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "e13c2678adf83f10829105db6e48d6e77f2749acb8272c4f989aa382b5f07c00"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "0447c5fd26f3df6842dfbc7a9131cd560a0e57515f8e0122f00ff5db39387f3f"
+    },
+    {
+      "path": "docs/research/rpp5au-group-common-metadata-and-extension-identity-fast-slice-2026-10-23.json",
+      "sha256": "fb2bc16e3f659924046e0204d19170fad3b9040c3952564b6a987ee9660cf2fa"
+    },
+    {
+      "path": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "6bbea0057df081b9fe24ade690960f2a00a8c261784ee3ef0f9c5ce3fc7f258a"
+    },
+    {
+      "path": "build/libdxfrw_gbk_codepage_tests",
+      "sha256": "21dd4fadbaadd0f96696ae933b94662674c20bbc0909c99b05be27afc7339ffb"
+    },
+    {
+      "path": "build/libdxfrw_dwg_local_roundtrip",
+      "sha256": "32b3b0d65e39e63943cc3fb2d16cfa15b178d287113c4506ebbad6a006d8db97"
+    },
+    {
+      "path": "build/libdxfrw_dxf_fixture_tests",
+      "sha256": "6ce9e0c3d53ee0c56baedce555cd7d1fba978b146dd2b39e5b68b58ddec5e1f1"
+    },
+    {
+      "path": "build/libdxfrw_wave1_tests",
+      "sha256": "5f413edd4830ba1a39744119f9ef1d837a61c490ec29e58b2dfedd78472e6fa1"
+    },
+    {
+      "path": "build/dwg2dxf/dwg2dxf",
+      "sha256": "cd926c7b3549678a577d60bf2bbd8fc138ccb1c5819180e971b2e47e3d5487d0"
+    },
+    {
+      "path": "build/tests/CMakeFiles/lc3_compat_check.dir/lc3_compat_check.cpp.o",
+      "sha256": "f0703751fca25e71023d978e750991f5c6a55f0fce823979051837af8039df46"
+    },
+    {
+      "path": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "92b88d41a83a474145f00e338ee9a9505401a934e685d1b29cebdd5f8ba479d9"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_gbk_codepage_tests",
+      "sha256": "55c2a21a220c96af7a19d735ee009a8b9e9c0e11e969be94f43949929fb5b878"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dwg_local_roundtrip",
+      "sha256": "6fe9669beaefc2543c9619766aaf12575d9bccc86b43567f6a8803d99b2b7e70"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dxf_fixture_tests",
+      "sha256": "07b906d1ae0a2bac3f5aa66bb36543e2601e56176cb139ec4f5d4d7ec06a3b38"
+    },
+    {
+      "path": "/tmp/rpp5av-initial-control.log",
+      "sha256": "e7383e58df7d089060bda9838ee2d25160afd38eef3927bc3d827558f522709c"
+    },
+    {
+      "path": "/tmp/rpp5av-final-controls.log",
+      "sha256": "e9d9910dd318af4bc318362742a330c221ec9351322adeb9dfd8efc5e2aa4c45"
+    },
+    {
+      "path": "/tmp/rpp5av-fast-verified-ctest.log",
+      "sha256": "34712b15856ab1fccf0be8a37c427ee5dd0941bae0eaf34ad4162a87c91dd8b7"
+    },
+    {
+      "path": "/tmp/rpp5av-asan-verified-ctest.log",
+      "sha256": "99a84d635301e70d3272e2fdcdacc8d1d67760c71e1918efe1833b56a11f42d5"
+    },
+    {
+      "path": "/tmp/rpp5av-owning-ctest.log",
+      "sha256": "db0e6d28f7c71bfd1733e08eac9bc4b3651c1458666451bb09146b844a392ea3"
+    },
+    {
+      "path": "/tmp/rpp5av-verified-strict-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5av-current-build.log",
+      "sha256": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794"
+    },
+    {
+      "path": "/tmp/rpp5av-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

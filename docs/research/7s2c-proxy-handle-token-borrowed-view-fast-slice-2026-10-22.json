@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c proxy handle-token borrowed view",
+  "scope": "Remove the per-handle temporary string in DXF proxy handle lexeme validation.",
+  "files": {
+    "CMakeLists.txt": "069edbb9b9b07dd91999737c50b9e365715eec66b1d913d861472ca41a702518",
+    "src/libdxfrw.cpp": "3d25cbe5001d0b90a4fe3e693276644aea4f408f2a69b2b9dd3da349966dcaf8",
+    "tests/hardening_tests.cpp": "6a4e5a9086bb96aa532c45c491aedde4a5af244d69979e14911a2740f112b6dc"
+  },
+  "change": {
+    "summary": "proxyDxfHandle now validates hexadecimal digits directly from a string_view over the retained raw token instead of copying the lexeme.",
+    "fixtureAdded": false,
+    "publicApiOrLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "supportClaimPromoted": false,
+    "externalQualificationChanged": false
+  },
+  "generatedControl": {
+    "formatVersion": "ASCII and Binary DXF (generated in memory)",
+    "input": "Generated proxy entity/object records with object-ID handle groups and section terminator variants.",
+    "checks": [
+      "valid proxy object-ID handles parse in ASCII and Binary routes",
+      "invalid and out-of-scope handle/payload combinations refuse before callback publication",
+      "proxy entity and object sections remain aligned through their terminators"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check --parallel 4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_proxy_object_id_terminator$' --output-on-failure",
+      "result": "PASS (1/1; 0.28 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "Generated controls verify unchanged proxy handle parsing and record alignment. They do not establish additional DXF proxy semantics or interoperability.",
+  "fullSuiteRun": false,
+  "sanitizersRun": false,
+  "externalPeersRun": false,
+  "nativeCadRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "selfUnblockingContinuation": "Continue the exact-source audit across compound/class registries and parser staging. If no additional transient token copy is found, resume the next evidence-backed PAR-03/PAR-04, HATCH, or DWG semantic item. External qualification remains separate and does not pause local implementation."
+}

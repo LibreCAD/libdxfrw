@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Background/SUN handle-list callback retention fast slice",
+  "mode": "Implementation slice; focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Continue the 7S.2c writer-owned scratch and callback lifetime census.",
+    "Verify the last-use requirements for the Background and SUN handle lists across fileExport and the codec's write callbacks.",
+    "Preserve both the adapter's raw-object emission path and the codec's independent handle-validation view."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "change": "After Background consumer validation, move the collected local handle vector into the adapter-owned m_backgroundHandlesToWrite list. Pass the Background and SUN adapter lists to dxfRW through the existing const-reference overloads so the adapter retains them while dxfW->write() calls dx_iface::writeObjects().",
+    "lifetimeEvidence": "dx_iface::writeObjects() iterates m_backgroundHandlesToWrite and m_sunHandlesToWrite to emit raw OBJECTS carriers during dxfW->write(); dxfRW separately consults m_resolvedBackgroundHandles and m_resolvedSunHandles while validating emitted handle references. Both consumers are live in the same call, so one writer-side copy is required and moving away adapter ownership is incorrect.",
+    "regressionEvidence": "The prior rvalue handoff emptied both adapter lists before writeObjects ran. Existing generated ASCII/Binary Background/SUN round-trip controls then omitted the raw carrier objects even though the ACAD_BACKGROUND root dictionary was emitted. Retaining adapter ownership and copying the writer's validation lists restores the complete raw object graph.",
+    "unchanged": [
+      "Background and SUN graph validation and source handle order",
+      "Handle collision remapping and writer-side reference checks",
+      "ASCII/Binary output format and callback order",
+      "Public API, class layout, fixture inventory, and support claims"
+    ],
+    "performanceClaim": "The collected Background handle vector transfers into adapter ownership instead of being copied. The codec's independent validation copy remains necessary because both the adapter callback and codec consume the list during the same write. No throughput, allocator, or RSS gain is claimed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "result": "passed for ASCII and Binary Background/SUN raw-carrier and owner-graph cases"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "passed": 1,
+      "failed": 0,
+      "totalTimeSeconds": 3.84
+    },
+    "compatibilityBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "diffCheck": "passed for implementation, plan, and receipt",
+    "jsonValidation": "jq empty passed"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

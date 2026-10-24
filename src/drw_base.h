@@ -362,14 +362,29 @@ enum class DxfTextSourceProfile : std::uint8_t {
     LegacyUtf16,
     UnavailableNamed,
     Unidentified,
+    // Append new public profile identities to keep existing numeric values stable.
+    Iso8859_1,
+    MacRoman,
+    Iso8859_2,
+    Iso8859_3,
+    Iso8859_5,
+    Iso8859_6,
+    Iso8859_7,
+    Iso8859_8,
+    Iso8859_9,
+    Iso8859_10,
+    Iso8859_11,
+    Iso8859_13,
+    Iso8859_14,
+    Iso8859_15,
     Count
 };
 
-constexpr std::uint32_t dxfTextSourceProfileMask(DxfTextSourceProfile profile) noexcept {
+constexpr std::uint64_t dxfTextSourceProfileMask(DxfTextSourceProfile profile) noexcept {
     return profile < DxfTextSourceProfile::Count
-        ? std::uint32_t{1} << static_cast<unsigned>(profile) : 0u;
+        ? std::uint64_t{1} << static_cast<unsigned>(profile) : 0u;
 }
-static_assert(static_cast<unsigned>(DxfTextSourceProfile::Count) < 32u,
+static_assert(static_cast<unsigned>(DxfTextSourceProfile::Count) < 64u,
               "DXF source profiles must fit the fixed mask");
 
 struct DxfTextReadObservations {
@@ -400,7 +415,7 @@ struct DxfTextReadObservations {
     static constexpr std::size_t SourceProfileCount =
         static_cast<std::size_t>(DxfTextSourceProfile::Count);
     std::array<std::uint64_t, SourceProfileCount> sourceProfileCalls {};
-    std::uint32_t sourceProfileMask {0};
+    std::uint64_t sourceProfileMask {0};
 
     bool hasIssues() const noexcept { return issueMask != 0u; }
     std::uint64_t issueCount(DxfTextIssue issue) const noexcept {
@@ -588,8 +603,9 @@ struct DwgCompoundEntityFrameReceipt {
     DwgObjectFrameReceipt frame;
 };
 
-/// Ordered evidence for one successfully emitted POLYLINE/VERTEX/SEQEND
-/// compound. It is published only after every frame exists.
+/// Ordered evidence for one successfully emitted compound entity frame
+/// sequence (for example POLYLINE/VERTEX/SEQEND or
+/// INSERT/ATTRIB/SEQEND). It is published only after every frame exists.
 struct DwgCompoundEntityWriteReceipt {
     bool valid {false};
     std::uint32_t parentHandle {0};
@@ -706,6 +722,19 @@ public:
     virtual bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) = 0;
 };
 
+//! DWG CMC source metadata retained beside an integer-valued header variable.
+//! This does not imply a corresponding DXF HEADER color-group mapping.
+struct DRW_DwgCmColor {
+    std::uint8_t method {0};
+    std::uint8_t flags {0};
+    std::uint16_t index {0};
+    std::int32_t rgb24 {-1};
+    bool hasRgbColor {false};
+    std::string colorName;
+    std::string bookName;
+    DRW::Version sourceVersion {DRW::UNKNOWNV};
+};
+
 //! Class to handle vertex
 /*!
 *  Class to handle vertex for lwpolyline entity
@@ -754,15 +783,15 @@ public:
 
     DRW_Variant(int c, double d): sdata(std::string()), vdata(), bdata(), content(d), vType(DOUBLE), vCode(c) {}
 
-    DRW_Variant(int c, UTF8STRING s): sdata(s), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c) {}
+    DRW_Variant(int c, UTF8STRING s): sdata(std::move(s)), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c) {}
 
-    DRW_Variant(int c, UTF8STRING s, bool isLayerRef): sdata(s), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c), sIsLayerRef(isLayerRef) {}
+    DRW_Variant(int c, UTF8STRING s, bool isLayerRef): sdata(std::move(s)), vdata(), bdata(), content(&sdata), vType(STRING), vCode(c), sIsLayerRef(isLayerRef) {}
 
     DRW_Variant(int c, DRW_Coord crd): sdata(std::string()), vdata(crd), bdata(), content(&vdata), vType(COORD), vCode(c) {}
 
     DRW_Variant(int c, std::vector<std::uint8_t> b): sdata(std::string()), vdata(), bdata(std::move(b)), content(&bdata), vType(BINARY), vCode(c) {}
 
-    DRW_Variant(const DRW_Variant& d): sdata(d.sdata), vdata(d.vdata), bdata(d.bdata), content(d.content), vType(d.vType), vCode(d.vCode), sIsLayerRef(d.sIsLayerRef), hasDwgRawLayerReference(d.hasDwgRawLayerReference), dwgRawLayerReference(d.dwgRawLayerReference), dwgRawLayerReferenceText(d.dwgRawLayerReferenceText), dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion) {
+    DRW_Variant(const DRW_Variant& d): sdata(d.sdata), vdata(d.vdata), bdata(d.bdata), content(d.content), vType(d.vType), vCode(d.vCode), sIsLayerRef(d.sIsLayerRef), hasDwgRawLayerReference(d.hasDwgRawLayerReference), dwgRawLayerReference(d.dwgRawLayerReference), dwgRawLayerReferenceText(d.dwgRawLayerReferenceText), dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion), dwgCmColor(d.dwgCmColor) {
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -785,6 +814,7 @@ public:
         dwgRawLayerReference = d.dwgRawLayerReference;
         dwgRawLayerReferenceText = d.dwgRawLayerReferenceText;
         dwgRawLayerReferenceVersion = d.dwgRawLayerReferenceVersion;
+        dwgCmColor = d.dwgCmColor;
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -805,7 +835,8 @@ public:
         , hasDwgRawLayerReference(d.hasDwgRawLayerReference)
         , dwgRawLayerReference(d.dwgRawLayerReference)
         , dwgRawLayerReferenceText(std::move(d.dwgRawLayerReferenceText))
-        , dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion) {
+        , dwgRawLayerReferenceVersion(d.dwgRawLayerReferenceVersion)
+        , dwgCmColor(std::move(d.dwgCmColor)) {
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -828,6 +859,7 @@ public:
         dwgRawLayerReference = d.dwgRawLayerReference;
         dwgRawLayerReferenceText = std::move(d.dwgRawLayerReferenceText);
         dwgRawLayerReferenceVersion = d.dwgRawLayerReferenceVersion;
+        dwgCmColor = std::move(d.dwgCmColor);
         if (d.vType == COORD)
             content.v = &vdata;
         if (d.vType == STRING)
@@ -840,12 +872,25 @@ public:
     ~DRW_Variant() {
     }
 
-    void addString(int c, UTF8STRING s) {clearDwgRawLayerReference(); vType = STRING; sdata = s; content.s = &sdata; vCode=c; sIsLayerRef=false;}
-    void addInt(int c, int i) {clearDwgRawLayerReference(); vType = INTEGER; content.i = i; vCode=c;}
-    void addInt64(int c, std::int64_t i) {clearDwgRawLayerReference(); vType = INTEGER64; content.i64 = i; vCode=c;}
-    void addDouble(int c, double d) {clearDwgRawLayerReference(); vType = DOUBLE; content.d = d; vCode=c;}
-    void addCoord(int c, DRW_Coord v) {clearDwgRawLayerReference(); vType = COORD; vdata = v; content.v = &vdata; vCode=c;}
-    void addBinary(int c, std::vector<std::uint8_t> b) {clearDwgRawLayerReference(); vType = BINARY; bdata = std::move(b); content.b = &bdata; vCode=c;}
+    void addString(int c, UTF8STRING s) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = STRING; sdata = std::move(s); content.s = &sdata; vCode=c; sIsLayerRef=false;}
+    void appendString(int c, UTF8STRING s) {
+        if (vType == STRING && vCode == c) {
+            // Appending keeps accumulated text in one owner instead of
+            // rebuilding/copying the whole value for each source chunk.
+            sdata.append(s);
+            clearDwgRawLayerReference();
+            clearDwgCmColor();
+            content.s = &sdata;
+            sIsLayerRef = false;
+            return;
+        }
+        addString(c, std::move(s));
+    }
+    void addInt(int c, int i) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = INTEGER; content.i = i; vCode=c;}
+    void addInt64(int c, std::int64_t i) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = INTEGER64; content.i64 = i; vCode=c;}
+    void addDouble(int c, double d) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = DOUBLE; content.d = d; vCode=c;}
+    void addCoord(int c, DRW_Coord v) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = COORD; vdata = v; content.v = &vdata; vCode=c;}
+    void addBinary(int c, std::vector<std::uint8_t> b) {clearDwgRawLayerReference(); clearDwgCmColor(); vType = BINARY; bdata = std::move(b); content.b = &bdata; vCode=c;}
     void setCoordX(double d) { if (vType == COORD) vdata.x = d;}
     void setCoordY(double d) { if (vType == COORD) vdata.y = d;}
     void setCoordZ(double d) { if (vType == COORD) vdata.z = d;}
@@ -866,6 +911,38 @@ public:
     }
     std::uint64_t rawDwgLayerReference() const noexcept {
         return dwgRawLayerReference;
+    }
+    void setDwgCmColor(DRW_DwgCmColor color) {
+        dwgCmColor = std::make_shared<const DRW_DwgCmColor>(std::move(color));
+    }
+    const DRW_DwgCmColor* dwgCmColorValue() const noexcept {
+        return dwgCmColor.get();
+    }
+    void clearDwgCmColor() noexcept { dwgCmColor.reset(); }
+    // Visible payload copied by this variant, including dormant string/binary
+    // owners and private source spelling. Not allocator-capacity accounting.
+    // Shared immutable CMC payload is conservatively charged per owner.
+    bool estimateRetainedPayloadBytes(std::size_t limit,
+                                      std::size_t& bytes) const noexcept {
+        std::size_t total = 0u;
+        const auto add = [&total, limit](std::size_t count) {
+            if (count > limit - total)
+                return false;
+            total += count;
+            return true;
+        };
+        const auto text = [&add](const std::string& value) {
+            return add(value.size()) && add(1u);
+        };
+        if (!text(sdata) || !text(dwgRawLayerReferenceText)
+            || !add(bdata.size()))
+            return false;
+        if (dwgCmColor
+            && (!add(sizeof(DRW_DwgCmColor) + 2u * sizeof(void*))
+                || !text(dwgCmColor->colorName) || !text(dwgCmColor->bookName)))
+            return false;
+        bytes = total;
+        return true;
     }
     enum TYPE type() const { return vType;}
     int code() const { return vCode;}       /*!< returns dxf code of this value*/
@@ -908,6 +985,7 @@ private:
     std::uint64_t dwgRawLayerReference{0};
     UTF8STRING dwgRawLayerReferenceText;
     DRW::Version dwgRawLayerReferenceVersion{DRW::UNKNOWNV};
+    std::shared_ptr<const DRW_DwgCmColor> dwgCmColor;
 
     void clearDwgRawLayerReference() noexcept {
         hasDwgRawLayerReference = false;

@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader source-lineage and declared-capability screen",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen newly surfaced open-source CAD/viewer projects for genuinely independent DWG, DXF, or ACIS implementation routes",
+    "Trace application claims to package manifests, parser dependencies, and explicit feature matrices",
+    "Refine optional comparator guidance without expanding the per-slice validation loop"
+  ],
+  "method": {
+    "kind": "Read primary project README, package manifest, dependency lock references, licensing notes, and explicit format-support table",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "AGENTS.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Mutable project pages were reviewed on 2026-10-18. No source audit or execution was performed for cadview's DXF parser; all capability conclusions are limited to documented route/dependency claims. No peer or native application result is asserted."
+  },
+  "sources": [
+    {
+      "project": "wiscaksono/cadview",
+      "urls": [
+        "https://github.com/wiscaksono/cadview",
+        "https://github.com/wiscaksono/cadview#readme"
+      ],
+      "revision": "Mutable main/repository page reviewed 2026-10-18",
+      "observed": "The README describes a 13-entity DXF parser/viewer with a Canvas 2D renderer. Its optional @cadview/dwg package is explicitly LibreDWG compiled to WebAssembly under GPL-3.0. No core DXF parser source audit or precise unsupported-field study was performed."
+    },
+    {
+      "project": "backkem/codecad",
+      "urls": [
+        "https://github.com/backkem/codecad",
+        "https://github.com/backkem/codecad/blob/main/crates/cadview-core/Cargo.toml",
+        "https://github.com/backkem/codecad/blob/main/Cargo.lock"
+      ],
+      "revision": "Mutable main/repository page reviewed 2026-10-18",
+      "observed": "The project describes itself as 2D CAD and a DWG viewer. Its cadview-core manifest depends on acadrust = 0.3 and its lockfile resolves ACadRust 0.3.4. It is an ACadRust-lineage application route, not an independent DWG parser or 3D-solid witness."
+    },
+    {
+      "project": "kernalix7/CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel",
+        "https://github.com/kernalix7/CADKernel#supported-file-formats"
+      ],
+      "revision": "Mutable main/repository page reviewed 2026-10-18",
+      "observed": "The README's broad compatibility prose names ACIS, but the explicit ACIS SAT/SAB row marks both read and write unavailable. The project is not an eligible ACIS comparator based on its own current support matrix."
+    },
+    {
+      "project": "mlightcad/cad-viewer proprietary parser route",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md",
+        "https://github.com/mlightcad/realdwg-web"
+      ],
+      "revision": "Mutable main/repository page reviewed 2026-10-18",
+      "observed": "The documented default DWG path uses LibreDWG. The alternative parser is distributed as a private package subject to authorization/licensing. Project documentation describes partial 3DSOLID/SAB extraction and best-effort wireframe or bounding-box fallback, without full B-rep tessellation."
+    },
+    {
+      "project": "monozukuri-ai/cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/monozukuri-ai/cq-acis#readme"
+      ],
+      "revision": "Mutable main/repository page reviewed 2026-10-18",
+      "observed": "The project describes an experimental bare SAT/SAB parser and a limited, producer/save-version-dependent conversion profile. It is an inner-stream route and does not decode DWG sections or establish entity-owner-AcDs associations."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Clarifies optional route classification and lineage deduplication: cadview DWG is LibreDWG-lineage, CodeCAD is ACadRust-lineage, CADKernel's current ACIS matrix is unavailable, proprietary MLightCAD is not an open-source route, and cq-acis remains an experimental bare-stream comparator only. No new required gate or implementation work was added.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not add any screened project as a routine peer dependency, CMake target, CI job, fixture, or per-slice validation prerequisite.",
+    "Use a screened viewer only for a named projection question after pinning the exact source/dependency route and auditing its parser boundary.",
+    "Deduplicate evidence by the implementation that parses the bytes, not by application count or renderer diversity.",
+    "Treat marketed format matrices as discovery leads only; require executable implementation and independent expected-value evidence before promoting a capability.",
+    "Keep cq-acis limited to an exactly matched bare SAT/SAB profile; it does not establish DWG section extraction, owner/AcDs association, or native CAD acceptance.",
+    "Keep findings 130/73 and J256/J260/J268/J284/J293/J295 DEFERRED_EXTERNAL; no support claim changed."
+  ]
+}

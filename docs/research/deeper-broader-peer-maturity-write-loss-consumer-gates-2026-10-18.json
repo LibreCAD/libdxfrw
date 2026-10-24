@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Peer maturity, write-loss, and consumer gate crosswalk",
+  "mode": "Deeper/broader primary-source research and plan-only implementation crosswalk",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare maturity evidence and failure dispositions across independent DWG/DXF implementations",
+    "Reconcile ACadSharp no-op writer/native AUDIT and solid-writer reports with local graph and carrier gates",
+    "Distinguish DXF version reassignment/export behavior from actual version conversion",
+    "Separate raw ASM/ACIS carrier delivery, OGR projection, B-rep semantics, and native FreeCAD import",
+    "Cross-check the LibreDWG R2004 decompressor security mechanism against the current local page decoder"
+  ],
+  "method": {
+    "kind": "Primary repository documentation/issues plus read-only local source audit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Mutable upstream documentation/source and issue pages were reviewed as published on 2026-10-18. ACadSharp #1277 contains private-file observations and no public DWG fixture; peer reports are implementation-specific, not normative format authorities. The local decompressor review was source inspection only, not fuzzing or sanitizer execution. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "0.14.1 release notes and mutable master source/docs accessed 2026-10-18",
+      "observed": "NEWS records security/data-loss fixes for R2004 decompressor buffer accounting, section page-map bounds, allocation arithmetic, object lifetime, and progress. objects.in distinguishes STABLE, UNSTABLE, and DEBUGGING class states; the manual separately lists unhandled classes and classes without R2018 test coverage. These signals are scoped maturity evidence, not blanket version or semantic qualification."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1277",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Issue bodies and mutable issue index accessed 2026-10-18",
+      "observed": "Issue #1277 reports ACadSharp 3.7.16 no-op AC1032 DWG writer output rejected by AutoCAD LT 2026 AUDIT, with standalone MLEADER context objects removed; the report says two serialization changes were jointly needed on two private drawings and provides no public fixture. Issue #1195 separately reports 3DSOLID/REGION omission on a DWG-to-DXF writer route. Neither report establishes a local defect or every current peer release behavior."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Current source/docs accessed 2026-10-18",
+      "observed": "DXFEntity export documentation says unsupported features of the selected DXF version may be ignored and that ezdxf does not convert between versions. ACIS tools support selected SAT/SAB parse/export profiles and reject unsupported structures; mesh conversion is bounded and does not provide a general ACIS kernel."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Stable documentation accessed 2026-10-18",
+      "observed": "The AC1027+ DXF extensible mode exposes raw ASMData and ASMTransform, while the documentation explicitly says ASM entities cannot be converted to OGR geometries by this driver. Projection/tessellation remains a separate, lossy route."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable documentation and source accessed 2026-10-18",
+      "observed": "The DWG route converts through an external converter to DXF and then uses a selected DXF importer. Converter status, output existence, import success, visible 2D result, and 3D shape construction are distinct outcomes."
+    },
+    {
+      "project": "Local libdxfrw source",
+      "urls": [
+        "src/intern/dwgutil.cpp",
+        "src/intern/dwgreader18.cpp",
+        "src/intern/dwgsafety.h",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Workspace source at baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 plus existing user changes",
+      "observed": "dwgReader18::parseDataPage uses bounded preflighted section storage and page-local decompression windows; the inspected code does not have LibreDWG's cited mutable live-buffer shrink shape. Existing PAR-14/PAR-26 owners cover related capacity/arithmetic/range controls. This is static review, not a sanitizer or exhaustive malformed-stream proof."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing composed comparator gate: bind implementation/profile/version/direction, map source identity and ownership to an explicit output disposition, separate raw ACIS/ASM carrier and association from parsed B-rep semantics, and distinguish peer self-read from independent/native acceptance. Existing PAR/7* owners remain responsible; no new finding or local implementation task was justified."
+  }
+}

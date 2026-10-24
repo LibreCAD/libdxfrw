@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-peer-lineage-release-source-acis-review-v1",
+  "review_date": "2026-10-17",
+  "review_type": "primary-source and release-history research; plan refinement only",
+  "scope": [
+    "LibreDWG AcDs/SAB issue, mutable source, and release-note boundary",
+    "ACadSharp release chronology and version-scoped issue provenance",
+    "cadcodec fork lineage and independence of peer evidence"
+  ],
+  "evidence": [
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observations": [
+        "Issue #1411 is an open report tied to LibreDWG 0.14.8593 at commit 8a1ae764 and describes R2013+ AcDs/SAB loss for stated round-trip and confidential R2018 inputs.",
+        "Mutable source contains an AcDsPrototype_1b section-reader path; source presence does not prove complete object association, payload conversion, or writer closure.",
+        "NEWS for 0.14.1 (2026-07-25) says the AcDs store remains incomplete and mentions brute-force SAB extraction; it separately records a last-SAT-block DXF export fix."
+      ],
+      "evidence_grade": "primary source/release evidence; no runtime reproduction"
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observations": [
+        "v3.6.51 release notes list ACIS payload reading for 3DSOLID/REGION/BODY and AcDs payload-area offset / Prototype1b parsing work.",
+        "v3.8.0 release notes list only an InternalsVisibleTo change.",
+        "Issue #1195 reports omitted solids against v3.4.9; this is not evidence of current package behavior or a verified fix."
+      ],
+      "evidence_grade": "tagged release notes and version-scoped issue; no runtime reproduction"
+    },
+    {
+      "project": "compscientific/cadcodec",
+      "references": [
+        "https://github.com/compscientific/cadcodec",
+        "https://github.com/HakanSeven12/opencadcodec"
+      ],
+      "observations": [
+        "Repository describes itself as forked from HakanSeven12/opencadcodec and repeats ACadRust-family coverage claims.",
+        "Treat as correlated lineage, not an independent parser vote."
+      ],
+      "evidence_grade": "repository metadata/README lineage review"
+    }
+  ],
+  "plan_impact": {
+    "existing_owner": "S8/PAR-07 composed peer evidence intake",
+    "required_record_fields": [
+      "exact released artifact and source commit",
+      "operation direction and reader/writer/converter path",
+      "source entity, owner, and payload carrier",
+      "target DWG/DXF version",
+      "raw payload and handle/ownership comparison",
+      "independent semantic or B-rep result"
+    ],
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "new_dependencies": 0,
+    "new_fixtures": 0,
+    "new_per_slice_validation": 0,
+    "support_claim_promotions": 0
+  },
+  "status": {
+    "findings": 128,
+    "top_level_subplans": 71,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limitations": [
+    "Mutable master source was inspected as source evidence, not exercised as a released artifact.",
+    "Issue reports and feature notes were not independently reproduced.",
+    "No peer package, executable, native CAD application, external drawing, or local test was run.",
+    "No inference here can promote DWG/DXF or 3D support claims or change any DEFERRED_EXTERNAL item."
+  ],
+  "files_changed": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/deeper-broader-current-peer-lineage-release-acis-route-review-2026-10-17.json"
+  ]
+}

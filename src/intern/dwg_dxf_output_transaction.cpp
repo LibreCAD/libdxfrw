@@ -67,6 +67,8 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
         return false;
 
 #if defined(_WIN32)
+    if (!captureTargetSnapshot())
+        return false;
     std::random_device random;
     for (std::uint32_t attempt = 0; attempt != 128; ++attempt) {
         m_temporary = directory / name;
@@ -104,23 +106,9 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
     // would get to choose the permissions of somebody else's saved drawing.
     // Only a regular file has a mode worth inheriting: for anything else the
     // published file is treated as new.
-    struct stat existing {};
-    const std::filesystem::path targetName = m_target.filename();
-    const int targetFlags =
-#  if defined(AT_SYMLINK_NOFOLLOW)
-        AT_SYMLINK_NOFOLLOW;
-#  else
-        0;
-#  endif
-    if (!targetName.empty()
-        && ::fstatat(m_directoryDescriptor, targetName.c_str(), &existing,
-                     targetFlags) == 0
-        && S_ISREG(existing.st_mode)) {
-        // Permission bits only.  setuid, setgid and the sticky bit are not
-        // carried onto what is a newly created inode, possibly with a
-        // different owner -- replacing a file must not hand its privileges to
-        // the replacement.
-        m_targetMode = static_cast<int>(existing.st_mode & 0777);
+    if (!captureTargetSnapshot()) {
+        closeDirectoryDescriptor();
+        return false;
     }
 
     // Create the temporary the same way the Windows branch above does, rather
@@ -188,6 +176,193 @@ bool DwgDxfOutputTransaction::createExclusiveTemporary() {
 #endif
     m_temporary.clear();
     return false;
+}
+
+bool DwgDxfOutputTransaction::captureTargetSnapshot() noexcept {
+    if (m_target.empty() || m_target.filename().empty())
+        return false;
+#if defined(_WIN32)
+    const HANDLE targetHandle = CreateFileW(
+        m_target.c_str(), FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS
+            | FILE_FLAG_OPEN_REPARSE_POINT,
+        nullptr);
+    if (targetHandle == INVALID_HANDLE_VALUE) {
+        const DWORD error = GetLastError();
+        if (error != ERROR_FILE_NOT_FOUND && error != ERROR_PATH_NOT_FOUND)
+            return false;
+        m_targetSnapshot = TargetSnapshot {};
+        m_targetSnapshot.captured = true;
+        return true;
+    }
+    BY_HANDLE_FILE_INFORMATION information {};
+    const bool ok = GetFileInformationByHandle(targetHandle, &information) != 0;
+    CloseHandle(targetHandle);
+    if (!ok)
+        return false;
+
+    ULARGE_INTEGER modified {};
+    modified.HighPart = information.ftLastWriteTime.dwHighDateTime;
+    modified.LowPart = information.ftLastWriteTime.dwLowDateTime;
+    ULARGE_INTEGER created {};
+    created.HighPart = information.ftCreationTime.dwHighDateTime;
+    created.LowPart = information.ftCreationTime.dwLowDateTime;
+    m_targetSnapshot.captured = true;
+    m_targetSnapshot.exists = true;
+    m_targetSnapshot.device = information.dwVolumeSerialNumber;
+    m_targetSnapshot.file =
+        (static_cast<std::uint64_t>(information.nFileIndexHigh) << 32u)
+        | information.nFileIndexLow;
+    m_targetSnapshot.size =
+        (static_cast<std::uint64_t>(information.nFileSizeHigh) << 32u)
+        | information.nFileSizeLow;
+    m_targetSnapshot.modifiedSeconds = modified.QuadPart;
+    m_targetSnapshot.changedSeconds = created.QuadPart;
+    m_targetSnapshot.type = information.dwFileAttributes;
+    return true;
+#else
+    if (m_directoryDescriptor < 0)
+        return false;
+    struct stat targetStatus {};
+    const std::filesystem::path targetName = m_target.filename();
+    const int flags =
+#  if defined(AT_SYMLINK_NOFOLLOW)
+        AT_SYMLINK_NOFOLLOW;
+#  else
+        0;
+#  endif
+    if (::fstatat(m_directoryDescriptor, targetName.c_str(), &targetStatus,
+                  flags) != 0) {
+        if (errno != ENOENT)
+            return false;
+        m_targetSnapshot = TargetSnapshot {};
+        m_targetSnapshot.captured = true;
+        m_targetMode = -1;
+        return true;
+    }
+#  if defined(__APPLE__)
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtimespec.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctimespec.tv_nsec);
+#  else
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtim.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctim.tv_nsec);
+#  endif
+    m_targetSnapshot.captured = true;
+    m_targetSnapshot.exists = true;
+    m_targetSnapshot.device = static_cast<std::uint64_t>(targetStatus.st_dev);
+    m_targetSnapshot.file = static_cast<std::uint64_t>(targetStatus.st_ino);
+    m_targetSnapshot.size = static_cast<std::uint64_t>(targetStatus.st_size);
+    m_targetSnapshot.modifiedSeconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtime);
+    m_targetSnapshot.modifiedSubseconds = modifiedSubseconds;
+    m_targetSnapshot.changedSeconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctime);
+    m_targetSnapshot.changedSubseconds = changedSubseconds;
+    m_targetSnapshot.type = static_cast<std::uint32_t>(targetStatus.st_mode);
+    if (S_ISREG(targetStatus.st_mode)) {
+        // Permission bits only.  setuid, setgid and the sticky bit are not
+        // carried onto what is a newly created inode, possibly with a
+        // different owner -- replacing a file must not hand its privileges to
+        // the replacement.
+        m_targetMode = static_cast<int>(targetStatus.st_mode & 0777);
+    } else {
+        m_targetMode = -1;
+    }
+    return true;
+#endif
+}
+
+bool DwgDxfOutputTransaction::targetSnapshotMatches() const noexcept {
+    if (!m_targetSnapshot.captured || m_target.empty())
+        return false;
+#if defined(_WIN32)
+    const HANDLE targetHandle = CreateFileW(
+        m_target.c_str(), FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS
+            | FILE_FLAG_OPEN_REPARSE_POINT,
+        nullptr);
+    if (targetHandle == INVALID_HANDLE_VALUE) {
+        const DWORD error = GetLastError();
+        return !m_targetSnapshot.exists
+            && (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND);
+    }
+    if (!m_targetSnapshot.exists) {
+        CloseHandle(targetHandle);
+        return false;
+    }
+    BY_HANDLE_FILE_INFORMATION information {};
+    const bool ok = GetFileInformationByHandle(targetHandle, &information) != 0;
+    CloseHandle(targetHandle);
+    if (!ok)
+        return false;
+    ULARGE_INTEGER modified {};
+    modified.HighPart = information.ftLastWriteTime.dwHighDateTime;
+    modified.LowPart = information.ftLastWriteTime.dwLowDateTime;
+    ULARGE_INTEGER created {};
+    created.HighPart = information.ftCreationTime.dwHighDateTime;
+    created.LowPart = information.ftCreationTime.dwLowDateTime;
+    const std::uint64_t file =
+        (static_cast<std::uint64_t>(information.nFileIndexHigh) << 32u)
+        | information.nFileIndexLow;
+    const std::uint64_t size =
+        (static_cast<std::uint64_t>(information.nFileSizeHigh) << 32u)
+        | information.nFileSizeLow;
+    return information.dwVolumeSerialNumber == m_targetSnapshot.device
+        && file == m_targetSnapshot.file && size == m_targetSnapshot.size
+        && modified.QuadPart == m_targetSnapshot.modifiedSeconds
+        && created.QuadPart == m_targetSnapshot.changedSeconds
+        && information.dwFileAttributes == m_targetSnapshot.type;
+#else
+    if (m_directoryDescriptor < 0)
+        return false;
+    struct stat targetStatus {};
+    const std::filesystem::path targetName = m_target.filename();
+    const int flags =
+#  if defined(AT_SYMLINK_NOFOLLOW)
+        AT_SYMLINK_NOFOLLOW;
+#  else
+        0;
+#  endif
+    if (::fstatat(m_directoryDescriptor, targetName.c_str(), &targetStatus,
+                  flags) != 0) {
+        return !m_targetSnapshot.exists && errno == ENOENT;
+    }
+    if (!m_targetSnapshot.exists)
+        return false;
+#  if defined(__APPLE__)
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtimespec.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctimespec.tv_nsec);
+#  else
+    const std::uint64_t modifiedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_mtim.tv_nsec);
+    const std::uint64_t changedSubseconds =
+        static_cast<std::uint64_t>(targetStatus.st_ctim.tv_nsec);
+#  endif
+    return static_cast<std::uint64_t>(targetStatus.st_dev)
+               == m_targetSnapshot.device
+        && static_cast<std::uint64_t>(targetStatus.st_ino)
+               == m_targetSnapshot.file
+        && static_cast<std::uint64_t>(targetStatus.st_size)
+               == m_targetSnapshot.size
+        && static_cast<std::uint64_t>(targetStatus.st_mtime)
+               == m_targetSnapshot.modifiedSeconds
+        && modifiedSubseconds == m_targetSnapshot.modifiedSubseconds
+        && static_cast<std::uint64_t>(targetStatus.st_ctime)
+               == m_targetSnapshot.changedSeconds
+        && changedSubseconds == m_targetSnapshot.changedSubseconds
+        && static_cast<std::uint32_t>(targetStatus.st_mode)
+               == m_targetSnapshot.type;
+#endif
 }
 
 bool DwgDxfOutputTransaction::temporaryIdentityMatches() const noexcept {
@@ -375,7 +550,8 @@ bool DwgDxfOutputTransaction::commit() {
         abort();
         return false;
     }
-    if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()) {
+    if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()
+        || !targetSnapshotMatches()) {
         abort();
         return false;
     }
@@ -415,7 +591,7 @@ bool DwgDxfOutputTransaction::commit() {
     }
 #else
     if (!temporaryIdentityMatches() || !directoryIdentityMatchesPath()
-        || !publish()) {
+        || !targetSnapshotMatches() || !publish()) {
         abort();
         return false;
     }

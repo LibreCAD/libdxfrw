@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 ACDSDATA multi-record following-entity sentinel",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "finding": "PAR-07/S8",
+  "status": "IMPLEMENTED_LOCAL_UNCOMMITTED",
+  "summary": "Extended the generated AC1027 ACDSDATA multi-record test so a following ordinary POINT must survive ASCII/Binary import, replay, and corrected retry outputs.",
+  "behavior": {
+    "carrier": "Three distinct generated SAB records remain associated with their modeler identities; a 256-byte record retains ordered group-310 chunk lengths 127, 127, and 2.",
+    "followingEntity": "A uniquely positioned POINT appended after modeler records remains the final ordinary entity with its expected coordinates after import, same-codec replay, and corrected retry output.",
+    "orderingAudit": "The existing DWG DataIndex test already separates directory, physical-record, numeric-handle, and callback ordering and verifies exact per-handle payload association.",
+    "semanticBoundary": "Generated SAB sentinels are not valid ACIS geometry; no B-rep semantics or support claims are promoted."
+  },
+  "tests": {
+    "selector": "--dxf-acds-multiple-data-storage",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2 (passed)",
+    "selector": "build-gcc/libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage (exit 0; ASCII/Binary passed)",
+    "scopedDiffCheck": "git diff --check passed for the edited test, plan, and receipt paths",
+    "fullSuiteRun": false
+  },
+  "scope": {
+    "productionFiles": [],
+    "testFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "planFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "externalRuns": 0,
+    "nativeApplicationRuns": 0,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

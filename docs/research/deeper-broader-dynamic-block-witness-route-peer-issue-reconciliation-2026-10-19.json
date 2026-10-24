@@ -1,0 +1,137 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader dynamic-block witness route and cross-project issue reconciliation",
+  "mode": "Primary-source web review plus local plan/source audit; plan update only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh dynamic-block support evidence and determine whether new open-source authoring routes can safely unblock existing PAR-133.",
+    "Reconcile current ACadSharp TABLECONTENT and SPLINE issue reports with local existing owners.",
+    "Add an optional, non-blocking scratch-witness procedure while retaining strict refusal and current support/evidence boundaries."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local source/plan audit; research receipt and plan edited",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "OpenCADStudio v2026.42 is a candidate local producer only. Release notes do not prove that its dynamic-block authoring emits the exact BLOCKLOOKUPACTION class/type unresolved in PAR-133 or prove external compatibility. The release artifact was not run, and its exact lock-resolved codec revision was not bound to the published binary. Peer reports remain route-specific and are not local reproductions."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+        "https://github.com/HakanSeven12/opencadcodec"
+      ],
+      "observed": "The v2026.42 release advertises dynamic-block parameter/action authoring, lookup tables, and Test Block evaluation. The application documents a save_verified flow that writes and reopens through its own codec. The app codec is ACadRust-derived; current mutable manifests and release artifacts must not be conflated without exact lock/source binding.",
+      "evidenceCeiling": "Candidate scratch producer and same-codec application consistency route only. Does not establish exact BLOCKLOOKUPACTION emission, normative DWG layout, independent reader correctness, native acceptance, or dynamic-block interoperability."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1151",
+        "https://github.com/DomCR/ACadSharp/issues/1133",
+        "https://github.com/DomCR/ACadSharp/issues/1264",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "observed": "Merged dynamic-block support is partial per its own PR description for edited-instance parameter relationships. Issue #1264 reports a block-cell value-type mismatch between a DWG model and an AutoCAD-saved DXF projection. Issue #1299 reports bad converted SPLINE data but does not state the offending arrays, handle, expected curve, or machine-checkable downstream diagnostic in the issue body.",
+      "evidenceCeiling": "Peer implementation/report evidence only; not a normative schema or libdxfrw reproduction. #1264 and #1299 remain assigned to existing PAR-126 and PAR-22 owners."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in"
+      ],
+      "observed": "The project class inventory is useful for maturity/type census and comparison planning.",
+      "evidenceCeiling": "Class maturity and implementation declarations do not prove exact field decoding, complete graph closure, or semantic behavior."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "owner": "PAR-133 / PAR-07 dynamic-block type and object-graph boundary",
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp",
+        "src/intern/dwgreader.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "observed": "The current tree has a dynamic-block callback/model route and a focused control that refuses export without a qualified serializer. PAR-133 records the unresolved type-528 BLOCKLOOKUPACTION parser path; dynamic-block export should remain fail-closed.",
+      "disposition": "No local parser/writer defect established by this research. Add only a conditional scratch witness at the already planned composed checkpoint; verify exact class/type and artifact pins before use, then add a generated in-memory vector only after ODA and observed wire boundaries are reconciled."
+    },
+    {
+      "owner": "PAR-126 / 7G.3d TABLECONTENT block cell",
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp",
+        "tests/dwg_object_vectors_tests.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": "ACadSharp #1264 describes a peer model mismatch between a Block-tagged DWG cell and an AutoCAD DXF empty-string projection; local controls already retain EMPTY, UNKNOWN, block reference, and incomplete states distinctly.",
+      "disposition": "Keep fail-closed/incomplete semantics. Do not synthesize an empty DWG CadValue from DXF projection or add a duplicate test absent an ODA/producer-backed discrepancy."
+    },
+    {
+      "owner": "PAR-22 / 7H SPLINE conversion",
+      "files": [
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dwg_object_vectors_tests.cpp"
+      ],
+      "observed": "ACadSharp #1299 remains an under-specified peer conversion complaint; the body does not provide enough machine-checkable curve data to compare with the local parser/writer.",
+      "disposition": "Retain the existing requirement for source and emitted arrays plus an independent analytic curve/metric expectation. Do not download or commit the report attachment."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-133 / PAR-07",
+      "PAR-126 / 7G.3d",
+      "PAR-22 / 7H"
+    ],
+    "planEffect": "Adds an optional, pin-bound scratch-producer witness recipe to existing PAR-133. Exact CLASSES/type verification is a prerequisite; if unavailable, mark NOT_RUN/UNBOUND and continue. Existing fail-closed output, fast per-slice validation, and external qualification policies remain unchanged.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "localSourceAuditOnly": true,
+    "buildRun": false,
+    "testRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "commitAttempted": false
+  }
+}

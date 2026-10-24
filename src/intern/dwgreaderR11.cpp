@@ -927,6 +927,13 @@ bool dwgReaderR11::readEntityR11(DRW_Interface& intfa,
     // constructor). The override is applied INSTEAD of the layer default.
     auto applyAttrs = [&](DRW_Entity& ent) {
         ent.layer = curLayer;
+        // The AC1009/R11 paper-space interpretation is not established for
+        // AC1006/R10. Restrict the corroborated flag mapping to R11; the
+        // extension byte above carries additional header options and does not
+        // replace the space bit itself. Keep projection in the common path so
+        // each typed AC1009 callback reaches the DXF writer consistently.
+        ent.space = (version == DRW::AC1009 && (flag & FLAG_HAS_PSPACE) != 0)
+            ? DRW::PaperSpace : DRW::ModelSpace;
         if (hasColorOverride) ent.color = colorOverride;
         if (hasLtypeOverride) {
             const std::string n = ltypeName(ltypeOverride);
@@ -949,6 +956,8 @@ bool dwgReaderR11::readEntityR11(DRW_Interface& intfa,
         readPreR13String(s);
         return toUtf8(s); };
 
+    const char *unsupportedCode = nullptr;
+    const char *unsupportedMessage = nullptr;
     if (!deleted) {
         switch (type) {
         case R11_LINE: {
@@ -1393,11 +1402,23 @@ bool dwgReaderR11::readEntityR11(DRW_Interface& intfa,
         case R11_REPEAT:
         case R11_ENDREP:
         case R11_LOAD:
-            // Pre-R10 structural markers: REPEAT(5)/ENDREP(6) bracket a repeated
-            // entity group, LOAD(10) is a shapefile load directive. They carry no
-            // standalone geometry; skip (the recEnd advance consumes the body) so
-            // they are not miscounted as parse failures. The bracketed entities
-            // are still read once (repeat multiplicity is not expanded).
+            // These pre-R13 records carry semantics not represented by the
+            // current entity model. Do not report a successful conversion after
+            // dropping array multiplicity or a referenced LOAD resource. Defer
+            // the failure until the bounded body cursor has been restored.
+            if (type == R11_REPEAT) {
+                unsupportedCode = "unsupported-r11-repeat";
+                unsupportedMessage =
+                    "AC1006/AC1009 REPEAT semantics are unresolved for complete conversion";
+            } else if (type == R11_ENDREP) {
+                unsupportedCode = "unsupported-r11-endrep";
+                unsupportedMessage =
+                    "AC1006/AC1009 ENDREP semantics are unresolved for complete conversion";
+            } else {
+                unsupportedCode = "unsupported-r11-load";
+                unsupportedMessage =
+                    "AC1006/AC1009 LOAD resource identity is unresolved";
+            }
             break;
         case R11_JUMP:
             // Section-spanning continuation marker (pre-R13). It carries no
@@ -1422,5 +1443,14 @@ bool dwgReaderR11::readEntityR11(DRW_Interface& intfa,
     fileBuf = std::move(sourceBuffer);
     if (!fileBuf->setPosition(recEnd))
         return false;
-    return recordGood;
+    if (!recordGood)
+        return false;
+    if (unsupportedCode != nullptr) {
+        recordReadDiagnostic(DRW::OperationPhase::Entities,
+                             DRW::OperationCause::ValidationFailure,
+                             unsupportedCode, unsupportedMessage, recStart,
+                             true);
+        return false;
+    }
+    return true;
 }

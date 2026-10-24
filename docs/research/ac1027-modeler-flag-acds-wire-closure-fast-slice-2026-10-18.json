@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1027 modeler flag-to-AcDs wire closure control",
+  "mode": "local fast implementation slice",
+  "researchReceipt": "deeper-broader-modeler-flag-carrier-emission-invariant-2026-10-18.json",
+  "scope": [
+    "Verify the physical AC1027 has_ds_data bit in generated modeler frames",
+    "Bind the set flag to exact per-handle AcDs records and payloads",
+    "Keep a clear-flag/no-payload negative control in the existing replay owner"
+  ],
+  "implementation": {
+    "testFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "existing libdxfrw_dwg_local_roundtrip owning test",
+    "generatedCases": [
+      "AC1027 modeler frame with has_ds_data clear and no DataStorage record",
+      "two AC1027 modelers with has_ds_data set, distinct handles and payloads",
+      "object handle order differs from AcDs record order"
+    ],
+    "wireAssertion": "Matched clear/set frames differ at exactly one MSB-first bit; the exact frame supplied to raw replay has the expected bit value",
+    "joinAssertions": [
+      "both set flags read back on the exact modeler handles",
+      "each modeler joins to its exact record key and payload bytes",
+      "owner path and existing following-object sentinel checks remain intact",
+      "clear-flag control reads back without a DataStorage record or payload"
+    ],
+    "productionCodeChanged": false,
+    "publicApiOrAbiChanged": false,
+    "externalFixtureAdded": false,
+    "persistentFixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "dependenciesAdded": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 3.25
+    },
+    "diffCheck": {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planStatus": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findingCount": 130,
+    "topLevelSubplanCount": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree contains extensive unrelated dirty work. This slice was left unstaged and uncommitted; unrelated changes were preserved."
+  }
+}

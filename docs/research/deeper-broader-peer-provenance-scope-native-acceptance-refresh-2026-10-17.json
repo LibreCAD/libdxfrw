@@ -1,0 +1,136 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader peer provenance, scope, and native acceptance refresh",
+  "mode": "read-only primary-source research",
+  "scope": [
+    "Separate formal peer releases from current source heads and prerelease artifacts",
+    "Reconcile ACadSharp issue 1297 against existing MTEXT flag vectors and native acceptance gates",
+    "Refresh status and evidence limits for LibreDWG issues 1354, 1355, and 1361",
+    "Refine only existing comparator and composed native-acceptance checkpoints"
+  ],
+  "method": {
+    "sourceTypes": [
+      "Official peer release pages and release notes",
+      "Primary GitHub issue pages and issue-index status",
+      "Local plan and existing fast-slice records"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "drawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "GitHub issues describe reporter-specific behavior and may be incomplete; mutable master/version labels and prerelease assets were inspected through GitHub pages, not independently downloaded, hashed, or executed. No inference is made that peer behavior is a libdxfrw defect."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "revision": "Signed v3.8.0 release at 3a1c66b; reviewed 2026-10-17",
+      "observed": "Formal tagged baseline remains v3.8.0. It must remain distinct from mutable master observations."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/releases/latest",
+      "revision": "GitHub latest release page reviewed 2026-10-17",
+      "observed": "The release page identifies v3.8.0 at 3a1c66b as latest and reports commits to master after the tag; current development source is not the same artifact as the released package."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "revision": "Open issue checked 2026-10-17; report cites AutoCAD 2025 Core Console and ACadSharp master v3.8.14 / v3.8.0",
+      "observed": "Reporter says an AC1032 MTEXT with frame-only flag value 16 is rejected, value 17 opens, and AC1027 with value 16 opens. An AutoCAD-authored file read/written by ACadSharp is also rejected. The rewritten file omitted VisualStyle and section/detail view styles, but the reporter did not establish causality."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/releases",
+      "revision": "Release list reviewed 2026-10-17; latest visible prerelease 0.14.8612 at f860b0f, dated Oct. 13, marked Windows nightly",
+      "observed": "This prerelease is distinct from the 0.14.1 formal release baseline and is platform-specific. No binary was downloaded or run."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "Mutable master NEWS reviewed 2026-10-17",
+      "observed": "Used to cross-check the formal 0.14.1 release context; it does not make a nightly artifact equivalent to a formal release."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1361",
+      "revision": "Issue status and report reviewed 2026-10-17; closed and linked to #1363; report observed at e405fcff / 0.14.8556",
+      "observed": "Reporter describes AC1021 LWPOLYLINE and other coordinate desynchronization on samples that also exhibited other decode errors. Closure does not qualify a current prerelease or demonstrate a local defect."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1354",
+      "revision": "Open issue checked 2026-10-17; report observed at e405fcff / 0.14.8556",
+      "observed": "Reporter describes pre-R13 REPEAT/ENDREP/LOAD handling in LibreDWG conversion. These records are outside the current AC1012+ DWG support matrix; no expansion or speculative mapping is proposed."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1355",
+      "revision": "Open issue checked 2026-10-17",
+      "observed": "Reporter describes a truncated DXF lacking ENTITIES/EOF with a zero process exit status. This is already covered by existing local output-closure and independent-readback plan owners, not a new local finding."
+    },
+    {
+      "project": "libdxfrw local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "Shared worktree plan reviewed 2026-10-17",
+      "observed": "Existing generated AC1027/AC1032 MTEXT vectors cover values 0/16/17 and following-handle alignment; existing output closure, strict readback, peer matrix, and external support gates were refined without adding implementation work."
+    }
+  ],
+  "assessment": {
+    "artifactProvenanceRule": "Record formal release, prerelease, and moving source head separately. Pin exact artifact hash, platform, source revision, runtime, and operation before interpreting a peer result.",
+    "mtextRule": "Keep generated 0/16/17 parser/writer vectors as structural evidence. At the existing composed native gate, hold the complete object inventory constant, record exact AC code and AutoCAD build, and capture audit/repair/deletion results before attributing behavior to one flag.",
+    "peerIssueRule": "A peer issue/closure is a failure-shape or status signal, not a local defect or format rule. The old LibreDWG 0.14.8556 LWPOLYLINE report does not justify coordinate-magnitude heuristics; pre-R13 pseudo-record behavior stays outside current scope.",
+    "speedRule": "No new per-slice test, peer install, external sample, native run, or CTest registration. Continue existing focused implementation slices; perform native/peer comparison only at the composed checkpoint.",
+    "fixtureRule": "Do not add peer-provided issue attachments. If a later local control is justified, generate it in memory or from scratch in a temporary directory."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-provenance-scope-native-acceptance-refresh-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-provenance-scope-native-acceptance-refresh-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "evidenceLimits": [
+    "ACadSharp #1297 does not isolate MTEXT group-90 flag semantics from whole-file writer/object-inventory differences.",
+    "LibreDWG #1361 is linked to a closure item but its historical sample route was not independently reproduced against current source or binaries.",
+    "LibreDWG #1354 concerns pre-R13 records outside the current local DWG version matrix.",
+    "Peer issue reports, release notes, and feature declarations do not establish libdxfrw behavior, native semantics, or support claims.",
+    "All six external qualification items remain deferred and non-promoting."
+  ]
+}

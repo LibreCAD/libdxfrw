@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deep cross-peer 3D evidence reconciliation and fast qualification sequence",
+  "mode": "primary-source and specification research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Authoritative ODA AcDs container requirements",
+    "Current open-source DWG/DXF and ACIS peer capability boundaries",
+    "Independent semantic and native-consumer evidence requirements",
+    "Minimum-cost implementation and composed-checkpoint sequence"
+  ],
+  "method": {
+    "kind": "Read-only review of ODA v5.4.1 §24, official project documentation/source pages, current release/issue pages, and existing local plans",
+    "odaLocalCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "odaPagesReviewed": "252-259",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Peer main-branch pages and issue reports are discovery/runtime-bound evidence, not normative format contracts. The LibreDWG #1411 and ACadSharp #1195 reports remain build-specific and were not reproduced. No external semantic or native-consumer result was produced."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "revision": "Open Design Specification v5.4.1; local copy inspected 2026-10-17",
+      "observed": "Section 24 describes the AcDs byte-stream container, segment/data indexes, per-record object handles, inline data threshold and blob pages. SAB syntax is outside its scope. §24.2.2.7.1 distinguishes reader omission of schema-search data from writer interoperability: AutoCAD ignores a stored entity if required search data is absent."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "revision": "Official published 3DSOLID group-code reference",
+      "observed": "The entity's modeler data uses group 1 and optional repeated group 3 strings, followed by a separate soft-owner history-object handle (group 350)."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "revision": "Open issue report pinned by its author to 0.14.8593 / commit prefix 8a1ae764",
+      "observed": "The report describes an ezdxf-authored AC1032 REGION with a 5,489-byte SAB payload that loses its AcDs carrier and geometry through the specified LibreDWG conversion route. It is a peer-specific negative route, not a positive pair or a result for all current builds."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "revision": "Stable 1.4.5 documentation reviewed 2026-10-17",
+      "observed": "The API limits goals to simple/known ACIS structures, says unsupported nodes load as NONE_ENTITY with data loss, maps SAT v700 to R2000-R2010 and SAB v21800 to R2013/R2018, and limits mesh projection to flat polygonal faces. It provides no ACIS kernel."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/releases",
+      "revision": "Latest reviewed signed release v3.8.0 at 3a1c66b",
+      "observed": "The release does not claim ACIS DXF writer support. Open PR #1240 is outside the release; issue #1195 reports omission on 3.4.9 and does not prove latest-release behavior."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "revision": "Issue response reviewed 2026-10-17",
+      "observed": "A project maintainer says stock FreeCAD DXF import cannot read proprietary ACIS blobs; this is distinct from the external DWG-converter-to-DXF workflow and optional third-party modeler add-ons."
+    },
+    {
+      "project": "InventorLoader",
+      "url": "https://github.com/jmplonka/InventorLoader",
+      "revision": "Mutable current repository/docs and issue reports reviewed 2026-10-17",
+      "observed": "The add-on has a separate SAT/SAB parser and FreeCAD Part route, but shares OCCT kernel lineage, documents unsupported geometry, and has open reporter issues for DXF/SAB/shell failures. It does not decode DWG AcDs associations; inspect the Python eval path before untrusted input."
+    },
+    {
+      "project": "GDAL",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "revision": "Current stable DXF driver documentation",
+      "observed": "Extensible DXF mode exposes bounded raw ASM/transform information but does not create OGR solid geometry."
+    },
+    {
+      "project": "Open CASCADE",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "revision": "Current components catalog reviewed 2026-10-17",
+      "observed": "ACIS SAT/SAB exchange is listed among commercial components, not the open-source OCCT core."
+    }
+  ],
+  "assessment": {
+    "evidenceRule": "Container framing, entity-to-record ownership, exact carrier bytes, payload parser completeness, B-rep semantics, and named consumer acceptance are separate evidence grades.",
+    "peerRouteRule": "No reviewed open-source peer supplies one independently qualified end-to-end DWG/DXF-to-valid-ACIS-solid route. Pin and score each peer only for its documented operation/profile.",
+    "negativeControlRule": "LibreDWG #1411 is usable only as a pinned loss-detection negative route; it cannot provide a positive AC1032 AcDs sample.",
+    "testSpeedRule": "Use existing generated fast local tests per implementation slice. Run at most the selected optional peer/native questions at the existing composed checkpoint; unavailable routes are NOT_RUN/NOT_AVAILABLE and do not block local work.",
+    "fixtureRule": "No external drawing is committed. Use already-authorized samples or temporary controls created locally from scratch."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "commands": [
+      "jq empty docs/research/deep-cross-peer-3d-evidence-reconciliation-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/deep-cross-peer-3d-evidence-reconciliation-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "schema": "libdxfrw-open-source-research-v1",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a33",
+  "date": "2026-10-19",
+  "title": "Deeper/broader open-source DWG/DXF route and 3D evidence review",
+  "mode": "Primary-source research and plan refinement; read-only against implementation",
+  "scope": [
+    "Compare independent open-source DWG and DXF routes with the current libdxfrw implementation and qualification plan.",
+    "Separate 3D primitive/mesh projection, modeler-carrier retention, AcDs resolution, ACIS parsing, B-rep semantics, and writer acceptance.",
+    "Clarify the actual FreeCAD converter-to-DXF-import route and its ACIS evidence ceiling.",
+    "Identify high-value peer-reported boundary probes without assuming peer reports are local defects."
+  ],
+  "planSha256": "e276075ed3fba4be535fcf4b6530a9bdadd7570672cee2a3f18a31f630b7d0fb",
+  "method": {
+    "kind": "Read-only review of local source/tests/plan and primary project documentation, source, release notes, and issue reports",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "Project documentation, release notes, and issue reports establish route scope and test leads, not measured behavior of the exact current binary. No peer outputs were compared. FreeCAD's public DXF limitations page is archived; the exact native app build/importer must be tested. Peer results and all external samples remain non-promoting."
+  },
+  "localEvidence": {
+    "workingTreeWasDirty": true,
+    "sourceObservedWithoutModification": [
+      "src/libdxfrw.cpp: writeModelerGeometry and DXF SAT/SAB carrier paths",
+      "src/drw_entities.cpp: modeler DWG/DXF carrier parsing and payload ranges",
+      "tests/hardening_tests.cpp: testDxfModelerTextChunkBorrow, testDxfBinaryChunkStackBuffer, and testDxfAcdsQualificationHexView",
+      "tests/dwg_local_roundtrip_tests.cpp: --modeler-sat-v1-extraction and related modeler-carrier controls"
+    ],
+    "observation": "Focused local tests cover multi-chunk/final-carrier readback, group-310 framing/readback, and two-chunk AC1015 SAT-v1 output. They are local regression controls, not independent peer evidence. The plan already records five support dispositions as EXPERIMENTAL and six named external follow-ups as DEFERRED_EXTERNAL; this review changes neither."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification v5.4.1, reviewed 2026-10-19; local authoritative copy identified by repository AGENTS.md",
+      "observed": "The specification has explicit version organization chapters and a dedicated AcDb:AcDsPrototype_1b/DataStorage section. It remains the required byte-layout authority. Local sample traces are still required for implementation-specific offsets, unsupported/version deltas, and profile validation.",
+      "evidenceCeiling": "Format-layout reference; not evidence that a particular local parse, association, or geometry result is correct."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable README/manual/NEWS/source reviewed 2026-10-19; NEWS identifies v0.14 dated 2026-06-27",
+      "observed": "Project docs list unhandled and untested object/entity families and qualify modern reader/writer coverage. NEWS records fixes for dropping the last SAT block on DXF export and double-hex-decoding of binary group-310 chunks. Older project history describes incomplete/brute-force R2013+ AcDsPrototype_1b extraction; current behavior must be checked against a pinned release rather than inferred from that historical note.",
+      "evidenceCeiling": "Independent implementation and focused differential source; version matrices, NEWS items, and decoding declarations are not a per-feature semantic pass. Pin an exact release and retain warnings/skips for every run."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/master/README.md",
+        "https://github.com/DomCR/ACadSharp/issues/1277"
+      ],
+      "revision": "Mutable README and issue #1277 reviewed 2026-10-19; issue identifies ACadSharp 3.7.16 and is still open",
+      "observed": "The README separates DXF/DWG reader and writer capability by version. Issue #1277 reports that an AC1032 no-op round trip can be reread by the same library while AutoCAD LT 2026 audit reportedly removes annotative MLeader context objects; the maintainer says the family needs a refactor. Private drawings are not attached.",
+      "evidenceCeiling": "Declared route matrix and unverified/private issue report; useful negative-control design, not proof of a current ACadSharp or libdxfrw defect. Do not acquire/commit the private inputs."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst"
+      ],
+      "revision": "Stable docs identify ezdxf 1.4.5; mutable project docs reviewed 2026-10-19",
+      "observed": "ezdxf is an independent ASCII/Binary DXF reader/writer and can inspect/export raw SAT/SAB. Its ACIS module documents a limited subset and mesh-oriented extraction; unsupported ACIS nodes may not survive typed loading. Its drawing add-on explicitly does not render ACIS and has no 3D rendering engine. ACIS generation requires an external source of ACIS data.",
+      "evidenceCeiling": "Useful for DXF structure, group/value, and intersecting ACIS-subset checks; not a DWG parser, general ACIS kernel, general B-rep validity oracle, or 3D renderer."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Mutable importDWG.py reviewed 2026-10-19; documentation repository page reports archival on 2026-04-01",
+      "observed": "The importer invokes a user-selected external DWG converter (LibreDWG, ODA, or QCAD routes are present) and feeds the resulting DXF to the chosen importer. The published DXF page says embedded ACIS/SAT solids cannot be read by the stock FreeCAD importers and lists their narrower object coverage.",
+      "evidenceCeiling": "Defines the composed consumer route and its documented limitation, but current native Linux/Windows binaries and selected importer still require exact qualification. Stock import cannot qualify ACIS B-rep semantics."
+    },
+    {
+      "project": "GDAL/OGR",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Stable driver docs reviewed 2026-10-19",
+      "observed": "The DWG CAD driver is read-only and based on libopencad; documented elements include POINT, LINE, CIRCLE/ARC, and 3DFACE projected to OGR geometry. The DXF driver performs a lossy/feature-oriented projection with separately documented geometry and writer behavior.",
+      "evidenceCeiling": "A useful narrow explicit-geometry/3DFACE comparator; not full entity/object graph, raw preservation, ACIS, or complete DXF/DWG parity evidence."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "revision": "0.3.12 wheel provenance and commit e05a8f470d2f6799277f7b7df467d2fc35625889 carried forward from the 2026-10-19 attested-reader review",
+      "observed": "An attested macOS ARM64 wheel exists, while project documentation labels the reader experimental and notes parse success does not guarantee conversion. Mutable-main geometry/SAB profile notes are not automatically attributable to the wheel; CadQuery/OpenCascade runtime requirements remain.",
+      "evidenceCeiling": "Optional candidate for an exact documented subset after release-to-source binding and runtime verification; not a general ACIS oracle, DWG/AcDs reader, or promotion by artifact provenance alone."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "finding": "FreeCAD's DWG qualification is a composed converter-to-DXF-to-importer route. Its stock importer cannot qualify embedded ACIS/SAT B-rep semantics.",
+      "planChange": "Separate native Linux/Windows FreeCAD explicit-geometry/2D consumer checks from independent kernel-backed ACIS qualification."
+    },
+    {
+      "id": "F2",
+      "finding": "Peer matrices, recognized types, process success, and same-library reopen have different and limited evidence ceilings; dropped/unresolved records and notifications matter.",
+      "planChange": "Bind every comparator to exact build/revision, direction, version, input/output hashes, options, diagnostics, omission inventory, and normalizer. No aggregate cross-corpus score."
+    },
+    {
+      "id": "F3",
+      "finding": "ACIS carrier retention, DWG AcDs ownership/range resolution, structural syntax/graph, kernel B-rep construction, tessellation/editing, and writer acceptance are distinct capabilities.",
+      "planChange": "Add a capability ladder with positive/negative gates and keep semantic rows experimental until a release-pinned independent kernel route qualifies the exact subset."
+    },
+    {
+      "id": "F4",
+      "finding": "Recent LibreDWG release notes identify high-value SAT final-block and binary DXF group-310 boundary probes that overlap existing local tests.",
+      "planChange": "Reuse focused local selectors and add cross-peer comparison; add a new control only if an uncovered boundary is shown."
+    },
+    {
+      "id": "F5",
+      "finding": "Peer DWG-to-DXF conversion is a projection and may omit or transform records, especially on AcDs paths.",
+      "planChange": "Require trace/spec-backed local AcDs key/owner/range resolution and capture peer omissions before semantic comparison."
+    }
+  ],
+  "validation": {
+    "planDiffCheck": "PASS: git diff --check -- LIBRECAD_DXFRW_UPGRADE_PLAN.md",
+    "planSha256": "e276075ed3fba4be535fcf4b6530a9bdadd7570672cee2a3f18a31f630b7d0fb",
+    "tests": "NOT_RUN: research-only plan update",
+    "supportClaimsPromoted": 0,
+    "fixturesCommitted": 0,
+    "dependenciesAdded": 0
+  },
+  "disposition": "PLAN_UPDATED; support claims unchanged; peer evidence remains advisory; exact native and independent semantic gates remain open"
+}

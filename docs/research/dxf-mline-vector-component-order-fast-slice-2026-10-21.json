@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "DXF MLINE vector component ordering control",
+  "mode": "Generated local parser-order fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The shared worktree was already broadly dirty. This slice records the existing generated test registration and test source plus a focused plan update and this receipt; no files were staged or committed.",
+    "changedFiles": [
+      "CMakeLists.txt",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/dxf-mline-vector-component-order-fast-slice-2026-10-21.json"
+    ]
+  },
+  "implementation": {
+    "fixturePolicy": "Complete literal ASCII and Binary DXF controls are generated in the system temporary directory at test time; no persistent DWG/DXF fixture was added.",
+    "change": "Register a focused full-import control that independently writes two MLINE vertices with Y/Z groups before X for position, vertex direction, and miter direction. The test also includes distinct per-vertex segment and area-fill parameter arrays plus a following LINE sentinel.",
+    "assertions": [
+      "ASCII and Binary DXF imports succeed.",
+      "Both vertices retain the exact expected position, vertex-direction, and miter-direction coordinates despite component-group permutation.",
+      "Per-vertex segment and area-fill parameter arrays remain associated with the correct vertex.",
+      "MLINE counts and the following LINE sentinel are preserved, proving record framing remains aligned."
+    ],
+    "claimBoundary": "The current occurrence-indexed parser passed the generated permutation, so no production parser change was needed. This is a focused parser-order regression control only; it does not establish broader DXF interoperability or any DWG/ACIS/3D support claim."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-vector-component-order",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_vector_component_order$' --output-on-failure",
+        "result": "PASS (1/1, 0.02 seconds)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dxf-mline-vector-component-order-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextAction": "Continue with the next dependency-ready local correctness or semantic item; do not wait on external qualification gates."
+}

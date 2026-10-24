@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 order-independent DXF view-style name association",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-138 / PAR-20",
+  "scope": "Populate typed DetailViewStyle and SectionViewStyle names from the Autodesk-defined NOD and child-DICTIONARY graph without depending on OBJECTS record order.",
+  "changes": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": true,
+    "representation": "The typed DXF style name is copied from the unique group-3 DICTIONARY entry associated by group-350 target handle; no group-2 style-object name is assumed.",
+    "association": "Resolve fixed ASCII ACAD_DETAILVIEWSTYLE / ACAD_SECTIONVIEWSTYLE root keys, validate child dictionary ownership by the NOD handle, and match style handle plus owner handle.",
+    "orderHandling": "Stage style callbacks only while an earlier style-name association is unresolved. A FIFO queue preserves relative style callback order and typed/raw callback adjacency; it is capped at DRW_Dictionary::kMaxEntries (100000) and unresolved callbacks flush with empty names at OBJECTS end.",
+    "ambiguityHandling": [
+      "missing or duplicate root key",
+      "detail and section roots sharing a child dictionary handle",
+      "wrong child-dictionary owner",
+      "missing child dictionary or style entry",
+      "duplicate child target handle",
+      "duplicate ASCII-case-insensitive child entry name"
+    ],
+    "duplicateNamePolicy": "Exact entry spelling is preserved. ASCII case variants are detected for duplicate-key refusal; full Unicode case folding is not claimed.",
+    "negativeControls": [
+      "missing root key",
+      "duplicate case-insensitive root key",
+      "missing child entry",
+      "duplicate handle target",
+      "duplicate case-insensitive child key targeting another style",
+      "wrong child owner",
+      "missing child dictionary",
+      "shared detail/section child dictionary"
+    ],
+    "positiveControls": [
+      "dictionary before style records",
+      "style records before child dictionaries",
+      "exact style-key rename reflected in the typed name",
+      "lowercase fixed ASCII root key",
+      "same-version export/readback after reversed record order"
+    ],
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false,
+    "commitAttempted": false,
+    "worktreeNote": "The checkout was already broadly dirty and the .git directory is read-only in this session. No staging or commit was attempted."
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS",
+      "expectedMalformedInputDiagnostics": "The selector prints DXF format errors for intentionally malformed input controls and exits successfully after confirming names remain unresolved."
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/libdxfrw.cpp src/libdxfrw.h tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  },
+  "evidenceLimit": "This proves a typed DXF name handoff and generated same-version raw replay behavior. It does not implement DWG-origin Name decoding or typed style serialization, qualify native style rendering, or promote any consumer support claim.",
+  "planEffect": {
+    "existingOwners": ["PAR-138", "PAR-20"],
+    "newConfirmedFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingPAR138Work": [
+      "DWG-origin style-name decoding and producer/spec-backed field mapping",
+      "typed style serialization and its version gates",
+      "native style rendering qualification"
+    ]
+  }
+}

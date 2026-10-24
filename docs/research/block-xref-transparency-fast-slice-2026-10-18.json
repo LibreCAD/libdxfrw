@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK transparency group-440 ASCII/Binary raw round-trip fast slice",
+  "mode": "Normative DXF/API source review plus generated focused regression control",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Close the BLOCK writer omission for common transparency group 440",
+    "Mirror ordinary entity writer's non-opaque and R2004+ conditions",
+    "Verify raw integer retention and semantic model round-trip in ASCII/Binary AC1021",
+    "Do not infer rendering or generalized transparency conversion from raw field retention"
+  ],
+  "sources": [
+    {
+      "path": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "identity": "Autodesk AutoCAD DXF Common Group Codes for Entities",
+      "observation": "Group 440 is the common entity transparency value.",
+      "boundary": "Does not by itself define renderer outcome or every packed method interpretation."
+    },
+    {
+      "path": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "identity": "Autodesk AutoCAD DXF Group Codes in Numerical Order Reference",
+      "observation": "Codes 440–447 are 32-bit integer values.",
+      "boundary": "Type evidence only; no rendering or cross-version consumer result."
+    },
+    {
+      "path": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmTransparency.html",
+      "identity": "Autodesk ObjectARX AcCmTransparency method documentation",
+      "observation": "The documented alpha range is 0 for fully transparent through 255 for fully opaque; the API distinguishes by-alpha, by-layer, and by-block methods.",
+      "boundary": "API semantics; this slice does not implement or validate normalization of those methods."
+    },
+    {
+      "path": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/tools/__init__.py",
+      "identity": "ezdxf float2transparency source implementation",
+      "observation": "The helper packs an alpha-derived low byte with method marker 0x02000000; this was used only to choose a plausible generated raw vector.",
+      "boundary": "Mutable peer main source; not a normative authority, not executed, and not evidence of consumer display."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "identity": "Local dxfRW::writeEntity and dxfRW::writeBlock source comparison",
+      "observation": "The ordinary entity writer emits non-opaque group 440 when version > AC1015. The BLOCK writer now follows that condition with typed Int32 output.",
+      "boundary": "Local source change; separate from external semantic or rendering evidence."
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "identity": "Generated XREF/BLOCK control based on tracked block_record_preview_r2007.dxf",
+      "observation": "The scratch source carries group 440 value 33554560 (0x02000080); ASCII/Binary raw scans and semantic re-import verify the exact integer.",
+      "boundary": "AC1021 raw/model route only; temporary files are removed."
+    }
+  ],
+  "implementation": {
+    "productionChange": "dxfRW::writeBlock emits group 440 with writeInt32 when version > AC1015 and bk->transparency != DRW::Opaque.",
+    "generatedField": {"code": 440, "type": "32-bit integer", "value": 33554560, "hex": "0x02000080"},
+    "coverage": [
+      "Scratch-authored source imports through dx_iface",
+      "Raw ASCII and Binary AC1021 output retains exact group-440 integer through typed access",
+      "Semantic source import and output re-import retain DRW_Block::transparency",
+      "Existing BLOCK appData scope, layer/linetype/color attributes, XREF path/description, XDATA, and ENDBLK checks remain passing"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "strictTargetBuild": true,
+    "focusedSelectorPassed": true,
+    "owningCtest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.02
+    },
+    "lc3SourceCompatibilityTargetPassed": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "crossVersionMatrixRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    },
+    "remaining7AM1": [
+      "Consumer-visible transparency and method normalization",
+      "Plot/material/style handles and other common metadata",
+      "Color-book resource/linkage interpretation",
+      "Special ACAD_REACTORS/ACAD_XDICTIONARY reference translation and closure",
+      "Cross-version XDATA text policy and downgrade behavior",
+      "Named, anonymous, and fixed-space block cases plus INSERT identity/reference checks",
+      "ENDBLK metadata callback/storage contract and footer ownership closure",
+      "BLOCK/BLOCK_RECORD/ENDBLK graph and source-versus-minted handle closure"
+    ],
+    "worktree": "Changes remain unstaged/uncommitted because the shared worktree contains extensive unrelated modifications."
+  }
+}

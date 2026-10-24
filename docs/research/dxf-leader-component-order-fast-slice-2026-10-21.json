@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-dxf-leader-component-order-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source schema review and generated ASCII/Binary regression",
+  "scope": [
+    "LEADER repeated 3D vertex component order",
+    "Existing 5,000-point resource cap and advisory group-76 behavior",
+    "Following-entity framing and refusal before callback publication"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF Reference",
+      "revision": "Published 2018 LEADER entity table and 2024 general entity-code guidance",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-396B2369-F89F-47D7-8223-8B7FB794F9F3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm"
+      ],
+      "observations": {
+        "count": "Group 76 reports the vertex count and is documented as ignored for OPEN.",
+        "vertexArrays": "Repeated group 10/20/30 values represent X/Y/Z coordinates for each leader vertex.",
+        "ordering": "Entity group-code order must not be assumed; repeated occurrences preserve their per-component vertex ordinal."
+      },
+      "limitation": "DXF schema evidence is not DWG layout or native leader rendering evidence."
+    }
+  ],
+  "localAudit": {
+    "path": "src/drw_entities.cpp: DRW_Leader::parseCode",
+    "reproducedFailure": "The old parser created a point on group 10 and attached groups 20/30 to the current point; Y/Z arrays that preceded X were discarded.",
+    "correction": "Map groups 10/20/30 to vertex slots using independent bounded occurrence ordinals. Preserve the existing 5,000-vertex cap, require the X count to match materialized vertices, retain zero defaults for omitted Y/Z, and leave group 76 advisory.",
+    "apiCompatibility": "No public data field or virtual changed. Private parser counters change the installed class layout, so downstream binaries must rebuild against the updated header/library.",
+    "generatedCoverage": [
+      "Three asymmetric 3D points in scratch-generated ASCII and Binary DXF",
+      "All Y records, then all Z, then all X; same-code occurrence order preserved",
+      "Exact point tuple comparison and following LINE sentinel",
+      "Excess repeated Y is rejected before addLeader callback publication",
+      "No persistent fixture added"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_dxf_fixture_tests --leader-point-component-order",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^(libdxfrw_hardening|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 2,
+      "testsFailed": 0
+    }
+  ],
+  "planDelta": {
+    "existingOwnerOnly": true,
+    "newFindingOrSubplan": false,
+    "nextLocalProbe": "HATCH spline-edge control/fit arrays, then nested MLEADER context points and breaks.",
+    "selfUnblock": "If a schema-framed generated permutation does not reproduce a mismatch, log the bounded negative and proceed to the next local candidate without waiting for peer/native qualification."
+  },
+  "limits": {
+    "persistentFixtureAdded": false,
+    "externalPeerOrNativeRuntimeRun": false,
+    "fullSuiteRun": false,
+    "renderedGeometryEstablished": false,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "deferredStatus": "All six remain DEFERRED_EXTERNAL and non-promoting."
+  }
+}

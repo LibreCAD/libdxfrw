@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "MLINESTYLE same-adapter corrected retry controls",
+  "mode": "Generated ASCII/Binary local fast test slice",
+  "worktreeState": "Dirty shared worktree; unrelated changes preserved",
+  "scope": [
+    "Extend existing rooted MLINESTYLE wrong-owner, wrong-target, and wrong-name refusal controls.",
+    "Verify destination preservation and same-adapter corrected retry in ASCII and Binary DXF.",
+    "Read back the corrected result and assert rooted style/reference identity closure."
+  ],
+  "method": {
+    "kind": "Generated local adapter controls using temporary output files",
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false
+  },
+  "result": {
+    "negativeCases": [
+      "wrong owner",
+      "wrong target",
+      "wrong group-2 style name"
+    ],
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "verifiedInvariants": [
+      "Each invalid graph is rejected before replacing a sentinel destination.",
+      "The same dx_iface instance succeeds after repairing the same model.",
+      "Corrected output re-imports with one rooted MLINESTYLE.",
+      "MLINE group-2 name and remapped group-340 handle resolve to that style."
+    ],
+    "notQualified": [
+      "pre-R2018 source LTYPE index/sentinel mapping",
+      "R2018+ source LTYPE handle mapping",
+      "$CMLSTYLE and no-style/default policy",
+      "real DWG-origin MLINESTYLE/MLINE behavior",
+      "independent consumer acceptance"
+    ]
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 136,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "git diff --check -- tests/dwg2dxf_adapter_tests.cpp",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mlinestyle-same-adapter-corrected-retry-fast-slice-2026-10-19.json"
+    ],
+    "focusedCtestPassed": true,
+    "focusedCtestCount": "1/1",
+    "fullSuiteRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "74b26b33c2b444ad6fd1d582c77441e4060cd9bc64fef0d0cfe8981713f45e33"
+}

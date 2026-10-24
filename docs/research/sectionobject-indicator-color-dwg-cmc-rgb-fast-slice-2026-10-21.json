@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 SECTIONOBJECT indicator-color DWG CMC RGB retention",
+  "mode": "generated AC1024/AC1032 parser-writer fast slice",
+  "scope": [
+    "Retain the generic CMC C2 RGB payload already parsed at the local SECTIONOBJECT indicator-color field",
+    "Emit the retained RGB through the existing CMC writer without changing indexed color paths",
+    "Verify local wire order, parser projection, handle alignment, copy/reset behavior, and fail-before-output validation"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor"],
+      "finding": "ODA §2.11 defines the generic R2004+ CMC encoding as a reserved BS, method-packed BL, and RC optional name/book flags. It does not specify the SECTIONOBJECT class-specific field layout or semantics."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "The existing local SECTIONOBJECT parser reads its indicator-color field through readBoundedCmColor and the writer emits it through putCmColor. The parser previously retained only the normalized scalar; it now retains C2 RGB, and the writer emits C2 when present.",
+      "compatibility": "One public data member was appended, preserving prior member offsets but changing DRW_SectionObject size. Downstream consumers must rebuild. No virtual method changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Generated frames cover C0 ByLayer, C1 ByBlock, C3 ACI, C2 black RGB, and nonzero C2 RGB. The independent walker checks the CMC method/payload and following vertices; the production parser checks RGB/scalar retention and the section-settings/following-handle boundary. Copy, assignment, reset, and invalid-state refusal are covered.",
+      "limit": "Generated codec vectors establish local consistency only. They are not producer-authored evidence for SECTIONOBJECT field semantics."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append m_indicatorColorRgb with -1 absent sentinel and preserve it through copy/assignment/reset.",
+      "Capture RGB only when the existing bounded CMC read reports truecolor.",
+      "Emit C2 through the existing generic CMC writer while retaining indexed output for C0/C1/C3.",
+      "Reject invalid scalar/RGB state before writing the common entity prefix."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestsAdded": ["libdxfrw_sectionobject_cmc_rgb"],
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_sectionobject_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (8/8)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_entities.h src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/sectionobject-indicator-color-dwg-cmc-rgb-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "SECTIONOBJECT-specific CMC field semantics and producer-authored RGB behavior remain unqualified.",
+    "DXF group 411's SECTIONOBJECT string role and optional CMC color/book names remain unresolved.",
+    "HATCH C5 producer semantics and the broader CMC consumer audit remain open.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

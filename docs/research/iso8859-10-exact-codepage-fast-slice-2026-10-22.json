@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 exact ISO-8859-10 decoder",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "0adcde33e8ecd4eca2ecaec04c63ea24da5ddfcc2620e7dde266c24c4aac0b27",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-10.TXT",
+      "role": "Primary Unicode Consortium mapping for ISO/IEC 8859-10:1998; its version history notes the corrected 0xA4 mapping."
+    },
+    {
+      "source": "Python standard-library strict iso8859_10 codec",
+      "role": "Independent local cross-check of all 128 production table entries."
+    }
+  ],
+  "scope": {
+    "change": "Added the exact ISO-8859-10 mapping, ExactNamed resolver/factory path, and appended Iso8859_10 per-consumption source-profile identity for compact and hyphenated spellings; removed ISO8859-10 from the still-unavailable exact-family test control.",
+    "definedBytes": 128,
+    "undefinedBytes": [],
+    "compatibilityBehavior": "Unchanged: ISO8859-10 selects Windows-1257 under Compatible; ISO-8859-10 selects Windows-1252.",
+    "sourceAdmission": "Clean exact ISO-8859-10 remains UnsupportedProfile.",
+    "fixturesAdded": false,
+    "publicLayoutChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_(8|9|10)_codepage$' --output-on-failure",
+      "result": "PASS (3/3)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --iso8859-10-codepage",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "Compare DRW_TableISO8859_10 against Python strict iso8859_10 for bytes 0x80-0xFF",
+      "result": "PASS (128 entries; 0 undefined; 0 mismatches)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/intern/drw_cptables.h src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "ec5746d3327fe1f3e44eee10cb7f5f0878f89537357b190e3ab57d29fe64bae4",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "0adcde33e8ecd4eca2ecaec04c63ea24da5ddfcc2620e7dde266c24c4aac0b27",
+    "src/drw_base.h": "03c652b36276492bde5099160145fea7d35f461d946583ea61036a084599bb69",
+    "src/intern/drw_cptables.h": "b12ff8a0e0fe6dcc759912d8a0e9522807fa56d8c5d88313212f4298b39b8f08",
+    "src/intern/drw_textcodec.cpp": "2c93ade16e305b8e55fd3a8836040409e698b3968ca0fb239b04e01365ecc1c1",
+    "tests/gbk_codepage_tests.cpp": "50fd013be117f5927257bec0773954e47a0e6bf65fd53850e32dc6cb13b15852"
+  },
+  "evidenceLimits": [
+    "The mapping and generated tests establish decoder behavior only, not CAD producer emission or native consumer acceptance of either ISO-8859-10 label.",
+    "Compatible fallbacks remain intentionally unchanged; they are not exact ISO-8859-10 decoders.",
+    "No full format suite, external peer runtime, native CAD consumer, or persistent sample was used.",
+    "The appended public source profile changes observation structure layout; downstream binaries must rebuild together with the library."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

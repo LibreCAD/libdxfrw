@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-rooted-mleaderstyle-reference-target-closure-fast-slice-v1",
+  "completedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Close typed MLEADERSTYLE property-reference target-kind validation and source-to-emitted handle mapping in the existing rooted record-output route.",
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "fcbfbe5839e5703c3a1482b9e094a9458826e5bad8b8566f56f16a3c0127de72",
+      "dwg2dxf/dx_iface.h": "463f76c87ac1e26e34f6eaf8d67c3e99af84bedd7fc74077c0f81aa3731627ce",
+      "src/libdxfrw.cpp": "24061d02370bb9a4f58f4220e6aa62a5899f32b0146bc59f958254422fdfd80b",
+      "tests/dwg2dxf_adapter_tests.cpp": "51137f0efc26d0758b8f60a7310d1ceaf9cdee2c8311bafc2f4ec88da60e2e94"
+    },
+    "referenceKinds": {
+      "340": "LTYPE",
+      "341": "arrowhead BLOCK_RECORD",
+      "342": "STYLE",
+      "343": "content BLOCK_RECORD"
+    },
+    "behavior": [
+      "Validate unique target existence and expected kind for every present typed property edge.",
+      "Reject cross-kind ambiguous handles, dangling references, and nonzero references mapped to null before destination publication.",
+      "Carry remapping through emitted LTYPE and STYLE table handles and BLOCK_RECORD mappings in both typed and raw object routes."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "cmake --build build-gcc --target libdxfrw_writer_version_matrix_tests libdxfrw_wave1_tests -j4",
+      "ctest --test-dir build-gcc -R 'writer_version_matrix|named_resource_import_evidence' --output-on-failure",
+      "build-gcc/libdxfrw_wave1_tests --mleader-style-validation",
+      "git diff --check"
+    ],
+    "results": [
+      "Adapter-test target build passed.",
+      "Writer version-matrix and wave1 target builds passed.",
+      "Focused CTest passed 2/2 in 0.24 seconds.",
+      "Focused MLEADERSTYLE validation passed.",
+      "Scoped whitespace check passed."
+    ],
+    "generatedControls": [
+      "ASCII and binary DXF controls through raw DXF-origin and synthesized typed-origin routes.",
+      "All four target kinds verified after output remapping.",
+      "Four wrong-kind cases and dangling group-340 case rejected with seeded destination preserved."
+    ],
+    "fullSuiteRun": false,
+    "realDwgOriginWitness": false,
+    "mleaderEntityEmitted": false,
+    "fixtureAdded": false,
+    "testRegistrationAdded": false,
+    "gitCommitCreated": false
+  },
+  "evidenceLimits": {
+    "typedOriginRoute": "Synthesized from a generated DXF import; it is not a real DWG-origin MLEADERSTYLE witness.",
+    "mleaderEntitySupport": "NOT_ESTABLISHED",
+    "nativeConsumerQualification": "NOT_RUN",
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

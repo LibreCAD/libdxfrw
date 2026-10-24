@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "MPOLYGON metadata with valid associated-boundary identities",
+  "mode": "generated fast regression correction",
+  "scope": [
+    "Diagnose the two generated MPOLYGON metadata roundtrip failures",
+    "Exercise live group-330 association with collision-safe handle remapping",
+    "Register a focused fast CTest without adding persistent drawing fixtures"
+  ],
+  "finding": {
+    "id": "PAR-140 / 7N.4",
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "observation": "The generated associated-boundary case supplied a valid boundary polyline handle but left the MPOLYGON handle unset. Graph preflight correctly rejected the incomplete identity graph. After adding a unique MPOLYGON source handle, output succeeded; DXF handle remapping changed the raw source value, so the assertion was corrected to compare the imported loop reference with the imported boundary entity handle.",
+    "productionDefect": false
+  },
+  "changes": {
+    "tests": [
+      "Added a focused --mpolygon-metadata selector that runs ASCII and Binary boundary metadata roundtrips.",
+      "Added a valid unique MPOLYGON identity to the linked-polyline case and asserted the decoded association resolves to the imported polyline handle.",
+      "Added failure diagnostics for export/import outcome and decoded loop/reference/metadata state.",
+      "Registered dxf_mpolygon_metadata_boundary_roundtrip with fast;dxf;adapter;mpolygon labels."
+    ],
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportPromotion": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --mpolygon-metadata",
+      "result": "passed; ASCII and Binary"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dxf_mpolygon_metadata_boundary_roundtrip$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": 0,
+    "commitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "limitations": "This generated roundtrip verifies local DXF association-handle remapping and metadata preservation. It does not qualify native associative editing/recomputation, external CAD compatibility, or production support claims. The worktree contains broader pre-existing user changes and remains uncommitted."
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Live peer failure modes, route boundaries, and fast implementation crosswalk",
+  "mode": "Deeper/broader primary-source repository and issue review; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the current ACadSharp issue board and detailed reports relevant to current libdxfrw reader/writer owners.",
+    "Reconcile the issue reports with local source, generated tests, standards-backed owners, and current status in the parity plan.",
+    "Recheck IxMilia.Dxf and LibreDWG public scope declarations to keep comparator routes and evidence ceilings distinct.",
+    "Refine the next BLOCK/ENDBLK graph-closure slice for implementation readiness and speed without creating peer-driven duplicate work."
+  ],
+  "method": {
+    "kind": "Read-only web review of primary project documentation/issues plus local plan/source/test inspection",
+    "sourcePagesMutableUnlessPinned": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Issue reports and mutable project documentation are not normative format specifications or reproductions of libdxfrw behavior. ACadSharp #1278 and #1283 bodies were not retrievable in this pass; only issue-index titles were used for those two discovery leads. Customer/repository attachments were not downloaded. The review does not certify peer releases, native acceptance, or ACIS/AcDs semantics. ODA v5.4.1 remains authoritative for DWG byte layouts."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp current issue reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1278",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283",
+        "https://github.com/DomCR/ACadSharp/issues/1253",
+        "https://github.com/DomCR/ACadSharp/issues/1184"
+      ],
+      "revision": "Live issue pages/index reviewed 2026-10-18; reports name multiple different ACadSharp versions and mutable master",
+      "observed": "#1297 is an unresolved whole-file AC1032 MTEXT frame-only native-open report, despite the reporter's MTEXT object-byte comparison. #1299 reports a DWG-to-DXF spline output rejected downstream by GDAL without an offending handle, exact curve expectation, or exact diagnostic in the public body. #1280 reports Turkish/Azeri culture-sensitive ANSI_1254 lookup; #1279 reports AC1014 VERTEX missing a specific subtype marker; #1281 reports recursive comment/XDATA/clip-record stack exhaustion; #1282 reports signed-short overflow on a 32,768-byte per-APPID EED span. #1253 combines CLASS 92/93, HATCH 47, and DIMSTYLE header 71/340 claims; its follow-up cites group 47 on derived paths and a TrueView rejection after omission, but the described sample values are nonzero and do not settle the zero-valued-derived case. #1184 reports inactive plot-DPI value handling in ACadSharp 3.6.35/3.6.51. The #1278 and #1283 index titles suggest R12 subclass-marker and nested-block copy-performance leads, but their bodies were inaccessible in this pass."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "urls": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "revision": "Mutable README reviewed 2026-10-18",
+      "observed": "The README declares DXF support from R10 through R2014 with omissions including MESH, MLEADER, SURFACE, TABLE, and VIEWPORT, and separately warns that some serialized entity types may not open in AutoCAD. This is a DXF route, not a DWG or ACIS semantic route."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/libredwg.spec"
+      ],
+      "revision": "Mutable README/manual/package metadata reviewed 2026-10-18",
+      "observed": "Documentation describes broad versioned DWG/DXF coverage while also identifying non-writable releases and ongoing class coverage; public writer ceilings vary by document/artifact. These declarations do not establish one uniform runtime operation or measured entity/graph semantics."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-DBD5351C-E408-4CED-9336-3BD489179EF5.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm"
+      ],
+      "revision": "Official DXF reference pages reviewed 2026-10-18",
+      "observed": "The CLASS field list does not include 92/93. The HATCH reference describes group-47 meaning but does not settle the disputed complete presence predicate across producers/versions."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "peerReports": ["ACadSharp #1297", "#1299"],
+      "localOwners": ["PAR-19/29", "PAR-22/7H/7I/7AB", "PAR-07/S8 composed acceptance"],
+      "result": "Existing field-level MTEXT and SPLINE semantic owners remain appropriate. Peer reports do not isolate an MTEXT whole-file cause or provide an independently checked SPLINE curve expectation."
+    },
+    {
+      "peerReports": ["ACadSharp #1280", "#1279", "#1278", "#1281", "#1282"],
+      "localOwners": ["CP1254/CP949 locale and byte-path controls", "classic VERTEX compound-record tests", "repeated DXF input hardening", "ODA-backed EED length accounting"],
+      "result": "Existing generated controls already exercise the analogous local risks. R12 subclass behavior remains governed by primary legacy-format evidence, not the inaccessible #1278 title."
+    },
+    {
+      "peerReports": ["ACadSharp #1283"],
+      "localOwners": ["PAR-65/7AM.3", "7G typed-edge graph planning"],
+      "result": "The title-level complexity signal motivates reuse of one-pass handle/owner indexes, iterative edge discovery, and avoiding payload deep copies in the active graph-closure slice; it does not establish a local performance defect or numeric budget."
+    },
+    {
+      "peerReports": ["ACadSharp #1253", "#1184"],
+      "localOwners": ["7AH/7Z HATCH group-47 characterization", "7BQ.5 DIMSTYLE table-header candidate", "PAR-20/7G and 7BM plot-DPI controls"],
+      "result": "Existing source/generated checks are retained; group-47 and DIMSTYLE ordering remain externally unqualified, while plot-DPI local evidence remains structural retention only."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a current peer crosswalk and strengthens implementation readiness for the already-active PAR-65/7AM.3 BLOCK/ENDBLK graph closure: one-pass indexing, iterative typed-edge traversal, no classification-only deep copies, focused validation, and peer/native execution only at existing composed checkpoints. No new local support claim or blocker is introduced."
+  },
+  "nextActions": [
+    "Continue PAR-65/7AM.3 through the existing 7G typed-edge planner; do not wait for inaccessible peer issue bodies or customer attachments.",
+    "Use existing local source/owner indexes and iterative graph traversal; retain unresolved explicit references as transactional failures.",
+    "Run only the changed focused selector, strict target, and owning CTest; run lc3_compat_check only for public API/adapter changes.",
+    "At a composed checkpoint, pin one exact peer release/commit and operation for a named question; record actual execution, skips, recovery, omissions, and native acceptance separately.",
+    "Keep third-party drawings out of committed fixtures and keep J256, J260, J268, J284, J293, and J295 non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4k MATERIAL physical controls and Normal Map generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "bda9fd7b37a0e55ce25f78b4fd03305481c097c5a0b0a4c9bb3eafaf9217a258",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36D-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {"group": 460, "description": "Color Bleed Scale", "type": "real", "validation": "finite"},
+      {"group": 461, "description": "Indirect Dump Scale", "type": "real", "validation": "finite"},
+      {"group": 462, "description": "Reflectance Scale", "type": "real", "validation": "finite"},
+      {"group": 463, "description": "Transmittance Scale", "type": "real", "validation": "finite"},
+      {"group": 290, "description": "Two-sided Material", "type": "boolean", "validValues": [0, 1]},
+      {"group": 464, "description": "Luminance", "type": "real", "validation": "finite; begins later MATERIAL field context"},
+      {"group": 270, "description": "Luminance Mode", "type": "16-bit integer", "context": "After group 464 and before group 300"},
+      {"group": 271, "description": "Normal Map Method", "type": "16-bit integer", "context": "After group 464 and before generic-procedural group 300"},
+      {"group": 465, "description": "Normal Map Strength", "type": "real", "validation": "finite; fallback delimiter when group 464 is omitted"},
+      {"group": 42, "description": "Normal Map Blend Factor", "type": "real", "validation": "finite; context after group 464/465"},
+      {"group": 72, "description": "Normal Map Source", "type": "integer", "validValues": [0, 1]},
+      {"group": 3, "description": "Normal Map Source File Name", "type": "string", "context": "Context after group 464/465"},
+      {"group": 73, "description": "Normal Mapper Projection", "type": "integer", "validValues": [1, 2, 3, 4]},
+      {"group": 74, "description": "Normal Mapper Tiling", "type": "integer", "validValues": [1, 2, 3]},
+      {"group": 75, "description": "Normal Mapper Auto Transform", "type": "bitset", "validMask": 7},
+      {"group": 43, "description": "Normal Mapper Transform", "type": "16 real values, row-major", "validation": "finite; exactly 16 contiguous values"},
+      {"group": 300, "description": "GenProcName", "type": "string", "context": "Starts generic procedural table; later reused fields remain raw"},
+      {"group": 271, "description": "GenProcValInt", "type": "16-bit integer", "context": "After group 300; opaque in this slice"},
+      {"group": 90, "description": "Ambient Color Value / Autodesk-listed Self-Illumination", "type": "unsigned 32-bit integer", "context": "Ambient value before later boundary; post-boundary occurrence retained raw pending field-witness resolution"}
+    ]
+  },
+  "crossReference": {
+    "title": "LibreDWG MATERIAL object schema",
+    "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+    "use": "Confirms DWG scalar widths but maps self_illumination to DXF 149. Autodesk's DXF table lists 90; neither mapping is promoted to a typed late-field claim without a version-specific witness."
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material exposes physical scale, two-sided, luminance, and Normal Map fields with explicit presence/default state.",
+      "Normal Map filename has separate retained-text accounting; its mapper matrix has independent cardinality state.",
+      "Reset/copy paths cover the authored fields, filename lease, boundary, and matrix state."
+    ],
+    "parser": [
+      "Routes groups 460-463 and 290 only before the 464/465 boundary; validates finite scales and Boolean domain.",
+      "Routes 464/270/271/465 and Normal Map map fields by boundary; group 465 serves as a fallback boundary when 464 is absent.",
+      "Group 300 marks the generic procedural context; a later group 271 no longer overwrites Normal Map Method.",
+      "Group 90 after the 464/465 boundary remains raw and cannot overwrite Ambient Color Value.",
+      "Normal Map mapper requires 16 contiguous finite group-43 values."
+    ],
+    "writer": [
+      "Emits the typed physical and Normal Map fields in Autodesk's listed order.",
+      "Refuses invalid Boolean/domain, non-finite scalar/matrix, and incomplete/excessive matrix values before output publication."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp4k-material-physical-controls-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary MATERIAL controls assert physical and Normal Map values remain distinct from earlier map families and preserve raw order.",
+    "A separate generated procedural-tail control places groups 300/271/90 after Normal Map and verifies raw retention without overwriting typed Normal Map Method or Ambient Color Value.",
+    "Generated invalid domains, non-finite scalar/blend/matrix values, and 15-/17-value matrices refuse before typed/raw publication.",
+    "Copy/reset, cross-encoding output, writer order, transactional refusal/retry, following LINE sentinel, and exact/one-byte-under text budgets are covered.",
+    "No persistent DWG/DXF fixture is added; all generated drawings remain temporary."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dxf_material_text_owner_budget, libdxfrw_dxf_fixtures, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "hardening": "PASS: ctest --test-dir build-gcc -R 'hardening' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on the changed code and plan files",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "dwgMaterialBodyChanged": false,
+    "genericProceduralWriterImplemented": false,
+    "lateSelfIlluminationTyped": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4l: audit remaining MATERIAL tail groups 293, 272/273, generic procedural schema and unique later physical fields; keep group-90/group-149 conflict untyped",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

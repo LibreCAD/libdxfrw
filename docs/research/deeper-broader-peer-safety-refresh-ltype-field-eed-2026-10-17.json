@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw-peer-safety-refresh-ltype-field-eed-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh current open-source DWG/DXF peer issue signals for LTYPE text, FIELD lifecycle, EED/XDATA alignment, repeated DXF input, locale-sensitive codepages, and binary proxy output; map only verified evidence to existing plan owners.",
+  "method": {
+    "kind": "Read-only web research and local plan/test-inventory reconciliation",
+    "peerSourcesPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "localProductionSourceAudited": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "individualLibreDWG1450To1452IssuePagesRetrieved": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/issues",
+      "https://github.com/LibreDWG/libredwg/issues/1450",
+      "https://github.com/LibreDWG/libredwg/issues/1451",
+      "https://github.com/LibreDWG/libredwg/issues/1452",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/issues",
+      "https://github.com/DomCR/ACadSharp/issues/1281",
+      "https://github.com/DomCR/ACadSharp/issues/1280",
+      "https://github.com/DomCR/ACadSharp/issues/1279",
+      "https://github.com/DomCR/ACadSharp/issues/1282",
+      "https://github.com/DomCR/ACadSharp/issues/1283",
+      "https://github.com/mozman/ezdxf/issues/1412",
+      "https://github.com/mozman/ezdxf/pull/1418"
+    ],
+    "evidenceRule": "Issue-index titles are discovery leads. The unavailable LibreDWG #1450–#1452 bodies do not establish full reproducers, root causes, fix status, or normative behavior. Accessible peer reports are scoped to their reported versions/routes and cannot be transferred to libdxfrw without local reproduction and primary-source reconciliation."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG current issue-index additions #1450–#1452",
+      "observed": [
+        "#1450's index title reports a heap-buffer-overflow in add_LTYPE_dashes for R2007+ DXF linetypes with dash text.",
+        "#1451's index title reports a use-after-free in add_FIELD for a FIELD with zero child values (93=0).",
+        "#1452's index title reports a UBSan misaligned BITCODE_RS load in dwg_encode_eed_data for an R2007+ DXF/XDATA string.",
+        "The issue pages could not be retrieved during this pass; source revision, reproducers, stack traces, exact root causes, and current fix status remain unverified.",
+        "LibreDWG 0.14.1 NEWS records separate bounds, cursor-progress, allocation, and stale-container-pointer fixes; these remain peer implementation findings."
+      ],
+      "doesNotEstablish": [
+        "A matching libdxfrw defect",
+        "A normative LTYPE, FIELD, EED, or XDATA rule",
+        "A regression boundary, sample, or root cause suitable for copying into local code"
+      ],
+      "planUse": "Use only as conditional prompts under existing PAR-14/PAR-26, 7BF, 7S/7G, and FIELD fail-closed owners. If those local paths change, author generated tests from ODA and local source rather than peer offsets or titles."
+    },
+    {
+      "topic": "ACadSharp repeated-record, codepage, and compound-vertex reports",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1279"
+      ],
+      "observed": [
+        "#1281 describes recursive advancement for runs of comments, XDATA application blocks, and IMAGE/WIPEOUT clipping groups, with process-crash reports for long inputs.",
+        "#1280 describes current-culture lowercasing of ANSI_1254 failing under Turkish/Azeri culture settings.",
+        "#1279 describes an AC1014 POLYLINE/VERTEX record without a more-specific AcDb2dVertex subclass marker leaving a placeholder that crashes the ACadSharp document builder."
+      ],
+      "doesNotEstablish": [
+        "DXF cardinality limits",
+        "That the peer route or version matches the libdxfrw route",
+        "A required tolerant recovery policy without Autodesk/ODA or producer evidence"
+      ],
+      "planUse": "Reuse existing local repeated-record hardening, CP1254/CP949 end-to-end controls, and compound-record isolation. Keep parent-based child typing gated on normative/source evidence."
+    },
+    {
+      "topic": "Title-only ACadSharp #1282/#1283 and ezdxf proxy writer status",
+      "observed": [
+        "ACadSharp's live issue index titles #1282 as per-application EED size overflow/loss and #1283 as deep nested-block copy cost/stack risk; their bodies were not retrieved in this pass.",
+        "ezdxf #1412's ASCII-versus-binary proxy-graphic writer failure and merged #1418 fix are already documented in 7AP/PAR-76; this research found no new local gap."
+      ],
+      "doesNotEstablish": [
+        "An EED wire-size limit from the peer title",
+        "A local nested-block recursion or copy defect",
+        "A current unresolved ezdxf binary-proxy writer defect"
+      ],
+      "planUse": "Keep #1282/#1283 as discovery leads under existing EED and graph/resource owners; do not copy limits. Reuse the existing local binary proxy matrix and exact ezdxf pin rule."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-14/PAR-26 parser and encoder safety",
+      "7BF LTYPE bounded text and path/segment edit authority",
+      "7S/7G EED/XDATA and FIELD/FIELDLIST graph gates",
+      "PAR-19/7K typed XDATA and identity handling",
+      "PAR-37/7BS compound POLYLINE/VERTEX framing",
+      "7AP/PAR-76 binary proxy writer controls"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "peerInstallOrRunAddedToFastLoop": false,
+    "testsOrRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionChanges": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextActions": [
+    "Keep 7BF.3 as the next local LTYPE slice; preserve complex metadata on indexed path-length edits and reject ambiguous count/reorder operations.",
+    "If EED/XDATA encoding changes, reconcile alignment and byte-span behavior against ODA section 28 and current local source, then add one generated R2007+ string boundary with a following-object sentinel.",
+    "Keep FIELD/FIELDLIST fail-closed until its full object lifecycle, graph closure, writer, and transactional refusal/success paths are qualified.",
+    "Use strict owning targets and focused selectors per touched slice; reserve sanitizers for the existing composed checkpoint."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "schema": "libdxfrw-deeper-locked-target-api-and-current-peer-route-review.v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Revalidate the exact locked LibreCAD semantic-adapter target against the active standalone callback profile, then refresh current peer release and specification evidence that affects the next implementation slice.",
+  "method": {
+    "localTarget": {
+      "repository": "LibreCAD/LibreCAD",
+      "commit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+      "sourceArchiveSha256": "7892fd2f35ff9ccf0b60eed13dfcb2bec818d40785b77661ddea86aa0a7d2139",
+      "lockFileSha256": "63ab2633d638888a6f466e0226f4d55e4bfd9d36d083f1e4334ab15b013c426a",
+      "adapterSourceSha256": "dc71ea4ca65e0dff4e4e4070272d906833614f41fff1ed0b34f3f412b83186e9",
+      "command": "python3 -B tools/build_semantic_adapter.py build-target --target-git-dir ../LibreCAD/.git --build-dir /private/tmp/libdxfrw-semantic-target-callbacks-20261016 --interface-profile common170-standalone173-callbacks-v1 --parallel 4",
+      "result": "The locked target static library built successfully. The semantic adapter translation unit failed compilation with 16 diagnostics, grouped into six missing API contracts; repeated diagnostics include the adapter self-test references."
+    },
+    "externalEvidence": "Read-only review of current Autodesk reference, LibreDWG NEWS, ACadSharp release history and merged PR; no peer package or native CAD application was installed or run.",
+    "notPerformed": [
+      "full test suite, sanitizer, or fuzz run",
+      "DWG/DXF fixture download or repository addition",
+      "peer or native CAD runtime comparison",
+      "target lock refresh or sibling LibreCAD checkout edit"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "Exact locked-target adapter compile",
+      "sources": [
+        "metadata/libdxfrw-target-lock.json",
+        "metadata/libdxfrw-target-source-manifest.txt",
+        "tests/semantic_differential_adapter.cpp",
+        "https://github.com/LibreCAD/LibreCAD/tree/2043e5254fbf71729e97bd54e48a184153161ff2/libraries/libdxfrw/src"
+      ],
+      "observed": {
+        "targetLibrary": "built",
+        "adapterTranslationUnit": "failed",
+        "diagnosticCount": 16,
+        "missingContracts": [
+          "DRW_ModelerPayloadChunk type",
+          "DRW_ModelerGeometry::m_dwgSourceVersion",
+          "DRW_ModelerGeometry::m_dwgAcisPayload",
+          "DRW_ModelerGeometry::m_dxfPayloadChunks",
+          "DRW_ModelerPayloadRange::m_bitOffset",
+          "DRW_Surface::dxfPayloadChunks"
+        ],
+        "repetitions": "The absent chunk type/member diagnostics repeat in helper, callback, and linked self-test code paths."
+      },
+      "targetStillProvides": [
+        "common modeler version/body size/object size and flags",
+        "history handle",
+        "raw modeler bytes",
+        "payload ranges without bit offset",
+        "wireframe state"
+      ],
+      "interpretation": "This is a reproducible compile/API-coverage blocker for the active 7AG.1 bridge, not a DWG/DXF parsing defect or evidence of semantic mismatch. Missing target members cannot be observed as zero, false, empty bytes, or a digest."
+    },
+    {
+      "topic": "Normative 3DSOLID DXF carrier boundary",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "The Autodesk 3DSOLID DXF reference lists modeler subclass/version, proprietary group 1 and additional group 3 payload strings, and soft-owner group 350 history handle.",
+      "doesNotEstablish": [
+        "ACIS/SAB semantic interpretation",
+        "valid or closed B-rep topology",
+        "native CAD acceptance"
+      ]
+    },
+    {
+      "topic": "Current ACadSharp release and reader-route maturity",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/pull/1139"
+      ],
+      "observed": [
+        "The release page lists v3.8.0 at signed commit 3a1c66b; its listed change is assembly visibility.",
+        "v3.7.16 at 3feabba lists DXF writer refactoring/precision, block-insert indexing, and large-table output among its changes.",
+        "v3.6.51 includes the merged ACIS payload reader work for 3DSOLID/REGION/BODY and the full Prototype1b parser work."
+      ],
+      "doesNotEstablish": [
+        "independent runtime success on this project's controls",
+        "arbitrary ACIS/B-rep semantic completeness",
+        "native CAD acceptance"
+      ],
+      "planUse": "Pin exact package/source and route for optional comparator runs; do not infer new semantic coverage from the v3.8.0 release label alone or add per-slice scale testing."
+    },
+    {
+      "topic": "Current LibreDWG route-specific security and DXF fixes",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "NEWS for 0.14.1 dated 2026-07-25 reports R2004 decompression capacity/logical-size mismatch that bypassed an earlier fix, section-map/size arithmetic and page-offset cases, a DWG 3DSOLID size-check overflow, and additional DXF/ACIS output corrections.",
+      "doesNotEstablish": [
+        "a matching vulnerability in libdxfrw",
+        "a normative file-format rule",
+        "that peer security fixes qualify local behavior"
+      ],
+      "planUse": "Map analogous local changes only to existing PAR-14/7BE and bounded ACIS readers; add narrowly generated invariants when a corresponding local code path changes, keeping fuzz/sanitizer cadence at existing checkpoints."
+    }
+  ],
+  "implementationReadiness": {
+    "nextBlockingSlice": "7AG.1 exact-target capability bridge",
+    "requiredSteps": [
+      "Use dependent compile-time member detection or an equivalent reviewed per-side capability profile so target-absent fields do not appear in target expressions.",
+      "Represent absent, uncaptured, captured, and comparable as distinct field states; never substitute zero/false/empty payload for absence.",
+      "Extend adapter self-tests for both target-absent and standalone-present capability paths and runner mutation tests for capability/profile mismatches.",
+      "Compile and link target and standalone adapters against their exact source locks before any new pair is issued.",
+      "Keep the pair ineligible until the effective compile-contract gate is enforced; current direct-options-only receipts remain diagnostic."
+    ],
+    "fastValidation": [
+      "exact target adapter build/link",
+      "standalone adapter build/link",
+      "semantic-adapter builder self-test",
+      "qualified-differential v2 runner self-test",
+      "focused adapter self-test",
+      "strict warning build and diff check"
+    ],
+    "fixturePolicy": "No fixtures; generated self-tests only.",
+    "fullSuiteOrNativeRun": "Not required for the capability bridge; retain composed/scheduled cadence."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "existingBlockerConfirmed": "7AG.1 target capability gap",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 123,
+      "topLevelSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

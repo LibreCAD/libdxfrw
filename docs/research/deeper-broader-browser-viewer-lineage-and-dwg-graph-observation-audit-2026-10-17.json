@@ -1,0 +1,141 @@
+{
+  "schema": "libdxfrw-browser-viewer-lineage-and-dwg-graph-observation-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the DWG/DXF implementation review to an active browser CAD consumer and re-evaluate the current ezdwg graph API as an optional common-2D observation, without adding a peer gate or slowing local implementation.",
+  "method": {
+    "kind": "Primary-source repository, architecture, FAQ, and API documentation review plus local plan cross-check",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesOrTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsDownloaded": 0,
+    "drawingsUploaded": 0,
+    "localBuildsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "sources": [
+      "https://github.com/mlightcad/cad-viewer",
+      "https://github.com/mlightcad/cad-viewer/wiki/Architecture-Overview",
+      "https://github.com/mlightcad/cad-viewer/wiki/FAQ",
+      "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md",
+      "https://github.com/mlightcad/libredwg-web",
+      "https://github.com/mlightcad/realdwg-web/tree/main/packages/libredwg-converter",
+      "https://github.com/monozukuri-ai/ezdwg",
+      "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/api/document.md",
+      "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/api/index.md",
+      "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/changelog.md"
+    ],
+    "evidenceBoundary": "Documentation establishes declared route composition and API shape only. No package/source identity was executed, no drawing was read, no 3D rendering or geometry was reproduced, and no complete source-lineage audit was performed for the built-in DXF parser."
+  },
+  "evidence": [
+    {
+      "topic": "CAD-Viewer's open-source DWG path is LibreDWG lineage, not a second parser",
+      "sources": [
+        "https://github.com/mlightcad/cad-viewer",
+        "https://github.com/mlightcad/cad-viewer/wiki/Architecture-Overview",
+        "https://github.com/mlightcad/libredwg-web",
+        "https://github.com/mlightcad/realdwg-web/tree/main/packages/libredwg-converter"
+      ],
+      "observed": [
+        "The CAD-Viewer README states that DWG loading is opt-in and uses the @mlightcad/libredwg-converter package when a host registers it.",
+        "The converter documentation says it loads LibreDWG compiled to WebAssembly in a worker and maps data into the @mlightcad/data-model.",
+        "The libredwg-web repository identifies itself as a JavaScript parser based on LibreDWG."
+      ],
+      "doesNotEstablish": [
+        "An independent DWG parser implementation or a distinct DWG semantic vote.",
+        "Complete DWG object-graph preservation, ACIS/AcDs closure, or native CAD acceptance.",
+        "Behavior of a specific package/runtime because no artifact was pinned or executed."
+      ],
+      "planUse": "Correlate CAD-Viewer DWG results under the LibreDWG lineage. Treat a future viewer run as an optional application/projection observation only, never as a second parser vote."
+    },
+    {
+      "topic": "CAD-Viewer public descriptions do not qualify 3D DWG support",
+      "sources": [
+        "https://github.com/mlightcad/cad-viewer/wiki/Architecture-Overview",
+        "https://github.com/mlightcad/cad-viewer/wiki/FAQ",
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md"
+      ],
+      "observed": [
+        "The architecture overview describes a Three.js renderer and broad 2D/3D visualization language.",
+        "The project FAQ says the current viewer focuses on 2D and that 3D DWG viewing is planned.",
+        "The separate proprietary-parser page states that ACIS/SAB extraction is partial and that current display falls back to a best-effort wireframe or bounding box rather than full B-rep tessellation."
+      ],
+      "doesNotEstablish": [
+        "3D entity or solid support in the open-source LibreDWG path.",
+        "Topology, solid validity, analytic geometry, or ACIS semantic correctness.",
+        "A current commercial route available or authorized for this repository's qualification."
+      ],
+      "planUse": "Do not infer 3D support from renderer architecture, screenshots, entity recognition, wireframe, or bounds. Keep parser delivery, projection, and B-rep semantic evidence as separate tiers."
+    },
+    {
+      "topic": "CAD-Viewer DXF package does not yet establish an independent parser lineage",
+      "sources": [
+        "https://github.com/mlightcad/cad-viewer",
+        "https://github.com/mlightcad/cad-viewer/wiki/Architecture-Overview"
+      ],
+      "observed": [
+        "The README describes a built-in MIT DXF parser in @mlightcad/data-model; the architecture overview also names @mlightcad/dxf-json.",
+        "The architecture overview says the DXF parser is based on existing open-source code but does not identify a complete source-to-package lineage in that page."
+      ],
+      "doesNotEstablish": [
+        "Whether the published package is independent of other already-reviewed DXF parser lineages.",
+        "A declared version/encoding matrix, 3D semantics, or writer support.",
+        "Runtime behavior or parity with libdxfrw."
+      ],
+      "planUse": "Keep it as an unaudited optional DXF model/projection candidate. Do not count it as an independent peer until exact package/source identity and parser lineage are reviewed."
+    },
+    {
+      "topic": "ezdwg Document.graph adds an optional higher-level graph observation, not a lossless graph oracle",
+      "sources": [
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/api/document.md",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/api/index.md",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/changelog.md"
+      ],
+      "observed": [
+        "The API describes graph nodes, common entity data, object edges, layer rows, block-header rows, and inferred model/paper-space header handles.",
+        "The raw API separately exposes the Rust decode functions.",
+        "The changelog describes version- and entity-specific native decoding and paired-DXF regressions."
+      ],
+      "doesNotEstablish": [
+        "Exact original object-table or owner-map coverage from inferred space handles and a high-level IR.",
+        "Coverage outside the explicitly implemented version/entity subset.",
+        "Independent DXF writer evidence from ezdwg.to_dxf(), which is documented as using ezdxf."
+      ],
+      "planUse": "At the existing composed checkpoint only, optionally compare raw-decoder fields and graph observations as distinct result layers against an independent source-authored manifest. Record exact artifact/source identity, version, owner/layout inference, skipped types, and diagnostics. Do not add a dependency, fixture, or routine peer run."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "Optional ezdwg common-2D DWG differential and graph observation",
+      "Open-source DWG peer-lineage classification",
+      "Consumer projection versus 3D semantic evidence boundary"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "newPeerGateAdded": false,
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader source-to-output loss-chain audit across DWG/DXF peers",
+  "mode": "Primary-source project documentation, issue/PR review, and local plan/source audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh source-to-output evidence across open-source DWG readers/writers, DXF readers/writers, and downstream consumer routes",
+    "Separate omitted entity shells from retained shells with missing inline or external ACIS payloads",
+    "Reconcile peer release/branch status and documented applicability with existing PAR-07/S8 and modeler/AcDs owners",
+    "Refine the composed evidence ledger and test readiness without adding duplicate findings or routine validation work"
+  ],
+  "sources": [
+    {
+      "name": "ACadSharp DWG-to-DXF omission report and linked writer branch",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "Issue #1195 remains open and reports ACadSharp 3.4.9 reading 3DSOLID/REGION shells but omitting them from DXF, including solid-only block definitions. The reporter gives counts of 252 solids in one drawing and 51 solids plus 3 regions in another, and says LibreDWG was used to cross-check the source census. Linked PR #1240 remains open and undeployed, depends on #1174, and describes ModelerGeometry serialization in DwgObjectWriter; this is not evidence that the reported DxfWriter omission is fixed.",
+      "evidenceCeiling": "Peer issue report and undeployed branch description, not a reproduced current release result or a libdxfrw defect."
+    },
+    {
+      "name": "LibreDWG modern AcDs carrier-loss report and project notes",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "Open issue #1411 reports against LibreDWG 0.14.8593 that R2013+ modeler entity shells survive while AcDb:AcDsPrototype_1b SAB payload is absent; the scratch reproducer reports a 5,489-byte SAB body. LibreDWG NEWS describes modern AcDsPrototype_1b handling as incomplete/unreliable. These are peer/version-scoped observations, not universal current-master or local-code results.",
+      "evidenceCeiling": "Issue/release-note evidence; no peer binary was run in this review."
+    },
+    {
+      "name": "ezdxf current release and ACIS scope",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "observed": "The current documentation identifies ezdxf 1.4.5 with ASCII/Binary DXF read/write and third-party-content retention, while the ACIS-specific route says it can read SAT/SAB but writes SAT only, supports a limited number of ACIS entities, and may load unsupported ACIS entities as NONE_ENTITY with loss on re-export.",
+      "evidenceCeiling": "Official project documentation of scope; not an arbitrary-ACIS round-trip or independent B-rep semantic result."
+    },
+    {
+      "name": "FreeCAD importer and DWG conversion route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "FreeCAD documents DWG handling as external converter to DXF followed by the selected DXF importer and says stock DXF import cannot read embedded ACIS blobs. Its documentation names a separate CADExchanger workbench for 3D DWG conversion. The current importDWG.py source shows converter invocations as an orchestration layer distinct from the DXF importer.",
+      "evidenceCeiling": "Current project route documentation/source; no Linux or Windows application qualification was run."
+    },
+    {
+      "name": "IxMilia.Dxf declared profile and writer caveats",
+      "urls": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "The README declares a DXF-only R10-R2014 scope with listed entity gaps and warns that some written entity classes may not be accepted by AutoCAD, while other entities can require additional fields.",
+      "evidenceCeiling": "Mutable self-published scope and caveats, not runtime or DWG/ACIS evidence."
+    }
+  ],
+  "localEvidence": [
+    "Existing PAR-07/S8 and modeler/AcDs plan sections already distinguish entity shells, inline carriers, external AcDs records, owner association, output writing, independent geometry semantics, and consumer acceptance; this review makes the composed per-source-object ledger explicit without adding a new owner",
+    "Existing local modeler/block controls include block-contained entities and carrier-preservation/refusal cases; the next combined checkpoint should explicitly pair a solid-only block with a modern handle-linked AcDs carrier without committing external drawings",
+    "Existing FreeCAD qualification is a converter-to-DXF-to-importer route and must not be scored as ACIS semantics when the selected stock importer excludes ACIS blobs",
+    "PAR-139.3 is the current local implementation slice and remains independent of this research-only evidence update"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "PAR-07/S8 plus existing modeler and AcDs carrier owners",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Make the PAR-07/S8 composed ledger explicitly stage-aware: source object and placement, decoded shell, inline/side-section carrier, owner/key association, destination membership and carrier, strict parse, geometry semantics, and consumer acceptance. Keep the local fast-slice cadence and existing implementation order. Do not infer deployed DXF writer behavior from an open PR or FreeCAD ACIS semantics from its stock converter/importer route."
+  },
+  "method": {
+    "kind": "Read-only web research and local plan/source inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-source-to-output-loss-chain-audit-dwgdxf-peers-2026-10-19.json"
+    ],
+    "limitations": "Peer issue reports, mutable documentation, and open/unreleased branches are evidence about the cited versions and routes only. They neither establish current behavior across all releases nor prove a libdxfrw defect. This research pass did not validate the active uncommitted PAR-139 code or run any external consumer."
+  }
+}

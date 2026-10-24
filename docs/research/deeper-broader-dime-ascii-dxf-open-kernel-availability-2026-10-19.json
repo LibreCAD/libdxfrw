@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "DIME ASCII DXF boundary and open-kernel availability",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen an additional open-source C++ DXF data-model implementation for a bounded independent-parser question.",
+    "Reconcile unknown-entity/section record retention, actual encoding support, version evidence, and artifact provenance.",
+    "Refresh whether the open-source OCCT distribution provides DXF or ACIS reader capabilities suitable for the independent semantic lane.",
+    "Refine only the optional composed PAR-07/S8 peer route; preserve local fast validation and fixture policy."
+  ],
+  "sources": [
+    {
+      "name": "Coin3D DIME repository and README",
+      "url": "https://github.com/coin3d/dime",
+      "evidence": "DIME describes itself as a C++ DXF data-model library for loading, constructing, manipulating, writing, traversing, and extracting selected geometry. Its README declares the 3-clause BSD license."
+    },
+    {
+      "name": "DIME feature and version notes",
+      "url": "https://www.coin3d.org/dime/",
+      "evidence": "The feature page says DIME was internally tested with DXF 10 through 14 and reports some customer use with AutoCAD 2000; these are not a broad future-version guarantee."
+    },
+    {
+      "name": "DIME unknown-record API inventory",
+      "urls": [
+        "https://www.coin3d.org/dime/classdimeEntity.html",
+        "https://www.coin3d.org/dime/annotated.html"
+      ],
+      "evidence": "Entity documentation says unhandled records are stored by the parent record holder. The class inventory includes unknown entity/object/table/class/section types. This supports a conditional tag-level preservation comparison, not exact byte or order preservation."
+    },
+    {
+      "name": "DIME output API and release page",
+      "urls": [
+        "https://www.coin3d.org/dime/classdimeOutput.html",
+        "https://github.com/coin3d/dime/releases"
+      ],
+      "evidence": "The output API states that only ASCII DXF is currently supported despite a binary/DXB option. The release page lists dime-0.9.1 as the latest tagged release; published API documentation labels itself inconsistently as 0.9.1 and 1.10.0, so artifact provenance must be resolved before use."
+    },
+    {
+      "name": "Open CASCADE Technology data-exchange overview",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT/wiki/",
+      "evidence": "The standard data-exchange list names open formats such as STEP, IGES, glTF, OBJ, VRML, and STL. The same overview places DXF and ACIS SAT under Advanced Data Exchange Components for proprietary formats."
+    },
+    {
+      "name": "Open CASCADE Technology releases",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT/releases",
+      "evidence": "The current release list includes OCCT 8.0.1; no release evidence changes the official boundary that DXF and ACIS exchange are advanced/commercial components."
+    }
+  ],
+  "method": {
+    "kind": "Read-only internet primary-source review and local plan audit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dime-ascii-dxf-open-kernel-availability-2026-10-19.json"
+    ],
+    "limitations": "DIME claims and documentation do not establish runtime compatibility for modern DXF versions or exact raw-byte preservation. Its release/source/documentation identity remains unresolved. OCCT documentation establishes product boundaries, not a qualified run of any commercial component. No peer or native runtime was installed or executed."
+  },
+  "localCrosswalk": {
+    "PAR-07/S8": "DIME is optional only at the existing composed checkpoint for a still-open ASCII DXF unknown-record/tag-retention question. Bind exact source commit, artifact, compiler, and runtime; compare object identity, group-code/value sequence, owner/reference disposition, and strict reopen. Keep reconstructed tags distinct from byte-identical preservation.",
+    "encodingBoundary": "DIME's published output API supports ASCII DXF only. Do not score Binary DXF, DXB-option claims, DWG, or unverified modern-version routes.",
+    "3dBoundary": "Unknown ACIS/modeler carriers do not imply ACIS parsing or geometric semantics. Stock open-source OCCT is not an ACIS/DXF reader according to the official component inventory; separately licensed components are a different evidence route.",
+    "implementationCadence": "No peer build or test is required during local fast slices. If a concrete comparison remains useful, run one source-pinned DIME control at the existing composed checkpoint using a generated-from-scratch temporary ASCII DXF; do not commit third-party drawings or add a dependency.",
+    "externalEvidence": "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  },
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-07/S8 optional peer admission and strict DXF carrier comparison",
+      "independent ACIS/DXF reader and native-consumer evidence boundary"
+    ],
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationSlicesAdded": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "planSha256": "ef82153797cd124abcb3d1791cbdf41fa4d6270b13344f225dddabc131ab0c1d"
+  }
+}

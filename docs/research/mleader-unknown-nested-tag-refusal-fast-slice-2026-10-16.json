@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-mleader-unknown-nested-tag-refusal-fast-slice-v1",
+  "completedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Prevent silent loss of unmodeled group codes inside MLEADER context, root, and leader-line scopes by refusing before callback publication.",
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "src/drw_entities.cpp": "43fb386367620a726da730dddbab448c11ac6cdcc5d1aba608fe2a865016e5ce",
+      "dwg2dxf/dx_iface.h": "c02fcf50cbfd831d34788cfbe8ceb6b9084efe307f08e02fec2e342c734d5e61",
+      "tests/dwg2dxf_adapter_tests.cpp": "5a85351111993a6d8387596c03fd6ab25dd23bf3588dd6ccfd1d6c4e8329b3ad",
+      "tests/CMakeLists.txt": "33a1e04ccf15fdd6e40f20d70f00bc06e1f1432af2be79e66761b94ad2816cd8"
+    },
+    "behavior": [
+      "Unknown tags in the open CONTEXT_DATA, LEADER, and LEADER_LINE parser states now return parse failure instead of being consumed.",
+      "Generated ASCII and binary controls inject one unsupported group into each state; all six refuse before publishing MLEADER or following POINT callbacks.",
+      "Valid nested-context controls still retain modeled values and the following POINT, then fail closed at adapter export until a qualified serializer exists."
+    ],
+    "policy": "Fail closed; no raw nested-tag preservation carrier was added."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_mleader_fail_closed|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "build-gcc/libdxfrw_wave1_tests --mleader-style-validation",
+      "git diff --check"
+    ],
+    "results": [
+      "Adapter test target build passed.",
+      "Wave1 target build passed.",
+      "Focused adapter CTest pair passed 2/2 in 0.07 seconds.",
+      "MLEADERSTYLE focused validation passed.",
+      "Scoped whitespace check passed."
+    ],
+    "fullSuiteRun": false,
+    "generatedFiles": "Temporary ASCII/binary DXF controls are created from scratch and deleted by the test; none is committed.",
+    "testRegistrationAdded": false,
+    "dependencyAdded": false,
+    "gitCommitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "evidenceLimits": {
+    "unknownTagPreservation": "NOT_IMPLEMENTED; unsupported nested tags now fail closed.",
+    "supportedProducerCoverage": "NOT_ESTABLISHED",
+    "mleaderSerializer": "NOT_IMPLEMENTED",
+    "referenceClosureAndRemapping": "NOT_ESTABLISHED",
+    "realDwgOriginWitness": false,
+    "nativeConsumerQualification": "NOT_RUN",
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextReadySlice": "Enforce AC1021 as the minimum low-level MULTILEADER writer target and add pre-publication AC1018 refusal plus AC1021 positive framing controls."
+}

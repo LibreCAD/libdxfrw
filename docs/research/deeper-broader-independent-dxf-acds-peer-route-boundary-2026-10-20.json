@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader independent DXF reader and AcDs peer-route boundary",
+  "mode": "primary-source web research and read-only local test-owner audit",
+  "scope": [
+    "Search for additional open-source DWG/DXF readers that can provide evidence not already supplied by LibreDWG, ACadRust/ACadSharp, ezdxf, or GDAL",
+    "Separate DXF parsing, DWG parsing, ACDSDATA/AcDs association, raw ACIS parsing, wireframe projection, B-rep semantics, and native consumer evidence",
+    "Check whether the newly observed DataStorage record-order failure shape is already covered by generated local controls"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Repository pages and project-maintained caveats were reviewed on mutable branches; no immutable uncad/undxf source commit or lockfile was captured and no runtime result was reproduced. uncad's published notes describe its own test corpus and local LibreDWG patches, not an independent external oracle. Its modeler output is a wireframe, not a B-rep. The proposed ASM-signature/DataStorage cross-product is recorded as an audit seam rather than a confirmed format defect."
+  },
+  "sources": [
+    {
+      "project": "iyulab/uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/blob/main/docs/CAVEATS.md"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-20",
+      "observed": "The project documents DWG reads through LibreDWG FFI and DXF reads through a separate pure-Rust undxf parser. Its caveats state that R2013+ 3DSOLID/REGION SAB bodies are associated through DataStorage record handles; they describe an earlier order-based marker scan swapping a 3DSOLID and REGION in an R2013 sample and missing ASM BinaryFile4 bodies in an R2018 sample. The documented fix is local to the vendored LibreDWG path. The project describes ACIS output as wireframe edges and reports unparsed bodies as Unknown and skipped edges explicitly.",
+      "limits": "Useful route documentation and failure-shape corroboration only. No peer code or binary was run. DWG parser lineage is LibreDWG, the test corpus includes LibreDWG test data, and wireframe output is not B-rep or native-semantic evidence."
+    },
+    {
+      "project": "iyulab/uncad-model",
+      "urls": [
+        "https://github.com/iyulab/uncad-model"
+      ],
+      "revision": "Mutable main page reviewed 2026-10-20",
+      "observed": "The project describes a neutral model carrying provenance/confidence and unknown states, with SAT/SAB-to-wireframe functions; it says the model crate reads no file and has no native dependencies.",
+      "limits": "A separate model/wireframe module is not a solid kernel or evidence of complete ACIS graph validity. Source lineage beyond the published dependency statements was not independently audited."
+    },
+    {
+      "project": "mlightcad/cad-viewer",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer"
+      ],
+      "revision": "Mutable main page reviewed 2026-10-20",
+      "observed": "Project documentation says its open-source DWG route is opt-in LibreDWG WASM and discloses coverage, memory, and large-file limits.",
+      "limits": "Application-level integration is not an independent DWG parser. Its proprietary parser is outside this open-source comparison and was not examined or run."
+    },
+    {
+      "project": "gdsestimating/dxf-parser",
+      "urls": [
+        "https://github.com/gdsestimating/dxf-parser"
+      ],
+      "revision": "Mutable master page reviewed 2026-10-20",
+      "observed": "The project describes a JavaScript DXF parser and explicitly lists 3DSolids among unsupported entities.",
+      "limits": "Excluded as a 3D modeler-geometry comparator; no source-level runtime audit was performed."
+    },
+    {
+      "project": "dxfjs/parser",
+      "urls": [
+        "https://github.com/dxfjs/parser"
+      ],
+      "revision": "Mutable main page reviewed 2026-10-20",
+      "observed": "Its README lists 3DSOLID as an input entity among a limited DXF entity set.",
+      "limits": "The README does not establish Binary DXF, modern ACDSDATA owner/key association, ACIS body validity, or geometry semantics; it remains a low-confidence candidate only."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans",
+    "planDelta": "Add uncad as an optional, route-scoped composed-checkpoint candidate: treat its DWG path as LibreDWG-lineage, its undxf DXF path as a possible independent structural/carrier observer, and its ACIS wireframe output as non-B-rep evidence. Reuse the existing generated DataIndex-order matrix; audit only for an uncovered ASM BinaryFile4 payload crossed with actual DataStorage owner association and following-entity continuity. No peer build/run, dependency, full suite, or per-slice validation requirement is introduced."
+  }
+}

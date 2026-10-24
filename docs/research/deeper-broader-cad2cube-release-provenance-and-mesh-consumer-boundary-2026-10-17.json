@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader CAD2Cube release provenance and explicit-mesh consumer boundary",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile CAD2Cube extension-registry, GitHub release, and README version evidence",
+    "Classify CAD2Cube parser lineage, explicit DXF geometry coverage, and 3DSOLID/ACIS evidence limits",
+    "Cross-check the existing peer matrix for any newly identified independent route that fills an open evidence stage",
+    "Refine the existing optional consumer admission procedure without slowing local implementation"
+  ],
+  "method": {
+    "kind": "Public primary-source release, repository, and extension-page review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "extensionInstalled": false,
+    "extensionArtifactDownloaded": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "The Blender Extensions CAD2Cube page could not be retrieved in this pass (HTTP 402). The preceding 2026-10-16 plan scan recorded v1.5.1 / Blender 4.2+, while the GitHub release page marks v1.5.0 at verified tag commit a09e6b3 as Latest and the mutable README describes v1.5.0. No installable ZIP was downloaded or matched to source. Feature coverage is project-documented, not runtime-qualified."
+  },
+  "sources": [
+    {
+      "project": "CAD2Cube",
+      "url": "https://github.com/lylongfts/CAD2CUBE/releases/tag/v1.5.0",
+      "revision": "v1.5.0 release page; verified tag commit a09e6b3 as displayed by GitHub; reviewed 2026-10-17",
+      "observed": "GitHub marks v1.5.0 as Latest and identifies the verified tag commit a09e6b3. Release notes describe HATCH mesh faces, nested block instancing, optional 3DFACE merging, unit detection/recentering, DXF import through 2018+, and removal of native DWG/ODA-converter support in v1.5.0. These are project claims, not observed runtime behavior."
+    },
+    {
+      "project": "CAD2Cube",
+      "url": "https://github.com/lylongfts/CAD2CUBE/blob/main/README.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The README describes a DXF route via bundled MIT-licensed ezdxf and lists explicit entities including 3DFACE, HATCH, SOLID, and 2D/3D POLYLINE; it marks 3DSOLID planned. The documented options include layer/block handling, unit auto-detection, recentering, and merging 3DFACE geometry. SOLID is a DXF entity and is not evidence for 3DSOLID or ACIS."
+    },
+    {
+      "project": "Blender Extensions",
+      "url": "https://extensions.blender.org/add-ons/cad2cube/",
+      "revision": "retrieval attempted 2026-10-17; HTTP 402; previous plan scan dated 2026-10-16",
+      "observed": "The current page could not be retrieved in this pass. The prior dated plan observation recorded Blender 4.2+ and extension version 1.5.1, which conflicts with the GitHub release page and README identifying v1.5.0. This discrepancy remains unresolved; the registry label does not establish artifact/source identity."
+    },
+    {
+      "project": "Blender legacy DXF importer",
+      "url": "https://github.com/blender/blender-addons/tree/main/io_import_dxf",
+      "revision": "archived upstream mirror reviewed 2026-10-17",
+      "observed": "This is a separate legacy addon, identified as version 0.9.8 and associated with dxfgrabber-era parsing. It must not be conflated with CAD2Cube's ezdxf-based extension or counted as its independent parser route. Its mesh/curve projection and legacy status do not establish ACIS/B-rep semantics."
+    }
+  ],
+  "assessment": {
+    "routeClassification": "CAD2Cube is an optional downstream DXF consumer projection in the ezdxf parser lineage, not an independent parser vote, DWG reader, ACIS/SAB parser, B-rep kernel, or 3DSOLID implementation.",
+    "versionAdmission": "Before any run, pin/hash the installable extension artifact, inspect its manifest and bundled ezdxf version, and match those to an exact source revision and Blender build. If that chain cannot be established, record NOT_RUN.",
+    "geometryAdmission": "At most, compare exact generated DXF entities documented and present in the pinned artifact. Start with 3DFACE and independent expected topology/coordinates; treat HATCH or other entities as separate family-specific projections. Record merge, units, recentering, transforms, layers, blocks, output types, topology, bounds, and warnings.",
+    "semanticCeiling": "Successful import, screenshot, nonempty geometry, or self-round-trip cannot establish source-record identity, graph closure, DWG/AcDs semantics, ACIS/SAB interpretation, closed-solid validity, B-rep semantics, or native CAD acceptance.",
+    "broaderPeerResult": "The cross-check against the already inventoried LibreDWG, ACadSharp, ACadRust, ezdxf/GDAL, FreeCAD/OCCT, BRL-CAD, and Assimp routes identified no new open-source chain that closes the independent DWG AcDs entity-to-owner/key-to-payload join, exact-profile SAB interpretation, independent B-rep semantic witness, or native Linux/Windows consumer gaps.",
+    "speedRule": "Optional composed-checkpoint only. No installation, peer runtime, new dependency, fixture, CTest registration, or per-slice validation is justified; local generated fast checks remain the implementation path."
+  },
+  "planImpact": {
+    "existingFindingAndConsumerRuleOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cad2cube-release-provenance-and-mesh-consumer-boundary-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

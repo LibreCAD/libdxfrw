@@ -1,0 +1,76 @@
+{
+  "title": "Deeper and broader research: typed DXF reference semantics and converter handoff",
+  "date": "2026-10-17",
+  "classification": "research-only",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "DXF handle/reference group-code roles and copy/remap semantics",
+    "DWG typed-reference bridge boundary",
+    "independent DXF audit/repair limits",
+    "FreeCAD DWG-to-DXF converter handoff qualification"
+  ],
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "kind": "official current DXF group-code reference",
+      "finding": "320-329 arbitrary IDs are not translated; 330-339 soft pointers, 340-349 hard pointers, 350-359 soft owners, and 360-369 hard owners are translated."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+      "kind": "official persistent inter-object reference rules",
+      "finding": "Typed references are maintained during copy operations; arbitrary handles are not translated; XDATA 1005 handles act as soft pointers."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "kind": "official common entity field reference",
+      "finding": "Common entity fields distinguish optional owner-dictionary references, extension-dictionary hard ownership, mandatory BLOCK_RECORD owner, and material hard pointers; order is not a reliable parser contract."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "kind": "open-source DWG reference resolver",
+      "finding": "DWG reference objects carry typed owner/pointer roles and support relative handle decoding; do not conflate DWG wire encodings with DXF group-code semantics."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "kind": "open-source DXF cross-document loader documentation",
+      "finding": "The loader supports a bounded subset and excludes unsupported objects; resource renaming is planned/executed consistently as a batch."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/sections/table.py",
+      "kind": "open-source DXF table audit implementation",
+      "finding": "The auditor repairs duplicate table handles and notes that references can break, so post-repair openability is not a proof that original graph identity was correct."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "kind": "current FreeCAD DWG import wrapper",
+      "finding": "DWG is converted by a configurable external converter and then imported through importDXF; output existence is checked after subprocess completion, so qualification must record process status and validate fresh output contents."
+    }
+  ],
+  "local_audit": {
+    "files_reviewed": [
+      "src/libdxfrw.cpp",
+      "src/intern/dxfcode.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existing_controls_confirmed": [
+      "DxfHandleRole and dxfHandleRoleForCode classify arbitrary/pointer/owner ranges",
+      "generated ASCII/binary extension graph preserves XRECORD 320/329 arbitrary values",
+      "generated extension graph checks owner/reactor 330 closure and XDATA 1005 remapping"
+    ],
+    "defect_reproduced": false,
+    "implementation_changed": false,
+    "fixtures_or_dependencies_added": false
+  },
+  "plan_effect": {
+    "existing_work_refined": ["PAR-40", "7G.2", "native Linux/Windows FreeCAD qualification"],
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "findings_total": 130,
+    "top_level_subplans_total": 73,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "support_claim_promotions": 0,
+    "validation_cadence_changed": false
+  }
+}

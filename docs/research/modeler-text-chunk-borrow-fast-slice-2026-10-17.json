@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-modeler-text-chunk-borrow-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.40",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / DXF_MODELER_TEXT_COPY_SCOPED",
+  "objective": "Avoid copying validated modeler text payloads into a temporary string and into per-group substrings before synchronous DXF emission.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/modeler-text-chunk-borrow-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "writeDxfTextChunks now views the already validated printable byte vector directly and emits 255-byte group-1/group-3 slices synchronously.",
+      "An empty payload still emits no text groups; validation and caller-owned vector remain unchanged.",
+      "No DXF field mapping, ACIS interpretation, grouping order, or support behavior changed."
+    ],
+    "compatibility": "Internal writer path only; no installed API, public class layout, or DRW_Interface callback changed."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-chunk-borrow",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "adjacent_selector": "build-gcc/libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight-view",
+    "adjacent_selector_result": "PASS",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "Generated AC1024 ASCII/Binary surface payloads assert exact 255-byte group-1 plus group-3 continuation order, final 10-byte chunk, and a following-record sentinel.",
+    "The source byte vector is compared after emission to verify caller-state preservation."
+  ],
+  "limits": [
+    "Copy avoidance is established by the source path and exact wire controls; allocation counts, peak RSS, and throughput were not measured.",
+    "This covers the validated raw-text modeler chunk helper only; SAT transformations, binary 310 hex encoding, and other carriers are separate paths.",
+    "No full suite, peer runtime, native CAD application, external drawing, or sanitizer/fuzz campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue the source audit for another independently bounded writer/projection or carrier materialization; keep external gates at the composed checkpoint.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

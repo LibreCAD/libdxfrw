@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "NVIDIA SMLib as an independent open-source B-rep kernel candidate",
+  "mode": "Deeper/broader primary-source research and local plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen the new NVIDIA SMLib release for possible independent-kernel evidence relevant to ACIS/AcDs qualification.",
+    "Separate kernel capability from DWG/DXF/SAT/SAB parsing, AcDs owner association, adapter fidelity, and native CAD acceptance.",
+    "Refine the existing PAR-07/S8 optional semantic checkpoint without introducing a mandatory dependency or routine validation work."
+  ],
+  "sources": [
+    {
+      "project": "NVIDIA usd-brep / SMLib",
+      "revision": "v1.0.0 release, tagged at c9c5979 on 2026-10-08; full commit SHA not captured in this research pass",
+      "urls": [
+        "https://github.com/NVIDIA-Omniverse/usd-brep/releases/tag/v1.0.0",
+        "https://github.com/NVIDIA-Omniverse/usd-brep/blob/v1.0.0/README.md",
+        "https://github.com/NVIDIA-Omniverse/usd-brep/blob/v1.0.0/.agents/docs/OVERVIEW.md",
+        "https://github.com/NVIDIA-Omniverse/usd-brep/blob/v1.0.0/source/SM_API_USD/inc/SmApiUsd.h"
+      ],
+      "observed": "The Apache-2.0 release publishes a NURBS B-rep kernel with C++/Python APIs, topology/measurement queries, and an OpenUSD BrepArray interchange layer. Documentation describes SMLib's own native format and USD B-rep import/export, but no DWG, DXF, SAT/SAB, or AcDs reader. SMLib is a distinct kernel lineage from OCCT/FreeCAD.",
+      "evidenceCeiling": "Release documentation is not an executed result. A CAD neutral-model-to-SMLib adapter is not present in libdxfrw and would need its own identity, topology, trim, orientation, units, and tolerance validation. SMLib alone cannot qualify source entity ownership, AcDs association, or native FreeCAD import."
+    },
+    {
+      "project": "NVIDIA usd-brep known issues and issue #12",
+      "revision": "v1.0.0 release KNOWN_ISSUES.md and public issue #12, reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/NVIDIA-Omniverse/usd-brep/blob/v1.0.0/KNOWN_ISSUES.md",
+        "https://github.com/NVIDIA-Omniverse/usd-brep/issues/12"
+      ],
+      "observed": "The release documents failure cases in healing, measurement, and malformed USD B-rep import. Issue #12 reports a deterministic 1.0.0 case where is_manifold_solid did not track mesh health and tessellation missed a requested tolerance.",
+      "evidenceCeiling": "These are release-specific disclosures and an issue report, not a libdxfrw result. They constrain how a candidate kernel result should be used; they do not establish a new local defect."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "revision": "Open Design Specification v5.4.1, chapter 24; existing authoritative DWG reference",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "The existing plan already separates modern AcDs data records and SAB payloads from ACIS semantic interpretation and records the source entity/handle join as a separate requirement.",
+      "evidenceCeiling": "ODA is normative for DWG layout; it does not specify SMLib adapter correctness or prove a kernel result."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 source-to-carrier-to-semantics evidence gates",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing CADMPEG exact-profile parser and OCCT/FreeCAD kernel-lineage distinctions",
+    "Existing native FreeCAD Linux and Windows qualification gates; J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add SMLib as an optional open-source independent-kernel candidate only. Any future use is gated on exact release/build pinning, host availability, exact-profile payload decode, and a separately validated neutral-topology adapter. Disable healing and corroborate kernel predicates with independent analytic expectations. No new implementation blocker or support claim is created."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation review and local plan reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-nvidia-smlib-independent-kernel-candidate-2026-10-19.json"
+    ],
+    "limitations": "GitHub release, docs, and issue pages were reviewed as primary project sources, but no release asset was downloaded or executed. Tag c9c5979 was recorded in short form from the release page; an optional run must resolve and record its full commit SHA and exact platform artifact/build inputs. No claim is made that the adapter exists, that SMLib accepts ACIS directly, or that the project passes independent kernel qualification."
+  }
+}

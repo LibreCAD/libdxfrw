@@ -1,0 +1,464 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5be",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "state": "SHARED_DIRTY_UNCOMMITTED_UNSTAGED",
+    "commitCreated": false,
+    "remoteMutation": false
+  },
+  "status": "RASTER_DWG_RAW_PUBLICATION_AND_IMMUTABLE_MODEL_CORRELATION_PASS_INDEPENDENT_FIELD_ROLE_CLASS_PROFILES_NONDEFAULT_METADATA_AND_STRICT_OUTPUT_PROOF_OPEN",
+  "request": "Deeper and broader research to update the plan; implement the plan.",
+  "predecessor": "docs/research/rpp5bd-atomic-native-dwg-image-graph-fast-slice-2026-10-23.json",
+  "research": {
+    "primaryPdf": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": [
+        "20.4.81 IMAGEDEF",
+        "20.4.82 IMAGEDEFREACTOR"
+      ],
+      "pages": [
+        206,
+        207,
+        208
+      ],
+      "review": "Complete rendered pages visually inspected. ODA remains authoritative for DWG byte-layout questions."
+    },
+    "primaryWebSources": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EFE5319F-A71A-4612-9431-42B6C7C3941F.htm",
+        "finding": "Documents IMAGEDEF pixel V code12, class/path/dimensions/loaded fields and resolution units0/2/5. Preserve existing documented output and tolerant code21 input."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+        "finding": "Independent IMAGEDEF body-order and reactor class-version implementation; source class ordinals are file-local, not fixed default writer numbers."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec",
+        "finding": "Independent IMAGEDEF body order and reactor grammar. Shared helper behavior is not a substitute for the per-object authoritative ODA roles."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/common_object_handle_data.spec",
+        "finding": "Generic owner soft-pointer behavior differs from the explicit IMAGEDEF hard-owner specification. Keep the local literal role distinction and qualify producer acceptance separately."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/image.py",
+        "finding": "Conventional point2d pixel size differs from documented code12; unit validation and separate IMAGE/reactor associations reinforce distinct grammar versus tolerant compatibility policies."
+      },
+      {
+        "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "finding": "LibreDWG-style command is dwg2dxf input -o output, existence is checked before importDXF.open/insert, and the ODA route requests ACAD2000 DXF. Syntax/existence alone is not document semantic qualification."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/acis/entities.py",
+        "finding": "SAT/SAB version routes and unsupported-entity export refusal distinguish retained input from supported serialization; not independent kernel acceptance."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/acis/abstract.py",
+        "finding": "Record identities are registered before graph data export. Keep the local source/output identity/edge/publication gates distinct."
+      }
+    ],
+    "localReadOnlySnapshots": [
+      {
+        "repository": "ACadSharp",
+        "head": "3a52a52047e84670759c1f9ad3916ec3ce85ff56"
+      },
+      {
+        "repository": "LibreDWG",
+        "head": "6d6a33987a1a97095b069c799c3d8a793320f812"
+      },
+      {
+        "repository": "ezdxf",
+        "head": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16"
+      }
+    ],
+    "snapshotBoundary": "Audited files are unchanged against their local heads. Moving upstream sources were also checked; local hashes are not asserted to be current remote heads.",
+    "localBuildFinding": {
+      "files": [
+        "CMakeLists.txt",
+        "tests/CMakeLists.txt",
+        "dwg2dxf/CMakeLists.txt"
+      ],
+      "finding": "dx_iface.cpp is compiled separately for CLI plus twelve test targets.",
+      "next": "Audit target-specific flags/definitions/includes/frameworks and link interfaces, then extract an uninstalled support target only for identical configurations. No measured speedup or skipped-gate claim."
+    },
+    "networkFallbacks": [
+      "The 2026 Autodesk URL was unavailable; the accessible official 2020 schema was read.",
+      "FreeCAD's draftimport/importDWG.py path was unavailable; the current primary source is src/Mod/Draft/importDWG.py."
+    ],
+    "licenseBoundary": "No peer implementation code or third-party drawing fixture copied into this repository; no peer/runtime dependency added."
+  },
+  "implemented": [
+    "Separate bounded generation-keyed raster DWG source lane outside standard-object output/completeness evidence.",
+    "Own raw bodies, matching TypedAndRaw publications, physical identity indexes, actual class identity, saved version/codepage profile and frozen typed models.",
+    "Enforce100000-record/64 MiB source storage with pre-copy raw/publication/baseline ownership accounting.",
+    "Reject malformed identity/size/class/publication pairs, duplicates, failed/closed generation captures and typed-only orphan records.",
+    "Reparse raw bodies through existing bounded production grammars and compare exact typed body/common state under one reusable decoder per import.",
+    "Keep legacy common-link Unknown state and unbound encoding profiles unqualified; preserve decoder issue observations without output certificates.",
+    "Check immutable source models before export and before DXF publication; removed/rekeyed/edited models refuse and corrected source restoration permits retry.",
+    "Compare the shadowed IMAGEDEF filename explicitly, bit-exact scalars, legacy reactor-name map and common metadata.",
+    "Leave fresh-authored and DXF-only routes without invented DWG baselines, and preserve existing LibreCAD/LibreCAD_3/core callback contracts.",
+    "Update research findings, completion state, consumer contract, concrete next steps and duplicate-compilation readiness sub-plan."
+  ],
+  "controls": {
+    "selector": "--generated-image-dictionary-source-identity",
+    "ctest": "dwg2dxf_generated_image_dictionary_source_identity",
+    "log": "/tmp/rpp5be-verified-controls.log",
+    "nativeSourceRevisions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "nativeSourceBaselinesPerSource": 2,
+    "nativeProjectionCells": 24,
+    "singleFieldDeletionRekeyEdits": 24,
+    "encodings": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "singleFieldRefusalRetryCells": 48,
+    "lateMutationRefusalRetryCells": 2,
+    "captureControls": [
+      "Exact and one-byte-short raw ownership budget for each family",
+      "Exact and one-byte-short publication/index ownership budget for each family",
+      "Exact and one-byte-short immutable baseline ownership budget for each family",
+      "No source refresh or duplicate baseline charge on revalidation",
+      "Malformed raw length, null handle, body bit extent and class identity",
+      "Wrong publication location/class/carrier and duplicate raw identity",
+      "Equal handles remain distinct across generations",
+      "Failed import and post-close callbacks latch non-waivable failure",
+      "Typed-only IMAGEDEF and reactor orphan detection"
+    ],
+    "preservedControls": {
+      "literalRoleCells": 32,
+      "extensionRefusalRetryCells": 26,
+      "graphResourceRetries": 5,
+      "sourceReactorRefusalRetryCells": 30,
+      "authoredCells": 4,
+      "readbackReexports": 4
+    },
+    "regressionDiscovered": {
+      "log": "/tmp/rpp5be-controls2.log",
+      "finding": "The common table-entry comparison did not see DRW_ImageDef's shadowed filename. Edit1 was reported unchanged and exported; explicit derived filename comparison fixes it."
+    },
+    "reviewCorrections": [
+      "An initial mixed-derived-pointer conditional did not compile; explicit base-pointer assignments fix it.",
+      "A patch context mismatch after scoped formatting changed no file; the corrected patch adds the two-way source join.",
+      "Source-publication scalar domain guards and unbound decoder-profile issue marking were added before the final checkpoint.",
+      "Two-way typed-to-raw import completeness prevents a missing raw lane from silently treating a typed source callback as authored."
+    ],
+    "oracleBoundary": "Local production-grammar reparse correlation is not an independent field-span/handle-role/class-profile oracle. Existing literal role controls remain separate."
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 44,
+      "total": 44,
+      "wallSeconds": 7.68,
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_image_path_cli",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits",
+        "libdxfrw_layer_name_source",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_dxf_operation_admission",
+        "libdxfrw_dxf_consumer_finalization",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_symbol_unicode_keys",
+        "libdxfrw_dwg_image_compound_transaction",
+        "libdxfrw_dwg_block_owner_membership_index",
+        "libdxfrw_dwg_read_outcome_policy",
+        "dwg2dxf_freecad_cli_compat"
+      ],
+      "log": "/tmp/rpp5be-verified-fast-tests.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 40,
+      "total": 40,
+      "wallSeconds": 12.95,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits",
+        "libdxfrw_layer_name_source",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_dxf_operation_admission",
+        "libdxfrw_dxf_consumer_finalization",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_symbol_unicode_keys",
+        "libdxfrw_dwg_image_compound_transaction",
+        "libdxfrw_dwg_block_owner_membership_index",
+        "libdxfrw_dwg_read_outcome_policy"
+      ],
+      "log": "/tmp/rpp5be-verified-asan-tests.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 18.13,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5be-verified-owning-tests.log"
+    },
+    "builds": {
+      "result": "PASS",
+      "includes": [
+        "all normal configured targets",
+        "all ASan configured targets",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ],
+      "logs": [
+        "/tmp/rpp5be-verified-build.log",
+        "/tmp/rpp5be-verified-asan-build.log"
+      ]
+    },
+    "strict": {
+      "result": "PASS",
+      "translationUnits": [
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "flags": [
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-pedantic",
+        "-Werror",
+        "-fsyntax-only"
+      ],
+      "log": "/tmp/rpp5be-verified-strict.log",
+      "boundary": "No warning suppression; pre-existing broad legacy strict-warning debt remains separate."
+    },
+    "diffCheck": {
+      "result": "PASS",
+      "log": "/tmp/rpp5be-final-diff-check.log"
+    },
+    "notRun": [
+      "full-project suite",
+      "UBSan",
+      "LSan",
+      "new independent producer/kernel qualification",
+      "native Linux/Windows FreeCAD"
+    ],
+    "timingBoundary": "Concurrent local observations, not a runtime benchmark. Corrective code changes were followed by current-source checkpoint validation."
+  },
+  "compatibility": {
+    "corePublicHeaderChanged": false,
+    "newPureVirtuals": false,
+    "newVirtualSlots": false,
+    "converterPrivateOwnersChanged": true,
+    "consumerRebuildRequired": true,
+    "binaryABIPromise": false,
+    "newDependency": false,
+    "drawingFixtureAdded": false
+  },
+  "remaining": [
+    "Reader-independent source field spans/width/presence and handle-role tokens for inline/detached and legacy/current profiles.",
+    "Complete source class/profile matrix and independent EED APPID/LAYER dependency evidence.",
+    "Nondefault reactor metadata conversion policy and exact emitted field/identity/edge/publication proof.",
+    "Duplicate converter-compilation build slice after flag/interface audit.",
+    "All broader APPID/LAYER, legacy XRECORD, AC1024/container/SUN, TABLE/extension, MATERIAL, warning-debt and composed integration/docs/commit queues."
+  ],
+  "supportClaims": {
+    "promoted": false,
+    "strictAdmission": "CLOSED",
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernel": "NOT_RUN"
+  },
+  "nextAction": "Add independent input field/role/profile observations and negative controls without using reparse equality as the oracle; preserve completed raw/publication/baseline and compound transaction work.",
+  "bindings": [
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "bf3dd58fbb833babf60cbd3e6d0a4fa51d8cfcba222665527770622f57297faf"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "15160b9d2b39dcfa6b3fd99b9160bbb7890d81c76884741a0f9c93f7ed484ae6"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "4d3ec70542263c9c1e7c4a258c9004822f03e95c0d54d24bdcf361aa0278aeab"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "60bae671f3e45cfd8c9583a261455ce1f429dc8960986f8e45aeefb8f22c0ed2"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "8eee0825ced5c0f5fec4d0277b4e88333365b1cd4f80f0e4010f37a80915d100"
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "3ab7ec4c99bc0b25fe442d8463deb55becdc750158ec9579e88a56cbb14c0b9d"
+    },
+    {
+      "path": "src/libdwgr.cpp",
+      "sha256": "c5b815540c9fb24fdfe27780a6299d67a136b41be6cd8124f018765d2b266386"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "c9bf3c6114004eecf7d6cd56c7084de5382027368548710f0d915c0b39b29cec"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "b67367016d18a2e8c1e3c64c92e35d94901393358aa0337b5decfec567eaf5a5"
+    },
+    {
+      "path": "dwg2dxf/CMakeLists.txt",
+      "sha256": "90062a8bc89062e799a0ee6b905053f19bbb6fc8c5e1222b317dfc0512e5ed59"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "0c8db26db7dfd95b2cc92695309eab885c1cd7c69b99c8921002dd014c94671f"
+    },
+    {
+      "path": "docs/research/rpp5bd-atomic-native-dwg-image-graph-fast-slice-2026-10-23.json",
+      "sha256": "dccdd9917392949262d096bc19487d3e18ac30f91bdfdc54a2b48f1c2c7e03b9"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "sha256": "d93c6c8a3f0554901a69c9bbb6490f95674c821c169da0ead33a99c162ffab69"
+    },
+    {
+      "path": "/Users/dli/dev/libredwg/src/dwg.spec",
+      "sha256": "c3c6dec791321721b0ff75854d3ac2e8832986b62fce832cc053e2ac85f2e9fd"
+    },
+    {
+      "path": "/Users/dli/dev/libredwg/src/common_object_handle_data.spec",
+      "sha256": "bb8bd0e527d20a58d53e59752e851b6c547228f470c47335f3303e61d49b545c"
+    },
+    {
+      "path": "/Users/dli/dev/ezdxf/src/ezdxf/entities/image.py",
+      "sha256": "aba9c3a84492e0cc47736971bd7066c875c24934169f858a68e8d177fe45cb2f"
+    },
+    {
+      "path": "/Users/dli/dev/ezdxf/src/ezdxf/acis/entities.py",
+      "sha256": "61137e27746e3f3b3e32256aa2b3b2b01ebfa6f3da2e7b14cabe424004e73068"
+    },
+    {
+      "path": "/Users/dli/dev/ezdxf/src/ezdxf/acis/abstract.py",
+      "sha256": "9a6b7cd85bdf9eb5afb064a1cdd9490fddefa349418dee787d9bbcf26ae66f39"
+    },
+    {
+      "path": "/tmp/rpp5be-controls2.log",
+      "sha256": "2da5accca38a6a3b348698e7e8c5e3f19e23d23189cc65b8909f10a9d56d3788"
+    },
+    {
+      "path": "/tmp/rpp5be-verified-build.log",
+      "sha256": "7b462b7b57ed3fcfcfd836bc6b1af01fdb71f065e21c9782782af7bfdee711e7"
+    },
+    {
+      "path": "/tmp/rpp5be-verified-asan-build.log",
+      "sha256": "68f16bb81fd789b3e879dd108eceb427713ff160c2a5692aaad91f4443aa1259"
+    },
+    {
+      "path": "/tmp/rpp5be-verified-controls.log",
+      "sha256": "e5ccfdd95c9238847ca55f3859a78ffb5f3f2e59d6f26148b3869b59fddf93d5"
+    },
+    {
+      "path": "/tmp/rpp5be-verified-fast-tests.log",
+      "sha256": "3d2350ea3eb991798e16fead6858b06b01d67fb35dab4cf9988bc1a70f094b45"
+    },
+    {
+      "path": "/tmp/rpp5be-verified-asan-tests.log",
+      "sha256": "7d87fc10fc5c2ebf0bf9fc451e3fcef15f125144cecea069ee59280c9641cd1d"
+    },
+    {
+      "path": "/tmp/rpp5be-verified-owning-tests.log",
+      "sha256": "f93fbf5b472e34ae89b6d25f39578985e56375e611b0c80bd94a475706226184"
+    },
+    {
+      "path": "/tmp/rpp5be-verified-strict.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5be-final-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

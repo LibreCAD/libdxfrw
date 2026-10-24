@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c DATALINK group-305 borrowed marker view",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Read the unused DATALINK group-305 token through the current raw string view before setting custom-data state.",
+    "route": "DRW_DataLink::parseCode group 305",
+    "behavior": "The same state transition is preserved without UTF-8 decoding or allocating an owned temporary; group-1 state-marker behavior is unchanged.",
+    "test_control": "Generated ASCII/Binary DATALINK streams include a separately selected group-305 variant with a 32-KiB value. The controls verify both custom rows, following status text, and unchanged exact retained-owner byte accounting.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no persistent fixture added",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "test_setup_correction": {
+    "route": "DATALINK group-1 begin-marker negative control",
+    "correction": "The group-305 control uses a separately generated input instead of the shared group-1 marker fixture.",
+    "reason": "Putting group 305 in the shared fixture correctly re-entered custom-data state after the group-1 DATAMAP_BEGIN lookalike, so the original negative-control expectation no longer isolated group 1.",
+    "result": "The independent group-1 marker controls and the new group-305 control both pass."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check --parallel 4",
+    "build_result": "PASS (-Werror)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-datalink-text-owner-budget",
+    "selector_result": "PASS (ASCII/Binary)",
+    "compatibility_build": "lc3_compat_check",
+    "compatibility_build_result": "PASS",
+    "diff_check": "PASS (src/drw_objects.cpp, tests/hardening_tests.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, receipt)",
+    "full_suite_run": false,
+    "sanitizer_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the exact-source 7S.2c audit only where another parser-only temporary or redundant copy is demonstrated, then proceed to the next locally evidenced DWG/DXF semantic gap without waiting on external gates."
+}

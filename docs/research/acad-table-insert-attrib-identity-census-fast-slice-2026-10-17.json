@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-acad-table-insert-attrib-identity-census-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_UNCOMMITTED",
+  "scope": "Distinguish typed ACAD_TABLE callbacks from ordinary INSERT entities and their attached ATTRIB/SEQEND sequence in generated ASCII and Binary DXF controls.",
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedEntities": [
+      "one typed ACAD_TABLE retained in dx_data.tables",
+      "one legacy 2D INSERT fallback for the TABLE",
+      "one ordinary INSERT with one attached ATTRIB and SEQEND",
+      "one following LINE sentinel"
+    ],
+    "assertions": [
+      "TABLE and ordinary INSERT identities remain distinct",
+      "ordinary INSERT owner and handle are retained",
+      "ATTRIB handle, tag, and text remain attached to the ordinary INSERT",
+      "both INSERT projections and the following LINE are counted and aligned"
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-table-callback"
+    ],
+    "results": {
+      "strictAdapterTargetBuild": "passed",
+      "focusedSelector": "passed for ASCII and Binary DXF and existing TABLE controls"
+    }
+  },
+  "limits": {
+    "externalAc1032IssueDiagnosed": false,
+    "dwgOrNativeConsumerQualification": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing edits"
+  }
+}

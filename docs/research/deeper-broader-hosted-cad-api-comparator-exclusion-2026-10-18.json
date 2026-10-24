@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader hosted CAD API comparator exclusion",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen newly surfaced DWG/DXF comparison candidates for source-visible implementation, local reproducibility, and route lineage",
+    "Distinguish a permissively licensed API client from the hosted CAD parser it invokes",
+    "Add an explicit no-upload/admission boundary without changing implementation or validation order"
+  ],
+  "method": {
+    "kind": "Read official project SDK repository and service API documentation",
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "apiKeysObtained": 0,
+    "serviceRequests": 0,
+    "drawingsUploaded": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "limitations": "The SDK and API documentation describe the public client/service contract, not the hosted parser implementation, its immutable build, or per-entity semantics. No service result was inspected or used as evidence."
+  },
+  "sources": [
+    {
+      "project": "CADLens official JavaScript SDK",
+      "url": "https://github.com/cadlens-co/cadlens-sdk-js",
+      "revision": "Mutable repository page reviewed 2026-10-18",
+      "observed": "The repository identifies itself as an MIT JavaScript/TypeScript SDK for the Cadlens CAD parsing API. Its client methods upload a file, poll a remote job, retrieve structured JSON, and obtain a preview URL. The SDK repository does not contain the DWG/DXF parser implementation."
+    },
+    {
+      "project": "CADLens API documentation",
+      "url": "https://cadlens.co/docs",
+      "revision": "Current official service documentation reviewed 2026-10-18",
+      "observed": "The service documentation describes authenticated DWG/DXF upload to a hosted REST parse endpoint and remote JSON/preview results. It confirms this is a hosted service route, not a locally inspectable codec."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "comparatorAdmissionClarification": true,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Classify hosted CAD parse APIs as excluded remote services rather than open-source parser implementations, and prohibit uploading local/customer drawings without explicit authorization and data-handling review. No implementation task or gate was added."
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "This research pass changed only the parity plan and added this research receipt. The shared worktree already contains extensive user changes; other paths were left untouched."
+  }
+}

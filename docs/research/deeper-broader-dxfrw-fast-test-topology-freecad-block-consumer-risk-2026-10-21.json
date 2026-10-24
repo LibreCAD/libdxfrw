@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "libdxfrw fast-test topology and FreeCAD block-consumer risk",
+  "mode": "Deeper/broader primary-source research and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeState": "Broadly modified and uncommitted; preserve unrelated existing changes.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxfrw-fast-test-topology-freecad-block-consumer-risk-2026-10-21.json"
+    ],
+    "change": "Refined existing fast-validation and composed FreeCAD consumer gates using current LibreCAD test-target architecture and FreeCAD issue #25451 as a route-specific failure shape. No local codec defect was inferred and no issue sample was fetched or committed.",
+    "validation": {
+      "researchTestsRun": false,
+      "planDiffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "receiptJsonValidation": "PASS: jq -e . on this receipt",
+      "existingImplementationTestsRerun": false,
+      "fullSuiteRun": false
+    }
+  },
+  "sources": [
+    {
+      "project": "LibreCAD/libdxfrw downstream test architecture",
+      "references": [
+        "https://raw.githubusercontent.com/LibreCAD/LibreCAD/master/CMakeLists.txt"
+      ],
+      "observation": "Current master isolates a parser-only library target from the large application archive; groups fast DWG and DXF tests; offers per-translation-unit opt-in executables; isolates fixture/external-data DWG tests; and uses a smaller writer-focused archive for a targeted HANDSEED test. The root CMake requests C++17.",
+      "evidenceCeiling": "Mutable upstream build configuration; it describes architecture, not measured build-time improvement or a requirement to change standalone libdxfrw's C++14 contract.",
+      "disposition": "Use the smallest owning target per slice, grouped fast format suites at subsystem boundaries, and slow/corpus/full-app suites at composed checkpoints. Preserve the standalone public C++14 compatibility gate."
+    },
+    {
+      "project": "FreeCAD DXF importer",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD/issues/25451",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observation": "Open issue #25451 carries a confirmed-status label and reports missing/misplaced blocks across multiple import-as modes, with text/dimension members rejected inside block definitions. The reporter says exploding selected blocks improves but does not fix the result. The report's attachments were not fetched. FreeCAD's documentation states the C++ importer skips text, dimensions, and attributes inside blocks; the legacy importer is a distinct route.",
+      "evidenceCeiling": "Consumer-side report and documented importer scope; no local libdxfrw reproduction, producer-authored wire rule, or current native-app run.",
+      "disposition": "At the composed native checkpoint, generate a local nested/transformed-block DXF control, pin the exact FreeCAD backend/preferences, compare direct baseline and candidate-emitted DXF, and classify documented omissions as consumer limits. Never use the attached customer files as fixtures."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "localApplicability": "Refines PAR-07/S8, PAR-14, PAR-49, PAR-59, PAR-144, and Phase 6 validation cadence. Keep parser/writer-local semantic assertions separate from FreeCAD consumer behavior; preserve existing ACAD_LAYOUT dictionary-membership next slice.",
+    "mutableSourcesMustBePinnedBeforeQualification": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRunInResearchPass": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

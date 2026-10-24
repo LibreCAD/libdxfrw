@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader 3D renderer and proprietary-viewer route screen",
+  "mode": "primary-source repository/documentation research and local plan reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen open-source 3D renderer/viewer projects that claim SAT/SAB or DWG 3D handling",
+    "Separate render projections and fallback geometry from full B-rep semantic evidence",
+    "Check codec lineage and detailed capability rows before admitting peers",
+    "Reconcile source-level LibreDWG AcDs handling with the existing local ODA-backed gate",
+    "Update only the existing peer and composed-consumer evidence gates"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project source, documentation, and current local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "src/intern/dwgreader.cpp",
+      "src/drw_datastorage.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "limitations": "Conclusions rely on project-authored public documentation/source pages and were not confirmed by installing or executing peer software. ProGPU's SAB implementation source and tests were not independently audited. Mutable master documentation is not release qualification. No source-format grammar change is proposed; any such DWG work still requires the repository's authoritative ODA specification and trace-driven evidence."
+  },
+  "sources": [
+    {
+      "project": "ProGPU",
+      "urls": [
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/Directory.Build.props"
+      ],
+      "revision": "Mutable main documentation reviewed 2026-10-18",
+      "observed": "DXF.md describes tagged SAB scanning plus a tagless sequential fallback and endpoint extraction from edge/vertex/point records. The architecture describes ACIS rendering/tessellation and says full B-rep should be retained. These statements support, at most, a potential projection-only comparison. No exact parser source/test audit or runtime was performed; they do not establish complete body semantics, DWG parsing, AcDs ownership, or native CAD acceptance."
+    },
+    {
+      "project": "MlightCAD cad-viewer",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer/blob/main/README.md",
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md"
+      ],
+      "revision": "Mutable main documentation reviewed 2026-10-18",
+      "observed": "The open-source default DWG route uses LibreDWG. The disclosed alternative parser is a commercial/private package and is described as extracting 3DSOLID with only partial SAB decoding and best-effort wireframe or bounding-box fallback, not full B-rep tessellation. The alternative is excluded from the open-source peer set; the default route is not independent of LibreDWG."
+    },
+    {
+      "project": "CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel"
+      ],
+      "revision": "Mutable main README reviewed 2026-10-18",
+      "observed": "The broad overview mentions ACIS among many format categories, but the detailed SAT/SAB read/write rows are disabled/planned and the FAQ describes proprietary-format support as planned. This confirms the existing DISCOVERY_ONLY / ACIS_UNSUPPORTED disposition; no runnable route was tested."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable master source/manual/history reviewed 2026-10-18",
+      "observed": "Current source names and dispatches AcDb:AcDsPrototype_1b through a dedicated section reader/parser path. Project history still describes AcDs storage as incomplete/unreliable and modern R2013+ SAB extraction as brute-force. This provides a useful envelope-versus-payload diagnostic comparison but not a complete owner/key/payload oracle or semantic qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds a narrow renderer/viewer candidate screen to the existing PAR-07/S8 evidence inventory. ProGPU is only a possible pinned projection comparison; MlightCAD's commercial parser is excluded and its open-source path is LibreDWG-lineage; CADKernel remains unsupported for ACIS. Existing source-to-carrier-to-body-to-operation and native-consumer gates remain unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not add a peer dependency, CTest, fixture, or per-slice peer run from this screen; continue the focused local implementation queue.",
+    "If ProGPU is evaluated later, pin and audit the exact parser source and profile, generate local scratch controls, and label edge-only output PROJECTION_ONLY.",
+    "Never count a bounding-box or wireframe fallback, rendered image, surviving entity shell, or same-lineage reopen as complete B-rep semantics.",
+    "Keep the MlightCAD private parser out of the open-source comparison; its public documentation is not authorization to install or trial a proprietary package.",
+    "Treat LibreDWG AcDs section discovery separately from record grammar, owner/key association, and ACIS semantic evidence; use the local ODA specification before any DWG layout changes.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; no evidence in this pass qualifies their external/platform or independent semantic requirements."
+  ]
+}

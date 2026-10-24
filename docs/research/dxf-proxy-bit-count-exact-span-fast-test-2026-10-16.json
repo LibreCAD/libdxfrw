@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-dxf-proxy-bit-count-exact-span-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Require proxy DXF bit-sized payloads to occupy exactly ceil(declared bits / 8) bytes, including rejection of surplus whole bytes when the declared bit count is byte-aligned.",
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-F59F0EC3-D34D-4C1A-91AC-7FDA569EF016.htm"
+  ],
+  "implementation": {
+    "productionChange": "validateProxyDxfPayloads compares each declared bit-sized byte vector against the exact ceiling byte count; the former alternative accepting one extra byte was removed.",
+    "generatedCases": [
+      "Existing 9-bit ASCII/binary entity and object payload positives retain exactly two data bytes.",
+      "New ASCII/binary entity and object cases declare 16 bits but provide three bytes and are rejected before typed or raw callback publication.",
+      "Existing 16-bit/two-byte retained-budget object controls remain positive."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_hardening_tests -j4",
+      "result": "passed"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "passed",
+      "passed": 1,
+      "failed": 0
+    },
+    "diffCheck": "passed for src/libdxfrw.cpp and tests/hardening_tests.cpp",
+    "fullSuitesOrSanitizersRun": false
+  },
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-20",
+      "PAR-36",
+      "7F",
+      "existing proxy-capture fast tests"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

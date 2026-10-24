@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-137 generated/no-chunk modeler SAT caret escape symmetry",
+  "mode": "Primary-source, local source and focused-test audit; plan update only",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "6ca84a7b36d36e80c7a80768234c27ff1faf5d7eaf864642cc7ece7909f21447",
+  "worktreeState": "Shared worktree broadly dirty; only the parity plan and this research receipt were changed in this pass; no commit created",
+  "scope": [
+    "Trace the semantic ASCII-DXF caret codec boundary against opaque ACIS/SAT DXF group-1/3 carriers.",
+    "Audit modeler parser/writer behavior when source chunk metadata is present or absent.",
+    "Identify any local test-owner gap and specify the smallest implementation-ready, generated regression slice.",
+    "Keep 2D, raw SURFACE, Binary DXF, native-application and ACIS semantic evidence boundaries explicit."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-BB62483A-89C3-47C4-80E5-EA3F08979863.htm"
+      ],
+      "revision": "Published pages reviewed 2026-10-19",
+      "observed": "The ASCII string reference documents caret encoding of control characters and caret-space for a literal caret. The 3DSOLID/SURFACE tables describe modeler group 1 as proprietary data and group 3 as additional/continuation text lines, capped at 255 characters per line.",
+      "evidenceCeiling": "Normative DXF text-string and entity-carrier references; they do not define libdxfrw's in-memory raw SAT contract, prove every payload semantic, or establish B-rep validity/native acceptance."
+    },
+    {
+      "project": "Local libdxfrw source",
+      "urls": [
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "src/intern/dxfwriter.cpp"
+      ],
+      "revision": "Shared worktree source reviewed 2026-10-19",
+      "observed": "DRW_ModelerGeometry::parseCode manually decodes caret-space in each group-1/3 value. writeDxfSatTextPayloadChunks uses writeDxfSatTextValue when chunk metadata exists, but with an empty map falls back to writeDxfTextChunks and raw writeString. The raw path does not escape the caret; therefore a synthesized payload containing caret-space is written in a spelling the parser decodes to a caret, losing the following space. DRW_Surface instead retains/writes raw carrier bytes and does not use the modeler parser's caret decoder.",
+      "evidenceCeiling": "Source-confirmed mismatch by direction/call-path inspection; no executable reproduction or peer/native acceptance was run in this pass."
+    },
+    {
+      "project": "Local libdxfrw tests",
+      "urls": [
+        "tests/hardening_tests.cpp",
+        "tests/modeler_dxf_writer_matrix_tests.cpp"
+      ],
+      "revision": "Shared worktree test source reviewed 2026-10-19",
+      "observed": "The stack-buffer test checks explicit group metadata, caret escaping, ASCII/Binary chunk bounds and following records. The reviewed controls do not construct a modeler text payload with an empty chunk map and a literal caret-space pair.",
+      "evidenceCeiling": "Test-source coverage inventory only; the uncovered path was not executed during this plan-only pass."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/tools/text.py#L466-L478",
+        "https://ezdxf.readthedocs.io/en/stable/tools/text.html"
+      ],
+      "revision": "Mutable source and stable documentation reviewed 2026-10-19",
+      "observed": "ezdxf exposes a dedicated caret_decode utility and documents caret notation as a text-normalization helper.",
+      "evidenceCeiling": "Utility-level design corroboration only. It does not establish automatic import behavior for all tag fields or provide ACIS/SAT semantics."
+    }
+  ],
+  "finding": {
+    "id": "PAR-137",
+    "owner": "Existing PAR-07/S8 modeler text-carrier branch",
+    "title": "Synthesized/no-chunk SAT caret escape symmetry",
+    "status": "SOURCE_CONFIRMED_WRITER_READER_ASYMMETRY; PUBLIC_PATH_REPRODUCTION_PENDING",
+    "statement": "The modeler group-1/3 parser always interprets caret-space as a literal caret. The explicit-chunk writer escapes literal carets before chunking, but the accepted empty-chunk fallback writes raw SAT bytes. A synthesized payload containing caret-space therefore loses its space on readback.",
+    "implementationPlan": [
+      "Extend runModelerDxfWriterMatrix with generated AC1018/AC1024 ASCII/Binary public writer/import controls for an empty chunk map containing literal caret-space, with exact payload, source-immutability, following-record and EOF assertions.",
+      "Route the empty-map path through one SAT-specific bounded escape/chunk policy; preflight the complete value before record publication and keep caret pairs indivisible across the 255-character boundary.",
+      "Re-export/re-import once and compare ordered group-1/3 tags plus exact payload bytes; retain existing explicit-chunk and qualified AC1015 SAT-v1 controls.",
+      "Add an ASCII/Binary SURFACE raw-carrier negative control so this targeted fix cannot apply the semantic-string codec to raw surface bytes.",
+      "Build the touched target and run build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix directly, plus scoped git diff --check. Run the broader owning CTest at its existing cadence; add no CTest registration. Use lc3_compat_check only for public API/layout edits."
+    ],
+    "notInScope": [
+      "No generic PAR-136 transformation over opaque SAT/SAB or SURFACE bytes.",
+      "No new DWG/DXF fixture, CTest registration, dependency, full-suite run, external peer runtime, native app, or kernel run.",
+      "No promotion of DWG/DXF, 3D, ACIS/ACDS, B-rep, or any external-only J256/J260/J268/J284/J293/J295 support claim."
+    ]
+  },
+  "method": {
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "commitCreated": false
+  },
+  "assessment": {
+    "planUpdated": true,
+    "newFindings": 1,
+    "newTopLevelSubplans": 0,
+    "currentTotals": "137 findings / 77 top-level subplans",
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportClaimsPromoted": false
+  }
+}

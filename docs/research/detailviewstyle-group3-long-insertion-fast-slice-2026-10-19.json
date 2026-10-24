@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 DetailViewStyle group-3 label attachment/alignment insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert missing DetailViewStyle group-3 view-label attachment/alignment values (DXF group 90) during same-version raw-carrier export.",
+    "Preserve occurrence mapping when an edited later slot follows omitted earlier slots.",
+    "Verify generated ASCII/Binary output with exact ordered raw groups, typed readback, and style-resource closure."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/detailviewstyle-group3-long-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "The DetailViewStyle overlay inserts missing group-3 group-90 occurrences through the highest edited attachment/alignment slot. When alignment is edited while both original occurrences are absent, it emits the current/default attachment slot first, followed by the edited alignment. Values use signed DXF long representation to preserve the 32-bit wire pattern.",
+    "testCases": [
+      "Remove both group-3 group-90 values from a generated primary DetailViewStyle, confirm typed defaults, edit alignment to 7, export/reimport in ASCII and Binary DXF, and assert attachment 0 precedes alignment 7.",
+      "Compare complete ordered raw DetailViewStyle and SectionViewStyle carriers and verify typed readback and closed style-resource references."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.51
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "Same-source-version DXF typed-field insertion/replay only; no DWG-origin typed serialization or cross-version projection qualification.",
+    "The generated control verifies one later-slot insertion and its default predecessor, not all malformed or ambiguous occurrence profiles.",
+    "No native view-label rendering or broad DetailViewStyle semantic-completeness claim follows.",
+    "The shared worktree is uncommitted and contains unrelated user changes; no cleanup or staging was performed."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "AC1024 TABLESTYLE repeated standard identities",
+  "scope": "Allow R24 TABLESTYLE repeated style records to retain documented standard IDs and the observed raw style-class value zero instead of failing the complete object parse.",
+  "files": {
+    "src/drw_objects.cpp": "6809591c0b40adbc0107a3f2d7c57454ae528c04f38f0c07452ee347d0d671a6",
+    "tests/dwg_object_vectors_tests.cpp": "7433ea13e5ca354249086e7685458d73705a4f31f12cf9eece4aee9df26c9892"
+  },
+  "evidence": {
+    "normative": "ODA Open Design Specification v5.4.1 §20.4.101.2: R24 style IDs 1-4 are standard and custom IDs start at 101; the repeated records carry style ID, class and name after cell-style fields.",
+    "independentImplementation": "ACadSharp DwgObjectReader.readTableStyle reads the repeated per-style index, cell-style fields, ID, class and name without imposing an ID >= 101 constraint.",
+    "localProducerSample": "The existing AC1024 architectural_example-imperial.dwg TABLESTYLE frame (object handle 135) exposed a repeated style identity with ID 1 and raw class 0. The old parser rejected it; the corrected parser reads the sample with zero object parse failures. Class zero remains raw/unmapped because ODA documents only classes 1 and 2."
+  },
+  "change": {
+    "summary": "Repeated R24 style identity validation now accepts standard IDs 1-4 as well as custom IDs >=101, and preserves class value 0 alongside documented values 1 and 2 without assigning it semantics.",
+    "publicApiChanged": false,
+    "classLayoutChanged": false,
+    "wireGrammarChanged": false,
+    "outputPolicyChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_object_vectors_tests dwg2dxf lc3_compat_check -j4",
+      "result": "PASS (-Werror build; LibreCAD compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --tablestyle-identity-domains",
+      "result": "PASS (generated AC1024 identity vectors accept standard IDs and observed class 0; reject out-of-domain IDs/classes)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg_read_AC1024_' --output-on-failure",
+      "result": "7/10 PASS. Three remaining sample failures are elsewhere: ACSH_LOFT_CLASS/ACSH_REVOLVE_CLASS records in the skylight and conference-room drawings, and BLOCKLOOKUPACTION/ACDBPERSSUBENTMANAGER records in the sun-and-sky drawing; those three also report a CLASSES CRC mismatch."
+    },
+    {
+      "command": "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "externalProducerOrNativeApplicationRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Investigate the three remaining AC1024 sample failures from their debug traces, beginning with the ACSH_LOFT_CLASS/ACSH_REVOLVE_CLASS records. Read the applicable ODA object-layout section before changing any parseDwg body. Keep the separate CLASSES CRC discrepancies and the BLOCKLOOKUPACTION/PERSUBENTMGR failures attributed to their own stages. External FreeCAD Linux/Windows and independent ACIS/ACDS qualification gates do not pause local implementation."
+}

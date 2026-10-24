@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACadRust AcDs writer-control route and artifact freshness recheck",
+  "mode": "primary-source web research and plan refinement; no peer execution",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Inspect the current ACadRust planar-body AC1032 DWG round-trip test as a possible scratch-authoring lead",
+    "Distinguish same-codec self-roundtrip, synthetic marker controls, carrier linkage, solid semantics, and native acceptance",
+    "Reconcile GitHub release, mutable-main manifest, docs.rs package index, and docs.rs API page identities",
+    "Add a conditional, low-cost implementation-ready checkpoint without changing support claims or validation cadence"
+  ],
+  "method": {
+    "kind": "Read primary GitHub source/release and docs.rs pages; reconcile claims against local plan and AGENTS.md constraints",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForThisResearchUpdate": false,
+    "localBuildRunForThisResearchUpdate": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAddedForThisResearchUpdate": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForThisResearchUpdate": false,
+    "testCodeChangedForThisResearchUpdate": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "AGENTS.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-acadrust-artifact-channel-split-2026-10-18.json"
+    ],
+    "limitations": "The current-main GitHub source URL is mutable and this review did not resolve its full commit SHA. The GitHub release list, docs.rs crate index, and docs.rs API/source views return conflicting version labels (0.6.4, 0.6.5, and cached 0.5.5 respectively); no Cargo archive was downloaded, locked, or hashed. The AC1032 test is a source-inspected same-codec writer/reader self-roundtrip, not an externally validated DWG or independent ACIS result. No local AC1032 input probe was run; the local reader is documented as a pass-through stub. A separate local SAB framing regression and its focused build/CTest are recorded in acis-asm-count-zero-nonpromotion-fast-slice-2026-10-18.json."
+  },
+  "sources": [
+    {
+      "project": "ACadRust current-main round-trip test",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "revision": "Mutable main page reviewed 2026-10-18; full commit SHA unresolved",
+      "observed": "The dwg_r2018_planar_body_solid_survives_roundtrip test creates a planar cube from eight literal [0,2] vertices and six quad faces, builds a SAT document, inserts it into an AC1032 3DSOLID, and calls dwg_roundtrip. The helper writes with DwgWriter::write_to_vec and reads those bytes with DwgReader::from_stream. Assertions establish entity presence/type and non-empty ACIS data; there is no independent parser, analytic-metric comparison, multi-body pairing check, or native CAD outcome in this test."
+    },
+    {
+      "project": "ACadRust synthetic AcDs/SAB association control",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "revision": "Mutable main page reviewed 2026-10-18; full commit SHA unresolved",
+      "observed": "The adjacent fake_sab_blob helper constructs ASM BinaryFile magic, repeated tag bytes, and an End-of-ASM-data marker. This is a synthetic association/framing control, not a valid ACIS body or semantic solid witness."
+    },
+    {
+      "project": "ACadRust GitHub release and mutable-main manifest",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml"
+      ],
+      "revision": "Pages reviewed 2026-10-18",
+      "observed": "The latest listed formal GitHub release is v0.6.4 at 8d5c46d; mutable main Cargo.toml declares 0.6.5. The current-main test source is not assigned to the immutable tag by this review."
+    },
+    {
+      "project": "ACadRust docs.rs package and primitive API pages",
+      "urls": [
+        "https://docs.rs/crate/acadrust/latest",
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/primitives/index.html",
+        "https://docs.rs/acadrust/latest/src/acadrust/entities/unknown_entity.rs.html",
+        "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_writers/object_writer/entities.rs.html"
+      ],
+      "revision": "Pages reviewed 2026-10-18; generic latest views have inconsistent caches/version labels",
+      "observed": "The crate index page labels latest as 0.6.4, the primitive API banner labels its page 0.6.5, and cached source/API search results still surface 0.5.5. The primitive page documents builders for box, wedge, pyramid, cylinder, cone, sphere, torus, and planar bodies, but the inconsistent generic latest paths do not resolve the exact registry archive or prove that the mutable-main test is in a published package. The generic DWG writer source view shows a R2013+ branch that gates pending_has_ds_data on an AcDs section and SAB-contributing data, writes the entity's empty-inline form, queues SAB payload keyed by entity handle, and parses SAT text when producing binary SAB. This is source-level design evidence only; no output was emitted or inspected."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add ACadRust current-main's generated AC1032 planar-body self-roundtrip as an optional scratch-producer lead only. It is eligible only after exact commit pinning, actual carrier inspection, and local reader-profile readiness; same-codec round-trip and synthetic marker bytes cannot establish independent B-rep semantics or native acceptance. Resolve docs.rs/package identity from a locked exact archive and SHA-256 before using a registry artifact. AC1032 remains unavailable to this probe while the local reader is a pass-through stub."
+  },
+  "implementationReadyChecks": [
+    "Pin the exact source commit and test source hash; for a crate, resolve Cargo.lock/cargo metadata and hash the exact archive before attributing behavior.",
+    "Verify that the chosen peer writer emits the intended AC code and actual AcDs/Prototype1b owner/schema/key/payload route; inspect bytes rather than relying on the test name or same-reader result.",
+    "Gate probe generation on local parser readiness: use AC1027 only if the pinned writer emits it and the local reader parses it; otherwise wait for AC1032 reader qualification.",
+    "If usable, author scratch-only off-origin 3x5x7 and 2x4x9 boxes at distinct coordinates plus an ordinary following entity; keep expected bounds, volume, unit, identity, and association manifest separate from the generated file.",
+    "Capture entity handles, has_ds_data, owner/key/schema linkage, byte offsets/lengths, exact SAB hashes, following-object sentinel, and per-body association before handing payloads to an independent parser.",
+    "Require a separate independent parser/analytic semantics result and separate native platform result; report downstream stages NOT_RUN when an earlier gate fails.",
+    "Keep all generated DWG/DXF/SAB files in scratch, add no peer dependency or routine test, and make no J or support-claim transition from this route alone."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "Only the plan documents and this scoped research receipt were changed for this research update. The shared worktree contains unrelated ongoing implementation changes, which were preserved. A separate local framing-test slice from this turn has its own receipt."
+  }
+}

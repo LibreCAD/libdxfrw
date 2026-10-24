@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACIS reader, kernel, and DWG association evidence selection",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Refresh open-source ACIS parser and shape-construction boundaries",
+    "Check whether current semantic candidates prove B-rep validity, kernel independence, or DWG AcDs ownership",
+    "Compare the official commercial OCCT SAT/SAB component with the open-source peer set",
+    "Turn evidence boundaries into an implementation-ready optional checkpoint without changing local queue order"
+  ],
+  "sources": [
+    {
+      "project": "acis-core",
+      "references": [
+        "https://docs.rs/acis-core/0.3.11/acis_core/"
+      ],
+      "status": "versioned_docs_reviewed",
+      "observation": "The API describes bounded SAB/ASM parsing and model reference validation; documentation says reference closure does not prove B-rep validity or compatibility with a specific Inventor/ASM version.",
+      "limits": "No package was downloaded or executed; this is not a geometry or interoperability result."
+    },
+    {
+      "project": "cq-acis",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md"
+      ],
+      "status": "mutable_docs_reviewed",
+      "observation": "The project documents a bounded SAT/SAB/ASM profile and conversion of supported analytic and experimental geometry to CadQuery/OpenCascade shapes; unsupported conversion is explicit.",
+      "limits": "Shared OCCT kernel family with FreeCAD; format references overlap with ezdxf and CADMPEG; no DWG DataStorage association reader. No semantic run was performed."
+    },
+    {
+      "project": "Open CASCADE ACIS Exchange component",
+      "references": [
+        "https://www.occt3d.com/components/acis-exchange/",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "status": "official_commercial_component_docs_reviewed",
+      "observation": "The vendor documents SAT/SAB translation to/from OCCT shapes and identifies the component as a commercial extension separate from open-source OCCT core.",
+      "limits": "No license or component availability is assumed. It is not an open-source peer, does not validate DWG/AcDs ownership, and its OCCT kernel is not independent of FreeCAD/cq-acis geometry construction."
+    },
+    {
+      "project": "FreeCAD and InventorLoader",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py"
+      ],
+      "status": "existing_route_boundary_refreshed",
+      "observation": "FreeCAD documents its stock DXF importer as unable to read ACIS solids. InventorLoader has its own SAT/SAB parser but uses ezdxf to extract DXF carriers and FreeCAD Part/STEP for geometry construction, with documented unsupported geometry.",
+      "limits": "Mutable source, unexecuted in this pass; add-on output is not the stock FreeCAD importer, a DWG parser, or an independent OCCT kernel result."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "status": "mutable_source_and_version_scoped_issue_reviewed",
+      "observation": "Current source and NEWS distinguish AcDs directory parsing from marker/queued-handle extraction; issue #1411 reports AC1032 SAB/ACDSDATA loss for LibreDWG 0.14.8593.",
+      "limits": "The issue is version- and input-scoped; it is not a universal statement about current master. No peer run or attached drawing review was done."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "status": "issue_and_open_PR_state_reviewed_2026_10_20",
+      "observation": "Issue #1195 describes a DXF-writer omission; PR #1240 is open and not a released fix or independent acceptance result.",
+      "limits": "No branch was built or run; no local defect is inferred."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Made optional ACIS evidence selection question-driven: separate bare-carrier/profile parsing, B-rep construction, DWG AcDs association, writer reimport, and native consumer acceptance; distinguish open-source peers from the separately licensed OCCT component.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "nextImplementation": "Continue the existing local queue. At the already-planned composed checkpoint, select at most one pinned peer appropriate to the exact unresolved layer; if unavailable or unsupported, record NOT_RUN/UNSUPPORTED and self-unblock locally.",
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRunThisPass": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acis-reader-kernel-route-selection-2026-10-20.json"
+    ],
+    "limitations": "Project documentation and issue states are mutable unless pinned above. No parser, kernel, application, native consumer, or file-format behavior was independently executed."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and receipt paths)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

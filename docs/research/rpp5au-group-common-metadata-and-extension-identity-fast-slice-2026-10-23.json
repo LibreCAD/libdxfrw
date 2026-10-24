@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5au",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "GROUP_COMMON_METADATA_HANDOFF_AND_EXTENSION_ROLE_OWNER_PROOF_PASS_FULL_SOURCE_QUALIFICATION_OPEN",
+  "predecessor": "docs/research/rpp5at-source-eed-provenance-and-legacy-text-normalization-fast-slice-2026-10-23.json",
+  "reproduction": {
+    "kind": "SCRATCH_NATIVE_WRITER_READER_ADAPTER_CONTROL",
+    "sourceVersions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "dxfTargets": [
+      "AC1018",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "BINARY"
+    ],
+    "cells": 16,
+    "initialRecipeFrames": 5,
+    "initialMatchedFacts": 3,
+    "initialObservedRecords": 4,
+    "defect": "GROUP's extension dictionary omitted because separately emitted GROUP common metadata did not seed the extension DFS.",
+    "initialLog": "/tmp/rpp5au-initial-control.log"
+  },
+  "implemented": [
+    "Index each addressable GROUP source identity once within existing source-record limits, independently of XRECORD presence; reject duplicate/cross-family owners and unaddressable metadata.",
+    "Seed existing bounded extension DFS from GROUP xDictionary/reactors; require a unique DICTIONARY with reciprocal GROUP owner and traverse admitted descendants/common metadata.",
+    "Allow only reciprocal joined GROUP targets as non-owning reactor edges; preserve containment cycle checks and refusal of unsupported target families.",
+    "Admit GROUP as the parent only for its reciprocal extension dictionary, not a general parent waiver.",
+    "Keep physical common-extension target in the tentative modeled fact; finalization requires a unique DICTIONARY/OBJECTS target with the emitting record as owner.",
+    "Do not alter ordinary DWG parser/layout/dispatch, source retention counts, default strict admission or external support claims."
+  ],
+  "research": [
+    {
+      "title": "Autodesk common group codes for nongraphical objects",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "usedFor": "Common application/reactor/extension/owner channel roles; not native semantic qualification"
+    }
+  ],
+  "controls": {
+    "finalNativeStandardFramesPerRecipe": 6,
+    "finalNativeVersions": 4,
+    "sourceTargetEncodingCells": 16,
+    "modeledFactsPerPositive": 6,
+    "extensionContainsXrecordChild": true,
+    "childTranslatedGroupBackReference": true,
+    "groupCommonEedNonAsciiText": true,
+    "reactorMappedThroughNodKey": true,
+    "graphNegativeCorrectedRetries": 6,
+    "perAttemptEvidenceNegativeCorrectedRetries": 6,
+    "exactOneBelowResourceDimensions": 5,
+    "resourceDimensions": [
+      "nodes",
+      "edges",
+      "staged handles",
+      "source records",
+      "XRECORD payload slots"
+    ],
+    "evidenceNegativeEffect": "Explicit partial export succeeds with five rather than six modeled facts; correcting private evidence restores six. Not a conversion-refusal claim.",
+    "importOpaqueRetentionIncrement": 0
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 18,
+      "failed": 0,
+      "seconds": 1.59,
+      "tests": [
+        "libdxfrw_dwg_eed_text_provenance",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls"
+      ],
+      "command": "ctest --test-dir build --output-on-failure -j3 -R '^(libdxfrw_dwg_eed_text_provenance|dwg2dxf_standard_dwg_source_eed_text_observations|dwg2dxf_standard_dwg_source_text_observations|libdxfrw_text_decode_issue_accumulation|libdxfrw_rooted_standard_dwg_xrecord_eed|libdxfrw_standard_dwg_source_baseline|libdxfrw_rooted_standard_dwg_output_proof|libdxfrw_standard_object_wire_comparison|libdxfrw_standard_dwg_output_allocation|libdxfrw_standard_dwg_payload_profile_and_allocation|dwg2dxf_standard_dwg_object_payload_correlation|libdxfrw_xrecord_writer_codepage|dwg2dxf_standard_dwg_object_source_capture|libdxfrw_standard_dwg_group_metadata|libdxfrw_group_adapter_roundtrip|libdxfrw_extension_graph_limits|libdxfrw_linetype_extension_graph|libdxfrw_dwg_group_dictionary_controls)$'"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 16,
+      "failed": 0,
+      "seconds": 3.21,
+      "tests": [
+        "libdxfrw_dwg_eed_text_provenance",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_dwg_group_dictionary_controls"
+      ],
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "options": "halt_on_error=1",
+      "excluded": [
+        "CLI graph-limit harness (ASan CLI binary not configured)",
+        "DXF-fixture linetype selector (not rebuilt under ASan for this slice)"
+      ]
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "seconds": 9.7,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "scope": "Affected owning aggregates, not full project suite"
+    },
+    "literalSelector": {
+      "result": "PASS",
+      "command": "build/libdxfrw_dwg_local_roundtrip --standard-dwg-group-metadata",
+      "output": "Native GROUP extension/reactor source/output cells=16 graph refusals=6 output evidence refusals=6 resource refusals=5"
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "translationUnits": 2,
+      "command": "clang++ -std=c++17 -Wall -Wextra -pedantic -Werror -I. -Isrc -Isrc/intern -Idwg2dxf -fsyntax-only dwg2dxf/dx_iface.cpp tests/dwg_local_roundtrip_tests.cpp"
+    },
+    "build": {
+      "result": "PASS",
+      "targets": [
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "libdxfrw_gbk_codepage_tests",
+        "libdxfrw_dxf_fixture_tests",
+        "libdxfrw_wave1_tests",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ],
+      "finalState": "ninja: no work to do."
+    },
+    "diffCheck": "PASS",
+    "stagedChanges": false,
+    "interimEvidence": "Expanded positive initially used first readback XRECORD as reactor target. Populated extension changes record order; test corrected to join actual NOD key/handle. Final freshly built checkpoint above supersedes that test-only failure.",
+    "previousReceipt": "RPP-5at's32 bindings were all verified at its checkpoint before this successor changed sources/binaries; preserve it as historical evidence."
+  },
+  "openLocal": [
+    "Source-image alias qualification",
+    "Full source-schema/profile and dependency APPID/name decoder provenance",
+    "Unmodeled CMC/layer state, XRECORD application per-value codepages/length conventions, binary segmentation, skipped fields and speculative decode observations",
+    "Unsupported reactor/common-state target families",
+    "Strict per-attempt companion admission after complete source/final-output qualification",
+    "Three AC1024 visualization files/eight traced parser frames; separate CLASSES/container integrity and SUN output closure",
+    "Legacy TABLE entity/extension integration and separate AC1024+ inline authoring"
+  ],
+  "external": {
+    "deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "status": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "promotesSupportClaims": false
+  },
+  "notRun": [
+    "Full project suite",
+    "UBSan",
+    "LeakSanitizer",
+    "Native CAD application/platform qualification",
+    "Independent semantic/kernel qualification"
+  ],
+  "limitations": [
+    "Generated writer-reader/adapter evidence is not independent-producer or native application validation.",
+    "Per-record modeled facts do not certify transitive whole-graph/schema/semantic completeness.",
+    "Logical work bounds are not allocator/RSS guarantees.",
+    "No public virtual callback, binary ABI, commit, push, PR or support promotion."
+  ],
+  "commit": null,
+  "newPersistentDrawingFixtures": 0,
+  "goalStatus": "ACTIVE",
+  "bindings": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "2252d18a82ce5646c7c46e79a0e31c99eb25a7aa9791889db8fd5c6cef5eb2fd"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "bd4039d9954af869868ce42b4f14181c95280c115a092052121e7ec19e4547b5"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "34ac8947a285c953427858a8f0651958eed7f7947993187c99acfba2ee29c550"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "75e8e7c0bdda05f1930f0171720b0beaa240d732a1168c9ad3f034552fa28048"
+    },
+    {
+      "path": "dwg2dxf/dx_standard_output.h",
+      "sha256": "ce9c9572c427b123f244ebb97926c5d5172c29d61954244bd2cda0b178acecf1"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "1265613bbb3f0b143144c185bb35f75dcf1f55ad9c1914d300b0101835fe226e"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "02c91cf41bb80a9d1539ea9065d006231d5550c1a715367a22f828523ad1691b"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "7e5bd247c9f2d0c3e2d203b5571c3a6c95df850d1f7c440717f877bcc51cf21f"
+    },
+    {
+      "path": "tests/dwg_local_roundtrip_tests.cpp",
+      "sha256": "f25fc4e817b2515f1e75dd817bf52e4148549a783979f1ee6096228d550e542c"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "3b084a71806f9b090b98cc88c0fe432aa811e6f43d76d9d00c092270ad9ebf19"
+    },
+    {
+      "path": "tests/gbk_codepage_tests.cpp",
+      "sha256": "76d58e541e007f0953a32b2ca80471c43d3fd60bce8acec41d1f98f4ad64af8b"
+    },
+    {
+      "path": "tests/xrecord_test_helpers.h",
+      "sha256": "7cba9a7a3f425ffc76f56b36c36af7a4503ff55471f592352f272f0a771bc8f5"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "4092f8a07681ee33b91520f9f02ad8efc104fe76dadc8e2ca30687fb6f5a3179"
+    },
+    {
+      "path": "docs/research/rpp5at-source-eed-provenance-and-legacy-text-normalization-fast-slice-2026-10-23.json",
+      "sha256": "9ef9bec5931a4c4a4b6e0249666f3e4d0bb694af774724a08e504fc7c80a167c"
+    },
+    {
+      "path": "build/libdxfrw_dwg_local_roundtrip",
+      "sha256": "abd8b01c8177a8ee66e585d3b0c63de5d8b2732d0844ec48c4f237844cfa92be"
+    },
+    {
+      "path": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "012a29824cfd44023350b239cdf4542b7abe499d6d06bab17014218d34d3ad99"
+    },
+    {
+      "path": "build/libdxfrw_gbk_codepage_tests",
+      "sha256": "f1e6e19419b58d259ecdad8d2cae61be613a8892bfb60763d59f6299e2c54768"
+    },
+    {
+      "path": "build/libdxfrw_dxf_fixture_tests",
+      "sha256": "709aec105f6ad6cf65d73162c8e7ba3580fb44d11ffe7148dbfa58aa0ae23975"
+    },
+    {
+      "path": "build/libdxfrw_wave1_tests",
+      "sha256": "5b5e681f78aa9280d78d31ae19b78fe056b4017efaec77a30fa8840d1a3130f3"
+    },
+    {
+      "path": "build/dwg2dxf/dwg2dxf",
+      "sha256": "4fe3c7d26915b951e855ddc6bb8fe2cd8039058391a8a45a2ee9af8d20c84e77"
+    },
+    {
+      "path": "build/tests/CMakeFiles/lc3_compat_check.dir/lc3_compat_check.cpp.o",
+      "sha256": "f0703751fca25e71023d978e750991f5c6a55f0fce823979051837af8039df46"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dwg_local_roundtrip",
+      "sha256": "7d9d217d9afd80feea5993c8c75514618e33471a2970b8cdbbee7975772d52e3"
+    },
+    {
+      "path": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "5f41da1b607887f882e4bf281cb6d808a8559705a7ed06273a8144a3f3fedd74"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_gbk_codepage_tests",
+      "sha256": "6201a1d484dd5ddeee236854293337e49dd122991e89102fffdd499e39c6cd85"
+    },
+    {
+      "path": "/tmp/rpp5au-initial-control.log",
+      "sha256": "c7c5ea991730df609d6e1ddc4460bcf834fa50545d88a1e0a4d66d91b5656c2a"
+    },
+    {
+      "path": "/tmp/rpp5au-controls-verified.log",
+      "sha256": "cbe4c5637b7b164a197f3bf04cf092c28f214d1b3804eed247e894f932a3a945"
+    },
+    {
+      "path": "/tmp/rpp5au-fast-verified-ctest.log",
+      "sha256": "cbe1a3b1e0b2a008af337f8dee7c71bd06c4f85f6c4feae6f94a7539cb5ec535"
+    },
+    {
+      "path": "/tmp/rpp5au-asan-verified-ctest.log",
+      "sha256": "d0a00fb74116eb700334495299baae441611ddff4dedf4807e35130308116704"
+    },
+    {
+      "path": "/tmp/rpp5au-owning-verified-ctest.log",
+      "sha256": "1ba0f0624cb589476e568357e7b3e106b26b71a60888f99b4bc294ec4eb3defe"
+    },
+    {
+      "path": "/tmp/rpp5au-strict-final-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5au-current-build.log",
+      "sha256": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794"
+    },
+    {
+      "path": "/tmp/rpp5au-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "dwg2dxf/dx_iface.h"
+#include "dxf_entity_identity_test_helpers.h"
 #include "intern/dxfreader.h"
 
 namespace {
@@ -838,6 +839,7 @@ bool runModelerBlockFailureTests(const std::filesystem::path& parent, bool keep)
         const char* expectedDiagnostic = fault == 0 || fault == 5 ? "unresolved-insert-target"
             : fault == 1 ? "unresolved-block-owner"
             : fault == 6 ? "unsupported-modeler-target"
+            : fault == 4 ? "dxf-duplicate-source-entity-handle"
             : fault == 2 || fault == 3 ? "unrepresentable-modeler-carrier" : "emit-failure";
         refused = refused && diagnostic.str().find(expectedDiagnostic) != std::string::npos;
         bool untouched = !std::filesystem::exists(path);
@@ -882,12 +884,17 @@ bool runModelerBlockCodecTests(const std::filesystem::path& parent, bool keep) {
         for (const auto* entity : source->mBlock->ent) original.emplace(entity->handle, entity);
         for (const auto* block : source->blocks)
             for (const auto* entity : block->ent) original.emplace(entity->handle, entity);
-        dx_iface exporter;
+        dxf_identity_test::Exporter exporter;
         std::map<std::uint32_t, std::uint32_t> emitted;
         bool ok = exporter.fileExport(path.string(), DRW::AC1024, binary, source.get(), false, true)
             && verifyOutput(path, &emitted);
-        for (const auto& entry : original)
-            ok = emitted.count(entry.first) == 1 && emitted[entry.first] == entry.second->handle && ok;
+        for (const auto& entry : original) {
+            const auto physical = emitted.find(entry.first);
+            const auto published = exporter.sourceToEmitted.find(entry.first);
+            ok = physical != emitted.end() && published != exporter.sourceToEmitted.end()
+                && physical->second == published->second
+                && entry.second->handle == entry.first && ok;
+        }
         if (ok) ++verified;
         passed = ok && passed;
         if (!blocks && !entities) oracleRejections += physicalOracleControls(path);

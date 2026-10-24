@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Peer version claims, build profiles, and downgrade semantics",
+  "mode": "Deeper/broader primary-source web research and plan-only refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreDWG's current reader/writer and build-profile declarations",
+    "Verify whether ezdxf target-version selection performs semantic DXF conversion",
+    "Recheck the current FreeCAD importer routes and their stock ACIS limitation",
+    "Tighten existing peer/native qualification evidence boundaries without adding dependencies or per-slice work"
+  ],
+  "method": {
+    "kind": "Primary project documentation/source review using official repository pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Reviewed mutable master/main documentation pages, not pinned builds or runtime behavior. Project declarations identify intended route limits but do not qualify exact versions, records, or consumers. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "mutable master repository pages accessed 2026-10-18",
+      "observed": "README and tool documentation distinguish broad reader language from advanced R2010+ skipped objects, R2007 and R2010-R2018 writer caveats, stable/debug build profiles, and approximate tool-level coverage estimates. dwgrewrite is documented to reread its own output. These are project declarations and internal consistency behavior, not independent semantic qualification."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py"
+      ],
+      "revision": "mutable master source page accessed 2026-10-18",
+      "observed": "DXFEntity source states that changing or overriding the document DXF version is allowed, unsupported features are ignored by export, and ezdxf does not perform conversion between DXF versions."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "mutable main documentation/source pages accessed 2026-10-18",
+      "observed": "The DXF documentation lists distinct C++ and legacy importer subsets, states embedded ACIS solids cannot currently be read by stock FreeCAD, and describes DWG import as converter-to-DXF followed by the selected DXF importer. Exporter versions and import/export capabilities differ."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds peer-admission and evidence labels to existing composed gates: bind exact build profile and operation; distinguish project-estimated coverage and self-reread from independent semantics; do not interpret ezdxf target-version selection as conversion; bind FreeCAD importer choice and distinguish stock 2D/3DFACE outcomes from ACIS solid semantics. No new implementation task, routine test, dependency, fixture, or support claim."
+  },
+  "verification": {
+    "jsonParse": "passed with jq",
+    "scopedDiffCheck": "passed for the plan; receipt trailing-whitespace scan passed",
+    "researchOnly": true
+  },
+  "workingTree": "The worktree was already extensively modified. This plan update and receipt are intended to remain unstaged and uncommitted; unrelated changes were preserved."
+}

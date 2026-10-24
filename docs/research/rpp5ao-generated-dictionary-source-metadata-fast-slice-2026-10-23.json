@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ao",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "GENERATED_DICTIONARY_METADATA_LOCALLY_IMPLEMENTED_PROJECTION_NOT_FULL_PRESERVATION",
+  "predecessor": "docs/research/rpp5an-group-reference-planning-and-owner-inventory-fast-slice-2026-10-23.json",
+  "implemented": [
+    "Owned immutable NOD/ACAD_GROUP metadata records with bounded visible payload; adapter copies source records without moving them out of callback/finalization state.",
+    "Generated C/D records reuse the typed dictionary emitter for mapped common appdata/reactors/extension handles, XDATA, numeric cloning/hard-owner fields and ordered per-key ownership codes.",
+    "Root selection remains the existing export projection; selected source entries preserve spelling/order/roles, generated entries follow, omitted source entries do not become preserved output.",
+    "GROUP dictionary entries must match emitted GROUP source identities/names exactly, independently of GROUP record order.",
+    "Metadata aliases cannot relabel accepted source records; metadata and root selection freeze after header setup; unsupported non-OBJECTS targets refuse before publication.",
+    "Shared direct/named/generated emission keeps direct dictionary admission before allocator reservation; an owning checkpoint caught and verified the fix for an interim preflight-order regression.",
+    "Fast metadata, metadata-allocation and existing dictionary-admission selectors are registered; no persistent drawing fixture added."
+  ],
+  "validation": {
+    "ctest": {
+      "result": "PASS",
+      "passed": 23,
+      "failed": 0,
+      "seconds": 21.51,
+      "fastLabeled": 20,
+      "scope": "Affected cohort including three owning aggregates; not full project suite",
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dxf_standard_object_identities",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_dwg_codepage_snapshot",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_generated_dictionary_metadata_allocation",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_spline_helix_source_identities",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg_hatch_reference_graph",
+        "libdxfrw_dxf_fixtures",
+        "libdxfrw_classic_vertex_xdata",
+        "libdxfrw_dictionary_key_admission",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_table_callback_owner_order",
+        "libdxfrw_tablestyle_nested_raw_net",
+        "libdxfrw_cellstylemap_dxf_writer",
+        "dwg2dxf_acds_history_dwg_frame_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "libdxfrw_dwg_read_outcome_policy",
+        "libdxfrw_persistent_manager_prefix_dispatch"
+      ]
+    },
+    "metadataMatrix": {
+      "baseVersionEncodingCells": 14,
+      "publishedReadbacksIncludingRetries": 30,
+      "combinedRefusalRetryCases": 16,
+      "outputRefusals": 14,
+      "setupOnlyInvalidEdgeRefusals": 2,
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "checks": [
+        "C/D actual emitted identities and owners.",
+        "Numeric hard-owner/cloning values and exact selected source key order/spelling/350-360 roles.",
+        "Typed/retained reactors, extension handles, custom application payload and XDATA.",
+        "Latin-1-bearing dictionary key and XDATA through legacy and UTF8 targets.",
+        "Rooted authored XRECORD exact ordered string/integer values and owner.",
+        "GROUP dictionary final targets independent of GROUP serialization order.",
+        "An omitted valid null source child does not block projected metadata; no completeness claim for the omission."
+      ]
+    },
+    "rootOnlyTargetControl": {
+      "unsupportedAc1009AtomicRefusal": true,
+      "sameCodecAc1032Retry": true,
+      "actualRootIdentityVerified": true,
+      "scope": "Identity-backed root-only export with generated empty D; not native-DWG rooted XRECORD qualification"
+    },
+    "setupBounds": {
+      "exactVisibleByteBoundary": true,
+      "oneByteOverflowRefused": true,
+      "aggregateItemOverflowRefused": true,
+      "hardByteCapEnlargementRefused": true,
+      "wrongOwnerAliasCountCapDataStorageShapesRefused": true,
+      "priorSetupUnchangedOnRefusal": true
+    },
+    "allocation": {
+      "generatedMetadataCopyAndIndexPositionsRefused": 22,
+      "sameCodecFreshSetupAfterEach": true,
+      "existingPayloadPositions": 68,
+      "existingAcdsBaselinePositions": 10,
+      "scope": "Normal executable-local allocation shim; not ASan-qualified injection",
+      "newGroupPlanAllocationSweep": "NOT_RUN"
+    },
+    "addressSanitizer": {
+      "result": "PASS",
+      "commands": [
+        "libdxfrw_wave1_tests --generated-dictionary-source-metadata",
+        "libdxfrw_wave1_tests --dxf-standard-object-identities",
+        "libdxfrw_wave1_tests",
+        "libdxfrw_dxf_fixture_tests --dictionary-key-admission",
+        "libdxfrw_dwg_local_roundtrip --dxf-spline-helix-source-identities",
+        "libdxfrw_dwg_local_roundtrip --modeler-block-codec",
+        "libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage"
+      ],
+      "scope": "Selected instrumented core/adapter/owning tests; no full sanitizer suite or UBSan claim"
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "translationUnits": [
+        "src/libdxfrw.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/gbk_codepage_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp"
+      ],
+      "flags": "-std=c++17 -Wall -Wextra -pedantic -Werror -fsyntax-only",
+      "limitations": "Predecessor extra-strict fixture unused-helper and Wave1 private/public keyword-macro limitations remain outside this claim; no warning disabled."
+    },
+    "libreCad3SourceTarget": "PASS",
+    "diffCheck": "PASS",
+    "interimRegression": {
+      "owningCheckpointInitiallyFailed": true,
+      "cause": "Direct duplicate-key/target validation ran after a persistent handle reservation, changing retry allocator state.",
+      "resolution": "Separate shared validation/emission phases; validate before reservation, then emit without duplicating the uniqueness index. Focused key admission and final owning aggregate pass."
+    }
+  },
+  "resourceContract": {
+    "maxVisibleSourceBytes": 67108864,
+    "maxCommonItems": 1000000,
+    "maxEntriesPerDictionary": 100000,
+    "workingCopies": "Additional bounded writer-owned copies, not captured-source counts; visible retained-size bounds are not allocator-heap accounting.",
+    "projectionIndexes": "Count/name bounded; temporary views do not own borrowed caller records beyond synchronous emission."
+  },
+  "compatibility": [
+    "No new pure callback.",
+    "Public dxfRW layout changes require consumers to rebuild; source compatibility does not establish binary ABI.",
+    "Fresh/default codec writes without source metadata retain the legacy generated-dictionary path.",
+    "Root graph selection and image-dictionary overlay policy remain existing projection behavior, not full-source preservation."
+  ],
+  "primaryReferences": [
+    {
+      "title": "Autodesk DICTIONARY DXF schema",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm"
+    },
+    {
+      "title": "Autodesk common object DXF codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm"
+    },
+    {
+      "title": "ObjectARX DXF group-code roles",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-DXF_Group_Codes.html"
+    }
+  ],
+  "remainingLocal": [
+    "Full current DWG source-frame to actual-output field/value/edge proof for DICTIONARY/GROUP/XRECORD, including omissions and qualified modeled edits.",
+    "Unmodeled common DWG state/CMC extensions and regenerated image source aliases remain unqualified.",
+    "Separately rooted native-DWG following XRECORD positive; retain current orphan negative.",
+    "Bounded strict composed version/encoding/refusal/retry checkpoint, then legacy TABLE entity/extension integration and AC1024+ inline authoring.",
+    "Separate container-integrity diagnostics and pending GROUP-plan allocation sweep."
+  ],
+  "external": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "linuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemantics": "NOT_RUN"
+  },
+  "supportClaimsPromoted": false,
+  "opaqueCompanionRetentionPromoted": false,
+  "drawingFixturesAdded": false,
+  "nativeCadApplicationsRun": false,
+  "newIndependentPeerQualification": false,
+  "implementationBindings": {
+    "CMakeLists.txt": "ef2ef949efa1b81b11261e12aa5430ae0a673221c7913bda6b793e2a828174a2",
+    "src/libdxfrw.h": "c17220af9f827e1c42ebf9d62a80e050efdc4965469a3eaf0bd9d2f4b14bd8be",
+    "src/libdxfrw.cpp": "da584a8bb52b89d56ed2923659b613ae9c2220d504f1ffada48030cc6fac5526",
+    "dwg2dxf/dx_iface.cpp": "cba89424e9992db7b9dae4a7fcc1d850d1f7f4706c42dfcf9a2be2ae6b7cd69d",
+    "tests/wave1_tests.cpp": "e4864aef54f651ef6a748bba844c54b9b9955bd2915ba6885dda8bceb67e5377",
+    "tests/gbk_codepage_tests.cpp": "2ff5bd7645c619cb64e56d4c0d26e10c7cadab7c53f5f1a622a9106215046389",
+    "docs/3D_CONSUMER_CONTRACT.md": "c669c19375f62cb72d5fcdc32de4eb314f1b7af07b3cad5ea97e8aedf3f8dde6",
+    "build/libdxfrw_wave1_tests": "a99265840120b356dd9a53b6c060548602bf3036102acb49cfbfb82759c3cbfc",
+    "build/libdxfrw_gbk_codepage_tests": "9d8616932767f2df21de57ef49782c2c3ece0a9abcecbfabae8ef12b4ccf473b",
+    "build/libdxfrw_dxf_fixture_tests": "e7ee97958cf42927e0c50406b6a4021ca4e6045f12324d607f90eb71e19c446d",
+    "build/libdxfrw_dwg_local_roundtrip": "c0ebb157f409d7d79e46d54e00fbf134a8d648f78ab0108ca85523fb43e8dc89",
+    "build/tests/libdxfrw_dwg2dxf_adapter_tests": "935e31abe7e71065e667f492c1b54b7852a77eb9b0d679b44eb51d1d67ec43b8",
+    "build/libdxfrw_dwg_reader_matrix_tests": "7dbbcb6b698d84db2564ca16674fbc10191da7a9354e360b7ad55b7707ac0248",
+    "build/dwg2dxf/dwg2dxf": "af6accb712a30e5f44993f279cd74d9b9900df053e177ab11e023101b9b16cdd",
+    "build-asan-custom/libdxfrw_wave1_tests": "d817e95f0eac2399b4b87d2aa3c62a97f90953d2737af7c905c4702a4b90f78d",
+    "build-asan-custom/libdxfrw_dwg_local_roundtrip": "e1cb4c3a31d23e789706b07909e28607ef0006912b9321ba69acbfd8e1f22ac8",
+    "build-asan-custom/libdxfrw_dxf_fixture_tests": "5304176fc6b1a19ad3f7ce52e032b68ef15c3b8d4afac75b7af3cbdfcca0662c"
+  }
+}

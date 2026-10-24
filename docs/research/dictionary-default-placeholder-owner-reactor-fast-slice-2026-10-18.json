@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.implementation-slice-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Closed owner-dictionary PLACEHOLDER reactor route",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Admit one well-formed PLACEHOLDER ACAD_REACTORS pointer only when it targets the already-rooted DICTIONARYWDFLT owner dictionary",
+    "Preserve distinct reactor and final-owner code-330 scopes and remap both during DXF output",
+    "Enable valid typed DWG-origin DICTIONARYWDFLT/PLACEHOLDER callback serialization without treating synthetic evidence as a real reader result",
+    "Keep unknown, multiple, malformed, or unrelated reactor targets atomic and fail-closed"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "rawRoute": {
+      "control": "dictionaryWithDefaultAdapterRoundTrip",
+      "formats": ["ASCII DXF", "Binary DXF"],
+      "positive": "One balanced ACAD_REACTORS group with code-330 target equal to the rooted WDFLT handle and one trailing owner code-330; output readback verifies both remap to the emitted WDFLT handle.",
+      "negative": [
+        "unclosed reactor scope",
+        "multiple reactor pointers",
+        "unscoped extra code-330",
+        "duplicate owner",
+        "missing owner",
+        "unresolved target refused without replacing the destination"
+      ],
+      "retry": "Restore the valid WDFLT target and export with the same dx_iface instance after atomic refusal."
+    },
+    "typedRoute": {
+      "control": "Synthetic DWG-origin import receipt and typed callbacks",
+      "positive": "Typed PLACEHOLDER reactor points to its already-rooted WDFLT owner; DXF readback verifies reactor and owner handles.",
+      "negative": "Unrelated target refused atomically; correcting the target retries successfully on the same adapter.",
+      "evidenceLimit": "Synthetic receipt exercises adapter/serializer logic only; no real DWG parse is claimed."
+    },
+    "serializerAdmission": "writeDictionaryWithDefault accepts either a complete DXF payload or complete DWG entries that pass the version-aware DWG payload validator.",
+    "typedSerializerMatrix": "Direct typed serializer reactor wire shape checked for AC1014, AC1015, and AC1027 in ASCII and Binary.",
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dictionary_default_adapter_roundtrip|libdxfrw_named_resource_import_evidence|libdxfrw_dictionary_with_default_writer)$' --output-on-failure",
+      "result": "PASS (3/3; 0.63 s)"
+    },
+    "diffCheck": "git diff --check -- src/libdxfrw.cpp dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md — PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeCadRun": false
+  },
+  "supportDisposition": {
+    "claimsPromoted": false,
+    "planFindings": 133,
+    "topLevelSubplans": 76,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "remainingQualification": "A real repository/local DWG-origin PLACEHOLDER witness and independent semantic/native acceptance remain unverified; arbitrary reactor targets remain unsupported."
+  },
+  "source_sha256": {
+    "src/libdxfrw.cpp": "33cfe7e0039492159f2b487864dfe20941abe589772ef3830271a8ad8b1d48b6",
+    "dwg2dxf/dx_iface.cpp": "4128e1c6e834932a4eaa1a3b27bdd9aecd7a7fad3354faabd1f4b2dd0e7e224e",
+    "tests/dwg2dxf_adapter_tests.cpp": "5202e4df492cdc86555f6f360112eac522617df528421e839357b8bfba16d02b",
+    "tests/dxf_fixture_tests.cpp": "9677dd651e3e09d7dff968dad90754d8ee47989150523426c1d469482efa0db4"
+  },
+  "workspaceNote": "The generated controls and synthetic DWG receipt establish local writer/adapter consistency only. No real DWG-origin WDFLT sample, external drawing, native CAD run, or broad support promotion is established. Work remains uncommitted in a broadly modified shared worktree."
+}

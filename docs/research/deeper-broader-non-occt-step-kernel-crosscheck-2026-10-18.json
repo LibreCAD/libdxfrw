@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader non-OCCT STEP-kernel candidate for an ACIS semantic cross-check",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen for a non-OCCT open-source B-rep/geometry route that could complement the existing SAT/SAB reader candidates",
+    "Assess a composed CADMPEG ACIS-to-STEP and OpenSolid STEP/B-rep path without treating it as a DWG/DXF or AcDs reader",
+    "Identify readiness checks that would make the route useful at the existing one-time composed evidence checkpoint",
+    "Preserve local fast-slice cadence, fixture restrictions, support-claim boundaries, and deferred J-item statuses"
+  ],
+  "method": {
+    "kind": "Read-only review of current primary-project documentation, package API documentation, and existing local plan state",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-acis-consumer-route-closure-2026-10-18.json",
+      "docs/research/deeper-broader-acis-payload-profile-peer-independence-2026-10-18.json"
+    ],
+    "limitations": "The CADMPEG and OpenSolid project pages are mutable. This pass reviewed documented interfaces and claims, not the complete source/dependency graphs; no exact OpenSolid commit/release was pinned, no STEP file was generated or imported, and no ACIS payload, native application, or geometry kernel was run. The OpenSolid README reports conflicting aggregate test totals in different sections. No local Rust toolchain was available on PATH."
+  },
+  "sources": [
+    {
+      "project": "CADMPEG",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md",
+        "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/"
+      ],
+      "revision": "Published cadmpeg-codec-sat 0.6.1 API and mutable project documentation reviewed 2026-10-18",
+      "observed": "The project's overall bare SAT/SAB/ASM support score is L1. Its profile describes extra connected B-rep transfer for ACIS binary majors 217 and 218, while the codec consumes a bare payload rather than DWG/DXF or AcDs. The architecture documents a STEP Part 21 writer and machine-readable decode/export losses. These are declared capabilities, not an executed result on the planned payload."
+    },
+    {
+      "project": "OpenSolid / opensolid-fable",
+      "urls": [
+        "https://github.com/MC-Meesh/opensolid-fable",
+        "https://github.com/MC-Meesh/opensolid-fable/blob/main/README.md"
+      ],
+      "revision": "Mutable GitHub main README/repository page reviewed 2026-10-18; no published release was visible in the reviewed repository page",
+      "observed": "The README describes a Rust hybrid F-Rep/B-rep kernel, STEP AP203 read/write, topology checking and mass properties. It also states that STEP import has a mesh fallback and a known shared-geometry re-import issue. Its documentation says OpenCASCADE-derived reference metrics for 33 STEP corpus files are checked by tests, but this does not qualify an ACIS-derived input or establish the route on this task's exact files. The README gives inconsistent aggregate workspace test totals (1,593 and 1,187) in separate sections, so those totals are not used as evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds OpenSolid as an unqualified optional non-OCCT downstream STEP/B-rep kernel candidate. A future composed check may feed CADMPEG-emitted STEP from an already-associated, exact-profile SAT/SAB payload into a pinned OpenSolid STEP reader, but only with no required loss, no mesh fallback, complete per-body identity, and independent source-authored expectations. The route cannot establish the DWG/DXF/AcDs carrier join, native FreeCAD acceptance, or general ACIS support. It adds no routine validation cost and does not alter the local implementation queue.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Start with a source-authored asymmetric analytic control and an expected manifest that is independent of CADMPEG and OpenSolid.",
+    "Close and hash the source entity-to-AcDs-to-payload association before extracting a bare SAT/SAB stream.",
+    "Require a pinned CADMPEG artifact/source, exact admitted ACIS 217/218 profile, successful geometry transfer, and no loss affecting the requested body before STEP export.",
+    "Require a pinned OpenSolid commit/toolchain/dependency lock and prove the STEP input follows its exact B-rep path rather than mesh fallback or partial transfer.",
+    "Compare complete per-body identity, units, transforms, topology, bounds, area, volume, and centroid against source-authored expected values and declared tolerances.",
+    "Keep STEP conversion, independent kernel validation, native FreeCAD Linux/Windows runs, native DWG audit, and DWG AcDs ownership as separate evidence cells.",
+    "Use only at the existing one-time composed gate; if any profile, loss, lineage, or fallback condition cannot be resolved, record NOT_RUN/NOT_QUALIFIED and continue local implementation.",
+    "Keep all generated outputs in scratch storage; add no external test fixtures, CMake/CI dependencies, or routine peer jobs."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

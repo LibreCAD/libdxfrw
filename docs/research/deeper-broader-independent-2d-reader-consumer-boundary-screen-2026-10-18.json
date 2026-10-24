@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader independent 2D reader and consumer-boundary screen",
+  "mode": "primary repository/documentation review with read-only local plan reconciliation",
+  "scope": [
+    "Screen newly visible DWG/DXF parser implementations outside the current peer matrix",
+    "Determine the exact evidence ceiling of a standalone 2D DWG renderer/parser candidate",
+    "Refresh the FreeCAD DXF and DWG consumer boundary using official documentation/source entry points",
+    "Refine implementation readiness without adding a peer dependency, routine validation, fixture, or support claim"
+  ],
+  "method": {
+    "kind": "Review GitHub repository README, object-type and version documentation, commit history, official FreeCAD DXF documentation and source entry points, then reconcile with existing local plan gates",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ft_model capabilities and corpus descriptions are project-authored; its fixtures and expected-value provenance were not audited and no binary/source build was run. Its reviewed short commit ID is discovery provenance only. FreeCAD documentation is from the official documentation repository, which is archived; mutable FreeCAD source was not pinned to an installed release. No runtime interoperability or semantic result is established."
+  },
+  "sources": [
+    {
+      "project": "hhcme/ft_model",
+      "urls": [
+        "https://github.com/hhcme/ft_model",
+        "https://github.com/hhcme/ft_model/blob/main/docs/dwg_object_type_reference.md",
+        "https://github.com/hhcme/ft_model/blob/main/docs/dwg_version_deltas.md",
+        "https://github.com/hhcme/ft_model/commits/main/"
+      ],
+      "revision": "README/docs on main as accessed 2026-10-18; history lists V1.0.0 milestone short revision 408e34e dated 2026-06-06",
+      "observed": "Project describes a self-developed C++20 DWG/DXF reader and 2D rendering engine, DWG release families R2000 through R2018, a scene-graph-to-JSON rendering path, synthetic DXF regression baseline, and real-DWG sentinel data. Its type reference labels fixed DWG type 31 SOLID as a planar fill. The reviewed public route does not document a DWG/DXF writer, AcDs join, ACIS semantic reader, or B-rep kernel.",
+      "limits": "Self-description and source documentation do not qualify parser completeness or semantic correctness. Test-data provenance and expected manifests were not audited; no project binary was built or run. The short revision is not sufficient for a reproducible comparison. A renderer/JSON projection may omit source identity and parser state."
+    },
+    {
+      "project": "FreeCAD and FreeCAD-documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DXF_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "revision": "Official documentation main and FreeCAD source main accessed 2026-10-18; documentation repository reports archived 2026-04-01; no exact installed application/source commit was selected",
+      "observed": "The official Draft DXF page documents separate built-in C++ and optional legacy Python importers with different entity coverage, states that stock FreeCAD cannot read the binary ACIS/SAT blob used for DXF 3D solids, and describes DWG as external converter output to DXF followed by the selected DXF importer.",
+      "limits": "The documentation repository is archived, and mutable source/docs do not qualify a particular release, platform, importer backend, preference profile, converter, or native behavior. This is a route-scope boundary, not a local libdxfrw result or an ACIS semantic test."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "Peer admission and differential evidence matrix",
+      "FreeCAD Linux/Windows composed consumer qualification",
+      "3D entity-name and modeler-semantics distinction"
+    ],
+    "newWatchlistCandidates": [
+      "hhcme/ft_model — optional 2D structural/renderer differential only, provenance-gated"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Keep ft_model off the routine validation path. Admit only a one-time optional 2D differential if a specific unresolved field/graph gap remains, and only after full source/build identity plus test-data provenance are established. Use independent expected values and entity/owner dispositions; reject raster/render-only output as structural evidence. Distinguish planar DXF SOLID from 3DSOLID/ACIS. Retain FreeCAD's separate converter, intermediate DXF, importer backend/settings, explicit entities, opaque carrier, and semantic-solid evidence rows.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check for DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Modeler DXF text chunk-boundary matrix",
+  "mode": "local generated fast implementation slice",
+  "planOwner": "DWG/DXF 3D support plan S2.2.5b",
+  "scope": [
+    "Add exact 254/255/256 and 509/510/511 byte boundary controls",
+    "Exercise ASCII and Binary DXF modeler-carrier round trips",
+    "Keep local byte preservation separate from native cut-policy acceptance"
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "--modeler-dxf-chunk-boundaries",
+    "payloadLengths": [254, 255, 256, 509, 510, 511],
+    "encodings": [
+      { "encoding": "ASCII", "version": "AC1018" },
+      { "encoding": "Binary DXF", "version": "AC1021" }
+    ],
+    "generatedVariants": [
+      "plain payload with final-byte sentinel",
+      "whitespace immediately before/on/after first and second candidate cuts",
+      "ordinary TOKEN text crossing each candidate cut where enough payload remains"
+    ],
+    "assertions": [
+      "exact reconstructed modeler bytes",
+      "exact expected group-value lengths at each 255-byte boundary",
+      "group 1 for the first carrier chunk and ordered group 3 continuations",
+      "following LINE survives and is delivered after the carrier",
+      "no whitespace-preferred versus fixed-width policy is inferred"
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-chunk-boundaries",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_3D_SUPPORT_PLAN.md",
+      "result": "PASS"
+    }
+  },
+  "evidenceCeiling": "Generated local round trips establish exact text-carrier preservation and group boundaries for the listed payload lengths/encodings only. They do not choose or qualify a native SAT token-cut policy, binary-SAT interoperability, other versions/entities, ACIS semantics, or FreeCAD support.",
+  "externalFindings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repositoryState": "Shared worktree remains broadly dirty and Git metadata is read-only; the slice is uncommitted."
+}

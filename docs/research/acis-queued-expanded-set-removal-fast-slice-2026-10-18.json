@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS queued-versus-expanded membership set removal fast slice",
+  "mode": "local implementation and generated in-memory regression",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Remove redundant processed-membership storage from rooted ACIS body traversal",
+    "Preserve breadth-first worklist order, projected graph links, cycle counts, and fail-closed budget behavior"
+  ],
+  "changes": [
+    {
+      "file": "src/drw_acis.cpp",
+      "summary": "Removed the expanded set and pop-time duplicate guard. The queued set admits each index once before it is appended to pending, so worklist entries cannot duplicate."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "summary": "Tightened the generated owner-linked two-lump cycle regression to maxOutputItems=30, asserts equality with default reachable-node order and graph-link rows plus cycle count, and verifies 29 items refuses with ResourceLimit and clears output."
+    }
+  ],
+  "evidence": {
+    "previousExactOutputItems": 33,
+    "newExactOutputItems": 30,
+    "oneUnderOutputItems": 29,
+    "redGreen": "The 30-item regression failed with the expanded-set guard present and passed after removing it.",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp"
+    ],
+    "results": [
+      "strict target build passed",
+      "direct graph/preservation executable passed",
+      "owning CTest passed 1/1 in 0.59 seconds",
+      "focused diff whitespace check passed"
+    ]
+  },
+  "limitations": {
+    "wallClockBenchmarkRun": false,
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "publicApiChanged": false,
+    "supportClaimsPromoted": 0,
+    "worktreeCommitted": false,
+    "reasonUncommitted": "The shared worktree contains broad pre-existing modifications, including extensive changes to the same source and test files; staging or committing them together is unsafe."
+  },
+  "assessment": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

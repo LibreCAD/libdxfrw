@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "CADMPEG 0.6.3 exact crate profile and semantic-probe refinement",
+  "mode": "Primary-source web research and plan refinement; research only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Resolve the earlier v0.6.3 crate documentation freshness gap",
+    "Separate the exact bare-stream profile from the separately distributed CLI release artifact",
+    "Refine the existing PAR-07/S8 optional ACIS semantic-reader checkpoint without adding validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "cadmpeg-codec-sat 0.6.3 versioned crate documentation",
+      "url": "https://docs.rs/crate/cadmpeg-codec-sat/0.6.3",
+      "published": "2026-10-21",
+      "observed": [
+        "Read-only bare SAT/SMT, ASM BinaryFile4/BinaryFile8, and ACIS BinaryFile 217/218 stream support is documented; container formats such as DWG/DXF are outside this crate's scope.",
+        "Supported records transfer through cadmpeg-asm into cadmpeg-ir; reports expose geometry_transferred and structured losses.",
+        "Other ACIS bands may use the 217/218 grammar under Admission::Unverified and a dialect-unverified loss; this must not be scored as verified semantic qualification.",
+        "Binary framing begins at the declared stream boundary/reference width and stops at the declared solved-record limit or terminator; documentation says it does not search arbitrary payload bytes for record signatures.",
+        "Crate documentation requires Rust 1.88+ and identifies Apache-2.0 licensing."
+      ],
+      "limits": "Documentation is not an executed result. It does not validate the exact local carrier profile, body semantics, source entity ownership, DWG AcDs association, or native CAD acceptance."
+    },
+    {
+      "project": "CADMPEG v0.6.3 release/source identity",
+      "url": "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.3",
+      "revision": "Source commit b504b8857432d3aa77e9539bfde1bb58d60ef93d, as recorded in the prior 2026-10-21 artifact-freshness receipt",
+      "observed": "The existing receipt pins the official CLI release and platform asset hashes. This research did not establish that a specific CLI archive embeds precisely the documented cadmpeg-codec-sat/cadmpeg-asm/cadmpeg-ir 0.6.3 dependency set."
+    },
+    {
+      "project": "Local route inventory",
+      "references": [
+        "tools/verify_acis218_sab_cqacis.py",
+        "docs/research/deeper-broader-cadmpeg-v063-artifact-freshness-2026-10-21.json",
+        "docs/research/deeper-broader-open-source-acis-reader-kernel-lineage-2026-10-21.json"
+      ],
+      "observed": "The repository already has a bounded optional cq-acis observation harness and records CADMPEG and cq-acis as separate but limited parser/geometry routes. This update narrows the role of CADMPEG to one parser/neutral-topology cross-check and does not count crates, projects, documentation, or shared kernel lineage as extra independent votes."
+    }
+  ],
+  "assessment": {
+    "documentationFreshnessGap": "RESOLVED for cadmpeg-codec-sat 0.6.3 profile documentation only",
+    "cliArtifactToCrateDependencyBinding": "UNRESOLVED",
+    "runtimeOrPayloadQualification": "NOT_RUN",
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findingsAndTopLevelPlanCounts": "unchanged (144 / 78)",
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "peerPackagesOrExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "validationCadenceChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing PAR-07/S8 optional gate only. Exact profile, source/dependency, carrier hash and owner binding, independent expected geometry, loss review, and any separate kernel/consumer stages remain required. No change to the local implementation order or per-slice fast-test policy."
+  },
+  "selfUnblockingRule": "If the exact artifact/dependency identity, platform, verified ACIS profile, complete geometry transfer, or attributable loss result cannot be established at the single optional checkpoint, record the exact missing stage as NOT_QUALIFIED and immediately continue the next local-ready implementation slice."
+}

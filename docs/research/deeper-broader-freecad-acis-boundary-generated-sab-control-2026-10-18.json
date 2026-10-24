@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "FreeCAD ACIS consumer boundary and generated SAB control",
+  "mode": "Deeper/broader primary-source review; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Verify the current FreeCAD DXF/DWG import route and ACIS consumer limits.",
+    "Cross-check ezdxf's current public ACIS API as a scratch-only faceted SAT/SAB producer.",
+    "Refresh the current status and evidentiary scope of LibreDWG #1411 and ACadSharp #1195/#1240.",
+    "Refine the plan's FreeCAD platform matrix without turning unsupported stock-importer ACIS into a blocking acceptance condition."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "Current documentation describes DWG conversion to DXF followed by a selected C++ or legacy Python importer; documented entity scopes differ, and embedded ACIS/SAT solids are not read by the stock route. Issue #18454 is closed as not planned after the maintainer identified the unsupported content as ACIS solids.",
+      "evidenceClass": "current project documentation and closed issue; no local application run"
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "revision": "Stable documentation identifies ezdxf 1.4.5",
+      "observed": "The public API documents constructing a body from a mesh and emitting SAT for R2000-R2010 or SAB for R2013/R2018. Loading is limited to known ACIS structures; unsupported records become NONE_ENTITY and data is lost. The project has no ACIS kernel, and mesh extraction is limited to flat polygonal faces.",
+      "evidenceClass": "project API documentation; no package installation/runtime probe"
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "observed": "Open issue #1411 reports generated AC1032 REGION/SAB geometry loss in both conversion directions on LibreDWG 0.14.8593 at 8a1ae76, plus a separate confidential R2018 case. This is version-specific peer evidence and was not independently reproduced.",
+      "evidenceClass": "primary issue report and source/documentation cross-check; no peer executable run"
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "Issue #1195 remains a report of silent DWG-to-DXF omission of ACIS entities. PR #1240 is open, not deployed, and linked to the issue; the live PR page does not establish a released DXF-writer fix.",
+      "evidenceClass": "primary issue and pull request status; no branch checkout or runtime test"
+    }
+  ],
+  "assessment": {
+    "confirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "testsRun": false,
+    "peerOrNativeExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Split stock FreeCAD platform qualification from ACIS semantic qualification. Use current ezdxf API only as an optional scratch producer for a faceted SAT/SAB carrier; do not count its self-read, mesh projection, or carrier bytes as an independent B-rep result. Retain peer issue reports as version-scoped failure leads."
+  },
+  "verification": {
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "receiptJsonSyntaxChecked": true,
+    "markdownDiffCheck": true,
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "nativeQualification": "NOT_RUN",
+    "peerQualification": "NOT_RUN"
+  }
+}

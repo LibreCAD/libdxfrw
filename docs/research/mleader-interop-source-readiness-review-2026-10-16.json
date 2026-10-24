@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw-mleader-interop-source-readiness-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden MLEADER research across the authoritative DWG specification, Autodesk DXF references, open-source parser/writer models, and the local adapter; refine implementation readiness without promoting support claims.",
+  "method": {
+    "kind": "Primary standards and current upstream-source/documentation review plus local source audit",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesInspected": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "src/drw_interface.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "localSourceSha256": {
+      "src/drw_entities.h": "ad0dfe29f23555958a2414fed8d5b991ec0e9da7954ea1d26ff6c316248d70f6",
+      "src/drw_entities.cpp": "4872b84b3060382c33487c2682fe7bef2881f279fac4e48d44909f4bc9391c0c",
+      "src/libdxfrw.cpp": "24061d02370bb9a4f58f4220e6aa62a5899f32b0146bc59f958254422fdfd80b",
+      "src/drw_interface.h": "780b56e90997a4255487396e195740168019a2f0462b3900d43c76e9ad8016cb",
+      "dwg2dxf/dx_iface.h": "463f76c87ac1e26e34f6eaf8d67c3e99af84bedd7fc74077c0f81aa3731627ce",
+      "dwg2dxf/dx_iface.cpp": "fcbfbe5839e5703c3a1482b9e094a9458826e5bad8b8566f56f16a3c0127de72",
+      "tests/wave1_tests.cpp": "ec3222ec3cd9f329ef31b94365812a06a9eeee0ce7c4b61a4ca52219fec1e53c",
+      "tests/dwg2dxf_adapter_tests.cpp": "51137f0efc26d0758b8f60a7310d1ceaf9cdee2c8311bafc2f4ec88da60e2e94"
+    },
+    "evidenceRule": "Standards establish layout and code meanings; peer documentation/source supplies differential leads only. Source inspection and same-implementation roundtrip do not establish independent semantic or native-consumer support."
+  },
+  "evidence": [
+    {
+      "topic": "Authoritative versioned DWG structure",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "ODA v5.4.1 §20.4.48 says MLEADER was introduced in DWG version 21 and embeds substantial content/leader state in MLeaderAnnotContext; §§20.4.86 and 20.4.87 describe the context and style structures.",
+      "planUse": "Use AC1021 as the conservative supported writer floor pending producer-generated lower-version evidence; keep context and style as separate compound schemas."
+    },
+    {
+      "topic": "DXF references are scope-sensitive",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-69B9139A-48B4-48A5-B3CF-A3233ABFBE49.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm"
+      ],
+      "observed": "Entity, nested context, leader-line, and MLEADERSTYLE records reuse group codes such as 340/341 with different target kinds.",
+      "planUse": "Inventory and validate references using record scope, nested parser state, group code, and target kind; require source and emitted target uniqueness."
+    },
+    {
+      "topic": "ezdxf DXF model and version discrepancy",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/mleader.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mleader.html",
+        "https://ezdxf.readthedocs.io/en/stable/tasks/get_entity_content.html"
+      ],
+      "observed": "The docs describe context roots/lines/breaks, MTEXT/BLOCK content, and MULTILEADER spelling; they warn that override flags may not match effective values and state a DXF R2000 minimum, which does not align with the ODA DWG introduction version.",
+      "doesNotEstablish": [
+        "native producer compatibility for pre-AC1021 DXF",
+        "which entity/override value is authoritative in every application",
+        "local semantic correctness or native CAD acceptance"
+      ],
+      "planUse": "Preserve override flags and values independently, test exact-version producers/consumers, and keep pre-AC1021 output experimental until the discrepancy is resolved."
+    },
+    {
+      "topic": "Open-source peer maturity and test boundaries",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/MultiLeader.cs",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": "LibreDWG marks MULTILEADER stable and its MLEADER context class debugging. ACadSharp exposes structured entity/per-line override state but its current branch documents uncertain areas. ACadRust has a generated MultiLeader roundtrip and clears multiple handles during normalization.",
+      "doesNotEstablish": [
+        "the completeness of either peer's current release",
+        "an independent reader/writer result from same-implementation roundtrip",
+        "native application acceptance"
+      ],
+      "planUse": "Use peers as pinned differential leads and field inventories; record entity body, nested context, and reference closure separately."
+    },
+    {
+      "topic": "Local adapter delivery and writer audit",
+      "sources": [
+        "dwg2dxf/dx_iface.h: no addMLeader override; neighboring entity callbacks retain copies",
+        "src/drw_interface.h: addMLeader has a default no-op",
+        "src/libdxfrw.cpp: processMultiLeader calls addMLeader after context closure",
+        "src/libdxfrw.cpp: writeMultiLeader checks only the AC1009 floor and emits nested references directly",
+        "dwg2dxf/dx_iface.cpp: fail-closed MLEADER guard checks only entities retained in dx_data; writeEntity has no MLEADER case",
+        "src/drw_entities.cpp: unknown nested-context codes return success and are consumed"
+      ],
+      "observed": "Parser-delivered leaders reach the inherited no-op callback and are not retained by dx_iface, so the later retained-entity refusal guard cannot see them. The low-level serializer is not wired to the adapter, accepts versions below AC1021, and does not remap all entity/context/line/legacy-array handles. Unknown nested-context tags may be silently lost.",
+      "planUse": "Immediate safe slice is callback retention plus strict fail-closed export and destination-preservation tests. Follow with nested unknown-field policy, writer version floor, complete typed reference closure, and independent qualification."
+    }
+  ],
+  "implementationReadiness": {
+    "existingFindingAndTopLevelSubplanCountsChanged": false,
+    "implementationOrderChanged": true,
+    "immediateSlice": "Retain parser-delivered MLEADER entities in dx_iface and prove adapter export refuses without modifying the destination until a qualified serializer is connected.",
+    "subsequentGates": [
+      "Preserve unknown nested context tags or fail closed; validate nested grammar and resource budgets.",
+      "Enforce AC1021 minimum support until lower-version DXF interoperability is resolved.",
+      "Resolve style, linetype, arrow BLOCK_RECORD, text STYLE, content BLOCK_RECORD, ATTDEF, owner, and layout edges by nested scope and emitted handle mapping.",
+      "Cover MTEXT, BLOCK, none, and explicitly supported/refused TOLERANCE payload states; roots, lines, breaks, transforms, attributes, overrides, and versioned arrays.",
+      "Require pinned independent reader and exact-version native CAD outcomes before any support promotion."
+    ],
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "semanticSupport": "NOT_ESTABLISHED"
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRun": false,
+    "peerRuntime": "NOT_RUN",
+    "nativeQualification": "NOT_RUN"
+  }
+}

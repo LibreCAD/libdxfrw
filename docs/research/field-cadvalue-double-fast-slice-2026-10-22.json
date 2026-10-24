@@ -1,0 +1,42 @@
+{
+  "id": "par134-ac1021-ac1024-field-cadvalue-double",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "ef6fb08f318d629f6affc6fef13499ee2f9b830e3e3960523afc65c13278eeef",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "kDouble (type 2) positive root-value parsing and re-encoding",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "normative": "ODA defines CadValue type 2 as a double.",
+    "localGap": "The generated FIELD DWG vectors had no positive type-2 root value, despite an implemented reader/writer branch."
+  },
+  "change": "Added generated AC1021/AC1024 FIELD root-value controls for finite double 42.5, including unit/format/value strings, enclosing FIELD value text, typed validity, and DWG re-encoding. No production parser or writer change.",
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS (-Werror)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-double: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_cadvalue_double$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_(table_(cell_.*|cadvalue_.*)|field_(cadvalue_double|cadvalue_general_format_flag|cadvalue_unknown_type|oversized_child_value_count))$' --output-on-failure: PASS (15/15)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

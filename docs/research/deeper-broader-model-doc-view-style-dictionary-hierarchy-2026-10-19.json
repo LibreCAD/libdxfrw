@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader ModelDocViewStyle dictionary hierarchy and property-completeness review",
+  "mode": "Primary Autodesk API documentation review plus local source/test audit; plan update only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Verify the documented NOD ownership graph for DETAILVIEWSTYLE and SECTIONVIEWSTYLE.",
+    "Compare the required graph with the current generated ASCII/Binary test and fileExport preflight.",
+    "Screen the style property inventories against local typed fields and refine the existing PAR-20 implementation order."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local source audit; research receipt and plan edited",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Autodesk ObjectARX documentation directly establishes that the ACAD_*VIEWSTYLE NOD key resolves to a dictionary containing style objects, and its public property inventories provide semantic completeness prompts. These sources do not define every DXF field order or DWG byte layout. The local generated test/source were inspected but not rerun or repaired in this research pass."
+  },
+  "sources": [
+    {
+      "project": "Autodesk ObjectARX Reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__getDetailViewStyleDictionary_AcDbDictionary___AcDb__OpenMode.html",
+        "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__getSectionViewStyleDictionary_AcDbDictionary___AcDb__OpenMode.html",
+        "https://help.autodesk.com/cloudhelp/2026/RUS/AutoCAD-AutoLISP/files/GUID-24E52678-513E-4322-8070-B23C8945DC3D.htm"
+      ],
+      "observed": "The database methods open an AcDbDictionary beneath the ACAD_DETAILVIEWSTYLE or ACAD_SECTIONVIEWSTYLE NOD key; the dictionary contains the matching style objects. Autodesk's dictionary example shows these keys with named child records and describes each dictionary entry as a key plus a hard-ownership reference.",
+      "evidenceCeiling": "Authoritative API/object ownership hierarchy and dictionary-entry semantics; not a complete DXF record schema, version matrix, DWG byte layout, or native round-trip result."
+    },
+    {
+      "project": "Autodesk Managed Reference Guide",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_DetailViewStyle.html",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_SectionViewStyle.html"
+      ],
+      "observed": "The documented semantic property inventories include show/display controls, style/resource identifiers, colors, sizes, line settings, label settings, and section hatching controls. Local classes retain some flags or unnamed booleans, so every property needs an explicit field/flag/opaque-preservation/unsupported disposition before typed completeness is claimed.",
+      "evidenceCeiling": "Property-semantic inventory only. Property names do not establish DXF group-code mapping or DWG encoding."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "owner": "PAR-20/7G.3f.4b.2 ModelDocViewStyle graph and same-version replay",
+      "files": [
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "src/drw_objects.h",
+        "src/drw_objects.cpp"
+      ],
+      "observed": "The current generated control stores ACAD_DETAILVIEWSTYLE and ACAD_SECTIONVIEWSTYLE directly in the NOD with handles 0x105/0x106; each style record names NOD handle 0xC as parent. The fileExport root admission accepts exactly a typed style object whose owner is the NOD and emits the style handle under the root key. Autodesk's documented graph instead requires the root key to identify a DICTIONARY, whose child key identifies the style object.",
+      "disposition": "Confirmed local graph/test contract defect. The prior same-codec replay result is self-consistency evidence only; reopen the same-version structural replay slice and replace the generated graph plus exporter/import-evidence hierarchy before claiming valid root closure."
+    },
+    {
+      "owner": "PAR-20 style-field completeness gate",
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp"
+      ],
+      "observed": "Local detail/section style classes contain broad typed payloads, flags, and two unnamed section booleans; the public API property lists include additional named display toggles. No qualified typed style serializer exists in this slice.",
+      "disposition": "Readiness/completeness question, not an additional confirmed wire defect. Build a property-to-wire/flag matrix from authoritative schema or admitted producer traces; do not infer bit/code assignments from API names."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalFindings": 1,
+    "newFindingId": "PAR-138",
+    "newTopLevelSubplans": 0,
+    "existingOwner": "PAR-20",
+    "planEffect": "Correct implementation order: first represent NOD-to-style-dictionary and dictionary-to-style named ownership, then validate typed/raw receipt and resource closure, then remap/output and verify complete normalized raw replay. Keep DWG-origin serialization and native model-view rendering blocked on their separate gates.",
+    "implementationOrderChanged": true,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "localSourceAuditOnly": true,
+    "buildRun": false,
+    "testRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "commitAttempted": false
+  }
+}

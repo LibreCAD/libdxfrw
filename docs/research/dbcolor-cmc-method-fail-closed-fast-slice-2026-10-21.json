@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134/7Q DBCOLOR CMC method fail-closed read/write coverage",
+  "mode": "generated AC1024 fast implementation slice",
+  "scope": [
+    "Preserve CMC method identity in the DRW_DbColor typed parser for its supported C0-C3 model",
+    "Refuse unsupported or unknown explicit DBCOLOR CMC methods instead of normalizing them to a supported color",
+    "Add parser-level generated positive and fail-closed controls to the existing focused object-vector selector"
+  ],
+  "evidence": {
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "2.11 CmColor",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "finding": "R2004+ CMC is encoded as a reserved BS index, method-packed BL, and RC flags for optional TV color/book names.",
+      "limit": "The cited generic CMC envelope does not define semantic payload layouts for every AcCmColor method in the narrower DRW_DbColor class."
+    },
+    "localSource": {
+      "files": [
+        "src/drw_objects.cpp",
+        "src/intern/dwgbuffer.cpp",
+        "src/intern/dwgbufferw.cpp",
+        "src/drw_objects.h"
+      ],
+      "finding": "DRW_DbColor exposes C0 ByLayer, C1 ByBlock, C2 RGB, and C3 indexed color. The generic CMC reader returns a ByLayer-shaped fallback for other method bytes, while this class cannot faithfully represent those methods."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "positive": "AC1024 complete object frames use the production writer for C0-C3 and assert exact parsed method, color value, handle, and applicable names. The current writer emits optional names only on C2 RGB.",
+      "negative": "AC1024 literal generic CMC envelopes exercise C4-C8 and unknown C9 and assert typed parse refusal, bad input state, and reset of preexisting typed values.",
+      "limit": "Unsupported-method controls test bounded refusal at the generic BS/packed-BL/RC envelope only; they do not assert or infer those methods' class-specific payload grammar."
+    }
+  },
+  "changes": {
+    "production": true,
+    "productionSummary": "DRW_DbColor::parseDwg now captures and validates the CMC method, preserves C0-C3 method identity, and fails closed for unsupported methods. DRW_DbColor::encodeDwg refuses explicitly specified nonzero methods outside C0-C3 while retaining the preexisting method-absent inference path.",
+    "generatedTests": [
+      "Extended DbColorCodecProbe to expose parseDwg without changing public API or ABI.",
+      "Added full AC1024 DBCOLOR frame coverage for C0-C3 parsed values and optional RGB name/book values.",
+      "Added unsupported-method refusal/reset coverage for C4-C8 and C9, alongside existing encode refusal and supported writer controls."
+    ],
+    "focusedCtestReused": "libdxfrw_dbcolor_unsupported_method_refusal",
+    "persistentDwgDxfFixturesAdded": 0,
+    "newCtestRegistration": false,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "genericCmColorPolicyChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_unsupported_method_refusal$' --output-on-failure",
+        "result": "PASS (1/1, 0.16 seconds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS (1/1, 0.06 seconds)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "DBCOLOR no longer publishes unsupported CMC method bytes as ByLayer; supported C0-C3 values retain their method identity in generated AC1024 controls.",
+    "unresolved": [
+      "CMC methods outside C0-C3 need consumer-specific payload/semantic evidence before typed support is implemented.",
+      "The generic getCmColor caller inventory and cross-consumer compatibility audit remain open.",
+      "Independent producer, native CAD, and broad external semantic qualification remain separate gates."
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Self-unblock to the existing PAR-03/PAR-04 code/context audit, beginning with a bounded CMC consumer census and the established DXF group-code profile rows; if no further method correction is supported, continue another locally evidenced parity item."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

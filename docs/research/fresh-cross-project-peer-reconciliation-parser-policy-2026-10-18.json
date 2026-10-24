@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Fresh cross-project peer reconciliation: current issue status, parser policy, and comparator limits",
+  "mode": "Primary project documentation and issue review with local source/test cross-check; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh open-source DWG/DXF peer issue status without treating reports as format rules",
+    "Reconcile current peer leads against existing libdxfrw graph, safety, and writer owners",
+    "Verify the local strict policy for out-of-section DXF TABLE records and avoid duplicate work",
+    "Preserve fast per-slice validation and scheduled route-separated fuzzing"
+  ],
+  "method": {
+    "kind": "Read-only review of current primary project pages plus local source and generated-test inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "limitations": "Peer issue claims were not reproduced, candidate peer commits were not built or independently tested, and no external drawing was obtained. Local test source inspection confirms existing coverage but is not a fresh test execution. Mutable project pages are not pinned runtime artifacts."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124"
+      ],
+      "revision": "Issue pages reviewed 2026-10-18",
+      "observed": "Issue #133 reports phantom model-space geometry after re-homing non-null orphan block children. Its page remains open and links candidate commit b62555f with a maintainer request to recheck; no reporter retest is shown. Issue #123 reports count inflation/zero-fill and a stream-derived allocation after a generated bit mutation; its page remains open and links candidate commit 53007f3 with a recheck request but no public corpus retest. Issue #124 reports an unchecked header slice; candidate-fix status was not assessed in this pass. Treat reports as peer-specific failure leads, not format authority or confirmed current-release failures."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1128"
+      ],
+      "revision": "Issue page reviewed 2026-10-18",
+      "observed": "Issue #1128 proposes recovery for TABLE records found outside a TABLES section. This is a nonstandard framing question and is not a normative DXF rule."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md"
+      ],
+      "revision": "README and changelog reviewed 2026-10-18; mutable main branch",
+      "observed": "The library describes ASCII/Binary DXF and DXB read/write and broad DXF version coverage, but its compatibility note explicitly warns that AutoCAD may reject writer output for several entity types, including 3DSOLID, BODY, REGION, and DIMENSION. Changelog entries show incremental handle, block, XDATA, and entity-writer fixes. These support a scoped structural comparator role, not DWG or native 3D acceptance."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg-fuzz",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Current public documentation and NEWS reviewed 2026-10-18; mutable master",
+      "observed": "The project documents route-specific fuzz targets and replay of crashes, hangs, and leaks. This informs the scheduled security-checkpoint method but does not transfer peer results or support claims to libdxfrw."
+    }
+  ],
+  "localCrossCheck": {
+    "outerParserBehavior": "src/libdxfrw.cpp rejects a top-level record outside SECTION framing with BAD_READ_SECTION",
+    "existingTest": "tests/dxf_fixture_tests.cpp testDxfTopLevelRecordFraming generates ASCII and Binary controls for standard TABLES, minimal R12 without TABLES, and out-of-section TABLE; it checks BAD_READ_SECTION and zero entity callbacks",
+    "newCoverageNeeded": false
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refreshes peer issue confidence/status, confirms local fail-closed handling for out-of-section TABLE framing is already tested, keeps IxMilia.Dxf scoped as a structural comparator, and retains LibreDWG fuzzing at the scheduled route-separated security checkpoint. Existing PAR-14/PAR-26, PAR-49/7G, and PAR-07/S8 owners remain unchanged."
+  },
+  "implementationReadyChecks": [
+    "Do not promote issue reports to local findings without an exact local overlap, normative or independently corroborated contract, and a minimal local reproducer.",
+    "For owner-graph changes, assert identity and owner/block/layout membership plus explicit typed, opaque, skipped, refused, or lost disposition; do not rely on aggregate counts.",
+    "For malformed-input changes, derive mutation offsets from local generated inputs and check bounded failure, no fabricated zero-filled content, allocation limits, and next-record alignment.",
+    "Keep strict DXF framing separate from any future recovery mode; the existing out-of-section TABLE negative is sufficient for the reviewed peer proposal.",
+    "Use IxMilia.Dxf only on a pinned exact DXF profile and do not treat same-library round-trip or entity type support as AutoCAD/3D acceptance.",
+    "Continue touched-target builds, one smallest generated selector, and the owning CTest; reserve peer, native, kernel, full-suite, fuzz, and sanitizer work for existing composed checkpoints.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "testsRun": false,
+    "localTestSourceInspected": true,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

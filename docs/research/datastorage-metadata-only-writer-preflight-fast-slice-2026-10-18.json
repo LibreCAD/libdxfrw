@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Metadata-only DataStorage writer preflight",
+  "mode": "local in-memory implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-07 / S8.3 / 7S.3 / libdxfrw_graph_preservation_tests",
+  "implementation": {
+    "productionFiles": [
+      "src/drw_datastorage.h",
+      "src/drw_datastorage.cpp",
+      "src/intern/dwgwriter18.cpp"
+    ],
+    "testFiles": ["tests/graph_preservation_tests.cpp"],
+    "changes": [
+      "Added a four-argument parser overload allowing callers to skip retained record payload copies while validating AcDs metadata; the original three-argument function and default behavior remain available.",
+      "Changed dwgWriter18::addRawDwgSection() structural preflight to use metadata-only parsing; writer finalization retains payloads for exact identity comparison.",
+      "Added generated blob-section assertions that metadata-only parsing remains structurally valid and replayable while retaining record and page metadata with empty payload vectors."
+    ],
+    "fixturesOrDependenciesAdded": false,
+    "newCTestRegistration": false,
+    "scopeLimit": "Only the addRawDwgSection preflight avoids payload materialization. Finalize-time exact pending-payload comparison still uses retaining parse; consumer document copies remain separate."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+    "buildResult": "PASS; strict target compiled and linked.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.84 seconds.",
+    "diffCheck": "PASS for scoped production, test, plan, and receipt paths.",
+    "fullSuite": "NOT RUN; fast-slice cadence retained.",
+    "peerRuntime": "NOT RUN.",
+    "nativeConsumer": "NOT RUN.",
+    "physicalDrawingFixture": "NOT CREATED; generated DataStorage bytes exist only in memory."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-07 / S8.3 / 7S.3 memory-accounting lane.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "commitCreated": false,
+    "worktreeNote": "The shared worktree was already broadly dirty. Nothing was staged or committed."
+  }
+}

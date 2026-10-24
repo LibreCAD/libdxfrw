@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-acis-sab-two-rooted-bodies-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "slice": "S3.7c generated 21800 rooted-body structural matrix",
+  "change": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "Extended the in-memory SAB builder to emit two disjoint body topology graphs in one 21800 stream. The focused test verifies independent body and transform indices, exact raw point coordinates, transform literal/candidate values, and ParsedUnapplied state for both projections.",
+    "persistentDwgDxfSabFixtureAdded": false,
+    "productionParserChanged": false,
+    "dependencyOrTestRegistrationChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    {
+      "command": "jq -e . docs/research/deeper-broader-acis-external-reader-local-bounds-audit-2026-10-21.json",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/deeper-broader-acis-external-reader-local-bounds-audit-2026-10-21.json",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "Generated 21800 record framing, graph-root separation, coordinate retention, and transform candidate offset only. Transform application, units, B-rep validity, independent semantic geometry, DWG AcDs association, and native consumer acceptance are not established.",
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "next": "Continue the next locally evidenced S3.7c structural case; do not wait for optional external semantic reader or platform qualification."
+}

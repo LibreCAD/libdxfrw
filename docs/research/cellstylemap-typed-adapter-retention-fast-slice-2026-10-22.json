@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "CELLSTYLEMAP typed adapter retention and explicit graph refusal",
+  "mode": "source audit plus generated adapter capture and export-preflight tests",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "bf78961b49167924773d406c129990805951d98e67a4b2e0735a07f1ac26d0be",
+  "authoritativeReferences": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.101 TABLESTYLE", "20.4.102 CELLSTYLEMAP"],
+      "finding": "CELLSTYLEMAP is a distinct object carrying custom TABLESTYLE cell definitions; it is not covered by the TABLESTYLE row-style carrier alone."
+    },
+    {
+      "title": "libdxfrw DRW_Interface callback and DWG object dispatch",
+      "url": "https://github.com/LibreCAD/libdxfrw",
+      "finding": "The DWG reader already parsed AcDbCellStyleMap and invoked addCellStyleMap, while dx_iface previously relied on the interface's default no-op callback."
+    }
+  ],
+  "researchConclusion": {
+    "resolved": "The concrete dwg2dxf adapter now retains the typed CELLSTYLEMAP callback under aggregate record, item, and byte limits and export preflight rejects a failed capture explicitly.",
+    "unresolved": "No qualified DXF object-graph serializer or verified owner/root closure exists for custom CELLSTYLEMAP data, so any successfully captured map remains fail-closed before output publication."
+  },
+  "implementation": {
+    "changes": [
+      "Added adapter-owned typed CELLSTYLEMAP storage and sticky capture accounting in dx_data.",
+      "Added a bounded estimator covering table-entry metadata, custom cell-style records, border vectors, CMC names/book names, content format strings, subrecord ranges, and container overhead.",
+      "Added dx_iface::addCellStyleMap with 100000-record, 4000000-item, and DRW::kMaxDxfBinaryPayloadBytes aggregate limits.",
+      "Added prepublication refusal for incomplete CELLSTYLEMAP capture and for any captured CELLSTYLEMAP lacking a qualified DXF graph serializer.",
+      "Added generated tests for nested retention/accounting, exact byte-cap admission, byte/record/item rejection, explicit diagnostics, and no-output refusal."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/cellstylemap-typed-adapter-retention-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "configure": "PASS: cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2 (-Werror)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^dwg2dxf_cell_style_map_typed_capture_fail_closed$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check scoped to the plan, adapter, and test files",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicLibdxfrwModelOrCallbackChanged": false,
+    "cellStyleMapRetainedByDwg2dxf": true,
+    "cellStyleMapSerializedToDxf": false,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Research and implement a versioned CELLSTYLEMAP DXF object-graph serializer only after establishing the owner/root relation and custom cell-style payload mapping; otherwise retain the explicit fail-closed gate."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

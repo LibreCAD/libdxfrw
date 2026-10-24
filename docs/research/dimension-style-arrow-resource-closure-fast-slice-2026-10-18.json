@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-23/7J DIMSTYLE arrow and text-style resource closure",
+  "mode": "local generated ASCII/Binary DXF full-conversion implementation and focused verification",
+  "scope": [
+    "Resolve DIMSTYLE group 340 against an emitted STYLE table row",
+    "Resolve DIMSTYLE groups 341-344 against planned BLOCK_RECORDs with emitted BLOCK/ENDBLK bodies",
+    "Check source handle/name identity and remap resource handles during strict modern conversion",
+    "Preserve default-empty and closed-filled/zero arrow semantics without synthesizing named arrow geometry"
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "gitCommitted": false,
+    "commitReason": "The shared worktree contains broad unrelated edits in the same plan, implementation, and test files; the dependency-bearing slice cannot be isolated safely."
+  },
+  "implementation": {
+    "strictModernConversionOnly": true,
+    "group340": "Case-normalized source STYLE identity must resolve to the emitted STYLE handle; names and source handles are cross-checked.",
+    "groups341to344": "Each nonempty named arrow resource must resolve to a planned BLOCK_RECORD and a BLOCK/ENDBLK body emitted by BLOCKS close.",
+    "defaultHandling": "Empty arrow field remains the default; closed-filled/zero sentinel emits handle 0.",
+    "atomicNegativeControls": [
+      "missing DIMSTYLE text STYLE",
+      "missing named arrow BLOCK_RECORD",
+      "planned arrow BLOCK_RECORD with no emitted body",
+      "mismatched source arrow name and handle"
+    ],
+    "positiveControls": [
+      "ASCII and Binary full-conversion output with a custom STYLE and all four arrow resources",
+      "dynamic DIMSTYLE resource values",
+      "DXF source import then re-export with remapped resource handles"
+    ],
+    "notEstablished": [
+      "standard named arrow block synthesis",
+      "remaining/versioned DIMSTYLE resource codes including candidate 345-347",
+      "dimension picture geometry or rendering",
+      "constraint classification",
+      "native consumer acceptance"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimension_picture_block_full_conversion$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    "receiptJson": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan, implementation, test, and receipts",
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planStatus": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

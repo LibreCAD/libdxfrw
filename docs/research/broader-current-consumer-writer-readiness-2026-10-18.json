@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Broader current consumer and writer-readiness reconciliation",
+  "mode": "primary-source web research and read-only local plan reconciliation",
+  "scope": [
+    "Reconcile current LibreCAD 3 DWG read-only consumer policy with library writer experiments",
+    "Separate the documented stock-FreeCAD converter/importer route from ACIS-capable add-on/kernel routes",
+    "Refresh ACadSharp and LibreDWG ACIS/AcDs writer evidence and preserve exact revision boundaries",
+    "Refine the existing composed qualification sequence without increasing per-slice validation cost"
+  ],
+  "method": {
+    "kind": "Read current project documentation, release/issue/PR pages, then reconcile evidence stages with the local implementation plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "AGENTS.md"
+    ],
+    "limitations": "Findings are documentation, issue, and PR observations only. ACadSharp issue results are reporter-scoped and release-specific; its writer PRs are unmerged. LibreDWG issue #1411 describes a specific build and was not rerun. No source checkout, executable, peer artifact, native application, or drawing was used."
+  },
+  "sources": [
+    {
+      "project": "LibreCAD 3",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "master documentation page accessed 2026-10-18; page describes a pinned libdxfrw revision",
+      "observed": "The project declares DWG import read-only, behind WITH_DWG_IMPORT and disabled by default; DWG writing is not implemented, exposed, or planned absent all stated gates. It reports 15 read-direction claims at its pinned library revision (11 EXPERIMENTAL and 4 PENDING_NATIVE), none promoted, and a frozen claim set. This is a downstream policy snapshot, not a runtime result for this checkout."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "current documentation pages accessed 2026-10-18",
+      "observed": "The documented stock DXF importer cannot read embedded ACIS solids, and the documented DWG workflow uses an external converter to DXF followed by a selected FreeCAD DXF importer. Documentation does not establish behavior for the exact platform/build profile in the local plan."
+    },
+    {
+      "project": "ACadSharp ACIS writer",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "issue and PR pages accessed 2026-10-18",
+      "observed": "Issue #1195 reports silent omission of modeler entities from DXF output, including block-contained solids. Linked PR #1240 proposes ACIS entity and ModelerGeometry writer work but remains an unmerged branch with no review or deployment shown and depends on open ACDS schema refactor #1174. This is not released-writer qualification or evidence of a libdxfrw defect."
+    },
+    {
+      "project": "ACadSharp writer roundtrip report",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1277"
+      ],
+      "revision": "issue opened 2026-10-09; page accessed 2026-10-18",
+      "observed": "A user reports that a no-op AC1032 roundtrip using ACadSharp 3.7.16 caused AutoCAD LT 2026 audit/recovery to discard standalone MLeader context objects; the report describes two fixes that repaired the tested drawings but provides no public sample. It is a version- and family-scoped report, not independently reproduced here."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "mutable master documentation and issue #1411 for LibreDWG 0.14.8593 / commit prefix 8a1ae764; pages accessed 2026-10-18",
+      "observed": "Project history says the R2013+ Prototype1b/AcDs path is not fully implemented and describes brute-force SAB extraction. Issue #1411 reports loss of a locally authored SAB carrier after conversion on its pinned 0.14.8593 build. The mutable documentation and issue report are separate evidence snapshots; this review did not rerun either route."
+    },
+    {
+      "project": "cq-acis and ezdxf",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html#browse-acis",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "revision": "current documentation pages accessed 2026-10-18",
+      "observed": "cq-acis documents an experimental bounded SAT/SAB/ASM parser/converter for selected geometry using CadQuery/OCCT; it does not parse DWG/DXF outer ownership and shares OCCT kernel lineage with FreeCAD. ezdxf exposes raw SAT/SAB browsing and limited projection, but its drawing add-on does not render ACIS and is not a B-rep kernel."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines the existing consumer and writer readiness gates: preserve LibreCAD 3's read-only DWG product policy independently from experimental library writer paths; qualify stock FreeCAD only for its named converter/importer and supported entities; keep ACIS parser, shared OCCT kernel, AcDs owner/key linkage, semantic body validity, and native writer acceptance as separate results. Peer failures and open branches inform test design but do not become local findings or per-slice dependencies.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not expose or imply LibreCAD 3 DWG writing unless its consumer policy and all published gates change independently of library writer experiments.",
+    "Record stock-FreeCAD converter, selected DXF importer, OS/build, per-entity disposition, unsupported count, and warnings as one named consumer route; do not use it to qualify ACIS semantics.",
+    "For any writer route, require per-object disposition, owner/reference closure, strict independent readback, and native audit/open at a composed gate; same-library reread alone is insufficient.",
+    "Keep optional peer runs outside the fast per-slice loop and pin released artifacts; label open-branch tests as experiments, not support evidence.",
+    "For ACIS/AcDs, report carrier extraction and byte identity, owner/key linkage, parser completeness/losses, kernel validity/closure, analytic metrics, and consumer acceptance separately.",
+    "Keep unknown or unsupported data visible through explicit diagnostics or fail closed before publishing output; do not silently omit modeler geometry or its containing block contents."
+  ],
+  "validation": {
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false
+  }
+}

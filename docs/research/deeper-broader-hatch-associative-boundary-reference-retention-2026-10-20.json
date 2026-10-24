@@ -1,0 +1,156 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "HATCH associative boundary-reference retention cross-repository audit",
+  "mode": "deeper and broader research; plan refinement only",
+  "scope": [
+    "Check DWG HATCH boundary handle counts and handle-stream order against ODA v5.4.1",
+    "Compare the DXF per-path association contract with Autodesk documentation and existing libdxfrw model/writer behavior",
+    "Use LibreDWG and ezdxf as independent architecture and adversarial-case evidence, not normative authority",
+    "Create an implementation-ready PAR-140 / 7N.4 plan while keeping native associative editing separate"
+  ],
+  "evidence": {
+    "authoritativeDwgSpecification": {
+      "source": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": [
+        "§20.4.75 pp.194-197 (per-path count on p.196; flattened handle list on p.197): BL group-97 count is stored per boundary path; after Common Entity Handle Data, the handle stream contains the sum of those per-path counts as H group-330 soft-pointer references.",
+        "§2.13 pp.13-15: code 4 is a soft pointer; documented offset encodings 6, 8, A, and C also represent soft-pointer references."
+      ],
+      "authority": "Normative source for DWG byte layout; exact on-disk text checked with pdftotext and browser-opened official ODA PDF."
+    },
+    "dxfSpecification": {
+      "source": "Autodesk HATCH Boundary Path Data",
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "observed": "Group 97 is the number of source boundary objects for a path; repeated group 330 entries reference those objects."
+    },
+    "independentImplementations": [
+      {
+        "source": "LibreDWG NEWS v0.14.1",
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "observed": "The release history records a fix for associative-HATCH pattern loss caused by resetting the handle index per path.",
+        "limit": "Independent implementation-history evidence only; not DWG format authority or proof of libdxfrw behavior."
+      },
+      {
+        "source": "LibreDWG public HATCH path model",
+        "url": "https://www.gnu.org/software/libredwg/refman/dwg_8h_source.html",
+        "observed": "Dwg_HATCH_Path has per-path num_boundary_handles and boundary_handles fields.",
+        "limit": "Independent model evidence; no peer binary was built or executed."
+      },
+      {
+        "source": "ezdxf HATCH reference",
+        "url": "https://ezdxf.readthedocs.io/en/stable/dxfentities/hatch.html",
+        "observed": "Source boundary handle lists are exposed, but ezdxf states it does not manage or verify the association.",
+        "limit": "DXF model/consumer guidance only; not associative-edit or DWG qualification."
+      },
+      {
+        "source": "Autodesk AcDbHatch API",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbHatch.html",
+        "observed": "Associative HATCH stores source database-resident objects and can recalculate hatch lines after source edits; per-loop association objects are retrievable.",
+        "limit": "Defines why native recompute is a distinct consumer qualification; no native application was run."
+      }
+    ],
+    "localAudit": {
+      "files": [
+        "src/drw_entities.cpp",
+        "src/drw_entities.h",
+        "src/intern/dwgreader.cpp",
+        "tests/hatch_reference_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "../LibreCAD/libraries/libdxfrw/src/drw_entities.cpp",
+        "../LibreCAD/libraries/libdxfrw/src/drw_entities.h",
+        "../LibreCAD/libraries/libdxfrw/src/libdxfrw.cpp"
+      ],
+      "observed": [
+        "DRW_Hatch::parseDwgBoundaryData accumulates only the total boundary-handle count and does not preserve each per-loop count.",
+        "DRW_Hatch::parseDwg and DRW_MPolygon::parseDwg consume flattened DWG boundary handles but do not store them in the corresponding DRW_HatchLoop::m_boundaryHandles.",
+        "DRW_Hatch::encodeDwgBoundaryData emits a zero boundary-handle count for each loop, even though the loop model and DXF writer support per-loop handles.",
+        "The current public m_boundaryHandles type is vector<uint32_t>; dwgHandle retains ref64 as well as a low-32-bit ref, so this path must not silently truncate wider references.",
+        "The sibling LibreCAD bundled fork has the same DWG read-discard and write-zero behavior, while retaining per-loop handles and DXF group-97/330 output; an upstream merge alone will not update that vendored route.",
+        "The existing --hatch-references ASCII/Binary cases already cover path flags 7/0/2, per-path handle lists {0x31}, {0x32,0x33}, an empty list, and following-entity continuity; they are DXF-only and do not close the DWG gap."
+      ]
+    }
+  },
+  "findings": {
+    "newLocalFinding": true,
+    "findingId": "PAR-140",
+    "priority": "P1",
+    "subplan": "7N.4",
+    "finding": "DWG HATCH and MPOLYGON parsing discards per-path associative boundary references, while shared DWG encoding writes zero counts.",
+    "findingCount": 140,
+    "topLevelSubplanCount": 78,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "implementationReadiness": {
+    "smallSlices": [
+      "Retain one bounded source-boundary-handle count per loop while parsing the path body.",
+      "After common entity handles, raw-validate code 4 and documented offset soft-pointer forms 6/8/A/C, resolve values, and partition exactly by the saved per-loop counts.",
+      "Reject unsupported reference roles, truncated streams, count overflow, and values wider than the current public 32-bit loop model before callback publication; widen the public representation only if a source-compatible route is designed.",
+      "Write each per-loop count and ordered soft-pointer references symmetrically through the correct version-specific handle-buffer placement and end-bound calculations.",
+      "Add scratch-only AC1018 and AC1024-or-AC1027 HATCH/MPOLYGON controls with uneven path counts, an empty path, different flags, raw-byte assertions, DXF ASCII/Binary roundtrip, and next-path/entity sentinels.",
+      "After the fast codec gate, add one small composed 7F.1 handle-closure control in both DWG→DXF and DXF→DWG directions; refuse before publication if an associative target is dropped or unresolved, without making this closure test a prerequisite for codec-level debugging."
+    ],
+    "fastValidation": "Strict focused target build, direct generated selector, and one owning filtered CTest; no full suite until a scheduled composed checkpoint.",
+    "fixturePolicy": "No downloaded or newly committed DWG/DXF fixture; generated data is local, scratch-only, and removed.",
+    "compatibility": "No new pure DRW_Interface virtuals and no change to existing LibreCAD/LibreCAD_3 2D callback behavior.",
+    "bundledLibreCADFork": "The sibling bundled fork has the same local loss pattern; track a separate post-review port and consumer compile/readback without editing the sibling in this upstream-only plan pass.",
+    "semanticBoundary": "Reference-field fidelity does not establish target-object existence, geometry/path agreement, or native associative edit/recompute behavior."
+  },
+  "validation": {
+    "codeChanged": false,
+    "testsRun": true,
+    "focusedVerification": {
+      "build": {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf --parallel 2",
+        "result": "PASS"
+      },
+      "existingDwgWeightSelector": {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-spline-weights",
+        "result": "PASS"
+      },
+      "existingDxfPathReferenceSelector": {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references",
+        "result": "PASS"
+      },
+      "owningCTest": {
+        "command": "ctest --test-dir build-gcc -R '^dwg_hatch_rational_spline_weight_handoff$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsTotal": 1,
+        "elapsedSeconds": 0.64
+      },
+      "scopeNote": "These are existing PAR-115 and DXF path-reference regressions only; no PAR-140 DWG path-reference regression exists yet."
+    },
+    "fullSuiteRun": false,
+    "peerRepositoryClonedOrBuilt": false,
+    "siblingLibreCADSourceAudit": true,
+    "siblingLibreCADFilesChanged": false,
+    "siblingLibreCADBuildRun": false,
+    "peerOrNativeExecutableRun": false,
+    "nativeCadApplicationRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testTargetsAdded": 0,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ]
+  },
+  "researchReferences": [
+    "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+    "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+    "https://www.gnu.org/software/libredwg/refman/dwg_8h_source.html",
+    "https://ezdxf.readthedocs.io/en/stable/dxfentities/hatch.html",
+    "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbHatch.html"
+  ]
+}

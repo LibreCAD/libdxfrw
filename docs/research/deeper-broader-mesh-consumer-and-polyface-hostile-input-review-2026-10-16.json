@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw-deeper-broader-mesh-consumer-and-polyface-hostile-input-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the explicit 3D DXF consumer comparison and cross-check a downstream POLYFACE hostile-input report against the existing local completed-pool guard, without treating peer behavior as a local defect or support proof.",
+  "method": {
+    "kind": "Primary BRL-CAD issue report, official Blender Extensions listing and project README, Autodesk DXF/API references, and local source/test inspection",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "BRL-CAD issue #228 remains open and its report does not establish a pinned current upstream commit/executable hash. CAD2Cube's official store listing names 1.5.1 while its mutable repository README describes 1.5.0; no artifact, Blender build, or bundled ezdxf version was pinned or run.",
+    "evidenceRule": "A peer-reported malformed-input crash pattern is not a libdxfrw defect. A consumer-created mesh is a route-specific projection, not DXF wire fidelity, an independent parser result when the parser is shared, or ACIS/B-rep semantics."
+  },
+  "evidence": [
+    {
+      "topic": "BRL-CAD reported POLYFACE face-index over-read",
+      "sources": [
+        "https://github.com/BRL-CAD/brlcad/issues/228"
+      ],
+      "observed": "The issue reporter describes an ASan heap over-read through the normal dxf-g command-line path: values from DXF POLYFACE groups 71-74 are used as indices into a coordinate table without validating against the actual pool. The issue is open. The report includes source excerpts and an ASan trace but this review did not reproduce the report or independently inspect/build the claimed exact BRL-CAD snapshot.",
+      "doesNotEstablish": [
+        "a vulnerability or equivalent behavior in libdxfrw",
+        "valid-file geometry disagreement between BRL-CAD and libdxfrw",
+        "the fixed/unfixed status of any unpinned BRL-CAD revision",
+        "that malformed DXF should be part of a valid interoperability denominator"
+      ],
+      "planUse": "Keep this as an external failure-pattern cross-reference to existing PAR-37/7V. Do not open a duplicate finding or feed malformed controls to BRL-CAD until a fixed exact revision is pinned. Keep hostile-input refusal separate from valid geometry parity."
+    },
+    {
+      "topic": "Local completed-pool validation and existing test owner",
+      "sources": [
+        "src/drw_entities.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "DRW_Polyline::validatePolyfaceDxf counts actual coordinate children, widens signed indices before magnitude calculation, and rejects indices whose magnitude exceeds that completed pool. The existing runDxfPolyfaceCompletedPool generated ASCII/binary path includes out-of-range +99/-99 and INT16_MIN inputs, rejects before publishing the parent, and checks an in-memory 32767/32768-coordinate boundary for the signed-minimum index. It also retains zero termination, stale header counts, child interleaving, forward faces, and negative edge-visibility signs. This was a source/test inspection; the test was not executed in this review.",
+      "doesNotEstablish": [
+        "that the current test executable passed during this review",
+        "all-parser-version hostile-input coverage",
+        "polyface manifoldness, closed-solid validity, or native display",
+        "all possible parser/writer mutation or allocation bounds"
+      ],
+      "planUse": "Treat PAR-37/7V as already implemented for the identified index-range gap. Reuse its existing focused CTest if this path changes; do not duplicate registrations or reopen the finding absent contradictory local evidence."
+    },
+    {
+      "topic": "Current Blender explicit-mesh consumer candidate",
+      "sources": [
+        "https://extensions.blender.org/add-ons/cad2cube/",
+        "https://github.com/lylongfts/CAD2CUBE/blob/main/README.md"
+      ],
+      "observed": "The official Blender Extensions listing identifies CAD2Cube version 1.5.1 for Blender 4.2+ and advertises an optional utility that merges 3DFACE entities into a mesh. The project README identifies a bundled ezdxf-based DXF route, lists 3DFACE, SOLID, and 2D/3D POLYLINE among supported entities, marks 3DSOLID planned, and currently describes version 1.5.0. This store/repository version mismatch means an exact artifact must be pinned before execution. The listed result is an explicit-entity mesh/curve projection, not an ACIS solid route.",
+      "doesNotEstablish": [
+        "actual runtime behavior of the current store artifact",
+        "all DXF versions or all listed entity modes",
+        "exact tag, order, handle, owner, or graph preservation",
+        "independent DXF-parser agreement because ezdxf is bundled",
+        "DWG, 3DSOLID, ACIS, or B-rep semantic support"
+      ],
+      "planUse": "Admit it only as an optional composed explicit-mesh consumer check after local routes compose. Record extension artifact/hash, Blender version/build, bundled ezdxf version, import options, warnings, and per-source entity outcome. Count it as an ezdxf parser lineage and a Blender mesh projection, not an independent reader or a mandatory per-slice test."
+    },
+    {
+      "topic": "POLYFACE signed one-based index contract",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbFaceRecord__getVertexAt_Adesk__UInt16_Adesk__Int16__const.html"
+      ],
+      "observed": "Autodesk documents codes 71-74 as optional POLYFACE vertex indices; indices are one-based and signed, with negative values denoting invisible edges. This supports the local topology/visibility separation but does not define peer-specific malformed-input recovery.",
+      "doesNotEstablish": [
+        "the validity of out-of-range values",
+        "consumer recovery policy for malformed face records",
+        "3D mesh manifold or B-rep validity"
+      ],
+      "planUse": "Maintain separate valid topology and malformed-input rows. Preserve zero as the first inactive-slot terminator and validate signed magnitude against actual coordinate children, not advisory counts."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-37",
+      "7V",
+      "PAR-07",
+      "PAR-60",
+      "7H"
+    ],
+    "reuseExistingFastGate": "If polyface code changes, build the touched strict target, run the existing libdxfrw_dwg_local_roundtrip test owner (including generated ASCII/binary completed-pool cases), and run git diff --check. Do not add a new CTest for this peer report.",
+    "optionalConsumerGate": "At one composed checkpoint only, pin the CAD2Cube release artifact/hash, Blender build, bundled ezdxf version, and options; classify output as curve, mesh projection, ignored/lost, warning, or failure, with per-entity counts/bounds/units where the API exposes them.",
+    "fixturePolicy": "No downloaded or committed test drawings. Use existing repository-owned material or locally authored temporary controls only.",
+    "cadence": "No per-slice BRL-CAD or Blender installation/run. Keep peer/native consumer execution outside the fast implementation lane.",
+    "nonPromotion": "No feature-support claim or external J disposition changes. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS retained-output slot census continuation",
+  "mode": "Local static source audit; no code or test changes",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Continue the planned census of allocations in limit-aware SAB parsing, graph construction, and ACIS projection",
+    "Check the public nodesOfType helper and signature-search scratch allocation for scope and bounds",
+    "Record whether another generated accounting control is justified"
+  ],
+  "method": {
+    "kind": "Read-only source and in-tree callsite review",
+    "filesReviewed": [
+      "src/drw_acis.cpp",
+      "src/drw_acis.h",
+      "tests/graph_preservation_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Static accounting audit only. It does not measure allocator capacity, peak resident memory, client-created DRW_AcisModel construction, or downstream client usage."
+  },
+  "evidence": {
+    "parsedRecords": "Record starts are limited by maxRecords and consumeRecord; initial reserve is bounded by the remaining-byte lower bound and maxRecords.",
+    "parsedTokensAndNames": "Token vector capacity and type-part capacity use explicit ceilings; tag work and per-string/cumulative string bytes have separate limits.",
+    "graphBuild": "Node slots, reference-count planner slots, copied token slots, and resolved pointer slots are charged to graphItems; graph scans/copies and strings have separate accounting.",
+    "projection": "Projected rows, sets, cache nodes, pending worklist entries, reachability rows, diagnostics, and cycle guards are charged to outputItems before insertion; transform-token copies use token-capacity accounting.",
+    "signatureSearch": "KMP prefix vector length is determined by one of two fixed short signatures; scan work is linear in input length.",
+    "nodesOfType": "nodesOfType allocates one returned int per matching node. In-tree source search found no production callsites; tests call it on locally constructed/bounded models. The public helper has no limits parameter and operates on caller-owned DRW_AcisModel, so it is recorded outside the limit-aware parse/projection contract rather than as a parser-path bypass."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "generatedAccountingControlAdded": false,
+    "codeOrTestChangeNeeded": false,
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes the queued local ACIS retained-output/scratch-slot census. Resume the next locally actionable plan item and do not wait for external-only evidence."
+  },
+  "verification": {
+    "jsonParse": "passed with jq",
+    "planDiffCheck": "passed with scoped git diff --check",
+    "receiptTrailingWhitespace": "passed with rg scan"
+  },
+  "workingTree": "The worktree was extensively modified before this audit. The plan additions and receipt remain unstaged and uncommitted; unrelated changes were preserved."
+}

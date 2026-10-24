@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MTEXT background CMC flags and reserved-index retention",
+  "mode": "generated AC1024/AC1032 DWG object-vector fast slice",
+  "scope": [
+    "Retain R2004+ MTEXT background CMC raw flags, reserved index, and metadata presence",
+    "Preserve flagged-empty optional CMC strings through standalone and embedded MTEXT DWG paths",
+    "Refuse invalid or unsupported source metadata before output",
+    "Keep independent producer semantics and class-specific DXF extension mappings unqualified"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.46 MTEXT"],
+      "finding": "R2004+ CMC has a reserved leading BS index of zero, a packed BL method/value, and an RC flags byte introducing optional color-name/book-name TV strings. MTEXT background fields use CMC; this slice preserves the generic wire provenance without claiming broader producer semantics."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "Standalone MTEXT retained the source method but discarded CMC flags/index. Embedded MTEXT parsing also discarded them. Replaying preserved C0/C3 values exposed a local argument mix-up between the reserved BS index and normalized color index; the writer now passes the normalized scalar while its CMC encoder emits the required zero reserved index."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append MTEXT background CMC flags, reserved index, and metadata-presence fields; reset and DXF color updates clear them.",
+      "Capture method/flags/index for standalone and embedded MTEXT, including nested R2018 multiline ATTRIB/ATTDEF parsing.",
+      "Replay source flags through DWG output, including flagged-empty optional strings; validate reserved index, flag domain/string agreement, normalized color/method consistency, and detached-stream availability before writing."
+    ],
+    "generatedTestChanged": true,
+    "focusedSelector": "--mtext-background-cmc",
+    "focusedCtests": ["libdxfrw_mtext_background_cmc", "libdxfrw_dwg_object_vectors"],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "Appended fields increase DRW_MText object size; downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgVectors": "Generated AC1024/AC1032 standalone MTEXT frames cover C0-C3, RGB black, named colors/books, flagged-empty name, and a C3-to-C5 mutation. AC1032 multiline ATTRIB/ATTDEF cases exercise embedded MTEXT with flagged-empty and named CMC strings.",
+    "wireWalk": "Independent standalone wire walk checks reserved index, method/value, raw flags, optional strings, and the following transparency field; production parser controls verify following-handle alignment.",
+    "lifecycle": "Copy/assignment and reset of retained MTEXT CMC metadata are asserted.",
+    "failClosed": "Invalid RGB, non-finite scale, unsupported C5 rewrite, nonzero reserved index, unknown flags, string/flag mismatch, and missing detached stream—including flagged-empty names—are rejected before output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests libdxfrw_hardening_tests dwg2dxf lc3_compat_check -j4",
+    "buildResult": "PASS (-Werror strict build)",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --mtext-background-cmc",
+    "focusedSelectorResult": "PASS",
+    "focusedCtestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mtext_background_cmc|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "focusedCtestResult": "PASS (2/2; 0.08 sec)",
+    "diffCheck": "git diff --check -- src/drw_entities.cpp src/drw_entities.h tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mtext-background-cmc-flags-index-fast-slice-2026-10-21.json",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated local frame/wire tests establish local implementation consistency, not independent producer semantics for MTEXT CMC fields.",
+    "No persistent fixture, external reader, native CAD application, full suite, or platform qualification was run.",
+    "No new MTEXT-specific DXF name/book mapping is asserted or added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue PAR-134 scalar-only CMC consumer and class-specific DXF projection audit; then resume exact-source PAR-03/PAR-04 associative-action classification without guessing payload widths."
+}

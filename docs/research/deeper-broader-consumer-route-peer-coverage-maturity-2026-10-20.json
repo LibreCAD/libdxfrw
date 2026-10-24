@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Consumer route and peer coverage maturity refresh",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Distinguish FreeCAD's selectable DXF importer backends and their documented entity scopes",
+    "Separate explicit faceted geometry projection from ACIS/ASM carrier and B-rep semantics",
+    "Reconcile LibreDWG headline revision coverage with per-class maturity and test coverage",
+    "Refine the composed Linux/Windows consumer matrix without increasing per-slice validation"
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "status": "current_project_documentation",
+      "observation": "The page describes a bundled C++ importer and optional legacy Python importer, both for R12+ DXF, with different listed entity subsets. It states ACIS/SAT solids cannot currently be read. DWG conversion is a converter-to-DXF-to-importer chain, so the backend and converter are part of the qualification identity."
+    },
+    {
+      "project": "FreeCAD issue tracker",
+      "reference": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "status": "project-discussion-corroboration",
+      "observation": "The discussion distinguishes explicit DXF entities from ACIS blobs and corroborates that FreeCAD cannot currently interpret the blobs as geometry. This is not normative format evidence or a local reproduction."
+    },
+    {
+      "project": "LibreDWG manual",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "status": "published-project-manual",
+      "observation": "The manual partitions class coverage into unstable/undertested, unhandled, halfway, and lacking sample test coverage. It names BODY, MESH, and other families without test coverage, and lists ACDSRECORD/ACDSSCHEMA as unhandled. Broad coverage claims therefore cannot substitute for exact per-family/corpus evidence."
+    },
+    {
+      "project": "LibreDWG NEWS",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "status": "historical-project-release-notes",
+      "observation": "A release-history entry says AcDsPrototype_1b support was incomplete and describes brute-force extraction of some modern SAB blobs. Used only as a historical risk signal, not a claim about every current build."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "reference": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "status": "current-official-driver-documentation",
+      "observation": "OGR projects explicit faces and polyface meshes to polygonal/polyhedral geometries, but tessellates or simplifies other CAD features and inlines INSERTs by default. Its separate AC1027+ 3D-extensible path exposes raw ASM bytes plus a 12-value transform; it does not reconstruct OGR solids and skips those entities by default."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Added a route-aware FreeCAD platform matrix, separated explicit facet projection from modeler-carrier and B-rep claims, and required peer evidence to be pinned by class, version, corpus, and operation. This is a one-time composed-gate refinement only.",
+    "nextImplementation": "Continue the already-listed local-ready PAR-138 SectionViewStyle occurrence work; do not wait for FreeCAD, GDAL, LibreDWG, or any external route.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-consumer-route-peer-coverage-maturity-2026-10-20.json"
+    ],
+    "limitations": "FreeCAD, LibreDWG, and GDAL documentation is mutable and describes project-specific behavior. No runtime interoperability was performed. The research refines evidence admission and does not promote format, carrier, shape-semantic, or native-consumer support."
+  },
+  "validation": {
+    "planEdit": "Added source-backed route distinctions, per-family peer maturity rules, explicit-facet versus modeler gates, and a bounded Linux/Windows acceptance manifest.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for both plan files; git diff --no-index --check passed for the new receipt",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

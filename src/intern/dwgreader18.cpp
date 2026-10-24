@@ -678,6 +678,7 @@ bool dwgReader18::readFileHeader() {
     m_rawDwgSections.clear();
     m_dataStorageSections.clear();
     m_dataStorageLinkedRecords.clear();
+    m_dataStorageLinkedPayloadBytes = 0;
     objData.reset();
     uncompSize = 0;
     if (!fileBuf->setPosition(0x80)) {

@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "AC1009 paper-space DWG-to-DXF route and writer-path correction",
+  "mode": "Broader primary-source research, cross-implementation semantic cross-check, and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "worktreeState": "The shared worktree was already broadly modified. This pass changed only the parity plan and this research receipt; production and test source were not edited.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-ac1009-paper-space-route-refresh-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "LibreCAD/libdxfrw current worktree",
+      "references": [
+        "src/libdwgr.cpp",
+        "src/intern/dwgreaderR11.cpp:838-935",
+        "src/libdxfrw.cpp:4230-4253",
+        "src/libdxfrw.cpp:12361-12425",
+        "src/libdxfrw.cpp:12450-12510",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "observation": "dwgRW::createReaderForVersion dispatches AC1009 to dwgReaderR11. readEntityR11 consumes the mandatory extension byte when FLAG_HAS_PSPACE is set, but its shared applyAttrs lambda assigns layer/color/linetype and not DRW_Entity::space. The generic dxfRW writer already emits the fixed legacy $MODEL_SPACE and $PAPER_SPACE BLOCK records on the AC1009 lane; entity output selects paper-space ownership and emits group 67 from ent.space. No generated full-route reproduction was run.",
+      "disposition": "Correct the candidate from missing output-container synthesis to a possible source-to-callback entity-space projection loss. The writer has a source-confirmed legacy container/serialization path; only parser classification and complete generated-route behavior remain to validate."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec#L1679-L1688",
+        "https://github.com/LibreDWG/libredwg/issues/1337",
+        "https://github.com/LibreDWG/libredwg/pull/1368"
+      ],
+      "sourcePin": "Public issue and PR pages viewed 2026-10-21; PR #1368 displayed Open.",
+      "observation": "LibreDWG's common_entity_data.spec explicitly sets entmode=1 and emits DXF group 67 when FLAG_R11_HAS_PSPACE is set. Issue #1337 and open PR #1368 report a 3-model/5-paperspace split matching AutoCAD for that project's AC1009 case. The PR's missing pre-R13 internal BLOCK_HEADER and same-version pseudo-block naming issues are LibreDWG-specific paths; its corpus and AutoCAD comparisons were not independently reproduced here.",
+      "disposition": "Treat the peer decoder source as strong semantic corroboration and a focused test-shape lead, not ODA byte authority or proof of local end-to-end behavior. The PR remained open in the reviewed page. Do not fetch or commit issue attachments."
+    },
+    {
+      "project": "Autodesk DXF reference and ezdxf",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html"
+      ],
+      "observation": "Autodesk documents model/paper-space block definitions and group 67 distinction and warns against relying on group-code ordering. ezdxf documents that R12 uses $MODEL_SPACE/$PAPER_SPACE, stores the single paper-space layout through the legacy route, and differs from R13+ multi-layout BLOCK_RECORD/LAYOUT structures.",
+      "disposition": "Use these sources for the expected DXF artifact version and independent output-parser check only; ezdxf does not establish pre-R13 DWG flag semantics."
+    },
+    {
+      "project": "ODA Open Design Specification",
+      "references": [
+        "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf"
+      ],
+      "observation": "The locally reviewed v5.4.1 material did not resolve the AC1009/R11 record-level HAS_PSPACE semantic needed for this route.",
+      "disposition": "Keep ODA as DWG byte-layout authority. Peer source may guide a generated projection control, but do not treat generated self-consistency as producer proof; seek an admissible existing pre-R13 producer trace before promoting format-level qualification."
+    }
+  ],
+  "planChanges": [
+    "Corrected the historical statement that AC1009 DWG was out of scope: the current worktree dispatches AC1009 through dwgReaderR11.",
+    "Recorded a candidate AC1009 entity-space projection loss without incrementing the confirmed finding or subplan count.",
+    "Corrected the earlier container-gap hypothesis: local dxfRW::writeBlocks emits the fixed AC1009 $MODEL_SPACE/$PAPER_SPACE BLOCK pair, and entity emission uses DRW_Entity::space for group 67 and paper-space ownership.",
+    "Added LibreDWG common_entity_data.spec as strong secondary semantic corroboration for HAS_PSPACE -> entmode 1/group 67, while retaining ODA authority and requiring producer-trace evidence for format-level qualification.",
+    "Refined the scratch-only generated AC1009-to-R12 control to assert callback-space projection, one fixed legacy BLOCK pair, group 67, exact ENTITIES membership, source/output identity, and strict reopen; optional AC1015 output is a separate target-version control.",
+    "Kept the AC1009 case separate from PAR-144's R13+ layout graph and PAR-143's unsupported pre-R13 marker semantics; specified fast owning-target validation and self-unblocking."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newCandidateGaps": 1,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "Pre-R13 DWG reader matrix / dwgReaderR11 route",
+      "PAR-143 remains limited to REPEAT/ENDREP/LOAD semantics"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "implementationReadinessUpdated": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "The LibreDWG report and proposed PR were not executed or independently reproduced, and PR #1368 remained open at review time. The local writer path was source-audited but the complete AC1009 route was not generated or executed; the candidate callback-space loss remains unconfirmed end-to-end. No external drawing was downloaded."
+}

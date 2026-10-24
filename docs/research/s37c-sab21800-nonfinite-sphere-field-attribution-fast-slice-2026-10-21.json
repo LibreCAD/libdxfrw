@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 non-finite sphere-node attribution",
+  "mode": "Generated parser-fed local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was already broadly modified. This slice changes the strict SAB sphere parameter boundary, its existing generated graph-preservation assertions, both plan files, and this receipt only; no files were staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sab21800-nonfinite-sphere-field-attribution-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": {
+    "localFinding": "The strict sphere-surface parser required ordered SAB 21800 fields but left finite-value rejection to a later whole-body scan, which reported the body instead of the malformed surface node.",
+    "formatBasis": "No new wire-layout assumption was introduced. The change validates only the center, radius, U direction, and pole fields already consumed by the admitted SAB 21800 sphere reader; ODA v5.4.1 remains authoritative for DWG layout.",
+    "scopeLimit": "Only finite-value validation and failure-node precision changed for the strict SAB 21800 sphere path. Legacy signatures/versions, sphere evaluation, parameter bounds, transforms, trimming, face topology, B-rep validity, and external/native qualification are unchanged."
+  },
+  "implementation": {
+    "productionChange": "Validate all coordinates of center, U direction, and pole plus the signed radius before setting the sphere surface projection. The existing rooted projection failure path now reports the exact surface node.",
+    "generatedControls": [
+      "The existing parser-fed matrix injects NaN, +infinity, and -infinity in all three center components.",
+      "The matrix injects NaN, +infinity, and -infinity into the signed radius.",
+      "The matrix injects NaN, +infinity, and -infinity in all three U-direction and all three pole components.",
+      "All 30 malformed streams parse/build generically, then fail rooted projection as InvalidModel, clear pre-seeded output, and identify the exact sphere-surface node."
+    ],
+    "claimBoundary": "Finite-value refusal and diagnostic attribution only. No sphere evaluation, trimming, B-rep validity, producer conformance, broad ACIS support, or native consumer acceptance is established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.21 seconds)"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-sab21800-nonfinite-sphere-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS (final scoped check)"
+      },
+      {
+        "command": "jq empty docs/research/s37c-sab21800-nonfinite-sphere-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "persistentFixtureAdded": false,
+    "testRegistrationAdded": false,
+    "dependencyAdded": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c bounded SAB 21800 rooted ACIS projection",
+    "completedSlice": "The strict sphere parameter reader rejects non-finite fields at the exact sphere node and clears all rooted output transactionally.",
+    "nextAction": "Continue with the next dependency-ready local S3.7c invariant; do not wait for external semantic or platform qualification.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    }
+  }
+}

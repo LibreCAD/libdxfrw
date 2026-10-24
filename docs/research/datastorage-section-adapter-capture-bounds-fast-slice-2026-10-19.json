@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed DataStorage-section adapter capture bounds",
+  "mode": "Local implementation slice with generated fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound both const-copy and rvalue-transfer DRW_DataStorageSection adapter callbacks.",
+    "Account nested schema, payload, diagnostic, record-index, hash bucket, key, and dynamic string storage.",
+    "Refuse DXF output publication after section-count, aggregate-byte, or allocation capture failure.",
+    "Keep callback retention separate from DWG parser admission, the DataStorage payload cap, and AcDs semantic/output qualification."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_data.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limits": {
+      "sections": 100000,
+      "logicalRetainedBytes": 67108864
+    },
+    "behavior": "Both callbacks use the same logical retained-byte estimate and sticky failure flag. The normal reader's rvalue route transfers ownership without a second nested deep copy; the estimate is not a process RSS or allocator-capacity bound."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+    "tests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_datastorage_move_callback|dwg2dxf_datastorage_capture_limits|dwg2dxf_plotsettings_capture_limits|dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_raw_dxf_entity_capture_limits)$' --output-on-failure",
+        "result": "passed 5/5"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_evaluation_graph_capture_limits|dwg2dxf_acds_history_dwg_frame_capture_limits|dwg2dxf_acsh_history_capture_limits)$' --output-on-failure",
+        "result": "passed 3/3"
+      }
+    ],
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "fixturesAdded": 0,
+    "peerOrNativeRuntimeRun": false,
+    "planSha256": "47d6d336ece1832c61946d1f424a8f0030ccc15ba80dbc156fac41b8491e8623"
+  },
+  "planImpact": {
+    "existingOwner": "7S.2c adapter-owned callback retention census",
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This bounds the adapter's logical retained DataStorage model and refuses conversion after incomplete capture. It does not cap parser-side peak allocation, prove raw-section replay, qualify AcDs semantics, validate independent ACIS interpretation, or establish native consumer support. Work is uncommitted over the user's existing large worktree changes."
+}

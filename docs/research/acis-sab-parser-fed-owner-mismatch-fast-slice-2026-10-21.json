@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-owner-mismatch-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "slice": "S3.7c generated 21800 owner/reference failures and unsupported-profile negatives",
+  "change": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "Serialized five generated complex-graph negatives, each redirecting one declared owner link (lump.body, shell.lump, face.shell, loop.face, coedge.loop) to a different node of the required broad type. The actual SAB parser/model builder/projector path rejects each with OwnerMismatch at the exact source node and semantic pointer ordinal, clearing caller output. The parser-fed invalid-reference checks now cover all 35 traversed typed-target slots in the rooted profile, including shared pattern-pointer slots, using wrong-type targets; every case refuses as InvalidReference with exact node/ordinal diagnostics and clears pre-seeded output. Separate generated cases cover an out-of-table target and an invalid negative pointer below the null sentinel. Version-word controls for 20800, 22300, and 23200 are refused by rooted projection as UnsupportedProfile.",
+    "persistentDwgDxfSabFixtureAdded": false,
+    "productionParserChanged": false,
+    "dependencyOrTestRegistrationChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS 1/1"
+    }
+  ],
+  "evidenceCeiling": "Confirms all five already-declared rooted graph owner invariants, wrong-type refusal across the 35 traversed typed-target slots, malformed out-of-table/negative reference refusal, and 20800/22300/23200 rooted-projection rejection boundaries through generated wire input. Does not define additional owner rules, prove ACIS semantics/B-rep validity, or qualify DWG AcDs association or native consumers.",
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "next": "Continue with the next source-backed local S3.7c structural or resource boundary; external qualification does not block progress."
+}

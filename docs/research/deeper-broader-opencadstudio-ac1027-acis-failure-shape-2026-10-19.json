@@ -1,0 +1,152 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader OpenCADStudio AC1027 ACIS-record failure shape and 2D continuity",
+  "mode": "Primary-source peer issue review plus local source/test crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Review a newly surfaced AC1027 ACIS-bearing 3DSOLID record failure in OpenCADStudio issue #1896.",
+    "Separate peer object-type numbering, parser lineage, record parse failure, and application recovery-modal behavior.",
+    "Crosswalk the report to the local SOLID3D/DRW_ModelerGeometry/AcDs dispatch and existing generated DWG reader matrix.",
+    "Recheck adjacent ACadSharp, FreeCAD, and GDAL routes to ensure parser, strict-writer, projection, and solid-semantic evidence are not conflated.",
+    "Refine conditional implementation readiness for 2D continuity without importing the customer drawing or promoting support."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local source/test audit; plan and receipt edited",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "The customer DWG is not publicly attached. The issue report is unreproduced and identifies OpenCADStudio 2026.42 commit b6fbac39, matching the official v2026.42 release tag. The exact opencadcodec revision resolved by that tagged build remains unbound. OpenCADStudio's codec path is ACadRust-derived, so the report is not an independent parser vote. The reported internal type_code=37 is not local libdxfrw dispatch evidence."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio issue #1896",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1896"
+      ],
+      "revision": "Issue opened 2026-10-19; reporter names OpenCADStudio 2026.42 commit b6fbac39 on Windows x86-64.",
+      "observed": "The report says a private AC1027 drawing with an ACIS-bearing 3DSOLID fails at handle 0x5B87 with the peer's internal type_code=37 and Invalid DWG array count 163: 137 record bits remain. It reports that other AC1027 and AC1015 drawings open. The file itself is unavailable; the issue separately describes the app GUI/API remaining stuck on a RecoveryPrompt after the reader error.",
+      "evidenceCeiling": "User-reported peer failure shape only; no public input, no independent reproduction, no local defect proof, and no normative DWG layout evidence."
+    },
+    {
+      "project": "OpenCADStudio v2026.42 release and opencadcodec lineage",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Issue commit b6fbac39 matches official v2026.42 tag; current manifest and codec lineage reviewed 2026-10-19. The tagged dependency resolution was not verified.",
+      "observed": "OpenCADStudio's reviewed current manifest pins the acadrust package from opencadcodec; opencadcodec is an ACadRust fork. The mutable current manifest is not proof of the issue build's exact lock resolution. ACadRust-family projects advertise AC1027 and 3DSOLID/ACIS routes.",
+      "evidenceCeiling": "Lineage and project declaration only; not proof of the exact parser artifact, feature correctness, or issue reproduction. Count OpenCADStudio and ACadRust-derived codec sources as one parser lineage."
+    },
+    {
+      "project": "ACadSharp, FreeCAD, and GDAL adjacent-route cross-check",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues/1253",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Public issue/documentation pages reviewed 2026-10-19; no external software was run.",
+      "observed": "ACadSharp #1299 is an under-specified DWG-to-DXF SPLINE complaint, while #1253 concerns strict writer acceptance. FreeCAD stock DXF import does not read ACIS solids and DWG is converted to DXF first. GDAL projects SPLINE by tessellation and skips 3DSOLID/REGION/BODY/SURFACE geometry by default; its optional raw ASM path is not a solid kernel.",
+      "evidenceCeiling": "These distinct routes do not independently reproduce or adjudicate OpenCADStudio #1896. The local plan already has owners for these boundaries; no duplicate finding or test follows."
+    },
+    {
+      "project": "Local libdxfrw source and generated reader tests",
+      "urls": [],
+      "revision": "Working tree based on de27a3391a624aba03ca71f3583c4b3a6e6396a9.",
+      "observed": "The local dwgType::SOLID3D route constructs DRW_ModelerGeometry(DRW::E3DSOLID), calls entryParse, joins AcDs data after parse, then appends typed/raw callbacks on success. Existing generated reader-matrix controls cover modeler and AcDs body dispatch, record dispositions, identity/order, and bounded page chains.",
+      "evidenceCeiling": "Local source/test ownership audit only; generated vectors do not reproduce the private third-party drawing or establish general ACIS semantics."
+    },
+    {
+      "project": "ODA Open Design Specification",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Authoritative reference required by repository AGENTS.md; relevant sections must be consulted before any local DWG body/dispatch edit.",
+      "observed": "The plan directs any future local DWG parsing change to derive field layout and record boundaries from the relevant ODA v5.4.1 sections and a real local trace, not from a peer's type number or array diagnostic.",
+      "evidenceCeiling": "No new wire-layout claim is made by this research-only update."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "owner": "PAR-07/S8 ACIS/AcDs entity dispatch, frame preservation, and failure disposition",
+      "files": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/intern/dwgreader.cpp",
+        "src/drw_entities.cpp",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "observed": "The local modeler route is already represented in the reader and generated tests; the peer's type_code=37 is not interchangeable with local dwgType values. The private report gives no locally checkable body or byte offset.",
+      "disposition": "No new finding or duplicated test now. If a local body-parser/dispatch slice is undertaken, first consult ODA, trace actual local type/frame boundaries, then add the smallest from-scratch valid/malformed bounded-record cases and a following 2D entity sentinel to the existing reader-matrix owner. Continue after record failure only if framing remains proven; otherwise require stable atomic file-level refusal."
+    },
+    {
+      "owner": "Downstream application error handling",
+      "files": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "OpenCADStudio's reported GUI/API modal hang happens after its parser failure and prevents subsequent API work in that app session.",
+      "disposition": "Out of libdxfrw scope. It is not a reason to add app-specific modal behavior, weaken record validation, or promote a libdxfrw support claim."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8",
+      "existing DWG modeler entity and bounded record-failure owners"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an advisory AC1027 modeler-record failure shape and a conditional, ODA-gated 2D-continuity check to existing owners. It does not make peer state an implementation blocker or treat the application recovery-modal issue as a library defect."
+  },
+  "implementationReadyChecks": [
+    "Do not copy peer type_code=37 into local dispatch; derive local type identity from a real trace and ODA v5.4.1.",
+    "Before changing a DWG parseDwg body, read the relevant ODA sections and preserve the bounded frame/cursor contract.",
+    "If the local body parser is changed, use locally authored AC1027 valid and malformed-but-bounded controls and assert the 3DSOLID/raw disposition plus following 2D entity continuity.",
+    "Do not continue after a failed record if the next cursor cannot be proven; prefer a deterministic file-level error with no partial callback publication.",
+    "Use only the owning fast reader-matrix selector and strict target build for a local slice; keep full suites and external peer runs at existing composed checkpoints.",
+    "Do not download/commit the customer drawing; mark any unavailable peer comparison NOT_RUN."
+  ],
+  "verification": {
+    "localSourceAuditOnly": true,
+    "planDiffCheck": "passed",
+    "receiptJsonValidation": "passed",
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader cross-language DXF codec and consumer-claim consistency review",
+  "mode": "Primary project documentation, source, and issue review; research-only plan refinement",
+  "scope": [
+    "Extend the DXF peer screen to the IxMilia Rust DXF/DXB implementation and map current issue reports to existing local owners.",
+    "Reconcile FreeCAD's generic no-loss interchange wording with its documented importer-specific entity and ACIS limits.",
+    "Recheck the BRL-CAD polyface proposal and preserve the existing signed-index and direct-wire local test contract.",
+    "Refine only optional composed-checkpoint comparator selection; preserve implementation speed, fixture policy, and validation cadence."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, source, and issue pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub issue reports are not independently reproduced and some lack a hash-bound attachment. Mutable repository/docs pages and API type declarations do not prove runtime behavior, native acceptance, or 3D semantics. No peer route was executed."
+  },
+  "sources": [
+    {
+      "project": "IxMilia dxf-rs",
+      "urls": [
+        "https://github.com/ixmilia/dxf-rs",
+        "https://github.com/ixmilia/dxf-rs/releases",
+        "https://github.com/ixmilia/dxf-rs/blob/main/src/misc_tests/integration.rs",
+        "https://docs.rs/dxf/latest/dxf/entities/index.html",
+        "https://github.com/ixmilia/dxf-rs/issues/85",
+        "https://github.com/ixmilia/dxf-rs/issues/86",
+        "https://github.com/ixmilia/dxf-rs/issues/90",
+        "https://github.com/ixmilia/dxf-rs/issues/93",
+        "https://github.com/ixmilia/dxf-rs/issues/96"
+      ],
+      "observed": "The Rust project reads/writes DXF and DXB but not DWG. Its docs list typed Solid3D, Region, and Body APIs; its README says ODA File Converter interop tests are Windows-only and optional. The reviewed open reports concern polyface vertex group-70 output, a SURFACE not appearing in a reported entity inventory, suspected zero/duplicate APPID handle AutoCAD rejection, NaN lexical parsing, and timezone-dependent save panic in crate 0.6.0.",
+      "evidenceCeiling": "Mutable source/docs and unverified issue reports; typed API presence and same-codec/ODA conversion tests do not prove ACIS semantics or native AutoCAD acceptance. No issue establishes a libdxfrw defect."
+    },
+    {
+      "project": "IxMilia .NET DXF and Rust DXF lineage",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf-rs"
+      ],
+      "observed": "The C# and Rust repositories are distinct implementations within the same author/organization family; the .NET README itself cautions that some 3DSOLID/REGION/BODY writer output may not open in AutoCAD.",
+      "evidenceCeiling": "Separate code paths may be compared for runtime-specific behavior, but should not be treated as independent authorship/specification votes."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md"
+      ],
+      "observed": "The documentation describes separate importer subsets, stock inability to read embedded ACIS/SAT solids, and a DWG converter-to-DXF-to-selected-importer pipeline. A generic no-loss DXF/DWG interchange assertion is inconsistent with those route-specific limitations.",
+      "evidenceCeiling": "Documentation consistency and intended route only; not native Linux/Windows qualification or evidence for an arbitrary FreeCAD build/importer selection."
+    },
+    {
+      "project": "BRL-CAD",
+      "urls": [
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/pull/245",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm"
+      ],
+      "observed": "The proposed #245 guard remains open and uses positive-only polyface index checks, while the documented DXF contract uses signed indices for invisible edges and zero as the active-list terminator. The local writer's direct ASCII/Binary group-70 regression already checks coordinate flags 192 and face flags 128.",
+      "evidenceCeiling": "A peer proposal and specification cross-check; not a reason to import peer code, run malformed peer cases, or reopen the already-tested local wire rule."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8 comparator admission",
+      "PAR-20 MATERIAL graph and payload implementation",
+      "PAR-37/7V polyface wire contract",
+      "FreeCAD Linux/Windows consumer qualification"
+    ],
+    "planEffect": "Add the Rust DXF/DXB route and issue evidence as optional, artifact-pinned comparator context; prefer exact importer profiles over FreeCAD's generic no-loss statement; retain the completed local polyface raw-wire assertion and current implementation order.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -85,7 +85,7 @@ private:
 
 class dwgCharStream: public dwgBasicStream{
 public:
-    dwgCharStream(std::uint8_t *buf, std::uint64_t s)
+    dwgCharStream(const std::uint8_t *buf, std::uint64_t s)
         :stream{buf}
         ,sz{s}
     {}
@@ -105,7 +105,7 @@ public:
             ? stream + p : nullptr;
     }
 private:
-    std::uint8_t *stream{nullptr};
+    const std::uint8_t *stream{nullptr};
     std::uint64_t sz{0};
     std::uint64_t pos{0};
     bool isOk{true};
@@ -114,7 +114,7 @@ private:
 class dwgBuffer {
 public:
     dwgBuffer(std::ifstream *stream, DRW_TextCodec *decoder = nullptr);
-    dwgBuffer(std::uint8_t *buf, std::uint64_t size, DRW_TextCodec *decoder= nullptr);
+    dwgBuffer(const std::uint8_t *buf, std::uint64_t size, DRW_TextCodec *decoder= nullptr);
     dwgBuffer( const dwgBuffer& org );
     dwgBuffer& operator=( const dwgBuffer& org );
     //! Copy the cursor and stream without sharing the invalid-state flag.
@@ -204,12 +204,20 @@ public:
     /// @param outBookName out: book name (when method byte bit 2 set)
     /// @param hasRgbColor out: true when the CMC uses the type-0xC2 true-color
     ///                     form, including RGB(0,0,0)
+    /// @param outMethod out: packed CMC method/type byte, retained even when
+    ///                   the decoder does not recognize it
+    /// @param outFlags out: raw name/book flag byte, including unknown bits
+    /// @param outIndex out: raw CMC BS index (always zero in R2004+; legacy
+    ///                   files use the BS value directly as the color index)
     std::uint32_t getCmColor(DRW::Version v,
                        std::int32_t* rgb24 = nullptr,
                        dwgBuffer* strBuf = nullptr,
                        UTF8STRING* outName = nullptr,
                        UTF8STRING* outBookName = nullptr,
-                       bool* hasRgbColor = nullptr); //CMC
+                       bool* hasRgbColor = nullptr,
+                       std::uint8_t* outMethod = nullptr,
+                       std::uint8_t* outFlags = nullptr,
+                       std::uint16_t* outIndex = nullptr); //CMC
     std::uint32_t getEnColor(DRW::Version v); //ENC
     //TC
 

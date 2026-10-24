@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader entity-specific DXF coordinate frames and arbitrary-axis boundary review",
+  "mode": "primary-source and local-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Autodesk DXF OCS/WCS entity-frame contracts",
+    "Arbitrary-axis 1/64 polar-cap boundary",
+    "ezdxf, FreeCAD, and ACadSharp source-level transform cross-checks",
+    "PAR-21 / 7H generated-test readiness"
+  ],
+  "method": {
+    "kind": "Read-only review of authoritative DXF references, public peer source/docs, and current local source/tests",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "FreeCAD, ezdxf, and ACadSharp sources are mutable or operation-specific and were not bound to exact runtime artifacts. Their source behavior is a cross-check only, not conformance or native acceptance evidence. The local generated tests were source-inspected, not run in this pass."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "revision": "2024 ENU DXF documentation reviewed 2026-10-17",
+      "observed": "The OCS summary distinguishes planar entities whose points are OCS, 3D entities whose points are WCS, mixed-frame DIMENSION data, and WCS VIEWPORT data."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm",
+      "revision": "2015 ENU DXF documentation reviewed 2026-10-17",
+      "observed": "The arbitrary-axis rule uses Wy cross N only if both absolute X and Y normal components are strictly below 1/64; equality selects Wz cross N."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+      "revision": "2018 ENU DXF documentation reviewed 2026-10-17",
+      "observed": "ELLIPSE center and major-axis endpoint-relative-to-center are explicitly WCS values; group 210 is an optional extrusion direction."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "revision": "2018 ENU DXF documentation reviewed 2026-10-17",
+      "observed": "INSERT insertion point is OCS; scale factors default to 1 independently; rotation, row/column counts and spacings, and extrusion are distinct fields."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm",
+      "revision": "2024 ENU DXF documentation reviewed 2026-10-17",
+      "observed": "LWPOLYLINE vertices are OCS, group 38 is elevation, and group 210 is extrusion direction."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/tutorials/ocs_usage.html",
+      "revision": "stable docs reviewed 2026-10-17; exact installed version not bound",
+      "observed": "The tutorial separates OCS elevation and thickness, notes LWPOLYLINE/HATCH elevation representation, and describes ELLIPSE extrusion as a direction where center/axis coordinates remain WCS rather than OCS."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+      "revision": "mutable main source reviewed 2026-10-17",
+      "observed": "The legacy Draft importer source contains an explicit 1/64 arbitrary-axis branch and constructs OCS placement for its importer route; no exact FreeCAD release was run or qualified."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Entity.cs",
+      "revision": "mutable master source reviewed 2026-10-17",
+      "observed": "Entity transforms route through OCS/world matrices using Matrix3.ArbitraryAxis; the source was not pinned to a released artifact or executed."
+    },
+    {
+      "project": "libdxfrw local source and tests",
+      "url": "local:src/drw_entities.cpp,src/libdxfrw.cpp,tests/dwg_local_roundtrip_tests.cpp",
+      "revision": "working tree source inspected 2026-10-17",
+      "observed": "calculateAxis implements the strict 1/64 predicate and extrusionUnitVector normalizes a temporary direction while retaining the entity field. processEllipse does not apply the OCS helper. Existing generated ARC/LWPOLYLINE vectors use Ny=0 for the below/above cutoff cases, so they leave the Y predicate and equality untested."
+    }
+  ],
+  "assessment": {
+    "coordinateFrameRule": "Treat coordinate meaning as entity-specific, not group-code-specific. Keep raw OCS/WCS fields, legacy applyExt projection, and consumer world geometry as separate observations.",
+    "ellipseRule": "Preserve ELLIPSE center and major-axis fields as WCS and do not apply the planar OCS helper a second time; group 210 supplies the plane normal.",
+    "localGap": "The existing generated accepted-normal vectors cover X below and above 1/64 but keep Y zero, leaving the second predicate and strict equality boundary without direct generated coverage. This is a test-readiness gap, not a demonstrated production defect.",
+    "comparatorRule": "Mutable peer source and app import routes may inform candidate transform profiles but cannot count as runtime conformance, independent semantic truth, or native acceptance without exact pinning and execution."
+  },
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-21",
+      "7H accepted-normal and OCS projection tests",
+      "composed coordinate-consumer interpretation"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "git rev-parse HEAD",
+      "jq empty docs/research/deeper-broader-entity-specific-dxf-coordinate-frames-and-arbitrary-axis-boundary-review-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

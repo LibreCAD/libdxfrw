@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-project silent-loss, output-finalization, and OBJECTS-root acceptance",
+  "mode": "Primary-source web research with local plan and focused-test receipt crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh LibreDWG's current published AcDs/SAB implementation boundary and the independently reported 3D carrier-loss, truncated-output, and NOD-order failure shapes.",
+    "Map the reports to existing PAR-07/S8, strict conversion finalization, and PAR-20/7G.3 owners without creating duplicate findings or tests.",
+    "Refine the implementation sequence around fast generated selectors, route-specific strict checks, and one later composed external/native checkpoint."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG release notes",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Public current NEWS page accessed 2026-10-20; cited claims are in the v0.14 release notes.",
+      "observed": "The release notes say the AcDb:AcDsPrototype_1b DataStorage parser is not fully implemented, R2013+ SAB extraction is still performed by brute force, and SAB v2 to encrypted SAT v1 conversion is a separate compatibility step needed for pre-R2013 DXF.",
+      "limits": "Release-note statements describe LibreDWG's named implementation and version context. They are not a normative format specification, a libdxfrw defect report, or independent topology validation."
+    },
+    {
+      "project": "LibreDWG modern ACIS carrier-loss report",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Public issue page accessed 2026-10-20; report identifies LibreDWG 0.14.8593 at commit 8a1ae764.",
+      "observed": "The issue body gives a from-scratch AC1032 DXF recipe for a REGION carrying a cube-derived SAB payload, reports 5,489 expected bytes, and describes the named LibreDWG DXF-to-DWG-to-DXF route preserving the REGION shell while losing the SAB/ACDSDATA. It also describes an unavailable confidential customer DWG, which was not retrieved.",
+      "limits": "The scratch recipe can probe DXF carrier handling but the reported LibreDWG-generated DWG is not a positive AcDs fixture. The report does not establish current master behavior, libdxfrw behavior, or independent B-rep semantics."
+    },
+    {
+      "project": "LibreDWG conversion finalization report",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1355"
+      ],
+      "revision": "Public issue page accessed 2026-10-20; issue reports an AC1032 case and compares output with ODA File Converter 25.6.",
+      "observed": "The report describes a truncated DXF without complete sections or EOF while the command returns status 0, despite a nonzero LINE inventory from another route.",
+      "limits": "This is a peer-specific reported failure shape, not a local reproduction. The attached drawing was not downloaded."
+    },
+    {
+      "project": "LibreDWG OBJECTS root-order report",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1413"
+      ],
+      "revision": "Public issue page accessed 2026-10-20; report states it is present on LibreDWG v0.14 and master as of 2026-09-08.",
+      "observed": "The issue reports that choosing the lowest-handle DICTIONARY can place an extension-owned dictionary before the NOD, causing readers to select the wrong root and lose layout names. The author reports a root-first reorder changing only two of 43 production drawings, preserving OBJECTS content, and satisfying the first-unowned-DICTIONARY rule on 141 shipped DWGs.",
+      "limits": "Corpus counts and application comparisons are reporter evidence, not locally reproduced results. Root identity is distinct from ordering every ownership edge and from dictionary key order."
+    },
+    {
+      "project": "Autodesk and ezdxf OBJECTS ordering contracts",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/sections/objects_section.html"
+      ],
+      "revision": "Autodesk DXF reference and ezdxf stable OBJECTS documentation accessed 2026-10-20.",
+      "observed": "Autodesk says the NOD is always the first OBJECTS object; ezdxf describes hierarchical owner order starting with the NOD as the first OBJECTS object.",
+      "limits": "These contracts establish the root-first and owner-order requirements but do not imply that non-owning references should be topologically scheduled."
+    },
+    {
+      "project": "Local plan and focused implementation receipts",
+      "urls": [],
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "tests/CMakeLists.txt",
+        "docs/research/par20-plotsettings-owner-order-fast-slice-2026-10-20.json",
+        "docs/research/par20-visualstyle-owner-order-fast-slice-2026-10-20.json"
+      ],
+      "revision": "Plan and route-specific test receipts inspected 2026-10-20.",
+      "observed": "The generated PlotSettings and VisualStyle controls assert NOD-first plus owner-dictionary-before-child physical order for their respective ASCII/Binary routes. Their focused CTests and scoped builds are recorded as passing in their implementation receipts. Existing plan owners already cover strict EOF/transactional output and modeler carrier disposition.",
+      "limits": "The two graph controls do not establish a generic OBJECTS scheduler, every object family, external producer behavior, application acceptance, or 3D semantics. The new research pass did not rerun them or the full suite."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: record exact ACIS carrier bytes/chunks, schema and entity association separately from B-rep semantics; distinguish generated DXF carrier probes from qualified DWG producers.",
+      "Strict conversion/finalization owner: independently require command success, closed sections/final marker, strict reparse, source-object disposition accounting, and no partial publication.",
+      "PAR-20/7G.3: for admitted graph routes assert true NOD identity/first position, then owner-before-owned order, then key/handle/owner/target closure; do not infer root from numeric handle.",
+      "Validation cadence: use generated focused selectors and their owning fast CTests per slice; reserve exact-pinned peer/native checks for the existing composed checkpoint."
+    ],
+    "planFileChanged": true,
+    "productionCodeChangedThisResearchPass": false,
+    "testCodeChangedThisResearchPass": false,
+    "testsRunThisResearchPass": 2,
+    "referencedFocusedTests": "PASS: libdxfrw_plotsettings_visualstyle_shade_reference (1/1) and libdxfrw_extension_graph_limits (1/1), rerun during final validation.",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a newest plan summary connecting LibreDWG's documented AcDs/SAB limitations to the existing carrier, finalization, and OBJECTS graph owners.",
+    "Added a detailed source crosswalk for LibreDWG #1411, #1355, and #1413, keeping each report explicitly peer-scoped and non-promoting.",
+    "Clarified that the #1411 scratch recipe is suitable for a DXF carrier probe only; it is not a positive DWG AcDs producer or a B-rep oracle.",
+    "Made output completion an explicit conjunction of process status, section/EOF closure, strict parse, source-object accounting, and atomic publication, while reusing existing local test owners.",
+    "Connected the newly passing PlotSettings and VisualStyle generated order controls to NOD identity-first and owner-before-owned gates without claiming a generic scheduler."
+  ],
+  "limitations": [
+    "Public peer issue bodies and release notes were reviewed; peer reports were not reproduced.",
+    "No customer drawing or issue attachment was downloaded.",
+    "No peer executable, native CAD application, or geometry kernel was run.",
+    "The six external-only J items remain DEFERRED_EXTERNAL and cannot be promoted by this research."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check; trailing-whitespace scan clean)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

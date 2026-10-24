@@ -20,7 +20,9 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 #include "drw_entities.h"
@@ -96,6 +98,18 @@ public:
 
 class dxfRW {
 public:
+    using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
+
+    // One source IMAGEDEF identity and its full typed payload. The adapter
+    // supplies these before write() so IMAGE entities can bind to definitions
+    // independently of filenames and callback order.
+    struct ImageDefinitionPlanEntry {
+        std::uint64_t importGeneration {0};
+        std::uint32_t sourceHandle {0};
+        DRW_ImageDef definition;
+        std::vector<DRW_ImageDefinitionReactor> selectedReactors{};
+    };
+
     // The standalone-safe classifier is the default. LibreCAD's pinned
     // bundled fork uses legacy widths for the disputed 260-269 and 482-998
     // ranges; downstream adapters migrating from that fork may opt in
@@ -154,6 +168,94 @@ public:
     DRW::DxfTextWritePolicy dxfTextWritePolicy() const noexcept {
         return m_dxfTextWritePolicy;
     }
+    /** Opt in to a bounded ledger of primary code-5/code-105 record identities.
+     * Record scopes roll entries back when aborted; duplicate handles reject
+     * the staged write. The completed inventory is queryable only during
+     * finalizeDxfWrite(), before atomic publication. It observes the first
+     * post-identity group-330 value when present; entity callers may use it
+     * to check an expected owner, but it does not prove other edge semantics. */
+    void setDxfWriteRecordInventoryEnabled(
+            bool enabled,
+            std::size_t maxHandles = 4u * 1024u * 1024u);
+    struct DxfObjectsWriteView {
+        std::string_view bytes; //!< Staged section body, no SECTION/ENDSEC framing.
+        DRW::Version version;
+        bool binary;
+        std::string_view codePage;
+        DxfCompatibilityProfile compatibilityProfile;
+    };
+    using DxfObjectsWriteInspector = std::function<bool(const DxfObjectsWriteView&)>;
+    /** Install outside a write. Invoked once for a successfully staged OBJECTS
+     * body, before append/publication. Views expire when the callback returns.
+     * Returning false, throwing, or attempting a nested read/write or guarded setup mutation
+     * refuses the attempt. Future-operation policy setters retain their usual
+     * semantics. True is tentative, not a publication/completeness receipt.
+     * Default empty: no inspection/copy/decoding overhead beyond normal staging.
+     * The callback must not retain views or mutate external stream state. */
+    bool setDxfObjectsWriteInspector(DxfObjectsWriteInspector inspector);
+    using DxfTablesWriteView = DxfObjectsWriteView;
+    using DxfTablesWriteInspector = DxfObjectsWriteInspector;
+    /** Same lifetime, mutation guard and tentative/publication contract as
+     * setDxfObjectsWriteInspector(), for the complete staged TABLES body after
+     * capacity backpatching. Called before BLOCKS/ENTITIES/OBJECTS; table names
+     * alone do not qualify complete table semantics or future publication. */
+    bool setDxfTablesWriteInspector(DxfTablesWriteInspector inspector);
+    // Opt-in staged BLOCKS/ENTITIES inspection. Same guard/lifetime/tentative
+    // contract as OBJECTS; section is exactly "BLOCKS" or "ENTITIES". With no
+    // inspector, ENTITIES keeps its ordinary streaming path. No new callback.
+    using DxfEntitySectionsWriteInspector = std::function<bool(const DxfObjectsWriteView&, std::string_view)>;
+    bool setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector inspector);
+    std::size_t dxfWriteRecordHandleCount(std::uint32_t handle) const noexcept;
+    bool dxfWriteRecordHasIdentity(std::uint32_t handle,
+                                   const std::string& recordName,
+                                   const std::string& sectionName) const;
+    bool dxfWriteRecordHasOwner(std::uint32_t handle,
+                                std::uint32_t ownerHandle) const noexcept;
+    /** During an admitted write, return a source table's successfully staged
+     * identity (currently LAYER, APPID, STYLE and VPORT), or zero. Unlike
+     * preallocateTableRecordHandle(), this requires a completed row encoder.
+     * Tentative until final validation/publication; no semantic name proof. */
+    std::uint32_t dxfWriteEmittedSourceTableHandle(std::uint32_t sourceHandle) const noexcept;
+    /** During finalizeDxfWrite(), additionally require one actual TABLES
+     * record of the requested type/optional owner. Preallocation, a raw row
+     * without a registered source writer, or a conflicting identity cannot
+     * supply this receipt. Consumer rebuild required; no new virtual. */
+    bool dxfWriteSourceTableHasIdentity(
+            std::uint32_t sourceHandle, std::uint32_t emittedHandle,
+            const std::string& recordName,
+            std::uint32_t expectedOwnerHandle = DRW::NoHandle) const;
+    /** During finalizeDxfWrite(), verify one admitted source entity's exact
+     * source-to-output binding against the completed record inventory. The
+     * source must be marked written and unambiguous; the emitted handle must
+     * match its binding and occur once with the requested type/section. This
+     * is a per-identity query, not proof that every source or graph edge was
+     * inventoried. Consumer rebuild required. */
+    bool dxfWriteSourceEntityHasIdentity(
+            std::uint32_t sourceHandle, std::uint32_t emittedHandle,
+            const std::string& recordName,
+            const std::string& sectionName) const;
+    /** Owner-aware form for entity identities whose section/type and expected
+     * BLOCK_RECORD owner are already known by a closed source graph. */
+    bool dxfWriteSourceEntityHasIdentity(
+            std::uint32_t sourceHandle, std::uint32_t emittedHandle,
+            const std::string& recordName,
+            const std::string& sectionName,
+            std::uint32_t expectedOwnerHandle) const;
+    /** During finalizeDxfWrite(), verify a typed source object identity that
+     * its writer registered after successful serialization. The emitted
+     * record must be unique and match its requested type/section, and the
+     * optional owner must match. This is per-record evidence only; it does not
+     * establish closure for object families that do not register identities
+     * or validate their outgoing edges. Consumer rebuild required. */
+    bool dxfWriteSourceObjectHasIdentity(
+            std::uint32_t sourceHandle, std::uint32_t emittedHandle,
+            const std::string& recordName,
+            const std::string& sectionName) const;
+    bool dxfWriteSourceObjectHasIdentity(
+            std::uint32_t sourceHandle, std::uint32_t emittedHandle,
+            const std::string& recordName,
+            const std::string& sectionName,
+            std::uint32_t expectedOwnerHandle) const;
     /**
      * Set the aggregate record ceiling for each subsequent DXF read.
      *
@@ -205,14 +307,21 @@ public:
     std::size_t dxfReadDecodeWorkBudget() const noexcept {
         return m_dxfReadDecodeWorkBudget;
     }
-    /** Bound typed DXF entity and `DRW_TableEntry::parseCode` XDATA
-     * `DRW_Variant` nodes admitted by each subsequent read. This also covers
-     * modeled object records that delegate XDATA to that base parser; it is
-     * not a guarantee over every OBJECTS parser/raw carrier. The default is
-     * 1,048,576 nodes; it is caller-raiseable and not a DXF maximum.
-     * Application data, raw carriers and other typed containers remain
-     * outside this counter. Callback changes apply to the next read. Rebuild
-     * consumers using this API. */
+    /** Bound selected materialized typed DXF `DRW_Variant` nodes admitted by
+     * each subsequent read: entity/table-entry XDATA and appData, modeled-
+     * object XDATA delegated to `DRW_TableEntry::parseCode`, parsed HEADER
+     * variables, synthesized DIMSTYLE `vars`, typed XRECORD payload values,
+     * typed LOFTEDSURFACE reference-data entries, DXF ACAD_TABLE cell-value
+     * variants, and captured raw-carrier groups plus their distinct
+     * raw-backed appData copies. Mirrored XRECORD
+     * values in the compatibility and ordered views and each raw/appData
+     * materialized copy count as separate nodes; handle payloads count the
+     * ordered variant node only. This is not a guarantee over every OBJECTS
+     * parser or allocation.
+     * The default is 1,048,576 nodes; it is caller-raiseable and not a DXF
+     * maximum. Other typed containers and container/user copies remain outside
+     * this counter. Callback changes apply to the next read. Rebuild consumers
+     * using this API. */
     void setDxfReadTypedVariantNodeBudget(std::size_t maxNodes) noexcept {
         m_dxfReadTypedVariantNodeBudget = maxNodes;
     }
@@ -261,6 +370,8 @@ public:
     [[nodiscard]] bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
     bool writeLineType(DRW_LType *ent);
     bool writeDictionary(DRW_Dictionary *ent);
+    bool writeDictionaryWithDefault(DRW_DictionaryWithDefault *ent);
+    bool writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent);
     bool writeXRecord(DRW_XRecord *ent);
     bool writeLayer(DRW_Layer *ent);
     bool writeDimstyle(DRW_Dimstyle *ent);
@@ -291,9 +402,32 @@ public:
         std::string name, int insUnits,
         const std::vector<std::uint8_t>& previewData,
         const std::vector<std::uint32_t>& insertHandles);
+    /// Additive BLOCK_RECORD XDATA path. Values are validated and deep-copied
+    /// before deferred emission; existing overloads remain unchanged.
+    bool writeBlockRecord(
+        std::string name, int insUnits,
+        const std::vector<std::uint8_t>& previewData,
+        const std::vector<std::uint32_t>& insertHandles,
+        const std::vector<DRW_Variant*>& extData);
     bool writeBlock(DRW_Block *ent);
+    /** Emit the ENDBLK carrier for the currently open BLOCK definition. */
+    bool writeBlockEnd(const DRW_Block *footer = nullptr);
+    /** Configure retained BLOCK headers for canonical Model_Space/Paper_Space. */
+    bool setFixedSpaceBlockBeginCarriers(const DRW_Block *modelSpaceBlock,
+                                         const DRW_Block *paperSpaceBlock);
+    /** Configure retained footers for the canonical Model_Space/Paper_Space blocks. */
+    bool setFixedSpaceBlockEndCarriers(const DRW_Block *modelSpaceFooter,
+                                       const DRW_Block *paperSpaceFooter);
     bool writeInsert(DRW_Insert *ent);
     bool writeTable(DRW_Table *ent);
+    /// Emits the bounded AC1021+ typed TABLESTYLE profile. DXF-origin
+    /// TABLESTYLE records continue to use exact raw replay through the
+    /// adapter; this typed path is for supported DWG-origin style snapshots.
+    bool writeTableStyle(DRW_TableStyle *ent,
+                         const std::list<DRW_Textstyle>& textStyles);
+    /// Emits a spec-backed CELLSTYLEMAP body. The owning TABLESTYLE's
+    /// extension-dictionary edge must still be validated by the adapter.
+    bool writeCellStyleMap(DRW_CellStyleMap *ent);
     bool writeAttrib(DRW_Attrib *ent,
                      std::uint32_t ownerOverride = DRW::NoHandle);
     bool writeAttdef(DRW_Attdef *ent,
@@ -319,6 +453,12 @@ public:
     /// The returned definition is writer-owned. It is invalidated by failure of
     /// the enclosing write, the next write attempt, or destruction of this codec.
     DRW_ImageDef *writeImage(DRW_Image *ent, std::string name);
+    /// Write an IMAGE against the preplanned source definition identity.
+    /// Returns nullptr and fails the active write if the identity was not in
+    /// the plan; filename fallback is deliberately not used for this overload.
+    DRW_ImageDef *writeImage(DRW_Image *ent, std::string name,
+                             std::uint64_t importGeneration,
+                             std::uint32_t sourceDefinitionHandle);
     bool writeWipeout(DRW_Wipeout *ent);
     bool writePointCloud(DRW_PointCloud *ent);
     bool writePointCloudEx(DRW_PointCloudEx *ent);
@@ -376,6 +516,24 @@ public:
     bool writeEvaluationGraph(DRW_EvaluationGraph *ent,
                               const char *recordName = "EVALUATION_GRAPH");
     bool writeRawDxfObject(DRW_RawDxfObject *obj);
+    bool writeRawDxfObject(DRW_RawDxfObject *obj,
+                           std::uint32_t ownerOverride);
+    //! Replay a raw object while semantically re-encoding selected group-3 or
+    //! group-300 UTF-8 strings. All other captured values retain the raw path.
+    bool writeRawDxfObjectWithStringOverrides(
+        DRW_RawDxfObject *obj,
+        const std::vector<std::pair<std::size_t, std::string>>& overrides);
+    //! Replay a raw object with selected UTF-8 string and signed Int32 edits.
+    //! All groups outside those indexed edits retain the raw path.
+    bool writeRawDxfObjectWithStringAndInt32Overrides(
+        DRW_RawDxfObject *obj,
+        const std::vector<std::pair<std::size_t, std::string>>& stringOverrides,
+        const std::vector<std::pair<std::size_t, std::int32_t>>& int32Overrides);
+    //! Replay one captured opaque ENTITIES/BLOCKS record without losing its
+    //! source identity or owner. ownerOverride is already an emitted
+    //! BLOCK_RECORD handle; NoHandle preserves pre-R2000 ownerless records.
+    bool writeRawDxfEntity(DRW_RawDxfObject *entity,
+                           std::uint32_t ownerOverride = DRW::NoHandle);
     /*!< Mark a specific code-5 handle as in-use so the minted-handle stream
      * (m_handleAllocator.next()) never re-issues it. Mirrors
      * dwgWriter::reserveHandle. The filter calls this for every verbatim handle
@@ -407,11 +565,42 @@ public:
         m_dxfClasses = classes;
         m_dxfClassesFrozen = false;
     }
+    void setDxfClasses(std::vector<DRW_Class>&& classes) {
+        if (!preflightDxfSetup())
+            return;
+        if (writer != nullptr && m_dxfClassesFrozen) {
+            m_writeError = true;
+            return;
+        }
+        m_dxfClasses = std::move(classes);
+        m_dxfClassesFrozen = false;
+    }
     /*!< Register unmodeled DXF sections for same-version raw replay. */
     void setRawDxfSections(const std::vector<DRW_RawDxfSection> &sections) {
         if (!preflightDxfSetup())
             return;
         m_rawDxfSections = sections;
+    }
+    void setRawDxfSections(std::vector<DRW_RawDxfSection>&& sections) {
+        if (!preflightDxfSetup())
+            return;
+        m_rawDxfSections = std::move(sections);
+    }
+    //! Transfer adapter-owned raw sections into this codec for one synchronous
+    //! write, avoiding a second full copy. Restore them with
+    //! returnAdoptedRawDxfSections() before the source container is reused.
+    bool adoptRawDxfSectionsForWrite(
+            std::vector<DRW_RawDxfSection>&& sections) {
+        if (!preflightDxfSetup())
+            return false;
+        m_rawDxfSections = std::move(sections);
+        return true;
+    }
+    //! Return sections previously adopted for a synchronous write without
+    //! copying their nested group/value storage.
+    void returnAdoptedRawDxfSections(
+            std::vector<DRW_RawDxfSection>& sections) noexcept {
+        sections.swap(m_rawDxfSections);
     }
     /*!< Canonical DXF CLASS metadata (recName/className/appName/proxyFlag/
      * wasaProxyFlag/entityFlag, per ezdxf REQUIRED_CLASSES) for the known
@@ -419,6 +608,10 @@ public:
      * fixed/built-in or unknown record names. instanceCount is left 0 for the
      * caller to fill. */
     static bool dxfClassForRecordName(const std::string &recName, DRW_Class &out);
+    //! Version-specific DXF record spelling for the AcDbSubDMesh entity.
+    //! Autodesk documents SUBDIVISION at AC1024 and MESH at AC1027; pre-AC1024
+    //! behavior is retained pending an exact sample/provenance audit.
+    static const char* dxfMeshRecordNameForVersion(DRW::Version version) noexcept;
     /*!< Register extra (name, hex-handle) entries to splice into the regenerated
      * root NamedObjectsDictionary (handle C) so raw-net-routed named dictionaries
      * are reachable from the root and not pruned as orphans. The filter builds
@@ -426,7 +619,21 @@ public:
     void setRootDictEntries(const std::vector<std::pair<std::string, std::string>> &entries) {
         if (!preflightDxfSetup())
             return;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && m_generatedNodSource) {
+            m_writeError = true;
+            return;
+        }
         m_rootDictEntries = entries;
+    }
+    void setRootDictEntries(
+            std::vector<std::pair<std::string, std::string>>&& entries) {
+        if (!preflightDxfSetup())
+            return;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && m_generatedNodSource) {
+            m_writeError = true;
+            return;
+        }
+        m_rootDictEntries = std::move(entries);
     }
     /*!< Register named-dictionary OBJECTS to emit verbatim in the regenerated
      * OBJECTS section (DXF write path only). Each carries its source code-5
@@ -439,20 +646,206 @@ public:
     void setNamedDictObjects(const std::vector<DRW_Dictionary> &dicts) {
         if (!preflightDxfSetup())
             return;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && !m_groups.empty()) {
+            m_writeError = true;
+            return;
+        }
         m_namedDictObjects = dicts;
+    }
+    void setNamedDictObjects(std::vector<DRW_Dictionary>&& dicts) {
+        if (!preflightDxfSetup())
+            return;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && !m_groups.empty()) {
+            m_writeError = true;
+            return;
+        }
+        m_namedDictObjects = std::move(dicts);
+    }
+    /// Declare source identities for the generated NOD (C) and ACAD_GROUP
+    /// dictionary (D). Zero leaves an identity unbound; a group dictionary
+    /// requires a NOD and cannot share its source handle. Caller remaps must
+    /// resolve the declarations to C/D. Registration alone emits nothing and
+    /// does not qualify preservation of the source dictionary fields/edges.
+    /// Consumers must rebuild against this class-layout addition.
+    bool setGeneratedDictionarySourceHandles(std::uint32_t nod,
+                                             std::uint32_t groups) {
+        if (!preflightDxfSetup() || (groups != 0u && (nod == 0u || groups == nod))
+            || (m_generatedNodSource && m_generatedNodSource->handle != nod)
+            || (m_generatedGroupDictionarySource && m_generatedGroupDictionarySource->handle != groups))
+            return false;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen) {
+            m_writeError = true;
+            return false;
+        }
+        m_generatedNodSourceHandle = nod;
+        m_generatedGroupDictionarySourceHandle = groups;
+        return true;
+    }
+    /// Transfer owned source metadata for the generated C/D dictionaries.
+    /// Common metadata and selected source edges retain their values/roles
+    /// and order; setRootDictEntries still selects the exported root graph.
+    /// This does not certify that omitted source entries were preserved.
+    /// Setup/emission is not complete DWG source-frame qualification; any
+    /// unmodeled common state still needs separate field/output evidence.
+    /// GROUP-dictionary membership must match the emitted GROUPs exactly.
+    /// Null/null clears metadata and aliases. Ownership is consumed even on
+    /// refusal, while a previous accepted setup is left unchanged. The visible
+    /// retained payload is bounded by maxRetainedBytes (at most 64 MiB) and
+    /// one million common items. Consumers must rebuild for the owned fields.
+    bool setGeneratedDictionarySourceRecords(
+        std::unique_ptr<DRW_Dictionary> nod,
+        std::unique_ptr<DRW_Dictionary> groups,
+        std::size_t maxRetainedBytes = 64u * 1024u * 1024u);
+    /// Also transfer the selected source image dictionary, scoped to one
+    /// IMAGEDEF-plan generation. All three records share the same byte/item
+    /// allowance. Original selected image keys/roles/order and metadata are
+    /// preserved; unused source entries remain an explicit projection, not
+    /// preservation proof. Image aliases are planned before callbacks but
+    /// become emitted identities only after their records serialize.
+    bool setGeneratedDictionarySourceRecords(
+        std::unique_ptr<DRW_Dictionary> nod,
+        std::unique_ptr<DRW_Dictionary> groups,
+        std::unique_ptr<DRW_Dictionary> images,
+        std::uint64_t imageImportGeneration,
+        std::size_t maxRetainedBytes = 64u * 1024u * 1024u);
+    /// Install the source IMAGEDEFs referenced by this export. Definitions
+    /// are copied, keyed by import generation and source handle, then assigned
+    /// fresh output handles before entity emission. An empty plan preserves
+    /// the legacy filename-only writeImage API.
+    bool setImageDefinitionPlan(
+        const std::vector<ImageDefinitionPlanEntry>& definitions);
+    bool setImageDefinitionPlan(
+        std::vector<ImageDefinitionPlanEntry>&& definitions);
+    // Attempt-local generated identities, not publication receipts. Available
+    // to synchronous inspectors/finalizers; zero outside a live write.
+    std::uint32_t dxfWriteImageDefinitionHandle(ImageDefinitionKey source) const noexcept;
+    std::uint32_t dxfWriteImageReactorHandle(ImageDefinitionKey definition,
+                                           std::uint32_t sourceReactor) const noexcept;
+    // Borrowed attempt-local views, invalid when write returns. The generated
+    // view supplies minted IDs only; it is not independent field evidence.
+    const ImageDefinitionPlanEntry* dxfWriteImageSource(ImageDefinitionKey source) const noexcept;
+    const DRW_ImageDef* dxfWriteGeneratedImageDefinition(ImageDefinitionKey source) const noexcept;
+    /*!< Register source handles for complete TABLESTYLE raw records that the
+     * same writer callback will emit. A TABLE's 342 reference is accepted only
+     * when its style handle is present here; registration alone does not emit
+     * or validate the object graph. */
+    void setResolvedTableStyleHandles(
+            const std::vector<std::uint32_t> &handles) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedTableStyleHandles = handles;
+    }
+    void setResolvedTableStyleHandles(std::vector<std::uint32_t>&& handles) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedTableStyleHandles = std::move(handles);
+    }
+    /*!< Register rooted Background handles whose typed group-332 consumer or
+     * IBL group-340 references will be emitted by this same adapter write.
+     * Direct codec callers have no resolved targets by default and remain
+     * fail-closed. */
+    void setResolvedBackgroundHandles(
+            const std::vector<std::uint32_t> &handles) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedBackgroundHandles = handles;
+    }
+    void setResolvedBackgroundHandles(std::vector<std::uint32_t>&& handles) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedBackgroundHandles = std::move(handles);
+    }
+    const std::vector<std::uint32_t>& resolvedBackgroundHandles() const noexcept {
+        return m_resolvedBackgroundHandles;
+    }
+    /*!< Register SUN objects whose one-to-one VPORT/VIEWPORT hard-owner
+     * graph was validated by the adapter for this same DXF write. Direct codec
+     * callers have no resolved SUN targets by default and remain fail-closed. */
+    void setResolvedSunHandles(
+            const std::vector<std::uint32_t> &handles) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedSunHandles = handles;
+    }
+    void setResolvedSunHandles(std::vector<std::uint32_t>&& handles) {
+        if (!preflightDxfSetup())
+            return;
+        m_resolvedSunHandles = std::move(handles);
+    }
+    const std::vector<std::uint32_t>& resolvedSunHandles() const noexcept {
+        return m_resolvedSunHandles;
     }
     /*!< Register GROUP objects to typed-emit in the regenerated OBJECTS section
      * (DXF write path only). Each carries its name/description/flags and the
      * member entity SOURCE handles (DRW_Group::m_entityHandles). The codec mints
      * a fresh group handle, injects the (name, minted-handle) entry into the
      * ACAD_GROUP D dict, and emits the GROUP with 340 references resolved through
-     * the writeEntity source->minted map (members absent from the map — consumed
-     * or filtered entities — are skipped, never emitted as a dangling 340).
+     * the writeEntity source->minted map. A missing member refuses output
+     * rather than silently dropping an edge. A nonzero source GROUP handle
+     * registers a transaction-bound emitted object identity; a zero handle
+     * preserves the authored/no-source route.
+     * Final GROUP identities are planned after writeHeader() returns, before
+     * dependent records serialize. Changes during later callbacks refuse the
+     * write. Planning is not evidence that a GROUP was emitted.
      * Empty by default. */
     void setGroups(const std::vector<DRW_Group> &groups) {
         if (!preflightDxfSetup())
             return;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen) {
+            m_writeError = true;
+            return;
+        }
         m_groups = groups;
+        clearDxfGroupPlan();
+    }
+    //! Move adapter-owned list values into the codec for one synchronous
+    //! write. Restore them with returnAdoptedGroupsForWrite() before the
+    //! source list is used again.
+    bool adoptGroupsForWrite(std::list<DRW_Group>& groups) {
+        if (!preflightDxfSetup())
+            return false;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen) {
+            m_writeError = true;
+            return false;
+        }
+        static_assert(noexcept(DRW_Group(std::declval<DRW_Group&&>())),
+                      "GROUP write transfer requires nothrow move construction");
+        std::vector<DRW_Group> adopted;
+        try {
+            adopted.reserve(groups.size());
+        } catch (...) {
+            return false;
+        }
+        for (DRW_Group& group : groups)
+            adopted.emplace_back(std::move(group));
+        m_groups = std::move(adopted);
+        clearDxfGroupPlan();
+        return true;
+    }
+    //! Borrow the codec-owned GROUP input during a synchronous write callback.
+    //! This is input state, not an emitted-record or preservation receipt.
+    //! Invalidated by set/adopt/return operations and codec destruction.
+    const std::vector<DRW_Group>& groupsForWrite() const noexcept {
+        return m_groups;
+    }
+    //! Restore values into the original list nodes without copying nested
+    //! strings or handle vectors. The list's size must remain unchanged until
+    //! the synchronous write has returned.
+    void returnAdoptedGroupsForWrite(
+            std::list<DRW_Group>& groups) noexcept {
+        static_assert(noexcept(std::declval<DRW_Group&>() =
+                               std::declval<DRW_Group&&>()),
+                      "GROUP write transfer requires nothrow move assignment");
+        if (groups.size() != m_groups.size()) {
+            m_writeError = true;
+            return;
+        }
+        auto source = groups.begin();
+        for (DRW_Group& group : m_groups) {
+            *source = std::move(group);
+            ++source;
+        }
+        m_groups.clear();
     }
     /*!< Allocate a fresh, collision-free code-5 handle from the codec's
      * allocator. The filter uses this AFTER reserving every raw + fixed handle
@@ -468,11 +861,26 @@ public:
      * byte-matches the re-emitted handle (e.g. a remapped root-dict entry). */
     std::string toHexStrHandle(std::uint32_t h) { return toHexStr(h); }
     /*!< Register source-handle remaps applied to raw and typed DXF output.
-     * Empty by default (source handles are preserved verbatim). */
+     * Empty by default (source handles are preserved verbatim). With GROUPs,
+     * remaps and named dictionaries freeze after writeHeader() returns so
+     * later callbacks cannot invalidate their planned destinations. */
     void setHandleRemap(const std::map<std::uint32_t, std::uint32_t> &remap) {
         if (!preflightDxfSetup())
             return;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && !m_groups.empty()) {
+            m_writeError = true;
+            return;
+        }
         m_handleRemap = remap;
+    }
+    void setHandleRemap(std::map<std::uint32_t, std::uint32_t>&& remap) {
+        if (!preflightDxfSetup())
+            return;
+        if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && !m_groups.empty()) {
+            m_writeError = true;
+            return;
+        }
+        m_handleRemap = std::move(remap);
     }
     /*!< Install an owned reference resolver for selected DXF references.
      * Its result is the final emitted identity (it is not remapped again).
@@ -500,6 +908,13 @@ public:
         m_sourceBlockRecords = records;
         m_requireResolvedBlockOwners = requireResolvedOwners;
     }
+    void setSourceBlockRecords(std::vector<DRW_Block_Record>&& records,
+                               bool requireResolvedOwners = false) {
+        if (!preflightDxfSetup())
+            return;
+        m_sourceBlockRecords = std::move(records);
+        m_requireResolvedBlockOwners = requireResolvedOwners;
+    }
     /*!< Register source linetypes so metadata attached to the three mandatory
      * canonical rows can be emitted before the LTYPE table is closed. */
     void setCanonicalLineTypeMetadata(
@@ -507,6 +922,11 @@ public:
         if (!preflightDxfSetup())
             return;
         m_canonicalLineTypeMetadata = lineTypes;
+    }
+    void setCanonicalLineTypeMetadata(std::vector<DRW_LType>&& lineTypes) {
+        if (!preflightDxfSetup())
+            return;
+        m_canonicalLineTypeMetadata = std::move(lineTypes);
     }
     std::uint32_t remapHandle(std::uint32_t handle) const {
         auto it = m_handleRemap.find(handle);
@@ -523,7 +943,13 @@ public:
     //! Reserve the future code-5 handle for a source entity before table
     //! records are emitted. Returns zero for a zero source handle.
     std::uint32_t preallocateEntityHandle(std::uint32_t sourceHandle);
-    //! Bind a preserved raw record's source handle to the handle emitted for it.
+    //! Reserve the output identity for a source table record before an earlier
+    //! table emits a forward reference to it (for example LTYPE -> STYLE).
+    //! Returns zero and fails the write for invalid or conflicting identities.
+    std::uint32_t preallocateTableRecordHandle(std::uint32_t sourceHandle);
+    //! Bind a preserved source-entity identity to its planned output handle.
+    //! Used for raw records and structural entities such as ENDBLK whose
+    //! output handles are reserved before the record is emitted.
     //! The binding is rejected for null or ambiguous source identities.
     bool bindSourceEntityHandle(std::uint32_t sourceHandle,
                                 std::uint32_t emittedHandle);
@@ -553,6 +979,10 @@ public:
     DRW_DxfTextReadObservations getTextReadObservations() const noexcept;
 
     std::uint32_t getBlockRecordHandleToWrite(const std::string& blockName) const;
+    //! Return the emitted ENDBLK identity reserved for a named BLOCK body.
+    //! Used to bind a retained source footer handle before earlier records
+    //! serialize references to it. DRW::NoHandle means no such body is planned.
+    std::uint32_t getBlockEndHandleToWrite(const std::string& blockName) const;
     std::uint32_t getTextStyleHandle(const std::string& styleName) const;
     DRW_ParsingContext* getReadingContext() { return &m_readingContext; }
     //! DXF-derived fields are cleared by a failed write attempt. Direct context
@@ -571,6 +1001,8 @@ public:
     }
 
 private:
+    // Executable-local allocation instrumentation; no runtime/public test API.
+    friend class DxIfaceStandardDwgCaptureTestAccess;
     enum class DxfEntityBoundary {
         NextEntity,
         EndSection,
@@ -583,7 +1015,7 @@ private:
 public:
 #endif
     LIBDXFRW_TEST_SEAM_NOINLINE bool processDxf();
-    bool processRawDxfSection(const std::string& sectionName);
+    bool processRawDxfSection(std::string_view sectionName);
     bool processHeader();
     bool processClasses();
     bool processTables();
@@ -594,6 +1026,16 @@ public:
     bool processUnderlayDefinition();
     bool processDetailViewStyle();
     bool processSectionViewStyle();
+    bool publishOrQueueDxfViewStyleName(
+        bool sectionStyle, std::uint32_t handle, std::uint32_t parentHandle,
+        std::function<void(const std::string&)> publish);
+    bool resolveDxfViewStyleName(bool sectionStyle, std::uint32_t handle,
+                                 std::uint32_t parentHandle,
+                                 std::string& name) const;
+    bool flushPendingDxfViewStyleNames(bool force);
+    void resetDxfViewStyleNameResolution();
+    void observeDxfViewStyleRoot(const DRW_Dictionary& dictionary);
+    bool observeDxfViewStyleDictionary(DRW_Dictionary&& dictionary);
     bool processBreakData();
     bool processBreakPointRef();
     bool processMaterial();
@@ -613,6 +1055,7 @@ public:
     bool processImageDefReactor();
     bool processSpatialFilter();
     bool processTableStyle();
+    bool processCellStyleMap();
     bool processMLeaderStyle();
     bool processSortEntsTable();
     bool processDimAssoc();
@@ -643,7 +1086,7 @@ public:
     DxfEntityBoundary classifyEntityBoundary() const;
     bool acceptEntityCallbackBoundary() const;
     bool acceptObjectBoundary(int code);
-    DxfEntityBoundary consumeEntityFooter();
+    DxfEntityBoundary consumeEntityFooter(DRW_SeqEnd *footer = nullptr);
 
     bool processLType();
     bool processLayer();
@@ -725,7 +1168,7 @@ public:
     bool processWipeoutVariables();
     bool processProxyObject();
     bool processProxyEntity();
-    bool processRawObject();
+    bool processRawObject(bool reportUnmodeled = true);
     bool processRawEntity();
     /*!< Append the current DXF record (already read by reader->readRec) to a
      * raw-passthrough carrier as a correctly-TYPED DRW_Variant, classifying the
@@ -739,7 +1182,8 @@ public:
     bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                                        std::list<std::list<DRW_Variant>> &appData,
                                        std::vector<std::uint32_t> &reactorHandles,
-                                       std::uint32_t &xDictHandle);
+                                       std::uint32_t &xDictHandle,
+                                       std::shared_ptr<DxfReadRetainedLease> &typedLease);
     bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                                        DRW_TableEntry &entry);
     bool captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
@@ -765,16 +1209,49 @@ public:
         int insUnits {0};
         std::vector<std::uint8_t> previewData;
         std::vector<std::uint32_t> insertHandles;
+        std::vector<std::shared_ptr<DRW_Variant>> extData;
+    };
+    enum class DxfViewStyleNameState : std::uint8_t {
+        NotSeen,
+        Missing,
+        AwaitingDictionary,
+        Ready,
+        Invalid
+    };
+    struct DxfViewStyleNameRoute {
+        DxfViewStyleNameState state {DxfViewStyleNameState::NotSeen};
+        std::uint32_t rootHandle {DRW::NoHandle};
+        std::uint32_t childHandle {DRW::NoHandle};
+        std::vector<DRW_Dictionary::Entry> entries;
+        std::unordered_map<std::uint32_t, std::size_t> entryIndexByHandle;
+        std::unordered_set<std::uint32_t> ambiguousHandles;
+    };
+    struct PendingDxfViewStyleName {
+        bool sectionStyle {false};
+        std::uint32_t handle {DRW::NoHandle};
+        std::uint32_t parentHandle {DRW::NoHandle};
+        std::function<void(const std::string&)> publish;
     };
     enum class DxfWriteMutationKind : std::uint8_t {
         BlockMapInsert,
         TextStyleMapSet,
+        SourceTextStyleNameInsert,
+        SourceLinetypeTargetInsert,
         SourceHandleInsert,
+        SourceTableRecordInsert,
+        SourceTableIdentityInsert,
         SourceHandleErase,
         AmbiguousSourceHandleInsert,
         WrittenSourceEntityHandleInsert,
+        SourceObjectIdentityInsert,
         ModelerSourceHandleInsert,
-        ImageReactorInsert
+        ImageReactorInsert,
+        ImageSourceReactorInsert,
+        EmittedDxfBlockBodyInsert,
+        EmittedDxfDimStyleNameInsert,
+        PendingDxfDimensionPictureBlockInsert,
+        PendingDxfInsertBodyTargetInsert,
+        PendingDxfDimstyleBlockResourceInsert
     };
     struct DxfWriteMutation {
         DxfWriteMutationKind kind {DxfWriteMutationKind::BlockMapInsert};
@@ -784,19 +1261,41 @@ public:
         bool hadPrevious {false};
         DRW_ImageDef *imageDef {nullptr};
     };
+    struct SourceLinetypeTarget {
+        std::string name;
+        std::uint32_t emittedHandle {0};
+    };
     bool emitBlockRecord(const PendingDxfBlockRecord& record);
+    bool preflightDxfXdataAppIds(
+        const std::vector<DRW_Variant*>& extData);
+    bool validateDxfXdataAppIdRegistrations();
     bool planSourceBlockRecordHandles();
+    bool planDxfGroupHandles();
+    void clearDxfGroupPlan() noexcept {
+        m_plannedDxfGroupHandles.clear();
+        m_plannedDxfGroupSourceHandles.clear();
+        m_dxfGroupPlanFrozen = false;
+    }
     bool sourceBlockRecordLayoutHandle(
         std::uint32_t emittedBlockRecord,
         std::uint32_t& sourceLayoutHandle) const noexcept;
     bool writeSourceBlockRecordLayoutLink(
+        std::uint32_t emittedBlockRecord);
+    bool writeSourceBlockRecordExtensionDictionary(
         std::uint32_t emittedBlockRecord);
     // captureSourceHandle=false on the VERTEX/SEQEND parent re-entries
     // (writePolyline/writeInsert) so they do not pollute the source->minted map.
     // recordName is supplied only for a known target-version limitation; the
     // attempted omission is counted, but the standalone writer remains strict.
     bool rejectUnsupportedDxfWrite(const char* recordName = nullptr) noexcept;
+    bool rejectDxfWriteWithReason(const char* recordName,
+                                  const char* reason) noexcept;
     bool failDxfWrite() noexcept;
+    bool bindDxfWriteSourceObjectHandle(std::uint32_t sourceHandle,
+                                       std::uint32_t emittedHandle);
+    bool bindDxfWriteSourceTableHandle(std::uint32_t sourceHandle,
+                                      std::uint32_t emittedHandle,
+                                      bool allowLayerZeroEntityAlias = false);
     bool writeRequiredString(int code, const std::string& value);
     bool allocateDxfHandle(std::uint32_t& handle) noexcept;
     bool preflightDxfWrite() noexcept;
@@ -808,6 +1307,7 @@ public:
     class RecordStateScope;
     class EntityRecordScope;
     bool preflightEntity(const DRW_Entity *ent);
+    bool writeEntityReferenceGroups(const DRW_Entity *ent);
     bool preflightTableEntry(const DRW_TableEntry *ent);
     bool resolveSortEntsEntityHandle(std::uint32_t source,
                                      std::uint32_t& resolved) const;
@@ -815,12 +1315,50 @@ public:
     LIBDXFRW_TEST_SEAM_NOINLINE bool validateHatchPayload(const DRW_Hatch *ent) const;
     bool writeEntity(DRW_Entity *ent, bool captureSourceHandle = true,
                      std::uint32_t ownerOverride = DRW::NoHandle);
-    bool writeSequenceEnd(std::uint32_t ownerHandle);
+    bool writeBlockEndWithHandle(const DRW_Block *footer,
+                                 std::uint32_t emittedHandle);
+    bool writeBlockEndCommonFields(const DRW_Block& footer);
+    bool bindSourceBlockBeginHandle(const DRW_Block *block,
+                                    std::uint32_t emittedHandle);
+    bool bindSourceBlockEndHandle(const DRW_Block *footer,
+                                  std::uint32_t emittedHandle);
+    bool validateSourceBlockEndOwner(const DRW_Block *footer,
+                                     std::uint32_t emittedOwnerHandle);
+    bool writeSequenceEnd(const DRW_SeqEnd *footer,
+                          std::uint32_t ownerHandle);
+    bool materializeImageDefinitionPlan() noexcept;
+    DRW_ImageDef *writeImageRecord(DRW_Image *ent, std::string name,
+                                   DRW_ImageDef *plannedDefinition);
     bool writeArcDimension(DRW_DimArc *d);
     bool writeLargeRadialDimension(DRW_DimLargeRadial *d);
+    bool preflightDimensionStyle(const DRW_Dimension *dimension);
+    bool preflightDimensionPictureBlock(const DRW_Dimension *dimension);
+    bool preflightInsertTargetBody(const DRW_Insert *insert);
+    bool recordEmittedDxfBlockBody(const std::string& name);
+    bool recordEmittedDxfDimStyleName(const std::string& name);
+    bool recordSourceLinetypeTarget(std::uint32_t sourceHandle,
+                                    const std::string& name,
+                                    std::uint32_t emittedHandle);
+    bool recordPendingDxfDimstyleBlockResource(
+        const std::string& name, std::uint32_t sourceDimstyleHandle);
+    bool completeCurrentDxfBlockBody();
+    bool buildDimensionDstyleXdata(
+        const DRW_Dimension& dimension,
+        std::vector<std::shared_ptr<DRW_Variant>>& output);
     bool writeTables();
     bool writeBlocks();
     bool writeObjects();
+    struct DxfDictionaryOutputEntry {
+        std::string_view name;
+        std::uint32_t target{0};
+        int code{350};
+    };
+    enum class DxfDictionaryRecordPhase { Validate, Emit, ValidateAndEmit };
+    bool writeDictionaryRecord(
+        const DRW_Dictionary& dictionary, std::uint32_t emittedHandle,
+        std::uint32_t emittedOwner, bool emitCloning,
+        const std::vector<DxfDictionaryOutputEntry>* projectedEntries = nullptr,
+        DxfDictionaryRecordPhase phase = DxfDictionaryRecordPhase::ValidateAndEmit);
     bool writeExtData(const std::vector<DRW_Variant*> &ed);
     /* Entity-flavoured overload: entities own extData via shared_ptr, table
      * records own raw pointers. Same DXF codes, different storage. */
@@ -838,18 +1376,25 @@ public:
                            DRW::Version sourceVersion,
                            bool remapSourceHandles = true,
                            bool useLegacyClassifier = false,
-                           bool sortEntsTableRecord = false);
+                           bool sortEntsTableRecord = false,
+                           const std::vector<std::pair<std::size_t, std::string>>*
+                               stringOverrides = nullptr,
+                           bool allowMaterialUnsignedColorValues = false,
+                           const std::vector<std::pair<std::size_t, std::int32_t>>*
+                               int32Overrides = nullptr);
     LIBDXFRW_TEST_SEAM_NOINLINE bool writeRawDxfSection(const DRW_RawDxfSection &section);
-    bool remapAcdsAsmDataOwnerHandles(DRW_RawDxfSection &section);
+    bool collectAcdsAsmDataOwnerHandleOverrides(
+        const DRW_RawDxfSection& section,
+        std::vector<std::pair<std::size_t, std::string>>& overrides);
     void writePlotSettingsFields(const DRW_PlotSettings *ent);
     /*use version from dwgutil.h*/
     std::string toHexStr(std::uint32_t n);
     std::string toHexStr(int n);// compatibility overload for legacy callers
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
-    bool writeTableEntryAppData(const DRW_TableEntry& entry);
+    bool writeTableEntryAppData(const DRW_TableEntry& entry, bool emitReactors = true);
+    template <typename Range, typename GetPointer>
+    bool writeExtDataRange(const Range& values, GetPointer getPointer);
     std::uint32_t resolveReference(std::uint32_t handle) const;
-    std::list<std::list<DRW_Variant>> resolveAppDataReferences(
-        const std::list<std::list<DRW_Variant>> &appData);
     std::uint32_t remapObjectHandle(std::uint32_t handle) const noexcept;
 
     bool setError(const DRW::error lastError);
@@ -873,6 +1418,24 @@ private:
     void recordInvalidRawHandleDiagnostic();
 
 private:
+    bool writeRawDxfEntityGroups(
+        const std::vector<DRW_Variant>& groups,
+        const std::vector<UTF8STRING>& rawValues, bool hasRawValues,
+        DRW::Version sourceVersion, bool remapSourceHandles,
+        bool useLegacyClassifier, bool sortEntsTableRecord,
+        int ownerOverrideGroupIndex, std::uint32_t emittedOwnerOverride,
+        bool remapEntityXdataHandleReferences,
+        const std::vector<std::pair<std::size_t, std::string>>*
+            stringOverrides,
+        bool allowMaterialUnsignedColorValues,
+        const std::vector<std::pair<std::size_t, std::int32_t>>*
+            int32Overrides = nullptr);
+    bool writeRawDxfObjectInternal(
+        DRW_RawDxfObject *obj, std::uint32_t ownerOverride,
+        const std::vector<std::pair<std::size_t, std::string>>*
+            stringOverrides,
+        const std::vector<std::pair<std::size_t, std::int32_t>>*
+            int32Overrides = nullptr);
     void beginDxfReadRetainedBudget();
     bool appendDxfReadHeaderComment(const std::string& comment);
     bool recordDxfTableRow() noexcept;
@@ -934,9 +1497,22 @@ private:
     bool m_readTextObservationsActive {false};
     bool m_wholeOperationActive {false};
     bool m_dxfWriteAttemptActive {false};
+    // XDATA APPID names are gathered during BLOCK_RECORD precollection when
+    // available and during emission for streamed callbacks. Missing registrations
+    // are rejected as soon as the APPID table closes and again before commit.
+    std::unordered_set<std::string> m_registeredDxfXdataAppIds;
+    std::unordered_set<std::string> m_requiredDxfXdataAppIds;
     // Closed after emission, including the consumer veto and publication.
     // WholeOperationScope releases this phase on every admitted exit.
     bool m_dxfWriteFinalizing {false};
+    bool m_dxfWriteInspecting {false};
+    DxfObjectsWriteInspector m_dxfObjectsWriteInspector;
+    DxfEntitySectionsWriteInspector m_dxfEntitySectionsWriteInspector;
+    DxfTablesWriteInspector m_dxfTablesWriteInspector;
+    bool inspectDxfWriteSection(const DxfObjectsWriteInspector& inspector,
+                                std::string_view bytes);
+    bool m_dxfWriteRecordInventoryEnabled {false};
+    std::size_t m_dxfWriteRecordInventoryLimit {4u * 1024u * 1024u};
     std::vector<DRW_Class> m_dxfClasses;
     bool m_dxfClassesFrozen {false};
     std::vector<DRW_RawDxfSection> m_rawDxfSections;
@@ -945,11 +1521,31 @@ private:
     /// Populated via setNamedDictObjects; empty by default so a fresh write is
     /// byte-identical.
     std::vector<DRW_Dictionary> m_namedDictObjects;
+    /// TABLESTYLE source handles whose complete raw records are emitted by the
+    /// owning adapter during this write.
+    std::vector<std::uint32_t> m_resolvedTableStyleHandles;
+    /// Background targets validated in the adapter's rooted dictionary graph.
+    std::vector<std::uint32_t> m_resolvedBackgroundHandles;
+    /// SUN targets whose VPORT/VIEWPORT hard-owner graph was validated by the adapter.
+    std::vector<std::uint32_t> m_resolvedSunHandles;
     /// Source linetypes used to attach metadata to canonical mandatory rows.
     std::vector<DRW_LType> m_canonicalLineTypeMetadata;
     /// GROUP objects to typed-emit in writeObjects (DXF path). Populated via
     /// setGroups; empty by default so a fresh write is byte-identical.
     std::vector<DRW_Group> m_groups;
+    // Per-attempt destinations, separate from committed object identities.
+    // The vector also represents authored GROUPs with no source handle.
+    std::vector<std::uint32_t> m_plannedDxfGroupHandles;
+    std::map<std::uint32_t, std::uint32_t> m_plannedDxfGroupSourceHandles;
+    bool m_dxfGroupPlanFrozen{false};
+    std::uint32_t m_generatedNodSourceHandle{0};
+    std::uint32_t m_generatedGroupDictionarySourceHandle{0};
+    std::unique_ptr<const DRW_Dictionary> m_generatedNodSource;
+    std::unique_ptr<const DRW_Dictionary> m_generatedGroupDictionarySource;
+    std::unique_ptr<const DRW_Dictionary> m_generatedImageDictionarySource;
+    std::uint64_t m_generatedImageDictionaryGeneration{0};
+    std::uint32_t m_plannedImageDictionaryHandle{0};
+    std::map<std::uint32_t, std::uint32_t> m_plannedImageSourceHandles;
     /// Numeric handle -> replacement handle, applied by writeRawDxfObject to the
     /// few raw objects whose original handle collides with a fixed structural
     /// literal. Empty by default (raw handles emitted verbatim).
@@ -957,6 +1553,10 @@ private:
     // Consumer-derived BLOCK_RECORD mappings live for one write attempt and
     // never overwrite the caller-owned setHandleRemap map above.
     std::map<std::uint32_t, std::uint32_t> m_dxfWriteHandleRemap;
+    // Successful row encoders, separate from forward-reference preallocation.
+    // The reverse index prevents two source identities borrowing one built-in.
+    std::map<std::uint32_t, std::uint32_t> m_writtenDxfSourceTableHandles;
+    std::map<std::uint32_t, std::uint32_t> m_writtenDxfTableSourceHandles;
     std::function<std::uint32_t(std::uint32_t)> m_referenceResolver;
     // Attempted target-version omissions from the most recent admitted write.
     std::map<std::string, std::size_t> m_leftOut;
@@ -969,11 +1569,39 @@ private:
     int elParts {128};  /*!< parts number when convert ellipse to polyline */
     std::unordered_map<std::string,std::uint32_t> blockMap;
     std::vector<PendingDxfBlockRecord> m_pendingBlockRecords;
+    std::unordered_set<std::string> m_emittedDxfBlockBodyNames;
+    std::unordered_set<std::string> m_emittedDxfDimStyleNames;
+    std::unordered_map<std::string, std::uint32_t>
+        m_pendingDxfDimensionPictureBlocks;
+    std::unordered_map<std::string, std::uint32_t>
+        m_pendingDxfInsertBodyTargets;
+    std::string m_currentDxfBlockName;
+    bool m_dxfBlockSectionActive {false};
+    bool m_dxfBlockSectionComplete {false};
     std::vector<DRW_Block_Record> m_sourceBlockRecords;
+    std::unique_ptr<DRW_Block> m_fixedModelSpaceBlockBegin;
+    std::unique_ptr<DRW_Block> m_fixedPaperSpaceBlockBegin;
+    std::unique_ptr<DRW_Block> m_fixedModelSpaceBlockEnd;
+    std::unique_ptr<DRW_Block> m_fixedPaperSpaceBlockEnd;
     std::map<std::uint32_t, std::uint32_t> m_sourceBlockRecordHandles;
     bool m_requireResolvedBlockOwners {false};
     std::unordered_map<std::string,std::uint32_t> textStyleMap;
+    std::unordered_map<std::uint32_t, std::string>
+        m_sourceTextStyleNamesByHandle;
+    std::unordered_map<std::uint32_t, std::string>
+        m_sourceBlockRecordNamesByHandle;
+    std::unordered_map<std::uint32_t, SourceLinetypeTarget>
+        m_sourceLinetypeTargetsByHandle;
+    std::unordered_map<std::string, std::uint32_t>
+        m_pendingDxfDimstyleBlockResources;
     std::vector<DRW_ImageDef*> imageDef;  /*!< imageDef list */
+    // Caller-owned configuration survives write-session resets; the runtime
+    // pointer map and imageDef vector are rebuilt for every admitted write.
+    std::map<ImageDefinitionKey, ImageDefinitionPlanEntry> m_sourceImageDefinitionPlan;
+    std::map<const DRW_ImageDef*, const ImageDefinitionPlanEntry*> m_imagePlanSources;
+    std::map<const DRW_ImageDef*, std::map<std::uint32_t, const DRW_ImageDefinitionReactor*>> m_imagePlanReactorSources;
+    std::map<DRW_ImageDef*, std::map<std::uint32_t, std::uint32_t>> m_regeneratedImageSourceReactors;
+    std::map<ImageDefinitionKey, DRW_ImageDef*> m_plannedImageDefinitions;
 
     // Mutations made while a RecordStateScope is active. Entries are appended
     // before a map/set mutation and removed in reverse order on rollback.
@@ -987,6 +1615,10 @@ private:
     /// the DXF Named Object Dictionary. A later ownerless DICTIONARY must not
     /// be promoted to root merely because it is the first dictionary parsed.
     bool m_objectsRootPositionPassed {false};
+    bool m_dxfViewStyleRootObserved {false};
+    DxfViewStyleNameRoute m_detailViewStyleNameRoute;
+    DxfViewStyleNameRoute m_sectionViewStyleNameRoute;
+    std::list<PendingDxfViewStyleName> m_pendingDxfViewStyleNames;
     DRW_WritingContext m_writingContext;
     // Raw carriers retain source code-5 lexemes up to DWG's 64-bit handle
     // width; keep exact values for duplicate detection during one read.

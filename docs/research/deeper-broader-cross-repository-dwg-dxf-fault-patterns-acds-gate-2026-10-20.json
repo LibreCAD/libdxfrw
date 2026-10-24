@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-repository DWG/DXF fault patterns and AcDs acceptance gate",
+  "mode": "deeper and broader research; plan refinement only",
+  "scope": [
+    "Review current open-source HATCH parser/writer fault history and edge-case reports",
+    "Compare DXF HATCH spline model and consumer-boundary guidance",
+    "Refresh modern ACIS/AcDs evidence limits across LibreDWG and ACadSharp",
+    "Turn findings into implementation-ready controls in existing local subplans"
+  ],
+  "method": {
+    "kind": "Primary project source, issue/PR state, official DXF documentation, and local plan crosswalk",
+    "sources": [
+      {
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "use": "Project history lists HATCH path-local handle/derived state fixes, rational spline knot/weight fix, and current limits around AcDs SAB extraction."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/issues/1410",
+        "use": "Open peer report for a HATCH group-21 value of zero rejected as if it were absent."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+        "use": "Official group-code mapping for HATCH boundary path and spline-edge fields."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/hatch.rst",
+        "use": "Independent DXF data model for OCS boundary points, separate spline weights, and documented non-validation of edge gaps."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+        "use": "Open report of R2013+ modeler entities surviving while AcDs-carried SAB payload is missing from conversion output."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+        "use": "Open report of ACIS-bearing solid entities silently omitted by the cited ACadSharp DXF writer release."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+        "use": "Open ACIS writer proposal with version-sensitive modeler serialization; not deployed/qualified."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/pull/1174",
+        "use": "Open ACDS/ACIS schema refactor dependency; discussion reports branch-specific embedded-record test failure and unimplemented reader path at that time."
+      }
+    ],
+    "webSourcesOpened": true,
+    "odaSpecificationConsultedForNewByteClaims": false,
+    "localSourceAudit": "No new local source defect was inferred from peer reports. Existing local PAR-115 evidence and ODA authority remain unchanged.",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "GitHub master/issue/PR pages are mutable. Peer issues document project- and artifact-specific reports, not normative format behavior or libdxfrw defects. ACadSharp PR discussion evidence is branch- and date-specific. LibreDWG/ACadSharp are not ODA byte-layout authorities. No runtime interoperability was performed."
+  },
+  "findings": {
+    "newLocalFinding": false,
+    "existingLocalFindingReaffirmed": "PAR-115 / 7N.2a HATCH rational-weight handoff",
+    "newTopLevelSubplan": false,
+    "planUpdates": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "implementationRefinement": {
+    "hatch": [
+      "Reuse existing fast local test owners; add no new target or persistent drawing fixture.",
+      "Assert zero-valued HATCH coordinates are preserved independently of field presence.",
+      "Exercise at least two paths with distinct path flags and source handles to catch cross-path state bleed.",
+      "Keep knot/control/weight counts and streams distinct, then assert the following edge/entity sentinel.",
+      "Keep codec field fidelity separate from edge-loop closure and visual fill qualification."
+    ],
+    "acis_acds": [
+      "Separate pre-R2013 inline SAT/ACIS from R2013+ external AcDs/SAB storage.",
+      "Require entity-to-section/key/owner linkage and exact payload size/digest across conversion.",
+      "Treat entity counts and flags alone as insufficient; missing externally referenced payload is loss.",
+      "Require an exact pinned merged release/artifact before counting an open-source peer as a qualification route.",
+      "Keep stock FreeCAD 2D import separate from modeler add-on/kernel semantic evidence."
+    ],
+    "selfUnblock": "If external peer artifacts or native applications remain unavailable, record NOT_QUALIFIED and continue the next local-ready slice; never wait or promote support based on an issue/PR report.",
+    "validationCadenceChanged": false,
+    "testRegistrationChanged": false
+  }
+}

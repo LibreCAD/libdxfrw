@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-dxf-control-character-framing-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "GENERATED_FAST_REGRESSION_PASSES",
+  "scope": "Verify DXF writer control-character framing and publication refusal for CR/LF-containing text, using generated in-memory streams and temporary destinations only.",
+  "implementation": {
+    "productionBehaviorChanged": false,
+    "existingWave1TestExtended": true,
+    "newFixtureAdded": false,
+    "newTestRegistrationAdded": false,
+    "newDependencyAdded": false
+  },
+  "generatedControls": {
+    "textValueEscapeNotation": "before\\r\\nmiddle\\nafter\\r",
+    "cases": [
+      "CR",
+      "LF",
+      "CRLF",
+      "trailing CR"
+    ],
+    "ascii": {
+      "unsafeValueRejected": true,
+      "stagedPartialRecordRolledBack": true,
+      "abortedRecordHandleRemovedFromInventory": true,
+      "physicalBytesContainNoPartialTextRecord": true,
+      "followingEntityAndSentinelRead": true
+    },
+    "binary": {
+      "crAndLfRemainWithinNulDelimitedStringValue": true,
+      "physicalBytesPlaceFollowingTwoByteGroupCodeAfterValueTerminator": true,
+      "exactValueReadBack": true,
+      "followingEntityAndSentinelRead": true
+    },
+    "typedAdapter": {
+      "asciiExportRefused": true,
+      "binaryExportRefused": true,
+      "preExistingDestinationPreservedByteForByte": true
+    }
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_wave1$' --output-on-failure",
+      "passed": 1,
+      "failed": 0
+    },
+    "fullTestSuite": "not run; this is a focused fast-test slice",
+    "independentPeerOrNativeRun": "not run",
+    "diffCheck": "passed"
+  },
+  "changedFileHash": {
+    "path": "tests/wave1_tests.cpp",
+    "sha256": "109a835bb839f87a05d06070320e9fe7224559f49f05104a572affd860948bcc"
+  },
+  "evidenceBoundary": {
+    "relatedPeerReport": "https://github.com/LibreDWG/libredwg/issues/1408",
+    "peerIssueIndependentlyReproduced": false,
+    "establishes": [
+      "the local low-level ASCII writer rejects embedded CR/LF before exposing an invalid record boundary",
+      "record staging rollback preserves following ASCII record framing and reverts the corresponding writer inventory entry",
+      "physical ASCII bytes contain no rolled-back TEXT record",
+      "physical binary bytes place the following little-endian group code after the NUL-terminated control-character value",
+      "the local low-level binary writer and reader preserve CR/LF bytes within one NUL-delimited value and remain aligned",
+      "typed ASCII and binary adapter export refuses the generated unsafe text without replacing an existing destination"
+    ],
+    "doesNotEstablish": [
+      "the exact LibreDWG issue reproducer or a matching defect in that project",
+      "which escape or text normalization policy is required for every DXF profile",
+      "semantic/rendered TEXT or MTEXT equivalence across CAD consumers",
+      "acceptance by AutoCAD, LibreCAD, LibreCAD_3, or another external application",
+      "newly supported CR/LF-containing typed text export"
+    ]
+  },
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The test file contains unrelated pre-existing workspace changes."
+  }
+}

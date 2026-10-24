@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "FreeCAD subprocess and support-boundary refresh",
+  "mode": "primary-source web research and read-only local source/test audit",
+  "scope": [
+    "Trace current FreeCAD DWG-to-DXF subprocess invocation and success condition",
+    "Reconcile the standard FreeCAD importer scope for ACIS/AcDs modeler carriers",
+    "Compare FreeCAD argv with the local dwg2dxf CLI and existing fast/optional controls",
+    "Refine native acceptance criteria without expanding routine validation"
+  ],
+  "method": {
+    "kind": "Inspect current FreeCAD source and official documentation, then audit the matching local CLI and tests",
+    "webPagesReviewed": [
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "localFilesReviewed": [
+      "dwg2dxf/main.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "tests/CMakeLists.txt",
+      "tests/run_freecad_dwg2dxf_compat_test.cmake",
+      "tests/run_freecad_dwg2dxf_failure_test.cmake",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "The source/documentation review is not a runtime qualification of any FreeCAD build, OS, converter binary, DXF importer backend, add-on, or ACIS payload. No support claim follows from documentation alone."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD current DWG import wrapper",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "mutable main source accessed 2026-10-18; converter path around lines 1500-1558",
+      "observed": "The LibreDWG branch creates a temporary directory and invokes dwg2dxf with [input, '-o', output]. After Popen.communicate(), the wrapper returns the result when the path exists; it does not visibly test the child return code in this path. This describes the wrapper, not a libdxfrw defect."
+    },
+    {
+      "project": "FreeCAD DWG and DXF documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "revision": "current project documentation pages accessed 2026-10-18",
+      "observed": "The documented standard route uses an external DWG converter followed by the selected DXF importer, so importer limitations apply. The format overview describes stock DXF/standard DWG conversion as 2D-only for proprietary ACIS content; CADExchanger is documented as a separate 3D DWG route. Documentation is scope evidence, not runtime or solid-semantic qualification."
+    },
+    {
+      "project": "Local CLI and test audit",
+      "files": [
+        "dwg2dxf/main.cpp",
+        "tests/dwg2dxf_cli_contract_tests.py",
+        "tests/CMakeLists.txt",
+        "tests/run_freecad_dwg2dxf_compat_test.cmake",
+        "tests/run_freecad_dwg2dxf_failure_test.cmake"
+      ],
+      "revision": "current local working tree inspected 2026-10-18",
+      "observed": "The CLI implements the same input/-o/output contract and a dedicated fast FreeCAD compatibility check exists. An optional real-wrapper failure-path test asserts that a failed conversion does not hand off a partial DXF. These local controls do not substitute for Linux/Windows FreeCAD runtime results."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Native acceptance must check process status, fresh output identity, parse/readback, and the expected manifest independently of FreeCAD's output-exists wrapper condition. Preserve stock FreeCAD as a 2D/explicit-entity lane and keep ACIS/AcDs semantic evidence in a separately qualified modeler-capable route. Reuse existing fast and optional test owners; no duplicate validation is needed.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep the fast FreeCAD argv/CLI contract as the routine check; do not start FreeCAD for each local slice.",
+    "At native Linux and Windows checkpoints, run the installed converter in a unique fresh temporary directory and independently require a zero return code, a fresh output, successful DXF parse/readback, and identity-level expected dispositions.",
+    "Record the exact FreeCAD build, converter path/version/hash, argv, requested and actual DXF revision/hash, importer backend, preferences, output status, and diagnostics.",
+    "Treat stock FreeCAD ACIS/AcDs solid semantics as outside the documented stock importer scope; carrier bytes and entity shells do not establish a valid body.",
+    "Use a named, pinned modeler-capable reader for B-rep validity/measurements and separately verify the DWG AcDs owner/key/prototype/history graph.",
+    "Keep all native checks optional and at the composed checkpoint; if a route or artifact is unavailable, report that evidence cell as NOT_RUN or NOT_QUALIFIED and continue local implementation."
+  ]
+}

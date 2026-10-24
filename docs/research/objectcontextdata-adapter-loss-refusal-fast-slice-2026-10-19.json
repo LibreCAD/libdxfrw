@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Standalone OBJECTCONTEXTDATA adapter loss/refusal fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-20/7F.1",
+  "scope": "Prevent the concrete dwg2dxf adapter from silently publishing DXF when standalone DWG OBJECTCONTEXTDATA callbacks would be discarded.",
+  "changes": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": true,
+    "publicApiOrLayoutChanged": true,
+    "virtualInterfaceChanged": false,
+    "typedCallback": "addObjectContextData sets a sticky standaloneObjectContextDataPresent marker.",
+    "rawCallback": "addUnsupportedObject detects OBJECTCONTEXTDATA in record/class names without allocating and sets the same marker; it does not label the raw frame as retained.",
+    "exportBehavior": "fileExport emits an explicit incomplete-output diagnostic and refuses before opening or replacing the destination whenever the marker is set.",
+    "generatedControls": {
+      "typedShellRoute": true,
+      "opaqueRawFrameRoute": true,
+      "diagnosticWithoutDebugMode": true,
+      "preexistingDestinationPreserved": true,
+      "existingMLeaderCtestReused": true
+    },
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "commitAttempted": false
+  },
+  "producerTraceSweep": {
+    "source": "Ten already-admitted local tests/samples/AC1024 DWGs",
+    "contextDecoderCallbacksObserved": 0,
+    "ac1032SamplesAvailable": 0,
+    "definitionsObserved": [
+      {
+        "file": "architectural_example-imperial.dwg",
+        "className": "AcDbBlkRefObjectContextData",
+        "instanceCount": 0
+      },
+      {
+        "file": "architectural_example-imperial.dwg",
+        "className": "AcDbAlignedDimensionObjectContextData",
+        "instanceCount": 0
+      }
+    ],
+    "conversionDisposition": "All ten reads succeeded, but strict-complete conversion stopped at the existing complete-DWG-read preflight; the failures do not establish context-object behavior.",
+    "evidenceCeiling": "No producer-authored context object or conflicting base-bit profile was observed; ODA remains canonical and producer compatibility remains unresolved."
+  },
+  "mleaderPayloadReadinessAudit": {
+    "odaReference": "Open Design Specification v5.4.1 §20.4.86",
+    "odaRootSequence": "Lists B 290, B 291, 3BD connection point, 3BD direction, then break count; the table does not show IF guards on either coordinate.",
+    "localEmbeddedDecoder": "parseMLeaderRoot reads the connection point only when flag 290 is true and direction only when flag 291 is true; its source comment cites LibreDWG dwg2.spec.",
+    "status": "UNRESOLVED_PROFILE_INTERPRETATION",
+    "implementationDecision": "Do not reuse the embedded parser for standalone contexts or change conditional behavior without reconciling the complete ODA text and obtaining an eligible producer trace/source-authored stream.",
+    "newFindingOrSupportPromotion": false
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --object-context-data-loss-refusal",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_mleader_fail_closed$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "relatedBroaderSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "FAIL",
+      "failure": "TABLE -> TABLESTYLE dictionary/carrier references diverged before the new context-loss control was reached.",
+      "scope": "Separate worktree failure; not used as acceptance for this slice."
+    },
+    "compatibilityCompile": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receiptValidation": {
+      "command": "jq empty docs/research/objectcontextdata-adapter-loss-refusal-fast-slice-2026-10-19.json",
+      "result": "PASS"
+    },
+    "fullSuite": "NOT_RUN",
+    "externalPeer": "NOT_RUN",
+    "nativeCad": "NOT_RUN"
+  },
+  "evidenceLimits": [
+    "Generated callback controls prove local fail-closed adapter behavior only; no standalone context DWG fixture was available or added.",
+    "The ten AC1024 local drawings contained context class definitions with zero instances in the observed file; they are not positive context-object producer evidence.",
+    "No AC1032 producer sample, external audit, or conflicting producer profile was observed.",
+    "The adapter does not retain or replay the DWG frame as DXF, does not validate the context owner graph, and does not provide MLeader context semantics.",
+    "The broader named-object callback selector still fails at a TABLESTYLE dictionary/carrier-reference assertion outside this test path."
+  ],
+  "planImpact": {
+    "existingFindingAndSubplanOnly": true,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "sliceStatus": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / UNCOMMITTED",
+    "broaderPAR20": "REMAINS_IN_PROGRESS",
+    "producerConflict": "UNRESOLVED; no live context instance in the local AC1024 trace sweep and no local AC1032 sample",
+    "nextLocalItem": "Standalone MLeader context payload/owner graph, beginning by reconciling ODA §20.4.86 root-coordinate field conditions with the embedded parser; no producer sample is available",
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

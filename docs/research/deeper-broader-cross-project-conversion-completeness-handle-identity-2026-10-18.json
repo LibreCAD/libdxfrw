@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader cross-project conversion completeness and handle-identity failure chain",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreDWG converter reports for partial output, invalid compound records, unsupported legacy records, and duplicate handles",
+    "Cross-check DXF handles, typed references, and INSERT/SEQEND semantics against Autodesk documentation",
+    "Refine existing fast writer-property and composed converter gates without adding external fixtures or routine peer runs"
+  ],
+  "method": {
+    "kind": "Read-only review of public issue/documentation pages and local plan owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "externalIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "LibreDWG issue bodies are reporter-provided observations for pinned 0.14.8556/e405fcff and named corpora; sample attachments were not downloaded or rerun. The ODA File Converter comparisons quoted in issue #1356 were not independently executed. Peer reports and mutable project documentation do not establish matching libdxfrw defects or normative pre-R13 semantics."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1351",
+        "https://github.com/LibreDWG/libredwg/issues/1354",
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/issues/1356"
+      ],
+      "revision": "Public issue pages reviewed 2026-10-18; reports #1351/#1354/#1355/#1356 name LibreDWG 0.14.8556 at e405fcff, with #1355/#1356 arising from a reported 1,657-drawing sweep",
+      "observed": "The reports describe four distinct conversion failure classes: INSERT 66=1 without a complete ATTRIB/SEQEND sequence; pre-R13 REPEAT/ENDREP/LOAD records leaking into DXF and being ignored; a partial DXF without ENTITIES or terminal EOF despite exit status zero after structural root/table decode failures; and emitted zero/duplicate handles causing a layout's fixed BLOCK_RECORD reference to resolve to the wrong object class. The issue pages remain reports, not independently reproduced libdxfrw or general LibreDWG-current-master results. Earlier plan evidence records the exact #1351 reproducer later fixed on LibreDWG master, so its currently open issue status is not treated as proof that the reviewed master still fails."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm"
+      ],
+      "revision": "Current public DXF documentation pages reviewed 2026-10-18",
+      "observed": "The INSERT reference says group 66=1 expects following ATTRIB entities terminated by SEQEND. The group-code table identifies code 5 as an entity handle and distinguishes typed handle/reference ranges. Persistent reference documentation describes how typed references are preserved and translated during object operations. These contracts support checking sequence grammar, identity, and target role as separate invariants."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tutorials/getting_data.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/sections/table.py"
+      ],
+      "revision": "Mutable master documentation/source reviewed 2026-10-18; issue #1356 reports ezdxf 1.4.4",
+      "observed": "The documented strict-read, recovery/audit, loaded-model statistics, and raw-structure browsing paths are distinct. Existing source review shows table audit can repair duplicate handles and notes that this may break references. A repaired/recovered file that opens is therefore a separate diagnostic result, not proof that the original output graph was valid."
+    },
+    {
+      "project": "Local libdxfrw plan",
+      "urls": [],
+      "revision": "Working tree at baseline commit de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "Existing owners already cover compound INSERT sequences, AC1.40 legacy fail-closed handling, output transactions, graph closure, and a bounded whole-output writer property under PAR-12/S13. This update adds the missing peer #1356 identity/root-class route to those owners and sharpens the composed success contract without opening a new finding or test target."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "nestedReadinessActionsAdded": 0,
+    "existingReadinessActionsRefined": 1,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds zero/duplicate source identity and role-correct root resolution to the existing PAR-12/S13 property; keeps INSERT sequence grammar, pre-R13 unsupported-record refusal, and strict-complete conversion as distinct assertions. Peer recovery/audit is labeled separately from strict parsing. Routine validation remains focused and fast."
+  },
+  "implementationReadyChecks": [
+    "For accepted generated ASCII and Binary DXF, verify complete pairs, balanced required sections, exactly one terminal group-0 EOF, unique emitted object handles, and role-correct resolution of required owner/root edges.",
+    "Exercise a zero/duplicate source-identity or structural-handle collision: either prove a complete deterministic remap of all captured references or refuse atomically; never publish ambiguous identities.",
+    "Keep INSERT group 66, emitted ATTRIB children, owning SEQEND, and following-sibling alignment as a compound-record assertion in the existing owner.",
+    "Keep PAR-123/7BS REPEAT/ENDREP/LOAD fail-closed until an authoritative semantic mapping is established; do not infer INSERT array conversion from shared group-code names.",
+    "At the composed strict-complete gate, bind each source record to one typed/retained/refused disposition, check roots/sections and output status, and preserve the destination on incomplete conversion.",
+    "If using ezdxf, hash and strictly read the untouched output before any audit/recovery; report repairs and identity changes separately.",
+    "Run only touched targets/selectors and the owning CTest per local slice; schedule independent readers, corpus sweeps, and native applications at existing composed checkpoints.",
+    "Do not download or commit peer/customer DWG/DXF files, add dependencies, register a new CTest, or promote support claims from this research."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cross-project-conversion-completeness-handle-identity-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "git diff --no-index --check -- /dev/null docs/research/deeper-broader-cross-project-conversion-completeness-handle-identity-2026-10-18.json (exit 1 is expected because the new receipt is untracked; no whitespace diagnostics were emitted)"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "R2007 CRC stage reconciliation and independent-peer eligibility",
+  "mode": "ODA specification reconciliation, local source/test audit, and open-source peer capability review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile AC1021 data-page and system-page CRC stages/spans with ODA v5.4.1",
+    "Verify whether the local CRC byte-order concern is supported by the ODA table",
+    "Separate local generated-vector self-consistency from independent CRC expectations",
+    "Assess LibreDWG and dwg-rs as evidence sources for the unresolved AC1021 CRC issue",
+    "Refine the plan with the shortest implementation-ready diagnostic path"
+  ],
+  "method": {
+    "kind": "Read ODA v5.4.1 §§5.3, 5.4, 5.12, 5.13; inspect local AC1021 CRC code and reader-matrix vector generation; review LibreDWG PR #1363/current source and dwg-rs current capability statements",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "localDwgFilesAddedOrModified": 0,
+    "limitations": "The work reconciles normative CRC stages and the local helper's byte order, but does not identify why existing AC1021 page CRCs disagree. No external peer was run, and no independently decoded page bytes were produced in this research pass."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Official published v5.4.1 PDF; sections 5.3, 5.4, 5.12 and 5.13 reviewed 2026-10-18",
+      "observed": "Section 5.4 orders data-page work as 32-bit data checksum, optional compression, optional encryption, 64-bit mirrored CRC over resulting bytes using UpdateSeed1(fileCrcSeed, payloadLength), then 8-byte padding and RS. Section 5.3 separately checks original uncompressed system data and compressed-or-raw system-page data before padding, repetition and RS. Section 5.12's 8-byte table yields offsets [6,7,4,5,2,3,0,1] for full 8-byte blocks and [2,3,0,1] for a four-byte remainder, matching local calculateCrc64. This establishes the expected algorithm stages/order, not correct local field extraction or sample bytes."
+    },
+    {
+      "project": "Local libdxfrw AC1021 reader and reader-matrix tests",
+      "urls": [],
+      "revision": "Working tree and existing tests inspected 2026-10-18; existing clean-HEAD baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "parseDataPage uses UpdateSeed1(r2007CrcSeed, cSize) and checks the selected raw/RS-decoded payload prefix; parseSysPage checks compressed-or-raw and uncompressed streams separately. Existing generated vectors derive checksum expectations with dwgUtil, so they establish branch/control behavior and self-consistency but are not an independent CRC oracle. The existing tablet sample reports four system-page plus 19 data-page CRC warnings on both clean HEAD and the worktree."
+    },
+    {
+      "project": "GNU LibreDWG merged PR #1363 and current decode_r2007.c",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/pull/1363",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "revision": "PR #1363 merged 2026-08-07; current source reviewed 2026-10-18",
+      "observed": "The peer distinguishes compression from Reed-Solomon coding and uses physical page extent to select the RS route for uncompressed AC1021 pages. Its reported ODA File Converter/corpus comparison supports the page-transform fix on a finite corpus. It is not a page-level CRC oracle for libdxfrw's current mismatch."
+    },
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/src/r2007.rs"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-18; no commit pinned or code run",
+      "observed": "The project describes itself as pre-alpha, reports small per-version sample counts and entity decode gaps, and separates container parsing, raw object walking and semantic entity decoding. The capability ledger says R2007 RS read-side fallback wiring is pending. Its current status is therefore insufficient for an AC1021 CRC/container oracle. A pinned future revision may be considered only for a specific raw-section/object-boundary comparison after confirming the route is implemented."
+    },
+    {
+      "project": "ACadSharp reader documentation and sample-corpus discussion",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/discussions/520"
+      ],
+      "revision": "Primary project documentation/discussion cited in the existing plan; wording narrowed 2026-10-18",
+      "observed": "Reader notifications surface warnings and information but do not alone constitute a complete per-object loss/disposition report; repository sample usage does not establish normative independently authored expectations."
+    }
+  ],
+  "assessment": {
+    "crcByteOrderConcern": "RESOLVED_AGAINST_CHANGE: ODA's table matches the local special byte order",
+    "systemAndDataCrcStages": "SPECIFIED_BUT_REAL_SAMPLE_MISMATCH_UNRESOLVED",
+    "localPageCrcCause": "UNKNOWN; clean HEAD and worktree show the same warning counts",
+    "generatedVectorIndependence": "NOT_INDEPENDENT: current expected values use dwgUtil",
+    "peerCrcOracleAvailable": false,
+    "planOnlyChange": true,
+    "newConfirmedFormatClaims": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "7BE reader-matrix",
+      "PAR-14",
+      "PAR-26"
+    ],
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Add independent literal CRC/UpdateSeed1 vectors, then trace one existing failing data page and one system page against the exact ODA spans and independently decoded metadata before changing production code."
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK appData common-header scope ASCII/Binary round-trip fast slice",
+  "mode": "Local source review plus generated focused regression control",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Emit retained BLOCK group-102 application data in the common header before AcDbEntity",
+    "Verify handle/owner ordering, exact group order, and semantic re-import in ASCII/Binary AC1021 DXF",
+    "Preserve per-slice fast validation and local-only generated input/output"
+  ],
+  "sources": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "identity": "Local dxfRW::writeEntity, writeBlock, and writeAppData source review",
+      "observation": "writeEntity emits common group-102 appData after handle/owner and before AcDbEntity. Before this slice, writeBlock retained appData but emitted it after AcDbBlockBegin.",
+      "boundary": "Source-derived placement contract; the generated raw wire check exercises the BLOCK route."
+    },
+    {
+      "path": "src/drw_entities.cpp",
+      "identity": "Local DRW_Entity::parseDxfGroups and DRW_Block::parseCode source review",
+      "observation": "DRW_Block delegates group 102 to the common parser, which retains ordered opener, payload, and closing variants in appData.",
+      "boundary": "Only the generated generic application group is checked; special reactor/xDictionary handle closure is not qualified."
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "identity": "Generated XREF/BLOCK control based on tracked block_record_preview_r2007.dxf",
+      "observation": "The scratch source places custom group-102 opener, text payload, and closer after handle/owner and before AcDbEntity. ASCII/Binary AC1021 output is raw-scanned for the same order and semantically re-imported.",
+      "boundary": "Generated local profile only; temporary files are removed."
+    }
+  ],
+  "implementation": {
+    "productionChange": "dxfRW::writeBlock emits bk->appData after BLOCK handle/owner and before AcDbEntity, using the shared validated writer; it no longer emits the groups after AcDbBlockBegin.",
+    "generatedAppData": [
+      {"code": 102, "type": "application-group opener", "value": "{LIBDXFRW_BLOCK_TEST"},
+      {"code": 1000, "type": "string", "value": "BLOCK common-scope app data"},
+      {"code": 102, "type": "application-group closer", "value": "}"}
+    ],
+    "coverage": [
+      "Scratch-authored source imports through dx_iface",
+      "Raw ASCII and Binary AC1021 scans verify BLOCK handle and owner precede the appData group",
+      "Raw scan verifies appData opener, payload, and closer precede AcDbEntity",
+      "Semantic import/export/re-import retains ordered group variants",
+      "Existing BLOCK layer/path/description/XDATA and following ENDBLK checks remain passing"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "strictTargetBuild": true,
+    "focusedSelectorPassed": true,
+    "owningCtest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "lc3SourceCompatibilityTargetPassed": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "crossVersionMatrixRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    },
+    "remaining7AM1": [
+      "Special ACAD_REACTORS/ACAD_XDICTIONARY reference translation and closure",
+      "Cross-version XDATA text policy and downgrade behavior",
+      "Named, anonymous, and fixed-space block cases plus INSERT identity/reference checks",
+      "ENDBLK metadata callback/storage contract and footer ownership closure",
+      "BLOCK/BLOCK_RECORD/ENDBLK graph and source-versus-minted handle closure"
+    ],
+    "worktree": "Changes remain unstaged/uncommitted because the shared worktree contains extensive unrelated modifications."
+  }
+}

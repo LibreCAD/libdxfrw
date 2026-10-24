@@ -1,0 +1,36 @@
+{
+  "id": "par139-spatial-filter-graph-preservation",
+  "date": "2026-10-22",
+  "status": "local_implementation_verified_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "c4d42446458b3d71d6c6c71c7968f1d9ab1f1d2bedb326b462f26bdd4931870c",
+  "scope": {
+    "finding": "PAR-139",
+    "object": "SPATIAL_FILTER / XCLIP",
+    "consumer": "dwg2dxf dx_iface adapter",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.94"
+  },
+  "evidence": {
+    "localImplementation": "Bounded typed/raw capture, strict field completeness, owner-graph validation, handle-role remapping, filter extension-dictionary/XRECORD preservation, and destination-preserving refusal/retry are present in the current worktree.",
+    "testLimit": "Generated ASCII/Binary sources and local roundtrips validate projection and graph behavior; no independent producer or native clipping/rendering oracle was used."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure: PASS (1/1)",
+    "Coverage: rectangle/polygon paths; 24/25 group-40 streams; two INSERTs of one block with separate transforms/filters; front/back clipping cases; reversed object order; raw XRECORD metadata; ASCII/Binary roundtrip; wrong-version, missing/wrong-kind/cross-owned/cyclic edge, duplicate key/handle, incomplete receipt, and partial-matrix refusal; destination-preserving retry: PASS",
+    "git diff --check -- src/drw_objects.cpp src/libdxfrw.cpp dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt: PASS"
+  ],
+  "temporaryInputs": "generated locally and removed after the test",
+  "persistentFixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "independentProducerQualification": "pending",
+  "nativeClippingAndRenderingQualification": "pending",
+  "externalQualificationPending": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

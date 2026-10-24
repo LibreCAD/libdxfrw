@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5f TABLESTYLE retained-text budget and raw/typed divergence refusal",
+  "mode": "Generated ASCII/Binary parser and adapter fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "12e2fd0204ccdd7be76894247d21bb722d2a2716b00590c125cb4e53be7870c9",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22"
+  },
+  "implementation": {
+    "changes": [
+      "Generated ASCII and Binary controls exercise the TABLESTYLE retained-string boundary: the exact logical budget is accepted and a one-byte-under limit refuses typed projection.",
+      "DXF-origin TABLESTYLE output preflight reconstructs the supported raw row projection and compares it with typed row state, including text-style identity, scalar values, nested CMC colors, and border fields.",
+      "A generated adapter control mutates the typed text height while leaving the raw carrier unchanged; export refuses and preserves the pre-existing destination bytes.",
+      "Unchanged DXF-origin TABLESTYLE continues to replay from its ordered raw carrier. This is loss avoidance, not typed-edit merging or complete typed cell-style authoring; DWG-origin TABLESTYLE remains on its separate bounded typed writer route."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5f-tablestyle-budget-route-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "diffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_objects.h src/drw_objects.cpp dwg2dxf/dx_iface.cpp src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicCppLayoutChanged": true,
+    "sourceCompatibilityCheck": "lc3_compat_check passed; binary ABI compatibility is not claimed and downstream consumers must rebuild",
+    "typedDxfEditMergingImplemented": false,
+    "typedCellStyleAuthoringImplemented": false,
+    "dwgVersionUpconvertClaimPromoted": false,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Resolve and implement the generic MATERIAL procedural-property schema only when complete ordered field semantics are evidence-backed; preserve raw otherwise.",
+      "Keep MATERIAL self-illumination groups 90 and 149 untyped until an authoritative discriminating witness resolves the conflict.",
+      "Scope and implement typed TABLESTYLE cell-style authoring/writing if required by consumer parity; retain unsupported nested content raw meanwhile."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

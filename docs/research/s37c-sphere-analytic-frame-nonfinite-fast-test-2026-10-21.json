@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c sphere analytic-frame non-finite field matrix",
+  "mode": "Generated parser-fed local fast-test slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was broadly modified before this slice. This slice changes the existing graph-preservation regression and plan/receipt documentation only; no files were staged or committed.",
+    "changedFilesForSlice": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sphere-analytic-frame-nonfinite-fast-test-2026-10-21.json"
+    ]
+  },
+  "implementation": {
+    "existingBehaviorCovered": "The bounded SAB 21800 sphere-surface projection already carries center, signed radius, U direction, and pole direction; rooted finite-value validation already rejects invalid numeric fields.",
+    "testChange": "Replace the single NaN-radius negative control with a parser-fed matrix mutating each of the ten scalar components (center XYZ, radius, U-direction XYZ, pole-direction XYZ) to NaN, positive infinity, and negative infinity.",
+    "assertions": [
+      "Each generated stream is accepted by the SAB parser before projection validation.",
+      "Each of the 30 malformed analytic-frame cases refuses rooted projection with InvalidModel at the body node.",
+      "Each refusal clears a pre-seeded caller-visible projection vector."
+    ],
+    "claimBoundary": "Finite-value rejection evidence only. No producer conformance, sphere boundary construction, tessellation, B-rep validity, semantic ACIS support, or native consumer qualification is established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.25 seconds)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-sphere-analytic-frame-nonfinite-fast-test-2026-10-21.json",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/s37c-sphere-analytic-frame-nonfinite-fast-test-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "productionCodeChanged": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "S3.7c bounded SAB 21800 rooted ACIS projection",
+    "completedSlice": "Per-component NaN/+infinity/-infinity refusal coverage for the recognized sphere analytic parameter frame.",
+    "nextAction": "Continue with the next source-backed local S3.7c/PAR-07 implementation requirement; keep external semantic and native qualification at composed checkpoints.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    }
+  }
+}

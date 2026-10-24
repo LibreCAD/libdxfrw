@@ -12,6 +12,7 @@
 ******************************************************************************/
 
 #include "dwgreader.h"
+#include "dwg_fixed_handles.h"
 #include "dwgtemplate.h"
 #include "drw_dbg.h"
 #include "drw_reserve.h"
@@ -170,6 +171,80 @@ void dwgReader::DwgEntityOutput::appendValue(const T &value,
     };
     append(std::make_unique<PointerEvent>(value, callback, m_activeSource));
   }
+}
+
+void dwgReader::DwgEntityOutput::appendValue(
+    const DRW_UnsupportedObject &value,
+    void (DRW_Interface::*callback)(const DRW_UnsupportedObject &)) {
+  appendValue<DRW_UnsupportedObject,
+              void (DRW_Interface::*)(const DRW_UnsupportedObject &)>(
+      value, callback);
+}
+
+void dwgReader::DwgEntityOutput::appendUnsupportedObject(
+    DRW_UnsupportedObject &&value) {
+  class MoveValueEvent final : public Event {
+  public:
+    MoveValueEvent(DRW_UnsupportedObject &&eventValue,
+                   const std::optional<DwgSourceFrameId> &source)
+        : m_value(std::move(eventValue)), m_source(source) {}
+
+    bool replay(dwgReader &, DRW_Interface &target) const override {
+      if (m_delivered)
+        return false;
+      m_delivered = true;
+      target.addUnsupportedObject(std::move(m_value));
+      return true;
+    }
+
+    bool hasSource() const noexcept override { return m_source.has_value(); }
+
+    DwgSourceFrameId source() const noexcept override {
+      return m_source.value_or(DwgSourceFrameId{});
+    }
+
+    bool completesSource() const noexcept override { return false; }
+
+  private:
+    mutable DRW_UnsupportedObject m_value;
+    mutable bool m_delivered{false};
+    std::optional<DwgSourceFrameId> m_source;
+  };
+
+  append(std::make_unique<MoveValueEvent>(std::move(value), m_activeSource));
+}
+
+void dwgReader::DwgEntityOutput::appendModelerGeometry(
+    DRW_ModelerGeometry &&value) {
+  class MoveEvent final : public Event {
+  public:
+    MoveEvent(DRW_ModelerGeometry &&eventValue,
+              const std::optional<DwgSourceFrameId> &source)
+        : m_value(std::move(eventValue)), m_source(source) {}
+
+    bool replay(dwgReader &, DRW_Interface &target) const override {
+      if (m_delivered)
+        return false;
+      m_delivered = true;
+      target.addModelerGeometry(std::move(m_value));
+      return true;
+    }
+
+    bool hasSource() const noexcept override { return m_source.has_value(); }
+
+    DwgSourceFrameId source() const noexcept override {
+      return m_source.value_or(DwgSourceFrameId{});
+    }
+
+    bool completesSource() const noexcept override { return false; }
+
+  private:
+    mutable DRW_ModelerGeometry m_value;
+    mutable bool m_delivered{false};
+    std::optional<DwgSourceFrameId> m_source;
+  };
+
+  append(std::make_unique<MoveEvent>(std::move(value), m_activeSource));
 }
 
 bool dwgReader::DwgEntityOutput::appendEndBlock() {
@@ -1436,34 +1511,202 @@ bool dwgReader::validateStagedFrame(const DwgStagedFrame &frame) {
 bool dwgReader::validateStagedCompoundState() {
   if (m_pendingInsertStates.empty() && m_orphanAttribStates.empty() &&
       m_pendingPolylineStates.empty() && m_orphanPolylineVertexStates.empty() &&
-      m_stagedSeqEnds.empty()) {
-    return true;
+      m_stagedSeqEnds.empty() && m_stagedAttributeIndex.empty() &&
+      m_stagedInsertExpectedAttributeCount == 0u) {
+    std::size_t ownerMapBucketBytes = 0u;
+    return polylineOwnerMapBucketBytes(ownerMapBucketBytes) &&
+           ownerMapBucketBytes <= dwgSafety::MaxPolylineStagingBytes &&
+           m_polylineStagingBytes == ownerMapBucketBytes &&
+           m_polylineDeclaredClaims.empty() &&
+           m_polylineDeclaredClaims.validateAccounting() &&
+           m_polylineOrphanClaims.empty() &&
+           m_polylineOrphanClaims.validateAccounting();
   }
 
   const auto fail = [this](std::uint32_t handle) {
     const DwgSourceFrameId source = sourceFrameIdForHandle(handle);
     return reportDwgFrameTransitionFailure(source, source.offset, true);
   };
-  std::vector<std::uint32_t> attributeHandles;
+  std::size_t observedPolylineBytes = 0u;
+  constexpr std::size_t declaredHandleChargeBytes =
+      sizeof(std::uint32_t) + 3u * sizeof(void *);
+  const auto chargeCapacity = [](std::size_t count, std::size_t elementBytes,
+                                 std::size_t &total) {
+    if (elementBytes != 0u &&
+        count > (dwgSafety::MaxPolylineStagingBytes - total) /
+                    elementBytes) {
+      return false;
+    }
+    total += count * elementBytes;
+    return true;
+  };
+  for (const auto &item : m_pendingPolylineStates) {
+    std::size_t measuredBytes = 0u;
+    const PendingPolylineState &pending = item.second;
+    constexpr std::size_t pendingOwnerNodeChargeBytes =
+        sizeof(std::pair<const std::uint32_t, PendingPolylineState>) +
+        3u * sizeof(void *);
+    if (!chargeCapacity(pending.declaredChildIndex.capacity(),
+                        sizeof(std::pair<std::uint32_t, std::size_t>),
+                        measuredBytes) ||
+        !chargeCapacity(pending.stagedChildSlots.capacity(),
+                        sizeof(std::uint8_t), measuredBytes) ||
+        !chargeCapacity(pending.entity.hadlesList.size(),
+                        declaredHandleChargeBytes, measuredBytes) ||
+        !chargeCapacity(pending.vertices.capacity(),
+                        sizeof(StagedVertexState), measuredBytes) ||
+        !chargeCapacity(1u, pendingOwnerNodeChargeBytes, measuredBytes) ||
+        measuredBytes != pending.retainedBytes) {
+      return fail(item.first);
+    }
+    if (!dwgReaderDetail::fitsByteBudget(
+            observedPolylineBytes, measuredBytes,
+            dwgSafety::MaxPolylineStagingBytes)) {
+      return fail(item.first);
+    }
+    observedPolylineBytes += measuredBytes;
+  }
+  for (const auto &item : m_orphanPolylineVertexStates) {
+    std::size_t measuredBytes = 0u;
+    constexpr std::size_t orphanOwnerNodeChargeBytes =
+        sizeof(std::pair<const std::uint32_t, OrphanPolylineVertexState>) +
+        3u * sizeof(void *);
+    if (!chargeCapacity(item.second.vertices.capacity(),
+                        sizeof(StagedVertexState), measuredBytes) ||
+        !chargeCapacity(item.second.childHandles.size(),
+                        dwgReaderDetail::PolylineClaimOwnerNodeChargeBytes,
+                        measuredBytes) ||
+        !chargeCapacity(1u, orphanOwnerNodeChargeBytes, measuredBytes) ||
+        item.second.childHandles.size() != item.second.vertices.size() ||
+        measuredBytes != item.second.retainedBytes) {
+      return fail(item.first);
+    }
+    for (const StagedVertexState &vertex : item.second.vertices) {
+      if (item.second.childHandles.find(vertex.entity.handle) ==
+              item.second.childHandles.end() ||
+          !m_polylineOrphanClaims.containsOwner(item.first,
+                                                vertex.entity.handle)) {
+        return fail(item.first);
+      }
+    }
+    if (!dwgReaderDetail::fitsByteBudget(
+            observedPolylineBytes, measuredBytes,
+            dwgSafety::MaxPolylineStagingBytes)) {
+      return fail(item.first);
+    }
+    observedPolylineBytes += measuredBytes;
+  }
+  if (!m_polylineDeclaredClaims.validateAccounting() ||
+      !m_polylineOrphanClaims.validateAccounting() ||
+      !dwgReaderDetail::fitsByteBudget(
+          observedPolylineBytes, m_polylineDeclaredClaims.bytes(),
+          dwgSafety::MaxPolylineStagingBytes) ||
+      !dwgReaderDetail::fitsByteBudget(
+          observedPolylineBytes, m_polylineOrphanClaims.bytes(),
+          dwgSafety::MaxPolylineStagingBytes)) {
+    return fail(DRW::NoHandle);
+  }
+  for (const auto &claim : m_polylineDeclaredClaims.entries()) {
+    for (const std::uint32_t owner : claim.second) {
+      const auto pending = m_pendingPolylineStates.find(owner);
+      std::size_t slot = 0u;
+      if (pending == m_pendingPolylineStates.end() ||
+          !dwgReaderDetail::findPolylineDeclaredChildSlot(
+              pending->second.declaredChildIndex, claim.first, slot, false,
+              [](std::uint32_t lhs, std::uint32_t rhs) {
+                return lhs < rhs;
+              })) {
+        return fail(owner);
+      }
+    }
+  }
+  observedPolylineBytes += m_polylineDeclaredClaims.bytes();
+  for (const auto &claim : m_polylineOrphanClaims.entries()) {
+    if (claim.second.size() != 1u)
+      return fail(claim.first);
+    for (const std::uint32_t owner : claim.second) {
+      const auto orphan = m_orphanPolylineVertexStates.find(owner);
+      if (orphan == m_orphanPolylineVertexStates.end() ||
+          orphan->second.childHandles.find(claim.first) ==
+              orphan->second.childHandles.end()) {
+        return fail(owner);
+      }
+    }
+  }
+  observedPolylineBytes += m_polylineOrphanClaims.bytes();
+  std::size_t ownerMapBucketBytes = 0u;
+  if (!polylineOwnerMapBucketBytes(ownerMapBucketBytes) ||
+      !dwgReaderDetail::fitsByteBudget(
+          observedPolylineBytes, ownerMapBucketBytes,
+          dwgSafety::MaxPolylineStagingBytes)) {
+    return fail(DRW::NoHandle);
+  }
+  observedPolylineBytes += ownerMapBucketBytes;
+  if (observedPolylineBytes != m_polylineStagingBytes ||
+      observedPolylineBytes > dwgSafety::MaxPolylineStagingBytes) {
+    return fail(DRW::NoHandle);
+  }
+  std::size_t observedAttributeCount = 0u;
+  std::size_t observedExpectedAttributeCount = 0u;
   for (const auto &item : m_pendingInsertStates) {
     const std::uint32_t handle = item.first;
     const PendingInsertState &pending = item.second;
+    const bool legacyEndpointList =
+        version < DRW::AC1018 && pending.entity.attribHandles.size() == 2u;
     if (handle == DRW::NoHandle || pending.entity.handle != handle ||
         pending.entity.attlist.size() != pending.attributes.size() ||
+        pending.entity.attribHandles.size() >
+            dwgSafety::MaxOwnedObjectCount ||
+        pending.expectedAttributeHandles.capacity() >
+            dwgSafety::MaxDwgReadObjectCount ||
+        (legacyEndpointList
+             ? !pending.expectedAttributeHandles.empty()
+             : pending.expectedAttributeHandles.size() !=
+                   pending.entity.attribHandles.size()) ||
+        !std::is_sorted(pending.expectedAttributeHandles.cbegin(),
+                        pending.expectedAttributeHandles.cend()) ||
+        std::adjacent_find(pending.expectedAttributeHandles.cbegin(),
+                           pending.expectedAttributeHandles.cend()) !=
+            pending.expectedAttributeHandles.cend() ||
         !validateStagedFrame(pending.frame)) {
       return fail(handle);
     }
+    if (!legacyEndpointList) {
+      if (pending.expectedAttributeHandles.size() >
+              dwgSafety::MaxDwgReadObjectCount -
+                  observedExpectedAttributeCount) {
+        return fail(handle);
+      }
+      observedExpectedAttributeCount +=
+          pending.expectedAttributeHandles.size();
+    }
+    if (!legacyEndpointList) {
+      for (const dwgHandle &expected : pending.entity.attribHandles) {
+        if (expected.ref == DRW::NoHandle ||
+            !std::binary_search(pending.expectedAttributeHandles.cbegin(),
+                                pending.expectedAttributeHandles.cend(),
+                                expected.ref)) {
+          return fail(handle);
+        }
+      }
+    }
     for (std::size_t index = 0; index < pending.attributes.size(); ++index) {
       const StagedAttribState &attribute = pending.attributes[index];
+      const auto indexed = attribute.entity == nullptr
+                               ? m_stagedAttributeIndex.end()
+                               : m_stagedAttributeIndex.find(
+                                     attribute.entity->handle);
       if (attribute.entity == nullptr ||
           attribute.entity->parentHandle != handle ||
           pending.entity.attlist[index] != attribute.entity ||
-          std::find(attributeHandles.cbegin(), attributeHandles.cend(),
-                    attribute.entity->handle) != attributeHandles.cend() ||
+          indexed == m_stagedAttributeIndex.end() ||
+          indexed->second.owner != handle || indexed->second.index != index ||
           !validateStagedFrame(attribute.frame)) {
         return fail(handle);
       }
-      attributeHandles.push_back(attribute.entity->handle);
+      if (observedAttributeCount >= dwgSafety::MaxDwgReadObjectCount)
+        return fail(handle);
+      ++observedAttributeCount;
     }
   }
   for (const auto &item : m_orphanAttribStates) {
@@ -1472,29 +1715,67 @@ bool dwgReader::validateStagedCompoundState() {
         m_pendingInsertStates.find(owner) != m_pendingInsertStates.end()) {
       return fail(owner);
     }
-    for (const StagedAttribState &attribute : item.second.attributes) {
+    for (std::size_t index = 0u;
+         index < item.second.attributes.size(); ++index) {
+      const StagedAttribState &attribute = item.second.attributes[index];
+      const auto indexed = attribute.entity == nullptr
+                               ? m_stagedAttributeIndex.end()
+                               : m_stagedAttributeIndex.find(
+                                     attribute.entity->handle);
       if (attribute.entity == nullptr ||
           attribute.entity->parentHandle != owner ||
-          std::find(attributeHandles.cbegin(), attributeHandles.cend(),
-                    attribute.entity->handle) != attributeHandles.cend() ||
+          indexed == m_stagedAttributeIndex.end() ||
+          indexed->second.owner != owner || indexed->second.index != index ||
           !validateStagedFrame(attribute.frame)) {
         return fail(owner);
       }
-      attributeHandles.push_back(attribute.entity->handle);
+      if (observedAttributeCount >= dwgSafety::MaxDwgReadObjectCount)
+        return fail(owner);
+      ++observedAttributeCount;
     }
+  }
+  if (m_stagedAttributeIndex.size() != observedAttributeCount ||
+      observedAttributeCount > dwgSafety::MaxDwgReadObjectCount ||
+      observedExpectedAttributeCount !=
+          m_stagedInsertExpectedAttributeCount ||
+      observedExpectedAttributeCount > dwgSafety::MaxDwgReadObjectCount) {
+    return fail(DRW::NoHandle);
   }
   std::vector<std::uint32_t> vertexHandles;
   for (const auto &item : m_pendingPolylineStates) {
     const std::uint32_t handle = item.first;
     const PendingPolylineState &pending = item.second;
     if (handle == DRW::NoHandle || pending.entity.handle != handle ||
+        pending.declaredChildIndex.size() !=
+            pending.entity.hadlesList.size() ||
+        pending.stagedChildSlots.size() != pending.entity.hadlesList.size() ||
         m_invalidPolylineOwners.find(handle) != m_invalidPolylineOwners.end() ||
         !validateStagedFrame(pending.frame)) {
       return fail(handle);
     }
+    bool havePreviousDeclaredHandle = false;
+    std::uint32_t previousDeclaredHandle = DRW::NoHandle;
+    for (const auto &declared : pending.declaredChildIndex) {
+      if (havePreviousDeclaredHandle &&
+          declared.first == previousDeclaredHandle) {
+        continue;
+      }
+      havePreviousDeclaredHandle = true;
+      previousDeclaredHandle = declared.first;
+      if (!m_polylineDeclaredClaims.containsParent(handle, declared.first))
+        return fail(handle);
+    }
     for (const StagedVertexState &vertex : pending.vertices) {
+      std::size_t slot = 0u;
       if (vertex.entity.handle == DRW::NoHandle ||
           vertex.entity.parentHandle != handle ||
+          !dwgReaderDetail::findPolylineDeclaredChildSlot(
+              pending.declaredChildIndex, vertex.entity.handle, slot, true,
+              [](std::uint32_t lhs, std::uint32_t rhs) {
+                return lhs < rhs;
+              }) ||
+          slot >= pending.stagedChildSlots.size() ||
+          pending.stagedChildSlots[slot] == 0u ||
           std::find(vertexHandles.cbegin(), vertexHandles.cend(),
                     vertex.entity.handle) != vertexHandles.cend() ||
           !validateStagedFrame(vertex.frame)) {
@@ -1537,7 +1818,9 @@ bool dwgReader::validateStagedCompoundState() {
 bool dwgReader::hasPendingCompoundState() const noexcept {
   return !m_pendingInsertStates.empty() || !m_orphanAttribStates.empty() ||
          !m_pendingPolylineStates.empty() ||
-         !m_orphanPolylineVertexStates.empty() || !m_stagedSeqEnds.empty();
+         !m_orphanPolylineVertexStates.empty() || !m_stagedSeqEnds.empty() ||
+         !m_polylineDeclaredClaims.empty() ||
+         !m_polylineOrphanClaims.empty();
 }
 
 bool dwgReader::abandonStagedCompoundState() {
@@ -1606,9 +1889,14 @@ bool dwgReader::abandonStagedCompoundState() {
       return false;
     m_stagedSeqEnds.erase(sequenceIt);
   }
+  std::size_t ownerMapBucketBytes = 0u;
   return m_pendingInsertStates.empty() && m_orphanAttribStates.empty() &&
          m_pendingPolylineStates.empty() &&
-         m_orphanPolylineVertexStates.empty() && m_stagedSeqEnds.empty();
+         m_orphanPolylineVertexStates.empty() && m_stagedSeqEnds.empty() &&
+         m_polylineDeclaredClaims.empty() && m_polylineOrphanClaims.empty() &&
+         polylineOwnerMapBucketBytes(ownerMapBucketBytes) &&
+         ownerMapBucketBytes <= dwgSafety::MaxPolylineStagingBytes &&
+         m_polylineStagingBytes == ownerMapBucketBytes;
 }
 
 bool dwgReader::restoreStagedFrame(DwgStagedFrame &frame) {
@@ -2475,7 +2763,23 @@ bool isSpaceBlockRecordName(const std::string &name) {
                  [](unsigned char value) {
                    return static_cast<char>(std::toupper(value));
                  });
-  return normalized == "*MODEL_SPACE" || normalized == "*PAPER_SPACE";
+  if (normalized == "*MODEL_SPACE" || normalized == "*PAPER_SPACE")
+    return true;
+
+  // AutoCAD names the first paper-space layout *PAPER_SPACE and subsequent
+  // layouts *PAPER_SPACE0, *PAPER_SPACE1, and so on. They share the legacy
+  // ownerless BLOCK/ENDBLK and firstEH/lastEH path with the first layout.
+  constexpr char paperSpacePrefix[] = "*PAPER_SPACE";
+  constexpr std::size_t paperSpacePrefixSize = sizeof(paperSpacePrefix) - 1u;
+  if (normalized.size() <= paperSpacePrefixSize ||
+      normalized.compare(0, paperSpacePrefixSize, paperSpacePrefix,
+                         paperSpacePrefixSize) != 0)
+    return false;
+  return std::all_of(normalized.begin() +
+                         static_cast<std::ptrdiff_t>(paperSpacePrefixSize),
+                     normalized.end(), [](unsigned char value) {
+                       return std::isdigit(value) != 0;
+                     });
 }
 
 // helper function to cleanup pointers in Look Up Tables
@@ -2510,8 +2814,9 @@ makeTypedEntityFramePublication(DRW::Version version, const objHandle &object,
   return publication;
 }
 
-bool isExpectedAttribute(const DRW_Insert &insert, std::uint32_t handle,
-                         DRW::Version version) {
+bool isExpectedAttribute(const DRW_Insert &insert,
+                         const std::vector<std::uint32_t> &sortedExpected,
+                         std::uint32_t handle, DRW::Version version) {
   if (version < DRW::AC1018 && insert.attribHandles.size() == 2) {
     // R13-R2000 carries only the first and last ATTRIB handles. The
     // owner handle remains the authoritative membership check for any
@@ -2524,64 +2829,16 @@ bool isExpectedAttribute(const DRW_Insert &insert, std::uint32_t handle,
       return handle == first;
     return handle != DRW::NoHandle;
   }
-  for (const dwgHandle &expected : insert.attribHandles) {
-    if (expected.ref == handle)
-      return true;
-  }
-  return false;
+  return std::binary_search(sortedExpected.cbegin(), sortedExpected.cend(),
+                            handle);
 }
 
-bool isExpectedAttribute(const DRW_Insert &insert, const DRW_Attrib &attribute,
-                         DRW::Version version) {
+bool isExpectedAttribute(
+    const DRW_Insert &insert,
+    const std::vector<std::uint32_t> &sortedExpected,
+    const DRW_Attrib &attribute, DRW::Version version) {
   return attribute.parentHandle == insert.handle &&
-         isExpectedAttribute(insert, attribute.handle, version);
-}
-
-bool hasCompleteAttributeList(const DRW_Insert &insert, DRW::Version version) {
-  if (version < DRW::AC1018 && insert.attribHandles.size() == 2) {
-    const std::uint32_t first = insert.attribHandles.front().ref;
-    const std::uint32_t last = insert.attribHandles.back().ref;
-    if (first == DRW::NoHandle || last == DRW::NoHandle)
-      return first == last && insert.attlist.empty();
-    if (first == last) {
-      return insert.attlist.size() == 1 && insert.attlist.front() &&
-             insert.attlist.front()->handle == first;
-    }
-
-    bool hasFirst = false;
-    bool hasLast = false;
-    for (std::size_t index = 0; index < insert.attlist.size(); ++index) {
-      const auto &attrib = insert.attlist[index];
-      if (!attrib)
-        return false;
-      for (std::size_t previous = 0; previous < index; ++previous) {
-        if (insert.attlist[previous] &&
-            insert.attlist[previous]->handle == attrib->handle) {
-          return false;
-        }
-      }
-      hasFirst = hasFirst || attrib->handle == first;
-      hasLast = hasLast || attrib->handle == last;
-    }
-    return hasFirst && hasLast;
-  }
-  if (insert.attlist.size() != insert.attribHandles.size())
-    return false;
-
-  for (const dwgHandle &handle : insert.attribHandles) {
-    if (handle.ref == DRW::NoHandle)
-      return false;
-    std::size_t matches = 0;
-    for (const auto &attrib : insert.attlist) {
-      if (!attrib)
-        return false;
-      if (attrib->handle == handle.ref)
-        ++matches;
-    }
-    if (matches != 1u)
-      return false;
-  }
-  return true;
+         isExpectedAttribute(insert, sortedExpected, attribute.handle, version);
 }
 
 // Minimal concrete entity whose only job is to run DRW_Entity's
@@ -2923,9 +3180,12 @@ bool dwgReader::recordSourceCodePage(std::uint16_t id, bool present,
 
   const char *name = dwgCodePageName(id);
   if (name == nullptr) {
-    // Keep the version-selected decoder for unknown code pages.  The raw id
-    // remains available to the bounded reader trace, but it is not a codec
-    // support claim and cannot be emitted as $DWGCODEPAGE.
+    // Keep the version-selected decoder for unknown code pages. The raw id is
+    // preserved for callers, but is not a codec support claim and cannot be
+    // emitted as $DWGCODEPAGE.
+    DRW_DBG("unsupported DWG source codepage id= ");
+    DRW_DBG(id);
+    DRW_DBG("; using version-selected decoder\n");
     if (!resetToVersionDefault())
       return false;
     m_sourceCodePage = std::move(staged);
@@ -3038,16 +3298,33 @@ std::uint16_t dwgCodePageId(const char *name) {
 
 std::string decodeEedString(std::uint16_t cp, const std::string &raw,
                             DRW_TextCodec *fallback) {
-  if (raw.empty())
+  const char *name = dwgCodePageName(cp);
+  // Keep the established tolerant decoder/result. A declared per-value
+  // profile that is unknown or maps many-to-one cannot become an exact
+  // source-text certificate merely because its result looks legitimate.
+  const std::uint32_t profileIssue = name == nullptr
+      ? DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnknownCodePage)
+      : dwgCodePageId(name) != cp
+          ? DRW::dxfTextIssueMask(DRW::DxfTextIssue::CompatibilityCodePage)
+          : 0u;
+  if (raw.empty()) {
+    if (fallback != nullptr)
+      fallback->mergeDecodeIssues(profileIssue);
     return std::string{};
-  if (const char *name = dwgCodePageName(cp)) {
+  }
+  if (name != nullptr) {
     // Build an AC1015-bound codec so setCodePage() selects the table
     // converter for `name` (the AC1021+ branch would pick UTF-16 instead).
     DRW_TextCodec codec;
     codec.setVersion(DRW::AC1015, /*dxfFormat=*/false);
     codec.setCodePage(name, /*dxfFormat=*/false);
-    return codec.toUtf8(raw);
+    std::string result = codec.toUtf8(raw);
+    if (fallback != nullptr)
+      fallback->mergeDecodeIssues(profileIssue | codec.accumulatedDecodeIssues());
+    return result;
   }
+  if (fallback != nullptr)
+    fallback->mergeDecodeIssues(profileIssue);
   return fallback ? fallback->toUtf8(raw) : raw;
 }
 
@@ -3125,14 +3402,16 @@ bool readEedRawHandleLE(dwgBuffer &buffer, std::uint64_t &ref) {
   return true;
 }
 
-std::uint64_t eedCurrentBit(const dwgBuffer &buffer) {
-  return buffer.getPosition() * 8u + buffer.getBitPos();
+bool eedCurrentBit(const dwgBuffer &buffer, std::uint64_t &bitPosition) {
+  return dwgSafety::bitPosition(buffer.getPosition(), buffer.getBitPos(),
+                                bitPosition);
 }
 
 bool eedHasBits(const dwgBuffer &buffer, std::uint64_t endBit,
                 std::uint64_t count) {
-  const std::uint64_t current = eedCurrentBit(buffer);
-  return current <= endBit && count <= endBit - current;
+  std::uint64_t current = 0;
+  return eedCurrentBit(buffer, current) && current <= endBit
+      && count <= endBit - current;
 }
 
 bool readEedBitShort(dwgBuffer &buffer, std::uint64_t endBit,
@@ -3155,7 +3434,9 @@ bool readEedHandle(dwgBuffer &buffer, std::uint64_t endBit, dwgHandle &value) {
     return false;
   dwgBuffer probe = buffer.forkIndependent();
   const dwgHandle parsed = probe.getHandle();
-  if (!probe.isGood() || eedCurrentBit(probe) > endBit)
+  std::uint64_t current = 0;
+  if (!probe.isGood() || !eedCurrentBit(probe, current)
+      || current > endBit)
     return false;
   buffer = probe;
   value = parsed;
@@ -3199,21 +3480,34 @@ bool readDwgEed(DRW::Version version, dwgBuffer &buffer,
     std::uint32_t totalItems = 0;
     while (true) {
       std::uint16_t dataSize = 0;
-      if (!readEedBitShort(buffer, endBit, dataSize))
+      if (!readEedBitShort(buffer, endBit, dataSize)) {
+        DRW_DBG("readDwgEed: invalid or truncated size at bit ");
+        DRW_DBG(buffer.getPosition() * 8u + buffer.getBitPos());
+        DRW_DBG(" end="); DRW_DBG(endBit); DRW_DBG("\n");
         return false;
+      }
       if (dataSize == 0)
         break;
       if (staged.size() >= dwgSafety::MaxEedChunks)
         return false;
 
       dwgHandle appHandle;
-      if (!readEedHandle(buffer, endBit, appHandle))
+      if (!readEedHandle(buffer, endBit, appHandle)) {
+        DRW_DBG("readDwgEed: invalid or truncated APPID handle at bit ");
+        DRW_DBG(buffer.getPosition() * 8u + buffer.getBitPos());
+        DRW_DBG(" end="); DRW_DBG(endBit); DRW_DBG("\n");
         return false;
+      }
       std::vector<std::uint8_t> data;
       if (!DRW::resize(data, static_cast<int>(dataSize)))
         return false;
-      if (!readEedBytes(buffer, endBit, data.data(), data.size()))
+      if (!readEedBytes(buffer, endBit, data.data(), data.size())) {
+        DRW_DBG("readDwgEed: item bytes exceed stream at bit ");
+        DRW_DBG(buffer.getPosition() * 8u + buffer.getBitPos());
+        DRW_DBG(" dataSize="); DRW_DBG(dataSize);
+        DRW_DBG(" end="); DRW_DBG(endBit); DRW_DBG("\n");
         return false;
+      }
 
       DwgEedChunk chunk;
       chunk.appHandle = appHandle.ref;
@@ -3222,6 +3516,10 @@ bool readDwgEed(DRW::Version version, dwgBuffer &buffer,
         const std::uint8_t code = itemBuffer.getRawChar8();
         if (!itemBuffer.isGood())
           return false;
+
+        DRW_DBG("readDwgEed: item code="); DRW_DBG(static_cast<int>(code));
+        DRW_DBG(" remaining="); DRW_DBG(itemBuffer.numRemainingBytes());
+        DRW_DBG("\n");
 
         switch (code) {
         case 0: {
@@ -3373,6 +3671,8 @@ bool readDwgEed(DRW::Version version, dwgBuffer &buffer,
           break;
         }
         default:
+          DRW_DBG("readDwgEed: unsupported item code=");
+          DRW_DBG(static_cast<int>(code)); DRW_DBG("\n");
           return false;
         }
       }
@@ -3570,6 +3870,8 @@ void dwgReader::terminalizeInsertGroup(std::uint32_t handle,
   complete = terminalizeFrame(pending.frame) && complete;
   if (!complete)
     return;
+  eraseStagedAttributeIndex(handle, pending.attributes);
+  releaseInsertExpectedAttributeCount(pending);
   ++m_entityParseFailures;
   m_pendingInsertStates.erase(pendingIt);
 }
@@ -3598,7 +3900,228 @@ void dwgReader::terminalizeOrphanAttribOwner(std::uint32_t owner) {
     return;
   if (orphanIt != m_orphanAttribStates.end()) {
     ++m_entityParseFailures;
+    eraseStagedAttributeIndex(owner, orphanIt->second.attributes);
     m_orphanAttribStates.erase(orphanIt);
+  }
+}
+
+void dwgReader::eraseStagedAttributeIndex(
+    std::uint32_t owner,
+    const std::vector<StagedAttribState> &attributes) noexcept {
+  for (const StagedAttribState &attribute : attributes) {
+    if (attribute.entity == nullptr)
+      continue;
+    const auto indexed =
+        m_stagedAttributeIndex.find(attribute.entity->handle);
+    if (indexed != m_stagedAttributeIndex.end() &&
+        indexed->second.owner == owner) {
+      m_stagedAttributeIndex.erase(indexed);
+    }
+  }
+}
+
+void dwgReader::releaseInsertExpectedAttributeCount(
+    const PendingInsertState &pending) noexcept {
+  const std::size_t count = pending.expectedAttributeHandles.size();
+  if (count <= m_stagedInsertExpectedAttributeCount)
+    m_stagedInsertExpectedAttributeCount -= count;
+  else
+    m_stagedInsertExpectedAttributeCount = 0u;
+}
+
+bool dwgReader::polylineOwnerMapBucketBytes(
+    std::size_t &bytes) const noexcept {
+  bytes = 0u;
+  const auto addBucketArray = [&bytes](std::size_t bucketCount) {
+    if (bucketCount > (std::numeric_limits<std::size_t>::max)() /
+                          sizeof(void *)) {
+      return false;
+    }
+    const std::size_t charge = bucketCount * sizeof(void *);
+    if (charge > (std::numeric_limits<std::size_t>::max)() - bytes)
+      return false;
+    bytes += charge;
+    return true;
+  };
+  // Model the full bucket-pointer arrays, including the implementation's
+  // initial empty-map buckets. Allocator metadata and node allocations remain
+  // outside this portable estimate.
+  return addBucketArray(m_pendingPolylineStates.bucket_count()) &&
+         addBucketArray(m_orphanPolylineVertexStates.bucket_count());
+}
+
+bool dwgReader::reservePendingPolylineOwnerMapForOneMore(
+    std::size_t stagedAdditionalBytes) noexcept {
+  std::size_t bucketBytesBefore = 0u;
+  if (!polylineOwnerMapBucketBytes(bucketBytesBefore) ||
+      bucketBytesBefore > m_polylineStagingBytes ||
+      !dwgReaderDetail::fitsByteBudget(
+          m_polylineStagingBytes, stagedAdditionalBytes,
+          dwgSafety::MaxPolylineStagingBytes)) {
+    return false;
+  }
+  const std::size_t availableBucketBytes =
+      dwgSafety::MaxPolylineStagingBytes - m_polylineStagingBytes -
+      stagedAdditionalBytes;
+  std::size_t addedBucketBytes = 0u;
+  const bool reserved =
+      dwgReaderDetail::reserveUnorderedMapForOneMoreWithinBudget(
+          m_pendingPolylineStates,
+          static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount),
+          availableBucketBytes, availableBucketBytes, addedBucketBytes);
+  if (addedBucketBytes <=
+      (std::numeric_limits<std::size_t>::max)() - m_polylineStagingBytes) {
+    m_polylineStagingBytes += addedBucketBytes;
+  } else {
+    m_polylineStagingBytes = (std::numeric_limits<std::size_t>::max)();
+    m_dwgFrameCoverageIntegrityViolation = true;
+  }
+  std::size_t bucketBytesAfter = 0u;
+  if (!polylineOwnerMapBucketBytes(bucketBytesAfter) ||
+      bucketBytesAfter < bucketBytesBefore ||
+      bucketBytesAfter - bucketBytesBefore != addedBucketBytes) {
+    m_dwgFrameCoverageIntegrityViolation = true;
+    return false;
+  }
+  if (!reserved || !dwgReaderDetail::fitsByteBudget(
+                       m_polylineStagingBytes, stagedAdditionalBytes,
+                       dwgSafety::MaxPolylineStagingBytes)) {
+    if (m_polylineStagingBytes > dwgSafety::MaxPolylineStagingBytes)
+      m_dwgFrameCoverageIntegrityViolation = true;
+    return false;
+  }
+  return true;
+}
+
+bool dwgReader::reserveOrphanPolylineOwnerMapForOneMore(
+    std::size_t stagedAdditionalBytes) noexcept {
+  std::size_t bucketBytesBefore = 0u;
+  if (!polylineOwnerMapBucketBytes(bucketBytesBefore) ||
+      bucketBytesBefore > m_polylineStagingBytes ||
+      !dwgReaderDetail::fitsByteBudget(
+          m_polylineStagingBytes, stagedAdditionalBytes,
+          dwgSafety::MaxPolylineStagingBytes)) {
+    return false;
+  }
+  const std::size_t availableBucketBytes =
+      dwgSafety::MaxPolylineStagingBytes - m_polylineStagingBytes -
+      stagedAdditionalBytes;
+  std::size_t addedBucketBytes = 0u;
+  const bool reserved =
+      dwgReaderDetail::reserveUnorderedMapForOneMoreWithinBudget(
+          m_orphanPolylineVertexStates,
+          static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount),
+          availableBucketBytes, availableBucketBytes, addedBucketBytes);
+  if (addedBucketBytes <=
+      (std::numeric_limits<std::size_t>::max)() - m_polylineStagingBytes) {
+    m_polylineStagingBytes += addedBucketBytes;
+  } else {
+    m_polylineStagingBytes = (std::numeric_limits<std::size_t>::max)();
+    m_dwgFrameCoverageIntegrityViolation = true;
+  }
+  std::size_t bucketBytesAfter = 0u;
+  if (!polylineOwnerMapBucketBytes(bucketBytesAfter) ||
+      bucketBytesAfter < bucketBytesBefore ||
+      bucketBytesAfter - bucketBytesBefore != addedBucketBytes) {
+    m_dwgFrameCoverageIntegrityViolation = true;
+    return false;
+  }
+  if (!reserved || !dwgReaderDetail::fitsByteBudget(
+                       m_polylineStagingBytes, stagedAdditionalBytes,
+                       dwgSafety::MaxPolylineStagingBytes)) {
+    if (m_polylineStagingBytes > dwgSafety::MaxPolylineStagingBytes)
+      m_dwgFrameCoverageIntegrityViolation = true;
+    return false;
+  }
+  return true;
+}
+
+void dwgReader::releasePolylineStagingBytes(std::size_t &bytes) noexcept {
+  if (bytes > m_polylineStagingBytes) {
+    m_dwgFrameCoverageIntegrityViolation = true;
+    bytes = 0u;
+    return;
+  }
+  m_polylineStagingBytes -= bytes;
+  bytes = 0u;
+}
+
+bool dwgReader::addPolylineDeclaredClaims(
+    std::uint32_t owner,
+    const std::vector<std::pair<std::uint32_t, std::size_t>> &declaredIndex)
+    noexcept {
+  std::size_t addedBytes = 0u;
+  if (m_polylineDeclaredClaims.bytes() > m_polylineStagingBytes)
+    return false;
+  const std::size_t otherRetainedBytes =
+      m_polylineStagingBytes - m_polylineDeclaredClaims.bytes();
+  if (!m_polylineDeclaredClaims.addParent(
+          owner, declaredIndex, otherRetainedBytes,
+          dwgSafety::MaxPolylineStagingBytes, addedBytes)) {
+    return false;
+  }
+  if (!dwgReaderDetail::fitsByteBudget(
+          m_polylineStagingBytes, addedBytes,
+          dwgSafety::MaxPolylineStagingBytes)) {
+    std::size_t ignored = 0u;
+    (void)m_polylineDeclaredClaims.removeParent(owner, declaredIndex, ignored);
+    return false;
+  }
+  m_polylineStagingBytes += addedBytes;
+  return true;
+}
+
+void dwgReader::removePolylineDeclaredClaims(
+    std::uint32_t owner,
+    const std::vector<std::pair<std::uint32_t, std::size_t>> &declaredIndex)
+    noexcept {
+  std::size_t releasedBytes = 0u;
+  if (!m_polylineDeclaredClaims.removeParent(owner, declaredIndex,
+                                              releasedBytes)) {
+    return;
+  }
+  if (releasedBytes <= m_polylineStagingBytes)
+    m_polylineStagingBytes -= releasedBytes;
+}
+
+bool dwgReader::addPolylineOrphanClaim(std::uint32_t owner,
+                                      std::uint32_t child) noexcept {
+  if (m_polylineOrphanClaims.bytes() > m_polylineStagingBytes)
+    return false;
+  const std::size_t otherRetainedBytes =
+      m_polylineStagingBytes - m_polylineOrphanClaims.bytes();
+  std::size_t addedBytes = 0u;
+  if (!m_polylineOrphanClaims.addOwner(
+          owner, child, otherRetainedBytes,
+          dwgSafety::MaxPolylineStagingBytes, addedBytes)) {
+    return false;
+  }
+  if (!dwgReaderDetail::fitsByteBudget(
+          m_polylineStagingBytes, addedBytes,
+          dwgSafety::MaxPolylineStagingBytes)) {
+    std::size_t ignored = 0u;
+    (void)m_polylineOrphanClaims.removeOwner(owner, child, ignored);
+    return false;
+  }
+  m_polylineStagingBytes += addedBytes;
+  return true;
+}
+
+void dwgReader::removePolylineOrphanClaims(
+    std::uint32_t owner,
+    const std::set<std::uint32_t> &children) noexcept {
+  for (const std::uint32_t child : children) {
+    std::size_t releasedBytes = 0u;
+    if (!m_polylineOrphanClaims.removeOwner(owner, child, releasedBytes)) {
+      m_dwgFrameCoverageIntegrityViolation = true;
+      continue;
+    }
+    if (releasedBytes > m_polylineStagingBytes) {
+      m_dwgFrameCoverageIntegrityViolation = true;
+      m_polylineStagingBytes = 0u;
+    } else {
+      m_polylineStagingBytes -= releasedBytes;
+    }
   }
 }
 
@@ -3658,9 +4181,14 @@ void dwgReader::terminalizePendingPolylineState(
   if (!complete)
     return;
   ++m_entityParseFailures;
+  removePolylineDeclaredClaims(handle, pendingIt->second.declaredChildIndex);
+  releasePolylineStagingBytes(pendingIt->second.retainedBytes);
   m_pendingPolylineStates.erase(pendingIt);
-  if (orphanIt != m_orphanPolylineVertexStates.end())
+  if (orphanIt != m_orphanPolylineVertexStates.end()) {
+    removePolylineOrphanClaims(handle, orphanIt->second.childHandles);
+    releasePolylineStagingBytes(orphanIt->second.retainedBytes);
     m_orphanPolylineVertexStates.erase(orphanIt);
+  }
 }
 
 void dwgReader::terminalizeOrphanPolylineVertexOwner(std::uint32_t owner) {
@@ -3679,6 +4207,8 @@ void dwgReader::terminalizeOrphanPolylineVertexOwner(std::uint32_t owner) {
   if (!complete)
     return;
   ++m_entityParseFailures;
+  removePolylineOrphanClaims(owner, orphanIt->second.childHandles);
+  releasePolylineStagingBytes(orphanIt->second.retainedBytes);
   m_orphanPolylineVertexStates.erase(orphanIt);
 }
 
@@ -3695,37 +4225,94 @@ dwgReader::stagePendingInsert(DRW_Insert &&insert,
     return DwgMappedEntityOutcome::Rejected;
   }
 
+  const auto rejectParent = [this, &insert]() {
+    if (m_orphanAttribStates.find(insert.handle) != m_orphanAttribStates.end())
+      terminalizeOrphanAttribOwner(insert.handle);
+    (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{insert.handle});
+    return DwgMappedEntityOutcome::Rejected;
+  };
+
+  if (insert.attribHandles.size() > dwgSafety::MaxOwnedObjectCount) {
+    return rejectParent();
+  }
+
+  std::vector<std::uint32_t> expectedAttributeHandles;
+  const bool legacyEndpointList =
+      version < DRW::AC1018 && insert.attribHandles.size() == 2u;
+  const std::size_t expectedAttributeCount =
+      legacyEndpointList ? 0u : insert.attribHandles.size();
+  if (m_stagedInsertExpectedAttributeCount >
+          dwgSafety::MaxDwgReadObjectCount ||
+      expectedAttributeCount >
+          dwgSafety::MaxDwgReadObjectCount -
+              m_stagedInsertExpectedAttributeCount) {
+    return rejectParent();
+  }
+  if (!legacyEndpointList) {
+    try {
+      expectedAttributeHandles.reserve(insert.attribHandles.size());
+      for (const dwgHandle &expected : insert.attribHandles) {
+        if (expected.ref == DRW::NoHandle) {
+          return rejectParent();
+        }
+        expectedAttributeHandles.push_back(expected.ref);
+      }
+      std::sort(expectedAttributeHandles.begin(),
+                expectedAttributeHandles.end());
+    } catch (...) {
+      return rejectParent();
+    }
+    if (std::adjacent_find(expectedAttributeHandles.cbegin(),
+                           expectedAttributeHandles.cend()) !=
+            expectedAttributeHandles.cend() ||
+        expectedAttributeHandles.capacity() >
+            dwgSafety::MaxDwgReadObjectCount) {
+      return rejectParent();
+    }
+  }
+
   const auto orphanIt = m_orphanAttribStates.find(insert.handle);
   if (orphanIt != m_orphanAttribStates.end()) {
-    std::vector<std::uint32_t> handles;
-    try {
-      handles.reserve(orphanIt->second.attributes.size());
-    } catch (...) {
+    if (orphanIt->second.attributes.size() >
+        dwgSafety::MaxDwgReadObjectCount) {
       terminalizeOrphanAttribOwner(insert.handle);
       return DwgMappedEntityOutcome::Rejected;
     }
-    for (const StagedAttribState &attribute : orphanIt->second.attributes) {
+    for (std::size_t index = 0u;
+         index < orphanIt->second.attributes.size(); ++index) {
+      const StagedAttribState &attribute =
+          orphanIt->second.attributes[index];
+      const auto indexed = attribute.entity == nullptr
+                               ? m_stagedAttributeIndex.end()
+                               : m_stagedAttributeIndex.find(
+                                     attribute.entity->handle);
       if (attribute.entity == nullptr ||
-          !isExpectedAttribute(insert, *attribute.entity, version) ||
-          std::find(handles.cbegin(), handles.cend(),
-                    attribute.entity->handle) != handles.cend()) {
+          !isExpectedAttribute(insert, expectedAttributeHandles,
+                               *attribute.entity, version) ||
+          indexed == m_stagedAttributeIndex.end() ||
+          indexed->second.owner != insert.handle ||
+          indexed->second.index != index) {
         terminalizeOrphanAttribOwner(insert.handle);
         (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{insert.handle});
         return DwgMappedEntityOutcome::Rejected;
       }
-      handles.push_back(attribute.entity->handle);
     }
   }
 
   PendingInsertState pending;
   pending.entity = std::move(insert);
+  pending.expectedAttributeHandles = std::move(expectedAttributeHandles);
   const std::uint32_t insertHandle = pending.entity.handle;
   const std::size_t adoptedAttributeCount =
       orphanIt == m_orphanAttribStates.end()
           ? 0u
           : orphanIt->second.attributes.size();
   try {
-    m_pendingInsertStates.reserve(m_pendingInsertStates.size() + 1u);
+    if (!dwgReaderDetail::reserveUnorderedMapForOneMore(
+            m_pendingInsertStates, dwgSafety::MaxDwgReadObjectCount)) {
+      terminalizeOrphanAttribOwner(insertHandle);
+      return DwgMappedEntityOutcome::Rejected;
+    }
     pending.entity.attlist.reserve(adoptedAttributeCount);
     pending.attributes.reserve(adoptedAttributeCount);
   } catch (...) {
@@ -3754,6 +4341,8 @@ dwgReader::stagePendingInsert(DRW_Insert &&insert,
     terminalizeOrphanAttribOwner(insertHandle);
     return DwgMappedEntityOutcome::Rejected;
   }
+  m_stagedInsertExpectedAttributeCount +=
+      inserted->second.expectedAttributeHandles.size();
 
   if (orphanIt != m_orphanAttribStates.end()) {
     auto adoptedIt = m_orphanAttribStates.find(inserted->first);
@@ -4317,21 +4906,22 @@ dwgReader::stagePendingAttribute(std::shared_ptr<DRW_Attrib> attribute,
   const auto pendingIt = m_pendingInsertStates.find(owner);
   if (pendingIt != m_pendingInsertStates.end()) {
     PendingInsertState &pending = pendingIt->second;
-    if (!isExpectedAttribute(pending.entity, *attribute, version) ||
-        std::any_of(pending.attributes.cbegin(), pending.attributes.cend(),
-                    [&attribute](const StagedAttribState &current) {
-                      return current.entity != nullptr &&
-                             current.entity->handle == attribute->handle;
-                    })) {
+    if (!isExpectedAttribute(pending.entity,
+                             pending.expectedAttributeHandles, *attribute,
+                             version) ||
+        m_stagedAttributeIndex.find(attribute->handle) !=
+            m_stagedAttributeIndex.end()) {
       terminalizeInsertGroup(owner, DwgInsertTerminalReason::MalformedGroup);
       (void)reportDwgFrameTransitionFailure(
           DwgSourceFrameId{attribute->handle});
       return DwgMappedEntityOutcome::Rejected;
     }
-    try {
-      pending.entity.attlist.reserve(pending.entity.attlist.size() + 1u);
-      pending.attributes.reserve(pending.attributes.size() + 1u);
-    } catch (...) {
+    if (m_stagedAttributeIndex.size() >=
+            dwgSafety::MaxDwgReadObjectCount ||
+        !dwgReaderDetail::reserveVectorForOneMore(
+            pending.entity.attlist, dwgSafety::MaxDwgReadObjectCount) ||
+        !dwgReaderDetail::reserveVectorForOneMore(
+            pending.attributes, dwgSafety::MaxDwgReadObjectCount)) {
       terminalizeInsertGroup(owner, DwgInsertTerminalReason::MalformedGroup);
       return DwgMappedEntityOutcome::Rejected;
     }
@@ -4342,35 +4932,53 @@ dwgReader::stagePendingAttribute(std::shared_ptr<DRW_Attrib> attribute,
       terminalizeInsertGroup(owner, DwgInsertTerminalReason::MalformedGroup);
       return DwgMappedEntityOutcome::Rejected;
     }
+    try {
+      const auto indexed = m_stagedAttributeIndex.emplace(
+          staged.entity->handle,
+          StagedAttributeLocation{owner, pending.attributes.size()});
+      if (!indexed.second) {
+        (void)abandonStagedFrame(staged.frame);
+        terminalizeInsertGroup(owner,
+                               DwgInsertTerminalReason::MalformedGroup);
+        (void)reportDwgFrameTransitionFailure(
+            DwgSourceFrameId{staged.entity->handle});
+        return DwgMappedEntityOutcome::Rejected;
+      }
+    } catch (...) {
+      (void)abandonStagedFrame(staged.frame);
+      terminalizeInsertGroup(owner, DwgInsertTerminalReason::MalformedGroup);
+      return DwgMappedEntityOutcome::Rejected;
+    }
     pending.entity.attlist.push_back(staged.entity);
     pending.attributes.push_back(std::move(staged));
     return tryCommitPendingInsert(owner, intfa);
   }
 
   auto orphanIt = m_orphanAttribStates.find(owner);
+  if (m_stagedAttributeIndex.find(attribute->handle) !=
+      m_stagedAttributeIndex.end()) {
+    if (orphanIt != m_orphanAttribStates.end())
+      terminalizeOrphanAttribOwner(owner);
+    (void)reportDwgFrameTransitionFailure(
+        DwgSourceFrameId{attribute->handle});
+    return DwgMappedEntityOutcome::Rejected;
+  }
   if (orphanIt == m_orphanAttribStates.end()) {
+    if (!dwgReaderDetail::reserveUnorderedMapForOneMore(
+            m_orphanAttribStates, dwgSafety::MaxDwgReadObjectCount)) {
+      terminalizeOrphanAttribOwner(owner);
+      return DwgMappedEntityOutcome::Rejected;
+    }
     try {
-      m_orphanAttribStates.reserve(m_orphanAttribStates.size() + 1u);
       orphanIt = m_orphanAttribStates.try_emplace(owner).first;
     } catch (...) {
       terminalizeOrphanAttribOwner(owner);
       return DwgMappedEntityOutcome::Rejected;
     }
   }
-  if (std::any_of(orphanIt->second.attributes.cbegin(),
-                  orphanIt->second.attributes.cend(),
-                  [&attribute](const StagedAttribState &current) {
-                    return current.entity != nullptr &&
-                           current.entity->handle == attribute->handle;
-                  })) {
-    terminalizeOrphanAttribOwner(owner);
-    (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{attribute->handle});
-    return DwgMappedEntityOutcome::Rejected;
-  }
-  try {
-    orphanIt->second.attributes.reserve(orphanIt->second.attributes.size() +
-                                        1u);
-  } catch (...) {
+  if (m_stagedAttributeIndex.size() >= dwgSafety::MaxDwgReadObjectCount ||
+      !dwgReaderDetail::reserveVectorForOneMore(
+          orphanIt->second.attributes, dwgSafety::MaxDwgReadObjectCount)) {
     terminalizeOrphanAttribOwner(owner);
     return DwgMappedEntityOutcome::Rejected;
   }
@@ -4378,6 +4986,22 @@ dwgReader::stagePendingAttribute(std::shared_ptr<DRW_Attrib> attribute,
   StagedAttribState staged;
   staged.entity = std::move(attribute);
   if (!stageActiveEntityFrame(staged.frame, publication)) {
+    terminalizeOrphanAttribOwner(owner);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  try {
+    const auto indexed = m_stagedAttributeIndex.emplace(
+        staged.entity->handle,
+        StagedAttributeLocation{owner, orphanIt->second.attributes.size()});
+    if (!indexed.second) {
+      (void)abandonStagedFrame(staged.frame);
+      terminalizeOrphanAttribOwner(owner);
+      (void)reportDwgFrameTransitionFailure(
+          DwgSourceFrameId{staged.entity->handle});
+      return DwgMappedEntityOutcome::Rejected;
+    }
+  } catch (...) {
+    (void)abandonStagedFrame(staged.frame);
     terminalizeOrphanAttribOwner(owner);
     return DwgMappedEntityOutcome::Rejected;
   }
@@ -4473,32 +5097,143 @@ dwgReader::stagePendingPolyline(DRW_Polyline &&polyline,
   }
 
   const auto orphanIt = m_orphanPolylineVertexStates.find(handle);
+  if (consumePolylineStageFailurePointForTest(
+          DwgPolylineStageFailurePoint::BeforeParentStateReserve)) {
+    terminalizeOrphanPolylineVertexOwner(handle);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+
+  PendingPolylineState stagedPending;
+  try {
+    stagedPending.entity = std::move(polyline);
+  } catch (...) {
+    terminalizeOrphanPolylineVertexOwner(handle);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  const std::size_t expectedVertexCount =
+      stagedPending.entity.hadlesList.size();
+  const std::size_t adoptedVertexCount =
+      orphanIt == m_orphanPolylineVertexStates.end()
+          ? 0u
+          : orphanIt->second.vertices.size();
+  constexpr std::size_t pendingOwnerNodeChargeBytes =
+      sizeof(std::pair<const std::uint32_t, PendingPolylineState>) +
+      3u * sizeof(void *);
+  if (expectedVertexCount > dwgSafety::MaxOwnedObjectCount ||
+      adoptedVertexCount > expectedVertexCount ||
+      m_polylineStagingBytes > dwgSafety::MaxPolylineStagingBytes) {
+    terminalizeOrphanPolylineVertexOwner(handle);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+
+  constexpr std::size_t declaredHandleChargeBytes =
+      sizeof(std::uint32_t) + 3u * sizeof(void *);
+  if (!dwgReaderDetail::fitsByteBudget(
+          m_polylineStagingBytes, pendingOwnerNodeChargeBytes,
+          dwgSafety::MaxPolylineStagingBytes) ||
+      stagedPending.entity.hadlesList.size() >
+          (dwgSafety::MaxPolylineStagingBytes - m_polylineStagingBytes -
+           pendingOwnerNodeChargeBytes) /
+              declaredHandleChargeBytes) {
+    terminalizeOrphanPolylineVertexOwner(handle);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  const std::size_t declaredStorageBytes =
+      stagedPending.entity.hadlesList.size() * declaredHandleChargeBytes;
+  const std::size_t availableIndexBytes =
+      dwgSafety::MaxPolylineStagingBytes - m_polylineStagingBytes -
+      declaredStorageBytes - pendingOwnerNodeChargeBytes;
+  if (!dwgReaderDetail::buildPolylineDeclaredIndex(
+          stagedPending.entity.hadlesList, stagedPending.declaredChildIndex,
+          stagedPending.stagedChildSlots, availableIndexBytes)) {
+    terminalizeOrphanPolylineVertexOwner(handle);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  if (dwgReaderDetail::hasForeignPolylineOrphanOwner(
+          handle, stagedPending.declaredChildIndex, m_polylineOrphanClaims)) {
+    // An orphan that arrived first already names its actual parent. Match the
+    // existing child-first conflict policy: reject only the late conflicting
+    // parent, leaving that orphan available for its true owner.
+    parsedEntityOwnerMismatch = true;
+    (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
+    return DwgMappedEntityOutcome::Rejected;
+  }
   if (orphanIt != m_orphanPolylineVertexStates.end()) {
-    const auto isExpectedExactlyOnce = [&polyline](
-                                           const StagedVertexState &vertex) {
-      return std::count(polyline.hadlesList.cbegin(),
-                        polyline.hadlesList.cend(), vertex.entity.handle) == 1;
-    };
-    const bool invalidOrphan = std::any_of(
-        orphanIt->second.vertices.cbegin(), orphanIt->second.vertices.cend(),
-        [&polyline, &isExpectedExactlyOnce](const StagedVertexState &vertex) {
-          return !isExpectedExactlyOnce(vertex) ||
-                 !polyline.isDwgVertexCompatible(vertex.entity);
-        });
+    bool invalidOrphan = false;
+    for (const StagedVertexState &vertex : orphanIt->second.vertices) {
+      std::size_t slot = 0u;
+      if (!dwgReaderDetail::findPolylineDeclaredChildSlot(
+              stagedPending.declaredChildIndex, vertex.entity.handle, slot,
+              true, [](std::uint32_t lhs, std::uint32_t rhs) {
+                return lhs < rhs;
+              }) ||
+          slot >= stagedPending.stagedChildSlots.size() ||
+          stagedPending.stagedChildSlots[slot] != 0u ||
+          !stagedPending.entity.isDwgVertexCompatible(vertex.entity)) {
+        invalidOrphan = true;
+        break;
+      }
+      stagedPending.stagedChildSlots[slot] = 1u;
+    }
     if (invalidOrphan) {
       terminalizeOrphanPolylineVertexOwner(handle);
       (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
       return DwgMappedEntityOutcome::Rejected;
     }
   }
-  if (consumePolylineStageFailurePointForTest(
-          DwgPolylineStageFailurePoint::BeforeParentStateReserve)) {
+
+  std::size_t retainedBytes = 0u;
+  const auto chargeCapacity = [&retainedBytes](std::size_t capacity,
+                                                std::size_t elementBytes) {
+    if (elementBytes != 0u &&
+        capacity > (dwgSafety::MaxPolylineStagingBytes - retainedBytes) /
+                       elementBytes) {
+      return false;
+    }
+    retainedBytes += capacity * elementBytes;
+    return true;
+  };
+  if (!chargeCapacity(stagedPending.declaredChildIndex.capacity(),
+                      sizeof(std::pair<std::uint32_t, std::size_t>)) ||
+      !chargeCapacity(stagedPending.stagedChildSlots.capacity(),
+                      sizeof(std::uint8_t)) ||
+      !dwgReaderDetail::fitsByteBudget(
+          retainedBytes, declaredStorageBytes,
+          dwgSafety::MaxPolylineStagingBytes) ||
+      !chargeCapacity(1u, pendingOwnerNodeChargeBytes)) {
     terminalizeOrphanPolylineVertexOwner(handle);
     return DwgMappedEntityOutcome::Rejected;
   }
-  try {
-    m_pendingPolylineStates.reserve(m_pendingPolylineStates.size() + 1u);
-  } catch (...) {
+  retainedBytes += declaredStorageBytes;
+  if (expectedVertexCount != 0u) {
+    if (!dwgReaderDetail::fitsByteBudget(
+            m_polylineStagingBytes, retainedBytes,
+            dwgSafety::MaxPolylineStagingBytes) ||
+        expectedVertexCount >
+            (dwgSafety::MaxPolylineStagingBytes - m_polylineStagingBytes -
+             retainedBytes) /
+                sizeof(StagedVertexState)) {
+      terminalizeOrphanPolylineVertexOwner(handle);
+      return DwgMappedEntityOutcome::Rejected;
+    }
+    try {
+      stagedPending.vertices.reserve(expectedVertexCount);
+    } catch (...) {
+      terminalizeOrphanPolylineVertexOwner(handle);
+      return DwgMappedEntityOutcome::Rejected;
+    }
+  }
+  if (!chargeCapacity(stagedPending.vertices.capacity(),
+                      sizeof(StagedVertexState)) ||
+      !dwgReaderDetail::fitsByteBudget(m_polylineStagingBytes, retainedBytes,
+                                       dwgSafety::MaxPolylineStagingBytes)) {
+    terminalizeOrphanPolylineVertexOwner(handle);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  stagedPending.retainedBytes = retainedBytes;
+
+  if (!reservePendingPolylineOwnerMapForOneMore(retainedBytes)) {
+    terminalizeOrphanPolylineVertexOwner(handle);
     return DwgMappedEntityOutcome::Rejected;
   }
 
@@ -4509,46 +5244,37 @@ dwgReader::stagePendingPolyline(DRW_Polyline &&polyline,
   }
   auto inserted = m_pendingPolylineStates.end();
   try {
-    const auto result = m_pendingPolylineStates.try_emplace(handle);
+    const auto result =
+        m_pendingPolylineStates.try_emplace(handle, std::move(stagedPending));
     if (!result.second) {
       (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
       return DwgMappedEntityOutcome::Rejected;
     }
     inserted = result.first;
   } catch (...) {
+    terminalizeOrphanPolylineVertexOwner(handle);
     return DwgMappedEntityOutcome::Rejected;
   }
 
   PendingPolylineState &pending = inserted->second;
-  try {
-    pending.entity = std::move(polyline);
-  } catch (...) {
+  m_polylineStagingBytes += pending.retainedBytes;
+  if (!addPolylineDeclaredClaims(handle, pending.declaredChildIndex)) {
+    releasePolylineStagingBytes(pending.retainedBytes);
     m_pendingPolylineStates.erase(inserted);
     terminalizeOrphanPolylineVertexOwner(handle);
     return DwgMappedEntityOutcome::Rejected;
   }
-  const std::size_t expectedVertexCount = pending.entity.hadlesList.size();
-  const std::size_t adoptedVertexCount =
-      orphanIt == m_orphanPolylineVertexStates.end()
-          ? 0u
-          : orphanIt->second.vertices.size();
-  if (expectedVertexCount != 0u || adoptedVertexCount != 0u) {
-    try {
-      pending.vertices.reserve(
-          std::max(expectedVertexCount, adoptedVertexCount));
-    } catch (...) {
-      m_pendingPolylineStates.erase(inserted);
-      terminalizeOrphanPolylineVertexOwner(handle);
-      return DwgMappedEntityOutcome::Rejected;
-    }
-  }
   if (consumePolylineStageFailurePointForTest(
           DwgPolylineStageFailurePoint::BeforeFrameStaging)) {
+    removePolylineDeclaredClaims(handle, pending.declaredChildIndex);
+    releasePolylineStagingBytes(pending.retainedBytes);
     m_pendingPolylineStates.erase(inserted);
     terminalizeOrphanPolylineVertexOwner(handle);
     return DwgMappedEntityOutcome::Rejected;
   }
   if (!stageActiveEntityFrame(pending.frame, publication)) {
+    removePolylineDeclaredClaims(handle, pending.declaredChildIndex);
+    releasePolylineStagingBytes(pending.retainedBytes);
     m_pendingPolylineStates.erase(inserted);
     terminalizeOrphanPolylineVertexOwner(handle);
     return DwgMappedEntityOutcome::Rejected;
@@ -4572,6 +5298,8 @@ dwgReader::stagePendingPolyline(DRW_Polyline &&polyline,
                                       DwgInsertTerminalReason::MalformedGroup);
       return DwgMappedEntityOutcome::Rejected;
     }
+    removePolylineOrphanClaims(handle, orphanIt->second.childHandles);
+    releasePolylineStagingBytes(orphanIt->second.retainedBytes);
     m_orphanPolylineVertexStates.erase(orphanIt);
   }
   return tryCommitPendingPolyline(handle, intfa);
@@ -4826,14 +5554,17 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stagePendingPolylineVertex(
 
   const auto pendingIt = m_pendingPolylineStates.find(owner);
   if (pendingIt != m_pendingPolylineStates.end()) {
+    const auto *claimOwners = m_polylineDeclaredClaims.ownersFor(handle);
     std::vector<std::uint32_t> conflictingOwners;
     try {
-      for (const auto &candidate : m_pendingPolylineStates) {
-        if (candidate.first != owner &&
-            std::find(candidate.second.entity.hadlesList.cbegin(),
-                      candidate.second.entity.hadlesList.cend(),
-                      handle) != candidate.second.entity.hadlesList.cend()) {
-          conflictingOwners.push_back(candidate.first);
+      if (claimOwners != nullptr) {
+        conflictingOwners.reserve(claimOwners->size());
+        for (const std::uint32_t claimedOwner : *claimOwners) {
+          if (claimedOwner != owner &&
+              m_pendingPolylineStates.find(claimedOwner) !=
+                  m_pendingPolylineStates.end()) {
+            conflictingOwners.push_back(claimedOwner);
+          }
         }
       }
     } catch (...) {
@@ -4854,26 +5585,19 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stagePendingPolylineVertex(
     }
 
     PendingPolylineState &pending = pendingIt->second;
-    const bool expected = std::find(pending.entity.hadlesList.cbegin(),
-                                    pending.entity.hadlesList.cend(),
-                                    handle) != pending.entity.hadlesList.cend();
+    std::size_t expectedSlot = 0u;
+    const bool expected = dwgReaderDetail::findPolylineDeclaredChildSlot(
+        pending.declaredChildIndex, handle, expectedSlot, false,
+        [](std::uint32_t lhs, std::uint32_t rhs) { return lhs < rhs; });
     const bool duplicate =
-        std::any_of(pending.vertices.cbegin(), pending.vertices.cend(),
-                    [handle](const StagedVertexState &current) {
-                      return current.entity.handle == handle;
-                    });
+        expected && expectedSlot < pending.stagedChildSlots.size() &&
+        pending.stagedChildSlots[expectedSlot] != 0u;
     if (!expected || duplicate ||
+        expectedSlot >= pending.stagedChildSlots.size() ||
         !pending.entity.isDwgVertexCompatible(vertex)) {
       terminalizePendingPolylineState(owner,
                                       DwgInsertTerminalReason::MalformedGroup);
       (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
-      return DwgMappedEntityOutcome::Rejected;
-    }
-    try {
-      pending.vertices.reserve(pending.vertices.size() + 1u);
-    } catch (...) {
-      terminalizePendingPolylineState(owner,
-                                      DwgInsertTerminalReason::MalformedGroup);
       return DwgMappedEntityOutcome::Rejected;
     }
     StagedVertexState staged;
@@ -4887,47 +5611,161 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stagePendingPolylineVertex(
       return DwgMappedEntityOutcome::Rejected;
     }
     pending.vertices.push_back(std::move(staged));
+    pending.stagedChildSlots[expectedSlot] = 1u;
     return tryCommitPendingPolyline(owner, intfa);
   }
 
-  const auto declaredParent = std::find_if(
-      m_pendingPolylineStates.cbegin(), m_pendingPolylineStates.cend(),
-      [handle](const auto &item) {
-        return std::find(item.second.entity.hadlesList.cbegin(),
-                         item.second.entity.hadlesList.cend(),
-                         handle) != item.second.entity.hadlesList.cend();
-      });
-  if (declaredParent != m_pendingPolylineStates.cend()) {
-    terminalizePendingPolylineState(declaredParent->first,
-                                    DwgInsertTerminalReason::MalformedGroup);
+  const auto *claimOwners = m_polylineDeclaredClaims.ownersFor(handle);
+  if (claimOwners != nullptr && !claimOwners->empty()) {
+    std::vector<std::uint32_t> conflictingOwners;
+    try {
+      conflictingOwners.reserve(claimOwners->size());
+      for (const std::uint32_t claimedOwner : *claimOwners) {
+        if (claimedOwner != owner &&
+            m_pendingPolylineStates.find(claimedOwner) !=
+                m_pendingPolylineStates.end()) {
+          conflictingOwners.push_back(claimedOwner);
+        }
+      }
+    } catch (...) {
+      return DwgMappedEntityOutcome::Rejected;
+    }
+    for (const std::uint32_t conflictingOwner : conflictingOwners) {
+      terminalizePendingPolylineState(
+          conflictingOwner, DwgInsertTerminalReason::MalformedGroup);
+    }
+    if (!conflictingOwners.empty()) {
+      parsedEntityOwnerMismatch = true;
+      (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
+      return DwgMappedEntityOutcome::Rejected;
+    }
+  }
+
+  if (dwgReaderDetail::hasForeignPolylineOrphanHandleOwner(
+          owner, handle, m_polylineOrphanClaims)) {
     parsedEntityOwnerMismatch = true;
     (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
     return DwgMappedEntityOutcome::Rejected;
   }
 
+  constexpr std::size_t orphanOwnerNodeChargeBytes =
+      sizeof(std::pair<const std::uint32_t, OrphanPolylineVertexState>) +
+      3u * sizeof(void *);
   auto orphanIt = m_orphanPolylineVertexStates.find(owner);
   if (orphanIt == m_orphanPolylineVertexStates.end()) {
+    if (!dwgReaderDetail::fitsByteBudget(
+            m_polylineStagingBytes, orphanOwnerNodeChargeBytes,
+            dwgSafety::MaxPolylineStagingBytes)) {
+      return DwgMappedEntityOutcome::Rejected;
+    }
     try {
-      m_orphanPolylineVertexStates.reserve(m_orphanPolylineVertexStates.size() +
-                                           1u);
-      orphanIt = m_orphanPolylineVertexStates.try_emplace(owner).first;
+      if (!reserveOrphanPolylineOwnerMapForOneMore(
+              orphanOwnerNodeChargeBytes)) {
+        return DwgMappedEntityOutcome::Rejected;
+      }
+      const auto inserted = m_orphanPolylineVertexStates.try_emplace(owner);
+      if (!inserted.second)
+        return DwgMappedEntityOutcome::Rejected;
+      orphanIt = inserted.first;
+      orphanIt->second.retainedBytes = orphanOwnerNodeChargeBytes;
+      m_polylineStagingBytes += orphanOwnerNodeChargeBytes;
     } catch (...) {
       return DwgMappedEntityOutcome::Rejected;
     }
   }
-  const bool duplicate = std::any_of(
-      orphanIt->second.vertices.cbegin(), orphanIt->second.vertices.cend(),
-      [handle](const StagedVertexState &current) {
-        return current.entity.handle == handle;
-      });
+  const bool duplicate =
+      orphanIt->second.childHandles.find(handle) !=
+      orphanIt->second.childHandles.end();
   if (duplicate) {
     terminalizeOrphanPolylineVertexOwner(owner);
     (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
     return DwgMappedEntityOutcome::Rejected;
   }
+  std::size_t plannedCapacity = 0u;
+  const std::size_t oldCapacity = orphanIt->second.vertices.capacity();
+  if (!dwgReaderDetail::vectorCapacityForOneMore(
+          orphanIt->second.vertices,
+          static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount),
+          plannedCapacity)) {
+    terminalizeOrphanPolylineVertexOwner(owner);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  const bool grows = plannedCapacity > oldCapacity;
+  constexpr std::size_t orphanHandleBytes =
+      dwgReaderDetail::PolylineClaimOwnerNodeChargeBytes;
+  std::size_t peakAdditionalBytes = orphanHandleBytes;
+  constexpr std::size_t orphanClaimBytes =
+      dwgReaderDetail::PolylineClaimOwnerNodeChargeBytes +
+      dwgReaderDetail::PolylineClaimHandleNodeChargeBytes;
+  if (!dwgReaderDetail::fitsByteBudget(
+          peakAdditionalBytes, orphanClaimBytes,
+          dwgSafety::MaxPolylineStagingBytes)) {
+    terminalizeOrphanPolylineVertexOwner(owner);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  peakAdditionalBytes += orphanClaimBytes;
+  if (grows) {
+    if (plannedCapacity > dwgSafety::MaxPolylineStagingBytes /
+                              sizeof(StagedVertexState)) {
+      terminalizeOrphanPolylineVertexOwner(owner);
+      return DwgMappedEntityOutcome::Rejected;
+    }
+    const std::size_t requestedGrowthBytes =
+        plannedCapacity * sizeof(StagedVertexState);
+    if (!dwgReaderDetail::fitsByteBudget(
+            peakAdditionalBytes, requestedGrowthBytes,
+            dwgSafety::MaxPolylineStagingBytes)) {
+      terminalizeOrphanPolylineVertexOwner(owner);
+      return DwgMappedEntityOutcome::Rejected;
+    }
+    peakAdditionalBytes += requestedGrowthBytes;
+  }
+  if (!dwgReaderDetail::fitsByteBudget(
+          m_polylineStagingBytes, peakAdditionalBytes,
+          dwgSafety::MaxPolylineStagingBytes)) {
+    terminalizeOrphanPolylineVertexOwner(owner);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  if (!dwgReaderDetail::reserveVectorForOneMore(
+          orphanIt->second.vertices,
+          static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount),
+          &plannedCapacity)) {
+    terminalizeOrphanPolylineVertexOwner(owner);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  if (grows) {
+    const std::size_t oldBytes = orphanIt->second.retainedBytes;
+    const std::size_t newCapacity = orphanIt->second.vertices.capacity();
+    if (newCapacity > dwgSafety::MaxPolylineStagingBytes /
+                          sizeof(StagedVertexState)) {
+      terminalizeOrphanPolylineVertexOwner(owner);
+      return DwgMappedEntityOutcome::Rejected;
+    }
+    const std::size_t newBytes =
+        newCapacity * sizeof(StagedVertexState) +
+        orphanIt->second.childHandles.size() * orphanHandleBytes +
+        orphanOwnerNodeChargeBytes;
+    m_polylineStagingBytes -= oldBytes;
+    m_polylineStagingBytes += newBytes;
+    orphanIt->second.retainedBytes = newBytes;
+    if (m_polylineStagingBytes > dwgSafety::MaxPolylineStagingBytes) {
+      terminalizeOrphanPolylineVertexOwner(owner);
+      return DwgMappedEntityOutcome::Rejected;
+    }
+  }
   try {
-    orphanIt->second.vertices.reserve(orphanIt->second.vertices.size() + 1u);
+    if (!orphanIt->second.childHandles.insert(handle).second) {
+      terminalizeOrphanPolylineVertexOwner(owner);
+      (void)reportDwgFrameTransitionFailure(DwgSourceFrameId{handle});
+      return DwgMappedEntityOutcome::Rejected;
+    }
   } catch (...) {
+    terminalizeOrphanPolylineVertexOwner(owner);
+    return DwgMappedEntityOutcome::Rejected;
+  }
+  orphanIt->second.retainedBytes += orphanHandleBytes;
+  m_polylineStagingBytes += orphanHandleBytes;
+  if (!addPolylineOrphanClaim(owner, handle)) {
     terminalizeOrphanPolylineVertexOwner(owner);
     return DwgMappedEntityOutcome::Rejected;
   }
@@ -4937,7 +5775,13 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stagePendingPolylineVertex(
     terminalizeOrphanPolylineVertexOwner(owner);
     return DwgMappedEntityOutcome::Rejected;
   }
-  orphanIt->second.vertices.push_back(std::move(staged));
+  try {
+    orphanIt->second.vertices.push_back(std::move(staged));
+  } catch (...) {
+    (void)abandonStagedFrame(staged.frame);
+    terminalizeOrphanPolylineVertexOwner(owner);
+    return DwgMappedEntityOutcome::Rejected;
+  }
   return DwgMappedEntityOutcome::StagedCompound;
 }
 
@@ -4963,29 +5807,68 @@ bool dwgReader::preparePolylineCommit(std::uint32_t handle,
           DwgPolylinePrepareFailurePoint::BeforeReservation)) {
     return false;
   }
+  if (m_polylineStagingBytes > dwgSafety::MaxPolylineStagingBytes)
+    return false;
+  const std::size_t availablePreparationBytes = std::min(
+      dwgSafety::MaxPolylinePreparationScratchBytes,
+      dwgSafety::MaxPolylineStagingBytes - m_polylineStagingBytes);
+  constexpr std::size_t minimumScratchBytesPerVertex =
+      sizeof(std::pair<std::uint32_t, std::size_t>) + sizeof(std::size_t) +
+      sizeof(std::uint8_t) + sizeof(StagedVertexState *) +
+      sizeof(std::uint32_t);
+  const std::size_t vertexCount = pending.vertices.size();
+  if (vertexCount >
+      availablePreparationBytes / minimumScratchBytesPerVertex) {
+    return false;
+  }
   try {
-    prepared.orderedVertices.reserve(pending.vertices.size());
-    prepared.claimedChildHandles.reserve(pending.vertices.size());
+    prepared.orderedVertices.reserve(vertexCount);
+    prepared.claimedChildHandles.reserve(vertexCount);
   } catch (...) {
     return false;
   }
-  for (const std::uint32_t expected : pending.entity.hadlesList) {
-    if (expected == DRW::NoHandle)
-      return false;
-    const auto vertexIt =
-        std::find_if(pending.vertices.begin(), pending.vertices.end(),
-                     [expected, handle](const StagedVertexState &vertex) {
-                       return vertex.entity.handle == expected &&
-                              vertex.entity.parentHandle == handle;
-                     });
-    if (vertexIt == pending.vertices.end() ||
-        !validateStagedFrame(vertexIt->frame) ||
-        std::find(prepared.orderedVertices.cbegin(),
-                  prepared.orderedVertices.cend(),
-                  &*vertexIt) != prepared.orderedVertices.cend()) {
+  std::size_t additionalScratchBytes = 0u;
+  const auto chargeOutputCapacity = [&additionalScratchBytes,
+                                     availablePreparationBytes](
+                                        std::size_t capacity,
+                                        std::size_t elementBytes) {
+    if (elementBytes != 0u &&
+        capacity >
+            (availablePreparationBytes - additionalScratchBytes) /
+                elementBytes) {
       return false;
     }
-    prepared.orderedVertices.push_back(&*vertexIt);
+    additionalScratchBytes += capacity * elementBytes;
+    return true;
+  };
+  if (!chargeOutputCapacity(prepared.orderedVertices.capacity(),
+                            sizeof(StagedVertexState *)) ||
+      !chargeOutputCapacity(prepared.claimedChildHandles.capacity(),
+                            sizeof(std::uint32_t))) {
+    return false;
+  }
+  std::vector<std::size_t> orderedIndices;
+  const auto handleOf = [](const StagedVertexState &vertex) {
+    return vertex.entity.handle;
+  };
+  const auto lessHandle = [](std::uint32_t lhs, std::uint32_t rhs) {
+    return lhs < rhs;
+  };
+  if (!dwgReaderDetail::buildPolylineVertexOrder(
+          pending.entity.hadlesList, pending.vertices, handleOf, lessHandle,
+          orderedIndices, additionalScratchBytes,
+          availablePreparationBytes)) {
+    return false;
+  }
+  for (const std::size_t vertexIndex : orderedIndices) {
+    if (vertexIndex >= pending.vertices.size())
+      return false;
+    StagedVertexState &vertex = pending.vertices[vertexIndex];
+    if (vertex.entity.parentHandle != handle ||
+        !validateStagedFrame(vertex.frame)) {
+      return false;
+    }
+    prepared.orderedVertices.push_back(&vertex);
   }
   const auto rollbackMarkers = [this, &prepared, sequenceHandle]() {
     for (const std::uint32_t child : prepared.claimedChildHandles)
@@ -5166,6 +6049,8 @@ dwgReader::journalPreparedPolylineCommit(std::uint32_t handle,
     frame.frame->publication.reset();
   }
   m_stagedSeqEnds.erase(sequenceHandle);
+  removePolylineDeclaredClaims(handle, pending.declaredChildIndex);
+  releasePolylineStagingBytes(pending.retainedBytes);
   m_pendingPolylineStates.erase(handle);
   return DwgMappedEntityOutcome::CommittedCompound;
 }
@@ -5219,6 +6104,8 @@ dwgReader::DwgMappedEntityOutcome dwgReader::deliverPreparedPolylineCommit(
     return DwgMappedEntityOutcome::Rejected;
   }
   m_stagedSeqEnds.erase(sequenceHandle);
+  removePolylineDeclaredClaims(handle, pending.declaredChildIndex);
+  releasePolylineStagingBytes(pending.retainedBytes);
   m_pendingPolylineStates.erase(handle);
   return DwgMappedEntityOutcome::CommittedCompound;
 }
@@ -5281,11 +6168,20 @@ bool dwgReader::prepareInsertCommit(std::uint32_t handle,
     return false;
   }
 
-  const auto appendAttribute = [&pending, this,
-                                &prepared](StagedAttribState &attribute) {
+  const auto appendAttribute = [this, handle, &pending,
+                                &prepared](std::size_t index) {
+    if (index >= pending.attributes.size())
+      return false;
+    StagedAttribState &attribute = pending.attributes[index];
     if (attribute.entity == nullptr ||
-        !isExpectedAttribute(pending.entity, *attribute.entity, version) ||
+        attribute.entity->parentHandle != handle ||
         !validateStagedFrame(attribute.frame)) {
+      return false;
+    }
+    const auto indexed =
+        m_stagedAttributeIndex.find(attribute.entity->handle);
+    if (indexed == m_stagedAttributeIndex.end() ||
+        indexed->second.owner != handle || indexed->second.index != index) {
       return false;
     }
     prepared.orderedAttributes.push_back(&attribute);
@@ -5294,22 +6190,28 @@ bool dwgReader::prepareInsertCommit(std::uint32_t handle,
   };
   try {
     if (version < DRW::AC1018 && pending.entity.attribHandles.size() == 2u) {
-      for (StagedAttribState &attribute : pending.attributes) {
-        if (!appendAttribute(attribute))
+      for (std::size_t index = 0u; index < pending.attributes.size(); ++index) {
+        const StagedAttribState &attribute = pending.attributes[index];
+        if (attribute.entity == nullptr ||
+            !isExpectedAttribute(pending.entity,
+                                 pending.expectedAttributeHandles,
+                                 *attribute.entity, version) ||
+            !appendAttribute(index)) {
           return false;
+        }
       }
     } else {
+      if (pending.expectedAttributeHandles.size() !=
+          pending.entity.attribHandles.size()) {
+        return false;
+      }
       for (const dwgHandle &expected : pending.entity.attribHandles) {
         if (expected.ref == DRW::NoHandle)
           return false;
-        const auto attributeIt =
-            std::find_if(pending.attributes.begin(), pending.attributes.end(),
-                         [&expected](const StagedAttribState &attribute) {
-                           return attribute.entity != nullptr &&
-                                  attribute.entity->handle == expected.ref;
-                         });
-        if (attributeIt == pending.attributes.end() ||
-            !appendAttribute(*attributeIt)) {
+        const auto indexed = m_stagedAttributeIndex.find(expected.ref);
+        if (indexed == m_stagedAttributeIndex.end() ||
+            indexed->second.owner != handle ||
+            !appendAttribute(indexed->second.index)) {
           return false;
         }
       }
@@ -5492,6 +6394,8 @@ dwgReader::journalPreparedInsertCommit(std::uint32_t handle,
   }
   if (prepared.sequenceEnd != nullptr)
     m_stagedSeqEnds.erase(sequenceHandle);
+  eraseStagedAttributeIndex(handle, pending.attributes);
+  releaseInsertExpectedAttributeCount(pending);
   m_pendingInsertStates.erase(handle);
   return DwgMappedEntityOutcome::CommittedCompound;
 }
@@ -5548,6 +6452,8 @@ dwgReader::DwgMappedEntityOutcome dwgReader::deliverPreparedInsertCommit(
   }
   if (prepared.sequenceEnd != nullptr)
     m_stagedSeqEnds.erase(sequenceHandle);
+  eraseStagedAttributeIndex(handle, pending.attributes);
+  releaseInsertExpectedAttributeCount(pending);
   m_pendingInsertStates.erase(handle);
   return DwgMappedEntityOutcome::CommittedCompound;
 }
@@ -5564,7 +6470,39 @@ dwgReader::tryCommitPendingInsert(std::uint32_t handle, DRW_Interface &intfa) {
     abandonPendingInsertState(handle);
     return DwgMappedEntityOutcome::Rejected;
   }
-  if (!hasCompleteAttributeList(pending.entity, version))
+  bool completeAttributeList = false;
+  if (version < DRW::AC1018 && pending.entity.attribHandles.size() == 2u) {
+    const std::uint32_t first = pending.entity.attribHandles.front().ref;
+    const std::uint32_t last = pending.entity.attribHandles.back().ref;
+    if (first == DRW::NoHandle || last == DRW::NoHandle) {
+      completeAttributeList = first == last && pending.attributes.empty();
+    } else if (first == last) {
+      const auto indexed = m_stagedAttributeIndex.find(first);
+      completeAttributeList =
+          pending.attributes.size() == 1u &&
+          indexed != m_stagedAttributeIndex.end() &&
+          indexed->second.owner == handle;
+    } else {
+      const auto firstIndexed = m_stagedAttributeIndex.find(first);
+      const auto lastIndexed = m_stagedAttributeIndex.find(last);
+      completeAttributeList =
+          pending.attributes.size() >= 2u &&
+          firstIndexed != m_stagedAttributeIndex.end() &&
+          firstIndexed->second.owner == handle &&
+          lastIndexed != m_stagedAttributeIndex.end() &&
+          lastIndexed->second.owner == handle;
+    }
+  } else {
+    // Staging admits only unique handles present in the prebuilt declared
+    // membership index. With duplicate/invalid declarations rejected when the
+    // parent is staged, equal cardinality proves complete membership without
+    // rescanning all staged attributes after each child arrives.
+    completeAttributeList =
+        pending.attributes.size() == pending.entity.attribHandles.size() &&
+        pending.expectedAttributeHandles.size() ==
+            pending.entity.attribHandles.size();
+  }
+  if (!completeAttributeList)
     return DwgMappedEntityOutcome::StagedCompound;
 
   const std::uint32_t sequenceHandle = pending.entity.seqendH.ref;
@@ -5936,6 +6874,15 @@ std::string dwgReader::findTableName(DRW::TTYPE table, std::int32_t handle) {
   return name;
 }
 
+std::string dwgReader::findAppIdName(std::uint32_t handle) const {
+  if (handle == DRW::DwgAcadAppIdHandle)
+    return "ACAD";
+  const auto appId = appIdmap.find(handle);
+  if (appId == appIdmap.end() || appId->second == nullptr)
+    return {};
+  return appId->second->name;
+}
+
 bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
                               dwgBuffer *hBuf,
                               DwgIntegrityAddressSpace offsetSpace,
@@ -5967,10 +6914,37 @@ bool dwgReader::readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
     hdr.name.clear();
   };
   try {
+    DRW_DBG("HEADER section envelope input size=");
+    DRW_DBG(static_cast<unsigned long long>(buf->size()));
+    DRW_DBG(" start=");
+    DRW_DBG(static_cast<unsigned long long>(buf->getPosition()));
+    DRW_DBG(" version=");
+    DRW_DBG(static_cast<int>(version));
+    DRW_DBG(" app maintenance=");
+    DRW_DBG(static_cast<unsigned int>(appMaintenanceVersion));
+    dwgBuffer envelopeProbe = buf->forkIndependent();
+    const std::uint32_t declaredSize = envelopeProbe.getRawLong32();
+    DRW_DBG(" declared size=");
+    DRW_DBG(static_cast<unsigned long long>(declaredSize));
+    if (dwgHeaderHasHighSizeWord(version, appMaintenanceVersion)) {
+      const std::uint32_t highSize = envelopeProbe.getRawLong32();
+      DRW_DBG(" high size word=");
+      DRW_DBG(static_cast<unsigned long long>(highSize));
+    }
+    DRW_DBG("\n");
     // The R2010/R2013 optional word is selected by APP maintenance version
     // (file byte 0x12), not the maintenance value at byte 0x0B.
     const auto envelope = inspectDwgHeaderEnvelope(
         *buf, version, appMaintenanceVersion);
+    DRW_DBG("HEADER section envelope result error=");
+    DRW_DBG(static_cast<int>(envelope.error));
+    DRW_DBG(" payload end=");
+    DRW_DBG(static_cast<unsigned long long>(envelope.payloadEnd));
+    DRW_DBG(" trailer end=");
+    DRW_DBG(static_cast<unsigned long long>(envelope.trailerEnd));
+    DRW_DBG(" unclaimed bytes=");
+    DRW_DBG(static_cast<unsigned long long>(envelope.unclaimedBytes));
+    DRW_DBG("\n");
     if (envelope.error != DwgHeaderEnvelopeError::None) {
       const bool sentinel = envelope.error == DwgHeaderEnvelopeError::BeginSentinel
           || envelope.error == DwgHeaderEnvelopeError::EndSentinel;
@@ -6729,6 +7703,13 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
     raw.m_objectOffset = object.loc;
     raw.m_objectSize = static_cast<std::uint32_t>(frame.body().size());
     raw.m_rawBytes = frame.body();
+    // This legacy, validated control list has no DXF record counterpart. Tag
+    // it so consumers do not confuse the structural control callback with an
+    // unsupported semantic object; any referenced type-71 records are emitted
+    // independently and retain their own completeness disposition.
+    if (objectType == DRW_ViewportEntityHeader::kDwgControlType)
+      raw.m_recordName =
+          DRW_UnsupportedObject::vportEntityHeaderControlRecordName();
     stagedRawControls.push_back(std::move(raw));
     return true;
   };
@@ -7471,6 +8452,10 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
       records.reserve(blockRecordmap.size());
       for (const auto &item : blockRecordmap)
         records.push_back(item.second);
+      // Run ownership preflight once across every block before walking any
+      // block's source frames. Repeating it from the per-block walker would
+      // decode the same POLYLINE parents again and could miss cross-block
+      // claims after earlier blocks have consumed frames.
       if (!preflightMappedPolylineOwnership(records, dbuf))
         return false;
     } catch (...) {
@@ -7549,6 +8534,7 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
     // complete block entity with block record data
     bk.basePoint = bkr->basePoint;
     bk.flags = bkr->flags;
+    bk.xrefUnloaded = bkr->xrefUnloaded;
     bk.insUnits = bkr->insUnits;
     bk.xrefPath = bkr->xrefPath;
 
@@ -7667,10 +8653,10 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
     }
     const objHandle endBlockObject = oc;
     parseAttribs(&end);
-    // BLOCK and ENDBLK delimit the same BLOCK_RECORD scope.  Named blocks
-    // carry that owner in both records; modelspace/paperspace use the
-    // ownerless form in files handled here.  Reject a mismatched pair
-    // before publishing either scope boundary.
+    // BLOCK and ENDBLK delimit the same BLOCK_RECORD scope. Named blocks and
+    // some paper-space records carry that owner in both delimiters; older
+    // modelspace/paperspace forms may omit it. Reject a mismatched pair before
+    // publishing either scope boundary.
     if (bk.parentHandle != end.parentHandle) {
       DRW_DBG("Mismatched BLOCK/ENDBLK owner handles\n");
       recordBlockFailure(*bkr, bkr->handle, -1,
@@ -7680,9 +8666,8 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
       continue;
     }
     const bool isSpaceBlockRecord = isSpaceBlockRecordName(bk.name);
-    const bool validDelimiterOwner = isSpaceBlockRecord
-                                         ? bk.parentHandle == DRW::NoHandle
-                                         : bk.parentHandle == bkr->handle;
+    const bool validDelimiterOwner = bk.parentHandle == bkr->handle
+        || (isSpaceBlockRecord && bk.parentHandle == DRW::NoHandle);
     if (!validDelimiterOwner) {
       DRW_DBG("BLOCK/ENDBLK owner does not match BLOCK_RECORD\n");
       recordBlockFailure(*bkr, bkr->handle, -1,
@@ -8170,17 +9155,6 @@ bool dwgReader::walkBlockRecordEntities(DRW_Block_Record *bkr, dwgBuffer *dbuf,
       return false;
     }
 
-    bool ownershipPreflight = false;
-    try {
-      const std::vector<const DRW_Block_Record *> records = {bkr};
-      ownershipPreflight = preflightMappedPolylineOwnership(records, dbuf);
-    } catch (...) {
-      ownershipPreflight = false;
-    }
-    if (!ownershipPreflight) {
-      restoreState();
-      return false;
-    }
   }
 
   try {
@@ -8534,16 +9508,45 @@ void dwgReader::linkDataStorage(DRW_Entity &entity) {
     return;
   }
 
+  if (!dwgReaderDetail::fitsByteBudget(
+          m_dataStorageLinkedPayloadBytes, record->payload.size(),
+          DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP)) {
+    ++m_dataStorageLinkFailures;
+    return;
+  }
+
+  // Prepare every potentially allocating value and claim the source record
+  // before publishing any linked state on the entity. A failed copy/set
+  // insertion therefore leaves both the entity and accounting unchanged.
+  std::vector<std::uint8_t> linkedPayload;
+  std::string linkedHandleKey;
+  std::string linkedPayloadMarkerSection;
+  try {
+    linkedPayload = record->payload;
+    linkedHandleKey = record->handleKey;
+    linkedPayloadMarkerSection = record->payloadMarkerSection;
+    if (!m_dataStorageLinkedRecords.emplace(sectionIndex, recordIndex).second) {
+      ++m_dataStorageLinkFailures;
+      return;
+    }
+  } catch (...) {
+    ++m_dataStorageLinkFailures;
+    return;
+  }
+  const std::size_t linkedPayloadBytes = linkedPayload.size();
+
   entity.hasDataStorageRecord = true;
   entity.dataStorageHandle = record->handle;
-  entity.dataStorageHandleKey = record->handleKey;
-  entity.dataStorageData = record->payload;
+  entity.dataStorageHandleKey = std::move(linkedHandleKey);
+  entity.dataStorageData = std::move(linkedPayload);
   entity.dataStorageSegmentIndex = record->segmentIndex;
   entity.dataStorageSchemaIndex = record->schemaIndex;
   entity.hasDataStoragePayloadMarker = record->hasPayloadMarker;
   entity.dataStoragePayloadMarkerOffset = record->payloadMarkerOffset;
   entity.dataStoragePayloadMarkerLength = record->payloadMarkerLength;
-  entity.dataStoragePayloadMarkerSection = record->payloadMarkerSection;
+  entity.dataStoragePayloadMarkerSection =
+      std::move(linkedPayloadMarkerSection);
+  m_dataStorageLinkedPayloadBytes += linkedPayloadBytes;
 
   // In R2013+ the common has_ds_data bit advertises an out-of-line AcDs
   // carrier. The entity-local ACIS fields do not describe that carrier's
@@ -8553,9 +9556,15 @@ void dwgReader::linkDataStorage(DRW_Entity &entity) {
   // handle-linked record has been selected and its SAB signature is present.
   static constexpr std::uint8_t acisSabSignature[] = {
       'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e'};
-  const bool isModelerEntity = entity.eType == DRW::REGION ||
-      entity.eType == DRW::E3DSOLID || entity.eType == DRW::BODY;
-  if (isModelerEntity &&
+  // ODA v5.4.1 §24.2.2.3 explicitly assigns DataStorage SAB records to
+  // REGION and 3DSOLID. BODY remains a separately parsed ACIS entity under
+  // §20.4.41, but the available specification does not establish this
+  // external-carrier mapping for it. Preserve an exact handle-linked BODY
+  // record as opaque data; do not infer its effective modeler version from
+  // the SAB signature alone.
+  const bool hasQualifiedAcdsModelerType = entity.eType == DRW::REGION ||
+      entity.eType == DRW::E3DSOLID;
+  if (hasQualifiedAcdsModelerType &&
       record->payload.size() >= sizeof(acisSabSignature) &&
       std::equal(std::begin(acisSabSignature), std::end(acisSabSignature),
                  record->payload.begin())) {
@@ -8565,7 +9574,6 @@ void dwgReader::linkDataStorage(DRW_Entity &entity) {
     modeler.m_hasModelerData = true;
     modeler.m_modelerVersion = 2;
   }
-  m_dataStorageLinkedRecords.emplace(sectionIndex, recordIndex);
 }
 
 void dwgReader::finalizeDataStorageLinks() {
@@ -8890,15 +9898,9 @@ bool dwgReader::preflightMappedPolylineOwnership(
     const std::vector<const DRW_Block_Record *> &records, dwgBuffer *dbuf) {
   if (version < DRW::AC1018)
     return true;
-  if (dbuf == nullptr)
+  if (dbuf == nullptr ||
+      m_polylineStagingBytes > dwgSafety::MaxPolylineStagingBytes)
     return false;
-
-  struct PolylineClaims {
-    const DRW_Block_Record *block{nullptr};
-    std::uint32_t parent{DRW::NoHandle};
-    std::int16_t type{-1};
-    std::vector<std::uint32_t> children;
-  };
 
   const auto isPolylineType = [](std::int16_t type) {
     return type == dwgType::POLYLINE_2D || type == dwgType::POLYLINE_3D ||
@@ -8914,8 +9916,7 @@ bool dwgReader::preflightMappedPolylineOwnership(
   };
 
   try {
-    std::vector<PolylineClaims> claims;
-    std::unordered_set<std::uint32_t> invalidParents;
+    dwgReaderDetail::PolylineOwnershipPreflightIndex ownership;
 
     for (const DRW_Block_Record *block : records) {
       if (block == nullptr)
@@ -8944,71 +9945,194 @@ bool dwgReader::preflightMappedPolylineOwnership(
           continue;
         }
 
-        PolylineClaims parentClaims;
-        parentClaims.block = block;
-        parentClaims.parent = parentHandle;
-        parentClaims.type = classification.resolvedType;
-        parentClaims.children.reserve(polyline.hadlesList.size() + 1u);
-        std::unordered_set<std::uint32_t> seenChildren;
-        seenChildren.reserve(polyline.hadlesList.size() + 1u);
-        for (const std::uint32_t child : polyline.hadlesList) {
-          if (child == DRW::NoHandle || !seenChildren.insert(child).second) {
-            invalidParents.insert(parentHandle);
+        if (!dwgReaderDetail::fitsByteBudget(
+                m_polylineStagingBytes, ownership.chargedBytes(),
+                dwgSafety::MaxPolylineStagingBytes)) {
+          return false;
+        }
+        const std::size_t retainedBeforeLocalIndex =
+            m_polylineStagingBytes + ownership.chargedBytes();
+        if (!dwgReaderDetail::fitsByteBudget(
+                retainedBeforeLocalIndex, body.capacity(),
+                dwgSafety::MaxPolylineStagingBytes)) {
+          return false;
+        }
+        const std::size_t retainedWithFrame =
+            retainedBeforeLocalIndex + body.capacity();
+        constexpr std::size_t parsedHandleNodeChargeBytes =
+            sizeof(std::uint32_t) + 3u * sizeof(void *);
+        constexpr std::size_t minimumLocalBytesPerHandle =
+            sizeof(std::uint32_t) + parsedHandleNodeChargeBytes;
+        if (polyline.hadlesList.size() >
+            (dwgSafety::MaxPolylineStagingBytes -
+             retainedWithFrame) /
+                minimumLocalBytesPerHandle) {
+          return false;
+        }
+        std::vector<std::uint32_t> sortedChildren;
+        sortedChildren.reserve(polyline.hadlesList.size());
+        for (const std::uint32_t child : polyline.hadlesList)
+          sortedChildren.push_back(child);
+        if (sortedChildren.capacity() >
+            dwgSafety::MaxPolylineStagingBytes / sizeof(std::uint32_t)) {
+          return false;
+        }
+        std::size_t localScratchBytes = body.capacity();
+        const std::size_t sortedVectorBytes =
+            sortedChildren.capacity() * sizeof(std::uint32_t);
+        if (!dwgReaderDetail::fitsByteBudget(
+                localScratchBytes, sortedVectorBytes,
+                dwgSafety::MaxPolylineStagingBytes)) {
+          return false;
+        }
+        localScratchBytes += sortedVectorBytes;
+        if (polyline.hadlesList.size() >
+            (dwgSafety::MaxPolylineStagingBytes - localScratchBytes) /
+                parsedHandleNodeChargeBytes) {
+          return false;
+        }
+        const std::size_t parsedHandleNodeBytes =
+            polyline.hadlesList.size() * parsedHandleNodeChargeBytes;
+        if (!dwgReaderDetail::fitsByteBudget(
+                localScratchBytes, parsedHandleNodeBytes,
+                dwgSafety::MaxPolylineStagingBytes -
+                    retainedBeforeLocalIndex)) {
+          return false;
+        }
+        localScratchBytes += parsedHandleNodeBytes;
+        if (!dwgReaderDetail::fitsByteBudget(
+                retainedBeforeLocalIndex, localScratchBytes,
+                dwgSafety::MaxPolylineStagingBytes)) {
+          return false;
+        }
+        const std::size_t ownershipRetainedBytes =
+            m_polylineStagingBytes + localScratchBytes;
+        std::sort(sortedChildren.begin(), sortedChildren.end());
+        const bool duplicateChild =
+            std::adjacent_find(sortedChildren.begin(),
+                               sortedChildren.end()) !=
+            sortedChildren.end();
+        if (duplicateChild &&
+            !ownership.markInvalid(
+                parentHandle, ownershipRetainedBytes,
+                dwgSafety::MaxPolylineStagingBytes)) {
+          return false;
+        }
+
+        for (const std::uint32_t child : sortedChildren) {
+          if (child == DRW::NoHandle) {
+            if (!ownership.markInvalid(
+                    parentHandle, ownershipRetainedBytes,
+                    dwgSafety::MaxPolylineStagingBytes)) {
+              return false;
+            }
             continue;
           }
-          parentClaims.children.push_back(child);
+          if (!ownership.registerClaim(
+                  parentHandle, child, ownershipRetainedBytes,
+                  dwgSafety::MaxPolylineStagingBytes)) {
+            return false;
+          }
         }
         const std::uint32_t sequenceEnd = polyline.seqEndH.ref;
-        if (sequenceEnd == DRW::NoHandle ||
-            !seenChildren.insert(sequenceEnd).second) {
-          invalidParents.insert(parentHandle);
+        if (sequenceEnd == DRW::NoHandle) {
+          if (!ownership.markInvalid(
+                  parentHandle, ownershipRetainedBytes,
+                  dwgSafety::MaxPolylineStagingBytes)) {
+            return false;
+          }
         } else {
-          parentClaims.children.push_back(sequenceEnd);
-        }
-        claims.push_back(std::move(parentClaims));
-      }
-    }
-
-    std::unordered_map<std::uint32_t, std::uint32_t> childOwners;
-    childOwners.reserve(claims.size());
-    for (const PolylineClaims &parentClaims : claims) {
-      for (const std::uint32_t child : parentClaims.children) {
-        const auto [owner, inserted] =
-            childOwners.emplace(child, parentClaims.parent);
-        if (!inserted && owner->second != parentClaims.parent) {
-          invalidParents.insert(owner->second);
-          invalidParents.insert(parentClaims.parent);
+          const bool sequenceEndAlreadyDeclared = std::binary_search(
+              sortedChildren.begin(), sortedChildren.end(), sequenceEnd);
+          if (!ownership.registerClaim(
+                  parentHandle, sequenceEnd, ownershipRetainedBytes,
+                  dwgSafety::MaxPolylineStagingBytes) ||
+              (sequenceEndAlreadyDeclared &&
+               !ownership.markInvalid(
+                   parentHandle, ownershipRetainedBytes,
+                   dwgSafety::MaxPolylineStagingBytes))) {
+            return false;
+          }
         }
       }
     }
 
-    if (invalidParents.empty())
+    if (!ownership.hasInvalidOwners())
       return true;
 
-    for (const PolylineClaims &parentClaims : claims) {
-      if (invalidParents.find(parentClaims.parent) == invalidParents.end()) {
+    // Re-read only the invalid parents to discard their declared children.
+    // Keeping just the first-owner map and invalid-owner set above avoids
+    // retaining a second copy of every parent's full child vector.
+    for (const DRW_Block_Record *block : records) {
+      if (block == nullptr)
         continue;
+      for (const std::uint32_t parentHandle : block->entMap) {
+        if (!ownership.isInvalid(parentHandle))
+          continue;
+
+        const auto objectIt = ObjectMap.find(parentHandle);
+        if (objectIt == ObjectMap.end())
+          return false;
+        DwgFrameClassification classification;
+        if (!classifyDwgSourceFrame(dbuf, objectIt->second, classification) ||
+            classification.route != DwgFrameClassification::Route::Entity ||
+            !isPolylineType(classification.resolvedType)) {
+          return false;
+        }
+        dwgBuffer frameProbe = dbuf->forkIndependent();
+        DwgObjectFrame frame;
+        if (!frame.readAt(frameProbe, version, objectIt->second.loc))
+          return false;
+        std::vector<std::uint8_t> &body = frame.body();
+        dwgBuffer bodyBuffer(body.data(), body.size(), &decoder);
+        DRW_Polyline polyline;
+        if (!polyline.parseDwg(version, &bodyBuffer, frame.bodyBitSize()) ||
+            !bodyBuffer.isGood() || polyline.handle != parentHandle) {
+          return false;
+        }
+        const std::size_t retainedBeforeFrame =
+            m_polylineStagingBytes + ownership.chargedBytes();
+        if (!dwgReaderDetail::fitsByteBudget(
+                retainedBeforeFrame, body.capacity(),
+                dwgSafety::MaxPolylineStagingBytes)) {
+          return false;
+        }
+        constexpr std::size_t parsedHandleNodeChargeBytes =
+            sizeof(std::uint32_t) + 3u * sizeof(void *);
+        if (polyline.hadlesList.size() >
+            (dwgSafety::MaxPolylineStagingBytes - retainedBeforeFrame -
+             body.capacity()) /
+                parsedHandleNodeChargeBytes) {
+          return false;
+        }
+        const std::size_t retainedWithFrame =
+            retainedBeforeFrame + body.capacity() +
+            polyline.hadlesList.size() * parsedHandleNodeChargeBytes;
+        if (retainedWithFrame > dwgSafety::MaxPolylineStagingBytes)
+          return false;
+
+        objHandle parent;
+        parent.handle = parentHandle;
+        recordEntityFailure(parent, classification.resolvedType,
+                            DwgEntityFailurePhase::Aggregate, block->handle);
+        try {
+          m_invalidPolylineOwners.insert(parentHandle);
+        } catch (...) {
+          // Quarantining the source frames below is sufficient to stop
+          // a later recovery sweep from publishing this group.
+        }
+        (void)discardSource(parentHandle);
+        for (const std::uint32_t child : polyline.hadlesList)
+          (void)discardSource(child);
+        if (polyline.seqEndH.ref != DRW::NoHandle)
+          (void)discardSource(polyline.seqEndH.ref);
       }
-      objHandle parent;
-      parent.handle = parentClaims.parent;
-      recordEntityFailure(parent, parentClaims.type,
-                          DwgEntityFailurePhase::Aggregate,
-                          parentClaims.block->handle);
-      try {
-        m_invalidPolylineOwners.insert(parentClaims.parent);
-      } catch (...) {
-        // Quarantining the source frames below is sufficient to stop
-        // a later recovery sweep from publishing this group.
-      }
-      (void)discardSource(parentClaims.parent);
-      for (const std::uint32_t child : parentClaims.children)
-        (void)discardSource(child);
     }
-    if (invalidParents.size() >
+    if (ownership.invalidOwnerCount() >
         std::numeric_limits<std::size_t>::max() - m_entityParseFailures) {
       m_entityParseFailures = std::numeric_limits<std::size_t>::max();
     } else {
-      m_entityParseFailures += invalidParents.size();
+      m_entityParseFailures += ownership.invalidOwnerCount();
     }
     return false;
   } catch (...) {
@@ -9056,64 +10180,170 @@ bool dwgReader::readDwgEntities(DRW_Interface &intfa, dwgBuffer *dbuf,
   bool structuralFailure = false;
   const bool previousSweepPolicy = rejectOwnedEntityInSweep;
   rejectOwnedEntityInSweep = version > DRW::AC1015;
-  while (!ObjectMap.empty()) {
-    auto itB = ObjectMap.begin();
-    // The source map is an unordered container, but legacy compound entities
-    // (notably AC1015 POLYLINE/VERTEX/SEQEND chains) have deferred state that
-    // must be visited in a stable source order.  Relying on begin() made the
-    // result compiler/container dependent: libstdc++ happened to resolve the
-    // chain while MSVC left pending frames and failed the ENTITIES phase.
-    for (auto candidate = std::next(ObjectMap.begin());
-         candidate != ObjectMap.end(); ++candidate) {
-      const objHandle &current = itB->second;
-      const objHandle &observed = candidate->second;
-      const bool earlier = observed.sourceOrdinal < current.sourceOrdinal
-          || (observed.sourceOrdinal == current.sourceOrdinal
-              && (observed.loc < current.loc
-                  || (observed.loc == current.loc
-                      && observed.handle < current.handle)));
-      if (earlier)
-        itB = candidate;
-    }
-    if (m_quarantinedEntityHandles.find(itB->first) !=
-        m_quarantinedEntityHandles.end()) {
-      if (!discardDwgSourceFrame(ObjectMap, itB)) {
-        structuralFailure = true;
-        break;
-      }
-      continue;
-    }
-    bool frameFailure = false;
-    bool read = false;
-    DwgFrameClassification classification;
-    if (requiresLegacyCompoundHandling(dbuf, itB->second, &classification)) {
-      DwgSourceFrameLease lease;
-      if (!takeDwgSourceFrame(ObjectMap, itB, lease)) {
-        structuralFailure = true;
-        break;
-      }
-      read =
-          readDwgEntity(dbuf, lease.object, intfa, &frameFailure, offsetSpace);
-      if (!read) {
-        (void)markDwgFrameOutcome(lease.source,
-                                  DRW_DwgFrameDisposition::Failed);
-      }
-    } else {
-      DwgFrameMapLease lease;
-      if (!detachDwgSourceFrame(ObjectMap, itB, lease)) {
-        structuralFailure = true;
-        break;
-      }
-      lease.classification.emplace(std::move(classification));
-      read =
-          readMappedDwgEntity(dbuf, lease, intfa, &frameFailure, offsetSpace);
-    }
-    if (!read) {
-      ++failures;
-    }
-    structuralFailure = structuralFailure || frameFailure ||
-                        parsedEntityHandleMismatch || parsedEntityOwnerMismatch;
+  using ResidualKey = dwgReaderDetail::DwgResidualEntityKey;
+  constexpr std::size_t maxResidualScratchBytes =
+      dwgSafety::MaxDwgReadObjectCount * sizeof(ResidualKey);
+  std::vector<ResidualKey> residualOrder;
+  const std::size_t residualEntryBudget =
+      std::min(m_readObjectBudget, dwgSafety::MaxDwgReadObjectCount);
+  const bool haveResidualOrder =
+      dwgReaderDetail::buildDwgResidualEntityOrder(
+          ObjectMap, residualOrder, residualEntryBudget,
+          maxResidualScratchBytes);
+  std::size_t maxVisits = 0u;
+  if (!haveResidualOrder ||
+      residualOrder.size() >
+          (std::numeric_limits<std::size_t>::max)() / 2u) {
+    structuralFailure = true;
+  } else {
+    maxVisits = residualOrder.size() * 2u;
   }
+
+  std::size_t visits = 0u;
+  if (!structuralFailure) {
+    for (const ResidualKey &key : residualOrder) {
+      for (unsigned attempt = 0u; attempt < 2u; ++attempt) {
+        if (visits >= maxVisits) {
+          structuralFailure = true;
+          break;
+        }
+        ++visits;
+
+        auto objectIt = ObjectMap.find(key.handle);
+        if (objectIt == ObjectMap.end())
+          break; // A BLOCK/compound walk already consumed this source frame.
+
+        const objHandle current = objectIt->second;
+        const bool sameSource = objectIt->first == key.handle &&
+            current.handle == key.handle &&
+            current.sourceOrdinal == key.sourceOrdinal &&
+            current.loc == key.location;
+        if (!sameSource) {
+          structuralFailure = true;
+          break;
+        }
+
+        if (m_quarantinedEntityHandles.find(key.handle) !=
+            m_quarantinedEntityHandles.end()) {
+          if (!discardDwgSourceFrame(ObjectMap, objectIt))
+            structuralFailure = true;
+          break;
+        }
+
+        bool frameFailure = false;
+        bool read = false;
+        DwgFrameClassification classification;
+        if (requiresLegacyCompoundHandling(dbuf, current, &classification)) {
+          DwgSourceFrameLease lease;
+          if (!takeDwgSourceFrame(ObjectMap, objectIt, lease)) {
+            structuralFailure = true;
+            break;
+          }
+          read = readDwgEntity(dbuf, lease.object, intfa, &frameFailure,
+                               offsetSpace);
+          if (!read) {
+            // A soft failure may restore this exact source frame while
+            // resolving a compound entity. Keep its ledger row Pending only
+            // for the one retry the residual sweep can actually perform;
+            // otherwise the retry guard below would see Failed and reject a
+            // restoration that the pre-sorted sweep used to revisit.
+            bool preservePendingRetry = false;
+            if (attempt == 0u && !structuralFailure && !frameFailure &&
+                !parsedEntityHandleMismatch &&
+                !parsedEntityOwnerMismatch &&
+                m_dwgFrameCoverageStatus !=
+                    DRW_DwgFrameCoverageStatus::NotAvailable) {
+              const auto restored = ObjectMap.find(lease.source.handle);
+              const auto sourceIt =
+                  m_dwgSourceFrameIndexes.find(lease.source.handle);
+              if (restored != ObjectMap.end() &&
+                  sourceIt != m_dwgSourceFrameIndexes.end() &&
+                  sourceIt->second < m_dwgSourceFrameLedger.size()) {
+                const objHandle &restoredObject = restored->second;
+                const DRW_DwgFrameCoverageEntry &entry =
+                    m_dwgSourceFrameLedger[sourceIt->second];
+                const DwgSourceFrameId expected{
+                    entry.m_handle, entry.m_sourceOffset,
+                    entry.m_sourceMapOrdinal, entry.m_sourceOffsetSpace};
+                const bool sameSource = restored->first == lease.source.handle &&
+                    restoredObject.handle == lease.source.handle &&
+                    sourceFrameId(restoredObject) == lease.source &&
+                    expected == lease.source;
+                preservePendingRetry =
+                    dwgReaderDetail::canRetryResidualEntity(
+                        true, sameSource, false, false, true,
+                        entry.m_disposition, entry.m_publicationCount);
+              }
+            }
+            if (!preservePendingRetry) {
+              (void)markDwgFrameOutcome(lease.source,
+                                        DRW_DwgFrameDisposition::Failed);
+            }
+          }
+        } else {
+          DwgFrameMapLease lease;
+          if (!detachDwgSourceFrame(ObjectMap, objectIt, lease)) {
+            structuralFailure = true;
+            break;
+          }
+          lease.classification.emplace(std::move(classification));
+          read = readMappedDwgEntity(dbuf, lease, intfa, &frameFailure,
+                                     offsetSpace);
+        }
+        if (!read)
+          ++failures;
+
+        const bool entityIdentityFailure = parsedEntityHandleMismatch ||
+                                           parsedEntityOwnerMismatch;
+        structuralFailure = structuralFailure || frameFailure ||
+                            entityIdentityFailure;
+
+        // The original minimum-selection loop naturally retried a restored
+        // current frame. Preserve that one soft-failure retry, but only when
+        // the map identity and frame ledger still prove it unpublished.
+        const auto restored = ObjectMap.find(key.handle);
+        if (restored == ObjectMap.end())
+          break;
+        const objHandle &restoredObject = restored->second;
+        const bool restoredSameSource = restored->first == key.handle &&
+            restoredObject.handle == key.handle &&
+            restoredObject.sourceOrdinal == key.sourceOrdinal &&
+            restoredObject.loc == key.location;
+        bool retryable = false;
+        if (restoredSameSource && !structuralFailure) {
+          const auto sourceIt = m_dwgSourceFrameIndexes.find(key.handle);
+          const bool hasCoverage =
+              m_dwgFrameCoverageStatus !=
+                  DRW_DwgFrameCoverageStatus::NotAvailable &&
+              sourceIt != m_dwgSourceFrameIndexes.end() &&
+              sourceIt->second < m_dwgSourceFrameLedger.size();
+          if (hasCoverage) {
+            const DRW_DwgFrameCoverageEntry &entry =
+                m_dwgSourceFrameLedger[sourceIt->second];
+            const DwgSourceFrameId expected{
+                entry.m_handle, entry.m_sourceOffset,
+                entry.m_sourceMapOrdinal, entry.m_sourceOffsetSpace};
+            retryable = sourceFrameId(restoredObject) == expected &&
+                dwgReaderDetail::canRetryResidualEntity(
+                    attempt == 0u, restoredSameSource, read,
+                    frameFailure || entityIdentityFailure, hasCoverage,
+                    entry.m_disposition, entry.m_publicationCount);
+          }
+        }
+        if (!retryable) {
+          structuralFailure = true;
+          break;
+        }
+      }
+      if (structuralFailure)
+        break;
+    }
+  }
+  // No new frame identity may appear during the residual sweep. A leftover
+  // source row is therefore a bounded-progress violation, not a reason to
+  // restart an unbounded minimum search.
+  if (!ObjectMap.empty() || visits > maxVisits)
+    structuralFailure = true;
   rejectOwnedEntityInSweep = previousSweepPolicy;
   if (failures > 0) {
     DRW_DBG("readDwgEntities: ");
@@ -9208,7 +10438,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
                              bool hasDataStorage = false,
                              std::uint32_t parentHandle = DRW::NoHandle,
                              const DRW_Entity *commonEntity = nullptr,
-                             bool typedPeer = true) {
+                             bool typedPeer = true,
+                             const std::vector<std::uint8_t> *rawFrame =
+                                 nullptr) {
       DRW_UnsupportedObject raw;
       raw.m_version = version;
       raw.m_objectType = rawType;
@@ -9251,7 +10483,7 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
         raw.m_recordName = cls->recName;
         raw.m_className = cls->className;
       }
-      raw.m_rawBytes = tmpByteStr;
+      raw.m_rawBytes = rawFrame != nullptr ? *rawFrame : tmpByteStr;
       if (m_activeEntityFrameCapture != nullptr &&
           m_activeEntityFrameCapture->publication.m_handle == obj.handle) {
         DRW_DwgFramePublication &publication =
@@ -9631,6 +10863,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
             break;
           }
           a->style = findTableName(DRW::STYLE, a->styleH.ref);
+          if (!a->m_r2018OuterAnnotativeData.empty())
+            a->m_r2018OuterAnnotativeAppIdName =
+                findAppIdName(a->m_r2018OuterAnnotativeAppHandle);
           DRW_DwgFramePublication attribPublication;
           if (!materializeCurrentFramePublication(attribPublication)) {
             ret = false;
@@ -9657,6 +10892,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
         entryParse(*a, buff, bs, localRet);
         if (localRet) {
           a->style = findTableName(DRW::STYLE, a->styleH.ref);
+          if (!a->m_r2018OuterAnnotativeData.empty())
+            a->m_r2018OuterAnnotativeAppIdName =
+                findAppIdName(a->m_r2018OuterAnnotativeAppHandle);
           // ATTDEF belongs to its BLOCK definition, not to an INSERT's
           // trailing ATTRIB sequence. Routing it through the latter
           // turns valid block text into an orphan and drops it at EOF.
@@ -9991,12 +11229,12 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
         if (entryParse(e, buff, bs, ret)) {
           linkDataStorage(e);
           e.m_objectSize = static_cast<std::uint32_t>(size);
-          e.m_rawBytes = tmpByteStr;
-          output.appendValue(e, &DRW_Interface::addModelerGeometry);
-          output.appendValue(makeRawEntity(oType, nullptr,
-                                           e.hasDataStorageBinaryData(),
-                                           DRW::NoHandle, &e),
-                             &DRW_Interface::addUnsupportedObject);
+          e.m_rawBytes = std::move(tmpByteStr);
+          DRW_UnsupportedObject raw = makeRawEntity(
+              oType, nullptr, e.hasDataStorageBinaryData(), DRW::NoHandle, &e,
+              true, &e.m_rawBytes);
+          output.appendModelerGeometry(std::move(e));
+          output.appendUnsupportedObject(std::move(raw));
         }
         break;
       }
@@ -10005,12 +11243,12 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
         if (entryParse(e, buff, bs, ret)) {
           linkDataStorage(e);
           e.m_objectSize = static_cast<std::uint32_t>(size);
-          e.m_rawBytes = tmpByteStr;
-          output.appendValue(e, &DRW_Interface::addModelerGeometry);
-          output.appendValue(makeRawEntity(oType, nullptr,
-                                           e.hasDataStorageBinaryData(),
-                                           DRW::NoHandle, &e),
-                             &DRW_Interface::addUnsupportedObject);
+          e.m_rawBytes = std::move(tmpByteStr);
+          DRW_UnsupportedObject raw = makeRawEntity(
+              oType, nullptr, e.hasDataStorageBinaryData(), DRW::NoHandle, &e,
+              true, &e.m_rawBytes);
+          output.appendModelerGeometry(std::move(e));
+          output.appendUnsupportedObject(std::move(raw));
         }
         break;
       }
@@ -10019,12 +11257,12 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
         if (entryParse(e, buff, bs, ret)) {
           linkDataStorage(e);
           e.m_objectSize = static_cast<std::uint32_t>(size);
-          e.m_rawBytes = tmpByteStr;
-          output.appendValue(e, &DRW_Interface::addModelerGeometry);
-          output.appendValue(makeRawEntity(oType, nullptr,
-                                           e.hasDataStorageBinaryData(),
-                                           DRW::NoHandle, &e),
-                             &DRW_Interface::addUnsupportedObject);
+          e.m_rawBytes = std::move(tmpByteStr);
+          DRW_UnsupportedObject raw = makeRawEntity(
+              oType, nullptr, e.hasDataStorageBinaryData(), DRW::NoHandle, &e,
+              true, &e.m_rawBytes);
+          output.appendModelerGeometry(std::move(e));
+          output.appendUnsupportedObject(std::move(raw));
         }
         break;
       }
@@ -10177,7 +11415,7 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
         if (oType >= 500) {
           // Custom-class object (typically AutoCAD Mechanical AcDbAm*,
           // AcDbAssoc*, or vendor proxy entity).  Rendering proxy
-          // graphics requires an ODA spec §20.4.95 decoder, which is
+          // graphics requires an ODA v5.4.1 chapter 29 decoder, which is
           // out of scope here; emit a distinct token so diagnostic
           // tools can distinguish "missing dispatch case" from
           // "intentionally-skipped custom class".
@@ -10414,6 +11652,13 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
           if (cit != classesmap.end() && cit->second &&
               (cit->second->recName == "ACAD_TABLE" ||
                cit->second->className == "AcDbTable")) {
+            DRW_DBG("ACAD_TABLE object type trace: encoded=");
+            DRW_DBG(encodedType);
+            DRW_DBG(" resolved=");
+            DRW_DBG(oType);
+            DRW_DBG(" class=");
+            DRW_DBG(cit->second->className);
+            DRW_DBG("\n");
             DRW_Table e;
             if (entryParse(e, buff, bs, ret)) {
               e.name = findTableName(DRW::BLOCK_RECORD, e.blockRecH.ref);
@@ -10778,6 +12023,25 @@ bool dwgReader::readDwgObjects(DRW_Interface &intfa, dwgBuffer *dbuf,
     }
     if (!read) {
       ++failures;
+      if (DRW_DBGGL == DRW_dbg::Level::Debug) {
+        DRW_DBG("readDwgObjects: failed frame handle/loc/type/ordinal=");
+        DRW_DBG(lease.object.handle); DRW_DBG("/");
+        DRW_DBG(lease.object.loc); DRW_DBG("/");
+        DRW_DBG(lease.object.type); DRW_DBG("/");
+        DRW_DBG(lease.object.sourceOrdinal);
+        if (lease.classification.has_value()) {
+          const DwgFrameClassification& failed = *lease.classification;
+          DRW_DBG(" encoded/resolved="); DRW_DBG(failed.encodedType);
+          DRW_DBG("/"); DRW_DBG(failed.resolvedType);
+          if (failed.resolvedClass != nullptr) {
+            DRW_DBG(" record=");
+            DRW_DBG(failed.resolvedClass->recName.c_str());
+            DRW_DBG(" class=");
+            DRW_DBG(failed.resolvedClass->className.c_str());
+          }
+        }
+        DRW_DBG("\n");
+      }
       if (lease.hasCoverage &&
           !markDwgFrameOutcome(lease.source, DRW_DwgFrameDisposition::Failed)) {
         structuralFailure = true;
@@ -10901,7 +12165,11 @@ bool dwgReader::publishDeferredRawObjects(
       publication.m_xDictHandle = raw.m_xDictHandle;
       publication.m_numReactors = raw.m_numReactors;
       publication.m_xDictFlag = raw.m_xDictFlag;
-      publication.m_carrier = DRW_DwgFramePublication::Carrier::Raw;
+      publication.m_carrier =
+          raw.m_recordName
+                  == DRW_UnsupportedObject::vportEntityHeaderControlRecordName()
+              ? DRW_DwgFramePublication::Carrier::Control
+              : DRW_DwgFramePublication::Carrier::Raw;
       if (!publishDwgFramePublication(intfa, std::move(publication)))
         return false;
     }
@@ -11280,7 +12548,9 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
         ret = parseTableEntry(e);
         if (ret) {
           intfa.linkImage(&e);
-          intfa.addUnsupportedObject(makeRawObject(oType));
+          // IMAGEDEF may use a file-local CLASSES ordinal. Preserve that
+          // encoded identity and its class envelope, not only resolved102.
+          intfa.addUnsupportedObject(makeRawObject(encodedType, resolvedClass));
         }
         break;
       }
@@ -11961,17 +13231,33 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               ret = parseTableEntry(e);
               if (ret) {
                 intfa.addAssociativeObject(e);
-                // A validated object frame is still losslessly
-                // readable when a class-specific suffix is outside
-                // this typed decoder's coverage.
-                intfa.addUnsupportedObject(makeRawObject(oType, cit->second));
-              } else if (version <= DRW::AC1018 && buff.isGood()) {
-                // Legacy associativity subclasses may have opaque
-                // suffixes; preserve only a structurally readable
-                // frame, never a failed modern parse.
+                // A validated outer frame can retain an explicitly partial
+                // prefix. Publish that case as a Raw carrier, not as proof
+                // of typed payload completeness; the optional prefix callback
+                // above still exposes its Partial status to diagnostic users.
+                const bool partialPersistentPrefix = rn == "ACDBPERSSUBENTMANAGER"
+                    && std::any_of(e.m_prefixStatuses.begin(), e.m_prefixStatuses.end(),
+                        [](const DRW_AssociativePrefixStatus& status) {
+                          return status.m_status
+                              == DRW_AssociativePrefixStatus::ParseStatus::Partial;
+                        });
+                intfa.addUnsupportedObject(makeRawObject(
+                    oType, cit->second, !partialPersistentPrefix));
+              } else {
+                // The outer OBJECTS frame and common handle tail were
+                // validated before dispatch. Preserve the bounded source
+                // bytes for consumers that can retain opaque records, but
+                // keep the typed parse failure visible: raw capture is not
+                // semantic success and must not make strict conversion pass.
                 intfa.addUnsupportedObject(
                     makeRawObject(oType, cit->second, false));
-                ret = true;
+                if (version <= DRW::AC1018 && buff.isGood()) {
+                  // Legacy associativity subclasses may have opaque
+                  // suffixes and no addressable modern object-data boundary.
+                  // Keep the historical soft fallback only when the bounded
+                  // parser itself did not invalidate its input.
+                  ret = true;
+                }
               }
               break;
             }
@@ -11988,6 +13274,13 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               if (ret) {
                 intfa.addAcShHistoryObject(e);
                 intfa.addUnsupportedObject(makeRawObject(oType, cit->second));
+              } else {
+                // A failed typed history-body decode is still useful as an
+                // opaque, version-bound source frame. Keep ret=false so the
+                // read remains observably partial and strict conversion does
+                // not mistake raw retention for semantic decoding.
+                intfa.addUnsupportedObject(
+                    makeRawObject(oType, cit->second, false));
               }
               break;
             }
@@ -12007,6 +13300,12 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               if (ret) {
                 intfa.addDynamicBlockObject(e);
                 intfa.addUnsupportedObject(makeRawObject(oType, cit->second));
+              } else {
+                // Preserve the bounded source frame for opaque consumers even
+                // when a class-specific dynamic-block decoder cannot complete.
+                // The failed typed parse remains visible to strict readers.
+                intfa.addUnsupportedObject(
+                    makeRawObject(oType, cit->second, false));
               }
               break;
             }
@@ -12228,7 +13527,8 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               }
               break;
             }
-            // VISUALSTYLE — AcDbVisualStyle (ODA spec §20.4.95).
+            // VISUALSTYLE — AcDbVisualStyle; ODA v5.4.1 has no complete
+            // class-specific body layout for this object.
             // Typed fields are decoded for metadata consumers; the
             // raw shelf remains the lossless replay representation.
             // LibreCAD has no 3D consumer. recName "ACDB_VISUALSTYLE_CLASS"

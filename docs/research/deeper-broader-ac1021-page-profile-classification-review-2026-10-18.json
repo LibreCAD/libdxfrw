@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader AC1021 page-profile classification and reader-matrix review",
+  "mode": "ODA primary-specification review, current LibreDWG peer-source review, and read-only local source/corpus audit",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile AC1021 page compression, Reed-Solomon presence, and interleaving against ODA v5.4.1",
+    "Review LibreDWG PR #1363 and current page classification logic",
+    "Trace local AC1021 page decoding, raw-section capture, and existing reader-matrix ownership",
+    "Refine the implementation-ready plan without changing production code, tests, fixtures, or support claims"
+  ],
+  "method": {
+    "kind": "Read official ODA specification sections 5.1, 5.4, and 5.13; inspect merged peer PR and current source; audit local decoder, tests, and existing sample names",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localDrawingsConvertedOrParsed": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dwgreader21.cpp",
+      "src/intern/dwgreader.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "CMakeLists.txt",
+      "tests/samples/AC1021/"
+    ],
+    "limitations": "The local corpus/sample review identified AC1021 files by path/header metadata only; no page maps were extracted and no DWG was converted. The exact local sample profile corresponding to LibreDWG's four reported verbatim pages is unknown. The official ODA PDF was reviewed from ODA's online publication; the user-provided canonical local pathname was absent (a renamed copy exists in ~/doc/dwg)."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Official published v5.4.1 PDF; §§5.1, 5.4, 5.13 reviewed 2026-10-18",
+      "observed": "Section 5.1 says page transforms may include RS encoding, compression, or encryption. Section 5.4 says compression is omitted when it is not shorter and separately describes RS encoding with section-selected interleaving. Section 5.13 defines data-page RS(255,251) and interleaving modes. The section encoding field does not itself identify RS presence on each page. The inspected spec does not provide one universal detector covering every observed page profile."
+    },
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/pull/1363",
+        "https://github.com/LibreDWG/libredwg/issues/1361",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "revision": "PR #1363 merged 2026-08-07; current master source reviewed 2026-10-18",
+      "observed": "The merged PR traces AC1021 entity/reference corruption to treating uncompressed pages as unencoded even though some retained RS coding. It also reports four apparently verbatim metadata pages in one corpus, differentiated by the physical page extent, and current source contains an RS-size calculation used by the decoder. These are concrete peer observations, not a universal discriminator or proof of a local runtime failure."
+    },
+    {
+      "project": "Local libdxfrw working tree",
+      "urls": [],
+      "revision": "Working-tree source and test ownership reviewed 2026-10-18; baseline HEAD de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "dwgReader21::parseDataPage handles a legacy AC18 page signature separately and otherwise performs RS decoding before the stored-versus-decompress decision. No explicit non-AC18 AC1021 verbatim-page branch was found. captureRawDwgDataSections reuses this decoder for selected raw sections; the four peer-reported metadata sections are not proven to use that capture route. The test owner is libdxfrw_dwg_reader_matrix_tests with existing CTest libdxfrw_dwg_reader_matrix; the direct page probe found in the audited file covers an R2004 page, not an AC1021 profile."
+    },
+    {
+      "project": "Existing local sample inventory",
+      "urls": [],
+      "revision": "Path/header inventory reviewed 2026-10-18",
+      "observed": "The repository already contains six AC1021 sample DWGs, and ~/doc/dwg includes AC1021 examples including dwgreader21_230.dwg. No sample page profile was inspected and no file was copied or modified."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "candidateSourceLevelGap": "Local non-AC18 AC1021 page decoding has no explicit verbatim/no-RS classification path; the peer reports such pages, but no matching local profile or runtime failure has been established.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "7BE reader-matrix",
+      "PAR-14",
+      "PAR-26"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "When implementation resumes, add source-generated AC1021 page profiles to the existing reader-matrix target, resolve a profile-specific no-RS discriminator from ODA plus traceable producer evidence, and run only the focused selector and its owning CTest before one qualified existing-sample smoke check."
+  }
+}

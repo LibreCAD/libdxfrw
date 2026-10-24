@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-deeper-broader-large-document-peer-scaling-and-admission-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Review current ACadSharp release changes for large-document writer scalability, DXF table-count boundaries, missing-layer recovery, and partial-read evidence; refine existing plan owners without expanding routine validation cost.",
+  "method": {
+    "kind": "Current ACadSharp releases and merged PR discussions, LibreDWG and ezdxf documentation, Autodesk table contract, and local PAR-120/7BQ/source/test-owner cross-check",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": false,
+    "evidenceRule": "Peer measurements, release notes, PR reports and issue status are source-level design and test-selection evidence only. No peer behavior is inferred to be a libdxfrw defect or a format-wide support claim."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp large-document writer complexity",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/pull/1168"
+      ],
+      "observed": "Merged PR #1168 describes two full entity scans per BlockRecord in writeBlockHeader, producing O(blocks × entities) work, and replaces them with one lazily built/reused lookup. The PR reports net9 measurements at source master 219e5fc: 20,000 blocks/inserts fell from 29.47s to 1.56s. This is a contributor-reported measurement, not independently reproduced here.",
+      "doesNotEstablish": [
+        "a corresponding complexity defect in libdxfrw",
+        "the same timing on other runtimes, hardware, or document mixes",
+        "that a broad benchmark or performance gate should run for every implementation slice"
+      ],
+      "planUse": "Before changing a scale-sensitive traversal, inspect its complexity and ownership keys. Where repeated scans are actually present, build a bounded, reusable index once per phase and retain deterministic ordering. Use one small generated scale smoke or benchmark only after a relevant optimization composes; keep it outside the routine per-slice fast loop."
+    },
+    {
+      "topic": "DXF symbol-table group-70 counts beyond signed 16-bit range",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1192",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md (PAR-120 / 7BQ)"
+      ],
+      "observed": "Merged ACadSharp #1192 reports a production drawing with over 40,000 BLOCK_RECORD entries that failed serialization when the group-70 value was checked into Int16. The contributor reports AutoCAD 2027 accepted a table header group-70 value of zero while consuming the following entries; a wrapped negative value also reportedly opened. The PR's prose contains inconsistent record totals (40,843 versus 41,043), so the exact fixture denominator is not suitable as a benchmark. Current local 7BQ intentionally tests exact capacities through 32767 and rejects 32768.",
+      "doesNotEstablish": [
+        "a normative rule that zero is always the correct overflow encoding",
+        "that every CAD reader ignores group 70 or counts entries the same way",
+        "that an unexecuted AutoCAD report proves current libdxfrw output acceptance"
+      ],
+      "planUse": "Keep the local exact-count <=32767 contract and current fail-closed overflow behavior. Add a separately gated PAR-120 follow-up: generated scratch output just above the boundary, a candidate zero/unknown count header while retaining every row, strict local readback with full row and following-table sentinels, then one exact-version AutoCAD/independent-reader check if available. Do not add the reported production drawing or spend this composed test in each slice."
+    },
+    {
+      "topic": "DXF input with a named but undefined layer",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1245",
+        "https://github.com/DomCR/ACadSharp/issues/1244"
+      ],
+      "observed": "Merged ACadSharp #1245 says its DXF builder previously warned and silently placed entities whose group-8 layer name was absent from the LAYER table on layer 0. The change creates one shared layer with default properties and retains the name; its author says this matches AutoCAD's behavior. The PR identifies this as an invalid-file repair policy and notes that only unresolved name-based references are affected.",
+      "doesNotEstablish": [
+        "that the malformed source is valid under the DXF contract",
+        "that synthesizing a default layer is appropriate for libdxfrw or LibreCAD consumers",
+        "that a successful ordinary load preserves exact source graph/table semantics"
+      ],
+      "planUse": "Add a generated hostile compatibility control under existing PAR-20/graph admission owners only if current tests lack it: preserve the literal entity layer name, report unresolved table identity, and ensure export either explicitly synthesizes a documented default layer or fails before publication rather than silently changing the entity to layer 0. Keep any repair mode opt-in and preserve ordinary LibreCAD/LibreCAD_3 behavior until a local reproducer and consumer requirement exist."
+    },
+    {
+      "topic": "Partial section-read status and comparator refresh",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/339",
+        "https://github.com/DomCR/ACadSharp/pull/342",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observed": "ACadSharp issue #339, requesting section-by-section DXF reads for problematic or unsupported-version files, is closed and cross-links #342. The available issue page confirms status but the linked PR details were not available in this review; no claim is made about its exact released API or behavior. ACadSharp's current release page identifies v3.8.0 as latest on the reviewed snapshot.",
+      "doesNotEstablish": [
+        "that partial reads are full-document validation or lossless acceptance",
+        "that #342's precise implementation is present in a selected runtime without checking its release/source",
+        "that ACadSharp v3.8.0 was executed for this review"
+      ],
+      "planUse": "Refresh any future peer manifest to v3.8.0 or a pinned SHA and identify which API was used. Report section extraction separately from whole-document validity, ownership closure, and semantic acceptance; retain the existing partial-versus-full outcome fields."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-120",
+      "7BQ",
+      "PAR-20",
+      "7F",
+      "existing DXF graph/admission owners",
+      "existing optional peer-comparator checkpoint"
+    ],
+    "fastPerSliceChecks": [
+      "touched strict build",
+      "existing focused CTest",
+      "lc3_compat_check if public API or adapter compatibility changes",
+      "git diff --check"
+    ],
+    "oneTimeComposedChecks": [
+      "one generated >32767 table-row stress case with actual-row and following-table sentinels",
+      "one pinned strict-reader/native acceptance for any candidate overflow header policy",
+      "one scale smoke only for a source-confirmed repeated-scan hotspot",
+      "one generated unresolved-layer identity control if current coverage is absent"
+    ],
+    "fixturePolicy": "Do not download or commit the large ACadSharp production drawing. Generate any stress input in memory or in a temporary directory and remove it after the run.",
+    "nonPromotion": "No support claim or external J disposition changes. J256, J260, J268, J284, J293 and J295 remain DEFERRED_EXTERNAL."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

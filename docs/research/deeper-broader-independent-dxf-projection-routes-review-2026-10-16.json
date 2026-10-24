@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-independent-dxf-projection-routes-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden the open-source DXF peer and downstream-consumer screen to identify narrow independent structural or explicit-mesh projection routes without conflating them with ACIS, AcDs, or B-rep support.",
+  "method": {
+    "kind": "Primary project repositories, API documentation, project-authored format/support notes",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localBuildOrTestsRun": false,
+    "statusCaveat": "Repository branches and wiki/docs pages may be mutable or stale. No runtime behavior was verified. Peer admission is for a future optional composed checkpoint only."
+  },
+  "routes": [
+    {
+      "name": "DIME",
+      "sources": [
+        "https://github.com/coin3d/dime",
+        "https://www.coin3d.org/dime/annotated.html",
+        "https://www.coin3d.org/dime/classdimeEntity.html",
+        "https://www.coin3d.org/dime/classdxfConverter.html",
+        "https://github.com/openscad/openscad/wiki/DXF-Library-overview"
+      ],
+      "evidence": "Separate C++ DXF read/write library with typed 3DFACE, POLYLINE, INSERT/block and unknown-entity classes, plus polygon/line/point geometry extraction and a VRML sample converter. Its published documentation reports testing DXF versions 10-14 and customer use with AutoCAD 2000. The source/docs reviewed do not establish modern-version coverage, exact unknown-record roundtrip, polyface details, Binary DXF support, or modeler/AcDs semantics.",
+      "admission": "DISCOVERY_ONLY / OPTIONAL_DXF_STRUCTURAL_AND_EXPLICIT_PROJECTION. Pin exact source commit, build, host, and tested file magic/version; generate controls locally. Treat documented DXB support separately from Binary DXF.",
+      "doesNotProve": [
+        "DWG or AcDs support",
+        "typed 3DSOLID/REGION/BODY or ACIS decoding",
+        "modern AC1027/AC1032 coverage",
+        "lossless unknown modeler-record transport",
+        "closed B-rep validity or native CAD acceptance"
+      ]
+    },
+    {
+      "name": "Blender DXF add-on",
+      "sources": [
+        "https://github.com/blender/blender-addons/tree/main/io_import_dxf",
+        "https://github.com/blender/blender-addons/blob/main/io_import_dxf/dxfimport/do.py",
+        "https://github.com/blender/blender-addons/blob/main/io_import_dxf/__init__.py"
+      ],
+      "evidence": "The reviewed source implements projection of explicit 3DFACE and mesh-family records into Blender BMesh, exposes block and merge modes, and performs geometry normalization such as duplicate-point removal and intersecting-quad splitting. The repository page says the add-on repository was archived on 2025-05-09; metadata identifies add-on version 0.9.8 and Blender 2.80. No ACIS path was found in the inspected importer.",
+      "admission": "Optional advisory explicit-mesh consumer only. Pin Blender and add-on revisions, disable merge/recenter/georeference, state block mode, and compare against a locally authored analytic/topology manifest. If source-handle mapping is unavailable, score only aggregate mesh projection.",
+      "doesNotProve": [
+        "DXF entity identity or owner/block graph closure without traceable handles",
+        "ACIS or AcDs parsing/preservation",
+        "analytic B-rep or solid semantics",
+        "current maintained-addon compatibility",
+        "unmodified vertex/face topology after normalization"
+      ]
+    },
+    {
+      "name": "OpenSCAD DXF route",
+      "sources": [
+        "https://github.com/openscad/openscad/wiki/DXF-Library-overview",
+        "https://github.com/openscad/openscad/wiki/Ideas-for-Development-Tasks"
+      ],
+      "evidence": "Project-authored documentation describes OpenSCAD's DXF import as 2D data; its wiki's older comparative library matrix uses broad 2D/3D labels but explicitly disclaims exhaustive testing.",
+      "admission": "Exclude from 3D DXF/ACIS semantic comparison. Use only for its exact 2D import route if separately useful.",
+      "doesNotProve": [
+        "3D DXF entity support",
+        "3DSOLID/REGION/BODY or ACIS handling",
+        "DWG or AcDs support"
+      ]
+    }
+  ],
+  "planDisposition": {
+    "implementationOrderChanged": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestOrFixture": false,
+    "newDependency": false,
+    "newSupportClaim": false,
+    "implementationReadiness": [
+      "Keep peer use optional and at the existing composed checkpoint, never in per-slice fast validation.",
+      "If unavailable or unpinned, record NOT_RUN and continue local implementation.",
+      "Generate controls locally from scratch in temporary storage; add no external drawing fixture.",
+      "Keep parse/version, entity/owner closure, opaque-carrier preservation, explicit mesh projection, B-rep validity, and native acceptance as separate evidence axes.",
+      "DIME or Blender can at most inform the exact parse/structural/projection behavior exercised; neither is an ACIS/B-rep semantic oracle."
+    ],
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "deferredEvidenceCannotPromoteSupportClaims": true
+  }
+}

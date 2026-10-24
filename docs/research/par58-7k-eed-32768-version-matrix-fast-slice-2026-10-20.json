@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-58/7K EED 32,768-byte version matrix fast slice",
+  "mode": "Generated in-memory structural encoder/reader control",
+  "repository": "LibreCAD/libdxfrw",
+  "researchBasis": {
+    "source": "ACadSharp issue #1282",
+    "url": "https://github.com/DomCR/ACadSharp/issues/1282",
+    "reportedFailure": "ACadSharp's EED per-APPID length narrowed to signed short for a 32,768-byte payload on AC1015, AC1018, and AC1032.",
+    "evidenceCeiling": "Peer issue report, not a DWG size limit or independent format oracle."
+  },
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "selector": "--dwg-eed-size-boundaries",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1032"],
+    "behavior": [
+      "Generate an exact 32,768 encoded-byte APPID EED payload using legacy codepage strings for AC1015/AC1018 and UTF-16 text-area strings for AC1021/AC1032.",
+      "Measure generated item sizes through dwgBufferW::encodeTextAreaString under the version-specific encoding partition.",
+      "Independently walk the raw envelope for unsigned chunk length, APPID handle, terminator, and following-field cursor; structurally cross-check all EED items with the local reader.",
+      "Preserve existing AC1021 32,767/32,768/65,535/65,536 boundary, split, and indivisible-item refusal/retry controls."
+    ],
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --dwg-eed-size-boundaries",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "diffCheck": {
+      "command": "git diff --check -- tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receiptJson": {
+      "command": "jq empty docs/research/par58-7k-eed-32768-version-matrix-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "fullSuiteRun": false,
+    "benchmarkRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The local writer and reader are structural self-checks, not independent interoperability evidence.",
+    "No wall-clock benchmark was run; test coverage does not promote a support claim.",
+    "The shared worktree is broadly dirty and repository Git metadata is read-only; this slice is uncommitted."
+  ],
+  "nextReadinessSlice": "Audit transformed-string and length-bearing DXF output controls implicated by LibreDWG #1408/#1412; add generated coverage only for a concrete uncovered invariant, otherwise continue to the next local source-backed parity item."
+}

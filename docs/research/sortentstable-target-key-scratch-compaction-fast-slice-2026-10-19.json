@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SORTENTSTABLE target-key scratch compaction",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reduce duplicate scratch ownership in typed SORTENTSTABLE projection validation.",
+    "Preserve target/key conflict rejection, repeated identical pairs, and ASCII/binary output behavior."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "dx_iface::validateSortEntsGraph",
+    "before": "Maintain targetKeys for conflict detection and sourceKeys as a second hash map of per-target vectors containing each repeated key.",
+    "after": "Maintain one sourceKeys map from target handle to its common key and duplicate count; reject a conflicting key and emit the same key count times.",
+    "effect": "Removes one full target-key hash index and per-target vector allocations/key elements while preserving accepted repeated-pair count and order."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_sortents_adapter$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 0.36,
+        "coverageNote": "Existing test rejects conflicting duplicate keys and accepts/reimports repeated identical pairs in ASCII and binary DXF."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one duplicated scratch index in the 7S.2c projection audit without changing semantics, public API, test cadence, support claims, or external qualification gates. The broader route-by-route audit remains open."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict adapter-test target build",
+      "Focused existing SORTENTSTABLE adapter round-trip CTest"
+    ],
+    "limitations": "The change reduces object count and retained duplicate key storage but does not measure allocator overhead, peak RSS, or every writer-side scratch structure. It is not a whole-process memory-bound claim."
+  }
+}

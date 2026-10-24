@@ -1,0 +1,156 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader versioned carrier, writer evidence, and DIMSTYLE subclass ambiguity review",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Cross-check DXF ACIS carrier version boundaries and peer loss reports",
+    "Audit the ACadSharp DIMSTYLE group-71/340 report against Autodesk references and source-visible writers",
+    "Reconcile malformed-input reports and FreeCAD converter/importer route with existing local plan owners",
+    "Refine existing PAR-07/S8 and PAR-120/7BQ.5 evidence and implementation-readiness gates"
+  ],
+  "method": {
+    "kind": "Read official format references, current project source/docs/issues, and the local plan/source status",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub issues and mutable main/master pages are report/source snapshots, not independent runtime results. The ACadSharp #1253 attachment and customer DWG/DXF files were not downloaded. Autodesk's published DIMSTYLE record fields do not document every observed AcDbDimStyleTable subclass payload, so the local AC1024 header variant remains a version-scoped unqualified candidate. DWG byte-layout questions remain governed by the local ODA v5.4.1 specification."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm"
+      ],
+      "revision": "Published Autodesk DXF references for 2020/2023, reviewed 2026-10-18",
+      "observed": "The 3DSOLID page documents legacy inline modeler data fields. Common symbol-table documentation describes group 70 as the table header's maximum-entry count. DIMSTYLE record documentation assigns record-level group 71 to DIMTOL and record-level group 340 to the referenced DIMTXSTY STYLE. These sources do not specify all later AcDbDimStyleTable subclass payload variants or modern ACDSDATA carrier details."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "revision": "Stable documentation identifies version 1.4.5; documentation reviewed 2026-10-18, package not run",
+      "observed": "Documentation describes SAT in DXF R2000-R2010 and SAB/ACDSDATA in R2013/R2018 and warns that ACIS support is limited, with unsupported entities liable to be lost. It is a carrier/format route reference, not independent semantic evidence."
+    },
+    {
+      "project": "LibreDWG issue #1411",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Issue report pins LibreDWG 0.14.8593 at 8a1ae764 on Linux/x86-64; page reviewed 2026-10-18",
+      "observed": "The report describes a source-authored DXF reproduction where a REGION shell survives conversion but 5,489 SAB bytes in R2013+ AcDs/ACDSDATA are lost. It also describes a confidential R2018 drawing that was not obtained. This is a report about the pinned peer build, not a libdxfrw reproduction or current-main result."
+    },
+    {
+      "project": "ACadSharp issues #1195 and #1240",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Issue report names ACadSharp 3.4.9; PR page reviewed open and not deployed on 2026-10-18",
+      "observed": "The issue reports DWG-to-DXF omission of 3DSOLID/REGION records, including block contents. Linked PR #1240 proposes ACIS writer support but is an unmerged branch, not a released peer baseline."
+    },
+    {
+      "project": "ACadSharp issue #1253 and Autodesk DIMSTYLE references",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1253",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm"
+      ],
+      "revision": "Issue report measures ACadSharp 3.6.35 and describes AutoCAD 2027 testing; page reviewed 2026-10-18",
+      "observed": "The report claims a DIMSTYLE table-subclass group-71 count and table-level group-340 handle list. Autodesk references establish different record-level meanings and generic table-header group 70, but do not document the extra subclass payload. The report's raw output/hash was not independently obtained."
+    },
+    {
+      "project": "QGIS, KiCad, and LibreCAD DXF output examples",
+      "urls": [
+        "https://github.com/qgis/QGIS/blob/master/src/core/dxf/qgsdxfexport.cpp",
+        "https://fossies.org/linux/kicad/common/plotters/DXF_plotter.cpp",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/librecad/support/library/elektro/transistor-iso/Transistor-MOSFET-dep-Pc.dxf"
+      ],
+      "revision": "QGIS mutable master page; KiCad source mirror package 10.0.6; LibreCAD repository drawing page; reviewed 2026-10-18",
+      "observed": "The inspected source/output examples differ in the extra AcDbDimStyleTable payload: QGIS emits the subclass with group 70 and no 71/340 header list; KiCad emits group 71=0; the LibreCAD drawing emits group 71=1 and record-scoped group 340. These are bounded observations and do not establish a version-complete normative rule."
+    },
+    {
+      "project": "ACadSharp parser/spline reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "revision": "Issue bodies describe version-specific ACadSharp reports; pages reviewed 2026-10-18",
+      "observed": "Reports concern missing VERTEX subtype handling, locale-sensitive codepage lookup, recursive DXF sequence advancement/stack exhaustion, and a DWG-to-DXF spline complaint. Their thresholds, sample shape, and outcomes are not format rules or local defects; the #1299 customer attachment was not downloaded."
+    },
+    {
+      "project": "FreeCAD DWG import route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Mutable main/documentation pages reviewed 2026-10-18; no application run",
+      "observed": "The inspected stock workflow converts DWG to DXF through a selected external converter and then invokes FreeCAD's DXF importer. The route and selected importer must be recorded separately; documentation does not qualify current Linux/Windows output or stock ACIS/B-rep import."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Reaffirms separate DWG inline, DWG AcDs, legacy DXF SAT, and modern DXF ACDSDATA/SAB routes; records peer writer omissions as version/direction-specific failure-mode leads; keeps the local AC1024 DIMSTYLE group-71/count and table-level group-340 output as EXTERNAL_ACCEPTANCE_PENDING because public DXF docs and observed implementations do not establish a complete versioned contract; keeps stock FreeCAD converter-to-DXF import distinct from ACIS semantics. Fast per-slice cadence and current local implementation order are unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep normal slices on the existing local fast loop: strict touched-target build, focused generated selector, owning CTest, relevant LibreCAD compatibility check, and scoped diff/receipt validation.",
+    "Do not change the local AC1024 DIMSTYLE special-header behavior based on issue prose alone; keep the existing generated wire census as a local serialization check and require exact-version producer evidence plus a strict consumer before qualification.",
+    "At the existing composed ACIS gate, compare entity identity and disposition, exact carrier bytes, owner/key linkage, and semantic/native results separately across the four existing carrier routes.",
+    "Keep parser robustness controls generated in memory or scratch; derive budgets from local policy and source contracts, not peer issue thresholds.",
+    "For FreeCAD, capture converter build/options, output DXF hash/version, selected importer backend/preferences, diagnostics, recovery, and per-object disposition; do not treat stock converter-to-DXF import as ACIS/B-rep evidence.",
+    "Do not download issue attachments or customer drawings, commit new external fixtures, or make optional peers a blocker for local implementation.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL until their specified external/platform and independent semantic evidence is independently available."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

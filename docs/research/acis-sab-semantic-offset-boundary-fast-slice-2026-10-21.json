@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-acis-sab-semantic-offset-boundary-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "scope": "Generated positive/negative controls for the two shared fields in the exact 21800 wire prefix",
+  "implementation": {
+    "tests": "tests/graph_preservation_tests.cpp",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "fixtureFileAdded": false
+  },
+  "coverage": {
+    "profile": "ACIS BinaryFile 21800",
+    "nullAttributePointer": {
+      "encodedValue": -1,
+      "parsedAndPreserved": true,
+      "semanticVertexPointReferencePreserved": true,
+      "expectedWireframePointChecked": true
+    },
+    "nonNullAttributePointer": {
+      "positiveControlRetained": true,
+      "excludedFromSemanticReferences": true
+    },
+    "malformedSharedFields": {
+      "attributePointerTag": "rejected; pre-seeded records and header signature cleared",
+      "entityIdTag": "rejected; pre-seeded records and header signature cleared"
+    },
+    "allInputsGeneratedInMemory": true
+  },
+  "sourceAudit": {
+    "allRecordTokenConsumersEnumerated": true,
+    "semanticConsumersUsingProfileBoundOffset": [
+      "model reference planning and resolution",
+      "vertex-point lookup",
+      "curve and surface token cursors",
+      "intcurve control-point extraction",
+      "rooted pointer-row validation",
+      "transform candidate classification"
+    ],
+    "rawVectorLoopsReviewedAsPreservationOrBudgeting": true,
+    "generatedWireIntcurveControlPolygonRegressionExists": true,
+    "missedSemanticConsumerFound": false,
+    "additionalCodeChangeNeeded": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    {
+      "command": "git diff --check -- tests/graph_preservation_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "No external SAB sample or detailed format grammar is inferred.",
+    "No full suite, persistent fixture, external reader, native application, or independent kernel was run.",
+    "No support claim was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL.",
+    "The shared worktree remains broadly dirty and uncommitted; Git metadata is read-only."
+  ],
+  "next": "Continue the next locally actionable S3.7c structural or transform-inventory item whose exact profile is already evidenced; keep transform application and external/native qualification behind their independent-evidence gates."
+}

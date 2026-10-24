@@ -1,0 +1,42 @@
+{
+  "title": "Proxy raw-carrier name pre-copy admission fast slice",
+  "date": "2026-10-19",
+  "plan_owner": "7S.2c raw-carrier retained destination admission",
+  "scope": "Pre-admit raw proxy carrier names before copying into callback-owned carriers.",
+  "changes": [
+    {
+      "file": "src/libdxfrw.cpp",
+      "sha256": "2aa556f90625d26ec740d41ffab1562f079a4d7267b34d55b8e9d8da06a5972d",
+      "details": "processProxyEntity and processProxyObject now call copyRawDxfCarrierName before retaining the raw carrier name. captureRawGroup reuses the established lease."
+    },
+    {
+      "file": "tests/hardening_tests.cpp",
+      "sha256": "7d69d9cf6aa93b065e021b9495f0cb7efdc4dc40977bc608f980c58d33a86de3",
+      "details": "Added --dxf-proxy-retained-budget selector for the existing exact/one-byte-under ASCII entity/object and generated Binary object controls."
+    }
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "passed"
+    },
+    "focused": {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-proxy-retained-budget",
+      "result": "passed"
+    },
+    "diff_check": {
+      "command": "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed"
+    },
+    "broader_hardening_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "failed: two GEODATA conditional copy newline-to-caret-J assertions; separate path, baseline not established"
+    },
+    "full_suite": "not run",
+    "new_ctest_registration": false,
+    "persistent_fixture_added": false,
+    "external_runtime": "not run",
+    "support_claim_changed": false
+  },
+  "next_action": "Continue 7S.2c census for the next raw-carrier constructor that performs an input-proportional copy before retained-byte admission."
+}

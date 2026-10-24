@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "DICTIONARYWDFLT/PLACEHOLDER typed callback capture bounds",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planSha256": "7db8579dc56fe05ef81afe07126f7de74e5d6f19110ff856757e82a838bb5ffe",
+  "scope": [
+    "Add focused fast coverage for the existing typed DICTIONARYWDFLT and ACDBPLACEHOLDER capture guard",
+    "Verify exact aggregate logical record, nested-item, and byte admission boundaries",
+    "Verify source-copy independence, sticky stale-generation refusal, and destination-preserving export refusal"
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "ctestRegistered": true,
+    "limits": {
+      "records": 100000,
+      "dictionaryEntries": 1000000,
+      "logicalRetainedBytes": "DRW::kMaxDxfBinaryPayloadBytes (64 MiB)"
+    },
+    "controls": [
+      "Successful typed DICTIONARYWDFLT and ACDBPLACEHOLDER callback copies with exact logical counters",
+      "Deep-copy independence for table-entry names, dictionary-entry names, and reactor handles",
+      "Simultaneous exact-fit admission at all three aggregate limits",
+      "One-over record, item, and byte refusal with sticky resource-limit classification and unchanged counters after refusal",
+      "Stale DXF import generation remains sticky after the receipt generation is corrected and is classified as capture failure rather than resource refusal",
+      "Typed-capture export guard emits its specific diagnostic and preserves an existing destination sentinel"
+    ],
+    "limitations": "Admission tests seed logical counters to exercise boundaries; they do not measure allocator behavior or RSS. Callback retention does not qualify serializer, graph closure, DWG-origin output, or native consumption."
+  },
+  "localEvidence": [
+    "The shared retainDictionaryDefaultTyped helper and typed callbacks already existed; this slice adds the missing focused generated guard test and registration.",
+    "Existing raw dictionary-default capture limits, dictionary-default adapter roundtrip, and named-object callback storage were run alongside the new typed capture test.",
+    "No persistent or downloaded DWG/DXF fixture was added."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c typed persistent TABLES/OBJECTS callback capture census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "remainingCensus": "Continue with a fresh inventory of common TABLES/OBJECTS callback stores; the full 7S.2c census is not complete.",
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/dictionary-default-placeholder-typed-callback-capture-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_dictionary_default_typed_capture_limits|dwg2dxf_dictionary_default_raw_capture_limits|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "git diff --check -- tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "strictTargetsBuilt": true,
+    "focusedCTestPassed": "4/4",
+    "planDiffCheck": true,
+    "receiptJsonValidation": true,
+    "planSha256Matches": true,
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "captureBoundTestGapClosed": true,
+    "full7S2cCensusComplete": false,
+    "serializerOrSemanticSupportPromoted": false
+  }
+}

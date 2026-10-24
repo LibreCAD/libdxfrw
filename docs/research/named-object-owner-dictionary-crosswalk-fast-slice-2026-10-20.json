@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Autodesk named-object dictionary owner crosswalk and generated control",
+  "mode": "primary-source research with focused local test-control refinement",
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "status": "normative-family-owner-field-reference",
+      "observation": "MLINESTYLE group 330 points to its owner dictionary and is documented as the ACAD_MLINESTYLE entry of the named-object dictionary."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+      "status": "normative-family-owner-field-reference",
+      "observation": "TABLESTYLE group 330 identifies the ACAD_TABLESTYLE dictionary entry in the named-object dictionary."
+    },
+    {
+      "project": "Autodesk AutoCAD ActiveX reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2022/CHS/AutoCAD-ActiveX-Reference/files/GUID-14AC2D0B-EBFC-44B9-982D-9112539F8DE8.htm",
+      "status": "official-object-container-api",
+      "observation": "MLeaderStyle creation and lookup use the ACAD_MLEADERSTYLE dictionary, confirming a dictionary container between the NOD and style object."
+    },
+    {
+      "project": "Autodesk ObjectARX reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__getMLeaderStyleDictionary_AcDbDictionary___AcDb__OpenMode.html",
+      "status": "official-object-container-api",
+      "observation": "The database API returns the MLeader-style dictionary in the named-object dictionary."
+    },
+    {
+      "project": "Autodesk ObjectARX reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbDatabase.html",
+      "status": "official-object-container-api",
+      "observation": "The API documentation states that ACAD_DETAILVIEWSTYLE and ACAD_SECTIONVIEWSTYLE NOD keys open dictionaries containing their corresponding typed style objects."
+    },
+    {
+      "project": "Autodesk AutoLISP dictionary-object documentation",
+      "reference": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-AutoLISP/files/GUID-24E52678-513E-4322-8070-B23C8945DC3D.htm",
+      "status": "official-dictionary-structure-example",
+      "observation": "The example enumerates ACAD_SCALELIST, ACAD_PLOTSTYLENAME, ACAD_MLINESTYLE, ACAD_MLEADERSTYLE, ACAD_TABLESTYLE, detail/section view styles, and AcDbVariableDictionary as NOD dictionary children with named entries beneath them."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "FOCUSED_LOCAL_CONTROL_UPDATED",
+    "implementationSummary": "Corrected the generated callback control to model the Autodesk-documented NOD-to-family-dictionary-to-record ownership graph, including AcDbVariableDictionary. Removed an overstrict expectation that a valid, collision-free TABLESTYLE source handle must be remapped; the test continues to require graph identity and owner closure.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "generatedScratchControls": "Existing in-memory ASCII DXF control updated; no repository fixture file added.",
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": true,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "docs/research/named-object-owner-dictionary-crosswalk-fast-slice-2026-10-20.json"
+    ],
+    "limitations": "Autodesk documentation establishes these object-container routes but does not qualify every DWG-version payload or consumer behavior. No external drawing was downloaded or used, and no claim was made about unreviewed object families."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 passed.",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure passed (1/1).",
+    "scopedDiffCheck": "git diff --check passed for the edited test and plan.",
+    "jsonValidation": "jq empty passed.",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

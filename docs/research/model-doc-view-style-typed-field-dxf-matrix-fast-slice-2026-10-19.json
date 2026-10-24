@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ModelDocViewStyle generated DXF typed-field matrix expansion",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-138 / PAR-20",
+  "scope": "Expand existing generated ASCII/Binary DXF typed-field assertions for DETAILVIEWSTYLE and SECTIONVIEWSTYLE without changing production behavior",
+  "changes": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": false,
+    "positiveProfiles": {
+      "primaryDetailViewStyle": "All currently modeled values in the generated object profile are asserted, including model-document fields, flags, all scalar/color/text values, and all represented resource handles.",
+      "secondaryDetailViewStyle": "Multiple-record capture control retained.",
+      "sectionViewStyle": "All currently modeled values in the generated object profile are asserted; the hatch count declares two angles and both angle values are checked."
+    },
+    "roundtripReadback": "The same-version output assertions check both hatch angles and existing typed style/resource graph values.",
+    "existingNegativeMatrix": [
+      "declared hatch-angle count mismatches captured values",
+      "negative declared hatch-angle count",
+      "declared count exceeds 100000 bound",
+      "angle values appear without an explicit count"
+    ],
+    "diagnosticFinding": "A temporary assertion/probe established that typed DetailViewStyle and SectionViewStyle names are empty although dictionary keys are retained. The assertion was removed and the gap was added to the PAR-138 plan; no failing diagnostic code remains.",
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false,
+    "commitAttempted": false
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  },
+  "evidenceLimit": "Generated local DXF values verify local typed callback and raw replay behavior only. They do not establish normative DXF style-name wire rules, DWG-origin mapping, typed writer completeness, native rendering, or product support claims.",
+  "planEffect": {
+    "newConfirmedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Cross-codec validation-harness and strict/recovery evidence audit",
+  "mode": "Primary-source documentation and issue review; research-only plan refinement",
+  "scope": [
+    "Compare evidence-producing workflows across LibreDWG, ezdxf, ACadSharp, and the LibreCAD-bundled libdxfrw inventory.",
+    "Resolve the evidentiary status of LibreDWG fuzz-harness issue #1270.",
+    "Clarify strict parsing versus recovery, audit, projection, and same-codec readback evidence.",
+    "Refine the existing composed peer/fuzz checkpoint without adding local features, dependencies, or routine full-suite work."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, inventories, and issue pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "LibreDWG, ACadSharp, ezdxf, and LibreCAD pages are mutable or describe specific historical artifacts. The closed LibreDWG #1270 issue page did not bind a verified fix commit or mode-by-mode post-fix result. No peer artifact was built or run, so this update refines admission criteria rather than qualifying peer behavior or identifying a local defect."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg-fuzz",
+        "https://github.com/LibreDWG/libredwg/issues/1270"
+      ],
+      "revision": "Mutable HACKING/fuzz setup and closed issue page reviewed 2026-10-19",
+      "observed": "The project documents separate DWG/DXF/Binary-DXF/round-trip/conversion fuzz modes and crash/hang/leak replay. Issue #1270 reports a double-free in the -rw and -indxf fuzz harness paths; the issue author says about 1,573 crash reports came from this harness-only defect. The issue is closed, but the inspected page does not identify a fix commit or document post-fix mode-by-mode verification.",
+      "evidenceCeiling": "Historical harness-quality warning only. It does not show a current LibreDWG harness defect and does not establish a libdxfrw issue."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-19",
+      "observed": "The documentation distinguishes ordinary strict reading from recovery that repairs flaws and returns an Auditor which may still contain unrecoverable errors. The explore route is for corrupted ASCII DXF and warns that data loss is likely; the audit CLI can save a recovered file.",
+      "evidenceCeiling": "Workflow contract only; no ezdxf run or libdxfrw comparison was performed."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable documentation and repository version matrix reviewed 2026-10-19",
+      "observed": "Reader examples expose warning/information notifications. The public compatibility table separates DXF read, DXF write, DWG read, and DWG write by AC version.",
+      "evidenceCeiling": "API and declared version scope only; it does not qualify a specific release/operation or replace route-specific run evidence."
+    },
+    {
+      "project": "LibreCAD bundled libdxfrw inventory",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_VERSION_SUPPORT_STATUS.md"
+      ],
+      "revision": "Mutable inventory pages reviewed 2026-10-19",
+      "observed": "The inventories describe themselves as deterministic source inventories/static readiness matrices and distinguish dispatch/entrypoints from fixture-backed validated status; many version rows remain fixture-blocked.",
+      "evidenceCeiling": "Useful same-lineage inventory methodology only; not an independent codec or runtime-support vote."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The existing optional fuzz checkpoint now requires exact harness/build/mode identity and per-mode smoke qualification; harness-only failures are separated from codec findings. Peer strict parse, recovery/audit, projection, same-codec readback, and native/semantic outcomes remain distinct. No implementation feature or support scope changed."
+  },
+  "implementationReadyChecks": [
+    "Do not add fuzz, peer runtime, recovery mode, or full-suite execution to the ordinary implementation-slice validation loop.",
+    "At the existing composed checkpoint, pin peer artifact/source identity, operation, direction, target version, options, input hash, diagnostics/notifications, and per-source identity disposition.",
+    "Capture strict parse before recovery; label recovered or repaired output separately and retain all auditor errors/fixes.",
+    "Before trusting a selected fuzz mode, run a known-good and locally generated bounded-negative smoke input, verify sanitizer-clean teardown, and reproduce candidate failures in the smallest library-facing mode available.",
+    "If a harness fails its smoke gate, record INVALID_HARNESS/NOT_RUN, use the local deterministic generated-test lane, and continue implementation without waiting for an external harness repair.",
+    "Do not count same-lineage forks or LibreCAD's bundled libdxfrw as independent codec evidence; static support inventories remain distinct from runtime qualification."
+  ],
+  "validation": {
+    "commands": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/deeper-broader-cross-codec-validation-harness-strict-recovery-audit-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "ac0ecb006bfb4089935b45e076cede2ba30d7fe4b36d0cd8213a9052c11ecabf"
+}

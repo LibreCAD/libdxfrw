@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Profile-aware DXF numeric writer kind guard",
+  "mode": "implementation progress and focused verification",
+  "scope": [
+    "Use one active-profile group-code kind comparison for ASCII and Binary typed numeric writer methods",
+    "Reject numeric method/group-code mismatches before output without changing group-code assignments or string/raw replay policy",
+    "Advance PAR-39/7X while keeping field semantics, version support, and external acceptance separate"
+  ],
+  "localChanges": {
+    "files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sharedPredicate": "dxfWriter::valueKindMatches(code, kind) uses dxfValueKindForCode with the writer's active DxfClassifierProfile.",
+    "guardedMethods": ["writeInt16", "writeInt32", "writeInt64", "writeDouble", "writeBool"],
+    "scopeExclusions": [
+      "String/raw replay is unchanged; ASCII binary-chunk hex values and unknown textual preservation have separate policy.",
+      "The classifier table and the explicit LibreCAD legacy profile are unchanged.",
+      "No field semantic, per-version feature, or consumer acceptance is inferred from the sink guard."
+    ],
+    "dynamicCallerReview": [
+      "DIMSTYLE variables dispatch through their schema allowlist, including I32 group 90 and Boolean fields.",
+      "appData INTEGER dispatch selects I16/I32/Boolean from the classified group kind and validates ranges/domains.",
+      "POLYFACE face indices are restricted to generated group codes 71-74 (I16).",
+      "TABLE cell border code arrays select only I16 ranges 65-69, 275-279, and 285-289.",
+      "MULTILEADER point-code bases are restricted to 10-16 and 110-112, with coordinate offsets remaining in double-point ranges.",
+      "Proxy byte counts pair group 92 with I32 before AC1024 and group 160 with I64 from AC1024.",
+      "XDATA numeric payload dispatch is explicit for 1070/I16 and 1071/I32.",
+      "Raw/typed variant routes classify each code before choosing a numeric sink method.",
+      "A source scan found no direct typed numeric writer calls in dwg2dxf/; production low-level writers are routed through src/libdxfrw.cpp."
+    ]
+  },
+  "tests": {
+    "testSource": "tests/wave1_tests.cpp",
+    "selector": "--dxf-code-type-boundaries",
+    "coverage": [
+      "ASCII accepts canonical String, Double, I16, I32, I64, Boolean, binary-chunk text, and EOF records.",
+      "ASCII readback checks ordered kinds/values through the following EOF sentinel.",
+      "Wrong-kind and unassigned numeric routes refuse before output.",
+      "LibreCAD legacy profile accepts Boolean group 260 and Double group 482 while refusing I32 group 260."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0
+  },
+  "validation": {
+    "strictBuild": "PASS: cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+    "owningWave1CTest": "PASS: libdxfrw_wave1 (1/1)",
+    "dxfFixturesCTest": "PASS: libdxfrw_dxf_fixtures (1/1)",
+    "writerCohort": "PASS: libdxfrw_writer_primitives, libdxfrw_writer_version_matrix, libdxfrw_mleader_writer_version (3/3)",
+    "consumerCompatibility": "PASS: cmake --build build-gcc --target lc3_compat_check -j4",
+    "diffCheck": "PASS: git diff --check on touched tracked source, test, and plan paths",
+    "fullSuite": "NOT_RUN",
+    "peerOrNativeRun": "NOT_RUN",
+    "dependenciesAdded": 0
+  },
+  "planChanges": {
+    "updatedFinding": "PAR-39",
+    "updatedSubplan": "7X",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "ledger": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "remainingGates": [
+    "Complete the cross-family literal/dynamic semantic and version audit; the sink guard only enforces the current classifier profile.",
+    "Keep string, unknown, raw replay, and binary-chunk behavior under their separate preservation/encoding contracts.",
+    "Resolve DIMENSION 80-84 provenance and consumer behavior before typed emission or raw preservation.",
+    "Resolve the separate HATCH gradient group-431 contract under 7Q.",
+    "Do not use these local tests as native CAD or broad DXF interoperability evidence."
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "supportClaimsPromoted": 0,
+  "worktree": "Broadly modified shared worktree; tests were run on the current dirty checkout, not a clean-HEAD rebuild; no unrelated changes staged or committed."
+}

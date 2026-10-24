@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw-deeper-broader-mlinstyle-cmc-and-peer-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden the open-source DWG/DXF/3D route comparison and refine implementation readiness for the planned MLINESTYLE output slice.",
+  "method": {
+    "kind": "Static primary-specification, project-source, release/documentation, and local-code review",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "https://github.com/ixmilia/dxf",
+      "https://github.com/DomCR/ACadSharp/issues/1195"
+    ],
+    "localFilesAudited": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "localSourceSha256": {
+      "src/drw_objects.h": "3a12fbdc6eb7a2781464bb3632f5419b1530ba4a2903c8899529997bf6927c98",
+      "src/drw_objects.cpp": "0451d3838241bdf1956e00812892417d866d22837510ed27f99dbc48b7b24249",
+      "src/libdxfrw.cpp": "9f7934f9d57a92c9babbc1e9f9367dfeb845efabd8eb183c130723cabd8f0683",
+      "dwg2dxf/dx_iface.cpp": "f198a9c78e07b9399a6240af7d0b96d10cb1318514c3df3b9e00f0783971579c"
+    },
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceRule": "Source/specification and peer reports identify field and route risks only. A route qualifies only for the exact stage exercised; separate typed values, opaque carrier replay, object graph closure, semantic geometry, and native acceptance."
+  },
+  "findings": [
+    {
+      "topic": "MLINESTYLE color representation",
+      "evidence": [
+        "Autodesk's DXF object table documents fill and per-element colors as group 62 indexed colors and linetypes as group 6 names.",
+        "ODA DWG v5.4.1 section 20.4.73 defines the fill and each segment color as CMC, with pre-R2018 signed linetype indices and R2018+ hard-pointer linetype handles.",
+        "The local parser receives but discards top-level fill RGB/name/book results; element color retains ACI and optional RGB but discards color name/book. The DWG encoder writes fill ACI-only and cannot reproduce discarded color-book fields."
+      ],
+      "disposition": "The current typed model cannot prove lossless DWG-origin MLINESTYLE output for every CMC form. Keep raw DXF replay separate. Extend the model and prove a target mapping, or fail the typed output before publication for present unrepresentable values; do not approximate true color to ACI."
+    },
+    {
+      "topic": "MLINESTYLE linetype version conversion",
+      "evidence": [
+        "ODA places the linetype handle form at R2018+ and signed index form before R2018.",
+        "LibreDWG source maps observed indices 0, 32767 and 32766 to CONTINUOUS, BYLAYER and BYBLOCK and resolves positive indices against LTYPE control entries; its downgrade path itself notes incomplete lookup behavior.",
+        "LibreDWG NEWS records a prior union-aliasing bug in which the index and handle forms overwrote each other."
+      ],
+      "disposition": "Keep the model fields distinct and test both version branches. Treat sentinel values as peer-observed differential behavior to validate for the accepted source profile, not as a substitute for ODA's version layout or local evidence."
+    },
+    {
+      "topic": "Broader DXF/3D peer and consumer boundaries",
+      "evidence": [
+        "ezdxf documents SAT/SAB inspection and raw export, but its drawing add-on does not render ACIS and has no 3D rendering engine.",
+        "The reviewed FreeCAD DXF importer documentation says stock import cannot consume the proprietary ACIS blob.",
+        "IxMilia.Dxf exposes modeler entity types but warns that some 3DSOLID/BODY/REGION writer outputs may not open in AutoCAD.",
+        "ACadSharp issue 1195 is a release-scoped report of silent modeler-entity omission; it is not a current-release runtime result."
+      ],
+      "disposition": "These sources reinforce route-specific evidence and exact consumer reopening. No typed API, raw payload browser, entity count, or peer report closes semantic B-rep or native acceptance."
+    }
+  ],
+  "planDelta": {
+    "existingWorkPackagesRefined": [
+      "f.4b.1b MLINESTYLE",
+      "PAR-07 writer graph and fail-closed output disposition",
+      "S5/S8 peer and consumer qualification"
+    ],
+    "implementationOrderChanged": false,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "peerOrNativeRuntimeAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "externalJDisposition": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planResearchOnly": true,
+    "productionBehaviorChanged": false,
+    "testsRun": false,
+    "externalSamplesDownloaded": false,
+    "scopedGitDiffCheck": true,
+    "receiptJsonParsed": true
+  },
+  "planFilesUpdated": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ]
+}

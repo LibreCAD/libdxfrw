@@ -15,9 +15,12 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 #include "drw_objects.h"
+#include "drw_entities.h"
+#include "intern/drw_dimvar_migration.h"
 #include "intern/dxfreader.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfwriter.h"
@@ -29,6 +32,7 @@
 #include "intern/dwgutil.h"
 #include "intern/dwgreader.h"
 #include "intern/dwgsafety.h"
+#include "intern/dwgvaluekind.h"
 
 namespace {
 
@@ -45,6 +49,187 @@ bool readDxfIntInRange(const std::unique_ptr<dxfReader>& reader,
                        int minimum, int maximum, int& value) {
     value = reader->getInt32();
     return value >= minimum && value <= maximum;
+}
+
+UTF8STRING colorBookEntryName(const UTF8STRING& bookName,
+                              const UTF8STRING& colorName,
+                              bool hasBookName) {
+    return hasBookName ? bookName + "$" + colorName : colorName;
+}
+
+bool splitColorBookEntryName(const UTF8STRING& value,
+                             UTF8STRING& bookName,
+                             UTF8STRING& colorName) {
+    bookName.clear();
+    colorName = value;
+    const std::string::size_type separator = value.find('$');
+    if (separator == std::string::npos)
+        return false;
+    bookName = value.substr(0, separator);
+    colorName = value.substr(separator + 1);
+    return true;
+}
+
+bool validR2007DwgCmcNamesAndFlags(
+        const DRW_DwgCmcColorMetadata& metadata) noexcept {
+    return (metadata.flags & ~0x03u) == 0u
+        && ((metadata.flags & 0x01u) != 0u || metadata.colorName.empty())
+        && ((metadata.flags & 0x02u) != 0u || metadata.bookName.empty());
+}
+
+bool validR2007DwgCmcMetadata(
+        const DRW_DwgCmcColorMetadata& metadata) noexcept {
+    return !metadata.present
+        || (metadata.rawIndex == 0u
+            && validR2007DwgCmcNamesAndFlags(metadata));
+}
+
+bool canonicalDwgCmcColor(std::uint32_t color, std::int32_t rgb24,
+                          std::uint8_t& method,
+                          std::uint16_t& colorIndex) noexcept {
+    if (rgb24 >= 0) {
+        if (color != 256u || rgb24 > 0x00FFFFFF)
+            return false;
+        method = dwgColor::RGB;
+        colorIndex = 256u;
+        return true;
+    }
+    if (color == 256u) {
+        method = dwgColor::BYLAYER;
+        colorIndex = 256u;
+        return true;
+    }
+    if (color == 0u) {
+        method = dwgColor::BYBLOCK;
+        colorIndex = 0u;
+        return true;
+    }
+    if (color <= 255u) {
+        method = dwgColor::ACIS;
+        colorIndex = static_cast<std::uint16_t>(color);
+        return true;
+    }
+    return false;
+}
+
+bool prepareDwgCmcColor(
+        const DRW_DwgCmcColorMetadata& metadata, std::uint32_t color,
+        std::int32_t rgb24, const UTF8STRING& publicName,
+        std::uint8_t& method, std::uint16_t& colorIndex,
+        UTF8STRING& colorName, UTF8STRING& bookName,
+        std::uint8_t& flags) {
+    std::uint8_t canonicalMethod = 0u;
+    if (!canonicalDwgCmcColor(color, rgb24, canonicalMethod, colorIndex)
+        || !validR2007DwgCmcMetadata(metadata)
+        || (metadata.present && metadata.method != canonicalMethod))
+        return false;
+
+    method = metadata.present ? metadata.method : canonicalMethod;
+    if (metadata.present
+        && publicName
+            == colorBookEntryName(metadata.bookName, metadata.colorName,
+                                  (metadata.flags & 0x02u) != 0u)) {
+        colorName = metadata.colorName;
+        bookName = metadata.bookName;
+        flags = metadata.flags;
+        return true;
+    }
+
+    const bool hasBookName =
+        splitColorBookEntryName(publicName, bookName, colorName);
+    flags = static_cast<std::uint8_t>(
+        (colorName.empty() ? 0u : 1u) | (hasBookName ? 2u : 0u));
+    return true;
+}
+
+bool validAmbientColorDxfProjection(
+        const DRW_DwgCmcColorMetadata& metadata, std::uint32_t color,
+        std::int32_t rgb24) noexcept {
+    if (!metadata.present)
+        return true;
+    // ODA specifies a zero reserved BS index for R2004+ CMC. The tracked
+    // LibreCAD AC1027 ordinary-encoding sample carries the ACI value in both
+    // that field and the authoritative packed method/color word. Accept only
+    // this redundant ACI form for DXF projection; DWG re-encoding remains
+    // strict through validR2007DwgCmcMetadata().
+    const bool compatibleIndex = metadata.rawIndex == 0u
+        || (metadata.method == dwgColor::ACI
+            && metadata.rawIndex == color);
+    if (!validR2007DwgCmcNamesAndFlags(metadata) || !compatibleIndex)
+        return false;
+    switch (metadata.method) {
+    case dwgColor::BYLAYER:
+        return color == 256u && rgb24 == -1;
+    case dwgColor::BYBLOCK:
+        return color == 0u && rgb24 == -1;
+    case dwgColor::RGB:
+        return color == 256u && rgb24 >= 0 && rgb24 <= 0x00FFFFFF;
+    case dwgColor::ACIS:
+        return color >= 1u && color <= 255u && rgb24 == -1;
+    case dwgColor::FOREGROUND:
+        return color == 7u && rgb24 == -1;
+    default:
+        return false;
+    }
+}
+
+bool validViewAmbientColorDxfProjection(
+        const DRW_DwgCmcColorMetadata& metadata, std::uint32_t color,
+        std::int32_t rgb24, const UTF8STRING& publicName) noexcept {
+    if (rgb24 != -1 || !publicName.empty())
+        return false;
+    if (!metadata.present)
+        return true;
+    if (!validR2007DwgCmcMetadata(metadata) || metadata.flags != 0u
+        || !metadata.colorName.empty() || !metadata.bookName.empty())
+        return false;
+    switch (metadata.method) {
+    case dwgColor::BYLAYER:
+        return color == 256u;
+    case dwgColor::BYBLOCK:
+        return color == 0u;
+    case dwgColor::ACI:
+        return color >= 1u && color <= 255u;
+    default:
+        return false;
+    }
+}
+
+bool dimstyleColorHasDxfProjection(
+        const DRW_DwgCmcColorMetadata& metadata,
+        std::uint32_t color) noexcept {
+    if (color > 256u)
+        return false;
+    if (!metadata.present)
+        return !metadata.hasRgb && metadata.rgb24 == -1
+            && metadata.flags == 0u && metadata.rawIndex == 0u
+            && metadata.colorName.empty() && metadata.bookName.empty();
+    if (!validR2007DwgCmcMetadata(metadata) || metadata.hasRgb
+        || metadata.rgb24 != -1 || metadata.flags != 0u
+        || !metadata.colorName.empty() || !metadata.bookName.empty())
+        return false;
+    switch (metadata.method) {
+    case dwgColor::BYLAYER:
+        return color == 256u;
+    case dwgColor::BYBLOCK:
+        return color == 0u;
+    case dwgColor::ACIS:
+        return color >= 1u && color <= 255u;
+    default:
+        return false;
+    }
+}
+
+bool isDefaultAmbientColorProjection(
+        const DRW_DwgCmcColorMetadata& metadata, std::uint32_t color,
+        std::int32_t rgb24, const UTF8STRING& publicName) noexcept {
+    if (color != 250u || rgb24 != -1 || !publicName.empty())
+        return false;
+    if (!metadata.present)
+        return true;
+    return validAmbientColorDxfProjection(metadata, color, rgb24)
+        && metadata.method == dwgColor::ACI && metadata.flags == 0u
+        && metadata.colorName.empty() && metadata.bookName.empty();
 }
 
 // R12 stores the DXF-facing ratio directly. R13 and later store the
@@ -65,6 +250,36 @@ double encodeVportAspectRatio(DRW::Version version, double height,
 
 bool hasLegacyPlotViewName(DRW::Version version) {
     return version >= DRW::AC1012 && version <= DRW::AC1015;
+}
+
+// ODA §20.4.78 selects the DWG CIVIL tail by target file release. R21 is
+// AC1021; AC1024 is the explicit AutoCAD 2010 exception. AC1027/R27 is beyond
+// the cutoff and does not carry this tail.
+bool hasGeoDataCivilTail(DRW::Version version) noexcept {
+    return version == DRW::AC1021 || version == DRW::AC1024;
+}
+
+// A no-tail target cannot represent a source CIVIL tail. Also catch callers
+// that populated its public fields without setting m_present, so down-target
+// export never silently discards source data.
+bool geoDataCivilTailHasUnrepresentedData(
+    const DRW_GeoCivilTail& tail) noexcept {
+    return tail.m_present || !tail.m_hasCivilData || tail.m_reservedFlag1
+        || std::any_of(tail.m_referenceCoordinates.cbegin(),
+                       tail.m_referenceCoordinates.cend(),
+                       [](double value) { return value != 0.0; })
+        || std::any_of(tail.m_reservedLongs.cbegin(),
+                       tail.m_reservedLongs.cend(),
+                       [](std::int32_t value) { return value != 0; })
+        || std::any_of(tail.m_reservedCoordinates.cbegin(),
+                       tail.m_reservedCoordinates.cend(),
+                       [](double value) { return value != 0.0; })
+        || tail.m_reservedFlag2 || tail.m_northDirectionDegrees != 0.0
+        || tail.m_northDirectionRadians != 0.0
+        || tail.m_scaleEstimationMethod != 1
+        || tail.m_userSpecifiedScaleFactor != 1.0
+        || tail.m_enableSeaLevelCorrection || tail.m_seaLevelElevation != 0.0
+        || tail.m_coordinateProjectionRadius != 0.0;
 }
 
 bool validUnsignedBitShort(int value) {
@@ -144,8 +359,9 @@ dwgHandle makeRefW(std::uint32_t ref, std::uint8_t code) {
 void putCommonObjectHandlePrefix(dwgBufferW* hb, std::uint32_t ownerRef,
                                  std::int32_t numReactors, std::uint8_t xDictFlag,
                                  const std::vector<std::uint32_t>* reactors = nullptr,
-                                 std::uint32_t xDictRef = 0) {
-    hb->putHandle(makeRefW(ownerRef, DRW::DwgSoftPointer));
+                                 std::uint32_t xDictRef = 0,
+                                 std::uint8_t ownerRole = DRW::DwgSoftPointer) {
+    hb->putHandle(makeRefW(ownerRef, ownerRole));
     for (std::int32_t i = 0; i < numReactors; ++i) {
         const std::uint32_t ref = reactors != nullptr
             && static_cast<std::size_t>(i) < reactors->size()
@@ -758,15 +974,14 @@ bool readXRecordTextWithinBody(DRW::Version version, dwgBuffer *buf,
         return false;
 
     std::uint64_t byteCount = 0;
+    std::uint8_t codePage = 0;
     if (version > DRW::AC1018) {
         if (!dwgSafety::multiply(length, 2, byteCount))
             return false;
     } else {
         byteCount = length;
-        std::uint8_t codePage = 0;
         if (!readRawCharWithinBody(buf, version, bodyEnd, codePage))
             return false;
-        DRW_UNUSED(codePage);
     }
     if (byteCount > static_cast<std::uint64_t>(std::numeric_limits<int>::max()))
         return false;
@@ -776,11 +991,27 @@ bool readXRecordTextWithinBody(DRW::Version version, dwgBuffer *buf,
         || !readRawBytesWithinBody(buf, version, bodyEnd,
                                    raw.data(), byteCount))
         return false;
-    std::string text(reinterpret_cast<const char*>(raw.data()), raw.size());
-    if (buf->decoder)
+    std::string text;
+    if (!raw.empty())
+        text.assign(reinterpret_cast<const char*>(raw.data()), raw.size());
+    // ODA section20.4.104 gives legacy application strings their own RC
+    // codepage. Reuse the named DWG-page conversion/issue transfer, not the
+    // common EED framing. Zero retains the established file-default path;
+    // Unicode strings have no per-value codepage byte. The legacy RS length
+    // convention above is unchanged and still needs producer qualification.
+    if (version <= DRW::AC1018 && codePage != 0u)
+        text = decodeEedString(codePage, text, buf->decoder);
+    else if (buf->decoder)
         text = buf->decoder->toUtf8(text);
+    const auto decodedSize = text.size();
     while (!text.empty() && text.back() == '\0')
         text.pop_back();
+    // These are counted application values, not ordinary TV/TU fields with
+    // an independently framed terminator. Retain tolerant normalization but
+    // never certify the bytes it discards as a clean source observation.
+    if (text.size() != decodedSize && buf->decoder)
+        buf->decoder->mergeDecodeIssues(
+            DRW::dxfTextIssueMask(DRW::DxfTextIssue::DiscardedSource));
     value = std::move(text);
     return true;
 }
@@ -793,7 +1024,10 @@ bool readCmColorWithinBounds(dwgBuffer *buf, dwgBuffer *stringBuf,
                              std::int32_t *rgb24 = nullptr,
                              UTF8STRING *outName = nullptr,
                              UTF8STRING *outBookName = nullptr,
-                             bool *hasRgbColor = nullptr) {
+                             bool *hasRgbColor = nullptr,
+                             std::uint8_t *outMethod = nullptr,
+                             std::uint8_t *outFlags = nullptr,
+                             std::uint16_t *outIndex = nullptr) {
     if (buf == nullptr || stringBuf == nullptr
         || !dictionaryBitRangeAvailable(buf, version, bodySize, 2)
         || !buf->isGood() || !stringBuf->isGood())
@@ -805,11 +1039,14 @@ bool readCmColorWithinBounds(dwgBuffer *buf, dwgBuffer *stringBuf,
     dwgBuffer *colorStringProbe = sharedBuffer ? &bodyProbe : &stringProbe;
     std::int32_t parsedRgb = -1;
     bool parsedHasRgbColor = false;
+    std::uint8_t parsedMethod = 0;
+    std::uint8_t parsedFlags = 0;
+    std::uint16_t parsedIndex = 0;
     UTF8STRING parsedName;
     UTF8STRING parsedBookName;
     const std::uint32_t parsedValue = bodyProbe.getCmColor(
         version, &parsedRgb, colorStringProbe, &parsedName, &parsedBookName,
-        &parsedHasRgbColor);
+        &parsedHasRgbColor, &parsedMethod, &parsedFlags, &parsedIndex);
     const bool stringsWithinBounds = sharedBuffer
         ? objectBodyFitsSize(currentObjectDwgBit(&bodyProbe), stringSize)
         : objectBodyFitsSize(currentObjectDwgBit(&stringProbe), stringSize);
@@ -826,21 +1063,16 @@ bool readCmColorWithinBounds(dwgBuffer *buf, dwgBuffer *stringBuf,
         *outBookName = std::move(parsedBookName);
     if (hasRgbColor != nullptr)
         *hasRgbColor = parsedHasRgbColor;
+    if (outMethod != nullptr)
+        *outMethod = parsedMethod;
+    if (outFlags != nullptr)
+        *outFlags = parsedFlags;
+    if (outIndex != nullptr)
+        *outIndex = parsedIndex;
     *buf = bodyProbe;
     if (!sharedBuffer)
         *stringBuf = stringProbe;
     return true;
-}
-
-[[maybe_unused]] bool readCmColorWithinBody(dwgBuffer *buf, dwgBuffer *stringBuf,
-                           DRW::Version version, std::uint32_t objSize,
-                           std::uint32_t& value, std::int32_t *rgb24 = nullptr,
-                           UTF8STRING *outName = nullptr,
-                           UTF8STRING *outBookName = nullptr,
-                           bool *hasRgbColor = nullptr) {
-    return readCmColorWithinBounds(buf, stringBuf, version, objSize, objSize,
-                                   value, rgb24, outName, outBookName,
-                                   hasRgbColor);
 }
 
 bool readHandleWithinBody(dwgBuffer *buf, DRW::Version version,
@@ -1336,117 +1568,9 @@ DRW_AssociativePrefixStatus::ParseStatus prefixStatusFromGood(bool complete) {
                       DRW_AssociativePrefixStatus::ParseStatus::Partial;
 }
 
-enum class DwgValueKind {
-    Invalid,
-    Real,
-    Int8,
-    Int16,
-    Int32,
-    Int64,
-    String,
-    Point3d,
-    Binary,
-    Handle,
-    ObjectId,
-    Bool
-};
-
-DwgValueKind dwgResbufValueKind(std::int32_t groupCode) {
-    if (groupCode >= 300) {
-        if (groupCode >= 440) {
-            if (groupCode >= 1000) {
-                if (groupCode == 1004)
-                    return DwgValueKind::Binary;
-                if (groupCode <= 1009)
-                    return DwgValueKind::String;
-                if (groupCode <= 1039)
-                    return DwgValueKind::Point3d;
-                if (groupCode <= 1042)
-                    return DwgValueKind::Real;
-                if (groupCode <= 1069)
-                    return DwgValueKind::Point3d;
-                if (groupCode <= 1070)
-                    return DwgValueKind::Int16;
-                if (groupCode == 1071)
-                    return DwgValueKind::Int32;
-            } else {
-                if (groupCode <= 459)
-                    return DwgValueKind::Int32;
-                if (groupCode <= 469)
-                    return DwgValueKind::Real;
-                if (groupCode <= 479)
-                    return DwgValueKind::String;
-                if (groupCode == 999)
-                    return DwgValueKind::String;
-            }
-        } else if (groupCode >= 390) {
-            if (groupCode <= 399)
-                return DwgValueKind::Handle;
-            if (groupCode <= 409)
-                return DwgValueKind::Int16;
-            if (groupCode <= 419)
-                return DwgValueKind::String;
-            if (groupCode <= 429)
-                return DwgValueKind::Int32;
-            if (groupCode <= 439)
-                return DwgValueKind::String;
-        } else {
-            if (groupCode <= 309)
-                return DwgValueKind::String;
-            if (groupCode <= 319)
-                return DwgValueKind::Binary;
-            if (groupCode <= 329)
-                return DwgValueKind::Handle;
-            if (groupCode <= 369)
-                return DwgValueKind::ObjectId;
-            if (groupCode <= 389)
-                return DwgValueKind::Int16;
-        }
-    } else if (groupCode >= 105) {
-        if (groupCode >= 210) {
-            if (groupCode <= 269)
-                return DwgValueKind::Point3d;
-            if (groupCode <= 279)
-                return DwgValueKind::Int16;
-            if (groupCode <= 289)
-                return DwgValueKind::Int8;
-            if (groupCode <= 299)
-                return DwgValueKind::Bool;
-        } else {
-            if (groupCode == 105)
-                return DwgValueKind::Handle;
-            if (groupCode <= 139)
-                return DwgValueKind::Point3d;
-            if (groupCode <= 149)
-                return DwgValueKind::Real;
-            if (groupCode <= 169)
-                return DwgValueKind::Int64;
-            if (groupCode <= 179)
-                return DwgValueKind::Int16;
-        }
-    } else if (groupCode >= 38) {
-        if (groupCode <= 59)
-            return DwgValueKind::Real;
-        if (groupCode <= 79)
-            return DwgValueKind::Int16;
-        if (groupCode <= 99)
-            return DwgValueKind::Int32;
-        if (groupCode <= 102)
-            return DwgValueKind::String;
-    } else {
-        if (groupCode < 0)
-            return DwgValueKind::Handle;
-        if (groupCode <= 4)
-            return DwgValueKind::String;
-        if (groupCode == 5)
-            return DwgValueKind::Handle;
-        if (groupCode <= 9)
-            return DwgValueKind::String;
-        if (groupCode <= 37)
-            return DwgValueKind::Point3d;
-    }
-    return DwgValueKind::Invalid;
-}
+using drwDwgValue::Kind;
+using drwDwgValue::resbufValueKind;
+using drwDwgValue::associativeActionValueKind;
 
 bool readBinaryBytesWithinBody(dwgBuffer *buf, DRW::Version version,
                                std::uint32_t bodySize,
@@ -1613,34 +1737,54 @@ bool readShHistoryNodePrefix(
         ? &stringProbe : &bodyProbe;
     DRW_AcShHistoryObject::HistoryNodePrefix parsed;
 
-    bool good = readBitLongWithinBody(&bodyProbe, version, bodySize,
-                                      parsed.m_major)
-        && readBitLongWithinBody(&bodyProbe, version, bodySize,
-                                 parsed.m_minor);
-    for (double& value : parsed.m_transform) {
-        if (!good)
-            break;
-        good = readBitDoubleWithinBody(&bodyProbe, version, bodySize, value);
+    if (!readBitLongWithinBody(&bodyProbe, version, bodySize, parsed.m_major)
+        || !readBitLongWithinBody(&bodyProbe, version, bodySize,
+                                  parsed.m_minor)) {
+        DRW_DBG("AcDbShHistoryNode failed reading version at bit ");
+        DRW_DBG(currentObjectDwgBit(&bodyProbe)); DRW_DBG("\n");
+        return false;
     }
-    if (good) {
-        good = readCmColorWithinBounds(
+    for (double& value : parsed.m_transform) {
+        if (!readBitDoubleWithinBody(&bodyProbe, version, bodySize, value)) {
+            DRW_DBG("AcDbShHistoryNode failed reading transform at bit ");
+            DRW_DBG(currentObjectDwgBit(&bodyProbe)); DRW_DBG("\n");
+            return false;
+        }
+    }
+    if (!readCmColorWithinBounds(
             &bodyProbe, colorStringBuffer, version, bodySize, stringSize,
             parsed.m_colorIndex, &parsed.m_rgbColor, &parsed.m_colorName,
-            &parsed.m_colorBookName, &parsed.m_hasRgbColor);
+            &parsed.m_colorBookName, &parsed.m_hasRgbColor,
+            &parsed.m_colorMethod, &parsed.m_colorFlags,
+            &parsed.m_colorIndexRaw)) {
+        DRW_DBG("AcDbShHistoryNode failed reading color at bit ");
+        DRW_DBG(currentObjectDwgBit(&bodyProbe)); DRW_DBG("\n");
+        return false;
     }
-    if (good) {
-        good = readBitLongWithinBody(&bodyProbe, version, bodySize,
-                                     parsed.m_nodeValue);
+    parsed.m_colorIndexIsReserved = version >= DRW::AC1018;
+    parsed.m_hasColorCmcMetadata = true;
+    if (!readBitLongWithinBody(&bodyProbe, version, bodySize,
+                               parsed.m_nodeValue)) {
+        DRW_DBG("AcDbShHistoryNode failed reading node id at bit ");
+        DRW_DBG(currentObjectDwgBit(&bodyProbe)); DRW_DBG("\n");
+        return false;
     }
-    if (good)
-        good = readObjectHandleRefTransactional(&handleProbe, parsed.m_handle,
-                                                handleEndBit);
-    if (!good || !bodyProbe.isGood() || !colorStringBuffer->isGood()
+    if (!readObjectHandleRefTransactional(&handleProbe, parsed.m_handle,
+                                          handleEndBit)) {
+        DRW_DBG("AcDbShHistoryNode failed reading material handle at bit ");
+        DRW_DBG(currentObjectDwgBit(&handleProbe)); DRW_DBG("\n");
+        return false;
+    }
+    if (!bodyProbe.isGood() || !colorStringBuffer->isGood()
         || !handleProbe.isGood()
         || !objectBodyFitsSize(currentObjectDwgBit(&bodyProbe), bodySize)
         || !objectBodyFitsSize(currentObjectDwgBit(colorStringBuffer),
-                               stringSize))
+                               stringSize)) {
+        DRW_DBG("AcDbShHistoryNode failed final bounds check at body bit ");
+        DRW_DBG(currentObjectDwgBit(&bodyProbe)); DRW_DBG(" string bit ");
+        DRW_DBG(currentObjectDwgBit(colorStringBuffer)); DRW_DBG("\n");
         return false;
+    }
 
     parsed.m_complete = true;
     *buf = bodyProbe;
@@ -1684,6 +1828,42 @@ bool decodeDxfTimeBll(double value, std::uint32_t& days,
     return true;
 }
 
+bool validTableStyleValueDataType(DRW::Version version,
+                                  std::int32_t value) noexcept {
+    if (version < DRW::AC1021)
+        return false;
+    switch (value) {
+    case 0: case 1: case 2: case 4: case 8: case 16:
+    case 32: case 64: case 128: case 256: case 512:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool validTableStyleValueUnitType(DRW::Version version,
+                                  std::int32_t value) noexcept {
+    if (version < DRW::AC1021)
+        return false;
+    // ODA's shared-value chapter lists the five common unit types. Autodesk's
+    // AcValue::UnitType API additionally defines Currency, Percentage, and
+    // AngleNotTransformed, and TABLESTYLE.SetDataType uses that same enum.
+    // Retain the documented codes without interpreting or converting values.
+    return value == 0 || value == 1 || value == 2 || value == 4 || value == 8
+        || value == 0x10 || value == 0x20 || value == 0x10000;
+}
+
+bool validTableStyleDwgWriteUnitType(DRW::Version version,
+                                     std::int32_t value) noexcept {
+    // Keep DWG emission to the explicitly enumerated R2007+ values in ODA
+    // §20.4.99 until an independent producer file establishes the API-only
+    // extensions in serialized DWG. Reading still retains documented API
+    // enum values; the writer fails closed rather than guessing wire support.
+    return version >= DRW::AC1021
+        && (value == 0 || value == 1 || value == 2
+            || value == 4 || value == 8);
+}
+
 bool readTableStyleContentFormat(DRW::Version version, dwgBuffer *buf,
                                  dwgBuffer *strBuf, dwgBuffer *hdlBuf,
                                  std::uint32_t bodySize,
@@ -1718,18 +1898,38 @@ bool readTableStyleContentFormat(DRW::Version version, dwgBuffer *buf,
     const DRW::Version colorVersion =
         version < DRW::AC1018 ? DRW::AC1018 : version;
     const auto readColor = [buf, textBuf, colorVersion, bodySize,
-                            stringSize](int& value) {
+                            stringSize](int& value,
+                                        DRW_TableStyleCmcColor& cmc) {
         std::uint32_t parsed = 0;
+        std::int32_t rgb = -1;
+        bool hasRgb = false;
+        UTF8STRING name, bookName;
+        std::uint8_t method = 0, flags = 0;
+        std::uint16_t reservedIndex = 0;
         if (!readCmColorWithinBounds(buf, textBuf, colorVersion, bodySize,
-                                     stringSize, parsed))
+                                     stringSize, parsed, &rgb, &name,
+                                     &bookName, &hasRgb, &method, &flags,
+                                     &reservedIndex))
             return false;
         value = static_cast<int>(parsed);
+        cmc.m_rgb = hasRgb ? rgb : -1;
+        cmc.m_name = std::move(name);
+        cmc.m_bookName = std::move(bookName);
+        cmc.m_method = method;
+        cmc.m_flags = flags;
+        cmc.m_reservedIndex = reservedIndex;
         return true;
     };
     if (!readLong(format.m_propertyOverrideFlags)
+        || (format.m_propertyOverrideFlags & ~std::uint32_t{0x7FFFFu}) != 0u
         || !readLong(format.m_propertyFlags)
+        || (format.m_propertyFlags & ~std::uint32_t{0x100u}) != 0u
         || !readInt(format.m_valueDataType)
-        || !readInt(format.m_valueUnitType))
+        || !validTableStyleValueDataType(
+            version, format.m_valueDataType)
+        || !readInt(format.m_valueUnitType)
+        || !validTableStyleValueUnitType(
+            version, format.m_valueUnitType))
         return false;
     if (!readVariableTextWithinBounds(buf, textBuf, version, bodySize,
                                       stringSize, format.m_valueFormatString))
@@ -1737,7 +1937,8 @@ bool readTableStyleContentFormat(DRW::Version version, dwgBuffer *buf,
     if (!readDouble(format.m_rotation)
         || !readDouble(format.m_blockScale)
         || !readInt(format.m_cellAlignment)
-        || !readColor(format.m_contentColor)
+        || format.m_cellAlignment < 1 || format.m_cellAlignment > 9
+        || !readColor(format.m_contentColor, format.m_contentColorCmc)
         || (hdlBuf != nullptr
             && !readObjectHandleRefTransactional(hdlBuf,
                                                  format.m_textStyleHandle,
@@ -1790,19 +1991,37 @@ bool readTableStyleCellStyle(DRW::Version version, dwgBuffer *buf,
         return readBitDoubleWithinBody(buf, version, bodySize, value)
             && std::isfinite(value);
     };
-    const auto readColor = [buf, strBuf, version, bodySize, stringSize](int& value) {
+    const auto readColor = [buf, strBuf, version, bodySize, stringSize](
+            int& value, DRW_TableStyleCmcColor& cmc) {
         std::uint32_t parsed = 0;
+        std::int32_t rgb = -1;
+        bool hasRgb = false;
+        UTF8STRING name, bookName;
+        std::uint8_t method = 0, flags = 0;
+        std::uint16_t reservedIndex = 0;
         if (!readCmColorWithinBounds(buf, strBuf ? strBuf : buf, version,
-                                     bodySize, stringSize, parsed))
+                                     bodySize, stringSize, parsed, &rgb,
+                                     &name, &bookName, &hasRgb, &method,
+                                     &flags, &reservedIndex))
             return false;
         value = static_cast<int>(parsed);
+        cmc.m_rgb = hasRgb ? rgb : -1;
+        cmc.m_name = std::move(name);
+        cmc.m_bookName = std::move(bookName);
+        cmc.m_method = method;
+        cmc.m_flags = flags;
+        cmc.m_reservedIndex = reservedIndex;
         return true;
     };
     std::int32_t parsedType = 0;
     std::int32_t parsedHasData = 0;
     if (!readBitLongWithinBody(buf, version, bodySize, parsedType)
-        || !readBitShortWithinBody(buf, version, bodySize, parsedHasData))
+        || parsedType < 1 || parsedType > 5
+        || !readBitShortWithinBody(buf, version, bodySize, parsedHasData)
+        || parsedHasData < 0 || parsedHasData > 1) {
+        DRW_DBG("TABLESTYLE cell-style type/data header invalid\n");
         return false;
+    }
     style.m_type = parsedType;
     style.m_hasData = parsedHasData != 0;
     if (!style.m_hasData) {
@@ -1821,26 +2040,40 @@ bool readTableStyleCellStyle(DRW::Version version, dwgBuffer *buf,
     }
 
     if (!readLong(style.m_propertyOverrideFlags)
+        || (style.m_propertyOverrideFlags & ~std::uint32_t{0x7FFFFu}) != 0u
         || !readLong(style.m_mergeFlags)
-        || !readColor(style.m_backgroundColor)
-        || !readLong(style.m_contentLayout))
+        || (style.m_mergeFlags & ~std::uint32_t{0x18000u}) != 0u
+        || !readColor(style.m_backgroundColor,
+                      style.m_backgroundColorCmc)
+        || !readLong(style.m_contentLayout)
+        || (style.m_contentLayout & ~std::uint32_t{0x7u}) != 0u) {
+        DRW_DBG("TABLESTYLE cell-style data header invalid\n");
         return false;
+    }
     if (!readTableStyleContentFormat(version, buf, strBuf, hdlBuf,
                                      bodySize, stringSize,
                                      style.m_contentFormat, ranges,
-                                     handleEndBit))
+                                     handleEndBit)) {
+        DRW_DBG("TABLESTYLE cell-style content format invalid\n");
         return false;
+    }
 
-    if (!readShort(style.m_marginOverrideFlags))
+    if (!readShort(style.m_marginOverrideFlags)
+        || style.m_marginOverrideFlags < 0
+        || (style.m_marginOverrideFlags & ~0x1) != 0) {
+        DRW_DBG("TABLESTYLE cell-style margin flags invalid\n");
         return false;
+    }
     if (style.m_marginOverrideFlags != 0) {
         if (!readDouble(style.m_verticalMargin)
             || !readDouble(style.m_horizontalMargin)
             || !readDouble(style.m_bottomMargin)
             || !readDouble(style.m_rightMargin)
             || !readDouble(style.m_marginHorizontalSpacing)
-            || !readDouble(style.m_marginVerticalSpacing))
+            || !readDouble(style.m_marginVerticalSpacing)) {
+            DRW_DBG("TABLESTYLE cell-style margins invalid\n");
             return false;
+        }
     }
 
     std::int32_t parsedBorderCount = 0;
@@ -1862,19 +2095,32 @@ bool readTableStyleCellStyle(DRW::Version version, dwgBuffer *buf,
         return false;
     for (std::uint32_t i = 0; i < borderCount; ++i) {
         DRW_TableStyleBorder border;
-        if (!readInt(border.m_edgeFlags))
+        if (!readInt(border.m_edgeFlags)
+            || (static_cast<std::uint32_t>(border.m_edgeFlags)
+                & ~std::uint32_t{0x3Fu}) != 0u)
             return false;
         if (border.m_edgeFlags != 0) {
             if (!readInt(border.m_propertyOverrideFlags)
+                || (static_cast<std::uint32_t>(border.m_propertyOverrideFlags)
+                    & ~std::uint32_t{0x3Fu}) != 0u
                 || !readInt(border.m_borderType)
-                    || !readColor(border.m_color)
+                || !readColor(border.m_color, border.m_colorCmc)
                 || !readInt(border.m_lineWeight)
                 || (hdlBuf != nullptr
                     && !readObjectHandleRefTransactional(
                         hdlBuf, border.m_lineTypeHandle, handleEndBit))
                 || !readInt(border.m_visible)
-                || !readDouble(border.m_doubleLineSpacing))
+                || !readDouble(border.m_doubleLineSpacing)) {
+                DRW_DBG("TABLESTYLE cell-style border data invalid\n");
                 return false;
+            }
+            if (((border.m_propertyOverrideFlags & 0x1) != 0
+                 && (border.m_borderType < 1 || border.m_borderType > 2))
+                || ((border.m_propertyOverrideFlags & 0x10) != 0
+                    && (border.m_visible < 0 || border.m_visible > 1))) {
+                DRW_DBG("TABLESTYLE cell-style border enum invalid\n");
+                return false;
+            }
         }
         style.m_borders.push_back(border);
     }
@@ -1916,12 +2162,26 @@ bool readLegacyTableStyleRowStyle(DRW::Version version, dwgBuffer *buf,
     const DRW::Version colorVersion =
         version < DRW::AC1018 ? DRW::AC1018 : version;
     const auto readColor = [buf, textBuf, colorVersion, bodySize,
-                            stringSize](int& value) {
+                            stringSize](int& value,
+                                        DRW_TableStyleCmcColor& cmc) {
         std::uint32_t parsed = 0;
+        std::int32_t rgb = -1;
+        bool hasRgb = false;
+        UTF8STRING name, bookName;
+        std::uint8_t method = 0, flags = 0;
+        std::uint16_t reservedIndex = 0;
         if (!readCmColorWithinBounds(buf, textBuf, colorVersion, bodySize,
-                                     stringSize, parsed))
+                                     stringSize, parsed, &rgb, &name,
+                                     &bookName, &hasRgb, &method, &flags,
+                                     &reservedIndex))
             return false;
         value = static_cast<int>(parsed);
+        cmc.m_rgb = hasRgb ? rgb : -1;
+        cmc.m_name = std::move(name);
+        cmc.m_bookName = std::move(bookName);
+        cmc.m_method = method;
+        cmc.m_flags = flags;
+        cmc.m_reservedIndex = reservedIndex;
         return true;
     };
     if (hdlBuf != nullptr
@@ -1931,8 +2191,8 @@ bool readLegacyTableStyleRowStyle(DRW::Version version, dwgBuffer *buf,
         return false;
     if (!readDouble(rowStyle.m_textHeight)
         || !readShort(rowStyle.m_textAlignment)
-        || !readColor(rowStyle.m_textColor)
-        || !readColor(rowStyle.m_fillColor))
+        || !readColor(rowStyle.m_textColor, rowStyle.m_textColorCmc)
+        || !readColor(rowStyle.m_fillColor, rowStyle.m_fillColorCmc))
         return false;
     bool hasBackgroundColor = false;
     if (!readBitWithinBody(buf, version, bodySize, hasBackgroundColor))
@@ -1946,7 +2206,7 @@ bool readLegacyTableStyleRowStyle(DRW::Version version, dwgBuffer *buf,
         border.m_edgeFlags = 1 << i;
         if (!readShort(border.m_lineWeight)
             || !readBitWithinBody(buf, version, bodySize, hasBackgroundColor)
-            || !readColor(border.m_color))
+            || !readColor(border.m_color, border.m_colorCmc))
             return false;
         border.m_visible = hasBackgroundColor;
         rowStyle.m_borders.push_back(border);
@@ -1956,7 +2216,9 @@ bool readLegacyTableStyleRowStyle(DRW::Version version, dwgBuffer *buf,
         std::int32_t valueDataType = 0;
         std::int32_t valueUnitType = 0;
         if (!readBitLongWithinBody(buf, version, bodySize, valueDataType)
-            || !readBitLongWithinBody(buf, version, bodySize, valueUnitType))
+            || !validTableStyleValueDataType(version, valueDataType)
+            || !readBitLongWithinBody(buf, version, bodySize, valueUnitType)
+            || !validTableStyleValueUnitType(version, valueUnitType))
             return false;
         rowStyle.m_valueDataType = valueDataType;
         rowStyle.m_valueUnitType = valueUnitType;
@@ -2030,13 +2292,32 @@ CadValueReadResult readCadValue(
     std::int32_t parsed = 0;
     if (detachedStrings && !readLong(value.m_formatFlags))
         return CadValueReadResult::Error;
-    if (!readLong(value.m_dataType))
+    if (detachedStrings && (value.m_formatFlags & ~0x03) != 0) {
+        // Retain unqualified flags through the bounded raw FIELD fallback.
+        DRW_DBG("unsupported FIELD CadValue format flags: ");
+        DRW_DBG(value.m_formatFlags); DRW_DBG("\n");
+        return CadValueReadResult::Unsupported;
+    }
+    if (!readLong(value.m_dataType)) {
         return CadValueReadResult::Error;
-
-    const bool emptyValue = detachedStrings && (value.m_formatFlags & 3);
-    if (!emptyValue) {
+    }
+    if (!value.hasDwgPayload(version)
+        && value.m_dataType != 1 && value.m_dataType != 2
+        && value.m_dataType != 4 && value.m_dataType != 8
+        && value.m_dataType != 16 && value.m_dataType != 32
+        && value.m_dataType != 64 && value.m_dataType != 512)
+        return CadValueReadResult::Unsupported;
+    if (value.hasDwgPayload(version)) {
         switch (value.m_dataType) {
         case 0:
+            if (!readLong(parsed))
+                return CadValueReadResult::Error;
+            // ODA §20.4.99 defines the framing as BL but the value kind as
+            // Unknown. Retain the observed payload for diagnostics, then let
+            // FIELD's bounded fallback expose an incomplete shell rather
+            // than a semantically complete integer.
+            value.m_value.addInt(91, parsed);
+            return CadValueReadResult::Unsupported;
         case 1:
             if (!readLong(parsed))
                 return CadValueReadResult::Error;
@@ -2112,9 +2393,12 @@ CadValueReadResult readCadValue(
             DRW_DBG(value.m_dataType); DRW_DBG("\n");
             return CadValueReadResult::Unsupported;
         default:
-            DRW_DBG("invalid FIELD value type: ");
+            // The object frame is bounded, but a producer-specific/future
+            // value kind has no layout here. Preserve the FIELD as an
+            // incomplete raw shell rather than guessing its payload width.
+            DRW_DBG("unsupported FIELD value type: ");
             DRW_DBG(value.m_dataType); DRW_DBG("\n");
-            return CadValueReadResult::Error;
+            return CadValueReadResult::Unsupported;
         }
     }
 
@@ -2157,7 +2441,7 @@ bool xRecordCodeIsString(int code) {
 
 bool xRecordCodeIsPoint3D(int code) {
     return (code >= 10 && code <= 37) || (code >= 110 && code <= 139) ||
-           (code >= 210 && code <= 269) || (code >= 1010 && code <= 1039);
+           (code >= 210 && code <= 239) || (code >= 1010 && code <= 1039);
 }
 
 bool xRecordCodeIsDouble(int code) {
@@ -2191,7 +2475,7 @@ bool xRecordCodeIsBinary(int code) {
 bool xRecordCodeIsHandle(int code) {
     return (code >= 320 && code <= 369) || (code >= 390 && code <= 399) ||
            (code >= 480 && code <= 481) || code == 5 || code == 105 ||
-           (code >= 1005 && code <= 1009);
+           code == 1005;
 }
 
 bool decodeLTypeTextAreaString(const std::vector<std::uint8_t>& area,
@@ -2321,7 +2605,7 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         {
             DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
                 m_dxfRetainedStringLease);
-            std::string value = reader->getString();
+            std::string value = reader->takeString();
             if (!retainDxfReadBytes(m_dxfRetainedStringLease,
                                     reader->retainedByteBudget(), value.size()))
                 return false;
@@ -2405,20 +2689,186 @@ bool DRW_TableEntry::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     }
 }
 
+bool DRW_TableEntry::replaceDxfRetainedStringField(
+    const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+    std::string& destination, std::string value) {
+    return replaceDxfReadRetainedString(
+        reader, m_dxfRetainedStringLease, ownerBytes, destination,
+        std::move(value));
+}
+
+bool DRW_TableEntry::replaceDxfRetainedStringBytes(
+    const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+    std::size_t newOwnerBytes) {
+    if (reader == nullptr)
+        return false;
+
+    DxfReadRetainedLeaseCheckpoint checkpoint(m_dxfRetainedStringLease);
+    const auto budget = reader->retainedByteBudget();
+    if (ownerBytes != 0u
+        && (m_dxfRetainedStringLease == nullptr
+            || ownerBytes > m_dxfRetainedStringLease->bytes())) {
+        if (budget != nullptr)
+            budget->reject();
+        return false;
+    }
+    if (!retainDxfReadBytes(m_dxfRetainedStringLease, budget, newOwnerBytes))
+        return false;
+    if (ownerBytes != 0u && m_dxfRetainedStringLease != nullptr
+        && !m_dxfRetainedStringLease->resizeTo(
+            m_dxfRetainedStringLease->bytes() - ownerBytes)) {
+        return false;
+    }
+
+    ownerBytes = budget != nullptr ? newOwnerBytes : 0u;
+    checkpoint.commit();
+    return true;
+}
+
+bool DRW_TableEntry::appendDxfRetainedStringField(
+    const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+    std::vector<std::string>& destination, std::string value) {
+    if (reader == nullptr
+        || destination.size()
+            >= static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+        return false;
+    }
+    if (destination.size() == destination.capacity()
+        && !DRW::reserve(destination,
+                         static_cast<int>(destination.size() + 1u))) {
+        return false;
+    }
+
+    const auto budget = reader->retainedByteBudget();
+    const std::size_t valueBytes = value.size();
+    if (budget != nullptr
+        && valueBytes > (std::numeric_limits<std::size_t>::max)()
+            - ownerBytes) {
+        budget->reject();
+        return false;
+    }
+
+    DxfReadRetainedLeaseCheckpoint checkpoint(m_dxfRetainedStringLease);
+    if (!retainDxfReadBytes(m_dxfRetainedStringLease, budget, valueBytes))
+        return false;
+    destination.push_back(std::move(value));
+    if (budget != nullptr)
+        ownerBytes += valueBytes;
+    checkpoint.commit();
+    return true;
+}
+
+bool DRW_TableEntry::retainDxfRetainedStringBytes(
+    const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+    std::size_t valueBytes) {
+    if (reader == nullptr)
+        return false;
+    const auto budget = reader->retainedByteBudget();
+    if (budget != nullptr
+        && valueBytes > (std::numeric_limits<std::size_t>::max)()
+            - ownerBytes) {
+        budget->reject();
+        return false;
+    }
+
+    DxfReadRetainedLeaseCheckpoint checkpoint(m_dxfRetainedStringLease);
+    if (!retainDxfReadBytes(m_dxfRetainedStringLease, budget, valueBytes))
+        return false;
+    if (budget != nullptr)
+        ownerBytes += valueBytes;
+    checkpoint.commit();
+    return true;
+}
+
+bool DRW_TableEntry::replaceDxfRetainedNameField(
+    const std::unique_ptr<dxfReader>& reader, std::string value) {
+    return replaceDxfRetainedStringField(
+        reader, m_dxfRetainedNameBytes, name, std::move(value));
+}
+
+bool DRW_TableEntry::replaceDxfRetainedNameAndStringField(
+    const std::unique_ptr<dxfReader>& reader,
+    std::size_t& secondaryOwnerBytes, std::string& secondaryDestination,
+    std::string nameValue, std::string secondaryValue) {
+    if (reader == nullptr)
+        return false;
+
+    const std::size_t maxBytes = (std::numeric_limits<std::size_t>::max)();
+    if (m_dxfRetainedNameBytes > maxBytes - secondaryOwnerBytes) {
+        const auto budget = reader->retainedByteBudget();
+        if (budget != nullptr)
+            budget->reject();
+        return false;
+    }
+    const std::size_t oldOwnerBytes =
+        m_dxfRetainedNameBytes + secondaryOwnerBytes;
+    if (nameValue.size() > maxBytes - secondaryValue.size()) {
+        const auto budget = reader->retainedByteBudget();
+        if (budget != nullptr)
+            budget->reject();
+        return false;
+    }
+    const std::size_t newOwnerBytes =
+        nameValue.size() + secondaryValue.size();
+
+    if (oldOwnerBytes != 0u) {
+        if (m_dxfRetainedStringLease == nullptr
+            || oldOwnerBytes > m_dxfRetainedStringLease->bytes()) {
+            const auto budget = reader->retainedByteBudget();
+            if (budget != nullptr)
+                budget->reject();
+            return false;
+        }
+    }
+
+    DxfReadRetainedLeaseCheckpoint checkpoint(m_dxfRetainedStringLease);
+    if (!retainDxfReadBytes(m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), newOwnerBytes))
+        return false;
+    if (oldOwnerBytes != 0u
+        && !m_dxfRetainedStringLease->resizeTo(
+            m_dxfRetainedStringLease->bytes() - oldOwnerBytes))
+        return false;
+
+    const std::size_t nameBytes = nameValue.size();
+    const std::size_t secondaryBytes = secondaryValue.size();
+    name.swap(nameValue);
+    secondaryDestination.swap(secondaryValue);
+    const bool budgeted = reader->retainedByteBudget() != nullptr;
+    m_dxfRetainedNameBytes = budgeted ? nameBytes : 0u;
+    secondaryOwnerBytes = budgeted ? secondaryBytes : 0u;
+    checkpoint.commit();
+    return true;
+}
+
+bool DRW_TableEntry::releaseDxfRetainedStringBytes(
+    std::size_t bytes) noexcept {
+    if (bytes == 0u)
+        return true;
+    if (m_dxfRetainedStringLease == nullptr
+        || bytes > m_dxfRetainedStringLease->bytes()) {
+        if (m_dxfRetainedStringLease != nullptr
+            && m_dxfRetainedStringLease->budget() != nullptr)
+            m_dxfRetainedStringLease->budget()->reject();
+        return false;
+    }
+    return m_dxfRetainedStringLease->resizeTo(
+        m_dxfRetainedStringLease->bytes() - bytes);
+}
+
 bool DRW_TableEntry::parseDxfGroups(int code,
                                     const std::unique_ptr<dxfReader>& reader) {
     if (appData.size() >= DRW::kMaxDxfApplicationGroups)
         return false;
     DxfReadRetainedLeaseCheckpoint retainedCheckpoint(
         m_dxfRetainedStringLease);
-    const auto retainedBudget = reader->retainedByteBudget();
     const auto retainText = [this, &reader](std::size_t bytes) {
         return retainDxfReadBytes(m_dxfRetainedStringLease,
                                   reader->retainedByteBudget(), bytes);
     };
     std::list<DRW_Variant> parsedGroup;
     DRW_Variant opener;
-    std::string appName = reader->getString();
+    const std::string_view appName = reader->getStringView();
     if (appName.size() <= 1 || appName.front() != '{')
         return false;
 
@@ -2427,17 +2877,13 @@ bool DRW_TableEntry::parseDxfGroups(int code,
     std::vector<std::uint32_t> parsedReactors;
     std::uint32_t parsedXDictionary = 0;
     const std::size_t openerSize = appName.size() - 1u;
-    if (openerSize > (std::numeric_limits<std::size_t>::max)() / 2u
-        || !retainText(openerSize * 2u))
+    if (!retainText(openerSize))
         return false;
-    std::string openerText = appName.substr(1);
+    if (!reader->chargeTypedVariantNode())
+        return false;
+    std::string openerText(appName.substr(1));
     opener.addString(code, std::move(openerText));
     parsedGroup.push_back(std::move(opener));
-    if (retainedBudget != nullptr && m_dxfRetainedStringLease != nullptr
-        && !m_dxfRetainedStringLease->resizeTo(
-            m_dxfRetainedStringLease->bytes() - openerSize))
-        return false;
-    appName.clear();
     int depth = 1;
     int nextCode = 0;
 
@@ -2447,9 +2893,11 @@ bool DRW_TableEntry::parseDxfGroups(int code,
         if (nextCode == 0)
             return false;
 
+        if (!reader->chargeTypedVariantNode())
+            return false;
         DRW_Variant value;
         if (nextCode == 102) {
-            std::string marker = reader->getString();
+            std::string marker = reader->takeString();
             if (marker.empty() || (marker.front() == '{' && marker.size() == 1))
                 return false;
             if (marker.front() == '{') {
@@ -2468,27 +2916,31 @@ bool DRW_TableEntry::parseDxfGroups(int code,
                    || (nextCode >= 390 && nextCode <= 399)
                    || nextCode == 480 || nextCode == 481
                    || nextCode == 1005) {
-            std::string rawHandle = reader->getString();
+            const bool isReactorHandle = depth == 1 && isReactors
+                && nextCode == 330;
+            const bool isXDictionaryHandle = depth == 1 && isXDictionary
+                && nextCode == 360 && parsedXDictionary == 0;
+            const std::uint32_t parsedHandle =
+                isReactorHandle || isXDictionaryHandle
+                    ? reader->getHandleString() : 0u;
+            std::string rawHandle = reader->takeString();
             if (!retainText(rawHandle.size()))
                 return false;
             value.addString(nextCode, std::move(rawHandle));
-            if (depth == 1 && isReactors && nextCode == 330) {
-                const auto reactor = reader->getHandleString();
-                if (reactor != 0) {
+            if (isReactorHandle) {
+                if (parsedHandle != 0) {
                     if (parsedReactors.size() >= dwgSafety::MaxReactorCount)
                         return false;
-                    parsedReactors.push_back(static_cast<std::uint32_t>(reactor));
+                    parsedReactors.push_back(parsedHandle);
                 }
-            } else if (depth == 1 && isXDictionary && nextCode == 360) {
-                if (parsedXDictionary == 0)
-                    parsedXDictionary = static_cast<std::uint32_t>(
-                        reader->getHandleString());
+            } else if (isXDictionaryHandle) {
+                parsedXDictionary = parsedHandle;
             }
         } else {
             switch (reader->type) {
             case dxfReader::STRING:
             case dxfReader::BINARY: {
-                std::string text = reader->getString();
+                std::string text = reader->takeString();
                 if (!retainText(text.size()))
                     return false;
                 value.addString(nextCode, std::move(text));
@@ -2521,6 +2973,108 @@ bool DRW_TableEntry::parseDxfGroups(int code,
     appData.push_back(std::move(parsedGroup));
     retainedCheckpoint.commit();
     return true;
+}
+
+bool DRW_TableEntry::readDwgNameWithSource(DRW::Version version,
+    dwgBuffer* bodyBuf, dwgBuffer* stringBuf, std::uint32_t bodyEnd,
+    std::uint32_t stringEnd, std::int16_t encodedType, std::int16_t expectedType,
+    std::uint32_t handle, UTF8STRING& parsedName,
+    std::shared_ptr<const DRW_DwgTableNameSource>& sourceResult) {
+    sourceResult.reset();
+    parsedName.clear();
+    if (bodyBuf == nullptr || stringBuf == nullptr)
+        return false;
+    dwgBuffer nameSource = stringBuf->forkIndependent();
+    const auto nameStartBit = currentObjectDwgBit(&nameSource);
+    std::uint32_t nameIssues = 0u;
+    {
+        // Isolate this field even if a common EED string already raised the
+        // same bit. A before/after bitwise delta would silently miss it.
+        struct NameIssueScope {
+            DRW_TextCodec* codec;
+            std::uint32_t previous;
+            explicit NameIssueScope(DRW_TextCodec* value) : codec(value),
+                previous(value ? value->accumulatedDecodeIssues() : 0u) {
+                if (codec) codec->resetAccumulatedDecodeIssues();
+            }
+            ~NameIssueScope() { if (codec) codec->mergeDecodeIssues(previous); }
+        } observations(stringBuf->decoder);
+        if (!readVariableTextWithinBounds(bodyBuf, stringBuf, version,
+                                          bodyEnd, stringEnd, parsedName))
+            return false;
+        if (observations.codec) {
+            nameIssues = observations.codec->accumulatedDecodeIssues();
+            if (version <= DRW::AC1018) {
+                // Even an empty/ASCII name carries its legacy source-profile
+                // uncertainty. Converter observations otherwise report these
+                // selection issues only after consuming non-ASCII bytes.
+                using Issue = DRW::DxfTextIssue;
+                switch (observations.codec->declaredCodePageSelection().kind) {
+                case DRW_CodePageKind::Unknown:
+                    nameIssues |= DRW::dxfTextIssueMask(Issue::UnknownCodePage); break;
+                case DRW_CodePageKind::Unavailable:
+                    nameIssues |= DRW::dxfTextIssueMask(Issue::UnavailableCodePage); break;
+                case DRW_CodePageKind::CompatibilityAlias:
+                    nameIssues |= DRW::dxfTextIssueMask(Issue::CompatibilityCodePage); break;
+                case DRW_CodePageKind::Unspecified:
+                    nameIssues |= DRW::dxfTextIssueMask(Issue::UnspecifiedCodePage); break;
+                default: break;
+                }
+                observations.codec->mergeDecodeIssues(nameIssues);
+            }
+        }
+    }
+    const auto nameEndBit = currentObjectDwgBit(stringBuf);
+    const auto retainNameSource = [&]() {
+        // BS-counted TV/TU fields are bounded by 65535 source units. Keep a
+        // separate absolute retained-owner ceiling rather than copying an
+        // entire surrounding object or trusting the decoded name's size.
+        constexpr std::size_t maxBytes = 512u * 1024u;
+        if (nameEndBit < nameStartBit
+            || nameEndBit - nameStartBit > (131074u * 8u)
+            || parsedName.size() > maxBytes)
+            return false;
+        auto source = std::make_shared<DRW_DwgTableNameSource>();
+        source->handle = handle;
+        source->version = version;
+        source->name = parsedName;
+        source->issues = nameIssues;
+        source->startBit = nameStartBit;
+        source->bitCount = nameEndBit - nameStartBit;
+        dwgBuffer widthProbe = nameSource.forkIndependent();
+        const auto units = source->bitCount != 0u ? widthProbe.getBitShort() : 0u;
+        const bool canonicalWidth = source->bitCount != 0u && widthProbe.isGood()
+            && currentObjectDwgBit(&widthProbe)
+                + static_cast<std::uint64_t>(units) * (version > DRW::AC1018 ? 16u : 8u)
+                == nameEndBit;
+        if (stringBuf->decoder) {
+            source->codePage = stringBuf->decoder->getCodePage();
+            // A tolerant body parse under another fixed table type cannot
+            // qualify the declared name profile.
+            source->profileBound = encodedType == expectedType && canonicalWidth
+                && stringBuf->decoder->hasSourceVersion()
+                && stringBuf->decoder->getSourceVersion() == version
+                && !stringBuf->decoder->isDxfFormat();
+        }
+        const auto bytes = static_cast<std::size_t>((source->bitCount + 7u) / 8u);
+        if (source->codePage.size() > 128u
+            || sizeof(DRW_DwgTableNameSource) + 2u * sizeof(void*) + source->name.size()
+                + source->codePage.size() + bytes + 2u > maxBytes)
+            return false;
+        source->encodedField.resize(bytes, 0u);
+        const auto whole = static_cast<std::size_t>(source->bitCount / 8u);
+        for (std::size_t index = 0u; index < whole; ++index)
+            source->encodedField[index] = nameSource.getRawChar8();
+        for (unsigned bit = 0u; bit < source->bitCount % 8u; ++bit)
+            source->encodedField[whole] |= static_cast<std::uint8_t>(
+                nameSource.getBit() << (7u - bit));
+        if (!nameSource.isGood() || currentObjectDwgBit(&nameSource) != nameEndBit)
+            return false;
+        sourceResult = std::move(source);
+        return true;
+    };
+
+    return retainNameSource();
 }
 
 bool DRW_TableEntry::parseDwg(DRW::Version version, dwgBuffer *buf,
@@ -2604,8 +3158,13 @@ DRW_DBG("\n***************************** parsing table entry *******************
     handle = ho.ref;
     DRW_DBG("TableEntry Handle: "); DRW_DBGHL(ho.code, ho.size, ho.ref);
     std::vector<DwgEedChunk> eedChunks;
-    if (!readDwgEed(version, *buf, eedChunks, eedEndBit))
+    if (!readDwgEed(version, *buf, eedChunks, eedEndBit)) {
+        DRW_DBG("TableEntry EED parse failed for handle ");
+        DRW_DBG(handle); DRW_DBG(" at bit ");
+        DRW_DBG(buf->getPosition() * 8u + buf->getBitPos());
+        DRW_DBG(" end="); DRW_DBG(eedEndBit); DRW_DBG("\n");
         return false;
+    }
     std::vector<std::unique_ptr<DRW_Variant>> parsedExtData;
     std::vector<PendingHandleRef> parsedAppIdResolutions;
     std::vector<PendingHandleRef> parsedLayerRefResolutions;
@@ -2766,7 +3325,24 @@ bool DRW_TableEntry::readDwgObjectHandleListWithinFrame(
 *  Class to handle ldim style symbol table entries
 *  @author Rallaz
 */
+bool DRW_Dimstyle::canWriteDxfDimensionColors() const noexcept {
+    return dimstyleColorHasDxfProjection(
+               dimColorCmc[0], static_cast<std::uint32_t>(dimclrd))
+        && dimstyleColorHasDxfProjection(
+               dimColorCmc[1], static_cast<std::uint32_t>(dimclre))
+        && dimstyleColorHasDxfProjection(
+               dimColorCmc[2], static_cast<std::uint32_t>(dimclrt));
+}
+
 bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    const auto retainDxfHandle = [&reader](dwgHandle& target) {
+        target = dwgHandle{};
+        if (!reader->isValidHandleString())
+            return;
+        target.code = 5;
+        target.ref = reader->getHandleString();
+        target.ref64 = target.ref;
+    };
     switch (code) {
     case 105:
         if (!reader->isValidHandleString())
@@ -2774,19 +3350,34 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         handle = reader->getHandleString();
         break;
     case 3:
-        dimpost = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[0], dimpost,
+                reader->getUtf8String()))
+            return false;
         break;
     case 4:
-        dimapost = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[1], dimapost,
+                reader->getUtf8String()))
+            return false;
         break;
     case 5:
-        dimblk = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[2], dimblk,
+                reader->getUtf8String()))
+            return false;
         break;
     case 6:
-        dimblk1 = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[3], dimblk1,
+                reader->getUtf8String()))
+            return false;
         break;
     case 7:
-        dimblk2 = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[4], dimblk2,
+                reader->getUtf8String()))
+            return false;
         break;
     case 40:
         dimscale = reader->getDouble();
@@ -2892,18 +3483,22 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     case 176:
         dimclrd = reader->getInt32();
+        dimColorCmc[0] = {};
         break;
     case 177:
         dimclre = reader->getInt32();
+        dimColorCmc[1] = {};
         break;
     case 178:
         dimclrt = reader->getInt32();
+        dimColorCmc[2] = {};
         break;
     case 179:
         dimadec = reader->getInt32();
         break;
     case 270:
         dimunit = reader->getInt32();
+        m_dxfDimensionPresence |= kDxfLegacyDimunit;
         break;
     case 271:
         dimdec = reader->getInt32();
@@ -2922,15 +3517,18 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     case 276:
         dimfrac = reader->getInt32();
+        m_dxfDimensionPresence |= kDxfModernDimfrac;
         break;
     case 277:
         dimlunit = reader->getInt32();
+        m_dxfDimensionPresence |= kDxfModernDimlunit;
         break;
     case 278:
         dimdsep = reader->getInt32();
         break;
     case 279:
         dimtmove = reader->getInt32();
+        m_dxfDimensionPresence |= kDxfModernDimtmove;
         break;
     case 280:
         dimjust = reader->getInt32();
@@ -2955,12 +3553,14 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     case 287:
         dimfit = reader->getInt32();
+        m_dxfDimensionPresence |= kDxfLegacyDimfit;
         break;
     case 288:
         dimupt = reader->getInt32();
         break;
     case 289:
         dimatfit = reader->getInt32();
+        m_dxfDimensionPresence |= kDxfModernDimatfit;
         break;
     case 290:
         dimfxlon = reader->getInt32();
@@ -2977,19 +3577,51 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         break;
     }
     case 340:
-        dimtxsty = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[5], dimtxsty,
+                reader->getUtf8String()))
+            return false;
+        retainDxfHandle(dimtxstyH);
         break;
     case 341:
-        dimldrblk = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[6], dimldrblk,
+                reader->getUtf8String()))
+            return false;
+        retainDxfHandle(dimldrblkH);
         break;
     case 342:
-        dimblk = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[2], dimblk,
+                reader->getUtf8String()))
+            return false;
+        retainDxfHandle(dimblkH);
         break;
     case 343:
-        dimblk1 = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[3], dimblk1,
+                reader->getUtf8String()))
+            return false;
+        retainDxfHandle(dimblk1H);
         break;
     case 344:
-        dimblk2 = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[4], dimblk2,
+                reader->getUtf8String()))
+            return false;
+        retainDxfHandle(dimblk2H);
+        break;
+    case 345:
+        retainDxfHandle(dimltypeH);
+        m_dxfDimensionPresence |= kDxfDxfDimltype;
+        break;
+    case 346:
+        retainDxfHandle(dimltex1H);
+        m_dxfDimensionPresence |= kDxfDxfDimltex1;
+        break;
+    case 347:
+        retainDxfHandle(dimltex2H);
+        m_dxfDimensionPresence |= kDxfDxfDimltex2;
         break;
     default:
         return DRW_TableEntry::parseCode(code, reader);
@@ -2998,19 +3630,96 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     return true;
 }
 
+void DRW_Dimstyle::finalizeDxfDimensionVariables(
+    DRW::Version sourceVersion) {
+    m_dxfDimensionSourceVersion = sourceVersion;
+    if (sourceVersion < DRW::AC1021) {
+        m_dxfDimensionPresence &= 0x003Fu;
+        dimltypeH = dimltex1H = dimltex2H = dwgHandle{};
+    }
+    const bool hasModernUnit =
+        (m_dxfDimensionPresence
+         & (kDxfModernDimfrac | kDxfModernDimlunit)) != 0;
+    const bool hasModernFit =
+        (m_dxfDimensionPresence
+         & (kDxfModernDimatfit | kDxfModernDimtmove)) != 0;
+
+    if (!hasModernUnit
+        && (m_dxfDimensionPresence & kDxfLegacyDimunit) != 0) {
+        const drwDimvarMigration::ModernDimensionUnit mapped =
+            drwDimvarMigration::fromLegacyUnit(dimunit);
+        dimlunit = mapped.linearUnit;
+        dimfrac = mapped.fraction;
+    }
+    if (!hasModernFit
+        && (m_dxfDimensionPresence & kDxfLegacyDimfit) != 0) {
+        const drwDimvarMigration::ModernDimensionFit mapped =
+            drwDimvarMigration::fromLegacyFit(dimfit);
+        dimatfit = mapped.textArrowFit;
+        dimtmove = mapped.textMove;
+    }
+}
+
+bool DRW_Dimstyle::resolveLegacyDxfDimensionVariables(
+    int& unit, int& fit) const {
+    const bool hasModernUnit =
+        (m_dxfDimensionPresence
+         & (kDxfModernDimfrac | kDxfModernDimlunit)) != 0;
+    const bool hasModernFit =
+        (m_dxfDimensionPresence
+         & (kDxfModernDimatfit | kDxfModernDimtmove)) != 0;
+    const bool modernSource = m_dxfDimensionSourceVersion >= DRW::AC1015;
+
+    if (modernSource || hasModernUnit) {
+        if (!drwDimvarMigration::toLegacyUnit(dimlunit, dimfrac, unit))
+            return false;
+    } else {
+        unit = dimunit;
+        if (!drwDimvarMigration::isLegacyUnit(unit))
+            return false;
+    }
+    if (modernSource || hasModernFit) {
+        if (!drwDimvarMigration::toLegacyFit(dimatfit, dimtmove, fit))
+            return false;
+    } else {
+        fit = dimfit;
+        if (!drwDimvarMigration::isLegacyFit(fit))
+            return false;
+    }
+    return true;
+}
+
 // Populate the vars map from the parsed struct fields using EXACTLY the $DIM
 // keys / DXF codes the LibreCAD createDimStyle consumer reads. Idempotent: the
 // `if (!get(key))` guard never clobbers a value already present (DWG override
 // path or DXF group-105 handles). (Phase 3A.0)
 void DRW_Dimstyle::syncStructToVars() {
+    (void)syncStructToVarsImpl(nullptr);
+}
+
+bool DRW_Dimstyle::syncStructToVarsForDxfRead(dxfReader& reader) {
+    return syncStructToVarsImpl(&reader);
+}
+
+bool DRW_Dimstyle::syncStructToVarsImpl(dxfReader* reader) {
+    bool admitted = true;
+    const auto addIfAbsent = [&](const char* key, auto addValue) {
+        if (!admitted || get(key))
+            return;
+        if (reader != nullptr && !reader->chargeTypedVariantNode()) {
+            admitted = false;
+            return;
+        }
+        addValue();
+    };
     auto addDouble = [&](const char* key, int code, double value) {
-        if (!get(key)) add(key, code, value);
+        addIfAbsent(key, [&]() { add(key, code, value); });
     };
     auto addInt = [&](const char* key, int code, int value) {
-        if (!get(key)) add(key, code, value);
+        addIfAbsent(key, [&]() { add(key, code, value); });
     };
     auto addStr = [&](const char* key, int code, const std::string& value) {
-        if (!get(key)) add(key, code, value);
+        addIfAbsent(key, [&]() { add(key, code, value); });
     };
 
     // Doubles.
@@ -3084,6 +3793,7 @@ void DRW_Dimstyle::syncStructToVars() {
     addStr("$DIMBLK", 5, dimblk);
     addStr("$DIMBLK1", 6, dimblk1);
     addStr("$DIMBLK2", 7, dimblk2);
+    return admitted;
 }
 
 bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -3161,12 +3871,50 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
         return true;
     };
     const auto readBodyColor = [bodyBuf, bodySBuf, version, bodyEnd,
-                                stringEnd](int& value) {
+                                stringEnd](int& value, std::int32_t& rgb,
+                                           UTF8STRING& name,
+                                           UTF8STRING& bookName,
+                                           std::uint8_t& method,
+                                           std::uint8_t& flags,
+                                           std::uint16_t& rawIndex) {
         std::uint32_t parsedValue = 0;
+        bool hasRgb = false;
         if (!readCmColorWithinBounds(bodyBuf, bodySBuf, version, bodyEnd,
-                                     stringEnd, parsedValue))
+                                     stringEnd, parsedValue, &rgb, &name,
+                                     &bookName, &hasRgb, &method, &flags,
+                                     &rawIndex))
+            return false;
+        if (!hasRgb)
+            rgb = -1;
+        value = static_cast<int>(parsedValue);
+        return true;
+    };
+    const auto readBodyDimColor = [bodyBuf, bodySBuf, version, bodyEnd,
+                                   stringEnd](
+        int& value, DRW_DwgCmcColorMetadata& metadata) {
+        std::uint32_t parsedValue = 0;
+        std::int32_t rgb24 = -1;
+        bool hasRgb = false;
+        std::uint8_t method = 0;
+        std::uint8_t flags = 0;
+        std::uint16_t rawIndex = 0;
+        UTF8STRING colorName;
+        UTF8STRING bookName;
+        if (!readCmColorWithinBounds(
+                bodyBuf, bodySBuf, version, bodyEnd, stringEnd, parsedValue,
+                &rgb24, &colorName, &bookName, &hasRgb, &method, &flags,
+                &rawIndex))
             return false;
         value = static_cast<int>(parsedValue);
+        metadata = {};
+        metadata.present = version >= DRW::AC1018;
+        metadata.method = method;
+        metadata.flags = flags;
+        metadata.rawIndex = version >= DRW::AC1018 ? rawIndex : 0u;
+        metadata.rgb24 = hasRgb ? rgb24 : -1;
+        metadata.hasRgb = hasRgb;
+        metadata.colorName = std::move(colorName);
+        metadata.bookName = std::move(bookName);
         return true;
     };
 
@@ -3297,7 +4045,13 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
         if (!readBodyDouble(parsed.dimfxl)
             || !readBodyDouble(parsed.dimjogang)
             || !readBodyShort(parsed.dimtfill)
-            || !readBodyColor(parsed.dimtfillclr))
+            || !readBodyColor(parsed.dimtfillclr,
+                              parsed.dimtfillclrRgb,
+                              parsed.dimtfillclrName,
+                              parsed.dimtfillclrBookName,
+                              parsed.dimtfillclrMethod,
+                              parsed.dimtfillclrFlags,
+                              parsed.dimtfillclrRawIndex))
             return fail();
     }
 
@@ -3331,9 +4085,9 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
         || !readBodyFlag(parsed.dimsah)
         || !readBodyFlag(parsed.dimtix)
         || !readBodyFlag(parsed.dimsoxd)
-        || !readBodyColor(parsed.dimclrd)
-        || !readBodyColor(parsed.dimclre)
-        || !readBodyColor(parsed.dimclrt)
+        || !readBodyDimColor(parsed.dimclrd, parsed.dimColorCmc[0])
+        || !readBodyDimColor(parsed.dimclre, parsed.dimColorCmc[1])
+        || !readBodyDimColor(parsed.dimclrt, parsed.dimColorCmc[2])
         || !readBodyShort(parsed.dimadec)
         || !readBodyShort(parsed.dimdec)
         || !readBodyShort(parsed.dimtdec)
@@ -3368,8 +4122,9 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
                 return fail();
         }
     }
-    if (!readBodySignedShort(parsed.dimlwd)
-        || !readBodySignedShort(parsed.dimlwe))
+    if (!readBodySignedShort(parsed.dimlwd))
+        return fail();
+    if (!readBodySignedShort(parsed.dimlwe))
         return fail();
     bool ignoredFinalFlag = false;
     if (!readBitWithinBody(bodyBuf, version, bodyEnd, ignoredFinalFlag))
@@ -3466,7 +4221,10 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
 bool DRW_LType::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 3:
-        desc = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedDescBytes, desc,
+                reader->getUtf8String()))
+            return false;
         break;
     case 72:
         alignment = reader->getInt32();
@@ -3475,6 +4233,18 @@ bool DRW_LType::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         size = reader->getInt32();
         if (size < 0 || size > std::numeric_limits<std::int16_t>::max())
             return false;
+        {
+            std::size_t retainedSegmentBytes = 0u;
+            for (const std::size_t bytes : m_dxfRetainedSegmentTextBytes) {
+                if (bytes > (std::numeric_limits<std::size_t>::max)()
+                                - retainedSegmentBytes)
+                    return false;
+                retainedSegmentBytes += bytes;
+            }
+            if (!releaseDxfRetainedStringBytes(retainedSegmentBytes))
+                return false;
+            m_dxfRetainedSegmentTextBytes.clear();
+        }
         declaredSize = size;
         path.clear();
         segments.clear();
@@ -3484,6 +4254,8 @@ bool DRW_LType::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             return false;
         }
         if (!DRW::reserve(segments, size))
+            return false;
+        if (!DRW::reserve(m_dxfRetainedSegmentTextBytes, size))
             return false;
         break;
     case 40:
@@ -3502,6 +4274,7 @@ bool DRW_LType::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             segment.length = value;
             path.push_back(value);
             segments.push_back(std::move(segment));
+            m_dxfRetainedSegmentTextBytes.push_back(0u);
         }
         pathIdx++;
         break;
@@ -3561,9 +4334,13 @@ bool DRW_LType::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             return false;
         break;
     case 9:
-        if (segments.empty() || (segments.back().shapeFlags & 0x02) == 0)
+        if (segments.empty() || (segments.back().shapeFlags & 0x02) == 0
+            || m_dxfRetainedSegmentTextBytes.size() != segments.size())
             return false;
-        segments.back().text = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedSegmentTextBytes.back(),
+                segments.back().text, reader->getUtf8String()))
+            return false;
         break;
     default:
         return DRW_TableEntry::parseCode(code, reader);
@@ -3577,25 +4354,161 @@ bool DRW_LType::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 *  Update the size and length of line type according to the path
 *  @author Rallaz
 */
-void DRW_LType::update(){
-    if (!segments.empty()) {
-        path.clear();
-        path.reserve(segments.size());
-        for (const auto& segment : segments)
-            path.push_back(segment.length);
-    } else {
-        segments.reserve(path.size());
-        for (double value : path) {
-            DRW_LTypeSegment segment;
-            segment.length = value;
-            segments.push_back(std::move(segment));
+bool DRW_LType::update() {
+    // `path` is the legacy/simple view while `segments` carries complex dash
+    // metadata. Keep a last-synchronized length snapshot so edits through
+    // either public view have deterministic authority without erasing edits
+    // made through the other one.
+    try {
+        const auto sameLengths = [](const std::vector<double>& lhs,
+                                    const std::vector<double>& rhs) {
+            return lhs == rhs;
+        };
+        const auto segmentLengths = [](const std::vector<DRW_LTypeSegment>& src) {
+            std::vector<double> result;
+            result.reserve(src.size());
+            for (const DRW_LTypeSegment& segment : src)
+                result.push_back(segment.length);
+            return result;
+        };
+        const auto hasSegmentMetadata = [](const DRW_LTypeSegment& segment) {
+            return segment.complexShapeCode != 0 || segment.styleHandle.ref != 0
+                || segment.styleHandle.ref64 != 0 || segment.shapeFlags != 0
+                || segment.xOffset != 0.0 || segment.yOffset != 0.0
+                || segment.scale != 1.0 || segment.rotation != 0.0
+                || !segment.text.empty();
+        };
+
+        std::vector<double> resolvedPath = path;
+        std::vector<DRW_LTypeSegment> resolvedSegments = segments;
+        std::vector<std::uint32_t> resolvedShapeHandles = shapeHandles;
+        bool resized = false;
+
+        if (hasSynchronizedLengths) {
+            const bool pathChanged = !sameLengths(path, synchronizedLengths);
+            const std::vector<double> currentSegmentLengths =
+                segmentLengths(segments);
+            const bool segmentsChanged =
+                !sameLengths(currentSegmentLengths, synchronizedLengths);
+            if (pathChanged && segmentsChanged) {
+                if (!sameLengths(path, currentSegmentLengths))
+                    return false;
+                resolvedPath = path;
+            } else if (pathChanged) {
+                resolvedPath = path;
+                if (resolvedPath.size() == segments.size()) {
+                    for (std::size_t i = 0; i < resolvedPath.size(); ++i)
+                        resolvedSegments[i].length = resolvedPath[i];
+                } else {
+                    const bool complex = std::any_of(
+                        segments.cbegin(), segments.cend(), hasSegmentMetadata);
+                    const bool hasShapeReferences = std::any_of(
+                        shapeHandles.cbegin(), shapeHandles.cend(),
+                        [](std::uint32_t handle) { return handle != 0; });
+                    if (complex || hasShapeReferences)
+                        return false;
+                    resolvedSegments.clear();
+                    resolvedSegments.reserve(resolvedPath.size());
+                    for (double value : resolvedPath) {
+                        DRW_LTypeSegment segment;
+                        segment.length = value;
+                        resolvedSegments.push_back(std::move(segment));
+                    }
+                    resized = true;
+                }
+            } else if (segmentsChanged) {
+                resolvedPath = currentSegmentLengths;
+                resized = resolvedPath.size() != synchronizedLengths.size();
+                if (resized && std::any_of(
+                        shapeHandles.cbegin(), shapeHandles.cend(),
+                        [](std::uint32_t handle) { return handle != 0; }))
+                    return false;
+            }
+        } else if (resolvedPath.empty() && !resolvedSegments.empty()) {
+            resolvedPath = segmentLengths(resolvedSegments);
+        } else if (resolvedSegments.empty() && !resolvedPath.empty()) {
+            resolvedSegments.reserve(resolvedPath.size());
+            for (double value : resolvedPath) {
+                DRW_LTypeSegment segment;
+                segment.length = value;
+                resolvedSegments.push_back(std::move(segment));
+            }
+        } else if (!sameLengths(resolvedPath,
+                                segmentLengths(resolvedSegments))) {
+            return false;
         }
+
+        if (resolvedPath.size() > static_cast<std::size_t>(
+                std::numeric_limits<std::int16_t>::max()))
+            return false;
+        if (!std::all_of(resolvedPath.cbegin(), resolvedPath.cend(),
+                         [](double value) { return std::isfinite(value); }))
+            return false;
+        if (resolvedShapeHandles.size() != 0
+            && resolvedShapeHandles.size() != resolvedPath.size()) {
+            const bool hasShapeReferences = std::any_of(
+                resolvedShapeHandles.cbegin(), resolvedShapeHandles.cend(),
+                [](std::uint32_t handle) { return handle != 0; });
+            if (hasShapeReferences)
+                return false;
+            if (!resized && hasSynchronizedLengths)
+                return false;
+            resolvedShapeHandles.resize(resolvedPath.size(), 0);
+        }
+        if (resolvedSegments.size() != resolvedPath.size())
+            return false;
+        for (std::size_t i = 0; i < resolvedSegments.size(); ++i) {
+            DRW_LTypeSegment& segment = resolvedSegments[i];
+            if (!std::isfinite(segment.length)
+                || !std::isfinite(segment.xOffset)
+                || !std::isfinite(segment.yOffset)
+                || !std::isfinite(segment.scale)
+                || !std::isfinite(segment.rotation)
+                || (segment.styleHandle.ref64 != 0
+                    && static_cast<std::uint32_t>(segment.styleHandle.ref64)
+                           != segment.styleHandle.ref))
+                return false;
+            const std::uint32_t segmentHandle = segment.styleHandle.ref;
+            const std::uint32_t fallbackHandle = resolvedShapeHandles.empty()
+                ? 0 : resolvedShapeHandles[i];
+            if (segmentHandle != 0 && fallbackHandle != 0
+                && segmentHandle != fallbackHandle)
+                return false;
+            const std::uint32_t resolvedHandle = segmentHandle != 0
+                ? segmentHandle : fallbackHandle;
+            if (resolvedHandle != 0) {
+                if (segment.styleHandle.code == 0)
+                    segment.styleHandle.code = 5;
+                segment.styleHandle.ref = resolvedHandle;
+                if (segment.styleHandle.ref64 == 0)
+                    segment.styleHandle.ref64 = resolvedHandle;
+                if (!resolvedShapeHandles.empty())
+                    resolvedShapeHandles[i] = resolvedHandle;
+            }
+        }
+
+        double total = 0.0;
+        for (double value : resolvedPath) {
+            total += std::fabs(value);
+            if (!std::isfinite(total))
+                return false;
+        }
+        const int resolvedSize = static_cast<int>(resolvedPath.size());
+
+        // Commit only after all validation and allocation has succeeded.
+        path = std::move(resolvedPath);
+        segments = std::move(resolvedSegments);
+        shapeHandles = std::move(resolvedShapeHandles);
+        size = resolvedSize;
+        length = total;
+        if (resized)
+            declaredSize = resolvedSize;
+        synchronizedLengths = path;
+        hasSynchronizedLengths = true;
+        return true;
+    } catch (...) {
+        return false;
     }
-    size = static_cast<int>(path.size());
-    double total = 0.0;
-    for (double value : path)
-        total += std::fabs(value);
-    length = total;
 }
 
 bool DRW_LType::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -3794,6 +4707,8 @@ bool DRW_LType::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     parsed.pathIdx = 0;
     if (!parsed.validatePayloadFields())
         return fail();
+    parsed.synchronizedLengths = parsed.path;
+    parsed.hasSynchronizedLengths = true;
     *this = std::move(parsed);
     return true;
     } catch (...) {
@@ -3809,26 +4724,69 @@ bool DRW_LType::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
 bool DRW_Layer::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 6:
-        lineType = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedLineTypeBytes, lineType,
+                reader->getUtf8String()))
+            return false;
         break;
     case DRW::dxfCode::COLOR:
         color = reader->getInt32();
+        if (!releaseDxfRetainedStringBytes(m_dxfRetainedColorNameBytes))
+            return false;
+        m_dxfRetainedColorNameBytes = 0u;
+        color24 = -1;
+        colorName.clear();
+        m_colorDwgMethod = 0;
+        m_hasDwgColorCmcMetadata = false;
+        m_colorDwgFlags = 0u;
+        m_colorDwgRawIndex = 0u;
+        m_colorDwgName.clear();
+        m_colorDwgBookName.clear();
         break;
     case 290:
         plotF = reader->getBool();
         break;
-    case DRW::dxfCode::LINEWEIGHT:
-        lWeight = DRW_LW_Conv::dxfInt2lineWidth(reader->getInt32());
+    case DRW::dxfCode::LINEWEIGHT: {
+        const int rawLineweight = reader->getInt32();
+        lWeight = DRW_LW_Conv::dxfInt2lineWidth(rawLineweight);
+        hasInvalidDxfLineweight = rawLineweight < -3 || rawLineweight > 211;
+        rawInvalidDxfLineweight = hasInvalidDxfLineweight ? rawLineweight : 0;
         break;
+    }
     case DRW::dxfCode::PLOTSTYLE:
-        handlePlotS = reader->getString();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedPlotStyleHandleBytes, handlePlotS,
+                reader->takeString()))
+            return false;
         break;
     case 347:
-        handleMaterialS = reader->getString();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedMaterialHandleBytes, handleMaterialS,
+                reader->takeString()))
+            return false;
         break;
     case 420:
         color24 = reader->getInt32();
+        m_colorDwgMethod = 0;
+        m_hasDwgColorCmcMetadata = false;
+        m_colorDwgFlags = 0u;
+        m_colorDwgRawIndex = 0u;
+        m_colorDwgName.clear();
+        m_colorDwgBookName.clear();
         break;
+    case 430: {
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedColorNameBytes, colorName,
+                reader->getUtf8String()))
+            return false;
+        m_colorDwgMethod = 0;
+        m_hasDwgColorCmcMetadata = false;
+        m_colorDwgFlags = 0u;
+        m_colorDwgRawIndex = 0u;
+        m_colorDwgName.clear();
+        m_colorDwgBookName.clear();
+        break;
+    }
     default:
         return DRW_TableEntry::parseCode(code, reader);
     }
@@ -3863,8 +4821,8 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         return fail();
 
     UTF8STRING parsedName;
-    if (!readVariableTextWithinBounds(buf, sBuf, version, bodyEnd, stringEnd,
-                                      parsedName))
+    if (!readDwgNameWithSource(version, buf, sBuf, bodyEnd, stringEnd,
+            oType, 51, handle, parsedName, m_dwgNameSource))
         return fail();
     if (objectBodyIsEmpty(buf, version, bodyEnd)) {
         std::uint32_t parsedParentHandle = 0;
@@ -3881,6 +4839,7 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         color = 0;
         color24 = -1;
         colorName.clear();
+        m_colorDwgMethod = 0;
         plotF = true;
         lWeight = DRW_LW_Conv::widthDefault;
         parentHandle = parsedParentHandle;
@@ -3924,19 +4883,20 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     int parsedColor24 = -1;
     UTF8STRING cmcName, cmcBookName;
     std::uint32_t parsedColorValue = 0;
+    std::uint8_t parsedColorMethod = 0;
+    std::uint8_t parsedColorFlags = 0;
+    std::uint16_t parsedColorRawIndex = 0;
     if (!readCmColorWithinBounds(buf, sBuf, version, bodyEnd, stringEnd,
                                  parsedColorValue, &parsedColor24,
-                                 &cmcName, &cmcBookName))
+                                 &cmcName, &cmcBookName, nullptr,
+                                 &parsedColorMethod, &parsedColorFlags,
+                                 &parsedColorRawIndex))
         return fail();
     int parsedColor = static_cast<int>(parsedColorValue);
     if (parsedOff && parsedColor > 0)
         parsedColor = -parsedColor;
-    UTF8STRING parsedColorName;
-    if (!cmcName.empty()) {
-        parsedColorName = cmcBookName.empty()
-            ? cmcName
-            : (cmcBookName + "$" + cmcName);
-    }
+    UTF8STRING parsedColorName = colorBookEntryName(
+        cmcBookName, cmcName, (parsedColorFlags & 0x02u) != 0u);
 
     if (!buf->isGood() || !sBuf->isGood()
         || (version > DRW::AC1018
@@ -4005,6 +4965,12 @@ bool DRW_Layer::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     color = parsedColor;
     color24 = parsedColor24;
     colorName = std::move(parsedColorName);
+    m_colorDwgMethod = parsedColorMethod;
+    m_hasDwgColorCmcMetadata = version >= DRW::AC1018;
+    m_colorDwgFlags = parsedColorFlags;
+    m_colorDwgRawIndex = parsedColorRawIndex;
+    m_colorDwgName = std::move(cmcName);
+    m_colorDwgBookName = std::move(cmcBookName);
     plotF = parsedPlot;
     lWeight = parsedLineWeight;
     parentHandle = parsedLayerControl.ref;
@@ -4081,6 +5047,8 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     if (!readText(parsedName))
         return fail();
     int parsedFlags = 0;
+    bool parsedXrefUnloaded = false;
+    std::int32_t parsedXrefIndex = -1;
     DRW_Coord parsedBasePoint;
     UTF8STRING parsedXrefPath;
     UTF8STRING parsedDescription;
@@ -4115,8 +5083,12 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
             || !readBitWithinBody(bodyBuf, version, bodyEnd, xrefDependent))
             return fail();
         parsedFlags |= xrefReference << 6;//referenced external reference, block code 70, bit 7 (64)
-        const std::int16_t xrefIndexShort = static_cast<std::int16_t>(xrefIndex);
-        DRW_DBG(" xrefindex: "); DRW_DBG(xrefIndexShort); DRW_DBG("\n");
+        // The stream stores xrefindex + 1; zero represents no XREF index.
+        // Keep the compressed short unsigned so indexes above INT16_MAX are
+        // not sign-extended or truncated while retaining the DWG record.
+        parsedXrefIndex = xrefIndex == 0 ? -1 : xrefIndex - 1;
+        DRW_DBG(" xrefindex+1: "); DRW_DBG(xrefIndex);
+        DRW_DBG(" xrefindex: "); DRW_DBG(parsedXrefIndex); DRW_DBG("\n");
         parsedFlags |= xrefDependent << 4;//is refx dependent, block code 70, bit 5 (16)
     }
     bool isAnonymous = false;
@@ -4133,10 +5105,13 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     parsedFlags |= blockIsXref << 2; //if is a Xref, block code 70, bit 3 (4)
     parsedFlags |= xrefOverlaid << 3; //if is a overlaid Xref, block code 70, bit 4 (8)
     if (version > DRW::AC1014) {//2000+
-        bool xrefLoaded = false;
-        if (!readBitWithinBody(bodyBuf, version, bodyEnd, xrefLoaded))
+        bool xrefUnloaded = false;
+        if (!readBitWithinBody(bodyBuf, version, bodyEnd, xrefUnloaded))
             return fail();
-        parsedFlags |= xrefLoaded << 5; //if is a loaded Xref, block code 70, bit 6 (32)
+        // The DWG loaded bit is not DXF BLOCK group-70 bit 32 (resolved). It
+        // maps to BLOCK group 71: 1 means unloaded, and ODA says wire zero
+        // means loaded. Keep the states independent in the model.
+        parsedXrefUnloaded = blockIsXref && xrefUnloaded;
     }
     // Per ODA spec / libreDWG dwg.spec (SINCE R_2004a), num_owned is only
     // present when the block_record is neither an xref nor an overlaid xref.
@@ -4341,6 +5316,8 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
 
     name = std::move(parsedName);
     flags = parsedFlags;
+    xrefUnloaded = parsedXrefUnloaded;
+    xrefIndex = parsedXrefIndex;
     basePoint = parsedBasePoint;
     xrefPath = std::move(parsedXrefPath);
     description = std::move(parsedDescription);
@@ -4374,10 +5351,16 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
 bool DRW_Textstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 3:
-        font = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[0], font,
+                reader->getUtf8String()))
+            return false;
         break;
     case 4:
-        bigFont = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[1], bigFont,
+                reader->getUtf8String()))
+            return false;
         break;
     case 40:
         height = reader->getDouble();
@@ -4683,15 +5666,21 @@ bool DRW_Vport::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             int value = 0;
             if (!readDxfIntInRange(reader, 0, std::numeric_limits<int>::max(), value))
                 return false;
+            m_ambientColorCmc = {};
             ambientColor = static_cast<std::uint32_t>(value);
         }
         break;
     case 421:
         if (!readDxfIntInRange(reader, 0, 0xFFFFFF, ambientColorRgb))
             return false;
+        m_ambientColorCmc = {};
         break;
     case 431:
-        ambientColorName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfAmbientColorNameBytes, ambientColorName,
+                reader->getUtf8String()))
+            return false;
+        m_ambientColorCmc = {};
         break;
     case 65:
         ucsPerVP = reader->getBool();
@@ -4712,6 +5701,11 @@ bool DRW_Vport::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 146:
         ucsElevation = reader->getDouble();
+        break;
+    case 170:
+        if (!readDxfIntInRange(reader, 0, 5, shadePlotMode))
+            return false;
+        hasDxfShadePlotMode = true;
         break;
     case 281:
         {
@@ -4734,6 +5728,10 @@ bool DRW_Vport::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 332:
         backgroundHandle = static_cast<std::uint32_t>(reader->getHandleString());
+        break;
+    case 333:
+        shadePlotHandle = static_cast<std::uint32_t>(reader->getHandleString());
+        hasDxfShadePlotHandle = true;
         break;
     case 345:
         namedUcsHandle = static_cast<std::uint32_t>(reader->getHandleString());
@@ -4802,8 +5800,19 @@ bool DRW_Vport::validatePayloadFields() const {
 
 bool DRW_Vport::validateDxf() const {
     return validatePayloadFields()
+        && shadePlotMode >= 0 && shadePlotMode <= 5
+        && validAmbientColorDxfProjection(m_ambientColorCmc, ambientColor,
+                                          ambientColorRgb)
         && ambientColor <= static_cast<std::uint32_t>(
             std::numeric_limits<std::int16_t>::max());
+}
+
+bool DRW_Vport::validateDxf(DRW::Version version) const {
+    return validateDxf()
+        && (version > DRW::AC1018
+            || isDefaultAmbientColorProjection(
+                m_ambientColorCmc, ambientColor, ambientColorRgb,
+                ambientColorName));
 }
 
 bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -4923,6 +5932,9 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     double parsedContrast = 0.0;
     std::uint32_t parsedAmbientColor = 250;
     std::int32_t parsedAmbientColorRgb = -1;
+    std::uint8_t parsedAmbientColorMethod = 0u;
+    std::uint8_t parsedAmbientColorFlags = 0u;
+    std::uint16_t parsedAmbientColorRawIndex = 0u;
     UTF8STRING parsedAmbientColorName;
     UTF8STRING parsedAmbientColorBookName;
     bool hasParsedAmbientColorRgb = false;
@@ -4938,7 +5950,10 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
                                         parsedAmbientColor, &parsedAmbientColorRgb,
                                         &parsedAmbientColorName,
                                         &parsedAmbientColorBookName,
-                                        &hasParsedAmbientColorRgb))
+                                        &hasParsedAmbientColorRgb,
+                                        &parsedAmbientColorMethod,
+                                        &parsedAmbientColorFlags,
+                                        &parsedAmbientColorRawIndex))
             return fail();
     }
 
@@ -5105,9 +6120,19 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     parsed.ambientColor = parsedAmbientColor;
     parsed.ambientColorRgb = hasParsedAmbientColorRgb
         ? parsedAmbientColorRgb : -1;
-    parsed.ambientColorName = parsedAmbientColorBookName.empty()
-        ? std::move(parsedAmbientColorName)
-        : (parsedAmbientColorBookName + "$" + parsedAmbientColorName);
+    parsed.ambientColorName = colorBookEntryName(
+        parsedAmbientColorBookName, parsedAmbientColorName,
+        (parsedAmbientColorFlags & 0x02u) != 0u);
+    if (version > DRW::AC1018) {
+        parsed.m_ambientColorCmc.present = true;
+        parsed.m_ambientColorCmc.method = parsedAmbientColorMethod;
+        parsed.m_ambientColorCmc.flags = parsedAmbientColorFlags;
+        parsed.m_ambientColorCmc.rawIndex = parsedAmbientColorRawIndex;
+        parsed.m_ambientColorCmc.colorName =
+            std::move(parsedAmbientColorName);
+        parsed.m_ambientColorCmc.bookName =
+            std::move(parsedAmbientColorBookName);
+    }
     parsed.lowerLeft = parsedLowerLeft;
     parsed.UpperRight = parsedUpperRight;
     parsed.circleZoom = parsedCircleZoom;
@@ -5147,9 +6172,14 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
 
 bool DRW_ImageDef::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
-    case 1:
-        name = reader->getUtf8String();
+    case 1: {
+        std::string value = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedImageNameBytes, name,
+                std::move(value)))
+            return false;
         break;
+    }
     case 5:
         if (!reader->isValidHandleString())
             return false;
@@ -5323,7 +6353,8 @@ bool DRW_ImageDef::encodeDwg(DRW::Version version, dwgBufferW *buf,
 
     // Common object handle prefix. IMAGEDEF has no table-entry xref slot.
     putCommonObjectHandlePrefix(hb, static_cast<std::uint32_t>(parentHandle),
-                                numReactors, xDictFlag);
+                                numReactors, xDictFlag, &reactorHandles,
+                                xDictHandle, DRW::DwgHardOwnership);
     return buf->isGood() && sb->isGood() && hb->isGood();
 }
 
@@ -5335,19 +6366,34 @@ bool DRW_PlotSettings::parseCode(int code, const std::unique_ptr<dxfReader>& rea
         handle = reader->getHandleString();
         break;
     case 1:
-        pageSetupName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[0], pageSetupName,
+                reader->getUtf8String()))
+            return false;
         break;
     case 2:
-        printerConfig = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[1], printerConfig,
+                reader->getUtf8String()))
+            return false;
         break;
     case 4:
-        paperSize = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[2], paperSize,
+                reader->getUtf8String()))
+            return false;
         break;
     case 6:
-        plotViewName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[3], plotViewName,
+                reader->getUtf8String()))
+            return false;
         break;
     case 7:
-        currentStyleSheet = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[4], currentStyleSheet,
+                reader->getUtf8String()))
+            return false;
         break;
     case 40:
         marginLeft = reader->getDouble();
@@ -5712,7 +6758,9 @@ bool DRW_UCS::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         orthoOrigin.z = reader->getDouble();
         break;
     case 71:
-        orthoType = reader->getInt32();
+        // Group 71 is a repeated orthographic-option type paired with the
+        // following 13/23/33 point. dxfRW::processUCS owns that tuple state;
+        // it must not overwrite the distinct scalar group 79 field.
         break;
     case 79:
         orthoType = reader->getInt32();
@@ -5758,9 +6806,14 @@ bool DRW_UCS::validatePayloadFields() const {
 }
 
 bool DRW_UCS::validateDxf() const {
+    const auto validDxfOption = [](const DRW_UCSOrthoPoint& option) {
+        return option.type >= 1 && option.type <= 6;
+    };
     return validatePayloadFields()
         && flags <= std::numeric_limits<std::int16_t>::max()
         && orthoType <= std::numeric_limits<std::int16_t>::max()
+        && std::all_of(orthographicOptions.begin(), orthographicOptions.end(),
+                       validDxfOption)
         // Autodesk's UCS table-record DXF contract defines 346 as the
         // optional base-UCS reference but does not define a 345 field here.
         // namedUcsHandle is retained for the DWG handle stream only; do not
@@ -6036,15 +7089,21 @@ bool DRW_View::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             int value = 0;
             if (!readDxfIntInRange(reader, 0, std::numeric_limits<int>::max(), value))
                 return false;
+            m_ambientColorCmc = {};
             m_ambientColor = static_cast<std::uint32_t>(value);
         }
         break;
     case 421:
         if (!readDxfIntInRange(reader, 0, 0xFFFFFF, m_ambientColorRgb))
             return false;
+        m_ambientColorCmc = {};
         break;
     case 431:
-        m_ambientColorName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfAmbientColorNameBytes, m_ambientColorName,
+                reader->getUtf8String()))
+            return false;
+        m_ambientColorCmc = {};
         break;
     case 332:
         m_backgroundHandle = static_cast<std::uint32_t>(reader->getHandleString());
@@ -6120,11 +7179,24 @@ bool DRW_View::validatePayloadFields() const {
 
 bool DRW_View::validateDxf() const {
     return validatePayloadFields()
+        && validAmbientColorDxfProjection(m_ambientColorCmc,
+                                          m_ambientColor, m_ambientColorRgb)
         && flags <= std::numeric_limits<std::int16_t>::max()
         && viewMode <= std::numeric_limits<std::int16_t>::max()
         && ucsOrthoType <= std::numeric_limits<std::int16_t>::max()
         && m_ambientColor <= static_cast<std::uint32_t>(
             std::numeric_limits<std::int16_t>::max());
+}
+
+bool DRW_View::validateDxf(DRW::Version version) const {
+    return validateDxf()
+        && (version > DRW::AC1018
+            ? validViewAmbientColorDxfProjection(
+                  m_ambientColorCmc, m_ambientColor, m_ambientColorRgb,
+                  m_ambientColorName)
+            : isDefaultAmbientColorProjection(
+                  m_ambientColorCmc, m_ambientColor, m_ambientColorRgb,
+                  m_ambientColorName));
 }
 
 bool DRW_View::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -6248,6 +7320,9 @@ bool DRW_View::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
     double parsedContrast = 0.0;
     std::uint32_t parsedAmbientColor = 250;
     std::int32_t parsedAmbientColorRgb = -1;
+    std::uint8_t parsedAmbientColorMethod = 0u;
+    std::uint8_t parsedAmbientColorFlags = 0u;
+    std::uint16_t parsedAmbientColorRawIndex = 0u;
     UTF8STRING parsedAmbientColorName;
     UTF8STRING parsedAmbientColorBookName;
     bool hasParsedAmbientColorRgb = false;
@@ -6264,7 +7339,10 @@ bool DRW_View::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
                                         &parsedAmbientColorRgb,
                                         &parsedAmbientColorName,
                                         &parsedAmbientColorBookName,
-                                        &hasParsedAmbientColorRgb))
+                                        &hasParsedAmbientColorRgb,
+                                        &parsedAmbientColorMethod,
+                                        &parsedAmbientColorFlags,
+                                        &parsedAmbientColorRawIndex))
             return fail();
     }
 
@@ -6391,9 +7469,19 @@ bool DRW_View::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
     parsed.m_ambientColor = parsedAmbientColor;
     parsed.m_ambientColorRgb = hasParsedAmbientColorRgb
         ? parsedAmbientColorRgb : -1;
-    parsed.m_ambientColorName = parsedAmbientColorBookName.empty()
-        ? std::move(parsedAmbientColorName)
-        : (parsedAmbientColorBookName + "$" + parsedAmbientColorName);
+    parsed.m_ambientColorName = colorBookEntryName(
+        parsedAmbientColorBookName, parsedAmbientColorName,
+        (parsedAmbientColorFlags & 0x02u) != 0u);
+    if (version > DRW::AC1018) {
+        parsed.m_ambientColorCmc.present = true;
+        parsed.m_ambientColorCmc.method = parsedAmbientColorMethod;
+        parsed.m_ambientColorCmc.flags = parsedAmbientColorFlags;
+        parsed.m_ambientColorCmc.rawIndex = parsedAmbientColorRawIndex;
+        parsed.m_ambientColorCmc.colorName =
+            std::move(parsedAmbientColorName);
+        parsed.m_ambientColorCmc.bookName =
+            std::move(parsedAmbientColorBookName);
+    }
     parsed.parentHandle = parsedControlHandle.ref;
     parsed.reactorHandles = std::move(parsedReactors);
     parsed.xDictHandle = parsedXDictHandle.ref;
@@ -6471,8 +7559,8 @@ bool DRW_AppId::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         return fail();
 
     UTF8STRING parsedName;
-    if (!readVariableTextWithinBounds(bodyBuf, bodyStringBuf, version,
-                                      bodyEnd, stringEnd, parsedName))
+    if (!readDwgNameWithSource(version, bodyBuf, bodyStringBuf, bodyEnd,
+            stringEnd, oType, 67, handle, parsedName, m_dwgNameSource))
         return fail();
 
     if (objectBodyIsEmpty(bodyBuf, version, bodyEnd)) {
@@ -6569,6 +7657,17 @@ namespace {
 
 bool DRW_LType::encodeDwg(DRW::Version version, dwgBufferW *buf,
                            dwgBufferW *strBuf, dwgBufferW *hdlBuf) const {
+    if (buf == nullptr)
+        return false;
+    DRW_LType resolved = *this;
+    if (!resolved.update() || !resolved.validatePayloadFields())
+        return false;
+    return resolved.encodeDwgResolved(version, buf, strBuf, hdlBuf);
+}
+
+bool DRW_LType::encodeDwgResolved(DRW::Version version, dwgBufferW *buf,
+                                  dwgBufferW *strBuf,
+                                  dwgBufferW *hdlBuf) const {
     if (buf == nullptr || !validatePayloadFields())
         return false;
     dwgBufferW *sb = (strBuf && version > DRW::AC1018) ? strBuf : buf;
@@ -6745,16 +7844,30 @@ bool DRW_Layer::validatePayloadFields() const {
 }
 
 bool DRW_Layer::validateDxf() const {
-    return validatePayloadFields()
-        && color >= -static_cast<int>(DRW::ColorByLayer)
-        && color <= static_cast<int>(DRW::ColorByLayer)
+    const std::int64_t colorValue = static_cast<std::int64_t>(color);
+    const std::int64_t colorIndex = colorValue < 0
+        ? -colorValue : colorValue;
+    const bool indexedColor = colorIndex >= 1 && colorIndex <= 255;
+    const bool trueColorOnly =
+        colorIndex == static_cast<std::int64_t>(DRW::ColorByLayer)
+        && color24 >= 0;
+    const int lineWeight = static_cast<int>(lWeight);
+    const bool validLayerLineWeight =
+        (lineWeight >= static_cast<int>(DRW_LW_Conv::width00)
+         && lineWeight <= static_cast<int>(DRW_LW_Conv::width23))
+        || lineWeight == static_cast<int>(DRW_LW_Conv::widthDefault);
+    return !hasInvalidDxfLineweight
+        && validatePayloadFields()
+        && (indexedColor || trueColorOnly)
         && flags <= std::numeric_limits<std::int16_t>::max()
-        && static_cast<int>(lWeight) <= DRW_LW_Conv::widthDefault;
+        && validLayerLineWeight;
 }
 
 bool DRW_Layer::encodeDwg(DRW::Version version, dwgBufferW *buf,
                            dwgBufferW *strBuf, dwgBufferW *hdlBuf) const {
-    if (buf == nullptr || !validatePayloadFields())
+    if (buf == nullptr || hasInvalidDxfLineweight || !validatePayloadFields())
+        return false;
+    if (version > DRW::AC1018 && (strBuf == nullptr || strBuf == buf))
         return false;
     const std::int64_t colorValue = static_cast<std::int64_t>(color);
     const bool layerOff = colorValue < 0;
@@ -6763,6 +7876,23 @@ bool DRW_Layer::encodeDwg(DRW::Version version, dwgBufferW *buf,
         || colorIndexValue > static_cast<std::int64_t>(DRW::ColorByLayer))
         return false;
     const std::uint16_t colorIndex = static_cast<std::uint16_t>(colorIndexValue);
+    const std::uint8_t canonicalMethod = color24 >= 0 ? dwgColor::RGB
+        : colorIndex == 256u ? dwgColor::BYLAYER
+        : colorIndex == 0u ? dwgColor::BYBLOCK : dwgColor::ACIS;
+    if (m_colorDwgMethod != 0 && m_colorDwgMethod != canonicalMethod)
+        return false;
+    if (m_hasDwgColorCmcMetadata
+        && (m_colorDwgMethod != canonicalMethod
+            || m_colorDwgRawIndex != 0u
+            || (m_colorDwgFlags & ~0x03u) != 0u
+            || ((m_colorDwgFlags & 0x01u) == 0u
+                && !m_colorDwgName.empty())
+            || ((m_colorDwgFlags & 0x02u) == 0u
+                && !m_colorDwgBookName.empty())))
+        return false;
+    if (version < DRW::AC1018
+        && (color24 >= 0 || !colorName.empty()))
+        return false;
     dwgBufferW *sb = (strBuf && version > DRW::AC1018) ? strBuf : buf;
     dwgBufferW *hb = (hdlBuf && version > DRW::AC1014) ? hdlBuf : buf;
 
@@ -6786,20 +7916,28 @@ bool DRW_Layer::encodeDwg(DRW::Version version, dwgBufferW *buf,
             ((lwIdx & 0x1F) << 5));
         buf->putSBitShort(f);
     }
-    // P4-08: emit 24-bit truecolor + color/book name on R2004+ when present.
-    // colorName is stored joined as "BOOK$ENTRY" by parseDwg (or just "ENTRY"
-    // when no book); split it back so the CMC name/book flags round-trip. The
-    // name strings go to the string buffer (sb), matching the reader which
-    // reads them from sBuf.
-    if (version > DRW::AC1014 && color24 >= 0) {
-        UTF8STRING bookName, entryName = colorName;
-        const std::string::size_type sep = colorName.find('$');
-        if (sep != std::string::npos) {
-            bookName = colorName.substr(0, sep);
-            entryName = colorName.substr(sep + 1);
+    if (version >= DRW::AC1018) {
+        UTF8STRING bookName, entryName;
+        std::uint8_t flags = 0u;
+        const bool preserveParsedNames = m_hasDwgColorCmcMetadata
+            && colorName == colorBookEntryName(
+                m_colorDwgBookName, m_colorDwgName,
+                (m_colorDwgFlags & 0x02u) != 0u);
+        if (preserveParsedNames) {
+            bookName = m_colorDwgBookName;
+            entryName = m_colorDwgName;
+            flags = m_colorDwgFlags;
+        } else {
+            const bool hasBookName =
+                splitColorBookEntryName(colorName, bookName, entryName);
+            flags = static_cast<std::uint8_t>(
+                (entryName.empty() ? 0u : 1u)
+                | (hasBookName ? 2u : 0u));
         }
-        buf->putCmColor(version, colorIndex,
-                        color24, entryName, bookName, sb);
+        const std::uint8_t method = m_colorDwgMethod != 0
+            ? m_colorDwgMethod : canonicalMethod;
+        buf->putCmColorWithFlags(version, method, colorIndex, color24,
+                                 entryName, bookName, flags, sb);
     } else {
         buf->putCmColor(version, colorIndex);
     }
@@ -6860,6 +7998,85 @@ bool DRW_Dimstyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     const auto finite = [](double value) {
         return std::isfinite(value);
     };
+    const auto dimtfillColorMethod = [this]() -> std::uint8_t {
+        if (dimtfillclrMethod != 0)
+            return dimtfillclrMethod;
+        if (dimtfillclrRgb >= 0)
+            return dwgColor::RGB;
+        if (dimtfillclr == 0)
+            return dwgColor::BYBLOCK;
+        if (dimtfillclr == 256)
+            return dwgColor::BYLAYER;
+        return dwgColor::ACI;
+    };
+    const auto validDimtfillColor = [&]() {
+        const bool hasName = !dimtfillclrName.empty();
+        const bool hasBookName = !dimtfillclrBookName.empty();
+        const std::uint8_t expectedFlags = static_cast<std::uint8_t>(
+            (hasName ? 1u : 0u) | (hasBookName ? 2u : 0u));
+        if (version <= DRW::AC1018) {
+            return dimtfillclrRawIndex == 0u
+                && dimtfillclrRgb == -1 && dimtfillclrMethod == 0
+                && dimtfillclrFlags == 0 && !hasName && !hasBookName;
+        }
+        if (dimtfillclrRawIndex != 0u
+            || !validUnsignedBitShort(dimtfillclr)
+            || dimtfillclrRgb < -1 || dimtfillclrRgb > 0x00FFFFFF
+            || (dimtfillclrFlags & ~0x03u) != 0u
+            || (dimtfillclrMethod == 0 && dimtfillclrFlags != 0u)
+            || (dimtfillclrMethod != 0
+                && dimtfillclrFlags != expectedFlags))
+            return false;
+        switch (dimtfillColorMethod()) {
+        case dwgColor::BYLAYER:
+            return dimtfillclr == 256 && dimtfillclrRgb == -1;
+        case dwgColor::BYBLOCK:
+            return dimtfillclr == 0 && dimtfillclrRgb == -1;
+        case dwgColor::RGB:
+            return dimtfillclr == 256 && dimtfillclrRgb >= 0;
+        case dwgColor::ACI:
+            return dimtfillclr > 0 && dimtfillclr < 256
+                && dimtfillclrRgb == -1;
+        default:
+            return false;
+        }
+    };
+    struct EncodedDimColor {
+        std::uint8_t method = 0u;
+        std::uint8_t flags = 0u;
+        std::uint16_t index = 0u;
+        std::int32_t rgb24 = -1;
+        UTF8STRING colorName;
+        UTF8STRING bookName;
+    };
+    std::array<EncodedDimColor, 3> encodedDimColors{};
+    const std::array<int, 3> dimColorValues{{dimclrd, dimclre, dimclrt}};
+    bool hasDimColorNames = false;
+    for (std::size_t i = 0; i < encodedDimColors.size(); ++i) {
+        const DRW_DwgCmcColorMetadata& metadata = dimColorCmc[i];
+        const std::int32_t rgb24 = metadata.hasRgb ? metadata.rgb24 : -1;
+        const UTF8STRING publicName = colorBookEntryName(
+            metadata.bookName, metadata.colorName,
+            (metadata.flags & 0x02u) != 0u);
+        EncodedDimColor& encoded = encodedDimColors[i];
+        if ((metadata.hasRgb
+             && (metadata.rgb24 < 0 || metadata.rgb24 > 0x00FFFFFF))
+            || (!metadata.hasRgb && metadata.rgb24 != -1)
+            || !prepareDwgCmcColor(metadata,
+                                static_cast<std::uint32_t>(dimColorValues[i]),
+                                rgb24, publicName, encoded.method,
+                                encoded.index, encoded.colorName,
+                                encoded.bookName, encoded.flags)
+            || encoded.colorName.size() > kMaxCadValueBytes
+            || encoded.bookName.size() > kMaxCadValueBytes
+            || (version < DRW::AC1018
+                && (rgb24 >= 0 || metadata.rawIndex != 0u
+                    || encoded.flags != 0u))
+            || (version <= DRW::AC1018 && encoded.flags != 0u))
+            return false;
+        hasDimColorNames = hasDimColorNames || encoded.flags != 0u;
+        encoded.rgb24 = rgb24;
+    }
     if (!validUnsigned(dimtad) || !validUnsigned(dimzin)
         || !validUnsigned(dimazin) || !validUnsigned(dimaltd)
         || !validUnsigned(dimadec) || !validUnsigned(dimdec)
@@ -6870,8 +8087,12 @@ bool DRW_Dimstyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
         || !validUnsigned(dimjust) || !validUnsigned(dimtolj)
         || !validUnsigned(dimtzin) || !validUnsigned(dimaltz)
         || !validUnsigned(dimaltttz) || !validUnsigned(dimatfit)
-        || !validUnsigned(dimclrd) || !validUnsigned(dimclre)
-        || !validUnsigned(dimclrt)
+        || !validDimtfillColor()
+        || ((!dimtfillclrName.empty() || !dimtfillclrBookName.empty())
+            && (version <= DRW::AC1018 || strBuf == nullptr
+                || strBuf == buf))
+        || (hasDimColorNames
+            && (version <= DRW::AC1018 || strBuf == nullptr || strBuf == buf))
         || (version > DRW::AC1018
             && (!validUnsigned(dimtfill) || !validUnsigned(dimtfillclr)
                 || !validUnsigned(dimarcsym)))
@@ -6913,7 +8134,10 @@ bool DRW_Dimstyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
         buf->putBitDouble(dimfxl);
         buf->putBitDouble(dimjogang);
         buf->putBitShort(static_cast<std::uint16_t>(dimtfill));
-        buf->putCmColor(version, static_cast<std::uint16_t>(dimtfillclr));
+        buf->putCmColor(version, dimtfillColorMethod(),
+                        static_cast<std::uint16_t>(dimtfillclr),
+                        dimtfillclrRgb, dimtfillclrName,
+                        dimtfillclrBookName, sb);
     }
 
     buf->putBit(dimtol != 0);
@@ -6944,9 +8168,12 @@ bool DRW_Dimstyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     buf->putBit(dimsah != 0);
     buf->putBit(dimtix != 0);
     buf->putBit(dimsoxd != 0);
-    buf->putCmColor(version, static_cast<std::uint16_t>(dimclrd));
-    buf->putCmColor(version, static_cast<std::uint16_t>(dimclre));
-    buf->putCmColor(version, static_cast<std::uint16_t>(dimclrt));
+    // ODA §20.4.68 defines DIMCLRD/E/T as CMC; keep each method and optional
+    // payload aligned with the detached R2007+ string stream.
+    for (const EncodedDimColor& color : encodedDimColors)
+        buf->putCmColorWithFlags(version, color.method, color.index,
+                                 color.rgb24, color.colorName,
+                                 color.bookName, color.flags, sb);
 
     buf->putBitShort(static_cast<std::uint16_t>(dimadec));
     buf->putBitShort(static_cast<std::uint16_t>(dimdec));
@@ -7050,6 +8277,23 @@ bool DRW_Vport::encodeDwg(DRW::Version version, dwgBufferW *buf,
     if (buf == nullptr || !validatePayloadFields()
         || !std::isfinite(encodeVportAspectRatio(version, height, ratio)))
         return false;
+    std::uint8_t ambientMethod = 0u;
+    std::uint8_t ambientFlags = 0u;
+    std::uint16_t ambientIndex = 0u;
+    UTF8STRING ambientColorNameEntry;
+    UTF8STRING ambientColorBookName;
+    if (version > DRW::AC1018) {
+        if (!prepareDwgCmcColor(m_ambientColorCmc, ambientColor,
+                                ambientColorRgb, ambientColorName,
+                                ambientMethod, ambientIndex,
+                                ambientColorNameEntry, ambientColorBookName,
+                                ambientFlags))
+            return false;
+    } else if (!isDefaultAmbientColorProjection(
+                   m_ambientColorCmc, ambientColor, ambientColorRgb,
+                   ambientColorName)) {
+        return false;
+    }
     const std::int32_t reactorCount =
         static_cast<std::int32_t>(reactorHandles.size());
     dwgBufferW *sb = (strBuf && version > DRW::AC1018) ? strBuf : buf;
@@ -7080,21 +8324,9 @@ bool DRW_Vport::encodeDwg(DRW::Version version, dwgBufferW *buf,
             buf->putRawChar8(defaultLightingType);
             buf->putBitDouble(brightness);
             buf->putBitDouble(contrast);
-            if (ambientColorRgb >= 0) {
-                UTF8STRING bookName;
-                UTF8STRING entryName = ambientColorName;
-                const std::string::size_type separator =
-                    ambientColorName.find('$');
-                if (separator != std::string::npos) {
-                    bookName = ambientColorName.substr(0, separator);
-                    entryName = ambientColorName.substr(separator + 1);
-                }
-                buf->putCmColor(version,
-                                static_cast<std::uint16_t>(ambientColor),
-                                ambientColorRgb, entryName, bookName, sb);
-            } else {
-                buf->putCmColor(version, static_cast<std::uint16_t>(ambientColor));
-            }
+            buf->putCmColorWithFlags(version, ambientMethod, ambientIndex,
+                                     ambientColorRgb, ambientColorNameEntry,
+                                     ambientColorBookName, ambientFlags, sb);
         }
     }
     buf->put2RawDouble(lowerLeft);
@@ -7975,6 +9207,23 @@ bool DRW_View::encodeDwg(DRW::Version version, dwgBufferW *buf,
                           dwgBufferW *strBuf, dwgBufferW *hdlBuf) const {
     if (buf == nullptr || !validatePayloadFields())
         return false;
+    std::uint8_t ambientMethod = 0u;
+    std::uint8_t ambientFlags = 0u;
+    std::uint16_t ambientIndex = 0u;
+    UTF8STRING ambientColorNameEntry;
+    UTF8STRING ambientColorBookName;
+    if (version > DRW::AC1018) {
+        if (!prepareDwgCmcColor(m_ambientColorCmc, m_ambientColor,
+                                m_ambientColorRgb, m_ambientColorName,
+                                ambientMethod, ambientIndex,
+                                ambientColorNameEntry, ambientColorBookName,
+                                ambientFlags))
+            return false;
+    } else if (!isDefaultAmbientColorProjection(
+                   m_ambientColorCmc, m_ambientColor, m_ambientColorRgb,
+                   m_ambientColorName)) {
+        return false;
+    }
     const std::int32_t reactorCount =
         static_cast<std::int32_t>(reactorHandles.size());
     dwgBufferW *sb = (strBuf && version > DRW::AC1018) ? strBuf : buf;
@@ -8003,20 +9252,9 @@ bool DRW_View::encodeDwg(DRW::Version version, dwgBufferW *buf,
             buf->putRawChar8(m_defaultLightingType);
             buf->putBitDouble(m_brightness);
             buf->putBitDouble(m_contrast);
-            UTF8STRING bookName;
-            UTF8STRING colorName = m_ambientColorName;
-            const std::string::size_type separator = colorName.find('$');
-            if (separator != std::string::npos) {
-                bookName = colorName.substr(0, separator);
-                colorName = colorName.substr(separator + 1);
-            }
-            if (m_ambientColorRgb >= 0)
-                buf->putCmColor(version,
-                                static_cast<std::uint16_t>(m_ambientColor),
-                                m_ambientColorRgb, colorName, bookName, sb);
-            else
-                buf->putCmColor(version,
-                                static_cast<std::uint16_t>(m_ambientColor));
+            buf->putCmColorWithFlags(version, ambientMethod, ambientIndex,
+                                     m_ambientColorRgb, ambientColorNameEntry,
+                                     ambientColorBookName, ambientFlags, sb);
         }
     }
     buf->putBit(static_cast<std::uint8_t>(flags & 1));  // paper-space flag
@@ -8090,7 +9328,10 @@ bool DRW_Dictionary::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         if (!m_pendingEntryName.empty()
             || m_entries.size() >= DRW_Dictionary::kMaxEntries)
             return false;
-        m_pendingEntryName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedPendingEntryNameBytes,
+                m_pendingEntryName, reader->getUtf8String()))
+            return false;
         if (m_pendingEntryName.empty())
             return false;
         break;
@@ -8104,7 +9345,27 @@ bool DRW_Dictionary::parseCode(int code, const std::unique_ptr<dxfReader>& reade
             static_cast<std::uint32_t>(reader->getHandleString());
         if (entryHandle == 0)
             return false;
-        m_entries.push_back({m_pendingEntryName, entryHandle});
+        if (m_dxfRetainedPendingEntryNameBytes
+            > (std::numeric_limits<std::size_t>::max)()
+                - m_dxfRetainedEntryNameBytes) {
+            const auto budget = reader->retainedByteBudget();
+            if (budget != nullptr)
+                budget->reject();
+            return false;
+        }
+        if (m_entries.size() == m_entries.capacity()
+            && !DRW::reserve(m_entries,
+                             static_cast<int>(m_entries.size() + 1u)))
+            return false;
+        Entry entry;
+        entry.m_name = std::move(m_pendingEntryName);
+        entry.m_handle = entryHandle;
+        entry.m_dxfHandleCode = code == 350
+            ? Entry::DxfHandleCode::SoftOwner
+            : Entry::DxfHandleCode::HardOwner;
+        m_entries.push_back(std::move(entry));
+        m_dxfRetainedEntryNameBytes += m_dxfRetainedPendingEntryNameBytes;
+        m_dxfRetainedPendingEntryNameBytes = 0u;
         m_pendingEntryName.clear();
         break;
     }
@@ -8119,7 +9380,10 @@ bool DRW_Dictionary::hasCompleteDxfEntries() const noexcept {
         || m_entries.size() > DRW_Dictionary::kMaxEntries)
         return false;
     for (const Entry& entry : m_entries) {
-        if (entry.m_name.empty() || entry.m_handle == 0)
+        if (entry.m_name.empty() || entry.m_handle == 0
+            || (entry.m_dxfHandleCode != Entry::DxfHandleCode::Unspecified
+                && entry.m_dxfHandleCode != Entry::DxfHandleCode::SoftOwner
+                && entry.m_dxfHandleCode != Entry::DxfHandleCode::HardOwner))
             return false;
     }
     return true;
@@ -8285,13 +9549,14 @@ bool DRW_DictionaryWithDefault::parseCode(int code, const std::unique_ptr<dxfRea
             return false;
         m_defaultEntryHandle = defaultHandle;
         m_dxfDefaultEntrySeen = true;
+        m_hasDxfDefaultEntry = true;
         return true;
     }
     return DRW_Dictionary::parseCode(code, reader);
 }
 
 bool DRW_DictionaryWithDefault::hasCompleteDxfPayload() const noexcept {
-    return hasCompleteDxfEntries() && m_dxfDefaultEntrySeen
+    return hasCompleteDxfEntries() && m_hasDxfDefaultEntry
         && m_defaultEntryHandle != 0;
 }
 
@@ -8331,7 +9596,10 @@ bool DRW_DictionaryVar::parseCode(int code, const std::unique_ptr<dxfReader>& re
         m_schema = reader->getInt32();
         break;
     case 1:
-        m_value = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedValueBytes, m_value,
+                reader->getUtf8String()))
+            return false;
         break;
     default:
         return DRW_TableEntry::parseCode(code, reader);
@@ -8408,7 +9676,7 @@ bool xRecordCoordinateCode(int code, int& xCode, int& component) {
     return true;
 }
 
-bool decodeXRecordBinary(const std::string& text,
+bool decodeXRecordBinary(std::string_view text,
                          std::vector<std::uint8_t>& bytes) {
     if ((text.size() & 1u) != 0u)
         return false;
@@ -8503,7 +9771,7 @@ bool DRW_XRecord::parseCode(int code,
         m_dxfCoordinateMask = 0;
     }
     if (!m_dxfBodySeen) {
-        if (code == 100 && reader->getString() == "AcDbXrecord") {
+        if (code == 100 && reader->getStringView() == "AcDbXrecord") {
             m_dxfBodySeen = true;
             m_dxfHeaderPending = true;
             return true;
@@ -8524,16 +9792,71 @@ bool DRW_XRecord::parseCode(int code,
             return true;
         }
     }
-    if (code == 100) {
-        if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
+    // XRECORD application data uses non-XDATA codes. A group-1001 APPID
+    // starts common trailing XDATA, not another arbitrary payload string.
+    // Keep its ownership, point grammar and retained-byte lease in the base
+    // parser rather than duplicating it into the two application views.
+    if (code == 1001)
+        m_dxfXdataSeen = true;
+    if (m_dxfXdataSeen)
+        return code >= 1000 && DRW_TableEntry::parseCode(code, reader);
+    const auto appendStringValue = [this, &reader](int valueCode) {
+        if (m_values.size() >= dwgSafety::MaxOwnedObjectCount
+            || m_dataEntries.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        DRW_Variant value(code, reader->getUtf8String());
-        m_values.push_back(value);
-        m_dataEntries.push_back(std::move(value));
+        if (!reader->chargeTypedVariantNode()
+            || !reader->chargeTypedVariantNode())
+            return false;
+
+        UTF8STRING text = reader->getUtf8String();
+        const std::size_t valueBytes = text.size();
+        const std::size_t maxBytes =
+            (std::numeric_limits<std::size_t>::max)();
+        if (valueBytes > maxBytes - valueBytes) {
+            const auto budget = reader->retainedByteBudget();
+            if (budget != nullptr)
+                budget->reject();
+            return false;
+        }
+        if (m_values.size() >= static_cast<std::size_t>(
+                                   (std::numeric_limits<int>::max)())
+            || m_dataEntries.size() >= static_cast<std::size_t>(
+                                           (std::numeric_limits<int>::max)()))
+            return false;
+        const int nextValueCount = static_cast<int>(m_values.size() + 1u);
+        const int nextEntryCount = static_cast<int>(m_dataEntries.size() + 1u);
+        if (!DRW::reserve(m_values, nextValueCount)
+            || !DRW::reserve(m_dataEntries, nextEntryCount))
+            return false;
+
+        const std::size_t ownerBytes = valueBytes + valueBytes;
+        if (!retainDxfRetainedStringBytes(
+                reader, m_dxfRetainedVariantStringBytes, ownerBytes))
+            return false;
+        const std::size_t chargedBytes =
+            reader->retainedByteBudget() != nullptr ? ownerBytes : 0u;
+        try {
+            DRW_Variant compatibilityValue(valueCode, std::move(text));
+            DRW_Variant orderedValue(compatibilityValue);
+            m_values.push_back(std::move(compatibilityValue));
+            m_dataEntries.push_back(std::move(orderedValue));
+        } catch (...) {
+            if (chargedBytes != 0u) {
+                if (!releaseDxfRetainedStringBytes(chargedBytes))
+                    return false;
+                m_dxfRetainedVariantStringBytes -= chargedBytes;
+            }
+            return false;
+        }
         return true;
+    };
+    if (code == 100) {
+        return appendStringValue(code);
     }
     if (xRecordCodeIsHandle(code)) {
         if (m_handleValues.size() >= dwgSafety::MaxOwnedObjectCount)
+            return false;
+        if (!reader->chargeTypedVariantNode())
             return false;
         const std::uint64_t handle = reader->getHandleString();
         m_handleValues.emplace_back(
@@ -8543,9 +9866,12 @@ bool DRW_XRecord::parseCode(int code,
     }
     if (xRecordCodeIsBinary(code)) {
         std::vector<std::uint8_t> bytes;
-        if (!decodeXRecordBinary(reader->getString(), bytes))
+        if (!decodeXRecordBinary(reader->getStringView(), bytes))
             return false;
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
+            return false;
+        if (!reader->chargeTypedVariantNode()
+            || !reader->chargeTypedVariantNode())
             return false;
         DRW_Variant value(code, std::move(bytes));
         m_values.push_back(value);
@@ -8571,6 +9897,9 @@ bool DRW_XRecord::parseCode(int code,
             if (m_values.size() >= dwgSafety::MaxOwnedObjectCount
                 || m_dataEntries.size() >= dwgSafety::MaxOwnedObjectCount)
                 return false;
+            if (!reader->chargeTypedVariantNode()
+                || !reader->chargeTypedVariantNode())
+                return false;
             m_values.emplace_back(xCode, DRW_Coord(0, 0, 0));
             m_dataEntries.emplace_back(xCode, DRW_Coord(0, 0, 0));
             m_dxfCoordinateMask = 0;
@@ -8591,15 +9920,13 @@ bool DRW_XRecord::parseCode(int code,
         return true;
     }
     if (xRecordCodeIsString(code)) {
-        if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
-            return false;
-        DRW_Variant value(code, reader->getUtf8String());
-        m_values.push_back(value);
-        m_dataEntries.push_back(std::move(value));
-        return true;
+        return appendStringValue(code);
     }
     if (xRecordCodeIsDouble(code)) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
+            return false;
+        if (!reader->chargeTypedVariantNode()
+            || !reader->chargeTypedVariantNode())
             return false;
         DRW_Variant value(code, reader->getDouble());
         m_values.push_back(value);
@@ -8610,6 +9937,9 @@ bool DRW_XRecord::parseCode(int code,
         || xRecordCodeIsInt16(code) || xRecordCodeIsInt32(code)) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
+        if (!reader->chargeTypedVariantNode()
+            || !reader->chargeTypedVariantNode())
+            return false;
         DRW_Variant value(code, static_cast<std::int32_t>(
             reader->getInt32()));
         m_values.push_back(value);
@@ -8618,6 +9948,9 @@ bool DRW_XRecord::parseCode(int code,
     }
     if (code >= 160 && code <= 169) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
+            return false;
+        if (!reader->chargeTypedVariantNode()
+            || !reader->chargeTypedVariantNode())
             return false;
         DRW_Variant value(code, static_cast<std::int64_t>(
             reader->getInt64()));
@@ -8869,7 +10202,7 @@ bool DRW_XRecord::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
 // earlier versions uses a byte-length + code-page byte + bytes.  No
 // trailing null is appended — matches the parser's null-trim behavior.
 static bool writeXRecordText(DRW::Version version, dwgBufferW *buf,
-                             const UTF8STRING& s) {
+                             const UTF8STRING& s, const dwgBufferW& textProfile) {
     if (buf == nullptr)
         return false;
     if (version > DRW::AC1018) {
@@ -8901,13 +10234,8 @@ static bool writeXRecordText(DRW::Version version, dwgBufferW *buf,
                 cp = '?'; ++i;  // malformed UTF-8 -> replacement char
             }
             // Emit UTF-16LE: a surrogate pair for astral code points (> 0xFFFF),
-            // matching dwgBufferW::putUCSText and AutoCAD/ODA. (Previously a
-            // 4-byte UTF-8 sequence fell into the else and emitted one bogus unit
-            // per byte -> mojibake.) NOTE: readXRecordText decodes via
-            // DRW_ConvUTF16::toUtf8, which does NOT recombine surrogate pairs, so
-            // an astral char is lossy on a libdxfrw->libdxfrw round-trip (re-read
-            // as two WTF-8 surrogates); the emitted count/payload stay consistent
-            // and match what conforming writers produce.
+            // matching dwgBufferW::putUCSText and the UTF16 reader's paired
+            // scalar decoding. The count is UTF16 units, not UTF8 bytes.
             if (cp > 0xFFFF) {
                 cp -= 0x10000;
                 units.push_back(static_cast<std::uint16_t>(0xD800 + ((cp >> 10) & 0x3FF)));
@@ -8924,9 +10252,10 @@ static bool writeXRecordText(DRW::Version version, dwgBufferW *buf,
             buf->putRawChar8(static_cast<std::uint8_t>((u >> 8) & 0xFF));
         }
     } else {
-        // Pre-R2007: byte-length + code-page byte + bytes.  Pass-through
-        // UTF-8 here; the round-trip test owns the encoding choice.
-        const auto& bytes = s;
+        // Use the enclosing object's file-codepage profile, not this codec-
+        // free payload scratch buffer. Keep the established legacy RS length
+        // convention unchanged; the ODA legacy RC/RS discrepancy is separate.
+        const std::string bytes = textProfile.encodeCodePageText(s);
         if (bytes.size() > std::numeric_limits<std::uint16_t>::max())
             return false;
         buf->putRawShort16(static_cast<std::uint16_t>(bytes.size()));
@@ -8968,6 +10297,14 @@ bool DRW_XRecord::encodeDwg(DRW::Version version, dwgBufferW *buf,
 
     auto emitValue = [&](const DRW_Variant& v) -> bool {
         const int code = v.code();
+        const bool supportedCode = xRecordCodeIsHandle(code)
+            || xRecordCodeIsString(code) || xRecordCodeIsPoint3D(code)
+            || xRecordCodeIsDouble(code) || xRecordCodeIsByte(code)
+            || xRecordCodeIsBool(code) || xRecordCodeIsInt16(code)
+            || xRecordCodeIsInt32(code) || (code >= 160 && code <= 169)
+            || xRecordCodeIsBinary(code);
+        if (!supportedCode)
+            return false;
         if (xRecordCodeIsBinary(code)) {
             const std::vector<std::uint8_t>* raw = v.binary();
             if (raw == nullptr || raw->empty()) {
@@ -8991,8 +10328,9 @@ bool DRW_XRecord::encodeDwg(DRW::Version version, dwgBufferW *buf,
         if (xRecordCodeIsHandle(code)) {
             data.putRawLong64(static_cast<std::uint64_t>(v.i64_val()));
         } else if (xRecordCodeIsString(code)) {
-            const char *p = (v.type() == DRW_Variant::STRING) ? v.c_str() : "";
-            return writeXRecordText(version, &data, std::string(p));
+            if (v.type() != DRW_Variant::STRING || v.content.s == nullptr)
+                return false;
+            return writeXRecordText(version, &data, *v.content.s, *buf);
         } else if (xRecordCodeIsPoint3D(code)) {
             DRW_Coord *c = v.coord();
             if (c == nullptr || !std::isfinite(c->x)
@@ -9193,17 +10531,32 @@ bool DRW_Field::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         valueHasHandle !=
             DRW_Field::cadValueHasDwgObjectHandle(version, m_value))
       return fail();
+    if (m_value.m_dataType == 0) {
+      DRW_DBG("FIELD kUnknown value; keeping incomplete FIELD shell\n");
+      return finishSoft();
+    }
 
     if (!readText(m_valueString) || !readLong(m_valueStringLength))
       return fail();
 
     std::int32_t parsedChildValues = 0;
-    if (!readLong(parsedChildValues) || parsedChildValues < 0)
+    if (!readLong(parsedChildValues))
       return fail();
+    if (parsedChildValues < 0) {
+      // The encoded BL is bounded, but the signed representation lies outside
+      // the nonnegative count domain. Do not reinterpret it or allocate from
+      // it; preserve only the incomplete raw FIELD shell.
+      DRW_DBG("FIELD child value count out of range\n");
+      return finishSoft();
+    }
     const auto numChildValues = static_cast<std::uint32_t>(parsedChildValues);
     if (numChildValues > DRW_Field::kMaxItems) {
       DRW_DBG("FIELD child value count out of range\n");
-      return fail();
+      // The object frame is already bounded and the shared body cursor has
+      // validated the count word. Do not guess an array shape (real AC1021
+      // FIELD records can carry producer-specific/undecodable child values);
+      // retain the frame as an incomplete raw FIELD shell instead.
+      return finishSoft();
     }
 
     m_childValues.clear();
@@ -9232,6 +10585,10 @@ bool DRW_Field::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
           !objectBodyFitsSize(currentObjectDwgBit(&bodyProbe), bodyEnd) ||
           !objectBodyFitsSize(currentObjectDwgBit(textProbe), stringEnd))
         return fail();
+      if (childValue.m_value.m_dataType == 0) {
+        DRW_DBG("FIELD child kUnknown value; keeping incomplete FIELD shell\n");
+        return finishSoft();
+      }
       *bodyBuf = bodyProbe;
       if (version > DRW::AC1018)
         *bodyStringBuf = stringProbe;
@@ -9966,25 +11323,62 @@ bool DRW_Section::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
                 reader->getInt32();
             return true;
         case 1: {
-            const UTF8STRING value = reader->getUtf8String();
-            if (value == "SectionTypeSettings") {
+            if (reader->getStringView() == "SectionTypeSettings") {
                 if (m_types.size() >= static_cast<std::size_t>(kMaxSectionTypeCount))
                     return false;
                 m_types.emplace_back();
                 m_dxfTypeIndex = static_cast<int>(m_types.size() - 1);
                 m_dxfGeometryIndex = -1;
-            } else if (DRW_SectionGeometrySettings* geometry = currentGeometry()) {
-                geometry->m_plotStyle = value;
+                return true;
+            }
+            UTF8STRING value = reader->getUtf8String();
+            if (DRW_SectionGeometrySettings* geometry = currentGeometry()) {
+                if (!replaceDxfRetainedStringField(
+                        reader, geometry->m_dxfRetainedPlotStyleBytes,
+                        geometry->m_plotStyle, std::move(value)))
+                    return false;
             } else if (DRW_SectionTypeSettings* type = currentType()) {
-                type->m_destinationFile = value;
-                if (m_destinationFile.empty())
-                    m_destinationFile = value;
+                const bool mirrorDestination = m_destinationFile.empty();
+                const std::size_t oldTypeBytes =
+                    type->m_dxfRetainedDestinationFileBytes;
+                if (oldTypeBytes > m_dxfRetainedDestinationTextBytes)
+                    return false;
+                std::size_t ownerBytes =
+                    m_dxfRetainedDestinationTextBytes - oldTypeBytes;
+                const std::size_t maxBytes =
+                    (std::numeric_limits<std::size_t>::max)();
+                if (value.size() > maxBytes - ownerBytes)
+                    return false;
+                ownerBytes += value.size();
+                const std::size_t valueBytes = value.size();
+                if (mirrorDestination) {
+                    if (value.size() > maxBytes - ownerBytes)
+                        return false;
+                    ownerBytes += value.size();
+                }
+                UTF8STRING typeDestination = std::move(value);
+                UTF8STRING topLevelDestination;
+                if (mirrorDestination)
+                    topLevelDestination = typeDestination;
+                if (!replaceDxfRetainedStringBytes(
+                        reader, m_dxfRetainedDestinationTextBytes,
+                        ownerBytes))
+                    return false;
+                type->m_destinationFile = std::move(typeDestination);
+                type->m_dxfRetainedDestinationFileBytes =
+                    reader->retainedByteBudget() != nullptr
+                        ? valueBytes : 0u;
+                if (mirrorDestination) {
+                    m_destinationFile = std::move(topLevelDestination);
+                    m_dxfRetainedDestinationFileMirrorBytes =
+                        reader->retainedByteBudget() != nullptr
+                            ? valueBytes : 0u;
+                }
             }
             return true;
         }
         case 2: {
-            const UTF8STRING value = reader->getUtf8String();
-            if (value == "SectionGeometrySettings") {
+            if (reader->getStringView() == "SectionGeometrySettings") {
                 DRW_SectionTypeSettings* type = currentType();
                 if (type == nullptr
                     || type->m_geometry.size()
@@ -9993,7 +11387,13 @@ bool DRW_Section::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
                 type->m_geometry.emplace_back();
                 m_dxfGeometryIndex = static_cast<int>(type->m_geometry.size() - 1);
             } else if (DRW_SectionGeometrySettings* geometry = currentGeometry()) {
-                geometry->m_hatchPattern = value;
+                UTF8STRING value = reader->getUtf8String();
+                if (!replaceDxfRetainedStringField(
+                        reader, geometry->m_dxfRetainedHatchPatternBytes,
+                        geometry->m_hatchPattern, std::move(value)))
+                    return false;
+            } else {
+                reader->getUtf8String();
             }
             return true;
         }
@@ -10001,16 +11401,24 @@ bool DRW_Section::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             reader->getUtf8String();
             return true;
         case 8:
-            if (DRW_SectionGeometrySettings* geometry = currentGeometry())
-                geometry->m_layer = reader->getUtf8String();
-            else
+            if (DRW_SectionGeometrySettings* geometry = currentGeometry()) {
+                if (!replaceDxfRetainedStringField(
+                        reader, geometry->m_dxfRetainedLayerBytes,
+                        geometry->m_layer, reader->getUtf8String()))
+                    return false;
+            } else {
                 reader->getUtf8String();
+            }
             return true;
         case 6:
-            if (DRW_SectionGeometrySettings* geometry = currentGeometry())
-                geometry->m_lineType = reader->getUtf8String();
-            else
+            if (DRW_SectionGeometrySettings* geometry = currentGeometry()) {
+                if (!replaceDxfRetainedStringField(
+                        reader, geometry->m_dxfRetainedLineTypeBytes,
+                        geometry->m_lineType, reader->getUtf8String()))
+                    return false;
+            } else {
                 reader->getUtf8String();
+            }
             return true;
         case 40:
             if (DRW_SectionGeometrySettings* geometry = currentGeometry())
@@ -10036,16 +11444,29 @@ bool DRW_Section::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             else
                 reader->getDouble();
             return true;
-        case 62:
-            if (DRW_SectionGeometrySettings* geometry = currentGeometry())
+        case 62: // Retain the historical local alias when reading old files.
+        case 63:
+            if (DRW_SectionGeometrySettings* geometry = currentGeometry()) {
                 geometry->m_color = reader->getInt32();
-            else
+                geometry->m_rgbColor = 0;
+                geometry->m_hasRgbColor = false;
+                geometry->m_colorMethod = 0;
+                geometry->m_colorFlags = 0;
+                geometry->m_colorRawIndex = 0;
+                geometry->m_colorName.clear();
+                geometry->m_colorBookName.clear();
+            } else
                 reader->getInt32();
             return true;
         case 420:
             if (DRW_SectionGeometrySettings* geometry = currentGeometry()) {
                 geometry->m_hasRgbColor = true;
                 geometry->m_rgbColor = reader->getInt32();
+                geometry->m_colorMethod = 0;
+                geometry->m_colorFlags = 0;
+                geometry->m_colorRawIndex = 0;
+                geometry->m_colorName.clear();
+                geometry->m_colorBookName.clear();
             } else {
                 reader->getInt32();
             }
@@ -10252,12 +11673,24 @@ bool DRW_Section::parseDwg(DRW::Version version, dwgBuffer *buf,
     };
     const auto readBodyColor = [&](DRW_SectionGeometrySettings& geometry) {
         std::uint32_t parsedColor = 0;
+        std::int32_t parsedRgb = -1;
+        UTF8STRING parsedName, parsedBookName;
+        std::uint8_t parsedMethod = 0;
+        std::uint8_t parsedFlags = 0;
+        std::uint16_t parsedRawIndex = 0;
         if (!readCmColorWithinBounds(buf, textBuffer, version, bodyEnd,
                                      stringEnd, parsedColor,
-                                     &geometry.m_rgbColor, nullptr, nullptr,
-                                     &geometry.m_hasRgbColor))
+                                     &parsedRgb, &parsedName, &parsedBookName,
+                                     &geometry.m_hasRgbColor, &parsedMethod,
+                                     &parsedFlags, &parsedRawIndex))
             return false;
         geometry.m_color = static_cast<std::int32_t>(parsedColor);
+        geometry.m_rgbColor = geometry.m_hasRgbColor ? parsedRgb : 0;
+        geometry.m_colorMethod = parsedMethod;
+        geometry.m_colorFlags = parsedFlags;
+        geometry.m_colorRawIndex = parsedRawIndex;
+        geometry.m_colorName = std::move(parsedName);
+        geometry.m_colorBookName = std::move(parsedBookName);
         return bodyWithinBounds();
     };
     const auto readBodyText = [&](UTF8STRING& value) {
@@ -10442,6 +11875,48 @@ bool DRW_Section::encodeDwg(DRW::Version version, dwgBufferW *buf,
 
     if (m_types.size() > static_cast<std::size_t>(kMaxSectionTypeCount))
         return false;
+    const auto prepareGeometryColor = [version, strBuf, buf](
+            const DRW_SectionGeometrySettings& geometry,
+            std::uint8_t& method, std::uint16_t& index,
+            std::uint8_t& flags) {
+        const std::int32_t scalar = geometry.m_color < 0
+            ? 256 : geometry.m_color;
+        const bool hasRgb = geometry.m_hasRgbColor
+            || geometry.m_rgbColor != 0;
+        const std::int32_t rgb = hasRgb ? geometry.m_rgbColor : -1;
+        std::uint8_t canonicalMethod = 0u;
+        flags = geometry.m_colorFlags;
+        if (flags == 0u && (!geometry.m_colorName.empty()
+                            || !geometry.m_colorBookName.empty())) {
+            flags = static_cast<std::uint8_t>(
+                (geometry.m_colorName.empty() ? 0u : 1u)
+                | (geometry.m_colorBookName.empty() ? 0u : 2u));
+        }
+        if (scalar < 0 || scalar > 256
+            || !canonicalDwgCmcColor(static_cast<std::uint32_t>(scalar),
+                                     rgb, canonicalMethod, index)
+            || (geometry.m_colorMethod != 0u
+                && geometry.m_colorMethod != canonicalMethod)
+            || geometry.m_colorRawIndex != 0u
+            || (flags & ~0x03u) != 0u
+            || ((flags & 0x01u) == 0u
+                && !geometry.m_colorName.empty())
+            || ((flags & 0x02u) == 0u
+                && !geometry.m_colorBookName.empty())
+            || geometry.m_colorName.size() > kMaxCadValueBytes
+            || geometry.m_colorBookName.size()
+                > kMaxCadValueBytes - geometry.m_colorName.size()
+            || (version > DRW::AC1018 && flags != 0u
+                && (strBuf == nullptr || strBuf == buf))
+            || (version < DRW::AC1018
+                && (flags != 0u || hasRgb
+                    || !geometry.m_colorName.empty()
+                    || !geometry.m_colorBookName.empty())))
+            return false;
+        method = geometry.m_colorMethod != 0u
+            ? geometry.m_colorMethod : canonicalMethod;
+        return true;
+    };
     for (const DRW_SectionTypeSettings& type : m_types) {
         if (type.m_sourceHandles.size()
                 > static_cast<std::size_t>(kMaxSectionSourceCount)
@@ -10449,8 +11924,11 @@ bool DRW_Section::encodeDwg(DRW::Version version, dwgBufferW *buf,
                 > static_cast<std::size_t>(kMaxSectionGeometryCount))
             return false;
         for (const DRW_SectionGeometrySettings& geometry : type.m_geometry) {
+            std::uint8_t method = 0u, flags = 0u;
+            std::uint16_t index = 0u;
             if (geometry.m_numGeometries < 0
-                || geometry.m_numGeometries > kMaxSectionGeometryEntryCount)
+                || geometry.m_numGeometries > kMaxSectionGeometryEntryCount
+                || !prepareGeometryColor(geometry, method, index, flags))
                 return false;
         }
     }
@@ -10466,16 +11944,18 @@ bool DRW_Section::encodeDwg(DRW::Version version, dwgBufferW *buf,
             buf->putBitLong(geometry.m_numGeometries);
             buf->putBitLong(geometry.m_hexIndex);
             buf->putBitLong(geometry.m_flags);
-            if (geometry.m_hasRgbColor || geometry.m_rgbColor != 0) {
-                buf->putCmColor(version,
-                                static_cast<std::uint16_t>(
-                                    geometry.m_color < 0 ? 256 : geometry.m_color),
-                                geometry.m_rgbColor, {}, {}, sb);
-            } else {
-                buf->putCmColor(version,
-                                static_cast<std::uint16_t>(
-                                    geometry.m_color < 0 ? 256 : geometry.m_color));
-            }
+            std::uint8_t method = 0u, flags = 0u;
+            std::uint16_t index = 0u;
+            const bool prepared = prepareGeometryColor(
+                geometry, method, index, flags);
+            if (!prepared)
+                return false;
+            const std::int32_t rgb = geometry.m_hasRgbColor
+                    || geometry.m_rgbColor != 0
+                ? geometry.m_rgbColor : -1;
+            buf->putCmColorWithFlags(
+                version, method, index, rgb, geometry.m_colorName,
+                geometry.m_colorBookName, flags, sb);
             sb->putVariableText(version, geometry.m_layer);
             sb->putVariableText(version, geometry.m_lineType);
             buf->putBitDouble(geometry.m_lineTypeScale);
@@ -10525,8 +12005,50 @@ bool DRW_RenderSettings::parseCode(int code, const std::unique_ptr<dxfReader>& r
     case 1:
         if (m_strings.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
-        m_strings.push_back(reader->getUtf8String());
-        if (m_strings.size() == 1) m_name = m_strings.front();
+        {
+            const std::size_t stringIndex = m_strings.size();
+            UTF8STRING value = reader->getUtf8String();
+            const std::size_t valueBytes = value.size();
+            if (!appendDxfRetainedStringField(
+                    reader, m_dxfRetainedStringVectorBytes, m_strings,
+                    std::move(value)))
+                return false;
+
+            const auto rollbackString = [this, &reader, valueBytes]() {
+                if (reader->retainedByteBudget() != nullptr) {
+                    if (valueBytes > m_dxfRetainedStringVectorBytes
+                        || !releaseDxfRetainedStringBytes(valueBytes))
+                        return false;
+                    m_dxfRetainedStringVectorBytes -= valueBytes;
+                }
+                m_strings.pop_back();
+                return true;
+            };
+
+            const UTF8STRING& retainedValue = m_strings.back();
+            bool retainedNamedField = true;
+            if (stringIndex == 0u) {
+                retainedNamedField = replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedNameBytes, m_name, retainedValue);
+            } else if ((m_kind == Settings || m_kind == RapidRT
+                        || m_kind == MentalRay)
+                       && stringIndex == 1u) {
+                retainedNamedField = replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedEnvironmentFilenameBytes,
+                    m_environmentImageFilename, retainedValue);
+            } else if ((m_kind == Settings || m_kind == RapidRT
+                        || m_kind == MentalRay)
+                       && stringIndex == 2u) {
+                retainedNamedField = replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedDescriptionBytes,
+                    m_description, retainedValue);
+            }
+            if (!retainedNamedField) {
+                if (!rollbackString())
+                    return false;
+                return false;
+            }
+        }
         break;
     case 290:
         if (m_bools.size() >= dwgSafety::MaxOwnedObjectCount)
@@ -10593,6 +12115,10 @@ void DRW_RenderSettings::reset() {
     m_name.clear();
     m_longs.clear();
     m_strings.clear();
+    m_dxfRetainedStringVectorBytes = 0u;
+    m_dxfRetainedNameBytes = 0u;
+    m_dxfRetainedEnvironmentFilenameBytes = 0u;
+    m_dxfRetainedDescriptionBytes = 0u;
     m_bools.clear();
     m_shorts.clear();
     m_bytes.clear();
@@ -11143,6 +12669,7 @@ bool DRW_RenderSettings::encodeDwg(DRW::Version version, dwgBufferW *buf,
 }
 
 void DRW_SunStudy::reset() {
+    m_dxfRetainedTextBytes.fill(0u);
     DRW_TableEntry::reset();
     tType = DRW::SUNSTUDY;
     m_classVersion = 0;
@@ -11206,10 +12733,30 @@ bool DRW_SunStudy::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
             --m_dxfDateValuesRemaining;
         }
         break;
-    case 1:   m_setupName = reader->getUtf8String(); break;
-    case 2:   m_description = reader->getUtf8String(); break;
-    case 3:   m_sheetSetName = reader->getUtf8String(); break;
-    case 4:   m_sheetSubsetName = reader->getUtf8String(); break;
+    case 1:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[0], m_setupName,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 2:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[1], m_description,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 3:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[2], m_sheetSetName,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 4:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[3], m_sheetSubsetName,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 70:  if (!readShort(m_outputType)) return false; break;
     case 290:
         if (m_outputType == 0 && m_seen290++ == 0
@@ -11269,7 +12816,12 @@ bool DRW_PointCloudDef::parseCode(int code, const std::unique_ptr<dxfReader>& re
     // "skipped" range, left to the raw-net).
     switch (code) {
     case 90:  m_classVersion = reader->getInt32(); break;
-    case 1:   m_sourceFilename = reader->getUtf8String(); break;
+    case 1:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedSourceFilenameBytes, m_sourceFilename,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 280: m_isLoaded = (reader->getInt32() != 0); break;
     case 160: {
         const std::int64_t pointCount = reader->getInt64();
@@ -11291,6 +12843,7 @@ bool DRW_PointCloudDef::parseCode(int code, const std::unique_ptr<dxfReader>& re
 }
 
 void DRW_PointCloudDef::reset() {
+    m_dxfRetainedSourceFilenameBytes = 0u;
     DRW_TableEntry::reset();
     tType = DRW::POINTCLOUDDEF;
     m_classVersion = 0;
@@ -11444,8 +12997,13 @@ bool DRW_NavisworksModelDef::parseCode(int code,
         m_flags = reader->getInt32();
         return m_flags >= 0 && m_flags <= kMaxFlags;
     case 1:
-        m_path = reader->getUtf8String();
-        return m_path.size() <= kMaxPathLength;
+    {
+        std::string value = reader->getUtf8String();
+        if (value.size() > kMaxPathLength)
+            return false;
+        return replaceDxfRetainedStringField(
+            reader, m_dxfRetainedPathBytes, m_path, std::move(value));
+    }
     case 290:
         if (m_seen290++ == 0)
             m_status = reader->getInt32() != 0;
@@ -11479,6 +13037,7 @@ bool DRW_NavisworksModelDef::parseCode(int code,
 }
 
 void DRW_NavisworksModelDef::reset() {
+    m_dxfRetainedPathBytes = 0u;
     DRW_TableEntry::reset();
     tType = DRW::NAVISWORKSMODELDEF;
     m_flags = 0;
@@ -11624,23 +13183,43 @@ bool DRW_PointCloudColorMap::parseCode(
         if (m_dxfActiveRamp >= 0) {
             auto& ramps = m_dxfClassification ? m_classificationColorRamps
                                                : m_colorRamps;
-            auto& ramp = ramps[static_cast<std::size_t>(m_dxfActiveRamp)];
+            auto& retainedBytes = m_dxfClassification
+                ? m_dxfRetainedClassificationRampBytes
+                : m_dxfRetainedColorRampBytes;
+            const std::size_t rampIndex =
+                static_cast<std::size_t>(m_dxfActiveRamp);
+            if (rampIndex >= ramps.size()
+                || rampIndex >= retainedBytes.size())
+                return false;
+            auto& ramp = ramps[rampIndex];
             if (ramp.m_colorSchemes.size() >= kMaxColorsPerRamp)
                 return false;
             UTF8STRING scheme = reader->getUtf8String();
             if (scheme.size() > kMaxColorSchemeLength)
                 return false;
-            ramp.m_colorSchemes.push_back(std::move(scheme));
-            return true;
+            return appendDxfRetainedStringField(
+                reader, retainedBytes[rampIndex], ramp.m_colorSchemes,
+                std::move(scheme));
         }
-        if (m_dxfDefaultSchemeCount == 0)
-            m_defaultIntensityColorScheme = reader->getUtf8String();
-        else if (m_dxfDefaultSchemeCount == 1)
-            m_defaultElevationColorScheme = reader->getUtf8String();
-        else if (m_dxfDefaultSchemeCount == 2)
-            m_defaultClassificationColorScheme = reader->getUtf8String();
-        else
+        if (m_dxfDefaultSchemeCount >= 3u)
             return true;
+        {
+            const std::size_t schemeIndex = m_dxfDefaultSchemeCount;
+            UTF8STRING scheme = reader->getUtf8String();
+            if (scheme.size() > kMaxColorSchemeLength)
+                return false;
+            UTF8STRING *destination = nullptr;
+            if (schemeIndex == 0u)
+                destination = &m_defaultIntensityColorScheme;
+            else if (schemeIndex == 1u)
+                destination = &m_defaultElevationColorScheme;
+            else
+                destination = &m_defaultClassificationColorScheme;
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedDefaultSchemeBytes[schemeIndex],
+                    *destination, std::move(scheme)))
+                return false;
+        }
         ++m_dxfDefaultSchemeCount;
         return true;
     case 91: {
@@ -11650,9 +13229,17 @@ bool DRW_PointCloudColorMap::parseCode(
         m_dxfActiveRamp = -1;
         auto& ramps = m_dxfClassification ? m_classificationColorRamps
                                            : m_colorRamps;
+        auto& retainedBytes = m_dxfClassification
+            ? m_dxfRetainedClassificationRampBytes
+            : m_dxfRetainedColorRampBytes;
         if (ramps.size() >= kMaxRamps)
             return false;
+        const int nextCount = static_cast<int>(ramps.size() + 1u);
+        if (!DRW::reserve(ramps, nextCount)
+            || !DRW::reserve(retainedBytes, nextCount))
+            return false;
         ramps.push_back({});
+        retainedBytes.push_back(0u);
         auto& ramp = ramps.back();
         ramp.m_rampCount = static_cast<std::uint32_t>(count);
         m_dxfActiveRamp = static_cast<std::int32_t>(ramps.size() - 1);
@@ -11686,6 +13273,9 @@ void DRW_PointCloudColorMap::reset() {
     m_dxfClassification = false;
     m_dxfActiveRamp = -1;
     m_dxfDefaultSchemeCount = 0;
+    m_dxfRetainedDefaultSchemeBytes.fill(0u);
+    m_dxfRetainedColorRampBytes.clear();
+    m_dxfRetainedClassificationRampBytes.clear();
 }
 
 bool DRW_PointCloudColorMap::parseDwg(DRW::Version version, dwgBuffer *buf,
@@ -11885,17 +13475,644 @@ bool DRW_PointCloudColorMap::encodeDwg(DRW::Version version, dwgBufferW *buf,
 }
 
 bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
-    // AcDbMaterial: only the name (1) and description (2) are decoded — the
-    // visual-property fields (color/ambient/diffuse/specular/maps/...) are not
-    // modeled here.  This matches dwgTs's MATERIAL decode (name + description);
-    // the full record is still preserved by the raw-net for DXF round-trip.
+    // AcDbMaterial: name/description, color/physical controls, and all
+    // documented base plus Normal Map fields are typed. Later procedural and
+    // physical fields still reuse codes and remain raw unless unambiguous.
+    if (m_hasDiffuseMapTransform
+        && m_dxfDiffuseMapTransformCount < m_diffuseMapTransform.size()
+        && code != 43)
+        return false;
+    if (m_hasSpecularMapTransform
+        && m_dxfSpecularMapTransformCount < m_specularMapTransform.size()
+        && code != 47)
+        return false;
+    if (m_hasReflectionMapTransform
+        && m_dxfReflectionMapTransformCount
+            < m_reflectionMapTransform.size()
+        && code != 49)
+        return false;
+    if (m_hasOpacityMapTransform
+        && m_dxfOpacityMapTransformCount < m_opacityMapTransform.size()
+        && code != 142)
+        return false;
+    if (m_hasBumpMapTransform
+        && m_dxfBumpMapTransformCount < m_bumpMapTransform.size()
+        && code != 144)
+        return false;
+    if (m_hasRefractionMapTransform
+        && m_dxfRefractionMapTransformCount
+            < m_refractionMapTransform.size()
+        && code != 147)
+        return false;
+    if (m_hasNormalMapTransform
+        && m_dxfNormalMapTransformCount < m_normalMapTransform.size()
+        && code != 43)
+        return false;
     switch (code) {
     case 1:
-        m_name = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedNameBytes, m_name,
+                reader->getUtf8String()))
+            return false;
         break;
     case 2:
-        m_description = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedDescriptionBytes, m_description,
+                reader->getUtf8String()))
+            return false;
         break;
+    case 3:
+        if (!m_dxfPastPreNormalMapFields) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedDiffuseMapFileNameBytes,
+                    m_diffuseMapFileName, reader->getUtf8String()))
+                return false;
+            m_hasDiffuseMapFileName = true;
+        } else {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedNormalMapFileNameBytes,
+                    m_normalMapFileName, reader->getUtf8String()))
+                return false;
+            m_hasNormalMapFileName = true;
+        }
+        break;
+    case 4:
+        if (!m_dxfPastPreNormalMapFields) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedSpecularMapFileNameBytes,
+                    m_specularMapFileName, reader->getUtf8String()))
+                return false;
+            m_hasSpecularMapFileName = true;
+        }
+        break;
+    case 6:
+        if (!m_dxfPastPreNormalMapFields) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedReflectionMapFileNameBytes,
+                    m_reflectionMapFileName, reader->getUtf8String()))
+                return false;
+            m_hasReflectionMapFileName = true;
+        }
+        break;
+    case 7:
+        if (!m_dxfPastPreNormalMapFields) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedOpacityMapFileNameBytes,
+                    m_opacityMapFileName, reader->getUtf8String()))
+                return false;
+            m_hasOpacityMapFileName = true;
+        }
+        break;
+    case 8:
+        if (!m_dxfPastPreNormalMapFields) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedBumpMapFileNameBytes,
+                    m_bumpMapFileName, reader->getUtf8String()))
+                return false;
+            m_hasBumpMapFileName = true;
+        }
+        break;
+    case 9:
+        if (!m_dxfPastPreNormalMapFields) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedRefractionMapFileNameBytes,
+                    m_refractionMapFileName, reader->getUtf8String()))
+                return false;
+            m_hasRefractionMapFileName = true;
+        }
+        break;
+    case 70:
+    case 71: {
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0, 1, value))
+            return false;
+        if (code == 70) {
+            m_ambientColorMethod = static_cast<std::uint8_t>(value);
+            m_hasAmbientColorMethod = true;
+        } else {
+            m_diffuseColorMethod = static_cast<std::uint8_t>(value);
+            m_hasDiffuseColorMethod = true;
+        }
+        break;
+    }
+    case 40:
+    case 41: {
+        const double value = reader->getDouble();
+        if (!std::isfinite(value) || value < 0.0 || value > 1.0)
+            return false;
+        if (code == 40) {
+            m_ambientColorFactor = value;
+            m_hasAmbientColorFactor = true;
+        } else {
+            m_diffuseColorFactor = value;
+            m_hasDiffuseColorFactor = true;
+        }
+        break;
+    }
+    case 90:
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        m_ambientColorValue = reader->getUInt32();
+        m_hasAmbientColorValue = true;
+        break;
+    case 91:
+        m_diffuseColorValue = reader->getUInt32();
+        m_hasDiffuseColorValue = true;
+        break;
+    case 44: {
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_specularGlossFactor = value;
+        m_hasSpecularGlossFactor = true;
+        break;
+    }
+    case 76: {
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0, 1, value))
+            return false;
+        m_specularColorMethod = static_cast<std::uint8_t>(value);
+        m_hasSpecularColorMethod = true;
+        break;
+    }
+    case 45: {
+        const double value = reader->getDouble();
+        if (!std::isfinite(value) || value < 0.0 || value > 1.0)
+            return false;
+        m_specularColorFactor = value;
+        m_hasSpecularColorFactor = true;
+        break;
+    }
+    case 92:
+        m_specularColorValue = reader->getUInt32();
+        m_hasSpecularColorValue = true;
+        break;
+    case 46: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_specularMapBlendFactor = value;
+        m_hasSpecularMapBlendFactor = true;
+        break;
+    }
+    case 460:
+    case 461:
+    case 462:
+    case 463: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        if (code == 460) {
+            m_colorBleedScale = value;
+            m_hasColorBleedScale = true;
+        } else if (code == 461) {
+            m_indirectDumpScale = value;
+            m_hasIndirectDumpScale = true;
+        } else if (code == 462) {
+            m_reflectanceScale = value;
+            m_hasReflectanceScale = true;
+        } else {
+            m_transmittanceScale = value;
+            m_hasTransmittanceScale = true;
+        }
+        break;
+    }
+    case 290: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0, 1, value))
+            return false;
+        m_twoSidedMaterial = value != 0;
+        m_hasTwoSidedMaterial = true;
+        break;
+    }
+    case 293: {
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0, 1, value))
+            return false;
+        m_materialsAnonymous = value != 0;
+        m_hasMaterialsAnonymous = true;
+        break;
+    }
+    case 47: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        if (m_dxfSpecularMapTransformCount
+            >= m_specularMapTransform.size())
+            return false;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_specularMapTransform[m_dxfSpecularMapTransformCount++] = value;
+        m_hasSpecularMapTransform = true;
+        break;
+    }
+    case 77:
+    case 78:
+    case 79:
+    case 170: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        int value = 0;
+        const int minimum = code == 77 ? 0 : code == 170 ? 0 : 1;
+        const int maximum = code == 77 ? 1 : code == 78 ? 4
+            : code == 79 ? 3 : 7;
+        if (!readDxfIntInRange(reader, minimum, maximum, value))
+            return false;
+        if (code == 77) {
+            m_specularMapSource = static_cast<std::uint8_t>(value);
+            m_hasSpecularMapSource = true;
+        } else if (code == 78) {
+            m_specularMapProjection = static_cast<std::uint8_t>(value);
+            m_hasSpecularMapProjection = true;
+        } else if (code == 79) {
+            m_specularMapTiling = static_cast<std::uint8_t>(value);
+            m_hasSpecularMapTiling = true;
+        } else {
+            // Group 170 is a bitset whose documented flags are 1, 2, and 4.
+            if ((value & ~7) != 0)
+                return false;
+            m_specularMapAutoTransform = static_cast<std::uint8_t>(value);
+            m_hasSpecularMapAutoTransform = true;
+        }
+        break;
+    }
+    case 48: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_reflectionMapBlendFactor = value;
+        m_hasReflectionMapBlendFactor = true;
+        break;
+    }
+    case 49: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        if (m_dxfReflectionMapTransformCount
+            >= m_reflectionMapTransform.size())
+            return false;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_reflectionMapTransform[m_dxfReflectionMapTransformCount++] = value;
+        m_hasReflectionMapTransform = true;
+        break;
+    }
+    case 171:
+    case 172:
+    case 173:
+    case 174: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        int value = 0;
+        const int minimum = code == 171 ? 0 : code == 174 ? 0 : 1;
+        const int maximum = code == 171 ? 1 : code == 172 ? 4
+            : code == 173 ? 3 : 7;
+        if (!readDxfIntInRange(reader, minimum, maximum, value))
+            return false;
+        if (code == 171) {
+            m_reflectionMapSource = static_cast<std::uint8_t>(value);
+            m_hasReflectionMapSource = true;
+        } else if (code == 172) {
+            m_reflectionMapProjection = static_cast<std::uint8_t>(value);
+            m_hasReflectionMapProjection = true;
+        } else if (code == 173) {
+            m_reflectionMapTiling = static_cast<std::uint8_t>(value);
+            m_hasReflectionMapTiling = true;
+        } else {
+            // Group 174 is a bitset whose documented flags are 1, 2, and 4.
+            if ((value & ~7) != 0)
+                return false;
+            m_reflectionMapAutoTransform = static_cast<std::uint8_t>(value);
+            m_hasReflectionMapAutoTransform = true;
+        }
+        break;
+    }
+    case 140:
+    case 141: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        if (code == 140) {
+            m_opacityPercent = value;
+            m_hasOpacityPercent = true;
+        } else {
+            m_opacityMapBlendFactor = value;
+            m_hasOpacityMapBlendFactor = true;
+        }
+        break;
+    }
+    case 142: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        if (m_dxfOpacityMapTransformCount
+            >= m_opacityMapTransform.size())
+            return false;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_opacityMapTransform[m_dxfOpacityMapTransformCount++] = value;
+        m_hasOpacityMapTransform = true;
+        break;
+    }
+    case 143: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_bumpMapBlendFactor = value;
+        m_hasBumpMapBlendFactor = true;
+        break;
+    }
+    case 145:
+    case 146: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        if (code == 145) {
+            m_refractionIndex = value;
+            m_hasRefractionIndex = true;
+        } else {
+            m_refractionMapBlendFactor = value;
+            m_hasRefractionMapBlendFactor = true;
+        }
+        break;
+    }
+    case 144: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        if (m_dxfBumpMapTransformCount >= m_bumpMapTransform.size())
+            return false;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_bumpMapTransform[m_dxfBumpMapTransformCount++] = value;
+        m_hasBumpMapTransform = true;
+        break;
+    }
+    case 147: {
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        if (m_dxfRefractionMapTransformCount
+            >= m_refractionMapTransform.size())
+            return false;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        m_refractionMapTransform[m_dxfRefractionMapTransformCount++] = value;
+        m_hasRefractionMapTransform = true;
+        break;
+    }
+    case 464:
+    case 465: {
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        if (code == 464) {
+            m_luminance = value;
+            m_hasLuminance = true;
+        } else {
+            m_normalMapStrength = value;
+            m_hasNormalMapStrength = true;
+        }
+        // Group 465 is an alternate start marker when group 464 is omitted.
+        m_dxfPastPreNormalMapFields = true;
+        break;
+    }
+    case 300:
+        // Autodesk's generic procedural table starts with group 300. Later
+        // fields reuse 270/271, which otherwise identify luminance mode and
+        // Normal Map method in the preceding MATERIAL blocks.
+        m_dxfMaterialGenProcTableStarted = true;
+        break;
+    case 292: {
+        int value = 0;
+        if (!readDxfIntInRange(reader, 0, 1, value))
+            return false;
+        m_genProcTableEnd = value != 0;
+        m_hasGenProcTableEnd = true;
+        m_dxfMaterialGenProcTableStarted = true;
+        m_dxfMaterialGenProcTableEnded = true;
+        break;
+    }
+    case 148:
+    case 468: {
+        if (!m_dxfMaterialGenProcTableEnded)
+            break;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        if (code == 148) {
+            m_translucence = value;
+            m_hasTranslucence = true;
+        } else {
+            m_reflectivity = value;
+            m_hasReflectivity = true;
+        }
+        break;
+    }
+    case 93:
+    case 94: {
+        if (!m_dxfMaterialGenProcTableEnded)
+            break;
+        const std::int32_t value = reader->getInt32();
+        if (code == 93) {
+            m_illuminationModel = value;
+            m_hasIlluminationModel = true;
+        } else {
+            m_channelFlags = value;
+            m_hasChannelFlags = true;
+        }
+        break;
+    }
+    case 42: {
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        if (m_dxfPastPreNormalMapFields) {
+            m_normalMapBlendFactor = value;
+            m_hasNormalMapBlendFactor = true;
+        } else {
+            m_diffuseMapBlendFactor = value;
+            m_hasDiffuseMapBlendFactor = true;
+        }
+        break;
+    }
+    case 43: {
+        std::array<double, 16>& transform = m_dxfPastPreNormalMapFields
+            ? m_normalMapTransform : m_diffuseMapTransform;
+        std::size_t& transformCount = m_dxfPastPreNormalMapFields
+            ? m_dxfNormalMapTransformCount : m_dxfDiffuseMapTransformCount;
+        bool& hasTransform = m_dxfPastPreNormalMapFields
+            ? m_hasNormalMapTransform : m_hasDiffuseMapTransform;
+        if (transformCount >= transform.size())
+            return false;
+        const double value = reader->getDouble();
+        if (!std::isfinite(value))
+            return false;
+        transform[transformCount++] = value;
+        hasTransform = true;
+        break;
+    }
+    case 175:
+    case 176:
+    case 177:
+    case 178:
+    case 179:
+    case 270:
+    case 271:
+    case 272:
+    case 273:
+    case 274:
+    case 275:
+    case 276: {
+        if (m_dxfPastPreNormalMapFields
+            && (code == 270 || code == 271 || code == 272 || code == 273)) {
+            if (m_dxfMaterialGenProcTableStarted
+                && (!m_dxfMaterialGenProcTableEnded || code != 270))
+                break;
+            int value = 0;
+            if (!readDxfIntInRange(
+                    reader, (std::numeric_limits<std::int16_t>::min)(),
+                    (std::numeric_limits<std::int16_t>::max)(), value))
+                return false;
+            if (code == 270) {
+                if (m_dxfMaterialGenProcTableEnded) {
+                    m_mapUTile = static_cast<std::int16_t>(value);
+                    m_hasMapUTile = true;
+                } else {
+                    m_luminanceMode = static_cast<std::int16_t>(value);
+                    m_hasLuminanceMode = true;
+                }
+            } else if (code == 271) {
+                m_normalMapMethod = static_cast<std::int16_t>(value);
+                m_hasNormalMapMethod = true;
+            } else if (code == 272) {
+                m_globalIlluminationMode = static_cast<std::int16_t>(value);
+                m_hasGlobalIlluminationMode = true;
+            } else {
+                m_finalGatherMode = static_cast<std::int16_t>(value);
+                m_hasFinalGatherMode = true;
+            }
+            break;
+        }
+        if (m_dxfPastPreNormalMapFields)
+            break;
+        int value = 0;
+        const int minimum = (code == 175 || code == 178 || code == 179
+                             || code == 272 || code == 273 || code == 276)
+            ? 0 : 1;
+        const int maximum = (code == 175 || code == 179 || code == 273) ? 1
+            : (code == 176 || code == 270 || code == 274) ? 4
+            : (code == 177 || code == 271 || code == 275) ? 3 : 7;
+        if (!readDxfIntInRange(reader, minimum, maximum, value))
+            return false;
+        if (code == 273) {
+            m_refractionMapSource = static_cast<std::uint8_t>(value);
+            m_hasRefractionMapSource = true;
+        } else if (code == 274) {
+            m_refractionMapProjection = static_cast<std::uint8_t>(value);
+            m_hasRefractionMapProjection = true;
+        } else if (code == 275) {
+            m_refractionMapTiling = static_cast<std::uint8_t>(value);
+            m_hasRefractionMapTiling = true;
+        } else if (code == 276) {
+            if ((value & ~7) != 0)
+                return false;
+            m_refractionMapAutoTransform = static_cast<std::uint8_t>(value);
+            m_hasRefractionMapAutoTransform = true;
+        } else if (code == 179) {
+            m_bumpMapSource = static_cast<std::uint8_t>(value);
+            m_hasBumpMapSource = true;
+        } else if (code == 270) {
+            m_bumpMapProjection = static_cast<std::uint8_t>(value);
+            m_hasBumpMapProjection = true;
+        } else if (code == 271) {
+            m_bumpMapTiling = static_cast<std::uint8_t>(value);
+            m_hasBumpMapTiling = true;
+        } else if (code == 272) {
+            if ((value & ~7) != 0)
+                return false;
+            m_bumpMapAutoTransform = static_cast<std::uint8_t>(value);
+            m_hasBumpMapAutoTransform = true;
+        } else if (code == 175) {
+            m_opacityMapSource = static_cast<std::uint8_t>(value);
+            m_hasOpacityMapSource = true;
+        } else if (code == 176) {
+            m_opacityMapProjection = static_cast<std::uint8_t>(value);
+            m_hasOpacityMapProjection = true;
+        } else if (code == 177) {
+            m_opacityMapTiling = static_cast<std::uint8_t>(value);
+            m_hasOpacityMapTiling = true;
+        } else {
+            // Group 178 is a bitset whose documented flags are 1, 2, and 4.
+            if ((value & ~7) != 0)
+                return false;
+            m_opacityMapAutoTransform = static_cast<std::uint8_t>(value);
+            m_hasOpacityMapAutoTransform = true;
+        }
+        break;
+    }
+    case 72:
+    case 73:
+    case 74:
+    case 75: {
+        int value = 0;
+        const int minimum = code == 72 ? 0 : 1;
+        const int maximum = code == 72 ? 1 : code == 73 ? 4
+            : code == 74 ? 3 : 7;
+        if (!readDxfIntInRange(reader, minimum, maximum, value))
+            return false;
+        if (code == 72) {
+            if (m_dxfPastPreNormalMapFields) {
+                m_normalMapSource = static_cast<std::uint8_t>(value);
+                m_hasNormalMapSource = true;
+            } else {
+                m_diffuseMapSource = static_cast<std::uint8_t>(value);
+                m_hasDiffuseMapSource = true;
+            }
+        } else if (code == 73) {
+            if (m_dxfPastPreNormalMapFields) {
+                m_normalMapProjection = static_cast<std::uint8_t>(value);
+                m_hasNormalMapProjection = true;
+            } else {
+                m_diffuseMapProjection = static_cast<std::uint8_t>(value);
+                m_hasDiffuseMapProjection = true;
+            }
+        } else if (code == 74) {
+            if (m_dxfPastPreNormalMapFields) {
+                m_normalMapTiling = static_cast<std::uint8_t>(value);
+                m_hasNormalMapTiling = true;
+            } else {
+                m_diffuseMapTiling = static_cast<std::uint8_t>(value);
+                m_hasDiffuseMapTiling = true;
+            }
+        } else {
+            // Group 75 is a bitset whose documented flags are 1, 2, and 4.
+            if ((value & ~7) != 0)
+                return false;
+            if (m_dxfPastPreNormalMapFields) {
+                m_normalMapAutoTransform = static_cast<std::uint8_t>(value);
+                m_hasNormalMapAutoTransform = true;
+            } else {
+                m_diffuseMapAutoTransform = static_cast<std::uint8_t>(value);
+                m_hasDiffuseMapAutoTransform = true;
+            }
+        }
+        break;
+    }
     default:
         return DRW_TableEntry::parseCode(code, reader);
     }
@@ -11913,21 +14130,37 @@ bool DRW_DbColor::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
             return false;
         colorIndex = static_cast<std::uint16_t>(value);
         colorMethod = 0xC3;
+        colorDwgFlags = 0u;
+        colorDwgIndex = 0u;
+        colorDwgMetadataPresent = false;
         break;
     }
     case 420:
         rgb = reader->getInt32();
         colorMethod = 0xC2;
+        colorDwgFlags = 0u;
+        colorDwgIndex = 0u;
+        colorDwgMetadataPresent = false;
         break;
     case 430: {
-        const UTF8STRING value = reader->getUtf8String();
+        UTF8STRING value = reader->getUtf8String();
         const UTF8STRING::size_type separator = value.find('$');
+        UTF8STRING parsedBookName;
+        UTF8STRING parsedName;
         if (separator == UTF8STRING::npos) {
-            name = value;
+            parsedName = std::move(value);
         } else {
-            bookName = value.substr(0, separator);
-            name = value.substr(separator + 1);
+            parsedBookName.assign(value, 0, separator);
+            value.erase(0, separator + 1);
+            parsedName = std::move(value);
         }
+        if (!replaceDxfRetainedNameAndStringField(
+                reader, m_dxfRetainedBookNameBytes, bookName,
+                std::move(parsedName), std::move(parsedBookName)))
+            return false;
+        colorDwgFlags = 0u;
+        colorDwgIndex = 0u;
+        colorDwgMetadataPresent = false;
         break;
     }
     default:
@@ -12898,7 +15131,10 @@ bool DRW_Background::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         else if (m_kind == Image) m_offset.y = reader->getDouble();
         break;
     case 240:
-        if (m_kind == Image) m_offset.y = reader->getDouble();
+        if (m_kind == Image
+            && reader->classifierProfile()
+                == DxfClassifierProfile::LibreCadMasterLegacy)
+            m_offset.y = reader->getDouble();
         break;
     case 142:
         if (m_kind == Gradient) m_rotation = reader->getDouble();
@@ -12908,11 +15144,26 @@ bool DRW_Background::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         if (m_kind == Image) m_scale.y = reader->getDouble();
         break;
     case 242:
-        if (m_kind == Image) m_scale.y = reader->getDouble();
+        if (m_kind == Image
+            && reader->classifierProfile()
+                == DxfClassifierProfile::LibreCadMasterLegacy)
+            m_scale.y = reader->getDouble();
         break;
     case 40:  if (m_kind == Ibl) m_rotation = reader->getDouble(); break;
-    case 1:   if (m_kind == Ibl) m_iblName = reader->getUtf8String(); break;
-    case 300: if (m_kind == Image) m_fileName = reader->getUtf8String(); break;
+    case 1:
+        if (m_kind == Ibl
+            && !replaceDxfRetainedStringField(
+                reader, m_dxfRetainedIblNameBytes, m_iblName,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 300:
+        if (m_kind == Image
+            && !replaceDxfRetainedStringField(
+                reader, m_dxfRetainedFileNameBytes, m_fileName,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 290:
         if (m_kind == Image) m_fitToScreen = (reader->getInt32() != 0);
         else if (m_kind == Ibl) {
@@ -12967,6 +15218,8 @@ bool DRW_Background::parseDwg(DRW::Version version, dwgBuffer *buf,
         m_sunHandle = 0;
         m_seen90 = 0;
         m_seen290 = 0;
+        m_dxfRetainedFileNameBytes = 0u;
+        m_dxfRetainedIblNameBytes = 0u;
     };
     const auto fail = [&clearState, buf]() {
         if (buf != nullptr)
@@ -13026,11 +15279,6 @@ bool DRW_Background::parseDwg(DRW::Version version, dwgBuffer *buf,
         return readBitDoubleWithinBody(buf, version, bodyEnd, value)
             && std::isfinite(value);
     };
-    const auto readHandle = [&](dwgHandle& value) {
-        return readHandleWithinBody(buf, version, bodyEnd, handle, false,
-                                    value);
-    };
-
     if (!readLong(classVersion))
         return fail();
 
@@ -13080,20 +15328,8 @@ bool DRW_Background::parseDwg(DRW::Version version, dwgBuffer *buf,
             || !readDouble(rotation)
             || !readBit(displayImage))
             return fail();
-        {
-            dwgHandle parsedHandle;
-            if (!readHandle(parsedHandle))
-                return fail();
-            secondaryBackgroundHandle = parsedHandle.ref;
-        }
         break;
     case Skylight:
-        {
-            dwgHandle parsedHandle;
-            if (!readHandle(parsedHandle))
-                return fail();
-            sunHandle = parsedHandle.ref;
-        }
         break;
     }
 
@@ -13111,6 +15347,19 @@ bool DRW_Background::parseDwg(DRW::Version version, dwgBuffer *buf,
     if (!handleBuf->isGood()
         || !this->readDwgObjectCommonHandles(version, handleBuf, &parsedParentHandle, &parsedReactors, &parsedXDictHandle))
         return fail();
+
+    if (kind == Ibl || kind == Skylight) {
+        std::uint64_t handleEndBit = 0;
+        std::uint32_t parsedHandle = 0;
+        if (!this->getDwgHandleEndBit(version, *handleBuf, handleEndBit)
+            || !readObjectHandleRefTransactional(handleBuf, parsedHandle,
+                                                 handleEndBit))
+            return fail();
+        if (kind == Ibl)
+            secondaryBackgroundHandle = parsedHandle;
+        else
+            sunHandle = parsedHandle;
+    }
 
     m_classVersion = classVersion;
     m_solidColor = solidColor;
@@ -13221,14 +15470,9 @@ bool DRW_Background::encodeDwg(DRW::Version version, dwgBufferW *buf,
         sb->putVariableText(version, m_iblName);
         buf->putBitDouble(m_rotation);
         buf->putBit(m_displayImage ? 1 : 0);
-        dwgHandle secondary = makeRefW(
-            m_secondaryBackgroundHandle, DRW::DwgHardPointer);
-        buf->putHandle(secondary);
         break;
     }
     case Skylight: {
-        dwgHandle sun = makeRefW(m_sunHandle, DRW::DwgHardPointer);
-        buf->putHandle(sun);
         break;
     }
     }
@@ -13238,6 +15482,12 @@ bool DRW_Background::encodeDwg(DRW::Version version, dwgBufferW *buf,
         hb, static_cast<std::uint32_t>(parentHandle),
         static_cast<std::int32_t>(reactorHandles.size()),
         effectiveXDictFlag, &reactorHandles, xDictHandle);
+    if (m_kind == Ibl) {
+        hb->putHandle(makeRefW(m_secondaryBackgroundHandle,
+                               DRW::DwgHardPointer));
+    } else if (m_kind == Skylight) {
+        hb->putHandle(makeRefW(m_sunHandle, DRW::DwgHardPointer));
+    }
     return buf->isGood() && sb->isGood() && hb->isGood();
 }
 
@@ -13369,20 +15619,362 @@ bool DRW_Material::encodeDwg(DRW::Version version, dwgBufferW *buf,
 }
 
 bool DRW_TableStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
-    // AcDbTableStyle DXF: the top-level scalar fields.  The nested per-cell
-    // styles / row styles (data/header/title) need a sub-record state machine
-    // and are left to the raw-net (round-tripped, not structurally decoded) —
-    // matching dwgTs's TABLESTYLE DXF decode depth.
+    constexpr std::uint16_t kDescription = 1u << 0;
+    constexpr std::uint16_t kFlowDirection = 1u << 1;
+    constexpr std::uint16_t kFlags = 1u << 2;
+    constexpr std::uint16_t kHorizontalMargin = 1u << 3;
+    constexpr std::uint16_t kVerticalMargin = 1u << 4;
+    constexpr std::uint16_t kTitleSuppressed = 1u << 5;
+    constexpr std::uint16_t kHeaderSuppressed = 1u << 6;
+    constexpr std::uint16_t kClassVersion = 1u << 7;
+    constexpr std::uint16_t kTextStyleName = 1u << 0;
+    constexpr std::uint16_t kTextHeight = 1u << 1;
+    constexpr std::uint16_t kTextAlignment = 1u << 2;
+    constexpr std::uint16_t kTextColor = 1u << 3;
+    constexpr std::uint16_t kFillColor = 1u << 4;
+    constexpr std::uint16_t kBackgroundEnabled = 1u << 5;
+    constexpr std::uint16_t kValueDataType = 1u << 6;
+    constexpr std::uint16_t kValueUnitType = 1u << 7;
+    constexpr std::uint16_t kRequiredRowFields = kTextStyleName | kTextHeight
+        | kTextAlignment | kTextColor | kFillColor | kBackgroundEnabled;
+    const auto rowComplete = [](
+            const DRW_TableStyleRowStyle& row) {
+        const bool hasDataType = (row.m_dxfFieldsPresent & kValueDataType) != 0;
+        const bool hasUnitType = (row.m_dxfFieldsPresent & kValueUnitType) != 0;
+        return (row.m_dxfFieldsPresent & kRequiredRowFields)
+                == kRequiredRowFields
+            && hasDataType == hasUnitType;
+    };
+    const auto markCoreField = [this](std::uint16_t field) {
+        if ((m_dxfCoreFieldsPresent & field) != 0u) {
+            m_dxfNestedRowsValid = false;
+            return false;
+        }
+        m_dxfCoreFieldsPresent |= field;
+        return true;
+    };
+    const DRW::Version dxfVersion =
+        static_cast<DRW::Version>(reader->getVersion());
+    const auto activeRow = [this]() -> DRW_TableStyleRowStyle* {
+        if (m_dxfCurrentRowStyle < 0
+            || static_cast<std::size_t>(m_dxfCurrentRowStyle)
+                   >= m_rowStyles.size())
+            return nullptr;
+        return &m_rowStyles[static_cast<std::size_t>(m_dxfCurrentRowStyle)];
+    };
+    if (code != 420 && code != 430 && code != 431)
+        m_dxfColorTarget = DxfColorTarget::None;
+
     switch (code) {
-    case 3:   m_name = reader->getUtf8String(); break;
-    case 70:  m_flowDirection = reader->getInt32(); break;
-    case 71:  m_flags = reader->getInt32(); break;
-    case 40:  m_horizontalCellMargin = reader->getDouble(); break;
-    case 41:  m_verticalCellMargin = reader->getDouble(); break;
-    case 280: m_titleSuppressed = (reader->getInt32() != 0); break;
-    case 281: m_headerSuppressed = (reader->getInt32() != 0); break;
-    default:
+    case 3: {
+        std::string rawDescription = reader->getRawValue();
+        std::string description = reader->getUtf8String();
+        if (!markCoreField(kDescription))
+            break;
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTableStyleNameBytes, m_name,
+                std::move(description)))
+            return false;
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTableStyleOriginalNameBytes,
+                m_dxfOriginalName, m_name)
+            || !replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTableStyleRawNameBytes,
+                m_dxfOriginalNameRaw, std::move(rawDescription)))
+            return false;
+        m_dxfHasDescriptionBaseline = true;
+        m_dxfSawTableStyleBody = true;
+        break;
+    }
+    case 7: {
+        if (!m_dxfSawTableStyleBody || !m_dxfSawTableStyleHeader)
+            return DRW_TableEntry::parseCode(code, reader);
+        if (const DRW_TableStyleRowStyle* previous = activeRow();
+            previous != nullptr && !rowComplete(*previous))
+            m_dxfNestedRowsValid = false;
+        if (m_rowStyles.size() >= 3u) {
+            m_dxfNestedRowsValid = false;
+            m_dxfCurrentRowStyle = -1;
+            break;
+        }
+        DRW_TableStyleRowStyle row;
+        row.m_borders.resize(6u);
+        for (std::size_t index = 0; index < row.m_borders.size(); ++index)
+            row.m_borders[index].m_edgeFlags = 1 << index;
+        m_rowStyles.push_back(std::move(row));
+        m_dxfCurrentRowStyle = static_cast<int>(m_rowStyles.size() - 1u);
+        DRW_TableStyleRowStyle& current = m_rowStyles.back();
+        if (!replaceDxfRetainedStringField(
+                reader, current.m_dxfRetainedTextStyleNameBytes,
+                current.m_textStyleName, reader->getUtf8String()))
+            return false;
+        current.m_dxfFieldsPresent |= kTextStyleName;
+        m_dxfColorTarget = DxfColorTarget::None;
+        break;
+    }
+    case 70: {
+        const int value = reader->getInt32();
+        m_dxfSawTableStyleBody = true;
+        if (!markCoreField(kFlowDirection) || (value != 0 && value != 1)) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        m_flowDirection = value;
+        break;
+    }
+    case 71: {
+        const int value = reader->getInt32();
+        m_dxfSawTableStyleBody = true;
+        if (!markCoreField(kFlags))
+            break;
+        m_flags = value;
+        break;
+    }
+    case 40: {
+        const double value = reader->getDouble();
+        m_dxfSawTableStyleBody = true;
+        if (!markCoreField(kHorizontalMargin) || !std::isfinite(value)) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        m_horizontalCellMargin = value;
+        break;
+    }
+    case 41: {
+        const double value = reader->getDouble();
+        m_dxfSawTableStyleBody = true;
+        if (!markCoreField(kVerticalMargin) || !std::isfinite(value)) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        m_verticalCellMargin = value;
+        break;
+    }
+    case 280: {
+        const int value = reader->getInt32();
+        // The first group 280 is the class version. The later group 280 is
+        // the title-suppression flag, after the scalar table-style fields.
+        if (m_dxfSawTableStyleBody) {
+            if (!markCoreField(kTitleSuppressed)
+                || (value != 0 && value != 1)) {
+                m_dxfNestedRowsValid = false;
+                break;
+            }
+            m_titleSuppressed = value != 0;
+        } else if (!markCoreField(kClassVersion) || value != 0) {
+            // Autodesk documents 0 as the TABLESTYLE class version. Keep an
+            // unknown/future value in raw DXF, but don't project it as known.
+            m_dxfNestedRowsValid = false;
+        }
+        break;
+    }
+    case 281: {
+        const int value = reader->getInt32();
+        if (!markCoreField(kHeaderSuppressed) || (value != 0 && value != 1)) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        m_headerSuppressed = value != 0;
+        m_dxfSawTableStyleBody = true;
+        m_dxfSawTableStyleHeader = true;
+        break;
+    }
+    case 140: {
+        DRW_TableStyleRowStyle* row = activeRow();
+        if (row == nullptr)
+            return DRW_TableEntry::parseCode(code, reader);
+        const double value = reader->getDouble();
+        if (!std::isfinite(value)
+            || (row->m_dxfFieldsPresent & kTextHeight) != 0u) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        row->m_textHeight = value;
+        row->m_dxfFieldsPresent |= kTextHeight;
+        break;
+    }
+    case 170: {
+        DRW_TableStyleRowStyle* row = activeRow();
+        if (row == nullptr)
+            return DRW_TableEntry::parseCode(code, reader);
+        if ((row->m_dxfFieldsPresent & kTextAlignment) != 0u) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        row->m_textAlignment = reader->getInt32();
+        row->m_dxfFieldsPresent |= kTextAlignment;
+        break;
+    }
+    case 62:
+    case 63: {
+        DRW_TableStyleRowStyle* row = activeRow();
+        if (row == nullptr)
+            return DRW_TableEntry::parseCode(code, reader);
+        const std::uint16_t field = code == 62 ? kTextColor : kFillColor;
+        if ((row->m_dxfFieldsPresent & field) != 0u) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        if (code == 62) {
+            row->m_textColor = reader->getInt32();
+            m_dxfColorTarget = DxfColorTarget::Text;
+        } else {
+            row->m_fillColor = reader->getInt32();
+            m_dxfColorTarget = DxfColorTarget::Fill;
+        }
+        row->m_dxfFieldsPresent |= field;
+        break;
+    }
+    case 283: {
+        DRW_TableStyleRowStyle* row = activeRow();
+        if (row == nullptr)
+            return DRW_TableEntry::parseCode(code, reader);
+        const int value = reader->getInt32();
+        if ((row->m_dxfFieldsPresent & kBackgroundEnabled) != 0u
+            || (value != 0 && value != 1)) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        row->m_hasBackgroundColor = value != 0;
+        row->m_dxfFieldsPresent |= kBackgroundEnabled;
+        break;
+    }
+    case 90:
+    case 91: {
+        DRW_TableStyleRowStyle* row = activeRow();
+        if (row == nullptr)
+            return DRW_TableEntry::parseCode(code, reader);
+        const std::uint16_t field = code == 90 ? kValueDataType : kValueUnitType;
+        if ((row->m_dxfFieldsPresent & field) != 0u) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        const int value = reader->getInt32();
+        if (code == 90) {
+            if (!validTableStyleValueDataType(dxfVersion, value)) {
+                m_dxfNestedRowsValid = false;
+                break;
+            }
+            row->m_valueDataType = value;
+        } else {
+            if (!validTableStyleValueUnitType(dxfVersion, value)) {
+                m_dxfNestedRowsValid = false;
+                break;
+            }
+            row->m_valueUnitType = value;
+        }
+        row->m_dxfFieldsPresent |= field;
+        break;
+    }
+    case 420:
+    case 430:
+    case 431: {
+        DRW_TableStyleRowStyle* row = activeRow();
+        if (row == nullptr || m_dxfColorTarget == DxfColorTarget::None) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        DRW_TableStyleCmcColor* color = nullptr;
+        if (m_dxfColorTarget == DxfColorTarget::Text)
+            color = &row->m_textColorCmc;
+        else if (m_dxfColorTarget == DxfColorTarget::Fill)
+            color = &row->m_fillColorCmc;
+        else if (m_dxfColorTarget == DxfColorTarget::Border
+                 && m_dxfCurrentBorder >= 0
+                 && static_cast<std::size_t>(m_dxfCurrentBorder)
+                        < row->m_borders.size())
+            color = &row->m_borders[
+                static_cast<std::size_t>(m_dxfCurrentBorder)].m_colorCmc;
+        if (color == nullptr) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        if (code == 420) {
+            const int value = reader->getInt32();
+            if (value < 0 || value > 0xFFFFFF || color->m_rgb >= 0) {
+                m_dxfNestedRowsValid = false;
+                break;
+            }
+            color->m_rgb = value;
+            break;
+        }
+        std::size_t& ownerBytes = code == 430
+            ? color->m_dxfRetainedNameBytes
+            : color->m_dxfRetainedBookNameBytes;
+        std::string& destination = code == 430
+            ? color->m_name : color->m_bookName;
+        bool& fieldPresent = code == 430
+            ? color->m_dxfNamePresent : color->m_dxfBookNamePresent;
+        if (fieldPresent) {
+            m_dxfNestedRowsValid = false;
+            break;
+        }
+        if (!replaceDxfRetainedStringField(
+                reader, ownerBytes, destination, reader->getUtf8String()))
+            return false;
+        fieldPresent = true;
+        break;
+    }
+    default: {
+        DRW_TableStyleRowStyle* row = activeRow();
+        if (row != nullptr && code >= 274 && code <= 279) {
+            const std::size_t index = static_cast<std::size_t>(code - 274);
+            const std::uint8_t mask = static_cast<std::uint8_t>(1u << index);
+            if ((row->m_dxfLineWeightMask & mask) != 0u) {
+                m_dxfNestedRowsValid = false;
+                break;
+            }
+            row->m_borders[index].m_lineWeight = reader->getInt32();
+            row->m_dxfLineWeightMask |= mask;
+            break;
+        }
+        if (row != nullptr && code >= 284 && code <= 289) {
+            const std::size_t index = static_cast<std::size_t>(code - 284);
+            const std::uint8_t mask = static_cast<std::uint8_t>(1u << index);
+            const int value = reader->getInt32();
+            if ((row->m_dxfVisibilityMask & mask) != 0u
+                || (value != 0 && value != 1)) {
+                m_dxfNestedRowsValid = false;
+                break;
+            }
+            row->m_borders[index].m_visible = value;
+            row->m_dxfVisibilityMask |= mask;
+            break;
+        }
+        if (row != nullptr && code >= 64 && code <= 69) {
+            const std::size_t index = static_cast<std::size_t>(code - 64);
+            const std::uint8_t mask = static_cast<std::uint8_t>(1u << index);
+            if ((row->m_dxfBorderColorMask & mask) != 0u) {
+                m_dxfNestedRowsValid = false;
+                break;
+            }
+            row->m_borders[index].m_color = reader->getInt32();
+            row->m_dxfBorderColorMask |= mask;
+            m_dxfCurrentBorder = static_cast<int>(index);
+            m_dxfColorTarget = DxfColorTarget::Border;
+            break;
+        }
+        if (code != 420 && code != 430 && code != 431)
+            m_dxfCurrentBorder = -1;
         return DRW_TableEntry::parseCode(code, reader);
+    }
+    }
+    return true;
+}
+
+bool DRW_TableStyle::finalizeDxfNestedStyles() noexcept {
+    if (!m_dxfNestedRowsValid)
+        return false;
+    constexpr std::uint16_t kRequired = (1u << 0) | (1u << 1) | (1u << 2)
+        | (1u << 3) | (1u << 4) | (1u << 5);
+    constexpr std::uint16_t kValueDataType = 1u << 6;
+    constexpr std::uint16_t kValueUnitType = 1u << 7;
+    for (const DRW_TableStyleRowStyle& row : m_rowStyles) {
+        const bool hasDataType = (row.m_dxfFieldsPresent & kValueDataType) != 0u;
+        const bool hasUnitType = (row.m_dxfFieldsPresent & kValueUnitType) != 0u;
+        if ((row.m_dxfFieldsPresent & kRequired) != kRequired
+            || hasDataType != hasUnitType)
+            return false;
     }
     return true;
 }
@@ -13448,10 +16040,15 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
                                       ignoredValue1)
             || !readBitLongWithinBody(bodyBuf, version, bodyEnd,
                                       ignoredValue2))
+        {
+            DRW_DBG("TABLESTYLE R24 prefix incomplete\n");
             return fail();
+        }
         dwgHandle unknownHandle;
-        if (!readDwgObjectHandleWithinFrame(version, *hBuf, false, unknownHandle))
+        if (!readDwgObjectHandleWithinFrame(version, *hBuf, false, unknownHandle)) {
+            DRW_DBG("TABLESTYLE R24 owner handle incomplete\n");
             return fail();
+        }
 
         DRW_TableStyleCellStyle parsedTableCellStyle;
         if (!readTableStyleCellStyle(version, bodyBuf, bodySBuf, hBuf,
@@ -13463,12 +16060,19 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         }
         if (!readBitLongWithinBody(bodyBuf, version, bodyEnd,
                                    parsedTableCellStyle.m_id)
+            || (parsedTableCellStyle.m_id < 1
+                || (parsedTableCellStyle.m_id > 4
+                    && parsedTableCellStyle.m_id < 101))
             || !readBitLongWithinBody(bodyBuf, version, bodyEnd,
                                       parsedTableCellStyle.m_styleClass)
+            || (parsedTableCellStyle.m_styleClass != 1
+                && parsedTableCellStyle.m_styleClass != 2)
             || !readVariableTextWithinBounds(
                 bodyBuf, bodySBuf, version, bodyEnd, stringEnd,
-                parsedTableCellStyle.m_name))
+                parsedTableCellStyle.m_name)) {
+            DRW_DBG("TABLESTYLE R24 table identity invalid\n");
             return fail();
+        }
 
         std::int32_t declaredCellStyleCount = 0;
         if (!readBitLongWithinBody(bodyBuf, version, bodyEnd,
@@ -13478,7 +16082,7 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
             || !bodySBuf->isGood() || !hBuf->isGood()
             || static_cast<std::uint32_t>(declaredCellStyleCount)
                 > kMaxTableStyleItems) {
-            DRW_DBG("TABLESTYLE cell style count too large\n");
+            DRW_DBG("TABLESTYLE cell style count invalid\n");
             return fail();
         }
         const std::uint32_t cellStyleCount =
@@ -13489,8 +16093,10 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         for (std::uint32_t i = 0; i < cellStyleCount; ++i) {
             std::int32_t ignoredStyleIndex = 0;
             if (!readBitLongWithinBody(bodyBuf, version, bodyEnd,
-                                       ignoredStyleIndex))
+                                       ignoredStyleIndex)) {
+                DRW_DBG("TABLESTYLE custom cell-style index incomplete\n");
                 return fail();
+            }
             DRW_TableStyleCellStyle style;
             if (!readTableStyleCellStyle(version, bodyBuf, bodySBuf, hBuf,
                                          bodyEnd, stringEnd,
@@ -13501,12 +16107,31 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
             }
             if (!readBitLongWithinBody(bodyBuf, version, bodyEnd,
                                        style.m_id)
+                || (style.m_id < 1
+                    || (style.m_id > 4 && style.m_id < 101))
                 || !readBitLongWithinBody(bodyBuf, version, bodyEnd,
                                           style.m_styleClass)
-                || !readVariableTextWithinBounds(
-                    bodyBuf, bodySBuf, version, bodyEnd, stringEnd,
-                    style.m_name))
+                // The ODA profile documents classes 1/2, but existing R24
+                // input contains 0. Preserve it as an observed raw value
+                // without assigning it data/label semantics.
+                || style.m_styleClass < 0 || style.m_styleClass > 2) {
+                DRW_DBG("TABLESTYLE repeated cell-style identity invalid id/class=");
+                DRW_DBG(style.m_id); DRW_DBG("/");
+                DRW_DBG(style.m_styleClass); DRW_DBG("\n");
                 return fail();
+            }
+            if (!readVariableTextWithinBounds(
+                    bodyBuf, bodySBuf, version, bodyEnd, stringEnd,
+                    style.m_name)) {
+                DRW_DBG("TABLESTYLE repeated cell-style name invalid id/class/index/stringBit/end=");
+                DRW_DBG(style.m_id); DRW_DBG("/");
+                DRW_DBG(style.m_styleClass); DRW_DBG("/");
+                DRW_DBG(ignoredStyleIndex); DRW_DBG("/");
+                DRW_DBG(static_cast<unsigned long long>(
+                    currentObjectDwgBit(bodySBuf))); DRW_DBG("/");
+                DRW_DBG(stringEnd); DRW_DBG("\n");
+                return fail();
+            }
             parsedCellStyles.push_back(std::move(style));
         }
 
@@ -13514,8 +16139,10 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
             bodyBuf->getPosition() * 8u + bodyBuf->getBitPos();
         if (!bodyBuf->isGood() || !bodySBuf->isGood() || !hBuf->isGood()
             || !objectBodyFitsSize(bodyBitOffset, bodyEnd)
-            || !objectBodyFitsSize(currentObjectDwgBit(bodySBuf), stringEnd))
+            || !objectBodyFitsSize(currentObjectDwgBit(bodySBuf), stringEnd)) {
+            DRW_DBG("TABLESTYLE R24 object bounds mismatch\n");
             return fail();
+        }
         m_name = std::move(parsedName);
         m_unknownHandle = unknownHandle.ref;
         m_tableCellStyle = std::move(parsedTableCellStyle);
@@ -13599,6 +16226,184 @@ bool DRW_TableStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
     }
 }
 
+namespace {
+
+std::uint8_t tableStyleCmcCanonicalMethod(
+    int color, const DRW_TableStyleCmcColor& cmc) noexcept {
+    if (cmc.m_rgb >= 0)
+        return dwgColor::RGB;
+    if (color == 256)
+        return dwgColor::BYLAYER;
+    if (color == 0)
+        return dwgColor::BYBLOCK;
+    if (color >= 1 && color <= 255)
+        return dwgColor::ACIS;
+    return 0;
+}
+
+bool tableStyleCmcValid(int color,
+                        const DRW_TableStyleCmcColor& cmc) noexcept {
+    if (color < 0 || color > 256 || cmc.m_rgb < -1
+        || cmc.m_rgb > 0x00FFFFFF
+        || (cmc.m_rgb >= 0 && color != 256)
+        || cmc.m_reservedIndex != 0)
+        return false;
+    const std::uint8_t canonical = tableStyleCmcCanonicalMethod(color, cmc);
+    if (canonical == 0)
+        return false;
+    const std::uint8_t nameFlags = static_cast<std::uint8_t>(
+        (cmc.m_name.empty() ? 0u : 1u)
+        | (cmc.m_bookName.empty() ? 0u : 2u));
+    if (cmc.m_method == 0)
+        return cmc.m_flags == 0;
+    return cmc.m_method == canonical && cmc.m_flags == nameFlags;
+}
+
+void putTableStyleCmcColor(DRW::Version version, dwgBufferW& body,
+                           dwgBufferW* stringBuffer, int color,
+                           const DRW_TableStyleCmcColor& cmc) {
+    const DRW::Version colorVersion =
+        version < DRW::AC1018 ? DRW::AC1018 : version;
+    const std::uint8_t method = cmc.m_method != 0
+        ? cmc.m_method : tableStyleCmcCanonicalMethod(color, cmc);
+    body.putCmColor(colorVersion, method,
+                    static_cast<std::uint16_t>(color), cmc.m_rgb,
+                    cmc.m_name, cmc.m_bookName, stringBuffer);
+}
+
+bool validCellStyleMapIdentity(DRW::Version version,
+                               const DRW_TableStyleCellStyle& style) noexcept {
+    const bool validId = style.m_id == 1 || style.m_id == 2
+        || style.m_id == 3
+        || (version >= DRW::AC1024 && style.m_id == 4)
+        || style.m_id >= 101;
+    return validId && style.m_styleClass >= 0 && style.m_styleClass <= 2;
+}
+
+bool validCellStyleMapContentFormat(
+        DRW::Version version,
+        const DRW_TableStyleContentFormat& format) noexcept {
+    return (format.m_propertyOverrideFlags & ~std::uint32_t{0x7FFFFu}) == 0u
+        && (format.m_propertyFlags & ~std::uint32_t{0x100u}) == 0u
+        && validTableStyleValueDataType(version, format.m_valueDataType)
+        && validTableStyleDwgWriteUnitType(version, format.m_valueUnitType)
+        && std::isfinite(format.m_rotation)
+        && std::isfinite(format.m_blockScale)
+        && format.m_cellAlignment >= 1 && format.m_cellAlignment <= 9
+        && tableStyleCmcValid(format.m_contentColor,
+                              format.m_contentColorCmc)
+        && std::isfinite(format.m_textHeight);
+}
+
+bool validCellStyleMapCellStyle(
+        DRW::Version version,
+        const DRW_TableStyleCellStyle& style) noexcept {
+    if (style.m_type < 1 || style.m_type > 5
+        || !validCellStyleMapIdentity(version, style))
+        return false;
+    if (!style.m_hasData)
+        return true;
+    if ((style.m_propertyOverrideFlags & ~std::uint32_t{0x7FFFFu}) != 0u
+        || (style.m_mergeFlags & ~std::uint32_t{0x18000u}) != 0u
+        || !tableStyleCmcValid(style.m_backgroundColor,
+                               style.m_backgroundColorCmc)
+        || (style.m_contentLayout & ~std::uint32_t{0x7u}) != 0u
+        || !validCellStyleMapContentFormat(version, style.m_contentFormat)
+        || style.m_marginOverrideFlags < 0
+        || (style.m_marginOverrideFlags & ~0x1) != 0
+        || style.m_borders.size() > 6u)
+        return false;
+    if (style.m_marginOverrideFlags != 0
+        && (!std::isfinite(style.m_verticalMargin)
+            || !std::isfinite(style.m_horizontalMargin)
+            || !std::isfinite(style.m_bottomMargin)
+            || !std::isfinite(style.m_rightMargin)
+            || !std::isfinite(style.m_marginHorizontalSpacing)
+            || !std::isfinite(style.m_marginVerticalSpacing)))
+        return false;
+    for (const DRW_TableStyleBorder& border : style.m_borders) {
+        if ((static_cast<std::uint32_t>(border.m_edgeFlags)
+                & ~std::uint32_t{0x3Fu}) != 0u)
+            return false;
+        if (border.m_edgeFlags == 0)
+            continue;
+        if ((static_cast<std::uint32_t>(border.m_propertyOverrideFlags)
+                & ~std::uint32_t{0x3Fu}) != 0u
+            || !tableStyleCmcValid(border.m_color, border.m_colorCmc)
+            || !std::isfinite(border.m_doubleLineSpacing)
+            || ((border.m_propertyOverrideFlags & 0x1) != 0
+                && (border.m_borderType < 1 || border.m_borderType > 2))
+            || ((border.m_propertyOverrideFlags & 0x10) != 0
+                && (border.m_visible < 0 || border.m_visible > 1)))
+            return false;
+    }
+    return true;
+}
+
+void putCellStyleMapContentFormat(
+        DRW::Version version, dwgBufferW& body, dwgBufferW& stringBuffer,
+        const DRW_TableStyleContentFormat& format) {
+    body.putBitLong(static_cast<std::int32_t>(
+        format.m_propertyOverrideFlags));
+    body.putBitLong(static_cast<std::int32_t>(format.m_propertyFlags));
+    body.putBitLong(format.m_valueDataType);
+    body.putBitLong(format.m_valueUnitType);
+    stringBuffer.putVariableText(version, format.m_valueFormatString);
+    body.putBitDouble(format.m_rotation);
+    body.putBitDouble(format.m_blockScale);
+    body.putBitLong(format.m_cellAlignment);
+    putTableStyleCmcColor(version, body, &stringBuffer,
+                          format.m_contentColor,
+                          format.m_contentColorCmc);
+    body.putBitDouble(format.m_textHeight);
+}
+
+void putCellStyleMapCellStyle(DRW::Version version, dwgBufferW& body,
+                              dwgBufferW& stringBuffer,
+                              const DRW_TableStyleCellStyle& style) {
+    body.putBitLong(style.m_type);
+    body.putBitShort(style.m_hasData ? 1u : 0u);
+    if (style.m_hasData) {
+        body.putBitLong(static_cast<std::int32_t>(
+            style.m_propertyOverrideFlags));
+        body.putBitLong(static_cast<std::int32_t>(style.m_mergeFlags));
+        putTableStyleCmcColor(version, body, &stringBuffer,
+                              style.m_backgroundColor,
+                              style.m_backgroundColorCmc);
+        body.putBitLong(static_cast<std::int32_t>(style.m_contentLayout));
+        putCellStyleMapContentFormat(version, body, stringBuffer,
+                                     style.m_contentFormat);
+        body.putBitShort(static_cast<std::uint16_t>(
+            style.m_marginOverrideFlags));
+        if (style.m_marginOverrideFlags != 0) {
+            body.putBitDouble(style.m_verticalMargin);
+            body.putBitDouble(style.m_horizontalMargin);
+            body.putBitDouble(style.m_bottomMargin);
+            body.putBitDouble(style.m_rightMargin);
+            body.putBitDouble(style.m_marginHorizontalSpacing);
+            body.putBitDouble(style.m_marginVerticalSpacing);
+        }
+        body.putBitLong(static_cast<std::int32_t>(style.m_borders.size()));
+        for (const DRW_TableStyleBorder& border : style.m_borders) {
+            body.putBitLong(border.m_edgeFlags);
+            if (border.m_edgeFlags == 0)
+                continue;
+            body.putBitLong(border.m_propertyOverrideFlags);
+            body.putBitLong(border.m_borderType);
+            putTableStyleCmcColor(version, body, &stringBuffer,
+                                  border.m_color, border.m_colorCmc);
+            body.putBitLong(border.m_lineWeight);
+            body.putBitLong(border.m_visible);
+            body.putBitDouble(border.m_doubleLineSpacing);
+        }
+    }
+    body.putBitLong(style.m_id);
+    body.putBitLong(style.m_styleClass);
+    stringBuffer.putVariableText(version, style.m_name);
+}
+
+} // namespace
+
 bool DRW_TableStyle::validateDwgPayload(DRW::Version version) const {
     // The legacy TABLESTYLE layout is stable through R2007. The R2010+
     // branch has a different body and is intentionally still preserved via
@@ -13622,18 +16427,23 @@ bool DRW_TableStyle::validateDwgPayload(DRW::Version version) const {
     const auto validFinite = [](double value) {
         return std::isfinite(value);
     };
-    const auto validColor = [&validBitShort](int value) {
-        return validBitShort(value);
+    const auto validColor = [&validBitShort](
+            int value, const DRW_TableStyleCmcColor& cmc) {
+        return validBitShort(value) && tableStyleCmcValid(value, cmc);
     };
     for (const DRW_TableStyleRowStyle& row : m_rowStyles) {
         if (!validFinite(row.m_textHeight)
             || !validBitShort(row.m_textAlignment)
-            || !validColor(row.m_textColor)
-            || !validColor(row.m_fillColor)
+            || !validColor(row.m_textColor, row.m_textColorCmc)
+            || !validColor(row.m_fillColor, row.m_fillColorCmc)
             || row.m_borders.size() != 6)
             return false;
         if (version > DRW::AC1018
             && (!validFinite(row.m_textHeight)
+                || !validTableStyleValueDataType(
+                    version, row.m_valueDataType)
+                || !validTableStyleDwgWriteUnitType(
+                    version, row.m_valueUnitType)
                 || row.m_valueDataType < std::numeric_limits<std::int32_t>::min()
                 || row.m_valueDataType > std::numeric_limits<std::int32_t>::max()
                 || row.m_valueUnitType < std::numeric_limits<std::int32_t>::min()
@@ -13641,7 +16451,7 @@ bool DRW_TableStyle::validateDwgPayload(DRW::Version version) const {
             return false;
         for (const DRW_TableStyleBorder& border : row.m_borders) {
             if (!validSignedBitShort(border.m_lineWeight)
-                || !validColor(border.m_color)
+                || !validColor(border.m_color, border.m_colorCmc)
                 || !validFinite(border.m_doubleLineSpacing))
                 return false;
         }
@@ -13676,16 +16486,16 @@ bool DRW_TableStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
         buf->putBitDouble(row.m_textHeight);
         buf->putBitShort(static_cast<std::uint16_t>(row.m_textAlignment));
         // TABLESTYLE row colors use the full CMC form even in AC1015.
-        buf->putCmColor(DRW::AC1018,
-                        static_cast<std::uint16_t>(row.m_textColor));
-        buf->putCmColor(DRW::AC1018,
-                        static_cast<std::uint16_t>(row.m_fillColor));
+        putTableStyleCmcColor(version, *buf, stringBuf,
+                              row.m_textColor, row.m_textColorCmc);
+        putTableStyleCmcColor(version, *buf, stringBuf,
+                              row.m_fillColor, row.m_fillColorCmc);
         buf->putBit(row.m_hasBackgroundColor ? 1 : 0);
         for (const DRW_TableStyleBorder& border : row.m_borders) {
             buf->putSBitShort(static_cast<std::int16_t>(border.m_lineWeight));
             buf->putBit(border.m_visible != 0 ? 1 : 0);
-            buf->putCmColor(DRW::AC1018,
-                            static_cast<std::uint16_t>(border.m_color));
+            putTableStyleCmcColor(version, *buf, stringBuf,
+                                  border.m_color, border.m_colorCmc);
         }
         if (version > DRW::AC1018) {
             buf->putBitLong(row.m_valueDataType);
@@ -13705,6 +16515,702 @@ bool DRW_TableStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
             row.m_textStyleHandle, DRW::DwgHardPointer));
 
     return buf->isGood() && stringBuf->isGood() && hBuf->isGood();
+}
+
+bool DRW_CellStyleMap::parseCode(
+    int code, const std::unique_ptr<dxfReader>& reader) {
+    constexpr std::uint16_t kTableBegin = 1u << 0;
+    constexpr std::uint16_t kTableType = 1u << 1;
+    constexpr std::uint16_t kTableHasData = 1u << 2;
+    constexpr std::uint16_t kTablePropertyFlags = 1u << 3;
+    constexpr std::uint16_t kTableMergeFlags = 1u << 4;
+    constexpr std::uint16_t kTableBackgroundColor = 1u << 5;
+    constexpr std::uint16_t kTableContentLayout = 1u << 6;
+    constexpr std::uint16_t kTableContentFormat = 1u << 7;
+    constexpr std::uint16_t kTableMarginFlags = 1u << 8;
+    constexpr std::uint16_t kTableBorderCount = 1u << 9;
+    constexpr std::uint16_t kContentPropertyOverride = 1u << 0;
+    constexpr std::uint16_t kContentPropertyFlags = 1u << 1;
+    constexpr std::uint16_t kContentDataType = 1u << 2;
+    constexpr std::uint16_t kContentUnitType = 1u << 3;
+    constexpr std::uint16_t kContentValueFormat = 1u << 4;
+    constexpr std::uint16_t kContentRotation = 1u << 5;
+    constexpr std::uint16_t kContentBlockScale = 1u << 6;
+    constexpr std::uint16_t kContentAlignment = 1u << 7;
+    constexpr std::uint16_t kContentColor = 1u << 8;
+    constexpr std::uint16_t kContentTextStyle = 1u << 9;
+    constexpr std::uint16_t kContentTextHeight = 1u << 10;
+    constexpr std::uint16_t kContentRequired = (1u << 11) - 1u;
+    constexpr std::uint16_t kGridPropertyFlags = 1u << 0;
+    constexpr std::uint16_t kGridBorderType = 1u << 1;
+    constexpr std::uint16_t kGridColor = 1u << 2;
+    constexpr std::uint16_t kGridLineWeight = 1u << 3;
+    constexpr std::uint16_t kGridLineType = 1u << 4;
+    constexpr std::uint16_t kGridVisible = 1u << 5;
+    constexpr std::uint16_t kGridSpacing = 1u << 6;
+    constexpr std::uint16_t kGridRequired = (1u << 7) - 1u;
+    constexpr std::uint8_t kIdentityId = 1u << 0;
+    constexpr std::uint8_t kIdentityClass = 1u << 1;
+    constexpr std::uint8_t kIdentityName = 1u << 2;
+    constexpr std::uint8_t kColorRgb = 1u << 0;
+    constexpr std::uint8_t kColorName = 1u << 1;
+    constexpr std::uint8_t kColorBookName = 1u << 2;
+    constexpr std::uint8_t kColorKnown = kColorRgb | kColorName
+        | kColorBookName;
+
+    if (reader == nullptr)
+        return false;
+    const auto invalid = [this]() {
+        m_dxfValid = false;
+        return true;
+    };
+    const auto mark = [&invalid](auto& fields, auto field) {
+        if ((fields & field) != 0u)
+            return invalid();
+        fields |= field;
+        return true;
+    };
+    const auto styleAt = [this]() -> DRW_TableStyleCellStyle* {
+        if (m_dxfCurrentStyle < 0
+            || static_cast<std::size_t>(m_dxfCurrentStyle)
+                >= m_cellStyles.size())
+            return nullptr;
+        return &m_cellStyles[static_cast<std::size_t>(m_dxfCurrentStyle)];
+    };
+    const auto borderAt = [&styleAt, this]() -> DRW_TableStyleBorder* {
+        DRW_TableStyleCellStyle* style = styleAt();
+        if (style == nullptr || m_dxfCurrentBorder < 0
+            || static_cast<std::size_t>(m_dxfCurrentBorder)
+                >= style->m_borders.size())
+            return nullptr;
+        return &style->m_borders[static_cast<std::size_t>(m_dxfCurrentBorder)];
+    };
+    const auto currentColor = [&]() -> DRW_TableStyleCmcColor* {
+        DRW_TableStyleCellStyle* style = styleAt();
+        if (style == nullptr)
+            return nullptr;
+        if (m_dxfColorTarget == DxfColorTarget::Background)
+            return &style->m_backgroundColorCmc;
+        if (m_dxfColorTarget == DxfColorTarget::Content)
+            return &style->m_contentFormat.m_contentColorCmc;
+        if (m_dxfColorTarget == DxfColorTarget::Border) {
+            DRW_TableStyleBorder* border = borderAt();
+            return border == nullptr ? nullptr : &border->m_colorCmc;
+        }
+        return nullptr;
+    };
+    const auto finishContent = [&]() {
+        if (m_dxfContentFieldsPresent != kContentRequired)
+            return invalid();
+        m_dxfTableFieldsPresent |= kTableContentFormat;
+        m_dxfSection = DxfSection::Table;
+        m_dxfColorTarget = DxfColorTarget::None;
+        return true;
+    };
+    const auto finishGrid = [&]() {
+        if (m_dxfGridFieldsPresent != kGridRequired)
+            return invalid();
+        m_dxfSection = DxfSection::Table;
+        m_dxfCurrentBorder = -1;
+        m_dxfColorTarget = DxfColorTarget::None;
+        return true;
+    };
+
+    if (code != 420 && code != 430 && code != 431) {
+        m_dxfColorTarget = DxfColorTarget::None;
+        m_dxfColorFieldsPresent = 0;
+    }
+
+    try {
+        switch (code) {
+        case 100: {
+            const std::string_view subclass = reader->getStringView();
+            if (subclass == "AcDbCellStyleMap") {
+                if (m_dxfSawSubclass)
+                    return invalid();
+                m_dxfSawSubclass = true;
+                return true;
+            }
+            if (m_dxfSawSubclass)
+                return invalid();
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+        case 1: {
+            const std::string_view marker = reader->getStringView();
+            if (marker == "TABLEFORMAT_BEGIN") {
+                DRW_TableStyleCellStyle* style = styleAt();
+                if (!m_dxfSawSubclass || style == nullptr
+                    || m_dxfSection != DxfSection::None
+                    || m_dxfSawTableEnd)
+                    return invalid();
+                m_dxfSection = DxfSection::Table;
+                return mark(m_dxfTableFieldsPresent, kTableBegin);
+            }
+            if (marker == "CONTENTFORMAT_BEGIN") {
+                if (m_dxfSection != DxfSection::Table || styleAt() == nullptr
+                    || !m_dxfSawContentMarker)
+                    return invalid();
+                m_dxfSawContentMarker = false;
+                m_dxfContentFieldsPresent = 0;
+                m_dxfSection = DxfSection::Content;
+                return true;
+            }
+            if (marker == "CELLMARGIN_BEGIN") {
+                DRW_TableStyleCellStyle* style = styleAt();
+                if (m_dxfSection != DxfSection::Table || style == nullptr
+                    || !m_dxfSawMarginMarker
+                    || style->m_marginOverrideFlags == 0)
+                    return invalid();
+                m_dxfSawMarginMarker = false;
+                m_dxfMarginsRead = 0;
+                m_dxfSection = DxfSection::Margin;
+                return true;
+            }
+            if (marker == "GRIDFORMAT_BEGIN") {
+                DRW_TableStyleBorder* border = borderAt();
+                if (m_dxfSection != DxfSection::Table || border == nullptr
+                    || !m_dxfSawGridMarker || border->m_edgeFlags == 0)
+                    return invalid();
+                m_dxfSawGridMarker = false;
+                m_dxfGridFieldsPresent = 0;
+                m_dxfSection = DxfSection::Grid;
+                return true;
+            }
+            if (marker == "CELLSTYLE_BEGIN") {
+                if (m_dxfSection != DxfSection::None || !m_dxfSawTableEnd
+                    || styleAt() == nullptr)
+                    return invalid();
+                m_dxfSawTableEnd = false;
+                m_dxfIdentityFieldsPresent = 0;
+                m_dxfSection = DxfSection::Identity;
+                return true;
+            }
+            return invalid();
+        }
+        case 300: {
+            const std::string_view marker = reader->getStringView();
+            if (marker == "CELLSTYLE"
+                && m_dxfSection == DxfSection::None) {
+                if (!m_dxfSawSubclass || !m_dxfSawCount
+                    || m_dxfSection != DxfSection::None
+                    || m_dxfSawTableEnd
+                    || m_cellStyles.size() >= m_dxfDeclaredCount
+                    || m_dxfCompletedCount != m_cellStyles.size())
+                    return invalid();
+                m_cellStyles.emplace_back();
+                m_dxfCurrentStyle = static_cast<int>(m_cellStyles.size() - 1u);
+                m_dxfCurrentBorder = -1;
+                m_dxfTableFieldsPresent = 0;
+                m_dxfContentFieldsPresent = 0;
+                m_dxfGridFieldsPresent = 0;
+                m_dxfIdentityFieldsPresent = 0;
+                m_dxfMarginsRead = 0;
+                m_dxfDeclaredBorderCount = 0;
+                m_dxfBorderSlotsRead = 0;
+                m_dxfSawContentMarker = false;
+                m_dxfSawMarginMarker = false;
+                m_dxfSawGridMarker = false;
+                return true;
+            }
+            if (marker == "CONTENTFORMAT"
+                && m_dxfSection == DxfSection::Table
+                && styleAt() != nullptr
+                && !m_dxfSawContentMarker
+                && (m_dxfTableFieldsPresent & kTableContentFormat) == 0u) {
+                m_dxfSawContentMarker = true;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Content) {
+                DRW_TableStyleCellStyle* style = styleAt();
+                if (style == nullptr
+                    || !mark(m_dxfContentFieldsPresent,
+                             kContentValueFormat))
+                    return style == nullptr ? invalid() : true;
+                UTF8STRING value = reader->getUtf8String();
+                return replaceDxfRetainedStringField(
+                    reader,
+                    style->m_contentFormat.m_dxfRetainedValueFormatBytes,
+                    style->m_contentFormat.m_valueFormatString,
+                    std::move(value));
+            }
+            if (m_dxfSection == DxfSection::Identity) {
+                DRW_TableStyleCellStyle* style = styleAt();
+                if (style == nullptr
+                    || !mark(m_dxfIdentityFieldsPresent, kIdentityName))
+                    return style == nullptr ? invalid() : true;
+                UTF8STRING value = reader->getUtf8String();
+                return replaceDxfRetainedStringField(
+                    reader, style->m_dxfRetainedNameBytes,
+                    style->m_name, std::move(value));
+            }
+            return invalid();
+        }
+        case 301:
+            if (reader->getStringView() != "MARGIN"
+                || m_dxfSection != DxfSection::Table
+                || styleAt() == nullptr || m_dxfSawMarginMarker)
+                return invalid();
+            m_dxfSawMarginMarker = true;
+            return true;
+        case 302:
+            if (reader->getStringView() != "GRIDFORMAT"
+                || m_dxfSection != DxfSection::Table
+                || borderAt() == nullptr || m_dxfSawGridMarker)
+                return invalid();
+            m_dxfSawGridMarker = true;
+            return true;
+        case 309: {
+            const std::string_view marker = reader->getStringView();
+            if (m_dxfSection == DxfSection::Content) {
+                if (marker != "CONTENTFORMAT_END")
+                    return invalid();
+                return finishContent();
+            }
+            if (m_dxfSection == DxfSection::Margin) {
+                if (marker != "CELLMARGIN_END" || m_dxfMarginsRead != 6u)
+                    return invalid();
+                m_dxfSection = DxfSection::Table;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Grid) {
+                if (marker != "GRIDFORMAT_END")
+                    return invalid();
+                return finishGrid();
+            }
+            if (m_dxfSection == DxfSection::Table) {
+                if (marker == "GRIDFORMAT_END" && m_dxfZeroGridEndExpected) {
+                    m_dxfZeroGridEndExpected = false;
+                    return true;
+                }
+                if (marker != "TABLEFORMAT_END" || styleAt() == nullptr)
+                    return invalid();
+                DRW_TableStyleCellStyle& style = *styleAt();
+                const std::uint16_t required = kTableBegin | kTableType
+                    | kTableHasData;
+                if ((m_dxfTableFieldsPresent & required) != required)
+                    return invalid();
+                if (style.m_hasData) {
+                    const std::uint16_t dataRequired = kTablePropertyFlags
+                        | kTableMergeFlags | kTableBackgroundColor
+                        | kTableContentLayout | kTableContentFormat
+                        | kTableMarginFlags | kTableBorderCount;
+                    if ((m_dxfTableFieldsPresent & dataRequired)
+                            != dataRequired
+                        || m_dxfBorderSlotsRead
+                            != m_dxfDeclaredBorderCount
+                        || (style.m_marginOverrideFlags != 0
+                            ? (m_dxfMarginsRead != 6u
+                                || m_dxfSawMarginMarker)
+                            : (m_dxfMarginsRead != 0u
+                                || m_dxfSawMarginMarker)))
+                        return invalid();
+                } else if (m_dxfTableFieldsPresent
+                           != (required | kTableBegin)) {
+                    return invalid();
+                }
+                m_dxfSection = DxfSection::None;
+                m_dxfSawTableEnd = true;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Identity) {
+                if (marker != "CELLSTYLE_END" || styleAt() == nullptr
+                    || m_dxfIdentityFieldsPresent
+                        != (kIdentityId | kIdentityClass | kIdentityName))
+                    return invalid();
+                const DRW_TableStyleCellStyle& style = *styleAt();
+                const DRW::Version version = static_cast<DRW::Version>(
+                    reader->getVersion());
+                const bool validId = style.m_id == 1 || style.m_id == 2
+                    || style.m_id == 3
+                    || (version >= DRW::AC1024 && style.m_id == 4)
+                    || style.m_id >= 101;
+                if (!validId || style.m_styleClass < 0
+                    || style.m_styleClass > 2
+                    || !m_dxfCellStyleIds.insert(style.m_id).second)
+                    m_dxfValid = false;
+                ++m_dxfCompletedCount;
+                m_dxfCurrentStyle = -1;
+                m_dxfCurrentBorder = -1;
+                m_dxfIdentityFieldsPresent = 0;
+                m_dxfSection = DxfSection::None;
+                return true;
+            }
+            return invalid();
+        }
+        case 90: {
+            const int value = reader->getInt32();
+            if (!m_dxfSawCount) {
+                if (!m_dxfSawSubclass || m_dxfSection != DxfSection::None
+                    || value < 0
+                    || static_cast<std::uint32_t>(value)
+                        > kMaxTableStyleItems) {
+                    m_dxfValid = false;
+                    m_dxfSawCount = true;
+                    return true;
+                }
+                m_dxfDeclaredCount = static_cast<std::size_t>(value);
+                m_dxfSawCount = true;
+                m_cellStyles.reserve(m_dxfDeclaredCount);
+                return true;
+            }
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr)
+                return invalid();
+            if (m_dxfSection == DxfSection::Table) {
+                if (!mark(m_dxfTableFieldsPresent, kTableType))
+                    return true;
+                if (value < 1 || value > 5)
+                    m_dxfValid = false;
+                style->m_type = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent,
+                          kContentPropertyOverride))
+                    return true;
+                if (value < 0 || (value & ~0x7FFFF) != 0)
+                    m_dxfValid = false;
+                style->m_contentFormat.m_propertyOverrideFlags =
+                    static_cast<std::uint32_t>(value);
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Grid) {
+                if (!mark(m_dxfGridFieldsPresent, kGridPropertyFlags))
+                    return true;
+                if (value < 0 || (value & ~0x3F) != 0)
+                    m_dxfValid = false;
+                borderAt()->m_propertyOverrideFlags = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Identity) {
+                if (!mark(m_dxfIdentityFieldsPresent, kIdentityId))
+                    return true;
+                style->m_id = value;
+                return true;
+            }
+            return invalid();
+        }
+        case 91: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr)
+                return invalid();
+            if (m_dxfSection == DxfSection::Table) {
+                if (!style->m_hasData
+                    || !mark(m_dxfTableFieldsPresent,
+                             kTablePropertyFlags))
+                    return invalid();
+                if (value < 0 || (value & ~0x7FFFF) != 0)
+                    m_dxfValid = false;
+                style->m_propertyOverrideFlags =
+                    static_cast<std::uint32_t>(value);
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent, kContentPropertyFlags))
+                    return true;
+                if (value < 0 || (value & ~0x100) != 0)
+                    m_dxfValid = false;
+                style->m_contentFormat.m_propertyFlags =
+                    static_cast<std::uint32_t>(value);
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Grid) {
+                if (!mark(m_dxfGridFieldsPresent, kGridBorderType))
+                    return true;
+                if (value < 0 || value > 2)
+                    m_dxfValid = false;
+                borderAt()->m_borderType = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Identity) {
+                if (!mark(m_dxfIdentityFieldsPresent, kIdentityClass))
+                    return true;
+                style->m_styleClass = value;
+                return true;
+            }
+            return invalid();
+        }
+        case 92: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr)
+                return invalid();
+            if (m_dxfSection == DxfSection::Table) {
+                if (!style->m_hasData
+                    || !mark(m_dxfTableFieldsPresent, kTableMergeFlags))
+                    return invalid();
+                if (value < 0 || (value & ~0x18000) != 0)
+                    m_dxfValid = false;
+                style->m_mergeFlags = static_cast<std::uint32_t>(value);
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent, kContentDataType))
+                    return true;
+                if (!validTableStyleValueDataType(
+                        static_cast<DRW::Version>(reader->getVersion()), value))
+                    m_dxfValid = false;
+                style->m_contentFormat.m_valueDataType = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Grid) {
+                if (!mark(m_dxfGridFieldsPresent, kGridLineWeight))
+                    return true;
+                borderAt()->m_lineWeight = value;
+                return true;
+            }
+            return invalid();
+        }
+        case 93: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr)
+                return invalid();
+            if (m_dxfSection == DxfSection::Table) {
+                if (!style->m_hasData
+                    || !mark(m_dxfTableFieldsPresent,
+                             kTableContentLayout))
+                    return invalid();
+                if (value < 0 || (value & ~0x7) != 0)
+                    m_dxfValid = false;
+                style->m_contentLayout = static_cast<std::uint32_t>(value);
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent, kContentUnitType))
+                    return true;
+                if (!validTableStyleValueUnitType(
+                        static_cast<DRW::Version>(reader->getVersion()), value))
+                    m_dxfValid = false;
+                style->m_contentFormat.m_valueUnitType = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Grid) {
+                if (!mark(m_dxfGridFieldsPresent, kGridVisible))
+                    return true;
+                if (value < 0 || value > 1)
+                    m_dxfValid = false;
+                borderAt()->m_visible = value;
+                return true;
+            }
+            return invalid();
+        }
+        case 94: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr)
+                return invalid();
+            if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent, kContentAlignment))
+                    return true;
+                if (value < 1 || value > 9)
+                    m_dxfValid = false;
+                style->m_contentFormat.m_cellAlignment = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Table) {
+                if (!style->m_hasData
+                    || !mark(m_dxfTableFieldsPresent, kTableBorderCount)
+                    || value < 0 || value > 6
+                    || (style->m_marginOverrideFlags != 0
+                        && m_dxfMarginsRead != 6u))
+                    return invalid();
+                m_dxfDeclaredBorderCount = static_cast<std::size_t>(value);
+                style->m_borders.reserve(m_dxfDeclaredBorderCount);
+                return true;
+            }
+            return invalid();
+        }
+        case 95: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (m_dxfSection != DxfSection::Table || style == nullptr
+                || (m_dxfTableFieldsPresent & kTableBorderCount) == 0u
+                || m_dxfBorderSlotsRead >= m_dxfDeclaredBorderCount
+                || value < 0 || value > 0x3F)
+                return invalid();
+            DRW_TableStyleBorder border;
+            border.m_edgeFlags = value;
+            style->m_borders.push_back(border);
+            m_dxfCurrentBorder = static_cast<int>(style->m_borders.size() - 1u);
+            ++m_dxfBorderSlotsRead;
+            if (value == 0)
+                m_dxfZeroGridEndExpected = true;
+            return true;
+        }
+        case 170: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (m_dxfSection != DxfSection::Table || style == nullptr
+                || !mark(m_dxfTableFieldsPresent, kTableHasData)
+                || (value != 0 && value != 1))
+                return invalid();
+            style->m_hasData = value != 0;
+            return true;
+        }
+        case 171: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (m_dxfSection != DxfSection::Table || style == nullptr
+                || !style->m_hasData
+                || !mark(m_dxfTableFieldsPresent, kTableMarginFlags)
+                || value < 0 || (value & ~0x1) != 0)
+                return invalid();
+            style->m_marginOverrideFlags = value;
+            return true;
+        }
+        case 40: {
+            const double value = reader->getDouble();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr || !std::isfinite(value))
+                return invalid();
+            if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent, kContentRotation))
+                    return true;
+                style->m_contentFormat.m_rotation = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Margin) {
+                if (m_dxfMarginsRead >= 6u)
+                    return invalid();
+                double* fields[] = {&style->m_verticalMargin,
+                                    &style->m_horizontalMargin,
+                                    &style->m_bottomMargin,
+                                    &style->m_rightMargin,
+                                    &style->m_marginHorizontalSpacing,
+                                    &style->m_marginVerticalSpacing};
+                *fields[m_dxfMarginsRead++] = value;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Grid) {
+                if (!mark(m_dxfGridFieldsPresent, kGridSpacing))
+                    return true;
+                borderAt()->m_doubleLineSpacing = value;
+                return true;
+            }
+            return invalid();
+        }
+        case 140: {
+            const double value = reader->getDouble();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (m_dxfSection != DxfSection::Content || style == nullptr
+                || !mark(m_dxfContentFieldsPresent, kContentBlockScale)
+                || !std::isfinite(value))
+                return invalid();
+            style->m_contentFormat.m_blockScale = value;
+            return true;
+        }
+        case 144: {
+            const double value = reader->getDouble();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (m_dxfSection != DxfSection::Content || style == nullptr
+                || !mark(m_dxfContentFieldsPresent, kContentTextHeight)
+                || !std::isfinite(value))
+                return invalid();
+            style->m_contentFormat.m_textHeight = value;
+            return true;
+        }
+        case 62: {
+            const int value = reader->getInt32();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr || value < 0 || value > 256)
+                return invalid();
+            if (m_dxfSection == DxfSection::Table) {
+                if (!style->m_hasData
+                    || !mark(m_dxfTableFieldsPresent,
+                             kTableBackgroundColor))
+                    return invalid();
+                style->m_backgroundColor = value;
+                m_dxfColorTarget = DxfColorTarget::Background;
+            } else if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent, kContentColor))
+                    return true;
+                style->m_contentFormat.m_contentColor = value;
+                m_dxfColorTarget = DxfColorTarget::Content;
+            } else if (m_dxfSection == DxfSection::Grid) {
+                if (!mark(m_dxfGridFieldsPresent, kGridColor))
+                    return true;
+                borderAt()->m_color = value;
+                m_dxfColorTarget = DxfColorTarget::Border;
+            } else {
+                return invalid();
+            }
+            m_dxfColorFieldsPresent = 0;
+            return true;
+        }
+        case 420:
+        case 430:
+        case 431: {
+            DRW_TableStyleCmcColor* color = currentColor();
+            const std::uint8_t bit = code == 420 ? kColorRgb
+                : code == 430 ? kColorName : kColorBookName;
+            if (color == nullptr
+                || (m_dxfColorFieldsPresent & bit) != 0u)
+                return invalid();
+            if (code == 420) {
+                const int value = reader->getInt32();
+                if (value < 0 || value > 0xFFFFFF)
+                    return invalid();
+                color->m_rgb = value;
+                color->m_method = 0xC2u;
+            } else {
+                std::size_t& bytes = code == 430
+                    ? color->m_dxfRetainedNameBytes
+                    : color->m_dxfRetainedBookNameBytes;
+                std::string& destination = code == 430
+                    ? color->m_name : color->m_bookName;
+                bool& present = code == 430
+                    ? color->m_dxfNamePresent : color->m_dxfBookNamePresent;
+                if (present || !replaceDxfRetainedStringField(
+                        reader, bytes, destination, reader->getUtf8String()))
+                    return false;
+                present = true;
+            }
+            m_dxfColorFieldsPresent |= bit;
+            if ((m_dxfColorFieldsPresent & ~kColorKnown) != 0u)
+                return invalid();
+            return true;
+        }
+        case 340: {
+            const std::uint32_t handle = reader->getHandleString();
+            DRW_TableStyleCellStyle* style = styleAt();
+            if (style == nullptr)
+                return invalid();
+            if (m_dxfSection == DxfSection::Content) {
+                if (!mark(m_dxfContentFieldsPresent, kContentTextStyle))
+                    return true;
+                style->m_contentFormat.m_textStyleHandle = handle;
+                return true;
+            }
+            if (m_dxfSection == DxfSection::Grid) {
+                if (!mark(m_dxfGridFieldsPresent, kGridLineType))
+                    return true;
+                borderAt()->m_lineTypeHandle = handle;
+                return true;
+            }
+            return invalid();
+        }
+        default:
+            if (m_dxfSawSubclass && code != 5 && code != 330 && code != 331
+                && code != 360 && code != 102
+                && (code < 1000 || code > 1071))
+                m_dxfValid = false;
+            return DRW_TableEntry::parseCode(code, reader);
+        }
+    } catch (...) {
+        return false;
+    }
+}
+
+bool DRW_CellStyleMap::finalizeDxf() const noexcept {
+    return m_dxfValid && m_dxfSawSubclass && m_dxfSawCount
+        && m_dxfSection == DxfSection::None && !m_dxfSawContentMarker
+        && !m_dxfSawMarginMarker && !m_dxfSawGridMarker
+        && !m_dxfSawTableEnd && !m_dxfZeroGridEndExpected
+        && m_dxfCurrentStyle == -1
+        && m_dxfCompletedCount == m_dxfDeclaredCount
+        && m_cellStyles.size() == m_dxfDeclaredCount;
 }
 
 bool DRW_CellStyleMap::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -13786,12 +17292,21 @@ bool DRW_CellStyleMap::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
         std::int32_t styleClass = 0;
         UTF8STRING styleName;
         if (!readBitLongWithinBody(bodyBuf, version, bodyEnd, styleId)
+            || (styleId != 1 && styleId != 2 && styleId != 3
+                && !(version >= DRW::AC1024 && styleId == 4)
+                && styleId < 101)
             || !readBitLongWithinBody(bodyBuf, version, bodyEnd, styleClass)
+            // ODA defines data/label as 1/2. Keep observed zero opaque, as the
+            // R24 TABLESTYLE reader does, but reject other unrecognized values.
+            || styleClass < 0 || styleClass > 2
             || !readVariableTextWithinBounds(bodyBuf, bodySBuf, version,
                                               bodyEnd, stringEnd, styleName)
             || !bodyBuf->isGood() || !bodySBuf->isGood()
-            || !hBuf->isGood())
+            || !hBuf->isGood()) {
+            DRW_DBG("CELLSTYLEMAP cell style identity invalid id/class=");
+            DRW_DBG(styleId); DRW_DBG("/"); DRW_DBG(styleClass); DRW_DBG("\n");
             return fail();
+        }
         style.m_id = styleId;
         style.m_styleClass = styleClass;
         style.m_name = std::move(styleName);
@@ -13826,12 +17341,64 @@ bool DRW_CellStyleMap::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     }
 }
 
+bool DRW_CellStyleMap::validateDwgPayload(DRW::Version version) const {
+    // ODA v5.4.1 §20.4.102 introduces CELLSTYLEMAP in R2007. Keep the
+    // encoder on that version until the later TABLESTYLE/CELLSTYLEMAP object
+    // graph has its own producer-backed version boundary evidence.
+    if (version != DRW::AC1021
+        || reactorHandles.size() > dwgSafety::MaxReactorCount
+        || extensionDictionaryFlag() > 1u
+        || m_cellStyles.size() > kMaxTableStyleItems
+        || m_cellStyles.size() > static_cast<std::size_t>(
+               std::numeric_limits<std::int32_t>::max()))
+        return false;
+    return std::all_of(
+        m_cellStyles.begin(), m_cellStyles.end(),
+        [version](const DRW_TableStyleCellStyle& style) {
+            return validCellStyleMapCellStyle(version, style);
+        });
+}
+
+bool DRW_CellStyleMap::encodeDwg(DRW::Version version, dwgBufferW *buf,
+                                 dwgBufferW *strBuf,
+                                 dwgBufferW *handleBuf) const {
+    if (buf == nullptr || !validateDwgPayload(version))
+        return false;
+
+    dwgBufferW *stringBuffer = version > DRW::AC1018 && strBuf != nullptr
+        ? strBuf : buf;
+    dwgBufferW *hBuf = version > DRW::AC1014 && handleBuf != nullptr
+        ? handleBuf : buf;
+    buf->putBitLong(static_cast<std::int32_t>(m_cellStyles.size()));
+    for (const DRW_TableStyleCellStyle& style : m_cellStyles) {
+        putCellStyleMapCellStyle(version, *buf, *stringBuffer, style);
+    }
+
+    putCommonObjectHandlePrefix(
+        hBuf, static_cast<std::uint32_t>(parentHandle),
+        static_cast<std::int32_t>(reactorHandles.size()),
+        extensionDictionaryFlag(), &reactorHandles, xDictHandle);
+    for (const DRW_TableStyleCellStyle& style : m_cellStyles) {
+        if (!style.m_hasData)
+            continue;
+        hBuf->putHandle(makeRefW(style.m_contentFormat.m_textStyleHandle,
+                                 DRW::DwgHardPointer));
+        for (const DRW_TableStyleBorder& border : style.m_borders) {
+            if (border.m_edgeFlags != 0) {
+                hBuf->putHandle(makeRefW(border.m_lineTypeHandle,
+                                         DRW::DwgHardPointer));
+            }
+        }
+    }
+    return buf->isGood() && stringBuffer->isGood() && hBuf->isGood();
+}
+
 bool DRW_Layout::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     //LAYOUT embeds an AcDbPlotSettings prefix then an AcDbLayout body; codes
     //1/70/76/330 occur in both, disambiguated by the current 100-subclass.
     switch (code) {
     case 100: {
-        const std::string sub = reader->getUtf8String();
+        const std::string_view sub = reader->getStringView();
         if (sub == "AcDbLayout")
             m_dxfSubclass = 1;
         else if (sub == "AcDbPlotSettings")
@@ -13840,8 +17407,16 @@ bool DRW_Layout::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     }
     // ---- codes shared between the two subclasses ----
     case 1:
-        if (m_dxfSubclass == 1) name = reader->getUtf8String();
-        else pageSetupName = reader->getUtf8String();
+        if (m_dxfSubclass == 1) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedTextBytes[5], name,
+                    reader->getUtf8String()))
+                return false;
+        } else if (!replaceDxfRetainedStringField(
+                       reader, m_dxfRetainedTextBytes[0], pageSetupName,
+                       reader->getUtf8String())) {
+            return false;
+        }
         break;
     case 70:
         if (m_dxfSubclass == 1) layoutFlags = reader->getInt32();
@@ -13856,10 +17431,30 @@ bool DRW_Layout::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         else parentHandle = reader->getHandleString();   //structural owner
         break;
     // ---- AcDbPlotSettings prefix (unambiguous) ----
-    case 2:  printerConfig = reader->getUtf8String(); break;
-    case 4:  paperSize = reader->getUtf8String(); break;
-    case 6:  plotViewName = reader->getUtf8String(); break;
-    case 7:  currentStyleSheet = reader->getUtf8String(); break;
+    case 2:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[1], printerConfig,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 4:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[2], paperSize,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 6:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[3], plotViewName,
+                reader->getUtf8String()))
+            return false;
+        break;
+    case 7:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[4], currentStyleSheet,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 40: marginLeft = reader->getDouble(); break;
     case 41: marginBottom = reader->getDouble(); break;
     case 42: marginRight = reader->getDouble(); break;
@@ -14078,9 +17673,12 @@ bool DRW_Layout::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
         return fail();
 
     if (version >= DRW::AC1018) {
-        // ODA §20.4.84 / libreDWG dwg.spec FIELD_BL (num_viewports) is a BitLong,
-        // not a RawLong32.  Reading it as RL desynced the rest of the body stream
-        // for any AC1018+ LAYOUT with viewport handles.
+        // The AC1024 source-sample bit trace confirms a BL count: probing the
+        // same field as RL yields 276669504 for the two-viewport Layout1, while
+        // BL yields 2 and ends at the expected object-body bit. LibreDWG's
+        // dwg.spec also declares FIELD_BL. ODA v5.4.1 §20.4.84 labels the field
+        // RL, which conflicts with these observed bytes; keep this discrepancy
+        // explicit rather than attributing BL to that table.
         if (!readLong(parsedViewportCount))
             return fail();
         // Bound a corrupt/hostile count before the reserve() below — mirrors the
@@ -14232,15 +17830,34 @@ bool DRW_MLineStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         flags = reader->getInt32();
         break;
     case 3:
-        description = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedDescriptionBytes, description,
+                reader->getUtf8String()))
+            return false;
         break;
     case 62:
         //Before the first element (no 49 seen) 62 is the style fill color;
         //after a 49 it is the current element's color.
-        if (elements.empty())
+        if (elements.empty()) {
+            if (dxfFillColorSeen)
+                return false;
+            dxfFillColorSeen = true;
             fillColor = reader->getInt32();
-        else
+            fillColor24 = -1;
+            fillColorMethod = 0;
+            fillColorName.clear();
+            fillColorBookName.clear();
+        } else {
+            std::uint8_t& fields = dxfElementFieldMasks.back();
+            if ((fields & 0x02u) != 0)
+                return false;
             elements.back().color = reader->getInt32();
+            fields |= 0x02u;
+            elements.back().color24 = -1;
+            elements.back().colorMethod = 0;
+            elements.back().colorName.clear();
+            elements.back().colorBookName.clear();
+        }
         break;
     case 51:
         startAngle = reader->getDouble();
@@ -14249,21 +17866,45 @@ bool DRW_MLineStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         endAngle = reader->getDouble();
         break;
     case 71:
-        break;  //element count; elements are appended on each 49
+        if (dxfElementCountSeen)
+            return false;
+        dxfDeclaredElementCount = reader->getInt32();
+        if (dxfDeclaredElementCount < 0
+            || dxfDeclaredElementCount
+                > std::numeric_limits<std::uint8_t>::max())
+            return false;
+        dxfElementCountSeen = true;
+        break;
     case 49: {
         DRW_MLineElement element;
         element.offset = reader->getDouble();
         elements.push_back(element);
+        dxfElementFieldMasks.push_back(0x01u);
         break;
     }
     case 6:
-        if (!elements.empty())
-            elements.back().linetype = reader->getUtf8String();
+        if (elements.empty())
+            return false;
+        if ((dxfElementFieldMasks.back() & 0x04u) != 0)
+            return false;
+        if (!replaceDxfRetainedStringField(
+                reader, elements.back().m_dxfRetainedLinetypeBytes,
+                elements.back().linetype, reader->getUtf8String()))
+            return false;
+        dxfElementFieldMasks.back() |= 0x04u;
         break;
     default:
         return DRW_TableEntry::parseCode(code, reader);
     }
     return true;
+}
+
+bool DRW_MLineStyle::validateDxfRecord() const noexcept {
+    return dxfElementCountSeen && dxfDeclaredElementCount >= 0
+        && static_cast<std::size_t>(dxfDeclaredElementCount) == elements.size()
+        && dxfElementFieldMasks.size() == elements.size()
+        && std::all_of(dxfElementFieldMasks.cbegin(), dxfElementFieldMasks.cend(),
+            [](std::uint8_t fields) { return fields == 0x07u; });
 }
 
 bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -14325,11 +17966,15 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         return fail();
 
     std::int32_t fillRgb = -1;
-    UTF8STRING dummyName, dummyBook;
+    UTF8STRING fillName, fillBook;
+    std::uint8_t fillMethod = 0;
+    std::uint8_t fillFlags = 0;
+    std::uint16_t fillIndex = 0;
     std::uint32_t parsedFillColorValue = 0;
     if (!readCmColorWithinBounds(bodyBuf, bodySBuf, version, bodyEnd, stringEnd,
-                               parsedFillColorValue, &fillRgb, &dummyName,
-                               &dummyBook))
+                               parsedFillColorValue, &fillRgb, &fillName,
+                               &fillBook, nullptr, &fillMethod, &fillFlags,
+                               &fillIndex))
         return fail();
     const int parsedFillColor = static_cast<int>(parsedFillColorValue);
     double parsedStartAngle = 0.0;
@@ -14351,14 +17996,25 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         if (!readDouble(e.offset))
             return fail();
         std::int32_t elRgb = -1;
-        UTF8STRING n2, b2;
+        UTF8STRING colorName, colorBookName;
+        std::uint8_t colorMethod = 0;
+        std::uint8_t colorFlags = 0;
+        std::uint16_t colorIndex = 0;
         std::uint32_t elementColorValue = 0;
         if (!readCmColorWithinBounds(bodyBuf, bodySBuf, version, bodyEnd,
                                      stringEnd,
-                                   elementColorValue, &elRgb, &n2, &b2))
+                                   elementColorValue, &elRgb, &colorName,
+                                   &colorBookName, nullptr, &colorMethod,
+                                   &colorFlags, &colorIndex))
             return fail();
         e.color = static_cast<int>(elementColorValue);
-        if (elRgb != -1) e.color24 = elRgb;
+        e.color24 = elRgb;
+        e.colorMethod = colorMethod;
+        e.colorFlags = colorFlags;
+        e.colorName = std::move(colorName);
+        e.colorBookName = std::move(colorBookName);
+        if (version >= DRW::AC1018)
+            e.colorDwgIndex = colorIndex;
         // Per ODA/libreDWG (dwg.spec MLINESTYLE): PRE-R2018 stores the
         // per-element linetype as an inline signed BS index (SUB_FIELD_BSd
         // lt.index); R2018+ uses a linetype HANDLE in the object handle
@@ -14406,6 +18062,13 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         return fail();
 
     parsed.fillColor = parsedFillColor;
+    parsed.fillColor24 = fillRgb;
+    parsed.fillColorMethod = fillMethod;
+    parsed.fillColorFlags = fillFlags;
+    parsed.fillColorName = std::move(fillName);
+    parsed.fillColorBookName = std::move(fillBook);
+    if (version >= DRW::AC1018)
+        parsed.fillColorDwgIndex = fillIndex;
     parsed.startAngle = parsedStartAngle;
     parsed.endAngle = parsedEndAngle;
     parsed.elements = std::move(parsedElements);
@@ -14424,16 +18087,78 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
 // handles, then R2018+ per-element linetype handles.
 bool DRW_MLineStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf, dwgBufferW *hdlBuf) const {
+    struct EncodedCmcColor {
+        std::uint8_t method = 0u;
+        std::uint8_t flags = 0u;
+        std::uint16_t index = 0u;
+        const UTF8STRING *name = nullptr;
+        const UTF8STRING *bookName = nullptr;
+    };
+    const auto prepareCmcColor = [version, buf, strBuf](
+            int color, int rgb24, std::uint8_t sourceMethod,
+            std::uint8_t sourceFlags, const UTF8STRING& name,
+            const UTF8STRING& bookName, std::uint16_t sourceRawIndex,
+            EncodedCmcColor& output) {
+        // The R2004+ CMC index is specified as reserved zero. Keep anomalous
+        // parsed values available to callers, but never normalize them away
+        // when writing any target version.
+        if (color < 0 || rgb24 < -1 || sourceRawIndex != 0u)
+            return false;
+        std::uint8_t canonicalMethod = 0u;
+        std::uint16_t colorIndex = 0u;
+        if (!canonicalDwgCmcColor(static_cast<std::uint32_t>(color), rgb24,
+                                  canonicalMethod, colorIndex)
+            || (sourceMethod != 0u && sourceMethod != canonicalMethod))
+            return false;
+
+        std::uint8_t flags = sourceFlags;
+        if (flags == 0u && (!name.empty() || !bookName.empty())) {
+            flags = static_cast<std::uint8_t>(
+                (name.empty() ? 0u : 1u) | (bookName.empty() ? 0u : 2u));
+        }
+        if ((flags & ~0x03u) != 0u
+            || ((flags & 0x01u) == 0u && !name.empty())
+            || ((flags & 0x02u) == 0u && !bookName.empty())
+            || name.size() > kMaxCadValueBytes
+            || bookName.size() > kMaxCadValueBytes - name.size())
+            return false;
+
+        if (version < DRW::AC1018
+            && (rgb24 >= 0 || flags != 0u || !name.empty()
+                || !bookName.empty()))
+            return false;
+        if (version > DRW::AC1018 && flags != 0u
+            && (strBuf == nullptr || strBuf == buf))
+            return false;
+
+        output.method = sourceMethod != 0u ? sourceMethod : canonicalMethod;
+        output.flags = flags;
+        output.index = colorIndex;
+        output.name = &name;
+        output.bookName = &bookName;
+        return true;
+    };
+    EncodedCmcColor encodedFillColor;
     if (buf == nullptr || reactorHandles.size() > dwgSafety::MaxReactorCount
         || extensionDictionaryFlag() > 1
         || elements.size() > std::numeric_limits<std::uint8_t>::max()
         || !validUnsignedBitShort(flags)
-        || !std::isfinite(startAngle) || !std::isfinite(endAngle))
+        || !std::isfinite(startAngle) || !std::isfinite(endAngle)
+        || !prepareCmcColor(fillColor, fillColor24, fillColorMethod,
+                            fillColorFlags, fillColorName,
+                            fillColorBookName, fillColorDwgIndex,
+                            encodedFillColor))
         return false;
-    if (std::any_of(elements.begin(), elements.end(), [](const DRW_MLineElement& element) {
-            return !std::isfinite(element.offset);
-        }))
-        return false;
+    for (const DRW_MLineElement& element : elements) {
+        EncodedCmcColor elementColor;
+        if (!std::isfinite(element.offset)
+            || !prepareCmcColor(element.color, element.color24,
+                                element.colorMethod, element.colorFlags,
+                                element.colorName, element.colorBookName,
+                                element.colorDwgIndex,
+                                elementColor))
+            return false;
+    }
     if (version < DRW::AC1032) {
         const auto invalidLinetypeIndex = [](const DRW_MLineElement& element) {
             return element.linetypeIndex < std::numeric_limits<std::int16_t>::min()
@@ -14448,8 +18173,17 @@ bool DRW_MLineStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     sb->putVariableText(version, name);
     sb->putVariableText(version, description);
     buf->putBitShort(static_cast<std::uint16_t>(flags));
-    buf->putCmColor(version,
-                    static_cast<std::uint16_t>(fillColor < 0 ? 256 : fillColor));
+    const auto writeColor = [version, buf, sb](
+            const EncodedCmcColor& color, int rgb24) {
+        if (version >= DRW::AC1018) {
+            buf->putCmColorWithFlags(version, color.method, color.index,
+                                     rgb24, *color.name, *color.bookName,
+                                     color.flags, sb);
+        } else {
+            buf->putCmColor(version, color.index);
+        }
+    };
+    writeColor(encodedFillColor, fillColor24);
     buf->putBitDouble(startAngle);
     buf->putBitDouble(endAngle);
 
@@ -14458,14 +18192,13 @@ bool DRW_MLineStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     for (std::size_t i = 0; i < numLines; ++i) {
         const DRW_MLineElement& e = elements[i];
         buf->putBitDouble(e.offset);
-        if (e.color24 >= 0) {
-            buf->putCmColor(version,
-                            static_cast<std::uint16_t>(e.color < 0 ? 256 : e.color),
-                            e.color24, "", "");
-        } else {
-            buf->putCmColor(version,
-                            static_cast<std::uint16_t>(e.color < 0 ? 256 : e.color));
-        }
+        EncodedCmcColor elementColor;
+        if (!prepareCmcColor(e.color, e.color24, e.colorMethod,
+                             e.colorFlags, e.colorName, e.colorBookName,
+                             e.colorDwgIndex,
+                             elementColor))
+            return false;
+        writeColor(elementColor, e.color24);
         if (version < DRW::AC1032)
             buf->putSBitShort(static_cast<std::int16_t>(e.linetypeIndex));
     }
@@ -14498,25 +18231,62 @@ bool DRW_MLeaderStyle::parseCode(int code, const std::unique_ptr<dxfReader>& rea
     case 40:  firstSegmentAngle = reader->getDouble(); break;
     case 41:  secondSegmentAngle = reader->getDouble(); break;
     case 173: leaderType = reader->getInt32(); break;
-    case 91:  leaderColor = reader->getInt32(); break;
+    case 91:
+        leaderColor = reader->getInt32();
+        leaderColorRgb = -1;
+        leaderColorName.clear();
+        leaderColorBookName.clear();
+        leaderColorDwgMethod = 0;
+        leaderColorDwgFlags = 0u;
+        leaderColorDwgIndex = 0u;
+        leaderColorDwgMetadataPresent = false;
+        break;
     case 92:  leaderLineWeight = reader->getInt32(); break;
     case 290: landingEnabled = (reader->getInt32() != 0); break;
     case 42:  landingGap = reader->getDouble(); break;
     case 291: autoIncludeLanding = (reader->getInt32() != 0); break;
     case 43:  landingDistance = reader->getDouble(); break;
-    case 3:   description = reader->getUtf8String(); break;
+    case 3:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[0], description,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 44:  arrowHeadSize = reader->getDouble(); break;
-    case 300: textDefault = reader->getUtf8String(); break;
+    case 300:
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedTextBytes[1], textDefault,
+                reader->getUtf8String()))
+            return false;
+        break;
     case 174: leftAttachment = reader->getInt32(); break;
     case 178: rightAttachment = reader->getInt32(); break;
     case 175: textAngleType = reader->getInt32(); break;
     case 176: textAlignmentType = reader->getInt32(); break;
-    case 93:  textColor = reader->getInt32(); break;
+    case 93:
+        textColor = reader->getInt32();
+        textColorRgb = -1;
+        textColorName.clear();
+        textColorBookName.clear();
+        textColorDwgMethod = 0;
+        textColorDwgFlags = 0u;
+        textColorDwgIndex = 0u;
+        textColorDwgMetadataPresent = false;
+        break;
     case 45:  textHeight = reader->getDouble(); break;
     case 292: textFrameEnabled = (reader->getInt32() != 0); break;
     case 297: alwaysAlignTextLeft = (reader->getInt32() != 0); break;
     case 46:  alignSpace = reader->getDouble(); break;
-    case 94:  blockColor = reader->getInt32(); break;
+    case 94:
+        blockColor = reader->getInt32();
+        blockColorRgb = -1;
+        blockColorName.clear();
+        blockColorBookName.clear();
+        blockColorDwgMethod = 0;
+        blockColorDwgFlags = 0u;
+        blockColorDwgIndex = 0u;
+        blockColorDwgMetadataPresent = false;
+        break;
     case 47:  blockScale.x = reader->getDouble(); break;
     case 49:  blockScale.y = reader->getDouble(); break;
     case 140: blockScale.z = reader->getDouble(); break;
@@ -14602,12 +18372,29 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
         return readBitWithinBody(bodyBuf, version, bodyEnd, value);
     };
     const auto readColor = [bodyBuf, bodySBuf, version, bodyEnd,
-                            stringEnd](int& value) {
+                            stringEnd](int& value, std::int32_t& rgb24,
+                                       UTF8STRING& name,
+                                       UTF8STRING& bookName,
+                                       std::uint8_t& method,
+                                       std::uint8_t& flags,
+                                       std::uint16_t& reservedIndex) {
         std::uint32_t parsedValue = 0;
+        std::int32_t parsedRgb = -1;
+        bool hasRgbColor = false;
+        std::uint8_t parsedMethod = 0;
+        std::uint8_t parsedFlags = 0;
+        std::uint16_t parsedIndex = 0;
         if (!readCmColorWithinBounds(bodyBuf, bodySBuf, version, bodyEnd,
-                                     stringEnd, parsedValue))
+                                     stringEnd, parsedValue, &parsedRgb,
+                                     &name, &bookName, &hasRgbColor,
+                                     &parsedMethod, &parsedFlags,
+                                     &parsedIndex))
             return false;
         value = static_cast<int>(parsedValue);
+        rgb24 = hasRgbColor ? parsedRgb : -1;
+        method = parsedMethod;
+        flags = parsedFlags;
+        reservedIndex = parsedIndex;
         return true;
     };
     const auto readCoord = [bodyBuf, version, bodyEnd](DRW_Coord& value) {
@@ -14625,6 +18412,12 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     double parsedSecondSegmentAngle = 0.0;
     std::uint16_t parsedLeaderType = 0;
     int parsedLeaderColor = 0;
+    std::int32_t parsedLeaderColorRgb = -1;
+    std::uint8_t parsedLeaderColorDwgMethod = 0;
+    std::uint8_t parsedLeaderColorDwgFlags = 0;
+    std::uint16_t parsedLeaderColorDwgIndex = 0;
+    UTF8STRING parsedLeaderColorName;
+    UTF8STRING parsedLeaderColorBookName;
     std::int32_t parsedLeaderLineWeight = 0;
     bool parsedLandingEnabled = false;
     double parsedLandingGap = 0.0;
@@ -14638,11 +18431,23 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     std::uint16_t parsedTextAngleType = 0;
     std::uint16_t parsedTextAlignmentType = 0;
     int parsedTextColor = 0;
+    std::int32_t parsedTextColorRgb = -1;
+    std::uint8_t parsedTextColorDwgMethod = 0;
+    std::uint8_t parsedTextColorDwgFlags = 0;
+    std::uint16_t parsedTextColorDwgIndex = 0;
+    UTF8STRING parsedTextColorName;
+    UTF8STRING parsedTextColorBookName;
     double parsedTextHeight = 0.0;
     bool parsedTextFrameEnabled = false;
     bool parsedAlwaysAlignTextLeft = false;
     double parsedAlignSpace = 0.0;
     int parsedBlockColor = 0;
+    std::int32_t parsedBlockColorRgb = -1;
+    std::uint8_t parsedBlockColorDwgMethod = 0;
+    std::uint8_t parsedBlockColorDwgFlags = 0;
+    std::uint16_t parsedBlockColorDwgIndex = 0;
+    UTF8STRING parsedBlockColorName;
+    UTF8STRING parsedBlockColorBookName;
     DRW_Coord parsedBlockScale(1, 1, 1);
     bool parsedBlockScaleEnabled = false;
     double parsedBlockRotation = 0.0;
@@ -14671,7 +18476,11 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
         || !readFiniteDouble(parsedFirstSegmentAngle)
         || !readFiniteDouble(parsedSecondSegmentAngle)
         || !readShort(parsedLeaderType)
-        || !readColor(parsedLeaderColor))
+        || !readColor(parsedLeaderColor, parsedLeaderColorRgb,
+                      parsedLeaderColorName, parsedLeaderColorBookName,
+                      parsedLeaderColorDwgMethod,
+                      parsedLeaderColorDwgFlags,
+                      parsedLeaderColorDwgIndex))
         return fail();
     // leaderLineTypeHandle 340 — handle stream
     if (!readLong(parsedLeaderLineWeight)
@@ -14702,7 +18511,11 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
             return fail();
     }
     if (!readShort(parsedTextAlignmentType)
-        || !readColor(parsedTextColor)
+        || !readColor(parsedTextColor, parsedTextColorRgb,
+                      parsedTextColorName, parsedTextColorBookName,
+                      parsedTextColorDwgMethod,
+                      parsedTextColorDwgFlags,
+                      parsedTextColorDwgIndex)
         || !readFiniteDouble(parsedTextHeight)
         || !readFlag(parsedTextFrameEnabled))
         return fail();
@@ -14711,7 +18524,11 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
             return fail();
     }
     if (!readFiniteDouble(parsedAlignSpace)
-        || !readColor(parsedBlockColor)
+        || !readColor(parsedBlockColor, parsedBlockColorRgb,
+                      parsedBlockColorName, parsedBlockColorBookName,
+                      parsedBlockColorDwgMethod,
+                      parsedBlockColorDwgFlags,
+                      parsedBlockColorDwgIndex)
         || !readCoord(parsedBlockScale)
         || !readFlag(parsedBlockScaleEnabled)
         || !readFiniteDouble(parsedBlockRotation)
@@ -14775,6 +18592,13 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     parsed.secondSegmentAngle = parsedSecondSegmentAngle;
     parsed.leaderType = parsedLeaderType;
     parsed.leaderColor = parsedLeaderColor;
+    parsed.leaderColorRgb = parsedLeaderColorRgb;
+    parsed.leaderColorName = std::move(parsedLeaderColorName);
+    parsed.leaderColorBookName = std::move(parsedLeaderColorBookName);
+    parsed.leaderColorDwgMethod = parsedLeaderColorDwgMethod;
+    parsed.leaderColorDwgFlags = parsedLeaderColorDwgFlags;
+    parsed.leaderColorDwgIndex = parsedLeaderColorDwgIndex;
+    parsed.leaderColorDwgMetadataPresent = version >= DRW::AC1018;
     parsed.leaderLineWeight = parsedLeaderLineWeight;
     parsed.landingEnabled = parsedLandingEnabled;
     parsed.landingGap = parsedLandingGap;
@@ -14788,11 +18612,25 @@ bool DRW_MLeaderStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     parsed.textAngleType = parsedTextAngleType;
     parsed.textAlignmentType = parsedTextAlignmentType;
     parsed.textColor = parsedTextColor;
+    parsed.textColorRgb = parsedTextColorRgb;
+    parsed.textColorName = std::move(parsedTextColorName);
+    parsed.textColorBookName = std::move(parsedTextColorBookName);
+    parsed.textColorDwgMethod = parsedTextColorDwgMethod;
+    parsed.textColorDwgFlags = parsedTextColorDwgFlags;
+    parsed.textColorDwgIndex = parsedTextColorDwgIndex;
+    parsed.textColorDwgMetadataPresent = version >= DRW::AC1018;
     parsed.textHeight = parsedTextHeight;
     parsed.textFrameEnabled = parsedTextFrameEnabled;
     parsed.alwaysAlignTextLeft = parsedAlwaysAlignTextLeft;
     parsed.alignSpace = parsedAlignSpace;
     parsed.blockColor = parsedBlockColor;
+    parsed.blockColorRgb = parsedBlockColorRgb;
+    parsed.blockColorName = std::move(parsedBlockColorName);
+    parsed.blockColorBookName = std::move(parsedBlockColorBookName);
+    parsed.blockColorDwgMethod = parsedBlockColorDwgMethod;
+    parsed.blockColorDwgFlags = parsedBlockColorDwgFlags;
+    parsed.blockColorDwgIndex = parsedBlockColorDwgIndex;
+    parsed.blockColorDwgMetadataPresent = version >= DRW::AC1018;
     parsed.blockScale = parsedBlockScale;
     parsed.blockScaleEnabled = parsedBlockScaleEnabled;
     parsed.blockRotation = parsedBlockRotation;
@@ -14908,7 +18746,7 @@ bool DRW_IDBuffer::parseCode(
     int code, const std::unique_ptr<dxfReader>& reader) {
     switch (code) {
     case 100: {
-        const UTF8STRING subclass = reader->getUtf8String();
+        const std::string_view subclass = reader->getStringView();
         if (subclass == "AcDbIdBuffer")
             m_dxfBodySeen = true;
         return true;
@@ -15051,7 +18889,10 @@ bool DRW_LayerIndex::parseCode(
     case 8:
         if (!m_dxfPendingEntry)
             return false;
-        m_dxfPendingName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedPendingNameBytes, m_dxfPendingName,
+                reader->getUtf8String()))
+            return false;
         return !m_dxfPendingName.empty();
     case 360: {
         if (!m_dxfPendingEntry || m_dxfPendingName.empty())
@@ -15061,11 +18902,24 @@ bool DRW_LayerIndex::parseCode(
             return false;
         if (entries.size() >= kMaxEntries)
             return false;
+        if (m_dxfRetainedPendingNameBytes
+            > (std::numeric_limits<std::size_t>::max)()
+                - m_dxfRetainedEntryNameBytes) {
+            const auto budget = reader->retainedByteBudget();
+            if (budget != nullptr)
+                budget->reject();
+            return false;
+        }
+        if (entries.size() == entries.capacity()
+            && !DRW::reserve(entries, static_cast<int>(entries.size() + 1u)))
+            return false;
         DRW_LayerIndexEntry entry;
         entry.indexLong = m_dxfPendingIndex;
-        entry.name = m_dxfPendingName;
+        entry.name = std::move(m_dxfPendingName);
         entry.entryHandle = entryHandle;
         entries.push_back(std::move(entry));
+        m_dxfRetainedEntryNameBytes += m_dxfRetainedPendingNameBytes;
+        m_dxfRetainedPendingNameBytes = 0u;
         m_dxfPendingEntry = false;
         m_dxfPendingName.clear();
         return true;
@@ -15300,13 +19154,16 @@ bool DRW_Scale::encodeDwg(DRW::Version version, dwgBufferW *buf,
     return buf->isGood() && sb->isGood();
 }
 
-// GROUP encoder — ODA §20.4.72.  Inverts parseDwg above.  Body: description
+// GROUP encoder — ODA §20.4.72. Body: one text value
 // TV + isUnnamed BS + selectable BS + handleCount BL.  Handle stream:
-// common prefix + entity handles.
+// common prefix + entity handles. The source-backed TV is the description
+// (DXF 300); named identity belongs to the owning ACAD_GROUP dictionary.
 bool DRW_Group::encodeDwg(DRW::Version version, dwgBufferW *buf,
                            dwgBufferW *strBuf,
                            dwgBufferW *handleBuf) const {
     if (buf == nullptr || m_entityHandles.size() > kMaxEntityHandles
+        || m_description.find('\0') != UTF8STRING::npos
+        || !DRW_TextCodec::isUtf8ScalarText(m_description)
         || std::find(m_entityHandles.cbegin(), m_entityHandles.cend(),
                      DRW::NoHandle) != m_entityHandles.cend()
         || !dwgSafety::validReactorCount(numReactors)
@@ -15449,8 +19306,9 @@ bool DRW_Layout::encodeDwg(DRW::Version version, dwgBufferW *buf,
     buf->put3BitDouble(extMax);
 
     if (version >= DRW::AC1018) {
-        // BitLong per ODA §20.4.84 / libreDWG FIELD_BL (num_viewports); see the
-        // matching getBitLong() in parseDwg.
+        // Match the BL representation confirmed by the AC1024 source-sample
+        // trace and LibreDWG FIELD_BL. ODA v5.4.1 §20.4.84 says RL; that
+        // published field-type discrepancy is documented at the reader above.
         buf->putBitLong(viewportCount);
     }
 
@@ -15724,15 +19582,16 @@ bool DRW_SpatialFilter::encodeDwg(DRW::Version version, dwgBufferW *buf,
 // the deferred handle stream, followed by the host-block handle.
 //
 // Mesh points + faces follow the object-version body; the target-version-
-// gated CIVIL tail follows those arrays for AC1021 through AC1027.
+// gated CIVIL tail follows those arrays for AC1021 and AC1024.
 bool DRW_GeoData::encodeDwg(DRW::Version version, dwgBufferW *buf,
                              dwgBufferW *strBuf,
                              dwgBufferW *handleBuf) const {
-    const bool writesCivilTail =
-        version >= DRW::AC1021 && version <= DRW::AC1027;
+    const bool writesCivilTail = hasGeoDataCivilTail(version);
     if (buf == nullptr
         || reactorHandles.size() > dwgSafety::MaxReactorCount
-        || extensionDictionaryFlag() > 1)
+        || extensionDictionaryFlag() > 1
+        || (!writesCivilTail
+            && geoDataCivilTailHasUnrepresentedData(m_civilTail)))
         return false;
     if (m_version < 1 || m_version > 3
         || m_points.size() > static_cast<std::size_t>(kMaxMeshItems)
@@ -16050,14 +19909,31 @@ bool isValidCadValue(const DRW_CadValue& value) {
 bool isWritableCadValue(DRW::Version version, const DRW_CadValue& value) {
     if (!isValidCadValue(value))
         return false;
+    if ((version > DRW::AC1018 && (value.m_formatFlags & ~0x03) != 0)
+        || (version <= DRW::AC1018 && value.m_formatFlags != 0))
+        return false;
+    // ODA §20.4.99 names type 0 kUnknown. Its framing can be decoded, but it
+    // has no known typed semantics; in particular, the R2007+ empty-value
+    // flag must not make an unknown kind writable as a complete FIELD value.
+    if (value.m_dataType == 0)
+        return false;
 
-    const bool emptyR2007Value = version > DRW::AC1018
-        && (value.m_formatFlags & 3);
-    if (emptyR2007Value)
-        return true;
+    if (!value.hasDwgPayload(version)) {
+        const bool knownType = value.m_dataType == 1 || value.m_dataType == 2
+            || value.m_dataType == 4 || value.m_dataType == 8
+            || value.m_dataType == 16 || value.m_dataType == 32
+            || value.m_dataType == 64 || value.m_dataType == 512;
+        return knownType && value.m_value.type() == DRW_Variant::INVALID
+            && value.m_dataSize == 0u && value.m_rawData.empty()
+            && value.m_handle == 0u;
+    }
+    if ((value.m_dataType != 64 && value.m_handle != 0u)
+        || ((value.m_dataType == 1 || value.m_dataType == 2
+             || value.m_dataType == 4 || value.m_dataType == 64)
+            && (value.m_dataSize != 0u || !value.m_rawData.empty())))
+        return false;
 
     switch (value.m_dataType) {
-    case 0:
     case 1:
         return value.m_value.type() == DRW_Variant::INTEGER;
     case 2:
@@ -16071,7 +19947,9 @@ bool isWritableCadValue(DRW::Version version, const DRW_CadValue& value) {
     case 512:
         return version > DRW::AC1018
             && value.m_rawData.size()
-                <= static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max());
+                <= static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
+            && (value.m_dataSize == 0
+                || value.m_dataSize == value.m_rawData.size());
     case 16:
     case 32:
         return value.m_rawData.size()
@@ -16083,10 +19961,9 @@ bool isWritableCadValue(DRW::Version version, const DRW_CadValue& value) {
     }
 }
 
-// Helper: invert readCadValue. Inverts the
-// dataType-switch, preserving raw bytes + value.  Only dataType branches
-// the parser populates round-trip cleanly; unsupported types (128, 256)
-// are passed through with their raw_data only.
+// Helper: invert readCadValue. Inverts the dataType-switch, preserving raw
+// bytes and typed values. Unsupported types (including 128 and 256) fail
+// closed rather than being emitted with a guessed layout.
 bool writeCadValue(DRW::Version version, dwgBufferW *buf, dwgBufferW *strBuf,
                    const DRW_CadValue& value) {
     if (buf == nullptr || !isWritableCadValue(version, value))
@@ -16097,8 +19974,7 @@ bool writeCadValue(DRW::Version version, dwgBufferW *buf, dwgBufferW *strBuf,
     if (version > DRW::AC1018)
         buf->putBitLong(value.m_formatFlags);
     buf->putBitLong(value.m_dataType);
-    const bool emptyR2007Value = version > DRW::AC1018 && (value.m_formatFlags & 3);
-    if (!emptyR2007Value) {
+    if (value.hasDwgPayload(version)) {
         switch (value.m_dataType) {
         case 0:
         case 1:
@@ -16175,6 +20051,324 @@ bool writeCadValueHandle(DRW::Version version, dwgBufferW *buf,
     return buf->isGood();
 }
 
+namespace {
+
+bool validTableContentText(const UTF8STRING& text) {
+    return text.size() <= 4u * 0xFFFEu
+        && text.find('\0') == UTF8STRING::npos
+        && DRW_TextCodec::isUtf8ScalarText(text);
+}
+
+bool validTableContentStyleId(std::int32_t id) {
+    return id >= 0 && (id <= 3 || id >= 101);
+}
+
+bool validTableContentOverrideType(std::int32_t type) {
+    return type >= 1 && type <= 5;
+}
+
+bool validTableContentValue(const DRW_CadValue& value) {
+    if (!isWritableCadValue(DRW::AC1021, value)
+        || (value.m_unitType != 0 && value.m_unitType != 1
+            && value.m_unitType != 2 && value.m_unitType != 4
+            && value.m_unitType != 8)
+        || !validTableContentText(value.m_formatString)
+        || !validTableContentText(value.m_valueString)
+        || (value.m_dataType != 64 && value.m_handle != 0u))
+        return false;
+    if (value.m_dataType == 1 || value.m_dataType == 2
+        || value.m_dataType == 4 || value.m_dataType == 64) {
+        if (!value.m_rawData.empty() || value.m_dataSize != 0u)
+            return false;
+    }
+    if (!value.hasDwgPayload(DRW::AC1021))
+        return true;
+    if (value.m_dataType == 4)
+        return validTableContentText(value.m_value.c_str());
+    if (value.m_dataType == 8 || value.m_dataType == 512) {
+        if (value.m_dataSize != 0u && value.m_dataSize != value.m_rawData.size())
+            return false;
+        return value.m_value.type() == DRW_Variant::INVALID
+            || (value.m_value.type() == DRW_Variant::BINARY
+                && *value.m_value.binary() == value.m_rawData);
+    }
+    if (value.m_dataType == 64) {
+        return value.m_handle != 0u
+            && (value.m_value.type() == DRW_Variant::INVALID
+                || (value.m_value.type() == DRW_Variant::INTEGER
+                    && static_cast<std::uint32_t>(value.m_value.i_val())
+                        == value.m_handle));
+    }
+    return true;
+}
+
+// These fields belong to the legacy TABLE profile or an unqualified geometry
+// cache, rather than the complete TABLECONTENT projection encoded below.
+bool hasUnencodedTableCellFields(const DRW_TableCell& cell) {
+    if (cell.m_type != 0 || cell.m_edgeFlags != 0 || cell.m_isMerged
+        || cell.m_autoFit || cell.m_mergedWidth != 0 || cell.m_mergedHeight != 0
+        || cell.m_rotation != 0.0 || !cell.m_textStyleName.empty()
+        || cell.m_virtualEdgeFlags != 0 || cell.m_overrideFlags != 0u
+        || cell.m_valueHandle != 0u || cell.m_textStyleHandle != 0u
+        || cell.m_textStyleOverrideHandle != 0u || cell.m_blockHandle != 0u
+        || cell.m_blockScale != 1.0 || cell.m_width != 0.0
+        || cell.m_height != 0.0 || cell.m_geometryFlags != 0u
+        || cell.m_geometryHandle != 0u || cell.m_geometryRecordFlags != 0u
+        || cell.m_geometryTopLeft.x != 0.0 || cell.m_geometryTopLeft.y != 0.0
+        || cell.m_geometryTopLeft.z != 0.0 || cell.m_geometryCenter.x != 0.0
+        || cell.m_geometryCenter.y != 0.0 || cell.m_geometryCenter.z != 0.0
+        || cell.m_contentWidth != 0.0 || cell.m_contentHeight != 0.0
+        || cell.m_geometryWidth != 0.0 || cell.m_geometryHeight != 0.0
+        || cell.m_textColorRgb != -1 || cell.m_textColorMethod != 0u
+        || cell.m_fillColorRgb != -1 || cell.m_fillColorMethod != 0u
+        || cell.m_backgroundEnabled || cell.m_textAlignment != 0
+        || cell.m_textHeight != 0.0)
+        return true;
+    return std::any_of(cell.m_borders.begin(), cell.m_borders.end(),
+        [](const DRW_TableBorder& border) {
+            return border.m_lineWeight != 0 || !border.m_visible
+                || border.m_colorRgb != -1 || border.m_colorMethod != 0u;
+        });
+}
+
+} // namespace
+
+bool DRW_TableContentObject::validateDwgPayload(DRW::Version version) const {
+    // §20.4.97 defines a standalone object only for R21. Later DWG versions
+    // require the enclosing TABLE entity's inline framing and graph.
+    if (version != DRW::AC1021 || !m_semanticContentComplete
+        || !dwgSafety::validReactorCount(numReactors)
+        || static_cast<std::size_t>(numReactors) != reactorHandles.size()
+        || extensionDictionaryFlag() > 1u
+        || (extensionDictionaryFlag() == 1u && xDictHandle != 0u)
+        || !validTableContentText(m_content.m_name)
+        || !validTableContentText(m_content.m_description)
+        || !validTableContentOverrideType(m_content.m_overrideStyleType)
+        || m_content.m_columns.size() > 1000u
+        || m_content.m_rows.size() > 10000u
+        || m_content.m_fieldHandles.size() > 100000u
+        || m_content.m_mergedRanges.size() > 100000u)
+        return false;
+    const std::size_t columns = m_content.m_columns.size();
+    const std::size_t rows = m_content.m_rows.size();
+    if (columns != 0u && rows > 200000u / columns)
+        return false;
+    bool hasStyleReference = false;
+    std::vector<std::uint32_t> referencedFields;
+    referencedFields.reserve(m_content.m_fieldHandles.size());
+    for (const DRW_TableColumn& column : m_content.m_columns) {
+        if (!validTableContentText(column.m_name)
+            || !std::isfinite(column.m_width) || column.m_width < 0.0
+            || !validTableContentStyleId(column.m_styleId))
+            return false;
+        if (!validTableContentOverrideType(column.m_overrideStyleType))
+            return false;
+        hasStyleReference |= column.m_styleId != 0;
+    }
+    for (const DRW_TableRow& row : m_content.m_rows) {
+        if (row.m_cells.size() != columns || !std::isfinite(row.m_height)
+            || row.m_height < 0.0 || !validTableContentStyleId(row.m_styleId)
+            || !validTableContentOverrideType(row.m_overrideStyleType))
+            return false;
+        hasStyleReference |= row.m_styleId != 0;
+        for (const DRW_TableCell& cell : row.m_cells) {
+            if ((static_cast<std::uint32_t>(cell.m_flags) & ~0x7Fu) != 0u
+                || !validTableContentText(cell.m_toolTip)
+                || !validTableContentStyleId(cell.m_styleId)
+                || !validTableContentOverrideType(cell.m_overrideStyleType)
+                || hasUnencodedTableCellFields(cell)
+                || cell.m_contents.size() > 100000u
+                || cell.m_attributes.size() > 10000u
+                || (cell.m_hasLinkedData && cell.m_dataLinkHandle == 0u)
+                || (!cell.m_hasLinkedData
+                    && (cell.m_dataLinkHandle != 0u
+                        || cell.m_linkedDataRowCount != 0
+                        || cell.m_linkedDataColumnCount != 0
+                        || cell.m_linkedDataUnknown != 0)))
+                return false;
+            hasStyleReference |= cell.m_styleId != 0;
+            for (const DRW_TableCellContent& content : cell.m_contents) {
+                if (content.m_type == 1) {
+                    if (content.m_handle != 0u
+                        || !validTableContentValue(content.m_value))
+                        return false;
+                    const UTF8STRING text = content.m_value.m_value.type() == DRW_Variant::STRING
+                        ? content.m_value.m_value.c_str()
+                        : content.m_value.m_valueString;
+                    if (!content.m_text.empty() && content.m_text != text)
+                        return false;
+                } else if (content.m_type == 2 || content.m_type == 4) {
+                    const DRW_CadValue& value = content.m_value;
+                    if (content.m_handle == 0u || !content.m_text.empty()
+                        || value.m_formatFlags != 0 || value.m_dataType != 0
+                        || value.m_dataSize != 0u || value.m_unitType != 0
+                        || value.m_value.type() != DRW_Variant::INVALID
+                        || !value.m_formatString.empty()
+                        || !value.m_valueString.empty() || value.m_handle != 0u
+                        || !value.m_rawData.empty())
+                        return false;
+                    if (content.m_type == 2) {
+                        if (referencedFields.size() >= m_content.m_fieldHandles.size())
+                            return false;
+                        referencedFields.push_back(content.m_handle);
+                    }
+                } else {
+                    return false;
+                }
+            }
+            std::uint32_t previousContent = 0u;
+            for (const DRW_TableCellAttribute& attribute : cell.m_attributes) {
+                if (attribute.m_attdefHandle == 0u || attribute.m_index < 1
+                    || attribute.m_contentIndex >= cell.m_contents.size()
+                    || attribute.m_contentIndex < previousContent
+                    || !validTableContentText(attribute.m_text))
+                    return false;
+                previousContent = attribute.m_contentIndex;
+            }
+        }
+    }
+    if (hasStyleReference && m_content.m_tableStyleHandle == 0u)
+        return false;
+    if (std::any_of(m_content.m_fieldHandles.begin(),
+                    m_content.m_fieldHandles.end(),
+                    [](std::uint32_t ref) { return ref == 0u; }))
+        return false;
+    // §20.4.97's ownership list has one entry per FIELD cell content. Match
+    // its multiset without imposing an order on the source ownership list.
+    if (referencedFields.size() != m_content.m_fieldHandles.size())
+        return false;
+    auto ownedFields = m_content.m_fieldHandles;
+    std::sort(referencedFields.begin(), referencedFields.end());
+    std::sort(ownedFields.begin(), ownedFields.end());
+    if (referencedFields != ownedFields)
+        return false;
+
+    // At most 200,000 cells are visited before either accepting all disjoint
+    // ranges or detecting the first overlap; avoid a quadratic range census.
+    std::vector<bool> merged(rows * columns, false);
+    for (const DRW_TableMergedRange& range : m_content.m_mergedRanges) {
+        if (range.m_topRow < 0 || range.m_leftColumn < 0
+            || range.m_bottomRow < range.m_topRow
+            || range.m_rightColumn < range.m_leftColumn
+            || static_cast<std::size_t>(range.m_bottomRow) >= rows
+            || static_cast<std::size_t>(range.m_rightColumn) >= columns)
+            return false;
+        for (int row = range.m_topRow; row <= range.m_bottomRow; ++row) {
+            for (int col = range.m_leftColumn; col <= range.m_rightColumn; ++col) {
+                const std::size_t index = static_cast<std::size_t>(row) * columns
+                    + static_cast<std::size_t>(col);
+                if (merged[index])
+                    return false;
+                merged[index] = true;
+            }
+        }
+    }
+    return true;
+}
+
+bool DRW_TableContentObject::encodeDwg(DRW::Version version, dwgBufferW *buf,
+                                      dwgBufferW *strBuf,
+                                      dwgBufferW *handleBuf) const {
+    if (buf == nullptr || strBuf == nullptr || handleBuf == nullptr
+        || buf == strBuf || buf == handleBuf || strBuf == handleBuf
+        || !buf->isGood() || !strBuf->isGood() || !handleBuf->isGood()
+        || !validateDwgPayload(version))
+        return false;
+    // Preserve partial-byte cursors and handle-occurrence tracking on refusal.
+    dwgBufferW body = *buf, strings = *strBuf, handles = *handleBuf;
+    const auto emptyStyle = [&body](std::int32_t type) {
+        body.putBitLong(type);
+        body.putBitShort(0);
+    };
+    putCommonObjectHandlePrefix(&handles, parentHandle, numReactors,
+        extensionDictionaryFlag(), &reactorHandles, xDictHandle);
+    strings.putVariableText(version, m_content.m_name);
+    strings.putVariableText(version, m_content.m_description);
+    body.putBitLong(static_cast<std::int32_t>(m_content.m_columns.size()));
+    for (const DRW_TableColumn& column : m_content.m_columns) {
+        strings.putVariableText(version, column.m_name);
+        body.putBitLong(0); // no unretained custom data or collection
+        body.putBitLong(0);
+        emptyStyle(column.m_overrideStyleType);
+        body.putBitLong(column.m_styleId);
+        body.putBitDouble(column.m_width);
+    }
+    body.putBitLong(static_cast<std::int32_t>(m_content.m_rows.size()));
+    for (const DRW_TableRow& row : m_content.m_rows) {
+        body.putBitLong(static_cast<std::int32_t>(row.m_cells.size()));
+        for (const DRW_TableCell& cell : row.m_cells) {
+            body.putBitLong(cell.m_flags);
+            strings.putVariableText(version, cell.m_toolTip);
+            body.putBitLong(0); // no unretained custom data or collection
+            body.putBitLong(0);
+            body.putBitLong(cell.m_hasLinkedData ? 1 : 0);
+            if (cell.m_hasLinkedData) {
+                handles.putHandle(makeRefW(cell.m_dataLinkHandle,
+                                           DRW::DwgHardPointer));
+                body.putBitLong(cell.m_linkedDataRowCount);
+                body.putBitLong(cell.m_linkedDataColumnCount);
+                body.putBitLong(cell.m_linkedDataUnknown);
+            }
+            body.putBitLong(static_cast<std::int32_t>(cell.m_contents.size()));
+            std::size_t attributeIndex = 0u;
+            for (std::size_t i = 0; i < cell.m_contents.size(); ++i) {
+                const DRW_TableCellContent& content = cell.m_contents[i];
+                body.putBitLong(content.m_type);
+                if (content.m_type == 1) {
+                    if (!writeCadValue(version, &body, &strings, content.m_value)
+                        || !writeCadValueHandle(version, &handles,
+                                                content.m_value))
+                        return false;
+                } else {
+                    handles.putHandle(makeRefW(content.m_handle,
+                                               DRW::DwgHardPointer));
+                }
+                const std::size_t firstAttribute = attributeIndex;
+                while (attributeIndex < cell.m_attributes.size()
+                       && cell.m_attributes[attributeIndex].m_contentIndex == i)
+                    ++attributeIndex;
+                body.putBitLong(static_cast<std::int32_t>(
+                    attributeIndex - firstAttribute));
+                for (std::size_t a = firstAttribute; a < attributeIndex; ++a) {
+                    const DRW_TableCellAttribute& attribute = cell.m_attributes[a];
+                    handles.putHandle(makeRefW(attribute.m_attdefHandle,
+                                               DRW::DwgSoftPointer));
+                    strings.putVariableText(version, attribute.m_text);
+                    body.putBitLong(attribute.m_index);
+                }
+                body.putBitShort(0); // no unretained per-content format
+            }
+            emptyStyle(cell.m_overrideStyleType);
+            body.putBitLong(cell.m_styleId);
+            body.putBitLong(0); // no unqualified optional geometry cache
+        }
+        body.putBitLong(0); // row custom data / collection
+        body.putBitLong(0);
+        emptyStyle(row.m_overrideStyleType);
+        body.putBitLong(row.m_styleId);
+        body.putBitDouble(row.m_height);
+    }
+    body.putBitLong(static_cast<std::int32_t>(m_content.m_fieldHandles.size()));
+    for (std::uint32_t ref : m_content.m_fieldHandles)
+        handles.putHandle(makeRefW(ref, DRW::DwgHardOwnership));
+    emptyStyle(m_content.m_overrideStyleType);
+    body.putBitLong(static_cast<std::int32_t>(m_content.m_mergedRanges.size()));
+    for (const DRW_TableMergedRange& range : m_content.m_mergedRanges) {
+        body.putBitLong(range.m_topRow);
+        body.putBitLong(range.m_leftColumn);
+        body.putBitLong(range.m_bottomRow);
+        body.putBitLong(range.m_rightColumn);
+    }
+    handles.putHandle(makeRefW(m_content.m_tableStyleHandle,
+                               DRW::DwgHardPointer));
+    if (!body.isGood() || !strings.isGood() || !handles.isGood())
+        return false;
+    buf->swap(body);
+    strBuf->swap(strings);
+    handleBuf->swap(handles);
+    return true;
+}
+
 DRW_Field::DwgReferencePolicy DRW_Field::dwgReferencePolicy(
     DRW::Version version, DwgReferenceKind kind,
     const DRW_CadValue *value) noexcept {
@@ -16187,8 +20381,8 @@ DRW_Field::DwgReferencePolicy DRW_Field::dwgReferencePolicy(
     return {DRW::DwgSoftPointer, true, false};
   case DwgReferenceKind::CadValueObjectId:
     return {DRW::DwgSoftPointer,
-            value != nullptr && value->m_dataType == 64 &&
-                (version <= DRW::AC1018 || (value->m_formatFlags & 3) == 0),
+            value != nullptr && value->m_dataType == 64
+                && value->hasDwgPayload(version),
             false};
   case DwgReferenceKind::FieldListMember:
     return {DRW::DwgSoftPointer, true, true};
@@ -16204,6 +20398,8 @@ bool DRW_Field::cadValueHasDwgObjectHandle(DRW::Version version,
 }
 
 bool DRW_Field::isDwgPayloadValid(DRW::Version version) const noexcept {
+  if (!m_dwgPayloadComplete)
+    return false;
   const DwgReferencePolicy childPolicy =
       dwgReferencePolicy(version, DwgReferenceKind::ChildField);
   const DwgReferencePolicy objectPolicy =
@@ -16349,13 +20545,66 @@ bool DRW_FieldList::encodeDwg(DRW::Version version, dwgBufferW *buf,
 }
 
 bool DRW_MLeaderStyle::validateDwgPayload(DRW::Version version) const {
+    const auto validColor = [version](int color, std::int32_t rgb24,
+                                      std::uint8_t sourceMethod,
+                                      bool metadataPresent) {
+        if (color < 0 || color > 256 || rgb24 < -1
+            || rgb24 > 0x00FFFFFF
+            || (rgb24 >= 0
+                && (version < DRW::AC1018 || color != 256)))
+            return false;
+        const std::uint8_t canonicalMethod = rgb24 >= 0 ? dwgColor::RGB
+            : color == 256 ? dwgColor::BYLAYER
+            : color == 0 ? dwgColor::BYBLOCK : dwgColor::ACIS;
+        if (sourceMethod == 0)
+            return !metadataPresent;
+        return sourceMethod == canonicalMethod
+            && (sourceMethod == dwgColor::BYLAYER
+                || sourceMethod == dwgColor::BYBLOCK
+                || sourceMethod == dwgColor::RGB
+                || sourceMethod == dwgColor::ACIS);
+    };
+    const auto hasNames = [](const UTF8STRING& name,
+                             const UTF8STRING& bookName) {
+        return !name.empty() || !bookName.empty();
+    };
+    const auto validCmcMetadata = [](
+            bool metadataPresent, std::uint8_t flags,
+            std::uint16_t reservedIndex, const UTF8STRING& name,
+            const UTF8STRING& bookName) {
+        if (!metadataPresent)
+            return flags == 0u && reservedIndex == 0u;
+        return reservedIndex == 0u && (flags & ~0x03u) == 0u
+            && ((flags & 0x01u) != 0u || name.empty())
+            && ((flags & 0x02u) != 0u || bookName.empty());
+    };
     return version >= DRW::AC1015
         && reactorHandles.size() <= dwgSafety::MaxReactorCount
         && extensionDictionaryFlag() <= 1
         && (version < DRW::AC1024 || styleVersion <= 10)
-        && validUnsignedBitShort(leaderColor)
-        && validUnsignedBitShort(textColor)
-        && validUnsignedBitShort(blockColor)
+        && validColor(leaderColor, leaderColorRgb,
+                      leaderColorDwgMethod,
+                      leaderColorDwgMetadataPresent)
+        && validCmcMetadata(leaderColorDwgMetadataPresent,
+                            leaderColorDwgFlags, leaderColorDwgIndex,
+                            leaderColorName, leaderColorBookName)
+        && validColor(textColor, textColorRgb, textColorDwgMethod,
+                      textColorDwgMetadataPresent)
+        && validCmcMetadata(textColorDwgMetadataPresent, textColorDwgFlags,
+                            textColorDwgIndex, textColorName,
+                            textColorBookName)
+        && validColor(blockColor, blockColorRgb, blockColorDwgMethod,
+                      blockColorDwgMetadataPresent)
+        && validCmcMetadata(blockColorDwgMetadataPresent,
+                            blockColorDwgFlags, blockColorDwgIndex,
+                            blockColorName, blockColorBookName)
+        && (version >= DRW::AC1018
+            || (!hasNames(leaderColorName, leaderColorBookName)
+                && !hasNames(textColorName, textColorBookName)
+                && !hasNames(blockColorName, blockColorBookName)
+                && leaderColorDwgFlags == 0u
+                && textColorDwgFlags == 0u
+                && blockColorDwgFlags == 0u))
         && std::isfinite(firstSegmentAngle)
         && std::isfinite(secondSegmentAngle)
         && std::isfinite(landingGap)
@@ -16377,12 +20626,48 @@ bool DRW_MLeaderStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     if (buf == nullptr || !validateDwgPayload(version))
         return false;
 
+    const auto hasNames = [](const UTF8STRING& name,
+                             const UTF8STRING& bookName) {
+        return !name.empty() || !bookName.empty();
+    };
+    const bool anyColorNames = hasNames(leaderColorName, leaderColorBookName)
+        || hasNames(textColorName, textColorBookName)
+        || hasNames(blockColorName, blockColorBookName)
+        || (leaderColorDwgMetadataPresent && leaderColorDwgFlags != 0u)
+        || (textColorDwgMetadataPresent && textColorDwgFlags != 0u)
+        || (blockColorDwgMetadataPresent && blockColorDwgFlags != 0u);
+    if (version > DRW::AC1018 && anyColorNames
+        && (strBuf == nullptr || strBuf == buf))
+        return false;
+
     dwgBufferW *sb = (strBuf != nullptr && version > DRW::AC1018)
         ? strBuf
         : buf;
     dwgBufferW *hb = (handleBuf != nullptr && version > DRW::AC1014)
         ? handleBuf
         : buf;
+    const auto writeColor = [version, buf, sb](
+            int color, std::int32_t rgb24, std::uint8_t sourceMethod,
+            const UTF8STRING& name, const UTF8STRING& bookName,
+            bool metadataPresent, std::uint8_t flags) {
+        if (version < DRW::AC1018) {
+            buf->putCmColor(version, static_cast<std::uint16_t>(color));
+            return;
+        }
+        const std::uint8_t method = sourceMethod != 0 ? sourceMethod
+            : rgb24 >= 0 ? dwgColor::RGB
+            : color == 256 ? dwgColor::BYLAYER
+            : color == 0 ? dwgColor::BYBLOCK : dwgColor::ACIS;
+        if (metadataPresent) {
+            buf->putCmColorWithFlags(version, method,
+                static_cast<std::uint16_t>(color), rgb24,
+                name, bookName, flags, sb);
+        } else {
+            buf->putCmColor(version, method,
+                static_cast<std::uint16_t>(color), rgb24,
+                name, bookName, sb);
+        }
+    };
 
     if (version >= DRW::AC1024)
         buf->putBitShort(styleVersion);
@@ -16393,7 +20678,9 @@ bool DRW_MLeaderStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     buf->putBitDouble(firstSegmentAngle);
     buf->putBitDouble(secondSegmentAngle);
     buf->putBitShort(leaderType);
-    buf->putCmColor(version, static_cast<std::uint16_t>(leaderColor));
+    writeColor(leaderColor, leaderColorRgb, leaderColorDwgMethod,
+               leaderColorName, leaderColorBookName,
+               leaderColorDwgMetadataPresent, leaderColorDwgFlags);
     buf->putBitLong(leaderLineWeight);
     buf->putBit(landingEnabled ? 1 : 0);
     buf->putBitDouble(landingGap);
@@ -16409,13 +20696,17 @@ bool DRW_MLeaderStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
     if (styleVersion >= 2)
         buf->putBitShort(textAngleType);
     buf->putBitShort(textAlignmentType);
-    buf->putCmColor(version, static_cast<std::uint16_t>(textColor));
+    writeColor(textColor, textColorRgb, textColorDwgMethod,
+               textColorName, textColorBookName,
+               textColorDwgMetadataPresent, textColorDwgFlags);
     buf->putBitDouble(textHeight);
     buf->putBit(textFrameEnabled ? 1 : 0);
     if (styleVersion >= 2)
         buf->putBit(alwaysAlignTextLeft ? 1 : 0);
     buf->putBitDouble(alignSpace);
-    buf->putCmColor(version, static_cast<std::uint16_t>(blockColor));
+    writeColor(blockColor, blockColorRgb, blockColorDwgMethod,
+               blockColorName, blockColorBookName,
+               blockColorDwgMetadataPresent, blockColorDwgFlags);
     buf->putBitDouble(blockScale.x);
     buf->putBitDouble(blockScale.y);
     buf->putBitDouble(blockScale.z);
@@ -16526,10 +20817,16 @@ bool DRW_UnderlayDefinition::parseCode(int code,
                                        const std::unique_ptr<dxfReader>& reader) {
     switch (code) {
     case 1:
-        filename = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedFilenameBytes, filename,
+                reader->getUtf8String()))
+            return false;
         break;
     case 2:
-        sheetName = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedSheetNameBytes, sheetName,
+                reader->getUtf8String()))
+            return false;
         break;
     default:
         return DRW_TableEntry::parseCode(code, reader);
@@ -16578,9 +20875,12 @@ bool DRW_Scale::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     case 290:
         isUnitScale = reader->getBool();
         break;
-    case 300:
-        name = reader->getUtf8String();  //user-visible scale label
+    case 300: {
+        std::string value = reader->getUtf8String();
+        if (!replaceDxfRetainedNameField(reader, std::move(value)))
+            return false;
         break;
+    }
     default:
         return DRW_TableEntry::parseCode(code, reader);
     }
@@ -16692,6 +20992,7 @@ void DRW_ObjectContextData::reset() {
     DRW_TableEntry::reset();
     tType = DRW::OBJECTCONTEXTDATA;
     m_classVersion = 0;
+    m_hasFileToExtensionDictionary = true;
     m_defaultFlag = false;
     m_scaleHandle = 0;
     m_blockHandle = 0;
@@ -16899,8 +21200,11 @@ bool DRW_ObjectContextData::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             && readBodyBit(m_flipArrow1);
     };
 
-    if (hasShell && (!readBodyBitShort(m_classVersion)
-                     || !readBodyBit(m_defaultFlag)))
+    if (hasShell
+        && (!readBodyBitShort(m_classVersion)
+            || (version >= DRW::AC1024
+                && !readBodyBit(m_hasFileToExtensionDictionary))
+            || !readBodyBit(m_defaultFlag)))
         return fail();
 
     // The class-version/default fields are the stable context shell. A
@@ -17129,7 +21433,10 @@ bool DRW_ObjectContextData::parseDwg(DRW::Version version, dwgBuffer *buf, std::
 bool DRW_Group::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     switch (code) {
     case 300:
-        m_description = reader->getUtf8String();
+        if (!replaceDxfRetainedStringField(
+                reader, m_dxfRetainedDescriptionBytes, m_description,
+                reader->getUtf8String()))
+            return false;
         break;
     case 70:
         m_isUnnamed = reader->getInt32() != 0;
@@ -17152,6 +21459,7 @@ void DRW_Group::reset() {
     DRW_TableEntry::reset();
     tType = DRW::GROUP;
     m_description.clear();
+    m_dxfRetainedDescriptionBytes = 0u;
     m_isUnnamed = false;
     m_selectable = true;
     m_entityHandles.clear();
@@ -17194,9 +21502,16 @@ bool DRW_Group::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     std::int32_t selectable = 0;
     if (!readBitShortWithinBody(bodyBuf, version, bodyEnd, unnamed)
         || !readBitShortWithinBody(bodyBuf, version, bodyEnd, selectable)
+        || (unnamed != 0 && unnamed != 1)
+        || (selectable != 0 && selectable != 1)
         || !bodyBuf->isGood() || !bodyStringBuf->isGood())
         return fail();
+    // A producer-saved GROUP can have dictionary key *A1 and body text
+    // "Superhatch" (its paired DXF 300 description). Do not conflate them.
+    // As with DXF callbacks, name remains unresolved until the owning
+    // dictionary graph is validated by the consumer.
     m_description = std::move(parsedDescription);
+    name.clear();
     m_isUnnamed = unnamed > 0;
     m_selectable = selectable > 0;
 
@@ -17261,7 +21576,7 @@ bool DRW_LightList::parseCode(int code,
                               const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
         m_dxfInLightListSubclass =
-            reader->getUtf8String() == "AcDbLightList";
+            reader->getStringView() == "AcDbLightList";
         return true;
     }
     if (m_dxfInLightListSubclass) {
@@ -17287,9 +21602,17 @@ bool DRW_LightList::parseCode(int code,
             if (m_dxfPendingLightHandle != 0) {
                 if (m_lights.size() >= kMaxLightCount)
                     return false;
+                UTF8STRING name = reader->getUtf8String();
+                if (m_lights.size() == m_lights.capacity()
+                    && !DRW::reserve(m_lights,
+                                     static_cast<int>(m_lights.size() + 1u)))
+                    return false;
+                if (!retainDxfRetainedStringBytes(
+                        reader, m_dxfRetainedLightNameBytes, name.size()))
+                    return false;
                 DRW_LightListEntry entry;
                 entry.m_handle = m_dxfPendingLightHandle;
-                entry.m_name = reader->getUtf8String();
+                entry.m_name = std::move(name);
                 m_lights.push_back(std::move(entry));
                 m_dxfPendingLightHandle = 0;
             }
@@ -17310,6 +21633,7 @@ void DRW_LightList::reset() {
     m_dxfInLightListSubclass = false;
     m_dxfPendingLightHandle = 0;
     m_dxfSeen90 = 0;
+    m_dxfRetainedLightNameBytes = 0u;
 }
 
 bool DRW_LightList::parseDwg(DRW::Version version, dwgBuffer *buf,
@@ -17448,7 +21772,10 @@ bool DRW_LayerFilter::parseCode(
     if (code == 8) {
         if (m_names.size() >= kMaxNameCount)
             return false;
-        m_names.push_back(reader->getUtf8String());
+        if (!appendDxfRetainedStringField(
+                reader, m_dxfRetainedNameBytes, m_names,
+                reader->getUtf8String()))
+            return false;
         m_nameCount = static_cast<std::uint32_t>(m_names.size());
         return true;
     }
@@ -17540,7 +21867,7 @@ bool DRW_LayerFilter::parseDwg(DRW::Version version, dwgBuffer *buf,
 bool DRW_DataLink::parseCode(
     int code, const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
-        m_dxfInDataLinkBody = reader->getUtf8String() == "AcDbDataLink";
+        m_dxfInDataLinkBody = reader->getStringView() == "AcDbDataLink";
         return true;
     }
     if (!m_dxfInDataLinkBody)
@@ -17556,20 +21883,41 @@ bool DRW_DataLink::parseCode(
     };
     switch (code) {
     case 1: {
-        const UTF8STRING value = reader->getUtf8String();
-        if (value == "CUSTOMDATA" || value == "DATAMAP_BEGIN") {
+        const std::string_view marker = reader->getStringView();
+        if (marker == "CUSTOMDATA" || marker == "DATAMAP_BEGIN") {
             m_dxfInCustomData = true;
-        } else if (value == "DATAMAP_END") {
+        } else if (marker == "DATAMAP_END") {
             m_dxfInCustomData = false;
-        } else if (!m_dxfDataAdapterSeen) {
-            m_dataAdapter = value;
-            m_dxfDataAdapterSeen = true;
+        } else {
+            UTF8STRING value = reader->getUtf8String();
+            if (!m_dxfDataAdapterSeen) {
+                if (!replaceDxfRetainedStringField(
+                        reader, m_dxfRetainedTextBytes[0], m_dataAdapter,
+                        std::move(value)))
+                    return false;
+                m_dxfDataAdapterSeen = true;
+            }
         }
         return true;
     }
-    case 300: m_description = reader->getUtf8String(); return true;
-    case 301: m_tooltip = reader->getUtf8String(); return true;
-    case 302: m_connectionString = reader->getUtf8String(); return true;
+    case 300: {
+        UTF8STRING value = reader->getUtf8String();
+        return replaceDxfRetainedStringField(
+            reader, m_dxfRetainedTextBytes[1], m_description,
+            std::move(value));
+    }
+    case 301: {
+        UTF8STRING value = reader->getUtf8String();
+        return replaceDxfRetainedStringField(
+            reader, m_dxfRetainedTextBytes[2], m_tooltip,
+            std::move(value));
+    }
+    case 302: {
+        UTF8STRING value = reader->getUtf8String();
+        return replaceDxfRetainedStringField(
+            reader, m_dxfRetainedTextBytes[3], m_connectionString,
+            std::move(value));
+    }
     case 90: m_option = reader->getInt32(); return true;
     case 91: m_updateOption = reader->getInt32(); return true;
     case 92: m_value92 = reader->getInt32(); return true;
@@ -17597,24 +21945,35 @@ bool DRW_DataLink::parseCode(
         }
         return DRW_TableEntry::parseCode(code, reader);
     case 304: {
-        const UTF8STRING value = reader->getUtf8String();
+        UTF8STRING value = reader->getUtf8String();
         if (m_dxfInCustomData && m_dxfHasPendingTargetHandle) {
             if (m_customData.size()
                 >= static_cast<std::size_t>(kMaxCustomDataCount))
                 return false;
+            if (m_customData.size() == m_customData.capacity()
+                && !DRW::reserve(
+                    m_customData,
+                    static_cast<int>(m_customData.size() + 1u)))
+                return false;
             DRW_DataLinkCustomData custom;
             custom.m_targetHandle = m_dxfPendingTargetHandle;
-            custom.m_text = value;
+            if (!replaceDxfRetainedStringField(
+                    reader, custom.m_dxfRetainedTextBytes, custom.m_text,
+                    std::move(value)))
+                return false;
             m_customData.push_back(std::move(custom));
             m_dxfPendingTargetHandle = 0;
             m_dxfHasPendingTargetHandle = false;
         } else {
-            m_updateStatus = value;
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedTextBytes[4], m_updateStatus,
+                    std::move(value)))
+                return false;
         }
         return true;
     }
     case 305:
-        reader->getUtf8String();
+        (void)reader->getStringView();
         m_dxfInCustomData = true;
         return true;
     case 309:
@@ -17781,7 +22140,7 @@ bool DRW_DataLink::parseDwg(DRW::Version version, dwgBuffer *buf,
 bool DRW_GeoMapImage::parseCode(
     int code, const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
-        m_dxfInGeoMapImageBody = reader->getUtf8String() == "AcDbGeomapImage";
+        m_dxfInGeoMapImageBody = reader->getStringView() == "AcDbGeomapImage";
         return true;
     }
     if (!m_dxfInGeoMapImageBody)
@@ -17927,27 +22286,49 @@ bool DRW_DimensionAssociation::parseCode(int code, const std::unique_ptr<dxfRead
     // arrival order (mapping to first/second/... point by associativity-flag bit
     // is a refinement).  Code map per dwgTs parseObjectsSortEntsAndDimAssocDxf.ts.
     if (code == 100) {
-        if (reader->getString() == "AcDbDimAssoc")
+        const std::string_view subclass = reader->getStringView();
+        if (subclass == "AcDbDimAssoc") {
+            if (m_dxfInBody)
+                m_hasUnrepresentableDetail = true;
             m_dxfInBody = true;
+        } else if (m_dxfInBody) {
+            // Preserve unfamiliar post-DimAssoc subclass data in the raw DXF
+            // carrier, but do not allow a typed rewrite to silently drop it.
+            m_hasUnrepresentableDetail = true;
+        }
         return true;
     }
     if (m_dxfInBody) {
         switch (code) {
         case 330: m_dimensionHandle = reader->getHandleString(); return true;
         case 90:  m_associativityFlags = reader->getInt32(); return true;
-        case 70: {
+        case 70:
+            m_isTransSpace = reader->getInt32() != 0;
+            return true;
+        case 71: {
             const int value = reader->getInt32();
             if (value < 0 || value > std::numeric_limits<std::uint8_t>::max())
                 return false;
             m_rotatedDimensionType = static_cast<std::uint8_t>(value);
             return true;
         }
-        case 71:  m_isTransSpace = (reader->getInt32() != 0); return true;
         case 1: { // opens a new osnap reference block
             if (m_osnapRefs.size() >= dwgSafety::MaxOwnedObjectCount)
                 return false;
+            if (!m_osnapRefs.empty()) {
+                const DRW_DimensionAssociationOsnapRef& previous =
+                    m_osnapRefs.back();
+                if (previous.m_dxfPointComponentMask != 0
+                    && previous.m_dxfPointComponentMask != 0x07u)
+                    m_hasUnrepresentableDetail = true;
+            }
             DRW_DimensionAssociationOsnapRef ref;
-            ref.m_className = reader->getUtf8String();
+            if (!replaceDxfRetainedStringField(
+                    reader, ref.m_dxfRetainedClassNameBytes,
+                    ref.m_className, reader->getUtf8String()))
+                return false;
+            if (ref.m_className != "AcDbOsnapPointRef")
+                m_hasUnrepresentableDetail = true;
             m_osnapRefs.push_back(ref);
             return true;
         }
@@ -17957,12 +22338,16 @@ bool DRW_DimensionAssociation::parseCode(int code, const std::unique_ptr<dxfRead
                 if (value < 0
                     || value > std::numeric_limits<std::uint8_t>::max())
                     return false;
-                m_osnapRefs.back().m_objectOsnapType =
-                    static_cast<std::uint8_t>(value);
-                if (value != 0)
+                DRW_DimensionAssociationOsnapRef& ref = m_osnapRefs.back();
+                if (ref.m_hasObjectOsnapType)
+                    m_hasUnrepresentableDetail = true;
+                ref.m_hasObjectOsnapType = true;
+                ref.m_objectOsnapType = static_cast<std::uint8_t>(value);
+                if (value > 13)
                     m_hasUnrepresentableDetail = true;
             } else {
                 reader->getInt32();
+                m_hasUnrepresentableDetail = true;
             }
             return true;
         case 331:
@@ -17970,9 +22355,163 @@ bool DRW_DimensionAssociation::parseCode(int code, const std::unique_ptr<dxfRead
                 if (m_osnapRefs.back().m_objectHandle != 0)
                     m_hasUnrepresentableDetail = true;
                 m_osnapRefs.back().m_objectHandle = reader->getHandleString();
+            } else {
+                (void)reader->getHandleString();
+                m_hasUnrepresentableDetail = true;
             }
             return true;
-        default: break;
+        case 73:
+            if (m_osnapRefs.empty()) {
+                reader->getInt32();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            if (m_osnapRefs.back().m_hasSubentType)
+                m_hasUnrepresentableDetail = true;
+            m_osnapRefs.back().m_subentType = reader->getInt32();
+            m_osnapRefs.back().m_hasSubentType = true;
+            return true;
+        case 91:
+            if (m_osnapRefs.empty()) {
+                reader->getInt32();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            if (m_osnapRefs.back().m_hasGsMarker)
+                m_hasUnrepresentableDetail = true;
+            m_osnapRefs.back().m_gsMarker = reader->getInt32();
+            m_osnapRefs.back().m_hasGsMarker = true;
+            return true;
+        case 40:
+            if (m_osnapRefs.empty()) {
+                reader->getDouble();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            if (m_osnapRefs.back().m_hasNearParameter)
+                m_hasUnrepresentableDetail = true;
+            m_osnapRefs.back().m_nearParameter = reader->getDouble();
+            m_osnapRefs.back().m_hasNearParameter = true;
+            return true;
+        case 10:
+        case 20:
+        case 30: {
+            if (m_osnapRefs.empty()) {
+                reader->getDouble();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            DRW_DimensionAssociationOsnapRef& ref = m_osnapRefs.back();
+            const std::uint8_t component = code == 10 ? 0x01u
+                : code == 20 ? 0x02u : 0x04u;
+            if ((ref.m_dxfPointComponentMask & component) != 0)
+                m_hasUnrepresentableDetail = true;
+            const double value = reader->getDouble();
+            if (code == 10)
+                ref.m_osnapPoint.x = value;
+            else if (code == 20)
+                ref.m_osnapPoint.y = value;
+            else
+                ref.m_osnapPoint.z = value;
+            ref.m_dxfPointComponentMask |= component;
+            ref.m_hasOsnapPoint =
+                ref.m_dxfPointComponentMask == 0x07u;
+            return true;
+        }
+        case 75:
+            if (m_osnapRefs.empty()) {
+                reader->getInt32();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            if (m_osnapRefs.back().m_hasLastPointRef)
+                m_hasUnrepresentableDetail = true;
+            m_osnapRefs.back().m_lastPointRef = reader->getInt32();
+            m_osnapRefs.back().m_hasLastPointRef = true;
+            return true;
+        case 74:
+            if (m_osnapRefs.empty()) {
+                reader->getInt32();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            if (m_osnapRefs.back().m_hasIntersectionSubentType)
+                m_hasUnrepresentableDetail = true;
+            m_osnapRefs.back().m_intersectionSubentType =
+                reader->getInt32();
+            m_osnapRefs.back().m_hasIntersectionSubentType = true;
+            return true;
+        case 92:
+            if (m_osnapRefs.empty()) {
+                reader->getInt32();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            if (m_osnapRefs.back().m_hasIntersectionGsMarker)
+                m_hasUnrepresentableDetail = true;
+            m_osnapRefs.back().m_intersectionGsMarker =
+                reader->getInt32();
+            m_osnapRefs.back().m_hasIntersectionGsMarker = true;
+            return true;
+        case 332:
+            if (m_osnapRefs.empty()) {
+                (void)reader->getHandleString();
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            if (m_osnapRefs.back().m_hasIntersectionObjectHandle)
+                m_hasUnrepresentableDetail = true;
+            m_osnapRefs.back().m_intersectionObjectHandle =
+                reader->getHandleString();
+            m_osnapRefs.back().m_hasIntersectionObjectHandle = true;
+            return true;
+        // XREF handle strings identify objects in the external database. Keep
+        // their serialized text opaque: it is not a host-DWG handle and must
+        // not be parsed or remapped through the local handle graph.
+        case 301:
+        case 302: {
+            if (m_osnapRefs.empty()) {
+                // This XREF has no owning osnap-reference node. Mark the
+                // detail unrepresentable without materializing a discarded
+                // string copy; the outer record loop advances the reader.
+                m_hasUnrepresentableDetail = true;
+                return true;
+            }
+            DRW_DimensionAssociationOsnapRef& ref = m_osnapRefs.back();
+            if (code == 301) {
+                if (ref.m_hasXrefObjectHandleString)
+                    m_hasUnrepresentableDetail = true;
+                if (!replaceDxfRetainedStringField(
+                        reader, ref.m_dxfRetainedXrefObjectHandleStringBytes,
+                        ref.m_xrefObjectHandleString, reader->takeString()))
+                    return false;
+                ref.m_hasXrefObjectHandleString = true;
+            } else {
+                if (ref.m_hasIntersectionXrefObjectHandleString)
+                    m_hasUnrepresentableDetail = true;
+                if (!replaceDxfRetainedStringField(
+                        reader,
+                        ref.m_dxfRetainedIntersectionXrefObjectHandleStringBytes,
+                        ref.m_intersectionXrefObjectHandleString,
+                        reader->takeString()))
+                    return false;
+                ref.m_hasIntersectionXrefObjectHandleString = true;
+            }
+            return true;
+        }
+        default:
+            // Common table-entry application groups and XDATA remain modeled
+            // by DRW_TableEntry. Unknown fields inside AcDbDimAssoc must not
+            // disappear on a typed rewrite.
+            if (code == 102 || (code >= 1000 && code <= 1005)
+                || (code >= 1010 && code <= 1013)
+                || (code >= 1020 && code <= 1023)
+                || (code >= 1030 && code <= 1033)
+                || (code >= 1040 && code <= 1042)
+                || (code >= 1070 && code <= 1071))
+                return DRW_TableEntry::parseCode(code, reader);
+            m_hasUnrepresentableDetail = true;
+            return true;
         }
     }
     return DRW_TableEntry::parseCode(code, reader);
@@ -17981,7 +22520,7 @@ bool DRW_DimensionAssociation::parseCode(int code, const std::unique_ptr<dxfRead
 bool DRW_EvaluationGraph::parseCode(int code,
                                     const std::unique_ptr<dxfReader>& reader){
     if (code == 100) {
-        if (reader->getString() == "AcDbEvalGraph") {
+        if (reader->getStringView() == "AcDbEvalGraph") {
             if (m_dxfInBody)
                 m_dxfMalformed = true;
             m_dxfInBody = true;
@@ -18211,7 +22750,7 @@ bool DRW_SortEntsTable::parseCode(int code, const std::unique_ptr<dxfReader>& re
     // 331(entity)/5(sort) pairs build the draw-order map.  Code map per dwgTs
     // parseObjectsSortEntsAndDimAssocDxf.ts.
     if (code == 100) {
-        if (reader->getString() == "AcDbSortentsTable") {
+        if (reader->getStringView() == "AcDbSortentsTable") {
             if (m_dxfInBody)
                 return false;
             m_dxfInBody = true;
@@ -18405,20 +22944,45 @@ bool DRW_SpatialFilter::parseCode(int code, const std::unique_ptr<dxfReader>& re
         try {
             m_boundaryPoints.push_back(
                 DRW_Coord(reader->getDouble(), 0.0, 0.0));
+            m_dxfBoundaryPointYSeen.push_back(0u);
         } catch (...) {
             return false;
         }
         break;
-    case 20: if (!m_boundaryPoints.empty()) m_boundaryPoints.back().y = reader->getDouble(); break;
+    case 20:
+        if (m_boundaryPoints.empty()
+            || m_dxfBoundaryPointYSeen.size() != m_boundaryPoints.size()
+            || m_dxfBoundaryPointYSeen.back() != 0u)
+            return false;
+        m_boundaryPoints.back().y = reader->getDouble();
+        m_dxfBoundaryPointYSeen.back() = 1u;
+        break;
     case 210: m_normal.x = reader->getDouble(); break;
     case 220: m_normal.y = reader->getDouble(); break;
     case 230: m_normal.z = reader->getDouble(); break;
     case 11: m_origin.x = reader->getDouble(); break;
     case 21: m_origin.y = reader->getDouble(); break;
     case 31: m_origin.z = reader->getDouble(); break;
-    case 71: m_displayBoundary = (reader->getInt32() != 0); break;
-    case 72: m_clipFrontPlane = (reader->getInt32() != 0); break;
-    case 73: m_clipBackPlane = (reader->getInt32() != 0); break;
+    case 71:
+    case 72:
+    case 73: {
+        const std::uint8_t flagMask = code == 71 ? 0x01u
+            : (code == 72 ? 0x02u : 0x04u);
+        if ((m_dxfFlagsSeenMask & flagMask) != 0u)
+            return false;
+        const std::int32_t flagValue = reader->getInt32();
+        if (flagValue != 0 && flagValue != 1)
+            return false;
+        m_dxfFlagsSeenMask = static_cast<std::uint8_t>(
+            m_dxfFlagsSeenMask | flagMask);
+        if (code == 71)
+            m_displayBoundary = (flagValue == 1);
+        else if (code == 72)
+            m_clipFrontPlane = (flagValue == 1);
+        else
+            m_clipBackPlane = (flagValue == 1);
+        break;
+    }
     case 40:
         if (m_dxfCode40Values.size() >= kMatrixValueCount + 1)
             return false;
@@ -18430,12 +22994,70 @@ bool DRW_SpatialFilter::parseCode(int code, const std::unique_ptr<dxfReader>& re
         if (!parseCode40Stream())
             return false;
         break;
-    case 41: m_backDistance = reader->getDouble(); break;
-    case 70: reader->getInt32(); break;  // boundary vertex count (advisory)
+    case 41:
+        if (m_dxfBackDistanceSeen)
+            return false;
+        m_backDistance = reader->getDouble();
+        m_dxfBackDistanceSeen = true;
+        break;
+    case 70:
+        if (m_dxfBoundaryPointCountSeen)
+            return false;
+        m_dxfBoundaryPointCount = reader->getInt32();
+        if (m_dxfBoundaryPointCount < 2
+            || m_dxfBoundaryPointCount
+                > static_cast<std::int32_t>(kMaxBoundaryPoints))
+            return false;
+        m_dxfBoundaryPointCountSeen = true;
+        break;
     default:
         return DRW_TableEntry::parseCode(code, reader);
     }
     return true;
+}
+
+bool DRW_SpatialFilter::hasValidDxfFields() const {
+    if (m_boundaryPoints.size() < 2u
+        || m_boundaryPoints.size() > kMaxBoundaryPoints
+        || m_inverseInsertTransform.size() != 12u
+        || m_insertTransform.size() != 12u)
+        return false;
+
+    const auto finiteCoord = [](const DRW_Coord& value) {
+        return std::isfinite(value.x) && std::isfinite(value.y)
+            && std::isfinite(value.z);
+    };
+    if (!finiteCoord(m_normal) || !finiteCoord(m_origin)
+        || !std::isfinite(m_frontDistance) || !std::isfinite(m_backDistance))
+        return false;
+    for (const DRW_Coord& point : m_boundaryPoints) {
+        if (!finiteCoord(point) || point.z != 0.0)
+            return false;
+    }
+    const auto finiteValues = [](const std::vector<double>& values) {
+        return std::all_of(values.cbegin(), values.cend(),
+                           [](double value) { return std::isfinite(value); });
+    };
+    return finiteValues(m_inverseInsertTransform)
+        && finiteValues(m_insertTransform);
+}
+
+bool DRW_SpatialFilter::hasValidDxfSourceFields() const {
+    if (!hasValidDxfFields()
+        || m_dxfBoundaryPointYSeen.size() != m_boundaryPoints.size()
+        || std::any_of(m_dxfBoundaryPointYSeen.cbegin(),
+                       m_dxfBoundaryPointYSeen.cend(),
+                       [](std::uint8_t seen) { return seen == 0u; })
+        || (m_dxfBoundaryPointCountSeen
+            && m_dxfBoundaryPointCount
+                != static_cast<std::int32_t>(m_boundaryPoints.size()))
+        || m_dxfCode40Values.size() != (m_clipFrontPlane ? 25u : 24u)
+        || (m_clipBackPlane != m_dxfBackDistanceSeen))
+        return false;
+
+    return std::all_of(m_dxfCode40Values.cbegin(),
+                       m_dxfCode40Values.cend(),
+                       [](double value) { return std::isfinite(value); });
 }
 
 void DRW_SpatialFilter::reset() {
@@ -18452,6 +23074,11 @@ void DRW_SpatialFilter::reset() {
     m_inverseInsertTransform.clear();
     m_insertTransform.clear();
     m_dxfCode40Values.clear();
+    m_dxfBoundaryPointYSeen.clear();
+    m_dxfBoundaryPointCount = 0;
+    m_dxfFlagsSeenMask = 0;
+    m_dxfBoundaryPointCountSeen = false;
+    m_dxfBackDistanceSeen = false;
 }
 
 bool DRW_SpatialFilter::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -18608,6 +23235,23 @@ bool DRW_GeoData::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // Keep the version-specific meanings separate; Autodesk's 2009 code-70
     // description also conflicts with later references and peer mappings, so
     // retain the v1 value as uninterpreted flags.
+    auto ownerBytes = [this](DxfRetainedTextField field) -> std::size_t& {
+        return m_dxfRetainedTextBytes[static_cast<std::size_t>(field)];
+    };
+    auto appendRetainedText = [this, &reader, &ownerBytes](
+        DxfRetainedTextField field, UTF8STRING& destination,
+        UTF8STRING value) {
+        if (value.size()
+            > (std::numeric_limits<std::size_t>::max)() - destination.size())
+            return false;
+        UTF8STRING combined = destination;
+        combined += value;
+        if (!replaceDxfRetainedStringBytes(
+                reader, ownerBytes(field), combined.size()))
+            return false;
+        destination = std::move(combined);
+        return true;
+    };
     auto ensurePoint = [this](std::size_t index) {
         if (index >= 100000)
             return false;
@@ -18636,10 +23280,10 @@ bool DRW_GeoData::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     const bool legacyCivil = legacy && m_dxfInLegacyCivilData;
     switch (code) {
     case 100:
-        m_dxfInGeoDataSubclass = reader->getUtf8String() == "AcDbGeoData";
+        m_dxfInGeoDataSubclass = reader->getStringView() == "AcDbGeoData";
         break;
     case 3: {
-        const UTF8STRING marker = reader->getUtf8String();
+        const std::string_view marker = reader->getStringView();
         if (legacy && marker == "CIVIC3D_DATA_BEGIN") {
             m_legacy.m_civil.m_present = true;
             m_dxfInLegacyCivilData = true;
@@ -18649,7 +23293,7 @@ bool DRW_GeoData::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     }
     case 4:
-        if (legacy && reader->getUtf8String() == "CIVIC3D_DATA_END")
+        if (legacy && reader->getStringView() == "CIVIC3D_DATA_END")
             m_dxfInLegacyCivilData = false;
         else
             return DRW_TableEntry::parseCode(code, reader);
@@ -18856,20 +23500,63 @@ bool DRW_GeoData::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         else return DRW_TableEntry::parseCode(code, reader);
         break;
     case 301: // coordinate-system definition (chunked; ^J -> newline)
-        m_coordinateSystemDefinition += reader->getUtf8String();
+        if (!appendRetainedText(
+                DxfRetainedTextField::CoordinateSystemDefinition,
+                m_coordinateSystemDefinition, reader->getUtf8String()))
+            return false;
         break;
     case 303:
-        if (legacy) m_legacy.m_coordinateSystemDescription = reader->getUtf8String();
-        else m_coordinateSystemDefinition += reader->getUtf8String();
+        if (legacy) {
+            if (!replaceDxfRetainedStringField(
+                    reader,
+                    ownerBytes(DxfRetainedTextField::LegacyCoordinateSystemDescription),
+                    m_legacy.m_coordinateSystemDescription,
+                    reader->getUtf8String()))
+                return false;
+        } else if (!appendRetainedText(
+                       DxfRetainedTextField::CoordinateSystemDefinition,
+                       m_coordinateSystemDefinition,
+                       reader->getUtf8String())) {
+            return false;
+        }
         break;
-    case 302: m_geoRssTag = reader->getUtf8String(); break;
+    case 302:
+        if (!replaceDxfRetainedStringField(
+                reader, ownerBytes(DxfRetainedTextField::GeoRssTag),
+                m_geoRssTag, reader->getUtf8String()))
+            return false;
+        break;
     case 304:
-        if (legacy) m_legacy.m_coordinateSystemDatum = reader->getUtf8String();
-        else return DRW_TableEntry::parseCode(code, reader);
+        if (legacy) {
+            if (!replaceDxfRetainedStringField(
+                    reader,
+                    ownerBytes(DxfRetainedTextField::LegacyCoordinateSystemDatum),
+                    m_legacy.m_coordinateSystemDatum,
+                    reader->getUtf8String()))
+                return false;
+        } else {
+            return DRW_TableEntry::parseCode(code, reader);
+        }
         break;
-    case 305: m_observationFromTag = reader->getUtf8String(); break;
-    case 306: m_observationToTag = reader->getUtf8String(); break;
-    case 307: m_observationCoverageTag = reader->getUtf8String(); break;
+    case 305:
+        if (!replaceDxfRetainedStringField(
+                reader, ownerBytes(DxfRetainedTextField::ObservationFromTag),
+                m_observationFromTag, reader->getUtf8String()))
+            return false;
+        break;
+    case 306:
+        if (!replaceDxfRetainedStringField(
+                reader, ownerBytes(DxfRetainedTextField::ObservationToTag),
+                m_observationToTag, reader->getUtf8String()))
+            return false;
+        break;
+    case 307:
+        if (!replaceDxfRetainedStringField(
+                reader,
+                ownerBytes(DxfRetainedTextField::ObservationCoverageTag),
+                m_observationCoverageTag, reader->getUtf8String()))
+            return false;
+        break;
     case 93:
         if (legacyCivil) {
             m_legacy.m_civil.m_localReferencePointNumber = reader->getInt32();
@@ -18952,6 +23639,7 @@ void DRW_GeoData::reset() {
     m_faces.clear();
     m_civilTail = DRW_GeoCivilTail{};
     m_legacy = DRW_GeoDataLegacy{};
+    m_dxfRetainedTextBytes.fill(0u);
 }
 
 bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
@@ -19131,7 +23819,7 @@ bool DRW_GeoData::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
     // presence discriminator; consume every field whenever the target gate
     // says the block exists, even when that bit is false.
     DRW_GeoCivilTail parsedCivilTail;
-    if (version >= DRW::AC1021 && version <= DRW::AC1027) {
+    if (hasGeoDataCivilTail(version)) {
         parsedCivilTail.m_present = true;
         if (!readBit(parsedCivilTail.m_hasCivilData)
             || !readBit(parsedCivilTail.m_reservedFlag1))
@@ -20160,9 +24848,14 @@ bool DRW_Sun::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         break;
     case 63:
         m_color = reader->getInt32();
+        m_color24 = -1;
+        m_colorCmc = DRW_DwgCmcColorMetadata{};
+        m_colorName.clear();
         break;
     case 421:
         m_color24 = reader->getInt32();  // 24-bit true color (optional)
+        m_colorCmc = DRW_DwgCmcColorMetadata{};
+        m_colorName.clear();
         break;
     case 40:
         m_intensity = reader->getDouble();
@@ -20228,10 +24921,19 @@ bool DRW_Sun::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
         return fail();
 
     std::int32_t color24 = -1;
+    bool hasRgbColor = false;
+    std::uint8_t colorMethod = 0u;
+    std::uint8_t colorFlags = 0u;
+    std::uint16_t colorRawIndex = 0u;
+    UTF8STRING colorName;
+    UTF8STRING colorBookName;
     dwgBuffer* colorStringBuf = bodyStringBuf;
     std::uint32_t color = 0;
     if (!readCmColorWithinBounds(bodyBuf, colorStringBuf, version, bodyEnd,
-                                 stringEnd, color, &color24))
+                                 stringEnd, color, &color24, &colorName,
+                                 &colorBookName, &hasRgbColor,
+                                 &colorMethod, &colorFlags,
+                                 &colorRawIndex))
         return fail();
 
     double intensity = 0.0;
@@ -20286,7 +24988,16 @@ bool DRW_Sun::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
     m_classVersion = static_cast<std::uint32_t>(classVersion);
     m_isOn = isOn;
     m_color = color;
-    m_color24 = color24;
+    m_color24 = hasRgbColor ? color24 : -1;
+    m_colorCmc.present = version >= DRW::AC1018;
+    m_colorCmc.method = colorMethod;
+    m_colorCmc.flags = colorFlags;
+    m_colorCmc.rawIndex = colorRawIndex;
+    m_colorCmc.colorName = std::move(colorName);
+    m_colorCmc.bookName = std::move(colorBookName);
+    m_colorName = colorBookEntryName(m_colorCmc.bookName,
+                                     m_colorCmc.colorName,
+                                     !m_colorCmc.bookName.empty());
     m_intensity = intensity;
     m_hasShadow = hasShadow;
     m_julianDay = julianDay;
@@ -20304,14 +25015,34 @@ bool DRW_Sun::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
 }
 
 bool DRW_Sun::encodeDwg(DRW::Version version, dwgBufferW *buf,
-                        dwgBufferW *handleBuf) const {
+                        dwgBufferW *handleBuf,
+                        dwgBufferW *strBuf) const {
     if (buf == nullptr || version < DRW::AC1021
         || m_classVersion > 10 || m_shadowType > 2
         || m_shadowMapSize > 3968
         || !std::isfinite(m_intensity)
+        || m_color > std::numeric_limits<std::uint16_t>::max()
+        || m_color24 < -1 || m_color24 > 0x00FFFFFF
+        || m_colorName.size() > kMaxCadValueBytes
+        || m_colorCmc.colorName.size() > kMaxCadValueBytes
+        || m_colorCmc.bookName.size() > kMaxCadValueBytes
         || !dwgSafety::validReactorCount(reactorCount())
         || reactorHandles.size() > dwgSafety::MaxReactorCount
         || extensionDictionaryFlag() > 1)
+        return false;
+
+    std::uint8_t colorMethod = 0u;
+    std::uint8_t colorFlags = 0u;
+    std::uint16_t colorIndex = 0u;
+    UTF8STRING colorName;
+    UTF8STRING colorBookName;
+    if (!prepareDwgCmcColor(m_colorCmc, m_color, m_color24,
+                            m_colorName, colorMethod, colorIndex,
+                            colorName, colorBookName, colorFlags))
+        return false;
+    dwgBufferW *sb = strBuf ? strBuf : buf;
+    if (colorFlags != 0u && (version > DRW::AC1018)
+        && (strBuf == nullptr || strBuf == buf))
         return false;
 
     dwgBufferW *hb = (handleBuf != nullptr && version > DRW::AC1018)
@@ -20320,9 +25051,8 @@ bool DRW_Sun::encodeDwg(DRW::Version version, dwgBufferW *buf,
 
     buf->putBitLong(static_cast<std::int32_t>(m_classVersion));
     buf->putBit(m_isOn ? 1 : 0);
-    // Carry the 24-bit true color (m_color24); putCmColor falls back to the
-    // index-only encoding (byte-identical) when m_color24 < 0 (unset).
-    buf->putCmColor(version, static_cast<std::uint16_t>(m_color), m_color24, {}, {});
+    buf->putCmColorWithFlags(version, colorMethod, colorIndex, m_color24,
+                             colorName, colorBookName, colorFlags, sb);
     buf->putBitDouble(m_intensity);
     buf->putBit(m_hasShadow ? 1 : 0);
     buf->putBitLong(m_julianDay);
@@ -20382,7 +25112,7 @@ void DRW_AssociativeObject::reset() {
 bool DRW_AssociativeObject::parseCode(
     int code, const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
-        if (reader->getString() == "AcDbPersSubentManager") {
+        if (reader->getStringView() == "AcDbPersSubentManager") {
             m_dxfPersistentSubentityBody = true;
             m_dxfPersistentSubentityClassValueCount = 0;
         }
@@ -20398,8 +25128,12 @@ bool DRW_AssociativeObject::parseCode(
         }
         if (code == 330) {
             const std::uint32_t handleValue = reader->getHandleString();
-            if (handleValue != 0)
+            if (handleValue != 0) {
+                if (m_persistentSubentityHandles.size()
+                    >= DRW::kMaxDxfRawRecordGroups)
+                    return false;
                 m_persistentSubentityHandles.push_back(handleValue);
+            }
             m_persistentSubentityCount = static_cast<std::uint32_t>(
                 m_persistentSubentityHandles.size());
             return true;
@@ -20556,47 +25290,47 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             if (!readSBitShortWithinBody(&bodyProbe, version, objectDataEnd,
                                          groupCode))
                 return false;
-            switch (dwgResbufValueKind(groupCode)) {
-            case DwgValueKind::Real: {
+            switch (associativeActionValueKind(groupCode)) {
+            case Kind::Real: {
                 double value = 0.0;
                 return readBitDoubleWithinBody(
                     &bodyProbe, version, objectDataEnd, value);
             }
-            case DwgValueKind::Int32: {
+            case Kind::Int32: {
                 std::int32_t value = 0;
                 return readBitLongWithinBody(
                     &bodyProbe, version, objectDataEnd, value);
             }
-            case DwgValueKind::Int16: {
+            case Kind::Int16: {
                 std::int32_t value = 0;
                 return readBitShortWithinBody(
                     &bodyProbe, version, objectDataEnd, value);
             }
-            case DwgValueKind::Int8: {
-                std::uint8_t value = 0;
-                return readRawCharWithinBody(
-                    &bodyProbe, version, objectDataEnd, value);
-            }
-            case DwgValueKind::String: {
+            case Kind::String: {
                 UTF8STRING value;
                 return readVariableTextWithinBounds(
                     &bodyProbe, textProbe, version, boundedBodyEnd,
                     stringDataEnd, value);
             }
-            case DwgValueKind::Handle: {
+            case Kind::Handle: {
                 std::uint32_t value = 0;
                 if (!readHandleTransactional(&handleProbe, value))
                     return false;
                 ++decodedHandleCount;
                 return true;
             }
-            case DwgValueKind::ObjectId:
-            case DwgValueKind::Int64:
-            case DwgValueKind::Point3d:
-            case DwgValueKind::Bool:
-            case DwgValueKind::Binary:
-            case DwgValueKind::Invalid:
-                return true;
+            case Kind::ObjectId:
+            case Kind::Int8:
+            case Kind::Int64:
+            case Kind::Point3d:
+            case Kind::Bool:
+            case Kind::Binary:
+            case Kind::Invalid:
+                // The associative-action value payload grammar is not
+                // established here.  Do not claim a complete typed prefix
+                // without consuming a value; the generic group-code kind is
+                // not authority for this consumer's DWG wire layout.
+                return false;
             }
             return false;
         };
@@ -20714,12 +25448,14 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 for (std::int32_t i = 0; i < valueCount; ++i) {
                     const std::uint64_t valueStartBit =
                         currentObjectDwgBit(&bodyProbe);
+                    const size_t valueStartHandleCount = decodedHandleCount;
                     if (!readValueParam()) {
                         valueStatuses.push_back(makeAssocPrefixStatus(
                             DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
                             valueStartBit, currentObjectDwgBit(&bodyProbe),
                             DRW_AssociativePrefixStatus::ParseStatus::Partial,
-                            static_cast<std::uint16_t>(classVersion), 0, 1,
+                            static_cast<std::uint16_t>(classVersion),
+                            decodedHandleCount - valueStartHandleCount, 1,
                             valueCount));
                         complete = false;
                         break;
@@ -20729,7 +25465,8 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                         DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
                         valueStartBit, currentObjectDwgBit(&bodyProbe),
                         DRW_AssociativePrefixStatus::ParseStatus::Complete,
-                        static_cast<std::uint16_t>(classVersion), 0, 1,
+                        static_cast<std::uint16_t>(classVersion),
+                        decodedHandleCount - valueStartHandleCount, 1,
                         valueCount));
                 }
             }
@@ -21086,6 +25823,13 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::int32_t ignoredAapVersion = 0;
         std::int32_t dependencyClassVersion = 0;
         std::uint32_t dependencyHandle = 0;
+        std::size_t decodedHandleCount = 0u;
+        const auto readDependencyHandle = [&]() {
+            if (!readHandleTransactional(&handleProbe, dependencyHandle))
+                return false;
+            ++decodedHandleCount;
+            return true;
+        };
         UTF8STRING ignoredName;
         const bool prefixParsed =
             readBitShortWithinBody(&bodyProbe, version, boundedBodyEnd,
@@ -21101,7 +25845,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             prefixParsed
             && readBitLongWithinBody(&bodyProbe, version, boundedBodyEnd,
                                      ignoredAapVersion)
-            && readHandleTransactional(&handleProbe, dependencyHandle)
+            && readDependencyHandle()
             && readBitLongWithinBody(&bodyProbe, version, boundedBodyEnd,
                                      dependencyClassVersion)
             && dependencyClassVersion >= 0
@@ -21130,7 +25874,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             DRW_AssociativePrefixStatus::Kind::AcDbAssocActionParam,
             prefixStartBit, prefixEndBit,
             DRW_AssociativePrefixStatus::ParseStatus::Complete,
-            m_classVersion));
+            m_classVersion, decodedHandleCount, 0, 0));
     } else if (m_recordName == "ACDBASSOCOSNAPPOINTREFACTIONPARAM") {
         const std::uint64_t prefixStartBit = currentObjectDwgBit(buf);
         const bool separateStringBuffer = sBuf != buf;
@@ -21149,6 +25893,13 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::int32_t parsedStatus = 0;
         std::uint8_t parsedOsnapMode = 0;
         double parsedParameter = 0.0;
+        std::size_t decodedHandleCount = 0u;
+        const auto readDecodedHandle = [&](std::uint32_t& value) {
+            if (!readHandleTransactional(&handleProbe, value))
+                return false;
+            ++decodedHandleCount;
+            return true;
+        };
         UTF8STRING ignoredName;
         const bool prefixParsed =
             readBitShortWithinBody(&bodyProbe, version, boundedBodyEnd,
@@ -21174,7 +25925,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         if (bodyParsed) {
             for (std::int32_t i = 0; i < compoundParamCount; ++i) {
                 std::uint32_t ignoredHandle = 0;
-                if (!readHandleTransactional(&handleProbe, ignoredHandle)) {
+                if (!readDecodedHandle(ignoredHandle)) {
                     bodyParsed = false;
                     break;
                 }
@@ -21191,14 +25942,14 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                                          childId);
             std::uint32_t ignoredHandle = 0;
             if (bodyParsed)
-                bodyParsed = readHandleTransactional(&handleProbe, ignoredHandle);
+                bodyParsed = readDecodedHandle(ignoredHandle);
         }
         if (bodyParsed && childId != 0) {
             std::uint32_t ignoredHandle = 0;
-            bodyParsed = readHandleTransactional(&handleProbe, ignoredHandle)
+            bodyParsed = readDecodedHandle(ignoredHandle)
                 && readBitLongWithinBody(&bodyProbe, version, boundedBodyEnd,
                                          childTailValue)
-                && readHandleTransactional(&handleProbe, ignoredHandle);
+                && readDecodedHandle(ignoredHandle);
         }
         bodyParsed = bodyParsed
             && readBitShortWithinBody(&bodyProbe, version, boundedBodyEnd,
@@ -21229,22 +25980,37 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             DRW_AssociativePrefixStatus::Kind::AcDbAssocActionParam,
             prefixStartBit, currentObjectDwgBit(&bodyProbe),
             DRW_AssociativePrefixStatus::ParseStatus::Complete,
-            static_cast<std::uint16_t>(std::max(0, compoundClassVersion))));
+            static_cast<std::uint16_t>(std::max(0, compoundClassVersion)),
+            decodedHandleCount, 0, compoundParamCount));
     } else if (rn == "ACDBPERSSUBENTMANAGER") {
-        // The bare class is the fixed DWG type 1313 persistent-subentity
-        // manager. ACDBASSOCPERSSUBENTMANAGER is a different custom
-        // associativity type (1248) and intentionally falls through to the
-        // opaque-shell path below; its body has no portable typed prefix.
-        // The fixed type-1313 grammar is:
+        // Match the bare manager by class metadata, not a global numeric
+        // object type. ACDBASSOCPERSSUBENTMANAGER is a different class and
+        // intentionally falls through to the opaque-shell path below.
+        // The currently decoded longer prefix is:
         // class_version, unknown_0, unknown_2, numassocsteps,
         // numassocsubents, num_steps + steps[], num_subents + subents[].
         // The vectors are scalar BL values; only the following common handle
         // stream contains object references.
+        const bool hasAbsentStringFooter = version > DRW::AC1018
+            && objSize != 0 && boundedBodyEnd == objSize
+            && currentObjectDwgBit(sBuf) == objSize;
+        // ODA section 20.1: even without strings the last pre-handles bit is
+        // the string-presence bit, never part of a scalar count. In particular
+        // an incomplete one-bit BL prefix must not borrow it as a second bit.
         const std::uint32_t bodyEndBit = version > DRW::AC1018
-            ? boundedBodyEnd : 0;
+            ? boundedBodyEnd - (hasAbsentStringFooter ? 1u : 0u) : 0;
+        const std::uint64_t prefixStartBit = currentObjectDwgBit(buf);
         const auto readBodyBitLong = [&](std::int32_t& value) {
-            return bodyEndBit != 0
+            const std::uint64_t startBit = currentObjectDwgBit(buf);
+            const bool good = bodyEndBit != 0
                 && readBitLongWithinBody(buf, version, bodyEndBit, value);
+            DRW_DBG("PERSUBENTMGR BL start/end/limit/good/value=");
+            DRW_DBG(startBit); DRW_DBG("/");
+            DRW_DBG(currentObjectDwgBit(buf)); DRW_DBG("/");
+            DRW_DBG(bodyEndBit); DRW_DBG("/"); DRW_DBG(good ? 1 : 0);
+            if (good) { DRW_DBG("/"); DRW_DBG(value); }
+            DRW_DBG("\n");
+            return good;
         };
         const auto readBodyCount = [&](std::uint32_t& value) {
             std::int32_t parsed = 0;
@@ -21296,10 +26062,7 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             std::uint32_t stepCount = 0;
             std::uint32_t subentityCount = 0;
             if (!readBodyCount(stepCount)
-                || !readBodyVector(m_persistentSteps, stepCount)
-                || !readBodyCount(subentityCount)
-                || !readBodyVector(m_persistentSubentityIds,
-                                   subentityCount)) {
+                || !readBodyVector(m_persistentSteps, stepCount)) {
                 appendPrefixStatus(
                     DRW_AssociativePrefixStatus::Kind::AcDbAssocActionBody,
                     currentObjectDwgBit(buf),
@@ -21307,17 +26070,35 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                     m_classVersion);
                 return fail();
             }
+            // The traced AC1021 class-version-2 record and its paired DXF
+            // stop after the steps when the association-subentity scalar is
+            // zero. Preserve that exact prefix, but do not infer the missing
+            // count or label the undocumented suffix semantically complete.
+            const bool abbreviatedSourcePrefix = version == DRW::AC1021
+                && classVersion == 2 && unknown0 == 0 && unknown2 == 2
+                && m_persistentAssocSubentityCount == 0u
+                && hasAbsentStringFooter
+                && currentObjectDwgBit(buf) == bodyEndBit;
+            if (!abbreviatedSourcePrefix
+                && (!readBodyCount(subentityCount)
+                    || !readBodyVector(m_persistentSubentityIds, subentityCount)))
+                return fail();
             appendPrefixStatus(
                 DRW_AssociativePrefixStatus::Kind::AcDbAssocActionBody,
-                currentObjectDwgBit(buf),
-                bodyFits()
+                prefixStartBit,
+                bodyFits() && !abbreviatedSourcePrefix
                     ? DRW_AssociativePrefixStatus::ParseStatus::Complete
                     : DRW_AssociativePrefixStatus::ParseStatus::Partial,
                 m_classVersion, 0,
                 m_persistentSteps.size() + m_persistentSubentityIds.size(),
-                static_cast<std::int32_t>(subentityCount));
+                abbreviatedSourcePrefix ? -1 : static_cast<std::int32_t>(subentityCount));
+            if (abbreviatedSourcePrefix) {
+                m_prefixStatuses.back().m_sourceAssumption =
+                    "AC1021 class-version-2 source prefix ends before the string-presence bit; "
+                    "final subentity count is absent and not inferred";
+            }
         }
-        // The fixed manager's num_subents is a scalar-vector count, not the
+        // The manager's num_subents is a scalar-vector count, not the
         // repeated 330 handle count used by DXF. Do not consume hBuff here;
         // commonHandlesOk above owns that stream and publishes its owner,
         // reactors, and extension dictionary below.
@@ -21864,15 +26645,52 @@ bool DRW_AcShHistoryObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 double twistAngle = 0.0;
                 bool b290 = false;
                 bool isCloseToAxis = false;
-                if (!readBodyPoint(axisPoint)
-                    || !readBodyRawPoint(revolveDirection)
-                    || !readBodyDouble(revolveAngle)
-                    || !readBodyDouble(startAngle)
-                    || !readBodyDouble(draftAngle)
-                    || !readBodyDouble(bd44) || !readBodyDouble(bd45)
-                    || !readBodyDouble(twistAngle)
-                    || !readBodyBit(b290) || !readBodyBit(isCloseToAxis))
+                DRW_DBG("ACSH_REVOLVE_CLASS shared prefix ends at body bit ");
+                DRW_DBG(currentObjectDwgBit(buf)); DRW_DBG("\n");
+                const auto logDwgBitDouble = [buf, &readBodyDouble](
+                    const char* field, double& value) {
+                    const std::uint64_t startBit = currentObjectDwgBit(buf);
+                    dwgBuffer codeProbe = buf->forkIndependent();
+                    const std::uint8_t code = codeProbe.get2Bits();
+                    const bool ok = readBodyDouble(value);
+                    DRW_DBG("ACSH_REVOLVE_CLASS trace "); DRW_DBG(field);
+                    DRW_DBG(" start="); DRW_DBG(startBit);
+                    DRW_DBG(" code="); DRW_DBG(static_cast<unsigned>(code));
+                    DRW_DBG(" ok="); DRW_DBG(ok);
+                    DRW_DBG(" end="); DRW_DBG(currentObjectDwgBit(buf));
+                    DRW_DBG(" value="); DRW_DBG(value); DRW_DBG("\n");
+                    return ok;
+                };
+                const auto failRevolveField = [buf, &fail](const char* field) {
+                    DRW_DBG("ACSH_REVOLVE_CLASS field failed at body bit ");
+                    DRW_DBG(currentObjectDwgBit(buf)); DRW_DBG(": ");
+                    DRW_DBG(field); DRW_DBG("\n");
                     return fail();
+                };
+                if (!readBodyPoint(axisPoint))
+                    return failRevolveField("axis point");
+                DRW_DBG("ACSH_REVOLVE_CLASS axis point end=");
+                DRW_DBG(currentObjectDwgBit(buf)); DRW_DBG(" value=");
+                DRW_DBG(axisPoint.x); DRW_DBG(","); DRW_DBG(axisPoint.y);
+                DRW_DBG(","); DRW_DBG(axisPoint.z); DRW_DBG("\n");
+                if (!readBodyRawPoint(revolveDirection))
+                    return failRevolveField("direction");
+                DRW_DBG("ACSH_REVOLVE_CLASS direction end=");
+                DRW_DBG(currentObjectDwgBit(buf)); DRW_DBG(" value=");
+                DRW_DBG(revolveDirection.x); DRW_DBG(",");
+                DRW_DBG(revolveDirection.y); DRW_DBG("\n");
+                if (!logDwgBitDouble("revolve angle", revolveAngle))
+                    return failRevolveField("revolve angle");
+                if (!readBodyDouble(startAngle))
+                    return failRevolveField("start angle");
+                if (!readBodyDouble(draftAngle))
+                    return failRevolveField("draft angle");
+                if (!readBodyDouble(bd44) || !readBodyDouble(bd45))
+                    return failRevolveField("bd44/bd45");
+                if (!readBodyDouble(twistAngle))
+                    return failRevolveField("twist angle");
+                if (!readBodyBit(b290) || !readBodyBit(isCloseToAxis))
+                    return failRevolveField("boolean flags");
                 m_axisPoint = axisPoint;
                 m_revolveDirection = revolveDirection;
                 m_revolveAngle = revolveAngle;
@@ -21886,12 +26704,30 @@ bool DRW_AcShHistoryObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             } else if (m_recordName == "ACSH_LOFT_CLASS") {
                 std::int32_t numCross = 0;
                 std::int32_t numGuides = 0;
-                if (!readBodyLong(numCross) || !readBodyLong(numGuides))
+                const auto logLoftLong = [buf, &readBodyLong](
+                    const char* field, std::int32_t& value) {
+                    const std::uint64_t startBit = currentObjectDwgBit(buf);
+                    const bool ok = readBodyLong(value);
+                    DRW_DBG("ACSH_LOFT_CLASS trace "); DRW_DBG(field);
+                    DRW_DBG(" start="); DRW_DBG(startBit);
+                    DRW_DBG(" ok="); DRW_DBG(ok);
+                    DRW_DBG(" value="); DRW_DBG(value);
+                    DRW_DBG(" end="); DRW_DBG(currentObjectDwgBit(buf));
+                    DRW_DBG("\n");
+                    return ok;
+                };
+                if (!logLoftLong("numCrossSections", numCross)
+                    || !logLoftLong("numGuides", numGuides))
                     return fail();
                 // crosssects[] / guides[] are CALL_SUBENT decode NOPs — the
                 // per-element handles are not in the data stream (dwgTs).
-                if (!isValidAssocCount(numCross)
-                    || !isValidAssocCount(numGuides))
+                const bool validCounts = isValidAssocCount(numCross)
+                    && isValidAssocCount(numGuides);
+                DRW_DBG("ACSH_LOFT_CLASS count validation cross=");
+                DRW_DBG(numCross); DRW_DBG(" guides=");
+                DRW_DBG(numGuides); DRW_DBG(" valid=");
+                DRW_DBG(validCounts); DRW_DBG("\n");
+                if (!validCounts)
                     return fail();
                 m_numCrossSections = static_cast<std::uint32_t>(numCross);
                 m_numGuides = static_cast<std::uint32_t>(numGuides);
@@ -22247,7 +27083,34 @@ void DRW_DynamicBlockObject::reset() {
 // degrades to the raw shelf; a short declared handle stream is structural and
 // fails the typed parse transactionally.
 bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
-    const auto fail = [this, buf]() {
+    const auto fail = [this, buf, version, bs]() {
+        if (m_kind == Kind::LookupAction
+            && DRW_DBGGL == DRW_dbg::Level::Debug) {
+            std::uint64_t handleStreamEndBit = 0;
+            const bool hasHandleStreamEnd = buf != nullptr
+                && objectHandleStreamEndBit(*buf, version, objSize, bs,
+                                            handleStreamEndBit);
+            DRW_DBG("WARNING: DynamicBlock lookup-action parse failed: ");
+            DRW_DBG(m_recordName.c_str());
+            DRW_DBG(" dataBit=");
+            DRW_DBG(buf != nullptr ? currentObjectDwgBit(buf) : 0u);
+            DRW_DBG(" objectSizeBit=");
+            DRW_DBG(objSize);
+            DRW_DBG(" handleBits=");
+            DRW_DBG(bs);
+            DRW_DBG(" handleStreamEndBit=");
+            DRW_DBG(hasHandleStreamEnd ? handleStreamEndBit : 0u);
+            DRW_DBG(" rows=");
+            DRW_DBG(m_lookupRowCount);
+            DRW_DBG(" columns=");
+            DRW_DBG(m_lookupColumnCount);
+            DRW_DBG(" expressionsRead=");
+            DRW_DBG(static_cast<std::uint64_t>(m_lookupExpressions.size()));
+            DRW_DBG(" connectionSetsRead=");
+            DRW_DBG(static_cast<std::uint64_t>(
+                m_lookupConnectionCodes.size()));
+            DRW_DBG("\n");
+        }
         if (buf != nullptr)
             buf->invalidate();
         reset();
@@ -22678,11 +27541,34 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
         m_dependencyCount = dependencyCount;
         m_actionCount = actionCount;
         m_actionIndexes = std::move(actionIndexes);
-        const auto readActionText = [buf, sBuf, version, &readDynamicTextWithinBounds](
+        const auto readActionText = [this, buf, sBuf, version,
+                                     dynamicBodyEnd, dynamicStringEnd,
+                                     &readDynamicTextWithinBounds](
                                          UTF8STRING& value) {
-            if (version > DRW::AC1018)
-                return readDynamicTextWithinBounds(buf, sBuf, value);
-            return readDynamicTextWithinBounds(buf, buf, value);
+            dwgBuffer *textBuffer =
+                version > DRW::AC1018 ? sBuf : buf;
+            const bool parsed = readDynamicTextWithinBounds(
+                buf, textBuffer, value);
+            if (!parsed && m_kind == Kind::LookupAction
+                && DRW_DBGGL == DRW_dbg::Level::Debug) {
+                DRW_DBG("WARNING: DynamicBlock lookup-action text read ");
+                DRW_DBG("failed: dataBit=");
+                DRW_DBG(buf != nullptr ? currentObjectDwgBit(buf) : 0u);
+                DRW_DBG(" stringBit=");
+                DRW_DBG(textBuffer != nullptr
+                            ? currentObjectDwgBit(textBuffer)
+                            : 0u);
+                DRW_DBG(" dataEndBit=");
+                DRW_DBG(dynamicBodyEnd);
+                DRW_DBG(" stringEndBit=");
+                DRW_DBG(dynamicStringEnd);
+                DRW_DBG(" bodyGood=");
+                DRW_DBG(buf != nullptr && buf->isGood());
+                DRW_DBG(" stringGood=");
+                DRW_DBG(textBuffer != nullptr && textBuffer->isGood());
+                DRW_DBG("\n");
+            }
+            return parsed;
         };
         auto readConnection = [buf, version, dynamicBodyEnd,
                                &readActionText](
@@ -22746,8 +27632,136 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
                 return fail();
             if (!countFitsObjectBody(
                     buf, version, dynamicBodyEnd,
-                    static_cast<std::int32_t>(entryCount), 8u))
+                    static_cast<std::int32_t>(entryCount), 8u)) {
+                if (DRW_DBGGL == DRW_dbg::Level::Debug) {
+                    constexpr std::uint64_t kProbeEntryLimit = 512u;
+                    constexpr std::int32_t kProbeColumnLimit = 64;
+                    dwgBuffer candidateBody = buf->forkIndependent();
+                    dwgBuffer candidateStrings = sBuf->forkIndependent();
+                    const bool candidateEligible =
+                        version > DRW::AC1018
+                        && entryCount <= kProbeEntryLimit
+                        && m_lookupColumnCount <= kProbeColumnLimit;
+                    const char *candidateStage = "probe-skipped";
+                    std::uint64_t candidateIndex = 0;
+                    bool candidateComplete = false;
+                    if (candidateEligible) {
+                        const auto skipCandidateText = [&]() {
+                            const std::uint64_t before =
+                                currentObjectDwgBit(&candidateStrings);
+                            std::int32_t units = 0;
+                            std::uint64_t payloadBits = 0;
+                            if (before >= dynamicStringEnd
+                                || !readBitShortWithinBody(
+                                    &candidateStrings, version,
+                                    dynamicStringEnd, units)
+                                || units < 0
+                                || !dwgSafety::multiply(
+                                    static_cast<std::uint64_t>(units), 16u,
+                                    payloadBits)
+                                || !dictionaryBitRangeAvailable(
+                                    &candidateStrings, version,
+                                    dynamicStringEnd, payloadBits)
+                                || payloadBits > static_cast<std::uint64_t>(
+                                    std::numeric_limits<std::int32_t>::max()))
+                                return false;
+                            return candidateStrings.moveBitPos(
+                                       static_cast<std::int32_t>(payloadBits))
+                                && candidateStrings.isGood()
+                                && objectBodyFitsSize(
+                                    currentObjectDwgBit(&candidateStrings),
+                                    dynamicStringEnd);
+                        };
+                        candidateStage = "row-values";
+                        bool candidateGood = true;
+                        for (std::uint64_t rowValue = 0;
+                             rowValue < entryCount && candidateGood;
+                             ++rowValue) {
+                            candidateIndex = rowValue;
+                            candidateGood = skipCandidateText();
+                        }
+                        bool ignoredFinalFlag = false;
+                        if (candidateGood) {
+                            candidateStage = "column-records";
+                            for (std::int32_t column = 0;
+                                 column < m_lookupColumnCount && candidateGood;
+                                 ++column) {
+                                candidateIndex =
+                                    static_cast<std::uint64_t>(column);
+                                std::int32_t ignored = 0;
+                                bool ignoredFlag = false;
+                                candidateGood =
+                                    readBitLongWithinBody(
+                                        &candidateBody, version,
+                                        dynamicBodyEnd, ignored)
+                                    && readBitLongWithinBody(
+                                        &candidateBody, version,
+                                        dynamicBodyEnd, ignored)
+                                    && readBitLongWithinBody(
+                                        &candidateBody, version,
+                                        dynamicBodyEnd, ignored)
+                                    && readBitWithinBody(
+                                        &candidateBody, version,
+                                        dynamicBodyEnd, ignoredFlag)
+                                    && skipCandidateText()
+                                    && readBitWithinBody(
+                                        &candidateBody, version,
+                                        dynamicBodyEnd, ignoredFlag)
+                                    && skipCandidateText();
+                            }
+                        }
+                        if (candidateGood) {
+                            candidateStage = "final-flag";
+                            candidateGood = readBitWithinBody(
+                                &candidateBody, version, dynamicBodyEnd,
+                                ignoredFinalFlag);
+                        }
+                        const std::uint64_t candidateDataBit =
+                            currentObjectDwgBit(&candidateBody);
+                        const std::uint64_t candidateStringBit =
+                            currentObjectDwgBit(&candidateStrings);
+                        candidateComplete = candidateGood
+                            && candidateBody.isGood()
+                            && candidateStrings.isGood()
+                            && candidateDataBit <= dynamicBodyEnd
+                            && candidateStringBit <= dynamicStringEnd
+                            && dynamicBodyEnd <= objSize
+                            && dynamicStringEnd <= objSize
+                            && candidateDataBit < objSize;
+                    }
+                    DRW_DBG("WARNING: DynamicBlock lookup-action ");
+                    DRW_DBG("grid preflight rejected: rows=");
+                    DRW_DBG(m_lookupRowCount);
+                    DRW_DBG(" columns=");
+                    DRW_DBG(m_lookupColumnCount);
+                    DRW_DBG(" entries=");
+                    DRW_DBG(entryCount);
+                    DRW_DBG(" minimumBitsPerEntry=8 dataBit=");
+                    DRW_DBG(currentObjectDwgBit(buf));
+                    DRW_DBG(" dataEndBit=");
+                    DRW_DBG(dynamicBodyEnd);
+                    DRW_DBG(" candidate=");
+                    DRW_DBG(candidateEligible ? "attempted" : "skipped");
+                    DRW_DBG(" candidateStage=");
+                    DRW_DBG(candidateStage);
+                    DRW_DBG(" candidateIndex=");
+                    DRW_DBG(candidateIndex);
+                    DRW_DBG(" candidateComplete=");
+                    DRW_DBG(candidateComplete);
+                    DRW_DBG(" candidateDataBit=");
+                    DRW_DBG(currentObjectDwgBit(&candidateBody));
+                    DRW_DBG(" candidateStringBit=");
+                    DRW_DBG(currentObjectDwgBit(&candidateStrings));
+                    DRW_DBG(" stringEndBit=");
+                    DRW_DBG(dynamicStringEnd);
+                    DRW_DBG(" handleStartBit=");
+                    DRW_DBG(objSize);
+                    DRW_DBG(" handleEndBit=");
+                    DRW_DBG(handleEndBit);
+                    DRW_DBG("\n");
+                }
                 return fail();
+            }
             if (!DRW::reserve(m_lookupExpressions,
                               static_cast<int>(entryCount))
                 || !DRW::reserve(m_lookupConnectionCodes,
@@ -23519,33 +28533,47 @@ void DRW_DetailViewStyle::reset() {
     m_borderLineWeight = 0;
     m_borderLineColor = 256;
     m_modelEdge = 0;
-    m_dxfSubclass.clear();
+    m_colorCmc = {};
+    m_dxfSubclass = DxfSubclass::Unknown;
     m_dxfGroup = -1;
     m_dxfHandleCount = 0;
     m_dxfColorCount = 0;
     m_dxfDoubleCount = 0;
     m_dxfLongCount = 0;
+    m_dxfRetainedTextBytes.fill(0u);
     DRW_TableEntry::reset();
 }
 
 bool DRW_DetailViewStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
-        m_dxfSubclass = reader->getUtf8String();
+        const std::string_view subclass = reader->getStringView();
+        if (subclass == "AcDbModelDocViewStyle")
+            m_dxfSubclass = DxfSubclass::ModelDocViewStyle;
+        else if (subclass == "AcDbDetailViewStyle")
+            m_dxfSubclass = DxfSubclass::DetailViewStyle;
+        else
+            m_dxfSubclass = DxfSubclass::Unknown;
         m_dxfGroup = -1;
         m_dxfHandleCount = m_dxfColorCount = m_dxfDoubleCount = m_dxfLongCount = 0;
         return true;
     }
-    if (m_dxfSubclass == "AcDbModelDocViewStyle") {
+    if (m_dxfSubclass == DxfSubclass::ModelDocViewStyle) {
         switch (code) {
         case 70: m_modelDoc.m_modelDocClassVersion = reader->getInt32(); return true;
-        case 3:  m_modelDoc.m_description = reader->getUtf8String(); return true;
+        case 3:
+            return replaceDxfRetainedStringField(
+                reader, m_modelDoc.m_dxfRetainedTextBytes[0],
+                m_modelDoc.m_description, reader->getUtf8String());
         case 290: m_modelDoc.m_modifiedForRecompute = reader->getBool(); return true;
-        case 300: m_modelDoc.m_displayName = reader->getUtf8String(); return true;
+        case 300:
+            return replaceDxfRetainedStringField(
+                reader, m_modelDoc.m_dxfRetainedTextBytes[1],
+                m_modelDoc.m_displayName, reader->getUtf8String());
         case 90: m_modelDoc.m_viewStyleFlags = static_cast<std::uint32_t>(reader->getInt32()); return true;
         default: return DRW_TableEntry::parseCode(code, reader);
         }
     }
-    if (m_dxfSubclass != "AcDbDetailViewStyle")
+    if (m_dxfSubclass != DxfSubclass::DetailViewStyle)
         return DRW_TableEntry::parseCode(code, reader);
 
     if (code == 71) {
@@ -23575,15 +28603,21 @@ bool DRW_DetailViewStyle::parseCode(int code, const std::unique_ptr<dxfReader>& 
     case 62: {
         const int color = reader->getInt32();
         if (m_dxfGroup == 1) {
-            if (m_dxfColorCount++ == 0) m_identifierColor = color;
+            const bool identifier = m_dxfColorCount++ == 0;
+            if (identifier) m_identifierColor = color;
             else m_arrowSymbolColor = color;
+            m_colorCmc[identifier ? 0u : 1u] = {};
         } else if (m_dxfGroup == 2) {
             m_boundaryLineColor = color;
+            m_colorCmc[2] = {};
         } else if (m_dxfGroup == 3) {
             m_viewLabelTextColor = color;
+            m_colorCmc[3] = {};
         } else if (m_dxfGroup == 4) {
-            if (m_dxfColorCount++ == 0) m_connectionLineColor = color;
+            const bool connection = m_dxfColorCount++ == 0;
+            if (connection) m_connectionLineColor = color;
             else m_borderLineColor = color;
+            m_colorCmc[connection ? 4u : 5u] = {};
         }
         return true;
     }
@@ -23627,9 +28661,19 @@ bool DRW_DetailViewStyle::parseCode(int code, const std::unique_ptr<dxfReader>& 
         }
         return true;
     case 300:
-        if (m_dxfGroup == 1) m_identifierExcludeCharacters = reader->getUtf8String();
-        else if (m_dxfGroup == 3) m_viewLabelPattern = reader->getUtf8String();
-        else reader->getUtf8String();
+        if (m_dxfGroup == 1) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedTextBytes[0],
+                    m_identifierExcludeCharacters, reader->getUtf8String()))
+                return false;
+        } else if (m_dxfGroup == 3) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedTextBytes[1], m_viewLabelPattern,
+                    reader->getUtf8String()))
+                return false;
+        } else {
+            reader->getUtf8String();
+        }
         return true;
     default:
         return DRW_TableEntry::parseCode(code, reader);
@@ -23726,12 +28770,33 @@ bool DRW_DetailViewStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::ui
         return readRawCharWithinBody(buf, version, bodyEnd, value);
     };
     const auto readColor = [version, buf, sBuf, bodyEnd, stringEnd](
-                               int& value) {
+                               int& value,
+                               DRW_DwgCmcColorMetadata& metadata) {
         std::uint32_t parsedValue = 0;
+        std::int32_t rgb24 = -1;
+        bool hasRgb = false;
+        std::uint8_t method = 0;
+        std::uint8_t flags = 0;
+        std::uint16_t rawIndex = 0;
+        UTF8STRING colorName;
+        UTF8STRING bookName;
         if (!readCmColorWithinBounds(buf, sBuf, version, bodyEnd, stringEnd,
-                                     parsedValue))
+                                     parsedValue, &rgb24, &colorName,
+                                     &bookName, &hasRgb, &method, &flags,
+                                     &rawIndex))
             return false;
         value = static_cast<int>(parsedValue);
+        metadata = {};
+        if (version >= DRW::AC1018) {
+            metadata.present = true;
+            metadata.method = method;
+            metadata.flags = flags;
+            metadata.rawIndex = rawIndex;
+            metadata.rgb24 = hasRgb ? rgb24 : -1;
+            metadata.hasRgb = hasRgb;
+            metadata.colorName = std::move(colorName);
+            metadata.bookName = std::move(bookName);
+        }
         return true;
     };
     const auto readHandle = [this, &hBuff, handleEndBit](std::uint32_t& value) {
@@ -23755,19 +28820,19 @@ bool DRW_DetailViewStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::ui
 
     if (!readShort(m_classVersion) || !readLong(m_flags)
         || !readHandle(m_identifierStyleHandle)
-        || !readColor(m_identifierColor)
+        || !readColor(m_identifierColor, m_colorCmc[0])
         || !readDouble(m_identifierHeight)
         || !readText(m_identifierExcludeCharacters)
         || !readDouble(m_identifierOffset)
         || !readRaw(m_identifierPlacement)
         || !readHandle(m_arrowSymbolHandle)
-        || !readColor(m_arrowSymbolColor)
+        || !readColor(m_arrowSymbolColor, m_colorCmc[1])
         || !readDouble(m_arrowSymbolSize)
         || !readHandle(m_boundaryLineTypeHandle)
         || !readSignedLong(m_boundaryLineWeight)
-        || !readColor(m_boundaryLineColor)
+        || !readColor(m_boundaryLineColor, m_colorCmc[2])
         || !readHandle(m_viewLabelTextStyleHandle)
-        || !readColor(m_viewLabelTextColor)
+        || !readColor(m_viewLabelTextColor, m_colorCmc[3])
         || !readDouble(m_viewLabelTextHeight)
         || !readLong(m_viewLabelAttachment)
         || !readDouble(m_viewLabelOffset)
@@ -23775,10 +28840,10 @@ bool DRW_DetailViewStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::ui
         || !readText(m_viewLabelPattern)
         || !readHandle(m_connectionLineTypeHandle)
         || !readSignedLong(m_connectionLineWeight)
-        || !readColor(m_connectionLineColor)
+        || !readColor(m_connectionLineColor, m_colorCmc[4])
         || !readHandle(m_borderLineTypeHandle)
         || !readSignedLong(m_borderLineWeight)
-        || !readColor(m_borderLineColor)
+        || !readColor(m_borderLineColor, m_colorCmc[5])
         || !readRaw(m_modelEdge))
         return fail();
     if (!buf->isGood() || !sBuf->isGood() || !hBuff.isGood()
@@ -23834,33 +28899,50 @@ void DRW_SectionViewStyle::reset() {
     m_unknownB1 = false;
     m_unknownB2 = false;
     m_hatchAngles.clear();
-    m_dxfSubclass.clear();
+    m_colorCmc = {};
+    m_dxfSubclass = DxfSubclass::Unknown;
     m_dxfGroup = -1;
     m_dxfHandleCount = m_dxfColorCount = m_dxfDoubleCount = m_dxfLongCount = 0;
     m_dxfBoolCount = 0;
     m_dxfExpectedHatchAngles = 0;
+    m_dxfHasExpectedHatchAngles = false;
+    m_dxfRetainedTextBytes.fill(0u);
     DRW_TableEntry::reset();
 }
 
 bool DRW_SectionViewStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
-        m_dxfSubclass = reader->getUtf8String();
+        const std::string_view subclass = reader->getStringView();
+        if (subclass == "AcDbModelDocViewStyle")
+            m_dxfSubclass = DxfSubclass::ModelDocViewStyle;
+        else if (subclass == "AcDbSectionViewStyle")
+            m_dxfSubclass = DxfSubclass::SectionViewStyle;
+        else
+            m_dxfSubclass = DxfSubclass::Unknown;
         m_dxfGroup = -1;
         m_dxfHandleCount = m_dxfColorCount = m_dxfDoubleCount = m_dxfLongCount = 0;
         m_dxfBoolCount = 0;
+        m_dxfExpectedHatchAngles = 0;
+        m_dxfHasExpectedHatchAngles = false;
         return true;
     }
-    if (m_dxfSubclass == "AcDbModelDocViewStyle") {
+    if (m_dxfSubclass == DxfSubclass::ModelDocViewStyle) {
         switch (code) {
         case 70: m_modelDoc.m_modelDocClassVersion = reader->getInt32(); return true;
-        case 3:  m_modelDoc.m_description = reader->getUtf8String(); return true;
+        case 3:
+            return replaceDxfRetainedStringField(
+                reader, m_modelDoc.m_dxfRetainedTextBytes[0],
+                m_modelDoc.m_description, reader->getUtf8String());
         case 290: m_modelDoc.m_modifiedForRecompute = reader->getBool(); return true;
-        case 300: m_modelDoc.m_displayName = reader->getUtf8String(); return true;
+        case 300:
+            return replaceDxfRetainedStringField(
+                reader, m_modelDoc.m_dxfRetainedTextBytes[1],
+                m_modelDoc.m_displayName, reader->getUtf8String());
         case 90: m_modelDoc.m_viewStyleFlags = static_cast<std::uint32_t>(reader->getInt32()); return true;
         default: return DRW_TableEntry::parseCode(code, reader);
         }
     }
-    if (m_dxfSubclass != "AcDbSectionViewStyle")
+    if (m_dxfSubclass != DxfSubclass::SectionViewStyle)
         return DRW_TableEntry::parseCode(code, reader);
 
     if (code == 71) {
@@ -23891,16 +28973,23 @@ bool DRW_SectionViewStyle::parseCode(int code, const std::unique_ptr<dxfReader>&
     case 62: {
         const int color = reader->getInt32();
         if (m_dxfGroup == 1) {
-            if (m_dxfColorCount++ == 0) m_identifierColor = color;
+            const bool identifier = m_dxfColorCount++ == 0;
+            if (identifier) m_identifierColor = color;
             else m_arrowSymbolColor = color;
+            m_colorCmc[identifier ? 0u : 1u] = {};
         } else if (m_dxfGroup == 2) {
-            if (m_dxfColorCount++ == 0) m_planeLineColor = color;
+            const bool plane = m_dxfColorCount++ == 0;
+            if (plane) m_planeLineColor = color;
             else m_bendLineColor = color;
+            m_colorCmc[plane ? 2u : 3u] = {};
         } else if (m_dxfGroup == 3) {
             m_viewLabelTextColor = color;
+            m_colorCmc[4] = {};
         } else if (m_dxfGroup == 4) {
-            if (m_dxfColorCount++ == 0) m_hatchColor = color;
+            const bool hatch = m_dxfColorCount++ == 0;
+            if (hatch) m_hatchColor = color;
             else m_hatchBackgroundColor = color;
+            m_colorCmc[hatch ? 5u : 6u] = {};
         }
         return true;
     }
@@ -23940,7 +29029,12 @@ bool DRW_SectionViewStyle::parseCode(int code, const std::unique_ptr<dxfReader>&
             else m_viewLabelAlignment = static_cast<std::uint32_t>(value);
         } else if (m_dxfGroup == 4) {
             if (m_dxfLongCount++ == 0) m_hatchTransparency = value;
-            else m_dxfExpectedHatchAngles = static_cast<std::uint32_t>(value);
+            else {
+                if (value < 0 || value > kMaxHatchAngles)
+                    return false;
+                m_dxfExpectedHatchAngles = static_cast<std::uint32_t>(value);
+                m_dxfHasExpectedHatchAngles = true;
+            }
         }
         return true;
     }
@@ -23953,10 +29047,24 @@ bool DRW_SectionViewStyle::parseCode(int code, const std::unique_ptr<dxfReader>&
         }
         return true;
     case 300:
-        if (m_dxfGroup == 1) m_identifierExcludeCharacters = reader->getUtf8String();
-        else if (m_dxfGroup == 3) m_viewLabelPattern = reader->getUtf8String();
-        else if (m_dxfGroup == 4) m_hatchPattern = reader->getUtf8String();
-        else reader->getUtf8String();
+        if (m_dxfGroup == 1) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedTextBytes[0],
+                    m_identifierExcludeCharacters, reader->getUtf8String()))
+                return false;
+        } else if (m_dxfGroup == 3) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedTextBytes[1], m_viewLabelPattern,
+                    reader->getUtf8String()))
+                return false;
+        } else if (m_dxfGroup == 4) {
+            if (!replaceDxfRetainedStringField(
+                    reader, m_dxfRetainedTextBytes[2], m_hatchPattern,
+                    reader->getUtf8String()))
+                return false;
+        } else {
+            reader->getUtf8String();
+        }
         return true;
     default:
         return DRW_TableEntry::parseCode(code, reader);
@@ -24050,12 +29158,33 @@ bool DRW_SectionViewStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::u
         return readBitWithinBody(buf, version, bodyEnd, value);
     };
     const auto readColor = [version, buf, sBuf, bodyEnd, stringEnd](
-                               int& value) {
+                               int& value,
+                               DRW_DwgCmcColorMetadata& metadata) {
         std::uint32_t parsedValue = 0;
+        std::int32_t rgb24 = -1;
+        bool hasRgb = false;
+        std::uint8_t method = 0;
+        std::uint8_t flags = 0;
+        std::uint16_t rawIndex = 0;
+        UTF8STRING colorName;
+        UTF8STRING bookName;
         if (!readCmColorWithinBounds(buf, sBuf, version, bodyEnd, stringEnd,
-                                     parsedValue))
+                                     parsedValue, &rgb24, &colorName,
+                                     &bookName, &hasRgb, &method, &flags,
+                                     &rawIndex))
             return false;
         value = static_cast<int>(parsedValue);
+        metadata = {};
+        if (version >= DRW::AC1018) {
+            metadata.present = true;
+            metadata.method = method;
+            metadata.flags = flags;
+            metadata.rawIndex = rawIndex;
+            metadata.rgb24 = hasRgb ? rgb24 : -1;
+            metadata.hasRgb = hasRgb;
+            metadata.colorName = std::move(colorName);
+            metadata.bookName = std::move(bookName);
+        }
         return true;
     };
     const auto readHandle = [this, &hBuff, handleEndBit](std::uint32_t& value) {
@@ -24080,31 +29209,31 @@ bool DRW_SectionViewStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::u
     if (!readShort(m_classVersion)
         || !readLong(m_flags)
         || !readHandle(m_identifierStyleHandle)
-        || !readColor(m_identifierColor)
+        || !readColor(m_identifierColor, m_colorCmc[0])
         || !readDouble(m_identifierHeight)
         || !readHandle(m_arrowStartSymbolHandle)
         || !readHandle(m_arrowEndSymbolHandle)
-        || !readColor(m_arrowSymbolColor)
+        || !readColor(m_arrowSymbolColor, m_colorCmc[1])
         || !readDouble(m_arrowSymbolSize)
         || !readText(m_identifierExcludeCharacters)
         || !readDouble(m_arrowSymbolExtensionLength)
         || !readHandle(m_planeLineTypeHandle)
         || !readSignedLong(m_planeLineWeight)
-        || !readColor(m_planeLineColor)
+        || !readColor(m_planeLineColor, m_colorCmc[2])
         || !readHandle(m_bendLineTypeHandle)
         || !readSignedLong(m_bendLineWeight)
-        || !readColor(m_bendLineColor)
+        || !readColor(m_bendLineColor, m_colorCmc[3])
         || !readDouble(m_bendLineLength)
         || !readDouble(m_endLineLength)
         || !readHandle(m_viewLabelTextStyleHandle)
-        || !readColor(m_viewLabelTextColor)
+        || !readColor(m_viewLabelTextColor, m_colorCmc[4])
         || !readDouble(m_viewLabelTextHeight)
         || !readLong(m_viewLabelAttachment)
         || !readDouble(m_viewLabelOffset)
         || !readLong(m_viewLabelAlignment)
         || !readText(m_viewLabelPattern)
-        || !readColor(m_hatchColor)
-        || !readColor(m_hatchBackgroundColor)
+        || !readColor(m_hatchColor, m_colorCmc[5])
+        || !readColor(m_hatchBackgroundColor, m_colorCmc[6])
         || !readText(m_hatchPattern)
         || !readDouble(m_hatchScale)
         || !readSignedLong(m_hatchTransparency)
@@ -24119,7 +29248,7 @@ bool DRW_SectionViewStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::u
     std::int32_t hatchAngleCount = 0;
     if (!readSignedLong(hatchAngleCount))
         return fail();
-    if (hatchAngleCount < 0 || hatchAngleCount > 100000)
+    if (hatchAngleCount < 0 || hatchAngleCount > kMaxHatchAngles)
         return fail();
     if (!countFitsObjectBody(buf, version, bodyEnd, hatchAngleCount, 2))
         return fail();
@@ -24155,7 +29284,7 @@ void DRW_BreakData::reset() {
 
 bool DRW_BreakData::parseCode(int code, const std::unique_ptr<dxfReader>& reader) {
     if (code == 100) {
-        m_dxfInBreakData = reader->getUtf8String() == "AcDbBreakData";
+        m_dxfInBreakData = reader->getStringView() == "AcDbBreakData";
         return true;
     }
     if (!m_dxfInBreakData)
@@ -24316,7 +29445,7 @@ bool DRW_VisualStyle::parseCode(int code, const std::unique_ptr<dxfReader>& read
     // type. Its values must remain raw without aliasing basic metadata.
     switch (code) {
     case 100:
-        m_dxfInVisualStyle = reader->getString() == "AcDbVisualStyle";
+        m_dxfInVisualStyle = reader->getStringView() == "AcDbVisualStyle";
         return DRW_TableEntry::parseCode(code, reader);
     case 291:
         if (m_dxfInVisualStyle)
@@ -24324,8 +29453,11 @@ bool DRW_VisualStyle::parseCode(int code, const std::unique_ptr<dxfReader>& read
         return DRW_TableEntry::parseCode(code, reader);
     case 2:
     case 4:
-        if (m_dxfInVisualStyle && !m_dxfInPropertyTail)
-            desc = reader->getUtf8String();
+        if (m_dxfInVisualStyle && !m_dxfInPropertyTail
+            && !replaceDxfRetainedStringField(
+                reader, m_dxfRetainedDescBytes, desc,
+                reader->getUtf8String()))
+            return false;
         break;
     case 70:
         if (m_dxfInVisualStyle && !m_dxfInPropertyTail)
@@ -24864,24 +29996,28 @@ bool DRW_DbColor::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
     // Single FIELD_CMC per the spec. Stage the complete payload so a short
     // RGB/method/name field cannot advance the body or string cursor.
     std::int32_t rgb24 = -1;
+    bool hasRgbColor = false;
+    std::uint8_t parsedColorMethod = 0;
+    std::uint8_t parsedColorFlags = 0u;
+    std::uint16_t parsedColorDwgIndex = 0u;
     UTF8STRING cmcName, cmcBookName;
     std::uint32_t colorRet = 0;
     if (!readCmColorWithinBounds(buf, sBuf, version, bodyEnd, stringEnd,
-                                 colorRet, &rgb24, &cmcName, &cmcBookName))
+                                 colorRet, &rgb24, &cmcName, &cmcBookName,
+                                 &hasRgbColor, &parsedColorMethod,
+                                 &parsedColorFlags, &parsedColorDwgIndex))
+        return fail();
+    if (parsedColorMethod != dwgColor::BYLAYER
+        && parsedColorMethod != dwgColor::BYBLOCK
+        && parsedColorMethod != dwgColor::RGB
+        && parsedColorMethod != dwgColor::ACIS)
         return fail();
     if (!buf->isGood() || !sBuf->isGood())
         return fail();
     const std::uint16_t parsedColorIndex = static_cast<std::uint16_t>(colorRet);
-    const std::int32_t parsedRgb = rgb24;
-    const std::uint8_t parsedColorMethod =
-        rgb24 != -1 ? 0xC2
-        : colorRet == 0 ? 0xC1
-        : colorRet == 256 ? 0xC0
-        : 0xC3;
+    const std::int32_t parsedRgb = hasRgbColor ? rgb24 : -1;
     const UTF8STRING parsedName = std::move(cmcName);
     const UTF8STRING parsedBookName = std::move(cmcBookName);
-    // colorMethod isn't directly returned by getCmColor; deduce from rgb24
-    // presence (true RGB) or fall back to ByLayer/ByBlock per colorRet.
     DRW_DBG("DBCOLOR method: "); DRW_DBGH(parsedColorMethod);
     DRW_DBG(" idx: "); DRW_DBG(parsedColorIndex);
     DRW_DBG(" rgb: "); DRW_DBGH(parsedRgb); DRW_DBG("\n");
@@ -24913,9 +30049,12 @@ bool DRW_DbColor::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
         || !objectBodyFitsSize(currentObjectDwgBit(sBuf), stringEnd))
         return fail();
 
-    colorIndex = parsedColorIndex;
+    colorIndex = static_cast<std::uint16_t>(colorRet);
     rgb = parsedRgb;
     colorMethod = parsedColorMethod;
+    colorDwgFlags = parsedColorFlags;
+    colorDwgIndex = parsedColorDwgIndex;
+    colorDwgMetadataPresent = version >= DRW::AC1018;
     name = parsedName;
     bookName = parsedBookName;
     parentHandle = parsedParentHandle;
@@ -24932,13 +30071,19 @@ bool DRW_DbColor::encodeDwg(DRW::Version version, dwgBufferW *buf,
                             dwgBufferW *handleBuf) const {
     if (buf == nullptr || version < DRW::AC1018
         || !dwgSafety::validReactorCount(numReactors)
-        || xDictFlag > 1)
+        || xDictFlag > 1 || rgb < -1 || rgb > 0x00FFFFFF
+        || (!colorDwgMetadataPresent
+            && (colorDwgFlags != 0u || colorDwgIndex != 0u)))
         return false;
 
-    const bool hasRgb = rgb >= 0 && rgb <= 0xFFFFFF;
+    const bool hasRgb = rgb >= 0;
+    const std::uint8_t method = colorMethod != 0u ? colorMethod
+        : hasRgb ? dwgColor::RGB
+        : colorIndex == 0u ? dwgColor::BYBLOCK
+        : colorIndex == 256u ? dwgColor::BYLAYER : dwgColor::ACIS;
     std::uint16_t index = colorIndex;
     std::int32_t rgb24 = -1;
-    switch (colorMethod) {
+    switch (method) {
     case dwgColor::BYLAYER:
         index = 256;
         break;
@@ -24948,6 +30093,7 @@ bool DRW_DbColor::encodeDwg(DRW::Version version, dwgBufferW *buf,
     case dwgColor::RGB:
         if (!hasRgb)
             return false;
+        index = 256u;
         rgb24 = rgb;
         break;
     case dwgColor::ACIS:
@@ -24955,27 +30101,31 @@ bool DRW_DbColor::encodeDwg(DRW::Version version, dwgBufferW *buf,
             return false;
         break;
     default:
-        // Metadata created by older callers may not set colorMethod. Infer
-        // the canonical CMC method from the values that are present.
-        if (hasRgb) {
-            rgb24 = rgb;
-        } else if (index == 0) {
-            index = 0;
-        } else if (index >= 256) {
-            index = 256;
-        } else {
-            // The index-only CMC encoder uses the same 1..255 ACI range.
-            if (index > 255)
-                return false;
-        }
-        break;
+        return false;
     }
+
+    std::uint8_t flags = 0u;
+    if (colorDwgMetadataPresent) {
+        if (colorDwgIndex != 0u || (colorDwgFlags & ~0x03u) != 0u
+            || ((colorDwgFlags & 0x01u) == 0u && !name.empty())
+            || ((colorDwgFlags & 0x02u) == 0u && !bookName.empty()))
+            return false;
+        flags = colorDwgFlags;
+    } else {
+        flags = static_cast<std::uint8_t>((name.empty() ? 0u : 1u)
+                                          | (bookName.empty() ? 0u : 2u));
+    }
+
+    if (flags != 0u && version > DRW::AC1018
+        && (strBuf == nullptr || strBuf == buf))
+        return false;
 
     dwgBufferW *sb = (strBuf != nullptr && version > DRW::AC1018)
         ? strBuf : buf;
     dwgBufferW *hb = (handleBuf != nullptr && version > DRW::AC1014)
         ? handleBuf : buf;
-    buf->putCmColor(version, index, rgb24, name, bookName, sb);
+    buf->putCmColorWithFlags(version, method, index, rgb24, name, bookName,
+                             flags, sb);
     putCommonObjectHandlePrefix(hb, static_cast<std::uint32_t>(parentHandle),
                                 numReactors, xDictFlag, &reactorHandles,
                                 xDictHandle);
@@ -24985,6 +30135,20 @@ bool DRW_DbColor::encodeDwg(DRW::Version version, dwgBufferW *buf,
 bool DRW_DimensionAssociation::encodeDwg(
     DRW::Version version, dwgBufferW *buf, dwgBufferW *strBuf,
     dwgBufferW *handleBuf) const {
+    const bool hasDxfOnlyOsnapDetail = std::any_of(
+        m_osnapRefs.begin(), m_osnapRefs.end(),
+        [](const DRW_DimensionAssociationOsnapRef& ref) {
+            return ref.m_hasSubentType || ref.m_hasGsMarker
+                || ref.m_hasNearParameter || ref.m_hasOsnapPoint
+                || ref.m_hasLastPointRef
+                || ref.m_hasIntersectionObjectHandle
+                || ref.m_hasIntersectionSubentType
+                || ref.m_hasIntersectionGsMarker
+                || ref.m_hasXrefObjectHandleString
+                || !ref.m_xrefObjectHandleString.empty()
+                || ref.m_hasIntersectionXrefObjectHandleString
+                || !ref.m_intersectionXrefObjectHandleString.empty();
+        });
     // DIMASSOC is introduced with the R2007 custom-class set. The local
     // metadata model retains four associativity slots; reject source flags
     // that require slots or sub-record data the model cannot represent.
@@ -24992,6 +30156,7 @@ bool DRW_DimensionAssociation::encodeDwg(
         || (m_associativityFlags & ~0x0Fu) != 0
         || m_osnapRefs.size() > 4
         || m_hasUnrepresentableDetail
+        || hasDxfOnlyOsnapDetail
         || reactorHandles.size() > dwgSafety::MaxReactorCount
         || extensionDictionaryFlag() > 1)
         return false;

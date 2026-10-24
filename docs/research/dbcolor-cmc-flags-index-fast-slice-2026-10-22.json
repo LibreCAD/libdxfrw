@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 DBCOLOR CMC flags and reserved-index retention",
+  "mode": "generated AC1024 DWG object-vector fast slice",
+  "scope": [
+    "Retain R2004+ DBCOLOR CMC flags and reserved index alongside normalized color data",
+    "Preserve supported C0-C3 optional color/book names, including flagged-empty strings",
+    "Reject malformed provenance and unavailable detached strings before output",
+    "Keep unsupported DBCOLOR methods and independent producer semantics unqualified"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor"],
+      "finding": "The generic R2004+ CMC wire representation has a leading BS reserved as zero, a packed BL method/value, and an RC byte whose low bits introduce optional color-name and color-book TV strings. The reviewed ODA copy does not specify DBCOLOR's custom-class CMC field semantics beyond this generic representation."
+    },
+    "localSource": {
+      "files": ["src/drw_objects.h", "src/drw_objects.cpp"],
+      "finding": "DRW_DbColor retained normalized method/index/RGB and optional names but dropped the CMC raw flags/index. Its writer used the RGB-only convenience overload, which omitted optional names for ByLayer, ByBlock, and ACI methods; unsupported C4-C8 reader refusal remains unchanged."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append DBCOLOR CMC raw flags, reserved index, and metadata-presence fields; reset and DXF group updates clear the DWG provenance.",
+      "Capture flags/index through the bounded CMC reader while keeping normalized colorIndex separate from the reserved BS index.",
+      "Write method-aware C0-C3 CMC values with names/books for every supported method; replay source flags and preserve flagged-empty fields.",
+      "Preflight reserved index, known flag bits, string/flag consistency, RGB/method data, and detached R2007+ strings before output."
+    ],
+    "generatedTestChanged": true,
+    "focusedSelector": "--dbcolor-unsupported-method-refusal",
+    "focusedCtests": ["libdxfrw_dbcolor_unsupported_method_refusal", "libdxfrw_dwg_object_vectors"],
+    "additionalRegressionCtest": "libdxfrw_dxf_fixtures",
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "Appended fields increase DRW_DbColor object size; downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgVectors": "Generated AC1024 DBCOLOR frames cover named ByBlock, named RGB, book-only ACI, and ByLayer with a flagged-empty optional name.",
+    "wireWalk": "Independent cursor checks the emitted CMC reserved index, scalar/RGB projection, method, flags, and optional names before production parsing.",
+    "lifecycle": "Production parser assertions cover source metadata, copy, assignment, reset, and normalized color method/index.",
+    "failClosed": "Controls refuse nonzero reserved index, unknown flags, unflagged color/book strings, flagged-empty strings without detached storage, and the existing unsupported methods before publication/output."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests dwg2dxf lc3_compat_check -j4",
+    "strictBuildResult": "PASS (-Werror)",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --dbcolor-unsupported-method-refusal",
+    "focusedSelectorResult": "PASS",
+    "focusedCtestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_dbcolor_unsupported_method_refusal|libdxfrw_dwg_object_vectors|libdxfrw_dxf_fixtures)$' --output-on-failure",
+    "focusedCtestResult": "PASS (3/3; 4.41 sec)",
+    "diffCheck": "git diff --check -- src/drw_objects.cpp src/drw_objects.h tests/dwg_object_vectors_tests.cpp",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated vectors establish local reader/writer consistency, not independent DBCOLOR producer semantics.",
+    "Unsupported C4-C8 methods retain the existing fail-closed parse/write behavior; this slice does not define their payload semantics.",
+    "No persistent fixture, external producer/reader, native CAD application, full suite, or platform qualification was run.",
+    "No DXF mapping or support claim was changed.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the PAR-134 CMC caller audit for remaining classes and their class-specific DXF mappings; then resume exact-source PAR-03/PAR-04 associative-action classification without guessing payload widths."
+}

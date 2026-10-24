@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 SECTIONOBJECT CMC flags and reserved-index retention",
+  "mode": "generated AC1024/AC1032 DWG object-vector fast slice",
+  "scope": [
+    "Retain R2004+ SECTIONOBJECT indicator CMC source flags and reserved index",
+    "Preserve flagged-empty optional CMC names through DWG rewrite",
+    "Refuse invalid or unsupported source CMC metadata before output",
+    "Keep SectionObject-specific color semantics and DXF group-411 mapping unqualified"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor"],
+      "finding": "The generic R2004+ CMC representation contains a leading BS index reserved as zero, a packed method/value BL, and an RC flags byte for optional color-name and book-name TV values. This slice preserves those fields at the existing SECTIONOBJECT indicator-color location; it does not establish additional class-specific semantics."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "The bounded SECTIONOBJECT parser already retained normalized scalar, source CMC method, RGB, and optional strings, but dropped flags and reserved index. The writer rebuilt flags from string content, losing explicitly flagged empty strings."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append SECTIONOBJECT fields for source CMC flags, reserved index, and metadata presence; copy/assignment preserve them while reset and DXF color parsing clear DWG provenance.",
+      "Capture source flags/index from the bounded CMC reader and replay source flags, including flagged-empty names.",
+      "Preflight requires a zero reserved index, known flag bits, and consistent optional strings; unsupported source CMC methods remain observable and fail closed on write."
+    ],
+    "generatedTestChanged": true,
+    "focusedSelector": "--sectionobject-cmc-rgb",
+    "focusedCtests": [
+      "libdxfrw_sectionobject_indicator_color_wire",
+      "libdxfrw_dwg_object_vectors",
+      "libdxfrw_sectionobject_indicator_color_groups"
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "Appended fields increase DRW_SectionObject size; downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgVectors": "Generated AC1024 and AC1032 vectors cover C0-C3, black RGB, named colors, book names, flagged empty color name, and C5 method retention.",
+    "wireWalk": "Independent generated-byte cursor checks reserved index, method/value, flags, following vertices, and following handle alignment.",
+    "lifecycle": "Copy construction, assignment, reset, and DXF provenance clearing are covered.",
+    "failClosed": "Controls reject invalid RGB/scalar sentinels, missing detached string stream, nonzero reserved index, unknown flags, inconsistent string flags, and unsupported C5 rewrite before output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests libdxfrw_hardening_tests dwg2dxf lc3_compat_check -j4",
+    "buildResult": "PASS (-Werror strict build)",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --sectionobject-cmc-rgb",
+    "focusedSelectorResult": "PASS",
+    "focusedCtestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_sectionobject_indicator_color_wire|libdxfrw_dwg_object_vectors|libdxfrw_sectionobject_indicator_color_groups)$' --output-on-failure",
+    "focusedCtestResult": "PASS (3/3; 0.10 sec)",
+    "diffCheck": "git diff --check -- src/drw_entities.cpp src/drw_entities.h tests/dwg_object_vectors_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated writer/reader and wire-walk controls establish local encoding consistency, not independent producer semantics for SECTIONOBJECT indicator color.",
+    "No persistent fixture, external CAD application, independent semantic reader, full suite, or native Linux/Windows FreeCAD qualification was run.",
+    "SECTIONOBJECT DXF group-411 semantics and any color-name/book projection remain unresolved; no mapping is inferred.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue PAR-134 CMC consumer and class-specific DXF projection audit; resume exact-source PAR-03/PAR-04 associative-action classification without guessing field widths; repair the separate stage-1 malformed-HATCH read-outcome sentinel as a focused control."
+}

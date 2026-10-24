@@ -56,6 +56,14 @@ bool asciiHex(unsigned char value) noexcept {
     return (value >= '0' && value <= '9') || (value >= 'A' && value <= 'F')
         || (value >= 'a' && value <= 'f');
 }
+
+// Every primary/exact/recovery/byte-channel return contributes without
+// retaining source text or changing the existing last-value observation.
+struct DecodeIssueCollector {
+    const DRW_TextDecodeObservation& last;
+    std::uint32_t& accumulated;
+    ~DecodeIssueCollector() noexcept { accumulated |= last.issues; }
+};
 } // namespace
 
 bool DRW_TextCodec::isUtf8ScalarText(std::string_view text) noexcept {
@@ -94,6 +102,7 @@ void DRW_TextCodec::swap(DRW_TextCodec& other) noexcept {
     swap(conv, other.conv);
     swap(cp8Conv, other.cp8Conv);
     swap(m_lastDecodeObservation, other.m_lastDecodeObservation);
+    swap(m_accumulatedDecodeIssues, other.m_accumulatedDecodeIssues);
 }
 
 void DRW_TextCodec::setVersion(DRW::Version v, bool dxfFormat){
@@ -230,6 +239,8 @@ void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
         conv.reset( new DRW_ConvTable(DRW_Table1257, CPLENGTHCOMMON) );
     else if (cp == "ANSI_1258")
         conv.reset( new DRW_ConvTable(DRW_Table1258, CPLENGTHCOMMON) );
+    else if (cp == "MACINTOSH")
+        conv.reset( new DRW_ConvTable(DRW_TableMacRoman, CPLENGTHCOMMON) );
     else if (cp == "UTF-8") {
         cp = "ANSI_1252";
         conv.reset( new DRW_Converter(nullptr, 0) );
@@ -246,8 +257,11 @@ void DRW_TextCodec::configureCodePage(const std::string& c, bool dxfFormat,
     }
 }
 
-std::string DRW_TextCodec::toUtf8(std::string_view s) {
+std::string DRW_TextCodec::toUtf8(
+        std::string_view s, bool decodeDxfAsciiControlEscapes) {
     m_lastDecodeObservation = {};
+    const DecodeIssueCollector collect{m_lastDecodeObservation, m_accumulatedDecodeIssues};
+    const bool decodeDxfAsciiCaret = decodeDxfAsciiControlEscapes && m_dxfFormat;
     const bool exactPolicy = m_dxfFormat
         && m_dxfCodePagePolicy != DRW::DxfCodePagePolicy::Compatible
         && (!m_sourceVersionSet || sourceVersion < DRW::AC1021);
@@ -261,6 +275,7 @@ std::string DRW_TextCodec::toUtf8(std::string_view s) {
         if (available && !recovering1252) {
             if (!m_exactDxfInputConverter)
                 m_exactDxfInputConverter = createExactCodePageConverter(m_dxfInputResolution.decoderName);
+            m_exactDxfInputConverter->setDecodeDxfAsciiControlEscapes(decodeDxfAsciiCaret);
             auto result = m_exactDxfInputConverter->toUtf8(s);
             m_lastDecodeObservation = m_exactDxfInputConverter->decodeObservation();
             m_lastDecodeObservation.exactNamedMapping = true;
@@ -286,6 +301,7 @@ std::string DRW_TextCodec::toUtf8(std::string_view s) {
                 return result;
             }
             DRW_Converter independent(nullptr, 0);
+            independent.setDecodeDxfAsciiControlEscapes(decodeDxfAsciiCaret);
             auto result = independent.toUtf8(s); // ASCII/represented CIF/MIF only
             m_lastDecodeObservation = independent.decodeObservation();
             return result;
@@ -296,10 +312,12 @@ std::string DRW_TextCodec::toUtf8(std::string_view s) {
         // Preserve UTF-8 input bytes while retaining Unicode/MIF escapes.
         // Do not replace conv: fromUtf8 still uses the declared output codec.
         DRW_Converter utf8(nullptr, 0);
+        utf8.setDecodeDxfAsciiControlEscapes(decodeDxfAsciiCaret);
         auto result = utf8.toUtf8(s);
         finishDecodeObservation(utf8, true);
         return result;
     }
+    conv->setDecodeDxfAsciiControlEscapes(decodeDxfAsciiCaret);
     auto result = conv->toUtf8(s);
     finishDecodeObservation(*conv);
     return result;
@@ -356,7 +374,17 @@ DRW::DxfTextSourceProfile DRW_TextCodec::dxfSourceProfile(std::string_view input
         {"ANSI_1253", Profile::Windows1253}, {"ANSI_1254", Profile::Windows1254},
         {"ANSI_1255", Profile::Windows1255}, {"ANSI_1256", Profile::Windows1256},
         {"ANSI_1257", Profile::Windows1257}, {"ANSI_1258", Profile::Windows1258},
-        {"ISO8859-4", Profile::Iso8859_4}
+        {"ISO8859-4", Profile::Iso8859_4}, {"ISO8859-1", Profile::Iso8859_1},
+        {"MACINTOSH", Profile::MacRoman}, {"ISO8859-2", Profile::Iso8859_2},
+        {"ISO8859-3", Profile::Iso8859_3}, {"ISO8859-5", Profile::Iso8859_5},
+        {"ISO8859-6", Profile::Iso8859_6}, {"ISO8859-7", Profile::Iso8859_7},
+        {"ISO8859-8", Profile::Iso8859_8},
+        {"ISO8859-9", Profile::Iso8859_9},
+        {"ISO8859-10", Profile::Iso8859_10},
+        {"ISO8859-11", Profile::Iso8859_11},
+        {"ISO8859-13", Profile::Iso8859_13},
+        {"ISO8859-14", Profile::Iso8859_14},
+        {"ISO8859-15", Profile::Iso8859_15}
     };
     for (const auto& mapping : mappings)
         if (name == mapping.name) return mapping.profile;
@@ -373,7 +401,14 @@ std::string DRW_TextCodec::fromUtf8CP8(std::string_view s) {
 
 std::string DRW_TextCodec::toUtf8CP8(std::string_view s) {
     m_lastDecodeObservation = {};
-    if (!cp8Conv) return std::string{s};
+    const DecodeIssueCollector collect{m_lastDecodeObservation, m_accumulatedDecodeIssues};
+    if (!cp8Conv) {
+        // Preserve the historical pass-through result/last-value snapshot,
+        // but do not certify unprofiled high bytes during a bounded DWG audit.
+        if (std::any_of(s.begin(), s.end(), [](unsigned char byte) { return byte >= 0x80u; }))
+            m_accumulatedDecodeIssues |= DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnsupportedEncodingProfile);
+        return std::string{s};
+    }
     auto result = cp8Conv->toUtf8(s);
     finishDecodeObservation(*cp8Conv, false, true);
     return result;
@@ -401,7 +436,17 @@ std::string DRW_Converter::toUtf8(std::string_view s) {
                 markDecodeIssue(DRW::DxfTextIssue::InvalidUnicodeOutput);
             }
         }
-        if (c < 0x80) { //ascii check for \U+???? or \M+cXXXX
+        if (c == '^' && m_decodeDxfAsciiControlEscapes) {
+            std::string decoded;
+            const std::size_t consumed = decodeDxfAsciiControlEscape(s, i, decoded);
+            if (consumed != 0u) {
+                result += s.substr(j, i-j);
+                result += decoded;
+                i += static_cast<unsigned int>(consumed - 1u);
+                j = i + 1u;
+            }
+        }
+        if (c < 0x80) { //ascii check for \\U+???? or \\M+cXXXX
             if (c == '\\') observeEscapePrefix(s.substr(i));
             if (c == '\\' && i+6 < s.length() && s.at(i+1) == 'U' && s.at(i+2) == '+') {
                 result += s.substr(j,i-j);
@@ -428,6 +473,38 @@ std::string DRW_Converter::toUtf8(std::string_view s) {
     result += s.substr(j);
 
     return result;
+}
+
+std::size_t DRW_Converter::decodeDxfAsciiControlEscape(
+        std::string_view source, std::size_t offset, std::string& output) {
+    if (!m_decodeDxfAsciiControlEscapes || offset >= source.size()
+        || source[offset] != '^' || source.size() - offset < 2u)
+        return 0u;
+
+    const unsigned char escaped = static_cast<unsigned char>(source[offset + 1u]);
+    if (escaped == ' ') {
+        output.push_back('^');
+        return 2u;
+    }
+
+    unsigned char control = 0u;
+    if (escaped >= '@' && escaped <= '_')
+        control = static_cast<unsigned char>(escaped & 0x1Fu);
+    else if (escaped == '?')
+        control = 0x7Fu;
+    else
+        return 0u;
+
+    if (control == 0u) {
+        // NUL remains outside the supported semantic string domain. Preserve
+        // its visible spelling rather than introducing an embedded NUL into
+        // downstream model strings.
+        markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+        output.append(source.data() + offset, 2u);
+        return 2u;
+    }
+    output.push_back(static_cast<char>(control));
+    return 2u;
 }
 
 std::string DRW_ConvTable::fromUtf8(std::string_view s) {
@@ -489,6 +566,16 @@ std::string DRW_ConvTable::toUtf8(std::string_view s) {
             }
             res += c; // literal backslash
         } else if (c < 0x80) {
+            if (c == '^' && m_decodeDxfAsciiControlEscapes) {
+                std::string decoded;
+                const auto offset = static_cast<std::size_t>(it - s.begin());
+                const std::size_t consumed = decodeDxfAsciiControlEscape(s, offset, decoded);
+                if (consumed != 0u) {
+                    res += decoded;
+                    it += static_cast<std::ptrdiff_t>(consumed - 1u);
+                    continue;
+                }
+            }
             res += c; // ascii char write
         } else {
             if (table[c-0x80] == 0) {
@@ -504,20 +591,45 @@ std::string DRW_ConvTable::toUtf8(std::string_view s) {
 
 std::string DRW_Converter::encodeText(const std::string &stmp){
     observeEscapePrefix(stmp);
-    int code;
-#if defined(__APPLE__)
-    // %x writes an unsigned int; scanning straight into `code` is undefined and
-    // GCC 16 rejects it under -Wformat.
-    unsigned int scanned = 0;
-    int Succeeded = sscanf (&( stmp.substr(3,4)[0]), "%x", &scanned );
-    code = static_cast<int>(scanned);
-    if ( !Succeeded || Succeeded == EOF )
-        code = 0;
-#else
-    std::istringstream sd(stmp.substr(3,4));
-    sd >> std::hex >> code;
-#endif
-    return encodeNum(code);
+    // CIF is a fixed-width token: exactly four ASCII hex digits follow `\\U+`.
+    // scanf/iostream extraction accepts a valid prefix (e.g. `12` from `12G4`)
+    // and can turn malformed input into NUL or partially decoded text. Keep
+    // malformed spelling intact; its observation still makes strict source
+    // admission reject the ambiguous value.
+    if (stmp.size() != 7 || stmp[0] != '\\' || stmp[1] != 'U' || stmp[2] != '+') {
+        markDecodeIssue(DRW::DxfTextIssue::MalformedEscape);
+        markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+        return stmp;
+    }
+
+    unsigned int code = 0;
+    for (std::size_t i = 3; i < 7; ++i) {
+        const unsigned char c = static_cast<unsigned char>(stmp[i]);
+        unsigned int digit = 0;
+        if (c >= '0' && c <= '9') digit = c - '0';
+        else if (c >= 'A' && c <= 'F') digit = c - 'A' + 10;
+        else if (c >= 'a' && c <= 'f') digit = c - 'a' + 10;
+        else {
+            markDecodeIssue(DRW::DxfTextIssue::MalformedEscape);
+            markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+            return stmp;
+        }
+        code = (code << 4) | digit;
+    }
+
+    // A NUL would be truncated by C-string consumers; UTF-16 surrogate code
+    // units are not Unicode scalar values and must not be emitted as UTF-8.
+    // Keep either token literal and surface the unrepresented/invalid status.
+    if (code == 0) {
+        markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+        return stmp;
+    }
+    if (code >= 0xD800 && code <= 0xDFFF) {
+        markDecodeIssue(DRW::DxfTextIssue::InvalidUnicodeOutput);
+        markDecodeIssue(DRW::DxfTextIssue::UnrepresentedEscape);
+        return stmp;
+    }
+    return encodeNum(static_cast<int>(code));
 }
 
 std::string DRW_Converter::encodeMifText(const std::string &tok){
@@ -723,6 +835,16 @@ std::string DRW_ConvDBCSTable::toUtf8(std::string_view s) {
         observeSourceByte(c);
         if (c < 0x80) {
             notFound = false;
+            if (c == '^' && m_decodeDxfAsciiControlEscapes) {
+                std::string decoded;
+                const auto offset = static_cast<std::size_t>(it - s.begin());
+                const std::size_t consumed = decodeDxfAsciiControlEscape(s, offset, decoded);
+                if (consumed != 0u) {
+                    res += decoded;
+                    it += static_cast<std::ptrdiff_t>(consumed - 1u);
+                    continue;
+                }
+            }
             if (c == '\\') observeEscapePrefix(s.substr(static_cast<std::size_t>(it - s.begin())));
             // check for \U+ or \M+ encoded text (both are ASCII anchors;
             // backslash 0x5C is never a DBCS lead byte)
@@ -828,6 +950,16 @@ std::string DRW_Conv932Table::toUtf8(std::string_view s) {
         observeSourceByte(c);
         if (c < 0x80) {
             notFound = false;
+            if (c == '^' && m_decodeDxfAsciiControlEscapes) {
+                std::string decoded;
+                const auto offset = static_cast<std::size_t>(it - s.begin());
+                const std::size_t consumed = decodeDxfAsciiControlEscape(s, offset, decoded);
+                if (consumed != 0u) {
+                    res += decoded;
+                    it += static_cast<std::ptrdiff_t>(consumed - 1u);
+                    continue;
+                }
+            }
             if (c == '\\') observeEscapePrefix(s.substr(static_cast<std::size_t>(it - s.begin())));
             // check for \U+ or \M+ encoded text (SJIS lead bytes are
             // 0x81-0x9F and 0xE0-0xFC; backslash 0x5C is always ASCII)
@@ -944,8 +1076,9 @@ DRW_CodePageSelection DRW_TextCodec::classifyCodePage(std::string_view name) noe
         const char* selected;
         DRW_CodePageKind kind;
     };
-    // This preserves the old selection for every accepted spelling. The kind
-    // describes naming policy, not exhaustive byte-mapping qualification.
+    // Preserve established selections except for corrected exact mappings
+    // such as APPLE ROMAN; kind describes naming policy, not full format
+    // qualification.
     static constexpr Entry entries[] = {
         {"ANSI_874", "ANSI_874", DRW_CodePageKind::Canonical},
         {"CP874", "ANSI_874", DRW_CodePageKind::ExactAlias},
@@ -968,7 +1101,8 @@ DRW_CodePageSelection DRW_TextCodec::classifyCodePage(std::string_view name) noe
         {"CSISO", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
         {"IBM819", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
         {"ISO_8859-1", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
-        {"APPLE ROMAN", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
+        {"MACINTOSH", "MACINTOSH", DRW_CodePageKind::Canonical},
+        {"APPLE ROMAN", "MACINTOSH", DRW_CodePageKind::ExactAlias},
         {"ISO8859-1", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
         {"ISO8859-15", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
         {"ISO-IR-100", "ANSI_1252", DRW_CodePageKind::CompatibilityAlias},
@@ -1039,7 +1173,6 @@ DRW_CodePageSelection DRW_TextCodec::classifyCodePage(std::string_view name) noe
         {"CP437", "ANSI_1252", DRW_CodePageKind::Unavailable},
         {"CP850", "ANSI_1252", DRW_CodePageKind::Unavailable},
         {"CP866", "ANSI_1252", DRW_CodePageKind::Unavailable},
-        {"MACINTOSH", "ANSI_1252", DRW_CodePageKind::Unavailable},
         {"JOHAB", "ANSI_1252", DRW_CodePageKind::Unavailable},
         {"ANSI_1361", "ANSI_1252", DRW_CodePageKind::Unavailable},
         {"ISO-8859-2", "ANSI_1252", DRW_CodePageKind::Unavailable},
@@ -1127,6 +1260,45 @@ DRW_CodePageResolution DRW_TextCodec::resolveCodePage(
     if (implementedName)
         return {declaration, requested, declaration.selectedName,
                 DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-1")
+        return {declaration, requested, "ISO8859-1",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-2")
+        return {declaration, requested, "ISO8859-2",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-3")
+        return {declaration, requested, "ISO8859-3",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-5")
+        return {declaration, requested, "ISO8859-5",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-6")
+        return {declaration, requested, "ISO8859-6",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-7")
+        return {declaration, requested, "ISO8859-7",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-8")
+        return {declaration, requested, "ISO8859-8",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-9")
+        return {declaration, requested, "ISO8859-9",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-10")
+        return {declaration, requested, "ISO8859-10",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-11")
+        return {declaration, requested, "ISO8859-11",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-13")
+        return {declaration, requested, "ISO8859-13",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-14")
+        return {declaration, requested, "ISO8859-14",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
+    if (requested != nullptr && std::string_view(requested) == "ISO8859-15")
+        return {declaration, requested, "ISO8859-15",
+                DRW_CodePageMappingStatus::ExactImplementationAvailable};
     if (requested != nullptr && std::string_view(requested) == "ISO8859-4")
         return {declaration, requested, "ISO8859-4",
                 DRW_CodePageMappingStatus::ExactImplementationAvailable};
@@ -1139,6 +1311,32 @@ std::unique_ptr<DRW_Converter> DRW_TextCodec::createExactCodePageConverter(std::
     const auto resolved = resolveCodePage(name, DRW_CodePageMappingPolicy::ExactNamed);
     if (resolved.status != DRW_CodePageMappingStatus::ExactImplementationAvailable
         || resolved.decoderName == nullptr) return nullptr;
+    if (std::string_view(resolved.decoderName) == "ISO8859-1")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_1, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-2")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_2, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-3")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_3, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-5")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_5, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-6")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_6, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-7")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_7, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-8")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_8, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-9")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_9, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-10")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_10, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-11")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_11, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-13")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_13, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-14")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_14, CPLENGTHCOMMON);
+    if (std::string_view(resolved.decoderName) == "ISO8859-15")
+        return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_15, CPLENGTHCOMMON);
     if (std::string_view(resolved.decoderName) == "ISO8859-4")
         return std::make_unique<DRW_ConvTable>(DRW_TableISO8859_4, CPLENGTHCOMMON);
     // Reuse the existing canonical converter construction, without changing

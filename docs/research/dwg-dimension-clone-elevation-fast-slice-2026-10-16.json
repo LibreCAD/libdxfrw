@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-dwg-dimension-clone-elevation-fast-slice-v1",
+  "slice": "PAR-70 / 7O.2 common DWG DIMENSION clone elevation",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "authority": {
+    "source": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "20.4.22 COMMON DIMENSION DATA",
+    "printedPages": [125, 126],
+    "observedContract": "Common elevation is the Z coordinate for ECS points 11 and 12 (and 16 where present). Point 12 is encoded as 2RD, so its Z is shared state, not an additional stream coordinate."
+  },
+  "redControl": {
+    "format": "generated AC1015 DWG, source-created by local dwgRW",
+    "cases": [
+      "nonzero elevation 4 with oblique normal (0, 0.6, 0.8) and distinct clone XY",
+      "zero elevation with normal (0, 0, 1)",
+      "zero elevation with reflected normal (0, 0, -1)",
+      "following LINE sentinel"
+    ],
+    "readModes": [false, true],
+    "expectedFailureBeforeFix": "Tilted case parsed text point Z=4 but clone point (1,-2,0), proving parser forced clone Z to zero.",
+    "redRun": "Focused CTest libdxfrw_dwg_local_roundtrip failed only this generated assertion before the production parser change."
+  },
+  "change": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "Set parsedClonePoint.z from parsedTextPointZ after reading clone point 12 X/Y. No additional DWG reads, cursor movement, public API, or callback changes.",
+    "test": "tests/dwg_local_roundtrip_tests.cpp",
+    "testBehavior": "Generate a disposable AC1015 DWG with three aligned dimensions and a following LINE; read it in both applyExtrusion modes and assert common elevation, OCS clone XY, normal, entity census and following record. Temporary DWG is removed by RAII."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 && ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "result": "PASS 1/1",
+    "durationSeconds": 3.16,
+    "compilerWarningsAsErrors": true,
+    "fullSuiteRun": false,
+    "externalFixtureAdded": false,
+    "newCTestRegistration": false,
+    "dependencyAdded": false
+  },
+  "evidenceBoundary": {
+    "proves": [
+      "The previous z=0 behavior is reproduced by a generated red control.",
+      "The local reader now applies the ODA common elevation to clone point 12.",
+      "The point stream remains aligned through the following LINE in both public read modes."
+    ],
+    "doesNotProve": [
+      "an independent DWG producer agrees across all DWG versions",
+      "native application display/edit semantics",
+      "general dimension support or picture-block geometry correctness"
+    ],
+    "independentProducerOrNativeRun": false,
+    "supportClaimPromoted": false,
+    "externalOnlyDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "commitReason": "The shared worktree contains broad unrelated pre-existing modifications; no isolated commit was safe."
+  }
+}

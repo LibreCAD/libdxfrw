@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw-deeper-broader-modeler-kernel-route-and-qualification-cost-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile the current public DXF, ezdxf, OCCT, and FreeCAD routes into a fail-fast optional ACIS/B-rep qualification gate that distinguishes container handling, payload parsing, kernel semantics, and native application acceptance.",
+  "method": {
+    "kind": "Primary Autodesk format references and current upstream project documentation/source review",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+      "https://github.com/Open-Cascade-SAS/OCCT",
+      "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadOrKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Autodesk pages establish outer DXF fields only. Project docs establish their own declared route and limits, not successful parsing of this repository's payloads or B-rep validity. Mutable upstream pages are discovery evidence. No independent second-kernel, source-native known-size ACIS witness was produced by this review."
+  },
+  "evidence": [
+    {
+      "topic": "DXF ACIS entity framing",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm"
+      ],
+      "observed": [
+        "3DSOLID and REGION document AcDbModelerGeometry, group 70, and proprietary group-1/group-3 payload fields.",
+        "3DSOLID additionally has an entity-specific AcDb3dSolid subclass and group-350 history-object reference.",
+        "The published entity tables do not establish inner SAT/SAB save-version semantics or geometric validity."
+      ],
+      "planUse": "Keep raw carrier order/hash, history association, semantic body construction, and consumer acceptance as distinct evidence stages."
+    },
+    {
+      "topic": "ezdxf payload and geometry limits",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html"
+      ],
+      "observed": [
+        "The current API documents SAT for DXF R2000-R2010 and SAB for R2013 and later, and permits SAT/SAB assignment to ACIS entities from R2000 onward.",
+        "Its documented ACIS entity target is a bounded flat-polyhedron subset; vertex-derived bounds are exact only for straight-edged polyhedra, and mesh projection loses curved faces."
+      ],
+      "planUse": "Treat a pinned ezdxf run as structural, carrier, or bounded polyhedron evidence only; explicitly record the subset and do not infer general curved B-rep support."
+    },
+    {
+      "topic": "OCCT open core versus ACIS exchange component",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "observed": [
+        "OCCT identifies its core as an open-source 3D modeling platform.",
+        "The separate OCCT Components repository calls itself a preview of commercial extensions and lists ACIS SAT/SAB import-export as an exchange component."
+      ],
+      "planUse": "Do not assume FreeCAD/OCCT includes an ACIS reader. At the composed optional gate, first verify the exact component, version, platform, license/authorization, and callable structured-shape route. If unavailable or unauthorized, record NOT_AVAILABLE/NOT_RUN and continue without installation, purchase, trial, or dependency changes."
+    },
+    {
+      "topic": "FreeCAD converter/importer route",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": [
+        "FreeCAD documents a native C++ DXF importer and a separate legacy Python route, and describes DWG conversion as an external-converter path.",
+        "Current importDWG.py converts the DWG to DXF and then invokes importDXF.open/insert; its converter routes include LibreDWG, ODA File Converter, and QCAD.",
+        "These workflow facts do not establish ACIS/B-rep consumption or a release-wide entity contract."
+      ],
+      "planUse": "Keep FreeCAD acceptance keyed by exact release, OS, converter, emitted DXF, importer backend, and final document geometry. Stock FreeCAD remains separate from a licensed modeler route."
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationOrderChanged": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue existing local S2/S3/S5 implementation slices and fast tests without waiting on external route availability.",
+      "At the composed checkpoint, perform the metadata/license/platform and output-capability preflight before launching any optional external tool.",
+      "For eligible routes, record container parse, payload identity, topology, kernel validity/metrics, and native acceptance independently.",
+      "Do not count mesh, wireframe, bounding-box fallback, OCCT-derived same-kernel shape conversion, or an open-file result as independent ACIS B-rep qualification."
+    ]
+  },
+  "planDelta": {
+    "updated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "changes": [
+      "Added a metadata-only fail-fast stop rule for optional semantic readers/kernels.",
+      "Separated route eligibility and licensing from implementation blockers and support evidence."
+    ]
+  }
+}

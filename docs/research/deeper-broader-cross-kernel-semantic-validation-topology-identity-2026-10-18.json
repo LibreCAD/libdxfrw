@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper and broader cross-kernel semantic validation and topology-identity review",
+  "mode": "primary-source research and read-only local plan reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Review system-agnostic CAD shape-equivalence methods and cross-CAD B-rep correspondence limits",
+    "Separate source graph and payload preservation from geometric interchangeability and topology identity",
+    "Refine the existing DWG/DXF ACIS/AcDs/kernel/native semantic gates for implementation readiness without increasing per-slice cost"
+  ],
+  "method": {
+    "kind": "Review primary research, NIST interoperability material, current open-source route documentation, and existing local plan gates",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-validation-methodology-refresh-2026-10-18.json",
+      "docs/research/deeper-broader-acadrust-opencadkernel-semantic-route-review-2026-10-17.json"
+    ],
+    "limitations": "Research methods and upstream documentation do not qualify a libdxfrw profile or validate a specific sample. Cross-kernel equivalence still requires a predeclared use case, independent expectations, exact payload/source provenance, and an actually executed pinned route. No external route was run."
+  },
+  "sources": [
+    {
+      "project": "System-agnostic CAD interoperability testing",
+      "urls": [
+        "https://www.sciencedirect.com/science/article/pii/S2590118425000516",
+        "https://doi.org/10.1016/j.cola.2025.101365"
+      ],
+      "revision": "Published 2025 article reviewed 2026-10-18",
+      "observed": "The authors describe representation-independent model comparison through proxy/query methods, user-selected tolerances, and local plus global geometric/topological properties. The method is general CAD interoperability research, not DWG/DXF or ACIS conformance evidence."
+    },
+    {
+      "project": "Cross-CAD B-rep matching research",
+      "urls": [
+        "https://arxiv.org/abs/2306.03169"
+      ],
+      "revision": "Published research paper reviewed 2026-10-18",
+      "observed": "The paper treats geometric and topological changes as a cross-system correspondence problem, notes that neutral exchange often lacks application-specific persistent-reference structures, and documents ambiguous/non-bijective correspondence. It does not establish preservation of any DWG/DXF object graph."
+    },
+    {
+      "project": "NIST hybrid B-rep interoperability material",
+      "urls": [
+        "https://www.nist.gov/news-events/news/2024/03/nist-contributes-new-modeling-capability-iso-product-data-interoperability"
+      ],
+      "revision": "NIST material published 2024, updated 2025, reviewed 2026-10-18",
+      "observed": "NIST describes explicit geometry and face-edge-vertex topology as distinct but related aspects of boundary representation, including hybrid model cases. This informs evidence decomposition but is not an ACIS reader or DWG mapping."
+    },
+    {
+      "project": "Existing open-source ACIS and application route inventory",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md",
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md"
+      ],
+      "revision": "Mutable public docs reviewed 2026-10-18; detailed lineage findings remain recorded in the 2026-10-17 local plan/receipt",
+      "observed": "OpenCADStudio documents a kernel route with a per-surface fallback; opencadkernel self-identifies as early; cq-acis documents bounded geometry conversion limits through an OCCT-family route. These are route-specific observations, not complete-solid evidence or an independent kernel/native qualification. This pass identified no new qualified open-source route joining outer DWG/DXF/AcDs parsing to an independent kernel and native acceptance."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines PAR-07/S8 so file graph and carrier identity, complete valid B-rep semantics, geometric shape equivalence, topology identity, and native consumer acceptance are separate results. The minimal semantic case uses predeclared independent analytic expectations and tolerances; cross-kernel face/edge/vertex counts remain diagnostic unless the use case requires topology preservation. Existing fast per-slice validation and composed external cadence are unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep handle/owner/carrier/AcDs payload linkage checks independent from downstream geometric equivalence.",
+    "Before a semantic run, bind the exact source entity, carrier or AcDs payload hash, parser profile, kernel route, and independently authored expected metric manifest.",
+    "For a complete-solid pass, report body/unsupported-record disposition, valid/closed topology, fallback use, diagnostics, units/transforms, and explicit metric tolerances.",
+    "Use face/edge/vertex counts and correspondence as diagnostics unless the declared operation requires topology-preserving identity; do not use them as universal cross-kernel shape equality.",
+    "Keep parser, kernel, and native-consumer observations separate; screenshots, same-kernel round trips, and partial tessellation cannot promote semantic support.",
+    "Preserve the existing fast validation cadence; run one bounded, exact-profile peer/native comparison only at the existing composed checkpoint.",
+    "Use generated in-memory or scratch-authored controls only; do not add peer/customer DWG/DXF fixtures or dependencies."
+  ]
+}

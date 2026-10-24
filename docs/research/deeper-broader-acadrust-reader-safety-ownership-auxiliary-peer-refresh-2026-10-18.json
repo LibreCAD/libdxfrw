@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACadRust reader-safety, ownership, and auxiliary-record peer refresh",
+  "mode": "deeper/broader primary-source peer research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh ACadRust malformed-input, ownership, and MLEADER auxiliary-object issues against exact issue activity and current release metadata.",
+    "Distinguish tagged v0.6.4 claims from mutable-main candidate commits and downstream OpenCADStudio codec lineage.",
+    "Cross-map peer failure shapes to existing libdxfrw implementation/test owners without adding duplicate findings or weakening the record-failure policy.",
+    "Update implementation readiness while retaining local-only fixture policy and focused-fast validation cadence."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/123",
+      "observed": "Open report against acadrust 0.6.3 describes malformed object data causing a count to be capped then zero-filled beyond input, and a stream-derived allocation attempt of about 12 TiB. The maintainer linked commit 53007f3 and asked for a retest; issue page has no published reporter retest.",
+      "evidenceClass": "primary issue report and maintainer candidate commit; no peer executable run"
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/124",
+      "observed": "Open report against acadrust 0.6.3 describes an unchecked malformed header section-size slice. The maintainer linked commits 3097271 and 4838a42 and asked for a retest; issue page has no published reporter retest.",
+      "evidenceClass": "primary issue report and maintainer candidate commits; no peer executable run"
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+      "observed": "The latest listed GitHub release is v0.6.4 at 8d5c46d, dated October 11, 2026. Its notes list fixes for issues 127 through 132, including named colors/table-record XDATA/unsupported records for 132, but do not name 123 or 124. Whether candidate commits 53007f3, 3097271, and 4838a42 are ancestors of the tag was not independently verified.",
+      "evidenceClass": "primary tagged-release notes; exact candidate-commit ancestry not checked"
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/133",
+      "observed": "Open report describes non-null orphaned dimension-block children being re-homed to model space. Candidate commit b62555f was recorded October 12, 2026, after v0.6.4's October 11 release; the maintainer requested a reporter retest, and no public corpus retest is shown.",
+      "evidenceClass": "primary issue report and mutable-main candidate commit; private corpus not available"
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/134",
+      "observed": "Open report describes AC1032 AcDbMLeaderObjectContextData truncated-stream failures after stricter bounds in v0.6.4. Candidate commit 0e46236 implements bounded auxiliary-object preservation; the issue shows no public retest of the reporter's private corpus.",
+      "evidenceClass": "primary issue report and candidate commit; private corpus not available"
+    },
+    {
+      "url": "https://github.com/HakanSeven12/opencadcodec/commit/69ef6fc",
+      "observed": "Downstream OpenCADStudio codec commit merges ACadRust main at a1a216d. It is an ACadRust-descended parser lineage, not an independent second implementation or a public validation result for issue 134's private corpus.",
+      "evidenceClass": "primary downstream merge metadata; no runtime or corpus result"
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues/132",
+      "observed": "The open issue reports custom-record, named-color, and table-record-XDATA loss. v0.6.4 release notes claim fixes for those areas, but the issue page requests a retest and does not publish reporter confirmation. Local BLOCK_RECORD XDATA writer gap is tracked separately as PAR-131.",
+      "evidenceClass": "primary peer issue and tagged-release claim; not evidence for libdxfrw behavior"
+    }
+  ],
+  "assessment": {
+    "localDefectsConfirmed": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "testsRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refreshes peer evidence status and implementation crosswalk only. Keep ACadRust 0.6.3 issue reproductions, v0.6.4 release notes, mutable-main candidate fixes, and the downstream OpenCADStudio codec as distinct states. Existing local bounds, owner-closure, and auxiliary-record error-ladder subplans remain authoritative; no new local defect or duplicate test is inferred."
+  },
+  "implementationReadyChecks": [
+    "For PAR-14/PAR-26/7BE work, inspect existing generated tests first; add only uncovered count, signed-size, checked-range, bounded-allocation, no-zero-padding, or suffix-framing assertions.",
+    "Generate local mutation seeds from scratch and locate fields structurally; never copy another parser's fixed offsets or numeric caps.",
+    "For PAR-49/7G, keep null, fixed-space, valid-block, and non-null unresolved owners distinct; never invent model-space ownership to hide an unresolved source handle.",
+    "For standalone MLEADER context objects, retain the typed/raw/skip/fatal failure ladder and require ODA/sample-traced record framing before changing bounds or adding a supported route.",
+    "Do not require peer installs, peer runs, full-suite runs, or native applications per implementation slice; keep those at existing composed checkpoints.",
+    "After each implementation slice, update status, focused selector, owning CTest, and remaining prerequisite, then proceed with the next unblocked task.",
+    "Do not commit third-party DWG/DXF test fixtures unless already present in LibreCAD/libdxfrw or authored locally from scratch.",
+    "When an optional ACadRust comparison is justified, pin artifact/source/toolchain and exact input hash, report retest as NOT_RUN/NOT_RETESTED where appropriate, and do not count ACadRust plus OpenCADStudio's descended codec as independent votes.",
+    "Do not change J256, J260, J268, J284, J293, or J295 from DEFERRED_EXTERNAL based on issue reports, candidate fixes, release notes, or source visibility alone."
+  ],
+  "verification": {
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "receiptJsonValidation": "passed with jq empty",
+    "markdownDiffCheck": "passed with git diff --check on tests/dxf_fixture_tests.cpp and both plan files; receipt whitespace inspected",
+    "tests": "not applicable; documentation-only research update"
+  },
+  "workingTree": {
+    "codeOrTestFilesEditedInThisPass": false,
+    "externalArtifactsDownloaded": false,
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The worktree was already broadly modified. This pass updates two plan documents and adds one research receipt without staging or reverting unrelated files."
+  }
+}

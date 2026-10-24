@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c ACIS ellipse-curve closest-point projection",
+  "repository": "LibreCAD/libdxfrw",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Project a query point to the closest point on the full untrimmed ellipse locus described by one decoded DRW_AcisEdge",
+    "parameterization": "Geometric locus defined by the decoded center, normal, major axis, and positive minor-to-major ratio; projection does not publish or infer a native ACIS parameter",
+    "frame_policy": "Normalize a temporary normal, validate the major-axis normal residual against a finite nonnegative caller-supplied dimensionless tolerance, and remove only a tolerated residual",
+    "numeric_policy": "Scale ellipse axes and query coordinates, solve the monotone Lagrange-multiplier equation with bounded bisection, validate the resulting ellipse constraint, and combine output coordinates with scaled arithmetic",
+    "ambiguity_policy": "Refuse atomically when the in-plane closest point is nonunique, including the medial-axis segment of a noncircular ellipse and the center of a circle",
+    "refusal_policy": "Unsupported curve type, malformed/nonfinite input, degenerate or numerically unresolved axes, out-of-tolerance frame, unrepresentable query offset/output, or nonunique closest point returns false without modifying the output",
+    "non_claims": [
+      "native ACIS parameter direction or edge parameter range",
+      "finite edge trim, loop, or pcurve evaluation",
+      "body transform or source-unit application",
+      "B-rep validity or completeness",
+      "native CAD or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_sab21800_major_minor_interior_cusp_and_boundary_cases": "PASS",
+    "parser_fed_sab21800_oblique_nonunit_frame_with_independent_expectation": "PASS",
+    "ratio_above_one_axis_sorting": "PASS",
+    "nonunique_medial_axis_and_center_refuse_atomically": "PASS",
+    "tiny_ellipse_far_query_remains_representable": "PASS",
+    "dense_generated_query_grid_compared_against_1024_point_full_locus_sampling": "PASS",
+    "wrong_type_invalid_ratio_query_and_frame_tolerance_refuse_atomically": "PASS",
+    "overflowing_query_center_difference_refuses_atomically": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1; 1.25 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_projectPointToAcisEllipseCurve)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

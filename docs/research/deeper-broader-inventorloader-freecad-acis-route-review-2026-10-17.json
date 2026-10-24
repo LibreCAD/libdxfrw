@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-deeper-broader-inventorloader-freecad-acis-route-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Recheck the already-listed InventorLoader ACIS route and tighten optional consumer-gate readiness without changing parser code, implementation order, or support scope.",
+  "method": {
+    "kind": "Public primary project README, license, source pages, current local source and existing plan review",
+    "sourcesOpened": [
+      "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+      "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+      "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+      "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+      "https://github.com/jmplonka/InventorLoader/blob/master/LICENSE",
+      "https://github.com/FreeCAD/FreeCAD-addons/blob/master/AddonCatalog.json",
+      "https://github.com/monozukuri-ai/cq-acis",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "peerSourceBodiesAudited": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Selected mutable InventorLoader source paths document an ezdxf-to-AcisReader DXF route and FreeCAD Part shape construction; the full parser was not audited. No immutable source/runtime, input artifact, native result, complete ACIS profile, DWG/AcDs ingestion, or independent kernel result was established. The repository license text and prior add-on metadata conflict remains unresolved."
+  },
+  "findings": [
+    {
+      "topic": "Existing InventorLoader candidate receives a narrower DXF handoff and safety qualification",
+      "sources": [
+        "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py"
+        ,"https://github.com/FreeCAD/FreeCAD-addons/blob/master/AddonCatalog.json"
+      ],
+      "observed": [
+        "The README describes SAT/SAB import into FreeCAD, DXF 3D-solid import, release status 1.5, and no export support.",
+        "importerDXF.py uses ezdxf to read DXF and extracts either an entity sab or sat payload before calling the add-on's AcisReader.",
+        "Acis.py contains dedicated text and binary parsing code; importerSAT.py maps parsed bodies to FreeCAD Part::Feature shapes.",
+        "The add-on documents unsupported blending surfaces, helix surfaces, and some law-defined geometry without spline data; its body resolver stops at ACIS history markers.",
+        "The GitHub LICENSE contains GPL-2.0 text, while prior FreeCAD add-on metadata in the plan carried an LGPL label; license provenance is unresolved.",
+        "Prior source review identified an unrestricted Python eval path for ACIS law expressions; this follow-up retains the existing safety preflight and does not claim it is fixed.",
+        "No code was copied or vendored."
+      ],
+      "doesNotEstablish": [
+        "an immutable source revision or current FreeCAD/platform runtime",
+        "successful parsing of any particular generated or producer SAT/SAB payload",
+        "complete or closed B-rep output, history preservation, or semantics for unsupported ACIS profiles",
+        "DWG or DWG AcDs reading, because the inspected path begins from DXF/SAT/SAB",
+        "independent kernel evidence, because shape construction uses FreeCAD Part/Open CASCADE lineage"
+      ],
+      "planUse": "Retain the already-listed OPTIONAL_CANDIDATE / DXF_ACIS_CONSUMER at the existing composed FreeCAD checkpoint only. Pin the add-on and FreeCAD build, satisfy the previously specified source-safety and resource preflight, record exact converter handoff for any DWG-derived DXF, preserve a source-handle/owner sidecar, compare per-body topology and analytic metrics against a local manifest, and keep the result as parser/consumer evidence rather than a second kernel vote or support promotion."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": [
+      "7AG optional peer admission",
+      "S3/S5/S8 composed consumer and semantic evidence gates"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "validationCadenceChanged": false,
+    "implementationOrderChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue the current local fast implementation queue without setting up this existing optional route.",
+      "At the existing composed gate, pin InventorLoader, FreeCAD, platform and ezdxf only if the tools are already available or separately selected.",
+      "Satisfy the existing source-safety/resource preflight before any payload run; otherwise record NOT_AVAILABLE.",
+      "Preserve a source-handle/owner/payload sidecar and require per-body loss and topology/analytic metrics before scoring results.",
+      "Classify InventorLoader as a parser/consumer route sharing FreeCAD/OCCT, not as independent-kernel evidence or direct DWG/AcDs support."
+    ]
+  },
+  "validation": {
+    "planLinksAdded": true,
+    "receiptJsonParsed": true,
+    "scopedPlanDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

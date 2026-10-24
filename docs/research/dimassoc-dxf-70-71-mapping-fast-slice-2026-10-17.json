@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7AA.1 partial DIMASSOC DXF group-70/71 mapping",
+  "mode": "local implementation slice with primary-source contract",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Correct DXF DIMASSOC scalar mapping for group 70 trans-space and group 71 rotated-dimension type",
+    "Preserve existing parser field types, writer widths, and record framing",
+    "Use only generated ASCII/Binary checks and existing test registrations"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+      "observed": "DIMASSOC code 70 is the trans-space Boolean; code 71 is rotated dimension type (parallel/perpendicular). Codes 330, 90, and the osnap reference fields remain separate."
+    },
+    {
+      "project": "Local source",
+      "files": [
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/hardening_tests.cpp",
+        "tests/wave1_tests.cpp"
+      ],
+      "observed": "The prior DXF parser/writer mapped the public trans-space and rotated-type fields to the opposite group codes. The changed code corrects only DXF parse/write; DWG parse/encode paths were not touched."
+    }
+  ],
+  "implementation": {
+    "parser": "Group 70 now sets m_isTransSpace; group 71 validates the existing 0..255 storage range and sets m_rotatedDimensionType.",
+    "writer": "Emits group 70 from m_isTransSpace, followed by group 71 from m_rotatedDimensionType, preserving the existing 16-bit writer calls.",
+    "limitations": [
+      "Typed osnap references still do not represent all subentity, marker, parameter, intersection, and xref fields.",
+      "Loss guard and raw carrier remain responsible for unsupported DIMASSOC detail.",
+      "This does not implement live associative updates or prove DWG object-layout correctness."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_wave1_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests",
+      "build-gcc/libdxfrw_wave1_tests --integer-valued-boolean-wire-kinds",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_objects.cpp src/libdxfrw.cpp tests/hardening_tests.cpp tests/wave1_tests.cpp"
+    ],
+    "buildTargetsPassed": [
+      "libdxfrw_hardening_tests",
+      "libdxfrw_wave1_tests",
+      "lc3_compat_check"
+    ],
+    "focusedTestResults": {
+      "hardeningExecutable": "PASS",
+      "integerValuedBooleanWireKindsAsciiBinary": "PASS",
+      "libdxfrw_hardeningCtest": "PASS (1/1)",
+      "scopedDiffCheck": "PASS"
+    },
+    "fullSuiteRun": false,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": true,
+    "dwgBytePathsChanged": false,
+    "publicLayoutChanged": false,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  },
+  "planImpact": {
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "subplanStatus": "7AA.1 partial; DXF scalar mapping corrected, broader association graph and DWG layout remain outside this slice",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktreeState": "Shared worktree is broadly modified; slice remains uncommitted."
+  }
+}

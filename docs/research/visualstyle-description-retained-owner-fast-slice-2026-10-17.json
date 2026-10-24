@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-visualstyle-description-retained-owner-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Account the DXF VISUALSTYLE basic-field description aliases on the existing retained-string lease and verify direct parsing/lifetime boundaries.",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "field": "DRW_VisualStyle::desc",
+    "dxfCodes": [2, 4],
+    "scope": "The existing m_dxfInVisualStyle && !m_dxfInPropertyTail branch only; both DXF codes replace the same description value and counter.",
+    "accounting": "One live-byte counter on the shared DRW_TableEntry retained-string lease; reserve before replacement and preserve the old value/charge on refusal.",
+    "reset": "Clears the derived description counter and value while releasing/resetting the shared base lease.",
+    "copyAssignment": "Implicit copy construction and assignment preserve the counter and shared lease.",
+    "contractLimits": [
+      "Logical parsed DXF description bytes only; not allocator capacity, RSS, or a total process-memory cap.",
+      "Public post-callback edits, DWG string storage, and writer/projection copies remain outside this owner.",
+      "This slice does not qualify dictionary ownership, code-348 reference closure, opaque-property completeness, or rendering behavior.",
+      "DRW_VisualStyle public layout changed; downstream consumers must rebuild and binary ABI compatibility is not claimed."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-visualstyle-description-owner-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      }
+    ],
+    "selectorCoverage": [
+      "Generated ASCII/Binary direct-parser streams cover code-2/code-4 alias replacement to the same description owner.",
+      "Exact replacement-peak admission succeeds; one-byte-under refusal preserves the preceding code-2 description and charge.",
+      "Copy construction and assignment preserve the description charge after source reset; final reset releases the shared lease.",
+      "All controls are generated in memory; no persistent fixture or CTest registration was added."
+    ],
+    "receiptJsonParsed": true,
+    "planLinkChecked": true,
+    "scopedDiffCheck": true,
+    "ctestRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeCadQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "externalJItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: the shared checkout has broad existing edits in touched files; unrelated hunks were not staged."
+  }
+}

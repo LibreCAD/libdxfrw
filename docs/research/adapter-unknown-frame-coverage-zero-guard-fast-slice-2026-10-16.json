@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-adapter-unknown-frame-coverage-zero-guard-v1",
+  "slice": "7F.1b runner mutation guard: unknown frame coverage cannot be encoded as zero",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planRequirement": "For schema-3 adapter observations, unknown/notAvailable frame totals require a reason and null count/dispositions; all-zero counts represent observed data and must not substitute for unavailable coverage.",
+  "change": {
+    "file": "tools/run_qualified_differential_v2.py",
+    "test": "The existing schema-3 runner self-test now first validates a correctly unavailable frame envelope with null totals, then mutates sourceFrameCount, every disposition and unrecognizedDispositionCount to zero while retaining status=notAvailable. The validator must reject this all-zero unknown envelope.",
+    "productionBehaviorChanged": false,
+    "schemaChanged": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false
+  },
+  "validation": {
+    "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+    "result": "PASS",
+    "durationSeconds": 0.20,
+    "fullSuiteRun": false,
+    "gitDiffCheck": "PASS"
+  },
+  "evidenceBoundary": {
+    "proves": [
+      "The runner accepts a schema-valid notAvailable frame observation only with a reason and null frame totals/dispositions.",
+      "The runner rejects an all-zero frame envelope mislabeled notAvailable."
+    ],
+    "doesNotProve": [
+      "that any particular target or standalone reader publishes complete frame observations",
+      "compile-contract enforcement or target/standalone qualification eligibility",
+      "DWG/DXF semantic support, native application acceptance, or external-J evidence"
+    ],
+    "supportClaimPromoted": false,
+    "externalOnlyDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "commitReason": "The shared worktree has broad pre-existing modifications; no isolated commit is safe from this already-dirty state."
+  }
+}

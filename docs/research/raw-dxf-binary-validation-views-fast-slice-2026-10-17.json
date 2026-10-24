@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-raw-dxf-binary-validation-views-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "7S.2c.d.17.48",
+  "scope": "Remove temporary strings from raw DXF group validation for binary hex chunks and handle lexemes.",
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "Raw group validation checks existing variant text through string_view; parseRawDxfHandleLexeme, isDxfHexString, and isValidDxfHandleString accept the view while preserving existing syntax, length, and range constraints.",
+    "publicApiChanged": false,
+    "publicLayoutChanged": false,
+    "callbackContractChanged": false,
+    "dependenciesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-raw-section-writer-common-path",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/raw-dxf-binary-validation-views-fast-slice-2026-10-17.json",
+        "result": "PASS"
+      }
+    ],
+    "generatedControls": {
+      "writers": [
+        "ASCII DXF",
+        "Binary DXF"
+      ],
+      "validGroup1004Bytes": 127,
+      "assertions": [
+        "exact 254-character hex source is read back without changing its value",
+        "invalid hex digit is refused before output"
+      ],
+      "persistentFixtureAdded": false,
+      "externalInputsDownloaded": 0
+    },
+    "fullSuiteRun": false,
+    "allocatorCountMeasured": false,
+    "peakRssMeasured": false,
+    "throughputMeasured": false,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingDirtyChangesPreserved": true,
+    "committed": false,
+    "reason": "The shared checkout contains broad unrelated modifications and Git metadata is read-only."
+  }
+}

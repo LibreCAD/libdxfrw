@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-21",
+  "title": "Deeper/broader ACAD_TABLE DWG writer identity and peer-route refresh",
+  "kind": "research_only_plan_update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": {
+    "existing_finding": "PAR-126",
+    "existing_subplan": "7G.3d",
+    "question": "Does the current DWG writer preserve typed ACAD_TABLE identity and semantic content, and what is the fastest safe implementation route?",
+    "plan_file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  },
+  "local_source_audit": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter24.cpp",
+      "src/libdwgr.cpp"
+    ],
+    "observations": [
+      "DRW_Table derives from DRW_Insert and declares TABLE-specific parsing/model fields, but no encodeDwg override was found in the class.",
+      "DRW_Insert::encodeDwg assigns object type 7 for INSERT or 8 for MINSERT and emits the insert payload.",
+      "The AC1015/R2000-era and AC1024+ entity writer paths call the virtual entity encodeDwg method; dwgRW::writeTable forwards through generic entity output.",
+      "This is source-confirmed writer incompleteness and a potential silent identity/content loss. No runtime reproduction or producer-authored wire trace was performed."
+    ],
+    "classification": "confirmed_local_source_gap_within_existing_PAR-126_not_a_new_finding"
+  },
+  "external_evidence": [
+    {
+      "source": "Autodesk TABLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "supports": "ACAD_TABLE has a distinct AcDbTable subclass and includes table style/owner links, dimensions, cell types and values, FIELD references, block-cell links, attributes, and overrides.",
+      "does_not_support": "DWG binary layout or local writer qualification."
+    },
+    {
+      "source": "Autodesk AcDbTable API reference",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbTable.html",
+      "supports": "AcDbTable derives from AcDbBlockReference while retaining a distinct cell-content model.",
+      "does_not_support": "DWG binary field encoding."
+    },
+    {
+      "source": "ACadSharp issue #1321",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1321",
+      "state_at_review": "open; created 2026-10-20",
+      "report": "The author reports that an AC1032 no-op read/write loses one of two TABLE entities, does not persist a cell edit, and creates a file AutoCAD 2020 rejects with ErrorStatus 53; a no-table control reportedly succeeds.",
+      "limit": "Peer-reported only. No sample was attached or imported, no peer run was performed, and the issue is neither normative wire evidence nor proof of a libdxfrw defect."
+    },
+    {
+      "source": "LibreDWG pinned dwg2.spec",
+      "url": "https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/dwg2.spec",
+      "supports": "Peer spec source distinguishes TABLE and a separate R2010+ TABLECONTENT lane.",
+      "limit": "Corroborative only; ODA v5.4.1 remains byte-layout authority and empirical traces are required for local object-type dispatch."
+    },
+    {
+      "source": "CodeCAD architecture",
+      "url": "https://github.com/backkem/codecad/blob/main/docs/architecture.md",
+      "supports": "Project documentation says DWG is read through ACadRust and projected into a 2D application model.",
+      "limit": "Same parser lineage; not an independent DWG parser/writer or TABLE semantic oracle."
+    },
+    {
+      "source": "xorgy/dxfscan",
+      "url": "https://github.com/xorgy/dxfscan",
+      "supports": "Project documents a Binary-DXF-only R13+ parser with a bounded common-entity list and Unknown fallback.",
+      "limit": "Not a DWG route or TABLE/ACIS semantic oracle; optional syntax comparison only."
+    }
+  ],
+  "plan_changes": [
+    "Add a generated local TABLE-versus-INSERT writer identity and sentinel control under existing PAR-126/7G.3d.",
+    "Fail closed atomically for DWG TABLE profiles that do not yet have an exact encoder; never report a TABLE write as successful INSERT/MINSERT output.",
+    "Capture the real producer DWG object type from repository-approved debug traces before implementing per-version dispatch; do not hardcode peer-derived type numbers.",
+    "Implement the pre-AC1024 TABLE entity lane separately from the AC1024+ TABLE/TABLECONTENT object graph, preserving TABLESTYLE, owner, cell state, FIELD/DATALINK, block-cell, and attribute links only when mapped.",
+    "Keep the graphical *T display block distinct from semantic table cells and require semantic completeness or explicit refusal/loss.",
+    "Use generated in-memory controls and fast owning tests per slice; defer full composed/native gates to a once-per-composition checkpoint and self-unblock around unavailable external evidence.",
+    "After each implementation slice is committed, refresh the plan/receipt and report progress; do not commit peer-provided drawing fixtures."
+  ],
+  "validation_performed": {
+    "source_review": true,
+    "web_research": true,
+    "builds": false,
+    "tests": false,
+    "peer_binaries": false,
+    "native_cad": false,
+    "external_fixtures_downloaded_or_committed": false,
+    "production_code_changed": false
+  },
+  "support_and_gate_status": {
+    "finding_count": 144,
+    "top_level_subplan_count": 78,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "support_claim_promoted": false
+  },
+  "limitations": [
+    "Source inspection identifies the inherited encoder path but does not replace a generated runtime reproduction.",
+    "No producer-authored TABLE trace was captured; object type and versioned field layout must be verified before encoder implementation.",
+    "Peer issue symptoms may reflect ACadSharp-specific causes and are not attributed to libdxfrw."
+  ]
+}

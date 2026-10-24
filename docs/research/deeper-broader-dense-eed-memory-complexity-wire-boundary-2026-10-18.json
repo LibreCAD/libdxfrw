@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader dense EED memory-complexity and wire-boundary crosswalk",
+  "mode": "primary-source ODA specification and GitHub PR review with read-only local source/test/plan reconciliation",
+  "scope": [
+    "Evaluate whether LibreDWG PR #1426 identifies a transferable EED wire rule or only a peer-specific allocation-complexity issue",
+    "Cross-check ODA EED framing and item widths against the current libdxfrw staged parser and publication path",
+    "Refine existing EED and scale-check readiness without adding routine per-slice benchmark cost",
+    "Preserve fixture, support-claim, and deferred external-evidence boundaries"
+  ],
+  "method": {
+    "kind": "Read ODA v5.4.1 §28, inspect LibreDWG PR metadata/diff, and crosswalk read-only local parser, storage limits, tests, and plan owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h",
+      "src/intern/dwgsafety.h",
+      "src/drw_objects.cpp",
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "limitations": "LibreDWG PR #1426's memory figures and synthetic case are contributor-reported and were not independently reproduced. The local crosswalk is source-level, not a peak-RSS measurement. The result does not establish a local quadratic-allocation defect or native format acceptance."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification for .dwg files v5.4.1, §28, pp. 260-261; online PDF page text accessed 2026-10-18",
+      "observed": "EED is a repeated application-scoped block with a bit-short data length, APPID handle, typed item stream, and a zero-length terminator. The length excludes its own encoding and the APPID handle. Item types define their own byte widths/length prefixes.",
+      "limits": "The specification defines binary framing and typed values, not memory-allocation strategy, peak RSS, or resource limits."
+    },
+    {
+      "project": "LibreDWG PR #1426",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/pull/1426"
+      ],
+      "revision": "Open as reviewed 2026-10-18; base a3d51f13f7afc143c2adb87d4b0e858e24cdac95; head 008a00a30eee5bf28888b62c452bcff97f8fc770",
+      "observed": "The contributor reports that the peer decoder allocated each EED item according to the unconsumed remainder of the block, yielding quadratic memory growth for many small items. The PR proposes shrinking each allocation after decoding and reports a 20,000-integer synthetic case falling from 545 MB to 40 MB peak RSS on the named glibc/Linux route. It was open/unmerged with one approving review and a maintainer comment about a pslib installation issue.",
+      "limits": "These are proposal-author reports tied to LibreDWG's implementation, not a normative EED rule, current released-artifact result, local libdxfrw reproduction, or universal benchmark. The proposed patch was not copied or run."
+    },
+    {
+      "project": "Local libdxfrw EED route",
+      "urls": [],
+      "revision": "Current shared-worktree source, inspected 2026-10-18",
+      "observed": "readDwgEed reads one bounded application chunk, parses items against that chunk's remaining bytes, and stages typed variants and layer references. Existing ceilings bound chunks and item counts. Table-entry/entity paths then allocate public variant nodes from staged values.",
+      "limits": "No peak-memory profile was run. Source inspection does not quantify allocator overhead or establish asymptotic runtime empirically. The local route differs from the peer's reported remaining-block-sized per-item calloc, while multiple linear representations may still affect peak memory."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "7K / PAR-26 EED and XDATA route",
+      "PAR-92 / 7BA composed scale and work-cost lane"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Keep existing EED wire-boundary leaf checks. If the EED path changes, preserve exact item values/order, APPID/layer references, exact chunk consumption and the following-object sentinel. Only at the existing composed scale checkpoint, and only when EED code changes or profiling points there, observe one scratch-generated dense-EED case and report runtime/build identity, item count, output disposition, elapsed time and peak RSS diagnostically; do not impose peer RSS thresholds or run it per slice.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check on the plan; receipt JSON separately validated by jq)",
+    "fullSuiteRun": false
+  }
+}

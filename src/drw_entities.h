@@ -17,10 +17,12 @@
 
 
 #include <array>
+#include <cstdint>
 #include <list>
 #include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include "drw_base.h"
 #include "drw_objects.h"
@@ -117,6 +119,36 @@ namespace DRW {
 //only in DWG: MINSERT, 5 types of vertex, 4 types of polylines: 2d, 3d, pface & mesh
 //shape, dictionary, MLEADER, MLEADERSTYLE
 
+//! Source provenance for the common entity proxy-graphics byte cache.
+//! This is deliberately separate from DRW_ProxyEntity's raw-record carrier.
+enum class DRW_ProxyGraphicsOrigin : std::uint8_t {
+    Unspecified,
+#ifndef None
+    //! Source-compatible spelling when the X11 None macro is not active.
+    None = Unspecified,
+#endif
+    CallerSupplied,
+    ParsedDxf,
+    ParsedDwg
+};
+
+enum class DRW_ProxyGraphicsEncoding : std::uint8_t {
+    Unknown,
+    DxfAscii,
+    DxfBinary,
+    DwgBitStream
+};
+
+struct DRW_ProxyGraphicsProvenance {
+    DRW_ProxyGraphicsOrigin origin{DRW_ProxyGraphicsOrigin::Unspecified};
+    DRW_ProxyGraphicsEncoding encoding{DRW_ProxyGraphicsEncoding::Unknown};
+    DRW::Version sourceVersion{DRW::UNKNOWNV};
+    std::string sourceCodePage;
+    int countCode{0}; // 92/160 in DXF; zero denotes DWG's binary count.
+    std::uint64_t declaredByteCount{0};
+    bool replayAuthorized{false};
+};
+
 class dwgBufferW;
 class DrwEntityEncodeTestAccess;  // test-only friend; defined in
                                   // dwg_entity_encode_round_trip_tests.cpp
@@ -126,6 +158,9 @@ class DrwVisibilityTestAccess;    // test-only friend; defined in
                                   // dwg_visibility_read_tests.cpp
 class DwgPolylineTraceTestAccess; // test-only friend; defined in
                                   // dwg_safety_tests.cpp
+class DxfAcisCarrierTestAccess;   // test-only retained-owner inspection
+class DxfDimensionDstyleTestAccess; // test-only DIMENSION projection checks
+class DrwBlockStateTestAccess;       // test-only BLOCK reset-state checks
 
 #define SETENTFRIENDS  friend class dxfRW; \
                        friend class dwgReader; \
@@ -135,7 +170,8 @@ class DwgPolylineTraceTestAccess; // test-only friend; defined in
                        friend class DrwEntityEncodeTestAccess; \
                        friend class DrwDataStorageTestAccess; \
                        friend class DrwVisibilityTestAccess; \
-                       friend class DwgPolylineTraceTestAccess;
+                       friend class DwgPolylineTraceTestAccess; \
+                       friend class DxfAcisCarrierTestAccess;
 
 //! Base class for entities
 /*!
@@ -170,6 +206,7 @@ public:
 		visible = true;
 		numProxyGraph = 0;
 		proxyGraphics.clear();
+		m_proxyGraphicsProvenance = DRW_ProxyGraphicsProvenance{};
 		color24 = -1;
 		colorName.clear();
 		transparency = DRW::Opaque;
@@ -238,6 +275,19 @@ protected:
     bool replaceDxfRetainedStringField(
         const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
         std::string& destination, std::string value);
+    // Append a parsed string to one aggregate vector field while charging the
+    // same shared lease used by scalar string destinations.
+    bool appendDxfRetainedStringField(
+        const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+        std::vector<std::string>& destination, std::string value);
+    // Replace a parsed string owner's byte charge when its storage is mirrored
+    // or otherwise cannot be represented by a single string destination.
+    bool replaceDxfRetainedStringBytes(
+        const std::unique_ptr<dxfReader>& reader, std::size_t& ownerBytes,
+        std::size_t newOwnerBytes);
+    // Release one aggregate field's logical charge before clearing/replacing
+    // its backing values.
+    bool releaseDxfRetainedStringBytes(std::size_t& ownerBytes);
     //calculates extrusion axis (normal vector)
     void calculateAxis(DRW_Coord extPoint);
     //apply extrusion to @extPoint and return data in @point
@@ -289,17 +339,75 @@ public:
 	bool visible = true;              /*!< entity visibility, code 60 */
 	int numProxyGraph = 0;         /*!< Number of bytes in proxy graphics, code 92 */
     std::string proxyGraphics; /*!< proxy graphics bytes, code 310 */
+    //! Inspect whether the cache is parsed or caller-authored and its source
+    //! wire profile. This does not imply the bytes are safe to replay.
+    const DRW_ProxyGraphicsProvenance& proxyGraphicsProvenance() const noexcept {
+        return m_proxyGraphicsProvenance;
+    }
+    //! Explicitly acknowledge that the current public cache bytes are fresh,
+    //! complete, and appropriate for replay. Revoke before editing; after an
+    //! edit, re-authorize only after checking the cache again. Writers never
+    //! replay this cache without explicit authorization.
+    bool authorizeProxyGraphicsReplay() {
+        return authorizeProxyGraphicsReplay(
+            m_proxyGraphicsProvenance.sourceVersion,
+            m_proxyGraphicsProvenance.sourceCodePage);
+    }
+    //! Caller-authored bytes must explicitly identify the DXF source profile
+    //! whose proxy-graphics grammar/codepage they use. Parsed bytes can only
+    //! be acknowledged against their captured profile.
+    bool authorizeProxyGraphicsReplay(
+            DRW::Version sourceVersion,
+            const std::string& sourceCodePage) {
+        if (numProxyGraph <= 0 || proxyGraphics.empty()
+            || proxyGraphics.size() != static_cast<std::size_t>(numProxyGraph)
+            || sourceVersion < DRW::AC1012 || sourceVersion > DRW::AC1032
+            || sourceCodePage.empty())
+            return false;
+        const int expectedCountCode = sourceVersion >= DRW::AC1024 ? 160 : 92;
+
+        if (m_proxyGraphicsProvenance.origin
+                == DRW_ProxyGraphicsOrigin::Unspecified) {
+            m_proxyGraphicsProvenance.origin =
+                DRW_ProxyGraphicsOrigin::CallerSupplied;
+            m_proxyGraphicsProvenance.encoding =
+                DRW_ProxyGraphicsEncoding::Unknown;
+            m_proxyGraphicsProvenance.sourceVersion = sourceVersion;
+            m_proxyGraphicsProvenance.sourceCodePage = sourceCodePage;
+            m_proxyGraphicsProvenance.countCode = expectedCountCode;
+            m_proxyGraphicsProvenance.declaredByteCount = proxyGraphics.size();
+        } else if (m_proxyGraphicsProvenance.origin
+                   == DRW_ProxyGraphicsOrigin::CallerSupplied) {
+            m_proxyGraphicsProvenance.sourceVersion = sourceVersion;
+            m_proxyGraphicsProvenance.sourceCodePage = sourceCodePage;
+            m_proxyGraphicsProvenance.countCode = expectedCountCode;
+            m_proxyGraphicsProvenance.declaredByteCount = proxyGraphics.size();
+        } else if (m_proxyGraphicsProvenance.sourceVersion != sourceVersion
+                   || m_proxyGraphicsProvenance.sourceCodePage
+                       != sourceCodePage
+                   || m_proxyGraphicsProvenance.countCode
+                       != expectedCountCode
+                   || m_proxyGraphicsProvenance.declaredByteCount
+                       != proxyGraphics.size()) {
+            return false;
+        }
+        m_proxyGraphicsProvenance.replayAuthorized = true;
+        return true;
+    }
+    void revokeProxyGraphicsReplayAuthorization() noexcept {
+        m_proxyGraphicsProvenance.replayAuthorized = false;
+    }
 	int color24 = -1;               /*!< 24-bit color, code 420 */
     std::string colorName;     /*!< color name, code 430 */
 	int transparency = DRW::Opaque;          /*!< transparency, code 440 */
 	int plotStyle = DRW::DefaultPlotStyle;             /*!< hard pointer id to plot style object, code 390 */
 	DRW::ShadowMode shadow = DRW::CastAndReceieveShadows;    /*!< shadow mode, code 284 */
     std::uint32_t shadowHandle{0}; /*!< R2007+ shadow object handle when shadow mode is IgnoreShadows */
-    std::uint32_t fullVisualStyleHandle{0}; /*!< R2010+ full visual-style ref, ODA §19.4.2 (DWG-only) */
+    std::uint32_t fullVisualStyleHandle{0}; /*!< R2010+ full visual-style ref, ODA §20.4.2 (DWG-only) */
     std::uint32_t faceVisualStyleHandle{0}; /*!< R2010+ face visual-style ref */
     std::uint32_t edgeVisualStyleHandle{0}; /*!< R2010+ edge visual-style ref */
-    std::vector<std::uint32_t> reactorHandles; /*!< persisted reactor handles (ODA §19.4.2); DWG round-trip (Phase 2a) */
-    std::uint32_t xDictHandle = 0;          /*!< extension-dictionary handle (ODA §19.4.2); DWG round-trip (Phase 2a) */
+    std::vector<std::uint32_t> reactorHandles; /*!< persisted reactor handles (ODA §20.4.2); DWG round-trip (Phase 2a) */
+    std::uint32_t xDictHandle = 0;          /*!< extension-dictionary handle (ODA §20.4.2); DWG round-trip (Phase 2a) */
 
     //! AC1027+ AcDb:AcDsPrototype_1b payload linkage. The raw entity body
     //! remains available in its existing fields; these fields identify and
@@ -427,6 +535,8 @@ protected: //only for read dwg
     void copyExtDataFrom(const DRW_Entity& source);
 
 private:
+	friend class DRW_Surface;
+	friend class DRW_ModelerGeometry;
 	void init(DRW_Entity const& rhs);
 	DRW_Coord extAxisX;
 	DRW_Coord extAxisY;
@@ -440,6 +550,7 @@ private:
     // Shared accounting for 102 appData strings and parsed common text fields.
     std::shared_ptr<DxfReadRetainedLease> m_dxfRetainedStringLease;
     std::array<std::size_t, 3> m_dxfRetainedCommonStringBytes{};
+    DRW_ProxyGraphicsProvenance m_proxyGraphicsProvenance;
 };
 
 //! Typed metadata carrier for an ACAD_PROXY_ENTITY (DWG type 498).
@@ -855,6 +966,16 @@ struct DRW_ModelerPayloadChunk {
 class DRW_ModelerGeometry : public DRW_Entity {
     SETENTFRIENDS
 public:
+    //! Evidence about carrier bytes only; this does not validate ACIS syntax,
+    //! entity ownership, or geometric semantics.
+    enum class PayloadStatus : std::uint8_t {
+        Unknown,
+        ExplicitlyEmpty,
+        CarrierBytesPresent,
+        ExpectedButUnavailable,
+        Contradictory
+    };
+
     explicit DRW_ModelerGeometry(DRW::ETYPE type = DRW::REGION) {
         eType = type;
     }
@@ -879,6 +1000,7 @@ public:
     //! The identifier is preserved verbatim and is not treated as a handle.
     bool m_hasDxfModelerUid = false;
     std::string m_dxfModelerUid;
+    std::size_t m_dxfRetainedModelerUidBytes{0};
     //! Source DWG revision for a payload extracted with an exact versioned
     //! layout. UNKNOWN means no DWG payload has been qualified for re-emission.
     DRW::Version m_dwgSourceVersion = DRW::UNKNOWNV;
@@ -898,6 +1020,56 @@ public:
     //! DXF group order/type for m_rawBytes; does not classify DWG frame bytes.
     std::vector<DRW_ModelerPayloadChunk> m_dxfPayloadChunks;
     std::vector<DRW_ModelerPayloadRange> m_payloadRanges;
+
+    //! Summarize the currently exposed carrier evidence without interpreting
+    //! the bytes. A retained DWG object frame is not counted as ACIS payload;
+    //! DXF bytes count only when bounded by a recognized group-1/3/310 chunk.
+    //! This is a computed, non-virtual accessor and adds no object-layout state.
+    [[nodiscard]] PayloadStatus modelerPayloadStatus() const noexcept {
+        bool hasCarrierBytes = !m_dwgAcisPayload.empty()
+            || !dataStorageData.empty();
+        if (m_objectSize == 0 && m_bodyBitSize == 0
+            && !m_rawBytes.empty()) {
+            for (const DRW_ModelerPayloadChunk& chunk : m_dxfPayloadChunks) {
+                if ((chunk.m_groupCode == 1 || chunk.m_groupCode == 3
+                     || chunk.m_groupCode == 310)
+                    && chunk.m_length != 0
+                    && chunk.m_offset <= m_rawBytes.size()
+                    && chunk.m_length <= m_rawBytes.size() - chunk.m_offset) {
+                    hasCarrierBytes = true;
+                    break;
+                }
+            }
+        }
+
+        const bool dataExpected = m_hasModelerData
+            || hasDataStorageBinaryData() || hasDataStorageRecord;
+        if (m_isEmpty)
+            return hasCarrierBytes || dataExpected
+                ? PayloadStatus::Contradictory
+                : PayloadStatus::ExplicitlyEmpty;
+        if (hasCarrierBytes)
+            return PayloadStatus::CarrierBytesPresent;
+        if (dataExpected)
+            return PayloadStatus::ExpectedButUnavailable;
+        return PayloadStatus::Unknown;
+    }
+
+    [[nodiscard]] const char* modelerPayloadStatusName() const noexcept {
+        switch (modelerPayloadStatus()) {
+        case PayloadStatus::Unknown:
+            return "unknown";
+        case PayloadStatus::ExplicitlyEmpty:
+            return "explicitly-empty";
+        case PayloadStatus::CarrierBytesPresent:
+            return "carrier-bytes-present";
+        case PayloadStatus::ExpectedButUnavailable:
+            return "expected-but-unavailable";
+        case PayloadStatus::Contradictory:
+            return "contradictory";
+        }
+        return "unknown";
+    }
 
     //! Lazily-decoded ACIS wireframe from an identified payload carrier.
     DRW_AcisBrep m_wireframe;
@@ -1005,9 +1177,13 @@ private:
     bool m_dxfMeshSubclassSeen = false;
     int m_dxfState = 0;  // 0=none, 92=vertices, 93=faces, 94=edges, 95=creases, 96=overrides
     std::int32_t m_dxfVertexCount = -1;
-    std::int32_t m_dxfFaceItemsRemaining = -1;
-    std::int32_t m_dxfEdgeValuesRemaining = -1;
-    std::int32_t m_dxfCreaseValuesRemaining = -1;
+    // Reuse the original three int32 parser slots across phases: vertex X/Y/Z
+    // component ordinals in state 92, then face/edge/crease items remaining.
+    std::array<std::int32_t, 3> m_dxfPhaseCounts{{-1, -1, -1}};
+    static_assert(sizeof(m_dxfPhaseCounts) == 3u * sizeof(std::int32_t)
+                      && alignof(decltype(m_dxfPhaseCounts))
+                          == alignof(std::int32_t),
+                  "MESH phase counters must preserve the three private slots");
     std::int32_t m_dxfPending = 0;  // remaining items in current 90-stream
     std::int32_t m_dxfEdgeFrom = -1;  // half-read edge pair
     std::int32_t m_dxfOverrideEntityCount = -1;
@@ -1017,9 +1193,7 @@ private:
         m_dxfMeshSubclassSeen = false;
         m_dxfState = 0;
         m_dxfVertexCount = -1;
-        m_dxfFaceItemsRemaining = -1;
-        m_dxfEdgeValuesRemaining = -1;
-        m_dxfCreaseValuesRemaining = -1;
+        m_dxfPhaseCounts = {{-1, -1, -1}};
         m_dxfPending = 0;
         m_dxfEdgeFrom = -1;
         m_dxfOverrideEntityCount = -1;
@@ -1065,6 +1239,9 @@ public:
     std::uint32_t m_objectSize = 0;
     std::uint32_t m_bodyBitSize = 0;
     std::vector<std::uint8_t> m_rawBytes;
+
+private:
+    std::size_t m_dxfRetainedStyleNameBytes{0};
 };
 
 //! OLE2FRAME entity shell. The OLE compound payload remains opaque.
@@ -1109,6 +1286,7 @@ public:
             m_r2000TrailingByte = o.m_r2000TrailingByte;
             m_lockAspect = o.m_lockAspect;
             m_dxfPayloadLengthSpecified = false;
+            m_dxfOleSubclassSeen = false;
             m_objectSize = o.m_objectSize;
             m_bodyBitSize = o.m_bodyBitSize;
             m_rawBytes = o.m_rawBytes;
@@ -1158,6 +1336,7 @@ public:
 
 private:
     std::size_t m_dxfRetainedOleClientBytes{0};
+    bool m_dxfOleSubclassSeen = false;
 
 protected:
     [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs=0,
@@ -1196,6 +1375,7 @@ public:
             m_payloadTruncated = o.m_payloadTruncated;
             m_payloadTooLarge = o.m_payloadTooLarge;
             m_dxfPayloadLengthSpecified = false;
+            m_dxfOleSubclassSeen = false;
             m_objectSize = o.m_objectSize;
             m_bodyBitSize = o.m_bodyBitSize;
             m_rawBytes = o.m_rawBytes;
@@ -1227,6 +1407,9 @@ public:
     std::uint32_t m_bodyBitSize = 0;
     std::vector<std::uint8_t> m_rawBytes;
     std::vector<std::uint8_t> m_payloadBytes;
+
+private:
+    bool m_dxfOleSubclassSeen = false;
 };
 
 //! LIGHT entity shell. LibreCAD does not render lights, but preserves metadata.
@@ -1280,6 +1463,16 @@ public:
     double m_extendedLightLength = 0.0;
     double m_extendedLightWidth = 0.0;
     double m_extendedLightRadius = 0.0;
+    // CMC metadata is appended to keep offsets of the existing public LIGHT
+    // members stable. Methods are the raw C0-C8 DWG byte; unsupported methods
+    // remain observable and are refused by the writer unless implemented.
+    std::int32_t m_colorRgb = -1; /*!< 24-bit AcCmColor RGB, absent when negative. */
+    std::uint8_t m_colorMethod = 0;
+    UTF8STRING m_colorName;
+    UTF8STRING m_colorBookName;
+    std::uint8_t m_colorDwgFlags = 0;
+    std::uint16_t m_colorDwgIndex = 0;
+    bool m_colorDwgMetadataPresent = false;
 };
 
 //! CAMERA entity shell. LibreCAD does not render cameras, but preserves the
@@ -1350,6 +1543,7 @@ public:
 private:
     std::uint32_t m_dxfDouble40Count = 0;
     std::uint32_t m_dxfBool290Count = 0;
+    std::size_t m_dxfRetainedNotesBytes = 0u;
 };
 
 //! SECTIONOBJECT (AcDbSection) live-section plane entity.
@@ -1377,7 +1571,16 @@ public:
         m_indicatorAlpha(o.m_indicatorAlpha),
         m_indicatorColor(o.m_indicatorColor), m_verts(o.m_verts),
         m_blVerts(o.m_blVerts),
-        m_sectionSettingsHandle(o.m_sectionSettingsHandle) {
+        m_sectionSettingsHandle(o.m_sectionSettingsHandle),
+        m_dxfRetainedSectionNameBytes(o.m_dxfRetainedSectionNameBytes),
+        m_indicatorColorRgb(o.m_indicatorColorRgb),
+        m_indicatorColorName(o.m_indicatorColorName),
+        m_indicatorColorBookName(o.m_indicatorColorBookName),
+        m_indicatorColorDwgMethod(o.m_indicatorColorDwgMethod),
+        m_indicatorColorDwgFlags(o.m_indicatorColorDwgFlags),
+        m_indicatorColorDwgIndex(o.m_indicatorColorDwgIndex),
+        m_indicatorColorDwgMetadataPresent(
+            o.m_indicatorColorDwgMetadataPresent) {
         eType = DRW::SECTION;
         m_dxfInBody = false;
     }
@@ -1387,6 +1590,8 @@ public:
             m_state = o.m_state;
             m_flags = o.m_flags;
             m_name = o.m_name;
+            m_dxfRetainedSectionNameBytes =
+                o.m_dxfRetainedSectionNameBytes;
             m_vertDir = o.m_vertDir;
             m_topHeight = o.m_topHeight;
             m_bottomHeight = o.m_bottomHeight;
@@ -1395,6 +1600,14 @@ public:
             m_verts = o.m_verts;
             m_blVerts = o.m_blVerts;
             m_sectionSettingsHandle = o.m_sectionSettingsHandle;
+            m_indicatorColorRgb = o.m_indicatorColorRgb;
+            m_indicatorColorName = o.m_indicatorColorName;
+            m_indicatorColorBookName = o.m_indicatorColorBookName;
+            m_indicatorColorDwgMethod = o.m_indicatorColorDwgMethod;
+            m_indicatorColorDwgFlags = o.m_indicatorColorDwgFlags;
+            m_indicatorColorDwgIndex = o.m_indicatorColorDwgIndex;
+            m_indicatorColorDwgMetadataPresent =
+                o.m_indicatorColorDwgMetadataPresent;
             eType = DRW::SECTION;
             m_dxfInBody = false;
         }
@@ -1419,13 +1632,29 @@ public:
     double m_topHeight = 0.0;             /*!< top height, code 40 */
     double m_bottomHeight = 0.0;          /*!< bottom height, code 41 */
     std::uint16_t m_indicatorAlpha = 0;   /*!< indicator transparency, code 70 */
-    std::uint32_t m_indicatorColor = 0;   /*!< indicator color, code 62 (CMTC) */
+    std::uint32_t m_indicatorColor = 0;   /*!< indicator ACI color, code 63 (CMTC) */
     std::vector<DRW_Coord> m_verts;       /*!< section-line vertices, code 11 */
     std::vector<DRW_Coord> m_blVerts;     /*!< back-line vertices, code 12 */
     std::uint32_t m_sectionSettingsHandle = 0; /*!< AcDbSectionSettings, code 360 */
 
 private:
     bool m_dxfInBody = false;
+    std::size_t m_dxfRetainedSectionNameBytes{0};
+
+public:
+    // Optional C2 payload for the existing DWG CMTC indicator-color field.
+    // The generic CMC RGB encoding is specified by ODA §2.11; the
+    // SectionObject-specific color mapping remains producer-unqualified.
+    std::int32_t m_indicatorColorRgb = -1;
+    UTF8STRING m_indicatorColorName;
+    UTF8STRING m_indicatorColorBookName;
+    // Raw DWG CMC method. Zero means infer for authored/DXF-origin data.
+    std::uint8_t m_indicatorColorDwgMethod = 0;
+    // Appended provenance preserves the R2004+ optional-string flags and
+    // reserved BS index while keeping prior member offsets stable.
+    std::uint8_t m_indicatorColorDwgFlags = 0;
+    std::uint16_t m_indicatorColorDwgIndex = 0;
+    bool m_indicatorColorDwgMetadataPresent = false;
 };
 
 //! Class to handle TOLERANCE entries
@@ -1470,9 +1699,11 @@ public:
 */
 class DRW_Block : public DRW_Point {
     SETENTFRIENDS
+    friend class DrwBlockStateTestAccess;
 private:
     std::size_t m_dxfRetainedXrefPathBytes{0};
     std::size_t m_dxfRetainedNameBytes{0};
+    std::size_t m_dxfRetainedDescriptionBytes{0};
 
 public:
     DRW_Block() {
@@ -1492,8 +1723,11 @@ protected:
 public:
     UTF8STRING name;             /*!< block name, code 2 */
     int flags;                   /*!< block type, code 70 */
+    bool xrefUnloaded {false};   /*!< XREF unload state, BLOCK code 71 */
     int insUnits = 0;            /*!< block insertion units, BLOCK_RECORD code 70 */
     UTF8STRING xrefPath;         /*!< Xref path name, code 1 (DXF) / copied from BLOCK_RECORD (DWG) */
+    UTF8STRING description;      /*!< Block description, code 4 (DXF) */
+    bool hasDescription = false; /*!< Whether optional BLOCK group 4 was present */
     std::vector<std::uint8_t> previewData; /*!< BLOCK_RECORD preview bytes, code 310 */
 
     /// Set externally before encodeDwg to emit an ENDBLK rather than a
@@ -1511,6 +1745,7 @@ private:
 *  @author Rallaz
 */
 class DRW_Attrib;
+class DRW_SeqEnd;
 
 class DRW_Insert : public DRW_Point {
     SETENTFRIENDS
@@ -1553,11 +1788,18 @@ public:
     /*!< Attached attribute entities, populated by DWG dispatcher when
          ATTRIB entities owned by this INSERT are read. */
     std::vector<std::shared_ptr<DRW_Attrib>> attlist;
+    /*!< Optional DXF SEQEND metadata terminating this INSERT/TABLE's
+         attribute chain. A null pointer means the source had no retained
+         footer; writers synthesize the legacy minimal footer when required. */
+    std::shared_ptr<DRW_SeqEnd> seqEndEntity;
 public: //only for read dwg
     dwgHandle blockRecH;
     dwgHandle seqendH; //RLZ: on implement attrib remove this handle from obj list (see pline/vertex code)
     /*!< Handles of attached ATTRIBs, captured from DRW_Insert::parseDwg. */
     std::vector<dwgHandle> attribHandles;
+
+private:
+    std::size_t m_dxfRetainedNameBytes{0u};
 };
 
 //! Minimal semantic payload for ACAD_TABLE / TABLECONTENT.
@@ -1566,12 +1808,22 @@ struct DRW_TableCellContent {
     UTF8STRING m_text;
     DRW_CadValue m_value;
     std::uint32_t m_handle = 0;
+
+private:
+    friend class DRW_Table;
+    // DXF text is stored both here and in m_value.m_value.
+    std::size_t m_dxfRetainedTextBytes{0u};
 };
 
 struct DRW_TableCellAttribute {
     std::uint32_t m_attdefHandle = 0;
     int m_index = 0;
     UTF8STRING m_text;
+    std::uint32_t m_contentIndex = 0; /*!< Zero-based owning content ordinal; UINT32_MAX means unassociated. */
+
+private:
+    friend class DRW_Table;
+    std::size_t m_dxfRetainedTextBytes{0u};
 };
 
 struct DRW_TableBorder {
@@ -1591,13 +1843,20 @@ struct DRW_TableCell {
     int m_mergedHeight = 0;
     double m_rotation = 0.0;
     UTF8STRING m_toolTip;
+    UTF8STRING m_textStyleName;
     int m_styleId = 0;
+    std::int32_t m_overrideStyleType = 1; /*!< DWG override kind (Cell), distinct from base style ID. */
     int m_virtualEdgeFlags = 0;
     std::uint32_t m_overrideFlags = 0;
     std::uint32_t m_valueHandle = 0;
     std::uint32_t m_textStyleHandle = 0;
     std::uint32_t m_textStyleOverrideHandle = 0;
     std::uint32_t m_blockHandle = 0;
+    bool m_hasLinkedData = false; /*!< TABLECONTENT cell carries a DATALINK. */
+    std::uint32_t m_dataLinkHandle = 0; /*!< DATALINK hard-pointer target. */
+    std::int32_t m_linkedDataRowCount = 0; /*!< ODA BL93; retained verbatim. */
+    std::int32_t m_linkedDataColumnCount = 0; /*!< ODA BL94; retained verbatim. */
+    std::int32_t m_linkedDataUnknown = 0; /*!< ODA BL96; opaque, not interpreted. */
     double m_blockScale = 1.0;
     double m_width = 0.0;
     double m_height = 0.0;
@@ -1622,16 +1881,24 @@ struct DRW_TableCell {
     double m_textHeight = 0.0;
 
     std::array<DRW_TableBorder, 6> m_borders;
+
+private:
+    friend class DRW_Table;
+    std::size_t m_dxfRetainedTextStyleBytes{0u};
 };
 
 struct DRW_TableColumn {
     UTF8STRING m_name;
     double m_width = 0.0;
+    std::int32_t m_styleId = 0;
+    std::int32_t m_overrideStyleType = 3; /*!< DWG override kind: Column. */
 };
 
 struct DRW_TableRow {
     double m_height = 0.0;
     std::vector<DRW_TableCell> m_cells;
+    std::int32_t m_styleId = 0;
+    std::int32_t m_overrideStyleType = 2; /*!< DWG override kind: Row. */
 };
 
 struct DRW_TableMergedRange {
@@ -1650,6 +1917,7 @@ struct DRW_TableContent {
     std::vector<DRW_TableMergedRange> m_mergedRanges;
     std::uint32_t m_tableStyleHandle = 0;
     std::vector<DRW_DwgSubrecordRange> m_subrecordRanges;
+    std::int32_t m_overrideStyleType = 4; /*!< DWG override kind: FormattedTableData. */
 };
 
 //! Class to handle ACAD_TABLE (AcDbTable).
@@ -1664,6 +1932,17 @@ public:
         m_horizontalDirection(o.m_horizontalDirection),
         m_hasSemanticContent(o.m_hasSemanticContent),
         m_semanticContentComplete(o.m_semanticContentComplete),
+        m_dataVersion(o.m_dataVersion),
+        m_ownerBlockRecordHandle(o.m_ownerBlockRecordHandle),
+        m_tableOverrideFlags(o.m_tableOverrideFlags),
+        m_borderColorOverrideFlags(o.m_borderColorOverrideFlags),
+        m_borderLineweightOverrideFlags(o.m_borderLineweightOverrideFlags),
+        m_borderVisibilityOverrideFlags(o.m_borderVisibilityOverrideFlags),
+        m_flowDirection(o.m_flowDirection),
+        m_horizontalCellMargin(o.m_horizontalCellMargin),
+        m_verticalCellMargin(o.m_verticalCellMargin),
+        m_titleSuppressed(o.m_titleSuppressed),
+        m_headerSuppressed(o.m_headerSuppressed),
         m_tableStyleHandle(o.m_tableStyleHandle), m_content(o.m_content) {
         eType = DRW::TABLE;
         resetDxfParserState();
@@ -1675,6 +1954,17 @@ public:
             m_horizontalDirection = o.m_horizontalDirection;
             m_hasSemanticContent = o.m_hasSemanticContent;
             m_semanticContentComplete = o.m_semanticContentComplete;
+            m_dataVersion = o.m_dataVersion;
+            m_ownerBlockRecordHandle = o.m_ownerBlockRecordHandle;
+            m_tableOverrideFlags = o.m_tableOverrideFlags;
+            m_borderColorOverrideFlags = o.m_borderColorOverrideFlags;
+            m_borderLineweightOverrideFlags = o.m_borderLineweightOverrideFlags;
+            m_borderVisibilityOverrideFlags = o.m_borderVisibilityOverrideFlags;
+            m_flowDirection = o.m_flowDirection;
+            m_horizontalCellMargin = o.m_horizontalCellMargin;
+            m_verticalCellMargin = o.m_verticalCellMargin;
+            m_titleSuppressed = o.m_titleSuppressed;
+            m_headerSuppressed = o.m_headerSuppressed;
             m_tableStyleHandle = o.m_tableStyleHandle;
             m_content = o.m_content;
             eType = DRW::TABLE;
@@ -1682,6 +1972,13 @@ public:
         }
         return *this;
     }
+
+    // TABLE has a distinct, versioned DWG frame and linked-object graph.
+    // Until that writer exists, do not inherit INSERT's lower-level encoder.
+    [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
+                                 std::uint32_t bs=0,
+                                 dwgBufferW *strBuf=nullptr,
+                                 dwgBufferW *handleBuf=nullptr) override;
 
 protected:
     void resetDwgState();
@@ -1693,6 +1990,17 @@ public:
     DRW_Coord m_horizontalDirection;
     bool m_hasSemanticContent = false;
     bool m_semanticContentComplete = false;
+    int m_dataVersion = 0;
+    std::uint32_t m_ownerBlockRecordHandle = 0;
+    std::uint32_t m_tableOverrideFlags = 0;
+    std::uint32_t m_borderColorOverrideFlags = 0;
+    std::uint32_t m_borderLineweightOverrideFlags = 0;
+    std::uint32_t m_borderVisibilityOverrideFlags = 0;
+    int m_flowDirection = 0;
+    double m_horizontalCellMargin = 0.0;
+    double m_verticalCellMargin = 0.0;
+    bool m_titleSuppressed = false;
+    bool m_headerSuppressed = false;
     std::uint32_t m_tableStyleHandle = 0;
     DRW_TableContent m_content;
 
@@ -1711,6 +2019,14 @@ private:
     std::size_t m_dxfNextCell = 0;
     int m_dxfCurrentCell = -1;
     bool m_dxfInCellValue = false;
+    bool m_dxfDataVersionRead = false;
+    bool m_dxfTablePropertiesStarted = false;
+    bool m_dxfUnsupportedData = false;
+    int m_dxfAttributesExpected = -1;
+    int m_dxfAttributesRead = 0;
+    int m_dxfAttributesContentIndex = -1;
+
+    void finalizeDxfParse() noexcept;
 
     void resetDxfParserState() noexcept {
         m_dxfSubclass = DxfSubclass::Entity;
@@ -1721,6 +2037,12 @@ private:
         m_dxfNextCell = 0;
         m_dxfCurrentCell = -1;
         m_dxfInCellValue = false;
+        m_dxfDataVersionRead = false;
+        m_dxfTablePropertiesStarted = false;
+        m_dxfUnsupportedData = false;
+        m_dxfAttributesExpected = -1;
+        m_dxfAttributesRead = 0;
+        m_dxfAttributesContentIndex = -1;
     }
 };
 
@@ -1733,13 +2055,20 @@ public:
         tType = DRW::TABLECONTENT;
         m_content = DRW_TableContent();
         m_parseComplete = false;
+        m_semanticContentComplete = false;
         DRW_TableEntry::reset();
     }
 protected:
     bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;
+    // ODA §20.4.97: standalone in AC1021; AC1024+ embeds this payload in TABLE.
+    [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
+                                 dwgBufferW *strBuf,
+                                 dwgBufferW *handleBuf) const;
 public:
     DRW_TableContent m_content;
     bool m_parseComplete = false;
+    bool m_semanticContentComplete = false;
+    [[nodiscard]] bool validateDwgPayload(DRW::Version version) const;
 };
 
 //! Class to handle lwpolyline entity
@@ -1772,6 +2101,7 @@ public:
         // The base copy preserves scalar parser state; clone the mutable
         // XDATA values so parseAttribs cannot affect the source entity.
         m_dxfVertexCountSeen = false;
+        m_dxfVertexFieldCounts.fill(0);
         copyExtDataFrom(p);
     }
     // Deep-copy assignment to match the deep-copy constructor; the implicit
@@ -1793,6 +2123,7 @@ public:
                     vertex ? std::make_shared<DRW_Vertex2D>(*vertex) : nullptr);
             vertex.reset();  // transient build pointer — do not alias p's vertlist
             m_dxfVertexCountSeen = false;
+            m_dxfVertexFieldCounts.fill(0);
             // DRW_Entity::operator= aliases shared XDATA; restore ownership
             // isolation after copying the public entity fields.
             copyExtDataFrom(p);
@@ -1833,6 +2164,9 @@ public:
 
 private:
     bool m_dxfVertexCountSeen = false;
+    // Per-group-code occurrence ordinals for DXF repeated vertex arrays:
+    // 10, 20, 40, 41, 42, and 91. Keep these parser-only and reset on copy.
+    std::array<std::uint32_t, 6> m_dxfVertexFieldCounts{};
 };
 
 //! One MLINE vertex carries a baseline point plus per-line segment params.
@@ -1864,7 +2198,7 @@ public:
         numLines = 0;
         numVerts = 0;
         styleHandle = 0;
-        m_currentVertexIdx = -1;
+        m_currentParameterVertexIdx = -1;
         m_currentElementIdx = 0;
         m_currentSegFillCount = 0;
     }
@@ -1915,6 +2249,10 @@ public:
     std::uint32_t styleHandle;           /*!< H / DXF 340 */
     std::vector<DRW_MLineVertex> vertlist;
 private:
+    struct DxfParameterBlock {
+        std::vector<double> segment;
+        std::vector<double> areaFill;
+    };
     std::size_t m_dxfRetainedStyleNameBytes{0};
     static constexpr std::int32_t kMaxDxfVertices = 5000;
     static constexpr std::int32_t kMaxDxfLines = 255;
@@ -1924,20 +2262,30 @@ private:
     bool validateDxf() const;
 
     // Transient state for DXF parseCode multi-vertex/multi-element walk.
-    int m_currentVertexIdx;
+    int m_currentParameterVertexIdx;
     int m_currentElementIdx;
     int m_currentSegFillCount;
+    // Per-code occurrence ordinals for MLINE's repeated position,
+    // segment-direction, and miter-direction vector arrays.
+    std::array<std::uint32_t, 9> m_dxfVectorComponentCounts{};
     std::int32_t m_currentSegExpected = -1;
     std::int32_t m_currentAreaExpected = -1;
+    int m_currentPendingParameterIdx = -1;
+    std::vector<DxfParameterBlock> m_dxfPendingParameters;
     bool m_dxfVertexCountSeen = false;
     bool m_dxfLineCountSeen = false;
 
+    bool attachPendingParameterBlocks();
+
     void resetDxfParserState() noexcept {
-        m_currentVertexIdx = -1;
+        m_currentParameterVertexIdx = -1;
         m_currentElementIdx = 0;
         m_currentSegFillCount = 0;
+        m_dxfVectorComponentCounts.fill(0u);
         m_currentSegExpected = -1;
         m_currentAreaExpected = -1;
+        m_currentPendingParameterIdx = -1;
+        m_dxfPendingParameters.clear();
         m_dxfVertexCountSeen = false;
         m_dxfLineCountSeen = false;
     }
@@ -2134,6 +2482,15 @@ public:
     std::uint8_t attVersion;         /*!< version byte (R2010+); 0=plain TEXT-style, >0=MText-style */
     std::uint8_t m_attributeType;    /*!< R2018+ attribute type: 1=single-line, 2=multi-line ATTRIB, 4=multi-line ATTDEF */
     std::uint8_t keepDuplicateRecords = 0; /*!< DXF xrecord duplicate-record policy */
+    /* R2018+ multiline ATTRIB/ATTDEF outer annotative state. This is
+       separate from the nested MTEXT object's own annotative fields. */
+    std::vector<std::uint8_t> m_r2018OuterAnnotativeData;
+    std::uint16_t m_r2018OuterAnnotativeUnknown = 0;
+    std::uint32_t m_r2018OuterAnnotativeAppHandle = 0;
+    // Resolved APPID identity for the outer hard-pointer reference. The
+    // numeric handle is source-drawing-local; DWG writers use this name to
+    // register and remap the target into the output drawing.
+    std::string m_r2018OuterAnnotativeAppIdName;
     /* MText-style payload (R2010+).  Non-null iff attVersion > 0 (DWG) or the
        AcDbMText nested subclass was seen (DXF).  Carries the multi-line text
        and formatting (paragraph breaks, font runs, etc.) that the single-line
@@ -2217,6 +2574,7 @@ private:
     // aggregate logical text charge with the parsed value through callback
     // publication/destruction, not just with the most recent reader token.
     std::shared_ptr<DxfReadRetainedLease> m_dxfRetainedTextLease;
+    std::size_t m_dxfRetainedBackgroundColorNameBytes{0};
 
 public:
     double interlin;              /*!< linespacing factor, code 44 */
@@ -2262,9 +2620,21 @@ public:
     bool m_r2018ColumnAutoHeight = false;
     bool m_r2018ColumnFlowReversed = false;
     std::vector<double> m_r2018ColumnHeights;
+    //! True when an R2018 standalone MTEXT embedded-column object was parsed.
+    //! Its duplicated points and dimensions are independent of the main
+    //! MTEXT fields and must not be regenerated from them on DXF export.
+    bool m_r2018DxfColumnContextPresent = false;
     std::vector<std::uint8_t> m_r2018AnnotativeData;
     std::uint16_t m_r2018AnnotativeUnknown = 0;
     std::uint32_t m_r2018AnnotativeAppHandle = 0;
+    /** Raw method from a parsed R2004+ background CMC; 0xFF means that no
+     * DWG source method is retained and the writer should choose canonically
+     * from the public scalar/RGB fields. Unsupported methods remain visible
+     * but are not silently rewritten by the DWG encoder. */
+    std::uint8_t m_backgroundColorDwgMethod = 0xFFu;
+    std::uint8_t m_backgroundColorDwgFlags = 0u;
+    std::uint16_t m_backgroundColorDwgIndex = 0u;
+    bool m_backgroundColorDwgMetadataPresent = false;
 private:
     bool hasXAxisVec; /* renamed by djm for better description */
     enum class DxfOrientationMode { LegacyApi, Rotation, Direction };
@@ -2273,20 +2643,54 @@ private:
     bool m_dxfOrientationSnapshotValid = false;
     double m_dxfAngleSnapshot = 0.0;
     DRW_Coord m_dxfDirectionSnapshot;
-    // Parser scope is transient; copied/moved models retain orientation
-    // provenance but must not resume parsing inside a redundant column body.
+    // Parser scope is transient; copied/moved models retain orientation and
+    // column values but must not resume parsing inside either nested grammar.
     struct DxfOrientationScope {
-        bool redundantColumn = false;
+        enum class Mode : std::uint8_t {
+            Main,
+            StandaloneColumnObject,
+            EmbeddedAttributeMText
+        } mode = Mode::Main;
+        std::uint8_t directionComponents = 0;
+        std::uint8_t insertionComponents = 0;
+        bool attachmentSeen = false;
+        bool rectangleWidthSeen = false;
+        bool rectangleHeightSeen = false;
+        bool totalWidthSeen = false;
+        bool totalHeightSeen = false;
+        bool columnTypeSeen = false;
+        bool columnCountSeen = false;
+        bool columnWidthSeen = false;
+        bool columnGutterSeen = false;
+        bool autoHeightSeen = false;
+        bool flowReversedSeen = false;
+        void reset() noexcept {
+            mode = Mode::Main;
+            directionComponents = 0;
+            insertionComponents = 0;
+            attachmentSeen = false;
+            rectangleWidthSeen = false;
+            rectangleHeightSeen = false;
+            totalWidthSeen = false;
+            totalHeightSeen = false;
+            columnTypeSeen = false;
+            columnCountSeen = false;
+            columnWidthSeen = false;
+            columnGutterSeen = false;
+            autoHeightSeen = false;
+            flowReversedSeen = false;
+        }
         DxfOrientationScope() = default;
         DxfOrientationScope(const DxfOrientationScope&) noexcept {}
         DxfOrientationScope(DxfOrientationScope&&) noexcept {}
         DxfOrientationScope& operator=(const DxfOrientationScope&) noexcept {
-            redundantColumn = false; return *this;
+            reset(); return *this;
         }
         DxfOrientationScope& operator=(DxfOrientationScope&&) noexcept {
-            redundantColumn = false; return *this;
+            reset(); return *this;
         }
     } m_dxfOrientationScope;
+    [[nodiscard]] bool finalizeDxfColumnObject() const noexcept;
 };
 
 //! Class to handle RTEXT (RText, AutoCAD Express Tools "reactive text").
@@ -2527,6 +2931,8 @@ public:
         firstEH = p.firstEH;
         lastEH = p.lastEH;
         seqEndH = p.seqEndH;
+        seqEndEntity = p.seqEndEntity
+            ? std::make_shared<DRW_SeqEnd>(*p.seqEndEntity) : nullptr;
         clearParserCursor();
     }
     DRW_Polyline& operator=(const DRW_Polyline& p) {
@@ -2549,6 +2955,8 @@ public:
             firstEH = p.firstEH;
             lastEH = p.lastEH;
             seqEndH = p.seqEndH;
+            seqEndEntity = p.seqEndEntity
+                ? std::make_shared<DRW_SeqEnd>(*p.seqEndEntity) : nullptr;
             clearParserCursor();
         }
         return *this;
@@ -2579,6 +2987,9 @@ public:
             ++seqEndH.size;
     }
     std::uint32_t dwgSeqEndHandle() const { return seqEndH.ref; }
+    [[nodiscard]] std::size_t dwgHandleListSize() const noexcept {
+        return hadlesList.size();
+    }
     [[nodiscard]] bool isDwgVertexCompatible(
         const DRW_Vertex& vertex) const noexcept;
 
@@ -2603,6 +3014,8 @@ public:
     int curvetype;           /*!< curves & smooth surface type, code 75, default 0 */
 
     std::vector<std::shared_ptr<DRW_Vertex>> vertlist;  /*!< vertex list */
+    /*!< Optional DXF SEQEND metadata for this classic POLYLINE's owned chain. */
+    std::shared_ptr<DRW_SeqEnd> seqEndEntity;
 
 private:
     std::list<std::uint32_t>hadlesList; //list of handles, only in 2004+
@@ -2646,8 +3059,8 @@ public:
         for (const auto& point : o.fitlist)
             fitlist.push_back(
                 point ? std::make_shared<DRW_Coord>(*point) : nullptr);
-        controlpoint.reset();
-        fitpoint.reset();
+        m_dxfControlPointCursor.reset();
+        m_dxfFitPointCursor.reset();
         clearParserCursor();
     }
     DRW_Spline& operator=(const DRW_Spline& o) {
@@ -2677,8 +3090,8 @@ public:
             for (const auto& point : o.fitlist)
                 fitlist.push_back(
                     point ? std::make_shared<DRW_Coord>(*point) : nullptr);
-            controlpoint.reset();
-            fitpoint.reset();
+            m_dxfControlPointCursor.reset();
+            m_dxfFitPointCursor.reset();
             m_dxfDegreeSeen = false;
             m_dxfKnotCountSeen = false;
             m_dxfControlCountSeen = false;
@@ -2741,8 +3154,18 @@ private:
     static constexpr std::int32_t kMaxDxfItems = 1000000;
     static constexpr std::int32_t kMaxDxfDegree = 1024;
 
-    std::shared_ptr<DRW_Coord> controlpoint;   /*!< current control point to add data */
-    std::shared_ptr<DRW_Coord> fitpoint;       /*!< current fit point to add data */
+    struct DxfPointComponentCursor {
+        std::size_t x = 0;
+        std::size_t y = 0;
+        std::size_t z = 0;
+    };
+    static_assert(sizeof(std::shared_ptr<DxfPointComponentCursor>)
+                      == sizeof(std::shared_ptr<DRW_Coord>)
+                  && alignof(std::shared_ptr<DxfPointComponentCursor>)
+                      == alignof(std::shared_ptr<DRW_Coord>),
+                  "DXF point cursors must reuse the existing private slots");
+    std::shared_ptr<DxfPointComponentCursor> m_dxfControlPointCursor;
+    std::shared_ptr<DxfPointComponentCursor> m_dxfFitPointCursor;
     bool m_dxfDegreeSeen = false;
     bool m_dxfKnotCountSeen = false;
     bool m_dxfControlCountSeen = false;
@@ -2866,9 +3289,70 @@ public:
         double  value {0.0};
         int     rgb {-1};
         int     aciColor {0};
+        // CMC color-method metadata (DWG) or the corresponding mapped DXF
+        // color group (63/421). DXF group 431 is a string by the group-code
+        // type table and has no verified HATCH gradient mapping; nonzero
+        // values are therefore not emitted as group 431 by the DXF writer.
         std::uint8_t colorMethod {0};
         UTF8STRING colorName;
         UTF8STRING colorBookName;
+
+        // Keep the original positional brace-initialization API while the
+        // retained-byte counters remain private implementation details.
+        GradientStop(double value_ = 0.0, int rgb_ = -1, int aciColor_ = 0,
+                     std::uint8_t colorMethod_ = 0,
+                     UTF8STRING colorName_ = UTF8STRING(),
+                     UTF8STRING colorBookName_ = UTF8STRING())
+            : value(value_), rgb(rgb_), aciColor(aciColor_),
+              colorMethod(colorMethod_), colorName(std::move(colorName_)),
+              colorBookName(std::move(colorBookName_)) {}
+
+        // Opaque R2004+ CMC carrier for methods whose HATCH gradient
+        // semantics are not mapped here. Retaining these bytes permits a
+        // same-version DWG replay without claiming a decoded color meaning;
+        // typed DXF projection remains independently gated.
+        void setOpaqueDwgCmcRaw(DRW::Version sourceVersion,
+                                std::uint16_t colorIndex,
+                                std::int32_t packedColor,
+                                std::uint8_t flags) noexcept {
+            m_hasOpaqueDwgCmcRaw = true;
+            m_opaqueDwgCmcSourceVersion = sourceVersion;
+            m_opaqueDwgCmcIndex = colorIndex;
+            m_opaqueDwgCmcPackedColor = packedColor;
+            m_opaqueDwgCmcFlags = flags;
+        }
+        void clearOpaqueDwgCmcRaw() noexcept {
+            m_hasOpaqueDwgCmcRaw = false;
+            m_opaqueDwgCmcSourceVersion = DRW::UNKNOWNV;
+            m_opaqueDwgCmcIndex = 0u;
+            m_opaqueDwgCmcPackedColor = 0;
+            m_opaqueDwgCmcFlags = 0u;
+        }
+        bool hasOpaqueDwgCmcRaw() const noexcept {
+            return m_hasOpaqueDwgCmcRaw;
+        }
+        DRW::Version opaqueDwgCmcSourceVersion() const noexcept {
+            return m_opaqueDwgCmcSourceVersion;
+        }
+        std::uint16_t opaqueDwgCmcIndex() const noexcept {
+            return m_opaqueDwgCmcIndex;
+        }
+        std::int32_t opaqueDwgCmcPackedColor() const noexcept {
+            return m_opaqueDwgCmcPackedColor;
+        }
+        std::uint8_t opaqueDwgCmcFlags() const noexcept {
+            return m_opaqueDwgCmcFlags;
+        }
+
+    private:
+        friend class DRW_Hatch;
+        std::size_t m_dxfRetainedColorNameBytes {0u};
+        std::size_t m_dxfRetainedColorBookNameBytes {0u};
+        bool m_hasOpaqueDwgCmcRaw {false};
+        DRW::Version m_opaqueDwgCmcSourceVersion {DRW::UNKNOWNV};
+        std::uint16_t m_opaqueDwgCmcIndex {0u};
+        std::int32_t m_opaqueDwgCmcPackedColor {0};
+        std::uint8_t m_opaqueDwgCmcFlags {0u};
     };
 
     void appendLoop (std::shared_ptr<DRW_HatchLoop> const& v) {
@@ -2879,10 +3363,12 @@ protected:
     // DWG parsing may reuse an entity instance after a failed or older-version
     // parse. Clear every HATCH-owned carrier before reading the next body.
     void resetDwgState() {
+        DRW_Point::resetDwgState();
         angle = scale = 0.0;
         basePoint = DRW_Coord{0.0, 0.0, 0.0};
         extPoint = DRW_Coord{0.0, 0.0, 1.0};
         name.clear();
+        m_dxfRetainedNameBytes = 0;
         solid = 1;
         associative = 0;
         hstyle = 0;
@@ -2900,6 +3386,7 @@ protected:
         singleColor = 0;
         gradTint = 0.0;
         gradName.clear();
+        m_dxfRetainedGradientNameBytes = 0;
         gradColors.clear();
         seedPoints.clear();
 
@@ -2920,7 +3407,7 @@ protected:
         m_dxfPatternDashCountExpected = -1;
         m_dxfPatternDashCountSeen = false;
         m_dxfGradientColorCountExpected = -1;
-        m_dxfGradientColorCountSeen = false;
+        m_dxfGradientFieldsSeen = 0;
         m_dxfSplineKnotCountExpected = -1;
         m_dxfSplineControlCountExpected = -1;
         m_dxfSplineFitCountExpected = -1;
@@ -2935,6 +3422,9 @@ protected:
     bool isValidDxfCoordinateTransition(int code) const {
         if (m_dxfPendingCoordinateGroup != 0)
             return code == m_dxfPendingCoordinateGroup + 10;
+        if (spline && (code == 10 || code == 20
+                       || code == 11 || code == 21))
+            return true;
         return code < 20 || code > 23;
     }
     virtual bool parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs=0) override;
@@ -2943,7 +3433,9 @@ protected:
     // data). Extracted so DRW_MPolygon::parseDwg reuses the identical loop body
     // while supplying its own differing leading/trailing field order.
     bool parseDwgBoundaryData(DRW::Version version, dwgBuffer *buf,
-                              std::uint32_t &totalBoundItems, bool &havePixelSize);
+                              std::uint32_t &totalBoundItems,
+                              std::vector<std::uint32_t> &boundaryHandleCounts,
+                              bool &havePixelSize);
     void encodeDwgGradientData(DRW::Version version, dwgBufferW *buf,
                                dwgBufferW *strBuf) const;
     bool encodeDwgBoundaryData(DRW::Version version, dwgBufferW *buf,
@@ -2979,6 +3471,8 @@ public:
     std::vector<DRW_Coord> seedPoints;
 
 private:
+    std::size_t m_dxfRetainedNameBytes{0};
+    std::size_t m_dxfRetainedGradientNameBytes{0};
     bool validateCurrentBoundaryPathDxf() const;
     bool validateCurrentPatternLineDxf() const;
     bool validateCurrentSplineDxf() const;
@@ -2995,6 +3489,10 @@ private:
         m_dxfSplineKnotCountExpected = -1;
         m_dxfSplineControlCountExpected = -1;
         m_dxfSplineFitCountExpected = -1;
+        m_dxfSplineControlXCount = 0;
+        m_dxfSplineControlYCount = 0;
+        m_dxfSplineFitXCount = 0;
+        m_dxfSplineFitYCount = 0;
     }
 
     void clearParserState() {
@@ -3015,7 +3513,7 @@ private:
         m_dxfPatternDashCountExpected = -1;
         m_dxfPatternDashCountSeen = false;
         m_dxfGradientColorCountExpected = -1;
-        m_dxfGradientColorCountSeen = false;
+        m_dxfGradientFieldsSeen = 0;
         m_dxfSeedPointsExpected = -1;
         m_dxfSeedPointCountSeen = false;
         m_dxfPendingCoordinateGroup = 0;
@@ -3084,14 +3582,37 @@ private:
     int m_dxfPatternDashCountExpected = -1;
     bool m_dxfPatternDashCountSeen = false;
     int m_dxfGradientColorCountExpected = -1;
-    bool m_dxfGradientColorCountSeen = false;
+    enum DxfGradientField : std::uint16_t {
+        DxfGradient450 = 1u << 0,
+        DxfGradient451 = 1u << 1,
+        DxfGradient452 = 1u << 2,
+        DxfGradient453 = 1u << 3,
+        DxfGradient460 = 1u << 4,
+        DxfGradient461 = 1u << 5,
+        DxfGradient462 = 1u << 6,
+        DxfGradient463 = 1u << 7,
+        DxfGradient470 = 1u << 8
+    };
+    bool noteDxfGradientField(DxfGradientField field) noexcept {
+        const std::uint16_t bit = static_cast<std::uint16_t>(field);
+        if ((m_dxfGradientFieldsSeen & bit) != 0u)
+            return false;
+        m_dxfGradientFieldsSeen = static_cast<std::uint16_t>(
+            m_dxfGradientFieldsSeen | bit);
+        return true;
+    }
+    std::uint16_t m_dxfGradientFieldsSeen {0};
     int m_dxfSplineKnotCountExpected = -1;
     int m_dxfSplineControlCountExpected = -1;
     int m_dxfSplineFitCountExpected = -1;
+    std::uint32_t m_dxfSplineControlXCount = 0;
+    std::uint32_t m_dxfSplineControlYCount = 0;
+    std::uint32_t m_dxfSplineFitXCount = 0;
+    std::uint32_t m_dxfSplineFitYCount = 0;
     int m_dxfSeedPointsExpected = -1;
     bool m_dxfSeedPointCountSeen = false;
-    // HATCH point/vector coordinates are adjacent X/Y group-code pairs
-    // (10/20 through 13/23). A dangling X or Y must not inherit a default.
+    // HATCH point/vector pairs outside spline arrays are adjacent X/Y groups;
+    // spline control/fit arrays are independent repeated-code ordinal arrays.
     int m_dxfPendingCoordinateGroup = 0;
 };
 
@@ -3118,8 +3639,15 @@ public:
     DRW_MPolygon(const DRW_MPolygon& rhs): DRW_Hatch(rhs),
         dxfVersion(rhs.dxfVersion), fillColorAci(rhs.fillColorAci),
         fillColorRgb(rhs.fillColorRgb), fillColorName(rhs.fillColorName),
+        fillColorBookName(rhs.fillColorBookName),
         annotatedBoundary(rhs.annotatedBoundary), xDirX(rhs.xDirX),
-        xDirY(rhs.xDirY), degenerateLoops(rhs.degenerateLoops) {}
+        xDirY(rhs.xDirY), degenerateLoops(rhs.degenerateLoops),
+        m_dxfRetainedFillColorNameBytes(
+            rhs.m_dxfRetainedFillColorNameBytes),
+        fillColorDwgMethod(rhs.fillColorDwgMethod),
+        fillColorDwgFlags(rhs.fillColorDwgFlags),
+        fillColorDwgIndex(rhs.fillColorDwgIndex),
+        fillColorDwgMetadataPresent(rhs.fillColorDwgMetadataPresent) {}
     DRW_MPolygon& operator=(const DRW_MPolygon& rhs) {
         if (this != &rhs) {
             DRW_Hatch::operator=(rhs);
@@ -3127,6 +3655,13 @@ public:
             fillColorAci = rhs.fillColorAci;
             fillColorRgb = rhs.fillColorRgb;
             fillColorName = rhs.fillColorName;
+            fillColorBookName = rhs.fillColorBookName;
+            fillColorDwgMethod = rhs.fillColorDwgMethod;
+            fillColorDwgFlags = rhs.fillColorDwgFlags;
+            fillColorDwgIndex = rhs.fillColorDwgIndex;
+            fillColorDwgMetadataPresent = rhs.fillColorDwgMetadataPresent;
+            m_dxfRetainedFillColorNameBytes =
+                rhs.m_dxfRetainedFillColorNameBytes;
             annotatedBoundary = rhs.annotatedBoundary;
             xDirX = rhs.xDirX; xDirY = rhs.xDirY;
             degenerateLoops = rhs.degenerateLoops;
@@ -3149,6 +3684,7 @@ public:
     int fillColorAci {0};      /*!< fill color ACI index, code 63 */
     int fillColorRgb {-1};     /*!< fill color 24-bit RGB, code 421 (-1 = unset) */
     UTF8STRING fillColorName;  /*!< fill color book/name, code 430 */
+    UTF8STRING fillColorBookName; /*!< DWG CMC color-book name; no MPOLYGON DXF mapping established */
     int annotatedBoundary {0}; /*!< MPOLYGON boundary annotation flag, DXF code 73 */
     double xDirX {0.0};        /*!< MPOLYGON offset-vector X, DXF code 11 */
     double xDirY {0.0};        /*!< MPOLYGON offset-vector Y, DXF code 21 */
@@ -3159,6 +3695,12 @@ protected:
         DRW_Hatch::resetDwgState();
         dxfVersion = 1;
         fillColorAci = 0; fillColorRgb = -1; fillColorName.clear();
+        fillColorBookName.clear();
+        fillColorDwgMethod = 0xFFu;
+        fillColorDwgFlags = 0u;
+        fillColorDwgIndex = 0u;
+        fillColorDwgMetadataPresent = false;
+        m_dxfRetainedFillColorNameBytes = 0u;
         annotatedBoundary = 0; xDirX = xDirY = 0.0; degenerateLoops = 0;
         m_dxfOffsetVectorPending = false;
     }
@@ -3169,7 +3711,18 @@ protected:
                            dwgBufferW *strBuf=nullptr, dwgBufferW *handleBuf=nullptr) override;
 
 private:
+    std::size_t m_dxfRetainedFillColorNameBytes{0u};
     bool m_dxfOffsetVectorPending {false};
+
+public:
+    // Appended R2004+ DWG-only provenance keeps prior member offsets stable.
+    // Preserve the source CMC method and optional string flags instead of
+    // regenerating them from normalized scalar/name projections. A set flag
+    // may intentionally accompany an empty string.
+    std::uint8_t fillColorDwgMethod {0xFFu};
+    std::uint8_t fillColorDwgFlags {0u};
+    std::uint16_t fillColorDwgIndex {0u};
+    bool fillColorDwgMetadataPresent {false};
 };
 
 //! Class to handle image entity
@@ -3419,7 +3972,10 @@ public:
         definitionHandle(o.definitionHandle), reactorHandle(o.reactorHandle),
         showIntensity(o.showIntensity), intensityScheme(o.intensityScheme),
         intensityStyle(o.intensityStyle), showClipping(o.showClipping),
-        clippingCount(o.clippingCount), clippings(o.clippings) {
+        clippingCount(o.clippingCount), clippings(o.clippings),
+        m_dxfRetainedSavedFilenameBytes(o.m_dxfRetainedSavedFilenameBytes),
+        m_dxfRetainedSourceFilesBytes(o.m_dxfRetainedSourceFilesBytes),
+        m_dxfRetainedUcsNameBytes(o.m_dxfRetainedUcsNameBytes) {
         eType = DRW::POINTCLOUD;
         resetDxfParserState();
     }
@@ -3447,6 +4003,11 @@ public:
             showClipping = o.showClipping;
             clippingCount = o.clippingCount;
             clippings = o.clippings;
+            m_dxfRetainedSavedFilenameBytes =
+                o.m_dxfRetainedSavedFilenameBytes;
+            m_dxfRetainedSourceFilesBytes =
+                o.m_dxfRetainedSourceFilesBytes;
+            m_dxfRetainedUcsNameBytes = o.m_dxfRetainedUcsNameBytes;
             eType = DRW::POINTCLOUD;
             resetDxfParserState();
         }
@@ -3486,6 +4047,10 @@ public:
     std::vector<DRW_PointCloudClipping> clippings;
 
 private:
+    std::size_t m_dxfRetainedSavedFilenameBytes{0};
+    std::size_t m_dxfRetainedSourceFilesBytes{0};
+    std::size_t m_dxfRetainedUcsNameBytes{0};
+
     void resetDxfParserState() noexcept {
         m_dxfInBody = false;
         m_dxfSawClassVersion = false;
@@ -3536,7 +4101,14 @@ public:
         elevationOutOfRangeBehavior(o.elevationOutOfRangeBehavior),
         elevationApplyToFixedRange(o.elevationApplyToFixedRange),
         intensityAsGradient(o.intensityAsGradient),
-        elevationAsGradient(o.elevationAsGradient), croppings(o.croppings) {
+        elevationAsGradient(o.elevationAsGradient), croppings(o.croppings),
+        m_dxfRetainedNameBytes(o.m_dxfRetainedNameBytes),
+        m_dxfRetainedIntensityColorSchemeBytes(
+            o.m_dxfRetainedIntensityColorSchemeBytes),
+        m_dxfRetainedCurrentColorSchemeBytes(
+            o.m_dxfRetainedCurrentColorSchemeBytes),
+        m_dxfRetainedClassificationColorSchemeBytes(
+            o.m_dxfRetainedClassificationColorSchemeBytes) {
         eType = DRW::POINTCLOUDEX;
         resetDxfParserState();
     }
@@ -3573,6 +4145,13 @@ public:
             intensityAsGradient = o.intensityAsGradient;
             elevationAsGradient = o.elevationAsGradient;
             croppings = o.croppings;
+            m_dxfRetainedNameBytes = o.m_dxfRetainedNameBytes;
+            m_dxfRetainedIntensityColorSchemeBytes =
+                o.m_dxfRetainedIntensityColorSchemeBytes;
+            m_dxfRetainedCurrentColorSchemeBytes =
+                o.m_dxfRetainedCurrentColorSchemeBytes;
+            m_dxfRetainedClassificationColorSchemeBytes =
+                o.m_dxfRetainedClassificationColorSchemeBytes;
             eType = DRW::POINTCLOUDEX;
             resetDxfParserState();
         }
@@ -3621,6 +4200,11 @@ public:
     std::vector<DRW_PointCloudExCropping> croppings;
 
 private:
+    std::size_t m_dxfRetainedNameBytes{0};
+    std::size_t m_dxfRetainedIntensityColorSchemeBytes{0};
+    std::size_t m_dxfRetainedCurrentColorSchemeBytes{0};
+    std::size_t m_dxfRetainedClassificationColorSchemeBytes{0};
+
     void resetDxfParserState() noexcept {
         m_dxfCurrentCropping = DRW_PointCloudExCropping{};
         m_dxfTextCount = 0;
@@ -4214,6 +4798,7 @@ public:
         eType = DRW::DIMENSION;
         type = d.type;
         name = d.name;
+        m_dxfRetainedNameBytes = d.m_dxfRetainedNameBytes;
         defPoint = d.defPoint;
         textPoint = d.textPoint;
         text = d.text;
@@ -4225,6 +4810,8 @@ public:
         linefactor = d.linefactor;
         rot = d.rot;
         extPoint = d.extPoint;
+        anonymousBlockScale = d.anonymousBlockScale;
+        anonymousBlockRotation = d.anonymousBlockRotation;
         clonePoint = d.clonePoint;
         def1 = d.def1;
         def2 = d.def2;
@@ -4293,8 +4880,18 @@ public:
 
     DRW_Coord getExtrusion() const {return extPoint;}            /*!< extrusion, code 210, 220 & 230 */
     void setExtrusion(const DRW_Coord p) {extPoint =p;}
+    // DWG anonymous-dimension-picture-block placement. These are not the
+    // dimension clone offset or DXF's dimension-specific point/rotation data.
+    DRW_Coord getAnonymousBlockScale() const { return anonymousBlockScale; }
+    void setAnonymousBlockScale(const DRW_Coord scale) { anonymousBlockScale = scale; }
+    double getAnonymousBlockRotation() const { return anonymousBlockRotation; }
+    void setAnonymousBlockRotation(const double rotation) { anonymousBlockRotation = rotation; }
     std::string getName(){return name;}                   /*!< Name of the block that contains the entities, code 2 */
     void setName(const std::string s) {name = s;}
+    //! Logical payload estimate for the three owned DIMENSION strings.
+    [[nodiscard]] std::size_t retainedStringPayloadBytes() const noexcept {
+        return name.size() + text.size() + style.size() + 3u;
+    }
 //    int getType(){ return type;}                      /*!< Dimension type, code 70 */
     double getMeasureValue() const { return measureValue; }  /*!< Real measure value (optional; read only), code 42 */
 
@@ -4321,11 +4918,14 @@ protected:
 public:
     int type;                  /*!< Dimension type, code 70 */
 private:
+    friend class dxfRW;
+    friend class DxfDimensionDstyleTestAccess;
     std::string name;          /*!< Name of the block that contains the entities, code 2 */
     DRW_Coord defPoint;        /*!<  definition point, code 10, 20 & 30 (WCS) */
     DRW_Coord textPoint;       /*!< Middle point of text, code 11, 21 & 31 (OCS) */
     UTF8STRING text;           /*!< Dimension text explicitly entered by the user, code 1 */
     UTF8STRING style;          /*!< Dimension style, code 3 */
+    std::size_t m_dxfRetainedNameBytes{0};
     std::size_t m_dxfRetainedTextBytes{0};
     std::size_t m_dxfRetainedStyleBytes{0};
     int align;                 /*!< attachment point, code 71 */
@@ -4333,6 +4933,9 @@ private:
     double linefactor;         /*!< Dimension text line spacing factor, code 41, default 1? (value range 0.25 to 4.00*/
     double rot;                /*!< rotation angle of the dimension text, code 53 */
     DRW_Coord extPoint;        /*!<  extrusion normal vector, code 210, 220 & 230 */
+    // Preserved from the common DWG DIMENSION record; not projected to DXF.
+    DRW_Coord anonymousBlockScale{1.0, 1.0, 1.0};
+    double anonymousBlockRotation{0.0};
 
     double hdir = 0.0;         /*!< horizontal direction for the dimension, code 51 */
     DRW_Coord clonePoint;      /*!< Insertion point for clones (Baseline & Continue), code 12, 22 & 32 (OCS) */
@@ -4355,11 +4958,11 @@ private:
     double tolScale {0.0};     /*!< tolerance scale factor, code 45 */
     int tolDecimals {0};       /*!< tolerance decimal places, code 78 */
     int tolAlign {0};          /*!< tolerance alignment, code 79 */
-    int tolZero {0};           /*!< tolerance zero handling, code 80 */
-    int altTolDecimals {0};    /*!< alternate unit tolerance decimal places, code 81 */
-    int altZero {0};           /*!< alternate unit zero handling, code 82 */
-    int altTolZero {0};        /*!< alternate unit tolerance zero handling, code 83 */
-    int textMove {0};          /*!< text movement rule, code 84 */
+    int tolZero {0};           /*!< tolerance zero handling, DSTYLE variable 284 */
+    int altTolDecimals {0};    /*!< alternate tolerance decimals, DSTYLE variable 274 */
+    int altZero {0};           /*!< alternate unit zero handling, DSTYLE variable 285 */
+    int altTolZero {0};        /*!< alternate tolerance zero handling, DSTYLE variable 286 */
+    int textMove {0};          /*!< text movement rule, DSTYLE variable 279 */
 
 protected:
     dwgHandle dimStyleH;
@@ -4649,6 +5252,7 @@ class DRW_Leader : public DRW_Entity {
     SETENTFRIENDS
 private:
     std::size_t m_dxfRetainedStyleBytes{0};
+    std::array<std::uint32_t, 3> m_dxfVertexFieldCounts{};
 
 public:
     DRW_Leader() {
@@ -4715,6 +5319,15 @@ struct DRW_MLeaderLeaderLine {
     double arrowSize = 0.0;                                         /*!< code 40 */
     dwgHandle lineTypeHandle{};                                     /*!< code 340 */
     dwgHandle arrowHandle{};                                        /*!< code 341 */
+    std::int32_t colorRgb = -1; /*!< 24-bit CMC RGB, absent when negative. */
+    UTF8STRING colorName; /*!< Optional CMC color name (DWG string stream). */
+    UTF8STRING colorBookName; /*!< Optional CMC book name (DWG string stream). */
+    std::uint8_t colorDwgMethod = 0xFFu; /*!< Retained DWG CMC method; 0xFF selects canonically. */
+    // Appended to preserve the existing public member offsets. The reserved
+    // BS index and optional-string flags are DWG CMC provenance, not DXF data.
+    std::uint8_t colorDwgFlags = 0u;
+    std::uint16_t colorDwgIndex = 0u;
+    bool colorDwgMetadataPresent = false;
 };
 
 //! Helper: one root attachment of an MLEADER, with its leader lines.
@@ -4792,6 +5405,29 @@ struct DRW_MLeaderAnnotContext {
     bool isNormalReversed = false;                                  /*!< code 297 */
     std::uint16_t styleTopAttach = 0;                                     /*!< R2010, code 273 */
     std::uint16_t styleBottomAttach = 0;                                  /*!< R2010, code 272 */
+    // The embedded AnnotContext uses full CMC records for these colors.
+    // -1 means the source color was not encoded as an RGB CMC method.
+    std::int32_t textColorRgb = -1;
+    std::int32_t bgFillColorRgb = -1;
+    std::int32_t blockColorRgb = -1;
+    UTF8STRING textColorName;
+    UTF8STRING textColorBookName;
+    UTF8STRING bgFillColorName;
+    UTF8STRING bgFillColorBookName;
+    UTF8STRING blockColorName;
+    UTF8STRING blockColorBookName;
+    std::uint8_t textColorDwgMethod = 0xFFu;
+    std::uint8_t bgFillColorDwgMethod = 0xFFu;
+    std::uint8_t blockColorDwgMethod = 0xFFu;
+    std::uint8_t textColorDwgFlags = 0u;
+    std::uint16_t textColorDwgIndex = 0u;
+    bool textColorDwgMetadataPresent = false;
+    std::uint8_t bgFillColorDwgFlags = 0u;
+    std::uint16_t bgFillColorDwgIndex = 0u;
+    bool bgFillColorDwgMetadataPresent = false;
+    std::uint8_t blockColorDwgFlags = 0u;
+    std::uint16_t blockColorDwgIndex = 0u;
+    bool blockColorDwgMetadataPresent = false;
 };
 
 //! Class to handle MULTILEADER (MLEADER) entity.
@@ -4879,8 +5515,10 @@ public:
 
     /* R2007 array fields (pre-R2010 only). */
     struct ArrowHeadEntry {
-        bool isDefault = true;                                      /*!< code 94 */
+        bool isDefault = true;                                      /*!< DWG legacy default flag */
         dwgHandle handle{};                                         /*!< code 345 */
+        std::int32_t dxfIndex = 0;                                  /*!< DXF code 94 */
+        bool hasDxfIndex = false;                                   /*!< DXF code 94 presence */
     };
     struct BlockLabelEntry {
         dwgHandle attDefHandle{};                                   /*!< code 330 */
@@ -4913,7 +5551,37 @@ private:
     // matrix. Keep the insertion cursor transient so a reused entity cannot
     // append a second matrix onto the first document's state.
     std::size_t m_dxfBlockTransformIndex = 0;
+    // LEADER_LINE vertex X/Y/Z groups are separate repeated component arrays.
+    // Reset these ordinals at each nested line boundary.
+    std::array<std::size_t, 3> m_dxfLineVertexComponentCounts{};
     bool m_dxfMLeaderSubclassSeen = false;
+    std::size_t m_dxfRetainedContextTextBytes{0};
+    std::vector<std::size_t> m_dxfRetainedBlockLabelTextBytes;
+
+public:
+    // R2004+ DWG truecolor companions for the entity-level CMC fields.
+    // Appended after all prior state to preserve existing member offsets.
+    std::int32_t leaderColorRgb = -1;
+    std::int32_t styleTextColorRgb = -1;
+    std::int32_t styleBlockColorRgb = -1;
+    UTF8STRING leaderColorName;
+    UTF8STRING leaderColorBookName;
+    UTF8STRING styleTextColorName;
+    UTF8STRING styleTextColorBookName;
+    UTF8STRING styleBlockColorName;
+    UTF8STRING styleBlockColorBookName;
+    std::uint8_t leaderColorDwgMethod = 0xFFu;
+    std::uint8_t styleTextColorDwgMethod = 0xFFu;
+    std::uint8_t styleBlockColorDwgMethod = 0xFFu;
+    std::uint8_t leaderColorDwgFlags = 0u;
+    std::uint16_t leaderColorDwgIndex = 0u;
+    bool leaderColorDwgMetadataPresent = false;
+    std::uint8_t styleTextColorDwgFlags = 0u;
+    std::uint16_t styleTextColorDwgIndex = 0u;
+    bool styleTextColorDwgMetadataPresent = false;
+    std::uint8_t styleBlockColorDwgFlags = 0u;
+    std::uint16_t styleBlockColorDwgIndex = 0u;
+    bool styleBlockColorDwgMetadataPresent = false;
 };
 
 //! Class to handle viewport entity
@@ -5003,7 +5671,7 @@ public:
     std::uint32_t clipBoundaryHandle = 0; /*!< Clip boundary handle, code 340 */
     std::uint32_t namedUcsHandle = 0;   /*!< Named UCS handle, code 345 */
     std::uint32_t baseUcsHandle = 0;    /*!< Base UCS handle, code 346 */
-    std::uint32_t backgroundHandle = 0; /*!< Background handle, code 347 */
+    std::uint32_t backgroundHandle = 0; /*!< Background handle, DXF code 332 */
     std::uint32_t visualStyleHandle = 0; /*!< Visual style handle, code 348 */
     std::uint32_t shadePlotHandle = 0;  /*!< Shade plot handle, code 349 */
 
@@ -5011,6 +5679,15 @@ public:
 
 private:
     std::uint32_t frozenLyCount = 0;
+    std::size_t m_dxfRetainedStyleSheetBytes{0u};
+    std::size_t m_dxfRetainedAmbientColorNameBytes{0u};
+
+public:
+    // Appended R2007+ DWG ambient CMC provenance; the preceding member
+    // offsets, including the private frozen-layer count, remain unchanged.
+    std::uint8_t ambientColorDwgFlags = 0u;
+    std::uint16_t ambientColorDwgIndex = 0u;
+    bool ambientColorDwgMetadataPresent = false;
 };
 
 //used  //DRW_Coord basePoint;      /*!<  base point, code 10, 20 & 30 */

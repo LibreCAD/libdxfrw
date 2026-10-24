@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-route-claim-audit-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Compare current public peer support claims with route-specific status, implementation lineage, and evidence boundaries for CADKernel, dwg-rs, uncad/undxf, and OpenCADStudio.",
+  "method": {
+    "kind": "Primary project repository and API documentation audit",
+    "sourcesOpened": [
+      "https://github.com/kernalix7/CADKernel",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Claims are from public project pages/docs and are not reproduced behavior. CADKernel source status is internally inconsistent, so its detailed route rows are treated as narrower than its overview and FAQ. dwg-rs remains explicitly pre-alpha and its published percentages are inconsistent. uncad documents distinct DWG/DXF parser lineages and is read-only. OpenCADStudio's codec is ACadRust-derived; app self-readback is not independent parser evidence. No local defect or external semantic evidence was established."
+  },
+  "evidence": [
+    {
+      "topic": "CADKernel headline compatibility versus explicit format routes",
+      "source": "https://github.com/kernalix7/CADKernel",
+      "observed": [
+        "The compatibility overview advertises 60+ formats and broad FreeCAD feature parity.",
+        "The detailed format table marks ACIS SAT/SAB read and write unsupported.",
+        "The same detailed table marks DWG and DXF read/write supported, while the FAQ says commercial CAD file import is planned.",
+        "The tech-stack table says STEP I/O is planned although the format table lists STEP AP203/AP214 read/write as supported."
+      ],
+      "doesNotEstablish": [
+        "a runnable ACIS, DWG, DXF, or STEP parser/writer route",
+        "a per-version or per-feature test matrix",
+        "actual interoperable behavior against libdxfrw output"
+      ],
+      "planUse": "Keep CADKernel discovery-only and outside parser/kernel quorum unless an immutable source revision exposes a concrete route and a generated control demonstrates it. Use narrow route-specific status rather than headline support copy."
+    },
+    {
+      "topic": "dwg-rs route maturity and denominator limits",
+      "source": "https://github.com/DrunkOnJava/dwg-rs",
+      "observed": [
+        "The project describes itself as pre-alpha.",
+        "The current capability notes distinguish a stronger DWG container/object-stream layer from partial entity graph and symbol-table decoding.",
+        "The DXF parser is listed as absent; DWG/DXF writers are alpha, and external CAD acceptance is not automated.",
+        "Its verification section separates a 19-file container corpus from entity-decoding percentages, and the README contains internally inconsistent aggregate coverage figures."
+      ],
+      "doesNotEstablish": [
+        "complete entity, object graph, DXF, writer, or ACIS semantics",
+        "a directly comparable corpus denominator for libdxfrw",
+        "independent native CAD acceptance"
+      ],
+      "planUse": "Admit only as an optional exact-pin DWG container/record-boundary comparator. Require matching input hashes and denominators; report framing separately from semantic decode and output acceptance."
+    },
+    {
+      "topic": "uncad parser lineage and read-only projection boundary",
+      "source": "https://github.com/iyulab/uncad",
+      "observed": [
+        "The project states that DWG parsing uses LibreDWG via FFI while DXF parsing uses the separate undxf crate.",
+        "Its output route is model/JSON/SVG/PNG and it explicitly does not write DWG/DXF or convert between them."
+      ],
+      "doesNotEstablish": [
+        "an independent DWG parser relative to LibreDWG",
+        "writer fidelity, graph-preserving round-trip, or ACIS B-rep semantics"
+      ],
+      "planUse": "Record DWG and DXF routes independently; consider only a pinned undxf DXF parser/projection run in the existing optional lane. Do not count uncad as a separate DWG vote."
+    },
+    {
+      "topic": "OpenCADStudio application, codec, and geometry-stage separation",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md"
+      ],
+      "observed": [
+        "OpenCADStudio v2026.41 is an application-level consumer route; its opencadcodec identifies itself as a fork of ACadRust.",
+        "Its ACIS tessellation notes distinguish kernel results from a per-surface fallback marked incomplete.",
+        "A released application claim does not prove that the app was run against a specific libdxfrw artifact."
+      ],
+      "doesNotEstablish": [
+        "a second independent DWG/DXF parser lineage relative to ACadRust",
+        "complete ACIS body semantics from visible mesh output",
+        "native reference-CAD acceptance from app self-readback"
+      ],
+      "planUse": "Retain only as an optional composed application/display gate with exact release and engine pins, actual output magic, and explicit fallback/loss outcomes. Reject incomplete fallback as semantic success."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "7AG peer admission",
+      "S8 peer and native evidence separation"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue fast local implementation slices; do not add per-slice peer installs or runs.",
+      "Before a peer result enters a matrix cell, bind immutable project/artifact identity, dependency lineage, operation, actual format version, corpus provenance and denominator, and an independently authored expected manifest.",
+      "Keep parser, writer, graph, display/kernel, and native consumer outcomes in separate fields; report unavailability as NOT_RUN or DISCOVERY_ONLY.",
+      "Keep all six external-only J items DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

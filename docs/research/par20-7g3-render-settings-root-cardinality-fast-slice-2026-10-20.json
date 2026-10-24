@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 RenderSettings root-cardinality control",
+  "mode": "Generated local ASCII/Binary fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Close the generated negative-test gap for a duplicate canonical ACAD_RENDER_PLOT_SETTINGS NOD edge.",
+    "Verify transactional refusal and corrected retry in the existing RenderSettings/PlotSettings adapter route."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationAdded": false,
+    "behavior": "The existing generated ASCII/Binary selector duplicates the canonical ACAD_RENDER_PLOT_SETTINGS NOD edge. Export must refuse before publication, preserve a seeded destination byte-for-byte, and succeed after restoring the valid graph. Existing production graph validation rejects the duplicate."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+    "selector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-render-settings-callback-and-fail-closed (ASCII and Binary)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_render_settings_owner_order$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportImpact": {
+    "supportPromotion": false,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "Shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

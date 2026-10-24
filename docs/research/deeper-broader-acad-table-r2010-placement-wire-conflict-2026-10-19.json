@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader ACAD_TABLE R2010+ placement-wire conflict and resolution gate",
+  "mode": "Primary DWG specification, open-source decoder issue/source, and local parser/test audit; research-only plan refinement",
+  "scope": [
+    "Resolve the newly accessible full LibreDWG issue #1425 against ODA v5.4.1 §§20.4.96.1-20.4.96.2 and the current LibreDWG TABLE decoder specification.",
+    "Determine whether local AC1024+ TABLE placement vectors independently establish the R2010+ placement wire prefix.",
+    "Refine existing 7G.3d/PAR-126 readiness without adding a finding, fixture, peer dependency, or implementation-slice validation burden."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web research, local source/test inspection, and one diagnostic run on an existing repository sample",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "localDiagnostic": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-iso.dwg -y -d -v2010 /tmp/title-block-iso-dwg2dxf-table-research.dxf",
+      "exitCode": 1,
+      "observation": "The read summary reports AC1024, zero entity/object parse failures and unknown semantic coverage; strict-complete CLI export refuses the incomplete disposition. The trace contains no ACAD_TABLE parse marker, so this is not an R24 TABLE placement witness."
+    },
+    "odaLocalCopy": {
+      "path": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sha256": "fa7d94932897c65887b1b6eb8b43a8c6f7a0567192f4483db98b9f4f856fce2e"
+    },
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "LibreDWG #1425 supplies a reporter-authored trace of public repository DWG/DXF examples, but the binary samples were not retrieved, hash-pinned, or independently parsed. The fetched LibreDWG master source is mutable and its commit SHA was not resolved. The local AC1024 TABLE vector is generated from the existing parser's assumed field order. No outcome in this receipt qualifies a producer profile or proves a local parser defect."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification for .dwg files v5.4.1; local copy hash recorded in method",
+      "observed": "Section 20.4.96 says ACAD_TABLE inherits INSERT. Section 20.4.96.1 enumerates insertion, scale, rotation, extrusion, and attribute-presence fields for the pre-R24 route. Section 20.4.96.2 lists common entity data followed by the R2010+ TABLE-specific prefix and inline TABLECONTENT but does not explicitly restate the inherited placement fields.",
+      "evidenceCeiling": "Normative authority for the documented byte layout; exact R24 inheritance-to-field-order interpretation remains unclear from the subsection's enumerated rows."
+    },
+    {
+      "project": "LibreDWG issue #1425",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1425"
+      ],
+      "revision": "Issue opened 2026-09-26; reported open at review time",
+      "observed": "The reporter describes `example_2010.dwg`, `example_2013.dwg`, and `example_2018.dwg` with paired DXFs. For ACAD_TABLE handle 4F2 in the 2018 example, the reporter decodes `unknown_bits` at offset zero as insertion point, scale flag/data, rotation, and extrusion; the insertion point matches paired DXF group 10 to print precision. The reporter says the same offset is present in the 2010/2013 examples but does not decode beyond extrusion or resolve the TABLE-to-*T block handle from the handle stream.",
+      "evidenceCeiling": "Specific, detailed peer-reported sample observation; no local artifact hash, independent rerun, complete handle/owner trace, or native semantic result."
+    },
+    {
+      "project": "LibreDWG current decoder source",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec#L457-L481"
+      ],
+      "revision": "Mutable master fetched 2026-10-19; exact commit SHA not resolved",
+      "observed": "The R2010+ TABLE branch starts with RC, table-style handle, BL, version-gated B/BL values, and TABLECONTENT fields. The explicit AcDbBlockReference placement decode appears only in the pre-R2010 branch. Issue #1425 proposes adding those fields to the later branch.",
+      "evidenceCeiling": "Competing open-source implementation hypothesis, not ODA authority and not independent confirmation of the issue's sample interpretation."
+    },
+    {
+      "project": "Local libdxfrw",
+      "urls": [
+        "src/drw_entities.cpp",
+        "tests/dwg_object_vectors_tests.cpp",
+        "docs/research/table-placement-prefix-fast-slice-2026-10-17.json"
+      ],
+      "observed": "DRW_Table::parseDwg reads insertion, scale, rotation, extrusion, and attribute-presence before AC1024+ TABLE-specific fields. The generated AC1024 vector authors the same order and checks local parser output, handles, content, and cursor. The vector is therefore local implementation consistency, not an independent producer trace.",
+      "evidenceCeiling": "Source and generated test establish current code behavior only; no real AC1024+ TABLE sample was parsed in this review."
+    },
+    {
+      "project": "ACadSharp / ezdxf / GDAL route boundary",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1264",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "The reviewed ACadSharp report is about TABLECONTENT block-cell value semantics. ezdxf's documented XREF operation does not provide typed ACAD_TABLE copying, and GDAL is a DXF-to-OGR projection. These routes do not resolve R2010+ DWG placement field order.",
+      "evidenceCeiling": "Operation-specific comparison boundaries only; no additional R24 DWG wire oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "7G.3d ACAD_TABLE parser and placement",
+      "PAR-126 ACAD_TABLE/TABLECONTENT completeness and route separation"
+    ],
+    "wireStatus": "OPEN_SPEC_RECONCILIATION for AC1024+ INSERT placement prefix",
+    "planEffect": "Preserve current production parser and generated vectors, downgrade the generated R24 matrix to local consistency evidence, and require a hash-pinned real-sample trace plus explicit owner/handle resolution before any parser rule change or R24 placement claim.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "peerRuntimeAddedToFastLoop": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextActions": [
+    "Retrieve the already-published sample pair only into disposable scratch after recording repository revision, hashes, provenance, and each file's AC code.",
+    "Trace a single exact ACAD_TABLE handle through the body bits, DXF placement groups, table style, owner, TABLECONTENT, handle stream, and actual *T BLOCK_HEADER reference.",
+    "Compare AC1024, AC1027, and AC1032 offsets before deciding whether production parsing needs explicit version-specific branches.",
+    "If the trace settles the layout, extend existing in-memory vectors with sample-derived expected bytes/fields and run only the strict object-vector target, selector, owning CTest, and scoped diff check.",
+    "Do not commit external DWG/DXF samples, add peer/native runs to each implementation slice, or promote support claims from the issue report."
+  ]
+}

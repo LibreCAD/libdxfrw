@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS functional-cycle path-vector removal fast slice",
+  "mode": "local implementation and generated in-memory regression",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Remove redundant retained cycle-walk indices from rooted ACIS functional-cycle counting",
+    "Preserve cycle semantics, graph-link order, and fail-closed output budget behavior"
+  ],
+  "changes": [
+    {
+      "file": "src/drw_acis.cpp",
+      "summary": "Removed the temporary path vector in countFunctionalCycles. The existing currentPath set supplies the unique visited indices later inserted into completed. Reduced output-item accounting from two items to one for each currentPath insertion; completed-set accounting is unchanged."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "summary": "Added an in-memory body with two owner-linked lumps in a next-list cycle. Exact generated projection passes at 33 output items with unchanged reachable indices and graph-link rows and one reported cycle; a 32-item budget refuses with ResourceLimit and clears output."
+    }
+  ],
+  "evidence": {
+    "preChangeMinimumOutputItems": 35,
+    "postChangeExactOutputItems": 33,
+    "oneUnderOutputItems": 32,
+    "redGreen": "The new 33-item semantic regression failed against the old implementation and passed after removing the redundant path vector.",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp"
+    ],
+    "results": [
+      "strict target build passed",
+      "direct graph/preservation executable passed",
+      "owning CTest passed 1/1 in 0.60 seconds",
+      "focused diff whitespace check passed"
+    ]
+  },
+  "limitations": {
+    "wallClockBenchmarkRun": false,
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "publicApiChanged": false,
+    "supportClaimsPromoted": 0,
+    "worktreeCommitted": false,
+    "reasonUncommitted": "The shared worktree contains broad pre-existing changes, including extensive modifications to the same source and test files; staging or committing them together is unsafe."
+  },
+  "assessment": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw-ac1_40-header-bounds-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Add generated AC1.40 file-size, entity-boundary, truncation, and reader-reuse controls to the existing fast DWG reader-matrix target, without reproducing the LibreDWG advisory input or changing parser behavior.",
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testFunction": "testR140HeaderBounds",
+    "cases": [
+      {
+        "case": "declared_end_below_entity_start",
+        "expected": "BAD_READ_FILE_HEADER; no entity callback"
+      },
+      {
+        "case": "declared_end_beyond_physical_input",
+        "expected": "BAD_READ_FILE_HEADER; no entity callback"
+      },
+      {
+        "case": "locally_generated_496_byte_input",
+        "expected": "BAD_READ_FILE_HEADER; no entity callback"
+      },
+      {
+        "case": "one_byte_partial_entity_header",
+        "expected": "BAD_READ_ENTITIES; no entity callback"
+      },
+      {
+        "case": "truncated_T_POINT_body",
+        "expected": "BAD_READ_ENTITIES; no entity callback"
+      },
+      {
+        "case": "empty_stream_at_exact_0x202_boundary",
+        "expected": "success; zero points"
+      },
+      {
+        "case": "two_T_POINT_records_at_exact_declared_end",
+        "expected": "success; both distinct points observed in order"
+      },
+      {
+        "case": "same_reader_retry_after_invalid_bounds_and_truncation",
+        "expected": "subsequent valid boundary controls succeed"
+      }
+    ],
+    "sourceHashesSha256": {
+      "tests/dwg_reader_matrix_tests.cpp": "d73be363b158a859d9b79abe0bb745133228f673a06dbbbcffe0b8a4f4de73fb"
+    },
+    "externalAdvisoryBytesCopied": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+        "result": "passed; 1/1 in 1.77s"
+      },
+      {
+        "command": "cmake --build build --target lc3_compat_check --parallel 2",
+        "result": "passed; no work to do"
+      },
+      {
+        "command": "git diff --check -- tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOrFuzzerRun": false,
+    "externalDrawingDownloadedOrCommitted": 0,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktreeCommitted": false,
+    "reasonNotCommitted": "The shared worktree contains broad in-progress changes and the Git metadata is not writable under the active workspace permissions."
+  }
+}

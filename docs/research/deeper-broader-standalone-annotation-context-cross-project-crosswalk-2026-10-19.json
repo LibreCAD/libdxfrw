@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Standalone annotation-context framing and cross-project fidelity crosswalk",
+  "mode": "Primary project issue/documentation review plus authoritative ODA and local source/test crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Review ACadSharp's standalone MLeader object-context no-op round-trip report and compare its suggested bit layout with ODA v5.4.1 §§20.4.71, 20.4.86, and 20.4.89.",
+    "Trace the local DRW_ObjectContextData parser/model, DWG object dispatch, raw callback retention, and distinction between standalone and embedded MLeader annotation-context payloads.",
+    "Cross-check recent CP949 and VERTEX-subclass peer reports against existing local generated tests, and LibreDWG's position-sensitive NOD report against local NOD-order coverage.",
+    "Refine existing PAR-20/7F.1 into a fast generated base-profile slice followed by explicit adapter-loss handling and a separate MLeader graph/consumer gate."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp issue #1277",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1277",
+      "revision": "Open issue report reviewed 2026-10-19; reproduction names ACadSharp 3.7.16 and AutoCAD LT 2026; private drawings were not available or downloaded.",
+      "observed": "The reporter says an AC1032 no-op read/write round-trip caused AutoCAD audit errors and removal of standalone AcDbMLeaderObjectContextData objects. Two writer changes were independently reported necessary on the tested private drawings: omitting a context bit and emitting the actual leader-root count. The author says the count change may already exist on mutable master.",
+      "evidenceCeiling": "Version-specific peer report and native outcome; not a libdxfrw reproduction, not a current ACadSharp release qualification, and not authority for the disputed field layout."
+    },
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "urls": [
+        "local: ~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf, §20.4.71",
+        "local: ~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf, §20.4.86",
+        "local: ~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf, §20.4.89"
+      ],
+      "revision": "Local PDF text reviewed 2026-10-19; v5.4.1. The duplicate '(1)' suffix is the actual local filename.",
+      "observed": "Section 20.4.89 gives the R2010 AcDbObjectContextData base sequence as common object data, BS version, B has-file-to-extension-dictionary (default true), and B default flag (default false). Section 20.4.71 adds the annotation-scale hard-pointer. Section 20.4.86 documents MLeaderAnnotContext root/line/content fields and identifies it as an annotative context helper.",
+      "evidenceCeiling": "Authoritative specification for the documented DWG profile. A conflicting producer stream still needs exact version/class/profile tracing; it must not silently rewrite the standard profile."
+    },
+    {
+      "project": "Local libdxfrw source and tests",
+      "urls": [
+        "src/drw_objects.cpp: DRW_ObjectContextData::parseDwg",
+        "src/drw_objects.h: DRW_ObjectContextData",
+        "src/intern/dwgreader.cpp: OBJECTCONTEXTDATA dispatch",
+        "dwg2dxf/dx_iface.cpp: dx_iface::addUnsupportedObject",
+        "tests/gbk_codepage_tests.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "revision": "Shared dirty workspace inspected on 2026-10-19; no source files were modified in this pass.",
+      "observed": "The local context parser reads classVersion and defaultFlag without reading the intervening ODA has-file-to-extension-dictionary bit, and the model lacks a field for it. Dispatch supplies a typed shell and opaque raw frame, but the adapter retains unsupported raw objects only for EvalGraph/ACSH-history families. The embedded MLeader parser uses a separate payload route that starts at leader-root count and omits standalone base preamble/scale handle. Existing tests already cover CP949 header plus exact legacy bytes and the AC1014 base-only VERTEX subtype-marker case; generated NOD tests check position/identity rather than lowest handle.",
+      "evidenceCeiling": "Source/spec discrepancy and adapter route loss are confirmed by code inspection; no eligible native producer sample was used to establish consequences on a particular drawing. Existing tests were inspected but not re-run."
+    },
+    {
+      "project": "ACadSharp issues #1259, #1279, #1278",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1259",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1278"
+      ],
+      "revision": "Public issue pages/index reviewed 2026-10-19.",
+      "observed": "#1259 describes a CP949 header-label/body-byte mismatch and a UTF-8 fallback trap; #1279 describes a missing specific VERTEX subclass marker in AC1014; #1278 was available only as a title-level R12 POLYLINE/VERTEX duplicate-key report in this pass.",
+      "evidenceCeiling": "Peer issue shapes only. The first two map to already-existing local generated controls; #1278's inaccessible body supplies no normative or implementation detail."
+    },
+    {
+      "project": "LibreDWG issue #1413, ezdxf ACIS docs, and FreeCAD Draft DXF docs",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Current primary project pages reviewed 2026-10-19; no peer runtime was used.",
+      "observed": "LibreDWG #1413 reports object-position-dependent NOD selection and layout loss, while existing local NOD tests check owner and position. ezdxf documents limited ACIS entity parsing and inability to re-export arbitrary ACIS; FreeCAD documents its converter-to-DXF path and stock DXF import limitations for ACIS solids.",
+      "evidenceCeiling": "Peer-specific reports and product scope statements; not evidence of local parity or a general 3D semantic-support result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalSourceSpecMismatchRoutes": 1,
+    "newConfirmedLocalAdapterLossRoutes": 1,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": ["PAR-20", "PAR-20/7F.1"],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing PAR-20/7F.1: resolve the ODA-defined R2010+ context preamble first with generated AC1024/AC1032 field/sentinel vectors, then make opaque-object loss explicit or preserve the full owner/scale graph, and only then qualify standalone MLeader no-op round-trips at the composed native gate. Other reviewed peer shapes are matched to existing local tests and add no duplicate work."
+  },
+  "implementationReadiness": [
+    "Use the existing libdxfrw_dwg_object_vectors target and CTest registration for generated AC1024/AC1032 object frames; assert both context bits, the separate common xdictionary flag, scale handle, size boundary, and next-object sentinel with an independent test-local walker.",
+    "Treat ACadSharp #1277's suggested bit removal as a conflict lead, not a fix. If a producer-traced profile differs from ODA, name and isolate that profile and preserve the raw frame.",
+    "Before raw replay is implemented, strict conversion must expose/refuse any unretained standalone context frame without modifying the destination.",
+    "Keep standalone context object serialization separate from embedded MLeaderAnnotContext parsing and assert full handle/owner/scale/dictionary reachability before native audit.",
+    "Use touched-target build, focused selector, owning CTest, scoped diff check, and receipt validation only; keep full suite and native qualification at composed checkpoints."
+  ],
+  "method": {
+    "kind": "Read-only public primary-source research plus local source/test inspection and ODA specification crosswalk",
+    "planUpdated": ["DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "ACadSharp #1277's input drawings are private and its suggested bit removal conflicts with ODA v5.4.1. The local mismatch is source/spec-confirmed, but producer-profile consequences are not yet established. The plan therefore requires generated spec-profile controls and a provenance-bound producer trace before adding compatibility behavior or native semantic claims."
+  }
+}

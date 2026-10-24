@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-acds-peer-structure-and-3d-evidence-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broader source-level review of modern DWG AcDs structure, ACIS payload discovery and association, 3D DXF emission, and limits of open-source geometry evidence; refine the existing implementation order without inferring defects from peers.",
+  "method": {
+    "kind": "Primary project source plus issue and pull-request discussion review",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Default-branch pages are mutable; ACadSharp PR states are scoped to the review date. Pin exact released source, binary, platform, options, and license before any optional execution.",
+    "evidenceRule": "Distinguish AcDs directory parsing, payload extraction, exact entity association, target-format emission, consumer import, and independent shape semantics. Issue reports are scoped test leads, not local defect evidence; same-writer/readers and marker-bearing bytes are not independent geometry validation."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG AcDs record and SAB discovery boundary",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "Current source names and parses AcDs segment/index/schema/search structures, but marks _data_ and blob01 segment contents unhandled. A later path scans for ACIS BinaryFile and terminal marker strings and associates discovered payloads to queued modeler handles by encounter order. Project release notes state that the datastore is not fully implemented and extracted R2013+ SAB is not reliably read.",
+      "doesNotEstablish": [
+        "a corresponding libdxfrw parser or writer defect",
+        "that LibreDWG has no AcDs support at all",
+        "exact entity association from sequential marker order",
+        "valid or complete ACIS topology from marker extraction"
+      ],
+      "existingPlanOwners": ["AcDs implementation slice", "S8.2", "S8.3", "S8.4", "PAR-07"],
+      "planUse": "Use generated data/index/handle permutations, unrelated and decoy-marker records, page bounds, and following-record sentinels. Do not use payload encounter order as the binding rule."
+    },
+    {
+      "topic": "ACadSharp Prototype1b reader and writer maturity",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/pull/1146",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "The maintainer describes a direct _data_ payload-area anchor as the main reader path, with signature scanning retained as fallback, and says the writer targets a fixed schema set rather than arbitrary multi-schema input. The issue reporter disputes the fallback's reliability and calls out multi-schema, record-kind, and size-limit concerns. A reviewer of open #1174 reported an embedded-record read test throwing NotImplementedException; open DXF writer #1240 depends on #1174 and has no deployment in the reviewed state. Maintainer reports of tests across hundreds of files and AutoCAD/TrueView checks are not independently reproduced by this review.",
+      "doesNotEstablish": [
+        "that every concern in the issue report is a demonstrated current defect",
+        "full arbitrary-schema support in the released peer reader or writer",
+        "released status or general interoperability of #1240",
+        "independent semantic shape validity from peer-authored comparisons"
+      ],
+      "existingPlanOwners": ["S8.2", "S8.3", "S8.4", "AcDs writer closure"],
+      "planUse": "Treat ACadSharp as a useful pinned structural comparator, not an arbitrary-schema oracle. Test fail-closed behavior for unsupported schemas/records, exact handle and page references, and unbound non-ACIS records. Prefer unchanged same-version raw-section replay over generic header reconstruction."
+    },
+    {
+      "topic": "Silent modeler entity omission at the DXF writer boundary",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "A report against ACadSharp 3.4.9 describes DWG 3DSOLID/REGION entities being silently omitted in DXF output, including entities that were the sole contents of block definitions. PR #1240 is an open proposed writer change rather than a released output result.",
+      "doesNotEstablish": [
+        "a libdxfrw omission defect",
+        "that current ACadSharp releases still omit these entities",
+        "shape validity from emitted entity counts"
+      ],
+      "existingPlanOwners": ["PAR-07", "PAR-49", "S8", "7G.3"],
+      "planUse": "At composed output gates, compare source handles to emitted entity records, owner/block membership, destination import disposition, and omission diagnostics. Include solid-only blocks so empty block definitions cannot hide behind a retained INSERT count."
+    },
+    {
+      "topic": "Open-source ACIS conversion profile boundary",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/acis.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observed": "ezdxf explicitly says it has no ACIS kernel and limits geometry extraction to polyhedra made only from flat polygonal faces. Its documented ACIS DXF writer route supports SAT for R2000-R2010 and SAB for R2013-R2018. The browser exposes raw SAT/SAB inspection/export, while the drawing add-on does not render ACIS.",
+      "doesNotEstablish": [
+        "general curved-surface or arbitrary B-rep semantics",
+        "rendering or native CAD acceptance",
+        "equivalence of DXF ACDSDATA and DWG AcDb:AcDsPrototype_1b",
+        "all producer/version SAB profiles"
+      ],
+      "existingPlanOwners": ["PAR-07", "S8.4", "Slice 8 semantic qualification"],
+      "planUse": "Use ezdxf for narrow carrier generation, raw inspection, and flat-face profiles only. Separate inline legacy SAT, modern DXF ACDSDATA/SAB, and DWG AcDs container routes. Require another eligible pinned kernel/reader and analytic invariants for broader shape semantics."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Continue with the already-selected in-memory nonempty AcDs record, then implement exact record-handle/key, schema/profile, owner, modeler-handle, and payload-byte closure before enabling any storage-backed same-version raw replay.",
+    "Do not synthesize a generic AcDs header or normalize a section. Replay only unchanged, structurally validated, same-version raw bytes; reject unsupported profiles and all unpaired, ambiguous, or edited state.",
+    "Add cheap generated positive/negative controls for data-directory versus sorted-index order, unrelated records, marker decoys, extra schemas, duplicate/missing/wrong links, page bounds, and next-record framing.",
+    "At a later composed DXF gate, check emitted entity inventory, owner/block membership, carrier, handle association, importer disposition, and visible loss diagnostics separately. Test inline SAT and ACDSDATA/SAB independently from DWG AcDs.",
+    "Treat ezdxf flat-polyhedron support as a narrow generated profile. Shape semantics beyond it require an eligible pinned ACIS-capable implementation and independently specified analytic invariants; external availability must not block local parser/writer work.",
+    "Keep per-slice validation to the strict changed target, focused generated tests, LibreCAD/LibreCAD_3 API check, and git diff --check. Peer/native/kernel, full-suite, sanitizer, and long fuzz work stay at existing composed or scheduled gates."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "externalRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

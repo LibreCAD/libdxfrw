@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader Autodesk VIEW/SUN API contract refresh",
+  "mode": "primary-source review and plan clarification; research only",
+  "scope": [
+    "Reconcile VIEW DXF group 361 with the AcDbSun hard-owner contract",
+    "Check whether AcDbViewTableRecord exposes a SUN association API",
+    "Define the minimum native evidence needed before admitting VIEW 361 on output",
+    "Keep VPORT/VIEWPORT generated structural results distinct from VIEW semantics"
+  ],
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "revision": "Autodesk VIEW DXF reference, viewed 2026-10-18",
+      "observed": "VIEW group 361 is described as the Sun hard ownership ID."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbSun.html",
+      "revision": "Autodesk ObjectARX 2027 AcDbSun reference, viewed 2026-10-18",
+      "observed": "AcDbSun is documented as a hard-owned child of AcDbViewportTableRecord or AcDbViewport, with setSun/sunId APIs on those viewport classes."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbViewTableRecord.html",
+      "revision": "Autodesk ObjectARX 2019 AcDbViewTableRecord method index, viewed 2026-10-18",
+      "observed": "The method list includes setSun and sunId, but linked detailed method pages were unavailable in this pass."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AbstractViewTableRecord_SunId.html",
+      "revision": "Autodesk Managed .NET 2026 AbstractViewTableRecord.SunId property, viewed 2026-10-18",
+      "observed": "A read/write SunId property exists on the abstract view-record API. It establishes an association surface, not whether a VIEW record is the SUN database owner."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbViewport.html",
+      "revision": "Autodesk ObjectARX 2027 AcDbViewport method index, viewed 2026-10-18",
+      "observed": "The viewport API independently exposes setSun and sunId."
+    }
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadRun": false,
+    "nativeSampleCreatedOrInspected": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "limitations": "The linked detailed AcDbViewTableRecord setSun/sunId pages were not available from the indexed sources. No native producer drawing was generated or inspected, so the exact VIEW-to-SUN owner relation and erase/deletion behavior remain unresolved."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Corrects the prior implication that VIEW has no SUN API association. VIEW exposes setSun/sunId through its abstract base, while the AcDbSun ownership page names only VPORT/VIEWPORT hard owners. Keep VIEW code 361 fail-closed until a native save proves object owner, handle serialization, and deletion/share behavior; proceed with unrelated local work.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "pending",
+    "planDiffCheck": "pending",
+    "fullSuiteRun": false,
+    "nativeCadRun": false
+  }
+}

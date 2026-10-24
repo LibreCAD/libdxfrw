@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw-downstream-consumer-and-peer-capability-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Broaden the existing open-source DWG/DXF comparison across versioned readers/writers, DXF projection and raw-carrier routes, downstream CAD consumer contracts, and a newly surfaced Rust-backed DWG parser; update only existing evidence gates.",
+  "method": {
+    "kind": "Primary-source repository, package, version-matrix, and consumer-documentation review with local plan reconciliation",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/DomCR/ACadSharp",
+      "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/graphicsfactory.py",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+      "https://github.com/yorikvanhavre/Draft-dxf-importer",
+      "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "https://pypi.org/project/ezdwg/0.16.3/",
+      "https://github.com/monozukuri-ai/ezdwg",
+      "https://github.com/monozukuri-ai/ezdwg/blob/main/crates/ezdwg-core/Cargo.toml",
+      "https://pypi.org/pypi/ezdwg/0.16.3/json"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: current peer comparison, FreeCAD consumer route, 2D compatibility gates, and deferred external-J items",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: implementation order and fast-validation cadence"
+    ],
+    "limitations": "Repository documentation and version matrices disclose intended capability, not per-entity conformance. The ezdwg source main manifest and PyPI 0.16.3 release metadata were not reconciled to an exact source revision, and no complete code-lineage audit was performed. No peer execution, independent geometry result, native acceptance, or AcDs association evidence was produced."
+  },
+  "evidence": [
+    {
+      "topic": "DWG reader/writer version matrices",
+      "observed": "LibreDWG documents broad DWG/DXF functionality with later DWG writer limitations; ACadSharp's published table lists DWG reading across AC1014-AC1032 and excludes AC1021 from its DWG writer matrix. These are route declarations and release-selection clues.",
+      "doesNotEstablish": [
+        "per-entity correctness or complete object/reference closure",
+        "successful output in an independent native consumer",
+        "that a neighboring file version or project-reported aggregate coverage qualifies a specific feature"
+      ],
+      "planUse": "Keep exact peer version, file version, direction, entity/object family, diagnostics, and losses bound to each optional comparison."
+    },
+    {
+      "topic": "DXF raw-carrier and projection routes",
+      "observed": "ezdxf exposes distinct 3D POLYLINE, polyface, MESH, and ACIS carrier interfaces. GDAL projects supported entities into OGR geometry; its opt-in raw ASM fields and 12-value transform are documented for AC1027+ DXF, while its documentation says it cannot convert ACIS bodies to OGR solids. Binary DXF input is documented from GDAL 3.12.",
+      "doesNotEstablish": [
+        "DWG AcDs owner/index/payload association",
+        "exact analytic B-rep or ACIS semantic validity",
+        "equivalence of polygon/mesh projection to native MESH, POLYMESH, PFACE, or 3DSOLID identity"
+      ],
+      "planUse": "Reuse only at the exact DXF wire, raw-carrier, or projected-mesh stage, with every projected or omitted field reported. Keep AC1024 DWG AcDs evidence outside the GDAL AC1027+ DXF raw-carrier claim."
+    },
+    {
+      "topic": "Downstream CAD consumer contracts",
+      "observed": "FreeCAD's DWG route is converter-to-DXF followed by a selected DXF importer; its current C++ importer and legacy Python importer are separate routes. LibreCAD_3 documents opt-in DWG reading and deliberately absent DWG writing, with its published qualification ledger carrying read-direction claims only.",
+      "doesNotEstablish": [
+        "native behavior for an unpinned application build, platform, converter, importer, or preference set",
+        "binary ABI or UI qualification from a source-compatibility build check",
+        "DWG writer qualification from successful 2D consumer compatibility"
+      ],
+      "planUse": "Preserve existing LibreCAD-style 2D callbacks and projection; keep typed 3D opt-in. Maintain separate source/API, ABI/rebuild, converter/importer, native UI, and DWG read/write evidence."
+    },
+    {
+      "topic": "ezdwg independent-parser candidate",
+      "observed": "PyPI publishes MIT-licensed ezdwg 0.16.3 wheels and describes a Rust-core, read-focused AC1012-AC1032 route with a selected high-level entity subset and an AC1015 native writer. The current GitHub core manifest has a minimal dependency list, but the reviewed PyPI metadata lacks a trusted-publishing attestation/project URL and current GitHub main reports a different package version.",
+      "doesNotEstablish": [
+        "exact source/artifact correspondence without further reconciliation",
+        "complete DWG object, 3D mesh, ACIS, or AcDs coverage",
+        "independent semantic expectations or conformance from project-authored tests and a self-writer"
+      ],
+      "planUse": "Classify only as an optional basic-entity differential candidate. Consider a single source/artifact audit and small paired-vector comparison only if an unresolved local issue specifically benefits; do not install it in routine CI or use it for 3D/AcDs claims."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "keep DWG parser, typed inventory, owner/reference closure, raw carrier, geometry semantics, and named consumer operation as separate result layers",
+      "preserve 2D LibreCAD/LibreCAD_3 callbacks and legacy projection while keeping typed 3D delivery opt-in",
+      "use GDAL and ezdxf only for their exact DXF carrier or projection roles; do not treat them as B-rep/AcDs oracles",
+      "defer ezdwg to an optional pinned basic-entity differential only after release/source correspondence is audited",
+      "run no new peer executable or native consumer on the per-slice fast loop"
+    ]
+  }
+}

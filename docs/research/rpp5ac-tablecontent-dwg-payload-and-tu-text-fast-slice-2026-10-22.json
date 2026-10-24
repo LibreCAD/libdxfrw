@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "slice": "RPP-5ac",
+  "date": "2026-10-22",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "AC1021 standalone TABLECONTENT payload encoder; ODA TV/TU character-count correction; completeness flags for unretained TABLECONTENT data",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["2", "20.4.96", "20.4.97", "20.4.98", "20.4.99", "20.4.100", "20.4.101.4"],
+    "textRule": "TV is TU from R2007; BS length counts UTF-16 code units, two bytes per code unit"
+  },
+  "implementation": {
+    "payloadVersion": "AC1021",
+    "wholeFileWriterEnabled": false,
+    "modeledValueKinds": [1, 2, 4, 8, 16, 32, 64, 512],
+    "nativeStyleIdsPreserved": ["column", "row", "cell"],
+    "atomicCallerStreams": ["data", "strings", "handles and handle-occurrence ledger"],
+    "atomicPublication": "non-allocating dwgBufferW::swap after successful staging",
+    "skippedDataControls": 11,
+    "historicalByteCountedGeneratedVectorAssumptionSuperseded": true,
+    "persistentDwgDxfFixturesAdded": 0,
+    "externalCodeCopied": false
+  },
+  "validation": {
+    "strictBuild": "PASS",
+    "compatibilityTarget": "lc3_compat_check PASS",
+    "focusedTests": {
+      "passed": 6,
+      "failed": 0,
+      "seconds": 1.51,
+      "names": [
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_table_content_dwg_payload_encoder",
+        "libdxfrw_table_content_style_id_domains",
+        "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+        "dwg2dxf_table_content_style_reference_census",
+        "dwg2dxf_table_base_style_id_dxf_refusal"
+      ]
+    },
+    "rebuiltTrackedSampleReaderTests": {
+      "passed": 2,
+      "failed": 0,
+      "seconds": 1.25,
+      "samples": [
+        "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+        "tests/samples/AC1021/blocks_and_tables_-_metric.dwg"
+      ]
+    },
+    "metricCliProbe": {
+      "operationSucceeded": true,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "reader21Ac1021CrcMismatch": 18,
+      "strictDxfExport": "REFUSED",
+      "exitCode": 1
+    },
+    "fullSuiteRun": false,
+    "sanitizersRun": false,
+    "nativeOrIndependentConsumersRun": false
+  },
+  "remaining": [
+    "Source-backed TABLECONTENT class metadata and whole-object frame emission",
+    "AC1021 legacy TABLE and roundtrip extension owner graph",
+    "Production TABLESTYLE/CELLSTYLEMAP graph-writer handoff",
+    "AC1024+ inline TABLE writer",
+    "Retention and encoding of unmodeled custom/style/geometry data",
+    "Native FreeCAD Linux/Windows qualification and independent ACIS/ACDS semantic evidence"
+  ],
+  "supportClaimsPromoted": 0,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "worktree": "uncommitted and unstaged; pre-existing overlapping edits preserved"
+}

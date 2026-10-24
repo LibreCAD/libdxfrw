@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7AA.1 DIMASSOC DXF reference remapping",
+  "mode": "local implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Apply output identity remapping to the DIMASSOC object and owner handles",
+    "Resolve dimension and ordered osnap links through the configured resolver or source remap",
+    "Fail closed before publication when a nonzero required reference resolves to zero"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "DIMASSOC now remaps its own nonzero handle and owner. Nonzero dimension and osnap references use the reference resolver when configured, whose result is treated as final, or source-handle remapping otherwise. The writer resolves these links before opening a record transaction and rejects a nonzero link that resolves to zero; the transaction also prevents partial-record publication on subsequent writer failures.",
+    "dwgByteLayoutChanged": false,
+    "publicLayoutChanged": false,
+    "abiCompatibilityClaimed": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "limitations": "This does not expand the DIMASSOC model or implement live associative updates, omitted parameter/subentity/intersection/xref semantics, or DWG support. Existing guards for unrepresentable detail remain."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests lc3_compat_check -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --integer-valued-boolean-wire-kinds",
+        "result": "passed; ASCII/Binary remap-only, resolver-precedence, ordered-reference, sentinel, and dimension/osnap zero-link no-publication cases included"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+        "result": "failed with 8 assertions in testGeneratedDictionaryGroupCommonMetadata; the failure is in a distinct path not modified or diagnosed by this slice"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimassoc-dxf-reference-remap-fast-slice-2026-10-17.json",
+        "result": "passed"
+      },
+      {
+        "command": "jq empty docs/research/dimassoc-dxf-reference-remap-fast-slice-2026-10-17.json",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "subplan": "7AA.1",
+    "status": "PARTIAL_LOCAL_DXF_IMPLEMENTATION",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-rooted-mlinestyle-output-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Stage NOD-rooted MLINESTYLE records for DXF-origin raw replay; retain MLINE callbacks and close group-2/340 references against emitted styles with collision-safe handle remapping.",
+  "implementation": {
+    "namedObjectGraph": "MLINESTYLE is traversed only beneath the rooted ACAD_MLINESTYLE dictionary and staged once by source handle.",
+    "sourceAdmission": "Requires one successful named-resource import and a unique typed/raw identity and parent-owner join for DXF-origin records.",
+    "writerRoute": "DXF-origin records use raw group replay after graph validation; the DWG-origin typed route remains separate and is not qualified by this slice.",
+    "handlePolicy": "Reserve typed MLINESTYLE handles before allocation and remap fixed structural collisions consistently in the raw self-handle and dictionary references.",
+    "mlineReferencePolicy": "writeMLine applies the same source-to-emitted map to a non-null group-340 style handle and rejects DRW::NoHandle before entity publication.",
+    "adapterEntityPolicy": "dx_iface retains MLINE records, requires a unique rooted MLINESTYLE target, rejects a nonempty group-2 name that disagrees case-insensitively, and emits the resolved style name and target handle.",
+    "failurePolicy": "Reject duplicate routes or owner mismatches before replacing the destination file."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R named_resource_import_evidence --output-on-failure",
+      "result": "passed",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 0.32
+    },
+    "mlineStyleValidation": {
+      "command": "build-gcc/libdxfrw_wave1_tests --mline-style-validation",
+      "result": "passed"
+    },
+    "writerTargets": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+    ],
+    "diffCheck": "passed for scoped plan, adapter, and test changes",
+    "generatedControls": [
+      "ASCII and binary NOD → ACAD_MLINESTYLE dictionary → STANDARD record",
+      "opaque group-300 retention through raw replay",
+      "source self-handle collision with fixed output structure and consistent remapping",
+      "wrong-owner rejection preserving pre-existing destination bytes",
+      "ASCII/binary one-style-plus-one-MLINE output with group 340 equal to the remapped style code-5 handle",
+      "sentinel MLINE style handle refused without publishing an entity record",
+      "empty MLINE group-2 style name recovered from the authoritative group-340 target in ASCII and binary output",
+      "adapter-level wrong owner, wrong MLINE target, and mismatched style-name refusals preserve destination bytes"
+    ],
+    "fullSuiteRun": false
+  },
+  "evidenceLimits": {
+    "realDwgOriginMLineStyle": "not qualified; the probed ordinary_enc_AC1027.dwg conversion contains no MLINESTYLE record",
+    "adapterEntityClosure": "qualified only for generated DXF-origin MLINESTYLE/MLINE controls; no real DWG-origin MLINESTYLE/MLINE input witness was found",
+    "headerPolicy": "$CMLSTYLE and no-style/default behavior remain open",
+    "consumerSemantics": "not evaluated",
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "gitCommitCreated": false
+  }
+}

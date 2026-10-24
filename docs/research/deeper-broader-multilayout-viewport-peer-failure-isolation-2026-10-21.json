@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Multi-layout viewport closure and peer-reader failure isolation",
+  "mode": "Deeper/broader primary-source research and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "existingFindingRefined": "PAR-144 under the existing 7G.3 layout graph / DWG writer owner ledger",
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification v5.4.1",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "sections": ["20.4.52 BLOCK_HEADER", "20.4.84 LAYOUT"],
+      "observation": "R13-R2000 BLOCK_HEADER contains first/last entity soft pointers; R2004+ contains an owned-object count and repeated hard-owner entity references. Common LAYOUT data includes name, tab order, flags, associated paper-space BLOCK_RECORD soft pointer, and last-active-viewport soft pointer; R2004+ adds a viewport count and repeated viewport soft pointers.",
+      "disposition": "Add per-version structural verification of entity ownership and LAYOUT viewport references; ODA remains authoritative for DWG byte layout."
+    },
+    {
+      "project": "Autodesk AutoCAD documentation",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2026/ESP/OARX-DevGuide-Managed/files/GUID-5FA86EF3-DEFD-4256-BB1C-56DAC32BD868.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-LT-MAC/files/GUID-20529853-0C88-4417-8D8C-9783E9789BBC.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm"
+      ],
+      "observation": "One Model layout and multiple Paper layouts are supported; the special *PAPER_SPACE record points to the last active Paper layout. CTAB is a drawing-saved system variable, while LayoutManager exposes current layout, tab order, selected state, and associated BlockTableRecord. Autodesk's documented DXF HEADER variable table does not list $CTAB, so do not assume it is serialized as a literal DXF header pair.",
+      "disposition": "Check canonical *PAPER_SPACE-to-LAYOUT association in serialized DWG/DXF structure and query CTAB/CurrentLayout separately in a native host; keep selected state and tab order distinct."
+    },
+    {
+      "project": "ezdxf layout internals",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html"
+      ],
+      "observation": "The technical documentation describes a main paper-space viewport with ID 1, points it to the associated layout block record, and distinguishes active paper entities stored in ENTITIES from inactive layout BLOCKS content. It phrases the required-ID statement tentatively.",
+      "disposition": "Use ID 1 plus a distinct additional viewport as a compatibility test profile, not as DWG wire-format authority."
+    },
+    {
+      "project": "ACadRust",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/issues/121"
+      ],
+      "observation": "A generated AC1015 report says the writer emitted non-active layout first/last entity handles but the ACadRust 0.6.3/main reader dropped those links and assigned all paper entities to the active layout; the same report's AC1032 case passed. A fix commit is referenced, but this research did not verify a released/pinned artifact containing it.",
+      "disposition": "Do not use an affected AC1015 peer readback as a writer verdict. Inspect emitted legacy chains and verify the exact peer artifact before qualification."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1023",
+        "https://github.com/DomCR/ACadSharp/issues/1184"
+      ],
+      "observation": "A historical viewport-not-present/property-overrides report closed with layout/viewport changes. Open issue 1184 reports invalid-range ShadePlotDPI assignment dropping LAYOUT objects and dictionary entries in DWG, or losing values/reporting errors in DXF.",
+      "disposition": "Include viewport handle identity/ownership in the generated DWG case; test DXF group-69 viewport IDs only in the DXF profile. Pin the peer and examine its diagnostics and plot settings before interpreting absent layouts."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues/1355"
+      ],
+      "observation": "A report against 0.14.8556 describes dwg2dxf returning success after truncated DXF output lacking ENTITIES and EOF; the decoded input also showed an implausible layout count amid object-map errors.",
+      "disposition": "Require complete section termination, expected layout/entity census, exact executable revision, and diagnostics; exit code alone is insufficient."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingFindingRefined": "PAR-144",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationReadinessUpdated": true,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "Research reconciles primary format/application documentation and project issue/source reports. No peer executable, native CAD application, or local regression suite was run. Peer reports are not local reproductions or format authority; the local working tree remains broadly dirty and this pass made no source/test changes."
+}

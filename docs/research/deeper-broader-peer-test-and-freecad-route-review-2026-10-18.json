@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer test-evidence and FreeCAD route reconciliation",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile current DWG peer record-boundary validation with expected-value evidence",
+    "Identify peer test routes that are ignored, sample-dependent, or require proprietary converters",
+    "Trace FreeCAD DWG conversion into the effective DXF importer",
+    "Refresh native DWG writer acceptance evidence without promoting peer claims"
+  ],
+  "method": {
+    "kind": "Read current primary project sources, status files, issue discussion, and local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-implementation-evidence-review-2026-10-18.json",
+      "docs/research/deeper-broader-peer-safety-localization-and-freecad-build-boundary-2026-10-18.json"
+    ],
+    "limitations": "Upstream master/main pages and issue reports are mutable. No peer test was executed and no supplied peer drawing was independently inspected. Peer claims and issue resolutions are leads for qualification, not libdxfrw findings or support evidence."
+  },
+  "sources": [
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/README.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/STATUS.md",
+        "https://github.com/DrunkOnJava/dwg-rs/tree/main/tools/synthetic-dwg"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-18; README coverage run labels its sample date 2026-08-30",
+      "observed": "The README publishes inconsistent aggregate decode percentages across sections. STATUS describes exact entity data-stream boundary checking, nine incomplete records and several unexercised field lists, plus an APPID ambiguity where differing field interpretations end at the same boundary. The project also describes a synthetic DWG generator and broad generated tests."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/releases"
+      ],
+      "revision": "Mutable README reviewed 2026-10-18; package example identifies 0.6.4",
+      "observed": "The README documents cross-platform CI and explicitly notes that tests requiring drawings absent from the repository are ignored and require a separate --ignored run when inputs are available. Default test success does not prove those sample-dependent routes executed."
+    },
+    {
+      "project": "ixmilia/dxf-rs",
+      "urls": [
+        "https://github.com/ixmilia/dxf-rs"
+      ],
+      "revision": "Mutable main README reviewed 2026-10-18",
+      "observed": "The README says integration/interop tests run only on Windows when the ODA File Converter is installed. This is an optional external, platform-specific test path rather than an open-source-only, platform-neutral oracle."
+    },
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+      ],
+      "revision": "Issue opened and closed 2026-09-08/09; page reviewed 2026-10-18",
+      "observed": "A user report describes AC1032 DWG writer corruption detected by AutoCAD RECOVER. The maintainer reports fixes and source-pair comparisons for MLeader, Layout, and AcDs data, but the issue page does not provide an independently inspectable post-fix native audit artifact."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation"
+      ],
+      "revision": "Mutable FreeCAD main source reviewed 2026-10-18; GitHub marks the documentation repository archived 2026-04-01",
+      "observed": "The DWG wrapper converts to a temporary DXF and calls importDXF.open; source exposes LibreDWG, ODA, and QCAD converter branches, with the ODA branch requesting ACAD2000 DXF. The checked-in Python DXF module has its own add-on/parser loading path. This identifies source-level route composition, not actual backend resolution in an installed binary."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Sharpens existing DWG record-boundary, peer-lineage, native-writer, and FreeCAD consumer checkpoints. Require an expected field-value oracle in addition to exact record-end checks; report ignored/not-run peer tests explicitly; capture the FreeCAD converter and importer as separate route stages.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "For touched DWG decoders, pair independently expected field/value assertions with bounded exact consumption and a following-record or handle-stream sentinel.",
+    "At optional peer checkpoints, record PASS/FAIL/IGNORED/NOT_RUN counts, exact source/package, command, build, and sample hashes/provenance.",
+    "For FreeCAD DWG qualification, pin the selected converter, arguments, intermediate DXF hash/version, resolved importer/backend, preferences, and final object disposition.",
+    "Separate same-version raw carrier preservation from cross-version conversion and require named native open/recovery/deletion evidence at the composed writer checkpoint.",
+    "Keep per-slice validation fast; use only generated or locally authored-from-scratch controls and do not commit peer/customer drawings."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing tracked modifications and untracked artifacts. Only the plan and this research receipt were changed for this pass; all unrelated work was preserved."
+  }
+}

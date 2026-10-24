@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1024 LAYOUT plot-DPI reader controls",
+  "mode": "local implementation fast slice",
+  "scope": [
+    "Generate AC1024 DWG controls for stored inactive zero custom DPI and valid active Custom DPI",
+    "Verify rooted ACAD_LAYOUT graph publication, decoded LAYOUT values, and following-object readability",
+    "Reuse the existing DWG local round-trip executable and selector without adding fixtures or CTest registrations"
+  ],
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Generated case 77=2, 78=0 retains an inactive zero value without making it an active Custom-DPI request.",
+      "Generated case 77=5, 78=300 retains a valid active Custom-DPI value.",
+      "Checks the NOD ACAD_LAYOUT dictionary edge, child dictionary entries, LAYOUT handle/owner/value callback, and following XRECORD sentinel."
+    ],
+    "productionCodeChanged": false,
+    "newCtestRegistration": false,
+    "persistentFixturesAdded": false,
+    "externalFixturesImported": false,
+    "temporaryOutputsRemoved": true
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --layout-plot-dpi-read-controls",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "passed (1/1, 3.10 seconds)"
+    },
+    "compatibilityBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "diffCheck": "scoped git diff --check passed"
+  },
+  "planStatus": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This is a same-library generated writer/reader structural control, not an independent raw-wire oracle, plotted-output check, CAD rendering result, or native-consumer qualification. The shared worktree is broadly modified, so the slice remains uncommitted and unstaged."
+}

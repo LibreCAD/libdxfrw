@@ -1,0 +1,55 @@
+{
+  "id": "par06-associative-raw-record-group-bound",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "routes": [
+      "generic raw DXF record capture",
+      "ACDBASSOC/PERSUBENTMGR partial typed projection"
+    ],
+    "bound": "65,536 group-code/value pairs per raw DXF record",
+    "semanticImpact": "resource refusal only; no associative semantics or support claim"
+  },
+  "confirmedGap": "Raw DXF validation rejected records over 65,536 groups only after capture had appended them. An input could consume up to the larger file-wide typed-variant budget before final validation. PERSUBENTMGR's partial typed handle vector also had no local count guard.",
+  "change": [
+    "Added a separate internal kMaxDxfRawRecordGroups bound and enforce it in captureRawGroup before a new DRW_Variant is materialized.",
+    "Reused the bound in final raw-group validation to keep capture and validation limits aligned.",
+    "Bound PERSUBENTMGR's DXF-only typed subentity handle vector to the same limit.",
+    "Replaced two stale DRW_TableCellAttribute aggregate initializers in the adapter test with explicit field setup, including the already-asserted content ordinal, restoring strict target compilation without changing production behavior."
+  ],
+  "generatedControls": [
+    {
+      "route": "ASCII AC1027 associative OBJECTS callback",
+      "count": 65536,
+      "expected": "typed/raw callbacks publish and following DICTIONARYVAR is delivered"
+    },
+    {
+      "route": "ASCII AC1027 associative OBJECTS callback",
+      "count": 65537,
+      "expected": "refuse before associative publication and before following-object callback"
+    },
+    {
+      "route": "direct PERSUBENTMGR parser projection",
+      "counts": [65536, 65537],
+      "expected": "accept exact limit; refuse one over without growing typed handle vector past limit"
+    }
+  ],
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2: PASS (-Werror; compatibility target succeeds)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_associative_subentity_handle_limit|libdxfrw_hardening|dwg2dxf_associative_callback_contract)$' --output-on-failure: PASS (3/3; 1.75 s)",
+    "git diff --check -- src/intern/dxfparserlimits.h src/libdxfrw.cpp src/drw_objects.cpp tests/hardening_tests.cpp tests/dwg2dxf_adapter_tests.cpp CMakeLists.txt: PASS"
+  ],
+  "sourceHashesSha256": {
+    "src/intern/dxfparserlimits.h": "1ca6782ed330de4a2f05c3eb445168956403a5028390384719f3671d0200797c",
+    "src/libdxfrw.cpp": "90166a4a7aa938bced08b2a0823a87fe02b565e22fb17f1ae85e7896e207c54b",
+    "src/drw_objects.cpp": "545a70c706429b5710bc9ef219326cc444951ea56b20c60f530e170b9313a8dc",
+    "tests/hardening_tests.cpp": "c875c908d355517ea6020930488f102f1c23e5e7e4c9c8a1bb1f0495256f94cd",
+    "tests/dwg2dxf_adapter_tests.cpp": "a71feb4bcfcc9b630aa71630bfd91d58ea0c88ba6fa12fc1c9d38c6abe093a92",
+    "CMakeLists.txt": "2129b2ed25c6caac0c584d82379a2f4ec17c93116ca739e75613507c84b75919"
+  },
+  "fixturesAdded": false,
+  "fullSuiteRun": false,
+  "externalProducerOrNativeApplicationRun": false,
+  "supportClaimChanged": false,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

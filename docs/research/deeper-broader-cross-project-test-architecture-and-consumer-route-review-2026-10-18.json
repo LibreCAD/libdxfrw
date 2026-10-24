@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Cross-project test architecture and consumer route boundaries",
+  "mode": "Deeper/broader primary-source research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare the route granularity and loss/repair diagnostics of open-source DWG/DXF peers",
+    "Refine local generated-control design based on peer unknown-field and fuzz workflows",
+    "Separate strict parse, repair, conversion, projection, and native-consumer outcomes",
+    "Preserve fast per-slice validation and existing external-evidence boundaries"
+  ],
+  "method": {
+    "kind": "Read current project-owned source, documentation, and test-harness instructions and reconcile against the existing plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The reviewed sources describe project-owned routes and harness design, not reproduced peer behavior on a shared artifact. Mutable main/master documentation is discovery evidence and must be pinned if a peer executable is later run. No local parser defect or support promotion is inferred. ODA v5.4.1 remains authoritative for DWG byte layout; Autodesk references remain authoritative for documented DXF grammar."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG and libredwg-fuzz",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg-fuzz",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgrewrite.c"
+      ],
+      "revision": "Mutable project-owned sources reviewed 2026-10-18; no commit or executable pinned",
+      "observed": "HACKING documents separate DWG/DXF and rewrite fuzz routes, instrumented builds, and distinct paired DWG/DXF field values for unknown-field attribution. libredwg-fuzz separates fuzz and ordinary ASan build directories, classifies crashes/hangs/leaks, and provides replay scripts for collected failures. The rewrite harness exercises decode/encode/redecode. These are test-architecture patterns, not per-format semantic coverage claims."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/discussions/520"
+      ],
+      "revision": "Mutable project README/docs and maintainer answer reviewed 2026-10-18; no build or sample run",
+      "observed": "The README separates DWG/DXF reader and writer eligibility by AC version. The reader API exposes notifications, and the maintainer says repository samples are used by tests. A version matrix, successful Read() return, test input availability, and per-object diagnostics are therefore distinct evidence fields."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/sections/table.py"
+      ],
+      "revision": "Mutable current source/docs reviewed 2026-10-18; no package artifact or runtime pinned",
+      "observed": "The entity exporter documents that unsupported features may be ignored when exporting to an overridden DXF version and that ezdxf performs no version conversion. The xref operation is selective and may ignore unsupported raw/proxy records. The table auditor repairs duplicate handles and explicitly warns that references may be broken by that repair. Strict read/export, xref/copy, audit/repair, and saved readback must not be conflated."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current stable driver documentation reviewed 2026-10-18; no GDAL binary run",
+      "observed": "The DXF driver projects into OGR and may tessellate curves. Binary DXF input is documented beginning with GDAL 3.12. The AC1027+ 3D extensibility option exposes raw ASMData plus a distinct 12-value affine transform but does not construct OGR solid geometry; modeler entities are skipped by default."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingEvidenceProtocolRefined": [
+      "Route-specific peer admission and diagnostics",
+      "Distinct sentinel values in generated DWG/DXF field-mapping controls",
+      "Separate strict parsing, repair/audit, conversion, projection, and native-consumer outcomes",
+      "Split composed fuzzing by input route and replay minimized relevant failures"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an implementation-ready route protocol: compare only exact peer version/direction/operation intersections, use distinctive scratch values and source-to-output dispositions, separate all conversion/repair/consumer stages, and retain fuzz/recovery/native work at existing composed gates. No new implementation blocker or support evidence was established."
+  },
+  "implementationReadyChecks": [
+    "Select a precise format, version, direction, object family, and operation before choosing an optional peer.",
+    "For generated mapping probes use distinct per-field values, handles, owners, and a following-record sentinel; keep locally created controls temporary unless they are already repository-owned.",
+    "Record strict parser result, notifications, repairs, erased objects, emitted identities, graph closure, output publication, and independent readback separately.",
+    "Use repair/audit as a separate diagnostic route; capture before/after handles and references, since repair may change identities or break links.",
+    "Keep touched-target builds and owning focused CTests per slice; run peer matrices, broad fuzz/sanitizer jobs, full corpus validation, and native Linux/Windows CAD checks only at existing composed checkpoints.",
+    "At the composed fuzz checkpoint, separate DWG, ASCII DXF, Binary DXF, and decode/rewrite paths; bound each run and replay only minimized locally relevant regressions."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cross-project-test-architecture-and-consumer-route-review-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-cross-project-test-architecture-and-consumer-route-review-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

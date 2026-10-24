@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-polyline-stage-rollback-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "slice": "7BA stage/adopt rollback transcript",
+  "scope": "Exercise staged POLYLINE owner identity, source-map lease disposition, injected failure rollback, ledger cleanup, and same-reader retry using generated in-memory frames.",
+  "changes": {
+    "files": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "publicApiChanged": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "committed": false
+  },
+  "coverage": {
+    "orphanFirstThenForeignLateParent": "PASS: foreign parent rejected; its source-map frame restored; original orphan and owner claim remain valid",
+    "matchingLateParentAdoption": "PASS: matching parent staged and adopts the orphan; inverse owner claim released",
+    "terminalization": "PASS: pending owner terminalization returns staged bytes and claims to zero",
+    "injectedFailures": [
+      "BeforeParentStateReserve",
+      "BeforeParentStateInsert",
+      "BeforeFrameStaging",
+      "BeforeOrphanAdoption"
+    ],
+    "failureAssertions": "PASS: expected source-map frame disposition, empty/valid ledger, inverse claim cleanup, and successful same-reader retry at every injection point",
+    "sourceLocationCoverage": false,
+    "actualDwgPipeline": false,
+    "callbackPublication": false
+  },
+  "validation": {
+    "strictReaderMatrixBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+    "owningCtests": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "consumerCompatibilityTarget": "PASS: cmake --build build-gcc --target lc3_compat_check -j2",
+    "receiptJsonParsed": true,
+    "scopedGitDiffCheck": true,
+    "fullSuite": "NOT RUN",
+    "sanitizer": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  },
+  "limitations": [
+    "Synthetic ObjectMap leases are source-location-free and do not establish source-coverage ledger transitions.",
+    "The test does not exercise callback publication or a complete actual-DWG reader pipeline.",
+    "Top-level unordered-map nodes/buckets and allocator metadata remain outside the modeled staging budget.",
+    "This is focused transactional evidence, not a whole-reader memory-bound, thread-safety, or support claim."
+  ],
+  "planImpact": {
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "queueReordered": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextReadyItem": "Specify and test the modeled accounting boundary for top-level pending/orphan unordered-map nodes and buckets, then revisit source-location-backed lease/callback evidence if needed; preserve focused-only validation cadence."
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Canonical LTYPE writer metadata slim projection",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Keep only canonical mandatory linetypes in the writer's metadata mirror.",
+    "Avoid copying derived linetype pattern/parser payloads while preserving owning DRW_TableEntry state."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "dx_iface::fileExport",
+    "before": "Copy the entire source lineTypes collection, including noncanonical entries and derived pattern geometry, into the writer's canonical metadata inventory.",
+    "after": "Select only BYBLOCK, BYLAYER, and CONTINUOUS records using allocation-free ASCII case-insensitive comparisons. Copy each selected DRW_TableEntry base through its deep-copy assignment contract, preserving name/handle, extension dictionary and reactor references, APPDATA, and owning XDATA variants while leaving derived pattern/parser payloads defaulted.",
+    "effect": "Reduces copied records to the three writer-recognized canonical names, avoids per-source-name uppercase-string materialization, and omits derived linetype payload copies. Direct assignment of extData's raw-pointer vector was rejected during focused validation because that field is owning; the final code uses the base copy contract to clone it safely."
+  },
+  "testChange": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "selector": "--linetype-extension-graph",
+    "ctest": "libdxfrw_linetype_extension_graph",
+    "purpose": "Run the generated canonical three-linetype extension dictionary/XDATA graph independently in the fast loop, including ASCII writer output and readback."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_linetype_extension_graph|libdxfrw_ltype_mirror_authority|libdxfrw_dxf_fixtures)$' --output-on-failure",
+        "result": "passed",
+        "count": "3/3",
+        "elapsedSeconds": 4.74,
+        "coverageNote": "Covers canonical linetype mirror semantics, the focused XDATA/APPDATA/XDICTIONARY owner graph, and the broader DXF fixture executable."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, tests/dxf_fixture_tests.cpp, CMakeLists.txt, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newFocusedTestSelector": 1,
+    "newCtest": 1,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes a writer-setup deep-copy route with an ownership-safe slim projection and creates a fast focused regression gate. Output/owner semantics and external qualification claims remain unchanged."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict adapter, DXF fixture, and block-owner target builds",
+      "Focused canonical linetype extension graph CTest",
+      "Existing linetype mirror authority CTest",
+      "Existing SORTENTSTABLE adapter CTest",
+      "Existing block owner CTest",
+      "Existing DXF fixture CTest"
+    ],
+    "limitations": "No allocation instrumentation, peak RSS, or throughput benchmark was performed. The implementation avoids noncanonical and derived payload copies but still deep-copies required APPDATA/XDATA and base metadata."
+  }
+}

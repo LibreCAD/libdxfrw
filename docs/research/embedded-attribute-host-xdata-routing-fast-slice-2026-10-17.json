@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-embedded-attribute-host-xdata-routing-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Route trailing DXF XDATA after embedded MTEXT to the containing ATTRIB or ATTDEF, with generated ASCII/Binary controls.",
+  "change": {
+    "productionFile": "src/drw_entities.cpp",
+    "testFile": "tests/dxf_fixture_tests.cpp",
+    "invariant": "XDATA group codes 1000-1071 after an embedded ATTRIB/ATTDEF MTEXT object are owned by the host record, not the nested MTEXT object.",
+    "behavior": "DRW_Attrib::parseCode dispatches XDATA to DRW_Entity::parseCode whenever an embedded MTEXT exists. This handles both marker 100 and canonical marker 101 even though marker 101 exits the host subclass-state flag.",
+    "coverage": [
+      "Generated ASCII and Binary DXF input with a registered HOST_APP APPID.",
+      "Four ATTRIB child records and four ATTDEF records with distinct 1000 and 1070 XDATA values.",
+      "Exact host XDATA order and empty nested-MTEXT extData assertions.",
+      "Copy, assignment, reset, canonical writer output, same-library readback, and following LINE sentinel.",
+      "Existing fallback text, tags, prompt, background fields and orientation assertions remain active."
+    ]
+  },
+  "validation": {
+    "strictFixtureTarget": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedFixtureCTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "libreCADCompatibility": {
+      "command": "cmake --build build --target lc3_compat_check -j2",
+      "result": "PASS (no work required)"
+    },
+    "focusedHardeningCTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "scopedDiffCheck": "PASS",
+    "fullTestSuite": "NOT_RUN",
+    "externalPeersOrNativeCad": "NOT_RUN"
+  },
+  "remainingInScope": [
+    "Second embedded-marker disposition.",
+    "Pre-R2018 linked-column XDATA semantics and caller-created nested-MTEXT XDATA policy.",
+    "Unsupported XDATA-kind policy and DWG host-XDATA conversion.",
+    "CLI, independent producer, and native consumer acceptance checkpoints."
+  ],
+  "impact": {
+    "parserBehaviorChanged": true,
+    "writerBehaviorChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "qualificationOrSupportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingBroadChanges": true,
+    "gitMetadataReadOnly": true,
+    "stagedOrCommitted": false
+  }
+}

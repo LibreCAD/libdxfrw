@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Commercial ACIS-reader freshness and SAB qualification boundary",
+  "mode": "deeper/broader primary-source research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh cadaclysm package/release/license scope from current PyPI metadata and SDK documentation.",
+    "Refresh Ansys Workbench ACIS reader route from current 2026 R1 product documentation.",
+    "Screen newly surfaced open-source B-rep kernels for documented ACIS SAT/SAB reader routes.",
+    "Add exact-profile optional qualification steps without treating commercial products as open-source implementations or making them local implementation dependencies."
+  ],
+  "sources": [
+    {
+      "url": "https://pypi.org/project/cadaclysm/",
+      "observed": "PyPI lists 0.10.0 as latest, published October 6, 2026; its format list includes ACIS SAT but not SAB, claims exact B-rep body geometry, identifies the license as LicenseRef-Cadaclysm-EULA, and provides wheels for Windows x64, macOS universal2, Linux x64, and Linux ARM64.",
+      "evidenceClass": "published package metadata and vendor capability claims; no runtime executed"
+    },
+    {
+      "url": "https://pypi.org/project/cadaclysm/0.10.0/",
+      "observed": "PyPI attests published wheel artifacts to source commit c6d69f6c7e17a87d38843e1125194008b389f591. macOS universal2 wheel SHA-256: c0b73138146cf9f7b0f34f666c9ea7d19aab322be7720eb6d456c255bbb62987; Windows x64: 1448094e27b05aff2259f4aceeb10e60649f8efdd6a93f12f69bed2a236c99e7; Linux x64: dae9a71d800eb1e928a6a752e38d3153067c324f6db3f29e1bc7a12e8267ebf0; Linux ARM64: 03a937fd72db70d29348b43f25699de76083eadb9dfa56345f6cf61bdaa9bb5b.",
+      "evidenceClass": "artifact provenance and checksums; binaries not downloaded or run"
+    },
+    {
+      "url": "https://github.com/rdeioris/cadaclysm-sdk",
+      "observed": "The SDK states that wrappers, headers, and samples are Apache-2.0 while the matched cadaclysm libraries are proprietary and governed by an EULA; test/evaluation is advertised without a production license and prebuilt libraries are available for Windows, macOS, and Linux.",
+      "evidenceClass": "project licensing/platform statement; evaluation entitlement not exercised"
+    },
+    {
+      "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadACIS.html",
+      "observed": "Ansys Workbench 2026 R1 documents a standalone SAT/SAB reader, input versions through 2023 on Linux and Windows, and solid/surface/line body import. It also notes no associativity/parameter support and requires the configured Ansys installation route.",
+      "evidenceClass": "vendor product documentation; installation, entitlement, profile coverage, and runtime behavior not verified"
+    },
+    {
+      "url": "https://github.com/kernalix7/CADKernel",
+      "observed": "The broad overview mentions ACIS, but the detailed supported-format matrix marks ACIS SAT/SAB read and write as planned rather than supported; the DWG row describes DXF fallback.",
+      "evidenceClass": "mutable project documentation; current capability claims only, not runtime qualification"
+    },
+    {
+      "url": "https://github.com/MC-Meesh/opensolid-fable",
+      "observed": "The project describes a hybrid F-rep/B-rep kernel and a STEP parser fuzz target; the reviewed README has no ACIS/SAT/SAB format or reader claim.",
+      "evidenceClass": "mutable project documentation; screened for route relevance only"
+    },
+    {
+      "url": "https://github.com/redwoodrhetorica/keel",
+      "observed": "The project describes an alpha B-rep kernel and its reviewed README has no ACIS/SAT/SAB format or reader claim.",
+      "evidenceClass": "mutable project documentation; screened for route relevance only"
+    }
+  ],
+  "artifactPins": {
+    "cadaclysm": {
+      "version": "0.10.0",
+      "sourceCommit": "c6d69f6c7e17a87d38843e1125194008b389f591",
+      "sha256": {
+        "macOS-universal2": "c0b73138146cf9f7b0f34f666c9ea7d19aab322be7720eb6d456c255bbb62987",
+        "Windows-x86_64": "1448094e27b05aff2259f4aceeb10e60649f8efdd6a93f12f69bed2a236c99e7",
+        "Linux-x86_64": "dae9a71d800eb1e928a6a752e38d3153067c324f6db3f29e1bc7a12e8267ebf0",
+        "Linux-aarch64": "03a937fd72db70d29348b43f25699de76083eadb9dfa56345f6cf61bdaa9bb5b"
+      }
+    }
+  },
+  "assessment": {
+    "localDefectsConfirmed": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "testsRun": false,
+    "peerExecutablesRun": 0,
+    "nativeApplicationsOrKernelsRun": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refreshes candidate availability and capability boundaries only. Cadaclysm 0.10.0 is a proprietary SAT/B-rep route with no published SAB claim; Ansys 2026 R1 documents a proprietary standalone SAT/SAB route through ACIS versions up to 2023. New generic open-source B-rep kernels do not document ACIS import, and CADKernel's detailed ACIS matrix marks it planned/unsupported. All remain non-promoting until exact-profile results exist. Any result must be separated into carrier extraction/AcDs identity, semantic interpretation, and native application acceptance."
+  },
+  "implementationReadyChecks": [
+    "Do not add either proprietary package/product to local fast tests or implementation dependencies.",
+    "Check only already-available lawful installation/evaluation eligibility at the composed checkpoint; if unavailable, record NOT_AVAILABLE and continue.",
+    "Use exact pinned package/source/product identity and hashes, and require the payload's actual inner ACIS profile to be within the candidate's documented scope.",
+    "Do not count generic B-rep-kernel capability as ACIS read support unless a pinned source revision provides a SAT/SAB decoder route.",
+    "Generate controls from scratch in temporary storage or use already-in-repository fixtures; do not download or commit third-party DWG/DXF test fixtures.",
+    "Use independent analytic expectations, body validity and per-entity/body dispositions; a successful open, rendered mesh, or same-codec roundtrip alone is insufficient.",
+    "Keep SAT-only evidence separate from SAB and from DWG AcDs section/key/owner association; keep native FreeCAD qualification separate.",
+    "Candidate research and availability cannot promote support claims or change J256, J260, J268, J284, J293, or J295 from DEFERRED_EXTERNAL."
+  ],
+  "verification": {
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "receiptJsonParsed": "passed with jq empty",
+    "markdownDiffCheck": "passed with git diff --check on both plan files and this receipt",
+    "tests": "not applicable; documentation-only change"
+  },
+  "workingTree": {
+    "codeOrTestFilesEditedInThisPass": false,
+    "externalArtifactsDownloaded": false,
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The worktree was already broadly modified. This pass adds research-only plan entries and one receipt; no unrelated files were staged or reverted."
+  }
+}

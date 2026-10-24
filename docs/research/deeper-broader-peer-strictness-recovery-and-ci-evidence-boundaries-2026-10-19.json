@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "peer strictness, recovery, and CI evidence boundaries",
+  "mode": "primary-source project documentation and workflow review",
+  "scope": [
+    "Reconcile LibreDWG workflow coverage with its source-level route declarations",
+    "Separate ezdxf strict parse, recovery, audit, owner linking, and serialization outcomes",
+    "Bound IxMilia.Dxf as a version- and family-specific DXF comparison candidate",
+    "Translate the findings into a staged, low-cost peer qualification subplan"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG CI workflow and test tree",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/.github/workflows/main.yml",
+        "https://github.com/LibreDWG/libredwg/tree/master/test",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "The workflow defines separate debug, release, coverage, ASan, UBSan, 32-bit, and Windows paths. Its make check invocation is conditional on selected Linux configurations; Windows jobs run CTest. These workflow facts qualify the tested job/corpus only, not all format routes or families. No job was executed in this research pass."
+    },
+    {
+      "name": "ezdxf strict loading, recovery, and data model documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst",
+        "https://ezdxf.readthedocs.io/en/stable/dxf_data.html"
+      ],
+      "observed": "The regular load path is faster than recovery; recovery is an ASCII DXF repair/audit path. Documentation warns that binary payload decoding errors, including XRECORD data, can be reported while recovery continues, and that saving can lose information or create invalid DXF. The model setup also includes section/layout creation and owner linking. No file was parsed or repaired."
+    },
+    {
+      "name": "IxMilia.Dxf current compatibility declaration and changelog",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md"
+      ],
+      "observed": "The README declares DXF/DXB scope through R2014 with stated entity exceptions, describes AutoCAD writer-acceptance caveats and missing required-data cases, and the changelog records continuing compatibility fixes. This is a candidate scope declaration, not an independently executed result or DWG capability claim."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a staged strict-versus-recovery peer evidence rule and a trigger for expensive peer/CI validation. Preserves fast local per-slice validation and existing composed checkpoints; recovery, writer interoperability, and consumer semantics remain distinct and non-interchangeable."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub branches and project documentation are mutable. Findings are source/documentation-level and were not independently executed. CI configuration is not a result for every branch, artifact, corpus, operation, or platform. Recovery behavior is explicitly distinct from strict reading and may not preserve malformed/binary data."
+  }
+}

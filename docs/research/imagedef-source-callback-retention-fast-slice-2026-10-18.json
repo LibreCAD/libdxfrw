@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IMAGEDEF source-callback retention by import generation and handle",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain complete DRW_ImageDef callback values in the dwg2dxf adapter",
+    "Bind IMAGE-to-IMAGEDEF callbacks by import generation and source handle",
+    "Reject ambiguous duplicate source identities without overwriting retained values"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "dx_data owns copied DRW_ImageDef values keyed by (importGeneration, sourceHandle). dx_ifaceImg records its source import generation. linkImage retains full definitions, binds paths only to matching-generation images, and records invalid or duplicate keys without replacing earlier state. Generated controls cover shared definitions, two definitions with the same path, complete typed metadata/callback-owned carriers, source mutation, generation isolation, invalid handles, and duplicate-handle conflict behavior.",
+    "wireBehaviorChanged": false,
+    "libraryApiOrInstalledLayoutChanged": false,
+    "cliInternalLayoutChanged": true,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_image_path_cli$' --output-on-failure",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "results": {
+      "strictAdapterAndCliTargets": "passed",
+      "owningImagePathCliCTest": "passed (1/1)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The adapter retains complete typed IMAGEDEF callback state for each unambiguous import-generation/source-handle identity and no longer binds callbacks across reused-container generations.",
+    "coverage": "Generated controls verify class version, pixel dimensions/sizes, loaded/resolution state, owner, extension-dictionary handle, reactors, appData, XDATA, shared references, distinct same-path source identities, copied ownership after source mutation, invalid handles, and duplicate-key refusal. The controls run through the existing generated image-path CLI CTest.",
+    "limitations": "The retained definition map is not yet consumed by the DXF writer. Definition metadata/reactors are not yet serialized; source-to-emitted handle planning, IMAGE 340/360 closure, IMAGEDEF dictionary ownership, atomic output rollback, repeated ASCII/Binary semantic preservation, independent reader acceptance, native acceptance, and support claims remain unqualified. This is not complete PAR-59/7P.5b work."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "nextAction": "7P.5b.2: preplan source IMAGEDEF-to-emitted identity bindings and serialize full definitions/reactors transactionally while preserving legacy filename-only API behavior."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

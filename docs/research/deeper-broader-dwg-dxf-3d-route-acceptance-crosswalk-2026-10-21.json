@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-dwg-dxf-3d-route-acceptance-crosswalk-v1",
+  "observedAt": "2026-10-21",
+  "title": "DWG/DXF 3D route and acceptance crosswalk",
+  "evidenceKind": "primary-source web review across schemas, open-source codecs, and consumer documentation",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadOrGeometryKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "https://github.com/mozman/ezdxf/discussions/1295",
+      "https://github.com/ixmilia/dxf",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+    ],
+    "evidenceRule": "A peer's typed entity, raw payload, successful parse, or self-readback establishes only that route's syntax/carrier behavior. Geometry semantics and downstream application acceptance require separate evidence. ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions."
+  },
+  "evidence": [
+    {
+      "route": "DXF ACIS carrier versus history reference",
+      "observed": "Autodesk's 3DSOLID reference identifies modeler version group 70, proprietary data in group 1, additional continuation data in group 3, and a separate soft-owner history handle in group 350. ezdxf documents SAT for R2000-R2010 and SAB for R2013+ and offers raw ACIS inspection/export.",
+      "planUse": "Keep ordered group-1/group-3 carrier bytes and group-350 history ownership separately observable. Use captured source version/profile rather than inferring ACIS semantics from the DXF entity shell."
+    },
+    {
+      "route": "Open-source DXF reader, author, and renderer boundaries",
+      "observed": "ezdxf says ACIS creation requires an external library; its drawing add-on does not render ACIS and has no 3D rendering engine, projecting 3D entities into XY. IxMilia.Dxf exposes a typed Dxf3DSolid model and claims R10-R2014 coverage but warns that several typed entity outputs, including 3DSOLID, BODY, and REGION, may not be accepted by AutoCAD.",
+      "planUse": "Admit these as exact-version syntax/carrier or 2D projection observers only. Require independent native application acceptance for interoperability claims; a typed entity or self-readback is not a solid pass."
+    },
+    {
+      "route": "DWG entity shell and modern AcDs backing store",
+      "observed": "LibreDWG's manual distinguishes known entity types from documented test-coverage gaps. Open issue #1411 shows a modern R2013+ REGION surviving conversion while its associated AcDs ACIS geometry is lost. The issue provides a concrete failure shape, not format authority.",
+      "planUse": "Preserve the existing exact object-key/payload association check and explicit accounting for every residual AcDs record. An entity count with empty/missing geometry is data loss."
+    },
+    {
+      "route": "DWG-to-DXF modeler writer completeness",
+      "observed": "ACadSharp issue #1195 reports hundreds of omitted 3DSOLID/REGION entities, including definitions whose blocks contain only modeler records. On the review date, writer PR #1240 and prerequisite storage PR #1174 were both open.",
+      "planUse": "Keep per-source-entity dispositions and block membership in the existing writer gate; test that INSERTs cannot conceal an emptied solid-only block. The peer issue is a risk pattern, not a libdxfrw finding."
+    },
+    {
+      "route": "Native FreeCAD consumer boundary",
+      "observed": "Official Draft DXF documentation lists different C++ and legacy importer subsets, identifies 3DFACE only in the legacy list, and says embedded ACIS/SAT solids cannot currently be read. DWG import delegates through an external converter and then the DXF importer.",
+      "planUse": "Keep FreeCAD qualification specific to exact build, converter, importer, and explicit-entity subset. Treat ACIS solids as unsupported-consumer outcomes, not as codec success or failure."
+    }
+  ],
+  "implementationReadiness": [
+    "Maintain five separate PAR-07/S8 outcome lanes: DXF ACIS carrier, DWG AcDs carrier, explicit 3D geometry, ACIS model semantics, and named downstream application outcome.",
+    "For DXF modeler writes, record entity identity, $ACADVER, group 70, ordered group 1/3 chunks, separate group-350 handle, strict readback, and explicit loss/refusal disposition.",
+    "For DWG modeler reads/writes, record entity handle/type and block owner, exact DataStorage key and payload hash, and disposition for every unmatched/opaque AcDs record.",
+    "Test explicit 3DFACE, 3D POLYLINE/PFACE, MESH, and supported surface families independently from ACIS-bearing entities; do not promote a generic 3D claim from any one entity family.",
+    "Use fast owning CTests and the existing LibreCAD compatibility target for local source slices; execute one pinned peer/native comparison only at the existing composed checkpoint.",
+    "If profile-matched samples, authorized tools, or an applicable native build are unavailable, record the precise NOT_RUN/NOT_QUALIFIED reason and self-unblock to local work. Do not add downloads, fixture files, dependencies, or full-suite runs for this research update."
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "existingEvidenceLanesMadeMoreExplicit": true,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "testsOrTestRegistrationAdded": false,
+    "fixturesOrDependenciesAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "This is a documentation/source review, not an executed peer comparison, native application test, or geometry-kernel qualification.",
+    "Mutable peer documentation and issue reports may change; pin exact versions and revisions before any future optional run.",
+    "No peer result in this review establishes libdxfrw conformance or ACIS/AcDs semantic support.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions."
+  ]
+}

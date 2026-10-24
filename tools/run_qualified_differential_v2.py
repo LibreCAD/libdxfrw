@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and run the fail-closed normalized differential schema v2.
+"""Validate adapter result schemas 2/3 and normalized differential report v2.
 
 This gate deliberately separates three things which older advisory reports
 mixed together:
@@ -35,7 +35,11 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
 
-RESULT_SCHEMA = 2
+ADAPTER_RESULT_SCHEMA_V2 = 2
+ADAPTER_RESULT_SCHEMA_V3 = 3
+MANIFEST_SCHEMA_V2 = 2
+MANIFEST_SCHEMA_V3 = 3
+NORMALIZATION_REPORT_SCHEMA = 2
 RESULT_KIND = "libdxfrw-semantic-adapter-result"
 REPORT_KIND = "libdxfrw-qualified-differential-report"
 MANIFEST_KIND = "libdxfrw-qualified-differential-runners"
@@ -66,8 +70,10 @@ FIELD_TYPES = {
 }
 RECORD_KINDS = {"entity", "table", "block", "unsupported", "artifact"}
 GRAPH_NODE_KINDS = {"record", "block", "handle"}
-GRAPH_EDGE_KINDS = {"handleReference", "owner", "blockMembership"}
-GRAPH_EDGE_DISPOSITIONS = {"observed"}
+GRAPH_EDGE_KINDS = {
+    "handleReference", "historyReference", "owner", "blockMembership",
+}
+GRAPH_EDGE_DISPOSITIONS = {"observed", "resolved", "unresolved"}
 OPAQUE_DISPOSITIONS = {"observed", "preserved", "preservedCanonical"}
 UNSUPPORTED_DISPOSITIONS = {"excluded", "preserved", "preservedCanonical"}
 DIAGNOSTIC_SEVERITIES = {"warning", "error"}
@@ -85,7 +91,7 @@ VALUE_OUTCOMES = {
     "mismatch",
 }
 
-ROOT_KEYS = {
+ROOT_KEYS_V2 = {
     "schema",
     "kind",
     "input",
@@ -101,6 +107,7 @@ ROOT_KEYS = {
     "diagnostics",
     "cardinality",
 }
+ROOT_KEYS_V3 = ROOT_KEYS_V2 | {"observations"}
 INPUT_KEYS = {
     "id",
     "pathHint",
@@ -244,6 +251,422 @@ def _exact_keys(value: Any, expected: set[str], path: str) -> dict[str, Any]:
             f"{path} keys differ (missing={missing}, extra={extra})"
         )
     return value
+
+
+def _validate_compile_contract_disposition(inputs: dict[str, Any]) -> str:
+    """Preserve frozen receipts while keeping new direct-only evidence advisory."""
+    mode = inputs.get("compileContractMode")
+    if mode is None:
+        if inputs.get("compileContractEnforced") is not True:
+            raise QualifiedDifferentialError(
+                "legacy adapter compile contract was not enforced"
+            )
+        return "legacy"
+    if mode == "direct-options-only":
+        if (inputs.get("compileOptionAdmissionEnforced") is not True
+                or inputs.get("compileContractEnforced") is not False):
+            raise QualifiedDifferentialError(
+                "direct-only compile disposition is internally inconsistent"
+            )
+        profile = inputs.get("compileContractProfile")
+        if isinstance(profile, dict) and profile.get("disposition") == "enforced":
+            raise QualifiedDifferentialError(
+                "direct-only compile contract cannot carry an enforced profile"
+            )
+        return mode
+    if mode == "controlled-driver-profile-v1":
+        profile = inputs.get("compileContractProfile")
+        if (inputs.get("compileOptionAdmissionEnforced") is not True
+                or inputs.get("compileContractEnforced") is not True
+                or not isinstance(profile, dict)
+                or profile.get("disposition") != "enforced"
+                or profile.get("mode") != "controlled-fresh-build-v1"):
+            raise QualifiedDifferentialError(
+                "controlled compile contract lacks an enforced fresh-build profile"
+            )
+        return mode
+    raise QualifiedDifferentialError("adapter compile-contract mode is unsupported")
+
+
+def _validate_controlled_driver_context(value: Any, path: str) -> None:
+    if (isinstance(value, dict)
+            and set(value) == LEGACY_CONTROLLED_DRIVER_CONTEXT_KEYS):
+        context = _exact_keys(value, LEGACY_CONTROLLED_DRIVER_CONTEXT_KEYS, path)
+    else:
+        context = _exact_keys(value, CONTROLLED_DRIVER_CONTEXT_KEYS, path)
+    if isinstance(context["schema"], bool) or context["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    if context["mode"] != "controlled-driver-v1":
+        raise QualifiedDifferentialError(f"{path}.mode is unsupported")
+    _digest(context["environmentDigest"], f"{path}.environmentDigest")
+    _string(context["compilerPath"], f"{path}.compilerPath")
+    _digest(context["compilerPathDigest"], f"{path}.compilerPathDigest")
+    _digest(context["compilerBinaryDigest"], f"{path}.compilerBinaryDigest")
+    _digest(context["digest"], f"{path}.digest")
+    expected_path_digest = hashlib.sha256(
+        context["compilerPath"].encode("utf-8")
+    ).hexdigest()
+    if context["compilerPathDigest"] != expected_path_digest:
+        raise QualifiedDifferentialError(f"{path}.compilerPathDigest is stale")
+    if "cmakePath" in context:
+        _string(context["cmakePath"], f"{path}.cmakePath")
+        _digest(context["cmakePathDigest"], f"{path}.cmakePathDigest")
+        _digest(context["cmakeBinaryDigest"], f"{path}.cmakeBinaryDigest")
+        expected_cmake_path_digest = hashlib.sha256(
+            context["cmakePath"].encode("utf-8")
+        ).hexdigest()
+        if context["cmakePathDigest"] != expected_cmake_path_digest:
+            raise QualifiedDifferentialError(f"{path}.cmakePathDigest is stale")
+    payload = {key: item for key, item in context.items() if key != "digest"}
+    expected_digest = hashlib.sha256(_canonical_bytes(payload) + b"\n").hexdigest()
+    if context["digest"] != expected_digest:
+        raise QualifiedDifferentialError(f"{path}.digest is stale")
+
+
+def _validate_compile_contract_profile(
+    value: Any,
+    *,
+    driver_context_present: bool,
+    compiler_id: str,
+    path: str,
+) -> dict[str, Any]:
+    profile = _exact_keys(value, COMPILE_CONTRACT_PROFILE_KEYS, path)
+    if isinstance(profile["schema"], bool) or profile["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    if profile["name"] != "effective-driver-contract-v1":
+        raise QualifiedDifferentialError(f"{path}.name is unsupported")
+    if profile["mode"] not in {
+        "controlled-fresh-build-v1", "existing-build-inspection-v1",
+    }:
+        raise QualifiedDifferentialError(f"{path}.mode is unsupported")
+    if profile["disposition"] not in {"enforced", "advisory", "unavailable"}:
+        raise QualifiedDifferentialError(f"{path}.disposition is unsupported")
+    checks = _exact_keys(profile["checks"], COMPILE_CONTRACT_CHECK_KEYS,
+                         f"{path}.checks")
+    statuses = {"pass", "partial", "pending", "unavailable", "not-applicable"}
+    for name, status in checks.items():
+        if status not in statuses:
+            raise QualifiedDifferentialError(f"{path}.checks.{name} is unsupported")
+    if checks["directOptions"] != "pass":
+        raise QualifiedDifferentialError(f"{path}.checks.directOptions is not verified")
+    clang = compiler_id in {"Clang", "AppleClang"}
+    expected_clang_status = (
+        "pass" if driver_context_present
+        else "unavailable"
+    ) if clang else "not-applicable"
+    if checks["clangDefaultConfig"] != expected_clang_status:
+        raise QualifiedDifferentialError(
+            f"{path}.checks.clangDefaultConfig contradicts compiler/context identity"
+        )
+    if profile["mode"] == "controlled-fresh-build-v1":
+        if not driver_context_present:
+            raise QualifiedDifferentialError(
+                f"{path}.mode requires a controlled driver context"
+            )
+        for name in ("driverIdentity", "freshBuild", "ambientOverrides"):
+            if checks[name] != "pass":
+                raise QualifiedDifferentialError(
+                    f"{path}.checks.{name} is not verified for a controlled build"
+                )
+        if checks["implicitConfiguration"] not in {"partial", "pass"}:
+            raise QualifiedDifferentialError(
+                f"{path}.checks.implicitConfiguration is inconsistent"
+            )
+        if profile["disposition"] == "advisory":
+            if (checks["effectiveOptionPolicy"] == "pass"
+                    and checks["implicitConfiguration"] == "pass"):
+                raise QualifiedDifferentialError(
+                    f"{path}.disposition is advisory despite all compile checks passing"
+                )
+        elif profile["disposition"] == "enforced":
+            if any(status not in {"pass", "not-applicable"}
+                   for status in checks.values()):
+                raise QualifiedDifferentialError(
+                    f"{path}.disposition is enforced with incomplete compile checks"
+                )
+        else:
+            raise QualifiedDifferentialError(
+                f"{path}.disposition is unavailable for a controlled fresh build"
+            )
+    else:
+        if driver_context_present:
+            raise QualifiedDifferentialError(
+                f"{path}.mode cannot carry a controlled driver context"
+            )
+        if profile["disposition"] != "unavailable":
+            raise QualifiedDifferentialError(
+                f"{path}.disposition must be unavailable for an inspected build"
+            )
+        for name in (
+            "driverIdentity", "freshBuild", "ambientOverrides",
+            "implicitConfiguration",
+        ):
+            if checks[name] != "unavailable":
+                raise QualifiedDifferentialError(
+                    f"{path}.checks.{name} overstates inspected-build evidence"
+                )
+        if checks["effectiveOptionPolicy"] != "pending":
+            raise QualifiedDifferentialError(
+                f"{path}.checks.effectiveOptionPolicy overstates inspected-build evidence"
+            )
+    _digest(profile["digest"], f"{path}.digest")
+    payload = {key: item for key, item in profile.items() if key != "digest"}
+    expected_digest = hashlib.sha256(_canonical_bytes(payload) + b"\n").hexdigest()
+    if profile["digest"] != expected_digest:
+        raise QualifiedDifferentialError(f"{path}.digest is stale")
+    return profile
+
+
+def _validate_interface_profile(value: Any, side: str, path: str) -> dict[str, Any]:
+    profile = _exact_keys(value, INTERFACE_PROFILE_KEYS, path)
+    if isinstance(profile["schema"], bool) or profile["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    profile_name = profile["name"]
+    if profile_name not in STANDALONE_INTERFACE_PROFILE_INVENTORIES:
+        raise QualifiedDifferentialError(f"{path}.name is unsupported")
+    if profile["side"] != side:
+        raise QualifiedDifferentialError(f"{path}.side does not match adapter side")
+    if _integer(profile["commonMethodCount"], f"{path}.commonMethodCount",
+                minimum=1) != EXPECTED_INTERFACE_METHOD_COUNT:
+        raise QualifiedDifferentialError(f"{path}.commonMethodCount is stale")
+    _digest(profile["commonMethodDigest"], f"{path}.commonMethodDigest")
+    if profile["commonMethodDigest"] != EXPECTED_COMMON_INTERFACE_DIGEST:
+        raise QualifiedDifferentialError(f"{path}.commonMethodDigest is stale")
+    profile_inventory = STANDALONE_INTERFACE_PROFILE_INVENTORIES[profile_name]
+    expected_interface_count = (
+        170 if side == "target"
+        else profile_inventory["methodCount"] if side == "standalone"
+        else -1
+    )
+    if _integer(profile["interfaceMethodCount"], f"{path}.interfaceMethodCount",
+                minimum=1) != expected_interface_count:
+        raise QualifiedDifferentialError(f"{path}.interfaceMethodCount is stale")
+    _digest(profile["interfaceMethodDigest"], f"{path}.interfaceMethodDigest")
+    extras = _list(profile["defaultedInterfaceExtras"],
+                   f"{path}.defaultedInterfaceExtras")
+    for index, item in enumerate(extras):
+        _identifier(item, f"{path}.defaultedInterfaceExtras[{index}]")
+    expected_extras = (
+        profile_inventory["extras"] if side == "standalone" else []
+    )
+    if extras != expected_extras:
+        raise QualifiedDifferentialError(f"{path}.defaultedInterfaceExtras are stale")
+    adapter_extras = _list(profile["adapterSupplementalMethods"],
+                           f"{path}.adapterSupplementalMethods")
+    for index, item in enumerate(adapter_extras):
+        _identifier(item, f"{path}.adapterSupplementalMethods[{index}]")
+    if adapter_extras != expected_extras:
+        raise QualifiedDifferentialError(
+            f"{path}.adapterSupplementalMethods are incomplete"
+        )
+    unobserved = _list(profile["unobservedDefaultedExtras"],
+                       f"{path}.unobservedDefaultedExtras")
+    for index, item in enumerate(unobserved):
+        _identifier(item, f"{path}.unobservedDefaultedExtras[{index}]")
+    if unobserved:
+        raise QualifiedDifferentialError(f"{path}.unobservedDefaultedExtras are stale")
+    return profile
+
+
+def _validate_semantic_capability_profile(
+    value: Any, side: str, path: str,
+) -> dict[str, Any]:
+    profile = _exact_keys(value, CAPABILITY_PROFILE_KEYS, path)
+    if type(profile["schema"]) is not int or profile["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    if profile["name"] != EXPECTED_CAPABILITY_PROFILE_NAME:
+        raise QualifiedDifferentialError(f"{path}.name is unsupported")
+    if profile["side"] != side or side not in EXPECTED_CAPABILITIES_BY_SIDE:
+        raise QualifiedDifferentialError(f"{path}.side does not match adapter side")
+    capabilities = _exact_keys(
+        profile["capabilities"], CAPABILITY_KEYS, f"{path}.capabilities"
+    )
+    expected = EXPECTED_CAPABILITIES_BY_SIDE[side]
+    for name in sorted(CAPABILITY_KEYS):
+        if type(capabilities[name]) is not bool:
+            raise QualifiedDifferentialError(
+                f"{path}.capabilities.{name} must be boolean"
+            )
+        if capabilities[name] is not expected[name]:
+            raise QualifiedDifferentialError(
+                f"{path}.capabilities.{name} contradicts the reviewed {side} profile"
+            )
+    return profile
+
+
+SURFACE_RECORD_CLASSES = {
+    "SURFACE", "PLANESURFACE", "EXTRUDEDSURFACE", "REVOLVEDSURFACE",
+    "SWEPTSURFACE", "LOFTEDSURFACE", "NURBSURFACE",
+}
+
+
+def _validate_adapter_field_capabilities(
+    records: list[dict[str, Any]], unsupported: list[dict[str, Any]], side: str,
+) -> None:
+    """Bind schema-3 optional modeler fields to the reviewed adapter profile."""
+
+    if side not in EXPECTED_CAPABILITIES_BY_SIDE:
+        raise QualifiedDifferentialError(
+            "semantic adapter side has no reviewed field-capability profile"
+        )
+    capabilities = EXPECTED_CAPABILITIES_BY_SIDE[side]
+
+    def check(record: dict[str, Any], feature: str,
+              expected_fields: dict[str, str], excluded_name: str) -> None:
+        record_id = record["id"]
+        fields = {field["name"]: field for field in record["fields"]}
+        available = capabilities[feature]
+        for name, expected_type in expected_fields.items():
+            field = fields.get(name)
+            if available:
+                if field is None or field["type"] != expected_type:
+                    raise QualifiedDifferentialError(
+                        f"record {record_id} is missing available {feature} field {name}"
+                    )
+            elif field is not None:
+                raise QualifiedDifferentialError(
+                    f"record {record_id} fabricated unavailable {feature} field {name}"
+                )
+
+        source = (
+            f"/records/{_pointer_token(record_id)}/"
+            f"{_pointer_token(excluded_name)}"
+        )
+        matching = [
+            row for row in unsupported
+            if row["recordId"] == record_id and row["source"] == source
+        ]
+        if available:
+            if matching:
+                raise QualifiedDifferentialError(
+                    f"record {record_id} excludes available {feature} field"
+                )
+        elif (len(matching) != 1
+              or matching[0]["kind"] != "semanticFields"
+              or matching[0]["disposition"] != "excluded"
+              or matching[0]["reason"] != "adapterFieldCoverageExcluded"):
+            raise QualifiedDifferentialError(
+                f"record {record_id} lacks the exact exclusion for unavailable {feature}"
+            )
+
+    for record in records:
+        if record["kind"] != "entity":
+            continue
+        if record["recordClass"] == "MODELER_GEOMETRY":
+            check(record, "modelerDwgSourceVersion",
+                  {"dwgSourceVersion": "int64"}, "dwgSourceVersion")
+            check(record, "modelerPayloadStatusName",
+                  {"modelerPayloadStatus": "string"}, "modelerPayloadStatus")
+            check(record, "modelerDwgAcisPayload", {
+                "hasDwgInlineAcisPayload": "bool",
+                "dwgInlineAcisByteCount": "uint64",
+            }, "dwgInlineAcisPayload")
+            check(record, "modelerDxfPayloadChunks",
+                  {"dxfPayloadChunk.count": "uint64"}, "dxfPayloadChunks")
+
+            range_count_field = next(
+                (field for field in record["fields"]
+                 if field["name"] == "payloadRangeCount"),
+                None,
+            )
+            if (range_count_field is None
+                    or range_count_field["type"] != "uint64"
+                    or not isinstance(range_count_field["value"], str)
+                    or not range_count_field["value"].isdigit()):
+                raise QualifiedDifferentialError(
+                    f"record {record['id']} has an invalid payloadRangeCount"
+                )
+            range_count = int(range_count_field["value"])
+            if range_count > len(record["fields"]):
+                raise QualifiedDifferentialError(
+                    f"record {record['id']} payloadRangeCount exceeds its field denominator"
+                )
+            expected_offset_names = {
+                f"payloadRange.{index}.bitOffset"
+                for index in range(range_count)
+            }
+            actual_offset_names = {
+                field["name"] for field in record["fields"]
+                if re.fullmatch(r"payloadRange\.\d+\.bitOffset", field["name"])
+            }
+            if (capabilities["payloadRangeBitOffset"]
+                    and actual_offset_names != expected_offset_names):
+                raise QualifiedDifferentialError(
+                    f"record {record['id']} has out-of-range payload bit-offset fields"
+                )
+            if (not capabilities["payloadRangeBitOffset"]
+                    and actual_offset_names):
+                raise QualifiedDifferentialError(
+                    f"record {record['id']} fabricated unavailable payload bit-offset fields"
+                )
+            expected_offset_sources = {
+                f"/records/{_pointer_token(record['id'])}/"
+                f"{_pointer_token(name)}"
+                for name in expected_offset_names
+            }
+            offset_exclusion_rows = [
+                row for row in unsupported
+                if row["recordId"] == record["id"]
+                and re.fullmatch(
+                    rf"/records/{re.escape(_pointer_token(record['id']))}/"
+                    r"payloadRange\.\d+\.bitOffset",
+                    row["source"],
+                )
+            ]
+            actual_offset_sources = {
+                row["source"] for row in offset_exclusion_rows
+            }
+            if (capabilities["payloadRangeBitOffset"]
+                    and offset_exclusion_rows):
+                raise QualifiedDifferentialError(
+                    f"record {record['id']} excludes available payload bit offsets"
+                )
+            if (not capabilities["payloadRangeBitOffset"]
+                    and (len(offset_exclusion_rows) != range_count
+                         or actual_offset_sources != expected_offset_sources)):
+                raise QualifiedDifferentialError(
+                    f"record {record['id']} has out-of-range payload bit-offset exclusions"
+                )
+            for index in range(range_count):
+                name = f"payloadRange.{index}.bitOffset"
+                check(record, "payloadRangeBitOffset",
+                      {name: "uint64"}, name)
+        elif record["recordClass"] in SURFACE_RECORD_CLASSES:
+            check(record, "surfaceDxfPayloadChunks",
+                  {"dxfAcisChunk.count": "uint64"}, "dxfAcisChunks")
+
+
+def _validate_adapter_support_inputs(value: Any, path: str) -> list[dict[str, str]]:
+    rows = _list(value, path)
+    logical_paths: list[str] = []
+    snapshot_paths: list[str] = []
+    for index, item in enumerate(rows):
+        row_path = f"{path}[{index}]"
+        row = _exact_keys(item, ADAPTER_SUPPORT_INPUT_KEYS, row_path)
+        logical_paths.append(_path_hint(row["path"], f"{row_path}.path"))
+        snapshot_paths.append(
+            _path_hint(row["snapshotPath"], f"{row_path}.snapshotPath")
+        )
+        _digest(row["digest"], f"{row_path}.digest")
+    _unique(logical_paths, f"{path} logical paths")
+    _unique(snapshot_paths, f"{path} snapshot paths")
+    return rows
+
+
+def _without_adapter_support_inputs(value: Any, path: str) -> Any:
+    """Validate additive modern support-input evidence without loosening old schemas."""
+    if not isinstance(value, dict) or "adapterSupportInputs" not in value:
+        return value
+    _validate_adapter_support_inputs(
+        value["adapterSupportInputs"], f"{path}.adapterSupportInputs"
+    )
+    base = {key: item for key, item in value.items()
+            if key != "adapterSupportInputs"}
+    if frozenset(base) not in MODERN_CONFIG_INPUT_KEYSETS:
+        raise QualifiedDifferentialError(
+            f"{path} adapterSupportInputs is unsupported for this config identity shape"
+        )
+    return base
 
 
 def _list(value: Any, path: str) -> list[Any]:
@@ -516,11 +939,402 @@ def _validate_typed_value(type_name: str, value: Any, path: str) -> None:
         raise QualifiedDifferentialError(f"{path} has an unknown field type")
 
 
+OBSERVATION_ENVELOPE_KEYS = {
+    "phase", "availability", "reason", "sourceVersion", "scalarCounters",
+    "namedSummaries", "integrity", "frames",
+}
+OBSERVATION_COUNTER_KEYS = {
+    "entityParseFailures", "objectParseFailures", "classesCrcMismatch",
+    "reader21CrcMismatch", "reader18HeaderCrcMismatch",
+    "dataStorageLinkFailures", "dataStorageOrphanRecords",
+    "decodedProxyPrimitives",
+}
+NAMED_SUMMARY_KEYS = {
+    "rows", "retainedRowCount", "sourceNameCount", "totalInstanceCount",
+    "omittedNameCount", "omittedInstanceCount", "truncatedRetainedNameCount",
+    "omittedNameBytes", "aggregateSaturated",
+}
+BYTE_PREFIX_KEYS = {"bytesHex", "prefixLength", "sourceLength", "truncated"}
+NAMED_ROW_KEYS = BYTE_PREFIX_KEYS | {"instances"}
+INTEGRITY_KEYS = {
+    "rows", "retainedRowCount", "sourceRecordedCount", "extractionOmittedCount",
+    "reportedUpstreamDroppedLowerBound", "truncatedRetainedNameCount",
+    "omittedNameBytes", "aggregateSaturated",
+}
+INTEGRITY_ROW_KEYS = {
+    "versionCode", "severityCode", "offsetSpaceCode", "phaseCode", "kindCode",
+    "logicalSectionId", "sectionDescriptorId", "sectionName", "pageId",
+    "fileOffset", "logicalHandle", "expected", "observed", "hasPageId",
+    "hasFileOffset", "hasLogicalHandle", "hasExpected", "hasObserved",
+}
+FRAME_KEYS = {
+    "status", "reason", "sourceFrameCount", "dispositions",
+    "unrecognizedDispositionCount",
+}
+FRAME_DISPOSITION_KEYS = {
+    "pending", "deferred", "staged", "published", "quarantined", "failed",
+    "unresolved",
+}
+OBSERVATIONS_KEYS = {"inputRead", "outputReadback"}
+
+
+def _uint64(value: Any, path: str) -> int:
+    integer = _integer(value, path, minimum=0)
+    if integer >= 2 ** 64:
+        raise QualifiedDifferentialError(f"{path} is outside uint64")
+    return integer
+
+
+def _int32(value: Any, path: str) -> int:
+    integer = _integer(value, path)
+    if integer < -(2 ** 31) or integer >= 2 ** 31:
+        raise QualifiedDifferentialError(f"{path} is outside int32")
+    return integer
+
+
+def _validate_byte_prefix(value: Any, path: str) -> dict[str, Any]:
+    row = _exact_keys(value, BYTE_PREFIX_KEYS, path)
+    encoded = _string(row["bytesHex"], f"{path}.bytesHex", allow_empty=True)
+    if not re.fullmatch(r"(?:[0-9a-f]{2}){0,64}", encoded):
+        raise QualifiedDifferentialError(f"{path}.bytesHex is not a bounded lowercase byte prefix")
+    prefix_length = _uint64(row["prefixLength"], f"{path}.prefixLength")
+    source_length = _uint64(row["sourceLength"], f"{path}.sourceLength")
+    truncated = _boolean(row["truncated"], f"{path}.truncated")
+    if prefix_length != len(encoded) // 2 or source_length < prefix_length:
+        raise QualifiedDifferentialError(f"{path} byte-prefix lengths are inconsistent")
+    if truncated != (source_length != prefix_length):
+        raise QualifiedDifferentialError(f"{path}.truncated contradicts sourceLength")
+    return row
+
+
+def _validate_named_summary(value: Any, path: str) -> dict[str, Any]:
+    row = _exact_keys(value, NAMED_SUMMARY_KEYS, path)
+    named_rows = _list(row["rows"], f"{path}.rows")
+    if len(named_rows) > 16:
+        raise QualifiedDifferentialError(f"{path}.rows exceeds the observation bound")
+    for index, item in enumerate(named_rows):
+        named = _exact_keys(item, NAMED_ROW_KEYS, f"{path}.rows[{index}]")
+        _validate_byte_prefix(
+            {key: named[key] for key in BYTE_PREFIX_KEYS},
+            f"{path}.rows[{index}]",
+        )
+        _uint64(named["instances"], f"{path}.rows[{index}].instances")
+    for key in (
+        "retainedRowCount", "sourceNameCount", "totalInstanceCount",
+        "omittedNameCount", "omittedInstanceCount",
+        "truncatedRetainedNameCount", "omittedNameBytes",
+    ):
+        _uint64(row[key], f"{path}.{key}")
+    _boolean(row["aggregateSaturated"], f"{path}.aggregateSaturated")
+    if row["retainedRowCount"] != len(named_rows):
+        raise QualifiedDifferentialError(f"{path}.retainedRowCount disagrees with rows")
+    if row["sourceNameCount"] < row["retainedRowCount"]:
+        raise QualifiedDifferentialError(f"{path}.sourceNameCount is below retained rows")
+    if not row["aggregateSaturated"]:
+        if row["sourceNameCount"] != row["retainedRowCount"] + row["omittedNameCount"]:
+            raise QualifiedDifferentialError(f"{path} source/omitted name counts disagree")
+        retained_instances = sum(item["instances"] for item in named_rows)
+        if row["totalInstanceCount"] != retained_instances + row["omittedInstanceCount"]:
+            raise QualifiedDifferentialError(f"{path} retained/omitted instance counts disagree")
+        if row["truncatedRetainedNameCount"] != sum(
+            1 for item in named_rows if item["truncated"]
+        ):
+            raise QualifiedDifferentialError(f"{path}.truncatedRetainedNameCount disagrees with rows")
+        retained_suffix_bytes = sum(
+            item["sourceLength"] - item["prefixLength"]
+            for item in named_rows if item["truncated"]
+        )
+        if row["omittedNameBytes"] < retained_suffix_bytes:
+            raise QualifiedDifferentialError(f"{path}.omittedNameBytes omits retained suffix bytes")
+    return row
+
+
+def _validate_integrity_row(value: Any, path: str) -> dict[str, Any]:
+    row = _exact_keys(value, INTEGRITY_ROW_KEYS, path)
+    for key in ("versionCode", "severityCode", "offsetSpaceCode", "phaseCode", "kindCode"):
+        _integer(row[key], f"{path}.{key}", minimum=0)
+        if row[key] > 255:
+            raise QualifiedDifferentialError(f"{path}.{key} is outside uint8")
+    _int32(row["logicalSectionId"], f"{path}.logicalSectionId")
+    _int32(row["sectionDescriptorId"], f"{path}.sectionDescriptorId")
+    _validate_byte_prefix(row["sectionName"], f"{path}.sectionName")
+    for key in ("pageId", "fileOffset", "expected", "observed"):
+        _uint64(row[key], f"{path}.{key}")
+    _integer(row["logicalHandle"], f"{path}.logicalHandle", minimum=0)
+    if row["logicalHandle"] >= 2 ** 32:
+        raise QualifiedDifferentialError(f"{path}.logicalHandle is outside uint32")
+    for key in (
+        "hasPageId", "hasFileOffset", "hasLogicalHandle", "hasExpected",
+        "hasObserved",
+    ):
+        _boolean(row[key], f"{path}.{key}")
+    return row
+
+
+def _validate_integrity(value: Any, path: str) -> dict[str, Any]:
+    row = _exact_keys(value, INTEGRITY_KEYS, path)
+    integrity_rows = _list(row["rows"], f"{path}.rows")
+    if len(integrity_rows) > 16:
+        raise QualifiedDifferentialError(f"{path}.rows exceeds the observation bound")
+    for index, item in enumerate(integrity_rows):
+        _validate_integrity_row(item, f"{path}.rows[{index}]")
+    for key in (
+        "retainedRowCount", "sourceRecordedCount", "extractionOmittedCount",
+        "reportedUpstreamDroppedLowerBound", "truncatedRetainedNameCount",
+        "omittedNameBytes",
+    ):
+        _uint64(row[key], f"{path}.{key}")
+    _boolean(row["aggregateSaturated"], f"{path}.aggregateSaturated")
+    if row["retainedRowCount"] != len(integrity_rows):
+        raise QualifiedDifferentialError(f"{path}.retainedRowCount disagrees with rows")
+    if row["sourceRecordedCount"] < row["retainedRowCount"]:
+        raise QualifiedDifferentialError(f"{path}.sourceRecordedCount is below retained rows")
+    if not row["aggregateSaturated"]:
+        if row["sourceRecordedCount"] != row["retainedRowCount"] + row["extractionOmittedCount"]:
+            raise QualifiedDifferentialError(f"{path} source/omitted row counts disagree")
+        if row["truncatedRetainedNameCount"] != sum(
+            1 for item in integrity_rows if item["sectionName"]["truncated"]
+        ):
+            raise QualifiedDifferentialError(f"{path}.truncatedRetainedNameCount disagrees with rows")
+        retained_suffix_bytes = sum(
+            item["sectionName"]["sourceLength"]
+            - item["sectionName"]["prefixLength"]
+            for item in integrity_rows if item["sectionName"]["truncated"]
+        )
+        if row["omittedNameBytes"] < retained_suffix_bytes:
+            raise QualifiedDifferentialError(f"{path}.omittedNameBytes omits retained suffix bytes")
+    return row
+
+
+def _validate_frames(value: Any, path: str) -> dict[str, Any]:
+    row = _exact_keys(value, FRAME_KEYS, path)
+    statuses = {"notAvailable", "inProgress", "finalizedComplete", "finalizedPartial"}
+    if row["status"] not in statuses:
+        raise QualifiedDifferentialError(f"{path}.status is invalid")
+    _nullable_identifier(row["reason"], f"{path}.reason")
+    dispositions = _exact_keys(row["dispositions"], FRAME_DISPOSITION_KEYS,
+                               f"{path}.dispositions")
+    if row["status"] == "notAvailable":
+        if row["reason"] is None or row["sourceFrameCount"] is not None:
+            raise QualifiedDifferentialError(f"{path} unknown frame totals need a reason and null count")
+        if any(item is not None for item in dispositions.values()) or row["unrecognizedDispositionCount"] is not None:
+            raise QualifiedDifferentialError(f"{path} unknown frame dispositions must be null")
+    else:
+        if row["reason"] is not None:
+            raise QualifiedDifferentialError(f"{path}.reason is only valid for unavailable totals")
+        _uint64(row["sourceFrameCount"], f"{path}.sourceFrameCount")
+        for key, item in dispositions.items():
+            _uint64(item, f"{path}.dispositions.{key}")
+        _uint64(row["unrecognizedDispositionCount"], f"{path}.unrecognizedDispositionCount")
+        if sum(dispositions.values()) + row["unrecognizedDispositionCount"] != row["sourceFrameCount"]:
+            raise QualifiedDifferentialError(f"{path} dispositions disagree with sourceFrameCount")
+    return row
+
+
+def _validate_observation_envelope(value: Any, path: str) -> dict[str, Any]:
+    row = _exact_keys(value, OBSERVATION_ENVELOPE_KEYS, path)
+    if (not isinstance(row["phase"], str)
+            or row["phase"] not in {"inputRead", "outputReadback"}):
+        raise QualifiedDifferentialError(f"{path}.phase is invalid")
+    availability = row["availability"]
+    if (not isinstance(availability, str)
+            or availability not in {"available", "unavailable", "notApplicable", "notRun"}):
+        raise QualifiedDifferentialError(f"{path}.availability is invalid")
+    reason = _nullable_identifier(row["reason"], f"{path}.reason")
+    source_version = _optional_string(row["sourceVersion"], f"{path}.sourceVersion")
+    if source_version is not None and source_version != "unknown" and not re.fullmatch(r"AC\d{4}", source_version):
+        raise QualifiedDifferentialError(f"{path}.sourceVersion is invalid")
+    payload_keys = ("scalarCounters", "namedSummaries", "integrity", "frames")
+    if availability != "available":
+        if reason is None or any(row[key] is not None for key in payload_keys):
+            raise QualifiedDifferentialError(
+                f"{path} non-available observations require a reason and null totals"
+            )
+        if availability == "notApplicable" and source_version is not None:
+            raise QualifiedDifferentialError(
+                f"{path} notApplicable observations cannot claim a source version"
+            )
+        if availability == "notRun" and source_version is not None:
+            raise QualifiedDifferentialError(
+                f"{path} notRun observations cannot claim a source version"
+            )
+        return row
+    if reason is not None or source_version is None:
+        raise QualifiedDifferentialError(f"{path} available observations require a source version and no reason")
+    counters = _exact_keys(row["scalarCounters"], OBSERVATION_COUNTER_KEYS,
+                           f"{path}.scalarCounters")
+    for key, item in counters.items():
+        _uint64(item, f"{path}.scalarCounters.{key}")
+    named = _exact_keys(row["namedSummaries"], {
+        "skippedCustomClasses", "skippedUnsupportedObjects",
+    }, f"{path}.namedSummaries")
+    for key, item in named.items():
+        _validate_named_summary(item, f"{path}.namedSummaries.{key}")
+    _validate_integrity(row["integrity"], f"{path}.integrity")
+    frames = _validate_frames(row["frames"], f"{path}.frames")
+    return row
+
+
+def _validate_observations(value: Any, document: dict[str, Any]) -> dict[str, Any]:
+    observations = _exact_keys(value, OBSERVATIONS_KEYS, "observations")
+    input_read = _validate_observation_envelope(
+        observations["inputRead"], "observations.inputRead"
+    )
+    output_readback = _validate_observation_envelope(
+        observations["outputReadback"], "observations.outputReadback"
+    )
+    if input_read["phase"] != "inputRead":
+        raise QualifiedDifferentialError(
+            "observations.inputRead phase does not match its role"
+        )
+    if output_readback["phase"] != "outputReadback":
+        raise QualifiedDifferentialError(
+            "observations.outputReadback phase does not match its role"
+        )
+    invocation = document["invocation"]
+    input_version = document["input"]["detectedVersion"]
+    if invocation["facade"] == "dxfRW":
+        if input_read["availability"] != "notApplicable" or output_readback["availability"] != "notApplicable":
+            raise QualifiedDifferentialError("DXF invocation cannot claim DWG read observations")
+    elif invocation["direction"] == "read":
+        if input_read["phase"] != "inputRead" or input_read["availability"] not in {"available", "unavailable"}:
+            raise QualifiedDifferentialError("DWG read requires inputRead observations or an explicit unavailable result")
+        if input_read["sourceVersion"] != input_version:
+            raise QualifiedDifferentialError("inputRead sourceVersion differs from the input signature")
+        if output_readback["availability"] != "notApplicable":
+            raise QualifiedDifferentialError("read-only invocation cannot claim outputReadback observations")
+    else:
+        if input_read["availability"] != "notApplicable":
+            raise QualifiedDifferentialError("DWG write recipe cannot claim input-source read observations")
+        failure_stage = document["status"]["firstFailure"]["stage"]
+        if failure_stage in {"write", "writeResult"}:
+            if output_readback["availability"] != "notRun":
+                raise QualifiedDifferentialError("pre-readback DWG write failure must say outputReadback was notRun")
+        else:
+            if output_readback["phase"] != "outputReadback" or output_readback["availability"] not in {"available", "unavailable"}:
+                raise QualifiedDifferentialError("DWG write requires outputReadback observations or an explicit unavailable result")
+    return observations
+
+
+def _validate_write_result_readback_version(
+    invocation: dict[str, Any], status: dict[str, Any],
+    observations: dict[str, Any], records: list[dict[str, Any]],
+) -> None:
+    if invocation["facade"] != "dwgRW" or invocation["direction"] != "write":
+        return
+    failure_stage = status["firstFailure"]["stage"]
+    if failure_stage in {"write", "writeResult"}:
+        return
+    write_results = [
+        record for record in records
+        if record["entity"] == "WRITE_RESULT"
+        or record["recordClass"] == "WRITE_RESULT"
+    ]
+    if len(write_results) != 1:
+        raise QualifiedDifferentialError(
+            "DWG output readback requires exactly one WRITE_RESULT record"
+        )
+    version_fields = [
+        field for field in write_results[0]["fields"]
+        if field["name"] == "version"
+    ]
+    if (len(version_fields) != 1 or version_fields[0]["type"] != "string"
+            or version_fields[0]["value"]
+            != observations["outputReadback"]["sourceVersion"]):
+        raise QualifiedDifferentialError(
+            "outputReadback sourceVersion differs from WRITE_RESULT version"
+        )
+
+
+def _validate_modeler_history_reference(
+    record: dict[str, Any],
+    outgoing: list[dict[str, Any]],
+    node_by_id: dict[str, dict[str, Any]],
+    captured_record_handles: set[str],
+    path: str,
+) -> None:
+    fields = {field["name"]: field for field in record["fields"]}
+    history_field = fields.get("historyHandle")
+    if history_field is None or history_field["type"] != "handle":
+        raise QualifiedDifferentialError(
+            f"{path} MODELER_GEOMETRY lacks a typed historyHandle field"
+        )
+    history_handle = _handle(history_field["value"], f"{path}.historyHandle")
+    history_edges = [
+        edge for edge in outgoing if edge["kind"] == "historyReference"
+    ]
+    if history_handle == "0":
+        if history_edges:
+            raise QualifiedDifferentialError(
+                f"{path} has a history edge for a null historyHandle"
+            )
+        return
+    if len(history_edges) != 1:
+        raise QualifiedDifferentialError(
+            f"{path} historyHandle lacks exactly one historyReference edge"
+        )
+    target = node_by_id.get(history_edges[0]["to"])
+    if (target is None or target["kind"] != "handle"
+            or target["handle"] != history_handle):
+        raise QualifiedDifferentialError(
+            f"{path} historyReference edge contradicts historyHandle"
+        )
+    expected_disposition = (
+        "resolved" if history_handle in captured_record_handles else "unresolved"
+    )
+    if history_edges[0]["disposition"] != expected_disposition:
+        raise QualifiedDifferentialError(
+            f"{path} historyReference disposition contradicts captured records"
+        )
+
+
+def _validate_owner_reference(
+    record: dict[str, Any],
+    owner_edges: list[dict[str, Any]],
+    node_by_id: dict[str, dict[str, Any]],
+    captured_record_handles: set[str],
+    path: str,
+) -> None:
+    owner_handle = record["ownerHandle"]
+    if owner_handle is None or owner_handle == "0":
+        if owner_edges:
+            raise QualifiedDifferentialError(
+                f"{path} has an owner edge for a null ownerHandle"
+            )
+        return
+    if len(owner_edges) != 1:
+        raise QualifiedDifferentialError(
+            f"{path} ownerHandle lacks exactly one owner edge"
+        )
+    target = node_by_id.get(owner_edges[0]["to"])
+    if (target is None or target["kind"] not in {"handle", "block"}
+            or target["handle"] != owner_handle):
+        raise QualifiedDifferentialError(
+            f"{path} owner edge contradicts ownerHandle"
+        )
+    if owner_handle in captured_record_handles:
+        expected_disposition = "resolved"
+    else:
+        expected_disposition = "unresolved"
+    if owner_edges[0]["disposition"] != expected_disposition:
+        raise QualifiedDifferentialError(
+            f"{path} owner disposition contradicts captured records"
+        )
+
+
 def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) -> dict[str, Any]:
     """Validate one adapter result and return it unchanged."""
 
-    document = _exact_keys(value, ROOT_KEYS, "result")
-    if document["schema"] != RESULT_SCHEMA or document["kind"] != RESULT_KIND:
+    if not isinstance(value, dict):
+        raise QualifiedDifferentialError("result must be an object")
+    schema = value.get("schema")
+    if type(schema) is not int or schema not in {
+        ADAPTER_RESULT_SCHEMA_V2, ADAPTER_RESULT_SCHEMA_V3,
+    }:
+        raise QualifiedDifferentialError("unexpected adapter result schema or kind")
+    keys = ROOT_KEYS_V2 if schema == ADAPTER_RESULT_SCHEMA_V2 else ROOT_KEYS_V3
+    document = _exact_keys(value, keys, "result")
+    if document["kind"] != RESULT_KIND:
         raise QualifiedDifferentialError("unexpected adapter result schema or kind")
     _validate_input(document["input"])
     adapter = _validate_adapter(document["adapter"])
@@ -530,6 +1344,8 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
         )
     _validate_invocation(document["invocation"])
     status = _validate_status(document["status"])
+    if schema == ADAPTER_RESULT_SCHEMA_V3:
+        _validate_observations(document["observations"], document)
     if document["input"]["detectedFormat"] == "unknown" and status["outcome"] != "failure":
         raise QualifiedDifferentialError(
             "unknown input format is allowed only for structured failure"
@@ -642,6 +1458,11 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
         if row["disposition"] not in GRAPH_EDGE_DISPOSITIONS:
             raise QualifiedDifferentialError(
                 f"graphEdges[{index}].disposition is invalid"
+            )
+        if (row["kind"] not in {"historyReference", "owner"}
+                and row["disposition"] != "observed"):
+            raise QualifiedDifferentialError(
+                f"graphEdges[{index}] has a resolution disposition for an unrelated edge"
             )
         for key in ("from", "to"):
             endpoint = _identifier(row[key], f"graphEdges[{index}].{key}")
@@ -807,6 +1628,10 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
             "record IDs and graph-node record mappings are not one-to-one"
         )
     record_by_id = {row["id"]: row for row in records}
+    captured_record_handles = {
+        row["sourceHandle"] for row in records
+        if row["sourceHandle"] is not None
+    }
     node_by_id = {row["id"]: row for row in graph_nodes}
     record_node_by_id = {
         row["recordId"]: row
@@ -855,10 +1680,14 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
             raise QualifiedDifferentialError(
                 f"{edge['kind']} edge must originate at a record node"
             )
-        if edge["kind"] in {"handleReference", "owner"}:
+        if edge["kind"] in {"handleReference", "historyReference", "owner"}:
             if target_node["kind"] not in {"handle", "block"} or not target_node["handle"]:
                 raise QualifiedDifferentialError(
                     f"{edge['kind']} edge must target a handled node"
+                )
+            if edge["kind"] == "historyReference" and target_node["kind"] != "handle":
+                raise QualifiedDifferentialError(
+                    "historyReference edge must target a handle node"
                 )
         elif target_node["kind"] != "block":
             raise QualifiedDifferentialError(
@@ -900,28 +1729,31 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
         handle_edges = [edge for edge in outgoing if edge["kind"] == "handleReference"]
         owner_edges = [edge for edge in outgoing if edge["kind"] == "owner"]
         block_edges = [edge for edge in outgoing if edge["kind"] == "blockMembership"]
-        if record["sourceHandle"] is None:
-            if handle_edges:
-                raise QualifiedDifferentialError(
-                    f"record {record_id} has a handle edge without sourceHandle"
-                )
-        elif len(handle_edges) != 1 or (
-            node_by_id[handle_edges[0]["to"]]["handle"] != record["sourceHandle"]
-        ):
-            raise QualifiedDifferentialError(
-                f"record {record_id} sourceHandle lacks one reciprocal edge"
+        if record["recordClass"] == "MODELER_GEOMETRY":
+            _validate_modeler_history_reference(
+                record, outgoing, node_by_id, captured_record_handles,
+                f"record {record_id}"
             )
-        if record["ownerHandle"] is None:
-            if owner_edges:
-                raise QualifiedDifferentialError(
-                    f"record {record_id} has an owner edge without ownerHandle"
-                )
-        elif len(owner_edges) != 1 or (
-            node_by_id[owner_edges[0]["to"]]["handle"] != record["ownerHandle"]
-        ):
+        elif any(edge["kind"] == "historyReference" for edge in outgoing):
             raise QualifiedDifferentialError(
-                f"record {record_id} ownerHandle lacks one reciprocal edge"
+                f"record {record_id} has historyReference on a non-modeler record"
             )
+        # handleReference is also used for semantic references carried by
+        # fields (for example DICTIONARY entry handles and BLOCK_RECORD's
+        # layout handle).  Validate the record identity edge by its target
+        # handle rather than assuming it is the only outgoing reference.
+        source_handle_edges = [
+            edge for edge in handle_edges
+            if node_by_id[edge["to"]]["handle"] == record["sourceHandle"]
+        ] if record["sourceHandle"] is not None else []
+        if record["sourceHandle"] is not None and len(source_handle_edges) != 1:
+            raise QualifiedDifferentialError(
+                f"record {record_id} sourceHandle lacks exactly one identity edge"
+            )
+        _validate_owner_reference(
+            record, owner_edges, node_by_id, captured_record_handles,
+            f"record {record_id}",
+        )
         if record["blockId"] is None:
             if block_edges:
                 raise QualifiedDifferentialError(
@@ -1000,6 +1832,10 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
             raise QualifiedDifferentialError(
                 f"recordless unsupportedContent[{index}] cannot use a record path"
             )
+    if schema == ADAPTER_RESULT_SCHEMA_V3:
+        _validate_adapter_field_capabilities(
+            records, unsupported, adapter["side"]
+        )
     failure = document["status"]["firstFailure"]
     if document["status"]["outcome"] == "failure":
         if failure["diagnosticId"] not in diagnostic_ids:
@@ -1064,6 +1900,11 @@ def validate_result(value: Any, expected_adapter: dict[str, Any] | None = None) 
             raise QualifiedDifferentialError(
                 f"cardinality.{key}={declared} but observed {actual}"
             )
+    if schema == ADAPTER_RESULT_SCHEMA_V3:
+        _validate_write_result_readback_version(
+            document["invocation"], document["status"],
+            document["observations"], records,
+        )
     return document
 
 
@@ -1116,9 +1957,39 @@ CONFIG_CMAKE_KEYS = {
     "osxArchitectures", "osxSysroot", "osxDeploymentTarget",
     "msvcRuntimeLibrary", "windowsTargetPlatformVersion",
     "positionIndependentCode", "interproceduralOptimization",
-    "configurationInterproceduralOptimization",
+    "configurationInterproceduralOptimization", "toolBinaries",
+    "compilerBuiltinSpecs",
 }
-CONFIG_INPUT_KEYS = {
+LEGACY_CONFIG_CMAKE_KEYS = CONFIG_CMAKE_KEYS - {
+    "toolBinaries", "compilerBuiltinSpecs",
+}
+PRE_BUILTIN_SPECS_CONFIG_CMAKE_KEYS = CONFIG_CMAKE_KEYS - {
+    "compilerBuiltinSpecs",
+}
+TOOL_BINARY_KEYS = {
+    "cmake", "buildProgram", "compiler", "compilerLinker", "archiver",
+    "ranlib",
+}
+LEGACY_TOOL_BINARY_KEYS = set(TOOL_BINARY_KEYS)
+TOOL_BINARY_KEYS = TOOL_BINARY_KEYS | {
+    "compilerFrontend", "compilerAssembler", "compilerCollect2",
+    "compilerLtoWrapper", "compilerSpecs",
+}
+TOOL_BINARY_IDENTITY_KEYS = {"path", "digest"}
+COMPILER_BUILTIN_SPECS_V1_KEYS = {
+    "schema", "status", "method", "compilerId", "byteCount", "digest",
+    "reason",
+}
+COMPILER_BUILTIN_SPECS_V2_KEYS = COMPILER_BUILTIN_SPECS_V1_KEYS | {
+    "includeClosure",
+}
+GCC_SPECS_INCLUDE_CLOSURE_KEYS = {
+    "schema", "status", "builtinDirectiveCount", "externalDirectiveCount",
+    "reason",
+}
+COMPILER_BUILTIN_SPECS_METHOD = "gcc-dumpspecs-stdout-v1"
+MAX_GCC_BUILTIN_SPECS_BYTES = 16 * 1024 * 1024
+LEGACY_CONFIG_INPUT_KEYS = {
     "adapterSourceDigest", "semanticManifestPath", "semanticManifestDigest",
     "packageCommit", "packageArchiveDigest", "configFiles",
     "verifiedLinkCommandDigest", "linkClosureEnforced",
@@ -1127,17 +1998,181 @@ CONFIG_INPUT_KEYS = {
     "verifiedInterfaceContractDigest", "interfaceContractEnforced",
     "interfaceMethodCount",
 }
+DIRECT_ONLY_CONFIG_INPUT_KEYS = LEGACY_CONFIG_INPUT_KEYS | {
+    "compileContractMode", "compileOptionAdmissionEnforced",
+}
+CONTROLLED_CONTEXT_CONFIG_INPUT_KEYS = DIRECT_ONLY_CONFIG_INPUT_KEYS | {
+    "driverContext",
+}
+DIRECT_PROFILE_CONFIG_INPUT_KEYS = DIRECT_ONLY_CONFIG_INPUT_KEYS | {
+    "interfaceProfile",
+}
+CONTROLLED_PROFILE_CONFIG_INPUT_KEYS = CONTROLLED_CONTEXT_CONFIG_INPUT_KEYS | {
+    "interfaceProfile",
+}
+DIRECT_CONTRACT_PROFILE_CONFIG_INPUT_KEYS = DIRECT_PROFILE_CONFIG_INPUT_KEYS | {
+    "compileContractProfile",
+}
+CONTROLLED_CONTRACT_PROFILE_CONFIG_INPUT_KEYS = CONTROLLED_PROFILE_CONFIG_INPUT_KEYS | {
+    "compileContractProfile",
+}
+DIRECT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS = DIRECT_PROFILE_CONFIG_INPUT_KEYS | {
+    "capabilityProfile",
+}
+CONTROLLED_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS = CONTROLLED_PROFILE_CONFIG_INPUT_KEYS | {
+    "capabilityProfile",
+}
+DIRECT_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS = (
+    DIRECT_CONTRACT_PROFILE_CONFIG_INPUT_KEYS | {"capabilityProfile"}
+)
+CONTROLLED_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS = (
+    CONTROLLED_CONTRACT_PROFILE_CONFIG_INPUT_KEYS | {"capabilityProfile"}
+)
+MODERN_CONFIG_INPUT_KEYSETS = {
+    frozenset(DIRECT_ONLY_CONFIG_INPUT_KEYS),
+    frozenset(CONTROLLED_CONTEXT_CONFIG_INPUT_KEYS),
+    frozenset(DIRECT_PROFILE_CONFIG_INPUT_KEYS),
+    frozenset(CONTROLLED_PROFILE_CONFIG_INPUT_KEYS),
+    frozenset(DIRECT_CONTRACT_PROFILE_CONFIG_INPUT_KEYS),
+    frozenset(CONTROLLED_CONTRACT_PROFILE_CONFIG_INPUT_KEYS),
+    frozenset(DIRECT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS),
+    frozenset(CONTROLLED_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS),
+    frozenset(DIRECT_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS),
+    frozenset(CONTROLLED_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS),
+}
+ADAPTER_SUPPORT_INPUT_KEYS = {"path", "snapshotPath", "digest"}
+COMPILE_CONTRACT_PROFILE_KEYS = {
+    "schema", "name", "mode", "disposition", "checks", "digest",
+}
+COMPILE_CONTRACT_CHECK_KEYS = {
+    "directOptions", "driverIdentity", "freshBuild", "ambientOverrides",
+    "clangDefaultConfig", "implicitConfiguration", "effectiveOptionPolicy",
+}
+LEGACY_CONTROLLED_DRIVER_CONTEXT_KEYS = {
+    "schema", "mode", "environmentDigest", "compilerPath",
+    "compilerPathDigest", "compilerBinaryDigest", "digest",
+}
+CONTROLLED_DRIVER_CONTEXT_KEYS = LEGACY_CONTROLLED_DRIVER_CONTEXT_KEYS | {
+    "cmakePath", "cmakePathDigest", "cmakeBinaryDigest",
+}
 EXPECTED_INTERFACE_METHOD_COUNT = 170
+EXPECTED_COMMON_INTERFACE_DIGEST = (
+    "894c58db480ef3f5c7e25a9066ca9a178ecf5e41137a9e709a1144f340faba7a"
+)
+EXPECTED_INTERFACE_PROFILE_NAME = "common170-standalone174-callbacks-v1"
+LEGACY_INTERFACE_PROFILE_NAME = "common170-standalone173-callbacks-v1"
+LEGACY_STANDALONE_INTERFACE_EXTRAS = [
+    "addBlockRecord",
+    "addNamedObjectDictionary",
+    "finalizeDxfWrite",
+]
+EXPECTED_STANDALONE_INTERFACE_EXTRAS = [
+    "addBlockEnd",
+    *LEGACY_STANDALONE_INTERFACE_EXTRAS,
+]
+STANDALONE_INTERFACE_PROFILE_INVENTORIES = {
+    LEGACY_INTERFACE_PROFILE_NAME: {
+        "methodCount": 173,
+        "extras": LEGACY_STANDALONE_INTERFACE_EXTRAS,
+    },
+    EXPECTED_INTERFACE_PROFILE_NAME: {
+        "methodCount": 174,
+        "extras": EXPECTED_STANDALONE_INTERFACE_EXTRAS,
+    },
+}
+INTERFACE_PROFILE_KEYS = {
+    "schema", "name", "side", "commonMethodCount", "commonMethodDigest",
+    "interfaceMethodCount", "interfaceMethodDigest",
+    "defaultedInterfaceExtras", "adapterSupplementalMethods",
+    "unobservedDefaultedExtras",
+}
+EXPECTED_CAPABILITY_PROFILE_NAME = "semantic-adapter-capabilities-v1"
+CAPABILITY_PROFILE_KEYS = {"schema", "name", "side", "capabilities"}
+CAPABILITY_KEYS = {
+    "dwgReadObservations",
+    "modelerDwgSourceVersion",
+    "modelerDwgAcisPayload",
+    "modelerDxfPayloadChunks",
+    "modelerPayloadStatusName",
+    "payloadRangeBitOffset",
+    "surfaceDxfPayloadChunks",
+}
+EXPECTED_CAPABILITIES_BY_SIDE = {
+    "target": {key: False for key in CAPABILITY_KEYS},
+    "standalone": {key: True for key in CAPABILITY_KEYS},
+}
 CONFIG_FILE_KEYS = {"path", "digest"}
 CONFIG_DEFINITION_KEYS = {
     "sideMacro", "adapterName", "adapterCommit", "embeddedConfigDigest"
 }
 CONFIG_WARNING_KEYS = {"library", "adapter"}
 CONFIG_TARGET_KEYS = {"executable", "staticLibrary"}
-BUILD_PARITY_KEYS = {
+BUILD_PARITY_BASE_KEYS = {
     "schema", "configuration", "cmake", "adapterCompile", "libraryCompile",
     "adapterLink",
 }
+LEGACY_BUILD_PARITY_KEYS = set(BUILD_PARITY_BASE_KEYS)
+COMPILER_DEPENDENCY_BUILD_PARITY_KEYS = BUILD_PARITY_BASE_KEYS | {
+    "compilerDependencies",
+}
+COMPILER_RESOURCE_BUILD_PARITY_KEYS = COMPILER_DEPENDENCY_BUILD_PARITY_KEYS | {
+    "compilerResources",
+}
+APPLE_SDK_BUILD_PARITY_KEYS = COMPILER_RESOURCE_BUILD_PARITY_KEYS | {"appleSdk"}
+APPLE_RUNTIME_BUILD_PARITY_KEYS = APPLE_SDK_BUILD_PARITY_KEYS | {"appleRuntime"}
+BUILD_PARITY_KEYS = APPLE_RUNTIME_BUILD_PARITY_KEYS | {"appleLinkInputs"}
+COMPILER_DEPENDENCY_KEYS = {
+    "schema", "status", "method", "translationUnitCount", "externalInputs",
+    "externalInputsDigest", "reason",
+}
+COMPILER_DEPENDENCY_FILE_KEYS = {"path", "size", "digest"}
+COMPILER_RESOURCE_KEYS = {
+    "schema", "status", "method", "compilerId", "path", "entryCount",
+    "fileCount", "totalBytes", "treeDigest", "reason",
+}
+APPLE_SDK_KEYS = {
+    "schema", "status", "method", "systemName", "compilerId", "roots",
+    "rootsDigest", "reason",
+}
+APPLE_SDK_ROOT_KEYS = {
+    "selectedPaths", "resolvedPath", "metadataFiles", "metadataDigest",
+}
+APPLE_SDK_SELECTION_KEYS = {"source", "path"}
+APPLE_SDK_METADATA_FILE_KEYS = {"path", "size", "digest"}
+APPLE_RUNTIME_KEYS = {
+    "schema", "status", "method", "systemName", "compilerId",
+    "executableDigest", "tool", "nodes", "edges", "nodesDigest",
+    "edgesDigest", "unresolvedImageCount", "unmatchedSdkStubCount",
+    "maximumDepth", "reason",
+}
+APPLE_RUNTIME_V2_KEYS = APPLE_RUNTIME_KEYS | {
+    "linkerSelectedStubs", "linkerSelectedStubsDigest",
+    "unselectedDirectInstallNameCount",
+}
+APPLE_RUNTIME_TOOL_KEYS = {"path", "digest"}
+APPLE_RUNTIME_NODE_KEYS = {
+    "installName", "directLinkInput", "images", "sdkStubs",
+}
+APPLE_RUNTIME_IMAGE_KEYS = {"architecture", "uuid"}
+APPLE_RUNTIME_STUB_KEYS = {
+    "sdkRoot", "path", "resolvedPath", "size", "digest", "installName",
+    "currentVersion", "compatibilityVersion",
+}
+APPLE_RUNTIME_SELECTED_STUB_KEYS = {
+    "installName", "sdkRoot", "path", "size", "digest",
+}
+APPLE_RUNTIME_EDGE_KEYS = {"source", "target", "architecture", "attribute"}
+APPLE_LINK_INPUTS_KEYS = {
+    "schema", "status", "method", "systemName", "compilerId",
+    "architecture", "executableDigest", "mapSize", "mapDigest",
+    "objectCount", "synthesizedObjectCount", "buildObjects",
+    "buildObjectsDigest", "linkedArchive", "archiveMembers",
+    "archiveMembersDigest", "externalInputs", "externalInputsDigest",
+    "unclassifiedCount", "unclassifiedDigest", "reason",
+}
+APPLE_LINK_ARCHIVE_KEYS = {"path", "size", "digest"}
+APPLE_LINK_BUILD_OBJECT_KEYS = {"path", "size", "digest"}
+APPLE_LINK_EXTERNAL_INPUT_KEYS = {"sdkRoot", "path", "size", "digest"}
 COMPILE_PROFILE_KEYS = {
     "language", "languageStandard", "flags", "defines", "includes", "sysroot"
 }
@@ -1192,9 +2227,131 @@ def _string_array(value: Any, path: str, *, require_unique: bool = False) -> lis
     return parsed
 
 
+def _validate_compiler_builtin_specs_profile(
+    value: Any, path: str, compiler_id: str
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise QualifiedDifferentialError(f"{path} must be an object")
+    schema = value.get("schema")
+    if type(schema) is not int or schema not in (1, 2):
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    profile = _exact_keys(
+        value,
+        (COMPILER_BUILTIN_SPECS_V1_KEYS if schema == 1
+         else COMPILER_BUILTIN_SPECS_V2_KEYS),
+        path,
+    )
+    status = _string(profile["status"], f"{path}.status", allow_empty=False)
+    method = _string(profile["method"], f"{path}.method", allow_empty=True)
+    reported_compiler = _string(
+        profile["compilerId"], f"{path}.compilerId", allow_empty=False
+    )
+    byte_count = _integer(profile["byteCount"], f"{path}.byteCount", minimum=0)
+    digest = _string(profile["digest"], f"{path}.digest", allow_empty=True)
+    reason = _string(profile["reason"], f"{path}.reason", allow_empty=True)
+    if reported_compiler != compiler_id:
+        raise QualifiedDifferentialError(
+            f"{path}.compilerId contradicts CMake compiler identity"
+        )
+    if status == "captured":
+        if (compiler_id != "GNU" or method != COMPILER_BUILTIN_SPECS_METHOD
+                or byte_count == 0 or byte_count > MAX_GCC_BUILTIN_SPECS_BYTES
+                or reason):
+            raise QualifiedDifferentialError(
+                f"{path} captured built-in specs profile is inconsistent"
+            )
+        _digest(digest, f"{path}.digest")
+    elif status == "unavailable":
+        allowed_reasons = {
+            "compiler-family-not-qualified",
+            "compiler-path-unavailable",
+            "gcc-built-in-specs-query-failed",
+            "gcc-built-in-specs-size-limit",
+            "gcc-built-in-specs-empty",
+            "existing-build-not-scanned-before-compilation",
+        }
+        if (method or byte_count or digest or reason not in allowed_reasons
+                or (compiler_id != "GNU"
+                    and reason != "compiler-family-not-qualified")):
+            raise QualifiedDifferentialError(
+                f"{path} unavailable built-in specs profile is inconsistent"
+            )
+    else:
+        raise QualifiedDifferentialError(f"{path}.status is unsupported")
+    if schema == 2:
+        closure = _exact_keys(
+            profile["includeClosure"], GCC_SPECS_INCLUDE_CLOSURE_KEYS,
+            f"{path}.includeClosure",
+        )
+        if type(closure["schema"]) is not int or closure["schema"] != 1:
+            raise QualifiedDifferentialError(
+                f"{path}.includeClosure.schema must be 1"
+            )
+        closure_status = _string(
+            closure["status"], f"{path}.includeClosure.status", allow_empty=False
+        )
+        builtin_count = _integer(
+            closure["builtinDirectiveCount"],
+            f"{path}.includeClosure.builtinDirectiveCount", minimum=0,
+        )
+        external_count = _integer(
+            closure["externalDirectiveCount"],
+            f"{path}.includeClosure.externalDirectiveCount", minimum=0,
+        )
+        closure_reason = _string(
+            closure["reason"], f"{path}.includeClosure.reason", allow_empty=True
+        )
+        if closure_status == "no-includes-detected":
+            if (status != "captured" or compiler_id != "GNU"
+                    or builtin_count or external_count or closure_reason):
+                raise QualifiedDifferentialError(
+                    f"{path}.includeClosure no-include result is inconsistent"
+                )
+        elif closure_status == "partial":
+            if (status != "captured" or compiler_id != "GNU"
+                    or not (builtin_count or external_count)
+                    or closure_reason
+                    != "spec-includes-not-resolved-or-content-bound"):
+                raise QualifiedDifferentialError(
+                    f"{path}.includeClosure partial result is inconsistent"
+                )
+        elif closure_status == "unavailable":
+            allowed_closure_reasons = {
+                "compiler-family-not-qualified",
+                "compiler-path-unavailable",
+                "gcc-built-in-specs-query-failed",
+                "gcc-built-in-specs-size-limit",
+                "gcc-built-in-specs-empty",
+                "existing-build-not-scanned-before-compilation",
+                "external-specs-file-identity-unavailable",
+                "external-specs-file-unreadable",
+                "external-specs-file-size-limit",
+            }
+            if (closure_reason not in allowed_closure_reasons
+                    or (status == "unavailable"
+                        and (closure_reason != reason or builtin_count
+                             or external_count))):
+                raise QualifiedDifferentialError(
+                    f"{path}.includeClosure unavailable result is inconsistent"
+                )
+        else:
+            raise QualifiedDifferentialError(
+                f"{path}.includeClosure.status is unsupported"
+            )
+    return profile
+
+
 def _validate_cmake_identity(value: Any, path: str,
                              configuration: str) -> dict[str, Any]:
-    cmake = _exact_keys(value, CONFIG_CMAKE_KEYS, path)
+    if isinstance(value, dict) and set(value) == LEGACY_CONFIG_CMAKE_KEYS:
+        # Preserve already-issued receipts while requiring tool binary
+        # identities from newly generated builder output.
+        cmake = _exact_keys(value, LEGACY_CONFIG_CMAKE_KEYS, path)
+    elif (isinstance(value, dict)
+          and set(value) == PRE_BUILTIN_SPECS_CONFIG_CMAKE_KEYS):
+        cmake = _exact_keys(value, PRE_BUILTIN_SPECS_CONFIG_CMAKE_KEYS, path)
+    else:
+        cmake = _exact_keys(value, CONFIG_CMAKE_KEYS, path)
     required_strings = {
         "cmakeVersion", "configuredCmakeVersion", "cmakeExecutable", "generator",
         "compilerPath", "compilerId", "compilerVersion", "sizeofDataPointer",
@@ -1202,7 +2359,11 @@ def _validate_cmake_identity(value: Any, path: str,
     }
     array_keys = {"configurationTypes", "osxArchitectures"}
     bool_keys = {"multiConfig", "crossCompiling", "cxxExtensions"}
-    for key in sorted(CONFIG_CMAKE_KEYS - array_keys - bool_keys - {"cxxStandard"}):
+    for key in sorted(
+        CONFIG_CMAKE_KEYS - array_keys - bool_keys - {
+            "cxxStandard", "toolBinaries", "compilerBuiltinSpecs",
+        }
+    ):
         _string(cmake[key], f"{path}.{key}", allow_empty=key not in required_strings)
     if not cmake["sizeofDataPointer"].isdigit() or int(cmake["sizeofDataPointer"]) <= 0:
         raise QualifiedDifferentialError(f"{path}.sizeofDataPointer is invalid")
@@ -1214,6 +2375,51 @@ def _validate_cmake_identity(value: Any, path: str,
         cmake["osxArchitectures"], f"{path}.osxArchitectures",
         require_unique=True,
     )
+    if "toolBinaries" in cmake:
+        binary_rows = cmake["toolBinaries"]
+        if (isinstance(binary_rows, dict)
+                and set(binary_rows) == LEGACY_TOOL_BINARY_KEYS):
+            tools = _exact_keys(binary_rows, LEGACY_TOOL_BINARY_KEYS,
+                                f"{path}.toolBinaries")
+        else:
+            tools = _exact_keys(binary_rows, TOOL_BINARY_KEYS,
+                                f"{path}.toolBinaries")
+        for role, identity in tools.items():
+            row = _exact_keys(identity, TOOL_BINARY_IDENTITY_KEYS,
+                              f"{path}.toolBinaries.{role}")
+            _string(row["path"], f"{path}.toolBinaries.{role}.path",
+                    allow_empty=True)
+            _string(row["digest"], f"{path}.toolBinaries.{role}.digest",
+                    allow_empty=True)
+            if bool(row["path"]) != bool(row["digest"]):
+                raise QualifiedDifferentialError(
+                    f"{path}.toolBinaries.{role} path/digest presence differs"
+                )
+            if row["digest"]:
+                _digest(row["digest"], f"{path}.toolBinaries.{role}.digest")
+        for role in ("cmake", "buildProgram", "compiler"):
+            if not tools[role]["path"] or not tools[role]["digest"]:
+                raise QualifiedDifferentialError(
+                    f"{path}.toolBinaries.{role} identity is required"
+                )
+        expected_tool_paths = {
+            "cmake": cmake["cmakeExecutable"],
+            "compiler": cmake["compilerPath"],
+            "compilerLinker": cmake["compilerLinkerPath"],
+            "archiver": cmake["archiverPath"],
+            "ranlib": cmake["ranlibPath"],
+        }
+        for role, expected in expected_tool_paths.items():
+            if tools[role]["path"] != expected:
+                raise QualifiedDifferentialError(
+                    f"{path}.toolBinaries.{role} path contradicts CMake metadata"
+                )
+    if "compilerBuiltinSpecs" in cmake:
+        _validate_compiler_builtin_specs_profile(
+            cmake["compilerBuiltinSpecs"],
+            f"{path}.compilerBuiltinSpecs",
+            cmake["compilerId"],
+        )
     if not isinstance(cmake["multiConfig"], bool):
         raise QualifiedDifferentialError(f"{path}.multiConfig must be boolean")
     if not isinstance(cmake["crossCompiling"], bool):
@@ -1284,15 +2490,865 @@ def _validate_link_profile(value: Any, path: str) -> dict[str, Any]:
     return profile
 
 
+def _validate_compiler_resources(value: Any, path: str) -> dict[str, Any]:
+    profile = _exact_keys(value, COMPILER_RESOURCE_KEYS, path)
+    if isinstance(profile["schema"], bool) or profile["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    compiler_id = _string(profile["compilerId"], f"{path}.compilerId")
+    status = profile["status"]
+    if status not in {"captured", "unavailable"}:
+        raise QualifiedDifferentialError(f"{path}.status is unsupported")
+    method = _string(profile["method"], f"{path}.method", allow_empty=True)
+    resource_path = _string(profile["path"], f"{path}.path", allow_empty=True)
+    entry_count = _integer(profile["entryCount"], f"{path}.entryCount", minimum=0)
+    file_count = _integer(profile["fileCount"], f"{path}.fileCount", minimum=0)
+    total_bytes = _integer(profile["totalBytes"], f"{path}.totalBytes", minimum=0)
+    tree_digest = _digest(profile["treeDigest"], f"{path}.treeDigest")
+    reason = _string(profile["reason"], f"{path}.reason", allow_empty=True)
+    if status == "captured":
+        if (compiler_id not in {"Clang", "AppleClang"}
+                or method != "clang-resource-tree-v1"
+                or not Path(resource_path).is_absolute()
+                or entry_count < 1 or file_count < 1 or total_bytes < 1
+                or reason):
+            raise QualifiedDifferentialError(
+                f"{path} captured resource profile is inconsistent"
+            )
+    else:
+        allowed_reasons = {
+            "compiler-family-not-qualified", "compiler-path-unavailable",
+            "clang-resource-query-failed", "clang-resource-query-malformed",
+            "clang-resource-path-not-absolute", "clang-resource-capture-budget",
+            "clang-resource-tree-unavailable",
+        }
+        expected_empty_digest = hashlib.sha256(_canonical_bytes([]) + b"\n").hexdigest()
+        if (method or resource_path or entry_count or file_count or total_bytes
+                or tree_digest != expected_empty_digest or reason not in allowed_reasons):
+            raise QualifiedDifferentialError(
+                f"{path} unavailable resource profile is inconsistent"
+            )
+    return profile
+
+
+def _validate_apple_sdk_profile(value: Any, path: str) -> dict[str, Any]:
+    profile = _exact_keys(value, APPLE_SDK_KEYS, path)
+    if isinstance(profile["schema"], bool) or profile["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    status = profile["status"]
+    if status not in {"captured", "unavailable"}:
+        raise QualifiedDifferentialError(f"{path}.status is unsupported")
+    method = _string(profile["method"], f"{path}.method", allow_empty=True)
+    system_name = _string(profile["systemName"], f"{path}.systemName")
+    compiler_id = _string(profile["compilerId"], f"{path}.compilerId")
+    roots = _list(profile["roots"], f"{path}.roots")
+    roots_digest = _digest(profile["rootsDigest"], f"{path}.rootsDigest")
+    reason = _string(profile["reason"], f"{path}.reason", allow_empty=True)
+    if status == "captured":
+        if (system_name != "Darwin"
+                or compiler_id not in {"AppleClang", "Clang"}
+                or method != "apple-sdk-settings-v1"
+                or not roots or reason):
+            raise QualifiedDifferentialError(
+                f"{path} captured Apple SDK profile is inconsistent"
+            )
+        normalized_roots: list[dict[str, Any]] = []
+        resolved_paths: list[str] = []
+        for index, item in enumerate(roots):
+            root_path = f"{path}.roots[{index}]"
+            root = _exact_keys(item, APPLE_SDK_ROOT_KEYS, root_path)
+            selected_paths = _list(
+                root["selectedPaths"], f"{root_path}.selectedPaths"
+            )
+            if not selected_paths:
+                raise QualifiedDifferentialError(
+                    f"{root_path}.selectedPaths must not be empty"
+                )
+            normalized_selections: list[dict[str, str]] = []
+            for selection_index, selection_value in enumerate(selected_paths):
+                selection_path = (
+                    f"{root_path}.selectedPaths[{selection_index}]"
+                )
+                selection = _exact_keys(
+                    selection_value, APPLE_SDK_SELECTION_KEYS, selection_path
+                )
+                source = _string(selection["source"], f"{selection_path}.source")
+                selected = _string(selection["path"], f"{selection_path}.path")
+                if source not in {
+                    "CMAKE_SYSROOT", "CMAKE_SYSROOT_COMPILE",
+                    "CMAKE_SYSROOT_LINK", "CMAKE_OSX_SYSROOT",
+                    "CMAKE_CXX_COMPILER_APPLE_SYSROOT",
+                } or not Path(selected).is_absolute():
+                    raise QualifiedDifferentialError(
+                        f"{selection_path} is not a supported absolute sysroot"
+                    )
+                normalized_selections.append({"source": source, "path": selected})
+            if normalized_selections != sorted(
+                    normalized_selections,
+                    key=lambda row: (row["source"], row["path"])):
+                raise QualifiedDifferentialError(
+                    f"{root_path}.selectedPaths must be sorted"
+                )
+            resolved = _string(root["resolvedPath"], f"{root_path}.resolvedPath")
+            if not Path(resolved).is_absolute():
+                raise QualifiedDifferentialError(
+                    f"{root_path}.resolvedPath must be absolute"
+                )
+            resolved_paths.append(resolved)
+            metadata_files = _list(
+                root["metadataFiles"], f"{root_path}.metadataFiles"
+            )
+            metadata_rows: list[dict[str, Any]] = []
+            for metadata_index, metadata_value in enumerate(metadata_files):
+                metadata_path = f"{root_path}.metadataFiles[{metadata_index}]"
+                metadata = _exact_keys(
+                    metadata_value, APPLE_SDK_METADATA_FILE_KEYS, metadata_path
+                )
+                name = _string(metadata["path"], f"{metadata_path}.path")
+                size = _integer(metadata["size"], f"{metadata_path}.size", minimum=0)
+                digest = _digest(metadata["digest"], f"{metadata_path}.digest")
+                if name not in {"SDKSettings.json", "SDKSettings.plist"}:
+                    raise QualifiedDifferentialError(
+                        f"{metadata_path}.path is not a recognized SDK manifest"
+                    )
+                if size > 32 * 1024 * 1024:
+                    raise QualifiedDifferentialError(
+                        f"{metadata_path}.size exceeds the SDK manifest budget"
+                    )
+                metadata_rows.append({"path": name, "size": size, "digest": digest})
+            metadata_names = [row["path"] for row in metadata_rows]
+            if (metadata_names != sorted(set(metadata_names))
+                    or "SDKSettings.json" not in metadata_names):
+                raise QualifiedDifferentialError(
+                    f"{root_path}.metadataFiles must include sorted unique SDKSettings.json"
+                )
+            metadata_digest = _digest(
+                root["metadataDigest"], f"{root_path}.metadataDigest"
+            )
+            expected_metadata_digest = hashlib.sha256(
+                _canonical_bytes(metadata_rows) + b"\n"
+            ).hexdigest()
+            if metadata_digest != expected_metadata_digest:
+                raise QualifiedDifferentialError(
+                    f"{root_path}.metadataDigest does not bind its manifests"
+                )
+            normalized_roots.append({
+                "selectedPaths": normalized_selections,
+                "resolvedPath": resolved,
+                "metadataFiles": metadata_rows,
+                "metadataDigest": metadata_digest,
+            })
+        if resolved_paths != sorted(set(resolved_paths)):
+            raise QualifiedDifferentialError(
+                f"{path}.roots must be sorted by unique resolvedPath"
+            )
+        expected_roots_digest = hashlib.sha256(
+            _canonical_bytes(normalized_roots) + b"\n"
+        ).hexdigest()
+        if roots_digest != expected_roots_digest:
+            raise QualifiedDifferentialError(
+                f"{path}.rootsDigest does not bind its SDK roots"
+            )
+    else:
+        allowed_reasons = {
+            "platform-not-qualified", "apple-sdk-root-unavailable",
+            "apple-sdk-path-unavailable", "apple-sdk-settings-unavailable",
+            "apple-sdk-metadata-budget",
+        }
+        expected_empty_digest = hashlib.sha256(
+            _canonical_bytes([]) + b"\n"
+        ).hexdigest()
+        if (method or roots or roots_digest != expected_empty_digest
+                or reason not in allowed_reasons):
+            raise QualifiedDifferentialError(
+                f"{path} unavailable Apple SDK profile is inconsistent"
+            )
+        if reason == "platform-not-qualified" and (
+                system_name == "Darwin"
+                and compiler_id in {"AppleClang", "Clang"}):
+            raise QualifiedDifferentialError(
+                f"{path} marks a supported Apple toolchain not-applicable"
+            )
+    return profile
+
+
+def _validate_apple_runtime_profile(value: Any, path: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise QualifiedDifferentialError(f"{path} must be an object")
+    schema = value.get("schema")
+    if isinstance(schema, bool) or schema not in {1, 2}:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    profile = _exact_keys(
+        value, APPLE_RUNTIME_KEYS if schema == 1 else APPLE_RUNTIME_V2_KEYS, path
+    )
+    status = profile["status"]
+    if status not in {"partial", "unavailable"}:
+        raise QualifiedDifferentialError(
+            f"{path}.status must remain partial or unavailable"
+        )
+    method = _string(profile["method"], f"{path}.method", allow_empty=True)
+    system_name = _string(profile["systemName"], f"{path}.systemName")
+    compiler_id = _string(profile["compilerId"], f"{path}.compilerId")
+    executable_digest = _string(
+        profile["executableDigest"], f"{path}.executableDigest", allow_empty=True
+    )
+    tool = _exact_keys(profile["tool"], APPLE_RUNTIME_TOOL_KEYS, f"{path}.tool")
+    tool_path = _string(tool["path"], f"{path}.tool.path", allow_empty=True)
+    tool_digest = _string(
+        tool["digest"], f"{path}.tool.digest", allow_empty=True
+    )
+    nodes = _list(profile["nodes"], f"{path}.nodes")
+    edges = _list(profile["edges"], f"{path}.edges")
+    nodes_digest = _digest(profile["nodesDigest"], f"{path}.nodesDigest")
+    edges_digest = _digest(profile["edgesDigest"], f"{path}.edgesDigest")
+    unresolved_count = _integer(
+        profile["unresolvedImageCount"],
+        f"{path}.unresolvedImageCount", minimum=0,
+    )
+    unmatched_stub_count = _integer(
+        profile["unmatchedSdkStubCount"],
+        f"{path}.unmatchedSdkStubCount", minimum=0,
+    )
+    maximum_depth = _integer(
+        profile["maximumDepth"], f"{path}.maximumDepth", minimum=0
+    )
+    reason = _string(profile["reason"], f"{path}.reason", allow_empty=True)
+    selected_stub_rows: list[dict[str, Any]] = []
+    selected_stub_digest = ""
+    unselected_direct_count = 0
+    if schema == 2:
+        selected_values = _list(
+            profile["linkerSelectedStubs"], f"{path}.linkerSelectedStubs"
+        )
+        selected_stub_digest = _digest(
+            profile["linkerSelectedStubsDigest"],
+            f"{path}.linkerSelectedStubsDigest",
+        )
+        unselected_direct_count = _integer(
+            profile["unselectedDirectInstallNameCount"],
+            f"{path}.unselectedDirectInstallNameCount", minimum=0,
+        )
+        for index, item in enumerate(selected_values):
+            row_path = f"{path}.linkerSelectedStubs[{index}]"
+            row = _exact_keys(item, APPLE_RUNTIME_SELECTED_STUB_KEYS, row_path)
+            install_name = _string(row["installName"], f"{row_path}.installName")
+            sdk_root = _string(row["sdkRoot"], f"{row_path}.sdkRoot")
+            input_path = _string(row["path"], f"{row_path}.path")
+            size = _integer(row["size"], f"{row_path}.size", minimum=1)
+            digest = _digest(row["digest"], f"{row_path}.digest")
+            pure_input_path = PurePosixPath(input_path)
+            if (not install_name.startswith(("/", "@"))
+                    or not Path(sdk_root).is_absolute()
+                    or pure_input_path.is_absolute()
+                    or ".." in pure_input_path.parts
+                    or pure_input_path.as_posix() != input_path):
+                raise QualifiedDifferentialError(
+                    f"{row_path} is not a normalized SDK-selected input"
+                )
+            selected_stub_rows.append({
+                "installName": install_name,
+                "sdkRoot": sdk_root,
+                "path": input_path,
+                "size": size,
+                "digest": digest,
+            })
+        selected_keys = [(
+            row["installName"], row["sdkRoot"], row["path"]
+        ) for row in selected_stub_rows]
+        if selected_keys != sorted(set(selected_keys)):
+            raise QualifiedDifferentialError(
+                f"{path}.linkerSelectedStubs must be sorted and unique"
+            )
+        expected_selected_digest = hashlib.sha256(
+            _canonical_bytes(selected_stub_rows) + b"\n"
+        ).hexdigest()
+        if selected_stub_digest != expected_selected_digest:
+            raise QualifiedDifferentialError(
+                f"{path}.linkerSelectedStubsDigest is stale"
+            )
+    expected_empty_digest = hashlib.sha256(
+        _canonical_bytes([]) + b"\n"
+    ).hexdigest()
+    if status == "unavailable":
+        allowed_reasons = {
+            "platform-not-qualified", "apple-sdk-profile-unavailable",
+            "dyld-info-unavailable", "macho-inspection-failed",
+            "macho-load-command-malformed",
+        }
+        if (schema != 1 or method or executable_digest or tool_path or tool_digest or nodes or edges
+                or nodes_digest != expected_empty_digest
+                or edges_digest != expected_empty_digest
+                or unresolved_count or unmatched_stub_count or maximum_depth
+                or reason not in allowed_reasons):
+            raise QualifiedDifferentialError(
+                f"{path} unavailable Apple runtime profile is inconsistent"
+            )
+        if reason == "platform-not-qualified" and (
+                system_name == "Darwin"
+                and compiler_id in {"AppleClang", "Clang"}):
+            raise QualifiedDifferentialError(
+                f"{path} marks a supported Apple runtime not-applicable"
+            )
+        return profile
+
+    allowed_reasons = {"link-stub-selection-not-proven", "runtime-closure-limit"}
+    if schema == 2:
+        allowed_reasons.add("runtime-byte-identity-not-proven")
+    if (system_name != "Darwin"
+            or compiler_id not in {"AppleClang", "Clang"}
+            or method != "macho-dyld-uuid-closure-v1"
+            or reason not in allowed_reasons
+            or maximum_depth > 32
+            or len(nodes) > 4096 or len(edges) > 100_000):
+        raise QualifiedDifferentialError(
+            f"{path} partial Apple runtime profile is inconsistent"
+        )
+    _digest(executable_digest, f"{path}.executableDigest")
+    if (not tool_path or not Path(tool_path).is_absolute()
+            or not re.fullmatch(r"[0-9a-f]{64}", tool_digest)):
+        raise QualifiedDifferentialError(f"{path}.tool identity is malformed")
+
+    node_rows: list[dict[str, Any]] = []
+    install_names: list[str] = []
+    for index, item in enumerate(nodes):
+        node_path = f"{path}.nodes[{index}]"
+        node = _exact_keys(item, APPLE_RUNTIME_NODE_KEYS, node_path)
+        install_name = _string(node["installName"], f"{node_path}.installName")
+        direct_link_input = node["directLinkInput"]
+        if not isinstance(direct_link_input, bool):
+            raise QualifiedDifferentialError(
+                f"{node_path}.directLinkInput must be boolean"
+            )
+        if (not install_name.startswith(("/", "@")) or "\n" in install_name
+                or "\x00" in install_name):
+            raise QualifiedDifferentialError(
+                f"{node_path}.installName is malformed"
+            )
+        install_names.append(install_name)
+        images = _list(node["images"], f"{node_path}.images")
+        normalized_images: list[dict[str, str]] = []
+        for image_index, image_value in enumerate(images):
+            image_path = f"{node_path}.images[{image_index}]"
+            image = _exact_keys(image_value, APPLE_RUNTIME_IMAGE_KEYS, image_path)
+            architecture = _string(image["architecture"], f"{image_path}.architecture")
+            uuid = _string(image["uuid"], f"{image_path}.uuid")
+            if not re.fullmatch(
+                    r"[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}",
+                    uuid):
+                raise QualifiedDifferentialError(f"{image_path}.uuid is malformed")
+            normalized_images.append({
+                "architecture": architecture, "uuid": uuid.upper(),
+            })
+        image_keys = [(row["architecture"], row["uuid"]) for row in normalized_images]
+        if image_keys != sorted(set(image_keys)):
+            raise QualifiedDifferentialError(
+                f"{node_path}.images must be sorted and unique"
+            )
+        stub_values = _list(node["sdkStubs"], f"{node_path}.sdkStubs")
+        normalized_stubs: list[dict[str, Any]] = []
+        for stub_index, stub_value in enumerate(stub_values):
+            stub_path = f"{node_path}.sdkStubs[{stub_index}]"
+            stub = _exact_keys(stub_value, APPLE_RUNTIME_STUB_KEYS, stub_path)
+            sdk_root = _string(stub["sdkRoot"], f"{stub_path}.sdkRoot")
+            path_value = _string(stub["path"], f"{stub_path}.path")
+            resolved_path = _string(stub["resolvedPath"], f"{stub_path}.resolvedPath")
+            size = _integer(stub["size"], f"{stub_path}.size", minimum=1)
+            digest = _digest(stub["digest"], f"{stub_path}.digest")
+            stub_install_name = _string(
+                stub["installName"], f"{stub_path}.installName"
+            )
+            current_version = _string(
+                stub["currentVersion"], f"{stub_path}.currentVersion", allow_empty=True
+            )
+            compatibility_version = _string(
+                stub["compatibilityVersion"],
+                f"{stub_path}.compatibilityVersion", allow_empty=True,
+            )
+            if (not Path(sdk_root).is_absolute()
+                    or not Path(path_value).is_absolute()
+                    or not Path(resolved_path).is_absolute()
+                    or size > 64 * 1024 * 1024
+                    or stub_install_name != install_name):
+                raise QualifiedDifferentialError(
+                    f"{stub_path} is not a bounded matching SDK stub"
+                )
+            normalized_stubs.append({
+                "sdkRoot": sdk_root,
+                "path": path_value,
+                "resolvedPath": resolved_path,
+                "size": size,
+                "digest": digest,
+                "installName": stub_install_name,
+                "currentVersion": current_version,
+                "compatibilityVersion": compatibility_version,
+            })
+        stub_keys = [(row["sdkRoot"], row["path"]) for row in normalized_stubs]
+        if stub_keys != sorted(set(stub_keys)):
+            raise QualifiedDifferentialError(
+                f"{node_path}.sdkStubs must be sorted and unique"
+            )
+        node_rows.append({
+            "installName": install_name,
+            "directLinkInput": direct_link_input,
+            "images": normalized_images,
+            "sdkStubs": normalized_stubs,
+        })
+    if install_names != sorted(set(install_names)):
+        raise QualifiedDifferentialError(
+            f"{path}.nodes must be sorted and unique by installName"
+        )
+
+    edge_rows: list[dict[str, str]] = []
+    for index, item in enumerate(edges):
+        edge_path = f"{path}.edges[{index}]"
+        edge = _exact_keys(item, APPLE_RUNTIME_EDGE_KEYS, edge_path)
+        source = _string(edge["source"], f"{edge_path}.source")
+        target = _string(edge["target"], f"{edge_path}.target")
+        architecture = _string(edge["architecture"], f"{edge_path}.architecture")
+        attribute = _string(edge["attribute"], f"{edge_path}.attribute")
+        if (source != "adapter-executable" and not source.startswith(("/", "@"))
+                or not target.startswith(("/", "@"))
+                or not re.fullmatch(r"[A-Za-z][A-Za-z-]*", attribute)):
+            raise QualifiedDifferentialError(f"{edge_path} is malformed")
+        edge_rows.append({
+            "source": source, "target": target,
+            "architecture": architecture, "attribute": attribute,
+        })
+    edge_keys = [(
+        row["source"], row["target"], row["architecture"], row["attribute"]
+    ) for row in edge_rows]
+    if edge_keys != sorted(set(edge_keys)):
+        raise QualifiedDifferentialError(f"{path}.edges must be sorted and unique")
+    direct_targets = {
+        row["target"] for row in edge_rows
+        if row["source"] == "adapter-executable"
+    }
+    direct_nodes = {
+        node["installName"] for node in node_rows if node["directLinkInput"]
+    }
+    if not direct_targets.issubset(direct_nodes):
+        raise QualifiedDifferentialError(
+            f"{path} omits a direct adapter runtime dependency node"
+        )
+    if direct_nodes != direct_targets:
+        raise QualifiedDifferentialError(
+            f"{path} directLinkInput flags disagree with the executable edges"
+        )
+    expected_nodes_digest = hashlib.sha256(
+        _canonical_bytes(node_rows) + b"\n"
+    ).hexdigest()
+    expected_edges_digest = hashlib.sha256(
+        _canonical_bytes(edge_rows) + b"\n"
+    ).hexdigest()
+    if nodes_digest != expected_nodes_digest or edges_digest != expected_edges_digest:
+        raise QualifiedDifferentialError(
+            f"{path} runtime graph digest does not bind its content"
+        )
+    if unresolved_count != sum(1 for node in node_rows if not node["images"]):
+        raise QualifiedDifferentialError(
+            f"{path}.unresolvedImageCount is stale"
+        )
+    if unmatched_stub_count != sum(
+            1 for node in node_rows
+            if node["directLinkInput"] and not node["sdkStubs"]):
+        raise QualifiedDifferentialError(
+            f"{path}.unmatchedSdkStubCount is stale"
+        )
+    if reason == "link-stub-selection-not-proven" and unresolved_count and not edges:
+        raise QualifiedDifferentialError(
+            f"{path} has unresolved runtime images without dependency edges"
+        )
+    return profile
+
+
+def _validate_apple_runtime_linker_selection(
+    runtime_profile: dict[str, Any],
+    link_inputs_profile: dict[str, Any],
+    path: str,
+) -> None:
+    """Cross-check selected runtime stubs against exact linker-map inputs."""
+    if runtime_profile.get("schema") != 2:
+        return
+    external_inputs = link_inputs_profile.get("externalInputs")
+    if not isinstance(external_inputs, list):
+        raise QualifiedDifferentialError(
+            f"{path}.appleLinkInputs.externalInputs is malformed"
+        )
+    selected_input_keys = {
+        (row["sdkRoot"], row["path"], row["size"], row["digest"])
+        for row in external_inputs
+    }
+    nodes = runtime_profile["nodes"]
+    direct_names: set[str] = set()
+    selected_names: set[str] = set()
+    expected_rows: list[dict[str, Any]] = []
+    for node in nodes:
+        if not node["directLinkInput"]:
+            continue
+        install_name = node["installName"]
+        direct_names.add(install_name)
+        for candidate in node["sdkStubs"]:
+            sdk_root = candidate["sdkRoot"]
+            try:
+                relative_path = Path(candidate["resolvedPath"]).relative_to(
+                    Path(sdk_root)
+                ).as_posix()
+            except ValueError:
+                raise QualifiedDifferentialError(
+                    f"{path}.appleRuntime candidate resolves outside its SDK root"
+                ) from None
+            identity = (
+                sdk_root, relative_path, candidate["size"], candidate["digest"]
+            )
+            if identity not in selected_input_keys:
+                continue
+            expected_rows.append({
+                "installName": install_name,
+                "sdkRoot": sdk_root,
+                "path": relative_path,
+                "size": candidate["size"],
+                "digest": candidate["digest"],
+            })
+            selected_names.add(install_name)
+    expected_rows.sort(key=lambda row: (
+        row["installName"], row["sdkRoot"], row["path"]
+    ))
+    if runtime_profile["linkerSelectedStubs"] != expected_rows:
+        raise QualifiedDifferentialError(
+            f"{path}.appleRuntime linker-selected stubs do not match runtime candidates and linker inputs"
+        )
+    expected_unselected = len(direct_names - selected_names)
+    if runtime_profile["unselectedDirectInstallNameCount"] != expected_unselected:
+        raise QualifiedDifferentialError(
+            f"{path}.appleRuntime unselected direct install-name count is stale"
+        )
+    if runtime_profile["reason"] != "runtime-closure-limit":
+        expected_reason = (
+            "runtime-byte-identity-not-proven"
+            if (link_inputs_profile.get("status") == "captured"
+                and selected_names == direct_names)
+            else "link-stub-selection-not-proven"
+        )
+        if runtime_profile["reason"] != expected_reason:
+            raise QualifiedDifferentialError(
+                f"{path}.appleRuntime reason disagrees with selected linker stubs"
+            )
+
+
+def _validate_apple_link_inputs_profile(value: Any, path: str) -> dict[str, Any]:
+    profile = _exact_keys(value, APPLE_LINK_INPUTS_KEYS, path)
+    if isinstance(profile["schema"], bool) or profile["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    status = profile["status"]
+    if status not in {"captured", "partial", "unavailable"}:
+        raise QualifiedDifferentialError(f"{path}.status is unsupported")
+    method = _string(profile["method"], f"{path}.method", allow_empty=True)
+    system_name = _string(profile["systemName"], f"{path}.systemName")
+    compiler_id = _string(profile["compilerId"], f"{path}.compilerId")
+    architecture = _string(
+        profile["architecture"], f"{path}.architecture", allow_empty=True
+    )
+    executable_digest = _string(
+        profile["executableDigest"], f"{path}.executableDigest", allow_empty=True
+    )
+    map_size = _integer(profile["mapSize"], f"{path}.mapSize", minimum=0)
+    map_digest = _string(profile["mapDigest"], f"{path}.mapDigest", allow_empty=True)
+    object_count = _integer(profile["objectCount"], f"{path}.objectCount", minimum=0)
+    synthesized_count = _integer(
+        profile["synthesizedObjectCount"],
+        f"{path}.synthesizedObjectCount", minimum=0,
+    )
+    build_objects = _list(profile["buildObjects"], f"{path}.buildObjects")
+    build_objects_digest = _digest(
+        profile["buildObjectsDigest"], f"{path}.buildObjectsDigest"
+    )
+    archive = _exact_keys(
+        profile["linkedArchive"], APPLE_LINK_ARCHIVE_KEYS, f"{path}.linkedArchive"
+    )
+    archive_path = _string(archive["path"], f"{path}.linkedArchive.path", allow_empty=True)
+    archive_size = _integer(archive["size"], f"{path}.linkedArchive.size", minimum=0)
+    archive_digest = _string(
+        archive["digest"], f"{path}.linkedArchive.digest", allow_empty=True
+    )
+    archive_members = _list(profile["archiveMembers"], f"{path}.archiveMembers")
+    archive_members_digest = _digest(
+        profile["archiveMembersDigest"], f"{path}.archiveMembersDigest"
+    )
+    external_inputs = _list(profile["externalInputs"], f"{path}.externalInputs")
+    external_inputs_digest = _digest(
+        profile["externalInputsDigest"], f"{path}.externalInputsDigest"
+    )
+    unclassified_count = _integer(
+        profile["unclassifiedCount"], f"{path}.unclassifiedCount", minimum=0
+    )
+    unclassified_digest = _digest(
+        profile["unclassifiedDigest"], f"{path}.unclassifiedDigest"
+    )
+    reason = _string(profile["reason"], f"{path}.reason", allow_empty=True)
+
+    empty_digest = hashlib.sha256(_canonical_bytes([]) + b"\n").hexdigest()
+    if status == "unavailable":
+        allowed_reasons = {
+            "platform-not-qualified", "apple-sdk-profile-unavailable",
+        }
+        if (method or architecture or executable_digest or map_size or map_digest
+                or object_count or synthesized_count or build_objects
+                or build_objects_digest != empty_digest or archive_path
+                or archive_size or archive_digest or archive_members
+                or archive_members_digest != empty_digest or external_inputs
+                or external_inputs_digest != empty_digest or unclassified_count
+                or unclassified_digest != empty_digest or reason not in allowed_reasons):
+            raise QualifiedDifferentialError(
+                f"{path} unavailable Apple linker input profile is inconsistent"
+            )
+        if (reason == "platform-not-qualified" and system_name == "Darwin"
+                and compiler_id in {"AppleClang", "Clang"}):
+            raise QualifiedDifferentialError(
+                f"{path} marks a supported Apple linker not-applicable"
+            )
+        return profile
+
+    if (system_name != "Darwin"
+            or compiler_id not in {"AppleClang", "Clang"}
+            or method != "apple-ld-map-v1"
+            or not re.fullmatch(r"[A-Za-z0-9_+-]{1,32}", architecture)
+            or not re.fullmatch(r"[0-9a-f]{64}", executable_digest)
+            or map_size < 1 or map_size > 64 * 1024 * 1024
+            or not re.fullmatch(r"[0-9a-f]{64}", map_digest)
+            or not 1 <= object_count <= 16_384
+            or synthesized_count > object_count
+            or not 0 < archive_size <= 512 * 1024 * 1024
+            or not re.fullmatch(r"[0-9a-f]{64}", archive_digest)
+            or not archive_path.startswith("<build>/")
+            or ".." in PurePosixPath(archive_path).parts):
+        raise QualifiedDifferentialError(
+            f"{path} captured Apple linker input profile is inconsistent"
+        )
+    _digest(build_objects_digest, f"{path}.buildObjectsDigest")
+    _digest(archive_members_digest, f"{path}.archiveMembersDigest")
+    if len(build_objects) > object_count or len(archive_members) > object_count:
+        raise QualifiedDifferentialError(f"{path} input counts exceed map object count")
+
+    normalized_build_objects: list[dict[str, Any]] = []
+    previous_build_path = ""
+    for index, value_item in enumerate(build_objects):
+        row_path = f"{path}.buildObjects[{index}]"
+        row = _exact_keys(value_item, APPLE_LINK_BUILD_OBJECT_KEYS, row_path)
+        object_path = _string(row["path"], f"{row_path}.path")
+        object_size = _integer(row["size"], f"{row_path}.size", minimum=1)
+        digest = _digest(row["digest"], f"{row_path}.digest")
+        parts = PurePosixPath(object_path).parts
+        if (PurePosixPath(object_path).is_absolute() or ".." in parts
+                or object_path <= previous_build_path):
+            raise QualifiedDifferentialError(
+                f"{row_path}.path must be sorted, relative, and traversal-free"
+            )
+        previous_build_path = object_path
+        normalized_build_objects.append({
+            "path": object_path, "size": object_size, "digest": digest,
+        })
+    if hashlib.sha256(_canonical_bytes(normalized_build_objects) + b"\n").hexdigest() != build_objects_digest:
+        raise QualifiedDifferentialError(f"{path}.buildObjectsDigest is stale")
+
+    normalized_members: list[str] = []
+    previous_member = ""
+    for index, member_value in enumerate(archive_members):
+        member = _string(member_value, f"{path}.archiveMembers[{index}]")
+        if ("/" in member or "\\" in member or member <= previous_member):
+            raise QualifiedDifferentialError(
+                f"{path}.archiveMembers must be sorted unique basenames"
+            )
+        previous_member = member
+        normalized_members.append(member)
+    if not normalized_members or hashlib.sha256(
+            _canonical_bytes(normalized_members) + b"\n").hexdigest() != archive_members_digest:
+        raise QualifiedDifferentialError(f"{path}.archiveMembersDigest is stale")
+
+    normalized_external: list[dict[str, Any]] = []
+    previous_external_key = ("", "")
+    for index, value_item in enumerate(external_inputs):
+        row_path = f"{path}.externalInputs[{index}]"
+        row = _exact_keys(value_item, APPLE_LINK_EXTERNAL_INPUT_KEYS, row_path)
+        sdk_root = _string(row["sdkRoot"], f"{row_path}.sdkRoot")
+        input_path = _string(row["path"], f"{row_path}.path")
+        size = _integer(row["size"], f"{row_path}.size", minimum=1)
+        digest = _digest(row["digest"], f"{row_path}.digest")
+        pure_path = PurePosixPath(input_path)
+        key = (sdk_root, input_path)
+        if (not Path(sdk_root).is_absolute() or pure_path.is_absolute()
+                or ".." in pure_path.parts or key <= previous_external_key):
+            raise QualifiedDifferentialError(
+                f"{row_path} is not a sorted SDK-relative input identity"
+            )
+        previous_external_key = key
+        normalized_external.append({
+            "sdkRoot": sdk_root, "path": input_path,
+            "size": size, "digest": digest,
+        })
+    if hashlib.sha256(_canonical_bytes(normalized_external) + b"\n").hexdigest() != external_inputs_digest:
+        raise QualifiedDifferentialError(f"{path}.externalInputsDigest is stale")
+
+    if status == "captured":
+        if (unclassified_count or reason
+                or unclassified_digest != empty_digest
+                or synthesized_count + len(normalized_build_objects)
+                   + len(normalized_members) + len(normalized_external)
+                   != object_count):
+            raise QualifiedDifferentialError(
+                f"{path} captured profile does not classify every map row"
+            )
+    elif (unclassified_count < 1 or reason != "unclassified-link-inputs"
+          or unclassified_digest == empty_digest
+          or synthesized_count + len(normalized_build_objects)
+             + len(normalized_members) + len(normalized_external)
+             + unclassified_count != object_count):
+        raise QualifiedDifferentialError(
+            f"{path} partial profile has inconsistent unclassified rows"
+        )
+    return profile
+
+
+def _validate_compiler_dependencies(value: Any, path: str) -> dict[str, Any]:
+    profile = _exact_keys(value, COMPILER_DEPENDENCY_KEYS, path)
+    if isinstance(profile["schema"], bool) or profile["schema"] != 1:
+        raise QualifiedDifferentialError(f"{path}.schema is unsupported")
+    status = profile["status"]
+    if status not in {"captured", "unavailable"}:
+        raise QualifiedDifferentialError(f"{path}.status is unsupported")
+    _string(profile["method"], f"{path}.method", allow_empty=True)
+    _string(profile["reason"], f"{path}.reason", allow_empty=True)
+    units = _integer(profile["translationUnitCount"],
+                     f"{path}.translationUnitCount", minimum=0)
+    inputs = _list(profile["externalInputs"], f"{path}.externalInputs")
+    _digest(profile["externalInputsDigest"],
+            f"{path}.externalInputsDigest")
+    canonical_inputs: list[dict[str, Any]] = []
+    previous_path = ""
+    for index, item in enumerate(inputs):
+        row = _exact_keys(item, COMPILER_DEPENDENCY_FILE_KEYS,
+                          f"{path}.externalInputs[{index}]")
+        dependency_path = _string(
+            row["path"], f"{path}.externalInputs[{index}].path"
+        )
+        if not Path(dependency_path).is_absolute():
+            raise QualifiedDifferentialError(
+                f"{path}.externalInputs[{index}].path must be absolute"
+            )
+        size = _integer(row["size"],
+                        f"{path}.externalInputs[{index}].size", minimum=0)
+        digest = _digest(row["digest"],
+                         f"{path}.externalInputs[{index}].digest")
+        if dependency_path <= previous_path:
+            raise QualifiedDifferentialError(
+                f"{path}.externalInputs must be sorted and unique by path"
+            )
+        previous_path = dependency_path
+        canonical_inputs.append({
+            "path": dependency_path, "size": size, "digest": digest,
+        })
+    expected_closure_digest = hashlib.sha256(
+        _canonical_bytes(canonical_inputs) + b"\n"
+    ).hexdigest()
+    if profile["externalInputsDigest"] != expected_closure_digest:
+        raise QualifiedDifferentialError(
+            f"{path}.externalInputsDigest is stale"
+        )
+    if status == "captured":
+        if (profile["method"] != "gnu-clang-m-dependency-scan-v1"
+                or not units or profile["reason"]):
+            raise QualifiedDifferentialError(
+                f"{path} captured dependency profile is inconsistent"
+            )
+    else:
+        if (profile["method"] or profile["reason"] not in {
+                "windows-depfile-grammar-not-qualified",
+                "multi-config-compile-database-not-qualified",
+                "compiler-family-not-qualified",
+                "compile-database-not-generated",
+                "existing-build-not-scanned-before-compilation",
+        } or units or inputs):
+            raise QualifiedDifferentialError(
+                f"{path} unavailable dependency profile is inconsistent"
+            )
+    return profile
+
+
 def _validate_build_parity_identity(value: Any, path: str,
                                     configuration: str) -> dict[str, Any]:
-    identity = _exact_keys(value, BUILD_PARITY_KEYS, path)
+    if isinstance(value, dict) and set(value) == LEGACY_BUILD_PARITY_KEYS:
+        identity = _exact_keys(value, LEGACY_BUILD_PARITY_KEYS, path)
+    elif (isinstance(value, dict)
+          and set(value) == COMPILER_DEPENDENCY_BUILD_PARITY_KEYS):
+        identity = _exact_keys(
+            value, COMPILER_DEPENDENCY_BUILD_PARITY_KEYS, path
+        )
+    elif (isinstance(value, dict)
+          and set(value) == COMPILER_RESOURCE_BUILD_PARITY_KEYS):
+        identity = _exact_keys(
+            value, COMPILER_RESOURCE_BUILD_PARITY_KEYS, path
+        )
+    elif (isinstance(value, dict)
+          and set(value) == APPLE_SDK_BUILD_PARITY_KEYS):
+        identity = _exact_keys(value, APPLE_SDK_BUILD_PARITY_KEYS, path)
+    elif (isinstance(value, dict)
+          and set(value) == APPLE_RUNTIME_BUILD_PARITY_KEYS):
+        identity = _exact_keys(value, APPLE_RUNTIME_BUILD_PARITY_KEYS, path)
+    else:
+        identity = _exact_keys(value, BUILD_PARITY_KEYS, path)
     if identity["schema"] != 1 or identity["configuration"] != configuration:
         raise QualifiedDifferentialError(f"{path} schema/configuration is stale")
     _validate_cmake_identity(identity["cmake"], f"{path}.cmake", configuration)
     _validate_compile_profile(identity["adapterCompile"], f"{path}.adapterCompile")
     _validate_compile_profile(identity["libraryCompile"], f"{path}.libraryCompile")
     _validate_link_profile(identity["adapterLink"], f"{path}.adapterLink")
+    if "compilerDependencies" in identity:
+        _validate_compiler_dependencies(
+            identity["compilerDependencies"],
+            f"{path}.compilerDependencies",
+        )
+    if "compilerResources" in identity:
+        _validate_compiler_resources(
+            identity["compilerResources"], f"{path}.compilerResources"
+        )
+    if "appleSdk" in identity:
+        _validate_apple_sdk_profile(identity["appleSdk"], f"{path}.appleSdk")
+    runtime_profile = None
+    if "appleRuntime" in identity:
+        runtime_profile = _validate_apple_runtime_profile(
+            identity["appleRuntime"], f"{path}.appleRuntime"
+        )
+    link_inputs = None
+    if "appleLinkInputs" in identity:
+        link_inputs = _validate_apple_link_inputs_profile(
+            identity["appleLinkInputs"], f"{path}.appleLinkInputs"
+        )
+        if link_inputs["status"] != "unavailable":
+            if (link_inputs["systemName"] != identity["cmake"]["systemName"]
+                    or link_inputs["compilerId"] != identity["cmake"]["compilerId"]):
+                raise QualifiedDifferentialError(
+                    f"{path}.appleLinkInputs toolchain identity differs from CMake"
+                )
+            sdk_profile = identity.get("appleSdk")
+            if not isinstance(sdk_profile, dict):
+                raise QualifiedDifferentialError(
+                    f"{path}.appleLinkInputs has no Apple SDK profile"
+                )
+            sdk_roots = {
+                row["resolvedPath"] for row in sdk_profile.get("roots", [])
+                if isinstance(row, dict) and isinstance(row.get("resolvedPath"), str)
+            }
+            if any(row["sdkRoot"] not in sdk_roots
+                   for row in link_inputs["externalInputs"]):
+                raise QualifiedDifferentialError(
+                    f"{path}.appleLinkInputs names an SDK root outside its profile"
+                )
+    if isinstance(runtime_profile, dict) and runtime_profile.get("schema") == 2:
+        if not isinstance(link_inputs, dict):
+            raise QualifiedDifferentialError(
+                f"{path}.appleRuntime schema 2 requires Apple linker-input evidence"
+            )
+        _validate_apple_runtime_linker_selection(
+            runtime_profile, link_inputs, path
+        )
     return identity
 
 
@@ -1393,8 +3449,143 @@ def validate_receipt(value: Any, *, receipt_path: Path | None = None,
     for key in ("cmakeVersion", "generator", "compilerId", "compilerVersion"):
         if cmake[key] != build[key]:
             raise QualifiedDifferentialError(f"build {key} identity is stale")
-    inputs = _exact_keys(identity["inputs"], CONFIG_INPUT_KEYS,
-                         "receipt.build.configIdentity.inputs")
+    raw_input_value = identity["inputs"]
+    input_value = _without_adapter_support_inputs(
+        raw_input_value, "receipt.build.configIdentity.inputs"
+    )
+    if isinstance(input_value, dict) and set(input_value) == LEGACY_CONFIG_INPUT_KEYS:
+        # Frozen schema-1 receipts retain their original replay semantics.
+        inputs = _exact_keys(input_value, LEGACY_CONFIG_INPUT_KEYS,
+                             "receipt.build.configIdentity.inputs")
+    elif (isinstance(input_value, dict)
+          and set(input_value)
+              == CONTROLLED_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value,
+            CONTROLLED_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_controlled_driver_context(
+            inputs["driverContext"],
+            "receipt.build.configIdentity.inputs.driverContext",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+        _validate_semantic_capability_profile(
+            inputs["capabilityProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.capabilityProfile",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value)
+              == DIRECT_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value,
+            DIRECT_CONTRACT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+        _validate_semantic_capability_profile(
+            inputs["capabilityProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.capabilityProfile",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value) == CONTROLLED_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value, CONTROLLED_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_controlled_driver_context(
+            inputs["driverContext"],
+            "receipt.build.configIdentity.inputs.driverContext",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+        _validate_semantic_capability_profile(
+            inputs["capabilityProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.capabilityProfile",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value) == DIRECT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value, DIRECT_CAPABILITY_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+        _validate_semantic_capability_profile(
+            inputs["capabilityProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.capabilityProfile",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value) == CONTROLLED_CONTRACT_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value, CONTROLLED_CONTRACT_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_controlled_driver_context(
+            inputs["driverContext"],
+            "receipt.build.configIdentity.inputs.driverContext",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value) == DIRECT_CONTRACT_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value, DIRECT_CONTRACT_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value) == CONTROLLED_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value, CONTROLLED_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_controlled_driver_context(
+            inputs["driverContext"],
+            "receipt.build.configIdentity.inputs.driverContext",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value) == CONTROLLED_CONTEXT_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value, CONTROLLED_CONTEXT_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_controlled_driver_context(
+            inputs["driverContext"],
+            "receipt.build.configIdentity.inputs.driverContext",
+        )
+    elif (isinstance(input_value, dict)
+          and set(input_value) == DIRECT_PROFILE_CONFIG_INPUT_KEYS):
+        inputs = _exact_keys(
+            input_value, DIRECT_PROFILE_CONFIG_INPUT_KEYS,
+            "receipt.build.configIdentity.inputs",
+        )
+        _validate_interface_profile(
+            inputs["interfaceProfile"], adapter["side"],
+            "receipt.build.configIdentity.inputs.interfaceProfile",
+        )
+    else:
+        inputs = _exact_keys(input_value, DIRECT_ONLY_CONFIG_INPUT_KEYS,
+                             "receipt.build.configIdentity.inputs")
     _digest(inputs["adapterSourceDigest"],
             "receipt.build.configIdentity.inputs.adapterSourceDigest")
     _path_hint(inputs["semanticManifestPath"],
@@ -1434,12 +3625,24 @@ def validate_receipt(value: Any, *, receipt_path: Path | None = None,
         raise QualifiedDifferentialError("build link closure was not enforced")
     _digest(inputs["verifiedCompileCommandDigest"],
             "receipt.build.configIdentity.inputs.verifiedCompileCommandDigest")
-    if inputs["compileContractEnforced"] is not True:
-        raise QualifiedDifferentialError("adapter compile contract was not enforced")
+    if "compileContractProfile" in inputs:
+        _validate_compile_contract_profile(
+            inputs["compileContractProfile"],
+            driver_context_present="driverContext" in inputs,
+            compiler_id=cmake["compilerId"],
+            path="receipt.build.configIdentity.inputs.compileContractProfile",
+        )
+    _validate_compile_contract_disposition(inputs)
     _digest(
         inputs["verifiedInterfaceContractDigest"],
         "receipt.build.configIdentity.inputs.verifiedInterfaceContractDigest",
     )
+    if ("interfaceProfile" in inputs
+            and inputs["verifiedInterfaceContractDigest"]
+                != inputs["interfaceProfile"]["commonMethodDigest"]):
+        raise QualifiedDifferentialError(
+            "build interface contract digest does not match named common profile"
+        )
     if inputs["interfaceContractEnforced"] is not True:
         raise QualifiedDifferentialError("adapter interface contract was not enforced")
     if _integer(
@@ -1524,6 +3727,20 @@ def validate_receipt(value: Any, *, receipt_path: Path | None = None,
         build["buildParityIdentity"], "receipt.build.buildParityIdentity",
         build["configuration"],
     )
+    runtime_profile = parity_identity.get("appleRuntime")
+    if (isinstance(runtime_profile, dict)
+            and runtime_profile.get("status") == "partial"
+            and runtime_profile.get("executableDigest") != adapter["binaryDigest"]):
+        raise QualifiedDifferentialError(
+            "Apple runtime profile is not bound to the adapter executable"
+        )
+    link_inputs_profile = parity_identity.get("appleLinkInputs")
+    if (isinstance(link_inputs_profile, dict)
+            and link_inputs_profile.get("status") != "unavailable"
+            and link_inputs_profile.get("executableDigest") != adapter["binaryDigest"]):
+        raise QualifiedDifferentialError(
+            "Apple linker input profile is not bound to the adapter executable"
+        )
     if parity_identity["cmake"] != cmake:
         raise QualifiedDifferentialError(
             "build parity/config CMake identities differ"
@@ -1571,24 +3788,207 @@ def _validate_receipt_pair(target: dict[str, Any],
                            standalone: dict[str, Any]) -> None:
     target_build = target["build"]
     standalone_build = standalone["build"]
-    if target_build["buildParityDigest"] != standalone_build["buildParityDigest"]:
-        raise QualifiedDifferentialError(
-            "target/standalone build-parity digests differ"
-        )
-    if target_build["buildParityIdentity"] != standalone_build["buildParityIdentity"]:
+    target_parity = target_build["buildParityIdentity"]
+    standalone_parity = standalone_build["buildParityIdentity"]
+    target_dependencies = target_parity.get("compilerDependencies")
+    standalone_dependencies = standalone_parity.get("compilerDependencies")
+    target_link_inputs = target_parity.get("appleLinkInputs")
+    standalone_link_inputs = standalone_parity.get("appleLinkInputs")
+    target_core = {
+        key: value for key, value in target_parity.items()
+        if key not in {"compilerDependencies", "appleLinkInputs"}
+    }
+    standalone_core = {
+        key: value for key, value in standalone_parity.items()
+        if key not in {"compilerDependencies", "appleLinkInputs"}
+    }
+    for core in (target_core, standalone_core):
+        runtime_profile = core.get("appleRuntime")
+        if isinstance(runtime_profile, dict):
+            core["appleRuntime"] = {
+                key: value for key, value in runtime_profile.items()
+                if key != "executableDigest"
+            }
+    if target_core != standalone_core:
         raise QualifiedDifferentialError(
             "target/standalone effective build profiles differ"
         )
+    if (target_link_inputs is None) != (standalone_link_inputs is None):
+        raise QualifiedDifferentialError(
+            "target/standalone Apple linker-input evidence is asymmetric"
+        )
+    if isinstance(target_link_inputs, dict):
+        assert isinstance(standalone_link_inputs, dict)
+        for key in ("status", "method", "systemName", "compilerId"):
+            if target_link_inputs[key] != standalone_link_inputs[key]:
+                raise QualifiedDifferentialError(
+                    f"target/standalone Apple linker-input {key} differs"
+                )
+        if target_link_inputs["status"] == "unavailable":
+            if target_link_inputs != standalone_link_inputs:
+                raise QualifiedDifferentialError(
+                    "target/standalone unavailable Apple linker-input reasons differ"
+                )
+        elif target_link_inputs["status"] != "captured":
+            raise QualifiedDifferentialError(
+                "partial Apple linker-input profiles cannot qualify a receipt pair"
+            )
+        else:
+            target_inputs = {
+                (row["sdkRoot"], row["path"]): row
+                for row in target_link_inputs["externalInputs"]
+            }
+            standalone_inputs = {
+                (row["sdkRoot"], row["path"]): row
+                for row in standalone_link_inputs["externalInputs"]
+            }
+            for key in sorted(target_inputs.keys() & standalone_inputs.keys()):
+                if target_inputs[key] != standalone_inputs[key]:
+                    raise QualifiedDifferentialError(
+                        "target/standalone selected SDK link input differs: "
+                        + key[1]
+                    )
+    if (target_dependencies is None) != (standalone_dependencies is None):
+        raise QualifiedDifferentialError(
+            "target/standalone compiler-dependency evidence is asymmetric"
+        )
+    if target_dependencies is None:
+        if target_build["buildParityDigest"] != standalone_build["buildParityDigest"]:
+            raise QualifiedDifferentialError(
+                "target/standalone build-parity digests differ"
+            )
+    else:
+        assert isinstance(target_dependencies, dict)
+        assert isinstance(standalone_dependencies, dict)
+        for key in ("status", "method"):
+            if target_dependencies[key] != standalone_dependencies[key]:
+                raise QualifiedDifferentialError(
+                    f"target/standalone compiler dependency {key} differs"
+                )
+        if target_dependencies["status"] == "unavailable":
+            if target_dependencies != standalone_dependencies:
+                raise QualifiedDifferentialError(
+                    "target/standalone unavailable compiler dependency reasons differ"
+                )
+        else:
+            # The pinned and standalone source versions may include different
+            # system headers. Compare content wherever both builds actually
+            # depended on the same path; a set difference alone is not a
+            # toolchain mismatch.
+            target_inputs = {
+                row["path"]: row for row in target_dependencies["externalInputs"]
+            }
+            standalone_inputs = {
+                row["path"]: row for row in standalone_dependencies["externalInputs"]
+            }
+            for path in sorted(target_inputs.keys() & standalone_inputs.keys()):
+                if target_inputs[path] != standalone_inputs[path]:
+                    raise QualifiedDifferentialError(
+                        "target/standalone compiler dependency content differs: "
+                        + path
+                    )
     target_inputs = target_build["configIdentity"]["inputs"]
     standalone_inputs = standalone_build["configIdentity"]["inputs"]
+    target_support = target_inputs.get("adapterSupportInputs")
+    standalone_support = standalone_inputs.get("adapterSupportInputs")
+    if (target_support is None) != (standalone_support is None):
+        raise QualifiedDifferentialError(
+            "target/standalone adapter support-input evidence is asymmetric"
+        )
+    if target_support is not None and standalone_support is not None:
+        target_support_by_path = {
+            row["path"]: row["digest"] for row in target_support
+        }
+        standalone_support_by_path = {
+            row["path"]: row["digest"] for row in standalone_support
+        }
+        if target_support_by_path != standalone_support_by_path:
+            raise QualifiedDifferentialError(
+                "target/standalone adapter support-input content differs"
+            )
+    compile_modes = {
+        target_inputs.get("compileContractMode"),
+        standalone_inputs.get("compileContractMode"),
+    }
+    if "direct-options-only" in compile_modes:
+        raise QualifiedDifferentialError(
+            "direct-option admission does not attest the effective compiler driver; "
+            "this receipt pair is not eligible"
+        )
+    if len(compile_modes) != 1:
+        raise QualifiedDifferentialError(
+            "target/standalone compile-contract dispositions differ"
+        )
+    compile_mode = next(iter(compile_modes))
+    if compile_mode == "controlled-driver-profile-v1":
+        target_contract = target_inputs.get("compileContractProfile")
+        standalone_contract = standalone_inputs.get("compileContractProfile")
+        if (not isinstance(target_contract, dict)
+                or not isinstance(standalone_contract, dict)
+                or target_contract.get("disposition") != "enforced"
+                or standalone_contract.get("disposition") != "enforced"):
+            raise QualifiedDifferentialError(
+                "target/standalone compile-contract profile is advisory or unavailable"
+            )
+        if target_contract != standalone_contract:
+            raise QualifiedDifferentialError(
+                "target/standalone compile-contract profiles differ"
+            )
+    elif compile_mode is not None:
+        raise QualifiedDifferentialError(
+            "target/standalone compile-contract mode is unsupported"
+        )
+    target_capabilities = target_inputs.get("capabilityProfile")
+    standalone_capabilities = standalone_inputs.get("capabilityProfile")
+    if (target_capabilities is None) != (standalone_capabilities is None):
+        raise QualifiedDifferentialError(
+            "target/standalone semantic capability profiles are asymmetric"
+        )
+    if compile_mode == "controlled-driver-profile-v1" and (
+            target_capabilities is None or standalone_capabilities is None):
+        raise QualifiedDifferentialError(
+            "controlled receipt pair omits the required semantic capability profile"
+        )
+    if target_capabilities is not None and standalone_capabilities is not None:
+        target_capabilities = _validate_semantic_capability_profile(
+            target_capabilities, "target", "pair.target.capabilityProfile"
+        )
+        standalone_capabilities = _validate_semantic_capability_profile(
+            standalone_capabilities, "standalone",
+            "pair.standalone.capabilityProfile",
+        )
+        if (target_capabilities["schema"] != standalone_capabilities["schema"]
+                or target_capabilities["name"]
+                    != standalone_capabilities["name"]):
+            raise QualifiedDifferentialError(
+                "target/standalone semantic capability profile identities differ"
+            )
     for key in ("verifiedInterfaceContractDigest", "interfaceMethodCount"):
         if target_inputs[key] != standalone_inputs[key]:
             raise QualifiedDifferentialError(
                 "target/standalone interface callback inventories differ"
             )
+    target_profile = target_inputs.get("interfaceProfile")
+    standalone_profile = standalone_inputs.get("interfaceProfile")
+    if (target_profile is None) != (standalone_profile is None):
+        raise QualifiedDifferentialError(
+            "target/standalone named interface profiles differ"
+        )
+    if target_profile is not None and standalone_profile is not None:
+        if (target_profile["name"] != standalone_profile["name"]
+                or target_profile["commonMethodDigest"]
+                != standalone_profile["commonMethodDigest"]):
+            raise QualifiedDifferentialError(
+                "target/standalone common callback profiles differ"
+            )
+        if standalone_profile["unobservedDefaultedExtras"]:
+            raise QualifiedDifferentialError(
+                "standalone defaulted supplementary callbacks are not captured; "
+                "this receipt pair is not eligible"
+            )
 
 
-MANIFEST_KEYS = {
+MANIFEST_KEYS_V2 = {
     "schema",
     "kind",
     "fixturePolicy",
@@ -1600,6 +4000,9 @@ MANIFEST_KEYS = {
     "expectedFailures",
     "runners",
     "comparison",
+}
+MANIFEST_KEYS_V3 = MANIFEST_KEYS_V2 | {
+    "adapterResultSchema", "normalizationSchema",
 }
 MANIFEST_TARGET_LOCK_KEYS = set(TARGET_LOCK_RECEIPT_KEYS)
 ADAPTER_SOURCE_KEYS = {"path", "digestAlgorithm"}
@@ -1968,9 +4371,25 @@ def _validate_expected_failures(
 
 
 def validate_manifest(value: Any, *, root: Path | None = None) -> dict[str, Any]:
-    manifest = _exact_keys(value, MANIFEST_KEYS, "manifest")
-    if manifest["schema"] != RESULT_SCHEMA or manifest["kind"] != MANIFEST_KIND:
+    if not isinstance(value, dict):
+        raise QualifiedDifferentialError("manifest must be an object")
+    schema = value.get("schema")
+    if type(schema) is not int or schema not in {
+        MANIFEST_SCHEMA_V2, MANIFEST_SCHEMA_V3,
+    }:
         raise QualifiedDifferentialError("unexpected differential manifest schema or kind")
+    manifest = _exact_keys(
+        value,
+        MANIFEST_KEYS_V2 if schema == MANIFEST_SCHEMA_V2 else MANIFEST_KEYS_V3,
+        "manifest",
+    )
+    if manifest["kind"] != MANIFEST_KIND:
+        raise QualifiedDifferentialError("unexpected differential manifest schema or kind")
+    if schema == MANIFEST_SCHEMA_V3:
+        if manifest["adapterResultSchema"] != ADAPTER_RESULT_SCHEMA_V3:
+            raise QualifiedDifferentialError("manifest.adapterResultSchema must select schema 3")
+        if manifest["normalizationSchema"] != NORMALIZATION_REPORT_SCHEMA:
+            raise QualifiedDifferentialError("manifest.normalizationSchema is unsupported")
     if manifest["fixturePolicy"] != FIXTURE_POLICY:
         raise QualifiedDifferentialError("differential manifest fixture policy is unsafe")
     if manifest["resultKind"] != RESULT_KIND:
@@ -2153,6 +4572,12 @@ def validate_manifest(value: Any, *, root: Path | None = None) -> dict[str, Any]
     return manifest
 
 
+def _manifest_adapter_result_schema(manifest: dict[str, Any]) -> int:
+    if manifest["schema"] == MANIFEST_SCHEMA_V2:
+        return ADAPTER_RESULT_SCHEMA_V2
+    return manifest["adapterResultSchema"]
+
+
 _MISSING = object()
 
 
@@ -2172,7 +4597,7 @@ def _semantic_view(document: dict[str, Any]) -> dict[str, Any]:
             for field in record["fields"]
         }
         records[record["id"]] = row
-    return {
+    result = {
         "input": copy.deepcopy(document["input"]),
         "invocation": copy.deepcopy(document["invocation"]),
         "status": copy.deepcopy(document["status"]),
@@ -2190,6 +4615,60 @@ def _semantic_view(document: dict[str, Any]) -> dict[str, Any]:
         "diagnostics": copy.deepcopy(document["diagnostics"]),
         "cardinality": copy.deepcopy(document["cardinality"]),
     }
+    if document["schema"] == ADAPTER_RESULT_SCHEMA_V3:
+        result["observations"] = copy.deepcopy(document["observations"])
+    return result
+
+
+def _observation_eligibility_blockers(document: dict[str, Any], side: str) -> list[str]:
+    if document["schema"] != ADAPTER_RESULT_SCHEMA_V3:
+        return []
+    blockers: list[str] = []
+    for phase, envelope in document["observations"].items():
+        prefix = f"{side}.observations.{phase}"
+        availability = envelope["availability"]
+        if availability == "unavailable":
+            blockers.append(prefix + ".unavailable")
+            continue
+        if availability != "available":
+            continue
+        counters = envelope["scalarCounters"]
+        for key in (
+            "entityParseFailures", "objectParseFailures",
+            "dataStorageLinkFailures", "dataStorageOrphanRecords",
+        ):
+            if counters[key] != 0:
+                blockers.append(prefix + ".partial:" + key)
+        for key in (
+            "classesCrcMismatch", "reader21CrcMismatch",
+            "reader18HeaderCrcMismatch",
+        ):
+            if counters[key] != 0:
+                blockers.append(prefix + ".crcMismatch:" + key)
+        for name, summary in envelope["namedSummaries"].items():
+            if summary["totalInstanceCount"] or summary["omittedNameCount"]:
+                blockers.append(prefix + ".skipped:" + name)
+            if (summary["aggregateSaturated"]
+                    or summary["omittedNameBytes"]
+                    or summary["truncatedRetainedNameCount"]):
+                blockers.append(prefix + ".incompleteNames:" + name)
+        integrity = envelope["integrity"]
+        if any(row["severityCode"] == 0 for row in integrity["rows"]):
+            blockers.append(prefix + ".integrityError")
+        if any(integrity[key] for key in (
+            "extractionOmittedCount", "reportedUpstreamDroppedLowerBound",
+            "truncatedRetainedNameCount", "omittedNameBytes",
+        )) or integrity["aggregateSaturated"]:
+            blockers.append(prefix + ".incompleteIntegrity")
+        frames = envelope["frames"]
+        if frames["status"] != "finalizedComplete":
+            blockers.append(prefix + ".frameCoverage:" + frames["status"])
+        elif any(frames["dispositions"][key] for key in (
+            "pending", "deferred", "staged", "quarantined", "failed",
+            "unresolved",
+        )) or frames["unrecognizedDispositionCount"]:
+            blockers.append(prefix + ".nonterminalFrameDisposition")
+    return blockers
 
 
 def _flatten(value: Any, path: str = "") -> dict[str, Any]:
@@ -2295,6 +4774,10 @@ def compare_results(target_value: Any, standalone_value: Any,
         raise QualifiedDifferentialError("target result has the wrong adapter side")
     if standalone["adapter"]["side"] != "standalone":
         raise QualifiedDifferentialError("standalone result has the wrong adapter side")
+    if target["schema"] != standalone["schema"]:
+        raise QualifiedDifferentialError(
+            "target and standalone adapter result schemas differ"
+        )
     if target["input"] != standalone["input"]:
         raise QualifiedDifferentialError(
             "target and standalone results do not bind the same input/provenance"
@@ -2509,6 +4992,12 @@ def compare_results(target_value: Any, standalone_value: Any,
         eligibility_blockers.append(
             f"unsupportedContent.excluded:{excluded_unsupported}"
         )
+    eligibility_blockers.extend(
+        _observation_eligibility_blockers(target, "target")
+    )
+    eligibility_blockers.extend(
+        _observation_eligibility_blockers(standalone, "standalone")
+    )
     if mismatch:
         status = "mismatch"
     elif reviewed or eligibility_blockers:
@@ -2518,7 +5007,7 @@ def compare_results(target_value: Any, standalone_value: Any,
     else:
         status = "exact"
     report = {
-        "schema": RESULT_SCHEMA,
+        "schema": NORMALIZATION_REPORT_SCHEMA,
         "kind": REPORT_KIND,
         "fixturePolicy": FIXTURE_POLICY,
         "manifestDigest": manifest_digest,
@@ -2527,6 +5016,7 @@ def compare_results(target_value: Any, standalone_value: Any,
         "invocation": copy.deepcopy(target["invocation"]),
         "targetAdapter": copy.deepcopy(target["adapter"]),
         "standaloneAdapter": copy.deepcopy(standalone["adapter"]),
+        "adapterResultSchema": target["schema"],
         "deterministicRunsPerSide": 2,
         "expectedFailure": (
             copy.deepcopy(expected_failure)
@@ -2920,10 +5410,32 @@ def _resolve_input_provenance(
     }
 
 
+def _validate_output_readback_version(
+    result: dict[str, Any], artifact: dict[str, Any] | None, direction: str,
+) -> None:
+    if (result["schema"] == ADAPTER_RESULT_SCHEMA_V3
+            and result["invocation"]["facade"] == "dwgRW"
+            and direction == "write"):
+        failure_stage = result["status"]["firstFailure"]["stage"]
+        if failure_stage not in {"write", "writeResult"}:
+            if artifact is None:
+                raise QualifiedDifferentialError(
+                    "DWG output readback has no generated artifact identity"
+                )
+            observed_version = result["observations"]["outputReadback"][
+                "sourceVersion"
+            ]
+            if observed_version != artifact["detectedVersion"]:
+                raise QualifiedDifferentialError(
+                    "outputReadback sourceVersion differs from generated artifact"
+                )
+
+
 def _validate_generated_artifact(
     result: dict[str, Any], artifact: dict[str, Any] | None, direction: str,
     expected_operation_succeeded: bool,
 ) -> None:
+    _validate_output_readback_version(result, artifact, direction)
     records = [
         row
         for row in result["records"]
@@ -3104,6 +5616,10 @@ def _run_live_side(
             f"(exit {exit_code}, stderr={stderr!r})"
         ) from exc
     result = validate_result(result, identity)
+    if result["schema"] != _manifest_adapter_result_schema(manifest):
+        raise QualifiedDifferentialError(
+            f"{side} adapter result schema does not match the manifest"
+        )
     _validate_generated_artifact(
         result, generated_artifact, direction, expected_operation_succeeded
     )
@@ -3291,7 +5807,7 @@ def _digest_text(text: str) -> str:
 def _base_result(side: str, config_digest: str) -> dict[str, Any]:
     options = {"applyExtrusion": False, "compatibilityProfile": "default"}
     return {
-        "schema": RESULT_SCHEMA,
+        "schema": ADAPTER_RESULT_SCHEMA_V2,
         "kind": RESULT_KIND,
         "input": {
             "id": "synthetic-line",
@@ -3358,7 +5874,7 @@ def _base_result(side: str, config_digest: str) -> dict[str, Any]:
             "recordClass": "LINE",
             "entity": "LINE",
             "sourceHandle": "1",
-            "ownerHandle": "0",
+            "ownerHandle": None,
             "blockId": "block:model",
             "fields": [
                 {"name": "layer", "type": "string", "value": "0"},
@@ -3375,8 +5891,6 @@ def _base_result(side: str, config_digest: str) -> dict[str, Any]:
              "recordId": "record:1", "handle": "1"},
             {"id": "node:handle:1", "kind": "handle", "recordId": None,
              "handle": "1"},
-            {"id": "node:handle:0", "kind": "handle", "recordId": None,
-             "handle": "0"},
         ],
         "graphEdges": [
             {"id": "edge:handle:1", "kind": "handleReference",
@@ -3384,9 +5898,6 @@ def _base_result(side: str, config_digest: str) -> dict[str, Any]:
              "disposition": "observed"},
             {"id": "edge:block:1", "kind": "blockMembership",
              "from": "node:record:1", "to": "block:model",
-             "disposition": "observed"},
-            {"id": "edge:owner:1", "kind": "owner",
-             "from": "node:record:1", "to": "node:handle:0",
              "disposition": "observed"},
         ],
         "opaqueCarriers": [{
@@ -3413,12 +5924,108 @@ def _base_result(side: str, config_digest: str) -> dict[str, Any]:
             "callbackCount": 2,
             "recordCount": 1,
             "fieldCount": 4,
-            "graphNodeCount": 4,
-            "graphEdgeCount": 3,
+            "graphNodeCount": 3,
+            "graphEdgeCount": 2,
             "opaqueCarrierCount": 1,
             "unsupportedContentCount": 1,
             "diagnosticCount": 0,
         },
+    }
+
+
+def _base_observation_envelope(
+    phase: str,
+    availability: str,
+    *,
+    source_version: str | None = None,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    if availability != "available":
+        return {
+            "phase": phase,
+            "availability": availability,
+            "reason": reason or "notAvailableForSyntheticTest",
+            "sourceVersion": source_version,
+            "scalarCounters": None,
+            "namedSummaries": None,
+            "integrity": None,
+            "frames": None,
+        }
+    empty_named = {
+        "rows": [],
+        "retainedRowCount": 0,
+        "sourceNameCount": 0,
+        "totalInstanceCount": 0,
+        "omittedNameCount": 0,
+        "omittedInstanceCount": 0,
+        "truncatedRetainedNameCount": 0,
+        "omittedNameBytes": 0,
+        "aggregateSaturated": False,
+    }
+    return {
+        "phase": phase,
+        "availability": "available",
+        "reason": None,
+        "sourceVersion": source_version,
+        "scalarCounters": {key: 0 for key in sorted(OBSERVATION_COUNTER_KEYS)},
+        "namedSummaries": {
+            "skippedCustomClasses": copy.deepcopy(empty_named),
+            "skippedUnsupportedObjects": copy.deepcopy(empty_named),
+        },
+        "integrity": {
+            "rows": [],
+            "retainedRowCount": 0,
+            "sourceRecordedCount": 0,
+            "extractionOmittedCount": 0,
+            "reportedUpstreamDroppedLowerBound": 0,
+            "truncatedRetainedNameCount": 0,
+            "omittedNameBytes": 0,
+            "aggregateSaturated": False,
+        },
+        "frames": {
+            "status": "finalizedComplete",
+            "reason": None,
+            "sourceFrameCount": 1,
+            "dispositions": {
+                "pending": 0,
+                "deferred": 0,
+                "staged": 0,
+                "published": 1,
+                "quarantined": 0,
+                "failed": 0,
+                "unresolved": 0,
+            },
+            "unrecognizedDispositionCount": 0,
+        },
+    }
+
+
+def _base_observations(facade: str = "dwgRW", direction: str = "read") -> dict[str, Any]:
+    if facade == "dxfRW":
+        return {
+            "inputRead": _base_observation_envelope(
+                "inputRead", "notApplicable", reason="facadeIsDxf"
+            ),
+            "outputReadback": _base_observation_envelope(
+                "outputReadback", "notApplicable", reason="facadeIsDxf"
+            ),
+        }
+    if direction == "read":
+        return {
+            "inputRead": _base_observation_envelope(
+                "inputRead", "available", source_version="AC1024"
+            ),
+            "outputReadback": _base_observation_envelope(
+                "outputReadback", "notApplicable", reason="readOnlyNoOutputReadback"
+            ),
+        }
+    return {
+        "inputRead": _base_observation_envelope(
+            "inputRead", "notApplicable", reason="writeRecipeNotDwg"
+        ),
+        "outputReadback": _base_observation_envelope(
+            "outputReadback", "available", source_version="AC1024"
+        ),
     }
 
 
@@ -3435,11 +6042,1251 @@ def _assert_rejected(value: Any, needle: str) -> None:
 
 
 def self_test() -> None:
+    support_rows = [{
+        "path": "tests/semantic_adapter_support.h",
+        "snapshotPath": "tests/semantic_adapter_support.h",
+        "digest": _digest_text("adapter support source"),
+    }]
+    _validate_adapter_support_inputs(
+        support_rows, "self-test.adapterSupportInputs"
+    )
+    for input_keys in MODERN_CONFIG_INPUT_KEYSETS:
+        with_support = {key: None for key in input_keys}
+        with_support["adapterSupportInputs"] = copy.deepcopy(support_rows)
+        without_support = _without_adapter_support_inputs(
+            with_support, "self-test.configInputs"
+        )
+        assert set(without_support) == input_keys
+    try:
+        _without_adapter_support_inputs(
+            {**{key: None for key in LEGACY_CONFIG_INPUT_KEYS},
+             "adapterSupportInputs": []},
+            "self-test.legacyConfigInputs",
+        )
+    except QualifiedDifferentialError as exc:
+        assert "unsupported for this config identity shape" in str(exc)
+    else:
+        raise AssertionError("support inputs were admitted into a frozen legacy shape")
+    malformed_support = copy.deepcopy(support_rows)
+    malformed_support[0]["snapshotPath"] = "../escape.h"
+    try:
+        _validate_adapter_support_inputs(
+            malformed_support, "self-test.malformedAdapterSupportInputs"
+        )
+    except QualifiedDifferentialError as exc:
+        assert "normalized relative hint" in str(exc)
+    else:
+        raise AssertionError("unsafe adapter support snapshot path was accepted")
+
+    cmake_identity = {
+        key: "" for key in LEGACY_CONFIG_CMAKE_KEYS
+    }
+    cmake_identity.update({
+        "cmakeVersion": "cmake version 4.4.4",
+        "configuredCmakeVersion": "4.4.4",
+        "cmakeExecutable": "/tool/cmake",
+        "generator": "Ninja",
+        "multiConfig": False,
+        "configurationTypes": [],
+        "compilerPath": "/tool/clang++",
+        "compilerId": "AppleClang",
+        "compilerVersion": "27.0.0",
+        "sizeofDataPointer": "8",
+        "systemName": "Darwin",
+        "compilerBuiltinSpecs": {
+            "schema": 2,
+            "status": "unavailable",
+            "method": "",
+            "compilerId": "AppleClang",
+            "byteCount": 0,
+            "digest": "",
+            "reason": "compiler-family-not-qualified",
+            "includeClosure": {
+                "schema": 1,
+                "status": "unavailable",
+                "builtinDirectiveCount": 0,
+                "externalDirectiveCount": 0,
+                "reason": "compiler-family-not-qualified",
+            },
+        },
+        "cxxStandard": 17,
+        "cxxExtensions": False,
+        "cacheBuildType": "Release",
+        "crossCompiling": False,
+        "osxArchitectures": [],
+        "toolBinaries": {
+            "cmake": {"path": "/tool/cmake", "digest": _digest_text("cmake")},
+            "buildProgram": {
+                "path": "/tool/ninja", "digest": _digest_text("ninja")
+            },
+            "compiler": {
+                "path": "/tool/clang++", "digest": _digest_text("compiler")
+            },
+            "compilerLinker": {"path": "", "digest": ""},
+            "archiver": {"path": "", "digest": ""},
+            "ranlib": {"path": "", "digest": ""},
+            "compilerFrontend": {"path": "", "digest": ""},
+            "compilerAssembler": {"path": "", "digest": ""},
+            "compilerCollect2": {"path": "", "digest": ""},
+            "compilerLtoWrapper": {"path": "", "digest": ""},
+            "compilerSpecs": {"path": "", "digest": ""},
+        },
+    })
+    _validate_cmake_identity(
+        cmake_identity, "self-test.cmakeIdentity", "Release"
+    )
+    _validate_cmake_identity(
+        {key: value for key, value in cmake_identity.items()
+         if key not in {"toolBinaries", "compilerBuiltinSpecs"}},
+        "self-test.legacyCmakeIdentity",
+        "Release",
+    )
+    _validate_cmake_identity(
+        {key: value for key, value in cmake_identity.items()
+         if key != "compilerBuiltinSpecs"},
+        "self-test.preBuiltinSpecsCmakeIdentity",
+        "Release",
+    )
+    legacy_tools_cmake = copy.deepcopy(cmake_identity)
+    for key in (
+        "compilerFrontend", "compilerAssembler", "compilerCollect2",
+        "compilerLtoWrapper", "compilerSpecs",
+    ):
+        del legacy_tools_cmake["toolBinaries"][key]
+    _validate_cmake_identity(
+        legacy_tools_cmake,
+        "self-test.legacyToolBinaryShape",
+        "Release",
+    )
+    gnu_tool_cmake = copy.deepcopy(cmake_identity)
+    gnu_tool_cmake["compilerId"] = "GNU"
+    gnu_tool_cmake["compilerBuiltinSpecs"] = {
+        "schema": 1,
+        "status": "captured",
+        "method": COMPILER_BUILTIN_SPECS_METHOD,
+        "compilerId": "GNU",
+        "byteCount": 32,
+        "digest": _digest_text("gcc built-in specs"),
+        "reason": "",
+    }
+    for role, filename in (
+        ("compilerFrontend", "cc1plus"),
+        ("compilerAssembler", "as"),
+        ("compilerCollect2", "collect2"),
+        ("compilerLtoWrapper", "lto-wrapper"),
+        ("compilerSpecs", "specs"),
+    ):
+        gnu_tool_cmake["toolBinaries"][role] = {
+            "path": "/toolchain/libexec/" + filename,
+            "digest": _digest_text(filename),
+        }
+    _validate_cmake_identity(
+        gnu_tool_cmake, "self-test.gnuToolBinaryShape", "Release"
+    )
+    gnu_profile_v2 = copy.deepcopy(gnu_tool_cmake["compilerBuiltinSpecs"])
+    gnu_profile_v2.update({
+        "schema": 2,
+        "includeClosure": {
+            "schema": 1,
+            "status": "partial",
+            "builtinDirectiveCount": 1,
+            "externalDirectiveCount": 0,
+            "reason": "spec-includes-not-resolved-or-content-bound",
+        },
+    })
+    gnu_tool_cmake_v2 = copy.deepcopy(gnu_tool_cmake)
+    gnu_tool_cmake_v2["compilerBuiltinSpecs"] = gnu_profile_v2
+    _validate_cmake_identity(
+        gnu_tool_cmake_v2, "self-test.gnuSpecsIncludeProfile", "Release"
+    )
+    changed_include_profile = copy.deepcopy(gnu_tool_cmake_v2)
+    changed_include_profile["compilerBuiltinSpecs"]["includeClosure"][
+        "builtinDirectiveCount"
+    ] = -1
+    try:
+        _validate_cmake_identity(
+            changed_include_profile,
+            "self-test.invalidGnuSpecsIncludeProfile",
+            "Release",
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("invalid GCC specs include count was accepted")
+    posthoc_specs_cmake = copy.deepcopy(gnu_tool_cmake)
+    posthoc_specs_cmake["compilerBuiltinSpecs"] = {
+        "schema": 1,
+        "status": "unavailable",
+        "method": "",
+        "compilerId": "GNU",
+        "byteCount": 0,
+        "digest": "",
+        "reason": "existing-build-not-scanned-before-compilation",
+    }
+    _validate_cmake_identity(
+        posthoc_specs_cmake,
+        "self-test.posthocBuiltinSpecsProfile",
+        "Release",
+    )
+    for mutation, edit in (
+        ("digest", lambda row: row.update({"digest": "z" * 64})),
+        ("compiler", lambda row: row.update({"compilerId": "Clang"})),
+        ("unknownStatus", lambda row: row.update({"status": "partial"})),
+        ("unknownCount", lambda row: row.update({"byteCount": True})),
+    ):
+        changed_cmake = copy.deepcopy(gnu_tool_cmake)
+        edit(changed_cmake["compilerBuiltinSpecs"])
+        try:
+            _validate_cmake_identity(
+                changed_cmake,
+                "self-test.invalidBuiltinSpecsProfile",
+                "Release",
+            )
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(
+                "invalid GCC built-in specs profile was accepted: " + mutation
+            )
+    for mutation in (
+        "badDigest", "pathMismatch", "missingRequiredTool",
+        "mismatchedOptionalTool",
+    ):
+        changed_cmake = copy.deepcopy(cmake_identity)
+        if mutation == "badDigest":
+            changed_cmake["toolBinaries"]["compiler"]["digest"] = "z" * 64
+        elif mutation == "pathMismatch":
+            changed_cmake["toolBinaries"]["compiler"]["path"] = "/other/clang++"
+        elif mutation == "missingRequiredTool":
+            changed_cmake["toolBinaries"]["buildProgram"] = {
+                "path": "", "digest": ""
+            }
+        else:
+            changed_cmake["toolBinaries"]["compilerFrontend"] = {
+                "path": "", "digest": _digest_text("unpaired")
+            }
+        try:
+            _validate_cmake_identity(
+                changed_cmake,
+                "self-test.invalidToolBinaryIdentity",
+                "Release",
+            )
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(
+                f"invalid CMake tool binary identity was accepted: {mutation}"
+            )
+
+    assert _validate_compile_contract_disposition(
+        {"compileContractEnforced": True}
+    ) == "legacy"
+    assert _validate_compile_contract_disposition({
+        "compileContractMode": "direct-options-only",
+        "compileOptionAdmissionEnforced": True,
+        "compileContractEnforced": False,
+    }) == "direct-options-only"
+    for invalid_disposition in (
+        {"compileContractEnforced": False},
+        {"compileContractMode": "direct-options-only",
+         "compileOptionAdmissionEnforced": False,
+         "compileContractEnforced": False},
+        {"compileContractMode": "direct-options-only",
+         "compileOptionAdmissionEnforced": True,
+         "compileContractEnforced": True},
+        {"compileContractMode": "unknown",
+         "compileOptionAdmissionEnforced": True,
+         "compileContractEnforced": True},
+    ):
+        try:
+            _validate_compile_contract_disposition(invalid_disposition)
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError("invalid compile-contract disposition was accepted")
+    controlled_context_payload = {
+        "schema": 1,
+        "mode": "controlled-driver-v1",
+        "environmentDigest": _digest_text("environment"),
+        "compilerPath": "/toolchain/bin/c++",
+        "compilerPathDigest": hashlib.sha256(
+            b"/toolchain/bin/c++"
+        ).hexdigest(),
+        "compilerBinaryDigest": _digest_text("compiler-binary"),
+    }
+    controlled_context = {
+        **controlled_context_payload,
+        "digest": hashlib.sha256(
+            _canonical_bytes(controlled_context_payload) + b"\n"
+        ).hexdigest(),
+    }
+    _validate_controlled_driver_context(
+        controlled_context, "self-test.driverContext"
+    )
+    controlled_cmake_payload = {
+        **controlled_context_payload,
+        "cmakePath": "/tool/cmake",
+        "cmakePathDigest": hashlib.sha256(b"/tool/cmake").hexdigest(),
+        "cmakeBinaryDigest": _digest_text("cmake-binary"),
+    }
+    controlled_cmake_context = {
+        **controlled_cmake_payload,
+        "digest": hashlib.sha256(
+            _canonical_bytes(controlled_cmake_payload) + b"\n"
+        ).hexdigest(),
+    }
+    _validate_controlled_driver_context(
+        controlled_cmake_context, "self-test.driverContextWithCmake"
+    )
+    changed_cmake_context = copy.deepcopy(controlled_cmake_context)
+    changed_cmake_context["cmakePathDigest"] = "0" * 64
+    changed_cmake_payload = {
+        key: value for key, value in changed_cmake_context.items()
+        if key != "digest"
+    }
+    changed_cmake_context["digest"] = hashlib.sha256(
+        _canonical_bytes(changed_cmake_payload) + b"\n"
+    ).hexdigest()
+    try:
+        _validate_controlled_driver_context(
+            changed_cmake_context, "self-test.invalidDriverCmakePath"
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("stale CMake path digest was accepted")
+    def contract_profile(
+        *, mode: str, disposition: str, checks: dict[str, str]
+    ) -> dict[str, Any]:
+        value: dict[str, Any] = {
+            "schema": 1,
+            "name": "effective-driver-contract-v1",
+            "mode": mode,
+            "disposition": disposition,
+            "checks": checks,
+        }
+        value["digest"] = hashlib.sha256(
+            _canonical_bytes(value) + b"\n"
+        ).hexdigest()
+        return value
+
+    advisory_compile_profile = contract_profile(
+        mode="controlled-fresh-build-v1",
+        disposition="advisory",
+        checks={
+            "directOptions": "pass",
+            "driverIdentity": "pass",
+            "freshBuild": "pass",
+            "ambientOverrides": "pass",
+            "clangDefaultConfig": "pass",
+            "implicitConfiguration": "partial",
+            "effectiveOptionPolicy": "pass",
+        },
+    )
+    _validate_compile_contract_profile(
+        advisory_compile_profile,
+        driver_context_present=True,
+        compiler_id="AppleClang",
+        path="self-test.compileContractProfile",
+    )
+    enforced_compile_profile = contract_profile(
+        mode="controlled-fresh-build-v1",
+        disposition="enforced",
+        checks={
+            "directOptions": "pass",
+            "driverIdentity": "pass",
+            "freshBuild": "pass",
+            "ambientOverrides": "pass",
+            "clangDefaultConfig": "pass",
+            "implicitConfiguration": "pass",
+            "effectiveOptionPolicy": "pass",
+        },
+    )
+    _validate_compile_contract_profile(
+        enforced_compile_profile,
+        driver_context_present=True,
+        compiler_id="AppleClang",
+        path="self-test.enforcedCompileContractProfile",
+    )
+    assert _validate_compile_contract_disposition({
+        "compileContractMode": "controlled-driver-profile-v1",
+        "compileOptionAdmissionEnforced": True,
+        "compileContractEnforced": True,
+        "compileContractProfile": enforced_compile_profile,
+    }) == "controlled-driver-profile-v1"
+    inspected_compile_profile = contract_profile(
+        mode="existing-build-inspection-v1",
+        disposition="unavailable",
+        checks={
+            "directOptions": "pass",
+            "driverIdentity": "unavailable",
+            "freshBuild": "unavailable",
+            "ambientOverrides": "unavailable",
+            "clangDefaultConfig": "not-applicable",
+            "implicitConfiguration": "unavailable",
+            "effectiveOptionPolicy": "pending",
+        },
+    )
+    _validate_compile_contract_profile(
+        inspected_compile_profile,
+        driver_context_present=False,
+        compiler_id="GNU",
+        path="self-test.inspectedCompileContractProfile",
+    )
+    for changed_profile, context_present, compiler_id in (
+        (dict(advisory_compile_profile, digest="0" * 64), True, "AppleClang"),
+        (advisory_compile_profile, False, "AppleClang"),
+        (contract_profile(
+            mode="controlled-fresh-build-v1",
+            disposition="enforced",
+            checks={**enforced_compile_profile["checks"],
+                    "effectiveOptionPolicy": "pending"},
+        ), True, "AppleClang"),
+    ):
+        try:
+            _validate_compile_contract_profile(
+                changed_profile,
+                driver_context_present=context_present,
+                compiler_id=compiler_id,
+                path="self-test.invalidCompileContractProfile",
+            )
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError("invalid compile-contract profile was accepted")
+    for key, value in (
+        ("environmentDigest", "0" * 64),
+        ("compilerPath", "/different/compiler"),
+        ("compilerBinaryDigest", "f" * 64),
+        ("mode", "uncontrolled"),
+    ):
+        changed = copy.deepcopy(controlled_context)
+        changed[key] = value
+        try:
+            _validate_controlled_driver_context(changed, "self-test.driverContext")
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(f"tampered controlled driver {key} was accepted")
+
+    target_interface_profile = {
+        "schema": 1,
+        "name": EXPECTED_INTERFACE_PROFILE_NAME,
+        "side": "target",
+        "commonMethodCount": 170,
+        "commonMethodDigest": EXPECTED_COMMON_INTERFACE_DIGEST,
+        "interfaceMethodCount": 170,
+        "interfaceMethodDigest": _digest_text("target-interface"),
+        "defaultedInterfaceExtras": [],
+        "adapterSupplementalMethods": [],
+        "unobservedDefaultedExtras": [],
+    }
+    standalone_interface_profile = {
+        "schema": 1,
+        "name": EXPECTED_INTERFACE_PROFILE_NAME,
+        "side": "standalone",
+        "commonMethodCount": 170,
+        "commonMethodDigest": EXPECTED_COMMON_INTERFACE_DIGEST,
+        "interfaceMethodCount": 174,
+        "interfaceMethodDigest": _digest_text("standalone-interface"),
+        "defaultedInterfaceExtras": EXPECTED_STANDALONE_INTERFACE_EXTRAS,
+        "adapterSupplementalMethods": EXPECTED_STANDALONE_INTERFACE_EXTRAS,
+        "unobservedDefaultedExtras": [],
+    }
+    _validate_interface_profile(
+        target_interface_profile, "target", "self-test.targetInterfaceProfile"
+    )
+    _validate_interface_profile(
+        standalone_interface_profile, "standalone",
+        "self-test.standaloneInterfaceProfile",
+    )
+    legacy_standalone_interface_profile = copy.deepcopy(
+        standalone_interface_profile
+    )
+    legacy_standalone_interface_profile.update({
+        "name": LEGACY_INTERFACE_PROFILE_NAME,
+        "interfaceMethodCount": 173,
+        "defaultedInterfaceExtras": LEGACY_STANDALONE_INTERFACE_EXTRAS,
+        "adapterSupplementalMethods": LEGACY_STANDALONE_INTERFACE_EXTRAS,
+    })
+    _validate_interface_profile(
+        legacy_standalone_interface_profile, "standalone",
+        "self-test.legacyStandaloneInterfaceProfile",
+    )
+    for key, bad_value in (
+        ("commonMethodDigest", "0" * 64),
+        ("interfaceMethodCount", True),
+        ("defaultedInterfaceExtras", ["addBlockRecord"]),
+        ("adapterSupplementalMethods", []),
+    ):
+        changed = copy.deepcopy(standalone_interface_profile)
+        changed[key] = bad_value
+        try:
+            _validate_interface_profile(
+                changed, "standalone", "self-test.standaloneInterfaceProfile"
+            )
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(f"tampered interface profile {key} was accepted")
+
+    capability_profiles = {
+        side: {
+            "schema": 1,
+            "name": EXPECTED_CAPABILITY_PROFILE_NAME,
+            "side": side,
+            "capabilities": copy.deepcopy(
+                EXPECTED_CAPABILITIES_BY_SIDE[side]
+            ),
+        }
+        for side in ("target", "standalone")
+    }
+    for side, profile in capability_profiles.items():
+        _validate_semantic_capability_profile(
+            profile, side, f"self-test.{side}CapabilityProfile"
+        )
+        invalid_profiles = []
+        changed = copy.deepcopy(profile)
+        changed["schema"] = True
+        invalid_profiles.append(changed)
+        changed = copy.deepcopy(profile)
+        changed["side"] = "standalone" if side == "target" else "target"
+        invalid_profiles.append(changed)
+        changed = copy.deepcopy(profile)
+        changed["unknown"] = False
+        invalid_profiles.append(changed)
+        changed = copy.deepcopy(profile)
+        changed["capabilities"][sorted(CAPABILITY_KEYS)[0]] = 1
+        invalid_profiles.append(changed)
+        changed = copy.deepcopy(profile)
+        changed["capabilities"][sorted(CAPABILITY_KEYS)[0]] = not (
+            changed["capabilities"][sorted(CAPABILITY_KEYS)[0]]
+        )
+        invalid_profiles.append(changed)
+        for invalid in invalid_profiles:
+            try:
+                _validate_semantic_capability_profile(
+                    invalid, side, f"self-test.{side}CapabilityProfile"
+                )
+            except QualifiedDifferentialError:
+                pass
+            else:
+                raise AssertionError(
+                    f"invalid {side} semantic capability profile was accepted"
+                )
+
+    def capability_test_record(side: str, record_id: str,
+                               record_class: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+        capabilities = EXPECTED_CAPABILITIES_BY_SIDE[side]
+        fields: list[dict[str, Any]] = []
+        exclusions: list[dict[str, Any]] = []
+
+        def add(feature: str, expected_fields: dict[str, str], excluded_name: str) -> None:
+            if capabilities[feature]:
+                for name, field_type in expected_fields.items():
+                    value = {
+                        "bool": False,
+                        "int64": "0",
+                        "uint64": "0",
+                        "string": "",
+                    }[field_type]
+                    fields.append({"name": name, "type": field_type, "value": value})
+            else:
+                exclusions.append({
+                    "kind": "semanticFields",
+                    "source": (
+                        f"/records/{_pointer_token(record_id)}/"
+                        f"{_pointer_token(excluded_name)}"
+                    ),
+                    "recordId": record_id,
+                    "disposition": "excluded",
+                    "reason": "adapterFieldCoverageExcluded",
+                })
+
+        if record_class == "MODELER_GEOMETRY":
+            add("modelerDwgSourceVersion", {"dwgSourceVersion": "int64"},
+                "dwgSourceVersion")
+            add("modelerPayloadStatusName", {"modelerPayloadStatus": "string"},
+                "modelerPayloadStatus")
+            add("modelerDwgAcisPayload", {
+                "hasDwgInlineAcisPayload": "bool",
+                "dwgInlineAcisByteCount": "uint64",
+            }, "dwgInlineAcisPayload")
+            add("modelerDxfPayloadChunks", {
+                "dxfPayloadChunk.count": "uint64",
+            }, "dxfPayloadChunks")
+            fields.append({"name": "payloadRangeCount", "type": "uint64", "value": "2"})
+            for index in range(2):
+                fields.extend((
+                    {"name": f"payloadRange.{index}.offset", "type": "uint64", "value": "0"},
+                    {"name": f"payloadRange.{index}.length", "type": "uint64", "value": "0"},
+                ))
+                add("payloadRangeBitOffset", {
+                    f"payloadRange.{index}.bitOffset": "uint64",
+                }, f"payloadRange.{index}.bitOffset")
+        else:
+            add("surfaceDxfPayloadChunks", {
+                "dxfAcisChunk.count": "uint64",
+            }, "dxfAcisChunks")
+        return ({
+            "id": record_id,
+            "kind": "entity",
+            "recordClass": record_class,
+            "fields": fields,
+        }, exclusions)
+
+    capability_test_rows: dict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = {}
+    for side in ("target", "standalone"):
+        modeler_record, modeler_exclusions = capability_test_record(
+            side, f"record:{side}:modeler", "MODELER_GEOMETRY"
+        )
+        surface_record, surface_exclusions = capability_test_record(
+            side, f"record:{side}:surface", "PLANESURFACE"
+        )
+        test_records = [modeler_record, surface_record]
+        test_exclusions = modeler_exclusions + surface_exclusions
+        _validate_adapter_field_capabilities(test_records, test_exclusions, side)
+        capability_test_rows[side] = (test_records, test_exclusions)
+
+    def expect_capability_rejection(records: list[dict[str, Any]],
+                                    unsupported: list[dict[str, Any]],
+                                    side: str, label: str) -> None:
+        try:
+            _validate_adapter_field_capabilities(records, unsupported, side)
+        except QualifiedDifferentialError:
+            return
+        raise AssertionError(f"invalid capability/result mapping accepted: {label}")
+
+    target_records, target_exclusions = capability_test_rows["target"]
+    fabricated_target_field = copy.deepcopy(target_records)
+    fabricated_target_field[0]["fields"].append({
+        "name": "dwgSourceVersion", "type": "int64", "value": "1027",
+    })
+    expect_capability_rejection(
+        fabricated_target_field, target_exclusions, "target", "fabricated target field"
+    )
+    missing_target_exclusion = copy.deepcopy(target_exclusions)
+    missing_target_exclusion = [
+        row for row in missing_target_exclusion
+        if not row["source"].endswith("/dxfPayloadChunks")
+    ]
+    expect_capability_rejection(
+        target_records, missing_target_exclusion, "target", "missing target exclusion"
+    )
+    inflated_range_count = copy.deepcopy(target_records)
+    range_count_field = next(
+        field for field in inflated_range_count[0]["fields"]
+        if field["name"] == "payloadRangeCount"
+    )
+    range_count_field["value"] = "18446744073709551615"
+    expect_capability_rejection(
+        inflated_range_count, target_exclusions,
+        "target", "inflated payload-range count",
+    )
+    fabricated_surface_field = copy.deepcopy(target_records)
+    fabricated_surface_field[1]["fields"].append({
+        "name": "dxfAcisChunk.count", "type": "uint64", "value": "0",
+    })
+    expect_capability_rejection(
+        fabricated_surface_field, target_exclusions,
+        "target", "fabricated target surface field",
+    )
+    extra_target_range_exclusion = copy.deepcopy(target_exclusions)
+    extra_target_range_exclusion.append({
+        "kind": "semanticFields",
+        "source": "/records/record:target:modeler/payloadRange.99.bitOffset",
+        "recordId": "record:target:modeler",
+        "disposition": "excluded",
+        "reason": "adapterFieldCoverageExcluded",
+    })
+    expect_capability_rejection(
+        target_records, extra_target_range_exclusion,
+        "target", "out-of-range target bit-offset exclusion",
+    )
+
+    standalone_records, standalone_exclusions = capability_test_rows["standalone"]
+    missing_standalone_field = copy.deepcopy(standalone_records)
+    missing_standalone_field[0]["fields"] = [
+        field for field in missing_standalone_field[0]["fields"]
+        if field["name"] != "dxfPayloadChunk.count"
+    ]
+    expect_capability_rejection(
+        missing_standalone_field, standalone_exclusions,
+        "standalone", "missing standalone zero-count field",
+    )
+    missing_standalone_surface_field = copy.deepcopy(standalone_records)
+    missing_standalone_surface_field[1]["fields"] = [
+        field for field in missing_standalone_surface_field[1]["fields"]
+        if field["name"] != "dxfAcisChunk.count"
+    ]
+    expect_capability_rejection(
+        missing_standalone_surface_field, standalone_exclusions,
+        "standalone", "missing standalone surface zero-count field",
+    )
+    extra_standalone_range_field = copy.deepcopy(standalone_records)
+    extra_standalone_range_field[0]["fields"].append({
+        "name": "payloadRange.99.bitOffset", "type": "uint64", "value": "0",
+    })
+    expect_capability_rejection(
+        extra_standalone_range_field, standalone_exclusions,
+        "standalone", "out-of-range standalone bit-offset field",
+    )
+
     config_digest = _digest_text("manifest-v2")
+    dependency_inputs = [{
+        "path": "/toolchain/include/standard-header.h",
+        "size": 23,
+        "digest": _digest_text("standard-header"),
+    }]
+    dependency_profile = {
+        "schema": 1,
+        "status": "captured",
+        "method": "gnu-clang-m-dependency-scan-v1",
+        "translationUnitCount": 2,
+        "externalInputs": dependency_inputs,
+        "externalInputsDigest": hashlib.sha256(
+            _canonical_bytes(dependency_inputs) + b"\n"
+        ).hexdigest(),
+        "reason": "",
+    }
+    _validate_compiler_dependencies(
+        dependency_profile, "self-test.compilerDependencies"
+    )
+    compiler_resource_profile = {
+        "schema": 1,
+        "status": "captured",
+        "method": "clang-resource-tree-v1",
+        "compilerId": "AppleClang",
+        "path": "/toolchain/lib/clang/21",
+        "entryCount": 2,
+        "fileCount": 1,
+        "totalBytes": 23,
+        "treeDigest": _digest_text("clang-resource-tree"),
+        "reason": "",
+    }
+    _validate_compiler_resources(
+        compiler_resource_profile, "self-test.compilerResources"
+    )
+    unavailable_resource_profile = {
+        "schema": 1,
+        "status": "unavailable",
+        "method": "",
+        "compilerId": "GNU",
+        "path": "",
+        "entryCount": 0,
+        "fileCount": 0,
+        "totalBytes": 0,
+        "treeDigest": hashlib.sha256(_canonical_bytes([]) + b"\n").hexdigest(),
+        "reason": "compiler-family-not-qualified",
+    }
+    _validate_compiler_resources(
+        unavailable_resource_profile,
+        "self-test.unavailableCompilerResources",
+    )
+    apple_sdk_manifests = [{
+        "path": "SDKSettings.json", "size": 9,
+        "digest": _digest_text("sdk-json"),
+    }]
+    apple_sdk_root = {
+        "selectedPaths": [{
+            "source": "CMAKE_CXX_COMPILER_APPLE_SYSROOT",
+            "path": "/toolchain/MacOSX.sdk",
+        }],
+        "resolvedPath": "/toolchain/MacOSX.sdk",
+        "metadataFiles": apple_sdk_manifests,
+        "metadataDigest": hashlib.sha256(
+            _canonical_bytes(apple_sdk_manifests) + b"\n"
+        ).hexdigest(),
+    }
+    apple_sdk_roots = [apple_sdk_root]
+    apple_sdk_profile = {
+        "schema": 1,
+        "status": "captured",
+        "method": "apple-sdk-settings-v1",
+        "systemName": "Darwin",
+        "compilerId": "AppleClang",
+        "roots": apple_sdk_roots,
+        "rootsDigest": hashlib.sha256(
+            _canonical_bytes(apple_sdk_roots) + b"\n"
+        ).hexdigest(),
+        "reason": "",
+    }
+    _validate_apple_sdk_profile(apple_sdk_profile, "self-test.appleSdk")
+    unavailable_apple_sdk = {
+        "schema": 1,
+        "status": "unavailable",
+        "method": "",
+        "systemName": "Linux",
+        "compilerId": "GNU",
+        "roots": [],
+        "rootsDigest": hashlib.sha256(_canonical_bytes([]) + b"\n").hexdigest(),
+        "reason": "platform-not-qualified",
+    }
+    _validate_apple_sdk_profile(
+        unavailable_apple_sdk, "self-test.unavailableAppleSdk"
+    )
+    malformed_apple_sdk = copy.deepcopy(apple_sdk_profile)
+    malformed_apple_sdk["roots"][0]["metadataDigest"] = _digest_text("stale")
+    try:
+        _validate_apple_sdk_profile(
+            malformed_apple_sdk, "self-test.malformedAppleSdk"
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("malformed Apple SDK metadata identity was accepted")
+    apple_runtime_nodes = [{
+        "installName": "/usr/lib/libc++.1.dylib",
+        "directLinkInput": True,
+        "images": [{
+            "architecture": "arm64e",
+            "uuid": "A21743EE-6E1C-3E74-97EA-7AF793DE4BDF",
+        }],
+        "sdkStubs": [{
+            "sdkRoot": "/toolchain/MacOSX.sdk",
+            "path": "/toolchain/MacOSX.sdk/usr/lib/libc++.tbd",
+            "resolvedPath": "/toolchain/MacOSX.sdk/usr/lib/libc++.tbd",
+            "size": 100,
+            "digest": _digest_text("libc++ stub"),
+            "installName": "/usr/lib/libc++.1.dylib",
+            "currentVersion": "2200.27",
+            "compatibilityVersion": "1.0",
+        }],
+    }]
+    apple_runtime_edges = [{
+        "source": "adapter-executable",
+        "target": "/usr/lib/libc++.1.dylib",
+        "architecture": "arm64",
+        "attribute": "load",
+    }]
+    apple_runtime_profile = {
+        "schema": 1,
+        "status": "partial",
+        "method": "macho-dyld-uuid-closure-v1",
+        "systemName": "Darwin",
+        "compilerId": "AppleClang",
+        "executableDigest": _digest_text("side-specific executable"),
+        "tool": {
+            "path": "/usr/bin/dyld_info",
+            "digest": _digest_text("dyld_info tool"),
+        },
+        "nodes": apple_runtime_nodes,
+        "edges": apple_runtime_edges,
+        "nodesDigest": hashlib.sha256(
+            _canonical_bytes(apple_runtime_nodes) + b"\n"
+        ).hexdigest(),
+        "edgesDigest": hashlib.sha256(
+            _canonical_bytes(apple_runtime_edges) + b"\n"
+        ).hexdigest(),
+        "unresolvedImageCount": 0,
+        "unmatchedSdkStubCount": 0,
+        "maximumDepth": 1,
+        "reason": "link-stub-selection-not-proven",
+    }
+    _validate_apple_runtime_profile(
+        apple_runtime_profile, "self-test.appleRuntime"
+    )
+    apple_link_build_objects = [{
+        "path": "CMakeFiles/adapter.dir/adapter.cpp.o",
+        "size": 128,
+        "digest": _digest_text("adapter object"),
+    }]
+    apple_link_archive_members = ["drw_entities.cpp.o"]
+    apple_link_external_inputs = [{
+        "sdkRoot": "/toolchain/MacOSX.sdk",
+        "path": "usr/lib/libc++.tbd",
+        "size": 100,
+        "digest": _digest_text("selected libc++ stub"),
+    }]
+    apple_link_empty_digest = hashlib.sha256(_canonical_bytes([]) + b"\n").hexdigest()
+    apple_link_inputs_profile = {
+        "schema": 1,
+        "status": "captured",
+        "method": "apple-ld-map-v1",
+        "systemName": "Darwin",
+        "compilerId": "AppleClang",
+        "architecture": "arm64",
+        "executableDigest": _digest_text("side-specific executable"),
+        "mapSize": 2048,
+        "mapDigest": _digest_text("side-specific raw linker map"),
+        "objectCount": 4,
+        "synthesizedObjectCount": 1,
+        "buildObjects": apple_link_build_objects,
+        "buildObjectsDigest": hashlib.sha256(
+            _canonical_bytes(apple_link_build_objects) + b"\n"
+        ).hexdigest(),
+        "linkedArchive": {
+            "path": "<build>/lib/libdxfrw.a",
+            "size": 1024,
+            "digest": _digest_text("side-specific static archive"),
+        },
+        "archiveMembers": apple_link_archive_members,
+        "archiveMembersDigest": hashlib.sha256(
+            _canonical_bytes(apple_link_archive_members) + b"\n"
+        ).hexdigest(),
+        "externalInputs": apple_link_external_inputs,
+        "externalInputsDigest": hashlib.sha256(
+            _canonical_bytes(apple_link_external_inputs) + b"\n"
+        ).hexdigest(),
+        "unclassifiedCount": 0,
+        "unclassifiedDigest": apple_link_empty_digest,
+        "reason": "",
+    }
+    _validate_apple_link_inputs_profile(
+        apple_link_inputs_profile, "self-test.appleLinkInputs"
+    )
+    matched_apple_link_inputs = copy.deepcopy(apple_link_inputs_profile)
+    runtime_stub = apple_runtime_nodes[0]["sdkStubs"][0]
+    matched_apple_link_inputs["externalInputs"][0]["digest"] = runtime_stub[
+        "digest"
+    ]
+    matched_apple_link_inputs["externalInputsDigest"] = hashlib.sha256(
+        _canonical_bytes(matched_apple_link_inputs["externalInputs"]) + b"\n"
+    ).hexdigest()
+    _validate_apple_link_inputs_profile(
+        matched_apple_link_inputs, "self-test.matchedAppleLinkInputs"
+    )
+    selected_runtime_profile = copy.deepcopy(apple_runtime_profile)
+    selected_runtime_profile.update({
+        "schema": 2,
+        "linkerSelectedStubs": [{
+            "installName": "/usr/lib/libc++.1.dylib",
+            "sdkRoot": "/toolchain/MacOSX.sdk",
+            "path": "usr/lib/libc++.tbd",
+            "size": 100,
+            "digest": runtime_stub["digest"],
+        }],
+        "linkerSelectedStubsDigest": hashlib.sha256(
+            _canonical_bytes([{
+                "installName": "/usr/lib/libc++.1.dylib",
+                "sdkRoot": "/toolchain/MacOSX.sdk",
+                "path": "usr/lib/libc++.tbd",
+                "size": 100,
+                "digest": runtime_stub["digest"],
+            }]) + b"\n"
+        ).hexdigest(),
+        "unselectedDirectInstallNameCount": 0,
+        "reason": "runtime-byte-identity-not-proven",
+    })
+    _validate_apple_runtime_profile(
+        selected_runtime_profile, "self-test.selectedAppleRuntime"
+    )
+    _validate_apple_runtime_linker_selection(
+        selected_runtime_profile,
+        matched_apple_link_inputs,
+        "self-test",
+    )
+    stale_selected_runtime = copy.deepcopy(selected_runtime_profile)
+    stale_selected_runtime["linkerSelectedStubs"][0]["digest"] = _digest_text(
+        "unselected candidate digest"
+    )
+    stale_selected_runtime["linkerSelectedStubsDigest"] = hashlib.sha256(
+        _canonical_bytes(stale_selected_runtime["linkerSelectedStubs"]) + b"\n"
+    ).hexdigest()
+    _validate_apple_runtime_profile(
+        stale_selected_runtime, "self-test.staleSelectedAppleRuntime"
+    )
+    try:
+        _validate_apple_runtime_linker_selection(
+            stale_selected_runtime,
+            matched_apple_link_inputs,
+            "self-test",
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("runtime/linker stub byte mismatch was accepted")
+    unselected_link_inputs = copy.deepcopy(matched_apple_link_inputs)
+    unselected_link_inputs["externalInputs"][0]["digest"] = _digest_text(
+        "different linker-selected stub"
+    )
+    unselected_link_inputs["externalInputsDigest"] = hashlib.sha256(
+        _canonical_bytes(unselected_link_inputs["externalInputs"]) + b"\n"
+    ).hexdigest()
+    unselected_runtime_profile = copy.deepcopy(selected_runtime_profile)
+    unselected_runtime_profile.update({
+        "linkerSelectedStubs": [],
+        "linkerSelectedStubsDigest": hashlib.sha256(
+            _canonical_bytes([]) + b"\n"
+        ).hexdigest(),
+        "unselectedDirectInstallNameCount": 1,
+        "reason": "link-stub-selection-not-proven",
+    })
+    _validate_apple_runtime_profile(
+        unselected_runtime_profile, "self-test.unselectedAppleRuntime"
+    )
+    _validate_apple_runtime_linker_selection(
+        unselected_runtime_profile,
+        unselected_link_inputs,
+        "self-test",
+    )
+    stale_unselected_count = copy.deepcopy(unselected_runtime_profile)
+    stale_unselected_count["unselectedDirectInstallNameCount"] = 0
+    try:
+        _validate_apple_runtime_linker_selection(
+            stale_unselected_count,
+            unselected_link_inputs,
+            "self-test",
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("stale unselected install-name count was accepted")
+    malformed_apple_link_inputs = copy.deepcopy(apple_link_inputs_profile)
+    malformed_apple_link_inputs["objectCount"] = 3
+    try:
+        _validate_apple_link_inputs_profile(
+            malformed_apple_link_inputs, "self-test.malformedAppleLinkInputs"
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("incomplete Apple linker map rows were accepted")
+    malformed_apple_runtime = copy.deepcopy(apple_runtime_profile)
+    malformed_apple_runtime["nodesDigest"] = _digest_text("stale")
+    try:
+        _validate_apple_runtime_profile(
+            malformed_apple_runtime, "self-test.malformedAppleRuntime"
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("malformed Apple runtime graph was accepted")
+    changed_resource_profile = copy.deepcopy(compiler_resource_profile)
+    changed_resource_profile["fileCount"] = 0
+    try:
+        _validate_compiler_resources(
+            changed_resource_profile, "self-test.changedCompilerResources"
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("malformed compiler resource identity was accepted")
+    unavailable_dependencies = {
+        "schema": 1,
+        "status": "unavailable",
+        "method": "",
+        "translationUnitCount": 0,
+        "externalInputs": [],
+        "externalInputsDigest": hashlib.sha256(
+            _canonical_bytes([]) + b"\n"
+        ).hexdigest(),
+        "reason": "compiler-family-not-qualified",
+    }
+    _validate_compiler_dependencies(
+        unavailable_dependencies, "self-test.unavailableCompilerDependencies"
+    )
+    tampered_dependencies = copy.deepcopy(dependency_profile)
+    tampered_dependencies["externalInputs"][0]["size"] += 1
+    try:
+        _validate_compiler_dependencies(
+            tampered_dependencies, "self-test.tamperedCompilerDependencies"
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("tampered compiler dependency closure was accepted")
+
     target = _base_result("target", config_digest)
     standalone = _base_result("standalone", config_digest)
     validate_result(target)
     validate_result(standalone)
+    wrong_nonhistory_disposition = copy.deepcopy(target)
+    wrong_nonhistory_disposition["graphEdges"][0]["disposition"] = "resolved"
+    try:
+        validate_result(wrong_nonhistory_disposition)
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("resolved disposition was accepted on identity edge")
+    modeler_record = {
+        "fields": [{
+            "name": "historyHandle", "type": "handle", "value": "2",
+        }],
+    }
+    modeler_nodes = {
+        "node:handle:2": {"kind": "handle", "handle": "2"},
+        "node:handle:3": {"kind": "handle", "handle": "3"},
+    }
+    history_edge = {
+        "kind": "historyReference", "from": "node:record:1",
+        "to": "node:handle:2", "disposition": "resolved",
+    }
+    _validate_modeler_history_reference(
+        modeler_record, [history_edge], modeler_nodes, {"2"},
+        "self-test.modeler-resolved",
+    )
+    unresolved_edge = {**history_edge, "disposition": "unresolved"}
+    _validate_modeler_history_reference(
+        modeler_record, [unresolved_edge], modeler_nodes, set(),
+        "self-test.modeler-unresolved",
+    )
+    _validate_modeler_history_reference(
+        {"fields": [{"name": "historyHandle", "type": "handle",
+                     "value": "0"}]},
+        [], modeler_nodes, set(), "self-test.modeler-null-history",
+    )
+    for malformed_edges, label in (
+        ([], "missing"),
+        ([history_edge, history_edge], "duplicate"),
+        ([{**history_edge, "to": "node:handle:3"}], "wrong-target"),
+        ([unresolved_edge], "wrong-resolution"),
+    ):
+        try:
+            _validate_modeler_history_reference(
+                modeler_record, malformed_edges, modeler_nodes, {"2"},
+                f"self-test.modeler-{label}",
+            )
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(
+                f"{label} modeler history-reference edge was accepted"
+            )
+    try:
+        _validate_modeler_history_reference(
+            {"fields": [{"name": "historyHandle", "type": "handle",
+                         "value": "0"}]},
+            [history_edge], modeler_nodes, {"2"},
+            "self-test.modeler-null-history-edge",
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("history edge for a null modeler target was accepted")
+    owner_record = {"ownerHandle": "2"}
+    owner_edge = {
+        "kind": "owner", "from": "node:record:1",
+        "to": "node:handle:2", "disposition": "resolved",
+    }
+    owner_nodes = {
+        **modeler_nodes,
+        "node:handle:0": {"kind": "handle", "handle": "0"},
+    }
+    _validate_owner_reference(
+        owner_record, [owner_edge], owner_nodes, {"2"},
+        "self-test.owner-resolved",
+    )
+    _validate_owner_reference(
+        {"ownerHandle": "3"},
+        [{**owner_edge, "to": "node:handle:3", "disposition": "unresolved"}],
+        owner_nodes, {"2"}, "self-test.owner-unresolved",
+    )
+    _validate_owner_reference(
+        {"ownerHandle": None}, [], owner_nodes, {"2"},
+        "self-test.owner-absent",
+    )
+    _validate_owner_reference(
+        {"ownerHandle": "0"}, [], owner_nodes, {"2"},
+        "self-test.owner-zero-null",
+    )
+    try:
+        _validate_owner_reference(
+            {"ownerHandle": "0"}, [owner_edge], owner_nodes, {"2"},
+            "self-test.owner-zero-edge",
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("owner edge for a zero ownerHandle was accepted")
+    block_owner_nodes = {
+        **owner_nodes,
+        "node:block:4": {"kind": "block", "handle": "4"},
+    }
+    _validate_owner_reference(
+        {"ownerHandle": "4"},
+        [{**owner_edge, "to": "node:block:4", "disposition": "resolved"}],
+        block_owner_nodes, {"4"}, "self-test.owner-block-target",
+    )
+    for malformed_edges, label in (
+        ([], "missing"),
+        ([owner_edge, owner_edge], "duplicate"),
+        ([{**owner_edge, "to": "node:handle:3"}], "wrong-target"),
+        ([{**owner_edge, "disposition": "unresolved"}], "stale-disposition"),
+        ([{**owner_edge, "to": "node:handle:0"}], "zero-owner-edge"),
+    ):
+        try:
+            _validate_owner_reference(
+                owner_record, malformed_edges, owner_nodes, {"2"},
+                f"self-test.owner-{label}",
+            )
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(f"{label} owner edge was accepted")
+    try:
+        _validate_owner_reference(
+            {"ownerHandle": None}, [owner_edge], owner_nodes, {"2"},
+            "self-test.owner-edge-without-handle",
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("owner edge without ownerHandle was accepted")
+    identity_plus_reference = copy.deepcopy(target)
+    identity_plus_reference["graphNodes"].append({
+        "id": "node:handle:2", "kind": "handle", "recordId": None,
+        "handle": "2",
+    })
+    identity_plus_reference["graphEdges"].append({
+        "id": "edge:handle:2", "kind": "handleReference",
+        "from": "node:record:1", "to": "node:handle:2",
+        "disposition": "observed",
+    })
+    identity_plus_reference["cardinality"]["graphNodeCount"] += 1
+    identity_plus_reference["cardinality"]["graphEdgeCount"] += 1
+    validate_result(identity_plus_reference)
+
+    reference_without_source_handle = copy.deepcopy(target)
+    reference_without_source_handle["records"][0]["sourceHandle"] = None
+    reference_without_source_handle["graphNodes"] = [
+        row for row in reference_without_source_handle["graphNodes"]
+        if row["id"] != "node:handle:1"
+    ]
+    record_node = next(
+        row for row in reference_without_source_handle["graphNodes"]
+        if row["id"] == "node:record:1"
+    )
+    record_node["handle"] = None
+    reference_without_source_handle["graphEdges"] = [
+        row for row in reference_without_source_handle["graphEdges"]
+        if row["id"] != "edge:handle:1"
+    ]
+    reference_without_source_handle["graphNodes"].append({
+        "id": "node:handle:2", "kind": "handle", "recordId": None,
+        "handle": "2",
+    })
+    reference_without_source_handle["graphEdges"].append({
+        "id": "edge:handle:2", "kind": "handleReference",
+        "from": "node:record:1", "to": "node:handle:2",
+        "disposition": "observed",
+    })
+    reference_without_source_handle["opaqueCarriers"][0]["sourceHandle"] = None
+    validate_result(reference_without_source_handle)
+    empty_rules = {"tolerances": [], "reviewedTargetDebt": [], "exclusions": []}
+    manifest_v3 = _read_json(
+        Path(__file__).resolve().parents[1]
+        / "metadata/qualified-differential-v2.json"
+    )
+    validate_manifest(manifest_v3)
+    if _manifest_adapter_result_schema(manifest_v3) != ADAPTER_RESULT_SCHEMA_V3:
+        raise AssertionError("checked-in manifest does not select adapter schema 3")
+    manifest_v2 = copy.deepcopy(manifest_v3)
+    manifest_v2.pop("adapterResultSchema")
+    manifest_v2.pop("normalizationSchema")
+    manifest_v2["schema"] = MANIFEST_SCHEMA_V2
+    validate_manifest(manifest_v2)
+    validate_manifest(manifest_v3)
+    assert _manifest_adapter_result_schema(manifest_v2) == ADAPTER_RESULT_SCHEMA_V2
+    assert _manifest_adapter_result_schema(manifest_v3) == ADAPTER_RESULT_SCHEMA_V3
+    unsupported_report_schema = copy.deepcopy(manifest_v3)
+    unsupported_report_schema["normalizationSchema"] = NORMALIZATION_REPORT_SCHEMA + 1
+    try:
+        validate_manifest(unsupported_report_schema)
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("unsupported normalization schema was accepted")
     target_lock = {
         "path": "metadata/libdxfrw-target-lock.json",
         "digest": _digest_text("lock"),
@@ -3449,7 +7296,404 @@ def self_test() -> None:
         "manifestDigest": _digest_text("source-manifest"),
         "manifestEntries": 86,
     }
-    empty_rules = {"tolerances": [], "reviewedTargetDebt": [], "exclusions": []}
+    target_v3 = copy.deepcopy(target)
+    standalone_v3 = copy.deepcopy(standalone)
+    for document in (target_v3, standalone_v3):
+        document["schema"] = ADAPTER_RESULT_SCHEMA_V3
+        document["input"]["detectedFormat"] = "dwg"
+        document["input"]["detectedVersion"] = "AC1024"
+        document["invocation"]["facade"] = "dwgRW"
+        document["observations"] = _base_observations("dwgRW", "read")
+    validate_result(target_v3)
+    validate_result(standalone_v3)
+    dxf_v3 = copy.deepcopy(target)
+    dxf_v3["schema"] = ADAPTER_RESULT_SCHEMA_V3
+    dxf_v3["observations"] = _base_observations("dxfRW", "read")
+    validate_result(dxf_v3)
+    for envelope_key, wrong_phase, expected_error in (
+        ("inputRead", "outputReadback",
+         "observations.inputRead phase does not match its role"),
+        ("outputReadback", "inputRead",
+         "observations.outputReadback phase does not match its role"),
+    ):
+        swapped_phase = copy.deepcopy(dxf_v3)
+        swapped_phase["observations"][envelope_key]["phase"] = wrong_phase
+        _assert_rejected(swapped_phase, expected_error)
+    for field in ("phase", "availability"):
+        for malformed_value in (None, [], {}):
+            malformed_observation = copy.deepcopy(dxf_v3)
+            malformed_observation["observations"]["inputRead"][field] = malformed_value
+            _assert_rejected(
+                malformed_observation,
+                f"observations.inputRead.{field} is invalid",
+            )
+    for envelope_key in ("inputRead", "outputReadback"):
+        fabricated_not_applicable_version = copy.deepcopy(dxf_v3)
+        fabricated_not_applicable_version["observations"][envelope_key][
+            "sourceVersion"
+        ] = "AC1024"
+        _assert_rejected(
+            fabricated_not_applicable_version,
+            f"observations.{envelope_key} notApplicable observations cannot claim a source version",
+        )
+    write_v3 = copy.deepcopy(target_v3)
+    write_v3["input"]["detectedFormat"] = "recipe-json"
+    write_v3["invocation"]["direction"] = "write"
+    write_v3["observations"] = _base_observations("dwgRW", "write")
+    synthetic_write_result = {
+        "entity": "WRITE_RESULT",
+        "recordClass": "WRITE_RESULT",
+        "fields": [{"name": "version", "type": "string", "value": "AC1024"}],
+    }
+    _validate_write_result_readback_version(
+        write_v3["invocation"], write_v3["status"],
+        write_v3["observations"], [synthetic_write_result],
+    )
+    generated_dwg_identity = {
+        "detectedFormat": "dwg", "detectedVersion": "AC1024",
+    }
+    _validate_output_readback_version(write_v3, generated_dwg_identity, "write")
+    mismatched_readback_version = copy.deepcopy(write_v3)
+    mismatched_readback_version["observations"]["outputReadback"][
+        "sourceVersion"
+    ] = "AC1021"
+    try:
+        _validate_output_readback_version(
+            mismatched_readback_version, generated_dwg_identity, "write"
+        )
+    except QualifiedDifferentialError as exc:
+        if "outputReadback sourceVersion differs from generated artifact" not in str(exc):
+            raise
+    else:
+        raise AssertionError("DWG readback accepted a version unlike its artifact")
+    try:
+        _validate_write_result_readback_version(
+            mismatched_readback_version["invocation"],
+            mismatched_readback_version["status"],
+            mismatched_readback_version["observations"],
+            [synthetic_write_result],
+        )
+    except QualifiedDifferentialError as exc:
+        if "outputReadback sourceVersion differs from WRITE_RESULT version" not in str(exc):
+            raise
+    else:
+        raise AssertionError("DWG readback accepted a version unlike WRITE_RESULT")
+    write_not_run = copy.deepcopy(write_v3)
+    write_not_run["status"]["firstFailure"] = {
+        "stage": "write", "code": 2, "path": "/output",
+        "diagnosticId": None,
+    }
+    write_not_run["observations"]["outputReadback"] = _base_observation_envelope(
+        "outputReadback", "notRun",
+        reason="writeFailedBeforeReadback",
+    )
+    _validate_observations(write_not_run["observations"], write_not_run)
+    fabricated_not_run_version = copy.deepcopy(write_not_run)
+    fabricated_not_run_version["observations"]["outputReadback"][
+        "sourceVersion"
+    ] = "AC1024"
+    try:
+        _validate_observation_envelope(
+            fabricated_not_run_version["observations"]["outputReadback"],
+            "observations.outputReadback",
+        )
+    except QualifiedDifferentialError as exc:
+        if "notRun observations cannot claim a source version" not in str(exc):
+            raise
+    else:
+        raise AssertionError("notRun readback accepted a fabricated source version")
+    clean_observation_report = compare_results(
+        target_v3, standalone_v3, empty_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert clean_observation_report["schema"] == NORMALIZATION_REPORT_SCHEMA
+    assert clean_observation_report["adapterResultSchema"] == ADAPTER_RESULT_SCHEMA_V3
+    assert clean_observation_report["claimEligible"] is True
+
+    partial_target = copy.deepcopy(target_v3)
+    partial_peer = copy.deepcopy(standalone_v3)
+    for document in (partial_target, partial_peer):
+        envelope = document["observations"]["inputRead"]
+        envelope["scalarCounters"]["entityParseFailures"] = 1
+        envelope["frames"].update({
+            "status": "finalizedPartial",
+            "sourceFrameCount": 1,
+            "dispositions": {
+                key: int(key == "failed")
+                for key in sorted(FRAME_DISPOSITION_KEYS)
+            },
+            "unrecognizedDispositionCount": 0,
+        })
+    partial_report = compare_results(
+        partial_target, partial_peer, empty_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert partial_report["status"] == "reviewedNonPromoting"
+    assert partial_report["claimEligible"] is False
+    assert partial_report["targetAdapter"]["side"] == "target"
+    assert partial_target["status"]["operationSucceeded"] is True
+    assert "target.observations.inputRead.partial:entityParseFailures" in partial_report["eligibilityBlockers"]
+    assert "target.observations.inputRead.frameCoverage:finalizedPartial" in partial_report["eligibilityBlockers"]
+
+    for crc_counter in (
+        "classesCrcMismatch", "reader21CrcMismatch",
+        "reader18HeaderCrcMismatch",
+    ):
+        crc_target = copy.deepcopy(target_v3)
+        crc_peer = copy.deepcopy(standalone_v3)
+        for document in (crc_target, crc_peer):
+            document["observations"]["inputRead"]["scalarCounters"][
+                crc_counter
+            ] = 1
+        crc_report = compare_results(
+            crc_target, crc_peer, empty_rules,
+            manifest_digest=config_digest, target_lock=target_lock,
+        )
+        assert crc_report["status"] == "reviewedNonPromoting"
+        assert crc_report["claimEligible"] is False
+        assert crc_target["status"]["operationSucceeded"] is True
+        assert (
+            "target.observations.inputRead.crcMismatch:" + crc_counter
+            in crc_report["eligibilityBlockers"]
+        )
+        assert (
+            "standalone.observations.inputRead.crcMismatch:" + crc_counter
+            in crc_report["eligibilityBlockers"]
+        )
+
+    opaque_target = copy.deepcopy(target_v3)
+    opaque_peer = copy.deepcopy(standalone_v3)
+    opaque_summary_row = {
+        "bytesHex": "414341445f50524f5859",
+        "prefixLength": 10,
+        "sourceLength": 10,
+        "truncated": False,
+        "instances": 1,
+    }
+    for document in (opaque_target, opaque_peer):
+        summary = document["observations"]["inputRead"][
+            "namedSummaries"]["skippedUnsupportedObjects"]
+        summary.update({
+            "rows": [copy.deepcopy(opaque_summary_row)],
+            "retainedRowCount": 1,
+            "sourceNameCount": 1,
+            "totalInstanceCount": 1,
+        })
+    opaque_report = compare_results(
+        opaque_target, opaque_peer, empty_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert opaque_report["status"] == "reviewedNonPromoting"
+    assert opaque_report["claimEligible"] is False
+    assert "target.observations.inputRead.skipped:skippedUnsupportedObjects" in opaque_report["eligibilityBlockers"]
+
+    missing_observation_key = copy.deepcopy(target_v3)
+    del missing_observation_key["observations"]["inputRead"]["scalarCounters"][
+        "entityParseFailures"
+    ]
+    _assert_rejected(missing_observation_key, "keys differ")
+    extra_observation_key = copy.deepcopy(target_v3)
+    extra_observation_key["observations"]["inputRead"]["unexpected"] = 0
+    _assert_rejected(extra_observation_key, "keys differ")
+    for bad_count in (None, True, -1, 2 ** 64):
+        changed = copy.deepcopy(target_v3)
+        changed["observations"]["inputRead"]["scalarCounters"][
+            "entityParseFailures"
+        ] = bad_count
+        try:
+            validate_result(changed)
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(f"invalid observation count was accepted: {bad_count!r}")
+
+    # Exercise the uint64 domain across every schema-3 observation count
+    # family, not just scalarCounters.  Keep at least one row in each bounded
+    # collection so row-local counts and byte-prefix lengths are covered too.
+    complete_observation = copy.deepcopy(target_v3)
+    observation = complete_observation["observations"]["inputRead"]
+    named_row = {
+        "bytesHex": "4142", "prefixLength": 2, "sourceLength": 2,
+        "truncated": False, "instances": 1,
+    }
+    for summary in observation["namedSummaries"].values():
+        summary.update({
+            "rows": [copy.deepcopy(named_row)],
+            "retainedRowCount": 1,
+            "sourceNameCount": 1,
+            "totalInstanceCount": 1,
+        })
+    integrity_row = {
+        "versionCode": 1, "severityCode": 1, "offsetSpaceCode": 0,
+        "phaseCode": 1, "kindCode": 1, "logicalSectionId": 0,
+        "sectionDescriptorId": 0,
+        "sectionName": {
+            "bytesHex": "534543", "prefixLength": 3,
+            "sourceLength": 3, "truncated": False,
+        },
+        "pageId": 1, "fileOffset": 2, "logicalHandle": 3,
+        "expected": 4, "observed": 5, "hasPageId": True,
+        "hasFileOffset": True, "hasLogicalHandle": True,
+        "hasExpected": True, "hasObserved": True,
+    }
+    observation["integrity"].update({
+        "rows": [integrity_row], "retainedRowCount": 1,
+        "sourceRecordedCount": 1,
+    })
+    validate_result(complete_observation)
+
+    uint64_paths: list[tuple[Any, ...]] = [
+        ("scalarCounters", key)
+        for key in sorted(OBSERVATION_COUNTER_KEYS)
+    ]
+    for name, summary in observation["namedSummaries"].items():
+        uint64_paths.extend(("namedSummaries", name, key) for key in (
+            "retainedRowCount", "sourceNameCount", "totalInstanceCount",
+            "omittedNameCount", "omittedInstanceCount",
+            "truncatedRetainedNameCount", "omittedNameBytes",
+        ))
+        uint64_paths.extend(("namedSummaries", name, "rows", 0, key)
+                            for key in ("prefixLength", "sourceLength", "instances"))
+    uint64_paths.extend(("integrity", key) for key in (
+        "retainedRowCount", "sourceRecordedCount", "extractionOmittedCount",
+        "reportedUpstreamDroppedLowerBound", "truncatedRetainedNameCount",
+        "omittedNameBytes",
+    ))
+    uint64_paths.extend(("integrity", "rows", 0, "sectionName", key)
+                        for key in ("prefixLength", "sourceLength"))
+    uint64_paths.extend(("integrity", "rows", 0, key)
+                        for key in ("pageId", "fileOffset", "expected", "observed"))
+    uint64_paths.append(("integrity", "rows", 0, "logicalHandle"))
+    uint64_paths.extend(("frames", "dispositions", key)
+                        for key in sorted(FRAME_DISPOSITION_KEYS))
+    uint64_paths.extend(("frames", key) for key in (
+        "sourceFrameCount", "unrecognizedDispositionCount",
+    ))
+
+    for path in uint64_paths:
+        for invalid_count in (True, -1, 2 ** 64):
+            changed = copy.deepcopy(complete_observation)
+            target_value = changed["observations"]["inputRead"]
+            for key in path[:-1]:
+                target_value = target_value[key]
+            target_value[path[-1]] = invalid_count
+            try:
+                validate_result(changed)
+            except QualifiedDifferentialError:
+                pass
+            else:
+                raise AssertionError(
+                    "invalid schema-3 observation count was accepted: "
+                    f"path={path!r}, value={invalid_count!r}"
+                )
+
+    duplicate_prefixes = copy.deepcopy(target_v3)
+    duplicate_summary = duplicate_prefixes["observations"]["inputRead"][
+        "namedSummaries"
+    ]["skippedCustomClasses"]
+    duplicate_row = {
+        "bytesHex": "4142", "prefixLength": 2, "sourceLength": 2,
+        "truncated": False, "instances": 1,
+    }
+    duplicate_summary.update({
+        "rows": [copy.deepcopy(duplicate_row), copy.deepcopy(duplicate_row)],
+        "retainedRowCount": 2, "sourceNameCount": 2,
+        "totalInstanceCount": 2,
+    })
+    validate_result(duplicate_prefixes)
+
+    omitted_and_saturated = copy.deepcopy(target_v3)
+    omitted_summary = omitted_and_saturated["observations"]["inputRead"][
+        "namedSummaries"
+    ]["skippedCustomClasses"]
+    omitted_summary.update({
+        "sourceNameCount": 1, "omittedNameCount": 1,
+        "omittedInstanceCount": 1, "omittedNameBytes": 64,
+        "aggregateSaturated": True,
+    })
+    validate_result(omitted_and_saturated)
+    omitted_report = compare_results(
+        omitted_and_saturated, standalone_v3, empty_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert omitted_report["claimEligible"] is False
+    assert any("incompleteNames" in blocker for blocker in omitted_report["eligibilityBlockers"])
+
+    unavailable_pair = copy.deepcopy(target_v3)
+    unavailable_envelope = _base_observation_envelope(
+        "inputRead", "unavailable", source_version="AC1024",
+        reason="readerApiNotPresent",
+    )
+    unavailable_pair["observations"]["inputRead"] = copy.deepcopy(unavailable_envelope)
+    unavailable_peer = copy.deepcopy(standalone_v3)
+    unavailable_peer["observations"]["inputRead"] = copy.deepcopy(unavailable_envelope)
+    unavailable_report = compare_results(
+        unavailable_pair, unavailable_peer, empty_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert unavailable_report["claimEligible"] is False
+    assert "target.observations.inputRead.unavailable" in unavailable_report["eligibilityBlockers"]
+    zero_instead_of_unknown = copy.deepcopy(unavailable_pair)
+    zero_instead_of_unknown["observations"]["inputRead"]["scalarCounters"] = {
+        key: 0 for key in sorted(OBSERVATION_COUNTER_KEYS)
+    }
+    _assert_rejected(zero_instead_of_unknown, "non-available observations")
+
+    changed_observation_counter = copy.deepcopy(standalone_v3)
+    changed_observation_counter["observations"]["inputRead"]["scalarCounters"][
+        "decodedProxyPrimitives"
+    ] = 1
+    changed_counter_report = compare_results(
+        target_v3, changed_observation_counter, empty_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert changed_counter_report["status"] == "mismatch"
+    assert changed_counter_report["claimEligible"] is False
+
+    for key, replacement in (("phase", "outputReadback"), ("sourceVersion", "AC1021")):
+        changed = copy.deepcopy(target_v3)
+        changed["observations"]["inputRead"][key] = replacement
+        try:
+            validate_result(changed)
+        except QualifiedDifferentialError:
+            pass
+        else:
+            raise AssertionError(f"DWG observation {key} mixup was accepted")
+
+    unknown_frames = copy.deepcopy(target_v3)
+    unknown_frame_row = unknown_frames["observations"]["inputRead"]["frames"]
+    unknown_frame_row.update({
+        "status": "notAvailable", "reason": "coverageNotPublished",
+        "sourceFrameCount": None,
+        "dispositions": {key: None for key in sorted(FRAME_DISPOSITION_KEYS)},
+        "unrecognizedDispositionCount": None,
+    })
+    validate_result(unknown_frames)
+    all_zero_unknown_frames = copy.deepcopy(unknown_frames)
+    all_zero_unknown_row = all_zero_unknown_frames["observations"]["inputRead"][
+        "frames"
+    ]
+    all_zero_unknown_row.update({
+        "sourceFrameCount": 0,
+        "dispositions": {key: 0 for key in sorted(FRAME_DISPOSITION_KEYS)},
+        "unrecognizedDispositionCount": 0,
+    })
+    _assert_rejected(
+        all_zero_unknown_frames,
+        "unknown frame totals need a reason and null count",
+    )
+    unknown_frame_peer = copy.deepcopy(standalone_v3)
+    unknown_frame_peer["observations"]["inputRead"]["frames"] = copy.deepcopy(
+        unknown_frame_row
+    )
+    unknown_frame_report = compare_results(
+        unknown_frames, unknown_frame_peer, empty_rules,
+        manifest_digest=config_digest, target_lock=target_lock,
+    )
+    assert unknown_frame_report["claimEligible"] is False
+    assert any("frameCoverage:notAvailable" in blocker
+               for blocker in unknown_frame_report["eligibilityBlockers"])
+
     synthetic_scope = {
         "inputId": "synthetic-line",
         "inputPathHint": "local/synthetic-line-v1",
@@ -3461,17 +7705,344 @@ def self_test() -> None:
     pair_target = {
         "build": {
             "buildParityDigest": _digest_text("parity"),
-            "buildParityIdentity": {"schema": 1, "configuration": "Release"},
+            "buildParityIdentity": {
+                "schema": 1, "configuration": "Release",
+                "cmake": {
+                    "compilerBuiltinSpecs": copy.deepcopy(gnu_profile_v2),
+                },
+                "compilerResources": copy.deepcopy(compiler_resource_profile),
+                "appleSdk": copy.deepcopy(apple_sdk_profile),
+                "appleRuntime": copy.deepcopy(apple_runtime_profile),
+                "appleLinkInputs": copy.deepcopy(apple_link_inputs_profile),
+            },
             "configIdentity": {
                 "inputs": {
-                    "verifiedInterfaceContractDigest": _digest_text("interface"),
+                    "verifiedInterfaceContractDigest": EXPECTED_COMMON_INTERFACE_DIGEST,
                     "interfaceMethodCount": EXPECTED_INTERFACE_METHOD_COUNT,
                 }
             },
         }
     }
     pair_standalone = copy.deepcopy(pair_target)
+    pair_standalone["build"]["buildParityIdentity"]["appleRuntime"][
+        "executableDigest"
+    ] = _digest_text("standalone executable")
+    standalone_link_inputs = pair_standalone["build"]["buildParityIdentity"][
+        "appleLinkInputs"
+    ]
+    standalone_link_inputs["executableDigest"] = _digest_text(
+        "standalone executable"
+    )
+    standalone_link_inputs["mapDigest"] = _digest_text("standalone raw map")
+    standalone_link_inputs["linkedArchive"]["digest"] = _digest_text(
+        "standalone archive"
+    )
+    standalone_link_inputs["archiveMembers"] = ["other.cpp.o"]
+    standalone_link_inputs["archiveMembersDigest"] = hashlib.sha256(
+        _canonical_bytes(standalone_link_inputs["archiveMembers"]) + b"\n"
+    ).hexdigest()
     _validate_receipt_pair(pair_target, pair_standalone)
+    support_pair_target = copy.deepcopy(pair_target)
+    support_pair_standalone = copy.deepcopy(pair_standalone)
+    support_pair_target["build"]["configIdentity"]["inputs"][
+        "adapterSupportInputs"
+    ] = [{
+        "path": "tests/semantic_adapter_support.h",
+        "snapshotPath": "semantic_adapter_support.h",
+        "digest": _digest_text("shared adapter support"),
+    }]
+    support_pair_standalone["build"]["configIdentity"]["inputs"][
+        "adapterSupportInputs"
+    ] = [{
+        "path": "tests/semantic_adapter_support.h",
+        "snapshotPath": "tests/semantic_adapter_support.h",
+        "digest": _digest_text("shared adapter support"),
+    }]
+    _validate_receipt_pair(support_pair_target, support_pair_standalone)
+    changed_support_pair = copy.deepcopy(support_pair_standalone)
+    changed_support_pair["build"]["configIdentity"]["inputs"][
+        "adapterSupportInputs"][0]["digest"] = _digest_text(
+            "different adapter support"
+        )
+    try:
+        _validate_receipt_pair(support_pair_target, changed_support_pair)
+    except QualifiedDifferentialError as exc:
+        assert "adapter support-input content differs" in str(exc)
+    else:
+        raise AssertionError("target/standalone support-input mismatch was accepted")
+    asymmetric_support_pair = copy.deepcopy(pair_standalone)
+    asymmetric_support_pair["build"]["configIdentity"]["inputs"][
+        "adapterSupportInputs"
+    ] = []
+    try:
+        _validate_receipt_pair(pair_target, asymmetric_support_pair)
+    except QualifiedDifferentialError as exc:
+        assert "adapter support-input evidence is asymmetric" in str(exc)
+    else:
+        raise AssertionError("asymmetric support-input evidence was accepted")
+    changed_selected_input_pair = copy.deepcopy(pair_standalone)
+    selected_inputs = changed_selected_input_pair["build"]["buildParityIdentity"][
+        "appleLinkInputs"]["externalInputs"]
+    selected_inputs[0]["digest"] = _digest_text("different selected linker stub")
+    changed_selected_input_pair["build"]["buildParityIdentity"][
+        "appleLinkInputs"]["externalInputsDigest"] = hashlib.sha256(
+            _canonical_bytes(selected_inputs) + b"\n"
+        ).hexdigest()
+    try:
+        _validate_receipt_pair(pair_target, changed_selected_input_pair)
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("target/standalone selected linker-input mismatch was accepted")
+    changed_resource_pair = copy.deepcopy(pair_standalone)
+    changed_resource_pair["build"]["buildParityIdentity"][
+        "compilerResources"]["treeDigest"] = _digest_text("different-resource-tree")
+    try:
+        _validate_receipt_pair(pair_target, changed_resource_pair)
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("target/standalone compiler resource mismatch was accepted")
+    changed_builtin_specs_pair = copy.deepcopy(pair_standalone)
+    changed_builtin_specs_pair["build"]["buildParityIdentity"]["cmake"] = {
+        "compilerBuiltinSpecs": {
+            **gnu_profile_v2,
+            "digest": _digest_text("different GCC built-in specs"),
+        },
+    }
+    try:
+        _validate_receipt_pair(pair_target, changed_builtin_specs_pair)
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError(
+            "target/standalone GCC built-in specs mismatch was accepted"
+        )
+    changed_apple_sdk_pair = copy.deepcopy(pair_standalone)
+    changed_apple_sdk_pair["build"]["buildParityIdentity"]["appleSdk"] = (
+        copy.deepcopy(apple_sdk_profile)
+    )
+    changed_apple_sdk_pair["build"]["buildParityIdentity"]["appleSdk"][
+        "roots"][0]["metadataFiles"][0]["digest"] = _digest_text(
+            "different-sdk-settings"
+        )
+    changed_apple_sdk_pair["build"]["buildParityIdentity"]["appleSdk"][
+        "roots"][0]["metadataDigest"] = hashlib.sha256(
+            _canonical_bytes(changed_apple_sdk_pair["build"]["buildParityIdentity"][
+                "appleSdk"]["roots"][0]["metadataFiles"]) + b"\n"
+        ).hexdigest()
+    changed_apple_sdk_pair["build"]["buildParityIdentity"]["appleSdk"][
+        "rootsDigest"] = hashlib.sha256(
+            _canonical_bytes(changed_apple_sdk_pair["build"]["buildParityIdentity"][
+                "appleSdk"]["roots"]) + b"\n"
+        ).hexdigest()
+    try:
+        _validate_receipt_pair(pair_target, changed_apple_sdk_pair)
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("target/standalone Apple SDK mismatch was accepted")
+    changed_runtime_pair = copy.deepcopy(pair_standalone)
+    runtime_nodes = changed_runtime_pair["build"]["buildParityIdentity"][
+        "appleRuntime"]["nodes"]
+    runtime_nodes[0]["images"][0]["uuid"] = (
+        "B21743EE-6E1C-3E74-97EA-7AF793DE4BDF"
+    )
+    changed_runtime_pair["build"]["buildParityIdentity"][
+        "appleRuntime"]["nodesDigest"] = hashlib.sha256(
+            _canonical_bytes(runtime_nodes) + b"\n"
+        ).hexdigest()
+    try:
+        _validate_receipt_pair(pair_target, changed_runtime_pair)
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError("target/standalone runtime UUID mismatch was accepted")
+    target_dependency_pair = copy.deepcopy(pair_target)
+    standalone_dependency_pair = copy.deepcopy(pair_standalone)
+    target_dependency_pair["build"]["buildParityIdentity"][
+        "compilerDependencies"
+    ] = {
+        **dependency_profile,
+        "externalInputs": dependency_inputs + [{
+            "path": "/toolchain/include/target-only.h",
+            "size": 8,
+            "digest": _digest_text("target-only"),
+        }],
+    }
+    target_dependency_pair["build"]["buildParityIdentity"][
+        "compilerDependencies"]["externalInputs"] = sorted(
+            target_dependency_pair["build"]["buildParityIdentity"][
+                "compilerDependencies"]["externalInputs"],
+            key=lambda row: row["path"],
+        )
+    target_dependency_inputs = target_dependency_pair["build"][
+        "buildParityIdentity"]["compilerDependencies"]["externalInputs"]
+    target_dependency_pair["build"]["buildParityIdentity"][
+        "compilerDependencies"]["externalInputsDigest"] = hashlib.sha256(
+            _canonical_bytes(target_dependency_inputs) + b"\n"
+        ).hexdigest()
+    standalone_dependency_pair["build"]["buildParityIdentity"][
+        "compilerDependencies"
+    ] = {
+        **dependency_profile,
+        "externalInputs": dependency_inputs + [{
+            "path": "/toolchain/include/standalone-only.h",
+            "size": 13,
+            "digest": _digest_text("standalone-only"),
+        }],
+    }
+    standalone_dependency_pair["build"]["buildParityIdentity"][
+        "compilerDependencies"]["externalInputs"] = sorted(
+            standalone_dependency_pair["build"]["buildParityIdentity"][
+                "compilerDependencies"]["externalInputs"],
+            key=lambda row: row["path"],
+        )
+    standalone_dependency_inputs = standalone_dependency_pair["build"][
+        "buildParityIdentity"]["compilerDependencies"]["externalInputs"]
+    standalone_dependency_pair["build"]["buildParityIdentity"][
+        "compilerDependencies"]["externalInputsDigest"] = hashlib.sha256(
+            _canonical_bytes(standalone_dependency_inputs) + b"\n"
+        ).hexdigest()
+    _validate_receipt_pair(
+        target_dependency_pair, standalone_dependency_pair
+    )
+    changed_shared_dependency = copy.deepcopy(standalone_dependency_pair)
+    shared = next(
+        row for row in changed_shared_dependency["build"]["buildParityIdentity"][
+            "compilerDependencies"]["externalInputs"]
+        if row["path"] == "/toolchain/include/standard-header.h"
+    )
+    shared["digest"] = _digest_text("changed-shared-header")
+    changed_dependency_inputs = changed_shared_dependency["build"][
+        "buildParityIdentity"]["compilerDependencies"]["externalInputs"]
+    changed_shared_dependency["build"]["buildParityIdentity"][
+        "compilerDependencies"]["externalInputsDigest"] = hashlib.sha256(
+            _canonical_bytes(changed_dependency_inputs) + b"\n"
+        ).hexdigest()
+    try:
+        _validate_receipt_pair(
+            target_dependency_pair, changed_shared_dependency
+        )
+    except QualifiedDifferentialError:
+        pass
+    else:
+        raise AssertionError(
+            "target/standalone shared compiler dependency change was accepted"
+        )
+    direct_only_target = copy.deepcopy(pair_target)
+    direct_only_standalone = copy.deepcopy(pair_standalone)
+    for direct_only in (direct_only_target, direct_only_standalone):
+        inputs = direct_only["build"]["configIdentity"]["inputs"]
+        inputs["compileContractMode"] = "direct-options-only"
+        inputs["compileOptionAdmissionEnforced"] = True
+    direct_only_target["build"]["configIdentity"]["inputs"][
+        "driverContext"
+    ] = controlled_context
+    controlled_input_shape = {
+        key: None for key in CONTROLLED_CONTEXT_CONFIG_INPUT_KEYS
+    }
+    controlled_input_shape["driverContext"] = controlled_context
+    _exact_keys(
+        controlled_input_shape,
+        CONTROLLED_CONTEXT_CONFIG_INPUT_KEYS,
+        "self-test.controlled-context-inputs",
+    )
+    try:
+        _validate_receipt_pair(direct_only_target, direct_only_standalone)
+    except QualifiedDifferentialError as exc:
+        assert "does not attest the effective compiler driver" in str(exc)
+    else:
+        raise AssertionError("direct-option-only receipt pair was eligible")
+    advisory_target = copy.deepcopy(pair_target)
+    advisory_standalone = copy.deepcopy(pair_standalone)
+    for advisory in (advisory_target, advisory_standalone):
+        inputs = advisory["build"]["configIdentity"]["inputs"]
+        inputs.update({
+            "compileContractMode": "controlled-driver-profile-v1",
+            "compileOptionAdmissionEnforced": True,
+            "compileContractEnforced": True,
+            "compileContractProfile": advisory_compile_profile,
+        })
+    try:
+        _validate_receipt_pair(advisory_target, advisory_standalone)
+    except QualifiedDifferentialError as exc:
+        assert "profile is advisory or unavailable" in str(exc)
+    else:
+        raise AssertionError("advisory controlled-driver pair was eligible")
+    enforced_target = copy.deepcopy(pair_target)
+    enforced_standalone = copy.deepcopy(pair_standalone)
+    for pair, side, interface_profile in (
+        (enforced_target, "target", target_interface_profile),
+        (enforced_standalone, "standalone", standalone_interface_profile),
+    ):
+        inputs = pair["build"]["configIdentity"]["inputs"]
+        inputs.update({
+            "compileContractMode": "controlled-driver-profile-v1",
+            "compileOptionAdmissionEnforced": True,
+            "compileContractEnforced": True,
+            "compileContractProfile": enforced_compile_profile,
+            "driverContext": controlled_context,
+            "interfaceProfile": interface_profile,
+            "capabilityProfile": capability_profiles[side],
+        })
+    _validate_receipt_pair(enforced_target, enforced_standalone)
+    missing_capability_pair = copy.deepcopy(enforced_target)
+    missing_capability_pair["build"]["configIdentity"]["inputs"].pop(
+        "capabilityProfile"
+    )
+    try:
+        _validate_receipt_pair(missing_capability_pair, enforced_standalone)
+    except QualifiedDifferentialError as exc:
+        assert "capability profiles are asymmetric" in str(exc)
+    else:
+        raise AssertionError("asymmetric capability profiles were accepted")
+    missing_both_capabilities = copy.deepcopy(enforced_target)
+    missing_both_standalone = copy.deepcopy(enforced_standalone)
+    missing_both_capabilities["build"]["configIdentity"]["inputs"].pop(
+        "capabilityProfile"
+    )
+    missing_both_standalone["build"]["configIdentity"]["inputs"].pop(
+        "capabilityProfile"
+    )
+    try:
+        _validate_receipt_pair(
+            missing_both_capabilities, missing_both_standalone
+        )
+    except QualifiedDifferentialError as exc:
+        assert "omits the required semantic capability profile" in str(exc)
+    else:
+        raise AssertionError("controlled pair without capability profiles was eligible")
+    changed_capability_pair = copy.deepcopy(enforced_standalone)
+    changed_capability_pair["build"]["configIdentity"]["inputs"][
+        "capabilityProfile"]["capabilities"][sorted(CAPABILITY_KEYS)[0]] = False
+    try:
+        _validate_receipt_pair(enforced_target, changed_capability_pair)
+    except QualifiedDifferentialError as exc:
+        assert "contradicts the reviewed standalone profile" in str(exc)
+    else:
+        raise AssertionError("contradictory standalone capabilities were eligible")
+    uncaptured_target = copy.deepcopy(pair_target)
+    uncaptured_standalone = copy.deepcopy(pair_standalone)
+    uncaptured_profile = copy.deepcopy(standalone_interface_profile)
+    uncaptured_profile["adapterSupplementalMethods"] = []
+    uncaptured_profile["unobservedDefaultedExtras"] = (
+        EXPECTED_STANDALONE_INTERFACE_EXTRAS
+    )
+    for pair, profile in (
+        (uncaptured_target, target_interface_profile),
+        (uncaptured_standalone, uncaptured_profile),
+    ):
+        inputs = pair["build"]["configIdentity"]["inputs"]
+        inputs["verifiedInterfaceContractDigest"] = EXPECTED_COMMON_INTERFACE_DIGEST
+        inputs["interfaceMethodCount"] = EXPECTED_INTERFACE_METHOD_COUNT
+        inputs["interfaceProfile"] = profile
+    try:
+        _validate_receipt_pair(uncaptured_target, uncaptured_standalone)
+    except QualifiedDifferentialError as exc:
+        assert "supplementary callbacks are not captured" in str(exc)
+    else:
+        raise AssertionError("uncaptured standalone callbacks were eligible")
     pair_standalone["build"]["buildParityIdentity"]["configuration"] = "Debug"
     try:
         _validate_receipt_pair(pair_target, pair_standalone)

@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACadSharp Prototype1b release, corpus evidence, and payload ownership refresh",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Verify exact ACadSharp release and package identity relevant to the Prototype1b reader",
+    "Reconcile the merged full-section reader with earlier ACIS extraction paths and public corpus comparison comments",
+    "Recheck released reader evidence separately from the still-open ACIS writer proposal",
+    "Compare canonical DataStorage ownership with libdxfrw's existing bounded section-to-entity payload copy",
+    "Update implementation readiness without adding a mandatory peer gate, dependency, fixture, or support claim"
+  ],
+  "method": {
+    "kind": "Read project release/package pages, pull requests, issue discussion, and the existing local plan/source ownership descriptions",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "ACadSharp's corpus counts, byte-match result, and multi-page examples are public contributor reports, not independently reproducible here: the input corpus, complete hashes/manifests, and full logs are unavailable. No inference is made about libdxfrw behavior, DWG normative layout, ACIS/B-rep semantics, or native acceptance. The local ODA v5.4.1 specification remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp v3.8.0 release and NuGet package",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://www.nuget.org/packages/ACadSharp/3.8.0"
+      ],
+      "revision": "GitHub release tag v3.8.0 at commit 3a1c66b, released 2026-09-21; matching NuGet version reviewed 2026-10-18",
+      "observed": "The release is later than the v3.6.51 release that lists merged PR #1154. The release/package matrix remains a project claim and is not proof of every entity, version, writer direction, or solid feature."
+    },
+    {
+      "project": "ACadSharp full Prototype1b reader PR #1154",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/issues/1152"
+      ],
+      "revision": "PR #1154 merged to ACadSharp master on 2026-07-28; merged commit 5d5f0f1",
+      "observed": "The PR describes a DWG full-section Prototype1b reader replacing the DWG marker-guess extraction route. The author notes unresolved/unknown values and relationships and says modifying section entries needs further investigation. The discussion shows DataStorage access by entity handle and schema, while the older DXF extraction route was left separate."
+    },
+    {
+      "project": "ACadSharp public extraction comparison comments",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/issues/1152"
+      ],
+      "revision": "Public PR comments from 2026-07-15 through 2026-07-28",
+      "observed": "One contributor initially reports discrepancies on a 423-DWG comparison. Later comments report byte-for-byte matches for referenced R2013+ payloads after changes, including multi-page Blob01 examples up to 14 MiB/13 pages; the PR author separately reports successful parsing on 1,086 files. Inputs, hashes, full manifests, and logs are not public. Treat the initial finding as a resolved-on-reported-head robustness lead, and the later reports as non-reproducible peer evidence rather than qualification."
+    },
+    {
+      "project": "ACadSharp DXF/DWG ACIS payload reader PR #1139",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1139"
+      ],
+      "revision": "PR #1139 merged 2026-07-09; subsequent DWG Prototype1b behavior is described in PR #1154",
+      "observed": "The PR documents legacy DXF group 1/3 SAT chunk assembly and modern ACDSDATA group-320 owner/group-310 chunk handling. This is raw carrier extraction/association, not an ACIS geometry kernel or B-rep result."
+    },
+    {
+      "project": "ACadSharp ACIS writer PR #1240 and schema refactor #1174",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "PRs #1240 and #1174 reviewed 2026-10-18; both remain open, and #1240 shows no deployment; issue #1195 describes ACadSharp 3.4.9 behavior",
+      "observed": "The released Prototype1b reader and open modeler writer/schema-refactor branches are distinct. A public comment on the unmerged #1174 branch reports one focused DXF payload-attachment test failing and post-2013 DXF payload loss on that branch; this does not establish v3.8.0 behavior. The historical 3.4.9 omission report does not establish current release behavior, and #1240 is not a released writer or native-accepted result."
+    },
+    {
+      "project": "Local libdxfrw PAR-07/S8.3 DataStorage payload link",
+      "localPaths": [
+        "src/intern/dwgreader.cpp",
+        "docs/research/datastorage-linked-payload-copy-budget-fast-slice-2026-10-18.json"
+      ],
+      "revision": "Local worktree baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9; existing uncommitted work preserved",
+      "observed": "The reader retains section payload data and separately performs a bounded entity-link copy. Removing the copy requires proving lifetime and legacy consumer contracts; ACadSharp's handle lookup is a design comparison, not an automatic migration recipe."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "ACadSharp v3.8.0 is now an optional exact-artifact candidate for DWG Prototype1b structural/payload-association comparison at the existing composed gate. It is not a DXF/writer or B-rep semantic oracle. The current local section-to-entity copy remains bounded; the plan adds a lifetime-first design review before any copy removal, with a safe owned-copy fallback."
+  },
+  "implementationReadyChecks": [
+    "Continue local implementation without a peer clone/build; peer execution remains optional and only at the existing composed checkpoint.",
+    "If used, pin either the exact ACadSharp v3.8.0 package hash/runtime or source commit and build; do not mix package behavior with mutable master.",
+    "Compare only reached payloads using source-authored entity handles, schema/key association, exact byte lengths/digests, and explicit missing/duplicate/orphan dispositions; do not count unreachable stale section bytes as entity payloads.",
+    "Keep DWG Prototype1b section reading separate from legacy DXF SAT, modern DXF ACDSDATA, ACIS/B-rep semantics, writer output, and native application acceptance.",
+    "For any local copy optimization, map lifetimes first and preserve the owning compatibility path unless a non-owning/shared representation is proven valid after callback return for legacy consumers.",
+    "Use existing generated multi-page/fan-out selectors and their owning fast CTest if the representation changes; do not add a new registration or run the full suite for this design-only change.",
+    "Do not download peer/customer drawings or commit generated DWG/DXF/SAT/SAB test artifacts; use only already-authorized or locally generated-from-scratch inputs in scratch.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; this research does not satisfy their external/platform or independent semantic evidence gates."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "workingTree": {
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF HEADER typed-variant node admission",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Charge each parsed DXF HEADER group-9 variable variant before allocation",
+    "Charge the synthesized legacy DIMLUNIT compatibility alias before allocation",
+    "Prove the shared per-read counter across HEADER and later entity XDATA"
+  ],
+  "implementation": {
+    "planItem": "7S.2d.6",
+    "files": [
+      "src/drw_header.h",
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "src/intern/dxfreader.h",
+      "src/libdxfrw.h",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "parseCodeImpl charges before constructing the variant for each group-9 HEADER variable. finalizeDxfHeader now reports failure and charges the synthesized legacy $DIMLUNIT alias before copying it. processHeader propagates failure through the common ResourceLimit diagnostic path before addHeader. Public API-created variables and DWG HEADER decoding are not charged by this DXF budget.",
+    "diagnosticCode": "dxf-typed-variant-node-budget",
+    "publicApiSignatureChanged": false,
+    "publicClassLayoutChanged": false,
+    "installedHeaderDocumentationChanged": true,
+    "privateHeaderMethodSignatureChanged": true,
+    "downstreamRebuildRequiredByThisSlice": false,
+    "binaryAbiClaimed": false,
+    "fixtureAdded": false,
+    "temporaryGeneratedBinaryInputRemoved": true,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-header-typed-variant-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-dimstyle-typed-variant-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/dxf-header-typed-variant-node-budget-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_header.h src/drw_header.cpp src/libdxfrw.cpp src/intern/dxfreader.h src/libdxfrw.h tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dxf-header-typed-variant-node-budget-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedHeaderSelector": "PASS: ASCII/Binary exact cap, one-under header-callback suppression, legacy DIMLUNIT synthesis, same-facade retry, and aggregate HEADER plus entity-XDATA outcomes",
+      "focusedDimstyleSelector": "PASS: exact aggregate includes the parsed ACADVER HEADER variant",
+      "owningCtest": "PASS: libdxfrw_hardening 1/1, 0.28 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "The budget counts instrumented DXF HEADER variant materializations, not all parser allocations, allocator capacity, RSS, user-created HEADER variants, or DWG HEADER decoding.",
+    "Generated exact caps are measured from captured HEADER variant maps and line XDATA; no DXF format maximum is inferred.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; this verified slice is uncommitted."
+  ],
+  "planTotals": {
+    "findings": 129,
+    "topLevelSubplans": 72
+  }
+}

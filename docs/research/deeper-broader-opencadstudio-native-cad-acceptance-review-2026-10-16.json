@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-peer-research-v1",
+  "date": "2026-10-16",
+  "title": "Deeper/broader native-CAD acceptance and OpenCADStudio issue reconciliation",
+  "researchOnly": true,
+  "execution": {
+    "peerBinaryRun": false,
+    "nativeCadRun": false,
+    "drawingFixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false
+  },
+  "sources": [
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "fact": "GitHub release v2026.41 is associated with source revision cff240e."
+    },
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/Cargo.lock",
+      "fact": "The exact release lockfile is the dependency-pin artifact to capture before any optional application run."
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust",
+      "fact": "ACadRust identifies OpenCADStudio as a consumer of its DWG/DXF engine, supporting classification as a correlated application route rather than an independent parser."
+    },
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1615",
+      "fact": "An open issue reports initial AutoCAD/ProgeCAD failures for 3D DWG output; later comments describe improvement in version 50 and a specific current-main boolean output accepted by an unnamed strict third-party DWG reader. This is not AutoCAD/ProgeCAD acceptance evidence."
+    },
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/570",
+      "fact": "A hatch/polyline recovery report was closed after a maintainer reported that a current-main 2018 DWG opened without errors in an unnamed strict third-party reader and LibreDWG reported no errors; the report does not publish named-reader identity, reproducible hashes, or native AutoCAD acceptance."
+    },
+    {
+      "url": "https://github.com/HakanSeven12/OpenCADStudio",
+      "fact": "The README advertises native DWG/DXF and ACIS entity tessellation; this feature statement does not specify exact entity-family coverage, carrier joins, B-rep validity, or full-fidelity behavior."
+    },
+    {
+      "url": "https://open-aec.com/en/open-cad-studio/",
+      "fact": "The project page describes v2026.39 while GitHub's release list identifies v2026.41, demonstrating source-surface freshness skew."
+    }
+  ],
+  "disposition": {
+    "peerLineage": "ACadRust-related application route; not an independent DWG/DXF parser vote",
+    "implementationImpact": "Refine the existing composed consumer/native acceptance checkpoint only; no new finding, subplan, dependency, CTest, fixture, or local support promotion.",
+    "acceptanceFieldsToKeepSeparate": [
+      "application self-read/self-save",
+      "named strict third-party parser read",
+      "native CAD open without recovery",
+      "audit/recovery diagnostics",
+      "source-to-output object and owner disposition",
+      "ACIS carrier and tessellation projection",
+      "B-rep/kernel validity and independent analytic geometry comparison"
+    ],
+    "supportTotals": {
+      "findings": 125,
+      "topLevelSubplans": 71,
+      "externalItems": {
+        "J256": "DEFERRED_EXTERNAL",
+        "J260": "DEFERRED_EXTERNAL",
+        "J268": "DEFERRED_EXTERNAL",
+        "J284": "DEFERRED_EXTERNAL",
+        "J293": "DEFERRED_EXTERNAL",
+        "J295": "DEFERRED_EXTERNAL"
+      }
+    }
+  }
+}

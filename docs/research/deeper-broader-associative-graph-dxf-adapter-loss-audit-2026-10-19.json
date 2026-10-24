@@ -1,0 +1,140 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader associative graph semantics, DXF adapter loss, and peer-boundary reconciliation",
+  "mode": "Primary-source documentation, current peer issue review, and local source audit",
+  "scope": [
+    "Compare associative-object semantics documented by Autodesk with the generic DXF OBJECTS contract and local DXF/DWG callback routes.",
+    "Determine whether the concrete dwg2dxf adapter retains and emits associative DXF records captured by the library parser.",
+    "Reconcile current open-source peer evidence without duplicating already-owned local hardening, EED, units, codepage, object, and XDATA work.",
+    "Update PAR-06 and add implementation-ready 7BV steps while preserving independent/native qualification boundaries and existing fast-test cadence."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "external_drawings_downloaded": 0,
+    "fixtures_added": 0,
+    "local_source_files_inspected": [
+      "src/libdxfrw.cpp: associative DXF dispatch and dxfRW::processAssociativeObject() capture/callback sequence",
+      "src/drw_interface.h: default addAssociativeObject() callback contract",
+      "src/drw_objects.h: DRW_AssociativeObject partial shell and class-specific fields",
+      "dwg2dxf/dx_iface.cpp: dx_iface::addRawDxfObject() allow-list and addUnsupportedObject() DWG frame handling",
+      "dwg2dxf/dx_iface.h: concrete callback and OBJECTS output routes",
+      "dwg2dxf/dx_data.h: concrete adapter-owned object categories and absence of an associative raw container",
+      "tests/dwg2dxf_adapter_tests.cpp and tests/CMakeLists.txt: existing adapter test executable and focused selectors",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-06, graph-closure owners, peer evidence, and validation cadence"
+    ],
+    "local_source_audit": [
+      "The DXF reader's processAssociativeObject() constructs DRW_AssociativeObject, captures and validates a full DRW_RawDxfObject, then invokes addAssociativeObject() followed by addRawDxfObject().",
+      "The concrete dx_iface does not override addAssociativeObject(). Its addRawDxfObject() stores only enumerated families; ACDBASSOC-family and PERSUBENTMGR records have no matching category in dx_data and fall through.",
+      "The adapter has no associative-family serializer loop. The low-level generic writeRawDxfObject() facility exists, but source search found no dx_iface call site for this family.",
+      "The DWG path is separate: reader callbacks carry DWG object/frame representations and cannot be replayed through the DXF raw-group writer.",
+      "No runtime parser→adapter→writer reproduction was run; the local conclusion is source-confirmed only."
+    ],
+    "peer_issue_reconciliation": [
+      "ACadSharp #1281's recursion shapes are already represented by generated repeated-DXF-record hardening controls; peer counts are not adopted as format limits.",
+      "ACadSharp #1282's signed EED-size overflow shape maps to existing exact-size EED boundary coverage; no peer limit is copied.",
+      "ACadRust #125, #131, and #132 map to existing oblique-angle, codepage, unknown-object/color, and table-XDATA owners; no duplicate work item is added.",
+      "ACadRust #135 leaves a persistent-subentity layout as a hypothesis without a public drawing; no parser grammar is inferred.",
+      "OpenCADStudio discussion #1117 describes a self-round-tripping application graph but no AutoCAD/BricsCAD open validation and an omitted dependency-chain DXF writer; it is not independent semantic acceptance."
+    ],
+    "limitations": "Autodesk ObjectARX pages document associative graph behavior, while the reviewed general DXF references provide common OBJECTS groups rather than complete class-specific ACDBASSOC DXF grammars. LibreDWG's public class/status disclosures are per-class maturity evidence, not normative format rules. No external drawing, local runtime reproducer, peer executable, native CAD application, or solver was used. The adapter omission is source-confirmed but its exact user-visible output behavior remains to be tested locally."
+  },
+  "sources": [
+    {
+      "name": "Autodesk ObjectARX associative graph semantics",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbAssoc2dConstraintGroup.html",
+        "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-B12B5C2C-3B77-432C-B3EF-E0E65518F6C5.htm",
+        "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OREFNET-Autodesk_AutoCAD_DatabaseServices_AssocNetwork.html",
+        "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocAction.html"
+      ],
+      "observed": "Constraint groups own constraint/proxy-geometry nodes and dependencies on geometric subentities, variables, and sometimes graphical dimension entities. Actions/networks represent ordered dependencies and evaluation updates dependent objects.",
+      "evidence_ceiling": "ObjectARX semantics and object relationships only; not a complete DXF tag grammar, DWG byte layout, or libdxfrw implementation result."
+    },
+    {
+      "name": "Autodesk generic DXF OBJECTS contract",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-49C9C960-0944-4C1B-8DF9-E2428C28A2FB.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm"
+      ],
+      "observed": "OBJECTS holds nongraphical records and is topologically ordered by ownership; common groups describe owner, reactors, extension dictionaries, and typed object-pointer/ownership roles.",
+      "evidence_ceiling": "Generic framing and common fields only; no class-specific associative grammar or guarantee that unknown tail fields are safely remappable."
+    },
+    {
+      "name": "LibreDWG associative class registry and maturity disclosures",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/classes.c",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html"
+      ],
+      "observed": "The peer enumerates many associative classes but assigns differing stability/coverage states; its manual identifies several as unstable, unhandled, or partially tested.",
+      "evidence_ceiling": "Peer inventory and maturity declaration; not a normative specification, runtime result, or independent semantic qualification."
+    },
+    {
+      "name": "ezdxf associative and dimensional-constraint boundaries",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/dimension.html",
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/hatch.html"
+      ],
+      "observed": "ezdxf documents dimensional-constraint DIMENSION entities as unsupported and says it does not manage or verify associative HATCH links.",
+      "evidence_ceiling": "Specific DXF route limitations; not a result for all ACDBASSOC objects or for libdxfrw."
+    },
+    {
+      "name": "ACadRust issue #135 and OpenCADStudio discussion #1117",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/135",
+        "https://github.com/HakanSeven12/OpenCADStudio/discussions/1117"
+      ],
+      "observed": "#135 describes an unresolved persistent-subentity hypothesis without a public drawing. #1117 describes a limited application-side 2D graph build/self-roundtrip but lacks AutoCAD/BricsCAD open validation and says dependency-chain DXF output is omitted.",
+      "evidence_ceiling": "Issue/discussion evidence only; no normative grammar, independent round-trip, or native semantic result."
+    },
+    {
+      "name": "Adjacent peer issue shapes already owned locally",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/hakanaktt/acadrust/issues/125",
+        "https://github.com/hakanaktt/acadrust/issues/131",
+        "https://github.com/hakanaktt/acadrust/issues/132"
+      ],
+      "observed": "Recursion, EED size, oblique-angle units, legacy codepage mapping, unknown custom objects/color names, and table XDATA reports were cross-checked against existing plan owners and controls.",
+      "evidence_ceiling": "Discovery and test-shape evidence only; no duplicate local defect or peer threshold is adopted."
+    }
+  ],
+  "assessment": {
+    "existingFindingRefined": "PAR-06; source-confirmed concrete DXF converter-adapter drop is now explicit",
+    "newFindings": 0,
+    "newTopLevelSubplans": 1,
+    "newTopLevelSubplan": "7BV associative DXF object capture and safe replay",
+    "sourceConfirmedAdapterGap": true,
+    "runtimeReproducerExecuted": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeCadRuns": 0,
+    "supportClaimsPromoted": 0,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "PAR-06 now names the source-confirmed DXF adapter silent-loss path. New 7BV begins with a generated callback/identity test and an atomic fail-closed output gate, proceeds to bounded per-import typed/raw retention, and admits same-profile raw replay only after class-specific references and owner closure can be proven. The DWG opaque-frame path, constraint solving, native evaluation, and support claims remain separate."
+  }
+}

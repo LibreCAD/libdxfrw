@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw-embedded-mtext-peer-readiness-review-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "supersededBy": "deeper-broader-mtext-column-scope-reconciliation-2026-10-17.json",
+  "scope": "Broaden the open-source DWG/DXF comparison around multiline attributes, embedded MTEXT group-101 scoping, column fields, and related peer failure boundaries; refine the existing 7E implementation plan only.",
+  "method": {
+    "kind": "Read-only primary-source web research plus local source/test/plan audit",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/issues/1410",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm",
+      "https://github.com/LibreDWG/libredwg/issues/1351",
+      "https://github.com/LibreDWG/libredwg/issues/1361",
+      "https://github.com/LibreDWG/libredwg/pull/1363",
+      "https://github.com/DomCR/ACadSharp/issues/1279"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-19, 7E, prior peer-failure mappings, and existing implementation counts",
+      "src/drw_entities.cpp: DRW_Attrib::parseCode, DRW_MText::parseCode, R2018 MTEXT model members and DWG codec fields",
+      "src/libdxfrw.cpp: dxfRW::writeEmbeddedMText and MTEXT background serialization",
+      "tests/dxf_fixture_tests.cpp: testZeroYHatch and generated embedded ATTRIB/ATTDEF ASCII/binary controls"
+    ],
+    "limitations": "LibreDWG #1410 and ACadSharp #1279 are reporter-authored peer reports, not independent reproductions. Autodesk documentation is authoritative for documented DXF field descriptions but does not settle every version-specific emitted ordering or local compatibility policy. The local audit did not run test binaries or native CAD; its findings describe source/test coverage, not a runtime regression reproduction. The follow-up receipt corrects the group-101 host-specific grammar and replaces this receipt's earlier repeated-group-50 column-height test instruction with the scoped group-46 R2018 mapping."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG #1410 embedded-attribute failure cluster",
+      "observed": "The open report separates explicit-zero HATCH coordinate rejection, unusual ATTDEF/ATTRIB tag loss, and incomplete handling of multiline embedded-MTEXT fields. It explicitly cautions that a flat whitelist is a stopgap and that group-101 scope must be honored.",
+      "doesNotEstablish": [
+        "a corresponding libdxfrw defect",
+        "general validity of every unusual attribute tag in every target consumer",
+        "semantic support for every code in the reported 42-49 range",
+        "native AutoCAD acceptance verified in this research pass"
+      ],
+      "planUse": "Reuse local zero-Y and basic embedded-attribute controls; extend existing 7E with bounded standalone, ATTRIB, and ATTDEF group-101 grammar tests."
+    },
+    {
+      "topic": "Autodesk MTEXT and ATTRIB field contract",
+      "observed": "The references document nested MTEXT for multiline attributes, the R2018 defined-height and background properties, and MTEXT column groups 48, 49, 50, 75, 76, 78, and 79. They label 42/43 read-only and ignored when supplied; the consulted MTEXT table does not assign a meaning to group 47.",
+      "doesNotEstablish": [
+        "whether every producer emits all documented fields in the same order",
+        "whether libdxfrw should preserve or discard read-only 42/43 values",
+        "semantics for undocumented group 47 in embedded attributes"
+      ],
+      "planUse": "This initial pass proposed a field/direction/version matrix; its broad group-50 column note is superseded by the follow-up scope reconciliation, which separates direct R2018 group-46 heights from ordinary group-50 rotation and encoded XDATA sub-key 50."
+    },
+    {
+      "topic": "Local route and test readiness",
+      "observed": "Source routes the group-101 attribute payload into a separate DRW_MText and the writer emits core embedded text/background fields. Existing model and DWG codec have column state, but DXF parse/write lacks the full column profile. Existing generated tests cover HATCH explicit-zero, marker spelling, basic embedded text, tags/prompts, orientation, and sentinels, not complete embedded column values.",
+      "doesNotEstablish": [
+        "a reproduced failure or runtime behavior from this read-only audit",
+        "complete typed DXF column support",
+        "a need for a new test target or committed drawing fixture"
+      ],
+      "planUse": "Refine only PAR-19/7E and extend the current generated test owner in ASCII and binary."
+    },
+    {
+      "topic": "Cross-peer layer classification",
+      "observed": "LibreDWG #1351 is a peer INSERT sequence report whose author later verified the peer's master output contained ATTRIB and SEQEND; no matching local writer path was identified. LibreDWG #1361/#1363 trace a peer LWPOLYLINE symptom to R2007 data-page decoding. ACadSharp #1279 remains a version-specific subclass-marker report already mapped to PAR-14/7BS.",
+      "doesNotEstablish": [
+        "new local entity-level defects",
+        "a reason to bypass page-decoder diagnosis",
+        "a universal legacy subclass-marker rule"
+      ],
+      "planUse": "Keep sequence grammar, AC1021/R2007 page decoding, and legacy subclass tolerance in their existing owners."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "Exercise standalone MTEXT's R2018 column object separately from the ordinary embedded-MTEXT body used by ATTRIB and ATTDEF.",
+      "Assert that group-50 rotation and scope-specific group-46 values do not overwrite one another, and preserve outer tag/prompt/sequence framing.",
+      "Implement documented column fields with count/value bounds; resolve the local read-only 42/43 retention/re-emission behavior before treating it as writable parity.",
+      "Do not infer group-47 semantics from a peer whitelist; keep unusual-tag policy consumer/spec gated.",
+      "Reuse existing zero-Y HATCH, attribute, sequence, and page-decoder test owners; add no committed fixtures or per-slice full-suite work."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

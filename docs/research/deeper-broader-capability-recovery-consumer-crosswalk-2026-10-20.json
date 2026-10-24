@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Capability axes, recovery boundaries, and consumer semantics across open-source CAD projects",
+  "mode": "Primary-source web research crosswalk against the local parity plan",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare project support statements by direction, version, route, object family, and semantic depth rather than a single broad support label.",
+    "Research strict versus recovery parsing, unknown-data handling, FreeCAD's converter/import boundary, optional ACIS import routes, and LibreCAD_3's directional DWG policy.",
+    "Refine existing implementation and qualification owners without adding findings, dependencies, fixtures, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Public project README and NEWS accessed 2026-10-20; moving master pages, not immutable artifacts.",
+      "observed": "Project-level read claims are qualified by advanced objects skipped, direction-specific DWG write limits, version-specific CRC issues, and a separate bounded DXF-to-DWG version scope. NEWS also distinguishes stable/unstable classes and incomplete AcDs/SAB handling.",
+      "limits": "These describe LibreDWG and its named revisions only. They are not normative DWG rules, local defects, or transferable libdxfrw support evidence."
+    },
+    {
+      "project": "ezdxf recovery/audit and document model",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst"
+      ],
+      "revision": "Stable documentation and current master source pages accessed 2026-10-20.",
+      "observed": "The docs separate fast normal loading from slower recovery and audit, warn that recovered decoding errors may make subsequent output invalid or lossy, and expose strict error behavior. The xref operation has a bounded entity subset, may ignore unsupported entities, and preserves some unknown entities as raw DXFTagStorage. The document loader separately creates sections/layouts and binds owner links.",
+      "limits": "The recover warning and xref subset are operation-specific; they do not describe all ezdxf document read/write behavior and cannot define libdxfrw policy by themselves."
+    },
+    {
+      "project": "FreeCAD DXF/DWG consumer",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "revision": "Current public documentation and issue #18454 accessed 2026-10-20; issue report dated 2024-12-12.",
+      "observed": "FreeCAD routes DWG through an external converter and then applies DXF importer limits. Its C++ DXF importer is documented as faster but less feature-complete than the optional legacy Python importer. Documentation and issue #18454 identify ACIS/SAT payloads in DXF 3D solids as unsupported by the normal FreeCAD path, distinguishing these from explicit geometry entities.",
+      "limits": "FreeCAD import is a downstream consumer check, not proof of converter carrier fidelity. The issue is a specific report, not a general format specification."
+    },
+    {
+      "project": "InventorLoader optional ACIS route",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+        "https://github.com/jmplonka/InventorLoader/issues"
+      ],
+      "revision": "Public current repository pages accessed 2026-10-20; mutable master and issue board.",
+      "observed": "The add-on extracts SAT/SAB from DXF, offers SAT/native and STEP conversion strategies, and documents omitted blending, helix, and law-defined geometry. Its current issue board includes SAB parse, SAT shell, and plain SAT completeness reports.",
+      "limits": "This is an optional, actively limited comparator, not qualified independent evidence. The FreeCAD/OCCT integration does not provide an independent-kernel vote, and source/issue states must be pinned before any future experiment."
+    },
+    {
+      "project": "LibreCAD_3 consumer policy",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Public master documentation accessed 2026-10-20; moving page.",
+      "observed": "The sibling application keeps experimental DWG reading opt-in and DWG writing disabled, with direction-specific qualification and native evidence gates.",
+      "limits": "This is a consumer policy/design reference. Its claims and status ledger do not transfer to this repository or its current branch."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 and format-status matrix: keep version, direction, route, object family, and semantic depth as distinct qualification axes; distinguish typed decode, opaque retention, omission/refusal, external interpretation, and consumer import.",
+      "DXF parsing and output: keep strict success separate from opt-in recovery/audit; recovery diagnostics cannot satisfy a clean-support or preservation gate.",
+      "PAR-20/7G.3: validate root identity and logical ownership closure separately from physical owner-before-child emission order.",
+      "Consumer qualification: score DWG converter and downstream DXF importer separately; FreeCAD's standard path is not an ACIS semantic oracle.",
+      "Validation cadence: per-slice local selector plus focused CTest; compose peer/native checks only at existing milestone gates."
+    ],
+    "planFileChanged": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRunThisResearchPass": 5,
+    "referencedFocusedTests": "PASS: libdxfrw_extension_graph_limits, libdxfrw_table_callback_owner_order, dwg2dxf_modeldoc_view_style_callbacks, libdxfrw_plotsettings_visualstyle_shade_reference, and libdxfrw_render_settings_owner_order (5/5).",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a research crosswalk covering LibreDWG direction/version caveats, ezdxf strict-versus-recovery and unknown-data behavior, FreeCAD's two-stage DWG/DXF boundary, InventorLoader's limited ACIS route, and LibreCAD_3's read-only DWG policy.",
+    "Refined qualification to use explicit route/version/direction/semantic-layer outcomes instead of a single support label.",
+    "Clarified recovery diagnostics, downstream importer omissions, raw carrier retention, and independent geometry semantics as separate evidence layers.",
+    "Kept the implementation order on the existing generated PAR-20/7G.3 queue and validation mostly fast; no peer dependency, fixture, full-suite run, finding, or support promotion was added."
+  ],
+  "limitations": [
+    "Peer source pages are mutable unless the receipt gives an immutable revision; no peer code was cloned or executed.",
+    "No external drawing was downloaded or used.",
+    "No native CAD application or geometry kernel was run.",
+    "The six external-only J items remain DEFERRED_EXTERNAL and cannot be promoted by this research."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on scoped tracked files; no trailing whitespace in new receipts)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

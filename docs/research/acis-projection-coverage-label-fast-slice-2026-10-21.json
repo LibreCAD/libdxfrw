@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-acis-projection-coverage-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "implementation": {
+    "source": "src/drw_acis.h",
+    "tests": "tests/graph_preservation_tests.cpp",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Add an inline classification of rooted projection state and currently reported unsupported/unresolved geometry counters; explicitly avoid equating no known counters with completeness."
+  },
+  "generatedCoverage": {
+    "inMemoryOnly": true,
+    "unprojected": true,
+    "knownGap": true,
+    "noReportedGap": true,
+    "individuallyExercisedCounters": [
+      "unsupportedPatternNodeCount",
+      "unsupportedWireNodeCount",
+      "unsupportedSubshellNodeCount",
+      "unsupportedPCurveNodeCount",
+      "unsupportedCurveNodeCount",
+      "unsupportedSurfaceNodeCount",
+      "verticesWithoutResolvedPoint",
+      "edgesWithoutResolvedEndpointPair",
+      "edgesWithoutCurveFlag",
+      "facesWithoutSurfaceFlag",
+      "facesWithoutLoop"
+    ],
+    "transformApplied": false,
+    "sourceUnitScaleApplied": false,
+    "brepValidityChecked": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    {
+      "command": "cmake --build build --target lc3_compat_check -j4",
+      "result": "PASS",
+      "scope": "compile-only public API compatibility guard"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "scopeLimits": [
+    "No full test suite was run.",
+    "No DWG/DXF fixture, external program, package, consumer, or native CAD application was added or run.",
+    "No source-body completeness, transform, unit, analytic geometry, B-rep, or consumer support claim is established.",
+    "No support status was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL.",
+    "The implementation and plan updates remain uncommitted because the shared worktree is broadly dirty and .git is read-only."
+  ],
+  "next": "Continue with the next generated S3.7c structural-matrix case locally; external/native gates are not prerequisites for local progress."
+}

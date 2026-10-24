@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw-acadsharp-acis-and-mesh-coordinate-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Refresh open-source ACIS reader/writer maturity and verify the DXF MESH vertex-coordinate contract, then update existing plan owners and the local parser regression.",
+  "method": {
+    "kind": "Primary vendor/project documentation, release pages, and issue/PR status review; local generated parser regression",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localBuildOrTestsRun": true,
+    "limitations": [
+      "ACadSharp corpus-size and payload-extraction statements in PR discussion were not independently rerun.",
+      "The ACadSharp 3.4.9 writer-loss report concerns private customer drawings and was not reproduced against v3.8.0.",
+      "Project documentation and issue/PR pages establish route/maturity claims only, not format conformance or semantic geometry.",
+      "The generated MESH malformed-input cases establish local parser rejection, not native producer acceptance or subdivision rendering."
+    ]
+  },
+  "evidence": [
+    {
+      "route": "DXF MESH vertex point framing",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mesh.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/mesh.html"
+      ],
+      "observation": "Autodesk identifies MESH group 10 as a vertex position and defines the general primary point as X group 10 followed by Y/Z groups 20/30. ezdxf documents 3-tuple vertices and emits all three components for each example vertex.",
+      "evidenceGrade": "VENDOR_DXF_CONTRACT_PLUS_INDEPENDENT_PROJECT_WIRE_EXAMPLE",
+      "planUse": "Require a complete tuple per declared MESH vertex; accept Y/Z ordering after X, reject duplicate components and incomplete tuples at vertex/face-list boundaries."
+    },
+    {
+      "route": "ACadSharp released ACIS reader",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/pull/1139",
+        "https://github.com/DomCR/ACadSharp/pull/1154"
+      ],
+      "observation": "The latest signed release page is v3.8.0; its history includes v3.6.51's ACIS payload reader and Prototype1b reader changes. PR #1154 describes replacing the earlier DWG payload extraction path. This is read-side structural evidence only.",
+      "evidenceGrade": "RELEASE_AND_MERGED_PR_DECLARATIONS",
+      "planUse": "Permit only release-pinned structural-read comparison. Do not infer writer, B-rep, or native-consumer support; exact runtime and per-owner association remain required."
+    },
+    {
+      "route": "ACadSharp ACIS writer maturity",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observation": "Writer PRs #1150 and #1240 remain outside the released baseline. In the Oct. 1 #1150 discussion, its author says schema refactor #1174 is already in and describes branch conflicts; the maintainer says the intended writer should recreate ACDS schema rather than copy raw storage. Issue #1195 remains a report about ACadSharp 3.4.9 private drawings, not a reproduced v3.8.0 result.",
+      "evidenceGrade": "CURRENT_OPEN_PR_STATUS_PLUS_MAINTAINER_DISCUSSION_AND_UNREPRODUCED_ISSUE_REPORT",
+      "planUse": "Treat prior #1174-open statements as historical snapshots; do not count #1150/#1240 as released behavior or a passing peer comparator. Evaluate only at the existing composed checkpoint against pinned commits and per-handle carrier/owner closure."
+    },
+    {
+      "route": "Independent ACIS geometry and native acceptance",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+        "https://wiki.freecad.org/Draft_DXF"
+      ],
+      "observation": "OCCT lists ACIS SAT/SAB exchange among commercial components; ezdxf's drawing backend is not an ACIS geometry kernel; FreeCAD's stock importer limitation is distinct from explicit-entity DXF support.",
+      "evidenceGrade": "PROJECT_PRODUCT_AND_CONSUMER_SCOPE_DOCUMENTATION",
+      "planUse": "Do not relax the independent semantic or native Linux/Windows consumer gates."
+    },
+    {
+      "route": "Local MESH coordinate parser guard",
+      "sources": [
+        "src/drw_entities.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observation": "DRW_Mesh::parseCode now tracks X/Y/Z component presence in its existing state-specific pending field and rejects missing or duplicate components before publishing the MESH callback. Generated ASCII and Binary DXF controls cover missing Y, missing Z, and duplicate Y.",
+      "evidenceGrade": "LOCAL_SOURCE_CHANGE_AND_GENERATED_FAST_REGRESSION",
+      "validation": {
+        "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "buildResult": "PASS",
+        "compatibilityBuild": "cmake --build build-gcc --target lc3_compat_check -j2",
+        "compatibilityBuildResult": "PASS",
+        "test": "build-gcc/libdxfrw_dxf_fixture_tests --mesh-raw-field-tags",
+        "testResult": "PASS",
+        "fullSuiteRun": false,
+        "fixtureFileAdded": false,
+        "ctestRegistrationAdded": false
+      }
+    }
+  ],
+  "planDelta": {
+    "existingOwnersRefined": [
+      "explicit MESH DXF parsing and malformed-input fast tests",
+      "S8/PAR-07 modeler carrier, owner closure, and optional peer comparison",
+      "external ACIS semantics and native FreeCAD qualification"
+    ],
+    "newFindingOrTopLevelSubplan": false,
+    "localImplementationSlice": "Require complete, non-duplicated MESH XYZ tuples; generated ASCII/Binary malformed inputs must be rejected before addMesh callback publication.",
+    "peerOrNativeRunRequiredPerSlice": false,
+    "dependencyOrCommittedFixtureAdded": false,
+    "supportClaimsChanged": false,
+    "externalJItemsChanged": false,
+    "externalJItems": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "totals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  }
+}

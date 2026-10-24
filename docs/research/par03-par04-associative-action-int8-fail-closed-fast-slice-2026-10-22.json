@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-03/PAR-04 associative-action Int8 fail-closed correction",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": "Keep generic DXF Int8 group-code classification separate from the unestablished associative-action DWG value grammar.",
+  "evidence": {
+    "genericCategory": "resbufValueKind classifies group codes 280-289 as Int8.",
+    "priorFalseAcceptance": "A generated AC1024 ACDBASSOCACTION vector with group code 280 and a complete RC payload 0x5A was accepted as a complete typed value before the consumer-specific refusal.",
+    "specReview": "Text extraction of the local ODA v5.4.1 specification searched for AcDbEvalVariant, associative-action, and value-parameter field layouts; no class-specific body grammar was found.",
+    "invariant": "Until a class-specific layout or traceable producer witness establishes this encoding, associative-action values in group-code range 280-289 remain untyped and fail closed; generic DXF classification remains unchanged.",
+    "semanticLimit": "This does not decode the group-280 payload, establish associative-action semantics, or promote DWG support."
+  },
+  "change": {
+    "files": [
+      "src/intern/dwgvaluekind.h",
+      "src/drw_objects.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "completeRawByteNegativeControlAdded": true,
+    "genericGroupCodeClassifierChanged": false,
+    "publicLayoutChanged": false,
+    "callbackOrVtableChanged": false,
+    "wireWriterChanged": false,
+    "persistentFixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests dwg2dxf lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --associative-action-value-kinds",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_action_value_kinds$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|dwg_associative_failed_frame_retention)$' --output-on-failure",
+      "result": "PASS (2/2; 0.47 s)"
+    },
+    {
+      "command": "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    {
+      "command": "! rg -n '[[:blank:]]+$' src/intern/dwgvaluekind.h",
+      "result": "PASS (untracked helper has no trailing whitespace)"
+    },
+    {
+      "command": "jq empty docs/research/par03-par04-associative-action-int8-fail-closed-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  ],
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "freecadLinuxWindowsQualification": "OPEN",
+    "independentAcisAcdsSemanticEvidence": "OPEN"
+  },
+  "repositoryState": {
+    "commitStatus": "UNCOMMITTED",
+    "reason": "The shared worktree is broadly dirty and src/intern/dwgvaluekind.h is currently untracked; only scoped verification was run and no unrelated files were staged."
+  },
+  "selfUnblockingContinuation": "Continue associative-action decoding only when a primary class-specific field grammar or traceable producer frame supports it; otherwise preserve opaque/fail-closed disposition and take another evidenced local gap."
+}

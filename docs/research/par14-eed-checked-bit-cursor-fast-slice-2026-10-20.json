@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-14 checked EED byte-to-bit cursor",
+  "mode": "Source audit and generated arithmetic fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Inspect parser-relevant count/length and byte-to-bit arithmetic in the current EED path.",
+    "Replace an unchecked input-derived byte-position conversion with checked arithmetic.",
+    "Add bounded integer-only controls and run only the owning fast tests."
+  ],
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification for .dwg files v5.4.1, §28, reviewed 2026-10-20",
+      "observed": "EED directly follows an entity handle and consists of repeated application chunks whose bit-short length bounds the application handle and data items. This supports checking cursor arithmetic against the enclosing bit boundary; it does not define a platform-sized DWG file limit."
+    }
+  ],
+  "localEvidence": [
+    "src/intern/dwgreader.cpp eedCurrentBit/eedHasBits/readEedHandle use an absolute bit cursor for bounded EED parsing.",
+    "src/intern/dwgsafety.h now provides checked byte-to-bit position conversion using checked multiply and add.",
+    "tests/hardening_tests.cpp tests maximum representable bit position, multiplication overflow, and invalid bit offset.",
+    "tests/dwg_reader_matrix_tests.cpp contains existing bounded EED chunk and following-entity controls."
+  ],
+  "assessment": {
+    "confirmedLocalDefects": 1,
+    "existingPlanOwner": "PAR-14 parser count/length arithmetic audit",
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "buildTargetsPassed": [
+      "libdxfrw_hardening_tests",
+      "libdxfrw_dwg_reader_matrix_tests"
+    ],
+    "directTestsPassed": [
+      "libdxfrw_hardening_tests",
+      "libdxfrw_dwg_reader_matrix_tests"
+    ],
+    "ctestPassed": [
+      "libdxfrw_dwg_reader_matrix",
+      "libdxfrw_hardening"
+    ],
+    "ctestResult": "2/2 passed; 2.29 seconds",
+    "fullTestSuitesRun": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Record the unchecked EED absolute bit-cursor arithmetic as a confirmed PAR-14 local gap and close this implementation slice.",
+    "Require checked multiplication/addition before comparing a byte-derived bit offset with a DWG object/EED boundary.",
+    "Self-unblock to the next source-backed parser arithmetic expression and keep validation limited to the owning fast targets."
+  ],
+  "limitations": [
+    "The overflow case is tested at the arithmetic helper boundary; an impractically large sparse DWG was not created.",
+    "No full suite, peer implementation, native CAD application, or ACIS kernel was run.",
+    "No external drawing fixture was downloaded or added."
+  ]
+}

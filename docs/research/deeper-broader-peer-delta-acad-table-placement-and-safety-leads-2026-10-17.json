@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw-peer-delta-acad-table-placement-safety-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden current open-source DWG/DXF peer research around the ACAD_TABLE insertion prefix, reconcile peer issue signals against ODA v5.4.1 and local TABLE code/tests, and add only implementation-ready refinements to existing plan owners.",
+  "method": {
+    "kind": "Primary-source web research, local source/test audit, and plan reconciliation",
+    "peerRevisionPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalDrawingFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "individualIssuePagesUnavailable": [
+      "LibreDWG #1425",
+      "LibreDWG #1450",
+      "LibreDWG #1451",
+      "LibreDWG #1452"
+    ],
+    "localFilesInspected": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: 7G.3d versioned TABLE implementation plan",
+      "src/drw_entities.h: DRW_Table derives from DRW_Insert",
+      "src/drw_entities.cpp: DRW_Table::parseDwg reads inherited placement fields before versioned content",
+      "src/drw_entities.cpp: DRW_Insert::parseCode converts DXF rotation degrees to model radians",
+      "tests/dwg_object_vectors_tests.cpp: makeR2007TableFrame and makeR2010EmbeddedTableFrame currently encode default placement values"
+    ],
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://github.com/LibreDWG/libredwg/issues/1425",
+      "https://github.com/LibreDWG/libredwg/issues",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html"
+    ],
+    "evidenceRule": "ODA v5.4.1 is authoritative for DWG layout. Peer issue titles are discovery signals only; inaccessible bodies do not establish reproducers, root cause, status, thresholds, or format semantics. Local generated self-tests establish only the fields and route they actually assert."
+  },
+  "evidence": [
+    {
+      "topic": "ACAD_TABLE inherited placement contract",
+      "source": "ODA v5.4.1 §§20.4.96.1-20.4.97, pp. 229-238",
+      "observed": [
+        "ACAD_TABLE inherits INSERT and carries insertion point, version-specific scale, rotation in radians, extrusion, and an ATTRIB-presence bit before table payload.",
+        "R2000+ scale uses four valid two-bit encodings: default XYZ, default X with Y/Z deltas, uniform raw scale, and raw X with Y/Z deltas.",
+        "AC1021 uses the older table-cell route; AC1024+ changes to inline TABLECONTENT and includes additional prefix fields whose meanings are not fully specified."
+      ],
+      "doesNotEstablish": [
+        "The meaning of undocumented AC1024+ prefix fields",
+        "A complete table-cell or owner/linkage writer contract",
+        "Native placement/rendering correctness"
+      ],
+      "planUse": "Keep AC1021 and AC1024+ routes separate; test documented inherited fields and cursor alignment without interpreting unknown prefix fields."
+    },
+    {
+      "topic": "LibreDWG issue #1425",
+      "observed": [
+        "The current open issue index title reports that R2010+ TABLE data begins with AcDbBlockReference fields: insertion point, scale, rotation, extrusion.",
+        "The individual issue body was not retrievable in this pass; no sample, trace, fix status, or exact layout detail was verified."
+      ],
+      "doesNotEstablish": [
+        "A local libdxfrw defect",
+        "A DWG rule beyond ODA v5.4.1",
+        "A peer implementation result for current LibreDWG master"
+      ],
+      "planUse": "Use as a coverage prompt only; ODA provides the controlling wire contract."
+    },
+    {
+      "topic": "Local TABLE placement regression coverage",
+      "localObservation": [
+        "DRW_Table inherits DRW_Insert and its parseDwg path reads insertion point, all four scale modes, radians, and extrusion before TABLE content.",
+        "The AC1021 generated TABLE frame and AC1024 inline TABLE frame currently encode insertion (4,5,0), unit scale mode 3, zero rotation, and default extrusion.",
+        "Existing assertions cover cell semantics and stream boundaries but do not assert inherited placement fields or exercise the other three scale modes."
+      ],
+      "classification": "Regression-coverage gap; no source-confirmed incorrect decode found in this audit.",
+      "planUse": "Extend existing object-vector tests with a 4-mode × 2-version in-memory matrix; assert decoded placement, owner/style handles, content boundary, and a following sentinel."
+    },
+    {
+      "topic": "Broader peer-route and safety signals",
+      "observed": [
+        "LibreDWG 0.14.1 NEWS records version-specific TABLESTYLE and SAT-block export work; such release notes are route evidence, not a feature-complete TABLE claim.",
+        "LibreDWG #1450–#1452 index titles signal LTYPE dash-text memory safety, FIELD empty-child lifetime, and R2007+ EED/XDATA alignment; their individual bodies were unavailable.",
+        "ACadSharp v3.8.0 release notes do not report a new TABLE/ACIS writer capability.",
+        "GDAL's DXF reader can inline or merge block geometry subject to options/limits and exposes AC1027+ ASM bytes/transforms without constructing OGR solids."
+      ],
+      "planUse": "Map signals to existing 7BF, FIELD/7G.3d, PAR-19, PAR-126 and composed comparator gates. Keep peers out of fast tests and do not copy peer thresholds or claim semantics."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersRefined": [
+      "7G.3d versioned ACAD_TABLE parser vectors and bounded 2D INSERT compatibility",
+      "PAR-126 ACAD_TABLE/TABLECONTENT completeness and route separation",
+      "7BF LTYPE path/segment and text bounds",
+      "FIELD/7G.3d FIELD graph and empty-child handling",
+      "PAR-19 EED/XDATA spans and alignment"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "peerInstallOrRunAddedToFastLoop": false,
+    "fullSuiteFrequencyChanged": false,
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionChanges": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextActions": [
+    "When 7G.3d resumes, extend the existing AC1021 and AC1024 TABLE vector builders with all four R2000+ scale modes, non-default insertion/rotation/extrusion, explicit field assertions, and suffix alignment; do not add a new CTest or fixture.",
+    "Retain the current next local implementation queue; this research does not reorder work around 7BF.3.",
+    "If a local LTYPE, FIELD, or EED/XDATA owner is next changed, use primary-source field scopes and a small generated local regression; do not infer a spec rule from LibreDWG issue titles."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fullSuiteRun": false
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ak",
+  "date": "2026-10-23",
+  "state": "SOURCE_CAPTURE_IMPLEMENTED_TYPED_OUTPUT_HANDOFF_PENDING",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "dirty, uncommitted and unstaged; not a clean-checkout qualification receipt",
+  "scope": {
+    "families": [
+      "fixed DICTIONARY",
+      "fixed GROUP",
+      "fixed XRECORD"
+    ],
+    "implemented": [
+      "bounded owned callback frame bodies",
+      "source publication and complete membership receipt copies",
+      "generation-qualified handle/ordinal/location indexes",
+      "per-frame final source-codepage provenance",
+      "sticky failure and bounded diagnostics",
+      "no-output-permission source-correlation counts"
+    ],
+    "notImplemented": [
+      "raw-payload-to-typed-field equivalence",
+      "actual emitted-record/output mapping proof",
+      "general standard-object rewrite qualification",
+      "complete strict DWG-to-DXF conversion"
+    ],
+    "noParserOrWireLayoutChange": true,
+    "noNewPureVirtuals": true,
+    "compatibility": "Direct callbacks outside managed DWG imports retain prior programmatic-model behavior. LibreCAD_3 target is source-compatibility evidence, not native application or binary ABI qualification."
+  },
+  "limits": {
+    "retainedBytes": 67108864,
+    "frames": 100000,
+    "membershipEntries": 1000000,
+    "lifetime": "aggregate across all import generations in one dx_data",
+    "allocation": "Inline records, map keys/node links, private source indexes, vector entries, names and frame bytes are estimated before copying.",
+    "exceptionPolicy": "catch allocation/copy exceptions, mark capture unusable, require fresh-data recovery",
+    "forcedAllocatorFailureInjected": false
+  },
+  "sourceContract": {
+    "raw": [
+      "fixed family and class flags",
+      "known version range",
+      "nonzero handle",
+      "source location representable in publication receipt",
+      "exact declared byte size and bounded bit count",
+      "common-link evidence/projection consistency"
+    ],
+    "publication": [
+      "same generation/handle/version/encoded and resolved type",
+      "same source offset with known location space",
+      "TypedAndRaw carrier",
+      "no custom-class ordinal",
+      "known modern common-link metadata agrees",
+      "no duplicate same-generation ordinal/location"
+    ],
+    "membership": [
+      "matching complete source identity",
+      "bounded ordered entries",
+      "GROUP ordinals and non-null member handles",
+      "DICTIONARY nonempty names with null item handles retained"
+    ],
+    "legacy": "Unknown common-link evidence remains Unknown; a prologue count can be present only in the publication while the raw compatibility projection omits it. Unverified zeroes are never promoted to validated absence.",
+    "generations": "The same handle, ordinal and location are distinct in different import generations. Completion validates only the current generation's map range; retained bytes remain cumulatively bounded.",
+    "codepages": "Finalization freezes each frame's actual codepage id, field-presence and recognition flags. Subsequent imports do not relabel earlier snapshots.",
+    "permissionBoundary": "Neither captured byte count nor source-receipt matches increment opaqueFramesRetainedByAdapter or authorize DXF replay/typed semantic output."
+  },
+  "implementationBindings": {
+    "dwg2dxf/dx_data.h": "977284eacf4b8e73f39dee729d5354fa21b940d5fa3bfcc8a41ef69ff3a3ad6b",
+    "dwg2dxf/dx_iface.h": "952154529794b8bcec645a5e2bcb51a5b024a2e72f0e0025f9467a80db4f9c52",
+    "dwg2dxf/dx_iface.cpp": "cec02152a24353c3a3462f487e094df0acab4d6546a3039625ef00b2cf98972f",
+    "tests/CMakeLists.txt": "1886a2519eb509e55be22a9b8d9bf1c7a76aab49c6fa051c6af9cc1adbd895d4",
+    "tests/dwg2dxf_adapter_tests.cpp": "f969423b340f37c653630087f4b6815821954f722341c99b479cd040d4805906",
+    "tests/dwg_local_roundtrip_tests.cpp": "3349c371ce026196e14e7c6e03b5016569f4439019327d1cba32a36404f66095",
+    "build/tests/libdxfrw_dwg2dxf_adapter_tests": "d258993213ef680ae6f4c150b22fe6b44715b91c1c244e407172d99a2b0a3515",
+    "build/libdxfrw_dwg_local_roundtrip": "39b7ac3b78af6284449f312941407530d84298778242c06de4d2a731d7eec571",
+    "build/dwg2dxf/dwg2dxf": "feb23cd1b6dce5e6391e788c600150e6cf4425cb4ca32328e304ca69366729b5",
+    "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "fdd9e1faf897f610982b91e4ec038a80f5731bed576fbf20010ed36f87b78746"
+  },
+  "validation": {
+    "regularTargets": [
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_dwg_local_roundtrip",
+      "dwg2dxf",
+      "libdxfrw_dwg_reader_matrix_tests",
+      "lc3_compat_check"
+    ],
+    "strictSyntaxCommand": "/usr/bin/clang++ -std=c++17 -Wall -Wextra -pedantic -Werror -I. -Isrc -Isrc/intern -Idwg2dxf -fsyntax-only dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/dwg_local_roundtrip_tests.cpp",
+    "strictSyntaxExitCode": 0,
+    "stagingSelector": "build/tests/libdxfrw_dwg2dxf_adapter_tests --standard-dwg-object-source-capture",
+    "stagingSelectorExitCode": 0,
+    "stagingCoverage": [
+      "owned raw bytes/reactor vectors/names",
+      "raw byte and record caps",
+      "exact raw-byte-cap admission then publication-cap refusal",
+      "membership item/byte caps",
+      "wrong version/location/type/class/common-link metadata",
+      "duplicate raw/publication/membership callbacks",
+      "same-import ordinal and location aliases",
+      "ordered GROUP members with repeated handles",
+      "legacy Unknown link views",
+      "failed read and missing receipts",
+      "unrelated/custom callbacks excluded",
+      "unmanaged programmatic callbacks unchanged",
+      "multiple data-container import generations",
+      "distinct codepage and body snapshots retained per generation"
+    ],
+    "syntheticBodyCaveat": "The staging unit's opaque stub bodies are intentionally not valid DWG syntax. Passing these cases is not payload parsing or semantic/output evidence.",
+    "actualFrameCoverage": {
+      "minimalMatchedFramesPerImport": 4,
+      "largeGraphMatchedFramesPerImport": 130,
+      "sourceVersions": [
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ]
+    },
+    "callbackFaults": {
+      "kinds": [
+        "missing publication",
+        "missing membership",
+        "duplicate raw",
+        "wrong source ordinal"
+      ],
+      "encodings": [
+        "ASCII DXF",
+        "Binary DXF"
+      ],
+      "atomicPolicyRefusals": 16,
+      "freshDataRetries": 8,
+      "retryPolicy": "existing explicit bounded partial GROUP projection, not complete conversion"
+    },
+    "focusedCohort": {
+      "passed": 8,
+      "failed": 0,
+      "seconds": 9.34,
+      "tests": [
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg_hatch_reference_graph",
+        "libdxfrw_group_adapter_roundtrip",
+        "dwg2dxf_acds_history_dwg_frame_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_dwg_read_outcome_policy",
+        "libdxfrw_persistent_manager_prefix_dispatch"
+      ]
+    },
+    "addressSanitizer": {
+      "build": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "command": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --standard-dwg-object-source-capture",
+      "exitCode": 0,
+      "scope": "core, adapter and focused staging unit instrumented; no native application or full project run"
+    },
+    "developmentFindings": [
+      "An initial source context model rejected the read-outcome test's reused container; fixed with generation-qualified source indexes, not a test waiver or counter reset.",
+      "Legacy prologue/common-tail evidence required preserving Unknown views, not interpreting zeros as absent links.",
+      "The first strict syntax command lacked the repository-root include path; corrected to -I.",
+      "Extra-strict native-harness compilation exposed old partial-aggregate, initializer-order and unused helper/capture warnings. Mechanically corrected without disabling warnings."
+    ],
+    "scopedDiffCheck": "PASS",
+    "fullProjectSuiteRun": false,
+    "ubsanRun": false,
+    "nativeApplicationsRun": false
+  },
+  "producerProbe": {
+    "route": "local reader and adapter on producer-authored samples; not an independent semantic-reader or native/kernel run",
+    "localPeerCheckouts": {
+      "LibreDWG": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "ACadSharp": "3a52a52047e84670759c1f9ad3916ec3ce85ff56"
+    },
+    "rows": [
+      {
+        "label": "generated",
+        "input": "/tmp/libdxfrw-dict-current.kbTUjv/group-AC1021.dwg",
+        "inputSha256": "be15af47a909e246ba4fa41e685400fd3c7bc7ea470724751d8e3410e45dd60f",
+        "version": "AC1021",
+        "command": "build/libdxfrw_dwg_local_roundtrip --dwg-group-source-identity /tmp/libdxfrw-dict-current.kbTUjv/group-AC1021.dwg",
+        "exitCode": 0,
+        "log": "/tmp/libdxfrw-standard-capture.ySwIIZ/generated.log",
+        "logSha256": "640deb90d08ee063e6223a86c1486e4120820c536ffc9ecdb26b1130db0e8288",
+        "standardObjectFramesCaptured": 4,
+        "standardObjectSourceReceiptsMatched": 4,
+        "otherOpaqueFramesRetainedForCorrelation": 0,
+        "wholeFileOrSemanticQualification": "NOT_ESTABLISHED"
+      },
+      {
+        "label": "leader2000",
+        "input": "/Users/dli/dev/LibreDWG/test/test-data/2000/Leader.dwg",
+        "inputSha256": "947e28fb312349efffe04dbfe8754892fceba872e41536d1fdcdf0a77a62c6e4",
+        "version": "AC1015",
+        "command": "build/libdxfrw_dwg_local_roundtrip --dwg-group-source-identity /Users/dli/dev/LibreDWG/test/test-data/2000/Leader.dwg",
+        "exitCode": 0,
+        "log": "/tmp/libdxfrw-standard-capture.ySwIIZ/leader2000.log",
+        "logSha256": "812d7ba81f63f33a74ae3701619fedb7b0488fd29726cb8615d1957c3f44b9cd",
+        "standardObjectFramesCaptured": 110,
+        "standardObjectSourceReceiptsMatched": 110,
+        "otherOpaqueFramesRetainedForCorrelation": 0,
+        "wholeFileOrSemanticQualification": "NOT_ESTABLISHED"
+      },
+      {
+        "label": "leader2004",
+        "input": "/Users/dli/dev/LibreDWG/test/test-data/2004/Leader.dwg",
+        "inputSha256": "ff0a14256eb22c0547495691903976387eaedbdf80c5c4a3ba62ce5ee5a23cc0",
+        "version": "AC1018",
+        "command": "build/libdxfrw_dwg_local_roundtrip --dwg-group-source-identity /Users/dli/dev/LibreDWG/test/test-data/2004/Leader.dwg",
+        "exitCode": 0,
+        "log": "/tmp/libdxfrw-standard-capture.ySwIIZ/leader2004.log",
+        "logSha256": "6eb05bfe7622b4e78489b7d2b8f7a6af1483721e7cc4e78ecf8d8e9db37df527",
+        "standardObjectFramesCaptured": 104,
+        "standardObjectSourceReceiptsMatched": 104,
+        "otherOpaqueFramesRetainedForCorrelation": 0,
+        "wholeFileOrSemanticQualification": "NOT_ESTABLISHED"
+      },
+      {
+        "label": "leader2007",
+        "input": "/Users/dli/dev/LibreDWG/test/test-data/2007/Leader.dwg",
+        "inputSha256": "8e9750fd2f6af2134d3db0fecc940fb57312ce61d8c0c7299a184f5e2ea7529a",
+        "version": "AC1021",
+        "command": "build/libdxfrw_dwg_local_roundtrip --dwg-group-source-identity /Users/dli/dev/LibreDWG/test/test-data/2007/Leader.dwg",
+        "exitCode": 0,
+        "log": "/tmp/libdxfrw-standard-capture.ySwIIZ/leader2007.log",
+        "logSha256": "1893b0cfdfbec198f5f66a63823d07816a873c71651b46d78da630b7eae2cff5",
+        "standardObjectFramesCaptured": 98,
+        "standardObjectSourceReceiptsMatched": 98,
+        "otherOpaqueFramesRetainedForCorrelation": 0,
+        "wholeFileOrSemanticQualification": "NOT_ESTABLISHED"
+      },
+      {
+        "label": "acadsharp",
+        "input": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+        "inputSha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+        "version": "AC1021",
+        "command": "build/libdxfrw_dwg_local_roundtrip --dwg-group-source-identity /Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+        "exitCode": 0,
+        "log": "/tmp/libdxfrw-standard-capture.ySwIIZ/acadsharp.log",
+        "logSha256": "2963874d5eeac70b4a2eabea0fbb8850effd186d5b3b49d74a78d3bb42ff1952",
+        "standardObjectFramesCaptured": 258,
+        "standardObjectSourceReceiptsMatched": 258,
+        "otherOpaqueFramesRetainedForCorrelation": 7,
+        "wholeFileOrSemanticQualification": "NOT_ESTABLISHED"
+      }
+    ],
+    "diagnosticBoundary": "Existing integrity and unsupported-family diagnostics remain. Seven prior history frames retained on ACadSharp are correlation, not qualified semantic output.",
+    "fixtures": "Scratch-generated control or read-in-place peer fixtures only; no persistent drawing added, copied or committed."
+  },
+  "remaining": {
+    "first": "Bounded raw-payload-to-typed correspondence using each source frame's immutable version/codepage provenance, complete common links/EED and family payload; add divergence and forced allocation-failure controls.",
+    "second": "Actual exactly-once serializer handoff and final source-to-emitted identity/owner/reference proof; planned/preallocated handles alone are insufficient.",
+    "third": "The present generated GROUP control has an unregistered NOD following XRECORD. Preserve it as an orphan negative; add a separately rooted positive and verify the sentinel XRECORD in real DXF readback.",
+    "then": "Small composed strict-conversion checkpoint, legacy TABLE entity/extension integration and AC1024+ inline authoring.",
+    "externalJ": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeFreecadLinuxWindows": "NOT_RUN",
+    "independentAcisAcdsKernelSemantics": "NOT_RUN",
+    "supportClaimsPromoted": 0,
+    "strictCompletenessGateRelaxed": false
+  }
+}

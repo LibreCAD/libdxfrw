@@ -1,0 +1,54 @@
+{
+  "title": "S3.7c SAB 21800 edge coedge-pointer identity fast slice",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "ACIS BinaryFile SAB 21800",
+    "field": "DRW_AcisEdge::coedgeNodeIndex",
+    "source_pointer_ordinal": 3,
+    "expected_target_type": "coedge",
+    "unresolved_value": -1,
+    "claims": [
+      "exact structural edge-to-coedge pointer identity",
+      "known-gap coverage when target is absent",
+      "existing rooted graph validator rejects wrong-type non-null targets"
+    ],
+    "explicit_nonclaims": [
+      "complete edge-to-coedge incidence enumeration",
+      "partner-ring closure",
+      "reciprocal incidence validation",
+      "manifoldness",
+      "B-rep validity",
+      "native CAD acceptance"
+    ]
+  },
+  "coverage": {
+    "generated_multiple_edge_targets": "PASS",
+    "parser_fed_in_memory_equivalence": "PASS",
+    "null_target_known_gap": "PASS",
+    "wrong_type_target_validation": "EXISTING_GRAPH_NEGATIVE",
+    "new_fixture_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS 1/1 in 1.21 seconds",
+    "diff_check": "PASS",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": true,
+    "consumer_rebuild_required": true,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "evidence_promotes_support": false
+  }
+}

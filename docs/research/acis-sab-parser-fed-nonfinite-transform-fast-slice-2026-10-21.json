@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-nonfinite-transform-v1",
+  "observedAt": "2026-10-21",
+  "title": "Parser-fed non-finite ACIS transform candidate disposition",
+  "evidenceKind": "generated local wire parser/model/projector fast test",
+  "source": "tests/graph_preservation_tests.cpp",
+  "profile": {
+    "signature": "ACIS BinaryFile",
+    "version": 21800,
+    "carrier": "generated SAB bytes",
+    "transformRawLiteralTokenIndex": 3
+  },
+  "cases": [
+    {
+      "candidateValue": "NaN",
+      "wireParse": "PASS",
+      "rootedProjection": "PASS_STRUCTURAL",
+      "rawLiteralPreserved": true,
+      "candidateState": "Invalid",
+      "candidateComponentsPublished": false,
+      "transformApplied": false
+    },
+    {
+      "candidateValue": "+infinity",
+      "wireParse": "PASS",
+      "rootedProjection": "PASS_STRUCTURAL",
+      "rawLiteralPreserved": true,
+      "candidateState": "Invalid",
+      "candidateComponentsPublished": false,
+      "transformApplied": false
+    },
+    {
+      "candidateValue": "-infinity",
+      "wireParse": "PASS",
+      "rootedProjection": "PASS_STRUCTURAL",
+      "rawLiteralPreserved": true,
+      "candidateState": "Invalid",
+      "candidateComponentsPublished": false,
+      "transformApplied": false
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "buildResult": "PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "focusedCTestResult": "PASS (1/1)",
+    "fullTestSuiteRun": false,
+    "gitDiffCheck": "PASS (scoped paths)"
+  },
+  "planImpact": {
+    "productionCodeChanged": false,
+    "persistentFixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "This is generated parser-fed transform token disposition evidence only.",
+    "It does not establish a transform matrix convention, application, units, WCS placement, or B-rep validity.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

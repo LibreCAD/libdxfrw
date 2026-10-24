@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw-mtext-column-scope-reconciliation-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Reconcile MTEXT group-code meaning by host entity, version, and nested container; refine existing PAR-19/7E implementation readiness only.",
+  "method": {
+    "kind": "Read-only primary documentation and open-source source review plus local plan/source audit",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrRenderersRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/dxftags.html",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mtext.py",
+      "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/MText.cs",
+      "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "https://github.com/LibreDWG/libredwg/issues/1410"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: 7E grammar, PAR-75 orientation note, and previous embedded-MTEXT research receipt",
+      "src/drw_entities.h and src/drw_entities.cpp: DRW_MText R2018 field model and DXF parse routes",
+      "src/libdxfrw.cpp: standalone and ATTRIB/ATTDEF embedded-MTEXT write routes",
+      "tests/dxf_fixture_tests.cpp: existing generated ASCII/binary MTEXT and multiline-attribute controls"
+    ],
+    "limitations": "Autodesk's generic MTEXT table lists a column-height group-50 note but does not fully clarify the version/container scope relative to main MTEXT rotation and XDATA. ezdxf 1.4.5's docs and exporter give an explicit R2018 embedded-object example and direct group-46 height emission; this is implementation evidence, not an Autodesk authority or rendering oracle. ACadSharp master sources are mutable and its DWG reader does not prove DXF output behavior. No native application or independent producer file was used."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk MTEXT and ATTRIB field references",
+      "observed": "The MTEXT reference says group 50 is rotation, marks main-context 42/43 extents read-only/ignored if supplied, and separately lists column groups including a group-50 column-height note without fully specifying its container/version scope. The ATTRIB reference's embedded-MTEXT body specifies group 46 defined annotation height and group 50 rotation.",
+      "doesNotEstablish": [
+        "the exact R2018 embedded-object wire mapping for every producer",
+        "whether libdxfrw should retain or suppress main-context read-only extents",
+        "native text rendering or layout equivalence"
+      ],
+      "planUse": "Do not interpret the reference as a flat code whitelist; resolve each field by host, version, and container. Keep 42/43 main-context semantics distinct from embedded-column totals."
+    },
+    {
+      "topic": "ezdxf R2018 MTEXT column example and exporter",
+      "observed": "ezdxf 1.4.5 documents static, dynamic-auto, and dynamic-manual column profiles under standalone MTEXT group 101. Its exporter writes nested group 46 for per-column manual heights, count 0 with no heights for dynamic-auto, and uses 1070 sub-key/value encoding for the pre-R2018 ACAD_MTEXT_COLUMN_INFO XDATA profile.",
+      "doesNotEstablish": [
+        "Autodesk's normative authority",
+        "all producer-specific orderings or malformed-input behavior",
+        "text-layout semantics"
+      ],
+      "planUse": "Replace the stale group-50 height test instruction. Add type-0, static, dynamic-auto, and dynamic-manual controls; test code 46 as top-level defined height, nested manual heights, and attribute annotation height according to scope."
+    },
+    {
+      "topic": "ACadSharp model/DWG-reader cross-check",
+      "observed": "The peer model distinguishes no/static/dynamic column modes; its DWG reader gates column data on nonzero type and separates count, dimensions, flags, and dynamic-manual heights.",
+      "doesNotEstablish": [
+        "DXF group-code mapping",
+        "compatibility with LibreCAD or other consumers",
+        "a defect in local libdxfrw"
+      ],
+      "planUse": "Use only as a model/profile completeness cross-check; do not promote support or replace literal DXF controls."
+    },
+    {
+      "topic": "Host-specific group-101 grammar and local readiness",
+      "observed": "Standalone R2018 MTEXT uses group 101 for a column object; multiline ATTRIB/ATTDEF use group 101 for an ordinary embedded-MTEXT body ending at the outer attribute subclass tail. The current plan had an inconsistent residual instruction treating group 50 as repeated column heights and applying one column profile across all three contexts.",
+      "doesNotEstablish": [
+        "a reproduced native CAD failure",
+        "that every nested group is currently typed or writable locally",
+        "complete semantic or rendering parity"
+      ],
+      "planUse": "Correct 7E to test standalone column modes only in the standalone route; cover ATTRIB and ATTDEF with ordinary embedded-MTEXT fields and outer sequence boundaries. Keep legacy linked-MTEXT/XDATA under 7K."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "Interpret group 101 according to its owning host: standalone MTEXT column object versus ordinary ATTRIB/ATTDEF embedded-MTEXT body.",
+      "Use nested group 46 for standalone R2018 per-column manual heights; keep group 50 as ordinary rotation and legacy XDATA sub-key 50 as encoded 1070 data.",
+      "Cover no-column, static, dynamic-auto, and dynamic-manual standalone profiles, plus separately scoped ATTRIB/ATTDEF group 46 annotation height and group 50 rotation.",
+      "Keep Autodesk main-context read-only 42/43 distinct from embedded-column total extents; defer preserve-versus-ignore policy until resolved.",
+      "Reuse generated fast ASCII/binary tests only; no new fixtures, test registration, dependency, full suite, native run, support promotion, or J transition."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

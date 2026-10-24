@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Consumer-route failover and verification provenance status recheck",
+  "mode": "Read-only primary-source web research and existing-plan reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck the current status and scope of FreeCAD issue #31835",
+    "Reconfirm the current OpenCADStudio audit/save_verified route and evidence lineage",
+    "Determine whether existing FreeCAD and application-acceptance plan gates have an uncovered implementation action"
+  ],
+  "method": {
+    "kind": "Read-only review of public project issue/release/documentation pages and local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "externalIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "FreeCAD #31835 remains a reporter's account for one named version/platform tuple and was not reproduced. OpenCADStudio documentation and release claims were inspected but no artifact was executed. Both findings and their route/evidence boundaries were already represented in the plan; this pass adds status provenance only."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/31835"
+      ],
+      "revision": "Issue page reviewed 2026-10-18; reporter identifies FreeCAD 1.1.3.20260725 commit 145529fe741292ff0b3977a01195bf0247425794, LibreDWG 0.14, ODA File Converter 27.1.0, Windows 11",
+      "observed": "The issue remained open with no linked PR. It reports that the FreeCAD DXF-to-DWG export wrapper can return the destination path after a failed selected converter without validating output or reaching later converter choices in Automatic mode. This is adjacent route evidence only; it does not establish import-path behavior or a libdxfrw defect."
+    },
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md"
+      ],
+      "revision": "Release v2026.41 points to cff240e; release and automation documentation reviewed 2026-10-18",
+      "observed": "The workflow documents explicit target selection, lossy-record reporting, raw DXF handle-reference checks, output reopen, semantic-manifest comparison, and SHA-256 reporting. The plan already treats this as optional same-stack consistency evidence within the ACadRust-descended application route, not an independent parser or geometry oracle."
+    },
+    {
+      "project": "Local libdxfrw plan",
+      "urls": [],
+      "revision": "Working tree at baseline commit de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "The existing PAR-07/S8/7F.1 consumer rows already require backend/converter identity, output artifact/version and hash, strict reopen, source-bound inventory/manifest, fallback disposition, and separate independent/native evidence. The 3D acceptance-harness row already classifies OpenCADStudio save_verified readback as same-stack evidence. No duplicate readiness action is warranted."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "nestedReadinessActionsAdded": 0,
+    "existingReadinessActionsRefined": 0,
+    "existingStatusRowsRefreshed": 1,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Status refresh only: FreeCAD #31835 remains open with no linked PR. The existing failover/provenance acceptance gate is sufficient and no implementation action or validation cadence change was added."
+  },
+  "implementationReadyChecks": [
+    "Retain the existing requirement to identify or force the FreeCAD converter backend and verify actual output bytes/version, strict reopen, and manifest before counting a pass.",
+    "Retain the existing rule that OpenCADStudio audit/save_verified is same-stack consistency only; use it only as an optional composed diagnostic and require separate independent semantic/native evidence."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-consumer-route-failover-verification-provenance-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed",
+    "untrackedReceiptDiffCheck": "passed; git diff --no-index returned the expected exit 1 because the receipt is untracked, with no whitespace diagnostics"
+  },
+  "workingTree": {
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer output-integrity and layout-failure route reconciliation",
+  "mode": "primary-source peer issue research, local source/test audit, and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile newly surfaced LibreDWG writer reports against local DXF string and OBJECTS routes",
+    "Review ACadSharp plot-setting and encoded-string failure reports against local DWG reader/writer paths",
+    "Turn only local evidence gaps into small generated implementation-ready checks"
+  ],
+  "method": {
+    "kind": "Read primary GitHub issues/commits, Autodesk references, local source, and existing tests",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Peer issue bodies are report evidence tied to named versions and operations, not independently reproduced findings in libdxfrw. The proposed layout and string checks remain plan items; no local runtime result is claimed."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/commit/5abbe5dc25208c87e7c2da2b6aa402d54f2193b1",
+        "https://github.com/LibreDWG/libredwg/commit/aafb376e0bd0b75b5b06a2e04a7c7dd65a741474",
+        "https://github.com/LibreDWG/libredwg/issues/1413"
+      ],
+      "revision": "Issue pages and linked commits reviewed 2026-10-18; release adoption not verified",
+      "observed": "#1412 reports uninitialized/stale bytes entering DXF text through NUL termination at the allocation boundary and strlen-based sizing; linked commits add last-written-byte termination and a zero-length group emission guard. #1413 reports a positional NOD selection failure when a lower-handle extension dictionary precedes the actual NOD."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_ShadePlotCustomDpi.html"
+      ],
+      "revision": "Published DXF/ObjectARX references reviewed 2026-10-18",
+      "observed": "The NOD is the first OBJECTS object. PLOTSETTINGS group 78 applies only when group 77 is Custom (5); the documented active custom DPI range is 100 through 32767."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1184",
+        "https://github.com/DomCR/ACadSharp/issues/1234"
+      ],
+      "revision": "Open issue bodies reviewed 2026-10-18; #1184 names 3.6.35/3.6.51 and #1234 names 3.6.51, 3.7.1, and master 91ae384a",
+      "observed": "#1184 reports that a setter rejecting stored ShadePlotDPI=0 can discard all DWG LAYOUT objects. #1234 reports SummaryInfo value loss beginning at 16,383 characters and warns that the same peer reader does not reliably reveal the writer corruption."
+    },
+    {
+      "project": "Local libdxfrw source and tests",
+      "urls": [
+        "src/intern/dxfwriter.cpp",
+        "src/intern/dwgbufferw.cpp",
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dxf_fixture_tests.cpp",
+        "tests/writer_primitives_tests.cpp",
+        "tests/dwg_object_vectors_tests.cpp"
+      ],
+      "revision": "Working-tree source/test audit at baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "The local DXF sinks write explicit string_view lengths, the NOD-first generated ASCII/Binary test already covers a lower-handle extension dictionary and output order, PLOTSETTINGS/ LAYOUT parse paths retain parsed integers without a setter range check, and generic DWG CP8/UTF-16 writers reject byte/code-unit counts above 0xFFFE before narrowing. Existing DPI DXF controls do not cover the cited DWG LAYOUT read route; no exact generic DWG string-limit test was found in the reviewed test sources."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnerTestRefinementsProposed": 2,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrationsAdded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds two focused generated checks under existing owners: DWG LAYOUT stored shade-DPI retention and generic CP8/UTF-16 encoded-length boundaries. Records that NOD ordering already has exact generated coverage and that LibreDWG's C cquote defect is not the same local C++ string-sink implementation."
+  },
+  "implementationReadyChecks": [
+    "Extend the existing PAR-20/7G LAYOUT/PLOTSETTINGS target with a locally generated DWG containing inactive 77=2/78=0 and valid custom 77=5/78=300, and assert raw field position, layout callback, owner/NOD dictionary closure, and a following record.",
+    "Extend an existing fast writer-primitives target to test encoded CP8 byte and UTF-16 code-unit lengths at 0xFFFE and 0xFFFF; include an astral input so code units are not confused with Unicode scalars or UTF-8 bytes.",
+    "For each accepted string-boundary control, inspect the wire length and following sentinel independently of same-reader roundtrip; for refusal, assert error state and no wrapped length/output publication.",
+    "Do not add a generic SummaryInfo claim: the peer's 16,383 boundary belongs to its own route and is not the local generic sink limit.",
+    "Reuse existing NOD-first tests rather than adding a duplicate; keep the six J items deferred and non-promoting."
+  ]
+}

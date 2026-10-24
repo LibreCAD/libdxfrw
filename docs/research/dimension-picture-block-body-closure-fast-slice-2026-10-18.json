@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DIMENSION picture BLOCK body closure fast slice",
+  "mode": "local implementation and generated focused controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Extend strict modern DIMENSION group-2 admission from planned BLOCK_RECORD name to an emitted and closed BLOCK body",
+    "Allow forward picture references within BLOCKS and verify them at the section boundary",
+    "Rollback emitted-body and pending-reference indexes on failure",
+    "Preserve standalone writer, empty-name, and R12 behavior"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "diagnostic": "incomplete-dimension-picture-block",
+    "strictMode": "m_requireResolvedBlockOwners && version > DRW::AC1009",
+    "indexes": [
+      "m_emittedDxfBlockBodyNames",
+      "m_pendingDxfDimensionPictureBlocks"
+    ],
+    "transactionBehavior": "RecordStateScope journals both indexes and restores block phase/name state; DxfWriterRecordScope plus the existing outer writer transaction preserve the output on failure",
+    "fixedBodies": [
+      "*Model_Space",
+      "*Paper_Space"
+    ],
+    "forwardReferences": "Collected while BLOCKS is active; every pending DIMENSION picture name must resolve to a body closed before writeBlocks commits",
+    "legacyWriterChanged": false,
+    "emptyNameClassified": false
+  },
+  "tests": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    {
+      "command": "jq empty docs/research/dimension-picture-block-body-closure-fast-slice-2026-10-18.json",
+      "result": "PASS"
+    },
+    {
+      "command": "scoped git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "generatedCoverage": [
+    "ASCII and Binary DXF",
+    "ordinary DIMENSION, ARC_DIMENSION, and LARGE_RADIAL_DIMENSION writers",
+    "planned name with missing body is refused before later entity bytes",
+    "emitted and closed body admits picture target",
+    "forward picture reference inside another block resolves when later body is emitted",
+    "missing forward target refuses BLOCKS atomically and rolls both indexes back"
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuitesRun": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "remaining": [
+      "source-child identity and owner closure",
+      "nested INSERT target and style/arrow/linetype resource closure",
+      "constraint and unknown empty-name classification",
+      "full dxfRW::write/CLI integration coverage",
+      "independent parsed override dictionary and native rendering/acceptance"
+    ],
+    "limitations": "The index proves only a planned named BLOCK_RECORD has a corresponding emitted and closed BLOCK/ENDBLK body. It does not prove the correct source child set/owners, nested references, resource resolution, constraint semantics, correct geometry, complete CLI behavior, or consumer rendering."
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

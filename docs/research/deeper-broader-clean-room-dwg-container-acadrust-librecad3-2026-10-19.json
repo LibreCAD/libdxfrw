@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Clean-room DWG container, ACadRust issue freshness, and LibreCAD 3 claim boundary",
+  "mode": "Primary-source research and implementation-readiness update; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen a newly surfaced source-distinct open DWG container implementation for a narrow comparator role.",
+    "Refresh ACadRust issue evidence for Binary DXF value widths and source-object loss/recovery dispositions.",
+    "Reconcile LibreCAD 3 and FreeCAD consumer claims with separate 2D, raw-carrier, and 3D semantic evidence lanes."
+  ],
+  "sources": [
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs#verification",
+        "https://github.com/DrunkOnJava/dwg-rs#-pre-alpha-status--read-this-first",
+        "https://github.com/DrunkOnJava/dwg-rs#why-this-exists"
+      ],
+      "revision": "Mutable default-branch README reviewed 2026-10-19; no immutable commit or published crate artifact bound.",
+      "observed": "The project calls itself pre-alpha and separates a shipping container/object-stream layer from incomplete per-entity decoding. It describes a 19-file corpus, container and round-trip tests, mutation/property tests, and explicitly states those tests do not verify every entity decoder on real-world files. It says the implementation is based on ODA Open Design Specification v5.4.1 and not executable LibreDWG source; it reports consulting ACadSharp algorithm-description comments for one LZ77 ambiguity.",
+      "evidenceCeiling": "Potential source-distinct implementation for selected container/header/section/decompression questions, but shares the ODA normative source and has no established current artifact/profile. Not a qualified independent expected-value oracle, DXF writer oracle, object-semantic oracle, or 3D/ACIS witness."
+    },
+    {
+      "project": "hakanaktt/acadrust issues #136, #133, and #135",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/issues/136",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/135",
+        "https://github.com/hakanaktt/acadrust/tests/roundtrip.rs"
+      ],
+      "revision": "Mutable issue index and source pages reviewed 2026-10-19; #136/#133/#135 shown open in the reviewed snapshot; #136 reproducer names acadrust 0.6.4.",
+      "observed": "#136 reports fixed-width Binary DXF numeric writes that conflict with the type of 15 group codes, including 70-79 and 90-93, plus a NUL-bearing XDATA string. Its author reports that same-codec readback did not catch the byte-stream misalignment. #133 reports orphaned entities being relocated to model space. #135 reports an AC1024 associative object hard-failing, being skipped, or becoming Unknown/omitted depending on version/configuration. The visible test source includes self-roundtrip and generated/synthetic 3D carrier cases.",
+      "evidenceCeiling": "Peer issue reports, not independently reproduced current peer results or local defects. The project and OpenCADStudio route must not be counted as two parser votes because OpenCADStudio documents ACadRust as its native engine."
+    },
+    {
+      "project": "LibreCAD/LibreCAD_3 DWG support policy",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master document reviewed 2026-10-19; policy ledger figures describe the revision recorded in that document.",
+      "observed": "The document says optional DWG reading is not symmetric with writing; DWG writing is not implemented/planned until separate claims and acceptance gates are met. It reports 15 read-only claims, 11 EXPERIMENTAL and 4 PENDING_NATIVE, none PROMOTED, at its documented pin.",
+      "evidenceCeiling": "Downstream product and claim policy, not a test result for this workspace's exact library build."
+    },
+    {
+      "project": "FreeCAD and ezdxf ACIS/consumer documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Mutable main-branch documentation/source reviewed 2026-10-19.",
+      "observed": "FreeCAD documents DWG as converter-to-DXF followed by the selected DXF importer and states stock DXF import cannot read embedded ACIS solids. ezdxf documents SAT on R2000-R2010 and SAB on R2013+, and a read-only browser/export path for raw ACIS content.",
+      "evidenceCeiling": "Consumer-route and carrier-observation evidence only; not proof of arbitrary ACIS reconstruction or B-rep semantic equivalence."
+    }
+  ],
+  "localEvidence": [
+    "src/intern/dxfcode.h provides a central standard group-code-to-value-kind classifier.",
+    "src/intern/dxfwriter.cpp Binary DXF typed numeric methods validate the expected DxfValueKind before writing; binary string output checks safe framing before emission.",
+    "tests/wave1_tests.cpp exercises classifier boundary types and generated rejection of wrong-kind typed writes; no peer call-site numbers were adopted as format authority.",
+    "Existing source-owner, unknown/raw disposition, PAR-07/S8 carrier, and composed consumer plans already separate record parsing, semantic projection, output, and native acceptance."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds dwg-rs only as an optional, unqualified container-level comparator; records that the reported Binary DXF width hazard class is already centrally guarded and generated locally; refreshes source-object loss/recovery disposition requirements; and keeps LibreCAD 3 DWG read policy, FreeCAD's current 2D importer, raw ACIS carrier handling, and 3D semantics separate."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local source/test/plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The newly discovered dwg-rs pages and ACadRust issues are mutable and were not bound to immutable artifacts or executed. The ACadRust issue inputs are not independently reproduced here. LibreCAD 3's recorded qualification counts apply to its documented pin, not automatically to the current shared-workspace source. FreeCAD/ezdxf documentation constrains the reviewed route only; it does not establish a kernel or arbitrary 3D shape result."
+  }
+}

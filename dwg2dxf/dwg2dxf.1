@@ -33,6 +33,14 @@ formatting and raw binary/handle roles are not globally rewritten. This is not
 complete charset, raw-application-data, native-rendering or DWG support
 qualification. Ordinary library writers default to Compatible; the CLI explicitly
 opts into RequireLossless without an additional command-line switch.
+.PP
+DWG reads are strict by default: semantic read incompleteness prevents output.
+The explicit --allow-partial-dwg-read option permits output only when the read
+succeeded and every source frame has a bounded terminal disposition. It does
+not enable recovery or relax owner/reference closure, source-text checks,
+lossless target transport, or transactional publication. The resulting DXF may
+omit failed or unmodeled source content and is not evidence of complete DWG
+semantics or format support. DXF input is unaffected.
 .SH OPTIONS
 input      existing file to convert
    -b         optional, sets output as binary dxf
@@ -44,6 +52,8 @@ input      existing file to convert
               optional with -o; otherwise the source revision is retained)
    --dxf-codepage-policy=compatible|exact-named
               explicit DXF input mapping policy (default: compatible)
+   --allow-partial-dwg-read
+              explicitly allow bounded terminal DWG frame losses (default: strict)
    output     output file name
 
 .PP

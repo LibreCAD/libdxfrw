@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-deeper-broader-source-free-sab-authoring-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Assess whether the newly documented acis-core source-free SAB authoring API can speed deterministic local ACIS controls without being misclassified as an independent parser, semantic oracle, or native producer witness.",
+  "method": {
+    "kind": "Primary-source published crate API, crate metadata, cq-acis release attestation/documentation, repository plan audit, and one existing generated fast test",
+    "sources": [
+      "https://docs.rs/acis-core/0.3.8/acis_core/",
+      "https://crates.io/crates/acis-core/0.3.8",
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md"
+    ],
+    "candidateInstalledOrRun": false,
+    "candidateSourceClonedOrBuilt": false,
+    "nativeCadOrIndependentKernelRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFastCheck": {
+      "command": "./build/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix",
+      "result": "PASS",
+      "scope": "Existing generated legacy modeler-DXF ASCII/binary writer/readback matrix only; it does not exercise acis-core or SAB authoring."
+    }
+  },
+  "evidence": [
+    {
+      "topic": "Source-free control generator scope",
+      "observed": [
+        "The acis-core 0.3.8 API documents BoxSpec and SabEncoder for an experimental ASM23200MetricBox profile.",
+        "The documented box has fixed profile properties, exactly 86 active entities, input size/coordinate bounds, and topology/ownership/finite-value validation before encoding.",
+        "HistoryMode::None is intended for source geometry; a separate insertion-only history mode creates a fresh state.",
+        "A separate experimental BrepSpec authoring profile is limited to planes, cylinders, lines, circles, and ellipses, with pcurves absent and no native qualification."
+      ],
+      "doesNotEstablish": [
+        "that the SabEncoder output has been accepted by AutoCAD, ODA, or a native CAD application",
+        "that its parser or its own round-trip is independent validation",
+        "that its model is valid for arbitrary ACIS versions, history, transformations, or producer conventions"
+      ],
+      "planUse": "Optional source-free ephemeral test-input generation at an already scheduled composed checkpoint; retain dependency-free local vectors for normal fast slices."
+    },
+    {
+      "topic": "Lineage and release pinning",
+      "observed": [
+        "PyPI attests cq-acis 0.3.12 to monozukuri-ai/cq-acis commit e05a8f470d2f6799277f7b7df467d2fc35625889.",
+        "cq-acis documentation describes acis-core as its shared Rust model/parser layer and CadQuery/OCCT as a separate geometry-conversion layer.",
+        "The published acis-core 0.3.8 API and the later cq-acis 0.3.12 artifact are distinct versioned artifacts; mutable main documentation was not proven identical to the attested tag in this pass."
+      ],
+      "doesNotEstablish": [
+        "that acis-core 0.3.8 source and cq-acis 0.3.12 bundled source are identical",
+        "that the crate's structural validation proves B-rep validity or source-file compatibility",
+        "that cq-acis provides an independent kernel relative to FreeCAD's OCCT path"
+      ],
+      "planUse": "Treat acis-core/cq-acis as one project lineage; inspect the exact lockfile and tagged source before composing author and reader versions."
+    },
+    {
+      "topic": "Implementation speed and evidence separation",
+      "observed": [
+        "A source-authored asymmetric box could avoid acquiring an external drawing and could avoid the CadQuery runtime if only raw generation/structural checks are needed.",
+        "Kernel metrics still require a separate converter/kernel route; native acceptance and DWG AcDs owner association remain separate gates.",
+        "The existing fast modeler-DXF matrix passes without installing or running the candidate crate."
+      ],
+      "planUse": "At one composed checkpoint, use acis-core only if its exact version/toolchain is already available or explicitly approved for setup; otherwise record NOT_RUN and continue with existing locally generated vectors. Do not add it as a normal build or test dependency."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "controlGeneratorCandidate": "acis-core 0.3.8 BoxSpec/SabEncoder; experimental and source-generated only",
+    "parserLineageCount": 1,
+    "independentKernelResult": "NOT_RUN",
+    "nativeConsumerResult": "NOT_RUN",
+    "ordinaryFastGate": "Touched strict build + one focused generated test + relevant compatibility compile + git diff --check; no external setup",
+    "composedGate": "Exact crate/source/lock pin, ephemeral asymmetric control, independent expected manifest, separate parser/kernel/native observations",
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "findingCountChanged": false,
+    "subplanCountChanged": false
+  }
+}

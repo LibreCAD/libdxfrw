@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-126 DWG TABLE fail-closed gate verification",
+  "mode": "Current-worktree implementation verification and existing-sample trace",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified. This turn did not alter production or test source; it ran the focused guard validation, traced an existing tracked AC1021 sample, and updated the plan/receipt. No commit or staging was attempted.",
+    "changedFilesThisTurn": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par126-dwg-table-fail-closed-fast-slice-2026-10-21.json"
+    ],
+    "implementationFilesUnderVerification": [
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/CMakeLists.txt"
+    ]
+  },
+  "implementation": {
+    "planOwner": "PAR-126 / 7G.3d",
+    "status": "FAIL_CLOSED_GUARD_VERIFIED_IN_CURRENT_WORKTREE; VERSIONED_TABLE_ENCODING_NOT_IMPLEMENTED",
+    "behavior": "dwgRW::writeTable refuses a non-null TABLE, latches whole-DWG write failure, and records unsupported-table-dwg-encoding instead of allowing the inherited INSERT/MINSERT encoder to silently discard TABLE semantics.",
+    "generatedControls": "The existing runtime-generated full-write selector covers AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032. Each case checks unchanged TABLE identity/content, continued ordinary INSERT and following LINE callbacks, exact failure diagnostic/skip disposition, and preservation of a pre-existing destination sentinel.",
+    "supportBoundary": "This closes only the silent INSERT-shaped DWG TABLE output path. It does not encode TABLE/TABLECONTENT, prove a versioned oType mapping, or promote any TABLE support claim."
+  },
+  "existingSampleTrace": {
+    "input": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_imperial.dwg -y -d -v2010 <scratch-output>",
+    "exitCode": 1,
+    "observations": [
+      "Two AcDbTable instances were encountered.",
+      "The trace reported encoded/resolved custom-class ID 506 for AcDbTable in this DWG.",
+      "The table payload path reports unsupported R2007 cell types 16 and 92; this file is not a complete semantic TABLE witness.",
+      "The strict CLI result is incomplete and nonzero; it must not be read as TABLE writer acceptance."
+    ],
+    "traceLog": {
+      "scratchPath": "/private/tmp/libdxfrw-table-trace.pkQ34Y/trace.log",
+      "sha256": "40f5b4c2c5d2febe5c1673b3ab7d097e104c89cbcfa67cc706e5600b7aacc6eb"
+    },
+    "typeCodeDisposition": "506 is a per-file custom-class index observation only. Do not hardcode it across files or releases; map a writer class dynamically only after the versioned layout and class registration are established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --dwg-table-writer-refusal",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_table_writer_refusal$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- src/libdwgr.cpp tests/dwg_local_roundtrip_tests.cpp tests/CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "fixtureAdded": false,
+    "peerDependencyAdded": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "remaining": {
+    "authoritativeOdaSpecPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf",
+    "authoritativeOdaSpecAvailableInThisSession": false,
+    "nextTableWork": "Keep the writer fail-closed. Resume version-specific TABLE encoding only after the authoritative ODA sections and a complete producer profile are available; do not infer bytes or type IDs from peer implementations.",
+    "selfUnblock": "Continue the next dependency-ready local PAR-07/PAR-14 implementation slice; external/spec-file absence does not stop unrelated local work.",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "receiptValidation": {
+    "jsonValidation": "PENDING",
+    "scopedDiffCheck": "PENDING"
+  }
+}

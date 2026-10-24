@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7AA.1 DIMASSOC DXF emitted-graph closure",
+  "mode": "local implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Require graph-managed dimension and osnap links to identify actually emitted entities",
+    "Keep reference-resolver output final while validating its graph identity",
+    "Reject missing, ambiguous, or merely preallocated targets before publication",
+    "Preserve standalone low-level writer behavior when no entity graph exists"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "DIMASSOC DXF emission now checks each nonzero dimension/osnap target before opening its record transaction. In graph-managed mode, the normal remap must agree with a non-ambiguous, actually-written source binding; resolver output must be the unique output identity of an actually-written entity and is not remapped again. The empty-graph direct writer path retains existing behavior. Generated negative cases verify that rejected records do not append bytes.",
+    "dwgByteLayoutChanged": false,
+    "publicLayoutChanged": false,
+    "abiCompatibilityClaimed": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "limitations": "This covers only currently modeled DXF dimension/osnap references. It does not represent omitted osnap subentity/marker/parameter/point/intersection/xref fields, implement live associative updates, or add DWG DIMASSOC support. Duplicate-output rejection is enforced by the implementation but was not given a separate generated vector in this slice."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests lc3_compat_check -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --dimassoc-graph-closure",
+        "result": "passed; ASCII/Binary emitted targets, missing dimension/osnap targets, preallocated-but-unwritten target, valid resolver redirect, invalid resolver identity, final-handle readback, and no-publication checks"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --integer-valued-boolean-wire-kinds",
+        "result": "passed; existing direct low-level DIMASSOC behavior and ASCII/Binary field/remap checks remain intact"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimassoc-dxf-emitted-graph-closure-fast-slice-2026-10-17.json",
+        "result": "passed"
+      },
+      {
+        "command": "jq empty docs/research/dimassoc-dxf-emitted-graph-closure-fast-slice-2026-10-17.json",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "subplan": "7AA.1",
+    "status": "PARTIAL_LOCAL_DXF_IMPLEMENTATION",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

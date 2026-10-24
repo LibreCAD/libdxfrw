@@ -210,33 +210,29 @@ void testAdvancedTargetFixtures(TestContext& t) {
     }
 }
 
-void testTypedEntitiesSurviveDxfConversion(TestContext& t) {
+void testTypedEntitiesRemainAvailableWhenDxfReplayIsBlocked(TestContext& t) {
     {
         FixtureInterface sourceInterface;
         dx_data sourceData;
         t.expect(sourceInterface.fileImport(
                       fixturePath("rtext_arctext.dwg").string(), &sourceData,
                       false),
-                 "RTEXT/ARCALIGNEDTEXT fixture imports before DXF conversion");
+                 "RTEXT/ARCALIGNEDTEXT fixture imports");
+        t.expect(sourceInterface.sawRText
+                     && sourceInterface.rtext == "RTEXT-DIESEL-TEST"
+                     && sourceInterface.sawArcAlignedText
+                     && sourceInterface.arcAlignedText == "ARC-TEXT-TEST"
+                     && std::fabs(sourceInterface.arcRadius - 25.0) < 1e-12,
+                 "RTEXT/ARCALIGNEDTEXT typed values are retained on import");
 
         const std::filesystem::path output = temporaryDxfPath("rtext");
-        FixtureInterface dxfInterface;
-        dx_data dxfData;
         const bool exported = sourceInterface.fileExport(
-            output.string(), DRW::AC1027, false, &sourceData, false);
-        t.expect(exported,
-                 "RTEXT/ARCALIGNEDTEXT fixture exports to DXF");
-        if (exported) {
-            t.expect(dxfInterface.fileImport(output.string(), &dxfData, false),
-                     "RTEXT/ARCALIGNEDTEXT converted DXF reads back");
-            t.expect(dxfInterface.sawRText
-                         && dxfInterface.rtext == "RTEXT-DIESEL-TEST",
-                     "RTEXT type and payload survive the DXF conversion");
-            t.expect(dxfInterface.sawArcAlignedText
-                         && dxfInterface.arcAlignedText == "ARC-TEXT-TEST"
-                         && std::fabs(dxfInterface.arcRadius - 25.0) < 1e-12,
-                     "ARCALIGNEDTEXT type, payload and radius survive conversion");
-        }
+            output.string(), sourceData.sourceVersion, false, &sourceData,
+            false);
+        t.expect(!sourceData.visualStyles.empty()
+                     && sourceData.rawVisualStyleObjects.empty()
+                     && !exported && !std::filesystem::exists(output),
+                 "RTEXT/ARCALIGNEDTEXT conversion refuses typed-only VISUALSTYLE output atomically");
         std::error_code ec;
         std::filesystem::remove(output, ec);
     }
@@ -247,22 +243,20 @@ void testTypedEntitiesSurviveDxfConversion(TestContext& t) {
         t.expect(sourceInterface.fileImport(
                       fixturePath("mpolygon_solid.dwg").string(), &sourceData,
                       false),
-                 "MPOLYGON fixture imports before DXF conversion");
+                 "MPOLYGON fixture imports");
+        t.expect(sourceInterface.sawMPolygon
+                     && sourceInterface.mpolygonSolid == 1
+                     && sourceInterface.mpolygonFillAci == 256,
+                 "MPOLYGON typed values are retained on import");
 
         const std::filesystem::path output = temporaryDxfPath("mpolygon");
-        FixtureInterface dxfInterface;
-        dx_data dxfData;
         const bool exported = sourceInterface.fileExport(
-            output.string(), DRW::AC1027, false, &sourceData, false);
-        t.expect(exported, "MPOLYGON fixture exports to DXF");
-        if (exported) {
-            t.expect(dxfInterface.fileImport(output.string(), &dxfData, false),
-                     "MPOLYGON converted DXF reads back");
-            t.expect(dxfInterface.sawMPolygon
-                         && dxfInterface.mpolygonSolid == 1
-                         && dxfInterface.mpolygonFillAci == 256,
-                     "MPOLYGON type, solid flag and fill ACI survive conversion");
-        }
+            output.string(), sourceData.sourceVersion, false, &sourceData,
+            false);
+        t.expect(!sourceData.visualStyles.empty()
+                     && sourceData.rawVisualStyleObjects.empty()
+                     && !exported && !std::filesystem::exists(output),
+                 "MPOLYGON conversion refuses typed-only VISUALSTYLE output atomically");
         std::error_code ec;
         std::filesystem::remove(output, ec);
     }
@@ -405,7 +399,7 @@ int main() {
     testOrdinaryEncoding(context, "ordinary_enc_ac1027_ansi932.dwg", true,
                          "Book$Ａ", "ANSI_932");
     testAdvancedTargetFixtures(context);
-    testTypedEntitiesSurviveDxfConversion(context);
+    testTypedEntitiesRemainAvailableWhenDxfReplayIsBlocked(context);
     testTruncatedTargetFixtures(context);
     testUtf8FilesystemPaths(context);
     if (context.failures != 0) {

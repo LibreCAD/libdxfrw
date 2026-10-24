@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "created_utc": "2026-10-18T22:03:38Z",
+  "date": "2026-10-18",
+  "title": "ACadSharp dynamic-block merge and modeler-writer status refresh",
+  "mode": "Deeper/broader primary-source issue, pull-request, documentation, and local-owner crosswalk; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile ACadSharp's dynamic-block reader/writer status after issue #1133 closure",
+    "Separate merged dynamic-block work from still-open ACIS/modeler writer proposals",
+    "Extract an optional native semantic acceptance procedure without adding per-slice work",
+    "Reconfirm stock FreeCAD ACIS and LibreCAD 3 DWG direction boundaries"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project issue, pull request, release, and documentation pages plus local plan/source-owner crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Issue and PR pages contain maintainer/contributor reports and describe mutable project state; no peer tree or output was built or run. The offered AutoCAD COM script was not available as a verified merged artifact. No result from these sources is treated as a local defect or conformance proof. ODA v5.4.1 remains authoritative for DWG layout."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp dynamic-block path",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1133",
+        "https://github.com/DomCR/ACadSharp/pull/1151"
+      ],
+      "revision": "Issue closed by PR #1151, merged to master 2026-07-31; source pages reviewed 2026-10-18",
+      "observed": "The merged PR implements an initial DWG/DXF dynamic-parameter and evaluation-graph reader/writer path. Its description states that original dynamic blocks can be emitted intact while modified instances still lose parameter relationships. The issue follow-up names reader-retention fields needed for byte-faithful writing and offers an AutoCAD COM procedure: open, AUDIT, enumerate dynamic block properties, toggle visibility, and REGEN. A proposed write-read-write byte fixed point is same-codec stability only."
+    },
+    {
+      "project": "ACadSharp ACIS/modeler writer path",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "Live issue/PR status pages reviewed 2026-10-18",
+      "observed": "Issue #1195 and writer PR #1150/#1240 and schema refactor #1174 remain open. The proposed ACIS writer work is not part of the merged dynamic-block PR or a released writer baseline; public branch discussion includes repeated group-310 readback concerns."
+    },
+    {
+      "project": "ACadSharp visual-style/material report",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1074",
+        "https://github.com/DomCR/ACadSharp/pull/1077"
+      ],
+      "revision": "Issue closed by merged PR #1077; pages reviewed 2026-10-18",
+      "observed": "The original report suspected missing Material/VisualStyle records, but the merged fix defaulted VPort AmbientColor to Black. It does not establish a general Material or VisualStyle writer contract."
+    },
+    {
+      "project": "FreeCAD and LibreCAD 3 consumer boundaries",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Current issue/documentation pages reviewed 2026-10-18",
+      "observed": "Stock FreeCAD documentation and its closed issue state that embedded Autodesk ACIS blobs are not consumed by the standard DXF importer. LibreCAD 3 documents DWG import as optional/read-only and does not claim DWG writing. These routes cannot qualify ACIS solids or DWG writer acceptance."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Corrects the ACadSharp dynamic-block comparator state from unavailable/unmerged to merged partial while preserving distinct edited-instance and live semantic gaps. Adds an optional, exact-profile AutoCAD behavior procedure at the existing composed gate; same-codec fixed-point is explicitly non-promoting. Confirms the ACIS writer proposals and consumer-direction limits remain separate."
+  },
+  "verification": {
+    "jsonParse": "passed with jq empty",
+    "planDiffCheck": "passed for both plan files and the receipt",
+    "researchOnly": true
+  },
+  "workingTree": "The checkout was already extensively modified. Only the two plan files and this research receipt were edited in this pass; all changes remain unstaged and uncommitted."
+}

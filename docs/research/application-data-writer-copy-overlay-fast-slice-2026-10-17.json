@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-application-data-writer-copy-overlay-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.24",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / APPLICATION_DATA_COPY_SCOPED",
+  "objective": "Remove the complete nested application-data collection copy in dxfRW::writeAppData while preserving reference resolution order, callback timing, output semantics, and caller-owned source values.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Validates every input group before invoking the configured reference resolver.",
+      "Builds a pre-output ordered vector only for known reference handles that are replaced/omitted and known groups that become empty.",
+      "Emits all remaining groups and values by iterating the original const application-data structure.",
+      "With no resolver, creates no resolved nested-list copy and formats generic remapped handles only when their value changes.",
+      "Removes the former private resolveAppDataReferences() full-list materializer."
+    ],
+    "compatibility": "No public class layout change. Resolver callbacks remain one-shot and all occur before application-data output."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+    "focused_selector": "build-gcc/libdxfrw_dxf_fixture_tests --reference-resolver-appdata",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "covers": [
+      "ASCII and Binary resolver/no-resolver output",
+      "exact resolver callback counts and final mapped handles",
+      "zero-target reference removal and empty optional-group omission",
+      "foreign application groups and malformed opaque XDATA preservation",
+      "ordinary setHandleRemap behavior without a resolver",
+      "caller application-data source values remain unchanged",
+      "resolver exception, mutation refusal, and retry paths"
+    ],
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "limits": [
+    "This verifies source-level removal of a full nested-list clone; it does not measure allocator capacity, peak RSS, or all writer allocations.",
+    "Other raw/typed carrier and projection copies remain separate scopes.",
+    "No full test suite, peer runtime, native CAD application, or fuzz campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

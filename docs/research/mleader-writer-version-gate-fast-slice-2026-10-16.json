@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-mleader-writer-version-gate-fast-slice-v1",
+  "completedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refuse low-level MULTILEADER DXF output below AC1021 before record publication and verify the AC1021 record identity and framing in ASCII and binary DXF.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "5f7c5226a74c2644019acc71fa52c7fc156f652083d15ab68a853e1553037b40",
+      "tests/wave1_tests.cpp": "9c7bfe8bcb308a6b0b9603d550cfff8a9fa69aa80ea9d4b6311da268a554ba71",
+      "CMakeLists.txt": "4bdbc105426de45e4c48d53cc6f1dfcdc03ffdcd239d3dfd5edaef61f9ec445c"
+    },
+    "behavior": [
+      "writeMultiLeader rejects target versions below AC1021 before creating an entity record scope.",
+      "Generated ASCII and binary AC1018 controls refuse; generated AC1021 controls emit canonical MULTILEADER and AcDbMLeader identity.",
+      "A following sentinel record remains correctly framed after the AC1021 entity."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_writer_version|dwg2dxf_mleader_fail_closed|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "build-gcc/libdxfrw_wave1_tests --mleader-style-validation",
+      "git diff --check"
+    ],
+    "results": [
+      "Both focused test targets built successfully.",
+      "The focused three-test CTest set passed 3/3.",
+      "MLEADERSTYLE focused validation passed.",
+      "Scoped whitespace check passed."
+    ],
+    "fullSuiteRun": false,
+    "generatedControls": "Generated from scratch and deleted; no DWG/DXF drawing fixture was committed.",
+    "dependencyAdded": false,
+    "gitCommitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "evidenceLimits": {
+    "lowLevelRecordFraming": "VERIFIED for the generated AC1021 control only.",
+    "adapterMLeaderSerializer": "NOT_IMPLEMENTED",
+    "typedReferenceClosure": "NOT_ESTABLISHED",
+    "fullVersionedFieldSemantics": "NOT_ESTABLISHED",
+    "independentProducerReadback": "NOT_RUN",
+    "nativeConsumerQualification": "NOT_RUN",
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextReadySlice": "Close typed MLEADER reference edges only after establishing the adapter output's target-object inventory and source-to-emitted handle map; keep export fail-closed until those references and entity serialization are transactionally integrated."
+}

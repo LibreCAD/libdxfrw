@@ -1,0 +1,38 @@
+{
+  "id": "par134-mlinestyle-cmc-reserved-index-retention",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_MLineStyle",
+    "version": "AC1024+ CMC metadata; legacy color indices unchanged",
+    "fields": [
+      "MLINESTYLE fill-color CMC reserved BS index",
+      "MLINESTYLE per-element CMC reserved BS index"
+    ],
+    "specification": "ODA Open Design Specification v5.4.1 §2.11"
+  },
+  "change": "Retain nonzero R2004+ CMC indexes in appended public members and refuse any DWG or typed-only DXF rewrite that would normalize a retained nonzero index. Preserve pre-R2004 color-index semantics. The typed DXF test uses a synthetic DWG-origin receipt because DXF-origin exports replay their validated raw carrier and intentionally do not serialize edits to the typed projection.",
+  "generated_controls": {
+    "version": "AC1024",
+    "mutation": "Change selected two-bit BS reserved-zero tags to the same-width BS 256 tags.",
+    "assertions": [
+      "Fill and selected per-element source indexes survive typed parsing.",
+      "Angles and subsequent element linetype indexes remain aligned.",
+      "Copy, assignment, and reset preserve lifecycle semantics.",
+      "DWG encoding refuses retained nonzero source indexes before emitting body, string, or handle bytes.",
+      "Typed-only DXF export refuses fill and element anomalies and preserves a pre-existing destination."
+    ]
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4: PASS (-Werror strict build)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_mlinestyle_cmc_retention|libdxfrw_dwg_object_vectors|libdxfrw_named_resource_import_evidence)$' --output-on-failure: PASS (3/3)",
+    "cmake --build build-gcc --target lc3_compat_check -j4: PASS",
+    "git diff --check -- src/drw_objects.cpp src/drw_objects.h src/libdxfrw.cpp tests/dwg_object_vectors_tests.cpp tests/dwg2dxf_adapter_tests.cpp CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par134-mlinestyle-cmc-reserved-index-retention-fast-slice-2026-10-22.json: PASS",
+    "ctest --test-dir build-gcc -R '^dwg_read_' --output-on-failure: PARTIAL (7/17 pass; 7 AC1021 failures report reader21 CRC mismatches and error 9; 3 AC1024 visualization failures report class CRC mismatch and object parse failures; not baseline-compared or root-caused)"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

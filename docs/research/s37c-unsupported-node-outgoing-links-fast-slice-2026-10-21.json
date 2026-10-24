@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c unsupported-node outgoing pointer retention fast slice",
+  "mode": "Parser-fed generated SAB and rooted-projection regression",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "Broadly modified and uncommitted; no files staged.",
+    "changedFiles": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/s37c-unsupported-node-outgoing-links-fast-slice-2026-10-21.json"
+    ],
+    "change": "Rooted projection records raw outgoing pointer rows for each referenced unsupported ACIS node once per body, preserving ordinal and null target while leaving the node uninterpreted and untraversed. The shared unsupported spline-surface test checks its outgoing null slot in addition to both incoming face links.",
+    "validation": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS: 1/1, 1.19 seconds"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/s37c-unsupported-node-outgoing-links-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/s37c-unsupported-node-outgoing-links-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fixturesAdded": 0,
+    "productionCodeChanged": true,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "evidenceCeiling": "Source-authored generated SAB bytes processed by the local parser, model builder, and rooted structural projection. This verifies pointer-row preservation and null-slot retention only; it does not qualify unsupported-node record semantics, analytic geometry, transforms, B-rep validity, external interoperability, or native acceptance.",
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c rooted SAB projection and unsupported-branch accounting",
+    "completedSlice": "A referenced unsupported node is admitted once per body and its validated raw pointer rows, including null slots, are retained without recursive interpretation.",
+    "nextLocalSlice": "Continue to the next dependency-ready S3.7c graph/resource invariant; do not block local work on external peers, native consumers, or platform qualification.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "relatedResearchReceipt": "docs/research/deeper-broader-acadsharp-modeler-writer-acds-prerequisite-2026-10-21.json"
+}

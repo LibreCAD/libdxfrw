@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "R2007 CRC literal vectors fast slice",
+  "mode": "focused test-only implementation, no production CRC change",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Add an independent bit-at-a-time CRC reference to the existing reader-matrix test owner",
+    "Pin literal normal/mirrored CRC values for lengths 0 through 9",
+    "Pin literal UpdateSeed1 values for representative zero/nonzero seed and length cases",
+    "Add a manual-only diagnostic selector for one selected AC1021 page, without adding a CTest",
+    "Build and run only the focused owner and its existing CTest, then inspect one existing page"
+  ],
+  "method": {
+    "kind": "Implement a test-local bitwise reference from ODA v5.4.1 §§5.4 and 5.12; compare it and production helpers to fixed values independently calculated from the ODA recurrence and byte order; use a manual selector to inspect one existing AC1021 page",
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "localDwgFilesAddedOrModified": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerPackagesInstalled": 0,
+    "peerExecutablesRun": 0,
+    "fullSuitesRun": 0,
+    "existingSamplesInspected": [
+      "tests/samples/AC1021/tablet.dwg: AcDb:Header page 0x1c"
+    ]
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Official published v5.4.1 PDF; §§5.4 and 5.12 reviewed 2026-10-18",
+      "observed": "The fixed vectors exercise normal/mirrored CRCs, UpdateSeed1, and the special 8-byte block/remainder order specified by ODA."
+    },
+    {
+      "project": "Local libdxfrw reader-matrix test owner",
+      "urls": [],
+      "revision": "Working-tree test run 2026-10-18",
+      "observed": "Added --r2007-crc-literal-vectors and manual-only --r2007-page-crc-diagnostic selectors to the existing libdxfrw_dwg_reader_matrix_tests binary. Coverage includes byte lengths 0–9 for CRC64 normal and mirrored variants and five literal UpdateSeed1 cases. The independent test-local bit-at-a-time reference and production table-based helpers agree with all fixed values. On the existing tablet sample, the selected AcDb:Header page 0x1c at file offset 0x67680 has extent 0x400, encoding 4, cSize 0x30b, uSize 0x359, stored CRC 0xfe7642845db5fda9, and checksum 0x8deb465b. The decoded seed is zero per the current reader/debug trace, not yet independently cross-checked. The bitwise mirrored CRC of the RS-decoded compressed bytes is 0x6b1cdfbc3715d1fc; the raw-byte and normal-CRC candidates also differ. Parsing succeeds and the decompressed 32-bit checksum matches, but this does not identify whether the CRC field, seed extraction, map association, transform output, or sample provenance is responsible."
+    }
+  ],
+  "assessment": {
+    "focusedBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --r2007-crc-literal-vectors",
+    "owningCtest": "PASS: libdxfrw_dwg_reader_matrix (1/1, 1.45 seconds on final run)",
+    "crcHelperVectors": "PASS for fixed normal/mirrored values, lengths 0–9, and five UpdateSeed1 values",
+    "realAc1021PageMismatchExplained": false,
+    "realSampleCrcOrPageAssociationQualified": false,
+    "newConfirmedFormatClaims": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "7BE reader-matrix",
+      "PAR-14",
+      "PAR-26"
+    ],
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Independently decode the selected section-map record and file-header seed from existing bytes, cross-check the page location/CRC metadata and compressed bytes, then separately trace one system page."
+  }
+}

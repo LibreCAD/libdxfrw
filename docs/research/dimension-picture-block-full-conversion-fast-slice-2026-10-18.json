@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DIMENSION picture BLOCK full-conversion fast slice",
+  "mode": "local generated test implementation and focused verification",
+  "owner": "PAR-23/7J",
+  "scope": [
+    "Exercise strict adapter export and import for a DIMENSION picture block",
+    "Verify the modelspace DIMENSION, named BLOCK_RECORD, BLOCK body, LINE child, and owner handle survive",
+    "Verify a missing picture body refuses output without replacing an existing destination"
+  ],
+  "implementation": {
+    "testFile": "tests/dwg2dxf_adapter_tests.cpp",
+    "registrationFile": "tests/CMakeLists.txt",
+    "selector": "--dimension-picture-block-full-conversion",
+    "ctest": "libdxfrw_dimension_picture_block_full_conversion",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "outputVersion": "AC1032",
+    "externalFixtures": 0,
+    "committedFixtures": 0,
+    "productionCodeChanged": false,
+    "testRegistrationAdded": true,
+    "implementationNote": "The test constructs DRW_DimAligned through its explicit const DRW_Dimension& constructor. Its implicit derived copy inherits the base copy's eType reset to DRW::DIMENSION, which would make the test entity unhandled by the aligned-dimension adapter path."
+  },
+  "assertions": [
+    "Strict export succeeds with a complete picture BLOCK_RECORD/BLOCK/body graph in ASCII and Binary DXF.",
+    "Import returns true and retains exactly one modelspace DIMENSION with the expected picture-block name.",
+    "Imported BLOCK_RECORD identity matches the named BLOCK body owner.",
+    "The picture body contains one LINE whose parentHandle is the BLOCK_RECORD handle.",
+    "Strict export refuses a DIMENSION referencing an absent picture body and preserves the destination sentinel."
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimension_picture_block_full_conversion$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "supportClaimsPromoted": 0
+  },
+  "limitations": [
+    "This is generated local writer/readback evidence, not an independent reader result.",
+    "It proves record/name/body/child-owner structure only, not anonymous-constraint classification, nested resources, picture geometry, or rendering.",
+    "No external or committed drawing fixture, new dependency, full suite, peer, or native application was used."
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

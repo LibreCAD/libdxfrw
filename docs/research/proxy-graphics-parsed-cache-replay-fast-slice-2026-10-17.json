@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw-proxy-graphics-parsed-cache-replay-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Close the source-parsed-cache emission gap and verify the adapter's handle-backed raw-plus-typed duplicate refusal under the existing focused proxy-graphics selector.",
+  "method": {
+    "kind": "Locally generated complete ASCII/Binary DXF inputs with parser provenance, explicit acknowledgement, strict writer emission, literal wire inspection, and reimport checks",
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testFilesChanged": [
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The parsed-cache matrix covers AC1021/group-92 and AC1024/group-160 only. Duplicate refusal is verified when typed and raw records share a nonzero handle. It does not prove duplicate identity when source handles are absent or ambiguous, all version/entity profiles, or external producer/consumer behavior."
+  },
+  "controls": [
+    {
+      "topic": "Parsed cache default-deny then explicit replay",
+      "observed": "Generated AC1021/group-92 and AC1024/group-160 inputs in ASCII and Binary are parsed through dx_iface. The test checks ParsedDxf origin, source encoding/version/codepage/count, exact cache bytes, and unauthorized default state. It then calls the no-argument profile-bound acknowledgment and strictly exports at the same version to both ASCII and Binary.",
+      "matrix": {
+        "versions": [
+          "AC1021",
+          "AC1024"
+        ],
+        "sourceEncodings": [
+          "ASCII",
+          "Binary"
+        ],
+        "outputEncodings": [
+          "ASCII",
+          "Binary"
+        ],
+        "pathCount": 8
+      },
+      "assertions": [
+        "exact parsed and emitted proxy payload and declared count",
+        "correct 92 or 160 count group and literal chunk values",
+        "reimported cache is default-deny rather than inheriting caller acknowledgment",
+        "following LINE identity and coordinates survive"
+      ]
+    },
+    {
+      "topic": "Handle-backed raw-plus-typed duplicate",
+      "observed": "A generated raw LINE and typed proxy-cached LINE sharing one nonzero source handle are refused by the existing dx_iface raw/typed identity preflight before a destination is created.",
+      "doesNotEstablish": [
+        "identity of duplicate records when the source handle is absent or ambiguous",
+        "a duplicate publication path that has not passed adapter preflight",
+        "semantic equivalence of arbitrary raw and typed entity payloads"
+      ]
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "remainingWork": [
+      "add relevant version/entity profiles at the existing focused selector",
+      "resolve duplicate identity only if a route can produce handle-less or ambiguous raw/typed records",
+      "retain peer/native/independent semantic qualification at the composed checkpoint"
+    ]
+  },
+  "validation": {
+    "fixtureTargetBuild": "PASS",
+    "focusedProxyGraphicsSelector": "PASS",
+    "fullTestSuite": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

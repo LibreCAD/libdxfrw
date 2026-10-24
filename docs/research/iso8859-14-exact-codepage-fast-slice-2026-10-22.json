@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 exact ISO-8859-14 decoder",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "9e553cd520de23a2f3f50140acecdb89980c0162e09ec2fc6f12af0c65c60fe5",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-14.TXT",
+      "role": "Primary Unicode Consortium mapping for ISO/IEC 8859-14:1998; the table version history reports no mapping changes since creation."
+    },
+    {
+      "source": "Python standard-library strict iso8859_14 codec",
+      "role": "Independent local cross-check of all 128 production table entries."
+    }
+  ],
+  "scope": {
+    "change": "Added the exact ISO-8859-14 table, resolver/factory support for the existing compact label, and an appended Iso8859_14 per-consumption source-profile identity; updated resolution, selection, consumed-profile, ASCII/Binary, and focused fast-CTest coverage.",
+    "definedBytes": 128,
+    "undefinedBytes": [],
+    "compatibilityBehavior": "Unchanged: ISO8859-14 continues to select Windows-1252 under Compatible.",
+    "sourceAdmission": "Clean exact ISO-8859-14 remains UnsupportedProfile.",
+    "fixturesAdded": false,
+    "publicLayoutChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_14_codepage$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --iso8859-14-codepage",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_(13|14)_codepage$' --output-on-failure",
+      "result": "PASS (2/2)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "Compare DRW_TableISO8859_14 against Python strict iso8859_14 for bytes 0x80-0xFF",
+      "result": "PASS (128 entries; 0 mismatches)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/intern/drw_cptables.h src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "a8194586fc32c585c63c554aff7d29b0ebb59dc3bbef7a23153f480bbe1d0321",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9e553cd520de23a2f3f50140acecdb89980c0162e09ec2fc6f12af0c65c60fe5",
+    "src/drw_base.h": "9c11d020c21dc42b3f5856b10fdec4db699c59dddf3d5782ed86ec79cc637cd1",
+    "src/intern/drw_cptables.h": "659a6dbde64ac6f0aa4db9e8d8154c8464f7e192a3fbeda28f612c6d846efd99",
+    "src/intern/drw_textcodec.cpp": "0fd2a957715c2cdcffcea4382695326c9ba5d808dd0d8f5527d3c6232fe7ffb8",
+    "tests/gbk_codepage_tests.cpp": "cefb0081976dc14d7a53b1ef518127581642f601d67a38e102ef21087ff5f0f5"
+  },
+  "evidenceLimits": [
+    "The mapping and generated tests establish decoder/local parser behavior only, not CAD producer emission or native consumer acceptance of ISO-8859-14.",
+    "Compatible fallback behavior is unchanged and is not an exact ISO-8859-14 decoder or strict-source qualification.",
+    "No full format suite, external peer runtime, native CAD consumer, or persistent sample was used.",
+    "The appended public source profile changes observation structure layout; downstream binaries must rebuild together with the library."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

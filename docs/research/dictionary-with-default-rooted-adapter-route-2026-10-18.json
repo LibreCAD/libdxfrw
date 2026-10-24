@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.implementation-slice-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Rooted DICTIONARYWDFLT/default PLACEHOLDER production adapter route",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Select the single DICTIONARYWDFLT rooted by ACAD_PLOTSTYLENAME in the NOD",
+    "Close and serialize the code-340 default PLACEHOLDER using the source-origin carrier route",
+    "Remap object identities, emit exact CLASS instance counts, and preserve atomic refusal",
+    "Keep support claims route-specific and do not claim real DWG/native-CAD qualification"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Indexes typed WDFLT, typed placeholder, raw WDFLT, and raw placeholder identities separately from ordinary dictionaries.",
+      "Requires one successful dictionary-default import receipt and exactly one source-origin carrier family: DXF raw companions or DWG typed callbacks.",
+      "Admits exactly one WDFLT/default-placeholder pair, with one canonical ACAD_PLOTSTYLENAME NOD edge and no alias.",
+      "Validates the code-340 pointer and exact WDFLT owner; WDFLT child targets continue through the bounded typed object graph.",
+      "Emits DXF-origin raw WDFLT/placeholder once each and DWG-origin typed records once each; parent is written before child.",
+      "Plans/remaps both handles and regenerates exact WDFLT and PLACEHOLDER CLASS instance counts.",
+      "Fails closed for unsupported WDFLT child targets, raw placeholder reactors, and typed placeholder reactors/XDATA/extension dictionaries."
+    ],
+    "generatedControl": "The adapter test writes a minimal AC1027 DXF from scratch at test time; no external or committed DWG/DXF fixture is used.",
+    "notEstablished": [
+      "Real DWG-origin WDFLT/PLACEHOLDER read-to-export evidence.",
+      "Non-empty WDFLT graphs whose children are not already supported by the adapter's typed graph.",
+      "PLACEHOLDER reactor/XDATA/extension-dictionary output closure.",
+      "Native AutoCAD/ODA acceptance or broad DWG/DXF support parity."
+    ]
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_adapter_roundtrip$' --output-on-failure",
+        "result": "PASS (ASCII and Binary AC1027 generated adapter route; atomic unrooted refusal)."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_with_default_writer$' --output-on-failure",
+        "result": "PASS."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_extension_graph_limits$' --output-on-failure",
+        "result": "PASS."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+        "result": "PASS after the generated MLEADERSTYLE control was corrected to point code 341 at its BLOCK_RECORD target and code 342 at its STYLE target, the typed-only serializer control received an explicit synthetic receipt, and raw translated references began consulting the emitted-table handle map. This neighboring selector is not WDFLT support evidence."
+      }
+    ],
+    "diffCheck": "git diff --check -- src/libdxfrw.cpp dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md — PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "commitCreated": false
+  },
+  "supportDisposition": {
+    "claimsPromoted": false,
+    "planFindings": 133,
+    "topLevelSubplans": 76,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "source_sha256": {
+    "dwg2dxf/dx_iface.cpp": "4ef7f39ca4aa6a7ec8361893dbadb16a3336f5080963eb02710eb422fc2ca644",
+    "dwg2dxf/dx_iface.h": "ece38a9bf247eee089bc699d3abba63ca61e4d0e8347af47ae629fa707f6edf6",
+    "src/libdxfrw.cpp": "52e74d4418e7074edd3b2e0356da937e3f9dce88011e8f18b0480f14c41a37fa",
+    "tests/dwg2dxf_adapter_tests.cpp": "de31e64793bca7fceb0bbb21fef6e073c0d111bc59245db5d51baac51acc489f",
+    "tests/CMakeLists.txt": "4e6722e16d5a189e2163b1790bb74920e57e692449be3ac3620cbadef7a96441"
+  },
+  "workspaceNote": "The shared worktree contains broad pre-existing changes and untracked files. This slice was not committed; files were preserved in place."
+}

@@ -1,0 +1,37 @@
+{
+  "id": "field-dxf-kgeneral-fail-closed",
+  "date": "2026-10-22",
+  "status": "researched_and_regression_added_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "ce9740f7105a9001c08772c1c637e354de308b335410b7549fc38c1db7d6be57",
+  "scope": {
+    "class": "DXF FIELD / DRW_CadValue",
+    "field": "DWG type 512 kGeneral DXF projection",
+    "authority": "Autodesk FIELD DXF reference"
+  },
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+      "observation": "Documents group 90 as FIELD value data type and groups 92/310 as binary payload size/data; it does not enumerate value type numbers or specify a DWG type-512 / flag-0x01 DXF mapping."
+    },
+    {
+      "repository": "../LibreDWG",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "path": "src/in_dxf.c",
+      "observation": "The FIELD type-512 DXF branch is unimplemented/commented in this peer source snapshot. This is corroborative only, not format authority."
+    }
+  ],
+  "disposition": "No DXF grammar change is authorized by the inspected primary reference. Preserve writer refusal and parser fail-closed behavior until authoritative DXF semantics or a traceable producer-saved DXF witness establish type-512 encoding and version behavior.",
+  "change": "Added a generated FIELD kGeneral writer-preflight negative control. Both ASCII and Binary DXF output refuse before emitting bytes for type 512 with flag 0x01.",
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_wave1_tests -j2: PASS (-Werror)",
+    "build-gcc/libdxfrw_wave1_tests --acad-field-writer-candidate: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_acad_field_writer_candidate$' --output-on-failure: PASS (1/1)",
+    "git diff --check -- tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "persistentFixturesAdded": false,
+  "dxFGrammarChanged": false,
+  "supportClaimChanged": false,
+  "externalQualificationPerformed": false,
+  "commit": "not created; no files were staged"
+}

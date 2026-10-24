@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 PLOTSETTINGS root cardinality",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Require exactly one ACAD_PLOTSETTINGS NOD edge for the typed shade-reference route.",
+    "Assert owner-zero NOD identity and exact root/dictionary/PLOTSETTINGS relationships after ASCII and Binary readback.",
+    "Refuse duplicate canonical root keys and differently named NOD aliases to the same dictionary before publication while preserving the destination and allowing corrected retry."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "Extended plotSettingsVisualStyleShadeReferenceRoundTrip with root-key cardinality and NOD owner checks after readback, plus duplicate canonical-key and differently named dictionary-alias refusal/atomic-publication/retry controls.",
+    "reason": "The existing route used find_if for the root key even though production validation requires exactly one; duplicate root keys and aliases to the same dictionary were not asserted by this route's test.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --plotsettings-visualstyle-shade-reference",
+      "result": "PASS (ASCII and Binary generated routes; duplicate canonical key and alias controls reject atomically)"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_plotsettings_visualstyle_shade_reference$' --output-on-failure",
+    "result": "PASS (1/1; 0.04 sec; canonical duplicate and cross-key alias controls covered)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

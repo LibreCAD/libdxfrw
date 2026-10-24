@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ezdxf SAB authoring ceiling and AcDs loss-stage attribution",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile current ezdxf ACIS API claims with its same-version FAQ",
+    "Bound mesh-derived SAB authoring to the exact profile and geometry it documents",
+    "Separate DXF ACDSDATA from DWG AcDs DataStorage authority and layout",
+    "Attribute the public LibreDWG #1411 generated round-trip loss to an observed stage before diagnosing reader behavior",
+    "Refine existing PAR-07/S3/S7/S8 checkpoints without changing implementation order or validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "ezdxf ACIS Tools 1.4.5",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "status": "current-stable-documentation-reviewed-2026-10-21",
+      "observation": "The public API documents export_sab() using ACIS 21800 for DXF R2013/R2018 and a body_from_mesh() route. The docs bound support to simple/known records and flat polyhedral conversion, warn that unsupported records become NONE_ENTITY and data is lost, and state that ezdxf has no ACIS kernel."
+    },
+    {
+      "project": "ezdxf BODY entity API",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/dxfentities/body.html",
+      "status": "current-stable-documentation-reviewed-2026-10-21",
+      "observation": "The BODY API describes SAT on DXF R2000-R2010 and SAB on DXF R2013+, with explicit SAT and SAB properties. This is a carrier/profile description, not arbitrary geometry semantics."
+    },
+    {
+      "project": "ezdxf FAQ 1.4.5",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/faq.html",
+      "status": "current-stable-documentation-reviewed-2026-10-21",
+      "observation": "The FAQ says ezdxf reads SAT/SAB but only writes SAT and provides no ACIS authoring, which conflicts with the same documentation set's public export_sab()/export_dxf() API and mesh-derived polyhedron example. The discrepancy was not resolved by running an artifact."
+    },
+    {
+      "project": "ezdxf DXF file structure",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/filestructure.html",
+      "status": "current-stable-documentation-reviewed-2026-10-21",
+      "observation": "The documentation lists ACDSDATA as present from DXF R2013 onward, but says no information about that section is in the DXF reference. ODA DWG §24 therefore must not be reused as normative DXF ACDSDATA layout authority."
+    },
+    {
+      "project": "LibreDWG issue #1411",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "status": "open-issue-page-reviewed-2026-10-21",
+      "observation": "The public reproducer authors an R2018 DXF REGION with mesh-derived SAB and runs DXF→DWG→DXF. Because the report also says the peer dxf2dwg writer did not emit the AcDs section, this chain does not isolate dwg2dxf reader behavior. A separate reported AutoCAD DWG read observation uses a confidential, unavailable file."
+    },
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "status": "authoritative-DWG-reference-reviewed-locally-2026-10-21",
+      "observation": "ODA §24 governs DWG DataStorage/AcDs and is authoritative for DWG byte layout. It does not establish the separate DXF ACDSDATA section's encoding or association rules."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S3/S7/S8: use ezdxf only as a pinned, optional scratch author for the exact documented mesh-derived SAB profile; classify its output as a bounded carrier/topology control, not arbitrary ACIS semantics",
+      "PAR-07: separate DXF ACDSDATA from DWG AcDs/DataStorage and require stage-by-stage carrier accounting",
+      "PAR-07: do not attribute the public LibreDWG DXF→DWG→DXF loss to the reader until the intermediate DWG proves its writer preserved the carrier"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add exact ezdxf generator identity and output inspection to the optional composed carrier checkpoint. Attribute any loss to the first stage where bytes/association disappear. Keep generated polyhedral controls non-promoting for general ACIS/B-rep semantics and preserve the separate DXF and DWG AcDs route rows."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-ezdxf-sab-authoring-ceiling-acds-loss-stage-2026-10-21.json"
+    ],
+    "limitations": "The stable ezdxf API and FAQ pages reviewed identify the same documentation generation but conflict about SAB authoring. No exact package artifact was run. LibreDWG issue #1411 contains a generated DXF reproducer but no public authentic AutoCAD DWG; the confidential sample cannot be checked. DXF ACDSDATA has no published format details in the reviewed DXF reference; ODA §24 is DWG-specific."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; trailing-whitespace scan on receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

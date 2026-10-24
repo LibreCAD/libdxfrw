@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw-deeper-acad-table-peer-and-version-contract-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Cross-check existing 7G.3d against official format descriptions, current code, and open-source peers; refine implementation readiness without promoting support claims.",
+  "method": {
+    "kind": "Official specification and DXF reference review, peer documentation/source review, local read-only code inspection",
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "codeChangedByResearch": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localOdaPdfAvailableAtRepositoryGuidancePath": false,
+    "evidenceRule": "ODA v5.4.1 governs documented DWG layout; Autodesk governs published DXF tags. Peer schemas and reports identify fields and tests but are not normative or semantic oracles."
+  },
+  "evidence": [
+    {
+      "topic": "Versioned TABLE and TABLECONTENT DWG representation",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "ODA §§20.4.96–20.4.101 distinguish TABLE's INSERT/*T geometry block from cell semantics, separate legacy layout through R21 from R24 content, describe R21 multi-content/linked content and R24 embedded DWG content, and leave some linkage details TODO.",
+      "doesNotEstablish": [
+        "all producer-specific undocumented linkage",
+        "native TABLE rendering correctness",
+        "support from synthetic bytes alone"
+      ],
+      "planUse": "Keep AC1021 and AC1024+ lanes distinct; require an eligible sample trace before DWG binary edits."
+    },
+    {
+      "topic": "Published DXF TABLE and TABLESTYLE tags",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm"
+      ],
+      "observed": "The references document context-sensitive repeated 91/92, cell type/edge/merge/autofit/span/virtual-edge values, legacy and 2007+ text sequences, FIELD and block-cell references, table-level overrides, and TABLESTYLE suppression/repeated cell styles.",
+      "doesNotEstablish": [
+        "that every content type is represented by the local model",
+        "native CAD acceptance",
+        "a DWG byte layout"
+      ],
+      "planUse": "Use a bounded phase-aware parser, generated field-level ASCII/binary cases, and staged reference remapping."
+    },
+    {
+      "topic": "Local implementation and output boundary",
+      "sources": [
+        "src/drw_entities.h: DRW_TableCell, DRW_Table, DRW_TableContent",
+        "src/drw_entities.cpp: DRW_Table::parseCode",
+        "src/libdxfrw.cpp: dxfRW::writeTable and processTableStyle",
+        "dwg2dxf/dx_iface.h: addTable/addTableStyle",
+        "tests/dwg2dxf_adapter_tests.cpp: generated TABLE callback control"
+      ],
+      "observed": "The adapter retains the typed TABLE snapshot and current INSERT fallback. The model has cell type, merge/span/content/style fields; parseCode currently maps 171 to flags and discards repeated per-cell 172–178/91/92; writeTable emits defaults and directly emits a nonzero style handle. No dedicated TABLESTYLE writer was found in the reviewed path.",
+      "doesNotEstablish": [
+        "a defect in every consumer",
+        "completeness of every parsed version",
+        "which future public fields may be required"
+      ],
+      "planUse": "Correct parse mapping before public model expansion; stage graph handles and prevent duplicate semantic/fallback output."
+    },
+    {
+      "topic": "Open-source peer roles",
+      "sources": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+        "https://github.com/DomCR/ACadSharp/discussions/900",
+        "https://github.com/DomCR/ACadSharp/issues/727",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/examples/addons/table_painter_addon.py",
+        "https://github.com/storytold/cadcraft/blob/main/crates/dwg/src/lib.rs",
+        "https://github.com/hakanaktt/acadrust/issues/130"
+      ],
+      "observed": "LibreDWG supplies a rich field inventory; ACadSharp reports partial table reads and separates undocumented BOM classes; ezdxf lacks native ACAD_TABLE xref support and offers a primitive painter; CADCraft's suppression/merge helper is ACadRust-derived.",
+      "doesNotEstablish": [
+        "pinned peer runtime behavior",
+        "independent rendering",
+        "normative binary layout",
+        "multiple independent votes from related implementations"
+      ],
+      "planUse": "Use schemas as inventories and reports as test leads only, with lineages recorded."
+    },
+    {
+      "topic": "Aggregate peer coverage versus per-feature evidence",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html"
+      ],
+      "observed": "LibreDWG describes aggregate DWG-to-DXF and DXF-to-DWG coverage percentages, while its current README also documents writer version limits. Those aggregate route statements do not identify ACAD_TABLE field, owner, version, or semantic coverage.",
+      "doesNotEstablish": [
+        "a per-entity or per-field support matrix",
+        "native semantic correctness",
+        "parity from aggregate conversion percentages"
+      ],
+      "planUse": "Keep parity claims scoped by entity, field, direction, version, ownership and external acceptance rather than peer-wide percentages."
+    },
+    {
+      "topic": "LibreCAD consumer and downstream write boundary",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/README.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observed": "LibreCAD identifies its in-tree fork as the maintained DWG read/write copy and says its top-level build is the primary in-tree test path; LibreCAD_3 documents read-only DWG import and a ledger with 15 read claims, no promoted claims and no write claims.",
+      "doesNotEstablish": [
+        "compatibility of unpinned upstream source changes with either downstream project",
+        "DWG write acceptance in LibreCAD_3",
+        "runtime or native consumer qualification from compile checks"
+      ],
+      "planUse": "Keep consumer source reconciliation and compile gates distinct from native behavior and directional format qualification."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Refine existing 7G.3d; add no finding or top-level subplan.",
+    "Sequence DXF parse first, then DXF TABLE/TABLESTYLE output and graph remapping, then versioned sample-traced DWG handling, then one composed visual/consumer check.",
+    "Reuse existing adapter tests and fast checks; keep full suites, external peers, sanitizers and native CAD at composed checkpoints.",
+    "Use locally authored in-memory controls only; do not download or check in drawing fixtures."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "codeChanged": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeCad": "NOT RUN",
+    "downloadedFixtures": 0
+  }
+}

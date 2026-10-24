@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-cross-project-version-safety-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile current independent DXF/DWG reader, writer, and consumer evidence with existing safety, carrier, and version gates; correct stale 7BE status without duplicating findings.",
+  "method": {
+    "kind": "Primary project documentation/release review, issue-report review, and local plan/receipt reconciliation",
+    "sources": [
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp/issues/1281",
+      "https://github.com/DomCR/ACadSharp/issues/1279",
+      "https://github.com/DomCR/ACadSharp/issues/1261",
+      "https://github.com/DomCR/ACadSharp/issues/1282",
+      "https://github.com/DomCR/ACadSharp/issues/1283"
+    ],
+    "peerRevisionPinning": "Release tag pinned where available; issue reports are mutable peer observations.",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "localInspection": [
+      "Existing GDAL comparator scope already distinguishes Binary-DXF read, raw ASM/transform extraction, and direct binary-to-ASCII conversion.",
+      "Local repeated-record stress controls for comments, XDATA application blocks, and WIPEOUT boundaries are already recorded as passing.",
+      "7BE.8 already contains generated AC1018/1021/1024/1027/1032 logical-envelope and maintenance profiles plus AC1012/1014 envelope-only controls.",
+      "Fresh tracked AC1032 CLI read succeeds but export preflight currently stops later at typed VISUALSTYLE carrier coverage.",
+      "7BP/PAR-119 currently keeps ODA v5.4.1 section 20.4.78 authoritative and records LibreDWG/ACadSharp disagreement as non-promoting peer evidence."
+    ],
+    "limitations": "Peer issue reports and release notes do not prove matching local defects or normative behavior. No peer runtime, producer artifact, native application, or semantic ACIS/ACDS evidence was produced."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL Binary DXF and 3D projection boundary",
+      "observed": "Stable GDAL docs state Binary DXF reading starts with 3.12. Its DXF reader produces OGR features, raw unknown groups are opt-in, and AC1027+ 3D extensibility exposes raw ASM bytes plus a 12-value transform rather than a solid B-rep.",
+      "planUse": "Retain the existing optional composed comparator with pinned version/options and manifest comparison; do not add per-slice peer work or promote carrier/projection results to 3D semantics."
+    },
+    {
+      "topic": "LibreDWG 0.14.1 hardening and format-boundary fixes",
+      "observed": "NEWS describes capacity/logical-size divergence, invalid offsets and size arithmetic, pointer invalidation across reallocation, SAT size overflow, no-progress loops, non-finite angle loops, HATCH per-path handle loss, binary TF chunk handling, and a dropped final SAT block.",
+      "planUse": "Reuse existing PAR-14/PAR-26/7S/7BE/7BA/7F owners and boundary-specific invariants; do not transfer peer limits or create duplicate tests unless a touched local path lacks a corresponding control."
+    },
+    {
+      "topic": "ACadSharp release and issue evidence",
+      "observed": "The signed v3.8.0 release is at 3a1c66b. Issue #1281 reports repeated-record stack exhaustion; #1279 gives a missing-VERTEX-subtype case; #1261 reports a private-drawing GeoData object-tail disagreement. #1282/#1283 were available only as issue-index titles in this pass.",
+      "planUse": "Reuse the local repeated-record test, retain malformed POLYLINE disposition under 7BS, retain GeoData under ODA-governed PAR-119/7BP, and make no new peer-specific rule from inaccessible issue details."
+    },
+    {
+      "topic": "7BE status reconciliation",
+      "observed": "The plan and 7BE.8 receipt already document generated modern maintenance/envelope profiles and AC1012/AC1014 envelope-only controls; the former wording incorrectly called them absent.",
+      "planUse": "Mark generated profiles present; leave real-producer per-lineage witnesses, full R13/R14 section/body-path behavior, scheduled sanitizer conditions, and downstream VISUALSTYLE serialization as separate open gates."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

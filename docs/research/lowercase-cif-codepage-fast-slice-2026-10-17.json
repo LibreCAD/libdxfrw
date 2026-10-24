@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-lowercase-cif-codepage-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Add the plan's lower-case CIF scalar/suffix regression to the existing codec test owner and preserve the existing CP936 MLINE round-trip under the current rooted-style adapter invariant.",
+  "implementation": {
+    "productionCodeChanged": false,
+    "testFilesChanged": [
+      "tests/gbk_codepage_tests.cpp"
+    ],
+    "testRegistrationAdded": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": false,
+    "externalJDispositionChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "controls": [
+    {
+      "name": "lower-case CIF scalar and suffix",
+      "input": "\\U+abcdZ",
+      "expectedUtf8Hex": "eaaf8d",
+      "expectedScalar": "U+ABCD",
+      "suffix": "Z",
+      "result": "PASS"
+    },
+    {
+      "name": "CP936 rooted MLINESTYLE round-trip setup",
+      "provenance": "Generated AC1018 DXF source written at runtime in the system temporary directory; imported through dx_iface; removed by RAII.",
+      "checks": [
+        "successful named-resource import receipt",
+        "NOD to ACAD_MLINESTYLE dictionary to style closure",
+        "CP936-decoded style identity",
+        "MLINE group-340 target identity"
+      ],
+      "result": "PASS"
+    }
+  ],
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --cif-policy",
+      "result": "PASS"
+    },
+    "existingCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    "fullSuiteRun": false,
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "The focused scalar test does not qualify source DWG TV/TU decoding or target-version DXF serialization.",
+    "No renderer, peer executable, native CAD application, FreeCAD platform route, or independent semantic reader was run.",
+    "This test-only slice does not promote any DWG/DXF support claim or resolve any external-only J item."
+  ]
+}

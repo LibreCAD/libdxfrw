@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-16",
+  "slice": "versioned-mesh-dxf-record-and-class-profiles",
+  "status": "implemented_local_fast_slice",
+  "research_basis": [
+    {
+      "source": "Autodesk AutoCAD 2010 DXF Reference",
+      "url": "https://images.autodesk.com/adsk/files/acad_dxf1.pdf",
+      "finding": "AC1024 documents the AcDbSubDMesh entity with the SUBDIVISION record name."
+    },
+    {
+      "source": "Autodesk AutoCAD 2013 DXF Reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf",
+      "finding": "AC1027 documents the AcDbSubDMesh entity with the MESH record name."
+    }
+  ],
+  "implementation": {
+    "writer_profiles": {
+      "AC1024": "SUBDIVISION",
+      "AC1027": "MESH",
+      "AC1032": "MESH",
+      "AC1014_AC1015_AC1018_AC1021": "MESH, compatibility characterization only; unqualified pending provenance/version audit",
+      "pre_AC1024_other": "preserve prior MESH spelling where target is supported; unqualified pending provenance/version audit",
+      "AC1009_and_older": "rejected"
+    },
+    "reader": "Accept MESH and SUBDIVISION into DRW_Mesh.",
+    "class_metadata": "dwg2dxf registers one AcDbSubDMesh CLASS row for typed mesh instances and target record name; the selected tuple is a local serialization policy, not independently qualified against Autodesk output.",
+    "fixtures": "Runtime-generated temporary ASCII/binary files only; no fixture file added."
+  },
+  "fast_validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "detail": "1/1 test passed in 3.46 seconds; generated matrix covers AC1014/1015/1018/1021/1024/1027/1032 in ASCII and binary"
+    },
+    {
+      "command": "git diff --check (slice files)",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "Full test suite",
+    "Independent CAD application acceptance"
+  ],
+  "evidence_limits": [
+    "AC1012 is not an enabled writer target and is excluded from the compatibility matrix.",
+    "AC1021 is a compatibility characterization, not a validity claim.",
+    "The local writer serializes CLASS group 91 instance count only after AC1015; tests assert this version-gated shape.",
+    "Autodesk's generic CLASS schema does not prescribe the AcDbSubDMesh tuple; local tuple tests are regression invariants only.",
+    "Earliest-version behavior remains unresolved; pre-AC1024 output is unqualified, not asserted valid or invalid.",
+    "Does not establish DWG MESH layout, subdivision evaluation, complete interoperability, arbitrary 3D or ACIS/B-rep support."
+  ],
+  "external_items": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "plan_totals": {
+    "findings": 125,
+    "top_level_subplans": 71
+  }
+}

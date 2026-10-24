@@ -193,6 +193,14 @@ public:
   virtual void addDataStorage(const DRW_DataStorageSection &data) {
     (void)data;
   }
+  /**
+   * Optional ownership-transfer callback for completed DWG DataStorage data.
+   * Existing consumers keep their const-reference callback; the default
+   * forwards there so implementations need not change.
+   */
+  virtual void addDataStorage(DRW_DataStorageSection &&data) {
+    addDataStorage(static_cast<const DRW_DataStorageSection&>(data));
+  }
   //! Lossless DXF passthrough (slice A1): an OBJECTS-section object libdxfrw
   //! does not model is delivered verbatim so it can be re-emitted unchanged.
   virtual void addRawDxfObject(const DRW_RawDxfObject &data) { (void)data; }
@@ -214,6 +222,13 @@ public:
    * @see endBlock()
    */
   virtual void addBlock(const DRW_Block &data) = 0;
+
+  /**
+   * Optional callback for the distinct ENDBLK record that closes the current
+   * BLOCK. It is delivered immediately before the legacy endBlock() callback
+   * so consumers can retain footer metadata without disturbing block scope.
+   */
+  virtual void addBlockEnd(const DRW_Block &data) { (void)data; }
 
   /**
    * Called for every BLOCK_RECORD table entry.  The callback is optional so
@@ -483,8 +498,9 @@ public:
 
   /**
    * Called for every VISUALSTYLE (AcDbVisualStyle) object encountered in
-   * the OBJECTS section. ODA spec §20.4.95. Default no-op — LibreCAD has
-   * no 3D rendering and treats these as opaque round-trip metadata.
+   * the OBJECTS section. ODA v5.4.1 does not provide a complete DWG body
+   * layout for this class. Default no-op — LibreCAD has no 3D rendering and
+   * treats these as opaque round-trip metadata.
    */
   virtual void addVisualStyle(const DRW_VisualStyle &data) { (void)data; }
 
@@ -617,8 +633,11 @@ public:
    * is emitted. DXF writers ignore this hook. */
   virtual void writeDwgClasses() {}
   /** DWG-only pre-table callback. Implementations may register APPIDs
-   * referenced by entity or typed-object EED/XDATA before the APPID table is
-   * emitted. DXF writers ignore this hook. */
+   * referenced by entity or typed-object EED/XDATA and R2018 multiline
+   * ATTRIB/ATTDEF outer annotative data before the APPID table is emitted.
+   * The corresponding APPID identity must be collected here so its handle
+   * can be remapped safely during entity writing. DXF writers ignore this
+   * hook. */
   virtual void collectDwgAppIds() {}
   virtual void writeBlocks() = 0;
   virtual void writeBlockRecords() = 0;
@@ -651,6 +670,31 @@ public:
   /** Called when the writer wants the implementation to emit named UCS
    * records. Default-empty (same rationale as writeViews). */
   virtual void writeUCSs() {}
+
+  /** Optional trailing ownership-transfer callback for completed modeler
+   * entities. Existing consumers keep the const-reference callback; the
+   * default forwards there so implementations need not change. */
+  virtual void addModelerGeometry(DRW_ModelerGeometry &&data) {
+    addModelerGeometry(static_cast<const DRW_ModelerGeometry &>(data));
+  }
+
+  /** Optional trailing ownership-transfer callback for raw DWG objects and
+   *  entities. Existing consumers keep the const-reference callback; the
+   *  default forwards there so implementations need not change. */
+  virtual void addUnsupportedObject(DRW_UnsupportedObject &&data) {
+    addUnsupportedObject(static_cast<const DRW_UnsupportedObject &>(data));
+  }
+
+};
+
+/** Optional side-channel for consumers that need to refuse conversion after
+ *  the generic OBJECTS fallback observes a record with no modeled adapter
+ *  route. Kept separate from DRW_Interface so its established vtable is not
+ *  extended or shifted for existing binary consumers. */
+class DRW_UnmodeledDxfObjectHandler {
+public:
+  virtual ~DRW_UnmodeledDxfObjectHandler() = default;
+  virtual void addUnmodeledDxfObject(const DRW_RawDxfObject &data) = 0;
 };
 
 #endif

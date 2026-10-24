@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Release-pinned peer capability and preservation limits",
+  "mode": "Primary-source web research and read-only local plan crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh ACadSharp's current released artifact and distinguish it from mutable master and an open, undeployed ACIS writer proposal.",
+    "Reconcile the direction of the ACadSharp modeler writer change with a reported DXF-writer omission.",
+    "Review how LibreDWG documents unknown-class preservation and how ezdxf separates unknown-tag retention, recovery, and limited ACIS parsing.",
+    "Refine the existing optional composed comparison gate without adding a peer runtime or external fixture to the implementation loop."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Release, issue, and PR pages reviewed 2026-10-20",
+      "observed": "v3.8.0 is the latest release shown, signed at 3a1c66b on 2026-09-21; its release notes list #1132 and do not list the ACIS writer work. The release page reports 180 commits to master since that tag. PR #1240 remains open and undeployed; its visible ModelerGeometry serialization change targets DwgObjectWriter. Issue #1195 reports DXF-writer omission against 3.4.9. These facts do not establish the current released DXF writer's behavior."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Mutable manual and repository documentation reviewed 2026-10-20",
+      "observed": "The manual says not all dynamic classes are supported; unstable classes can be converted to UNKNOWN or placeholder-like representations on write. Exact same-class preservation depends on a same-version rewrite with the complete unknown-bits blob. Project-level reader coverage and version-specific writer limitations do not establish per-object semantic support."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/concepts/entities.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-20",
+      "observed": "Unsupported DXF entities can be held as TagStorage for export. Recovery is a separate ASCII repair path that may tolerate decoding errors and warns that save-back can lose data or create invalid DXF. The ACIS API documents limited entity support and data loss for unsupported NONE_ENTITY structures."
+    }
+  ],
+  "localEvidence": [
+    "PAR-06 per-object typed/opaque/skipped/refused disposition and raw-record retention gates",
+    "PAR-07 modeler carrier, ownership, output direction, and semantic evidence gates",
+    "PAR-15 strict read versus recovery/audit evidence separation",
+    "PAR-49 output completeness, loss diagnostics, and transactional publication",
+    "Existing plan prohibition on importing private peer drawings as fixtures"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06 exact opaque and unsupported object disposition",
+      "PAR-07 direction-specific modeler output and payload accounting",
+      "PAR-15 strict versus recovery/audit route separation",
+      "PAR-49 completeness, diagnostics, and publication behavior"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullTestSuitesRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Treat ACadSharp v3.8.0 as the latest released candidate found in this review, not as evidence that the ACadSharp 3.4.9 DXF omission either persists or is fixed.",
+    "Keep the open, undeployed PR #1240's DWG writer work separate from DXF-writer claims and from ACIS semantic support.",
+    "For an optional exact 3DSOLID/REGION DXF output comparison, account for source identity, owner/block membership, raw carrier digest, emitted record, strict reopen, and loss disposition.",
+    "Use ordinary strict DXF read before any ezdxf recovery path; treat recovery/audit changes and unsupported ACIS nodes as explicit diagnostic/loss outcomes.",
+    "Keep peer/native execution outside per-slice implementation validation; missing external artifacts do not block local work."
+  ],
+  "limitations": [
+    "Research was based on public documentation, release notes, issue and PR pages; no peer source tree or runtime was inspected or executed.",
+    "No behavior of ACadSharp v3.8.0, mutable master, or the open PR was independently reproduced.",
+    "Peer issue reports and project documentation are route-specific and are not authoritative DWG/DXF field-layout sources.",
+    "No local test command was run because this pass made only plan and receipt changes."
+  ]
+}

@@ -112,13 +112,16 @@ void dxfReader::appendTextReadObservation(DRW_DxfTextReadObservations& target,
 
 std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
                                          bool physicalRecord) {
-    auto result = decoder.toUtf8(text);
     // A semantic getter may also be used for a subclass/structural marker.
     // Do not turn raw controls, binary data or handles into text-loss events.
     const bool semantic = sourceCode == 0 ? !physicalRecord
         : dxfValueKindForCode(sourceCode, m_classifierProfile) == DxfValueKind::Str
             && sourceCode != 9 && sourceCode != 100 && sourceCode != 102
             && sourceCode != 999 && sourceCode != 1002 && !isDxfHandleCode(sourceCode);
+    // Caret escapes are an ASCII-DXF semantic-string convention. Apply them
+    // inside the selected converter so DBCS trail bytes that resemble caret
+    // syntax remain part of their original multibyte character.
+    auto result = decoder.toUtf8(text, semantic && !isBinary());
     if (semantic) {
         auto observation = decoder.lastDecodeObservation();
         observation.sourceProfile = decoder.dxfSourceProfile(text);
@@ -317,6 +320,7 @@ bool dxfReader::readRec(int *codeData) {
         rawData.clear();
         doubleData = 0.0;
         intData = 0;
+        uint32Data = 0u;
         int64 = 0;
         m_currentCode = 0;
         m_currentSelfHandle = 0;
@@ -550,6 +554,7 @@ bool dxfReaderBinary::readInt32() {
         | (static_cast<std::uint32_t>(buffer[1]) << 8)
         | (static_cast<std::uint32_t>(buffer[2]) << 16)
         | (static_cast<std::uint32_t>(buffer[3]) << 24);
+    uint32Data = value;
     intData = static_cast<std::int32_t>(value);
     DRW_DBG(intData); DRW_DBG("\n");
     return true;
@@ -686,14 +691,28 @@ bool dxfReaderAscii::readInt32() {
                && DxfNumeric::isSpace(*end)) {
             ++end;
         }
+        const bool materialColorValue =
+            materialUnsignedColorValuesEnabled()
+            && (currentCode() == 90 || currentCode() == 91
+                || currentCode() == 92);
         if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || errno == ERANGE
-            || parsed < std::numeric_limits<std::int32_t>::min()
-            || parsed > std::numeric_limits<std::int32_t>::max()) {
+            || (materialColorValue
+                ? (parsed < 0
+                   || static_cast<unsigned long long>(parsed)
+                       > std::numeric_limits<std::uint32_t>::max())
+                : (parsed < std::numeric_limits<std::int32_t>::min()
+                   || parsed > std::numeric_limits<std::int32_t>::max()))) {
             return false;
         }
         type = INT32;
-        intData = static_cast<int>(parsed);
+        if (materialColorValue) {
+            uint32Data = static_cast<std::uint32_t>(parsed);
+            intData = static_cast<std::int32_t>(uint32Data);
+        } else {
+            intData = static_cast<int>(parsed);
+            uint32Data = static_cast<std::uint32_t>(intData);
+        }
         DRW_DBG(intData); DRW_DBG("\n");
         return true;
     }

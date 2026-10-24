@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-19",
+  "type": "generated-fast-implementation-slice",
+  "owner": "7S.2c typed RenderSettings/SORTENTSTABLE/TABLESTYLE callback capture",
+  "scope": [
+    "Account two logical std::list link-pointer slots for each typed RenderSettings callback record",
+    "Account two logical std::list link-pointer slots for each typed SORTENTSTABLE callback record",
+    "Account two logical std::list link-pointer slots for each typed TABLESTYLE callback record",
+    "Preserve current record/item/value limits and fail-closed publication behavior"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "All three typed estimators now add two logical list-link pointer slots before their aggregate byte checks.",
+      "Generated focused controls include the list-link charge, admit exactly at the cap, and reject one byte over without retaining a record or publishing output."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focused_selectors": [
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --render-settings-typed-capture-limits",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-typed-capture-limits",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --table-style-typed-capture-limits"
+    ],
+    "ctest": "ctest --test-dir build-gcc -R '^(dwg2dxf_render_settings_typed_capture_limits|dwg2dxf_sortents_typed_capture_limits|dwg2dxf_table_style_typed_capture_limits)$' --output-on-failure",
+    "ctest_result": "passed (3/3, 0.05 sec)",
+    "diff_check": "passed for implementation, adapter test, plan, and receipt",
+    "full_suite": "not run"
+  },
+  "disposition": {
+    "new_finding": false,
+    "new_top_level_subplan": false,
+    "new_fixture_or_registration": false,
+    "new_dependency": false,
+    "support_claims_promoted": false,
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    },
+    "external_only_items_promoted": [],
+    "external_only_items_still_deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "List accounting represents two logical link-pointer slots per retained value, not allocator-specific node layout or process RSS.",
+    "This closes only the typed RenderSettings, SORTENTSTABLE and TABLESTYLE callback list estimates; the broader 7S.2c callback-store census remains open.",
+    "No external fixture, peer executable, native CAD application, or full test suite was used."
+  ]
+}

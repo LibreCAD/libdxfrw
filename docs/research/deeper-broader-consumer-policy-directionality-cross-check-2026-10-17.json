@@ -1,0 +1,57 @@
+{
+  "title": "Deeper/broader consumer-policy and directionality cross-check",
+  "date": "2026-10-17",
+  "mode": "source and documentation research only",
+  "repositories": [
+    "LibreCAD/LibreCAD_3",
+    "FreeCAD/FreeCAD",
+    "LibreDWG/libredwg",
+    "mozman/ezdxf"
+  ],
+  "sources": [
+    {
+      "project": "LibreCAD_3",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "finding": "DWG import is opt-in and read-only; the documented source contract prevents saving over the DWG and directs Save As to a new file. This is product policy, not parser conformance evidence."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "finding": "DWG import is converter-to-DXF followed by a selected DXF importer. Automatic selection tries LibreDWG, ODA, then QCAD; the LibreDWG branch treats output-path existence as success without checking the subprocess return code."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "finding": "Broad read-version coverage coexists with advanced-class and writer limitations; some unknown types are retained as binary data without DXF codes. Capability must be scored per direction and type."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "finding": "The xref/copy operation can ignore unsupported ACAD_TABLE and preserved unknown-tag entities without raising; this limitation is operation-specific and cannot be generalized to ordinary document read/write."
+    }
+  ],
+  "plan_delta": [
+    "Add a negative LibreCAD_3 consumer-policy assertion: opening DWG must leave source bytes unchanged, prohibit overwrite, and route Save As to a new DXF.",
+    "Keep FreeCAD native qualification bound to the effective converter and importer; independently validate converter process status, output DXF, and final document semantics.",
+    "Keep per-operation outcomes distinct: read, rewrite, cross-document copy/xref, projection, and export."
+  ],
+  "not_done": [
+    "No peer repository was cloned or built.",
+    "No application, converter, or native consumer was run.",
+    "No external drawing was downloaded or added as a fixture.",
+    "No local production code or tests were changed."
+  ],
+  "status": {
+    "findings": 127,
+    "top_level_subplans": 71,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "support_promotion": false
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "title": "DXF view-family code-context correction: HEADER VisualStyle pointers versus VIEWPORT",
+  "date": "2026-10-18",
+  "classification": "research-and-plan-correction",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "class-specific meaning of DXF group codes 334, 345, 346, and 349",
+    "HEADER VisualStyle hard-pointer variables and rooted reference closure",
+    "local DXF and DWG header parser/writer preservation gaps",
+    "PAR-40 / 7G.2 implementation ordering and version gates"
+  ],
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "role": "primary HEADER DXF reference",
+      "finding": "HEADER defines $INTERFEREOBJVS at code 345 and $INTERFEREVPVS at code 346 as VisualStyle hard pointers, and $DRAGVS at code 349 as a VisualStyle hard pointer; documented defaults are Conceptual, 3D Wireframe, and null respectively."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "role": "primary VIEWPORT DXF reference",
+      "finding": "VIEWPORT assigns 345/346 to named/base UCS, uses 333 for shade target and 348 for VisualStyle, and does not list code 349."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "role": "primary VIEW DXF reference",
+      "finding": "VIEW assigns code 334 to its optional LiveSection soft-pointer reference; this does not establish a VIEWPORT code-334 field."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "role": "primary DXF group-code class reference",
+      "finding": "The 340-349 range is a generic hard-pointer range; the range does not define class-specific carrier semantics."
+    },
+    {
+      "url": "https://docs.rs/dxf/latest/dxf/struct.Header.html",
+      "role": "independent implementation reference",
+      "finding": "The Rust dxf crate models $DRAGVS as a solid-visual-style handle and reports AutoCAD R2007 as the minimum version. This is secondary corroboration for $DRAGVS only, not a normative gate for all three HEADER pointers."
+    }
+  ],
+  "local_audit": {
+    "confirmed_gaps": [
+      "DRW_Viewport::parseCode assigns undocumented VIEWPORT code 349 into shadePlotHandle; writeViewport emits that value as code 333, conflating fields.",
+      "DRW_Header::parseCode has no 345/346/349 cases and drops the three HEADER pointer values.",
+      "DRW_Header::write does not emit $INTERFEREOBJVS, $INTERFEREVPVS, or $DRAGVS.",
+      "The R2007+ DWG header parser reads the three corresponding handles into temporary CONTROL values used only for debug output.",
+      "The DWG header encoder writes null hard pointers for the three values."
+    ],
+    "context_corrections": [
+      "Do not add DRW_Viewport::dragVisualStyleHandle; code 349 belongs to HEADER $DRAGVS in the verified DXF reference.",
+      "Do not add a VIEWPORT code-334 field; code 334 is documented on VIEW as LiveSection.",
+      "Code 345/346 meanings are carrier-specific: HEADER VisualStyle pointers differ from VIEWPORT named/base UCS references."
+    ],
+    "unresolved_contracts": [
+      "Exact first supported release, source-version behavior, and null/absent defaults for each HEADER variable independently.",
+      "Exact ODA DWG header-variable handle layout, ordering, null encoding, and version gates for AC1021 and later.",
+      "Required destination-preserving behavior when a HEADER target is missing, ambiguous, wrong-class, or unrooted."
+    ]
+  },
+  "plan_effect": {
+    "refines": ["PAR-40", "7G.2"],
+    "new_top_level_subplans": 0,
+    "ledger_totals_changed": false,
+    "support_claim_promotions": 0,
+    "corrected_sequence": [
+      "Stop the VIEWPORT code-349 to code-333 alias without adding a viewport field.",
+      "Implement the three HEADER VisualStyle hard-pointer routes only after their independent version/default/root contracts are established.",
+      "Before changing DWG parsing or encoding, read the repository-mandated ODA specification and trace version-matched samples.",
+      "Test generated ASCII/Binary handle remaps, null/absence, graph negatives, destination preservation, and adapter retry; do not add external fixture files."
+    ],
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "validation": {
+    "code_changed": false,
+    "tests_run_in_this_research_pass": false,
+    "peers_installed_or_executed": false,
+    "persistent_fixture_files_added": 0,
+    "plan_and_receipt_json_reviewed": true
+  },
+  "worktree_state": "uncommitted"
+}

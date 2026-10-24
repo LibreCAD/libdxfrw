@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-06/7BV.4a bounded associative DXF handle-code census",
+  "mode": "Generated local fast controls; implementation progress",
+  "baselineCommit": "de27a33",
+  "scope": [
+    "Count generic translated-handle group-code positions in retained associative raw groups",
+    "Keep all counted positions unclassified because class-specific ACDBASSOC grammar and graph roles remain unresolved",
+    "Keep serializer qualification at zero and strict complete-output refusal before publication",
+    "Use generated ASCII/Binary controls and the existing PERSUBENTMGR control; add no external fixture"
+  ],
+  "changes": {
+    "files": [
+      {
+        "path": "dwg2dxf/dx_data.h",
+        "sha256": "75a0d1b2c6540e87f1de7da05b11a442a025ccbf13c76176ad9f9fe0855cb5b1",
+        "change": "Added a count of unclassified translated-handle code groups and a completion bit to the associative import receipt."
+      },
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "aa7b6fb64a153e7a5572ba12e095cd1f6827114207150c761d8f0f000cb95a0e",
+        "change": "Scanned bounded retained raw groups after identity pairing, excluding self and arbitrary-value roles; incomplete group totals fail closed. Added numeric-only strict-gate diagnostics."
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "2a202800897efe765088622f8a4793e0a1cc77b04d231568369e7819df256e67",
+        "change": "Asserted handle-code census values for generated ASCII/Binary action records, the existing PERSUBENTMGR control, empty receipts, and strict refusal."
+      }
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_associative_(callback_contract|strict_loss_gate)$' --output-on-failure",
+      "result": "passed; 2/2 tests"
+    },
+    {
+      "command": "cmake --build build --target dwg2dxf lc3_compat_check -j2",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed"
+    }
+  ],
+  "supportBoundary": "The census is not a semantic edge list, class grammar, owner/root closure proof, or serializer qualification. qualifiedRecords remains zero; strict output still refuses. No native, peer, independent oracle, full-suite, or support-promotion claim was made.",
+  "commit": {
+    "created": false,
+    "reason": ".git is read-only in this workspace; preserve the pre-existing dirty worktree without staging unrelated changes."
+  }
+}

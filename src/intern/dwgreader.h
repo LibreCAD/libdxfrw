@@ -16,6 +16,7 @@
 
 #include "../drw_entities.h"
 #include "../drw_objects.h"
+#include "../drw_datastorage.h"
 #include "../libdwgr.h"
 #include "drw_textcodec.h"
 #include "dwgbuffer.h"
@@ -24,6 +25,7 @@
 #include <algorithm>
 #include <limits>
 #include <list>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -46,6 +48,869 @@ public:
   std::uint64_t sourceOrdinal{0};
   DRW_DwgFrameOffsetSpace sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
 };
+
+namespace dwgReaderDetail {
+
+/// Immutable ordering key for the bounded catch-all ENTITIES sweep. The
+/// source map is unordered; retaining only this key lets the reader reproduce
+/// its established sourceOrdinal/location/handle order without keeping
+/// invalidatable map iterators across frame detach/erase operations.
+struct DwgResidualEntityKey {
+  std::uint64_t sourceOrdinal{0};
+  std::uint32_t location{0};
+  std::uint32_t handle{0};
+};
+
+inline bool residualEntityKeyLess(const DwgResidualEntityKey &lhs,
+                                  const DwgResidualEntityKey &rhs) noexcept {
+  if (lhs.sourceOrdinal != rhs.sourceOrdinal)
+    return lhs.sourceOrdinal < rhs.sourceOrdinal;
+  if (lhs.location != rhs.location)
+    return lhs.location < rhs.location;
+  return lhs.handle < rhs.handle;
+}
+
+/// Snapshot and sort a source-map identity set before the reader mutates the
+/// map. `maxScratchBytes` accounts for the temporary key vector separately
+/// from the already-admitted DWG source frames, including any old output
+/// capacity retained through the atomic swap. On any admission/allocation
+/// failure, `output` remains unchanged.
+template <typename ObjectMap, typename Allocator>
+bool buildDwgResidualEntityOrder(
+    const ObjectMap &objects,
+    std::vector<DwgResidualEntityKey, Allocator> &output,
+    std::size_t maxEntries, std::size_t maxScratchBytes,
+    std::size_t *comparisonCount = nullptr) noexcept {
+  if (comparisonCount != nullptr)
+    *comparisonCount = 0u;
+  const std::size_t count = objects.size();
+  const std::size_t maxKeyCapacity =
+      maxScratchBytes / sizeof(DwgResidualEntityKey);
+  if (count > maxEntries || count > maxKeyCapacity ||
+      output.capacity() > maxKeyCapacity ||
+      count > maxKeyCapacity - output.capacity()) {
+    return false;
+  }
+
+  try {
+    std::vector<DwgResidualEntityKey, Allocator> prepared(
+        output.get_allocator());
+    prepared.reserve(count);
+    if (prepared.capacity() > maxKeyCapacity - output.capacity()) {
+      return false;
+    }
+    for (const auto &entry : objects) {
+      prepared.push_back({entry.second.sourceOrdinal, entry.second.loc,
+                          entry.first});
+    }
+    std::sort(prepared.begin(), prepared.end(),
+              [comparisonCount](const DwgResidualEntityKey &lhs,
+                                const DwgResidualEntityKey &rhs) noexcept {
+                if (comparisonCount != nullptr)
+                  ++*comparisonCount;
+                return residualEntityKeyLess(lhs, rhs);
+              });
+    output.swap(prepared);
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+/// A residual frame may be restored only for one bounded soft-failure retry.
+/// The caller separately verifies that the restored map entry still has the
+/// exact immutable source identity captured in its ordering key.
+inline bool canRetryResidualEntity(
+    bool firstAttempt, bool mapContainsSameSource, bool readSucceeded,
+    bool frameFailure, bool hasCoverage,
+    DRW_DwgFrameDisposition disposition,
+    std::uint8_t publicationCount) noexcept {
+  return firstAttempt && mapContainsSameSource && !readSucceeded &&
+         !frameFailure && hasCoverage &&
+         disposition == DRW_DwgFrameDisposition::Pending &&
+         publicationCount == 0u;
+}
+
+inline bool fitsByteBudget(std::size_t retainedBytes,
+                           std::size_t additionalBytes,
+                           std::size_t limitBytes) noexcept {
+  return retainedBytes <= limitBytes &&
+         additionalBytes <= limitBytes - retainedBytes;
+}
+
+template <typename DeclaredHandles>
+bool buildPolylineDeclaredIndex(
+    const DeclaredHandles &declaredHandles,
+    std::vector<std::pair<std::uint32_t, std::size_t>> &sortedIndex,
+    std::vector<std::uint8_t> &stagedSlots,
+    std::size_t maxBytes) noexcept {
+  using HandleIndex = std::pair<std::uint32_t, std::size_t>;
+  const std::size_t count = declaredHandles.size();
+  if (count > static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount))
+    return false;
+
+  std::size_t priorOutputBytes = 0u;
+  if (sortedIndex.capacity() > maxBytes / sizeof(HandleIndex))
+    return false;
+  priorOutputBytes = sortedIndex.capacity() * sizeof(HandleIndex);
+  if (!fitsByteBudget(priorOutputBytes, stagedSlots.capacity(), maxBytes))
+    return false;
+  priorOutputBytes += stagedSlots.capacity();
+  constexpr std::size_t bytesPerChild = sizeof(HandleIndex) + sizeof(std::uint8_t);
+  if (count > (maxBytes - priorOutputBytes) / bytesPerChild)
+    return false;
+
+  std::vector<HandleIndex> index;
+  std::vector<std::uint8_t> received;
+  try {
+    index.reserve(count);
+    std::size_t slot = 0u;
+    for (const std::uint32_t handle : declaredHandles) {
+      index.emplace_back(handle, slot);
+      ++slot;
+    }
+    std::sort(index.begin(), index.end());
+    received.resize(count, 0u);
+  } catch (...) {
+    return false;
+  }
+
+  std::size_t actualBytes = priorOutputBytes;
+  if (!fitsByteBudget(actualBytes, index.capacity() * sizeof(HandleIndex),
+                      maxBytes)) {
+    return false;
+  }
+  actualBytes += index.capacity() * sizeof(HandleIndex);
+  if (!fitsByteBudget(actualBytes, received.capacity(), maxBytes))
+    return false;
+
+  sortedIndex.swap(index);
+  stagedSlots.swap(received);
+  return true;
+}
+
+template <typename Index, typename Less>
+bool findPolylineDeclaredChildSlot(const Index &sortedIndex,
+                                   std::uint32_t handle, std::size_t &slot,
+                                   bool requireExactlyOnce,
+                                   Less less) noexcept {
+  if (handle == DRW::NoHandle)
+    return false;
+  const auto found = std::lower_bound(
+      sortedIndex.cbegin(), sortedIndex.cend(), handle,
+      [&less](const auto &entry, std::uint32_t target) {
+        return less(entry.first, target);
+      });
+  if (found == sortedIndex.cend() || found->first != handle ||
+      (requireExactlyOnce && (found + 1) != sortedIndex.cend() &&
+       (found + 1)->first == handle)) {
+    return false;
+  }
+  slot = found->second;
+  return true;
+}
+
+// Charge an explicit, allocator-independent model for red-black tree nodes.
+// Four pointer widths cover the parent/child links plus conservative node
+// linkage overhead; allocator metadata is not represented by this ceiling.
+constexpr std::size_t PolylineTreeNodeLinkChargeBytes = 4u * sizeof(void *);
+constexpr std::size_t PolylineClaimOwnerNodeChargeBytes =
+    sizeof(std::uint32_t) + PolylineTreeNodeLinkChargeBytes;
+constexpr std::size_t PolylineClaimHandleNodeChargeBytes =
+    sizeof(std::pair<const std::uint32_t, std::set<std::uint32_t>>) +
+    PolylineTreeNodeLinkChargeBytes;
+constexpr std::size_t PolylineOwnershipClaimNodeChargeBytes =
+    sizeof(std::pair<const std::uint32_t, std::uint32_t>) +
+    PolylineTreeNodeLinkChargeBytes;
+constexpr std::size_t PolylineOwnershipReferenceChargeBytes =
+    sizeof(std::uint32_t);
+
+// Preflight claims need only the first parent for each child: each later
+// competing parent is marked invalid as it is observed. This avoids retaining
+// a copy of every parent's child vector while keeping deterministic lookup.
+// The accounting charges each scanned reference (including repeats) to bound
+// work, plus conservative map/set node estimates for retained scratch state.
+// It is an explicit policy model, not an allocator/RSS measurement.
+class PolylineOwnershipPreflightIndex {
+public:
+  using FirstOwnerMap = std::map<std::uint32_t, std::uint32_t>;
+  using InvalidOwnerSet = std::set<std::uint32_t>;
+
+  bool registerClaim(std::uint32_t owner, std::uint32_t handle,
+                     std::size_t otherRetainedBytes,
+                     std::size_t maxBytes) noexcept {
+    if (owner == DRW::NoHandle || handle == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_chargedBytes, maxBytes)) {
+      return false;
+    }
+
+    const auto first = m_firstOwner.find(handle);
+    const bool newHandle = first == m_firstOwner.end();
+    const bool conflict = !newHandle && first->second != owner;
+    std::size_t additionalBytes = PolylineOwnershipReferenceChargeBytes;
+    if (newHandle &&
+        !fitsByteBudget(additionalBytes,
+                        PolylineOwnershipClaimNodeChargeBytes,
+                        (std::numeric_limits<std::size_t>::max)())) {
+      return false;
+    }
+    if (newHandle)
+      additionalBytes += PolylineOwnershipClaimNodeChargeBytes;
+
+    const auto needsInvalidOwner = [this](std::uint32_t candidate) {
+      return m_invalidOwners.find(candidate) == m_invalidOwners.end();
+    };
+    if (conflict && needsInvalidOwner(first->second)) {
+      if (!fitsByteBudget(additionalBytes,
+                          PolylineClaimOwnerNodeChargeBytes,
+                          (std::numeric_limits<std::size_t>::max)())) {
+        return false;
+      }
+      additionalBytes += PolylineClaimOwnerNodeChargeBytes;
+    }
+    if (conflict && needsInvalidOwner(owner)) {
+      if (!fitsByteBudget(additionalBytes,
+                          PolylineClaimOwnerNodeChargeBytes,
+                          (std::numeric_limits<std::size_t>::max)())) {
+        return false;
+      }
+      additionalBytes += PolylineClaimOwnerNodeChargeBytes;
+    }
+    if (!fitsByteBudget(otherRetainedBytes + m_chargedBytes,
+                        additionalBytes, maxBytes)) {
+      return false;
+    }
+
+    try {
+      if (newHandle)
+        m_firstOwner.emplace(handle, owner);
+      if (conflict) {
+        m_invalidOwners.insert(first->second);
+        m_invalidOwners.insert(owner);
+      }
+    } catch (...) {
+      return false;
+    }
+    m_chargedBytes += additionalBytes;
+    ++m_referenceCount;
+    return true;
+  }
+
+  bool markInvalid(std::uint32_t owner, std::size_t otherRetainedBytes,
+                   std::size_t maxBytes) noexcept {
+    if (owner == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_chargedBytes, maxBytes)) {
+      return false;
+    }
+    if (m_invalidOwners.find(owner) != m_invalidOwners.end())
+      return true;
+    if (!fitsByteBudget(otherRetainedBytes + m_chargedBytes,
+                        PolylineClaimOwnerNodeChargeBytes, maxBytes)) {
+      return false;
+    }
+    try {
+      m_invalidOwners.insert(owner);
+    } catch (...) {
+      return false;
+    }
+    m_chargedBytes += PolylineClaimOwnerNodeChargeBytes;
+    return true;
+  }
+
+  bool isInvalid(std::uint32_t owner) const noexcept {
+    return m_invalidOwners.find(owner) != m_invalidOwners.end();
+  }
+  bool hasInvalidOwners() const noexcept { return !m_invalidOwners.empty(); }
+  std::size_t invalidOwnerCount() const noexcept {
+    return m_invalidOwners.size();
+  }
+  std::size_t referenceCount() const noexcept { return m_referenceCount; }
+  std::size_t chargedBytes() const noexcept { return m_chargedBytes; }
+
+private:
+  FirstOwnerMap m_firstOwner;
+  InvalidOwnerSet m_invalidOwners;
+  std::size_t m_referenceCount{0u};
+  std::size_t m_chargedBytes{0u};
+};
+
+// Reverse ownership index: for any vertex handle, locate every pending
+// POLYLINE that declares it without scanning all pending parents. The ordered
+// maps/sets give deterministic logarithmic lookup and retain every competing
+// owner so the reader can reject and terminalize the same groups as before.
+template <typename Compare = std::less<std::uint32_t>>
+class PolylineDeclaredClaimIndex {
+public:
+  using OwnerSet = std::set<std::uint32_t, Compare>;
+  using ClaimMap = std::map<std::uint32_t, OwnerSet, Compare>;
+
+  explicit PolylineDeclaredClaimIndex(Compare compare = Compare{})
+      : m_claims(compare) {}
+
+  // Add one observed orphan-child owner. This single-entry operation is used
+  // by the reader's inverse index so a later parent can test ownership in
+  // logarithmic time without scanning every orphan vector.
+  bool addOwner(std::uint32_t owner, std::uint32_t handle,
+                std::size_t otherRetainedBytes, std::size_t maxBytes,
+                std::size_t &addedBytes) noexcept {
+    if (owner == DRW::NoHandle || handle == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes)) {
+      return false;
+    }
+
+    auto existing = m_claims.find(handle);
+    const bool newHandle = existing == m_claims.end();
+    if (!newHandle && existing->second.find(owner) != existing->second.end())
+      return false;
+
+    std::size_t charge = PolylineClaimOwnerNodeChargeBytes;
+    if (newHandle) {
+      if (!fitsByteBudget(charge, PolylineClaimHandleNodeChargeBytes,
+                          std::numeric_limits<std::size_t>::max())) {
+        return false;
+      }
+      charge += PolylineClaimHandleNodeChargeBytes;
+    }
+    if (!fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes) ||
+        !fitsByteBudget(otherRetainedBytes + m_bytes, charge, maxBytes)) {
+      return false;
+    }
+
+    typename ClaimMap::iterator claimIt = m_claims.end();
+    bool insertedHandle = false;
+    try {
+      const auto claim = m_claims.try_emplace(handle, m_claims.key_comp());
+      claimIt = claim.first;
+      insertedHandle = claim.second;
+      if (!claimIt->second.insert(owner).second) {
+        if (insertedHandle && claimIt->second.empty())
+          m_claims.erase(claimIt);
+        return false;
+      }
+    } catch (...) {
+      if (insertedHandle && claimIt != m_claims.end() &&
+          claimIt->second.empty()) {
+        m_claims.erase(claimIt);
+      }
+      return false;
+    }
+    m_bytes += charge;
+    addedBytes = charge;
+    return true;
+  }
+
+  // Removal is idempotent so cleanup can repair a partially observed state
+  // without allocating. The returned charge is zero when this owner was not
+  // present for the handle.
+  bool removeOwner(std::uint32_t owner, std::uint32_t handle,
+                   std::size_t &releasedBytes) noexcept {
+    const auto claim = m_claims.find(handle);
+    if (claim == m_claims.end() ||
+        claim->second.find(owner) == claim->second.end()) {
+      releasedBytes = 0u;
+      return true;
+    }
+    std::size_t released = PolylineClaimOwnerNodeChargeBytes;
+    const bool removesHandle = claim->second.size() == 1u;
+    if (removesHandle)
+      released += PolylineClaimHandleNodeChargeBytes;
+    if (released > m_bytes)
+      return false;
+    claim->second.erase(owner);
+    if (removesHandle) {
+      m_claims.erase(claim);
+    }
+    m_bytes -= released;
+    releasedBytes = released;
+    return true;
+  }
+
+  template <typename Index>
+  bool addParent(std::uint32_t owner, const Index &sortedIndex,
+                 std::size_t otherRetainedBytes, std::size_t maxBytes,
+                 std::size_t &addedBytes) noexcept {
+    if (owner == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes)) {
+      return false;
+    }
+
+    std::size_t newlyChargedBytes = 0u;
+    bool havePrevious = false;
+    std::uint32_t previousHandle = DRW::NoHandle;
+    for (const auto &entry : sortedIndex) {
+      const std::uint32_t handle = entry.first;
+      if (havePrevious && handle == previousHandle)
+        continue;
+      havePrevious = true;
+      previousHandle = handle;
+
+      const auto existing = m_claims.find(handle);
+      const bool newHandle = existing == m_claims.end();
+      std::size_t charge = PolylineClaimOwnerNodeChargeBytes;
+      if (newHandle) {
+        if (!fitsByteBudget(charge, PolylineClaimHandleNodeChargeBytes,
+                            std::numeric_limits<std::size_t>::max())) {
+          rollbackParent(owner, sortedIndex);
+          return false;
+        }
+        charge += PolylineClaimHandleNodeChargeBytes;
+      } else if (existing->second.find(owner) != existing->second.end()) {
+        rollbackParent(owner, sortedIndex);
+        return false;
+      }
+
+      if (!fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes) ||
+          !fitsByteBudget(otherRetainedBytes + m_bytes, charge, maxBytes)) {
+        rollbackParent(owner, sortedIndex);
+        return false;
+      }
+
+      try {
+        auto claim = m_claims.try_emplace(handle, m_claims.key_comp());
+        try {
+          if (!claim.first->second.insert(owner).second) {
+            if (claim.second && claim.first->second.empty())
+              m_claims.erase(claim.first);
+            rollbackParent(owner, sortedIndex);
+            return false;
+          }
+        } catch (...) {
+          if (claim.second && claim.first->second.empty())
+            m_claims.erase(claim.first);
+          throw;
+        }
+      } catch (...) {
+        rollbackParent(owner, sortedIndex);
+        return false;
+      }
+      m_bytes += charge;
+      newlyChargedBytes += charge;
+    }
+    addedBytes = newlyChargedBytes;
+    return true;
+  }
+
+  template <typename Index>
+  bool removeParent(std::uint32_t owner, const Index &sortedIndex,
+                    std::size_t &releasedBytes) noexcept {
+    std::size_t newlyReleasedBytes = 0u;
+    bool havePrevious = false;
+    std::uint32_t previousHandle = DRW::NoHandle;
+    for (const auto &entry : sortedIndex) {
+      const std::uint32_t handle = entry.first;
+      if (havePrevious && handle == previousHandle)
+        continue;
+      havePrevious = true;
+      previousHandle = handle;
+
+      const auto claim = m_claims.find(handle);
+      if (claim == m_claims.end() || claim->second.erase(owner) == 0u)
+        continue;
+      newlyReleasedBytes += PolylineClaimOwnerNodeChargeBytes;
+      if (claim->second.empty()) {
+        m_claims.erase(claim);
+        newlyReleasedBytes += PolylineClaimHandleNodeChargeBytes;
+      }
+    }
+    if (newlyReleasedBytes > m_bytes)
+      return false;
+    m_bytes -= newlyReleasedBytes;
+    releasedBytes = newlyReleasedBytes;
+    return true;
+  }
+
+  const OwnerSet *ownersFor(std::uint32_t handle) const noexcept {
+    const auto claim = m_claims.find(handle);
+    return claim == m_claims.end() ? nullptr : &claim->second;
+  }
+
+  bool containsParent(std::uint32_t owner, std::uint32_t handle) const noexcept {
+    const OwnerSet *owners = ownersFor(handle);
+    return owners != nullptr && owners->find(owner) != owners->end();
+  }
+
+  bool containsOwner(std::uint32_t owner, std::uint32_t handle) const noexcept {
+    return containsParent(owner, handle);
+  }
+
+  const ClaimMap &entries() const noexcept { return m_claims; }
+  std::size_t bytes() const noexcept { return m_bytes; }
+  bool empty() const noexcept { return m_claims.empty(); }
+
+  bool validateAccounting() const noexcept {
+    std::size_t measuredBytes = 0u;
+    for (const auto &entry : m_claims) {
+      if (entry.second.empty() ||
+          !fitsByteBudget(measuredBytes, PolylineClaimHandleNodeChargeBytes,
+                          std::numeric_limits<std::size_t>::max())) {
+        return false;
+      }
+      measuredBytes += PolylineClaimHandleNodeChargeBytes;
+      if (entry.second.size() >
+          (std::numeric_limits<std::size_t>::max() - measuredBytes) /
+              PolylineClaimOwnerNodeChargeBytes) {
+        return false;
+      }
+      measuredBytes += entry.second.size() * PolylineClaimOwnerNodeChargeBytes;
+    }
+    return measuredBytes == m_bytes;
+  }
+
+private:
+  template <typename Index>
+  void rollbackParent(std::uint32_t owner, const Index &sortedIndex) noexcept {
+    std::size_t ignored = 0u;
+    (void)removeParent(owner, sortedIndex, ignored);
+  }
+
+  ClaimMap m_claims;
+  std::size_t m_bytes{0u};
+};
+
+// A late-arriving parent may adopt an orphan only when the observed child's
+// owner matches it. `sortedIndex` is the parent's sorted handle/slot index;
+// repeated declared handles are examined once.
+template <typename Index, typename ClaimIndex>
+bool hasForeignPolylineOrphanOwner(
+    std::uint32_t owner, const Index &sortedIndex,
+    const ClaimIndex &orphanOwners) noexcept {
+  bool havePrevious = false;
+  std::uint32_t previousHandle = DRW::NoHandle;
+  for (const auto &entry : sortedIndex) {
+    const std::uint32_t handle = entry.first;
+    if (havePrevious && handle == previousHandle)
+      continue;
+    havePrevious = true;
+    previousHandle = handle;
+    const auto *owners = orphanOwners.ownersFor(handle);
+    if (owners == nullptr)
+      continue;
+    for (const std::uint32_t observedOwner : *owners) {
+      if (observedOwner != owner)
+        return true;
+    }
+  }
+  return false;
+}
+
+template <typename ClaimIndex>
+bool hasForeignPolylineOrphanHandleOwner(
+    std::uint32_t owner, std::uint32_t handle,
+    const ClaimIndex &orphanOwners) noexcept {
+  const auto *owners = orphanOwners.ownersFor(handle);
+  if (owners == nullptr)
+    return false;
+  return std::any_of(owners->cbegin(), owners->cend(),
+                     [owner](std::uint32_t observedOwner) {
+                       return observedOwner != owner;
+                     });
+}
+
+// Reserve for one more staged child without defeating vector's amortized
+// growth. `reserve(size() + 1)` on every child can force a copy on each append
+// on standard-library implementations that honor the requested capacity
+// exactly. Keep the element ceiling explicit and clamp geometric growth to it.
+template <typename Vector>
+bool vectorCapacityForOneMore(const Vector &values, std::size_t maxCount,
+                              std::size_t &targetCapacity) noexcept {
+  if (values.size() >= maxCount || values.size() >= values.max_size())
+    return false;
+  const std::size_t needed = values.size() + 1u;
+  if (needed <= values.capacity()) {
+    targetCapacity = values.capacity();
+    return true;
+  }
+  if (values.capacity() > maxCount)
+    return false;
+
+  std::size_t target = 1u;
+  if (values.capacity() != 0u) {
+    target = values.capacity() > maxCount / 2u
+                 ? maxCount
+                 : values.capacity() * 2u;
+  }
+  target = std::max(target, needed);
+  if (target > maxCount || target > values.max_size())
+    return false;
+  targetCapacity = target;
+  return true;
+}
+
+template <typename Vector>
+bool reserveVectorForOneMore(Vector &values, std::size_t maxCount,
+                             std::size_t *plannedCapacity = nullptr) noexcept {
+  std::size_t targetCapacity = 0u;
+  if (!vectorCapacityForOneMore(values, maxCount, targetCapacity))
+    return false;
+  if (plannedCapacity != nullptr)
+    *plannedCapacity = targetCapacity;
+  if (targetCapacity <= values.capacity())
+    return true;
+  const std::size_t needed = values.size() + 1u;
+  try {
+    values.reserve(targetCapacity);
+  } catch (...) {
+    return false;
+  }
+  return values.capacity() >= needed;
+}
+
+// unordered_map::reserve accepts an element count rather than a bucket count.
+// Estimate the current element capacity using its configured load factor, then
+// reserve geometrically with the same hard count ceiling as the staged owners.
+template <typename UnorderedMap>
+bool planUnorderedMapForOneMore(const UnorderedMap &values,
+                                std::size_t maxCount,
+                                std::size_t &target) noexcept {
+  target = 0u;
+  if (values.size() >= maxCount || values.size() >= values.max_size())
+    return false;
+  const std::size_t needed = values.size() + 1u;
+  const long double available =
+      static_cast<long double>(values.bucket_count()) *
+      static_cast<long double>(values.max_load_factor());
+  const std::size_t elementCapacity =
+      available >= static_cast<long double>(maxCount)
+          ? maxCount
+          : static_cast<std::size_t>(available);
+  if (needed <= elementCapacity)
+    return true;
+
+  const std::size_t geometric =
+      elementCapacity == 0u
+          ? 1u
+          : (elementCapacity > maxCount / 2u ? maxCount
+                                              : elementCapacity * 2u);
+  target = std::max(needed, geometric);
+  if (target > maxCount || target > values.max_size())
+    return false;
+  return true;
+}
+
+// Bound bucket-array growth before reserve. Standard-library implementations
+// may round to primes or powers of two; allow up to 2x the minimum required
+// count plus one, then verify the actual count after reserve and roll back an
+// implementation that exceeds this explicit accounting policy.
+template <typename UnorderedMap>
+bool unorderedMapBucketGrowthUpperBound(const UnorderedMap &values,
+                                        std::size_t targetElements,
+                                        std::size_t &additionalBytes,
+                                        std::size_t &transientRehashBytes)
+    noexcept {
+  additionalBytes = 0u;
+  transientRehashBytes = 0u;
+  if (targetElements == 0u)
+    return true;
+  const long double loadFactor =
+      static_cast<long double>(values.max_load_factor());
+  if (!(loadFactor > 0.0L))
+    return false;
+  const long double requiredBucketsExact =
+      static_cast<long double>(targetElements) / loadFactor;
+  const long double maxValue = static_cast<long double>(
+      (std::numeric_limits<std::size_t>::max)());
+  if (requiredBucketsExact > maxValue)
+    return false;
+  std::size_t requiredBuckets =
+      static_cast<std::size_t>(requiredBucketsExact);
+  if (static_cast<long double>(requiredBuckets) < requiredBucketsExact) {
+    if (requiredBuckets == (std::numeric_limits<std::size_t>::max)())
+      return false;
+    ++requiredBuckets;
+  }
+  if (requiredBuckets >
+      ((std::numeric_limits<std::size_t>::max)() - 1u) / 2u)
+    return false;
+  const std::size_t roundedUpperBound = requiredBuckets * 2u + 1u;
+  const std::size_t upperBuckets =
+      std::max(values.bucket_count(), roundedUpperBound);
+  if (upperBuckets < values.bucket_count())
+    return false;
+  const std::size_t addedBuckets = upperBuckets - values.bucket_count();
+  if (addedBuckets > (std::numeric_limits<std::size_t>::max)() /
+                         sizeof(void *) ||
+      upperBuckets > (std::numeric_limits<std::size_t>::max)() /
+                         sizeof(void *)) {
+    return false;
+  }
+  additionalBytes = addedBuckets * sizeof(void *);
+  // During rehash, the old bucket array may remain live while the replacement
+  // array is allocated. The retained charge is only the net growth; admission
+  // must separately allow this conservative full replacement-array peak.
+  transientRehashBytes = upperBuckets * sizeof(void *);
+  return true;
+}
+
+template <typename UnorderedMap>
+bool reserveUnorderedMapForOneMore(UnorderedMap &values,
+                                   std::size_t maxCount) noexcept {
+  std::size_t target = 0u;
+  if (!planUnorderedMapForOneMore(values, maxCount, target))
+    return false;
+  if (target == 0u)
+    return true;
+  try {
+    values.reserve(target);
+  } catch (...) {
+    return false;
+  }
+  return true;
+}
+
+template <typename UnorderedMap>
+bool reserveUnorderedMapForOneMoreWithinBudget(
+    UnorderedMap &values, std::size_t maxCount,
+    std::size_t maxAdditionalBucketBytes,
+    std::size_t maxTransientRehashBytes,
+    std::size_t &actualAdditionalBucketBytes) noexcept {
+  actualAdditionalBucketBytes = 0u;
+  std::size_t target = 0u;
+  if (!planUnorderedMapForOneMore(values, maxCount, target))
+    return false;
+  if (target == 0u)
+    return true;
+
+  std::size_t upperBoundBytes = 0u;
+  std::size_t transientRehashBytes = 0u;
+  if (!unorderedMapBucketGrowthUpperBound(values, target, upperBoundBytes,
+                                          transientRehashBytes) ||
+      upperBoundBytes > maxAdditionalBucketBytes ||
+      transientRehashBytes > maxTransientRehashBytes) {
+    return false;
+  }
+
+  const std::size_t oldBucketCount = values.bucket_count();
+  try {
+    values.reserve(target);
+  } catch (...) {
+    const std::size_t retainedBuckets = values.bucket_count();
+    if (retainedBuckets > oldBucketCount &&
+        retainedBuckets - oldBucketCount <=
+            (std::numeric_limits<std::size_t>::max)() / sizeof(void *)) {
+      actualAdditionalBucketBytes =
+          (retainedBuckets - oldBucketCount) * sizeof(void *);
+    }
+    return false;
+  }
+
+  const std::size_t newBucketCount = values.bucket_count();
+  if (newBucketCount >= oldBucketCount &&
+      newBucketCount - oldBucketCount <=
+          (std::numeric_limits<std::size_t>::max)() / sizeof(void *)) {
+    actualAdditionalBucketBytes =
+        (newBucketCount - oldBucketCount) * sizeof(void *);
+  } else {
+    return false;
+  }
+  if (newBucketCount - oldBucketCount <=
+      upperBoundBytes / sizeof(void *))
+    return actualAdditionalBucketBytes <= maxAdditionalBucketBytes;
+
+  // The implementation rounded beyond our charged upper bound. Restore the
+  // prior capacity if possible; if not, expose the retained bytes to the
+  // caller so the reader can account them and fail closed.
+  try {
+    values.rehash(oldBucketCount);
+  } catch (...) {
+  }
+  const std::size_t afterRollbackBuckets = values.bucket_count();
+  actualAdditionalBucketBytes =
+      afterRollbackBuckets > oldBucketCount &&
+              afterRollbackBuckets - oldBucketCount <=
+                  (std::numeric_limits<std::size_t>::max)() / sizeof(void *)
+          ? (afterRollbackBuckets - oldBucketCount) * sizeof(void *)
+          : 0u;
+  return false;
+}
+
+// Build the POLYLINE's source-order mapping through a sorted handle/index
+// scratch vector. This replaces one full staged-child scan per declared child
+// while keeping the declaration vector authoritative and bounding temporary
+// storage, including the caller's already-reserved output vectors.
+template <typename DeclaredHandles, typename StagedVertices,
+          typename HandleOf, typename Less>
+bool buildPolylineVertexOrder(const DeclaredHandles &declaredHandles,
+                              const StagedVertices &stagedVertices,
+                              HandleOf handleOf, Less less,
+                              std::vector<std::size_t> &orderedIndices,
+                              std::size_t additionalScratchBytes,
+                              std::size_t maxScratchBytes) noexcept {
+  using HandleIndex = std::pair<std::uint32_t, std::size_t>;
+  const std::size_t count = declaredHandles.size();
+  if (count != stagedVertices.size() ||
+      count > static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount) ||
+      additionalScratchBytes > maxScratchBytes) {
+    return false;
+  }
+  if (orderedIndices.capacity() >
+      (maxScratchBytes - additionalScratchBytes) / sizeof(std::size_t)) {
+    return false;
+  }
+  additionalScratchBytes +=
+      orderedIndices.capacity() * sizeof(std::size_t);
+  constexpr std::size_t scratchBytesPerChild =
+      sizeof(HandleIndex) + sizeof(std::size_t) + sizeof(std::uint8_t);
+  if (count >
+      (maxScratchBytes - additionalScratchBytes) / scratchBytesPerChild) {
+    return false;
+  }
+
+  std::vector<HandleIndex> stagedByHandle;
+  std::vector<std::uint8_t> selected;
+  std::vector<std::size_t> ordered;
+  try {
+    stagedByHandle.reserve(count);
+    for (std::size_t index = 0; index < count; ++index)
+      stagedByHandle.emplace_back(handleOf(stagedVertices[index]), index);
+    std::sort(stagedByHandle.begin(), stagedByHandle.end(),
+              [&less](const HandleIndex &lhs, const HandleIndex &rhs) {
+                return less(lhs.first, rhs.first);
+              });
+    selected.resize(count, 0u);
+    ordered.reserve(count);
+  } catch (...) {
+    return false;
+  }
+
+  std::size_t actualScratchBytes = additionalScratchBytes;
+  const auto chargeCapacity = [&actualScratchBytes,
+                               maxScratchBytes](std::size_t capacity,
+                                                std::size_t elementBytes) {
+    if (elementBytes != 0u &&
+        capacity > (maxScratchBytes - actualScratchBytes) / elementBytes) {
+      return false;
+    }
+    actualScratchBytes += capacity * elementBytes;
+    return true;
+  };
+  if (!chargeCapacity(stagedByHandle.capacity(), sizeof(HandleIndex)) ||
+      !chargeCapacity(selected.capacity(), sizeof(std::uint8_t)) ||
+      !chargeCapacity(ordered.capacity(), sizeof(std::size_t))) {
+    return false;
+  }
+
+  for (const std::uint32_t expected : declaredHandles) {
+    if (expected == DRW::NoHandle)
+      return false;
+    const auto vertex = std::lower_bound(
+        stagedByHandle.cbegin(), stagedByHandle.cend(), expected,
+        [&less](const HandleIndex &candidate, std::uint32_t handle) {
+          return less(candidate.first, handle);
+        });
+    if (vertex == stagedByHandle.cend() || vertex->first != expected ||
+        ((vertex + 1) != stagedByHandle.cend() &&
+         (vertex + 1)->first == expected) ||
+        selected[vertex->second] != 0u) {
+      return false;
+    }
+    selected[vertex->second] = 1u;
+    ordered.push_back(vertex->second);
+  }
+  orderedIndices.swap(ordered);
+  return true;
+}
+
+} // namespace dwgReaderDetail
 
 /// File-level code-page identity captured from the DWG metadata envelope.
 /// `present` distinguishes a missing field from an explicit undefined id;
@@ -104,6 +969,14 @@ std::uint16_t dwgCodePageId(const char *name);
 /// it. Otherwise fall back to the file-level @p fallback decoder. Empty input
 /// returns empty. R2007+ entity-EED strings are UTF-16LE and bypass this
 /// helper entirely (caller handles them inline).
+/// When a fallback codec exists, merge per-value decode and unknown/aliased
+/// selection issues into its accumulated envelope without changing its file
+/// codec or last primary-conversion snapshot on the named-codec path. Empty
+/// values retain their declared-profile observation. This is not exhaustive
+/// codepage/table qualification; no read/decoding policy is made stricter.
+/// Legacy XRECORD application strings also use this value conversion for a
+/// nonzero RC codepage, but retain their separate application-body framing
+/// and established zero/file-default convention.
 std::string decodeEedString(std::uint16_t cp, const std::string &raw,
                             DRW_TextCodec *fallback);
 
@@ -258,6 +1131,14 @@ public:
         m_readObjectBudget{p != nullptr
                                ? p->dwgReadObjectBudget()
                                : dwgSafety::MaxDwgReadObjectCount} {
+    std::size_t ownerMapBucketBytes = 0u;
+    if (polylineOwnerMapBucketBytes(ownerMapBucketBytes) &&
+        ownerMapBucketBytes <= dwgSafety::MaxPolylineStagingBytes) {
+      m_polylineStagingBytes = ownerMapBucketBytes;
+    } else {
+      m_polylineStagingBytes = (std::numeric_limits<std::size_t>::max)();
+      m_dwgFrameCoverageIntegrityViolation = true;
+    }
     decoder.setVersion(DRW::AC1021, false); // default 2007 in utf8(no convert)
     decoder.setCodePage("UTF-16", false);
     //        blockCtrl=0; //RLZ: temporary
@@ -346,8 +1227,14 @@ protected:
 
     virtual ~DwgEntityOutput();
 
+    void appendValue(
+        const DRW_UnsupportedObject &value,
+        void (DRW_Interface::*callback)(const DRW_UnsupportedObject &));
+
     template <typename T, typename Callback>
     void appendValue(const T &value, Callback callback);
+    void appendUnsupportedObject(DRW_UnsupportedObject &&value);
+    void appendModelerGeometry(DRW_ModelerGeometry &&value);
     [[nodiscard]] SourceScope
     bindSource(const DwgSourceFrameId &source) noexcept;
     [[nodiscard]] bool appendEndBlock();
@@ -602,6 +1489,7 @@ protected:
   void parseAttribs(DRW_Entity *e);
   void parseAttribs(DRW_TableEntry *e);
   std::string findTableName(DRW::TTYPE table, std::int32_t handle);
+  std::string findAppIdName(std::uint32_t handle) const;
 
   void setCodePage(const std::string &c) { decoder.setCodePage(c, false); }
   std::string getCodePage() { return decoder.getCodePage(); }
@@ -650,6 +1538,22 @@ protected:
     return true;
   }
   void addIntegrityDiagnostic(DwgIntegrityDiagnostic diagnostic) noexcept;
+  /// Record a bounded public read diagnostic from a version-specific reader.
+  /// The legacy error enum still reports the enclosing section failure; this
+  /// detail identifies semantic input that cannot be converted losslessly.
+  void recordReadDiagnostic(DRW::OperationPhase phase,
+                            DRW::OperationCause cause, const char *code,
+                            const char *message, std::uint64_t offset = 0,
+                            bool hasOffset = false) noexcept {
+    if (parent == nullptr)
+      return;
+    try {
+      parent->recordOperationDiagnostic(phase, cause, code, message, offset,
+                                        hasOffset);
+    } catch (...) {
+      // Diagnostic allocation must never replace the legacy read result.
+    }
+  }
   void recordIntegrityDiagnostic(
       DwgIntegritySeverity severity, DwgIntegrityAddressSpace offsetSpace,
       DwgIntegrityPhase phase, DwgIntegrityCheckKind kind,
@@ -846,10 +1750,19 @@ protected:
     StagedAttribState &operator=(StagedAttribState &&) noexcept = default;
   };
 
+  struct StagedAttributeLocation {
+    std::uint32_t owner{DRW::NoHandle};
+    std::size_t index{0u};
+  };
+
   struct PendingInsertState {
     DRW_Insert entity;
     DwgStagedFrame frame;
     std::vector<StagedAttribState> attributes;
+    // Modern INSERT membership is checked through a sorted, unique projection
+    // built once when the owner arrives. The original handle order remains in
+    // entity.attribHandles and continues to define callback ordering.
+    std::vector<std::uint32_t> expectedAttributeHandles;
 
     PendingInsertState() = default;
     PendingInsertState(const PendingInsertState &) = delete;
@@ -894,6 +1807,9 @@ protected:
     DRW_Polyline entity;
     DwgStagedFrame frame;
     std::vector<StagedVertexState> vertices;
+    std::vector<std::pair<std::uint32_t, std::size_t>> declaredChildIndex;
+    std::vector<std::uint8_t> stagedChildSlots;
+    std::size_t retainedBytes{0};
 
     PendingPolylineState() = default;
     PendingPolylineState(const PendingPolylineState &) = delete;
@@ -904,6 +1820,8 @@ protected:
 
   struct OrphanPolylineVertexState {
     std::vector<StagedVertexState> vertices;
+    std::set<std::uint32_t> childHandles;
+    std::size_t retainedBytes{0};
 
     OrphanPolylineVertexState() = default;
     OrphanPolylineVertexState(const OrphanPolylineVertexState &) = delete;
@@ -1050,9 +1968,34 @@ protected:
                               DwgInsertTerminalReason reason);
   void abandonPendingInsertState(std::uint32_t handle);
   void terminalizeOrphanAttribOwner(std::uint32_t owner);
+  void eraseStagedAttributeIndex(
+      std::uint32_t owner,
+      const std::vector<StagedAttribState> &attributes) noexcept;
+  void releaseInsertExpectedAttributeCount(
+      const PendingInsertState &pending) noexcept;
   void terminalizePendingPolylineState(std::uint32_t handle,
                                        DwgInsertTerminalReason reason);
   void terminalizeOrphanPolylineVertexOwner(std::uint32_t owner);
+  [[nodiscard]] bool polylineOwnerMapBucketBytes(
+      std::size_t &bytes) const noexcept;
+  [[nodiscard]] bool reservePendingPolylineOwnerMapForOneMore(
+      std::size_t stagedAdditionalBytes) noexcept;
+  [[nodiscard]] bool reserveOrphanPolylineOwnerMapForOneMore(
+      std::size_t stagedAdditionalBytes) noexcept;
+  void releasePolylineStagingBytes(std::size_t &bytes) noexcept;
+  bool addPolylineDeclaredClaims(
+      std::uint32_t owner,
+      const std::vector<std::pair<std::uint32_t, std::size_t>> &declaredIndex)
+      noexcept;
+  void removePolylineDeclaredClaims(
+      std::uint32_t owner,
+      const std::vector<std::pair<std::uint32_t, std::size_t>> &declaredIndex)
+      noexcept;
+  bool addPolylineOrphanClaim(std::uint32_t owner,
+                              std::uint32_t child) noexcept;
+  void removePolylineOrphanClaims(
+      std::uint32_t owner,
+      const std::set<std::uint32_t> &children) noexcept;
   [[nodiscard]] bool
   readMappedDwgEntity(dwgBuffer *dbuf, DwgFrameMapLease &lease,
                       DRW_Interface &intfa, bool *frameFailure,
@@ -1141,6 +2084,9 @@ public:
   /// AC1027+ DataStorage records not referenced by a parsed modeler/surface
   /// entity. This is a non-fatal diagnostic.
   size_t m_dataStorageOrphanRecords = 0;
+  /// Payload bytes copied from the retained AcDs record index onto unique
+  /// entity records. Bounded independently from the section's source copies.
+  std::size_t m_dataStorageLinkedPayloadBytes{0};
   /// Custom-class entities (oType >= 500, recName not in our hardcoded
   /// dwgType map) that fell through readDwgEntity's default branch and
   /// got stuffed into objObjectMap.  Keyed by the DXF recName (eg
@@ -1217,10 +2163,22 @@ protected:
   // detached source node together until one parent reaches a terminal result.
   std::unordered_map<std::uint32_t, PendingInsertState> m_pendingInsertStates;
   std::unordered_map<std::uint32_t, OrphanAttribState> m_orphanAttribStates;
+  // One deterministic logarithmic lookup per staged ATTRIB. Its size is
+  // admitted against MaxDwgReadObjectCount before every insertion.
+  std::map<std::uint32_t, StagedAttributeLocation> m_stagedAttributeIndex;
+  // Aggregate count of retained sorted expected-handle projections. Bounding
+  // this as well as staged child nodes prevents many malformed INSERT owners
+  // from multiplying per-owner index allocations.
+  std::size_t m_stagedInsertExpectedAttributeCount{0u};
   std::unordered_map<std::uint32_t, PendingPolylineState>
       m_pendingPolylineStates;
   std::unordered_map<std::uint32_t, OrphanPolylineVertexState>
       m_orphanPolylineVertexStates;
+  dwgReaderDetail::PolylineDeclaredClaimIndex<> m_polylineDeclaredClaims;
+  // Inverse index for staged child-first POLYLINE vertices. A later-arriving
+  // parent can detect foreign ownership without walking all orphan vectors.
+  dwgReaderDetail::PolylineDeclaredClaimIndex<> m_polylineOrphanClaims;
+  std::size_t m_polylineStagingBytes{0};
   std::unordered_map<std::uint32_t, StagedSeqEndState> m_stagedSeqEnds;
   DwgTerminalizerFailurePoint m_terminalizerFailurePointForTest{
       DwgTerminalizerFailurePoint::None};

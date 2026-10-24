@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_SCALELIST owner order fast slice",
+  "mode": "Locally generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert NOD-first output and ACAD_SCALELIST DICTIONARY-before-SCALE owner order through the existing generated named-resource selector.",
+    "Use actual emitted handles and retain existing typed graph/value/readback checks.",
+    "Keep validation scoped to the existing adapter target and focused CTest."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-scalelist-owner-order-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "The existing two-SCALE generated root graph is exported to ASCII and Binary DXF.",
+      "Physical OBJECTS order requires the decoded NOD first, then the NOD-owned ACAD_SCALELIST dictionary before both remapped SCALE records.",
+      "Existing readback checks retain root key, dictionary owner, keyed SCALE handles, values, CLASS count, and opaque payload."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS (exit 0): --named-resource-import-evidence with existing tests/fixtures/dwg/rtext_arctext.dwg; parser diagnostics are not counted as a complete DWG qualification",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on plan and adapter test; receipt parsed by jq and trailing-whitespace scanned",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Physical NOD-first and root-DICTIONARY-before-SCALE output ordering for the existing generated ACAD_SCALELIST graph in ASCII and Binary DXF.",
+    "doesNotClose": [
+      "Every OBJECTS family or a generic topological scheduler.",
+      "Independent producer/native acceptance or complete DWG read qualification.",
+      "Broad named-resource, DWG/DXF, or 3D semantic support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

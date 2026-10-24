@@ -61,6 +61,8 @@ constexpr std::size_t kDefaultDxfReadTokenByteBudget = 1024u * 1024u;
 
 //! Maximum number of DXF 102 application-group pairs staged per record.
 constexpr std::size_t kMaxDxfApplicationGroupPairs = 65536;
+//! Maximum number of group-code/value pairs retained by one raw DXF record.
+constexpr std::size_t kMaxDxfRawRecordGroups = 65536u;
 //! Maximum nesting depth accepted inside one DXF 102 application group.
 constexpr int kMaxDxfApplicationGroupNesting = 64;
 //! Maximum aggregate size of one DXF binary payload assembled from chunks.

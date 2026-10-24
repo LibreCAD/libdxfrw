@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ACIS DXF version lanes and silent-loss prevention",
+  "mode": "Deeper/broader primary-source research and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This pass changed only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and this research receipt; it did not edit codec or test source.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acis-dxf-version-lanes-silent-loss-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF reference and ezdxf 1.4.5",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/body.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "observation": "Autodesk documents the entity-local 3DSOLID modeler subclass, modeler version, proprietary data strings, optional continuation strings, and history handle. ezdxf 1.4.5 documents SAT on AC1015 through AC1024 and SAB in ACDSDATA on AC1027 and later; it reads SAT/SAB but writes SAT only. Its documented route does not provide arbitrary ACIS authoring or general B-rep semantic validation.",
+      "planDisposition": "Split PAR-07/S8 carrier checks into pre-2013 inline SAT and R2013+ ACDSDATA/SAB association lanes. Use ezdxf only for an exact pinned raw-carrier/association question; do not count its result as arbitrary ACIS or B-rep support."
+    },
+    {
+      "project": "LibreDWG modern AcDs DXF export",
+      "references": [
+        "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/out_dxf.c",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observation": "The previous source pass found the sole current ACDSDATA emission body behind if (0 && _obj->num_segidx), although the call site may return success. Issue #1411's public generated DXF-to-DWG-to-DXF chain does not independently establish that the intermediate DWG contains AcDs data.",
+      "planDisposition": "Do not treat current mutable LibreDWG source as a positive ACDSDATA DXF-writer oracle. Inspect each intermediate and attribute loss only to the first stage with proven missing data."
+    },
+    {
+      "project": "ACadSharp modeler DXF writer gap",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observation": "Open issue #1195 reports DWG-read 3DSOLID/REGION entities being silently omitted by DxfWriter, including solid-only block definitions. Writer PR #1240 remains open and depends on schema PR #1174; this is not released or independently accepted capability.",
+      "planDisposition": "Require per-source-handle and block-owner disposition through write/readback. Every source must be emitted, explicitly transformed, diagnosed as lost, or cause refusal. Reuse local generated controls rather than duplicate the peer report."
+    },
+    {
+      "project": "CADCraft released ACDSDATA retention route",
+      "references": [
+        "https://github.com/storytold/cadcraft/releases",
+        "https://raw.githubusercontent.com/storytold/cadcraft/main/crates/dwg/Cargo.toml",
+        "https://github.com/storytold/cadcraft/issues/604"
+      ],
+      "observation": "The v0.10.0 release notes include merged ACDSDATA retention PR #781. The current DWG bridge manifest depends on ACadRust 0.6.4, so it is an application route sharing that codec lineage, not an independent DWG reader. A separate open AutoCAD 2027 report says CADCraft emitted AC1018 when AC1032 was the source and AutoCAD reported six AUDIT errors; the report is not ACIS-specific and does not establish a universal failure.",
+      "planDisposition": "At an existing composed gate only, pin release, lockfile, backend, and input/output signatures. Record actual emitted version, audit/importer route, entity disposition, and whether evidence is untouched retention versus newly authored geometry. Treat this as a target-version/audit caveat, not semantic support."
+    },
+    {
+      "project": "Archived netDxf history",
+      "references": [
+        "https://github.com/haplokuon/netDxf/blob/master/doc/Changelog.txt"
+      ],
+      "observation": "The archived project changelog records a historical fix for reading ACDSDATA and describes the section as affecting DXF 2013 and later.",
+      "planDisposition": "Discovery/history only; no current writer, semantic capability, dependency, or acceptance claim."
+    }
+  ],
+  "assessment": {
+    "newFinding": null,
+    "existingOwners": [
+      "PAR-07/S8 versioned ACIS carrier, association, semantics, and consumer evidence",
+      "PAR-59 staged modeler-loss attribution and peer admission"
+    ],
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "implementationReadinessRefined": true,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "defaultAction": "Reuse existing generated fast controls and add no peer-mirroring test unless a distinct local invariant is proven uncovered.",
+    "sequence": [
+      "Audit current DXF ACIS dispatch and map existing local selectors to AC1015-AC1024 inline SAT and AC1027+ ACDSDATA/SAB lanes.",
+      "Preserve legacy SAT behavior while implementing only an uncovered modern association or framing boundary; keep output publication transactional.",
+      "For downgrade, require supported exact SAT conversion or explicit loss/refusal; raw SAB cannot be relabeled as SAT.",
+      "Run only the owning fast selector and focused CTest; defer full suite and peer/native routes to the composed gate.",
+      "After each implementation item, update the plan and self-unblock; report progress after each committed slice."
+    ],
+    "fixturePolicy": "Use generated in-memory or scratch-only DWG/DXF/SAT/SAB data; do not commit new external fixtures.",
+    "progressPolicy": "Research only. No implementation slice was performed; existing self-update, self-unblock, and committed-slice progress requirements remain in force."
+  },
+  "limitations": "This was source/documentation research only. No peer package, binary, native CAD application, or test suite was run, and no external drawing was downloaded. GitHub main/master references are mutable; exact route use requires pinning commit, release, artifact, and output signature. Autodesk DXF documentation establishes entity fields and group-code types, not full ACIS semantics. All six J items remain DEFERRED_EXTERNAL and non-promoting."
+}

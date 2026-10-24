@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS reachable-index vector slot accounting fast slice",
+  "mode": "local implementation and generated in-memory regression",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge ordered reachable-node output slots separately from discovered membership-set nodes",
+    "Preserve source traversal order, graph-link output, cycle reporting, and exact fail-closed limits"
+  ],
+  "changes": [
+    {
+      "file": "src/drw_acis.cpp",
+      "summary": "Added one output-item charge before projection.reachableNodeIndices.push_back for each newly discovered source node."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "summary": "Updated the generated body/two-lump cycle cap to 36 exact and 35 one-under; exact projection matches default reachable order and graph links and reports the same single cycle."
+    }
+  ],
+  "evidence": {
+    "priorExactBudgetWithoutReachableVectorSlots": 33,
+    "newExactOutputItems": 36,
+    "oneUnderOutputItems": 35,
+    "newlyAccountedReachableSlots": 3,
+    "redGreen": "The one-under refusal assertion failed before the new charge because the previous implementation admitted 35; it passed after accounting the vector slots.",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp"
+    ],
+    "results": [
+      "strict target build passed",
+      "direct graph/preservation executable passed",
+      "owning CTest passed 1/1 in 0.59 seconds",
+      "focused diff whitespace check passed"
+    ]
+  },
+  "limitations": {
+    "wallClockBenchmarkRun": false,
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "publicApiChanged": false,
+    "supportClaimsPromoted": 0,
+    "worktreeCommitted": false,
+    "reasonUncommitted": "The shared worktree contains broad pre-existing modifications, including extensive changes to the same source and test files; staging or committing them together is unsafe."
+  },
+  "assessment": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

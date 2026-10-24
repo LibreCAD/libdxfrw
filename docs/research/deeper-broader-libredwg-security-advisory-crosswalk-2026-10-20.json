@@ -1,0 +1,146 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "LibreDWG security-advisory crosswalk and generated negative-control readiness",
+  "mode": "Primary-source web research with bounded local source/test inventory review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Review current LibreDWG 0.14.1 parser-safety disclosures relevant to DWG decoding and object-graph staging.",
+    "Map decompression, page-map, record-loop, and pointer-lifetime failure shapes to existing libdxfrw paths and fast-test surfaces.",
+    "Refine the existing PAR-14 and PAR-07/S8 implementation readiness without promoting peer reports into local defects or support claims."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG release history",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Public NEWS reviewed 2026-10-20; observations are from the v0.14 and v0.14.1 entries.",
+      "observed": "v0.14.1 records a second R2004 section-decompression heap overflow involving a buffer shrink while logical cursors remained larger, an unchecked R2004 page-map offset, pre-R2004 DXF VIEWPORT and MLINESTYLE pointer invalidation across object-array growth, and completion of a pre-R13 entity-end progress/resource fix. It also lists signed-count, NULL-check, and fuzz-discovered memory-safety fixes.",
+      "limits": "These are LibreDWG version-specific fixes. They identify useful adversarial shapes but do not show that libdxfrw has the same implementation or defects."
+    },
+    {
+      "project": "LibreDWG R2004 section-decompression report and advisory",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1180",
+        "https://github.com/advisories/GHSA-qg2f-8389-w95j"
+      ],
+      "revision": "Public issue/advisory history reviewed 2026-10-20; release notes identify the v0.14.1 follow-up fix.",
+      "observed": "The report concerns heap-buffer overflow in the R2004 decompression path; release notes explain the later capacity-versus-logical-cursor shrink regression.",
+      "limits": "No issue PoC was downloaded or run; the report is not a libdxfrw reproduction."
+    },
+    {
+      "project": "LibreDWG R13-R2000 class-count resource advisory",
+      "urls": [
+        "https://github.com/advisories/GHSA-gp83-hcvh-g255"
+      ],
+      "revision": "Public GitHub Security Advisory reviewed 2026-10-20; advisory says affected versions are before 0.14 and the fix is in 0.14.",
+      "observed": "A crafted num_classes value caused uncontrolled allocation/slow-loop behavior in LibreDWG's decode_R13_R2000 path.",
+      "limits": "This is a peer-specific algorithmic-complexity report. It does not establish a corresponding defect in libdxfrw."
+    },
+    {
+      "project": "LibreDWG local-advisory cross-reference",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Public NEWS reviewed 2026-10-20; advisory identifiers and patched releases are recorded in the v0.14/v0.14.1 sections.",
+      "observed": "NEWS identifies a pre-R13 corrupt entities_end loop/resource fix, page-map range checking, and stale pointer use across object-array growth.",
+      "limits": "The libdxfrw AC1009/R11 reader is unsupported; peer pointer lifetime patterns are review prompts, not portable code-fix prescriptions."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "surface": "R2004 compressed page output window",
+      "paths": [
+        "src/intern/dwgutil.cpp",
+        "src/intern/dwgreader18.cpp",
+        "tests/wave1_tests.cpp",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "observation": "The decompressor takes an explicit output window, and the reader constructs page-local decoded storage and checks physical page ranges. Existing decompressor and reader-matrix tests provide fast coverage surfaces; adequacy for the exact peer capacity-versus-logical-size failure shape was not fully assessed."
+    },
+    {
+      "surface": "R2004/R2007 page-map offset and size admission",
+      "paths": [
+        "src/intern/dwgreader18.cpp",
+        "src/intern/dwgreader21.cpp",
+        "src/intern/dwgsafety.h",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "observation": "Source contains checked arithmetic, file-range admission, and bounded map sizes; generated system-page/page-map probe infrastructure exists. Exact public-read refusal coverage remains an inventory task before adding tests."
+    },
+    {
+      "surface": "R13-R2000 class counts and parse progress",
+      "paths": [
+        "src/intern/dwgreader15.cpp",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "observation": "Correction from the follow-up ODA-spec/source comparison: the R13-R15 section contains an RL payload size and class records are read to the payload boundary; it has no explicit num_classes field. The local parser bounds the payload by dwgSafety::MaxBufferSize, classNum is uint16_t (BS) with accepted values 500..65535, duplicate IDs are rejected, and DRW_Class::parseDwg must consume its mandatory fields before success. This is a different architecture from LibreDWG's per-record realloc trigger. No separate aggregate decoded-memory budget has been profiled; any such work is conditional on a shared-limit change or measured cost."
+    },
+    {
+      "surface": "Object pointer stability across graph mutation",
+      "paths": [
+        "src/intern/dwgreader.cpp",
+        "src/intern/dwgwriter.h",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "observation": "No direct equivalent was confirmed in this bounded review. Apply a local lifetime audit only where pointers/references into growable containers survive insertion, callbacks, or rehash."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-14: map peer safety reports to exact local reader paths and existing fast selectors before adding generated boundary mutations.",
+      "PAR-14: preserve checked arithmetic, bounded allocation/output windows, and record-loop progress; add only uncovered reachable invariants.",
+      "PAR-07/S8: keep malformed DataStorage handling and output transaction semantics distinct from DWG container/page-map safety.",
+      "Parser-safety checkpoint: use targeted ASan/UBSan or fuzz-harness validation at a composed milestone, not for every unrelated slice.",
+      "Fixture policy: use generated-from-scratch local bytes; do not download or commit the public peer PoC DWG."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a research crosswalk for release-pinned LibreDWG decompression, page-map, class-count/progress, and object-pointer invalidation failure shapes.",
+    "Recorded existing libdxfrw bounded decode windows, checked page-map arithmetic/ranges, and generated test surfaces without asserting complete security coverage; the R13-R15 class path was later corrected to a section-payload plus class-ID-domain bound, not an explicit count ceiling.",
+    "Refined PAR-14/PAR-07 readiness to reuse existing fast tests, add only narrowly generated mutations for uncovered invariants, and consult the authoritative ODA specification before any DWG parse-body change.",
+    "Reaffirmed fast target plus focused CTest per change, less frequent full suites, no external PoC fixtures, self-unblocking when a peer/version is unavailable, and no support promotion."
+  ],
+  "limitations": [
+    "LibreDWG release notes and advisories are peer evidence, not normative DWG format specifications or proof of a libdxfrw defect.",
+    "Local review was a bounded source/test inventory, not a full static-analysis, sanitizer, fuzz, or code audit.",
+    "No external drawing or advisory PoC was downloaded; no tests, peer binaries, native CAD applications, or geometry kernels were run.",
+    "J256, J260, J268, J284, J293, and J295 remain external-only, advisory, and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files; receipt whitespace scan)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Not requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

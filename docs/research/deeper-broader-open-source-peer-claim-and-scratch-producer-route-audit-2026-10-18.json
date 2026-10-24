@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader open-source peer claim and scratch-producer route audit",
+  "mode": "primary project documentation/source-page research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Broaden the DWG/DXF/ACIS candidate screen beyond existing high-level capability claims",
+    "Separate writer, outer-format parser, inner ACIS decoder, kernel, renderer, and native-application evidence",
+    "Refine the optional scratch-generated ACIS/DXF experiment without adding routine peer work"
+  ],
+  "method": {
+    "kind": "Read-only review of current public project documentation, repository metadata, and architecture/source descriptions",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-route-and-evidence-audit-2026-10-17.json",
+      "docs/research/deeper-broader-current-reader-portfolio-scratch-sab-review-2026-10-18.json",
+      "docs/research/deeper-broader-acis-consumer-route-closure-2026-10-18.json"
+    ],
+    "limitations": "Mutable main/master documentation was not substituted for an immutable build or runtime result. No peer source checkout, dependency/lineage audit, generated output, ACIS parse, kernel conversion, native CAD open, or AutoCAD audit was performed. Findings refine candidate admission and do not qualify any support claim."
+  },
+  "sources": [
+    {
+      "project": "obj2cad",
+      "urls": [
+        "https://github.com/cbassuarez/obj2cad",
+        "https://github.com/cbassuarez/obj2cad#verification"
+      ],
+      "revision": "Mutable main README and repository page reviewed 2026-10-18; page reports pre-release and no listed GitHub release",
+      "observed": "The README describes an R2018 ASCII/Binary DXF writer, SAT/SAB ACIS authoring, known-body sample generation, ezdxf and ACadRust readback, and AutoCAD acceptance work. It marks DWG and curved surfaces beta/pre-release pending AutoCAD acceptance and states the DWG writer vendors patched ACadRust. These are route declarations; they do not establish an independently authored B-rep oracle, exact output profile for every sample command, or external acceptance."
+    },
+    {
+      "project": "ProGPU",
+      "urls": [
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md"
+      ],
+      "revision": "Mutable main architecture and DXF/ACIS technical note reviewed 2026-10-18",
+      "observed": "The architecture identifies ACadSharp as the active document model and names ProGPU.Dxf as an existing renderer path. The separate DXF note describes a custom SAB token scan and edge projection, but this research did not locate or pin an exact parser artifact/profile or executable validation. The claimed route remains discovery-only and is not treated as an ACIS grammar authority or B-rep oracle."
+    },
+    {
+      "project": "pid-cad",
+      "urls": [
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md"
+      ],
+      "revision": "Mutable main documentation reviewed 2026-10-18",
+      "observed": "The docs name acadrust EntityType as the input model and describe ACIS-to-kernel lifting with a per-surface fallback that marks incomplete meshes. This is a downstream kernel/display path, not an independent DWG/DXF parser or complete semantic result when fallback is used."
+    },
+    {
+      "project": "CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel"
+      ],
+      "revision": "Mutable main README and detailed format table reviewed 2026-10-18",
+      "observed": "The broad format prose conflicts with the detailed matrix, which leaves ACIS SAT/SAB read/write unchecked; the FAQ says commercial CAD import is planned. No ACIS route was admitted."
+    },
+    {
+      "project": "Open CASCADE Technology Components",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "revision": "Official public component catalog reviewed 2026-10-18",
+      "observed": "The official preview catalog lists ACIS Import-Export as a commercial extension, corroborating that stock open-source OCCT/FreeCAD must not be presumed to include this exchange component."
+    },
+    {
+      "project": "mlightcad proprietary DWG parser",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md"
+      ],
+      "revision": "Mutable public parser-scope note reviewed 2026-10-18",
+      "observed": "The note describes partial 3DSOLID/SAB extraction without full B-rep tessellation and a best-effort wireframe or bounding-box fallback. The parser package is gated/proprietary, so it is not an open-source comparator or full semantic route."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Tightens existing peer-admission and PAR-07/S8 composed evidence gates. obj2cad is retained as an optional exact-profile scratch producer, not a DWG writer vote or B-rep oracle. ProGPU remains discovery-only; pid-cad is ACadRust-lineage and must expose zero incomplete fallback to qualify its kernel stage; CADKernel is not admitted while its detailed table marks ACIS unsupported; stock OCCT's ACIS exchange is commercial; the proprietary partial parser is excluded from the open-source denominator.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Use obj2cad only at the existing optional composed checkpoint, after pinning an immutable source/artifact, toolchain, lockfile, command, output format/version, and hashes.",
+    "Inspect generated $ACADVER, entity type, group/carrier representation, and every body identity; do not infer an AC1027+ SAB or DWG AcDs route from a general README claim.",
+    "Author expected analytic parameters, units, topology, placement, bounds, volume, centroid, and tolerances independently before generation.",
+    "Report raw carrier retention, strict parser result, kernel B-rep conversion and fallback/loss counts, native open/audit, and rendering as distinct outcomes.",
+    "Keep generated samples in scratch storage; do not import peer corpus files, add peer dependencies, or run peers/native applications per implementation slice.",
+    "Continue fast local implementation validation and keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

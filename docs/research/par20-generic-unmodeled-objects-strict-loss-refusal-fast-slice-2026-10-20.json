@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20 generic unmodeled OBJECTS strict-loss refusal",
+  "mode": "Source-backed local implementation; generated fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Prevent strict conversion from silently publishing output after the DXF parser observes a generic unmodeled OBJECTS record.",
+    "Preserve known raw-only ACDBPLACEHOLDER behavior and existing callback compatibility.",
+    "Use a generated temporary control with no persistent or external drawing fixture."
+  ],
+  "sourceFinding": {
+    "location": "src/libdxfrw.cpp::dxfRW::processObjects/processRawObject and dwg2dxf/dx_iface.cpp::dx_iface::addRawDxfObject",
+    "observed": "The generic unknown OBJECTS fallback captured a record and called addRawDxfObject, but the concrete converter adapter had no general storage or output path. A root-linked unknown could be rejected later by graph closure, while an unrooted unknown could be silently omitted. Raw callbacks cannot identify unknowns alone because typed records also publish raw companions and ACDBPLACEHOLDER has an explicit raw-only adapter route.",
+    "classification": "Source-confirmed strict-conversion silent-loss gap; fix is fail-closed detection, not raw replay."
+  },
+  "implementation": [
+    "Added optional DRW_UnmodeledDxfObjectHandler side-interface without changing the established DRW_Interface vtable.",
+    "Queried the side-interface only from the generic unknown OBJECTS fallback.",
+    "Routed ACDBPLACEHOLDER explicitly through the same bounded raw capture while suppressing the unmodeled diagnostic.",
+    "Added a sticky dx_data presence marker and strict owner-resolved export refusal before output publication.",
+    "Kept permissive export behavior unchanged; unknown raw object replay is still unimplemented."
+  ],
+  "test": {
+    "selector": "--retain-named-object-callbacks",
+    "control": "Generated minimal OBJECTS section with NOD plus one unknown record; parser sets marker; strict fileExport refuses and does not create destination.",
+    "existingControl": "Recognized typed/raw named-object callbacks, including ACDBPLACEHOLDER, leave the unmodeled marker clear.",
+    "fixturePolicy": "Generated from scratch in a unique temporary directory and removed after execution; no committed external fixture."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "compatibility": "PASS: cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "focusedCTest": "PASS: dwg2dxf_named_object_callback_storage (1/1)",
+    "diffCheck": "PASS: git diff --check on plan and scoped implementation files; jq empty and no trailing whitespace on both receipts",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20: strict output must report/refuse an observed unmodeled OBJECTS record until a bounded owner/reference/remapping replay route exists.",
+      "PAR-20: distinguish the generic unknown fallback from known typed records that emit raw companions and from the explicit ACDBPLACEHOLDER raw-only route.",
+      "PAR-14: keep the selector local and fast; do not add a full-suite or external-runtime gate to this slice."
+    ],
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "reasonUncommitted": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  },
+  "limitations": [
+    "This slice detects/refuses unknown OBJECTS records in strict export; it does not preserve their tags or establish semantic support.",
+    "The boolean marker is sticky for the lifetime of dx_data; it does not yet provide per-record loss inventories or an opt-in replay policy.",
+    "No broad source-format/version matrix or native consumer acceptance was run."
+  ]
+}

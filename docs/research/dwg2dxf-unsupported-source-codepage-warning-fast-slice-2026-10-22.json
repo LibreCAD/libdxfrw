@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 dwg2dxf unsupported-source-codepage warning",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "4dd897f96991a4b77cedf8ecc9b86f07255a5d2e940885ba307340cb6bf96b0c",
+  "scope": {
+    "change": "Report a present unsupported DWG envelope codepage id through the bounded dwg2dxf read outcome, state that the version-selected fallback decoder was used, and warn that decoded text may be inaccurate without changing decoding or export admission.",
+    "fixturesAdded": false,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target dwg2dxf --parallel 4",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_cli_contract|dwg2dxf_unsupported_source_codepage|dwg2dxf_acds_history_dwg_frame_capture_limits)$' --output-on-failure",
+      "result": "PASS (3/3; 27.62 s total; codepage mutation uses a temporary copy of an existing tracked fixture)"
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md CMakeLists.txt dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_cli_contract_tests.py",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "4dd897f96991a4b77cedf8ecc9b86f07255a5d2e940885ba307340cb6bf96b0c",
+    "CMakeLists.txt": "2c02ad8fd052b2489991c73345809e8a047959c2353f925c6d792545df775ef7",
+    "dwg2dxf/dx_data.h": "08c4b99a212500ab78963f77635a2466d31e4a685106ee5728e964201934a952",
+    "dwg2dxf/dx_iface.cpp": "93076723b9b68c352c34ad6259fd13efe3a1939a2e830c947bd8e5d17aabf71c",
+    "tests/dwg2dxf_cli_contract_tests.py": "7e7e13bc0ffc8494232a868c90b31a6ea5d6b218d3069ba3f870d1d7502afd53"
+  },
+  "evidenceLimits": [
+    "The integration test mutates only the codepage word in a temporary copy; the checked-in fixture remains unchanged.",
+    "This receipt was recorded after the follow-on VPORT control-disposition change; the dx_iface.cpp hash includes that follow-on classification, while the focused codepage test still passes.",
+    "The warning does not prove an exact decoder for an unsupported id and does not promote DWG/DXF support.",
+    "Full suite, sanitizer, peer runtime, and native CAD validation were not run."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; shared worktree is broadly dirty and unstaged"
+}

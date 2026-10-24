@@ -1,0 +1,192 @@
+{
+  "schema": "libdxfrw-deeper-broader-field-table-and-peer-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Deepen ACAD_TABLE/FIELD wire-format and graph-readiness research; refresh open-source peer boundaries for table handling and ACIS carrier reading without changing support claims.",
+  "method": {
+    "kind": "Autodesk DXF references, local ODA Open Design Specification v5.4.1, current peer project documentation/issues/release notes, and read-only local source inspection",
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localOdaPdf": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "localOdaPdfVersion": "5.4.1",
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "codeChangedByResearch": false,
+    "sourcePinning": "Public peer manuals, issues, discussions and release pages are mutable. No peer executable or current-master revision was built or run. ACadSharp v3.6.51 release notes are a candidate route pin, not an executed result.",
+    "evidenceRule": "Autodesk documents DXF tags; ODA v5.4.1 governs DWG layout. Peer self-reports identify their own boundaries and candidate probes only. Local parse/write presence does not establish adapter retention or interoperable output."
+  },
+  "evidence": [
+    {
+      "topic": "ACAD_TABLE references and FIELD graph shape",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm"
+      ],
+      "observed": "TABLE group 342/343/340/331/300/344 encode style, block ownership, block cell, ATTDEF/value and FIELD references. FIELD has hard-owned child fields (360), soft object references (331), and structured cached/data values.",
+      "doesNotEstablish": [
+        "that every producer emits identical optional FIELD fields or ordering",
+        "that a parser's FIELD callback is retained by a consumer adapter",
+        "that group 344 alone describes the separate NOD FIELDLIST or entity extension-dictionary edges",
+        "that field expressions are evaluated or resolve to correct application values"
+      ],
+      "planUse": "Require a bounded graph closure for group 344, preserving owners and remapping all outgoing references; audit the separate NOD FIELDLIST and entity extension-dictionary edges for the admitted producer profile."
+    },
+    {
+      "topic": "AutoCAD FIELDLIST NOD and extension-dictionary lifecycle",
+      "sources": [
+        "https://blog.autodesk.io/how-to-find-all-fields-in-a-drawing/"
+      ],
+      "observed": "The Autodesk developer article says a drawing containing fields has an ACAD_FIELDLIST entry in the NOD, that the object is AcDbFieldList, and that each AcDbField is typically accessible through an entity extension dictionary. It describes an AutoCAD R19-era API route and says FIELDLIST is not exposed by the referenced ARX/.NET API.",
+      "doesNotEstablish": [
+        "a universal requirement across every DXF/DWG producer and version",
+        "exact field-list membership order or duplicate handling",
+        "that a TABLE-specific 344 association can replace the global field index"
+      ],
+      "planUse": "Model NOD ACAD_FIELDLIST membership and the entity extension-dictionary owner as distinct edges for the AutoCAD profile; validate against producer-origin samples and keep deviations explicitly versioned."
+    },
+    {
+      "topic": "Autodesk FIELD schema versus local typed DXF mapping",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "local:src/libdxfrw.cpp:dxfRW::processField",
+        "local:src/libdxfrw.cpp:dxfRW::writeField",
+        "local:ODA-Open-Design-Specification-v5.4.1:section-20.4.76",
+        "local:ODA-Open-Design-Specification-v5.4.1:section-20.4.99"
+      ],
+      "observed": "Autodesk's FIELD DXF schema lists groups 301 and overflow 9 as the format string, with 98 as its length. ODA Open Design Specification v5.4.1 section 20.4.76 instead assigns 301/9 to the value string and 98 to value-string length; section 20.4.99 separately specifies nested R2007+ CadValue format/value tags 300/302. Local code writes m_formatString at 4 and m_valueString at 301, and parses 4 as format and 9/301 as value. An available ODA-converted sample has empty root 301 and 98=0, so it cannot discriminate the competing assignments. This is a primary-source conflict, not a proven local bug or interoperable profile.",
+      "doesNotEstablish": [
+        "which root 301/9/98 assignment a producer emits when format and cached values are non-empty",
+        "whether the local mapping is intentional for a specific producer/version",
+        "that a generated local read/write test would match Autodesk or another producer",
+        "that undocumented extra evaluation-state fields are invalid in all DXF versions"
+      ],
+      "planUse": "Treat this as a normative-source conflict. Keep FIELD-backed TABLE writing blocked and do not change mapping based on either document alone. Use literal controls for both grammars plus producer-origin DXF with non-empty format and cached values; record product/build/save version and expected loss. Assert groups 4, 9, 98, 301 and nested 300/302 separately; never use codec self-round-trip as the schema oracle."
+    },
+    {
+      "topic": "LibreCAD bundled-fork FIELD mapping compatibility",
+      "sources": [
+        "local:../LibreCAD/libraries/libdxfrw/src/libdxfrw.cpp:dxfRW::processField",
+        "local:../LibreCAD/libraries/libdxfrw/src/libdxfrw.cpp:dxfRW::writeField"
+      ],
+      "observed": "The bundled LibreCAD fork currently maps group 4 to FIELD format, groups 9/301 to value string, and 98 to value-string length; its writer emits 4/301/98, matching this upstream worktree.",
+      "doesNotEstablish": [
+        "an independent normative interpretation because the bundled fork is a related implementation lineage",
+        "AutoCAD acceptance or producer-origin semantics for non-empty root format and cached values",
+        "that changing the shared mapping would preserve existing LibreCAD consumer behavior"
+      ],
+      "planUse": "Treat the current mapping as a compatibility profile, not a support claim. Keep the in-tree adapter fail-closed; if evidence requires a different wire mapping, add an explicit profile/version gate or safe refusal and preserve a LibreCAD compatibility test."
+    },
+    {
+      "topic": "Group-code ordering",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "observed": "Autodesk warns applications not to depend on the reference table's displayed group-code order and calls for code-driven dispatch.",
+      "doesNotEstablish": [
+        "that repeated per-cell sequences can be arbitrarily reordered without changing their meaning",
+        "a canonical ordering for all optional or version-specific TABLE fields"
+      ],
+      "planUse": "Test reordering of independent singleton fields while preserving repeated cell-major value/reference sequences. Do not sort the tag stream."
+    },
+    {
+      "topic": "Versioned DWG TABLE/TABLECONTENT",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "local:/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf:sections-20.4.96-20.4.102"
+      ],
+      "observed": "ODA v5.4.1 describes TABLE geometry in anonymous *T blocks, legacy R21 structures and linked TABLECONTENT/round-trip data, and R24+ DWG with embedded AcDbTableContent while DXF may carry old and new forms. TABLECONTENT supports multiple contents per cell.",
+      "doesNotEstablish": [
+        "undocumented per-version fields beyond the specification's stated limits",
+        "a real producer's exact object layout without a trace",
+        "visual table rendering or a native editor's acceptance"
+      ],
+      "planUse": "Keep AC1021 and AC1024+ implementations as separate evidence lanes and require an eligible sample trace before DWG parseDwg changes."
+    },
+    {
+      "topic": "LibreDWG table support status",
+      "sources": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html"
+      ],
+      "observed": "The current manual marks TABLE, TABLECONTENT and TABLESTYLE as broken/undertested and qualifies TABLE/TABLESTYLE as working only pre-2010.",
+      "doesNotEstablish": [
+        "that every LibreDWG release has identical behavior",
+        "a runtime pass/fail on the local table profile",
+        "a normative format restriction"
+      ],
+      "planUse": "Treat this as a version-scoped peer limitation; do not use the peer as the blanket AC1024+ TABLE oracle."
+    },
+    {
+      "topic": "ezdxf retained-table capability boundary",
+      "sources": [
+        "https://github.com/mozman/ezdxf/discussions/955",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "observed": "The maintainer reports ACAD_TABLE tag preservation and a helper for extracting simple cell text; the general object is not a fully editable typed table and its xref copying remains unsupported.",
+      "doesNotEstablish": [
+        "full table field/style/merge/block semantics",
+        "graph-aware copy and handle remapping",
+        "native rendering or output application acceptance"
+      ],
+      "planUse": "Use ezdxf only for raw-tag and limited extraction comparisons, not full typed TABLE support."
+    },
+    {
+      "topic": "ACadSharp table and ACIS comparator boundaries",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/discussions/900",
+        "https://github.com/DomCR/ACadSharp/issues/995",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observed": "The maintainer describes table read as partial; issue #995 reports DWG/DXF table writers unsupported at the reviewed snapshot. v3.6.51 release notes list reading ACIS payloads for 3DSOLID/REGION/BODY and reading the AcDs payload-area offset.",
+      "doesNotEstablish": [
+        "current behavior of an unpinned latest branch",
+        "complete TABLE semantics or writer behavior",
+        "AcDs handle-to-record association for arbitrary inputs",
+        "valid ACIS B-rep geometry or independent-kernel semantics"
+      ],
+      "planUse": "At one composed checkpoint, pin a suitable ACadSharp release to compare structural carrier extraction and versioned behavior; keep semantic shape evidence independent and never run the peer in every fast slice."
+    },
+    {
+      "topic": "Current local adapter handoff",
+      "sources": [
+        "local:dwg2dxf/dx_data.h:dx_data",
+        "local:dwg2dxf/dx_iface.h:DRW_Interface callbacks",
+        "local:dwg2dxf/dx_iface.cpp:dx_iface::addRawDxfObject",
+        "local:dwg2dxf/dx_iface.cpp:dx_iface::fileExport",
+        "local:src/libdxfrw.cpp:dxfRW::writeTable"
+      ],
+      "observed": "At the original research snapshot the graph precheck was TABLE-root-only. The current local adapter still retains typed FIELD/FIELDLIST callbacks and raw carriers separately, and its fresh-DXF receipt verifies bounded typed/raw count and class/handle/source-version/owner pairing. The precheck has since been generalized to validate the global FIELDLIST through TABLE and non-TABLE extension-dictionary roots, acyclic owner-matching children, and object/CadValue references whose targets exist in the current adapter candidate inventory. fileExport remains fail-closed because no qualified FIELD serializer is invoked; TABLE writing independently refuses nonempty group-344 field handles.",
+      "doesNotEstablish": [
+        "producer-qualified AutoCAD graph behavior or proof that locally inventoried reference targets are actually emitted and remapped",
+        "semantic FIELD wire mapping, complete output handle closure, or FIELD serialization",
+        "that parser/writer code is interoperable or that FIELD serialization is implemented",
+        "a table support claim beyond the existing bounded text/block-cell slice"
+      ],
+      "planUse": "Keep the adapter fail-closed for any FIELD/FIELDLIST carrier. The generalized precheck is a bounded candidate-graph gate, not output closure. Next qualify its graph profile with producer-origin input, inventory all emitted targets, prove one-time reference remapping and post-write closure, and retain TABLE group-344 refusal until schema and writer tests pass."
+    }
+  ],
+  "implementationReadiness": {
+    "nextSlice": "7G.3d.2c: qualify the generalized bounded candidate graph against producer-origin input; inventory every outgoing handle target against records actually emitted, prove single remapping and post-write closure, and keep export refusal until FIELD wire semantics/serialization are qualified",
+    "wireGate": "Resolve the Autodesk-versus-ODA v5.4.1 conflict over root FIELD groups 301/9/98 using literal controls and producer-origin DXF with non-empty format and cached values; record producer/build/save version and expected loss before enabling FIELD writing",
+    "fieldGraphPrecheck": "Implemented as a bounded fail-closed AutoCAD candidate-graph precheck covering global FIELDLIST members rooted by TABLE and non-TABLE entity extension dictionaries, owner-matching acyclic children, and object/type-64 CadValue handles whose targets exist in the adapter inventory; producer qualification, actual writer emission/remapping, and serializer remain unqualified",
+    "graphGate": [
+      "TABLE 344 targets exactly one retained FIELD",
+      "AutoCAD field profile retains the NOD ACAD_FIELDLIST membership and entity extension-dictionary owner as distinct edges",
+      "FIELD 360 child ownership recursively closes within bounds and has no cycles",
+      "FIELD 331 and object-valued cache references target admitted/remapped output records",
+      "owner, reactors, extension dictionaries, custom-class metadata and counts are preserved or safely refused",
+      "post-write parseback confirms each handle edge and field semantic separately"
+    ],
+    "fastValidation": "Per slice: touched strict build, one focused in-memory test, relevant LibreCAD/LibreCAD_3 compile check, git diff --check. Peer/native/full-suite checks remain composed checkpoints.",
+    "fixturePolicy": "Zero new committed DWG/DXF fixtures; authored controls remain literal/in-memory or temporary producer outputs.",
+    "planImpact": {
+      "existingOwnersOnly": true,
+      "newFindings": 0,
+      "newTopLevelSubplans": 0,
+      "supportClaimsPromoted": 0,
+      "externalJDispositionChanged": false,
+      "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+    }
+  }
+}

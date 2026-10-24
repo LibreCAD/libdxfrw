@@ -1,0 +1,143 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "InventorLoader route and admission reconciliation",
+  "mode": "Deeper/broader current primary-source and issue review; existing evidence reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This research pass edited the parity plan and its 3D-plan summary and created two research receipts; no prior or unrelated work was staged or committed.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-open-source-acis-kernel-candidates-acds-boundaries-2026-10-21.json",
+      "docs/research/deeper-broader-inventorloader-independent-acis-reader-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "InventorLoader source and capability documentation",
+      "references": [
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py"
+      ],
+      "observation": "The DXF route uses ezdxf to read entities and extract their SAT/SAB bytes, then passes the data to the add-on's own AcisReader (readText/readBinary). The shape builder resolves ACIS body/lump/shell/face/wire records and constructs FreeCAD/OCCT Part objects. Its visible face path emits Part.Shell(faces) and can fall back to individual faces; this is not by itself evidence of a closed Part.Solid. The STEP/Part results for exact payloads are already recorded in the 3D plan. The README lists no SAT/SAB/DXF export and unsupported blending surfaces, some helix surfaces, and law-defined geometry without spline data.",
+      "planDisposition": "Keep SCREENED_NOT_ADMITTED. Reuse the existing commit-pinned, exact-payload STEP/Part witness without another run. Native shell/face/wire builder, STEP conversion, standalone SAT import, and DXF wrapper are distinct routes. A future changed-route check requires immutable source/runtime pinning and source-wide input-safety/resource review first."
+    },
+    {
+      "project": "InventorLoader issue #100",
+      "references": [
+        "https://github.com/jmplonka/InventorLoader/issues/100"
+      ],
+      "observation": "A public report against FreeCAD weekly 1.1.0 development build commit 5e4fe3a3c3af46be530969d323368fee8bfcba3b and InventorLoader 1.5.1 describes a native DXF import KeyError and an empty result from the STEP strategy on one 3D-DXF. The issue is version- and case-specific and has not been independently reproduced in this research.",
+      "planDisposition": "Keep as a version- and case-specific failure report, not a contradiction of the historical pinned witness, libdxfrw defect, or universal current failure. Do not rerun unchanged payloads."
+    },
+    {
+      "project": "InventorLoader issue #102",
+      "references": [
+        "https://github.com/jmplonka/InventorLoader/issues/102"
+      ],
+      "observation": "Open report says a SAB import/conversion of an attached CONTENT_3D.zip fails with TypeError: sequence item 1; expected str instance, int found. The issue does not pin source revision, complete runtime, input hash/profile, or an independently checked geometry expectation.",
+      "planDisposition": "Record as an unresolved peer failure shape only. Do not download or commit the attachment. It neither establishes a libdxfrw defect nor invalidates narrow historical exact-payload results."
+    },
+    {
+      "project": "InventorLoader issue #110",
+      "references": [
+        "https://github.com/jmplonka/InventorLoader/issues/110"
+      ],
+      "observation": "Open report describes a FreeCAD 1.2 user's difficulty importing the demo Dice.sat and includes a standalone workaround using AcisReader, ezdxf's experimental OpenSCAD route, and STEP/Part. It is not an independently reproduced fix or pinned source change.",
+      "planDisposition": "Keep standalone SAT import and the posted workaround separate from the DXF add-on branches. Reopen only if a new exact route question is posed; record default route and workaround separately."
+    },
+    {
+      "project": "FreeCAD stock importer boundary",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py"
+      ],
+      "observation": "Stock FreeCAD documentation states that the built-in DXF importers do not read embedded ACIS solids. InventorLoader is a separate add-on route; its DXF side delegates envelope/entity parsing to ezdxf and it does not read DWG AcDs sections or verify group-320 owner/key joins.",
+      "planDisposition": "Do not count the add-on as stock FreeCAD native support, as an independent DWG decoder, or as ACDSDATA join evidence. It can be used after exact local carrier/association checks to inspect the extracted SAT/SAB body."
+    },
+    {
+      "project": "Future independent-kernel route",
+      "references": [
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observation": "OpenCADKernel describes an ACIS-to-project-B-rep feature but labels itself early, says most operations are not written, and documents opencadcodec as its ACIS dependency. It is not a currently available qualified external semantic route.",
+      "planDisposition": "Keep as NOT_READY/future candidate; do not wait for it or count it as current evidence."
+    },
+    {
+      "project": "InventorLoader current public license metadata",
+      "references": [
+        "https://github.com/jmplonka/InventorLoader/blob/master/package.xml",
+        "https://github.com/jmplonka/InventorLoader/blob/master/LICENSE"
+      ],
+      "observation": "package.xml declares LGPL-3.0-or-later while the repository LICENSE contains GPL version 2 text. This review does not establish the intended grant or per-file provenance; master was not pinned to a commit in this pass.",
+      "planDisposition": "No source is copied, bundled, or distributed. Resolve provenance/license before source reuse; treat this as admission uncertainty rather than a legal conclusion about runtime testing."
+    },
+    {
+      "project": "InventorLoader current source safety screen",
+      "references": [
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py"
+      ],
+      "observation": "The current public Acis.py source contains a reachable Law.evaluate path that calls Python eval(self.eq). This research did not execute the add-on or perform a complete taint/resource audit.",
+      "planDisposition": "Before giving any new input to a future run, pin the complete source tree and audit parser reachability, expression construction, file writes, subprocess/network use, bounds, and resource exhaustion. Until then, leave this route NOT_RUN/SCREENED_NOT_ADMITTED."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "currentPeerFailureReportsReviewed": 3,
+    "peerFailureReportsInterpretedAsLocalDefects": 0,
+    "candidateAdmissionStatus": "SCREENED_NOT_ADMITTED",
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: external semantic reader route and evidence ceiling",
+      "PAR-59: staged raw-carrier to shape-construction loss attribution"
+    ],
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "sequence": [
+      "Reuse the already recorded immutable InventorLoader commit and exact payload hashes/outcomes; do not rerun the three SABs or create a duplicate generated payload/CTest.",
+      "Keep the historical STEP/Part witness separate from the current native shell/face/wire route, standalone SAT import, stock FreeCAD DXF path, and dwg2dxf handoff.",
+      "The existing 2026-10-20 two-prism, scratch-generated profile remains the sole optional new candidate probe; do not repeat the old exact payloads or add another control. Run it only after a materially changed source/runtime/profile question is pinned, or to investigate a specific issue reproducer. First pin complete source SHA, FreeCAD/Python/ezdxf/OCCT, OS/architecture, and license/provenance disposition.",
+      "Before any new input, audit the reachable eval path, file writes, subprocess/network behavior, bounds, and resource limits. If the safety gate is incomplete, mark NOT_RUN and continue local implementation.",
+      "If later admitted, use only scratch-generated analytic controls; record exact hash/profile, parser exceptions and unknowns, body reachability, fallbacks, shape type/validity/closure, units/placement/bounds, and independently expected analytic metrics.",
+      "Keep the entity-handle to group-320 key to payload association independent; InventorLoader does not read DWG AcDs or qualify the outer join.",
+      "Self-unblock absent runtimes, unsupported profiles, failed peer routes, and platform gaps as NOT_RUN/NOT_QUALIFIED; do not wait for this optional route."
+    ],
+    "evidenceCeiling": "The old exact-payload STEP/Part results remain historical same-OCCT-family semantic observations, not current-add-on qualification. No route here independently proves the DWG AcDs join, stock FreeCAD importer behavior, arbitrary SAT/SAB coverage, kernel-independent geometry, or native dwg2dxf interoperability."
+  },
+  "limitations": "No external drawing or issue attachment was downloaded, no fixture was created, and no FreeCAD/add-on runtime, peer executable, geometry kernel, or native CAD application was run. Current master source was not pinned; public docs/issues are screening evidence only. The historical exact-payload run remains separately recorded. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+  "validation": {
+    "jsonValidation": "PASS",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

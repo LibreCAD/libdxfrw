@@ -1,0 +1,62 @@
+{
+  "title": "S3.7c SAB 21800 exact edge-endpoint vertex identity fast slice",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "ACIS BinaryFile SAB 21800 rooted projection",
+    "public_projection": "DRW_AcisEdge retains exact start and end vertex source node identities independently from decoded endpoint coordinates.",
+    "pointer_relationships": {
+      "start_vertex": "edge ordinal 1",
+      "end_vertex": "edge ordinal 2"
+    },
+    "compatibility_boundary": "Strict rooted extraction uses exact ordinal slots independently; the legacy unrooted extractor keeps its prior flexible first-two-typed-vertex search.",
+    "explicit_nonclaims": [
+      "coedge-sense application or oriented-boundary reconstruction",
+      "trim evaluation or complete B-rep semantics",
+      "source-record completeness before DRW_AcisModel construction",
+      "geometry-kernel validation",
+      "native CAD acceptance"
+    ]
+  },
+  "coverage": {
+    "parser_fed_rooted_edge_retains_exact_endpoint_identities": "PASS",
+    "parser_fed_null_start_preserves_end_slot": "PASS",
+    "parser_fed_null_end_preserves_start_slot": "PASS",
+    "parsed_sab_and_in_memory_edge_projection_match": "PASS",
+    "missing_start_identity_marks_projection_coverage_gap": "PASS",
+    "missing_end_identity_marks_projection_coverage_gap": "PASS",
+    "wrong_type_endpoint_link_refused_by_exact_rooted_graph_validation": "PASS",
+    "legacy_unrooted_typed_vertex_lookup_preserved": "PASS",
+    "new_drawing_fixture_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "json_validation": "PASS (jq empty)",
+    "address_sanitizer": "NOT_RUN"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": true,
+    "consumer_rebuild_required": true,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

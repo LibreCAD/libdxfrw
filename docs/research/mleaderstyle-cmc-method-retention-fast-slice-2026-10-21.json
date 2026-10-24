@@ -1,0 +1,37 @@
+{
+  "slice": "PAR-134 MLEADERSTYLE CMC source-method retention",
+  "date": "2026-10-21",
+  "status": "implemented_in_worktree_uncommitted",
+  "scope": {
+    "version": "AC1024 generated vectors",
+    "fields": ["leaderColor", "textColor", "blockColor"],
+    "format": "DWG"
+  },
+  "implementation": {
+    "parser": "Capture the raw method byte for all three bounded MLEADERSTYLE CMC fields.",
+    "model": "Append method companions; preserve them through generated copy/assignment and clear them on reset.",
+    "writer": "Replay matching C0-C3 methods; reject unsupported or inconsistent source methods before writing body, string, or handle bytes.",
+    "dxf_edit": "Parsing scalar DXF color groups clears the corresponding DWG-only method provenance.",
+    "compatibility": "Public DRW_MLeaderStyle size changes; downstream consumers must rebuild. No virtual interface changed."
+  },
+  "generated_controls": {
+    "qualified_methods": "Independently walk C0 ByLayer, C3 ACI, and C2 RGB wire methods.",
+    "unsupported_method": "Mutate a generated C3/ACI-7 method byte to C5, verify scalar 7 plus raw C5 retention, optional strings, subsequent fields, owner handles, copy/assignment, and fail-before-output rewrite refusal.",
+    "fixtures": "No persistent DWG/DXF fixtures added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror strict build)",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "focused_result": "PASS (2/2)",
+    "cmc_lane": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+    "cmc_lane_result": "PASS (12/12)",
+    "diff_check": "PASS for src/drw_objects.cpp, src/drw_objects.h, and tests/dwg_object_vectors_tests.cpp"
+  },
+  "evidence_limits": [
+    "Generated vectors establish local parser/writer behavior, not producer-authored C5 payload semantics.",
+    "No full suite, independent semantic reader, native CAD application, or support promotion was used.",
+    "Findings/subplans remain 144/78; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "next_local_item": "Continue PAR-134 CMC caller and class-specific DXF loss audit, then resume the source-backed PAR-03/PAR-04 associative-action context audit."
+}

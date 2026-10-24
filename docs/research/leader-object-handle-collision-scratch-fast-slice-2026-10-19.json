@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "7S.2c LEADER object-handle collision scratch fast slice",
+  "mode": "generated local fast slice",
+  "scope": [
+    "Continue the 7S.2c writer-preflight scratch census in dx_iface::planLeaderAnnotationHandles",
+    "Replace the all-object handle inventory with a bounded set containing only collisions against LEADER annotation targets",
+    "Skip object-handle scans entirely when no annotation targets exist while preserving cross-family collision refusal"
+  ],
+  "method": {
+    "kind": "Local source audit and existing generated ASCII/Binary LEADER selector",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "persistentTestDataAdded": false,
+    "limitations": "Collision behavior is checked by the existing generated selector, including its cross-family layer-handle negative control. This is a targeted scratch reduction, not a complete allocator/RSS bound or LEADER interoperability qualification. Git metadata is read-only in this workspace; the slice remains uncommitted."
+  },
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Removed the second unordered_set containing every non-entity handle. Once annotation target handles are known, each existing object family is scanned for membership in that target set, and only matching handles are retained in objectHandleCollisions.",
+      "Skip the cross-family inventory when annotationHandles is empty. All prior object families, named-object dictionary, image, and block handle sources remain covered; zero and sentinel handles remain excluded."
+    ],
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf --parallel 2"
+    ],
+    "focusedSelector": "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference",
+    "owningCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "owningCtestResult": "1/1 passed in 3.93 seconds",
+    "scopedDiffCheck": "git diff --check -- dwg2dxf/dx_iface.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/leader-object-handle-collision-scratch-fast-slice-2026-10-19.json",
+    "receiptJsonCheck": "jq empty docs/research/leader-object-handle-collision-scratch-fast-slice-2026-10-19.json",
+    "scopedDiffCheckPassed": true,
+    "receiptJsonPassed": true,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  }
+}

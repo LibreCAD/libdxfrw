@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "DXF callback readers, projection limits, and parser-versus-render evidence",
+  "mode": "Primary-source repository/documentation research plus local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Broaden DXF comparison beyond full document codecs to callback-oriented readers and geometry projection/rendering tools.",
+    "Check whether these routes add source-inspectable evidence for specific DXF questions without conflating parser, writer, preservation, and rendering behavior.",
+    "Refine optional comparator admission while preserving local generated-control and fast-validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "QCAD dxflib",
+      "urls": [
+        "https://www.qcad.org/fr/90-dxflib",
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://github.com/qcad/qcad/blob/master/src/3rdparty/dxflib/src/dl_dxf.cpp",
+        "https://github.com/LibrePCB/dxflib"
+      ],
+      "revision": "Mutable documentation and QCAD master source reviewed 2026-10-19; exact commit not pinned",
+      "observed": "QCAD documents a supported read subset across DXF versions and DXF R15/AC1015 writing. The API dispatches supported information to user callbacks instead of retaining a complete document model. The visible HATCH dispatch calls handleHatchData while the ordinary addHatch call is commented out. LibrePCB identifies its dxflib repository as a fork of dxflib; it is not a separate implementation lineage. Binary-DXF behavior was not established."
+    },
+    {
+      "project": "DXF-Renewed",
+      "urls": [
+        "https://github.com/linkiez/DXF-Renewed",
+        "https://github.com/skymakerolof/dxf"
+      ],
+      "revision": "Mutable README and repository metadata reviewed 2026-10-19; exact commit not pinned",
+      "observed": "The project identifies itself as a fork of skymakerolof/dxf and separates typed parsing, block denormalization, and SVG/polyline rendering. Its own matrix lists 3DFACE, ATTRIB/ATTDEF, MLEADER, OLEFRAME, REGION, TABLE, and MLINE as parsed but not rendered. The project describes its 2D coverage/rendering work as ongoing and does not document a DWG codec or DXF file writer in the reviewed scope."
+    },
+    {
+      "project": "GDAL OGR DXF driver",
+      "urls": [
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Mutable current driver documentation/source reviewed 2026-10-19; KNOWN_ISSUES.md footer dated June 2018; executable version not tested",
+      "observed": "KNOWN_ISSUES.md lists MESH, MPOLYGON, RAY, TABLE, TOLERANCE, and XLINE as unsupported; records ambiguity over outline-versus-filled 3DFACE projection; names missing 3D/OCS support in DIMENSION, LEADER, and MULTILEADER projection; and notes omitted HATCH pattern fills and WIPEOUT image content. Because the file is dated 2018 and mutable, it is a scope warning rather than a measured result for a current GDAL binary."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md already treats ezdxf as a strict DXF syntax/tag comparator and GDAL as an OGR projection, and separates native consumer acceptance from parser/output checks.",
+    "The plan's PAR-07/S8 matrix already distinguishes typed decode, raw retention, output membership, strict reopen, transformed/projected geometry, modeler semantics, and native acceptance.",
+    "The added candidate routes do not establish a local libdxfrw discrepancy. No candidate was run, and no expected geometry or parser result was derived from a peer output."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "ownersRefined": [
+      "PAR-07",
+      "S8"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "testsOrRegistrationsAdded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds optional comparator boundaries for callback DXF readers and projection/rendering tools. Their evidence is admissible only for named stages they actually implement; it cannot promote writer, complete-graph, DWG, explicit 3D, ACIS, or native-acceptance claims."
+  },
+  "method": {
+    "kind": "Read primary project documentation and relevant public source paths, then map declared/visible route boundaries to existing plan owners",
+    "peerRepositoriesCloned": false,
+    "peerRepositoriesBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Repository master/main pages and online documentation are mutable. QCAD dxflib was not pinned to an immutable commit and its binary-DXF behavior was not evaluated. DXF-Renewed's support matrix is project-authored. GDAL's KNOWN_ISSUES.md footer dates its content to 2018, so no statement is attributed to an untested current binary. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "implementationReadyChecks": [
+    "Use authoritative format rules and local generated controls first; admit at most one optional comparator for a specific unresolved route question.",
+    "For callback readers, pin the source and record supported/unsupported callback outcomes; do not infer raw-document retention or writer behavior.",
+    "For viewers and OGR projections, account separately for parsed, retained, expanded/transformed, projected, and skipped source objects, with an explicit reason for every omission.",
+    "Use independently authored analytic expectations for geometry comparisons; visual plausibility and process exit are not semantic evidence.",
+    "Keep routine validation to the touched strict target, focused selector, owning existing CTest, and scoped diff check; reserve peer/native runs for named composed checkpoints.",
+    "Do not add external/customer drawings as fixtures; use local scratch-generated controls or already-admitted repository samples."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-dxf-callback-reader-projection-render-boundaries-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-dxf-callback-reader-projection-render-boundaries-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Release-bound peer capabilities and HEADER regression readiness",
+  "mode": "Primary-source project/release/issue review and local source/test cross-check",
+  "scope": [
+    "Refresh implementation-specific evidence roles across LibreDWG, ACadSharp, ACadRust, dwg-rs, ezdxf, GDAL, FreeCAD, and LibreCAD_3.",
+    "Separate released artifacts from post-release issues, mutable source, same-lineage applications, and self-round-trip claims.",
+    "Refine the existing PAR-27/7L.4 HEADER test plan using the current writer's exact output/default behavior."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "geometry_kernels_run": false,
+    "peer_drawings_downloaded": 0,
+    "issue_attachments_downloaded": 0,
+    "local_tests_run": false,
+    "production_code_changed": false,
+    "test_code_changed": false,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "local_source_and_test_checks": [
+      "Inspected DRW_Header::write emissions for $ANGBASE, $ANGDIR, $FILLETRAD, $CHAMFERA, $CHAMFERB, $ELEVATION, and $THICKNESS; confirmed groups 50, 70, and 40 respectively.",
+      "Searched tests for literal assertions of those seven variable names; the current focused HEADER tests cover $INSUNITS and $MEASUREMENT but not this family.",
+      "Confirmed the current HEADER writer emits default zero values when these seven source variables are absent, so emitted-tag presence must not be confused with input presence."
+    ],
+    "limitations": "Project pages, mutable branches, and issue reports describe scoped routes only. No peer runtime result or independent native acceptance was generated. Recent peer issue reports are not normative format rules or proof of a local defect."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG 0.14.1 release notes, milestone, and issues #1409-#1415",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/milestone/22",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "observed": "NEWS dates 0.14.1 to 2026-07-25. The reviewed #1409-#1415 issues were opened in September, after that release; mutable-master or post-release issue activity does not establish 0.14.1 behavior.",
+      "evidence_ceiling": "Use exact release/source build and operation. Issues are peer-specific leads, not local reproductions or universal format rules."
+    },
+    {
+      "project": "ACadSharp v3.8.0 and issues #1297/#1299",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "observed": "The signed v3.8.0 tag points to 3a1c66b and was released 2026-09-21. Issues #1297 and #1299 were opened 2026-10-14; the former reports whole-file rejection with an unproven missing-object hypothesis, and the latter does not publish exact spline arrays/expected geometry in the issue body.",
+      "evidence_ceiling": "Post-release peer reports do not describe v3.8.0 without reproducing that exact artifact/profile; neither report establishes a libdxfrw defect."
+    },
+    {
+      "project": "ACadRust README and open issues #133-#135",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/hakanaktt/acadrust/issues/135"
+      ],
+      "observed": "The README advertises DXF/DWG and ACIS/B-rep scope. The open reports cover owner rehoming, AC1032 auxiliary-object decode failures, and AC1024 associative-dependency uncertainty; #133/#134 have candidate commits without public corpus retest, while #135 has no public DWG and labels its proposed layout as a hypothesis. CADCraft/OpenCADStudio codec routes share ACadRust lineage.",
+      "evidence_ceiling": "README scope is not measured parity. Candidate fixes and same-lineage downstream applications are not independent parser or release evidence."
+    },
+    {
+      "project": "dwg-rs README and capability matrix",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs#capability-matrix-at-a-glance"
+      ],
+      "observed": "The project labels itself 0.1.0-alpha.1, not yet published to crates.io, and reports measurements on 19 local files across seven versions, including only one AC1032 file. Its hard-no list excludes several complete typed families, R14/R2007 writing, byte-identical DWG round trips, and CAD acceptance.",
+      "evidence_ceiling": "Small corpus measurements support only exact per-version/per-family structural comparisons, not general completeness, writer validity, or semantic geometry."
+    },
+    {
+      "project": "ezdxf README, PSLTSCALE issue #1386, and ACIS docs",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/issues/1386",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "ezdxf documents DXF read/write, not a DWG codec. Issue #1386 concerns paperspace viewport linetype rendering under $PSLTSCALE=0, not wire parsing. Its ACIS API supports carrier-level parsing/authoring and constrained mesh projections rather than complete curved B-rep semantics.",
+      "evidence_ceiling": "Use exact pinned package/runtime and separate parser, writer, renderer, and ACIS projection observations. Do not use it as a DWG or complete B-rep oracle."
+    },
+    {
+      "project": "GDAL DXF driver, FreeCAD DWG import documentation, and LibreCAD_3 DWG policy",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observed": "GDAL is an OGR projection with documented geometry/field transformations and opaque modern ASM handling; stock FreeCAD DWG import is converter-to-DXF followed by a selected importer; LibreCAD_3's declared DWG policy is read-only.",
+      "evidence_ceiling": "These routes retain their existing narrow projection or consumer roles and cannot qualify full document graph, DWG writer validity, or ACIS/AcDs B-rep semantics."
+    },
+    {
+      "project": "Local libdxfrw HEADER writer and test inventory",
+      "local_files": [
+        "src/drw_header.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": "DRW_Header::write emits all seven variables: $ANGBASE as group 50, $ANGDIR as group 70, and $FILLETRAD/$CHAMFERA/$CHAMFERB/$ELEVATION/$THICKNESS as group 40. Missing source variables are emitted with zero defaults. Existing focused HEADER test helpers cover $INSUNITS/$MEASUREMENT but do not assert these seven literal tags.",
+      "evidence_ceiling": "This establishes an untested regression-test opportunity under PAR-27/7L.4, not a demonstrated production failure."
+    }
+  ],
+  "plan_impact": {
+    "existing_owner": "PAR-27 / 7L.4 HEADER serialization and exact target-tag controls",
+    "implementation_ready_test": "Add generated ASCII/Binary AC1015 and AC1032 raw HEADER assertions for the seven variables, nonzero and explicit-zero values, and absent-input canonicalization to emitted zero defaults; assert names, group codes, values, uniqueness, order, and a following entity/EOF sentinel before secondary parseback.",
+    "presence_semantics_correction": "Record source presence, normalized public value, and output-tag presence separately. For the current writer's canonicalized fields, absence in input should not be asserted as absence in output.",
+    "new_local_defects": 0,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "peer_runs": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repository_state": "Plan and research receipt updated in a broadly dirty shared worktree. No files were staged or committed."
+}

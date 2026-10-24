@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5a TABLESTYLE legacy row CMC, roles, and text-style handle fast slice",
+  "mode": "Generated local DWG round-trip validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "05df4c8808d213f5d1e0de4399802e3cbb8e4a6f6cccb35c96126b7ff3757ff5",
+  "authoritativeReference": {
+    "title": "Open Design Specification for .dwg files, version 5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "accessed": "2026-10-22",
+    "section": "20.4.101.1 TABLESTYLE format until R21",
+    "fields": [
+      {"description": "Three row styles, in data/title/header order"},
+      {"field": "Text style ID", "type": "H", "role": "hard pointer"},
+      {"field": "Text color", "type": "CMC", "DXF group": 62},
+      {"field": "Fill color", "type": "CMC", "DXF group": 63},
+      {"description": "Each row has six ordered borders, each with lineweight BS, visibility B, and border color CMC"}
+    ]
+  },
+  "implementation": {
+    "changes": [
+      "Generated TABLESTYLE data/title/header rows now carry distinct text heights, alignments, text/fill indexed colors, and standard text-style hard-pointer handles.",
+      "The data row exercises distinct true-color CMC values for text and fill: the text color also has color/book names, while fill RGB has no optional names.",
+      "The read callback verifies row order/identity, both CMC payloads and metadata, text-style handles, and existing border CMC values."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5a-tablestyle-legacy-cmc-fast-slice-2026-10-22.json",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dwg_local_roundtrip (1/1; 5.46 s)",
+    "diffCheck": "PASS: git diff --check",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "nestedDxfTableStyleTyped": false,
+    "dwgVersionUpconvertClaimPromoted": false,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-5b: malformed repeated-cell-style count refusal before callback, with explicit following-object parse sentinel",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

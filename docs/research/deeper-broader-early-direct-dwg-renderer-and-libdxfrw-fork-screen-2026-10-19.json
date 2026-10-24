@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Early direct-DWG renderer and same-family libdxfrw fork screen",
+  "mode": "Primary-source repository and documentation review",
+  "scope": [
+    "Screen newly surfaced open-source DWG/DXF implementations beyond the established parser matrix.",
+    "Determine whether their operation, maturity, and implementation lineage add independent parity evidence.",
+    "Update optional comparator routing without adding dependencies, fixtures, or support claims."
+  ],
+  "method": {
+    "kind": "Public project README, version matrix, algorithm notes, and repository metadata review",
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "drawings_downloaded": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "local_tests_changed": false,
+    "full_suite_run": false,
+    "limitations": "No peer source tree was pinned or audited; repository self-descriptions and coverage tables are screening evidence only. No peer samples or output were inspected."
+  },
+  "sources": [
+    {
+      "name": "ft_model repository and README",
+      "url": "https://github.com/hhcme/ft_model",
+      "reviewed": "2026-10-19",
+      "observed": "The project describes a self-developed C++20 DWG/DXF parser and 2D renderer, version families AC1015 through AC1032, a SceneGraph-to-JSON export path, and a test_dwg directory containing real sentinel files. Repository metadata at review time showed 2 stars, one fork, and no releases."
+    },
+    {
+      "name": "ft_model DWG version and fixture status table",
+      "url": "https://github.com/hhcme/ft_model/blob/main/docs/dwg_version_deltas.md",
+      "reviewed": "2026-10-19",
+      "observed": "The table marks AC1015 as missing/unverified, AC1018/AC1021/AC1032 as partial, and AC1024/AC1027 as implemented; it says missing fixtures must not be treated as version compatibility."
+    },
+    {
+      "name": "ft_model algorithm notes",
+      "url": "https://github.com/hhcme/ft_model/blob/main/docs/ALGORITHMS.md",
+      "reviewed": "2026-10-19",
+      "observed": "The R2004+ decompression note labels its LZ77 outline simplified and warns that the actual DWG variant is more complex. The document is project design evidence, not a validated byte-layout reference."
+    },
+    {
+      "name": "ft_model core source manifest",
+      "url": "https://github.com/hhcme/ft_model/blob/main/core/CMakeLists.txt",
+      "reviewed": "2026-10-19",
+      "observed": "The build lists project-local DWG and DXF parser components and rendering code. This pass did not audit source ancestry or test artifacts, so independent lineage is not certified."
+    },
+    {
+      "name": "codelibs/libdxfrw README",
+      "url": "https://github.com/codelibs/libdxfrw/blob/master/README.md",
+      "reviewed": "2026-10-19",
+      "observed": "The project describes itself as a fork of the original SourceForge libdxfrw, claims ASCII/Binary DXF and DWG reading through V2015, and advertises added tests and documentation. No pinned source diff or test corpus was audited."
+    }
+  ],
+  "plan_effect": {
+    "ft_model": "Optional 2D rendering/consumer observation only, exact revision and locally authored scratch inputs required if selected; not a DWG/DXF writer, broad semantic witness, or 3D/B-rep oracle.",
+    "codelibs_libdxfrw": "Same-family fork for independence accounting; optional pinned source/test-idea reference only, not a separate implementation vote.",
+    "prohibited_inference": "Do not promote a format/version or semantic support claim from project descriptions, incomplete fixture tables, rendered output alone, or a same-family fork.",
+    "implementation_change": "No new local defect, required comparator, dependency, fixture, CTest, implementation blocker, or validation-cadence change."
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan-only research update in a broadly dirty shared worktree; no source, test, fixture, or dependency change was made by this research pass."
+}

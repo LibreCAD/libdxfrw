@@ -1,0 +1,447 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bc",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "state": "SHARED_DIRTY_UNCOMMITTED_UNSTAGED",
+    "commitCreated": false,
+    "remoteMutation": false
+  },
+  "status": "LITERAL_IMAGEDEF_HANDLE_ROLES_AND_DEFAULT_SOURCE_REACTOR_MERGE_PASS_FULL_SOURCE_SCHEMA_NONDEFAULT_METADATA_AND_STRICT_ADMISSION_OPEN",
+  "predecessor": "docs/research/rpp5bb-imagedef-extension-graph-and-dwg-common-handles-fast-slice-2026-10-23.json",
+  "previousGoalTurn": {
+    "classification": "PROGRESS",
+    "evidence": "RPP-5bb implemented extension closure and nonzero DWG handle payload; its receipt remains immutable."
+  },
+  "sourceAudit": {
+    "confirmedRoleFailure": {
+      "log": "/tmp/rpp5bc-before-role-test.log",
+      "result": "Reader-independent literal IMAGEDEF/REACTOR role probe fails before owner-role correction."
+    },
+    "blanketSourceClear": "RPP-5bb materialization cleared all typed source reactors while regenerating IMAGE children; new output controls require the independent source XRECORD edge as well.",
+    "relevantPdfPages": [
+      207,
+      208
+    ],
+    "nextConcreteGap": {
+      "path": "src/libdwgr.cpp",
+      "function": "dwgRW::writeImage",
+      "finding": "IMAGEDEF emits before new reactor allocation, so its source reactor vector cannot include that generated child.",
+      "next": "Preallocate identities within existing compound checkpoint, append exact reverse link before the definition header/payload, and verify three-frame rollback/counts/receipts."
+    }
+  },
+  "primarySources": [
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": [
+        "20.4.81 IMAGEDEF",
+        "20.4.82 IMAGEDEFREACTOR"
+      ],
+      "pages": [
+        207,
+        208
+      ],
+      "review": "Complete rendered pages visually inspected; IMAGEDEF hard-owner parent remains distinct from IMAGEDEF_REACTOR soft-pointer parent."
+    }
+  ],
+  "implemented": [
+    "Permit explicit common-handle parent role internally; only IMAGEDEF requests hard ownership, preserving all other helper defaults and null encoding.",
+    "Own IMAGEDEF_REACTOR callbacks by generation/handle with separate100000-record/64 MiB capture policy; account common payload before copying and latch duplicate/invalid/allocation/resource failure.",
+    "Join source reactors to actual IMAGE selections by exact generation, handle and reciprocal parent; reject known cross-family collisions, duplicate associations and unsupported metadata.",
+    "Admit only default reactor class version2 without extension/reactors/appdata/XDATA/pending EED/DataStorage metadata; explicit refusal is not full source-reactor support.",
+    "Traverse independent IMAGEDEF reactor targets through existing bounded graph while distinguishing matched IMAGE-owned source children.",
+    "Retain independent source reactor order, translate source IDs once, append minted replacement IDs verbatim and reject null or duplicate/colliding destinations.",
+    "Journal replacement joins before mutation; record rollback and whole-write reset clear them.",
+    "Retain direct reference-resolver zero-omission policy without calling it on minted IDs or interpreting omission as preservation evidence.",
+    "Update plan and consumer contract with precise remaining work and source/ABI/qualification boundaries."
+  ],
+  "controls": {
+    "selector": "--generated-image-dictionary-source-identity",
+    "log": "/tmp/rpp5bc-final-controls.log",
+    "literalRoleCells": 32,
+    "literalRevisions": [
+      "AC1012",
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "literalDimensions": [
+      "IMAGEDEF vs IMAGEDEF_REACTOR",
+      "nonzero vs null",
+      "inline vs detached streams",
+      "following sentinel"
+    ],
+    "literalOracle": "Explicit packed header/value bytes inspected without production dwgBuffer/getHandle or a production parser.",
+    "captureControls": [
+      "deep-owned appdata",
+      "same-handle different-generation separation",
+      "duplicate refusal",
+      "exact bytes",
+      "one-byte-short bytes",
+      "additional-copy byte refusal",
+      "exact count",
+      "count-over refusal",
+      "invalid handle"
+    ],
+    "capturePolicy": {
+      "maxRecords": 100000,
+      "maxRetainedBytes": 67108864,
+      "separateFromImageDefinitionOwners": true,
+      "scope": "Logical visible retained owner accounting, not allocator/RSS."
+    },
+    "authoredOutputCells": 4,
+    "readbackReexports": 4,
+    "nativeProjectionCells": 16,
+    "sourceReactorFaultRecipes": 15,
+    "sourceReactorAtomicRefusalAndCorrectedRetryCells": 30,
+    "sourceReactorFaults": [
+      "missing typed source",
+      "wrong owner",
+      "unsupported class version",
+      "extension metadata",
+      "reactor metadata",
+      "appdata",
+      "XDATA",
+      "DataStorage",
+      "wrong generation",
+      "wrong source key",
+      "duplicate IMAGE association",
+      "capture failed",
+      "missing independent target",
+      "null independent target",
+      "duplicate independent link"
+    ],
+    "retainedExtensionFaultCells": 26,
+    "retainedGraphResourceDimensions": 5,
+    "sameWriterRetry": {
+      "selector": "--image-definition-plan-failure-retry",
+      "log": "/tmp/rpp5bc-final-plan-retry.log",
+      "cells": 4,
+      "dimensions": [
+        "ASCII vs Binary",
+        "retained vs explicit resolver omission"
+      ],
+      "assertions": [
+        "later failure preserves sentinel",
+        "same codec retry",
+        "source remap occurs once",
+        "minted IDs never enter resolver",
+        "one replacement reactor",
+        "actual independent XRECORD output ID",
+        "explicit omission removes only optional independent edge"
+      ]
+    },
+    "currentSourceEvidenceLimit": "Generated same-library framing/readback and literal field controls only; no independent source producer/kernel or native consumer."
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 40,
+      "total": 40,
+      "wallSeconds": 7.81,
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_image_path_cli",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits",
+        "libdxfrw_layer_name_source",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_dxf_operation_admission",
+        "libdxfrw_dxf_consumer_finalization",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_symbol_unicode_keys"
+      ],
+      "log": "/tmp/rpp5bc-fast-tests.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 37,
+      "total": 37,
+      "wallSeconds": 14.65,
+      "environment": "ASAN_OPTIONS=halt_on_error=1",
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits",
+        "libdxfrw_layer_name_source",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_dxf_operation_admission",
+        "libdxfrw_dxf_consumer_finalization",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_symbol_unicode_keys"
+      ],
+      "log": "/tmp/rpp5bc-asan-tests.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 21.46,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5bc-owning-tests.log"
+    },
+    "strict": {
+      "result": "PASS",
+      "flags": [
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-pedantic",
+        "-Werror",
+        "-fsyntax-only"
+      ],
+      "translationUnits": [
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "log": "/tmp/rpp5bc-verified-strict.log"
+    },
+    "builds": {
+      "result": "PASS",
+      "logs": [
+        "/tmp/rpp5bc-last-build.log",
+        "/tmp/rpp5bc-asan-last-build.log"
+      ],
+      "includes": [
+        "all selected fast/owning executables",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ]
+    },
+    "diffCheck": {
+      "result": "PASS",
+      "log": "/tmp/rpp5bc-diff-check.log"
+    },
+    "intermediateErrors": {
+      "fixed": [
+        "Ignored nodiscard result in a fault recipe",
+        "Patch-context mismatch"
+      ],
+      "suppressed": false,
+      "failedBuildLog": "/tmp/rpp5bc-adversarial-build.log"
+    },
+    "timingScope": "Concurrent validation wall times, not a performance benchmark."
+  },
+  "compatibility": {
+    "newPublicPureCallbacks": 0,
+    "newVirtualSlots": 0,
+    "sourceApi": "Existing signatures and default DRW_Interface callback slots retained.",
+    "privateWriterStorageChanged": true,
+    "converterOwnerStorageChanged": true,
+    "consumerRebuildRequired": true,
+    "binaryAbiClaim": false,
+    "libreCad3CompatibilityBuild": "PASS",
+    "newRuntimeDependencies": 0,
+    "newCtestRegistrations": 0,
+    "drawingFixturesAdded": 0,
+    "directResolverZeroOmissionPolicy": "RETAINED_EXPLICIT_POLICY_NOT_PRESERVATION",
+    "importedOpaqueRetentionPromotion": false,
+    "defaultStrictWholeDocumentAdmission": "CLOSED",
+    "supportClaimPromotion": false
+  },
+  "openLocal": [
+    "Native DWG IMAGE compound-writer generated reactor reverse-link/preallocation and rollback closure",
+    "Immutable IMAGEDEF/reactor source body/common-link/profile/schema observations",
+    "Nondefault source-reactor metadata retention or explicit supported conversion policy",
+    "Full APPID/LAYER flags/control membership/CMC and other dependency families",
+    "Binary segmentation/skipped/speculative decoder observations and legacy XRECORD RC/RS convention",
+    "Strict per-attempt companion admission after complete relevant source/output field/identity/edge/publication closure",
+    "Three AC1024 visualization files/eight failed frames, separate CLASSES/container integrity and SUN export",
+    "Legacy TABLE/extension integration and AC1024+ inline authoring",
+    "MATERIAL ambiguities, legacy broad strict-warning debt, composed qualification, integration/docs and commits"
+  ],
+  "external": {
+    "deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "status": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "blocksLocalWork": false,
+    "supportPromotion": false
+  },
+  "notRun": [
+    "Full project suite",
+    "UBSan",
+    "LeakSanitizer",
+    "Native Linux/Windows FreeCAD",
+    "Independent ACIS/ACDS semantic/kernel qualification",
+    "New external producer or peer execution",
+    "Image-specific exhaustive allocator-position sweeps"
+  ],
+  "bindings": [
+    {
+      "path": "src/drw_objects.cpp",
+      "sha256": "ed51b3283642eb627de6ffdf69869a9b264191ae1b3c45aa091524324144aa0e"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "fff316c07136439cae186a1469e499127a91d3279f3752335a530ea90dfcfd4f"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "8ea75e47e00f6efe44c1587139229e7299ae8b2d9c53249011152c1fa679779d"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "a0580e5385b7711d9de3d947f8f0f82da584b6e7775a1283b57257e70477ead0"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "1b7b358070e9e824a1ae7026053e25354c2d8a59d57b93b586f8cd05ae563d0f"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "df565bab8feb50bde648bde8adcefaafb4a525b9b918351367b6b2f4a28472b7"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "ff0c358c3445eaf7deaa7276943f7648ff31120693d2e4518e087ddbbce199e2"
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "sha256": "5fa9a77b6887d109d1e4911f34a412c8084de5284cdf3cc3b591ef7a9476b87b"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "a07ff06bcc3b9a25bdd0cae4709c2207e0282d1f37786972db7772cd0608c4d5"
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "f55abb66a9b0324c28e501b071b90b2995e91293a33acdfb06725058a642a7f6"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "0c8db26db7dfd95b2cc92695309eab885c1cd7c69b99c8921002dd014c94671f"
+    },
+    {
+      "path": "docs/research/rpp5bb-imagedef-extension-graph-and-dwg-common-handles-fast-slice-2026-10-23.json",
+      "sha256": "ac136946bb5895e27ed0d8ee18429f478768b5dd430b089c8ba917d0f9064272"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    },
+    {
+      "path": "/tmp/rpp5bc-before-role-test.log",
+      "sha256": "b8d536d9b9f0d97acef4dc57cca8578ca02689184fc7bb203c687dcd9b3acb79"
+    },
+    {
+      "path": "/tmp/rpp5bc-adversarial-build.log",
+      "sha256": "f0a8c994f23f725fe0175a33b097383e61462c974d4aafe8fc5d3704e4a2c3dc"
+    },
+    {
+      "path": "/tmp/rpp5bc-last-build.log",
+      "sha256": "d62ef9126859a084fad3c3bb5ec78acbe71d8de648ceaef7df40f64e151439e9"
+    },
+    {
+      "path": "/tmp/rpp5bc-asan-last-build.log",
+      "sha256": "ef490c8ff0c3a216a11e09f4742d79b8835c235ba9b1c7be9c73108fe3117b18"
+    },
+    {
+      "path": "/tmp/rpp5bc-final-controls.log",
+      "sha256": "053806696a335ce2bdd26c1d1c90d1a79acce4ce4a6b1a18f6100e889415c681"
+    },
+    {
+      "path": "/tmp/rpp5bc-final-plan-retry.log",
+      "sha256": "6a2be74d4a72c8b6754bd2e0dd083877ae70ad444eeb8e49cf5b003561216b35"
+    },
+    {
+      "path": "/tmp/rpp5bc-fast-tests.log",
+      "sha256": "de428362ffb5d92ca9af1771a6be892e9a3f592067ead0b215994d73133f4f11"
+    },
+    {
+      "path": "/tmp/rpp5bc-asan-tests.log",
+      "sha256": "0a96c3104c5eee731687af0ba1050f145bbcf5d20ba5efa2a542f5728d4bb326"
+    },
+    {
+      "path": "/tmp/rpp5bc-owning-tests.log",
+      "sha256": "2980067467f257ceb8252628b425d618a28236c4109cca7824a02dafbe70878f"
+    },
+    {
+      "path": "/tmp/rpp5bc-verified-strict.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5bc-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

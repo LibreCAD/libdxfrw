@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACIS reader provenance and actual consumer boundaries",
+  "mode": "Primary-source repository/application documentation and open PR timeline review; research-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve whether ProGPU's documented SAT/SAB parser is an active application reader or an independent semantic route.",
+    "Verify whether ordinary open-source OCCT and stock FreeCAD builds supply a usable ACIS SAT/SAB geometry reader.",
+    "Recheck ACadSharp release, ACIS writer PR, schema refactor, and solid-writer issue boundaries.",
+    "Refine existing PAR-07/S8 route admission and implementation-readiness steps without expanding dependencies or claims."
+  ],
+  "method": {
+    "kind": "Read-only review of primary GitHub project documentation, release pages, and issue/PR discussions",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub main/master documentation and open PRs are mutable snapshots. ProGPU source code and runtime were not built or executed; ACadSharp PR branches were not checked out or tested; FreeCAD/OCCT installations were not run. This review establishes evidence boundaries and does not claim exhaustive repository discovery or any local format defect."
+  },
+  "sources": [
+    {
+      "project": "ProGPU",
+      "urls": [
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md"
+      ],
+      "revision": "Mutable main documentation reviewed 2026-10-19",
+      "observed": "DXF.md describes an experimental AcisSabParser that scans SAT/SAB and projects edge line segments. The architecture assigns document/file-format ownership to ACadSharp and says the older ProGPU.Dxf ACIS readers and shader were inspected and rejected as unrelated, incomplete sources.",
+      "evidenceCeiling": "Documentation of an experimental renderer projection only. It does not establish an active parser call path, ACIS grammar correctness, complete body coverage, or B-rep semantics."
+    },
+    {
+      "project": "Open CASCADE Technology",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components"
+      ],
+      "revision": "Public component announcement and preview repository reviewed 2026-10-19",
+      "observed": "The project describes ACIS SAT/SAB and DXF import/export as commercial data-exchange components, separate from the standard open-source OCCT exchange set.",
+      "evidenceCeiling": "Availability/licensing boundary only; not a runtime result for FreeCAD or any local environment."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md"
+      ],
+      "revision": "Mutable official documentation reviewed 2026-10-19",
+      "observed": "The DXF documentation distinguishes the stock C++ importer from an optional legacy importer, says embedded ACIS solids cannot currently be read, and describes DWG as an external-converter-to-DXF flow.",
+      "evidenceCeiling": "Documents the stated consumer contract, not a tested runtime or a judgment of libdxfrw carrier correctness."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Release and live PR/issue pages reviewed 2026-10-19",
+      "observed": "The v3.8.0 release is a pinned baseline distinct from mutable master and open PR heads. The reviewed #1150, #1174, and #1240 pages remain open/undeployed. #1150's thread records branch-specific carrier-write work, reported repeated-group-310 and reader-refactor conflicts, and the maintainer's preference for a schema-aware writer redesign. #1240 includes unmerged ModelerGeometry writer work. Issue #1195 remains a release-specific report of silent solid omission against 3.4.9.",
+      "evidenceCeiling": "Unmerged branch discussion and version-specific issue reports; no current-release writer qualification, independent B-rep result, or local libdxfrw defect."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newIndependentDwgParserCandidates": 0,
+    "newIndependentAcisSemanticOracles": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The ProGPU ACIS parser is marked as an unverified experimental renderer projection, not an admitted parser/semantic route. Stock FreeCAD and standard OCCT routes are separated from optional modeler/commercial components. ACadSharp release behavior, open PR heads, and branch reports are kept distinct. Existing local carrier/owner work continues without blocking on optional kernel or peer availability."
+  },
+  "implementationReadyChecks": [
+    "For ProGPU, require exact application commit, actual importer/parser call path, reader lineage, and per-source-entity output before counting even a rendering observation; never count the documented edge parser as an independent ACIS/B-rep reader.",
+    "Do not assume a stock OCCT or FreeCAD installation has the commercial SAT/SAB component. Name and pin any add-on or licensed exchange component as a separate optional route.",
+    "Under stock FreeCAD, score only entities the selected DXF importer consumes; classify ACIS solids as consumer-not-applicable unless a separately identified modeler route is exercised.",
+    "Treat ACadSharp release, master, and each open PR head as separate artifacts. A writer result must bind the exact commit, base/head, format direction/version, owner/key payload mapping, warnings, and independent result surface.",
+    "Continue deterministic local carrier capture, owner/key closure, loss accounting, and fail-closed output work without waiting for an optional full ACIS kernel. At the composed checkpoint, test standalone payload semantics separately from container association and report every unsupported/fallback disposition.",
+    "If a pinned parser or external runtime is unavailable, record NOT_RUN and continue; add no dependency, committed fixture, peer runtime, native run, or support promotion in this research-only update."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-acis-reader-provenance-consumer-boundaries-2026-10-19.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; bad=1 } END { exit bad }' docs/research/deeper-broader-acis-reader-provenance-consumer-boundaries-2026-10-19.json",
+      "git diff --check -- DWG_DXF_3D_SUPPORT_PLAN.md DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

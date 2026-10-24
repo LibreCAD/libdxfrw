@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-19",
+  "type": "generated-fast-implementation-slice",
+  "owner": "7S.2c typed ModelDocViewStyle callback capture",
+  "scope": [
+    "Account two logical std::list link-pointer slots for retained DetailViewStyle and SectionViewStyle callback records",
+    "Preserve the shared record/item/byte limits and fail-closed publication behavior"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "The shared typed ModelDocViewStyle retention helper now charges two logical pointer-link slots before applying the aggregate retained-byte limit.",
+      "Generated controls verify the exact DetailViewStyle retained-byte delta, combined Detail/Section accounting, deep-copy ownership, exact-cap admission, and one-byte-over sticky refusal with no published output."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focused_selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-typed-capture-limits",
+    "ctests": [
+      {
+        "name": "dwg2dxf_modeldoc_view_style_typed_capture_limits",
+        "result": "passed (1/1)"
+      }
+    ],
+    "diff_check": "passed for implementation, adapter test, plan, and receipt",
+    "full_suite": "not run"
+  },
+  "disposition": {
+    "new_finding": false,
+    "new_top_level_subplan": false,
+    "new_fixture_or_registration": false,
+    "new_dependency": false,
+    "support_claims_promoted": false,
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    },
+    "external_only_items_promoted": [],
+    "external_only_items_still_deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "List accounting represents two logical link-pointer slots per stored value, not allocator-specific node layout or RSS.",
+    "This closes only typed DetailViewStyle and SectionViewStyle callback list accounting; the broader 7S.2c callback-store census remains open."
+  ]
+}

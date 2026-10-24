@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-deeper-broader-writer-graph-closure-and-mutation-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile current peer reports about ACIS entity omission and mutable object-graph writing with the exact local legacy-SAT, modern SAB/ACDSDATA, and dynamic-block qualification boundaries.",
+  "method": {
+    "kind": "Primary repository issue/PR status review, Autodesk DXF entity reference review, and local plan cross-check",
+    "peerSourcesClonedOrBuilt": false,
+    "peerBinariesRun": false,
+    "nativeApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "scopeNote": "Public issue/PR descriptions and contributor reports are evidence of reported project state and failure leads, not independent reproduction or normative format authority."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp ACIS DXF writer readiness and solid-only block loss",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observed": "On 2026-10-16, issue #1195 remained open and reported silent 3DSOLID/REGION omission in ACadSharp 3.4.9, including solid-only blocks becoming empty. PR #1240 remained open and undeployed; its description depends on the ACDS/ACIS schema refactor PR #1174. No peer branch or reported customer file was run in this review.",
+      "doesNotEstablish": [
+        "a libdxfrw defect",
+        "behavior of current ACadSharp master or a released ACadSharp build",
+        "correctness of PR #1240 or complete SAB/ACDSDATA semantics",
+        "native CAD acceptance or valid ACIS geometry"
+      ],
+      "planUse": "Keep S2.3.9.4.29 closed only for its generated legacy-SAT scope. Gate AC1027+ SAB/ACDSDATA block output separately with per-handle owner/block/INSERT and payload-association closure, or transactional refusal."
+    },
+    {
+      "topic": "Dynamic-block graph mutation versus fixed-point replay",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1133",
+        "https://github.com/DomCR/ACadSharp/pull/1151"
+      ],
+      "observed": "Issue #1133 was closed by merged PR #1151. The PR description states that original dynamic blocks can be emitted intact while modified instances lose their parameter relationships. A contributor report in the issue also described dictionary entries left pointing at objects filtered as unsupported, and proposed real AutoCAD COM AUDIT as an optional verification route.",
+      "doesNotEstablish": [
+        "an independently reproduced current peer failure",
+        "normative dynamic-block or dictionary omission policy",
+        "that a no-op round trip is invalid for every static object graph",
+        "that AutoCAD COM is available or appropriate as a fast test dependency"
+      ],
+      "planUse": "Before enabling mutable object-graph output, require both fixed-point and supported read-modify-write cases, emitted-handle/reference closure, and a no-partial-output negative for unsupported targets. Keep AutoCAD audit checks optional at a composed checkpoint."
+    },
+    {
+      "topic": "3DSOLID outer DXF references and payload framing",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "DWG_DXF_3D_SUPPORT_PLAN.md"
+      ],
+      "observed": "Autodesk's DXF table identifies ordered proprietary group-1/group-3 data and an optional history-owner handle for 3DSOLID. The local plan separately models inline SAT/SAB, ACDSDATA association, DWG DataStorage, owner/block paths, and semantic geometry; therefore record presence or byte presence alone is insufficient closure evidence.",
+      "doesNotEstablish": [
+        "the inner ACIS/ASM grammar or save-version interpretation",
+        "the DWG AcDs/DataStorage join contract beyond already admitted local profiles",
+        "semantic solid validity from DXF carrier retention"
+      ],
+      "planUse": "Reuse existing S2.3 identity and association gates; add only the missing eligible modern block-contained owner-link controls to the existing test owner, without inventing DWG layout or serializer behavior."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "S2.3.2",
+      "S2.3.9.4",
+      "S2.3.9.4.29",
+      "S8"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "perSliceValidationExpanded": false,
+    "fixturePolicy": "No external sample was downloaded or added. Future positive/negative controls are generated locally in temporary/build storage.",
+    "externalPeerValidation": "Optional and composed-checkpoint-only; ACadSharp PR branches are not treated as release capabilities.",
+    "planTotals": {
+      "findings": 125,
+      "topLevelSubplans": 71
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

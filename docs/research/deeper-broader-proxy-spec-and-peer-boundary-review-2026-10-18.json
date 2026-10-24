@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader proxy spec-section correction and cross-peer evidence-boundary review",
+  "mode": "Primary-source DWG specification re-read, peer-source triangulation, and local implementation-readiness update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Verify the authoritative ODA section for DWG PROXY entity layout",
+    "Separate proxy custom entity data, typed object-ID references, and common proxy graphics",
+    "Reconcile current peer evidence with exact release, version, direction, and semantic scope",
+    "Refine the existing PAR-132/7CB implementation subplan without opening duplicate findings"
+  ],
+  "method": {
+    "kind": "Read ODA v5.4.1 PDF sections and current primary project documentation/issues; inspect local parser, dispatch, and plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acadsharp-proxy-retained-data-reader-coverage-2026-10-18.json"
+    ],
+    "localFilesReviewed": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/intern/dwgreader.cpp",
+      "src/drw_interface.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "No peer runtime, native CAD application, customer drawing, or DWG fixture was used. ODA section layout was reviewed from the locally available v5.4.1 PDF. The peer issue reports remain version- and sample-bound; no report establishes a libdxfrw defect."
+  },
+  "sources": [
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "v5.4.1 PDF; local text extraction verified sections on 2026-10-18",
+      "observed": "Section 20.4.90 is PROXY and defines versioned proxy metadata, databits, and typed object-ID handles. Chapter 29 is PROXY ENTITY GRAPHICS and defines its separate presence flag, byte count, and padded display data. Section 20.4.95 is SPATIAL_INDEX.",
+      "limits": "The spec provides layout and graphics encoding contracts, not custom vendor payload semantics or native consumer acceptance."
+    },
+    {
+      "project": "ACadSharp PR #1274 and follow-up #1275",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1274",
+        "https://github.com/DomCR/ACadSharp/commit/c9cb845",
+        "https://github.com/DomCR/ACadSharp/pull/1275"
+      ],
+      "revision": "Merged commit c9cb845 reviewed 2026-10-18; follow-up PR status checked same date",
+      "observed": "The merged PR adds an opaque proxy-data retention route and reports a contributor corpus result. The follow-up is a separate Tianzheng payload interpretation path.",
+      "limits": "No corpus hashes or public regression file were included; reported counts are not independently reproduced. The R2010+ boundary technique is not a format rule, and the vendor-specific decoder is not general proxy semantics."
+    },
+    {
+      "project": "GNU LibreDWG class maturity and release documentation",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/CLASSES.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14.1"
+      ],
+      "revision": "Class page identifies itself as LibreDWG 0.13.4; NEWS and 0.14.1 release page reviewed 2026-10-18",
+      "observed": "The class manual distinguishes stable, unstable, debugging, and unhandled classes and describes same-version raw-blob limits for some unknown types. Release documentation is a separate artifact/version identity.",
+      "limits": "Maturity labels and raw retention rules are LibreDWG implementation policy, not ODA rules or libdxfrw results. Do not pair the 0.13.4 class coverage page with 0.14.1 as though version-matched."
+    },
+    {
+      "project": "ezdxf proxy entity contract and IxMilia.Dxf compatibility statement",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/acad_proxy_entity.html",
+        "https://github.com/ixmilia/dxf"
+      ],
+      "revision": "Stable docs/current repository README reviewed 2026-10-18",
+      "observed": "ezdxf distinguishes original proxy data from saved display graphics and warns that exploding replaces proxy identity. IxMilia.Dxf states version/entity exclusions and warns that several output entity classes may not open in AutoCAD.",
+      "limits": "These are DXF implementation contracts and compatibility declarations, not DWG proxy semantics, execution results, or native CAD passes."
+    },
+    {
+      "project": "ACadSharp open issue cross-check",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1281"
+      ],
+      "revision": "Issue pages reviewed 2026-10-18",
+      "observed": "#1172 remains an unreproduced private-file report with an INSERT-derived aggregate-count confound; #1279 remains a VERTEX compatibility lead; #1281 describes peer-specific recursive DXF paths.",
+      "limits": "These reports do not establish local defects or file-format limits. The relevant local ownership already exists under identity, VERTEX, and parser-progress controls."
+    },
+    {
+      "project": "libdxfrw local parser and tests",
+      "urls": [],
+      "revision": "Local worktree HEAD de27a3391a624aba03ca71f3583c4b3a6e6396a9; source reviewed 2026-10-18",
+      "observed": "The common entity parser captures the graph-flag proxy-graphics bytes; DRW_ProxyEntity::parseDwg separately captures bounded entity databits and typed object-ID references; the entity dispatcher publishes typed and raw dispositions. The generated DWG entity-path test gap remains PAR-132/7CB.",
+      "limits": "Static source review does not prove runtime correctness. New wire assertions must follow §20.4.90 for the proxy record and chapter 29 for graphics."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newSourceConfirmedCoverageGaps": 0,
+    "existingFindingRefined": "PAR-132",
+    "existingSubplanRefined": "7CB",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "peerRuntimeRequiredForLocalImplementation": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 132,
+      "topLevelSubplans": 75
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq -e)",
+    "planDiffCheck": "passed (git diff --check on scoped plan and receipt files)",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reasonUncommitted": "The worktree contains extensive pre-existing changes. This plan/research update remains unstaged and uncommitted."
+  }
+}

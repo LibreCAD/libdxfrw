@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer-state and partial-read admission refresh",
+  "mode": "primary-source open-source peer research plus a local fast test-harness safety slice",
+  "scope": [
+    "Reconcile current LibreDWG and ACadSharp issue reports with existing local plan owners",
+    "Verify the ezdxf binary proxy-graphic fix, merge status, tag identity, and package metadata",
+    "Prevent partial DXF entity callbacks followed by a later OBJECTS error from counting as whole-file interop success",
+    "Keep optional peer, native, modeler-semantic, fixture, and support gates separate"
+  ],
+  "method": {
+    "kind": "Primary project issue/PR/release pages and local source/test review",
+    "sources": [
+      {
+        "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+        "use": "Release-specific report of R2013+ AcDs/SAB modeler loss; retained as a peer negative-control lead, not a local defect or current-master verdict."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/issues/1410",
+        "use": "Peer report groups zero-valued HATCH coordinates, unusual attribute tags, and embedded-MTEXT handling; existing local owners already separate those routes."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/issues/1415",
+        "use": "Peer report of CMC palette-index/RGB handling; existing local method/index checks remain the relevant owner."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/issues",
+        "use": "Current issue index for open modeler-writer, SPLINE, MTEXT whole-file, plot-DPI/layout, LEADER, nested-block, and legacy-input reports. These reports remain version/route bound."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/issues/1128",
+        "use": "Legacy report requests recovery for TABLE tokens outside a standard TABLES section; no local sample was obtained, so it is only a noncanonical-input candidate."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/issues/1412",
+        "use": "Original ASCII/Binary proxy-graphic writer failure report; issue closed after merged fix."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/pull/1418",
+        "use": "Merged fix c87c87e, merged to master on 2026-10-02; PR reports raw binary chunks passed through the tag-writer protocol and focused peer-local tests."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/releases/tag/v1.4.5",
+        "use": "The v1.4.5 tag page identifies commit 84ae319 and tag date 2026-10-16. This review did not verify ancestry to c87c87e."
+      },
+      {
+        "url": "https://pypi.org/project/ezdxf/1.4.5/",
+        "use": "PyPI lists the 1.4.5 source archive SHA-256 a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00a; the archive was not downloaded or inspected."
+      }
+    ],
+    "localSourceReview": {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "change": "readDxfModelerCarrierSnapshots records whole-file import completion while retaining partial modeler snapshots for diagnostics; the ASCII/Binary comparison refuses a positive result unless both files fully parse.",
+      "productionCodeChanged": false,
+      "externalDrawingsDownloaded": 0,
+      "repositoryDrawingFixturesAdded": 0,
+      "dependenciesAdded": 0,
+      "fullSuiteRun": false,
+      "nativeCadOrKernelRun": false,
+      "peerRuntimeRun": false
+    }
+  },
+  "findings": {
+    "newLocalFormatDefect": false,
+    "newNumberedFinding": false,
+    "newTopLevelSubplan": false,
+    "existingGateRefined": "S2.2.5b whole-file Binary-DXF admission and fail-closed comparison diagnostics",
+    "peerRouteAssessment": {
+      "LibreDWG": "#1411/#1410/#1415 remain peer-specific reports and map to existing AcDs, HATCH/text grammar, and CMC owners.",
+      "ACadSharp": "#1195/#1299/#1297/#1184/#1180 remain version-bound failure leads mapped to existing modeler, SPLINE, whole-file/native, LAYOUT, and LEADER owners; #1128 is an optional noncanonical-input compatibility candidate only.",
+      "ezdxf": "#1412 was fixed by merged #1418 at c87c87e. Tag v1.4.5 points to 84ae319 and PyPI sdist hash is recorded, but source archive correspondence is unresolved.",
+      "binaryDxfCandidate": "NOT_QUALIFIED; local scratch parser previously captured ENTITIES then failed at OBJECTS, and the three-byte carrier tail difference remains unexplained."
+    },
+    "findingsAndSubplans": "141 / 78 unchanged",
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false
+  },
+  "implementationReadyChecks": [
+    "Keep partial parser output visible only as diagnostic evidence; whole-file success requires the importer to complete without a later OBJECTS-stage failure.",
+    "Do not normalize or waive the current three-byte SAT-carrier mismatch without an independently accepted same-file route and producer-backed explanation.",
+    "Keep the generated ASCII/Binary chunk-boundary matrix as the fast local check; do not add a full-suite or native run to this slice.",
+    "If no already-installed independent parser accepts a local full-file Binary-DXF control, record NOT_QUALIFIED once and immediately self-unblock to the next dependency-ready implementation item.",
+    "Keep noncanonical TABLE-section recovery out of standard parser behavior unless explicit compatibility policy and a safe generated repro are established."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2 — passed",
+    "fastSelector": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-chunk-boundaries — passed",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure — 1/1 passed",
+    "scratchBinaryComparison": "expected nonzero partial/failure result; not counted as a passing test or interop positive",
+    "planAndCodeDiffCheck": "passed",
+    "receiptJsonValidation": "passed with jq empty",
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes; no staging or commit performed."
+  },
+  "limitations": [
+    "No peer repository was cloned or built, and no peer executable or native CAD/kernel was run.",
+    "The ezdxf 1.4.5 source archive was not downloaded or inspected; tag/package inclusion of c87c87e remains unverified.",
+    "Issue reports and project release declarations are not normative format rules and do not establish libdxfrw behavior.",
+    "No report reviewed here qualifies ACIS B-rep semantics, AcDs key/owner closure, or native Linux/Windows consumers."
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-acad-tablecontent-r21-bounded-text-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Add a generated AC1021 standalone TABLECONTENT parser vector and correct the bounded TV trailing-NUL value leak it exposed.",
+  "method": {
+    "kind": "Locally authored in-memory DWG object vector using ODA v5.4.1 field order, plus one bounded parser value correction",
+    "odaSectionsUsed": [
+      "20.4.96",
+      "20.4.97"
+    ],
+    "externalDrawingsUsed": 0,
+    "newFixtureFiles": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fullTestSuiteRun": false,
+    "localTests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "passed",
+        "passed": 1,
+        "failed": 0
+      }
+    ],
+    "localFilesChanged": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "evidenceRule": "A source-authored vector validates the selected parser branch and expected values encoded by the test author; it does not establish real-producer compatibility, dynamic object dispatch, consumer acceptance, or semantic support outside the exercised profile."
+  },
+  "vector": {
+    "sourceVersion": "AC1021",
+    "objectRoute": "direct DRW_TableContentObject::parseDwg probe; placeholder outer type value; dynamic object dispatch is not exercised",
+    "generatedInMemory": true,
+    "shape": {
+      "columns": 1,
+      "rows": 1,
+      "cellsPerRow": 1,
+      "cellType": "text/value profile",
+      "numericValue": 42.5,
+      "columnWidth": 12.5,
+      "rowHeight": 4.0,
+      "ownerHandle": "0xA600",
+      "tableStyleHandle": "0xA700"
+    },
+    "stringsChecked": [
+      "TableName",
+      "Description",
+      "ColumnA",
+      "TooltipA",
+      "0.0",
+      "42.5"
+    ],
+    "observation": "The original generated vector parsed to completion and preserved numeric geometry and owner/style references, but every text comparison leaked the stored trailing NUL. The bounded R2007+ TABLE string path now trims trailing NUL bytes after codepage decoding, matching the generic DWG 8-bit string reader."
+  },
+  "doesNotEstablish": [
+    "a producer-authored TABLECONTENT record",
+    "AC1021 TABLECONTENT dynamic object type or class dispatch",
+    "AC1024+ embedded TABLECONTENT semantics",
+    "validity or payload grammar for observed AC1021 cell types 16 and 92",
+    "complete ACAD_TABLE/TABLECONTENT or DWG/DXF parity",
+    "native application or independent reader acceptance"
+  ],
+  "planImpact": {
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

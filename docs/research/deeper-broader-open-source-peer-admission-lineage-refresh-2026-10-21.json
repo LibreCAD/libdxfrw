@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-peer-admission-lineage-review-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary repository documentation and current issue/release page review; no peer runtime",
+  "question": "Do newly surfaced DWG/DXF projects qualify as open-source, independent, route-matched evidence for the existing parity plan?",
+  "sources": [
+    {
+      "project": "SeaCad / Sea-DXF-Core",
+      "revision": "Mutable GitHub repository README and license disclosure reviewed 2026-10-21",
+      "references": [
+        "https://github.com/seaflower205/Sea-DXF-Core",
+        "https://github.com/seaflower205/Sea-DXF-Core/blob/main/LICENSE"
+      ],
+      "observed": "The README says the source is currently proprietary despite being visible, pre-1.0, and targeted at ASCII/Binary DXF AC1009-AC1032. It explicitly says DWG, complete typed semantics/CRUD for all entities, rendering, and a B-rep kernel are not implemented. Its completion level and test claims are project statements, not independently reproduced.",
+      "planDisposition": "Exclude from the open-source peer census, comparator runs, and dependency options unless the license changes. No DWG or 3D claim follows from the declared DXF range."
+    },
+    {
+      "project": "mlightcad/cad-viewer proprietary DWG parser",
+      "revision": "Mutable proprietary-parser disclosure reviewed 2026-10-21",
+      "references": [
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md",
+        "https://github.com/mlightcad/realdwg-web"
+      ],
+      "observed": "The project separates its open-source viewer/data model from a licensed proprietary parser. Its default open-source DWG route uses LibreDWG. The proprietary parser disclosure claims 3DSOLID extraction and partial SAB decoding, but says full B-rep tessellation is unavailable and output is best-effort wireframe or bounding-box fallback.",
+      "planDisposition": "Count the default DWG route under LibreDWG lineage and exclude the licensed parser from open-source counts. If an authorized exact artifact is later used, restrict evidence to its actually exercised structural/carrier route; wireframe/bounds do not qualify analytic geometry or topology."
+    },
+    {
+      "project": "UnCAD",
+      "revision": "Mutable current README and route description reviewed 2026-10-21",
+      "references": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/blob/main/docs/CAVEATS.md"
+      ],
+      "observed": "The README states DWG is parsed through LibreDWG FFI, ASCII/Binary DXF uses the separate undxf crate, output is JSON/SVG/PNG, and writer APIs are not offered.",
+      "planDisposition": "Deduplicate DWG evidence with LibreDWG and exclude UnCAD from writer comparisons. Consider undxf only as a separately pinned DXF syntax/value observer for a named unresolved question."
+    },
+    {
+      "project": "OpenCADStudio",
+      "revision": "Latest release page and mutable issue index reviewed 2026-10-21; current plan already binds v2026.42 source/lock lineage",
+      "references": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1896",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/Cargo.lock"
+      ],
+      "observed": "The latest listed release is v2026.42 dated 2026-10-18 and uses an ACadRust-derived codec lineage as documented by the existing plan audit. Issue #1896, opened 2026-10-19, reports one AC1027 ACIS-solid drawing rejected at handle 0x5B87/type_code 37. The input is not available in this review and the issue postdates the pinned release.",
+      "planDisposition": "Keep as a codec-lineage-specific failure-shape lead under existing AC1027 modeler/ACIS owners. It is not a libdxfrw defect, an independent parser vote, or a current-release reproduction. Require a provenance-bound valid sample or a precise local/generated reproduction before revisiting."
+    },
+    {
+      "project": "dwg-rs",
+      "revision": "Mutable current README reviewed 2026-10-21",
+      "references": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/STATUS.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md"
+      ],
+      "observed": "The project describes itself as pre-alpha; it distinguishes a DWG container/object walker from incomplete per-entity decoding, has no DXF parser, documents no R14/R2007 DWG writer or automated native CAD acceptance, and publishes small, changing corpus denominators.",
+      "planDisposition": "Retain the existing optional structural/container role only. Bind source, build, inputs, and per-version denominator for any run; do not compare aggregates or use it for semantic, writer, or ACIS claims."
+    }
+  ],
+  "planDelta": {
+    "newLocalDefect": false,
+    "newImplementationFinding": false,
+    "newSubplan": false,
+    "newTestOrFixture": false,
+    "newDependency": false,
+    "supportClaimPromoted": false,
+    "implementationOrderChanged": false,
+    "peerRunPerformed": false,
+    "nativeCadOrKernelRunPerformed": false,
+    "rules": [
+      "Screen license, actual parser route, codec/kernel lineage, exact operation/version, and drop behavior before granting a project comparator weight.",
+      "Treat wrapper and application routes as consumers or projections unless source provenance establishes a distinct codec implementation.",
+      "Keep parser/carrier preservation, geometry semantics, and native consumer acceptance in separate evidence columns.",
+      "If a candidate cannot be bound cheaply, record NOT_RUN/UNBOUND and continue local source-backed work.",
+      "Do not add external/customer DWG/DXF fixtures; use existing admitted repository samples or scratch-generated controls."
+    ],
+    "deferredExternalItemsRemain": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limitations": "GitHub README, issue, and release pages are mutable. This is source/documentation research only: no peer binary/package, proprietary parser, drawing, FreeCAD, or geometry kernel was run. Issue #1896 is not independently reproduced. No support claim is implied."
+}

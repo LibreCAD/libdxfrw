@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle class-header insertion",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "finding": "PAR-138",
+  "status": "IMPLEMENTED_LOCAL_UNCOMMITTED",
+  "summary": "Generalized the typed-over-raw class-header insertion helper to SectionViewStyle and added generated ASCII/Binary insertion and fail-closed overflow controls.",
+  "behavior": {
+    "fields": [
+      "SectionViewStyle class version (DXF group 70)",
+      "SectionViewStyle flags (DXF group 90)"
+    ],
+    "headerOrder": "Class version group 70 precedes flags group 90, and both precede the first group-71 style-group marker.",
+    "range": "Class versions above INT16_MAX are refused; uint32 flags use signed DXF-long encoding and round-trip to the original value.",
+    "failClosed": "Header insertion accepts only the known 70/90 header prefix and refuses unfamiliar prefix fields instead of guessing.",
+    "compatibility": "The existing DetailViewStyle insertion path now uses the same subclass-bounded helper; no public callback surface changed."
+  },
+  "tests": {
+    "selector": "--modeldoc-view-style-callbacks",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "coverage": [
+      "Missing SectionViewStyle class-version and flags inserted in header order",
+      "High-bit flags re-import as the original uint32 value",
+      "Exact ordered SectionViewStyle raw carrier and unchanged DetailViewStyle carrier",
+      "Closed resource references and following POINT continuity",
+      "Out-of-range class version refused without replacing the destination sentinel",
+      "Unfamiliar class-header prefix refused without replacing the destination sentinel"
+    ],
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 (passed)",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks (exit 0)",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure (1/1 passed)",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for changed production, test, and plan paths; added receipts checked separately",
+    "fullSuiteRun": false
+  },
+  "scope": {
+    "productionFiles": [
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "testFiles": [
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "planFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "researchReceiptFiles": [
+      "docs/research/deeper-broader-libredwg-ezdxf-boundaries-2026-10-20.json"
+    ],
+    "dependenciesAdded": 0,
+    "externalRuns": 0,
+    "nativeApplicationRuns": 0,
+    "supportPromotion": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Scratch DWG producer to independent ACIS semantics",
+  "mode": "Primary-source web research and read-only local evidence-plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Review the current ACadRust AC1032 planar-solid producer/self-round-trip evidence and distinguish payload transport from semantic validity.",
+    "Reconfirm the exact cq-acis 0.3.12 SAB profiles and conversion limits against its immutable published source.",
+    "Specify a bounded scratch-only composed route through generated DWG, libdxfrw AcDs association, raw SAB extraction, independent semantic conversion, and independent analytic expectations.",
+    "Keep the route optional at the existing PAR-07/S8 composed checkpoint without changing local test cadence, fixtures, dependencies, findings, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "ACadRust v0.6.5 release and current round-trip source",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+        "https://github.com/hakanaktt/acadrust/commit/289a616da6c68518218594aa80802cbe7fa71309",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "revision": "Release page names v0.6.5 at commit 289a616, released 2026-10-18; roundtrip.rs is mutable main inspected 2026-10-20 and is not asserted to be byte-identical to the release tag.",
+      "observed": "The release reports project-owned default/all-feature and platform test results. The current roundtrip source builds a cube from explicit vertices/faces, writes AC1032 DWG, reads it back using ACadRust, and asserts entity/data-presence state. A helper fabricates marker-shaped bytes for AcDs transport tests.",
+      "limits": "Same-codec `has_data`/`has_ds_data` and marker tests do not establish valid SAB grammar, independent topology, B-rep validity, exact AcDs association in libdxfrw, or native acceptance. The mutable source must not be attributed to the immutable release without pinning and verifying that artifact."
+    },
+    {
+      "project": "ACadRust current issue board",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues",
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124",
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/hakanaktt/acadrust/issues/135"
+      ],
+      "revision": "Public issue board snapshot accessed 2026-10-20; reports are version/branch-specific and mutable.",
+      "observed": "The board includes reports concerning malformed-input allocation/panic behavior and AC1032 or associative-object decode regressions.",
+      "limits": "These are peer issue reports, not independently reproduced here and not automatically attributable to v0.6.5. They cap broad comparator confidence but do not establish any libdxfrw defect."
+    },
+    {
+      "project": "cq-acis 0.3.12 and immutable SAB/ASM profile documentation",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889",
+        "https://raw.githubusercontent.com/monozukuri-ai/cq-acis/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/sab-support.md",
+        "https://raw.githubusercontent.com/monozukuri-ai/cq-acis/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md"
+      ],
+      "revision": "PyPI release 0.3.12 published 2026-10-16 with Trusted Publishing provenance to commit e05a8f470d2f6799277f7b7df467d2fc35625889.",
+      "observed": "The reader accepts a bounded set of ACIS/ASM SAB profiles, retains unknown records raw, and rejects unsupported referenced geometry during conversion. It accepts bare SAB bytes rather than DWG/AcDs containers. CadQuery conversion uses OCCT, which shares kernel lineage with FreeCAD.",
+      "limits": "Version acceptance is not universal geometry support. ACIS BinaryFile 21800 native fixture coverage is limited; BinaryFile8 framing is synthetic-only. Parsing/conversion does not validate DWG DataStorage or entity association, opaque history, current model state, or a native FreeCAD/AutoCAD route."
+    },
+    {
+      "project": "ODA DWG specification and local DataStorage route",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_datastorage.cpp",
+        "tests/graph_preservation_tests.cpp"
+      ],
+      "revision": "Repository sources and ODA specification crosswalk inspected 2026-10-20; no local implementation or test was changed or executed.",
+      "observed": "Container/section parsing, entity-to-record association, carrier bytes, semantic geometry, and consumer behavior are separate evidence stages. Existing generated tests cover some DataStorage schema, record-anchor, and Blob01-page cases.",
+      "limits": "No new DWG fixture, complete profile claim, or full coverage assertion is made. ODA v5.4.1 remains authoritative for DWG byte layout under repository instructions."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: optional scratch AC1032 producer → libdxfrw AcDs join/carrier → cq-acis semantic conversion → independent analytic-manifest route",
+      "External evidence ledger: keep writer identity, DWG extraction, entity/key association, SAB profile, B-rep validity, and native consumer outcome separate",
+      "Validation cadence: execute the peer route only at the composed checkpoint; preserve local fast-test-only slices"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added an optional composed checkpoint candidate: generate an AC1032 planar-solid DWG from scratch with a pinned ACadRust producer, record libdxfrw's entity-to-AcDs record/key association and exact SAB bytes, then parse/convert only the bare payload with pinned cq-acis against an independently authored analytic manifest.",
+    "Clarified ACadRust's generated R2018 same-codec `has_data` round-trip and fabricated marker helper as transport controls, not B-rep or native evidence; release and mutable-main source identities remain distinct.",
+    "Recorded current peer issue reports as version-scoped caution, not as libdxfrw findings or evidence against the v0.6.5 release.",
+    "Required exact SAB/ASM profile acceptance, complete body reference closure, shape validity/closedness, independent bounds/volume, and per-handle AcDs join before a semantic result; preserved no-fixture/no-dependency policy and existing test cadence."
+  ],
+  "limitations": [
+    "No peer package was installed, built, or executed; the proposed pipeline remains a candidate, not a completed qualification.",
+    "ACadRust's current test page is mutable main; exact release artifact content must be verified before execution.",
+    "cq-acis only parses bare SAB bytes and cannot validate DWG container/DataStorage extraction or entity association; its converter shares OCCT kernel lineage with FreeCAD.",
+    "No external or proprietary DWG/DXF fixture was downloaded; all future producer output must be temporary and generated from scratch.",
+    "The six external-only J items remain DEFERRED_EXTERNAL and their evidence cannot promote support claims."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (plan git diff --check; receipt parsed by jq and trailing-whitespace scanned)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty and Git metadata is read-only in this session; no commit was attempted."
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 MLINESTYLE CMC DWG retention with scalar-only DXF projection guard",
+  "mode": "generated AC1024 DWG object-vector and focused ASCII/Binary DXF fast slice",
+  "scope": [
+    "Replay already-retained MLINESTYLE fill and element CMC fields to DWG without dropping method, RGB, flags, or optional names",
+    "Validate all fill and element CMC values before writing body, detached strings, or handles",
+    "Keep class-specific MLINESTYLE DXF colors limited to the documented scalar group-62 projection"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "localDocument": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 CmColor", "20.4.73 MLINESTYLE"],
+      "finding": "ODA defines R2004+ CMC as a reserved BS index, packed BL method/value, RC optional-name flags, and optional color-name/book TV strings. MLINESTYLE uses CMC for fill and each line color, followed by angles, line count, offsets, and versioned linetype fields; R2018+ uses linetype handles."
+    },
+    "autodeskMlineStyleDxf": {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "finding": "The class-specific DXF reference lists group 62 for fill and element colors, with the MLINESTYLE field schema; it does not list truecolor or CMC color-name/book groups. The typed DXF writer therefore remains scalar-only and refuses richer retained CMC state."
+    },
+    "localCode": {
+      "files": [
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dwg_object_vectors_tests.cpp",
+        "tests/wave1_tests.cpp",
+        "CMakeLists.txt"
+      ],
+      "finding": "The MLINESTYLE parser already retained fill and element CMC values, but its DWG encoder admitted only scalar ACI-style state and wrote index-only colors. The DXF writer already had a class-specific loss guard; existing controls were promoted to a focused CTest."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Preflight scalar/RGB agreement, source method, optional-name flags, bounded names, version compatibility, and detached-stream availability for fill and every element before emitting bytes.",
+      "Encode supported C0-C3 CMC using the method-aware DWG writer, retaining raw optional-name flags including flagged-empty strings; retain legacy index-only output before AC1018.",
+      "Keep MLINESTYLE DXF output restricted to group-62 scalar colors and reject RGB, names/books, invalid flags, and unsupported source methods before publication."
+    ],
+    "testFiles": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "focusedSelectors": [
+      "--mlinestyle-cmc-retention",
+      "--mline-style-validation"
+    ],
+    "focusedCtests": [
+      "libdxfrw_mlinestyle_cmc_retention",
+      "libdxfrw_mline_style_validation",
+      "libdxfrw_dwg_object_vectors"
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "wireWalk": "An independent AC1024 body/string cursor reads the style name/description, C0 flagged-empty fill, C2 named RGB element, C1 book-only element, C3 named ACI element, angles, element count, offsets, and signed linetype indices.",
+    "parserRetention": "The production object parser reads the generated frame and checks CMC metadata, subsequent fields, parent handle, and copy/assignment/reset. An independently walked common-handle stream checks owner, null extension dictionary, and a following sentinel.",
+    "unsupportedMethod": "A generated CMC wire mutation changes the fill method to C5 with the documented scalar fallback value; parsing retains C5, and DWG rewrite refuses before output. This mutation is not evidence of producer-authored MLINESTYLE C5 payload semantics.",
+    "failClosed": "Direct writer controls reject unsupported C5, unknown flags, inconsistent name/book flags, missing detached storage for flagged-empty metadata, and out-of-range RGB before body/string/handle output. Focused ASCII/Binary MLINESTYLE controls continue to reject CMC state that group-62-only DXF cannot represent."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests dwg2dxf lc3_compat_check -j4",
+    "strictBuildResult": "PASS (-Werror)",
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dwg_object_vectors_tests --mlinestyle-cmc-retention",
+      "build-gcc/libdxfrw_wave1_tests --mline-style-validation",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_mlinestyle_cmc_retention|libdxfrw_mline_style_validation|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+      "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "focusedResults": [
+      "PASS",
+      "PASS",
+      "PASS (3/3; 0.10 sec)",
+      "PASS"
+    ]
+  },
+  "evidenceLimits": [
+    "Generated vectors establish local wire/parser/writer consistency only; no independent DWG producer was used.",
+    "The C5 mutation checks source-method retention and fail-closed rewrite, not producer payload semantics.",
+    "DXF behavior remains the documented scalar projection; no truecolor or optional-name group mapping was added.",
+    "No persistent fixture, native CAD application, independent semantic route, full suite, platform qualification, or support promotion was used.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree remains broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue PAR-134's remaining scalar-only CMC caller and class-specific DXF projection audit. Then resume exact-source PAR-03/PAR-04 associative-action context classification without guessing payload widths. Keep FreeCAD Linux/Windows qualification, independent ACIS/ACDS semantic evidence, and the six DEFERRED_EXTERNAL J gates separate from generated local evidence."
+}

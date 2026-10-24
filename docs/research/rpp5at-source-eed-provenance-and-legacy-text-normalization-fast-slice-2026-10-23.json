@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5at",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "SOURCE_EED_ISSUE_TRANSFER_AND_LEGACY_NORMALIZATION_OBSERVATIONS_PASS_FULL_SOURCE_QUALIFICATION_OPEN",
+  "predecessor": "docs/research/rpp5as-xrecord-xdata-and-output-allocation-fast-slice-2026-10-23.json",
+  "implemented": [
+    "Legacy common-EED subordinate codecs merge accumulated decode issues into the enclosing codec without changing primary/byte selections or its last primary observation.",
+    "Unknown and existing many-to-one per-value profiles contribute fixed issue masks even for empty/ASCII values; tolerant output and null-sink behavior remain unchanged.",
+    "Modern common-EED UTF16 retains its existing independent structural rejection and all-or-nothing publication behavior.",
+    "Existing legacy-TV normalization records removal of more than one trailing NUL byte without changing strings, embedded NULs, consumed bytes or cursor handling.",
+    "Existing raw-frame audit automatically freezes and rechecks subordinate EED observations beside the immutable model; no import-retention or strict-admission promotion."
+  ],
+  "specification": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "revision": "ODA v5.4.1",
+    "reviewed": [
+      "Complete §28/page269 EED framing and value layout",
+      "Complete §2/page7 text/count type definitions"
+    ],
+    "method": "PDF skill text plus visual review of both complete relevant pages",
+    "limitations": [
+      "No DWG layout, codepage byte-order, parseDwg body or type-dispatch change",
+      "Existing legacy-TV terminator normalization is observed, not independently format-qualified"
+    ]
+  },
+  "controls": {
+    "literalLegacyEedRows": 18,
+    "modernEedStructuralControls": 6,
+    "legacyTextBoundaryCells": 63,
+    "adapterSourceEedCells": 16,
+    "adapterCorrelatedFrames": 30,
+    "malformedUnicodeSourceControls": 2,
+    "profileOnlySameValueRawRewriteRefusals": 4,
+    "sourceOwnersDoubleCharged": false,
+    "importOpaqueRetentionIncrement": 0
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 13,
+      "failed": 0,
+      "seconds": 1.29,
+      "tests": [
+        "libdxfrw_dwg_eed_text_provenance",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_standard_dwg_object_source_capture"
+      ],
+      "command": "ctest --test-dir build --output-on-failure -j3 -R '^(libdxfrw_dwg_eed_text_provenance|dwg2dxf_standard_dwg_source_eed_text_observations|dwg2dxf_standard_dwg_source_text_observations|libdxfrw_text_decode_issue_accumulation|libdxfrw_rooted_standard_dwg_xrecord_eed|libdxfrw_standard_dwg_source_baseline|libdxfrw_rooted_standard_dwg_output_proof|libdxfrw_standard_object_wire_comparison|libdxfrw_standard_dwg_output_allocation|libdxfrw_standard_dwg_payload_profile_and_allocation|dwg2dxf_standard_dwg_object_payload_correlation|libdxfrw_xrecord_writer_codepage|dwg2dxf_standard_dwg_object_source_capture)$'"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 13,
+      "failed": 0,
+      "seconds": 3.28,
+      "tests": [
+        "libdxfrw_dwg_eed_text_provenance",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_standard_dwg_object_source_capture"
+      ],
+      "options": "halt_on_error=1",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "command": "ASAN_OPTIONS=halt_on_error=1 ctest --test-dir build-asan-custom --output-on-failure -j3 -R '^(libdxfrw_dwg_eed_text_provenance|dwg2dxf_standard_dwg_source_eed_text_observations|dwg2dxf_standard_dwg_source_text_observations|libdxfrw_text_decode_issue_accumulation|libdxfrw_rooted_standard_dwg_xrecord_eed|libdxfrw_standard_dwg_source_baseline|libdxfrw_rooted_standard_dwg_output_proof|libdxfrw_standard_object_wire_comparison|libdxfrw_standard_dwg_output_allocation|libdxfrw_standard_dwg_payload_profile_and_allocation|dwg2dxf_standard_dwg_object_payload_correlation|libdxfrw_xrecord_writer_codepage|dwg2dxf_standard_dwg_object_source_capture)$'"
+    },
+    "literalSelectors": {
+      "result": "PASS",
+      "commands": [
+        "build/libdxfrw_gbk_codepage_tests --dwg-eed-text-provenance",
+        "build/tests/libdxfrw_dwg2dxf_adapter_tests --standard-dwg-source-eed-text-observations",
+        "build/libdxfrw_dwg_object_vectors_tests --dwg-eed-size-boundaries"
+      ]
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "translationUnits": 5,
+      "command": "clang++ -std=c++17 -Wall -Wextra -pedantic -Werror -I. -Isrc -Isrc/intern -Idwg2dxf -fsyntax-only src/intern/dwgreader.cpp src/intern/dwgbuffer.cpp dwg2dxf/dx_iface.cpp tests/gbk_codepage_tests.cpp tests/dwg2dxf_adapter_tests.cpp"
+    },
+    "build": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_gbk_codepage_tests libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests dwg2dxf lc3_compat_check -j6",
+      "finalState": "ninja: no work to do."
+    },
+    "diffCheck": "PASS",
+    "excludedInterimEvidence": "Initial new-test private get8bitStr access compile failure was repaired using public getCP8Text. Stale test binaries executed after that failed build do not count; final normal/ASan object and executable mtimes postdate the latest source edit."
+  },
+  "openLocal": [
+    "Full codepage mapping/table and source-schema qualification",
+    "APPID/dependency-name decoder provenance",
+    "CMC/layer metadata and skipped fields",
+    "XRECORD application per-value codepages and length conventions",
+    "Binary chunk segmentation and speculative decode paths",
+    "GROUP extension-dictionary/reactor handoff and source-image alias qualification",
+    "Strict per-attempt companion admission",
+    "Three AC1024 visualization sample/eight-frame parser failures, separate CLASSES integrity observations and SUN output closure",
+    "Legacy TABLE entity/extension integration and separate AC1024+ inline authoring"
+  ],
+  "external": {
+    "deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "status": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "promotesSupportClaims": false
+  },
+  "notRun": [
+    "Full project suite",
+    "Owning aggregate suites for this slice",
+    "UBSan",
+    "LeakSanitizer",
+    "Native CAD application",
+    "New external or independent runtime semantic qualification"
+  ],
+  "commit": null,
+  "newPersistentDrawingFixtures": 0,
+  "publicVirtualCallbacksAdded": 0,
+  "supportClaimsPromoted": false,
+  "bindings": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "828109b6197ead3182767da9f2579bf43fd3bb093da5d268edc6b1f0afb0bfbb"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "bd4039d9954af869868ce42b4f14181c95280c115a092052121e7ec19e4547b5"
+    },
+    {
+      "path": "src/intern/drw_textcodec.h",
+      "sha256": "3abdee2b865dd7ff1d1bff15a12d1aac1ed49230ec0e5a9303a0220d1c928cfc"
+    },
+    {
+      "path": "src/intern/drw_textcodec.cpp",
+      "sha256": "c62d52996912341e8b052723285e84bab7d3f38cbe0f7ba78cece49f3bc64492"
+    },
+    {
+      "path": "src/intern/dwgreader.cpp",
+      "sha256": "f6a012392b75fc4059ac87f7f49752a85eaa9f8e142a27f2fd47efa43a943dd8"
+    },
+    {
+      "path": "src/intern/dwgreader.h",
+      "sha256": "b62b4683eed1c33e770f88396c6313aad04029abb0129c4d3019a5ca184b09e0"
+    },
+    {
+      "path": "src/intern/dwgbuffer.cpp",
+      "sha256": "ca6073614d9ff414a7c76f67f320dd4bea1f8ef1e095414ef697b9364b0be251"
+    },
+    {
+      "path": "src/intern/dwgbuffer.h",
+      "sha256": "fbe3619b8cc7335626a4344ce711b77358e67da9cc649741576ee3974928e01d"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "sha256": "063f1bea9fa1afc1420e0af6e5acfb9c8bfdadeee1bd2ebc04d483ecb94be7a5"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "87bfe5856de48b812aecebd48dae7c636a980d9b127a008498505a96ba0fb74d"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "1265613bbb3f0b143144c185bb35f75dcf1f55ad9c1914d300b0101835fe226e"
+    },
+    {
+      "path": "tests/gbk_codepage_tests.cpp",
+      "sha256": "76d58e541e007f0953a32b2ca80471c43d3fd60bce8acec41d1f98f4ad64af8b"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "3b084a71806f9b090b98cc88c0fe432aa811e6f43d76d9d00c092270ad9ebf19"
+    },
+    {
+      "path": "tests/xrecord_test_helpers.h",
+      "sha256": "7cba9a7a3f425ffc76f56b36c36af7a4503ff55471f592352f272f0a771bc8f5"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "cdf3897d6eeae89c28b1a36ae76add0e56e73092255ae9bc56c15d78805c75f1"
+    },
+    {
+      "path": "build/libdxfrw_gbk_codepage_tests",
+      "sha256": "5cd4f2f1efe30ffba0d929b061490005980475f8bd205546c2c007f7c5a7af0c"
+    },
+    {
+      "path": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "bc2fbcd8cf322ca362e2b859e397b263327f4b45425fd4ba234f6ae4e0eb43ef"
+    },
+    {
+      "path": "build/libdxfrw_dwg_local_roundtrip",
+      "sha256": "32494671f105defc1a40f449559cfbb7886bd5500ef3f83188e42ef8e3cc4563"
+    },
+    {
+      "path": "build/libdxfrw_dwg_object_vectors_tests",
+      "sha256": "ed19ae032682c9f440f00fbeb314811846c70369441980f4ce2ed125b8ebe409"
+    },
+    {
+      "path": "build/dwg2dxf/dwg2dxf",
+      "sha256": "7d614756c1483cae2c4f6d245c1ff5f4948a3e6dcb702e36daefdb341cfefc55"
+    },
+    {
+      "path": "build/tests/CMakeFiles/lc3_compat_check.dir/lc3_compat_check.cpp.o",
+      "sha256": "f0703751fca25e71023d978e750991f5c6a55f0fce823979051837af8039df46"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_gbk_codepage_tests",
+      "sha256": "ce864e61a1d6efc9e231a4a7386e85e566fb14af24210bfeb2fbed2f647a00bf"
+    },
+    {
+      "path": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "34d35a0a5344d4e06ad3f6a72dc506d91711fe9cc1e0fc88530459d669e07c5c"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dwg_local_roundtrip",
+      "sha256": "855370a25736dfe9d1333e982de0840463369328f6e6ba2f015f2f32f3c75c99"
+    },
+    {
+      "path": "/tmp/rpp5at-fast-ctest.log",
+      "sha256": "4d13f6af42a26fc20e47e3c2d9dccbec8774053c65bc337ef486a5ac6def90f0"
+    },
+    {
+      "path": "/tmp/rpp5at-asan-ctest.log",
+      "sha256": "5a8c5fd6418ec80d833c5e36e383c80cb8bb1ebbbdd3b287581afb72e6efaea0"
+    },
+    {
+      "path": "/tmp/rpp5at-strict-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5at-build.log",
+      "sha256": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794"
+    },
+    {
+      "path": "/tmp/rpp5at-literal-selectors.log",
+      "sha256": "b80756c18aef07c26ed6ab48f53f8130e39c71687257afe54f49c701934cd584"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    },
+    {
+      "path": "/tmp/rpp5at-oda-eed.png",
+      "sha256": "7fc3a7ab154279fde260cf34a19410e526d934f9c9b955d4863953ecfc658836"
+    },
+    {
+      "path": "/tmp/rpp5at-oda-text-types.png",
+      "sha256": "6fba0e39bc32c867734020335eb6c1ac9499beb0c0d03c36a20f8f3adee8ea38"
+    }
+  ]
+}

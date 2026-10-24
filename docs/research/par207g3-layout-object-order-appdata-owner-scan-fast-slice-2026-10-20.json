@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 LAYOUT OBJECTS stream and owner-scan correction",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Extend the existing generated LAYOUT/NOD ASCII and Binary DXF round-trip with the exact semantic-owner and local serializer-order checks identified by the refined PAR-20/7G.3 plan.",
+    "Correct the shared OBJECTS order test helper so group 330 inside group-102 application data is not mistaken for an object owner.",
+    "Run the changed fixture target, its focused selector, and adjacent selectors that use the same order scanner."
+  ],
+  "sourceChange": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "changes": [
+      "The exported LAYOUT graph now asserts each re-imported LAYOUT's parentHandle equals the exact ACAD_LAYOUT dictionary handle.",
+      "For the existing AC1027 ASCII and Binary output controls, the test checks unique OBJECTS handles, the positional NOD identity and owner zero, and the local writer contract that the ACAD_LAYOUT dictionary precedes its LAYOUT records.",
+      "readDxfObjectsRecordOrder tracks group-102 application-data nesting and only treats a group-330 outside those groups as the object owner."
+    ],
+    "reason": "The prior scanner latched the first group 330, which can be an ACAD_REACTORS handle. This made physical owner assertions ambiguous precisely when app-data precedes the actual owner. Semantic graph closure remains asserted independently through typed readback.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --layout-graph-read-contract",
+      "result": "PASS (generated AC1027 ASCII and Binary graph controls)"
+    },
+    "adjacentSelectors": [
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --material-raw-capture",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+        "result": "PASS"
+      }
+    ],
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dxf_fixture_tests.cpp)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

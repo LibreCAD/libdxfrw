@@ -1,0 +1,70 @@
+{
+  "slice": "RPP-5s",
+  "title": "DXF-origin CELLSTYLEMAP bounded raw replay and mutation refusal",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": [
+    "retain private typed and raw DXF-origin baselines under resource limits",
+    "require successful same-version DXF provenance and exact typed/raw baseline equality",
+    "admit CELLSTYLEMAP only through the rooted TABLESTYLE extension-dictionary graph",
+    "replay unchanged DXF-origin CELLSTYLEMAP carriers as ordered raw records",
+    "refuse typed or raw carrier mutation and version conversion before publication"
+  ],
+  "generated_controls": [
+    "ASCII import-export-readback preserves a noncanonical CELLSTYLEMAP count spelling",
+    "generated Binary DXF import-export-readback retains typed/raw CELLSTYLEMAP and graph closure",
+    "typed cell-style mutation refuses without publishing output",
+    "raw count-group mutation refuses without publishing output",
+    "combined typed-carrier and baseline exact-cap admission and one-byte-over refusal",
+    "missing source/baseline remains fail-closed"
+  ],
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "result": "PASS",
+    "adapter_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --cell-style-map-dxf-writer",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dxf_writer$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    "fail_closed_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --cell-style-map-typed-capture-fail-closed",
+      "result": "PASS"
+    },
+    "compatibility_check": {
+      "command": "cmake --build build-gcc --target lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated locally in temporary directories"
+  },
+  "qualification_limits": {
+    "full_test_suite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "independent_dxf_reader": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "dwg2dxf/dx_data.h",
+    "dwg2dxf/dx_iface.cpp",
+    "dwg2dxf/dx_iface.h",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "next": "Continue locally evidenced parity work. Keep complete custom TABLESTYLE cell-style authoring, MATERIAL procedural fields, disputed MATERIAL self-illumination semantics, and external qualification as separate evidence-gated items.",
+  "commit": "NONE"
+}

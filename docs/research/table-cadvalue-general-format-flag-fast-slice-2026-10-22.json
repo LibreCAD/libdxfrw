@@ -1,0 +1,42 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-general-format-flag",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "56a0e64fb8d3cadb44fe09a9f592a416a269425841cdb9de4b4760ad3ba1de1e",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue R2007+ kGeneral format flag",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "readTableCadValue infers type 512 and omits the data-type bit-long when formatFlags bit 0x01 selects kGeneral; it reads the bounded byte-count/payload and retains a binary variant. The existing empty-value behavior now applies only to bit 0x02.",
+  "generatedControls": {
+    "ac1021": "Standalone TABLECONTENT frame verifies inferred type, flags, four exact raw bytes, binary variant, unit/text fields, and complete semantic parse.",
+    "ac1024": "Embedded TABLE frame verifies the same payload semantics and exact following-table-tail bit boundary.",
+    "preFix": "Both generated controls failed before the parser change due to consuming the next field as data_type and misaligning the remainder."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cell_general_value_format_flag$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cell_(state_flag|content_type|unit_type)_domain$' --output-on-failure: PASS (3/3)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "fullSuiteRun": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; pre-existing worktree changes were preserved and no files were staged"
+}

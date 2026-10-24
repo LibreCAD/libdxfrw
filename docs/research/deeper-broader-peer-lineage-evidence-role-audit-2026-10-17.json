@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw-peer-lineage-evidence-role-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Broaden the open-source DWG/DXF peer comparison by tracing which implementation actually parses, writes, converts, models, and renders each result; refine the existing composed comparator checkpoint without adding per-slice validation cost.",
+  "method": {
+    "kind": "Primary-source repository README, manual, release-note, and dependency-route review with local plan reconciliation",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/DomCR/ACadSharp",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/mozman/ezdxf"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: S8/PAR-07 peer-provenance and composed semantic gates",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing cross-peer independence and undxf/uncad reviews",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: 7AP typed-proxy-graphics subplan"
+    ],
+    "limitations": "Repository main/master documentation is mutable and includes project self-descriptions; source commits and package checksums were not resolved for every candidate. Dependency lineage is based on the named repositories' own documentation. No implementation claim was tested against a drawing or runtime."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG operation and class maturity are multidimensional",
+      "observed": "LibreDWG's project docs identify distinct stable, unstable, debugging, and unhandled class states; its tool documentation gives different DWG-to-DXF and DXF-to-DWG coverage and version limits. A project-level percentage cannot certify one file, direction, version, class, or complete output.",
+      "doesNotEstablish": [
+        "behavior of a pinned binary on the local source-authored profile",
+        "complete typed preservation from a successful conversion status",
+        "that current mutable branch documentation exactly describes released 0.14.1"
+      ],
+      "planUse": "Pin release/commit and build flags, record direction and version, and compare per-handle typed/raw/ignored/derived/refused disposition rather than aggregate coverage claims."
+    },
+    {
+      "topic": "Application consumers sharing ACadRust are correlated codec evidence",
+      "observed": "ACadRust's own README lists OpenCADStudio as a consumer of its engine. App-level rendering/modeling can provide a distinct downstream observation, but an application self-round-trip routed through the same engine is not an independent parser or writer implementation. ACadRust's mutable feature claims are not bound in this review to a package checksum or immutable source revision.",
+      "doesNotEstablish": [
+        "released artifact support for every README feature/version",
+        "independence of OpenCADStudio codec read/write from ACadRust",
+        "B-rep correctness from displayed geometry or same-engine self-readback"
+      ],
+      "planUse": "Record app and engine identities separately; use an application only for its downstream consumer stage and pin both app release and exact engine revision."
+    },
+    {
+      "topic": "dwg-rs is independent but currently structural/alpha evidence",
+      "observed": "The project describes itself as a pre-alpha ODA-spec-derived reader. Its README marks per-entity decoders partial/alpha, the DWG writer alpha without automated external-CAD acceptance, and DXF parsing not implemented; the section and raw-object traversal layer is more mature than semantic 3D processing.",
+      "doesNotEstablish": [
+        "DWG/DXF semantic parity for the full local matrix",
+        "DXF parsing or output round-trip correctness",
+        "3D solid or native CAD acceptance from approximate glTF output"
+      ],
+      "planUse": "Retain only an optional, version-pinned structural DWG cross-check for container/section/record boundaries already in its evidenced scope."
+    },
+    {
+      "topic": "uncad is a composed wrapper, not a new DWG lineage",
+      "observed": "The uncad README states that DWG parsing uses LibreDWG FFI, DXF parsing uses the separate undxf crate, and output is read-only JSON/SVG/PNG. Its DWG path therefore shares LibreDWG lineage; only the pinned undxf dependency can provide a separate DXF parser path.",
+      "doesNotEstablish": [
+        "an independent DWG parser or writer",
+        "DWG/DXF write or conversion support",
+        "independent codec evidence from JSON or renderer output"
+      ],
+      "planUse": "Exclude uncad from DWG peer counts; optionally route the exact undxf parser through the existing composed DXF comparison after lockfile/crate pinning."
+    },
+    {
+      "topic": "Independent parser, application, and semantic stages must be scored separately",
+      "observed": "LibreDWG, ACadSharp, ezdxf, dwg-rs, ACadRust, and undxf implement different format, operation, and maturity slices. A wrapper or GUI can contribute a distinct renderer/importer observation only when that stage is separately identified; it cannot create independent codec evidence by product branding.",
+      "doesNotEstablish": [
+        "that any peer is a universal oracle",
+        "that parsing or writing implies consumer acceptance",
+        "that opaque payload preservation implies editable geometry semantics"
+      ],
+      "planUse": "At the already-composed checkpoint capture immutable artifact, parser/writer/converter/kernel/renderer dependencies, direction/version/encoding, fallback settings, identity disposition, and independent expected geometry where relevant."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "count evidence by the actual parser/writer lineage, not the application or wrapper name",
+      "separate parser, serialization, conversion, kernel/modeler, renderer, and native acceptance results",
+      "restrict dwg-rs to optional structural comparisons until its documented alpha gates advance",
+      "treat uncad's DWG route as LibreDWG-derived and its DXF route as undxf-derived after exact dependency pinning",
+      "keep peer execution at the existing composed checkpoint; do not add per-slice dependency or runtime work"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

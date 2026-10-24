@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-typed-xdata-modern-utf8-preflight-view-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.36",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / MODERN_XDATA_PREFLIGHT_COPY_SCOPED",
+  "objective": "Avoid an identity-encoded temporary string during compatible AC1021+ typed-XDATA validation without changing strict-lossless or legacy-codepage behavior.",
+  "implementation": {
+    "changed_files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "src/libdxfrw.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/typed-xdata-modern-utf8-preflight-view-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "Adds a shared internal predicate for compatible modern DXF identity-UTF-8 behavior and uses it in writeUtf8String().",
+      "Typed XDATA preflight uses a string_view over the source semantic UTF-8 for modern compatible byte-length and round-trip checks.",
+      "Strict-lossless XDATA still validates and measures its encoded/quoted representation.",
+      "Pre-AC1021 output still materializes the declared legacy-codepage encoding before length and round-trip checks."
+    ],
+    "compatibility": "The predicate is internal to dxfWriter; no installed API, public class layout, or DRW_Interface callback changed. XDATA output and failure policy are unchanged."
+  },
+  "tests": {
+    "build_fixture": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+    "focused_xdata_selector": "build-gcc/libdxfrw_dxf_fixture_tests --xdata-writer-validation",
+    "focused_xdata_selector_result": "PASS",
+    "fixture_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "fixture_ctest_result": "PASS (1/1)",
+    "build_hardening": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "hardening_selectors": [
+      "--dxf-raw-section-writer-common-path",
+      "--dxf-modern-compatible-text-writer-pass-through",
+      "--dxf-modern-compatible-mtext-newline-overlay"
+    ],
+    "hardening_selectors_result": "PASS",
+    "hardening_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "hardening_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls_reused": [
+    "Generated ASCII/Binary entity and table XDATA output routes.",
+    "AC1018 legacy and AC1021 modern target encoding paths.",
+    "Encoded-byte ceiling boundaries, including 1000/1001 lengths.",
+    "Valid/invalid UTF-8, supplementary scalars, CIF-looking strings, and caller-data immutability."
+  ],
+  "limits": [
+    "No allocator-count, throughput, or peak-RSS measurement was run; copy avoidance is established by the gated source path and existing output-policy tests.",
+    "No full suite, peer runtime, native CAD application, or fuzz/sanitizer campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Inspect the next source-confirmed writer/projection copy or typed/raw-carrier materialization with an existing fast test owner. External qualifications and public post-callback mutation semantics do not block local work.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

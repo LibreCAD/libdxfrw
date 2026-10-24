@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader DXF peer and ACadRust viewer-route refresh",
+  "mode": "primary-source repository and documentation research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen an additional direct ASCII/Binary DXF implementation",
+    "Refresh CodeCAD's ACadRust dependency and 2D projection boundary",
+    "Check whether Kabeja adds a useful independent comparison route",
+    "Reconcile candidates with fast-slice cadence and 3D evidence gates"
+  ],
+  "method": {
+    "kind": "Read public project repositories, manifests, lockfile, architecture, and README documentation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/samples/README.md"
+    ],
+    "limitations": "Evidence is from project-maintained repository metadata and documentation, not runtime validation. Mutable CodeCAD main was not identified by an exact commit hash, and the Cargo.lock bytes were not independently hashed; therefore the package pin applies only to the reviewed lockfile state. netDxf is archived and its declared feature matrix was not executed."
+  },
+  "sources": [
+    {
+      "project": "netDxf",
+      "urls": [
+        "https://github.com/haplokuon/netDxf",
+        "https://raw.githubusercontent.com/haplokuon/netDxf/master/README.md",
+        "https://github.com/haplokuon/netDxf/releases"
+      ],
+      "revision": "Repository and README reviewed 2026-10-18; archived repository page reports archival on 2023-10-11; exact commit hash not captured",
+      "observed": "The README declares MIT licensing; text and binary DXF read/write for AutoCAD 2000, 2004, 2007, 2010, 2013, and 2018; broad typed 2D entity support; AutoCAD TABLE import as INSERT; and inability to read REGION, SURFACE, and 3DSOLID due to proprietary undocumented data. This is a candidate 2D DXF comparator only, not DWG or 3D semantic evidence."
+    },
+    {
+      "project": "CodeCAD",
+      "urls": [
+        "https://github.com/backkem/codecad",
+        "https://raw.githubusercontent.com/backkem/codecad/main/crates/cadview-core/Cargo.toml",
+        "https://raw.githubusercontent.com/backkem/codecad/main/Cargo.lock",
+        "https://raw.githubusercontent.com/backkem/codecad/main/docs/architecture.md"
+      ],
+      "revision": "Mutable main README, manifest, lockfile, and architecture reviewed 2026-10-18; no source commit hash captured",
+      "observed": "README advertises DWG R13-R2018 viewing. The manifest permits acadrust = 0.3; the reviewed lockfile resolves package version 0.3.4 with crates.io checksum 2545729000aceb2c30e7002bdc26050532d5fa806bb6a6fef37175ebe6c8c5d2. Architecture documentation lists selected modelspace/block entity projection and maps supported shapes to 2D Kurbo paths, including spline/ellipse tessellation, LWPOLYLINE bulge conversion, and INSERT block flattening. Published entity percentages are project-reported, not independently reproduced. The codec lineage is ACadRust, so the application is not an independent DWG reader."
+    },
+    {
+      "project": "Kabeja",
+      "urls": [
+        "https://github.com/jpgiance/Kabeja"
+      ],
+      "revision": "Mutable master README reviewed 2026-10-18; exact commit hash not captured",
+      "observed": "The README describes an Apache-licensed Java DXF parser/SVG converter, states that not all DXF entities are supported, and warns that text entities generate problems. No runtime or detailed source-route audit was performed; excluded as a stronger comparator because of its declared scope and projection-only output."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds archived netDxf as a trigger-based ASCII/Binary DXF structural/field comparator limited to declared versions and supported families; corrects CodeCAD's pin terminology by distinguishing the semver manifest range from the reviewed lockfile resolution and records its 2D projection-only role. Kabeja is screened but not admitted. ACIS/AcDs and DWG support claims are unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not add netDxf as a dependency or routine test; select it only for a named unresolved 2D DXF question at an existing composed checkpoint.",
+    "Before an optional netDxf run, pin its exact source commit and runtime, then identify DXF version and text/binary mode; interpret output only within its documented entity scope.",
+    "Do not infer DWG, REGION/SURFACE/3DSOLID, ACIS/AcDs, or native CAD acceptance from netDxf's entity model or same-library round-trip.",
+    "Treat CodeCAD as ACadRust-lineage and projection-only; bind the app commit and lockfile hash and inventory per-type dispositions before any optional render check.",
+    "Keep tessellated/flattened display geometry distinct from exact NURBS, source graph/owner closure, 3D shape semantics, and writer acceptance.",
+    "Use only in-memory or locally-authored scratch controls and eligible existing samples; do not download or commit external/customer drawings.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "filesChangedByThisResearchPass": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxf-peer-acadrust-viewer-route-refresh-2026-10-18.json"
+    ],
+    "reason": "The shared worktree contains extensive pre-existing tracked and untracked changes. This pass edited only the parity plan and its research receipt; all other state was preserved."
+  }
+}

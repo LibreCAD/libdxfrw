@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-polyline-same-owner-duplicate-child-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Extend generated AC1021 POLYLINE ownership-preflight coverage to duplicate child handles within one parent and competing parents in one BLOCK_RECORD.",
+  "method": {
+    "kind": "Focused in-memory source-frame regression using production entity encoders",
+    "productionFilesChanged": [],
+    "testFilesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "externalDrawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "localBinaryFixturesWritten": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiChanged": false,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "commitAttempted": false,
+    "commitLimitation": "Repository .git metadata is read-only in this environment; no stage or commit was attempted."
+  },
+  "implementation": {
+    "version": "AC1021",
+    "generatedFrameTypes": [
+      "POLYLINE_3D",
+      "VERTEX_3D",
+      "SEQEND"
+    ],
+    "controls": [
+      "A single block owner claims one generated 3D POLYLINE whose parsed child-handle list contains the same VERTEX handle twice; one matching VERTEX frame and one SEQEND frame are present.",
+      "Two distinct generated 3D POLYLINE parents in one BLOCK_RECORD claim the same VERTEX handle and have distinct SEQEND frames."
+    ],
+    "assertions": [
+      "Mapped ownership preflight rejects both duplicate-within-parent and competing-parent claims.",
+      "The exact malformed parent handles are marked as invalid POLYLINE owners.",
+      "All affected POLYLINE, VERTEX, and SEQEND source frames are removed from ObjectMap.",
+      "Aggregate diagnostics identify each POLYLINE_3D parent and the correct BLOCK_RECORD owner."
+    ],
+    "limitations": [
+      "Exercises mapped ownership preflight, not a complete DWG container or production block traversal.",
+      "This malformed graph is generated for AC1021 only.",
+      "Does not establish valid producer semantics, geometry behavior, cross-version behavior, or 3D support."
+    ]
+  },
+  "validation": {
+    "strictTargets": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests lc3_compat_check -j 2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+    "owningCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure (1/1)",
+    "scopedDiffCheck": true,
+    "receiptJsonParsed": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    }
+  }
+}

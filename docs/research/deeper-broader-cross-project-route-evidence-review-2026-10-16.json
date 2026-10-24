@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw-cross-project-route-evidence-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Reconcile current open-source DWG/DXF libraries, CAD consumers, and ACIS/kernel tools by route, lineage, and evidence tier; refine existing plan gates without promoting support claims.",
+  "method": {
+    "kind": "Primary project documentation, release notes, issue/PR status, and current format-route documentation",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localBuildOrTestsRun": false,
+    "statusCaveat": "Repository branches and issue pages are mutable. Peer issue reports are leads, not independently reproduced facts; open PR work is not released capability."
+  },
+  "routes": [
+    {
+      "name": "LibreDWG",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "evidence": "Independent DWG/DXF implementation with version- and feature-specific reader/writer limits. Issue #1411 reports R2013+ AcDs/SAB carrier loss on a reporter-pinned 0.14.8593 route; not reproduced in this review.",
+      "admission": "Optional composed-checkpoint structural/differential peer; pin exact commit/build and actual output magic/version.",
+      "doesNotProve": ["current behavior on other revisions", "libdxfrw behavior", "complete AcDs association", "B-rep semantics"]
+    },
+    {
+      "name": "ACadSharp",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "evidence": "Distinct structured reader/writer with a published version matrix. The 3DSOLID/REGION DXF omission report names v3.4.9; proposed DXF ACIS writer PR #1240 depends on the unmerged ACDS refactor #1174 and is not released capability.",
+      "admission": "Optional structured-document peer for exact supported cells; ACIS writing stays unqualified until the dependency chain is released/pinned and route-level owner/payload closure passes.",
+      "doesNotProve": ["all current versions omit ACIS", "native solid semantics", "a successful DWG read implies DXF write support"]
+    },
+    {
+      "name": "ACadRust and OpenCADStudio",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/HakanSeven12/OpenCADStudio"
+      ],
+      "evidence": "OpenCADStudio identifies ACadRust as its native DWG/DXF engine and has a separate geometry/display path. These are not independent file-parser lineages; public claims do not provide a hash-pinned complete semantic report.",
+      "admission": "Count one codec lineage. A pinned distinct kernel/display stage may be reported separately and only for the behavior actually measured.",
+      "doesNotProve": ["independent parser agreement", "carrier preservation from rendered output", "B-rep validity from tessellation or successful open"]
+    },
+    {
+      "name": "ezdxf ACIS route",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "evidence": "DXF-level SAT/SAB tooling and bounded control authoring, not a DWG/AcDs reader or geometry kernel. API/FAQ claims differ; unsupported ACIS entities can be lost and flat-face projection omits curved faces.",
+      "admission": "Exact-pinned local control author/parser at the composed checkpoint, with actual artifact route inspected.",
+      "doesNotProve": ["arbitrary ACIS completeness", "curved B-rep geometry", "DWG section/index/owner association"]
+    },
+    {
+      "name": "GDAL DXF/OGR",
+      "sources": ["https://gdal.org/en/stable/drivers/vector/dxf.html"],
+      "evidence": "Optional AC1027+ mode exposes raw ASM data and a 12-value transform but does not create OGR solid geometry; default mode skips modeler entities. Options can inline/merge blocks and writer output is AC2004. The DWG CAD driver is read-only geometry projection.",
+      "admission": "Optional carrier or explicit-geometry projection only; pin options and disable block inlining/merging for graph checks.",
+      "doesNotProve": ["solid semantics", "full graph preservation", "DWG write/readback parity"]
+    },
+    {
+      "name": "OCCT and OCCT-based routes",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT/blob/master/dox/introduction/introduction.md",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "evidence": "Current official documentation places ACIS SAT and DXF exchange in commercial Advanced Data Exchange Components, separate from the open-source OCCT core. FreeCAD, cq-acis, and CAD Assistant use OCCT geometry lineage; distinct frontends do not constitute independent kernels.",
+      "admission": "No FOSS ACIS/DXF route credit. If an already-authorized component is available, treat it as an optional shared-kernel measurement route and identify component/build/license explicitly.",
+      "doesNotProve": ["current open-source OCCT ACIS/DXF import", "independent-kernel corroboration across OCCT frontends", "a licensed component is available or authorized"]
+    }
+  ],
+  "planDisposition": {
+    "implementationOrderChanged": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestOrFixture": false,
+    "newDependency": false,
+    "newSupportClaim": false,
+    "evidenceTiersToKeepSeparate": [
+      "file parse and version acceptance",
+      "entity and owner/reference closure",
+      "opaque carrier transport",
+      "explicit mesh or wireframe projection",
+      "analytic B-rep validity and native application acceptance"
+    ],
+    "implementationReadiness": [
+      "Continue local work without waiting for another peer-discovery cycle.",
+      "Use affected strict build targets and focused fast tests per slice; keep peer/native runs at existing composed checkpoints.",
+      "Generate new controls from scratch in temporary storage; do not add downloaded peer drawings or new fixture files.",
+      "Record exact artifact/version, lineage, format versions, options, source handles, owner/block/INSERT path, carrier hashes, diagnostics/fallbacks, and result tier.",
+      "Mark unavailable peer cells NOT_RUN and continue implementation."
+    ],
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "deferredEvidenceCannotPromoteSupportClaims": true
+  }
+}

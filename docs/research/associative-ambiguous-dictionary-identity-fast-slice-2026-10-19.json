@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Associative ambiguous dictionary-identity negative control",
+  "mode": "Generated local ASCII/Binary DXF fast slice",
+  "scope": [
+    "Exercise ambiguous dictionary callback identity without malformed duplicate-handle DXF input.",
+    "Require the ambiguous owner identity not to root or qualify the associative record.",
+    "Verify the bounded scan completes and the following DICTIONARYVAR remains observable."
+  ],
+  "control": {
+    "probe": "AmbiguousDictionaryProbe calls dx_iface::addDictionary twice for the same generated source handle.",
+    "inputFileMutation": false,
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "expected": [
+      "captureComplete, handleCodeScanComplete, and ownerChainScanComplete are true",
+      "one associative source record is retained",
+      "rootedOwnerChains and qualifiedRecords are zero",
+      "both dictionary callbacks remain visible to the test adapter",
+      "the following DICTIONARYVAR sentinel is delivered"
+    ],
+    "claimCeiling": "Adapter-level ambiguous dictionary identity fails to root the owner chain; this is not malformed-input policy, associative class grammar, edge-role closure, or replay qualification."
+  },
+  "assessment": {
+    "productionCodeChanged": false,
+    "testCodeChangedThisTurn": false,
+    "testCodeAlreadyPresentInCurrentWorktree": true,
+    "testRegistrationsChanged": false,
+    "persistentFixturesAdded": 0,
+    "externalFilesDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_associative_(callback_contract|strict_loss_gate)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "elapsedSeconds": 0.37
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "commitCreated": false,
+    "commitLimitation": ".git is read-only in the active workspace and the checkout already contains broad overlapping user changes; no staging or commit was attempted.",
+    "sourceSha256": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "2945ddcbed8a7eb78a4bd73b61c8f6209c01355b511af397e16edf2d566ec436",
+      "tests/dwg2dxf_adapter_tests.cpp": "89ce9449cf185cd0864a3439e0a85bffce027c10c83c885dadf7d264d3fab10e"
+    },
+    "planSha256": "2945ddcbed8a7eb78a4bd73b61c8f6209c01355b511af397e16edf2d566ec436",
+    "limitations": "The callback-duplication test validates the adapter owner inventory's ambiguous-key behavior, not the parser's acceptance of duplicate handles in a real DXF file, undocumented associative edge roles, same-profile output replay, or independent/native semantics. Generated scratch files are removed by the test."
+  }
+}

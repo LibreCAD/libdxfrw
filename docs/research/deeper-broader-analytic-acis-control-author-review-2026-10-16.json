@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-deeper-broader-analytic-acis-control-author-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the ACIS control-author search beyond mesh-derived polyhedra, refresh ACadRust's exact release/readiness boundary, and assess one optional SAT/SAB reader route without changing runtime dependencies or support claims.",
+  "method": {
+    "kind": "Read-only review of primary project release, source, API documentation, issue, and vendor reader documentation, reconciled against the existing implementation plan.",
+    "sourcesOpened": [
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+      "https://github.com/hakanaktt/acadrust/commit/8d5c46d",
+      "https://github.com/hakanaktt/acadrust/blob/v0.6.4/Cargo.toml",
+      "https://docs.rs/acadrust/latest/acadrust/entities/acis/primitives/index.html",
+      "https://github.com/hakanaktt/acadrust/blob/main/src/entities/acis/primitives.rs",
+      "https://docs.rs/acadrust/latest/acadrust/entities/acis/index.html",
+      "https://github.com/hakanaktt/acadrust/issues/134",
+      "https://ansyshelp.ansys.com/public/Views/Secured/corp/v252/en/ref_cad/cadACIS.html"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerOrNativeExecutablesRun": false,
+    "toolchainInstalled": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "evidenceBoundary": "Release notes, current source/API documentation, open issue reports, and vendor product documentation establish candidate scope and caveats only. No generated body, parser, B-rep kernel, or native application was executed; this review does not qualify any new support profile."
+  },
+  "evidence": [
+    {
+      "candidate": "ACadRust v0.6.4 / 8d5c46d",
+      "observed": [
+        "Release dated 2026-10-11 advertises generation-specific ACIS silhouette and inline-surface fixes and strict reads of its supplied sample corpus, plus Rust test/package verification.",
+        "The release manifest identifies the crate as MPL-2.0; no dependency or source code was added to libdxfrw.",
+        "Current crate API docs describe primitive constructors for box, wedge, pyramid, cylinder, cone, sphere, torus, and planar closed polyhedra, with topology/reference-closure checks.",
+        "The docs.rs latest API page still labels itself 0.5.5 while GitHub lists v0.6.4, so the exact builder API and output profile must be confirmed against the pinned 0.6.4 package/source before use."
+      ],
+      "classification": "OPTIONAL_ANALYTIC_CONTROL_AUTHOR_AND_STRUCTURAL_PARSER_NOT_KERNEL",
+      "planUse": "At one composed external checkpoint only, use out-of-tree generated analytic controls if the toolchain and exact API pin are already available. Inspect emitted SAT/SAB headers/profile, use independently calculated expected metrics, and pass the bytes through separately qualified parser/kernel paths. Its own validation/readback is not B-rep or native acceptance evidence."
+    },
+    {
+      "candidate": "ACadRust issue #134",
+      "observed": [
+        "Open issue reports 70/351 private AC1032 files failing under v0.6.4 after stricter record bounds, mostly on AcDbMLeaderObjectContextData and a few associative records.",
+        "The issue author says the same drawings open in v0.6.3, AutoCAD and ODA File Converter; the files were not published in the review.",
+        "The maintainer proposed a fix and requested a reporter retest; the issue remains open, so release/current-branch status is not resolved by the review."
+      ],
+      "classification": "UNREPRODUCED_PEER_WHOLE_DOCUMENT_REGRESSION_REPORT",
+      "planUse": "Keep ACadRust whole-DWG comparison advisory and exact-release-bound. Separate modeler-payload testing from unrelated full OBJECTS-pass failures where possible; do not attribute the report to libdxfrw."
+    },
+    {
+      "candidate": "Ansys 2025 R2 ACIS reader",
+      "observed": [
+        "Vendor docs describe a standalone SAT/SAB reader on Windows and Linux, import of solid/surface/line bodies, and listed versions R1 through 2023.",
+        "The docs explicitly say there is no CAD associativity or CAD parameter support; this route does not read DWG/DXF container-level AcDs links or modeling history."
+      ],
+      "classification": "OPTIONAL_COMMERCIAL_SHAPE_READER_NOT_OPEN_SOURCE_OR_CONTAINER_READER",
+      "planUse": "Consider only at the existing composed checkpoint if already licensed and authorized; otherwise do not install, purchase, trial, or add it as a dependency. It does not replace open-source evidence or source-native AC1027+ owner/join qualification."
+    }
+  ],
+  "planDelta": {
+    "existingGateRefined": "Optional ACadRust analytic control generation at the composed checkpoint, covering selected curved families only if the exact release API and emitted profile are verified.",
+    "localImplementationOrderChanged": false,
+    "existingFindingsChanged": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "newFixtures": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local implementation with focused generated tests; optional peer runtimes remain out of the leaf-slice loop.",
+      "At the composed checkpoint, first reuse existing local controls; add a small ACadRust analytic control set only if the exact pinned builder API and toolchain are already available.",
+      "Record generated input hash, exact SAT/SAB profile, libdxfrw carrier/owner chain, independent parser status, kernel geometry metrics, and named application result as separate evidence stages.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "planFilesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "receiptJsonParsed": "PASS",
+    "gitDiffCheck": "PASS",
+    "productionSourceChanged": false,
+    "testsRun": false
+  }
+}

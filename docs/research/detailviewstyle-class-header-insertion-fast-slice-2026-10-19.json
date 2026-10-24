@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 DetailViewStyle class-header field insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert missing DetailViewStyle subclass class-version (DXF group 70) and aggregate flags (group 90) during same-version raw-carrier export.",
+    "Preserve canonical class-header order before group markers and fail closed around unfamiliar header fields.",
+    "Verify generated ASCII/Binary output with exact raw-carrier comparison, typed readback, reference closure, and neighboring-record continuity."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/detailviewstyle-class-header-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "When a typed DetailViewStyle class version or flags value differs from defaults but its source group is absent, the overlay inserts code 70 before code 90 and both before the first group marker. It refuses insertion if an unfamiliar class-header group makes placement ambiguous. Class version is constrained to signed 16-bit representation; 32-bit flags are emitted through the signed DXF long wire value while preserving the unsigned typed bit pattern.",
+    "testCases": [
+      "Remove code 70 and code 90 from a generated DetailViewStyle header, confirm defaults, edit class version to 8 and flags to 0xA0000001, export/reimport in ASCII and Binary DXF, and assert ordered raw groups and exact typed values.",
+      "Compare complete raw DetailViewStyle and SectionViewStyle carriers, verify closed resource references, and ensure the following POINT is intact."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.53
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "The flags field remains an uninterpreted 32-bit aggregate; no individual flag-bit semantics are inferred.",
+    "Same-source-version DXF value insertion/replay only; no DWG-origin typed serialization, cross-version projection, or native-display qualification.",
+    "The control covers an empty recognized header and two edited fields; insertion around unfamiliar header fields deliberately fails closed.",
+    "The shared worktree is uncommitted and contains unrelated user changes; no cleanup or staging was performed."
+  ]
+}

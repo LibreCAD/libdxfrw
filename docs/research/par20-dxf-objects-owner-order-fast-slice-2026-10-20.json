@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G DXF OBJECTS owner-order regression control",
+  "mode": "Local generated ASCII/Binary regression slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Lock down NOD-first and owner-before-owned physical ordering for the existing generated DICTIONARYVAR route.",
+    "Reuse the current child-before-owner source-order control and existing adapter selector without adding a fixture or CTest."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testDetails": [
+      "Added a helper that scans OBJECTS records and captures record type plus group-5 handle for ASCII and Binary DXF.",
+      "Extended rootDictionaryVarWriterClosure() to assert the actual NOD handle is the first OBJECTS record.",
+      "Asserted the emitted owner DICTIONARY precedes both remapped DICTIONARYVAR child handles.",
+      "Retained the existing key/reference-code and output-readback owner-closure assertions."
+    ],
+    "generatedInputsOnly": true,
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "focusedCtest": "PASS: libdxfrw_named_resource_import_evidence (1/1)",
+    "diffCheck": "PASS: scoped git diff --check for plan and test source",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "The local physical-order regression assertion for the generated NOD -> AcDbVariableDictionary -> DICTIONARYVAR route in ASCII and Binary DXF.",
+    "doesNotClose": [
+      "All admitted OBJECTS owner-edge ordering families.",
+      "Generic raw OBJECTS replay or arbitrary object graph scheduling.",
+      "External/native consumer acceptance or broad DWG/DXF support."
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

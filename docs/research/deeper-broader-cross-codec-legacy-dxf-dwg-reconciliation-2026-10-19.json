@@ -1,0 +1,164 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader cross-codec legacy DXF and versioned DWG issue reconciliation",
+  "base_revision": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "mode": "Primary-source specification and issue-body review cross-checked against the current local parser, writer, and generated-test owners",
+  "scope": [
+    "Retrieve full ACadSharp #1278, #1279, #1259, and #1261 issue bodies and reconcile only their exact reported routes with local behavior.",
+    "Cross-check LibreDWG #1354 legacy REPEAT/ENDREP/LOAD handling and ACadSharp #1172 entity-type counting ambiguity.",
+    "Audit the local DWG GeoData CIVIL-tail target-version predicate against ODA v5.4.1 §20.4.78 and specify the correction without changing code or tests.",
+    "Refine an existing classic-POLYLINE compatibility test for a generated AC1009 out-of-profile subclass-marker input."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "external_drawings_downloaded": 0,
+    "peer_fixtures_committed": 0,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "local_source_files_inspected": [
+      {
+        "path": "src/drw_entities.cpp",
+        "sha256": "c1ca8d34e44413de63b91ab131d9aff24f9dac0e19502e5204153719c8275fb5",
+        "areas": "DRW_Polyline/DRW_Vertex DXF parsing and unknown group-code delegation"
+      },
+      {
+        "path": "src/drw_objects.cpp",
+        "sha256": "e508ca3a1c3b54bd4bcd2d28569fa6b694ab81a64641af1bedecd3605f6dc99a",
+        "areas": "DRW_GeoData parseDwg/encodeDwg target-version gates"
+      },
+      {
+        "path": "src/drw_base.h",
+        "sha256": "b1a59a425f32185e1dd123108d465616f043ffbc9aa4303ce0a90ee4c017128f",
+        "areas": "DWG target-version constants"
+      },
+      {
+        "path": "src/intern/dwgreaderR1_40.cpp",
+        "sha256": "272bf8381251df22ec58a1bb371b21ae1c84da5aaa2d60ae086e0402d4a4a887",
+        "areas": "pre-R13 unsupported pseudo-entity refusal path"
+      },
+      {
+        "path": "tests/dxf_fixture_tests.cpp",
+        "sha256": "a429ca3f5d57cb4d014804b0b725edf13231a543177fb520e46d84394782b75d",
+        "areas": "existing generated classic POLYLINE/VERTEX ASCII and Binary controls"
+      },
+      {
+        "path": "tests/gbk_codepage_tests.cpp",
+        "sha256": "94d5d0fc48b55b4ca85c67bf69b0ecfe7fea13ac32fef23ef533ee83d63b6a6c",
+        "areas": "existing CP949 declared-codepage and byte-payload round trip"
+      },
+      {
+        "path": "tests/dwg_object_vectors_tests.cpp",
+        "sha256": "ab52828f70affc003c2d2ffd37c77e3fbd371d4e10f25df9ff4cadea172afecc",
+        "areas": "synthetic GeoData reader/writer target-version vectors"
+      }
+    ],
+    "local_checks": [
+      "Read the authoritative local ODA v5.4.1 PDF, §20.4.78, pp. 202–203: objectVersion 1/2/3 and physical CIVIL-tail presence are separate axes; the tail applies to R21 and earlier, with an explicit note that AutoCAD 2010 always writes it.",
+      "Mapped target DWG releases using src/drw_base.h: AC1021/R21 is tail-positive; AC1024/R24 is tail-positive by the explicit AutoCAD-2010 exception; AC1027/R27 and AC1032/R32 are no-tail targets.",
+      "Compared the ODA matrix with DRW_GeoData::parseDwg, encodeDwg, and dwg_object_vectors_tests: the current continuous AC1021-through-AC1027 gate and AC1027 positive synthetic vectors repeat the same incorrect assumption; reopen PAR-119/7BP and correct both directions and tests.",
+      "Read the complete ACadSharp #1278 body: it reports AC1009 POLYLINE/VERTEX group-100 markers and losses in ACadSharp, but supplies no immutable file/hash or native result. Local unknown-code delegation suggests tolerance, not proof; specify a generated ASCII/Binary compatibility guard under existing PAR-14/7BS.",
+      "Read the complete ACadSharp #1279 body: its exact case is AC1014 2D POLYLINE with VERTEX children lacking AcDb2dVertex; the local generated AC1014 omission test already covers parent/child values and following-record alignment in ASCII and Binary.",
+      "Read the complete ACadSharp #1259 body and compared it with the local CP949 route: the existing test covers ANSI_949 with literal CP949 payload bytes and semantic sentinel readback; no duplicate local work is indicated.",
+      "Read the complete ACadSharp #1261 body: its private-file report omits target DWG magic and cannot resolve the ODA target-version boundary or independently establish its units diagnosis.",
+      "Rechecked LibreDWG #1354 against the local AC1.40 reader: REPEAT/ENDREP/LOAD remain explicitly unsupported and fail closed with existing diagnostics/controls; no array mapping is inferred.",
+      "Reconciled ACadSharp #1172 with the local type hierarchy: DRW_Table derives from DRW_Insert, so exact eType/handle/owner accounting is required; aggregate inherited-type counts are ambiguous.",
+      "Updated the plan summary, PAR-119/7BP target matrix and implementation sequence, and appended the cross-codec reconciliation. No code, tests, fixtures, dependency, CTest, or support claim changed."
+    ],
+    "validation": "git diff --check on the plan passed before this receipt was added; final diff check and JSON parse are recorded in the turn. No build or local test was run because this was a plan-only research update."
+  },
+  "findings": [
+    {
+      "id": "PAR-119/7BP target-version correction",
+      "status": "REOPENED_LOCAL_IMPLEMENTATION_CORRECTION",
+      "evidence": "ODA v5.4.1 §20.4.78 plus direct local source/test audit",
+      "result": "The current AC1021..AC1027 continuous tail gate is inconsistent with ODA. AC1021 and AC1024 are tail-positive; AC1027 and AC1032 are no-tail. Existing AC1027-positive generated vectors are not producer evidence and need replacement by no-tail boundary controls.",
+      "limit": "No native producer/application run was made; the change is a specification-backed local correction, not a support qualification."
+    },
+    {
+      "id": "PAR-14/7BS AC1009 extra group-100 compatibility shape",
+      "status": "READY_GENERATED_TEST_ONLY",
+      "evidence": "ACadSharp #1278 body, Autodesk R12 DXF reference, local parser source audit",
+      "result": "Add one generated ASCII/Binary AC1009 POLYLINE with three marked VERTEX children, SEQEND and a following LINE sentinel; assert identity/order/coordinates and marker-free R12 re-export. Do not change production code unless the focused guard fails.",
+      "limit": "The markers are outside the documented R12 profile; the peer issue does not establish a valid-R12 requirement or libdxfrw defect."
+    }
+  ],
+  "sources": [
+    {
+      "name": "ACadSharp issue #1278",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1278",
+      "observed": "Full body reports an AC1009 POLYLINE with three VERTEX children containing group-100 subclass strings and entity loss in ACadSharp 3.8.0/master; no public sample hash or native-consumer result is given.",
+      "evidence_ceiling": "Peer failure shape only; useful for a local permissive-parser compatibility test, not a format rule or local defect."
+    },
+    {
+      "name": "Autodesk Release 12 DXF Reference",
+      "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_r12_dxf.pdf",
+      "observed": "The R12 profile does not define group 100 as the later subclass-marker contract; the proposed marked input is therefore explicitly out-of-profile compatibility input.",
+      "evidence_ceiling": "Legacy DXF profile reference; it does not require a particular permissive recovery policy."
+    },
+    {
+      "name": "ACadSharp issue #1279",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1279",
+      "observed": "Exact report is an AC1014 2D POLYLINE whose VERTEX child omits AcDb2dVertex after AcDbVertex; local generated compatibility coverage already exists.",
+      "evidence_ceiling": "Peer-specific reader behavior; not evidence of local failure or a reason to broaden child-role inference."
+    },
+    {
+      "name": "ACadSharp issue #1259",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1259",
+      "observed": "Report distinguishes the $DWGCODEPAGE declaration from the actual encoded byte stream for CP949/ANSI_949 cases.",
+      "evidence_ceiling": "Synthetic peer report; local CP949 byte/text/sentinel controls are the relevant existing evidence."
+    },
+    {
+      "name": "ACadSharp issue #1261",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1261",
+      "observed": "Reports a GeoData Civil-tail omission and possible units mismatch on private drawings but supplies no target DWG magic in the reviewed issue body.",
+      "evidence_ceiling": "Peer lead only; ODA v5.4.1 is authoritative for the local DWG byte-layout/version question."
+    },
+    {
+      "name": "ODA Open Design Specification v5.4.1, §20.4.78",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observed": "GeoData objectVersion values 1/2/3 map to AutoCAD 2009/2010/2013 body schemas, while the CIVIL tail is specified for target DWG R21 or earlier and a note states AutoCAD 2010 always writes it.",
+      "evidence_ceiling": "Authoritative wire-layout source under repository instructions; no actual producer output was executed in this pass."
+    },
+    {
+      "name": "LibreDWG issue #1354",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1354",
+      "observed": "Reports pre-R13 REPEAT/ENDREP/LOAD pseudo-record output and lost array/resource semantics in a downstream DXF route.",
+      "evidence_ceiling": "Peer conversion report; local reader remains fail-closed and its existing controls are not broadened from an unresolved projection."
+    },
+    {
+      "name": "ACadSharp issue #1172",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1172",
+      "observed": "Issue title reports missing AC1032 INSERT records; exact entity/handle/type accounting is needed to interpret the report.",
+      "evidence_ceiling": "Peer lead only; aggregate C++ inheritance counts can confuse DRW_Table with DRW_Insert."
+    }
+  ],
+  "plan_effect": {
+    "local_findings_added": 0,
+    "top_level_subplans_added": 0,
+    "existing_subplans_refined": [
+      "PAR-119/7BP reopened for target-version gate and generated-vector correction",
+      "PAR-14/7BS made ready for one generated AC1009 out-of-profile compatibility control"
+    ],
+    "findings": 134,
+    "top_level_subplans": 76,
+    "implementation_order_changed": false,
+    "validation_cadence_changed": false,
+    "fixture_policy_changed": false,
+    "new_fixture_or_ctest": false,
+    "production_code_changed": false,
+    "tests_changed": false,
+    "support_claims_promoted": false,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

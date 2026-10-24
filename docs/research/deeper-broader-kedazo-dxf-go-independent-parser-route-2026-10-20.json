@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader DXF ecosystem parser and route-lineage audit",
+  "mode": "primary-source web research and local plan-inventory reconciliation",
+  "scope": [
+    "Screen for separately implemented ASCII/Binary DXF parser and converter routes not already represented by the existing peer inventory",
+    "Separate a peer's direct DXF parser lineage from DWG conversion helpers that delegate to another codec",
+    "Refine the optional Binary-DXF and ACDSDATA comparator procedure without opening duplicate findings or mandatory validation work"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "The review used the published Go module documentation for kedazo/dxf-go v0.3.3 and mutable project source/README claims; no source archive or module checksum was fetched, no parser was run, and no ACDSDATA behavior was confirmed. The module page says v0.3.3 is not the latest version. Project-declared version coverage and raw unknown-entity retention are candidate-scope claims, not reproduced outcomes."
+  },
+  "sources": [
+    {
+      "project": "kedazo/dxf-go",
+      "urls": [
+        "https://pkg.go.dev/github.com/kedazo/dxf-go@v0.3.3",
+        "https://github.com/kedazo/dxf-go"
+      ],
+      "revision": "Published v0.3.3 module page dated 2026-10-01; documentation states it is not the latest module version",
+      "observed": "The README claims ASCII and Binary DXF read from R12 through AC1032; unsupported entity types are represented as UnknownEntity with raw group codes; selected OBJECTS including LAYOUT and IMAGEDEF are read; and the project is a fork of ixmilia/dxf-go. The README says DWG xrefs are converted using LibreDWG dwg2dxf before checking by the Go DXF parser.",
+      "limits": "Claims were not source-audited or executed. No evidence was found that the parser retains every modeler carrier chunk, parses ACDSDATA, resolves modern SAB keys to entity owners, or parses DWG independently."
+    },
+    {
+      "project": "xorgy/dxfscan",
+      "urls": [
+        "https://github.com/xorgy/dxfscan"
+      ],
+      "revision": "Mutable master page reviewed 2026-10-20; repository showed one commit and no tagged release",
+      "observed": "The README describes a one-pass, zero-copy Binary-DXF scanner for R13+ that exposes typed entities and lookup indices. Its enumerated entity set includes 3DFACE, SPLINE, and HATCH but not 3DSOLID, REGION, or BODY; other entity types are represented as Entity::Unknown.",
+      "limits": "No source, binary, unknown-record path, OBJECTS handling, ACDSDATA handling, or terminal-EOF behavior was inspected or run. Treat only as a possible ordinary-entity Binary-DXF probe after commit pinning; not as a carrier or semantic parser."
+    },
+    {
+      "project": "xorgy/dxfbin",
+      "urls": [
+        "https://github.com/xorgy/dxfbin"
+      ],
+      "revision": "Mutable master page reviewed 2026-10-20; repository showed one commit and no tagged release",
+      "observed": "The README describes a streaming text-DXF to Binary-DXF group-code/value transducer with typed sink callbacks and explicitly says it does not interpret drawing structure.",
+      "limits": "Not a parser, structural validator, or independent oracle; no build/run or group-code corpus audit was performed."
+    },
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Mutable project README reviewed 2026-10-20; already represented in the parity inventory",
+      "observed": "The source describes a pre-alpha ODA-spec-derived DWG structural/entity reader with raw-object walking and versioned decoded/skipped/error reporting, but no DXF parser and no completed semantic ACIS path.",
+      "limits": "No new candidate or outcome was established in this pass; reported counters remain project/corpus-specific and were not reproduced."
+    },
+    {
+      "project": "gallowaysoftware/dxf",
+      "urls": [
+        "https://github.com/gallowaysoftware/dxf"
+      ],
+      "revision": "Mutable project README reviewed 2026-10-20; already represented in the parity inventory",
+      "observed": "The project describes a narrow AC1024 2D writer and explicitly does not read DXF or support modeler geometry.",
+      "limits": "No additional comparator capability was found; it remains a test-design reference only."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans",
+    "planDelta": "Add kedazo/dxf-go v0.3.3 as an optional broad direct-DXF structural comparator after exact source/module pinning; classify its DWG helper path as LibreDWG-lineage. Keep xorgy/dxfscan as only a possible narrow ordinary-entity Binary-DXF probe pending source/EOF verification, and xorgy/dxfbin as a pair transducer rather than a parser/oracle. Any candidate must use a generated local input and prove complete parse before its scoped comparison; otherwise record NOT_QUALIFIED once and self-unblock. No new fixture, dependency, routine test, implementation blocker, or support promotion."
+  },
+  "implementationReadyChecks": [
+    "Pin exact Go module version, repository commit, module checksum, and toolchain; do not use a floating latest release.",
+    "Use only locally generated scratch DXF as the candidate input and require complete parse through EOF before comparing modeler data.",
+    "Check entity identity, all repeated group-310 chunks in order, reconstructed bytes, and any exposed ACDSDATA key/owner association; report fields not exposed as NOT_EXPOSED.",
+    "Keep direct DXF parser results separate from DWG input converted through LibreDWG dwg2dxf.",
+    "Treat UnknownEntity raw-group retention, declared version range, peer self-readback, and entity counts as structural diagnostics only—not carrier, semantic, or consumer proof.",
+    "If one exact generated profile cannot be qualified cheaply, record NOT_QUALIFIED once and continue the local ready queue without installing a dependency or running a full suite."
+  ],
+  "validation": {
+    "planDiffCheck": "git diff --check on DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and DWG_DXF_3D_SUPPORT_PLAN.md — passed",
+    "receiptJsonValidation": "jq empty docs/research/deeper-broader-kedazo-dxf-go-independent-parser-route-2026-10-20.json — passed",
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes; no staging or commit performed."
+  }
+}

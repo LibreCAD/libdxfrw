@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 owner-reference disposition and null-owner contract",
+  "mode": "Generated fast adapter and result-validator slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Classify nonzero semantic owner edges as resolved or unresolved from the final captured record set.",
+    "Align null-owner validation with DRW::NoHandle == 0 and the adapter producer contract of null field/no edge.",
+    "Keep this evidence distinct from owner-class correctness, reciprocal graph closure, and native/semantic acceptance."
+  ],
+  "implementation": {
+    "classification": "An owner edge is resolved iff its target handle matches a captured record sourceHandle; otherwise it is unresolved.",
+    "orderIndependence": "The C++ disposition is derived during result serialization after all callbacks have populated the record list.",
+    "nullOwnerContract": "DRW::NoHandle is zero. Null/zero owner handles have no owner edge; the adapter emits ownerHandle as null. The schema-3 validator accepts null or zero ownerHandle only when no owner edge exists.",
+    "graphNodeTargets": "Owner resolution supports handle and block target nodes; the Python result validator recomputes the status against captured record handles and contains no legacy null-edge disposition branch.",
+    "negativeControls": [
+      "missing owner edge for nonzero ownerHandle",
+      "duplicate owner edges",
+      "edge to a mismatched target handle",
+      "resolved edge with no captured target record",
+      "unresolved edge with a captured target record",
+      "owner edge for null or zero ownerHandle",
+      "block-node owner target"
+    ],
+    "syntheticBaselineCorrection": "Updated the runner's stale synthetic baseline to encode a null owner as ownerHandle null with no owner edge and corrected graph cardinalities."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: distinguish absent/null owners, owners whose target record is captured, and unresolved nonzero owner handles.",
+      "7F.1b: validate edge dispositions against the full record denominator and reject malformed null-owner graph edges."
+    ],
+    "productionCodeChanged": false,
+    "testHarnessCodeChanged": true,
+    "resultObjectKeysChanged": false,
+    "graphEdgeDispositionVocabulary": [
+      "observed",
+      "resolved",
+      "unresolved"
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "runnerSelfTest": "PASS (python3 -B tools/run_qualified_differential_v2.py --self-test)",
+    "pythonSyntax": "PASS (python3 -B -m py_compile tools/run_qualified_differential_v2.py)",
+    "adapterBuildAndSelfTest": "PASS (python3 -B tools/build_semantic_adapter.py --self-test; locked target and fresh standalone)",
+    "diffCheck": "PASS (scoped to adapter, validator, and plan files)",
+    "fullSuite": "NOT_RUN",
+    "testsRun": [
+      "python3 -B tools/run_qualified_differential_v2.py --self-test",
+      "python3 -B -m py_compile tools/run_qualified_differential_v2.py",
+      "python3 -B tools/build_semantic_adapter.py --self-test",
+      "git diff --check -- tests/semantic_differential_adapter.cpp tools/run_qualified_differential_v2.py DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "limitations": [
+    "Resolved means only that the target handle matches a captured record; it does not prove target object class, reciprocal ownership, container membership, complete document ownership closure, or geometry semantics.",
+    "No full suite, peer implementation, native CAD application, geometry kernel, or external drawing was run.",
+    "The changes are uncommitted because the shared worktree contains broad unrelated modifications and the changed source files are already broadly dirty.",
+    "ODA v5.4.1 remains authoritative for DWG layout questions; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

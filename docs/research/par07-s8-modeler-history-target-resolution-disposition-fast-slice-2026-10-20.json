@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 modeler history-target resolution disposition",
+  "mode": "Generated fast adapter and result-validator slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Distinguish a modeler history handle that maps to a captured record from one whose target record was not captured.",
+    "Keep handle presence separate from expected object class, reciprocal ownership, history-graph closure, and B-rep semantics."
+  ],
+  "implementation": {
+    "classification": "historyReference disposition is resolved iff a captured result record has sourceHandle equal to the history target handle; otherwise it is unresolved.",
+    "orderIndependence": "Classification is computed at result emission after the full record list has been captured.",
+    "validator": "The schema-3 validator recomputes the same classification, binds it to the modeler historyHandle, and rejects stale or misapplied dispositions.",
+    "negativeControls": [
+      "missing history edge",
+      "duplicate history edge",
+      "wrong target handle",
+      "resolved disposition with no captured target record",
+      "unresolved disposition with a captured target record",
+      "history edge for zero handle",
+      "resolved disposition on a non-history edge"
+    ]
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: explicitly distinguish unresolved modeler history handles from handles whose target record is captured",
+      "7F.1b: validate graph-edge resolution dispositions against the result record denominator"
+    ],
+    "productionCodeChanged": false,
+    "testHarnessCodeChanged": true,
+    "resultObjectKeysChanged": false,
+    "graphEdgeDispositionVocabularyExtended": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "kind": "Local generated tests and code inspection",
+    "localFromScratchDataOnly": true,
+    "externalFixturesUsed": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/semantic_differential_adapter.cpp",
+      "tools/run_qualified_differential_v2.py",
+      "docs/research/par07-s8-modeler-history-target-resolution-disposition-fast-slice-2026-10-20.json"
+    ]
+  },
+  "validation": {
+    "runQualifiedDifferentialSelfTest": "PASS",
+    "pythonSyntaxCompilation": "PASS",
+    "semanticAdapterSelfTest": "PASS (locked target and fresh standalone builds)",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  },
+  "limitations": "Resolved means only that a record with the same sourceHandle was captured. It does not establish record class, valid ownership direction, transitive graph closure, or valid ACIS geometry. No native consumer or independent kernel ran."
+}

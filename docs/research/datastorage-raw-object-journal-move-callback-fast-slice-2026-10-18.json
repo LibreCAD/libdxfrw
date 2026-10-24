@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-07/S8.3 raw-object journal ownership transfer",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "implemented-uncommitted",
+  "scope": [
+    "Transfer the journal-owned DRW_UnsupportedObject to move-aware consumers without breaking const-reference-only consumers",
+    "Make raw-object journal delivery one-shot after ownership is moved",
+    "Verify allocation identity and callback count with generated in-memory controls"
+  ],
+  "changes": [
+    {
+      "file": "src/drw_interface.h",
+      "detail": "Added trailing non-pure addUnsupportedObject(DRW_UnsupportedObject&&); default forwards to the existing const-reference callback. Source compatibility is retained; binary ABI compatibility is not claimed."
+    },
+    {
+      "file": "src/intern/dwgreader.cpp",
+      "detail": "MoveValueEvent now uses the rvalue callback, tracks delivery, and refuses a second replay. Added a typed internal appendValue overload to preserve existing const-reference callback member-pointer call sites despite the overload."
+    },
+    {
+      "file": "src/intern/dwgreader.h",
+      "detail": "Declared the typed const-reference callback overload used to disambiguate existing raw-object appendValue call sites."
+    },
+    {
+      "file": "tests/dwg_reader_matrix_tests.cpp",
+      "detail": "Extended the existing generated modeler/raw-object selector to verify one-shot replay, default forwarding to a legacy const-reference receiver, and same-vector-allocation transfer to a move-aware receiver using 256 KiB payloads."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j2",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-modeler-move-callback",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeler-geometry-move-callback-fallback",
+      "result": "passed; exit code 0"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    {
+      "command": "git diff --check -- src/drw_interface.h src/intern/dwgreader.h src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp",
+      "result": "passed"
+    }
+  ],
+  "planChanges": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestRegistration": false,
+    "newFixture": false,
+    "newDependency": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "The change does not reduce copies for const-reference-only receivers, change dx_iface raw-entity retention policy, remove the AcDs section-to-entity payload attachment copy, or qualify DWG/DXF/ACIS semantics. No full suite, external peer, native CAD application, or geometry kernel was run.",
+  "workingTree": "The checkout contains extensive pre-existing modified and untracked work. This slice was not staged or committed; unrelated changes were left untouched."
+}

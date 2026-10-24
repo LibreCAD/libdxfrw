@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer document-infrastructure loss and semantic-evidence boundary",
+  "mode": "Primary-source web research and read-only plan/test audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare current open-source project contracts for DWG/DXF graph preservation, version/direction support, 2D projection, 3D carriers, and consumer qualification.",
+    "Use an older peer-reported same-library writer failure only as an adversarial failure shape, not as current implementation status or evidence of a local defect.",
+    "Refine existing PAR-20/7G, PAR-49, PAR-122, and PAR-07/S8 acceptance receipts without duplicating already-covered local gates."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/discussions/479",
+        "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions"
+      ],
+      "revision": "Current public pages reviewed 2026-10-20; discussion #479 is an older, unpinned report",
+      "observed": "Discussion #479 reports a same-library DWG read/write that lost data/infrastructure and had differences in external application visibility and model/paper-space default behavior. The maintainer cited then-unimplemented XRecords and dictionary infrastructure; the discussion does not establish current ACadSharp behavior. The current published matrix is direction-specific and declares AC1021 DWG read but not write, so AC1021 cannot be used as an ACadSharp DWG-writer differential."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi#L3022-L3039"
+      ],
+      "revision": "master documentation reviewed 2026-10-20",
+      "observed": "The manual separates stable, unstable, debugging, and unhandled dynamic classes. It says some unstable data maps to unknown-object/entity placeholders and same-version persistence requires the complete known unknown_bits blob. This is a project support contract, not a DXF/DWG normative rule."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "stable driver documentation reviewed 2026-10-20",
+      "observed": "The DXF OGR route projects 3DFACE/SOLID/TRACE into OGR shapes, including degeneracy-based point/line forms; it does not represent ASM solids as OGR geometry. Optional raw ASM data and affine transform fields are documented only for DXF AC1027 and later."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/solid.html",
+        "https://ezdxf.readthedocs.io/en/stable/concepts/ocs.html"
+      ],
+      "revision": "stable documentation reviewed 2026-10-20",
+      "observed": "The file-interface documentation preserves SOLID's unusual last-two raw vertex order and distinguishes raw OCS data from corrected SOLID.vertices()/wcs_vertices() results. This is useful for wire-versus-normalized-geometry test design, not a B-rep semantic oracle."
+    },
+    {
+      "project": "LibreCAD_3",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "master documentation reviewed 2026-10-20",
+      "observed": "The project documents DWG import as experimental and disabled by default, and states that DWG writing is not implemented. This defines a future opt-in read-consumer lane, not a writer or library support result."
+    }
+  ],
+  "localEvidence": [
+    "PAR-20/7G generated tests cover object roots, dictionary/XRECORD relationships, owner reciprocity, and graph refusal/retry.",
+    "PAR-49 generated tests cover block/layout ownership, member identity, and paper-space layout closure.",
+    "PAR-122 and current layout/viewport tests separately model the LAYOUT-to-BLOCK_RECORD link and last-active viewport; this research found no reason to duplicate these local controls.",
+    "PAR-07/S8 and generated SOLID/modeler tests distinguish raw carrier data, OCS/WCS transformations, payload identity, and geometry semantics.",
+    "The historical PAR-139.1/.2 GEODATA-red snapshot is superseded by the recorded GEODATA newline-escape implementation and current focused selector/owning hardening-gate passes."
+  ],
+  "validation": {
+    "commands": [
+      "build-gcc/libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight",
+      "build-gcc/libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight-view",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure"
+    ],
+    "result": "Both GEODATA selectors pass; owning hardening CTest passes 1/1. These checks validate the stale plan-status correction only; they do not qualify peer interoperability or new support claims."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G object graph and opaque-record disposition",
+      "PAR-49 block/layout identity and owner closure",
+      "PAR-122 current-space and layout/viewport state",
+      "PAR-07/S8 modeler carrier, transformed geometry, and consumer semantics"
+    ],
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Make writer self-reopen, complete typed/opaque object disposition, document graph integrity, layout/current-space state, raw wire values, transformed geometry, and external application default-view behavior separate evidence fields.",
+    "Require peer capability matching by direction and target version before scheduling a differential; mark unsupported route cells NOT_APPLICABLE and continue via another eligible evidence path.",
+    "Treat same-library re-open and file-size/entity-count similarity as insufficient for application-visible graph fidelity; use one composed checkpoint rather than adding routine peer builds or full suites.",
+    "Correct the 7AI summary row to show XRECORD payload-slot work committed in the worktree while keeping 7G root expansion separate.",
+    "Record that the historical PAR-139.1/.2 GEODATA red status is superseded by the existing newline-escape implementation and passing focused/owning gates.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "limitations": [
+    "ACadSharp discussion #479 is an older, unpinned peer report and was not reproduced; it cannot establish current peer behavior or a libdxfrw defect.",
+    "Project documentation describes declared project scope, not independent semantic correctness or broad per-entity interoperability.",
+    "No peer executable, native CAD application, or geometry kernel was run; no external drawing or fixture was downloaded.",
+    "No code, tests, fixtures, dependencies, or support metadata were changed."
+  ]
+}

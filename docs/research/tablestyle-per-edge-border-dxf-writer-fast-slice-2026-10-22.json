@@ -1,0 +1,45 @@
+{
+  "slice": "RPP-5 TABLESTYLE typed per-edge border DXF projection",
+  "date": "2026-10-22",
+  "status": "implemented_in_worktree_uncommitted",
+  "scope": {
+    "format": "DXF ASCII and Binary",
+    "object": "typed DWG-origin TABLESTYLE projection",
+    "fields": [
+      "six edge-specific row-border lineweights (groups 274-279)",
+      "six edge-specific row-border visibility flags (groups 284-289)",
+      "six edge-specific row-border scalar colors (groups 64-69)"
+    ]
+  },
+  "source_basis": "Autodesk TABLESTYLE group-code reference: https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+  "implementation": {
+    "validation": "Retain per-edge domain and representability checks without requiring all six edges to equal the first edge.",
+    "writer": "Serialize each documented edge group from the corresponding DRW_TableStyleRowStyle::m_borders entry.",
+    "model_and_wire": "No public layout change; only valid typed output with differing edge values changes.",
+    "fixture_policy": "No persistent DWG/DXF payload added; tests generate ASCII/Binary files at runtime."
+  },
+  "generated_controls": {
+    "positive": "Three TABLESTYLE rows assign distinct values per edge and row; ASCII/Binary raw groups and typed readback assert all six values in each of the 18 edge/property group-code streams.",
+    "adjacent": "Existing table graph, suppression, unsupported-color destination-preservation, and following TABLE controls remain in the owning test.",
+    "regression_before_change": "Source audit found the writer rejected differing values and read every group from m_borders.front()."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 4",
+    "build_result": "PASS (-Werror)",
+    "owning_test": "ctest --test-dir build-gcc -R '^libdxfrw_table_callback_owner_order$' --output-on-failure",
+    "owning_test_result": "PASS (1/1; 0.56 s; ASCII and Binary routes)",
+    "diff_check": "PASS: git diff --check -- src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": {
+      "src/libdxfrw.cpp": "26207f4d50a906f96e03923531eec00d29e74ef97f5d9de25d1051dd15e651db",
+      "tests/dwg2dxf_adapter_tests.cpp": "83e588e076657375d04740fec9d2684c9882780abd3a00ce9e13deb93fdbe86e"
+    }
+  },
+  "evidence_limits": [
+    "This verifies the local typed serializer and parser round-trip, not independent producer semantics or native CAD acceptance.",
+    "No full suite, sanitizer, external peer, or native CAD application was run.",
+    "This DXF row-border slice does not complete custom-cell-style authoring or DWG TABLESTYLE version-upconvert semantics.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL; FreeCAD Linux/Windows qualification and independent ACIS/ACDS semantic evidence remain NOT_RUN.",
+    "No support claim is promoted."
+  ],
+  "next_local_item": "Continue with the next locally evidenced parity item; keep remaining TABLESTYLE cell-style and DWG-upconvert scopes separate."
+}

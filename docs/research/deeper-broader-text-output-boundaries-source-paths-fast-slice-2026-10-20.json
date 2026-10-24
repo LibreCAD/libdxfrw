@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader text-output boundary and source-path review",
+  "mode": "Primary-source issue review plus generated local fast controls",
+  "repository": "LibreCAD/libdxfrw",
+  "researchBasis": {
+    "sources": [
+      {
+        "name": "LibreDWG #1408",
+        "url": "https://github.com/LibreDWG/libredwg/issues/1408",
+        "claim": "Peer report of CR-bearing TEXT/MTEXT causing ASCII DXF physical-record damage and a dropped adjacent character; no public drawing supplied."
+      },
+      {
+        "name": "LibreDWG #1412",
+        "url": "https://github.com/LibreDWG/libredwg/issues/1412",
+        "claim": "Peer C-string transformation/termination and zero-length transformed-value framing reports; issue remains open."
+      },
+      {
+        "name": "LibreDWG #1412 terminator commit",
+        "url": "https://github.com/LibreDWG/libredwg/commit/5abbe5dc25208c87e7c2da2b6aa402d54f2193b1",
+        "claim": "Commit adds termination at the final byte written in the peer cquote path; does not establish a released-package boundary."
+      },
+      {
+        "name": "LibreDWG #1412 empty-group commit",
+        "url": "https://github.com/LibreDWG/libredwg/commit/aafb376e0bd0b75b5b06a2e04a7c7dd65a741474",
+        "claim": "Commit emits a group for a transformed value that becomes empty; does not establish a released-package boundary."
+      },
+      {
+        "name": "LibreDWG #1414",
+        "url": "https://github.com/LibreDWG/libredwg/issues/1414",
+        "claim": "Open unresolved question about source DWG TV/TU paths and target DXF expansion of U+ escapes; not a normative rule."
+      }
+    ],
+    "evidenceCeiling": "Peer reports and commits identify test leads only. Local generated controls are not peer fixtures, independent producer evidence, or native acceptance."
+  },
+  "implementation": {
+    "filesChanged": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "controls": [
+      "Add a locally generated CR-bearing MTEXT issue-shaped payload and require atomic refusal across AC1018/AC1021/AC1032, ASCII/Binary, and Compatible/RequireLossless policies.",
+      "Exercise C0 and MIF-transformed text through explicit-length ASCII/Binary writers; assert exact expected wire bytes, semantic readback, following-record sentinel, and no trailing record.",
+      "Run the existing generated AC1018-TV and AC1021-TU source-DWG integration through strict AC1027 ASCII export, checking raw target bytes, semantic values, graph ownership, and following sentinels."
+    ],
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "targetTextTransport": {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "result": "PASS"
+    },
+    "tvTuEntityIntegration": {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --dwg-tv-tu-entity-integration",
+      "result": "PASS (AC1018-TV and AC1021-TU to AC1027 ASCII)"
+    },
+    "mtextBoundarySelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mtext-chunk-wire-boundaries",
+      "result": "PASS"
+    },
+    "owningCtests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_gbk_codepage|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "result": "PASS (2/2)"
+    },
+    "diffCheck": {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dxf_fixture_tests.cpp tests/gbk_codepage_tests.cpp",
+      "result": "PASS"
+    },
+    "receiptJson": {
+      "command": "jq empty docs/research/deeper-broader-text-output-boundaries-source-paths-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newProductionDefects": 0,
+    "newCtestRegistrations": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The #1408 reproducer is locally generated and does not reproduce the unavailable peer drawing.",
+    "The #1412 issue concerns a C-specific helper; local explicit-length C++ tests are controls, not proof against all allocation or framing defects.",
+    "The #1414 source-TV/source-TU integration is a local roundtrip and does not resolve intended field-specific escape policy.",
+    "The shared worktree is broadly dirty and repository Git metadata is read-only; this slice is uncommitted."
+  ],
+  "nextReadinessSlice": "Continue the existing local source-backed implementation queue. Do not wait for peer drawings or unresolved #1414 policy; do not promote support from self-roundtrip evidence."
+}

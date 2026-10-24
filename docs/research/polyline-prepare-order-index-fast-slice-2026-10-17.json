@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-polyline-prepare-order-index-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PARTIAL_IMPLEMENTATION_LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Implement the measured PAR-92 / 7BA POLYLINE commit-preparation ordering optimization while preserving declared child order and bounding preparation scratch.",
+  "implementation": {
+    "productionFiles": [
+      "src/intern/dwgsafety.h",
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp"
+    ],
+    "behavior": [
+      "Replace one find_if over all staged vertices for every declared child, plus repeated ordered-pointer duplicate scans, with a sorted handle/index scratch vector followed by binary lookup in declared source order.",
+      "Reject null, missing, duplicate declared, and duplicate staged handles; the caller then performs the same parent-handle and staged-frame validation before retaining pointers into the stable staged vector.",
+      "Cap preparation scratch at 64 MiB, including measured actual capacities of the sorted handle/index vector, selected-byte vector, ordered-index vector, prepared ordered pointers, prepared child handles, and any prior ordered-index output capacity.",
+      "Keep the original declared handle list authoritative; callback order, geometry, byte layout, public API and reader ownership policy are unchanged."
+    ],
+    "testFiles": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "testCoverage": [
+      "Generated 512-child scrambled handles must map exactly back to source declaration order.",
+      "A counting comparator verifies the sort-and-binary-search path stays below 16,384 handle comparisons for the 512-child control.",
+      "Duplicate declared handles, a missing child handle, and a one-byte scratch budget are refused without replacing the caller's prior output vector."
+    ],
+    "testRegistrationsAdded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_reader_matrix$'",
+      "python3 -m json.tool docs/research/polyline-prepare-order-index-fast-slice-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/intern/dwgsafety.h src/intern/dwgreader.h src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedGrowthAndOrderSelector": "passed",
+      "owningReaderMatrixCTest": "passed: 1/1",
+      "receiptJsonParse": "passed",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false
+  },
+  "qualification": {
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplans": "127/71; PAR-92/7BA remains open",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing modifications and mixed implementation work"
+  },
+  "remaining": [
+    "Replace per-arrival declared-membership and staged-duplicate scans with bounded indexes while preserving leases and exactly-once behavior.",
+    "Replace cross-parent owner scans with a reverse claim index that preserves the current competing-parent rejection semantics.",
+    "Add aggregate live/peak retained staging-byte accounting for owner maps, vertex vector capacities, indexes, and transient growth overlap.",
+    "Add end-to-end parent-first, child-first, reverse/interleaved, competing-parent, adoption, SEQEND, terminalization, allocation-failure, and same-reader retry transcripts.",
+    "Re-profile the original four-size workload and record actual comparison counts after all staging indexes land; keep full suite and sanitizers at the scheduled composed checkpoint."
+  ],
+  "priorSliceReceipt": "docs/research/polyline-staging-amortized-growth-fast-slice-2026-10-17.json",
+  "nextReadinessSlice": "Implement the declared-child membership lookup for a single pending parent and staged duplicate detection, with one bounded per-parent index, first establishing how index capacity is charged and rolled back during terminalization/adoption."
+}

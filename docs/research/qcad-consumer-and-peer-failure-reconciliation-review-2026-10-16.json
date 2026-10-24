@@ -1,0 +1,189 @@
+{
+  "schema": "libdxfrw.peer-research.v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the optional downstream 2D DXF consumer screen and reconcile current peer failure reports with existing local source/tests, without duplicating findings or promoting support.",
+  "method": {
+    "evidenceKinds": [
+      "official project source and documentation",
+      "public peer issue/release reports",
+      "read-only local source and generated-test inventory"
+    ],
+    "notPerformed": [
+      "QCAD, LibreDWG, FreeCAD, or ACadSharp runtime execution",
+      "local test execution",
+      "repository clone/build or package installation",
+      "external drawing download"
+    ]
+  },
+  "evidence": [
+    {
+      "source": [
+        "https://github.com/qcad/qcad",
+        "https://github.com/qcad/qcad/blob/master/src/io/dxf/dxf.dox",
+        "https://qcad.org/en/license/",
+        "https://www.qcad.org/doc/qcad/latest/reference/en/qcad_reference_manual_en.html",
+        "https://www.qcad.app/en/qcad-documentation/qcad-features",
+        "https://qcad.io/doc/qcad/latest/developer/modules.html",
+        "https://qcad.io/doc/qcad/latest/developer/class_d_l___dxf.html"
+      ],
+      "observations": [
+        "QCAD Community Edition is a GPLv3 2D application with DXF support; QCAD Professional adds proprietary DWG and enhanced DXF plugins.",
+        "The current QCAD feature matrix lists DXF R15/AC1015 for Community Edition; the broader R11-R32 DWG/DXF version matrix is Professional-only.",
+        "QCAD CE cannot write 24-bit colors to DXF; exclude group-420/truecolor round-trip claims from this route.",
+        "The QCAD DXF module documents dxflib as its underlying implementation.",
+        "The current developer module index still describes QCAD's DXF module as based on dxflib; the documented DL_WriterA is an ASCII writer.",
+        "Official QCAD documentation describes headless, script-driven operation using -no-gui, -autostart, and the offscreen Qt platform option."
+      ],
+      "limits": [
+        "Documentation does not demonstrate QCAD behavior on current libdxfrw output.",
+        "QCAD and dxflib are one parser lineage, not independent parser votes.",
+        "The feature matrix does not establish AC1021+ / modern DXF, Binary DXF, DWG, or 3D support in Community Edition.",
+        "The command-line scripting documentation does not establish binary-DXF capability for every Community Edition build.",
+        "No DWG, ACIS, ACDSDATA, or B-rep claim follows from the Community Edition route."
+      ],
+      "planAction": "Add only an optional one-time AC1015 ASCII common-2D QCAD CE consumer check at the existing composed checkpoint, conditional on an already available exact CE build. Pin build, script, command line, settings, warnings, document inventories, and output hash; use a hand-authored expectation manifest. Exclude 24-bit/group-420 round-trip claims."
+    },
+    {
+      "source": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg-fuzz",
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/getting_data.html",
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/pull/245"
+      ],
+      "observations": [
+        "GDAL's current DXF driver documentation describes Binary DXF input and AC1027+ extensible mode that returns raw ASM plus a transform rather than decoded modeler geometry.",
+        "LibreDWG's manual and fuzz harness document separate conversion/check/fuzz regression workflows; they are process precedents, not independent semantic truth.",
+        "ezdxf distinguishes ordinary strict loading from recovery for flawed DXF inputs.",
+        "BRL-CAD issue #228 remains open and proposed fix PR #245 remains unmerged in the reviewed public pages."
+      ],
+      "limits": [
+        "These current peer contracts do not establish a new local libdxfrw defect or support result.",
+        "A recovered file is not a clean strict-read result; raw ASM plus transform is not B-rep semantics.",
+        "BRL-CAD is not admitted as a malformed-polyface comparator until its fix is merged and pinned."
+      ],
+      "planAction": "Retain existing strict/recovery, raw-carrier/geometry, parser/writer, and optional-fuzz evidence separations. Add no new finding or mandatory test lane."
+    },
+    {
+      "source": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observations": [
+        "FreeCAD documents a native C++ DXF importer/exporter and a separate legacy Python DXF route.",
+        "FreeCAD delegates DWG conversion to an external converter and then imports the produced DXF."
+      ],
+      "limits": [
+        "Mutable main-branch sources and documentation are not a pinned runtime qualification.",
+        "A QCAD consumer run is not equivalent to FreeCAD's selected converter/importer chain."
+      ],
+      "planAction": "Keep QCAD CE as a separate optional application-consumer cell; retain exact converter/importer identity and intermediate-DXF accounting in the existing FreeCAD gate."
+    },
+    {
+      "source": [
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/issues/1413"
+      ],
+      "observations": [
+        "#1409 reports a peer block-writer iteration defect that can skip later block bodies.",
+        "#1410 reports DXF-to-DWG failures involving zero-valued HATCH coordinates, unusual attribute tags, and embedded MTEXT fields.",
+        "#1411 reports version-scoped R2013+ AcDs/SAB loss while typed REGION records survive.",
+        "#1413 reports peer NOD discovery based on object ordering/lowest handles, causing layout dictionaries to be missed."
+      ],
+      "localCrossCheck": [
+        {
+          "report": "LibreDWG #1409",
+          "localEvidence": "tests/block_owner_tests.cpp:testConsecutiveNamedBlockOwnership covers consecutive owner inventories in ASCII and binary DXF."
+        },
+        {
+          "report": "LibreDWG #1410",
+          "localEvidence": "tests/dxf_fixture_tests.cpp:testZeroYHatch and embedded-MTEXT framing controls cover explicit zero coordinates and embedded fields; unusual attribute-tag policy remains bounded by format/consumer evidence."
+        },
+        {
+          "report": "LibreDWG #1411",
+          "localEvidence": "The existing S8 AcDs/SAB route separates section, record, payload, owner association, and semantic checks."
+        },
+        {
+          "report": "LibreDWG #1413",
+          "localEvidence": "src/libdxfrw.cpp:dxfRW::writeObjects emits the regenerated root dictionary first; tests/dxf_fixture_tests.cpp and tests/dwg2dxf_adapter_tests.cpp exercise the root-first OBJECTS boundary."
+        }
+      ],
+      "limits": [
+        "Peer issue reports are not independent reproductions on this checkout.",
+        "The existing local cross-check does not establish every related field behavior, external-reader acceptance, or general support."
+      ],
+      "planAction": "Reuse existing test owners and AcDs gates; add no duplicate finding or CTest. Do not generalize unusual-tag acceptance from an issue report or infer peer results are current-master behavior."
+    },
+    {
+      "source": [
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observations": [
+        "The current release listing identifies v3.8.0 at signed commit 3a1c66b; the listed release entry concerns assembly visibility.",
+        "The earlier v3.6.51 release notes report specific DXF OBJECTS writer and ACIS/AcDs reader work."
+      ],
+      "limits": [
+        "Release notes do not establish family-level completeness or actual runtime outcomes.",
+        "Earlier feature notes do not substitute for a run of a pinned current package/build."
+      ],
+      "planAction": "Bind optional ACadSharp comparisons to an exact artifact/source commit and actual route; record full versus partial read, notifications, per-handle disposition, output version, and audit."
+    }
+  ],
+  "implementationReadiness": {
+    "qcadOptionalProfile": {
+      "route": "QCAD Community Edition ASCII-DXF import and optional save/reopen",
+      "eligibleContent": "Locally generated AC1015 ASCII common 2D entities plus one named block and layer",
+      "requiredReceipt": [
+        "exact QCAD CE version/build and source revision",
+        "script hash and exact command line/options",
+        "input/output hashes and requested/actual DXF version",
+        "exit status and standard error/diagnostics",
+        "loaded and saved entity/layer/block/placement inventory",
+        "independently authored expected-value manifest"
+      ],
+      "excludedClaims": [
+        "DWG parsing/writing",
+        "ACIS, ACDSDATA, DWG AcDs, or B-rep semantics",
+        "24-bit/group-420 truecolor write/read round-trip",
+        "binary DXF until the exact build route is demonstrated",
+        "independent parser vote without current source-lineage audit",
+        "full DXF graph/wire-preservation parity"
+      ],
+      "cadence": "One composed checkpoint only if exact public CE is already available; no install or per-slice run"
+    },
+    "existingFastValidationOwners": [
+      "tests/block_owner_tests.cpp:testConsecutiveNamedBlockOwnership",
+      "tests/dxf_fixture_tests.cpp:testZeroYHatch and embedded-MTEXT framing controls",
+      "existing NOD ordering tests in tests/dxf_fixture_tests.cpp and tests/dwg2dxf_adapter_tests.cpp",
+      "existing S8 AcDs/SAB route-specific controls"
+    ],
+    "fixturePolicy": "No external DWG/DXF fixture added. Any QCAD control is authored locally and kept in temporary storage.",
+    "dependenciesOrRegistrations": "None"
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "peerOrNativeRuntimeRuns": 0,
+    "supportClaimsPromoted": 0,
+      "planTotals": {
+        "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

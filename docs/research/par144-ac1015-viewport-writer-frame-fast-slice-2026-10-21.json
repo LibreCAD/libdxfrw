@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 AC1015 VIEWPORT writer frame and owner probe",
+  "sliceKind": "scratch-only generated fast control; no production behavior change",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeWasAlreadyBroadlyModified": true,
+    "editedPaths": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par144-ac1015-viewport-writer-frame-fast-slice-2026-10-21.json"
+    ],
+    "commitCreated": false,
+    "commitDisposition": "No commit: the touched test file and repository contain broad pre-existing uncommitted changes. No whole-file staging or unrelated staging was performed."
+  },
+  "control": {
+    "testTarget": "libdxfrw_dwg_local_roundtrip",
+    "ctestName": "dwg_block_record_layout_association",
+    "version": "AC1015",
+    "writerOnly": true,
+    "scratchDrawing": "Unique temporary AC1015 DWG; removed at test completion",
+    "objectsChecked": 4,
+    "expectedDwgType": 34,
+    "requiredReceiptFields": [
+      "valid",
+      "version AC1015",
+      "class/type 34",
+      "object handle equals callback handle",
+      "nonzero data bit size",
+      "exactly one owner token code 4 referencing active BlockTableRecord"
+    ],
+    "completedBlockOwnerLedger": "PASS"
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+    "focusedTestResult": "PASS",
+    "focusedTestElapsedSeconds": 0.43,
+    "fullSuiteRun": false,
+    "gitDiffCheck": "PASS for DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and tests/dwg_local_roundtrip_tests.cpp; both JSON receipts pass jq empty"
+  },
+  "finding": "The writer encode path commits AC1015 type-34 VIEWPORT frames and exposes the expected owner handle occurrence; the block owner ledger includes the entities. This is evidence against writer omission at the frame-encoding stage only.",
+  "limits": [
+    "No raw on-disk handle-map or object-map walk was performed.",
+    "The AC1015 reader warning/readback behavior was not changed or qualified by the writer-only case.",
+    "No native CAD application or external peer was run.",
+    "No external or repository fixture was added.",
+    "No codec support claim or deferred external status was promoted."
+  ],
+  "planState": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextAction": "Continue with the next dependency-ready local owner/link gap in the PAR-144/PAR-49 sequence; do not wait on external or native qualification."
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-modern-mtext-non-ascii-scalar-view-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.38",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / MODERN_MTEXT_SCALAR_COPY_SCOPED",
+  "objective": "Avoid per-scalar identity-encoding temporaries in compatible modern DXF MTEXT while keeping legacy and strict text routes unchanged.",
+  "implementation": {
+    "changed_files": [
+      "src/intern/dxfwriter.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/modern-mtext-non-ascii-scalar-view-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "Compatible AC1021+ MTEXT without line breaks appends non-ASCII UTF-8 scalar slices directly to the existing encoded chunk backing store.",
+      "Legacy encodings continue to convert non-ASCII scalar input through the configured codepage converter.",
+      "Strict-lossless mode continues through strict validation and encoding; the separate lazy line-break overlay remains unchanged."
+    ],
+    "compatibility": "Internal writer implementation only; no installed API, public class layout, or DRW_Interface callback changed."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-modern-compatible-mtext-newline-overlay",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "Generated AC1021/AC1032 ASCII/Binary multibyte UTF-8 without line breaks, with byte-identical group-1 readback.",
+    "Existing adjacent selector controls continue to cover newline normalization, byte/character chunk boundaries, short-final chunk behavior, lone-CR refusal, and normalized-input A/B wire equivalence."
+  ],
+  "limits": [
+    "No allocator-count, throughput, or peak-RSS measurement was run; copy avoidance is established by the source path and wire-byte readback.",
+    "The adjacent compatible path preserves historical invalid-UTF-8 handling; this slice does not qualify malformed input semantics.",
+    "No full suite, peer runtime, native CAD application, or fuzz/sanitizer campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue the source audit for another independently bounded writer/projection or typed/raw-carrier materialization; external gates and caller post-callback mutation semantics do not block local work.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

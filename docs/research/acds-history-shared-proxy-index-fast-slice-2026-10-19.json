@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Shared ACIS-history proxy index",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid rebuilding the complete source proxy handle index for every linked modeler in one conversion/export operation.",
+    "Preserve zero/duplicate handle rejection and per-modeler graph, class, and owner validation."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "functions": [
+      "dx_iface::collectAcdsHistoryProxyObjects",
+      "collectAcdsHistoryProxyGraph"
+    ],
+    "before": "Each modeler graph helper independently reserves and populates a handle-to-proxy map over the full source proxy inventory.",
+    "after": "The parent collector builds and validates the index once, then passes it by const reference to each modeler graph closure.",
+    "effect": "Changes repeated index-build work from once per linked modeler to once per conversion/export operation while retaining a single index for the operation and preserving graph output and fail-closed checks."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage",
+        "result": "passed",
+        "coverageNote": "Generated two-modeler AC1027 history closure plus REGION and multi-record DataStorage projection in ASCII and Binary DXF."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 3.40,
+        "coverageNote": "The owning local round-trip control includes duplicate proxy, owner, self-cycle, malformed-edge, and no-publication checks."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one demonstrated per-modeler repeated index construction in the 7S.2c ACIS history collection path; the broader audit and external qualification gates remain active."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict local DWG round-trip target build",
+      "Generated multi-modeler AC1027 ASCII/Binary selector",
+      "Owning local DWG round-trip CTest"
+    ],
+    "limitations": "The change avoids repeated index construction but does not provide a benchmark, allocator/RSS measurement, whole-process resource bound, or native semantic qualification."
+  }
+}

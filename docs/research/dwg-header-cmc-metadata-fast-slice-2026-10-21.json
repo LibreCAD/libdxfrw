@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 scalar-only DWG HEADER CMC metadata retention",
+  "mode": "generated AC1024 production-writer/reader round-trip fast slice",
+  "scope": [
+    "Retain DWG HEADER CMC method, RGB, optional color name, optional color-book name, and source version beside the existing normalized scalar",
+    "Read named colors from the bounded R2007+ detached string stream and write supported C0-C3 forms",
+    "Verify six HEADER variables, HEADER copy/assignment, unsupported-method and nonzero-reserved-index refusal, destination preservation, and same-writer retry"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "9 HEADER system variables"],
+      "finding": "ODA §9 identifies CECOLOR, DIMTFILLCLR, DIMCLRD, DIMCLRE, DIMCLRT, and INTERFERECOLOR as CMC-valued variables. §2.11 defines the CMC method byte, RGB payload, optional color-name and color-book-name strings."
+    },
+    "dxfMappingAudit": {
+      "reference": "Autodesk DXF Reference, HEADER section and system-variable group-code tables",
+      "finding": "The reviewed reference documents scalar group mappings for these HEADER variables but does not establish class-specific truecolor, color-name, or color-book extensions. No generic 420/430/431 mapping was inferred; the DXF reader/writer mapping is unchanged."
+    },
+    "localSource": {
+      "files": ["src/drw_base.h", "src/drw_header.cpp"],
+      "finding": "The HEADER parser previously retained only getCmColor's normalized integer, and the writer regenerated an indexed method. DRW_Variant now carries immutable DWG CMC sidecar metadata while preserving its scalar value. Parsing uses the bounded detached string stream for modern versions; writing validates method/scalar/RGB/name-flag consistency, requires the specification-reserved index to be zero, and refuses unsupported or unrepresentable state.",
+      "compatibility": "DRW_Variant public size/layout changes; downstream consumers must rebuild. No virtual interface changed. Scalar-only DXF-origin values retain the existing behavior."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "version": "AC1024",
+      "finding": "A locally generated DWG round trip covers C0 ByLayer, C1 ByBlock, C2 RGB with and without color/book names, and C3 ACI across all six HEADER CMC variables. It verifies normalized scalar and sidecar values plus DRW_Header copy/assignment. Unsupported C4 and a nonzero reserved CMC index fail before publication, preserve seeded outputs, and corrected retries on the same writer succeed.",
+      "fixturePolicy": "The generated DWG is created in the system temporary directory and removed by the test; no persistent DWG/DXF fixture is added.",
+      "limit": "Generated local codec consistency is not producer-authored or independent semantic evidence and does not establish DXF color-group mappings."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Add DWG-only CMC metadata to DRW_Variant and preserve it through copy/move; scalar mutation clears stale metadata.",
+      "Capture all six HEADER CMC values, including optional names from the bounded detached string stream.",
+      "Emit validated supported C0-C3 metadata, require the specification-reserved index to be zero, and preserve scalar-only behavior and existing DXF mappings."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": "libdxfrw_dwg_header_cmc_metadata",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_header_cmc_metadata$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (11/11)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/drw_header.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dwg-header-cmc-metadata-fast-slice-2026-10-21.json",
+        "result": "PASS after final verification"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "Class-specific DXF HEADER mappings for CMC RGB/name/book metadata remain unestablished and unchanged.",
+    "Producer-authored and native-consumer semantics for these six HEADER CMC variables remain unqualified.",
+    "Other PAR-134 CMC consumers, C5 HATCH producer behavior, and PAR-03/PAR-04 associative-action semantics remain under audit.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and cannot promote support claims."
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.implementation-slice-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DICTIONARYWDFLT root refusal followed by same-adapter retry",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Verify fail-closed NOD-root admission preserves the existing destination",
+    "Verify restoring the canonical root edge allows successful export on the same adapter instance",
+    "Keep the result local to generated DXF writer consistency"
+  ],
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "control": "dictionaryWithDefaultAdapterRoundTrip",
+    "sequence": [
+      "Generate and import an AC1027 DXF containing one canonical ACAD_PLOTSTYLENAME -> DICTIONARYWDFLT -> PLACEHOLDER graph.",
+      "Seed the destination and change the NOD key so the WDFLT is unrooted.",
+      "Assert export refuses and the destination sentinel remains byte-for-byte intact.",
+      "Restore the root key and retry with the same dx_iface instance; assert ASCII and Binary export/readback succeeds."
+    ],
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dictionary_default_adapter_roundtrip|libdxfrw_named_resource_import_evidence)$' --output-on-failure",
+      "result": "PASS (2/2; 0.38 s)."
+    },
+    "diffCheck": "git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md — PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeCadRun": false
+  },
+  "supportDisposition": {
+    "claimsPromoted": false,
+    "planFindings": 133,
+    "topLevelSubplans": 76,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "source_sha256": {
+    "tests/dwg2dxf_adapter_tests.cpp": "b0f1deb0985233bce5bb8d23b0b2c32980f7a544a1304c8f21284554da92a5c5"
+  },
+  "workspaceNote": "The worktree is broadly modified; this generated test-hardening slice is uncommitted and makes no DWG/native interoperability claim."
+}

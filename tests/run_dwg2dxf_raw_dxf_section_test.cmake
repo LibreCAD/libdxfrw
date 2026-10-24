@@ -98,7 +98,7 @@ foreach(_required IN ITEMS
 endforeach()
 foreach(_entity_check IN ITEMS
         "AcDbRay\n[ \t]*10\n1\n[ \t]*20\n2\n[ \t]*30\n3\n[ \t]*11\n0\n[ \t]*21\n0\n[ \t]*31\n1\n"
-        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n0\\.6\n[ \t]*31\n0\\.8\n")
+        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n(0\\.599999999999[0-9]*|0\\.6|0\\.600000000000[0-9]*)\n[ \t]*31\n(0\\.799999999999[0-9]*|0\\.8|0\\.800000000000[0-9]*)\n")
     string(REGEX MATCH "${_entity_check}" _entity_match "${_contents}")
     if(_entity_match STREQUAL "")
         message(FATAL_ERROR
@@ -144,7 +144,7 @@ foreach(_required IN ITEMS
 endforeach()
 foreach(_entity_check IN ITEMS
         "AcDbRay\n[ \t]*10\n1\n[ \t]*20\n2\n[ \t]*30\n3\n[ \t]*11\n0\n[ \t]*21\n0\n[ \t]*31\n1\n"
-        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n0\\.6\n[ \t]*31\n0\\.8\n")
+        "AcDbXline\n[ \t]*10\n4\n[ \t]*20\n5\n[ \t]*30\n6\n[ \t]*11\n0\n[ \t]*21\n(0\\.599999999999[0-9]*|0\\.6|0\\.600000000000[0-9]*)\n[ \t]*31\n(0\\.799999999999[0-9]*|0\\.8|0\\.800000000000[0-9]*)\n")
     string(REGEX MATCH "${_entity_check}" _entity_match "${_contents2}")
     if(_entity_match STREQUAL "")
         message(FATAL_ERROR

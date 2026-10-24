@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer declared-limits and consumer-route refresh",
+  "mode": "primary-source research only",
+  "scope": [
+    "Reconcile advertised open-source DWG/DXF version matrices with each project's own unsupported, unstable, unhandled, and untested statements",
+    "Separate reader/writer version support from entity coverage, object-graph closure, raw carrier preservation, semantic geometry, and native-consumer acceptance",
+    "Refresh the exact FreeCAD and LibreCAD_3 consumer routes and identify whether an open-source independent ACIS semantic oracle is currently documented",
+    "Refine comparator evidence admission without adding routine tests, dependencies, fixtures, or support claims"
+  ],
+  "sources": [
+    {
+      "name": "GNU LibreDWG current documentation",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "relatedUrl": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "assessment": "The overview's approximately 99%/read-and-mostly-write headline coexists with explicit R2007 DWG writer absence, default R2004-or-earlier output, unstable/undertested classes, ACDSRECORD/ACDSSCHEMA pass-through without fields/DXF, and a list of entities/objects lacking test coverage. NEWS labels version 0.14 (2026-06-27) beta and describes R2004 writer work. Record exact artifact and actual output revision; headline percentages or version lists are not local per-feature evidence."
+    },
+    {
+      "name": "ACadSharp README and reader guide",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/README.md",
+      "relatedUrl": "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+      "assessment": "The README provides direction-by-version read/write check marks through AC1032; the generic reader sample and notifications do not establish per-entity semantic preservation or native writer acceptance. Retain it as an optional exact-case independent implementation differential, not format authority."
+    },
+    {
+      "name": "FreeCAD official DXF/DWG documentation and source route",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "relatedUrl": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "additionalUrl": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "assessment": "Stock DWG uses external converter then a selected DXF importer; built-in C++ and optional legacy Python importers have distinct coverage, and the official guide says the stock importer cannot read ACIS/SAT solids. Bind exact backend/preferences and separately record converter, intermediate DXF, importer, and created geometry."
+    },
+    {
+      "name": "Open CASCADE official exchange documentation/catalog",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "relatedUrl": "https://github.com/Open-Cascade-SAS/OCCT/wiki",
+      "assessment": "ACIS SAT/SAB exchange is listed among commercial components, distinct from standard open-source OCCT exchange capabilities. Do not infer an ACIS reader or independent semantic oracle from the open-source kernel alone."
+    },
+    {
+      "name": "LibreCAD_3 DWG support policy",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "assessment": "DWG import is opt-in/off by default and read-only; writing is not implemented/exposed/planned pending explicit project gates, and the published ledger is reader-direction only. Scope LibreCAD_3 compatibility to its reader and consumer contract."
+    }
+  ],
+  "planUpdate": {
+    "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "addedResearchSection": true,
+    "updatedTopProgressSummary": true,
+    "addedPeerEvidenceMetadata": [
+      "Declared unsupported/unstable/unhandled/untested limits",
+      "Exact direction, format version, operation and actual output signature",
+      "Dependency/license, source lineage, and per-record disposition"
+    ],
+    "clarifiedConsumerScope": [
+      "FreeCAD direct DXF versus converter-to-selected-importer route",
+      "LibreCAD_3 read-only scope; no DWG writer compatibility requirement"
+    ],
+    "implementationQueueChanged": false,
+    "validationCadenceChanged": false,
+    "newMandatoryPeerGate": false,
+    "newDependency": false,
+    "newFixture": false,
+    "newConfirmedLocalFinding": 0,
+    "newTopLevelSubplan": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "Primary-source documentation/source audit only; no peer repository was built or executed, no external drawing was downloaded or admitted, and no native CAD application or independent ACIS kernel was run. Mutable master pages are route/scope evidence, not reproducible artifact qualification."
+}

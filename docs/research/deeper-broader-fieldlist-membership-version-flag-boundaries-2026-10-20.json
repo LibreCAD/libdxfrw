@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "FIELDLIST membership, DXF version floor, and id-set flag research",
+  "mode": "Primary-source web research plus local source audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Separate FIELDLIST owner group 330 from repeated soft-pointer member group 330, FIELD ID-valued group 330, and host reachability.",
+    "Reconcile ODA object-version and DXF field-code references with the local FIELD/FIELDLIST writer version gates.",
+    "Pin ACadRust 0.6.5 package/source behavior for optional FIELDLIST group 290 without treating source comments as native interoperability evidence.",
+    "Refine the existing PAR-20/7G implementation order and retain the quick-validation/self-unblocking policy."
+  ],
+  "sources": [
+    {
+      "name": "ODA Open Design Specification v5.4.1",
+      "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.76 FIELD", "20.4.77 FIELDLIST"],
+      "observations": [
+        "FIELD and FIELDLIST are listed as R18 classes; FIELDLIST is an AcDbIdSet stored at the NOD ACAD_FIELDLIST entry.",
+        "FIELD child references are hard-owner 360 and FIELD object references are soft-pointer 331; Autodesk's DXF table also assigns group 330 to an ID-valued field value as a soft pointer.",
+        "FIELDLIST has a count and repeated group-330 soft-pointer field members; its unknown DWG bit has no DXF group-code mapping in the table."
+      ],
+      "limits": [
+        "Specification evidence does not establish consumer acceptance of the local writer's literal output.",
+        "An unmapped DWG bit does not by itself prove that group 290 must be rejected in DXF."
+      ]
+    },
+    {
+      "name": "Autodesk FIELD DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+      "observations": [
+        "Documents FIELD child IDs as group 360 hard ownership, expression object IDs as group 331 soft pointers, and group 330 as a soft-pointer ID value when the value type is ID.",
+        "Its group-0 label uses ACAD_FIELD; local literal emission uses FIELD, so exact emitted spelling remains a separate unresolved producer question."
+      ]
+    },
+    {
+      "name": "Autodesk Developer field enumeration note",
+      "url": "https://blog.autodesk.io/how-to-find-all-fields-in-a-drawing/",
+      "observations": [
+        "States that the NOD ACAD_FIELDLIST entry identifies a FIELDLIST object.",
+        "Describes FIELD objects as typically reachable from host extension dictionaries and enumerates AcDbField members through group 330 on FIELDLIST."
+      ],
+      "limits": [
+        "The post is version-specific R19 API guidance and uses 'typically'; it does not prove every host route or producer's DXF group-0 spelling."
+      ]
+    },
+    {
+      "name": "Autodesk Field feature introduction note",
+      "url": "https://blog.autodesk.io/autocad-lno-code-solution-field/",
+      "observations": [
+        "Describes Fields as introduced in AutoCAD 2005, supporting an AC1018/R18 target-floor candidate."
+      ],
+      "limits": [
+        "This is product-version evidence; it is not a complete DXF writer compatibility matrix."
+      ]
+    },
+    {
+      "name": "ACadRust v0.6.5 exact published package source",
+      "url": "https://docs.rs/acadrust/0.6.5/src/acadrust/io/dxf/writer/section_writer.rs.html",
+      "revision": "Published package 0.6.5 dated 2026-10-18; release commit 289a616da6c68518218594aa80802cbe7fa71309",
+      "observations": [
+        "The FIELDLIST writer source comment says the reference application does not write id-set flag 290 and emits it only when the stored unknown flag is true.",
+        "The docs.rs package index resolves latest to 0.6.5, correcting the earlier review note that exact 0.6.5 package source was unavailable."
+      ],
+      "limits": [
+        "Neither the ACadRust executable nor AutoCAD/native output was run; this is source-level peer evidence only.",
+        "The registry archive checksum was not resolved in this pass."
+      ]
+    },
+    {
+      "name": "Local libdxfrw parser/writer/tests",
+      "paths": [
+        "src/libdxfrw.cpp::dxfRW::processFieldList",
+        "src/libdxfrw.cpp::dxfRW::writeField",
+        "src/libdxfrw.cpp::dxfRW::writeFieldList",
+        "dwg2dxf/dx_iface.cpp::dx_data::hasCompleteAutoCadFieldGraph",
+        "tests/wave1_tests.cpp::testAcadFieldExtensionDictionaryWireCandidate",
+        "tests/dwg2dxf_adapter_tests.cpp::parseFieldDxfCallback"
+      ],
+      "revision": "Shared worktree source inspected 2026-10-20",
+      "observations": [
+        "The FIELD/FIELDLIST writer gates allow AC1015; the ODA class and Autodesk product-version references make AC1018 the minimum-version candidate for qualification.",
+        "FIELDLIST parsing explicitly distinguishes preamble owner group 330 from AcDbIdSet member group 330 through subclass state and validates count 90 against membership size.",
+        "The writer remaps member handles and emits a bounded sentinel-tested sequence, but always emits group 290 even for m_unknown == 0.",
+        "The current low-level FIELD wire candidate asserts expression group 331 but does not include an ID-valued cache field to exercise FIELD group 330.",
+        "The typed FIELDLIST value does not distinguish an omitted group 290 from an explicitly parsed 290:0; the public presence/ABI policy is unresolved.",
+        "The adapter graph validator requires exact unique FIELDLIST membership closure, while dx_iface deliberately refuses FIELD/FIELDLIST graph export."
+      ],
+      "limits": [
+        "No current native rejection or interoperability defect was reproduced.",
+        "The plan-only pass did not execute local tests or modify production/test code."
+      ]
+    }
+  ],
+  "assessment": {
+    "newConfirmedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: retain FIELDLIST count, soft-pointer membership, owner group-330, and FIELD ID-value group-330 roles independently.",
+      "PAR-20/7G: add a fast AC1015/AC1018 FIELD/FIELDLIST writer floor control; AC1018 is a source-backed candidate floor.",
+      "PAR-20/7G: characterize FIELDLIST 290 false/true emission and explicit-presence policy in ASCII and Binary; keep 290:0 as an unconfirmed writer-policy discrepancy.",
+      "PAR-20/7G: add a generated FIELD ID-valued group-330 control, separate from FIELDLIST membership and object-owner group 330.",
+      "PAR-20/7G: preserve low-level writer checks and strict adapter refusal as separate capability gates."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": {
+      "findings": 141,
+      "topLevelSubplans": 78,
+      "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+    }
+  },
+  "limitations": [
+    "ODA specifies FIELD/FIELDLIST DWG class layouts and version, but does not prescribe all target DXF writer policies.",
+    "ACadRust 0.6.5 source is pinned and inspected but not executed; its comment does not constitute independent native acceptance.",
+    "The existing low-level FIELD candidate does not yet assert group 330 for an ID-valued FIELD cache; this is a fast test addition, not a confirmed local data loss.",
+    "If exact tag-level round-trip requires preserving explicit FIELDLIST 290:0, presence needs representation separate from the boolean value and public ABI implications must be reviewed.",
+    "The AC1018 threshold is a candidate based on R18 class metadata and AutoCAD 2005 feature introduction; verify exact target-version policy before changing the guard.",
+    "Autodesk's FIELD table's ACAD_FIELD label and local FIELD literal remain unresolved without a native-produced wire example."
+  ],
+  "validation": {
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullSuiteRun": false,
+    "receiptJsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check; plan file)",
+    "commitCreated": false
+  }
+}

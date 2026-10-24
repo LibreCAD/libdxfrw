@@ -1,0 +1,38 @@
+{
+  "slice": "PAR-134 SECTIONOBJECT CMC source-method retention and DXF loss guard",
+  "date": "2026-10-21",
+  "status": "implemented_in_worktree_uncommitted",
+  "scope": {
+    "dwg_version": "AC1024 generated vectors",
+    "dxf_versions": ["AC1032 ASCII", "AC1032 Binary"],
+    "dwg_field": "SECTIONOBJECT indicator color CMTC"
+  },
+  "implementation": {
+    "model": "Append raw DWG CMC method; preserve through copy/assignment and clear on reset.",
+    "parser": "Retain raw method with scalar, RGB, and optional names; clear DWG-only CMC provenance when a DXF scalar color group is parsed.",
+    "dwg_writer": "Replay matching C0-C3; reject unsupported or inconsistent methods before common-prefix output.",
+    "dxf_writer": "Refuse RGB/name/book companions before record output because documented SECTIONOBJECT DXF output is scalar group 63 only; do not invent group 411 mappings.",
+    "compatibility": "Public DRW_SectionObject size changes; downstream consumers must rebuild. No virtual interface changed."
+  },
+  "generated_controls": {
+    "qualified_methods": "Independently walk C0 ByLayer, C1 ByBlock, C3 ACI, and C2 RGB payloads.",
+    "unsupported_method": "Mutate generated C3/ACI-7 to C5; verify parsed scalar/method, optional strings, following geometry/handles, copy/assignment/reset, and fail-before-output rewrite refusal.",
+    "dxf_loss_guard": "ASCII/Binary writer refuses RGB, color-name, and color-book companion states before publishing output; scalar group-63 output remains supported.",
+    "fixtures": "No persistent DWG/DXF fixtures added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror strict build)",
+    "cmc_lane": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+    "cmc_result": "PASS (12/12)",
+    "focused_dxf_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_sectionobject_indicator_color_wire|libdxfrw_sectionobject_indicator_color_groups|libdxfrw_mleader_writer_version)$' --output-on-failure",
+    "focused_dxf_result": "PASS (3/3)",
+    "diff_check": "PASS for src/drw_entities.cpp, src/drw_entities.h, src/libdxfrw.cpp, tests/dwg_object_vectors_tests.cpp, and tests/wave1_tests.cpp"
+  },
+  "evidence_limits": [
+    "Generated vectors establish local parser/writer behavior, not producer-authored SECTIONOBJECT C5 semantics.",
+    "No full suite, external semantic reader, native CAD application, or support promotion was used.",
+    "Findings/subplans remain 144/78; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "next_local_item": "Continue PAR-134 CMC consumer and class-specific DXF loss audit, then continue exact-source PAR-03/PAR-04 associative-action context classification."
+}

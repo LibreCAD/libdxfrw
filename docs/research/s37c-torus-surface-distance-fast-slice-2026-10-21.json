@@ -1,0 +1,60 @@
+{
+  "title": "S3.7c regular ring-torus surface distance",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Signed distance to the untrimmed regular ring-torus locus",
+    "domain": "Finite decoded torus face with majorRadius > minorRadius > 0 and a finite nonzero axis",
+    "distance_policy": "Hypot of axial distance and radial distance from the major circle, minus minor radius; negative inside the tube and positive outside the tube",
+    "tolerance_policy": "Explicit finite nonnegative caller tolerance; no ACIS/modeler default is assumed",
+    "numeric_policy": "Direct finite-coordinate calculation preserves ordinary boundary precision; scaled fallback handles point-center differences or derived radial/axial coordinates that overflow doubles",
+    "model_validity_policy": "Utility validates only its supported analytic input domain and does not establish ACIS surface, face, shell, solid, or B-rep validity",
+    "non_claims": [
+      "horn or spindle torus handling",
+      "torus projection or parameterization",
+      "face U-frame or trim evaluation",
+      "body transform or source-unit application",
+      "B-rep validity",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_sab21800_outer_locus_zero_distance": "PASS",
+    "parser_fed_tube_interior_signed_distance": "PASS",
+    "parser_fed_hole_distance": "PASS",
+    "exact_tolerance_boundary_and_just_outside_atomic_refusal": "PASS",
+    "nonunit_axis_normalization": "PASS",
+    "overflowing_point_center_delta_with_representable_signed_distance": "PASS",
+    "horn_spindle_nonfinite_and_invalid_tolerance_refusals": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.29 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

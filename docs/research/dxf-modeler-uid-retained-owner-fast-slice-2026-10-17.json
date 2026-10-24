@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF modeler UID retained owner",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the AcDbModelerGeometry DXF group-2 UID to its parsed owner lease",
+    "Preserve replacement, copy/assignment, and reset accounting behavior",
+    "Keep the UID opaque and separate from ACIS payload/semantic support claims"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "DRW_ModelerGeometry::parseCode now passes DXF group 2 through replaceDxfRetainedStringField with a dedicated retained-byte counter. resetDwgState clears the UID/count, while the implicit copy/assignment contract carries the counter and shared entity lease. Added a focused selector that finds the minimum accepted aggregate cap for OLD-to-UID-123, verifies exact-cap success and one-byte-under refusal preserving the previous UID, and tests copied-owner lifetime through final reset.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private retained-byte counter was added to public DRW_ModelerGeometry layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-modeler-uid-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "results": {
+      "strictHardeningTargetAndCompatibilityCompile": "passed",
+      "focusedModelerUidOwnerBudget": "passed",
+      "owningHardeningCTest": "passed (1/1; 0.30 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected DXF parser-owned modeler UID is admitted to the shared logical retained-byte budget, and its charge follows copied model values until final reset/destruction. The UID remains an opaque identifier. This does not bound allocated capacity, process RSS, public mutation, writer-side copies, payload decoding, ACIS semantics, or native acceptance.",
+    "coverage": "The generated ASCII direct-parser stream checks minimum-cap discovery, exact-cap success, one-byte-under refusal preserving OLD and its charge, copy construction and assignment, sibling reset, and final release. The owning hardening CTest passes.",
+    "limitations": "No full OBJECTS callback stream, persistent/external drawing, peer parser, native CAD application, full suite, allocation benchmark, DWG parser/layout change, or ACIS interpretation was exercised."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

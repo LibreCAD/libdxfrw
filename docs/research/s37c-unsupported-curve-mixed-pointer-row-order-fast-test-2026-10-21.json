@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c unsupported-curve mixed pointer-row order fast test",
+  "mode": "Parser-fed locally generated SAB graph control",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeState": "Broadly modified and uncommitted; no files staged.",
+    "changedFiles": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-unsupported-curve-mixed-pointer-row-order-fast-test-2026-10-21.json"
+    ],
+    "change": "Added a generated SAB 21800 body whose unsupported parabola-curve has a three-slot null/reference/repeated-reference raw pointer row. The parser-fed rooted projection preserves exact ordinals and duplicate target indices, while the raw-only point target remains outside the traversed body node set.",
+    "validation": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS: 1/1, 1.19 seconds"
+      }
+    ],
+    "fixturesAdded": 0,
+    "productionCodeChanged": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "evidenceCeiling": "The SAB bytes are generated in the test and pass through the local parser, model builder, and rooted projector. The test establishes ordered raw pointer-row retention, duplicate-target preservation, and non-traversal of an unsupported node's raw-only target; it does not establish curve semantics, B-rep validity, external interoperability, native acceptance, or general ACIS support.",
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c rooted SAB graph retention",
+    "completedSlice": "Mixed null and repeated non-null pointer slots on an unsupported curve are retained at exact ordinals without deduplicating them or traversing the raw-only target.",
+    "nextLocalAction": "Continue to the next dependency-ready local S3.7c graph/resource invariant; keep external semantic and native qualification at their composed checkpoints.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

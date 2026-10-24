@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 coedge previous/partner identities",
+  "mode": "Generated parser-fed fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Expose previous-link and partner-link target node identities aligned with each face-loop coedge row",
+    "Preserve missing/null link slots as -1 and classify unresolved required identities as known projection gaps",
+    "Verify wrong-type partner references fail closed at the exact source node and pointer ordinal",
+    "Bound cached and copied identity rows with exact and one-under output-item budgets"
+  ],
+  "implementation": {
+    "profile": "ACIS BinaryFile SAB 21800 only for typed coedge previous/partner slots",
+    "pointerOrdinalsZeroBased": {
+      "coedgeNext": 1,
+      "coedgePrevious": 2,
+      "coedgePartner": 3
+    },
+    "expectedTypes": {
+      "coedgePrevious": "coedge",
+      "coedgePartner": "coedge"
+    },
+    "unknownDisposition": "Null or absent previous/partner targets remain -1 in aligned output rows. Wrong-type references in traversed SAB 21800 graphs are rejected by graph validation with exact node/ordinal diagnostics and transactional output clearing.",
+    "resourceAccounting": "Each cached previous/partner slot and each per-face copied row is charged through the existing output-item budget; pointer-row extraction work is charged per coedge.",
+    "compatibility": "Public DRW_AcisFaceLoop layout changes and requires downstream rebuild; DRW_Interface vtable and 2D callback lane are unchanged."
+  },
+  "tests": {
+    "positive": [
+      "Generated multi-loop graph asserts exact previous and partner node identities in coedge next-link order",
+      "Parser-fed positive projection and direct in-memory projection match for both new identity rows",
+      "Coverage classification treats either previous/partner row misalignment as a known gap",
+      "Exact output-item budget admits the complete identity rows; one item below the exact bound refuses and clears caller output"
+    ],
+    "negative": [
+      "Parser-fed null previous slot remains -1 at its exact row position and yields known-gap coverage",
+      "Parser-fed null partner slot remains -1 at its exact row position and yields known-gap coverage",
+      "Parser-fed wrong-type partner target is refused as InvalidReference at the exact source node and ordinal 3, with output cleared"
+    ],
+    "validation": {
+      "build": "PASS (libdxfrw_graph_preservation_tests and lc3_compat_check)",
+      "ctest": "PASS (libdxfrw_graph_preservation, 1/1, 1.23 seconds)",
+      "scopedDiffCheck": "PASS (git diff --check on changed source/test/contract/plan files)"
+    }
+  },
+  "assessment": {
+    "semanticClaimsPromoted": 0,
+    "reciprocalLinkValidation": false,
+    "manifoldOrAdjacentFaceValidation": false,
+    "pcurveEvaluation": false,
+    "trimEvaluation": false,
+    "fullBrepValidity": false,
+    "nativeConsumerQualification": false,
+    "externalSemanticEvidence": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fullSuiteRun": false,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [
+      "src/drw_acis.cpp",
+      "src/drw_acis.h"
+    ],
+    "testFilesChanged": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "documentationFilesChanged": [
+      "docs/3D_CONSUMER_CONTRACT.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "This preserves structural pointer targets only; it does not validate reciprocal links, partner semantics, adjacent-face/manifold behavior, geometry, or B-rep validity. The slice remains uncommitted in the broadly dirty shared worktree."
+  },
+  "plan": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "selfUnblock": "Continue with the next dependency-ready local S3.7c topology/incidence invariant without waiting for external qualification."
+  }
+}

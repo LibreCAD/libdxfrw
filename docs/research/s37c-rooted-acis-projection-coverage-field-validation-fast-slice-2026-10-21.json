@@ -1,0 +1,74 @@
+{
+  "title": "S3.7c rooted ACIS projection-coverage field validation",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Classify absent geometry observations plus invalid finite-field or degenerate analytic geometry in an already-built rooted projection as known gaps, even if diagnostic counters are zero.",
+    "profiles": [
+      "straight-curve line origin and direction",
+      "ellipse-curve center, frame vectors, and positive finite ratio",
+      "intcurve non-empty finite control points",
+      "plane finite origin and nonzero normal",
+      "sphere finite center and finite nonzero signed radius",
+      "cone finite origin/axis/major vector, positive finite ratio, and finite nonzero angle pair",
+      "torus finite center, nonzero axis, and positive finite radii"
+    ],
+    "semanticLimit": "Coverage classification only; no claim about exact SAB source completeness, trims/pcurves, transform/unit application, B-rep validity, or consumer acceptance.",
+    "non_claims": [
+      "complete ACIS/SAB parsing",
+      "native producer/version parameter semantics",
+      "edge trims or pcurves",
+      "placement or source-unit application",
+      "B-rep validity",
+      "native consumer qualification",
+      "independent semantic support"
+    ]
+  },
+  "coverage": {
+    "edge_start_end_curve_observations_required_directly": "PASS",
+    "face_surface_loop_observations_required_directly": "PASS",
+    "finite_vertex_point_required": "PASS",
+    "finite_active_edge_endpoint_required": "PASS",
+    "straight_curve_origin_and_nonzero_direction_required": "PASS",
+    "ellipse_center_frame_and_positive_finite_ratio_required": "PASS",
+    "intcurve_control_points_nonempty_and_finite": "PASS",
+    "plane_origin_and_nonzero_normal_required": "PASS",
+    "sphere_center_and_finite_nonzero_signed_radius_required": "PASS",
+    "cone_origin_axis_major_vector_ratio_and_angle_pair_checked": "PASS",
+    "torus_center_axis_and_positive_finite_radii_required": "PASS",
+    "generated_valid_baseline_explicitly_supplies_line_curve": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.05 seconds)",
+    "diff_check": "PASS (src/drw_acis.h, tests/graph_preservation_tests.cpp)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED",
+    "reason": "The shared worktree has broad pre-existing changes; only a focused diff was updated, with no broad staging or commit attempted."
+  }
+}

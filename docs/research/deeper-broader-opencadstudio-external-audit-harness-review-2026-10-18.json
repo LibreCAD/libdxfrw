@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "OpenCADStudio self-check versus external CAD audit harness review",
+  "mode": "primary-source web research and read-only local plan reconciliation",
+  "scope": [
+    "Inspect the current OpenCADStudio same-codec verified-save harness",
+    "Separate its documented Windows reference-CAD AUDIT route from self-readback",
+    "Bound both routes for DWG/DXF comparison and 3D support evidence",
+    "Preserve required FreeCAD Linux/Windows qualification and independent ACIS/AcDs evidence gates"
+  ],
+  "method": {
+    "kind": "Read current project README, automation API, checked-in acceptance script, format-consumer documentation, then reconcile against the local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "OpenCADStudio sources inspected are current-main documentation/source and were not bound to the v2026.42 release artifact. Its reference_acceptance.ps1 body was not retrieved; its behavior is known from the project README only. No route was executed, so all results remain documentation/source observations rather than qualification receipts."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio acceptance harness",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/mcp_acceptance.py",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md"
+      ],
+      "revision": "mutable main pages accessed 2026-10-18; exact v2026.42 tag contents not confirmed",
+      "observed": "The MCP acceptance script creates a closed polyline, two circles, a line, and text; it requests DWG 2000/2013/2018 and DXF 2000, calls app audit/save_verified, checks verified output/file existence, and captures a viewport PNG plus JSON report. It does not assert an independent per-handle geometry manifest in the script."
+    },
+    {
+      "project": "OpenCADStudio automation API",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/API-SPEC.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md"
+      ],
+      "revision": "API spec 1.1 states applicability to fork builds 2026.41+; accessed 2026-10-18",
+      "observed": "The documented save_verified operation writes the requested version, reopens through the app stack, checks actual version, compares the semantic entity manifest, audits raw DXF handle references, and returns SHA-256. It is a useful same-codec stability/loss check, not an independent reader or expected-value oracle."
+    },
+    {
+      "project": "OpenCADStudio reference CAD acceptance route",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md"
+      ],
+      "revision": "mutable main README accessed 2026-10-18; script body not retrieved",
+      "observed": "The README documents a Windows-only PowerShell route that opens generated DWG 2000/2013/2018 files read-only in isolated command-line console profiles and runs AUDIT without repairs, keeping one log per version. This is a source claim, not an executed pass or 3D semantic test."
+    },
+    {
+      "project": "FreeCAD DXF/DWG consumer route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "current documentation pages accessed 2026-10-18",
+      "observed": "FreeCAD documents DWG as external converter to DXF followed by a selected DXF importer, with distinct C++ and optional legacy Python importer routes. The DXF documentation states embedded ACIS/SAT solids are not currently readable by the stock importer."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an optional, composed OpenCADStudio comparison sequence: same-codec verified-save is labeled self-consistency; the Windows reference-console AUDIT route is only structural acceptance when actually run on hash-bound libdxfrw output; source-authored per-handle expectations and separate 3D carrier/owner/geometry gates remain mandatory. This route does not replace the required FreeCAD Linux/Windows qualification or independent ACIS/AcDs semantic evidence."
+  },
+  "implementationReadyChecks": [
+    "Keep all peer/native application runs outside the fast per-slice loop.",
+    "Before an optional OpenCADStudio run, pin exact app source/release, executable hash, platform, and resolved codec/kernel dependencies.",
+    "Feed the exact libdxfrw output bytes into the peer reader; peer-generated output is not an independent writer comparison.",
+    "Record output hash, actual file version, load/audit warnings, every dropped/unsupported record, and per-source handle/type/owner disposition.",
+    "Treat save_verified and same-codec reopen as internal consistency, not independent semantics.",
+    "If the reference CAD console script is used, inspect/pin it and the console, then retain raw audit logs, errors, repairs/deletions, timeout, and process disposition.",
+    "Do not infer 3D, ACIS, or AcDs semantics from the four-type 2D acceptance drawing, screenshot, or native AUDIT alone.",
+    "Keep FreeCAD Linux and Windows converter/importer/backend qualification separate and required.",
+    "For ACIS/AcDs, keep entity shell, section/index/key, owner association, payload bytes, parser losses, independent analytic measures, and native consumer result as separate assertions.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting until their named evidence is independently satisfied."
+  ],
+  "validation": {
+    "receiptJsonValidation": "passed with jq empty",
+    "planDiffCheck": "passed with git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuiteRun": false,
+    "nativeCadRun": false
+  }
+}

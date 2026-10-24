@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw-deeper-broader-release-pinned-consumer-and-ac1032-peer-refresh-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh OpenCADStudio as an application-level consumer profile, examine its ACIS tessellation completeness boundary, and reconcile a new AC1032 MLeader-context peer report with the existing DWG/DXF implementation plan.",
+  "method": {
+    "kind": "Primary repository release/source/documentation review plus local plan reconciliation",
+    "sourcesOpened": [
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/README.md",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/Cargo.lock",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/docs/automation/README.md",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/hakanaktt/acadrust/issues/134",
+      "https://www.open-aec.com/open-cad-studio/"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Repository docs, release metadata and issue reports describe candidate profiles and reported boundaries; they do not establish the behavior of libdxfrw outputs. OpenCADStudio's app-level consumer is correlated with ACadRust through opencadcodec; its self-readback is not an independent parser result. The ACadRust #134 report has no redistributable attached sample and is not a local defect report."
+  },
+  "evidence": [
+    {
+      "topic": "OpenCADStudio release identity and documentation drift",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/README.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/Cargo.lock",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://www.open-aec.com/open-cad-studio/"
+      ],
+      "observed": [
+        "GitHub lists v2026.41 as latest at review time, released 2026-10-11 at commit cff240e.",
+        "The tagged README lists DWG/DXF read and versioned save targets from R14 through R2018.",
+        "The current main Cargo.toml identifies package version 2026.41.0 and pins opencadcodec 325fa98, opencadkernel dfca391 with the acis feature, and opencadgraph 5d4e713; these mutable-main dependency pins must not be assumed to equal the released tag's dependencies.",
+        "The opencadcodec repository identifies itself as forked from hakanaktt/acadrust.",
+        "The OpenAEC page still displays v2026.37 and an R13-R2018 range, unlike the current GitHub tag/README."
+      ],
+      "doesNotEstablish": [
+        "per-family/version route completeness from product-level ranges",
+        "that main-branch engine pins match a released application artifact",
+        "an independent parser lineage from ACadRust"
+      ],
+      "planUse": "Use an immutable release/source profile for any optional consumer run. Resolve exact engine revisions from that release, hash the executable, record OS/architecture/operation, and inspect the actual output magic. Do not infer compatibility from stale or broad product copy."
+    },
+    {
+      "topic": "ACIS rendering is a projection with an explicit incomplete fallback",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observed": [
+        "The documented Solid3D/Region/Body/Surface path lifts ACIS into the application kernel and tessellates per face.",
+        "If the kernel cannot express a face, the renderer uses a direct per-surface LOD sampler and marks the mesh incomplete.",
+        "The kernel README describes itself as early and says most operations are not yet implemented."
+      ],
+      "doesNotEstablish": [
+        "complete geometric interpretation for arbitrary ACIS bodies",
+        "exact B-rep topology, dimensions, or metrics from a displayed mesh",
+        "independence of the app's codec from the ACadRust lineage"
+      ],
+      "planUse": "Record body presence, kernel-lift result, fallback, incomplete status, omitted faces and displayed mesh as separate observations. An incomplete fallback is not a semantic pass; retain the independent shape-metric/native gate."
+    },
+    {
+      "topic": "Tagged application automation and external native audit separation",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/docs/automation/README.md"
+      ],
+      "observed": [
+        "The tagged automation documentation describes generated DWG 2000/2013/2018 and DXF 2000 acceptance controls.",
+        "Its Windows reference-CAD script opens generated DWGs read-only and runs AUDIT without repairs.",
+        "The app's own audit/save_verified flow reopens through the same application codec, so it is not an independent reader result."
+      ],
+      "doesNotEstablish": [
+        "that these scripts were run against libdxfrw artifacts",
+        "Linux native-application acceptance from a Windows-only native audit script",
+        "exact ACIS semantics from application self-readback"
+      ],
+      "planUse": "At the existing composed checkpoint, optionally run the external reference audit against exact locally generated libdxfrw outputs in scratch storage. Preserve raw logs and report unavailable tooling as NOT_RUN."
+    },
+    {
+      "topic": "ACadRust v0.6.4 AC1032 MLeader-context report",
+      "source": "https://github.com/hakanaktt/acadrust/issues/134",
+      "observed": [
+        "The open 2026-10-12 issue reports 70 of 351 real-world AC1032 drawings failing strict reads in v0.6.4 after passing in v0.6.3.",
+        "The report attributes 65 cases to AcDbMLeaderObjectContextData and identifies further associative-object and table cases.",
+        "The reporter says AutoCAD and ODA File Converter read the files, but cannot attach the production samples."
+      ],
+      "doesNotEstablish": [
+        "a libdxfrw bug or a known local wire-layout mismatch",
+        "a reproducible sample or redistributable test fixture",
+        "that ACadRust v0.6.4 is a universal AC1032 reader oracle"
+      ],
+      "planUse": "Keep this release- and class-scoped peer evidence. When local MLeader context code is touched, use a bounded from-scratch/source-authored AC1032 control and following-record sentinel checked against local ODA v5.4.1; do not fetch or commit the private examples."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-07",
+      "7AG peer admission",
+      "S8.4",
+      "S8.5",
+      "S8.9.5"
+    ],
+    "composedCheckpointOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue fast local implementation validation; optional peers and native tools must not block unrelated slices.",
+      "At the composed checkpoint, pin the exact OpenCADStudio release and engine dependencies; verify input/output AC code and artifact hashes.",
+      "Treat application self-audit, complete/incomplete rendering, native CAD audit and independent ACIS semantics as separate outcomes.",
+      "When MLeader context code is touched, use a valid generated AC1032 record and following-record sentinel if constructible from the authoritative spec; do not use inaccessible peer drawings.",
+      "Keep all six J items DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

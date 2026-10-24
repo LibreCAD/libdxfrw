@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACIS DXF history boundary and SAT chunk policy",
+  "mode": "Primary-source web research and read-only local source/test crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile the 3DSOLID history subclass/version boundary across Autodesk DXF documentation and independent open-source serializers.",
+    "Refresh ACadSharp PR #1150 state and distinguish its whitespace-aware group-1/3 proposal from released or locally qualified behavior.",
+    "Refine the existing PAR-07/S8 composed checkpoint without adding a local test lane, dependency, fixture, implementation-order change, or routine peer run."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF entity references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm"
+      ],
+      "revision": "Current 3DSOLID and BODY reference pages accessed 2026-10-20.",
+      "observed": "3DSOLID lists AcDbModelerGeometry, group 70, group-1 proprietary text with group-3 continuation when group 1 exceeds 255 characters, then AcDb3dSolid and soft-owner group 350. BODY's current table lists the modeler subclass/version/payload without the 3DSOLID history pair.",
+      "limits": "The current tables establish field names/roles and the published text boundary, but do not state the historical release in which AcDb3dSolid/group 350 became part of the 3DSOLID DXF sequence."
+    },
+    {
+      "project": "ACadSharp ACIS writer PR #1150",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "revision": "Public PR refreshed 2026-10-20; head shown as 098d7a3, open, no deployments/reviews.",
+      "observed": "The branch reports R2007 as the AcDb3dSolid/history start, proposes cutting SAT text at the last fitting space so tokens do not span group-1/3 values, and author-reports TrueView checks at R2000/R2004/R2007/R2010/R2013 in both formats except that R2007 DWG writing is unsupported. On Oct 1 the author reported that after the Prototype_1b refactor DXF ACDSDATA reading retains only the last group-310 chunk; the maintainer preferred schema-aware AcDs writing and left the branch as a reference.",
+      "limits": "This is unmerged branch behavior and author/maintainer commentary, not released capability or an independently reproduced acceptance result. The ACDSDATA 310 issue is separate from legacy SAT group-1/3 chunking."
+    },
+    {
+      "project": "Independent serializer/source corroboration",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/acis.py",
+        "https://docs.rs/dxf/latest/src/dxf/opt/rustwide/target/x86_64-unknown-linux-gnu/debug/build/dxf/57764163b820d72d/out/generated/entities.rs.html"
+      ],
+      "revision": "LibreDWG mutable NEWS, ezdxf v1.4.4 pinned source, and docs.rs generated serializer page accessed 2026-10-20.",
+      "observed": "LibreDWG release notes state support for AcDb3dSolid history_id at r2007+; ezdxf's pinned DXF writer gates the subclass/history pair after DXF2004; the published Rust dxf serializer writes the subclass and group 350 at AcadVersion::R2007.",
+      "limits": "These are implementation sources, not Autodesk's historical change log. The docs.rs generated serializer URL is build-generated and should be treated as a dated observation rather than a durable release-source permalink."
+    },
+    {
+      "project": "Local libdxfrw source and generated test crosswalk",
+      "urls": [],
+      "references": [
+        "src/libdxfrw.cpp: writeDxfSatTextValue",
+        "src/libdxfrw.cpp: dxfRW::writeModelerGeometry",
+        "tests/modeler_dxf_writer_matrix_tests.cpp"
+      ],
+      "revision": "Read-only source/test inspection on 2026-10-20; no code changed or executed.",
+      "observed": "Current SAT group-1/3 output uses a 255-byte capacity, preserving SAT-v1 caret-space pairs but otherwise allowing an ASCII token to cross a chunk boundary. Current writer gates AcDb3dSolid/group 350 to AC1021+ 3DSOLID and rejects nonzero history for older versions or other modeler entity types. Existing generated tests cover 254/255/256 and 509/510/511 lengths, spaces/token-crossing, ASCII/Binary, local reconstruction, remapping, and refusal.",
+      "limits": "Generated local round-trip proves only local serialization/reconstruction and version policy; it does not establish independent parser or native-application acceptance of the chunk boundary."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: retain an unresolved SAT token-boundary policy and test it only at the existing composed writer checkpoint against exact-pinned, question-appropriate parsers/consumers.",
+      "3DSOLID DXF profile: retain the existing AC1021 history-pair gate, distinguish implementation convergence from normative historical evidence, and keep BODY/REGION layouts separate.",
+      "Implementation cadence: preserve local fast-only slices, no peer/native run per slice, and self-unblock when optional external tooling is unavailable."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a dated cross-source research section to the parity plan and a concise status link in the 3D plan.",
+    "Recorded the exact distinction between Autodesk's published field/255-character contract and the non-normative R2007 threshold corroborated by peer serializers.",
+    "Refined the existing PAR-07/S8 composed checkpoint to compare byte-budget and token-aware SAT grouping on ephemeral generated inputs, with exact artifact/version/result capture and no extra routine test lane."
+  ],
+  "limitations": [
+    "No local test, peer executable, native CAD application, or geometry kernel was run.",
+    "ACadSharp PR #1150 remains open and undeployed; its acceptance statements are author-reported and its modern ACDSDATA readback is reported incomplete after a reader refactor.",
+    "Autodesk's current entity tables do not explicitly date the historical 3DSOLID subclass transition; cross-project implementation agreement is corroboration, not a normative version delta.",
+    "The general SAT chunk policy and legacy binary-SAT acceptance remain unresolved; no support claim was promoted.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on the two plan files)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

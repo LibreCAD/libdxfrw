@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-20",
+  "planSlice": "PAR-07/S8 and S2.2.5b modeler DXF matrix continuity",
+  "scope": "Generated ASCII/Binary modeler writer matrix with semantic readback of the following LINE sentinel.",
+  "baselineGap": "The matrix confirmed that a LINE record followed modeler records, but did not verify that the following entity retained its expected coordinates through parser readback.",
+  "change": {
+    "test": "Assert exactly one following LINE with endpoints (12,13,14)-(15,16,17) after both initial import and strict re-export/readback across the existing matrix.",
+    "matrix": "AC1015, AC1018, AC1021, AC1024, and AC1027; ASCII and Binary DXF; 3DSOLID, REGION, BODY; existing SAT chunk, caret, history, source-handle-remap, and line-break-refusal cases retained.",
+    "productionCodeChanged": false,
+    "newFixtureFiles": false,
+    "externalSamplesUsed": false,
+    "dependenciesAdded": false
+  },
+  "files": [
+    "tests/modeler_dxf_writer_matrix_tests.cpp",
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "validation": {
+    "focusedTargetBuild": "passed: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "selector": "passed: build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix",
+    "ctest": "passed: dwg2dxf_modeler_dxf_writer_matrix 1/1",
+    "diffCheck": "passed: scoped git diff --check",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportClaimsPromoted": false,
+  "externalJStatuses": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextLocalAction": "Continue S2.3.9.4.29 per-body block/INSERT census and PAR-07/S8 per-source-handle write/readback disposition; external gates do not block local work.",
+  "commitStatus": "uncommitted; shared worktree has broad overlapping changes and Git metadata is read-only"
+}

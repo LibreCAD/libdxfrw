@@ -1,0 +1,75 @@
+{
+  "slice": "RPP-5w",
+  "title": "AC1021 atomic TABLESTYLE extension DICTIONARY to CELLSTYLEMAP graph writer",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": [
+    "add a non-virtual dwgRW method for writing one explicitly linked AC1021 TABLESTYLE graph",
+    "preflight object handles, extension-dictionary link/flag, owner links, canonical key, and unique map target",
+    "write TABLESTYLE, DICTIONARY, and CELLSTYLEMAP under one compound writer checkpoint"
+  ],
+  "graph_contract": {
+    "version": "AC1021",
+    "dictionary_key": "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP",
+    "extension_dictionary_flag": 0,
+    "extension_dictionary_flag_semantics": "zero means the hard extension-dictionary handle follows",
+    "object_handles_must_be": "nonzero and pairwise distinct",
+    "dictionary_extra_entries": "allowed, provided the canonical map key and map target each occur exactly once"
+  },
+  "generated_controls": [
+    "noncanonical dictionary key refused before writing",
+    "dictionary owner mismatch refused before writing",
+    "duplicate CELLSTYLEMAP target alias refused before writing",
+    "CELLSTYLEMAP owner mismatch refused before writing",
+    "suppressed TABLESTYLE extension-dictionary handle flag refused before writing",
+    "malformed CELLSTYLEMAP payload fails after earlier graph frames start and the outer write transaction rolls them back",
+    "valid graph retries and whole-file readback verifies each owner/key edge and nested style payload",
+    "non-AC1021 versions refuse the graph helper"
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 5.38
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/libdwgr.h src/libdwgr.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receipt_json_parse": {
+      "command": "jq empty docs/research/rpp5w-cellstylemap-atomic-graph-writer-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated locally by the existing whole-file round-trip harness"
+  },
+  "qualification_limits": {
+    "automatic_arbitrary_source_graph_conversion": "NOT_IMPLEMENTED",
+    "ac1024_plus_graph_writer": "NOT_IMPLEMENTED",
+    "independent_producer_reopen": "NOT_RUN",
+    "full_test_suite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "src/libdwgr.h",
+    "src/libdwgr.cpp",
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5w-cellstylemap-atomic-graph-writer-fast-slice-2026-10-22.json"
+  ],
+  "next": "Inspect concrete consumers for a complete source TABLESTYLE graph, then integrate the atomic helper only at a validated ownership boundary; continue independent local MATERIAL/TABLESTYLE gaps without waiting on external qualification.",
+  "commit": "NONE"
+}

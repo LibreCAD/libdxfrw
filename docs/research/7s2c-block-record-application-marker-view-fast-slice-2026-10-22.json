@@ -1,0 +1,55 @@
+{
+  "slice": "7S.2c BLOCK_RECORD application-marker view",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "paths": [
+    "src/libdxfrw.cpp",
+    "tests/hardening_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "change": {
+    "group_102_application_control_is_record_scoped_view": true,
+    "group_0_block_record_table_marker_is_record_scoped_view": true,
+    "known_control_routing_unchanged": true,
+    "unknown_nested_application_depth_policy_unchanged": true,
+    "generated_32k_unknown_application_marker": true,
+    "existing_block_record_exact_under_budget_and_retry_controls_reused": true,
+    "persistent_fixture_added": false,
+    "installed_data_or_interface_layout_changed": false,
+    "wire_behavior_changed": false,
+    "support_claim_changed": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_block_record_parser_retained_budget$' --output-on-failure",
+      "result": "PASS (1/1; 0.29 seconds)"
+    },
+    {
+      "command": "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "full test suites",
+    "native FreeCAD Linux/Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "external_gates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "inventory_totals": {
+    "findings": 144,
+    "subplans": 78,
+    "note": "Inventory totals; not open-item counts."
+  },
+  "next": "Continue the exact-source audit of OBJECTS and parser staging for real long transient copies, then return to locally actionable semantic gaps without waiting on external qualification."
+}

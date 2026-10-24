@@ -1,0 +1,152 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader cross-project carrier, loss, and reader-safety review",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh Autodesk DXF modeler-geometry wrapper requirements relevant to SAT text and binary carrier handling",
+    "Review LibreDWG release security and writer fixes as failure-class evidence without attributing peer defects locally",
+    "Refresh the current status and implementation boundaries of ACadSharp ACIS writer proposals",
+    "Reconcile recent peer loss and consumer reports with existing libdxfrw AcDs, graph, bounded-decode, and semantic-support owners"
+  ],
+  "method": {
+    "kind": "Read-only review of official format documentation and public primary-source project releases, issues, pull requests, and local plan/source inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Issue reports and pull-request comments are implementation- and revision-specific evidence, not normative rules or local reproductions. ACadSharp #1282 and #1283 were seen only in the current issue index; their full bodies were not retrieved. No peer artifact was pinned and executed."
+  },
+  "sources": [
+    {
+      "project": "Autodesk",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "revision": "official 3DSOLID DXF reference page reviewed 2026-10-17",
+      "observed": "The DXF wrapper identifies AcDbModelerGeometry, group 70, proprietary group 1 strings and optional group 3 continuation strings, then AcDb3dSolid and group 350 history reference. It does not define DWG AcDs byte layout or ACIS semantic validity."
+    },
+    {
+      "project": "Autodesk",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "revision": "official DXF group-code reference page reviewed 2026-10-17",
+      "observed": "The general code table distinguishes 310-319 binary chunks and 330-369 pointer/ownership categories; these wire roles must not be conflated with group-1/3 SAT text or group-350 history handles."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "mutable master NEWS page, 0.14.1 entry dated 2026-07-25, reviewed 2026-10-17",
+      "observed": "The release notes describe peer fixes for compressed-section range and multiplication overflow, live buffer capacity drift, stale object pointers across reallocation, oversized SAT-block bounds, non-finite writer-loop hangs, and a dropped final SAT block. These are risk classes, not evidence of matching libdxfrw defects."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "revision": "open issue reviewed 2026-10-17; report pins peer build 0.14.8593 at commit prefix 8a1ae764",
+      "observed": "The issue provides a scratch-authored AC1032 DXF-to-DWG-to-DXF case where a REGION shell remains but its 5,489-byte SAB body and AcDs records disappear; a separate confidential R2018 report is not reproducible. The issue does not establish current-master behavior or libdxfrw behavior."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1415",
+      "revision": "open issue reviewed 2026-10-17; reports LibreDWG 0.14 and master",
+      "observed": "The reporter says the peer CMC reader reconstructs a palette index from RGB, collapsing distinct ACI values that share one RGB value. This motivates a conditional source-index preservation vector in the local color/down-conversion owner; it is not a local defect."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1357",
+      "revision": "issue page reviewed 2026-10-17; reporter says fixed on peer master after R2007 decode changes",
+      "observed": "Historical unresolvable-owner traversal loss reportedly disappeared on peer master for three AC1021 cases after decoder changes. It is not a current peer failure or a local regression; plan already distinguishes traversal termination from decode failure."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "revision": "open issue page reviewed 2026-10-17; report names NuGet 3.4.9",
+      "observed": "The report describes silent omission of 3DSOLID/REGION from DWG-to-DXF output, including solids inside blocks; peer entity counts and empty-block effects are not a local reproduction."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1150",
+      "revision": "open, undeployed PR reviewed 2026-10-17; latest visible comments Oct. 1, 2026",
+      "observed": "The proposed writer separates pre-2013 SAT text from modern SAB/AcDs storage, reports an out-of-order handle-index correction, and describes self-reported TrueView checks. Later comments say the branch conflicts with the refactored reader and that the current DXF reader retained only the last repeated 310 chunk; the maintainer prefers schema-driven storage reconstruction. No released capability is established."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "revision": "open, undeployed PR reviewed 2026-10-17",
+      "observed": "The maintainer's ACIS writer proposal remains separate from released behavior and depends on the ACDS/ACIS schema refactor; its status does not establish a current comparator pass."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1279",
+      "revision": "open issue reviewed 2026-10-17; report names ACadSharp 3.8.0 and AC1014 input",
+      "observed": "The issue repeats the already-mapped malformed/underspecified child VERTEX subtype-marker failure shape; it does not establish the validity of every missing-marker form."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "revision": "open issue reviewed 2026-10-17; report names AC1032 and AutoCAD 2025 Core Console",
+      "observed": "A reporter says an MTEXT with only a text-frame flag is rejected while a combined flag opens; the cause was not isolated, and visual-style absence was only a hypothesis."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "revision": "open issue reviewed 2026-10-17; report names ACadSharp 3.8.0 and downstream GDAL conversion",
+      "observed": "The reporter says a DWG-to-DXF conversion produced spline data rejected by GDAL; the issue body provides no established root cause. Treat as a peer compatibility lead, not a local defect or DXF rule."
+    },
+    {
+      "project": "Local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "worktree plan over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "All findings map to existing AcDs/ACIS carrier, graph closure, bounded decode, color conversion, DXF wrapper, and consumer acceptance owners; no source-confirmed local defect or new top-level subplan is established."
+    }
+  ],
+  "assessment": {
+    "carrierContract": "SAT text, modern DXF binary ACDSDATA, classic DWG entity-stream data, and modern DWG AcDs records are distinct route/version containers. Preserve owner/handle mapping, exact payload boundaries, and diagnostics separately from entity-shell counts.",
+    "peerStatus": "ACadSharp #1150 and #1240 remain open proposals, not released behavior; #1150's comments expose a repeated-binary-chunk readback conflict and an explicit preference for schema-driven writer reconstruction.",
+    "safetyContract": "Use checked arithmetic before allocation, preserve logical length within actual capacity, avoid stale references across container relocation, reject non-finite unbounded writer inputs, and assert exact terminal payload inclusion only within the touched local owner.",
+    "implementationSpeed": "Reuse existing generated selectors, strict targets, compatibility check, and owning CTest. Keep broad suites, peer builds, native applications, kernels, stress cohorts, and sanitizer runs at already-planned composed checkpoints.",
+    "supportEvidence": "A parse, entity count, raw-carrier match, or single-application open is not independent solid semantic evidence. J256/J260/J268/J284/J293/J295 remain external and non-promoting."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cross-project-carrier-loss-reader-safety-review-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-cross-project-carrier-loss-reader-safety-review-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

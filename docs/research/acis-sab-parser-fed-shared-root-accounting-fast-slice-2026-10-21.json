@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-shared-root-accounting-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "slice": "S3.7c parser-fed multiply-rooted-node accounting",
+  "change": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "Extended the generated ACIS BinaryFile 21800 two-body test stream with one type-correct point reference shared between body roots. The focused parse/build/project assertion checks exact reachable-node membership, raw coordinates, body count, and multiplyRootedNodeCount == 1.",
+    "persistentDwgDxfSabFixtureAdded": false,
+    "productionParserChanged": false,
+    "dependencyOrTestRegistrationChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS 1/1 (1.14s)"
+    },
+    {
+      "command": "git diff --check -- tests/graph_preservation_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "Generated ACIS BinaryFile 21800 parser-fed graph traversal and cross-body reachability accounting only. This does not establish whether arbitrary shared-point arrangements are semantically valid ACIS B-reps, nor any geometry, units, transform, DWG AcDs association, native-consumer, or general 3D support claim.",
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "next": "Continue with the next locally evidenced S3.7c structural or semantic boundary; external reader and platform qualification remain separate."
+}

@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-14 32-bit DWG decompressor-size admission",
+  "mode": "Local source-backed implementation slice with generated unit vectors",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Prevent silent truncation when 64-bit DWG compressed/decompressed size arguments exceed the 32-bit cursor representation used by dwgCompressor.",
+    "Exercise both R2004/AC1018 and R2007/AC1021 decompressor entry points with bounded positive streams and oversized size declarations.",
+    "Keep fixture policy, LibreCAD compatibility, and the fast-test cadence intact."
+  ],
+  "localFinding": {
+    "owner": "PAR-14",
+    "newNumberedFinding": false,
+    "confirmed": true,
+    "description": "decompress18 and decompress21 accepted uint64_t lengths but implicitly narrowed them into uint32_t size/cursor state. A declaration of 2^32 + N wrapped to N and could be accepted as a valid small stream.",
+    "affectedPaths": [
+      "src/intern/dwgutil.cpp",
+      "src/intern/dwgutil.h"
+    ]
+  },
+  "implementation": {
+    "behavior": "Both entry points reject compressed or decompressed lengths greater than UINT32_MAX before retaining the supplied pointers or reading/writing; rejected calls clear prior decoder state. Valid sizes are explicitly cast only after the bound check.",
+    "testPaths": [
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "coverage": [
+      "Valid AC1018 extended-copy input and output remain accepted.",
+      "Valid AC1021 literal/back-reference input and output remain accepted.",
+      "Oversized compressed-input and decompressed-output sizes are rejected for both algorithms.",
+      "Output sentinel bytes remain unchanged and decoded-byte state is cleared for all oversized declarations.",
+      "The same decompressor instance accepts a valid AC1018/AC1021 retry after refusal."
+    ]
+  },
+  "validation": {
+    "strictBuild": "PASS: cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_wave1_tests --dwg-decompressor-size-bounds",
+    "focusedCTest": "PASS: libdxfrw_dwg_decompressor_size_bounds (1/1)",
+    "readerMatrixCTest": "PASS: libdxfrw_dwg_reader_matrix (1/1; 1.49 sec)",
+    "consumerCompatibilityBuild": "PASS: cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "broadWave1Attempt": "FAIL before production fix: 64 assertions; four new decompressor-size cases and 60 unrelated object/metadata assertions. The full executable was not rerun after the fix.",
+    "scopedDiffCheck": "PASS (git diff --check on changed code/test/CMake/plan files; receipt whitespace scan)",
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "focusedCTestRegistrationsAdded": 1,
+    "fixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "externalPocUsed": false,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "This slice establishes safe rejection of unrepresentable size arguments; it does not establish general DWG decompressor correctness or parser security.",
+    "The broad wave1 executable had unrelated object/metadata assertion failures before the production fix; those assertions were not investigated or claimed fixed here.",
+    "No ODA/native/independent reader was run. No DWG reader parse body or wire-format interpretation was changed.",
+    "The shared worktree remains broadly dirty and no commit was created."
+  ]
+}

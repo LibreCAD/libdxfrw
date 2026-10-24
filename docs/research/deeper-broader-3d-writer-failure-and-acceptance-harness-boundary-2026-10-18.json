@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader 3D writer failure evidence and acceptance-harness boundary",
+  "mode": "Primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh OpenCADStudio's current release/source/automation route and codec/kernel lineage",
+    "Inspect peer issue evidence for AcDs-backed DWG 3D writer failures",
+    "Refine existing carrier, per-solid disposition, external-open, and semantic acceptance boundaries",
+    "Keep implementation cadence, fixtures, dependencies, and external-J promotion unchanged"
+  ],
+  "method": {
+    "kind": "Read-only review of public primary repository, release, automation, and issue pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "limitations": "Project source/docs are mutable and do not prove the exact behavior of a released executable. Issue #225 does not expose a hash-bound drawing or visible fix/closure evidence in the reviewed page; issue #1615 lacks a named strict reader, native audit log, and independent geometry report. No runtime result or support claim is inferred."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio issue #225",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/225",
+      "revision": "Issue page reviewed 2026-10-18; page marked closed",
+      "observed": "The reporter describes BricsCAD reporting invalid AcDb:AcDsPrototype data and recovery removing numerous AcDb3dSolid records whose modeler streams were empty. The issue title references an older OCS version. The reviewed page provides no hash-bound output, exact effective writer revision/target version, or visible closure explanation demonstrating a fix."
+    },
+    {
+      "project": "OpenCADStudio issue #1615",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1615",
+      "revision": "Issue and comments reviewed 2026-10-18; issue remains open",
+      "observed": "A user reports initial AutoCAD/ProgeCAD failures for 3D DWG output and intermittent Boolean problems. A later comment describes improvement and one current-main Boolean result opening in an unnamed strict third-party reader. No reproducible hash, named reader/build, native AUDIT report, or independent shape metrics are present in the reviewed page."
+    },
+    {
+      "project": "OpenCADStudio source dependency declarations",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.lock",
+        "https://github.com/HakanSeven12/OpenCADStudio"
+      ],
+      "revision": "Mutable main reviewed 2026-10-18; Cargo.toml declares app version 2026.41.0",
+      "observed": "Cargo.toml pins an acadrust-named codec from the opencadcodec Git repository at revision 5d4f11a, OpenCADKernel at a60f18f with its acis feature, and OpenCADGraph at d9f2aee. These declarations identify a composed application route; they are not a run or independent conformance result."
+    },
+    {
+      "project": "OpenCADStudio tessellation and automation documentation",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41"
+      ],
+      "revision": "Mutable source/docs and v2026.41 release page reviewed 2026-10-18",
+      "observed": "The tessellation document says Solid3D, Region, Body, and Surface use a kernel B-rep-lift/face-triangulation path. The automation guide describes save_verified as write/reopen/version/manifest/reference checks with an output hash, and separately documents mcp_acceptance profiles for DWG 2000/2013/2018 plus DXF 2000 and a Windows reference-CAD read-only AUDIT script. The self-check is correlated with the application stack; the documented external script was not run and covers only its named route/profile."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationCadenceChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing AcDs and 3D writer/consumer checks: verify expected non-empty per-solid payloads and owner/index/key closure, then keep application self-verification, strict external parsing, native no-recovery/AUDIT, and independent geometry as separate result fields. No new implementation workstream or routine validation is added."
+  },
+  "implementationReadyChecks": [
+    "Reuse the existing AcDs/ACIS focused generated test owner; only add a focused non-empty-per-expected-solid assertion if current tests do not already prove it.",
+    "For expected-solid cases, bind each source handle and block owner through modeler handle, AcDs index/key/record, and exact payload length/hash; distinguish empty, missing, duplicate, unresolved, and intentionally unsupported states.",
+    "At the composed gate, run strict external open before recovery and report audit repairs/deletions, object identity, payload disposition, B-rep validity, and analytic metrics separately.",
+    "Treat save_verified and same-app reopen as internal consistency only; only count a named third-party/native run after capturing exact application/build, command, output hash, and diagnostics.",
+    "Do not make OpenCADStudio, its Windows-only reference script, a peer binary, a new fixture, or full-suite/native runs part of each implementation slice.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; none of these pages satisfies their external qualification or semantic evidence requirements."
+  ],
+  "workingTree": {
+    "planFileUpdated": true,
+    "receiptAdded": true,
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The shared worktree was already broadly dirty. This pass edited only the plan and added its research receipt; unrelated work was preserved."
+  }
+}

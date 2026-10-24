@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-07/S8.3 raw modeler companion-view journal move fast slice",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Avoid the extra journal-time copy of raw modeler companion frames for REGION, 3DSOLID, and BODY",
+    "Preserve the existing const-reference DRW_Interface callback contract",
+    "Verify move ownership and retain existing typed/raw identity coverage"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DwgEntityOutput now stages the paired DRW_UnsupportedObject in an owned event constructed from an rvalue and replays it through addUnsupportedObject(const DRW_UnsupportedObject&). REGION/3DSOLID/BODY dispatch moves the complete pre-move raw snapshot into this event. No public interface or ABI changes.",
+    "copyBoundary": "Removes only the journal reference-event copy. The parser tmpByteStr-to-raw-object copy, separate typed modeler raw frame, consumer-owned storage, and section-to-entity payload copy remain."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-modeler-move-callback",
+        "result": "PASS; includes 256 KiB vector-allocation identity control and existing AC1027 typed/raw, reactor, owner, AcDs frame/payload controls"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+        "result": "PASS; 1/1, 1.82 seconds"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeler-geometry-move-callback-fallback",
+        "result": "PASS; exit code 0"
+      },
+      {
+        "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md src/intern/dwgreader.h src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp docs/research/datastorage-raw-modeler-companion-move-fast-slice-2026-10-18.json",
+        "result": "PASS"
+      }
+    ],
+    "receiptJsonParsed": true,
+    "fullSuiteRun": false,
+    "fixtureAdded": false,
+    "newCtestRegistration": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newConfirmedFormatRule": 0,
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "limitations": "This is an in-memory journal ownership/copy-boundary optimization, not a process RSS or throughput measurement. It does not change source frame construction, raw/typed semantic interpretation, callback consumer ownership, AcDs parsing/writing, or native/ACIS qualification."
+  },
+  "workingTree": {
+    "broadlyDirty": true,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

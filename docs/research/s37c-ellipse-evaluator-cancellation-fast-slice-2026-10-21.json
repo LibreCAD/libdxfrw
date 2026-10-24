@@ -1,0 +1,55 @@
+{
+  "title": "S3.7c ACIS ellipse evaluator cancellation correction",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "issue": "A second normalization of the right-handed cross basis introduced a one-ULP mismatch, and center-first summation lost a small center when large finite major/minor offsets canceled.",
+    "correction": "Derive the minor direction directly as normalizedNormal cross projectedMajor in the same scaled frame; add the two surface offsets before adding the center.",
+    "semantic_limit": "Numerical behavior under the existing explicit local ellipse evaluator contract only; this does not establish native ACIS/SAB parameter direction or trim semantics.",
+    "non_claims": [
+      "finite ellipse edge trims",
+      "pcurve or face-domain evaluation",
+      "body placement or source-unit application",
+      "B-rep validity",
+      "native consumer qualification",
+      "independent semantic support"
+    ]
+  },
+  "coverage": {
+    "parser_fed_generated_sab_21800_large_ellipse_offsets_cancel": "PASS",
+    "small_center_coordinate_survives_cancellation": "PASS",
+    "large_orthogonal_coordinate_remains_finite": "PASS",
+    "existing_ellipse_frame_ratio_projection_grid_and_refusal_controls": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.20 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_evaluateAcisEllipseCurve)",
+    "diff_check": "PASS (scoped changed implementation and test paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

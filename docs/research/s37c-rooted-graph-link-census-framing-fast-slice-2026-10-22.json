@@ -1,0 +1,48 @@
+{
+  "title": "S3.7c rooted graph-link census framing",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Conservatively classify malformed retained rooted ACIS graph-link censuses as known gaps.",
+    "invariants": [
+      "graph-link source IDs are nonnegative",
+      "all links for one source form a contiguous group",
+      "each source group's pointer ordinals are sequential from zero",
+      "source groups are globally unique"
+    ],
+    "resourcePolicy": "Use one compact integer per source group for exact sorting-based duplicate detection; catch scratch-allocation failures inside the noexcept classifier and mark a known gap.",
+    "semanticLimit": "Internal projection/census consistency only. graphLinks is produced by the same parser and is not an independent source-format oracle; this does not establish full source completeness, B-rep validity, native ACIS semantics, or consumer acceptance."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1; 1.29 s)",
+    "diff_check": "PASS (src/drw_acis.h, tests/graph_preservation_tests.cpp)",
+    "new_dwg_dxf_fixture": false,
+    "full_suite_run": false
+  },
+  "compatibility": {
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "wire_format_changed": false,
+    "2d_callback_lane_changed": false,
+    "support_claim_promoted": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "freecad_linux_windows_qualification": "OPEN",
+    "independent_acis_acds_semantic_evidence": "OPEN"
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED",
+    "reason": "The shared worktree is broadly dirty; this focused slice was not staged or committed."
+  }
+}

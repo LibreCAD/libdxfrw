@@ -22,9 +22,9 @@
 
 // ODA v5.4.1 sections 4.5 and 9 distinguish the directory's logical section
 // from the inner HEADER envelope. Writer-authored sections include the optional
-// word in RL. Tracked ODA-converted AC1032 witnesses exclude it and have an
-// unclaimed logical suffix; admit that compatibility form only with a matching
-// CRC and exact sentinel, never by scanning or borrowing suffix bytes.
+// word in RL. A decoded R2010 profile excludes it; admit that narrow form only
+// with a matching CRC, exact sentinel and exact logical length.
+// Tracked AC1032 profiles additionally permit a bounded, diagnosed suffix.
 enum class DwgHeaderEnvelopeError { None, Bounds, BeginSentinel, EndSentinel };
 
 struct DwgHeaderEnvelope {
@@ -45,6 +45,12 @@ inline bool dwgHeaderHasHighSizeWord(DRW::Version version,
     return ((version == DRW::AC1024 || version == DRW::AC1027)
             && appMaintenanceVersion > 3u)
         || version >= DRW::AC1032;
+}
+
+inline bool dwgHeaderMayExcludeHighSizeWord(
+    DRW::Version version, std::uint8_t appMaintenanceVersion) noexcept {
+    return version == DRW::AC1032
+        || (version == DRW::AC1024 && appMaintenanceVersion > 3u);
 }
 
 inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
@@ -77,7 +83,9 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
     result.excludesHighSizeWord = excludesHighSizeWord;
     if (result.start != 16u || count == 0u
         || (excludesHighSizeWord
-            && (version != DRW::AC1032 || !result.hasHighSizeWord))
+            && (!dwgHeaderMayExcludeHighSizeWord(version,
+                                                 appMaintenanceVersion)
+                || !result.hasHighSizeWord))
         || (result.hasHighSizeWord && count < sizeof(std::uint32_t))
         || !dwgSafety::add(result.payloadEnd, 18u, result.trailerEnd)
         || result.trailerEnd > input.size()
@@ -137,11 +145,13 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelope(
     const auto canonical = inspectDwgHeaderEnvelopeCandidate(
         input, version, appMaintenanceVersion, false);
     if (canonical.error == DwgHeaderEnvelopeError::None
-        || version != DRW::AC1032)
+        || !dwgHeaderMayExcludeHighSizeWord(version, appMaintenanceVersion))
         return canonical;
     const auto compatible = inspectDwgHeaderEnvelopeCandidate(
         input, version, appMaintenanceVersion, true);
+    const bool suffixAllowed = version == DRW::AC1032;
     return compatible.error == DwgHeaderEnvelopeError::None
+            && (suffixAllowed || compatible.unclaimedBytes == 0u)
         ? compatible : canonical;
 }
 

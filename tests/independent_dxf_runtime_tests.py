@@ -72,6 +72,163 @@ def read_report(path, scratch, *, controls_executed=False):
             and report.get("oracleContentBeforeAfterUnchanged") is True
             and report.get("runtimeControlsExecuted") is controls_executed,
             "runtime report did not bind completed controls/content stability")
+    negative_controls = report.get("reportOnlyNegativeControls")
+    if controls_executed:
+        require(type(negative_controls) is list and len(negative_controls) == 13,
+                "runtime report omitted a report-only negative control")
+        require(all(type(item) is dict for item in negative_controls),
+                "runtime negative controls must be JSON objects")
+        expected_ids = [
+            "prefix-only-parser-is-not-full-file-conformance",
+            "unsupported-empty-primitives-are-not-zero-geometry",
+            "active-xclip-is-not-applied-by-recursive-decomposition",
+            "wrong-declared-property-count",
+            "missing-final-property-companion",
+            "mixed-soft-then-hard-edge-codes",
+            "mixed-hard-then-soft-edge-codes",
+            "duplicate-dictionary-key",
+            "audit-prunes-dangling-dictionary-target",
+            "acadrust-visualstyle-defaults-are-not-source-fidelity",
+            "acadsharp-visualstyle-writer-family-omission",
+            "acadsharp-material-writer-family-omission",
+            "acadsharp-dimension-association-writer-family-omission",
+        ]
+        require([item.get("id") for item in negative_controls] == expected_ids,
+                "runtime negative-control identities or order changed")
+        require(all(item.get("claimEligible") is False
+                    and item.get("qualificationEligible") is False
+                    for item in negative_controls),
+                "negative controls must never promote claims or qualification")
+        prefix, projection, clipping = negative_controls[:3]
+        dangling = negative_controls[8]
+        required_checks = ["sentinel", "envelope", "trailer", "versioned-header-fields"]
+        require(prefix.get("execution") == "not-run-source-review-only"
+                and prefix.get("observedChecks") == ["minimum-prefix"]
+                and prefix.get("requiredFullFileChecks") == required_checks
+                and prefix.get("missingChecks") == required_checks
+                and prefix.get("status") == "excluded-from-full-file-conformance",
+                "prefix-only peer source review was misrepresented as an execution")
+        primitives = projection.get("primitiveProjection")
+        source_counts = projection.get("sourceEntityCounts")
+        require(type(source_counts) is dict
+                and set(source_counts) == {"LINE", "RAY", "XLINE", "3DSOLID"}
+                and all(type(count) is int for count in source_counts.values()),
+                "projection source counts are not strictly typed integers")
+        def valid_primitive(kind, *, empty, vertex_count):
+            observed = primitives.get(kind) if type(primitives) is dict else None
+            return (type(observed) is dict and set(observed) == {"empty", "vertexCount"}
+                    and type(observed["empty"]) is bool
+                    and observed["empty"] is empty
+                    and type(observed["vertexCount"]) is int
+                    and observed["vertexCount"] == vertex_count)
+        require(projection.get("execution") == "pinned-ezdxf-1.4.4-in-memory-generated-dxf"
+                and projection.get("sourceVersion") == "AC1032"
+                and source_counts == {"LINE": 1, "RAY": 1, "XLINE": 1, "3DSOLID": 1}
+                and valid_primitive("LINE", empty=False, vertex_count=2)
+                and all(valid_primitive(kind, empty=True, vertex_count=0)
+                        for kind in ("RAY", "XLINE", "3DSOLID"))
+                and type(projection.get("solidSABBytes")) is int
+                and projection["solidSABBytes"] > 0
+                and projection.get("status") == "empty-unsupported-projection-not-measured-as-zero",
+                "unsupported empty projections were not distinguished from absent geometry")
+        expected_segments = [
+            [[2.0, 4.0, 10.0], [3.0, 4.0, 10.0]],
+            [[12.0, 4.0, 10.0], [13.0, 4.0, 10.0]],
+        ]
+        endpoints = clipping.get("decomposedLineEndpoints")
+        require(type(endpoints) is list and len(endpoints) == 2
+                and all(type(segment) is list and len(segment) == 2
+                        and all(type(point) is list and len(point) == 3
+                                and all(type(coordinate) is float
+                                        for coordinate in point)
+                                for point in segment)
+                        for segment in endpoints),
+                "clipping projection endpoints have an unexpected JSON shape/type")
+        require(clipping.get("execution") == "pinned-ezdxf-1.4.4-in-memory-generated-dxf"
+                and clipping.get("sourceVersion") == "AC1027"
+                and clipping.get("clippingPathPresent") is True
+                and clipping.get("clippingEnabled") is True
+                and type(clipping.get("expectedVisibleLines")) is int
+                and clipping.get("expectedVisibleLines") == 1
+                and type(clipping.get("decomposedLineCount")) is int
+                and clipping.get("decomposedLineCount") == 2
+                and type(clipping.get("outsideLinesRetained")) is int
+                and clipping.get("outsideLinesRetained") == 1
+                and endpoints == expected_segments
+                and clipping.get("status") == "clipping-profile-mismatch",
+                "active XCLIP negative did not reproduce its outside-line mismatch")
+        style_controls = negative_controls[3:5]
+        expected_style = [
+            (3, 2, 1),  # declared, authored property count, group-176 companions
+            (2, 2, 1),
+        ]
+        require(all(item.get("execution") == "pinned-ezdxf-1.4.4-in-memory-generated-dxf"
+                    and type(item.get("declaredPropertyCount")) is int
+                    and type(item.get("authoredPropertyCount")) is int
+                    and type(item.get("group176CompanionCount")) is int
+                    and item.get("opaqueTailPreserved") is True
+                    and item.get("status") == "opaque-tail-preserved-without-grammar-validation"
+                    for item in style_controls)
+                and [(item["declaredPropertyCount"], item["authoredPropertyCount"],
+                      item["group176CompanionCount"]) for item in style_controls]
+                    == expected_style,
+                "VISUALSTYLE count/companion negatives no longer preserve the observed raw tail")
+        dictionary_controls = negative_controls[5:8]
+        expected_dictionary = [
+            (360, [[360, "C1"], [360, "C2"]]),
+            (350, [[350, "C1"], [350, "C2"]]),
+            (350, [[350, "C2"]]),
+        ]
+        require(all(item.get("execution") == "pinned-ezdxf-1.4.4-in-memory-generated-dxf"
+                    and type(item.get("normalizedEdgeCode")) is int
+                    and item.get("status") == "diagnostic-robustness-only-not-valid-format-policy"
+                    for item in dictionary_controls)
+                and [(item["normalizedEdgeCode"], item.get("emittedEdges"))
+                     for item in dictionary_controls] == expected_dictionary,
+                "DICTIONARY normalization/duplicate-key controls changed")
+        require(dangling.get("execution") == "pinned-ezdxf-1.4.4-in-memory-generated-dxf"
+                and dangling.get("entriesBeforeAudit") == ["MISSING"]
+                and dangling.get("entriesAfterAudit") == []
+                and type(dangling.get("auditErrorCount")) is int
+                and dangling["auditErrorCount"] == 0
+                and type(dangling.get("auditFixCount")) is int
+                and dangling["auditFixCount"] > 0
+                and dangling.get("status") == "repair-prunes-target-zero-errors-is-not-lossless-closure",
+                "dangling DICTIONARY audit pruning was misrepresented")
+        synthesized_defaults = negative_controls[9]
+        require(synthesized_defaults.get("execution") == "not-run-source-review-only"
+                and synthesized_defaults.get("modelBlob") == "ac987d3"
+                and synthesized_defaults.get("writerRevision")
+                    == "a1a216d642d09c7548cc26ac6d3db6f79bd5a667"
+                and synthesized_defaults.get("observedLimitation")
+                    == "model-synthesizes-missing-properties-and-normalizes-legacy-magnitudes"
+                and synthesized_defaults.get("status")
+                    == "defaulted-projection-not-source-fidelity",
+                "ACadRust source-only defaulting limitation was misrepresented as execution")
+        family_omissions = negative_controls[10:]
+        expected_family_omissions = [
+            ("acadsharp-visualstyle-writer-family-omission", "VISUALSTYLE"),
+            ("acadsharp-material-writer-family-omission", "MATERIAL"),
+            ("acadsharp-dimension-association-writer-family-omission",
+             "DIMENSIONASSOCIATION"),
+        ]
+        require([(item.get("id"), item.get("family")) for item in family_omissions]
+                    == expected_family_omissions
+                and all(item.get("execution") == "not-run-source-review-only"
+                        and item.get("peer") == "ACadSharp"
+                        and item.get("sourceRevision")
+                            == "9bd47f48766a371c441e8d1ab80733e21f62b711"
+                        and item.get("reviewedMethod")
+                            == "DxfObjectsSectionWriter.isObjectSupported"
+                        and item.get("observedDisposition")
+                            == "explicitly-skipped-as-unsupported"
+                        and item.get("status")
+                            == "family-omission-not-a-peer-writer-vote"
+                        for item in family_omissions),
+                "ACadSharp family-specific source omissions were misrepresented as execution")
+    else:
+        require(negative_controls == [],
+                "runtime-only check unexpectedly claims negative controls executed")
     context = report["oracleContext"]
     require(context["version"] == "1.4.4", "oracle release is not pinned")
     configuration = context["configuration"]

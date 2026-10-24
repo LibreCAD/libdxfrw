@@ -1,0 +1,68 @@
+{
+  "title": "Deeper/broader LTYPE DXF text-field profile and retained-owner review",
+  "date": "2026-10-17",
+  "review_type": "research-only",
+  "objective": "Cross-check current open-source DWG/DXF peer safety signals, Autodesk DXF string rules, and local LTYPE parse/write/retained-memory paths; refine the existing implementation plan without creating a new feature finding.",
+  "sources": [
+    {
+      "url": "https://github.com/LibreDWG/libredwg/issues",
+      "role": "Current peer issue index",
+      "observation": "The live index reports 95 open issues and lists #1450 (LTYPE group-9 dash-text heap-buffer-overflow), #1451 (FIELD zero-child use-after-free), and #1452 (misaligned BITCODE_RS in EED encoder) as open, opened 2026-10-14. Individual issue pages were not retrievable in this review."
+    },
+    {
+      "url": "https://gitlab.com/LibreDWG/LibreDWG/-/blob/master/ChangeLog",
+      "role": "Upstream development history",
+      "observation": "The June 1, 2026 ChangeLog describes an earlier separate add_LTYPE_dashes overflow fix (GH #1209), including a static dash index persisting across calls and group-code-9 strings up to 4096 bytes overflowing fixed 256/512-byte DWG strings_area buffers. This is not evidence that newer #1450 is fixed or that libdxfrw has the same fixed-buffer route."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "role": "DXF LTYPE contract",
+      "observation": "Group 9 is one text string per element only when group 74 identifies embedded text."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "role": "Current generic DXF group-code string limits",
+      "observation": "The current table assigns strings in group-code range 1-4, 7, 9, and 300-309 a maximum of 255 characters, fewer for Unicode strings."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "role": "Older DXF group-code string limits",
+      "observation": "The older table documents an AutoCAD 2000 extended-symbol-name exception expanding the 0-9 string limit from 255 to 2049 single-byte characters. This conflicts with the current generic 255-character statement and requires version/profile qualification before enforcement."
+    }
+  ],
+  "local_source_audit": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "src/intern/dxfreader.h",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "observations": [
+      "DRW_LType::parseCode assigns group 3 description and group 9 segment text directly through getUtf8String; code 9 is gated on an existing segment whose text flag is set.",
+      "dxfRW::writeLType emits group 9 with writeUtf8String; current LTYPE validateDxf does not define a code-9 field-length rule.",
+      "The table-entry shared retained lease covers its name and typed XDATA, but the derived DRW_LType description and segment text are not charged as long-lived model-owned retained strings. Current-record getter pre-admission and input-byte admission are distinct from this owner-lifetime charge.",
+      "DWG LTYPE string emission uses a separate version-specific fixed area and preflight already tracked under 7BF.2; it is not interchangeable with DXF group-9 field-length rules."
+    ],
+    "tests_reviewed": "The existing LTYPE mirror-authority test exercises path/segment authority but no dedicated raw ASCII/Binary group-9 field-length and next-table-row matrix was identified in the searched test sources."
+  },
+  "plan_updates": [
+    "Refine 7BF to distinguish DXF group-9 scope/target-version length from DWG's cumulative 256/512-byte string area; do not enforce a guessed global group-9 cap.",
+    "Add source-generated ASCII/Binary valid 74=2 text and malformed group-9-without-text-flag controls with following LTYPE-row sentinels to the existing owner.",
+    "Name 7S.2c.d.17.6 for aggregate retained-byte charging of LTYPE description and complex segment text, including reserve-before-replacement, copy/move/reset, exact-cap/one-under and retry behavior.",
+    "Keep existing 7K group-1004 boundary as the cheapest immediate independent implementation slice; keep DWG EED writer-size calibration separate."
+  ],
+  "limitations": [
+    "The individual LibreDWG #1450-#1452 pages could not be retrieved in this pass; older plan text contains more specific observations that were not independently refreshed here.",
+    "No peer package, executable, or native CAD application was installed or run.",
+    "No local tests, sanitizers, fixtures, or code were changed or run as part of this research receipt.",
+    "No producer/native witness was obtained to resolve the Autodesk group-9 length documentation discrepancy.",
+    "No format support claim, PAR finding count, top-level implementation subplan count, or external-J disposition was promoted."
+  ],
+  "counts": {
+    "findings": 127,
+    "top_level_implementation_subplans": 71,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

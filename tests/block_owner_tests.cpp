@@ -2,6 +2,7 @@
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -21,7 +22,7 @@ bool fail(const std::string& message) {
 }
 
 bool generate(const std::string& path, bool binary, bool dangling = false,
-              bool uppercaseFixed = false) {
+              bool uppercaseFixed = false, bool includeRawEntities = false) {
     std::ofstream output(path, std::ios::binary);
     if (!output)
         return fail("could not create literal block-owner control");
@@ -76,6 +77,19 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
         writer->writeDouble(30, 3.75); writer->writeDouble(11, sentinel + 1);
         writer->writeDouble(21, 5.25); writer->writeDouble(31, -6.75);
     };
+    const auto rawEntity = [&text](const char* handle, const char* owner,
+                                   const char* reference,
+                                   const char* sentinel) {
+        text(0, "LOCAL_RAW_ENTITY"); text(5, handle); text(330, owner);
+        text(100, "AcDbEntity"); text(8, "0");
+        text(100, "AcDbLocalRawEntity"); text(1, sentinel);
+        text(320, "DEADBEEF");
+        text(1001, "RAW_ENTITY_APP"); text(1000, sentinel);
+        text(1002, "{"); text(1000, "nested raw xdata"); text(1002, "}");
+        text(1004, "A1B2"); text(1005, owner); text(1005, reference);
+        text(1005, "0000");
+        text(1000, "tail");
+    };
     const auto compoundPolyline = [&writer, &text](const char* owner) {
         text(0, "POLYLINE"); text(5, "C0"); text(330, owner);
         text(100, "AcDbEntity"); text(8, "0"); text(100, "AcDb3dPolyline");
@@ -117,6 +131,8 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
         text(3, item.second); text(1, "");
         if (std::string(item.second) == "Named") {
             line("B0", item.first, 101.25);
+            if (includeRawEntities)
+                rawEntity("31", item.first, "B0", "named raw sentinel");
             compoundPolyline(item.first);
         }
         if (dangling && std::string(item.second) == "*D999")
@@ -133,6 +149,8 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
     }
     text(0, "ENDSEC"); section("ENTITIES");
     line("A0", "17", 1.25);
+    if (includeRawEntities)
+        rawEntity("30", "17", "A0", "model raw sentinel");
     line("A1", "1B", 11.25, true);
     line("A2", "2B", 21.25, true);
     text(0, "POLYLINE"); text(5, "A3"); text(330, "17");
@@ -172,10 +190,12 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
 }
 
 struct Record {
-    std::string type, handle, owner, name, section;
+    std::string type, handle, owner, name, section, value1;
     double x {0};
     std::int32_t identifier {0};
     std::int32_t viewportId {0};
+    std::int32_t attributesFollow {0};
+    bool hasAttributesFollow {false};
     std::vector<std::pair<int, std::string>> xdata;
     std::vector<std::string> appData;
 };
@@ -216,9 +236,12 @@ bool verify(const std::string& path) {
         else if (code == 10) current.x = reader->getDouble();
         else if (code == 91) current.identifier = reader->getInt32();
         else if (code == 69) current.viewportId = reader->getInt32();
-        else if (code == 1000 || code == 1001)
+        else if (code >= 1000 && code <= 1071)
             current.xdata.emplace_back(code, reader->getString());
-        else if (code == 102 || code == 1 || code == 320)
+        else if (code == 1) {
+            current.value1 = reader->getString();
+            current.appData.push_back(current.value1);
+        } else if (code == 102 || code == 320)
             current.appData.push_back(reader->getString());
     }
     if (!eof) {
@@ -316,6 +339,63 @@ bool verify(const std::string& path) {
         || ownedEntityCounts["*Paper_Space0"] != 1u
         || ownedEntityCounts["Named"] != 0u || ownedEntityCounts["*U1"] != 0u)
         return fail("per-BLOCK child census or paper-space viewport ownership changed");
+
+    std::vector<std::size_t> rawModelIndices;
+    std::vector<std::size_t> rawNamedIndices;
+    std::size_t modelLineIndex = records.size();
+    std::size_t paperLineIndex = records.size();
+    std::size_t namedLineIndex = records.size();
+    std::size_t namedPolylineIndex = records.size();
+    std::string modelLineHandle;
+    std::string namedLineHandle;
+    for (std::size_t index = 0; index < records.size(); ++index) {
+        const Record& record = records[index];
+        if (record.type == "LOCAL_RAW_ENTITY") {
+            if (record.section == "ENTITIES") rawModelIndices.push_back(index);
+            else if (record.section == "BLOCKS") rawNamedIndices.push_back(index);
+        } else if (record.type == "LINE" && record.x == 1.25) {
+            modelLineIndex = index;
+            modelLineHandle = record.handle;
+        } else if (record.type == "LINE" && record.x == 11.25) {
+            paperLineIndex = index;
+        } else if (record.type == "LINE" && record.x == 101.25) {
+            namedLineIndex = index;
+            namedLineHandle = record.handle;
+        } else if (record.type == "POLYLINE" && record.section == "BLOCKS") {
+            namedPolylineIndex = index;
+        }
+    }
+    if (!rawModelIndices.empty() || !rawNamedIndices.empty()) {
+        if (rawModelIndices.size() != 1u || rawNamedIndices.size() != 1u)
+            return fail("opaque raw entity did not survive exactly once");
+        const Record& modelRaw = records[rawModelIndices.front()];
+        const Record& namedRaw = records[rawNamedIndices.front()];
+        const std::vector<std::pair<int, std::string>> modelXdata{
+            {1001, "RAW_ENTITY_APP"}, {1000, "model raw sentinel"},
+            {1002, "{"}, {1000, "nested raw xdata"}, {1002, "}"},
+            {1004, "A1B2"}, {1005, blocks["*Model_Space"]},
+            {1005, modelLineHandle}, {1005, "0000"}, {1000, "tail"}};
+        const std::vector<std::pair<int, std::string>> namedXdata{
+            {1001, "RAW_ENTITY_APP"}, {1000, "named raw sentinel"},
+            {1002, "{"}, {1000, "nested raw xdata"}, {1002, "}"},
+            {1004, "A1B2"}, {1005, blocks["Named"]},
+            {1005, namedLineHandle}, {1005, "0000"}, {1000, "tail"}};
+        if (modelRaw.handle != "30" || modelRaw.owner != blocks["*Model_Space"]
+            || modelRaw.value1 != "model raw sentinel"
+            || modelRaw.xdata != modelXdata
+            || modelRaw.appData != std::vector<std::string>{
+                "model raw sentinel", "DEADBEEF"}
+            || namedRaw.handle != "31" || namedRaw.owner != blocks["Named"]
+            || namedRaw.value1 != "named raw sentinel"
+            || namedRaw.xdata != namedXdata
+            || namedRaw.appData != std::vector<std::string>{
+                "named raw sentinel", "DEADBEEF"}
+            || !(modelLineIndex < rawModelIndices.front()
+                 && rawModelIndices.front() < paperLineIndex)
+            || !(namedLineIndex < rawNamedIndices.front()
+                 && rawNamedIndices.front() < namedPolylineIndex))
+            return fail("opaque raw entity identity, owner or order changed");
+    }
 
     int lines = 0, vertices = 0, attributes = 0, sequences = 0, inserts = 0;
     int viewports = 0;
@@ -574,8 +654,141 @@ bool runLocal(const std::filesystem::path& directory) {
             || named.canExplode || named.blockScaling != 1
             || named.previewData != std::vector<std::uint8_t>({1, 2, 3, 4}))
             return fail("source BLOCK_RECORD metadata was not copied intact");
-        if (!iface.fileExport(output.string(), DRW::AC1027, binary, &data, false)
+        if (!iface.fileExport(output.string(), DRW::AC1027, binary, &data, true)
             || !verify(output.string())) return false;
+    }
+    return true;
+}
+
+bool testRawEntityAdapterRoundTrip(const std::filesystem::path& directory) {
+    for (bool binary : {false, true}) {
+        const auto input = directory / (binary
+            ? "raw entity input binary.dxf" : "raw entity input ascii.dxf");
+        const auto output = directory / (binary
+            ? "raw entity output binary.dxf" : "raw entity output ascii.dxf");
+        if (!generate(input.string(), binary, false, false, true))
+            return false;
+        dx_data data;
+        dx_iface iface;
+        if (!iface.fileImport(input.string(), &data, false))
+            return fail("raw entity source failed to import");
+        const auto named = std::find_if(
+            data.blocks.begin(), data.blocks.end(),
+            [](const dx_ifaceBlock* block) {
+                return block != nullptr && block->name == "Named";
+            });
+        if (data.mBlock == nullptr || data.mBlock->rawEntities.size() != 1u
+            || data.mBlock->rawEntities.front().typedEntityIndex != 1u
+            || data.mBlock->rawEntities.front().record.handle != 0x30u
+            || data.mBlock->rawEntities.front().record.parentHandle != 0x17u
+            || named == data.blocks.end() || (*named)->rawEntities.size() != 1u
+            || (*named)->rawEntities.front().typedEntityIndex != 1u
+            || (*named)->rawEntities.front().record.handle != 0x31u
+            || (*named)->rawEntities.front().record.parentHandle != 0x1Fu)
+            return fail("raw entity callback order/identity was not retained");
+        if (!iface.fileExport(output.string(), DRW::AC1027, binary, &data, false))
+            return fail("raw entity adapter export failed ASCII/binary output control");
+        if (!verify(output.string()))
+            return fail("raw entity adapter output failed verification");
+    }
+    return true;
+}
+
+bool testRawXdataReferenceRejections(
+        const std::filesystem::path& directory) {
+    for (bool binary : {false, true}) {
+        const auto input = directory / (binary
+            ? "raw xdata rejection input binary.dxf"
+            : "raw xdata rejection input ascii.dxf");
+        if (!generate(input.string(), binary, false, false, true))
+            return false;
+        for (int rejectionKind = 0; rejectionKind != 3; ++rejectionKind) {
+            const bool duplicateIdentity = rejectionKind == 1;
+            dx_data data;
+            dx_iface iface;
+            if (!iface.fileImport(input.string(), &data, false))
+                return fail("raw XDATA rejection source failed to import");
+            const auto named = std::find_if(
+                data.blocks.begin(), data.blocks.end(),
+                [](const dx_ifaceBlock* block) {
+                    return block != nullptr && block->name == "Named";
+                });
+            if (named == data.blocks.end()
+                || (*named)->rawEntities.size() != 1u)
+                return fail("raw XDATA rejection control lost named entity");
+            DRW_RawDxfObject& raw =
+                (*named)->rawEntities.front().record;
+            if (duplicateIdentity) {
+                raw.handle = 0x30u;
+                for (std::size_t index = 0; index < raw.groups.size(); ++index) {
+                    if (raw.groups[index].code() == 5) {
+                        raw.groups[index].addString(5, "30");
+                        if (raw.hasRawValues && index < raw.rawValues.size())
+                            raw.rawValues[index] = "30";
+                        break;
+                    }
+                }
+            } else if (rejectionKind == 0) {
+                std::size_t referenceCount = 0;
+                for (std::size_t index = 0; index < raw.groups.size(); ++index) {
+                    if (raw.groups[index].code() == 1005
+                        && ++referenceCount == 2u) {
+                        raw.groups[index].addString(1005, "FFFF");
+                        if (raw.hasRawValues && index < raw.rawValues.size())
+                            raw.rawValues[index] = "FFFF";
+                        break;
+                    }
+                }
+                if (referenceCount != 2u)
+                    return fail("raw XDATA rejection control lacks second handle");
+            } else {
+                std::size_t firstXdata = raw.groups.size();
+                std::size_t secondReference = raw.groups.size();
+                std::size_t referenceCount = 0;
+                for (std::size_t index = 0; index < raw.groups.size(); ++index) {
+                    if (raw.groups[index].code() == 1001
+                        && firstXdata == raw.groups.size())
+                        firstXdata = index;
+                    if (raw.groups[index].code() == 1005
+                        && ++referenceCount == 2u)
+                        secondReference = index;
+                }
+                if (firstXdata == raw.groups.size()
+                    || secondReference == raw.groups.size())
+                    return fail("raw XDATA context control lacks required groups");
+                std::rotate(raw.groups.begin() + firstXdata,
+                            raw.groups.begin() + secondReference,
+                            raw.groups.begin() + secondReference + 1u);
+                if (raw.hasRawValues) {
+                    std::rotate(raw.rawValues.begin() + firstXdata,
+                                raw.rawValues.begin() + secondReference,
+                                raw.rawValues.begin() + secondReference + 1u);
+                }
+            }
+            const auto output = directory / (binary
+                ? (rejectionKind == 1 ? "duplicate raw identity binary.dxf"
+                   : rejectionKind == 2 ? "raw xdata context binary.dxf"
+                                        : "missing raw xdata target binary.dxf")
+                : (rejectionKind == 1 ? "duplicate raw identity ascii.dxf"
+                   : rejectionKind == 2 ? "raw xdata context ascii.dxf"
+                                        : "missing raw xdata target ascii.dxf"));
+            const std::string sentinel = "published raw XDATA sentinel\n";
+            {
+                std::ofstream destination(output, std::ios::binary);
+                destination << sentinel;
+            }
+            if (iface.fileExport(output.string(), DRW::AC1027, binary,
+                                 &data, false))
+                return fail(rejectionKind == 1
+                    ? "duplicate raw source identity was published"
+                    : rejectionKind == 2
+                        ? "raw 1005 outside XDATA context was published"
+                        : "unresolved raw XDATA handle was published");
+            std::ifstream destination(output, std::ios::binary);
+            if (std::string(std::istreambuf_iterator<char>(destination), {})
+                != sentinel)
+                return fail("raw XDATA rejection replaced an existing destination");
+        }
     }
     return true;
 }
@@ -763,9 +976,295 @@ bool testSourceIdentityGuards(const std::filesystem::path& directory) {
     return true;
 }
 
+bool testConsecutiveNamedBlockOwnership(const std::filesystem::path& directory) {
+    for (bool binary : {false, true}) {
+        dx_data data;
+        DRW_Block_Record model;
+        model.handle = 0x17u;
+        model.name = "*Model_Space";
+        DRW_Block_Record paper;
+        paper.handle = 0x18u;
+        paper.name = "*Paper_Space";
+        DRW_Block_Record first;
+        first.handle = 0x1Fu;
+        first.name = "First";
+        DRW_Block_Record second;
+        second.handle = 0x30u;
+        second.name = "Second";
+        DRW_Block_Record empty;
+        empty.handle = 0x40u;
+        empty.name = "*D28";
+        DRW_Block_Record suffix;
+        suffix.handle = 0x50u;
+        suffix.name = "*D29";
+        DRW_Block_Record paperLayout;
+        paperLayout.handle = 0x60u;
+        paperLayout.name = "*Paper_Space0";
+        data.blockRecords = {model, paper, first, second, empty, suffix, paperLayout};
+
+        const auto addBlock = [&data](const DRW_Block_Record& record,
+                                      std::uint32_t firstEntityHandle,
+                                      double firstX,
+                                      bool addLine = true) {
+            auto* block = new dx_ifaceBlock;
+            block->name = record.name;
+            block->parentHandle = record.handle;
+            if (addLine) {
+                auto* line = new DRW_Line;
+                line->handle = firstEntityHandle;
+                line->parentHandle = record.handle;
+                line->basePoint = DRW_Coord(firstX, 10.0, 0.0);
+                line->secPoint = DRW_Coord(firstX + 1.0, 20.0, 0.0);
+                block->ent.push_back(line);
+            }
+            data.blocks.push_back(block);
+            return block;
+        };
+
+        dx_ifaceBlock* firstBlock = addBlock(first, 0xA0u, 110.0, false);
+        auto* attributedInsert = new DRW_Insert;
+        attributedInsert->handle = 0xA0u;
+        attributedInsert->parentHandle = first.handle;
+        attributedInsert->name = second.name;
+        attributedInsert->basePoint = DRW_Coord(100.0, 100.0, 0.0);
+        for (unsigned index = 0; index != 12; ++index) {
+            auto attribute = std::make_shared<DRW_Attrib>();
+            attribute->handle = 0xA1u + index;
+            attribute->tag = "TAG_" + std::to_string(index);
+            attribute->text = "VALUE_" + std::to_string(index);
+            attribute->height = 2.5;
+            attributedInsert->attlist.push_back(std::move(attribute));
+        }
+        firstBlock->ent.push_back(attributedInsert);
+        auto* firstLine = new DRW_Line;
+        firstLine->handle = 0xB0u;
+        firstLine->parentHandle = first.handle;
+        firstLine->basePoint = DRW_Coord(110.0, 10.0, 0.0);
+        firstLine->secPoint = DRW_Coord(111.0, 20.0, 0.0);
+        firstBlock->ent.push_back(firstLine);
+
+        dx_ifaceBlock* secondBlock = addBlock(second, 0xC0u, 210.0, false);
+        auto* plainInsert = new DRW_Insert;
+        plainInsert->handle = 0xC0u;
+        plainInsert->parentHandle = second.handle;
+        plainInsert->name = suffix.name;
+        plainInsert->basePoint = DRW_Coord(200.0, 200.0, 0.0);
+        secondBlock->ent.push_back(plainInsert);
+        auto* secondLine = new DRW_Line;
+        secondLine->handle = 0xC1u;
+        secondLine->parentHandle = second.handle;
+        secondLine->basePoint = DRW_Coord(210.0, 10.0, 0.0);
+        secondLine->secPoint = DRW_Coord(211.0, 20.0, 0.0);
+        secondBlock->ent.push_back(secondLine);
+
+        addBlock(empty, 0, 0.0, false);
+        addBlock(suffix, 0xD0u, 310.0);
+        addBlock(paperLayout, 0xE0u, 410.0);
+        auto* modelLine = new DRW_Line;
+        modelLine->handle = 0xF0u;
+        modelLine->parentHandle = model.handle;
+        modelLine->basePoint = DRW_Coord(910.0, 11.0, 0.0);
+        modelLine->secPoint = DRW_Coord(911.0, 12.0, 0.0);
+        data.mBlock->ent.push_back(modelLine);
+        auto* paperLine = new DRW_Line;
+        paperLine->handle = 0xF1u;
+        paperLine->space = DRW::PaperSpace;
+        paperLine->basePoint = DRW_Coord(920.0, 21.0, 0.0);
+        paperLine->secPoint = DRW_Coord(921.0, 22.0, 0.0);
+        data.mBlock->ent.push_back(paperLine);
+
+        const auto output = directory / (binary
+            ? "consecutive named blocks binary.dxf"
+            : "consecutive named blocks ascii.dxf");
+        dx_iface iface;
+        if (!iface.fileExport(output.string(), DRW::AC1027, binary,
+                              &data, false, true))
+            return fail("consecutive named-block control did not export");
+
+        std::ifstream input(output, std::ios::binary);
+        char signature[22] {};
+        input.read(signature, sizeof signature);
+        const bool hasBinarySignature = std::string(signature, sizeof signature)
+            == std::string("AutoCAD Binary DXF\r\n\x1a\0", 22);
+        if (hasBinarySignature != binary)
+            return fail("consecutive named-block output encoding changed");
+        input.clear();
+        input.seekg(binary ? 22 : 0);
+        std::unique_ptr<dxfReader> reader;
+        if (binary)
+            reader = std::make_unique<dxfReaderBinary>(&input);
+        else
+            reader = std::make_unique<dxfReaderAscii>(&input);
+
+        std::vector<Record> records;
+        Record current;
+        std::string section;
+        int code = 0;
+        bool eof = false;
+        while (reader->readRec(&code)) {
+            if (code == 0) {
+                if (!current.type.empty())
+                    records.push_back(current);
+                current = Record{};
+                current.type = reader->getString();
+                if (current.type == "ENDSEC") {
+                    current.section = section;
+                    section.clear();
+                } else if (current.type != "SECTION") {
+                    current.section = section;
+                }
+                eof = current.type == "EOF";
+            } else if (code == 2) {
+                current.name = reader->getString();
+                if (current.type == "SECTION")
+                    section = current.name;
+            } else if (code == 5) {
+                current.handle = reader->getString();
+            } else if (code == 330) {
+                current.owner = reader->getString();
+            } else if (code == 10) {
+                current.x = reader->getDouble();
+            } else if (code == 66) {
+                current.attributesFollow = reader->getInt32();
+                current.hasAttributesFollow = true;
+            } else if (code == 1) {
+                current.value1 = reader->getString();
+            }
+        }
+        if (!eof)
+            return fail("consecutive named-block output did not reach EOF");
+
+        std::map<std::string, std::string> blockRecordHandles;
+        std::map<std::string, std::vector<std::string>> blockDefinitionOwners;
+        std::map<std::string, std::size_t> blockDefinitionEndCounts;
+        std::map<std::string, std::map<std::string, std::size_t>> childTypesByBlock;
+        std::map<std::string, std::vector<std::string>> blockDefinitionOrder;
+        std::map<std::string, std::size_t> entityCountsByOwner;
+        std::string activeBlock;
+        std::string activeBlockOwner;
+        std::string activeInsertHandle;
+        for (std::size_t index = 0; index < records.size(); ++index) {
+            const Record& record = records[index];
+            if (record.type == "BLOCK_RECORD" && record.section == "TABLES") {
+                if (!blockRecordHandles.emplace(record.name, record.handle).second)
+                    return fail("duplicate BLOCK_RECORD in consecutive-block output");
+            } else if (record.type == "BLOCK" && record.section == "BLOCKS") {
+                blockDefinitionOwners[record.name].push_back(record.owner);
+                if (!activeBlock.empty())
+                    return fail("consecutive named BLOCK definitions overlapped");
+                activeBlock = record.name;
+                activeBlockOwner = record.owner;
+                blockDefinitionOrder["BLOCKS"].push_back(record.name);
+            } else if (record.section == "BLOCKS" && record.type == "ENDBLK") {
+                if (activeBlock.empty())
+                    return fail("consecutive named-block ENDBLK had no BLOCK");
+                if (record.owner != activeBlockOwner)
+                    return fail("consecutive named ENDBLK owner changed");
+                ++blockDefinitionEndCounts[activeBlock];
+                activeBlock.clear();
+                activeBlockOwner.clear();
+            } else if (record.section == "BLOCKS" && !activeBlock.empty()) {
+                ++childTypesByBlock[activeBlock][record.type];
+                if (record.type == "ATTRIB" || record.type == "SEQEND") {
+                    if (activeInsertHandle.empty() || record.owner != activeInsertHandle)
+                        return fail("attribute sequence child lost its INSERT owner");
+                    if (record.type == "SEQEND")
+                        activeInsertHandle.clear();
+                } else {
+                    if (record.owner != activeBlockOwner)
+                        return fail("consecutive named-block child changed owner");
+                    activeInsertHandle = record.type == "INSERT"
+                        ? record.handle : std::string();
+                }
+            } else if (record.section == "ENTITIES" && record.type == "LINE") {
+                if (!activeBlock.empty())
+                    return fail("modelspace record interrupted a BLOCK body");
+                ++entityCountsByOwner[record.owner];
+                if (record.x == 910.0) {
+                    if (record.owner != blockRecordHandles["*Model_Space"])
+                        return fail("modelspace sentinel changed owner");
+                } else if (record.x == 920.0) {
+                    if (record.owner != blockRecordHandles["*Paper_Space"])
+                        return fail("paperspace sentinel changed owner");
+                } else {
+                    return fail("named-block child leaked into ENTITIES");
+                }
+            }
+        }
+        if (!activeBlock.empty() || blockRecordHandles.size() != 7u
+            || blockDefinitionOwners.size() != blockRecordHandles.size()
+            || blockDefinitionEndCounts.size() != blockRecordHandles.size()
+            || records.empty() || records.back().type != "ENDSEC"
+            || records.back().section != "OBJECTS")
+            return fail("block table/body count or terminal closure changed");
+        for (const auto& blockRecord : blockRecordHandles) {
+            const auto definitions = blockDefinitionOwners.find(blockRecord.first);
+            if (definitions == blockDefinitionOwners.end()
+                || definitions->second != std::vector<std::string>{blockRecord.second}
+                || blockDefinitionEndCounts[blockRecord.first] != 1u)
+                return fail("BLOCK_RECORD identity did not map to exactly one BLOCK/ENDBLK");
+        }
+        const std::vector<std::string> expectedOrder{
+            "*Model_Space", "*Paper_Space", "First", "Second", "*D28",
+            "*D29", "*Paper_Space0"};
+        if (blockDefinitionOrder["BLOCKS"] != expectedOrder)
+            return fail("later named/anonymous/paper-layout block order changed");
+        const auto expectedChildTypes = [&childTypesByBlock](const std::string& name,
+                                                             const std::map<std::string, std::size_t>& expected) {
+            return childTypesByBlock[name] == expected;
+        };
+        if (!expectedChildTypes("First", {{"INSERT", 1u}, {"ATTRIB", 12u},
+                                            {"SEQEND", 1u}, {"LINE", 1u}})
+            || !expectedChildTypes("Second", {{"INSERT", 1u}, {"LINE", 1u}})
+            || !expectedChildTypes("*D28", {})
+            || !expectedChildTypes("*D29", {{"LINE", 1u}})
+            || !expectedChildTypes("*Paper_Space0", {{"LINE", 1u}}))
+            return fail("per-block child/type census or entity-section separation changed");
+
+        bool checkedAttributedInsert = false;
+        bool checkedPlainInsert = false;
+        for (std::size_t index = 0; index < records.size(); ++index) {
+            const Record& record = records[index];
+            if (record.section != "BLOCKS" || record.type != "INSERT")
+                continue;
+            if (record.name == "Second" && record.owner == blockRecordHandles["First"]) {
+                if (!record.hasAttributesFollow || record.attributesFollow != 1
+                    || index + 14 >= records.size())
+                    return fail("attribute-bearing INSERT did not declare its sequence");
+                for (unsigned attributeIndex = 0; attributeIndex != 12; ++attributeIndex) {
+                    const Record& attribute = records[index + 1 + attributeIndex];
+                    if (attribute.type != "ATTRIB" || attribute.owner != record.handle
+                        || attribute.name != "TAG_" + std::to_string(attributeIndex)
+                        || attribute.value1 != "VALUE_" + std::to_string(attributeIndex))
+                        return fail("INSERT attribute chain content/order changed");
+                }
+                const Record& sequenceEnd = records[index + 13];
+                if (sequenceEnd.type != "SEQEND" || sequenceEnd.owner != record.handle
+                    || records[index + 14].type != "LINE"
+                    || records[index + 14].owner != blockRecordHandles["First"])
+                    return fail("attribute chain did not close before the next block child");
+                checkedAttributedInsert = true;
+            } else if (record.name == "*D29"
+                       && record.owner == blockRecordHandles["Second"]) {
+                if (record.hasAttributesFollow || index + 1 >= records.size()
+                    || records[index + 1].type != "LINE"
+                    || records[index + 1].owner != blockRecordHandles["Second"])
+                    return fail("attribute-free INSERT gained a sequence or displaced its sibling");
+                checkedPlainInsert = true;
+            }
+        }
+        if (!checkedAttributedInsert || !checkedPlainInsert
+            || entityCountsByOwner.size() != 2u
+            || entityCountsByOwner[blockRecordHandles["*Model_Space"]] != 1u
+            || entityCountsByOwner[blockRecordHandles["*Paper_Space"]] != 1u)
+            return fail("insert sequence or model/paper sentinel census changed");
+    }
+    return true;
+}
+
 // Literal codec vectors, not independently qualified/evaluable ACIS geometry.
 // The same records exercise direct delivery and the private BLOCK event queue.
-enum class CallbackFooter { Complete, Missing, WrongSubclass };
+enum class CallbackFooter { Complete, Missing, WrongSubclass, Duplicate, Unbalanced };
 
 bool generateCallbackControl(const std::filesystem::path& path, bool binary,
                              bool inBlock, CallbackFooter footer = CallbackFooter::Complete,
@@ -873,7 +1372,16 @@ bool generateCallbackControl(const std::filesystem::path& path, bool binary,
     if (inBlock) {
         if (footer != CallbackFooter::Missing) {
             common("ENDBLK", "81", "1F");
-            text(100, footer == CallbackFooter::WrongSubclass ? "AcDbLine" : "AcDbBlockEnd");
+            if (footer == CallbackFooter::Unbalanced) {
+                text(102, "{ACAD_REACTORS"); text(330, "17");
+            } else {
+                text(100, footer == CallbackFooter::WrongSubclass
+                              ? "AcDbLine" : "AcDbBlockEnd");
+                if (footer == CallbackFooter::Duplicate) {
+                    common("ENDBLK", "82", "1F");
+                    text(100, "AcDbBlockEnd");
+                }
+            }
         }
         text(0, "ENDSEC"); section("ENTITIES");
     }
@@ -1022,7 +1530,10 @@ bool testQueuedBlockCallbacks(const std::filesystem::path& directory) {
         }
         const auto path = directory / "queued callbacks failure.dxf";
         dxfRW reader(path.string().c_str());
-        for (const auto footer : {CallbackFooter::Missing, CallbackFooter::WrongSubclass}) {
+        for (const auto footer : {CallbackFooter::Missing,
+                                  CallbackFooter::WrongSubclass,
+                                  CallbackFooter::Duplicate,
+                                  CallbackFooter::Unbalanced}) {
             if (!generateCallbackControl(path, binary, true, footer)) return false;
             BlockCallbackSink malformed;
             if (readCallbackControl(reader, malformed, path, binary, ext)
@@ -1102,9 +1613,13 @@ int main(int argc, char** argv) {
         / ("libdxfrw-block-owners-" + std::to_string(nonce));
     std::filesystem::create_directory(directory);
     const bool success = runLocal(directory) && testMetadataCopy()
+        && testRawEntityAdapterRoundTrip(directory)
+        && testRawXdataReferenceRejections(directory)
         && testStrictRejection(directory) && testAnonymousBlockChildOwnership(directory)
         && testMintedOverrideAndLegacyFallback(directory)
-        && testSourceIdentityGuards(directory) && testQueuedBlockCallbacks(directory);
+        && testSourceIdentityGuards(directory)
+        && testConsecutiveNamedBlockOwnership(directory)
+        && testQueuedBlockCallbacks(directory);
     if (success) std::filesystem::remove_all(directory);
     else std::cerr << "Evidence: " << directory << '\n';
     return success ? 0 : 1;

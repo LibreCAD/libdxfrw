@@ -1,32 +1,24 @@
-# DWG read tests for libdxfrw.
+# Sample-backed DWG reader smoke tests for libdxfrw.
 #
-# Tests invoke the dwg2dxf binary against sample .dwg files and verify
-# the produced .dxf is non-empty and structurally well-formed.
+# These tests call the reader directly so successful parsing is not conflated
+# with the CLI's intentionally stricter complete-export admission. DXF writer
+# behavior and strict conversion refusal are tested in their own lanes.
 #
 # Sample files live in tests/samples/<AC_VERSION>/. A test is registered
 # for every .dwg under each version directory at configure time. Drop a
 # new .dwg in to register a new test on next CMake reconfigure.
 #
-# Each registered test cross-converts to multiple output DXF versions
-# (R12 / v2000 / v2010) so the writer side gets exercised too. The harness
-# verifies:
+# The harness verifies:
 #   1. The sample's first 6 bytes literally match its declared AC version.
-#   2. dwg2dxf returns 0 and produces a non-empty DXF.
-#   3. The DXF contains required structural markers (SECTION / ENDSEC / EOF).
-#   4. The DXF contains at least one entity OR table block.
+#   2. DWG import succeeds with no entity/object parse failures.
 #
 # Test labels: "dwg_read", the AC version (AC1021 / AC1024 / ...), and
-# the output version (out_R12 / out_v2000 / out_v2010).
+# "sample". This lane makes no DXF export or semantic-completeness claim.
 #
 # Run:
 #   cd build && ctest -L dwg_read --output-on-failure
 #   cd build && ctest -L AC1024 --output-on-failure
-#   cd build && ctest -L out_v2010 --output-on-failure
-
-if(NOT TARGET dwg2dxf)
-    message(STATUS "tests/: dwg2dxf target not built; skipping DWG read tests")
-    return()
-endif()
+#   cd build && ctest -R '^dwg_read_' --output-on-failure
 
 # Optional external qualification for AC1015 SAT-v1 modeler carriers. Neither
 # the DWG nor independent reference DXF is vendored; callers provide paths to
@@ -97,6 +89,19 @@ target_include_directories(libdxfrw_dwg2dxf_adapter_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(libdxfrw_dwg2dxf_adapter_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_sortents_adapter
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --sortents-adapter
+        "${CMAKE_CURRENT_BINARY_DIR}/sortents-adapter")
+set_tests_properties(libdxfrw_sortents_adapter PROPERTIES
+    LABELS "fast;dxf;graph;adapter" TIMEOUT 30)
+add_test(NAME libdxfrw_group_adapter_roundtrip
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --group-adapter-roundtrip)
+set_tests_properties(libdxfrw_group_adapter_roundtrip PROPERTIES
+    LABELS "fast;dxf;graph;adapter" TIMEOUT 30)
+add_test(NAME libdxfrw_field_graph_export_refusal
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --field-graph-export-refusal)
+set_tests_properties(libdxfrw_field_graph_export_refusal PROPERTIES
+    LABELS "fast;dxf;graph;adapter;field" TIMEOUT 30)
 add_test(NAME libdxfrw_extension_graph_limits
     COMMAND ${CMAKE_COMMAND}
         "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
@@ -105,16 +110,166 @@ add_test(NAME libdxfrw_extension_graph_limits
         -P ${CMAKE_CURRENT_SOURCE_DIR}/run_extension_graph_limits_test.cmake)
 set_tests_properties(libdxfrw_extension_graph_limits PROPERTIES
     LABELS "fast;dxf;graph;adapter;cli" TIMEOUT 30)
+add_test(NAME libdxfrw_table_callback_owner_order
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --retain-table-callback)
+set_tests_properties(libdxfrw_table_callback_owner_order PROPERTIES
+    LABELS "fast;dxf;graph;adapter;tables" TIMEOUT 30)
+add_test(NAME libdxfrw_tablestyle_nested_raw_net
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --tablestyle-nested-raw-net)
+set_tests_properties(libdxfrw_tablestyle_nested_raw_net PROPERTIES
+    LABELS "fast;dxf;tablestyle;generated;raw-net" TIMEOUT 30)
 add_test(NAME libdxfrw_visual_style_import_evidence
     COMMAND libdxfrw_dwg2dxf_adapter_tests --visual-style-import-evidence
         ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(libdxfrw_visual_style_import_evidence PROPERTIES
     LABELS "fast;dxf;graph;adapter;visualstyle" TIMEOUT 30)
+add_test(NAME dwg2dxf_visual_style_raw_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --visual-style-raw-capture-limits)
+set_tests_properties(dwg2dxf_visual_style_raw_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;visualstyle" TIMEOUT 10)
+add_test(NAME dwg2dxf_dictionary_default_raw_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dictionary-default-raw-capture-limits)
+set_tests_properties(dwg2dxf_dictionary_default_raw_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_dictionary_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dictionary-typed-capture-limits)
+set_tests_properties(dwg2dxf_dictionary_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_dxf_class_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dxf-class-typed-capture-limits)
+set_tests_properties(dwg2dxf_dxf_class_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_basic_table_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --basic-table-typed-capture-limits)
+set_tests_properties(dwg2dxf_basic_table_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;tables" TIMEOUT 10)
+add_test(NAME dwg2dxf_typed_entity_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --typed-entity-capture-limits)
+set_tests_properties(dwg2dxf_typed_entity_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;entities" TIMEOUT 10)
+add_test(NAME dwg2dxf_dictionary_default_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dictionary-default-typed-capture-limits)
+set_tests_properties(dwg2dxf_dictionary_default_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_render_background_sun_raw_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --render-background-sun-raw-capture-limits)
+set_tests_properties(dwg2dxf_render_background_sun_raw_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_field_carrier_raw_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --field-carrier-raw-capture-limits)
+set_tests_properties(dwg2dxf_field_carrier_raw_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_sort_table_style_raw_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --sort-table-style-raw-capture-limits)
+set_tests_properties(dwg2dxf_sort_table_style_raw_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_render_settings_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --render-settings-typed-capture-limits)
+set_tests_properties(dwg2dxf_render_settings_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects;render" TIMEOUT 10)
+add_test(NAME dwg2dxf_sortents_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --sortents-typed-capture-limits)
+set_tests_properties(dwg2dxf_sortents_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;graph;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_table_style_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --table-style-typed-capture-limits)
+set_tests_properties(dwg2dxf_table_style_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_cell_style_map_typed_capture_fail_closed
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --cell-style-map-typed-capture-fail-closed)
+set_tests_properties(dwg2dxf_cell_style_map_typed_capture_fail_closed PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_table_content_style_reference_census
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --table-content-style-reference-census)
+set_tests_properties(dwg2dxf_table_content_style_reference_census PROPERTIES
+    LABELS "fast;dxf;adapter;graph;table;cellstylemap;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_table_base_style_id_dxf_refusal
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --table-base-style-id-dxf-refusal)
+set_tests_properties(dwg2dxf_table_base_style_id_dxf_refusal PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated;refusal" TIMEOUT 10)
+add_test(NAME libdxfrw_cellstylemap_dxf_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --cell-style-map-dxf-writer)
+set_tests_properties(libdxfrw_cellstylemap_dxf_writer PROPERTIES
+    LABELS "fast;dxf;adapter;objects;cellstylemap;generated" TIMEOUT 20)
+add_test(NAME dwg2dxf_modeldoc_view_style_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --modeldoc-view-style-typed-capture-limits)
+set_tests_properties(dwg2dxf_modeldoc_view_style_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_field_carrier_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --field-carrier-typed-capture-limits)
+set_tests_properties(dwg2dxf_field_carrier_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_datalink_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --datalink-typed-capture-limits)
+set_tests_properties(dwg2dxf_datalink_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_xrecord_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --xrecord-typed-capture-limits)
+set_tests_properties(dwg2dxf_xrecord_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_material_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --material-typed-capture-limits)
+set_tests_properties(dwg2dxf_material_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_background_sun_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --background-sun-typed-capture-limits)
+set_tests_properties(dwg2dxf_background_sun_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_visual_style_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --visual-style-typed-capture-limits)
+set_tests_properties(dwg2dxf_visual_style_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_mline_style_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --mline-style-typed-capture-limits)
+set_tests_properties(dwg2dxf_mline_style_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_named_resource_typed_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --named-resource-typed-capture-limits)
+set_tests_properties(dwg2dxf_named_resource_typed_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME dwg2dxf_named_resource_raw_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --named-resource-raw-capture-limits)
+set_tests_properties(dwg2dxf_named_resource_raw_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;objects" TIMEOUT 10)
+add_test(NAME libdxfrw_dimension_picture_block_full_conversion
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dimension-picture-block-full-conversion)
+set_tests_properties(libdxfrw_dimension_picture_block_full_conversion
+    PROPERTIES LABELS "fast;dxf;graph;adapter" TIMEOUT 30)
 add_test(NAME libdxfrw_named_resource_import_evidence
     COMMAND libdxfrw_dwg2dxf_adapter_tests --named-resource-import-evidence
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_SOURCE_DIR}/tests/fixtures/dwg/rtext_arctext.dwg)
 set_tests_properties(libdxfrw_named_resource_import_evidence PROPERTIES
+    LABELS "fast;dxf;graph;adapter;objects" TIMEOUT 30)
+add_test(NAME libdxfrw_dictionary_default_adapter_roundtrip
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dictionary-default-adapter-roundtrip)
+set_tests_properties(libdxfrw_dictionary_default_adapter_roundtrip PROPERTIES
     LABELS "fast;dxf;graph;adapter;objects" TIMEOUT 30)
 add_executable(libdxfrw_block_owner_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/block_owner_tests.cpp
@@ -161,6 +316,9 @@ add_test(
         "-DADAPTER_TEST=$<TARGET_FILE:libdxfrw_dwg2dxf_adapter_tests>"
         "-DDWG2DXF=$<TARGET_FILE:dwg2dxf>"
         "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+        "-DBINARY_GENERATE_MODE=--generate-binary"
+        "-DBINARY_VERIFY_MODE=--verify-binary"
+        "-DBINARY_CONVERSION_OPTIONS=-b"
         -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg2dxf_image_path_test.cmake
 )
 set_tests_properties(dwg2dxf_image_path_cli PROPERTIES
@@ -219,6 +377,45 @@ foreach(_ellipse_mode IN ITEMS ascii binary)
         LABELS "fast;dxf;cli;ellipse" TIMEOUT 30)
 endforeach()
 
+# The converter transfers its completed AcDs section into its owned document
+# model. Existing consumers retain the default const-reference callback.
+add_test(
+    NAME dwg2dxf_datastorage_move_callback
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --data-storage-move-callback
+)
+set_tests_properties(dwg2dxf_datastorage_move_callback PROPERTIES
+    LABELS "fast;dwg;adapter;datastorage"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_datastorage_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --data-storage-capture-limits
+)
+set_tests_properties(dwg2dxf_datastorage_capture_limits PROPERTIES
+    LABELS "fast;dwg;adapter;datastorage"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_modeler_geometry_move_callback
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --modeler-geometry-move-callback-fallback
+)
+set_tests_properties(dwg2dxf_modeler_geometry_move_callback PROPERTIES
+    LABELS "fast;dxf;adapter;modeler"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_modeler_dxf_move_dispatch
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dxf-modeler-move-dispatch
+)
+set_tests_properties(dwg2dxf_modeler_dxf_move_dispatch PROPERTIES
+    LABELS "fast;dxf;adapter;modeler"
+    TIMEOUT 10
+)
+
 # Dynamic-block objects are retained by the converter adapter and must block
 # publication until a semantics-qualified DXF writer exists.
 add_test(
@@ -227,6 +424,26 @@ add_test(
 )
 set_tests_properties(dwg2dxf_dynamic_block_fail_closed PROPERTIES
     LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 10
+)
+
+# File-format dispatch folds only ASCII extension letters; non-ASCII suffix
+# bytes must be preserved and rejected without locale-dependent ctype calls.
+add_test(
+    NAME dwg2dxf_file_extension_case
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --file-extension-case
+)
+set_tests_properties(dwg2dxf_file_extension_case PROPERTIES
+    LABELS "fast;dxf;adapter;paths"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_mleader_fail_closed
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --reject-mleader-without-serializer
+)
+set_tests_properties(dwg2dxf_mleader_fail_closed PROPERTIES
+    LABELS "fast;dxf;adapter;mleader"
     TIMEOUT 10
 )
 
@@ -239,6 +456,202 @@ add_test(
 set_tests_properties(dwg2dxf_named_object_callback_storage PROPERTIES
     LABELS "fast;dxf;adapter;objects"
     TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_field_dxf_multichunk_value
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --field-dxf-multichunk-value
+)
+set_tests_properties(dwg2dxf_field_dxf_multichunk_value PROPERTIES
+    LABELS "fast;dxf;adapter;field"
+    TIMEOUT 10
+)
+
+# Keep the typed/raw view-style overlay roundtrip independently runnable from
+# the broader named-object callback collection.
+add_test(
+    NAME dwg2dxf_modeldoc_view_style_callbacks
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks
+)
+set_tests_properties(dwg2dxf_modeldoc_view_style_callbacks PROPERTIES
+    LABELS "fast;dxf;adapter;objects;view-style"
+    TIMEOUT 10
+)
+
+# Typed AcSh history callback copies are bounded before retention and any
+# rejected callback makes conversion fail closed; all data is generated here.
+add_test(
+    NAME dwg2dxf_acsh_history_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --acsh-history-capture-limits
+)
+set_tests_properties(dwg2dxf_acsh_history_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;acds"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_acds_history_dwg_frame_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --acds-history-dwg-frame-capture-limits
+)
+set_tests_properties(dwg2dxf_acds_history_dwg_frame_capture_limits PROPERTIES
+    LABELS "fast;dwg;adapter;acds"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_standard_dwg_object_source_capture
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-object-source-capture
+)
+set_tests_properties(dwg2dxf_standard_dwg_object_source_capture PROPERTIES
+    LABELS "fast;dwg;adapter;objects"
+    TIMEOUT 10
+)
+add_test(NAME dwg2dxf_standard_dwg_object_payload_correlation
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-object-payload-correlation)
+set_tests_properties(dwg2dxf_standard_dwg_object_payload_correlation PROPERTIES
+    LABELS "fast;dwg;adapter;objects;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_standard_dwg_source_text_observations
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-source-text-observations)
+set_tests_properties(dwg2dxf_standard_dwg_source_text_observations PROPERTIES
+    LABELS "fast;dwg;adapter;objects;codepage;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_standard_dwg_source_eed_text_observations
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-source-eed-text-observations)
+set_tests_properties(dwg2dxf_standard_dwg_source_eed_text_observations PROPERTIES
+    LABELS "fast;dwg;adapter;objects;codepage;xdata;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_standard_dwg_appid_dependencies
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-appid-dependencies)
+set_tests_properties(dwg2dxf_standard_dwg_appid_dependencies PROPERTIES
+    LABELS "fast;dwg;adapter;objects;codepage;appid;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_standard_dwg_layer_dependencies
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-layer-dependencies)
+set_tests_properties(dwg2dxf_standard_dwg_layer_dependencies PROPERTIES
+    LABELS "fast;dwg;adapter;objects;codepage;layer;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_xrecord_group_reference_admission
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-group-reference-admission)
+set_tests_properties(dwg2dxf_xrecord_group_reference_admission PROPERTIES
+    LABELS "fast;adapter;objects;graph;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_generated_image_dictionary_source_identity
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-image-dictionary-source-identity)
+set_tests_properties(dwg2dxf_generated_image_dictionary_source_identity PROPERTIES
+    # Includes108 wire-fault refusal/retries plus native readback; allow ASan
+    # headroom under concurrent CTest load without removing any controls.
+    LABELS "fast;dwg;dxf;image;adapter;objects;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_raster_dwg_source_profile_eed
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-dwg-source-profile-eed)
+set_tests_properties(dwg2dxf_raster_dwg_source_profile_eed PROPERTIES
+    LABELS "fast;dwg;dxf;image;eed;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_selected_raster_reactor_metadata
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --selected-raster-reactor-metadata)
+set_tests_properties(dwg2dxf_selected_raster_reactor_metadata PROPERTIES
+    LABELS "fast;dwg;dxf;image;eed;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_acds_raw_dxf_source_baseline
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --acds-raw-dxf-source-baseline)
+set_tests_properties(dwg2dxf_acds_raw_dxf_source_baseline PROPERTIES
+    LABELS "fast;dxf;adapter;acds;retention;generated" TIMEOUT 10)
+
+add_test(
+    NAME dwg2dxf_raw_dxf_entity_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raw-dxf-entity-capture-limits
+)
+set_tests_properties(dwg2dxf_raw_dxf_entity_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;raw-entity"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_raw_dxf_section_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raw-dxf-section-capture-limits
+)
+set_tests_properties(dwg2dxf_raw_dxf_section_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;raw-section"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_plotsettings_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --plotsettings-capture-limits
+)
+set_tests_properties(dwg2dxf_plotsettings_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;plotsettings"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME libdxfrw_plotsettings_visualstyle_shade_reference
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --plotsettings-visualstyle-shade-reference
+)
+set_tests_properties(libdxfrw_plotsettings_visualstyle_shade_reference PROPERTIES
+    LABELS "fast;dxf;graph;adapter;plotsettings"
+    TIMEOUT 30
+)
+add_test(
+    NAME libdxfrw_render_settings_owner_order
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --retain-render-settings-callback-and-fail-closed
+)
+set_tests_properties(libdxfrw_render_settings_owner_order PROPERTIES
+    LABELS "fast;dxf;graph;adapter;render;plotsettings"
+    TIMEOUT 30
+)
+
+add_test(
+    NAME dwg2dxf_evaluation_graph_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --evaluation-graph-capture-limits
+)
+set_tests_properties(dwg2dxf_evaluation_graph_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;acds"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_dynamic_block_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-capture-limits
+)
+set_tests_properties(dwg2dxf_dynamic_block_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_proxy_object_capture_limits
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits
+)
+set_tests_properties(dwg2dxf_proxy_object_capture_limits PROPERTIES
+    LABELS "fast;dxf;adapter;proxy"
+    TIMEOUT 10
+)
+
+add_test(
+    NAME dwg2dxf_raw_dxf_object_list_node_accounting
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raw-dxf-object-list-node-accounting
+)
+set_tests_properties(dwg2dxf_raw_dxf_object_list_node_accounting PROPERTIES
+    LABELS "fast;dxf;adapter;retention"
+    TIMEOUT 10
+)
+
+# DXF associative records publish one typed shell and one complete raw
+# companion; malformed or truncated records must not publish later callbacks.
+add_test(
+    NAME dwg2dxf_associative_callback_contract
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --associative-dxf-callback-contract
+)
+set_tests_properties(dwg2dxf_associative_callback_contract PROPERTIES
+    LABELS "fast;dxf;adapter;objects;associative"
+    TIMEOUT 15
+)
+
+# Strict complete-output conversion must fail closed for associative DXF
+# callbacks that the concrete adapter does not retain, preserving the existing
+# destination and allowing a corrected same-adapter retry.
+add_test(
+    NAME dwg2dxf_associative_strict_loss_gate
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --associative-dxf-strict-loss-gate
+)
+set_tests_properties(dwg2dxf_associative_strict_loss_gate PROPERTIES
+    LABELS "fast;dxf;adapter;objects;associative;strict"
+    TIMEOUT 15
 )
 
 # Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
@@ -372,6 +785,98 @@ foreach(_mpolygon_encoding IN ITEMS ascii binary)
         TIMEOUT 30
     )
 endforeach()
+
+add_test(
+    NAME dxf_mpolygon_metadata_boundary_roundtrip
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --mpolygon-metadata
+)
+set_tests_properties(dxf_mpolygon_metadata_boundary_roundtrip PROPERTIES
+    LABELS "fast;dxf;adapter;mpolygon"
+    TIMEOUT 30
+)
+
+# Typed ACSH BOX export may only project the indexed CMC forms established by
+# its DXF mapping; unsupported method/flag/reserved-index metadata must refuse
+# atomically before replacing an existing destination.
+add_test(
+    NAME dxf_acsh_cmc_loss_guard
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --acsh-cmc-loss-guard
+)
+set_tests_properties(dxf_acsh_cmc_loss_guard PROPERTIES
+    LABELS "fast;dxf;dwg;adapter;3d;loss-guard"
+    TIMEOUT 30
+)
+
+# Preserve the PFACE record boundary and following entity through direct
+# ASCII/Binary read and canonical write/readback without running the full suite.
+add_test(
+    NAME dxf_polyface_completed_pool
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --polyface-completed-pool
+)
+set_tests_properties(dxf_polyface_completed_pool PROPERTIES
+    LABELS "fast;dxf;adapter;polyface"
+    TIMEOUT 30
+)
+
+# Verify the BLOCK_RECORD-to-LAYOUT hard-pointer slot across the supported
+# writer version families without running the full round-trip executable.
+add_test(
+    NAME dwg_block_record_layout_association
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --block-record-layout-association
+)
+set_tests_properties(dwg_block_record_layout_association PROPERTIES
+    LABELS "fast;dwg;writer;layout"
+    TIMEOUT 30
+)
+
+# Unsupported DWG TABLE entities must not be serialized through the inherited
+# INSERT encoder; ensure refusal is atomic across supported writer families.
+add_test(
+    NAME dwg_table_writer_refusal
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --dwg-table-writer-refusal
+)
+set_tests_properties(dwg_table_writer_refusal PROPERTIES
+    LABELS "fast;dwg;writer;tables"
+    TIMEOUT 30
+)
+
+# Generated HATCH/MPOLYGON gradient CMC controls exercise direct reader
+# alignment, DWG writer/readback, and opaque same-version preservation without
+# running the broad local round-trip executable.
+add_test(
+    NAME dwg_hatch_gradient_cmc
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --hatch-gradient-cmc
+)
+set_tests_properties(dwg_hatch_gradient_cmc PROPERTIES
+    LABELS "fast;dwg;reader;writer;hatch"
+    TIMEOUT 30
+)
+
+add_test(
+    NAME dwg_layout_compound_insert_owner_roundtrip
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+            --layout-plot-dpi-read-controls
+)
+set_tests_properties(dwg_layout_compound_insert_owner_roundtrip PROPERTIES
+    LABELS "fast;dwg;writer;reader;layout;attrib"
+    TIMEOUT 30
+)
+
+# Exercise record-level read recovery without running the broad local
+# round-trip executable. The generated non-finite LINE is rejected while the
+# following valid LINE remains readable and produces finalized partial coverage.
+add_test(
+    NAME libdxfrw_dwg_read_outcome_policy
+    COMMAND $<TARGET_FILE:libdxfrw_dwg_local_roundtrip> --dwg-read-outcome
+)
+set_tests_properties(libdxfrw_dwg_read_outcome_policy PROPERTIES
+    LABELS "fast;dwg;reader;read-outcome"
+    TIMEOUT 30
+)
 
 foreach(_dimension_encoding IN ITEMS ascii binary)
     set(_dimension_generate_mode --generate-dimension-frames)
@@ -526,6 +1031,15 @@ add_test(
 )
 set_tests_properties(dwg2dxf_raw_dxf_section_passthrough PROPERTIES
     LABELS "cli;fast;dxf"
+    TIMEOUT 20
+)
+
+add_test(
+    NAME libdxfrw_image_definition_plan_failure_retry
+    COMMAND libdxfrw_dxf_fixture_tests --image-definition-plan-failure-retry
+)
+set_tests_properties(libdxfrw_image_definition_plan_failure_retry PROPERTIES
+    LABELS "fast;dxf;image;writer"
     TIMEOUT 20
 )
 
@@ -1342,7 +1856,44 @@ foreach(_numeric_encoding IN ITEMS ascii binary)
 endforeach()
 
 set(_dwg_test_versions AC1021 AC1024 AC1027 AC1032)
-set(_dwg_test_outputs R12 v2000 v2010)
+
+set(_acsh_revolve_sample
+    "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_conference_room.dwg")
+if(EXISTS "${_acsh_revolve_sample}")
+    add_test(
+        NAME dwg_acsh_revolve_opaque_frame_capture
+        COMMAND $<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
+            --acsh-opaque-frame-capture "${_acsh_revolve_sample}")
+    set_tests_properties(dwg_acsh_revolve_opaque_frame_capture PROPERTIES
+        LABELS "dwg_read;AC1024;sample;opaque;3d" TIMEOUT 60)
+endif()
+
+set(_acsh_failed_sample
+    "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_condominium_with_skylight.dwg")
+if(EXISTS "${_acsh_failed_sample}")
+    add_test(
+        NAME dwg_acsh_failed_frame_retention
+        COMMAND $<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
+            --acsh-failed-frame-retention "${_acsh_failed_sample}")
+    set_tests_properties(dwg_acsh_failed_frame_retention PROPERTIES
+        LABELS "dwg_read;AC1024;sample;opaque;3d" TIMEOUT 60)
+endif()
+
+add_test(NAME libdxfrw_persistent_manager_prefix_dispatch
+    COMMAND libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch)
+set_tests_properties(libdxfrw_persistent_manager_prefix_dispatch PROPERTIES
+    LABELS "fast;dwg;objects;associative;generated" TIMEOUT 15)
+
+set(_assoc_failed_sample
+    "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_sun_and_sky_demo.dwg")
+if(EXISTS "${_assoc_failed_sample}")
+    add_test(
+        NAME dwg_associative_failed_frame_retention
+        COMMAND $<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
+            --associative-failed-frame-retention "${_assoc_failed_sample}")
+    set_tests_properties(dwg_associative_failed_frame_retention PROPERTIES
+        LABELS "dwg_read;AC1024;sample;opaque;associative;fast" TIMEOUT 60)
+endif()
 
 foreach(_ver IN LISTS _dwg_test_versions)
     file(GLOB _samples
@@ -1354,25 +1905,20 @@ foreach(_ver IN LISTS _dwg_test_versions)
         message(STATUS "tests/: no ${_ver} samples in tests/samples/${_ver}/ — drop *.dwg files there to enable")
         continue()
     endif()
-    list(LENGTH _dwg_test_outputs _outs)
-    math(EXPR _total "${_n} * ${_outs}")
-    message(STATUS "tests/: registering ${_n} ${_ver} sample(s) × ${_outs} output version(s) = ${_total} test(s)")
+    message(STATUS "tests/: registering ${_n} ${_ver} reader sample test(s)")
     foreach(_sample IN LISTS _samples)
         get_filename_component(_name "${_sample}" NAME_WE)
-        foreach(_out IN LISTS _dwg_test_outputs)
-            add_test(
-                NAME dwg_read_${_ver}_${_name}_${_out}
-                COMMAND ${CMAKE_COMMAND}
-                    -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
-                    -DSAMPLE=${_sample}
-                    -DEXPECTED_VERSION=${_ver}
-                    -DOUTPUT_VERSION=${_out}
-                    -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                    -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg_read_test.cmake
-            )
-            set_tests_properties(dwg_read_${_ver}_${_name}_${_out} PROPERTIES
-                LABELS "dwg_read;${_ver};out_${_out}"
-            )
-        endforeach()
+        add_test(
+            NAME dwg_read_${_ver}_${_name}
+            COMMAND ${CMAKE_COMMAND}
+                -DREADER_TEST=$<TARGET_FILE:libdxfrw_dwg_reader_matrix_tests>
+                -DSAMPLE=${_sample}
+                -DEXPECTED_VERSION=${_ver}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_dwg_read_test.cmake
+        )
+        set_tests_properties(dwg_read_${_ver}_${_name} PROPERTIES
+            LABELS "dwg_read;${_ver};sample"
+            TIMEOUT 60
+        )
     endforeach()
 endforeach()

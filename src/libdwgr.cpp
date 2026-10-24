@@ -556,6 +556,8 @@ struct dwgRW::DwgTableWriteState {
 
 struct dwgRW::DwgWriteTransaction {
     dwgWriter::CompoundWriteCheckpoint checkpoint;
+    bool usesWriterEntityRollback {false};
+    std::function<bool()> entityFrameBatchRollback;
     std::uint64_t token {0};
     std::size_t successfulEntityWrites {0};
     WriteSkipCounters writeSkipCounters;
@@ -1045,13 +1047,26 @@ void dwgRW::captureReaderDiagnostics(bool readSucceeded) {
     m_decodedProxyPrimitives = reader->m_decodedProxyPrimitives;
     m_layerNameOrder = reader->m_layerNameOrder;
     m_ltypeNameOrder = reader->m_ltypeNameOrder;
-    // Keep the public source-code-page snapshot transactional.  A reader may
+    // Keep the public source-code-page snapshot transactional. A reader may
     // have decoded metadata before a later header/table/callback failure, but
     // callers must not mistake that partial state for a successful document.
-    codePage = readSucceeded ? reader->getSourceCodePageName() : std::string{};
+    if (readSucceeded) {
+        codePage = reader->getSourceCodePageName();
+        m_sourceCodePageId = reader->getSourceCodePageId();
+        m_hasSourceCodePageField = reader->hasSourceCodePageField();
+        m_hasRecognizedSourceCodePage = reader->hasSourceCodePage();
+    } else {
+        codePage.clear();
+        m_sourceCodePageId = 0;
+        m_hasSourceCodePageField = false;
+        m_hasRecognizedSourceCodePage = false;
+    }
 }
 
 void dwgRW::resetReadDiagnostics() {
+    m_sourceCodePageId = 0;
+    m_hasSourceCodePageField = false;
+    m_hasRecognizedSourceCodePage = false;
     m_entityParseFailures = 0;
     m_objectParseFailures = 0;
     m_classesCrcMismatch = 0;
@@ -1245,6 +1260,15 @@ bool dwgRW::registerDwgNamedObjectDictionaryEntry(
     return accepted;
 }
 
+bool dwgRW::registerDwgGroupDictionaryEntry(
+    const std::string& name, std::uint32_t groupHandle) {
+    const bool accepted = writer != nullptr
+        && writer->registerDwgGroupDictionaryEntry(name, groupHandle);
+    if (!accepted)
+        markDwgWriteFailure();
+    return accepted;
+}
+
 bool dwgRW::getEmittedDwgNamedObjectDictionaryEntries(
     std::vector<DRW::DwgNamedObjectDictionaryEntry>& entries) const {
     entries.clear();
@@ -1328,7 +1352,15 @@ bool dwgRW::rollbackLastDwgObjectWrite(bool restoreCallerState) {
         return false;
 
     const auto& transaction = *m_lastWriteTransaction;
-    writer->rollbackCompoundWrite(transaction.checkpoint);
+    if (transaction.entityFrameBatchRollback) {
+        if (!transaction.entityFrameBatchRollback())
+            return false;
+    } else if (transaction.usesWriterEntityRollback) {
+        if (!writer->rollbackLastEntityWrite())
+            return false;
+    } else {
+        writer->rollbackCompoundWrite(transaction.checkpoint);
+    }
     if (restoreCallerState)
         restoreEntityWriteStates(transaction.entityMutations);
     forgetCallerMutations(transaction.entityMutations);
@@ -1455,13 +1487,15 @@ bool dwgRW::recordWriteResult(WriteSkipKind kind, bool ok) {
 }
 
 bool dwgRW::writeObjectTransaction(
-    WriteSkipKind kind, const std::function<bool()>& write) {
-    return writeObjectTransaction(kind, nullptr, write);
+    WriteSkipKind kind, const std::function<bool()>& write,
+    bool allowIdempotentNoFrame) {
+    return writeObjectTransaction(
+        kind, nullptr, write, allowIdempotentNoFrame);
 }
 
 bool dwgRW::writeObjectTransaction(
     WriteSkipKind kind, DRW_TableEntry *mutationTarget,
-    const std::function<bool()>& write) {
+    const std::function<bool()>& write, bool allowIdempotentNoFrame) {
     if (writer == nullptr || !write)
         return recordWriteResult(kind, false);
 
@@ -1477,12 +1511,77 @@ bool dwgRW::writeObjectTransaction(
         ? std::vector<DwgTableWriteState>{captureTableWriteState(mutationTarget)}
         : std::vector<DwgTableWriteState>{};
     DRW::DwgObjectFrameReceipt frame;
-    const bool ok = write() && writer->getLastDwgObjectFrame(frame);
+    const bool wrote = write();
+    const bool hasFrame = wrote && writer->getLastDwgObjectFrame(frame);
+    const std::size_t outputSize = writer->buffer().size();
+    // Receipts describe the most recently committed frame, so a no-op may
+    // leave an older receipt available. Ordinary OBJECT writes must append
+    // bytes and publish a new generation in this transaction; the only
+    // current idempotent no-frame writer is MLINESTYLE's duplicate-name path.
+    const bool emittedFrame = hasFrame && frame.valid
+        && frame.generation != 0
+        && frame.generation != checkpoint.lastDwgObjectFrameGeneration
+        && outputSize > checkpoint.bufferSize;
+    const bool acceptedNoFrame = allowIdempotentNoFrame && wrote
+        && outputSize == checkpoint.bufferSize;
+    const bool ok = emittedFrame || acceptedNoFrame;
     if (!ok) {
         writer->rollbackCompoundWrite(checkpoint);
         restoreTableWriteStates(mutations);
     } else if (!mutations.empty()) {
         rememberCallerMutation(mutations.front());
+    }
+    return recordWriteResult(kind, ok);
+}
+
+bool dwgRW::writeFixedObjectFrameTransaction(
+    WriteSkipKind kind, dwgWriter15 *objectWriter,
+    const DRW_TableEntry *object, DRW_TableEntry *mutationTarget,
+    const std::function<bool()>& write) {
+    if (objectWriter == nullptr || object == nullptr || !write)
+        return recordWriteResult(kind, false);
+
+    // Fixed, single-frame OBJECTs have no deferred object/GROUP/style ledger
+    // effects. For a registered custom-class handle, retain only its small
+    // class-instance ledger state rather than cloning the document-wide maps.
+    const dwgWriter::DwgClassInstanceCheckpoint classCheckpoint =
+        objectWriter->checkpointDwgClassInstance(object->handle);
+    if (object->handle != 0
+        && objectWriter->m_dwgClassInstanceHandleOwners.find(object->handle)
+               != objectWriter->m_dwgClassInstanceHandleOwners.end()
+        && !classCheckpoint.valid) {
+        return mutationTarget != nullptr
+            ? writeObjectTransaction(kind, mutationTarget, write)
+            : writeObjectTransaction(kind, write);
+    }
+
+    // A direct OBJECT call starts a new implicit scope. Do not leave an
+    // earlier entity checkpoint armed for rollback after this object.
+    m_lastWriteTransaction.reset();
+    m_lastSuccessfulEntityHandle = 0;
+    m_lastDwgObjectFrame = {};
+    m_lastDwgObjectFrameValid = false;
+    m_lastDwgCompoundEntityWriteReceipt = {};
+    const DwgTableWriteState mutation = mutationTarget != nullptr
+        ? captureTableWriteState(mutationTarget)
+        : DwgTableWriteState{};
+    const dwgWriter15::EntityFrameCheckpoint checkpoint =
+        objectWriter->checkpointEntityFrame();
+    DRW::DwgObjectFrameReceipt frame;
+    const bool wrote = write();
+    const bool hasFrame = wrote
+        && objectWriter->getLastDwgObjectFrame(frame);
+    const bool ok = hasFrame && frame.valid
+        && frame.generation != 0
+        && frame.generation != checkpoint.lastDwgObjectFrameGeneration
+        && objectWriter->buffer().size() > checkpoint.bufferSize;
+    if (!ok) {
+        objectWriter->rollbackEntityFrame(checkpoint, true);
+        objectWriter->rollbackDwgClassInstance(classCheckpoint);
+        if (mutationTarget != nullptr)
+            restoreTableWriteState(mutation);
+    } else if (mutationTarget != nullptr) {
+        rememberCallerMutation(mutation);
     }
     return recordWriteResult(kind, ok);
 }
@@ -1502,17 +1601,25 @@ bool dwgRW::encodeEntityForWrite(DRW_Entity *ent,
     const std::vector<DwgEntityWriteState> mutations {
         captureEntityWriteState(mutationTarget)
     };
-    const auto checkpoint = writer->checkpointCompoundWrite();
+    const bool usesWriterEntityRollback =
+        writer->supportsLastEntityWriteRollback();
+    dwgWriter::CompoundWriteCheckpoint checkpoint;
+    if (!usesWriterEntityRollback)
+        checkpoint = writer->checkpointCompoundWrite();
     if (!writer->encodeEntity(ent)) {
-        // Concrete writers normally roll themselves back, but the public
-        // boundary owns the no-partial-frame guarantee for every writer.
-        writer->rollbackCompoundWrite(checkpoint);
+        // Writers advertising retained entity rollback own the atomic frame
+        // contract. Unknown/custom writers keep the facade's full fallback.
+        if (!usesWriterEntityRollback)
+            writer->rollbackCompoundWrite(checkpoint);
         restoreEntityWriteStates(mutations);
         return recordWriteResult(WriteSkipKind::Entity, false);
     }
 
     if (!writer->getLastDwgObjectFrame(m_lastDwgObjectFrame)) {
-        writer->rollbackCompoundWrite(checkpoint);
+        if (usesWriterEntityRollback)
+            writer->rollbackLastEntityWrite();
+        else
+            writer->rollbackCompoundWrite(checkpoint);
         restoreEntityWriteStates(mutations);
         writer->markObjectWriteFailure();
         m_lastDwgObjectFrame = {};
@@ -1522,12 +1629,17 @@ bool dwgRW::encodeEntityForWrite(DRW_Entity *ent,
     }
     if (m_failAfterFirstBlockOwnedEntityForTest) {
         m_failAfterFirstBlockOwnedEntityForTest = false;
-        writer->rollbackCompoundWrite(checkpoint);
+        if (usesWriterEntityRollback)
+            writer->rollbackLastEntityWrite();
+        else
+            writer->rollbackCompoundWrite(checkpoint);
         restoreEntityWriteStates(mutations);
         return recordWriteResult(WriteSkipKind::Entity, false);
     }
     auto transaction = std::make_unique<DwgWriteTransaction>();
-    transaction->checkpoint = checkpoint;
+    transaction->usesWriterEntityRollback = usesWriterEntityRollback;
+    if (!usesWriterEntityRollback)
+        transaction->checkpoint = std::move(checkpoint);
     transaction->entityMutations = mutations;
     rememberCallerMutations(mutations);
     m_lastWriteTransaction = std::move(transaction);
@@ -1620,11 +1732,44 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     // of entities/blocks/objects into the object stream between
     // writeDwgObjects (control objects + table records) and
     // writeDwgHandles (object map).
-    bool ok = !m_requiredWriteFailure
-        && writer->prepareDwgClassManifest()
-        && writer->writeFileHeaderStub() &&
-              writer->writeDwgHeader() &&
-              writer->writeDwgClasses();
+    const auto recordEmitStageFailure = [this](const char* code,
+                                                const char* message) {
+        if (!m_lastDiagnostic.failed())
+            recordOperationDiagnostic(
+                DRW::OperationPhase::Emit, DRW::OperationCause::WriteFailure,
+                code, message);
+    };
+    bool ok = true;
+    if (m_requiredWriteFailure) {
+        ok = false;
+        recordEmitStageFailure(
+            "dwg-required-callback",
+            "a required DWG write callback failed before section emission");
+    }
+    if (ok && !writer->prepareDwgClassManifest()) {
+        ok = false;
+        recordEmitStageFailure(
+            "dwg-class-manifest",
+            "DWG class manifest preparation failed");
+    }
+    if (ok && !writer->writeFileHeaderStub()) {
+        ok = false;
+        recordEmitStageFailure(
+            "dwg-file-header",
+            "DWG file header generation failed");
+    }
+    if (ok && !writer->writeDwgHeader()) {
+        ok = false;
+        recordEmitStageFailure(
+            "dwg-header",
+            "DWG HEADER section generation failed");
+    }
+    if (ok && !writer->writeDwgClasses()) {
+        ok = false;
+        recordEmitStageFailure(
+            "dwg-classes",
+            "DWG CLASSES section generation failed");
+    }
     if (ok)
         writer->freezeDwgClasses();
     if (ok) {
@@ -1671,6 +1816,10 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         if (ok)
             ok = writer->writeDwgObjects();
     }
+    if (!ok)
+        recordEmitStageFailure(
+            "dwg-table-emission",
+            "DWG table and control-object emission failed");
     if (ok) {
         // Caller-driven object-stream content. writeBlocks fires first so the
         // caller can define and populate user blocks. The object callback
@@ -1678,32 +1827,141 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         // replay records its handle in the owning block list.
         iface->writeBlocks();
         ok = !m_requiredWriteFailure;
+        if (!ok)
+            recordEmitStageFailure(
+                "dwg-block-callback",
+                "DWG block callback reported a required write failure");
         if (ok)
             iface->writeEntities();
         ok = ok && !m_requiredWriteFailure;
+        if (!ok)
+            recordEmitStageFailure(
+                "dwg-entity-callback",
+                "DWG entity callback reported a required write failure");
         if (ok)
             iface->writeObjects();
         ok = ok && !m_requiredWriteFailure;
+        if (!ok)
+            recordEmitStageFailure(
+                "dwg-object-callback",
+                "DWG object callback reported a required write failure");
         if (ok) {
             const bool filterFinalized = iface->finalizeDwgWrite();
-            ok = filterFinalized && !m_requiredWriteFailure
-                && writer->validateDwgClassInstanceCounts()
-                && writer->validateDwgClassInstanceFrames()
-                && !writer->hasEntityEedWriteFailure()
-                && !writer->hasObjectEedWriteFailure()
-                && writer->emitDeferredBlockControl();
+            if (!filterFinalized || m_requiredWriteFailure) {
+                ok = false;
+                recordEmitStageFailure(
+                    "dwg-filter-finalize",
+                    "DWG adapter finalization rejected the write");
+            }
+            DwgClassInstanceCountFailure classCountFailure;
+            if (ok && !writer->validateDwgClassInstanceCounts(
+                          &classCountFailure)) {
+                ok = false;
+                char detail[192]{};
+                switch (classCountFailure.kind) {
+                case DwgClassInstanceCountFailure::Kind::RawInstanceHandlesPending:
+                    std::snprintf(
+                        detail, sizeof(detail),
+                        "DWG raw class %u instance handle 0x%X was not consumed",
+                        static_cast<unsigned>(classCountFailure.classNum),
+                        static_cast<unsigned>(classCountFailure.handle));
+                    break;
+                case DwgClassInstanceCountFailure::Kind::MissingClassDefinition:
+                    std::snprintf(
+                        detail, sizeof(detail),
+                        "DWG class %u handle 0x%X has no enabled definition",
+                        static_cast<unsigned>(classCountFailure.classNum),
+                        static_cast<unsigned>(classCountFailure.handle));
+                    break;
+                case DwgClassInstanceCountFailure::Kind::UnemittedRegisteredHandle:
+                    std::snprintf(
+                        detail, sizeof(detail),
+                        "DWG class %u handle 0x%X was registered but not emitted",
+                        static_cast<unsigned>(classCountFailure.classNum),
+                        static_cast<unsigned>(classCountFailure.handle));
+                    break;
+                case DwgClassInstanceCountFailure::Kind::DeclaredCountMismatch:
+                    std::snprintf(
+                        detail, sizeof(detail),
+                        "DWG class %u declares %d instances but emitted %u",
+                        static_cast<unsigned>(classCountFailure.classNum),
+                        classCountFailure.declaredCount,
+                        static_cast<unsigned>(classCountFailure.emittedCount));
+                    break;
+                case DwgClassInstanceCountFailure::Kind::None:
+                    std::snprintf(
+                        detail, sizeof(detail),
+                        "DWG registered class instance counts are inconsistent");
+                    break;
+                }
+                recordEmitStageFailure("dwg-class-counts", detail);
+            }
+            if (ok && !writer->validateDwgClassInstanceFrames()) {
+                ok = false;
+                recordEmitStageFailure(
+                    "dwg-class-frames",
+                    "DWG registered class instance frames are inconsistent");
+            }
+            if (ok && writer->hasEntityEedWriteFailure()) {
+                ok = false;
+                recordEmitStageFailure(
+                    "dwg-entity-eed",
+                    "DWG entity extended data could not be emitted");
+            }
+            if (ok && writer->hasObjectEedWriteFailure()) {
+                ok = false;
+                recordEmitStageFailure(
+                    "dwg-object-eed",
+                    "DWG object extended data could not be emitted");
+            }
+            if (ok && !writer->emitDeferredBlockControl()) {
+                ok = false;
+                recordEmitStageFailure(
+                    "dwg-block-control",
+                    "DWG deferred block control could not be emitted");
+            }
         }
         if (ok) {
             const bool structureFinalized = iface->finalizeDwgWriteStructure();
-            ok = structureFinalized && !m_requiredWriteFailure
-                && writer->validateDwgNamedObjectDictionaryEntries();
+            if (!structureFinalized || m_requiredWriteFailure) {
+                ok = false;
+                recordEmitStageFailure(
+                    "dwg-structure-finalize",
+                    "DWG adapter structure finalization rejected the write");
+            }
+            if (ok && !writer->validateDwgNamedObjectDictionaryEntries()) {
+                ok = false;
+                recordEmitStageFailure(
+                    "dwg-nod-entries",
+                    "DWG named-object dictionary entries are inconsistent");
+            }
         }
     }
-    if (ok)
-        ok = writer->finalizeHeaderHandseed();
+    if (!ok)
+        recordEmitStageFailure(
+            "dwg-content-emission",
+            "DWG block, entity, or object emission failed");
+    if (ok && !writer->finalizeHeaderHandseed()) {
+        ok = false;
+        recordEmitStageFailure(
+            "dwg-header-handseed",
+            "DWG HEADER handseed finalization failed");
+    }
     const bool handlesOk = ok && writer->writeDwgHandles();
+    if (ok && !handlesOk)
+        recordEmitStageFailure(
+            "dwg-handles",
+            "DWG handle-map generation failed");
     const bool secondHeaderOk = handlesOk && writer->writeSecondHeader();
+    if (handlesOk && !secondHeaderOk)
+        recordEmitStageFailure(
+            "dwg-second-header",
+            "DWG auxiliary header generation failed");
     const bool finalOk = secondHeaderOk && writer->finalize();
+    if (secondHeaderOk && !finalOk)
+        recordEmitStageFailure(
+            "dwg-finalize",
+            "DWG file finalization failed");
     ok = finalOk;
     writer.reset();
     if (ok && !filestr.fail()) {
@@ -1819,6 +2077,48 @@ bool dwgRW::writeInsert(DRW_Insert *ent) {
     if (writer == nullptr || ent == nullptr)
         return recordWriteResult(WriteSkipKind::Entity, false);
 
+    const bool hasCallerAttributes = !ent->attlist.empty();
+    const bool hasEmptyLegacySequence =
+        !hasCallerAttributes && ent->attribHandles.size() == 2u
+        && ent->attribHandles[0].ref == DRW::NoHandle
+        && ent->attribHandles[1].ref == DRW::NoHandle
+        && ent->seqendH.ref != DRW::NoHandle;
+    const bool hasNoSequence =
+        !hasCallerAttributes && ent->attribHandles.empty()
+        && ent->seqendH.ref == DRW::NoHandle;
+    const bool preserveEmptyLegacy = hasEmptyLegacySequence
+        && version < DRW::AC1018;
+
+    // A modern/ordinary INSERT without ATTRIB or SEQEND is one entity frame.
+    // The writer already retains bounded frame rollback including block-owner
+    // and insert-reference membership; avoid a full document-ledger snapshot
+    // while preserving the pre-allocation caller state for both implicit and
+    // explicit outer transaction rollback.
+    if (hasNoSequence && writer->supportsLastEntityWriteRollback()) {
+        const DwgEntityWriteState originalState =
+            captureEntityWriteState(ent);
+        if (ent->handle == 0)
+            ent->handle = writer->allocNextHandle();
+        else
+            writer->reserveHandle(ent->handle);
+        if (ent->handle == DRW::NoHandle) {
+            restoreEntityWriteState(originalState);
+            return recordWriteResult(WriteSkipKind::Entity, false);
+        }
+        ent->seqendH = {};
+        if (!encodeEntityForWrite(ent)) {
+            restoreEntityWriteState(originalState);
+            return false;
+        }
+
+        const std::vector<DwgEntityWriteState> emittedMutations =
+            m_lastWriteTransaction->entityMutations;
+        forgetCallerMutations(emittedMutations);
+        m_lastWriteTransaction->entityMutations = {originalState};
+        rememberCallerMutations(m_lastWriteTransaction->entityMutations);
+        return true;
+    }
+
     std::vector<DwgEntityWriteState> mutations;
     mutations.reserve(1 + ent->attlist.size());
     mutations.push_back(captureEntityWriteState(ent));
@@ -1826,27 +2126,37 @@ bool dwgRW::writeInsert(DRW_Insert *ent) {
         if (attrib != nullptr)
             mutations.push_back(captureEntityWriteState(attrib.get()));
     }
-    const auto checkpoint = writer->checkpointCompoundWrite();
+    auto *objectWriter = dynamic_cast<dwgWriter15 *>(writer.get());
+    bool useEntityFrameBatchRollback =
+        (hasCallerAttributes || preserveEmptyLegacy)
+        && objectWriter != nullptr
+        && writer->supportsLastEntityWriteRollback();
+    std::vector<dwgWriter15::EntityFrameCheckpoint> frameCheckpoints;
+    if (useEntityFrameBatchRollback)
+        frameCheckpoints.reserve(ent->attlist.size() + 2u);
+
+    dwgWriter::CompoundWriteCheckpoint checkpoint;
+    bool hasCheckpoint = false;
+    if (!useEntityFrameBatchRollback) {
+        checkpoint = writer->checkpointCompoundWrite();
+        hasCheckpoint = true;
+    }
     const auto fail = [&]() {
-        writer->rollbackCompoundWrite(checkpoint);
+        if (useEntityFrameBatchRollback) {
+            if (!frameCheckpoints.empty()
+                && !objectWriter->rollbackEntityFrameBatch(frameCheckpoints))
+                writer->markObjectWriteFailure();
+        } else if (hasCheckpoint) {
+            writer->rollbackCompoundWrite(checkpoint);
+        }
         restoreEntityWriteStates(mutations);
         m_lastWriteTransaction.reset();
+        m_lastDwgCompoundEntityWriteReceipt = {};
         return recordWriteResult(WriteSkipKind::Entity, false);
     };
 
-    const bool hasCallerAttributes = !ent->attlist.empty();
-    const bool hasEmptyLegacySequence =
-        !hasCallerAttributes && ent->attribHandles.size() == 2u
-        && ent->attribHandles[0].ref == DRW::NoHandle
-        && ent->attribHandles[1].ref == DRW::NoHandle
-        && ent->seqendH.ref != DRW::NoHandle;
     if (hasEmptyLegacySequence && version >= DRW::AC1018)
         return fail();
-    const bool preserveEmptyLegacy = hasEmptyLegacySequence
-        && version < DRW::AC1018;
-    const bool hasNoSequence =
-        !hasCallerAttributes && ent->attribHandles.empty()
-        && ent->seqendH.ref == DRW::NoHandle;
     if (!hasCallerAttributes && !preserveEmptyLegacy && !hasNoSequence)
         return fail();
 
@@ -1913,17 +2223,72 @@ bool dwgRW::writeInsert(DRW_Insert *ent) {
         ent->seqendH = {};
     }
 
+    if (useEntityFrameBatchRollback) {
+        const auto hasClassAssociatedFrame = [objectWriter](
+                std::uint32_t handle) {
+            if (objectWriter == nullptr || handle == 0)
+                return false;
+            std::uint16_t classNumber = 0;
+            return objectWriter->getDwgClassInstanceClass(handle, classNumber);
+        };
+        useEntityFrameBatchRollback =
+            !hasClassAssociatedFrame(ent->handle)
+            && !hasClassAssociatedFrame(ent->seqendH.ref);
+        for (const auto& attrib : ent->attlist) {
+            if (useEntityFrameBatchRollback
+                && hasClassAssociatedFrame(attrib->handle))
+                useEntityFrameBatchRollback = false;
+        }
+    }
+    if (!useEntityFrameBatchRollback && !hasCheckpoint) {
+        // Class-associated frames mutate the class-instance ledger, which the
+        // bounded per-frame rollback does not own. Retain the comprehensive
+        // fallback for that less common route.
+        checkpoint = writer->checkpointCompoundWrite();
+        hasCheckpoint = true;
+    }
+
+    DRW::DwgCompoundEntityWriteReceipt receipt;
+    receipt.parentHandle = ent->handle;
+    receipt.parentOwnerHandle = ent->parentHandle;
+    const auto appendFrame = [&receipt](
+            DRW::DwgCompoundEntityFrameRole role,
+            const DRW::DwgObjectFrameReceipt& frame,
+            std::uint32_t expectedHandle) {
+        if (!frame.valid || frame.generation == 0 || expectedHandle == 0
+            || frame.objectHandle != expectedHandle)
+            return false;
+        for (const DRW::DwgCompoundEntityFrameReceipt& existing :
+             receipt.frames) {
+            if (existing.frame.objectHandle == expectedHandle)
+                return false;
+        }
+        receipt.frames.push_back({role, frame});
+        return true;
+    };
+
     // BLOCK_RECORD.entMap is an ordered ownership list in R2004+.  Emit the
     // owner before its ATTRIB children so a reader can consume the sequence
     // transactionally instead of encountering orphan children first.
     if (!writer->encodeEntity(ent))
         return fail();
     DRW::DwgObjectFrameReceipt parentFrame;
-    if (!writer->getLastDwgObjectFrame(parentFrame))
+    if (useEntityFrameBatchRollback)
+        frameCheckpoints.push_back(objectWriter->m_lastEntityFrameCheckpoint);
+    if (!writer->getLastDwgObjectFrame(parentFrame)
+        || !appendFrame(DRW::DwgCompoundEntityFrameRole::Parent,
+                        parentFrame, ent->handle))
         return fail();
 
     for (const auto& attrib : ent->attlist) {
         if (!writer->encodeEntity(attrib.get()))
+            return fail();
+        if (useEntityFrameBatchRollback)
+            frameCheckpoints.push_back(objectWriter->m_lastEntityFrameCheckpoint);
+        DRW::DwgObjectFrameReceipt attributeFrame;
+        if (!writer->getLastDwgObjectFrame(attributeFrame)
+            || !appendFrame(DRW::DwgCompoundEntityFrameRole::Attribute,
+                            attributeFrame, attrib->handle))
             return fail();
     }
     if (hasCallerAttributes || preserveEmptyLegacy) {
@@ -1934,13 +2299,29 @@ bool dwgRW::writeInsert(DRW_Insert *ent) {
         if (consumeCompoundSeqEndFailureForTest()
             || !writer->encodeEntity(&seqEnd))
             return fail();
+        if (useEntityFrameBatchRollback)
+            frameCheckpoints.push_back(objectWriter->m_lastEntityFrameCheckpoint);
+        DRW::DwgObjectFrameReceipt seqEndFrame;
+        if (!writer->getLastDwgObjectFrame(seqEndFrame)
+            || !appendFrame(DRW::DwgCompoundEntityFrameRole::SeqEnd,
+                            seqEndFrame, ent->seqendH.ref))
+            return fail();
     }
+    receipt.valid = true;
     ++m_successfulEntityWrites;
     m_lastSuccessfulEntityHandle = ent->handle;
     m_lastDwgObjectFrame = std::move(parentFrame);
     m_lastDwgObjectFrameValid = true;
+    m_lastDwgCompoundEntityWriteReceipt = std::move(receipt);
     auto transaction = std::make_unique<DwgWriteTransaction>();
-    transaction->checkpoint = checkpoint;
+    if (useEntityFrameBatchRollback) {
+        transaction->entityFrameBatchRollback =
+            [objectWriter, frameCheckpoints = std::move(frameCheckpoints)]() {
+                return objectWriter->rollbackEntityFrameBatch(frameCheckpoints);
+            };
+    } else {
+        transaction->checkpoint = std::move(checkpoint);
+    }
     transaction->entityMutations = mutations;
     rememberCallerMutations(mutations);
     m_lastWriteTransaction = std::move(transaction);
@@ -1948,7 +2329,21 @@ bool dwgRW::writeInsert(DRW_Insert *ent) {
 }
 
 bool dwgRW::writeTable(DRW_Table *ent) {
-    return encodeEntityForWrite(ent);
+    if (ent == nullptr)
+        return recordWriteResult(WriteSkipKind::Entity, false);
+
+    // DRW_Table currently inherits DRW_Insert::encodeDwg, which would emit an
+    // INSERT/MINSERT frame and silently discard the TABLE-specific payload.
+    // Keep the whole DWG save transactional until a versioned TABLE encoder
+    // and its linked-object graph are implemented.
+    markDwgWriteFailure();
+    recordOperationDiagnostic(
+        DRW::OperationPhase::Validation,
+        DRW::OperationCause::ValidationFailure,
+        "unsupported-table-dwg-encoding",
+        "DWG TABLE encoding is not implemented; refusing INSERT-shaped output",
+        0, false, ent->handle, ent->handle != 0);
+    return recordWriteResult(WriteSkipKind::Entity, false);
 }
 
 bool dwgRW::writeMText(DRW_MText *ent) {
@@ -1978,11 +2373,30 @@ bool dwgRW::writeAttdef(DRW_Attdef *ent) {
 }
 
 bool dwgRW::writeHatch(DRW_Hatch *ent) {
-    return encodeEntityForWrite(ent);
+    const bool written = encodeEntityForWrite(ent);
+    // A gradient is a semantic color payload, not an optional decoration. If
+    // its supported CMC projection fails, fail the whole staged DWG write so
+    // an adapter cannot publish the rest of the drawing with the HATCH
+    // silently omitted. Non-gradient entity skip behavior remains unchanged.
+    if (!written && ent != nullptr && ent->isGradient != 0)
+        markDwgWriteFailure();
+    return written;
 }
 
 bool dwgRW::writeMPolygon(DRW_MPolygon *ent) {
-    return encodeEntityForWrite(ent);
+    const bool written = encodeEntityForWrite(ent);
+    const bool hasFillColorState = ent != nullptr
+        && (ent->fillColorAci < 0 || ent->fillColorAci > 256
+            || ent->fillColorRgb != -1
+            || !ent->fillColorName.empty()
+            || !ent->fillColorBookName.empty());
+    if (!written && ent != nullptr
+        && (ent->isGradient != 0 || hasFillColorState))
+        // Do not publish an otherwise successful drawing after an MPOLYGON's
+        // required fill-color state was refused (e.g. a legacy target cannot
+        // represent CMC names/RGB, or its scalar/RGB pair is inconsistent).
+        markDwgWriteFailure();
+    return written;
 }
 
 bool dwgRW::writeDimension(DRW_Dimension *ent) {
@@ -2051,9 +2465,21 @@ bool dwgRW::writePolyline(DRW_Polyline *ent) {
         if (vertex != nullptr)
             mutations.push_back(captureEntityWriteState(vertex.get()));
     }
-    const auto checkpoint = writer->checkpointCompoundWrite();
+    auto *objectWriter = dynamic_cast<dwgWriter15 *>(writer.get());
+    bool useEntityFrameBatchRollback = objectWriter != nullptr
+        && writer->supportsLastEntityWriteRollback();
+    dwgWriter::CompoundWriteCheckpoint checkpoint;
+    std::vector<dwgWriter15::EntityFrameCheckpoint> frameCheckpoints;
+    if (useEntityFrameBatchRollback)
+        frameCheckpoints.reserve(ent->vertlist.size() + 2u);
     const auto fail = [&]() {
-        writer->rollbackCompoundWrite(checkpoint);
+        if (useEntityFrameBatchRollback) {
+            if (!frameCheckpoints.empty()
+                && !objectWriter->rollbackEntityFrameBatch(frameCheckpoints))
+                writer->markObjectWriteFailure();
+        } else {
+            writer->rollbackCompoundWrite(checkpoint);
+        }
         restoreEntityWriteStates(mutations);
         m_lastWriteTransaction.reset();
         m_lastDwgCompoundEntityWriteReceipt = {};
@@ -2114,6 +2540,29 @@ bool dwgRW::writePolyline(DRW_Polyline *ent) {
         return fail();
     ent->setDwgSeqEndHandle(seqEnd.handle);
 
+    const auto hasClassAssociatedFrame = [objectWriter](std::uint32_t handle) {
+        if (objectWriter == nullptr || handle == 0)
+            return false;
+        std::uint16_t classNumber = 0;
+        return objectWriter->getDwgClassInstanceClass(handle, classNumber);
+    };
+    if (useEntityFrameBatchRollback
+        && hasClassAssociatedFrame(ent->handle))
+        useEntityFrameBatchRollback = false;
+    if (useEntityFrameBatchRollback) {
+        for (const auto& vertex : ent->vertlist) {
+            if (hasClassAssociatedFrame(vertex->handle)) {
+                useEntityFrameBatchRollback = false;
+                break;
+            }
+        }
+    }
+    if (useEntityFrameBatchRollback
+        && hasClassAssociatedFrame(seqEnd.handle))
+        useEntityFrameBatchRollback = false;
+    if (!useEntityFrameBatchRollback)
+        checkpoint = writer->checkpointCompoundWrite();
+
     // The parent must be the first entry in a modern BLOCK_RECORD ownership
     // list; its handle references are already complete because all children
     // and the SEQEND were reserved above.
@@ -2137,6 +2586,8 @@ bool dwgRW::writePolyline(DRW_Polyline *ent) {
 
     if (!writer->encodeEntity(ent))
         return fail();
+    if (useEntityFrameBatchRollback)
+        frameCheckpoints.push_back(objectWriter->m_lastEntityFrameCheckpoint);
     DRW::DwgObjectFrameReceipt parentFrame;
     if (!writer->getLastDwgObjectFrame(parentFrame)
         || !appendFrame(DRW::DwgCompoundEntityFrameRole::Parent, parentFrame,
@@ -2145,6 +2596,8 @@ bool dwgRW::writePolyline(DRW_Polyline *ent) {
     for (auto& v : ent->vertlist) {
         if (!writer->encodeEntity(v.get()))
             return fail();
+        if (useEntityFrameBatchRollback)
+            frameCheckpoints.push_back(objectWriter->m_lastEntityFrameCheckpoint);
         DRW::DwgObjectFrameReceipt vertexFrame;
         if (!writer->getLastDwgObjectFrame(vertexFrame)
             || !appendFrame(DRW::DwgCompoundEntityFrameRole::Vertex,
@@ -2155,6 +2608,8 @@ bool dwgRW::writePolyline(DRW_Polyline *ent) {
     if (consumeCompoundSeqEndFailureForTest()
         || !writer->encodeEntity(&seqEnd))
         return fail();
+    if (useEntityFrameBatchRollback)
+        frameCheckpoints.push_back(objectWriter->m_lastEntityFrameCheckpoint);
     DRW::DwgObjectFrameReceipt seqEndFrame;
     if (!writer->getLastDwgObjectFrame(seqEndFrame)
         || !appendFrame(DRW::DwgCompoundEntityFrameRole::SeqEnd,
@@ -2169,7 +2624,14 @@ bool dwgRW::writePolyline(DRW_Polyline *ent) {
     m_lastDwgObjectFrameValid = true;
     m_lastDwgCompoundEntityWriteReceipt = std::move(receipt);
     auto transaction = std::make_unique<DwgWriteTransaction>();
-    transaction->checkpoint = checkpoint;
+    if (useEntityFrameBatchRollback) {
+        transaction->entityFrameBatchRollback =
+            [objectWriter, frameCheckpoints = std::move(frameCheckpoints)]() {
+                return objectWriter->rollbackEntityFrameBatch(frameCheckpoints);
+            };
+    } else {
+        transaction->checkpoint = std::move(checkpoint);
+    }
     transaction->entityMutations = mutations;
     rememberCallerMutations(mutations);
     m_lastWriteTransaction = std::move(transaction);
@@ -2231,6 +2693,19 @@ bool dwgRW::emitDeferredBlockControlForTest() {
 }
 
 bool dwgRW::writeMesh(DRW_Mesh *ent) {
+    if (ent != nullptr && !ent->propertyOverrides.empty()) {
+        // The current DWG encoder only has a verified base-cage mapping.
+        // Abort the entire save as well as this entity call so a consumer
+        // cannot ignore the per-entity result and publish a lossy file.
+        markDwgWriteFailure();
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation,
+            DRW::OperationCause::ValidationFailure,
+            "unsupported-mesh-property-overrides",
+            "DWG MESH property overrides have no verified encoding",
+            0, false, ent->handle, ent->handle != 0);
+        return recordWriteResult(WriteSkipKind::Entity, false);
+    }
     return encodeEntityForWrite(ent);
 }
 
@@ -2245,8 +2720,8 @@ bool dwgRW::writeImageDef(DRW_ImageDef *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr || object == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object, object,
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, object,
         [w, object] { return w->writeImageDef(*object); });
 }
 
@@ -2334,109 +2809,211 @@ bool dwgRW::registerImageDefReactorObjectClass(
                              writer->registerImageDefReactorObjectClass(handle));
 }
 
-bool dwgRW::writeImage(DRW_Image *ent, const std::string *fileName,
-                       const DRW_ImageDef *definition,
+bool dwgRW::writeImage(DRW_Image *ent, const std::string *fileName, const DRW_ImageDef *definition,
                        const DRW_ImageDefinitionReactor *reactorDefinition) {
     if (ent == nullptr)
         return recordWriteResult(WriteSkipKind::Entity, false);
 
-    // Keep caller-visible handle/reference and inferred clip fields staged
-    // until the complete IMAGE transaction has been accepted.
-    DRW_Image image = *ent;
-
     dwgWriter::CompoundWriteCheckpoint compoundCheckpoint;
     bool hasCompoundWrite = false;
+    bool hasImageFrame = false;
+    bool imageEncodingStarted = false;
+    dwgWriter15::EntityFrameCheckpoint entityCheckpoint;
+    dwgWriter15 *entityCheckpointWriter = nullptr;
+    std::uint64_t precedingFrameGeneration = 0u;
+    const auto successfulWritesBefore = m_successfulEntityWrites;
     const auto rollbackCompoundImage = [&]() {
-        if (!hasCompoundWrite || writer == nullptr)
+        if (writer == nullptr)
             return;
-        writer->rollbackCompoundWrite(compoundCheckpoint);
+        if (hasCompoundWrite)
+            writer->rollbackCompoundWrite(compoundCheckpoint);
+        else if (entityCheckpointWriter != nullptr)
+            entityCheckpointWriter->rollbackEntityFrame(entityCheckpoint, true);
+        else
+            return;
+        if (hasImageFrame && m_lastWriteTransaction) {
+            restoreEntityWriteStates(m_lastWriteTransaction->entityMutations);
+            forgetCallerMutations(m_lastWriteTransaction->entityMutations);
+        }
         m_lastWriteTransaction.reset();
         m_lastSuccessfulEntityHandle = 0;
         m_lastDwgObjectFrame = {};
         m_lastDwgObjectFrameValid = false;
+        m_lastDwgCompoundEntityWriteReceipt = {};
+        m_successfulEntityWrites = successfulWritesBefore;
+        hasCompoundWrite = false;
+        entityCheckpointWriter = nullptr;
     };
 
-    // When a path is provided, emit IMAGEDEF + reactor and wire handles so
-    // re-read delivers both the entity frame and linkImage().
-    if (fileName != nullptr && !fileName->empty()) {
-        auto *w = asWriter15(writer);
-        if (w == nullptr)
+    try {
+        // Keep caller-visible handle/reference and inferred clip fields staged
+        // until the complete IMAGE transaction has been accepted.
+        DRW_Image image = *ent;
+
+        // When a path is provided, emit IMAGEDEF + reactor and wire handles so
+        // re-read delivers both the entity frame and linkImage().
+        if (fileName != nullptr && !fileName->empty()) {
+            auto *w = asWriter15(writer);
+            if (w == nullptr)
+                return recordWriteResult(WriteSkipKind::Entity, false);
+
+            // Reject unsupported retained DataStorage state before taking the
+            // document-wide compound snapshot; this preflight cannot mutate the
+            // writer and should not copy its existing ledgers on a known refusal.
+            if ((definition != nullptr && definition->hasDataStorageBinaryData()) ||
+                (reactorDefinition != nullptr && reactorDefinition->hasDataStorageBinaryData()) ||
+                (definition != nullptr &&
+                 definition->reactorHandles.size() >= dwgSafety::MaxReactorCount) ||
+                (reactorDefinition != nullptr &&
+                 reactorDefinition->reactorHandles.size() > dwgSafety::MaxReactorCount))
+                return recordWriteResult(WriteSkipKind::Object, false);
+
+            // IMAGE is a compound write: IMAGEDEF and IMAGEDEF_REACTOR must not
+            // survive if the final IMAGE frame is rejected. Keep one boundary
+            // around all three frames and retain it for the public rollback API.
+            compoundCheckpoint = writer->checkpointCompoundWrite();
+            hasCompoundWrite = true;
+
+            DRW_ImageDef imageDef;
+            if (definition != nullptr)
+                imageDef = *definition;
+            imageDef.handle = 0;
+            imageDef.name = *fileName;
+            if (definition == nullptr) {
+                imageDef.u = image.sizeu;
+                imageDef.v = image.sizev;
+                imageDef.up = 1.0;
+                imageDef.vp = 1.0;
+                imageDef.loaded = 1;
+                imageDef.resolution = 0;
+            }
+            if (imageDef.parentHandle == 0)
+                imageDef.parentHandle = 0xC; // named object dictionary default owner
+
+            DRW_ImageDefinitionReactor reactor;
+            if (reactorDefinition != nullptr)
+                reactor = *reactorDefinition;
+            if (reactorDefinition == nullptr)
+                reactor.m_classVersion = 2;
+
+            // Reserve retained targets before minting any companion identities.
+            // A forward reference is not an emitted record, but it must not be
+            // reused as the new IMAGE/IMAGEDEF/REACTOR's own identity.
+            auto sourceReactors = imageDef.reactorHandles;
+            std::sort(sourceReactors.begin(), sourceReactors.end());
+            if ((!sourceReactors.empty() && sourceReactors.front() == 0u) ||
+                std::adjacent_find(sourceReactors.begin(), sourceReactors.end()) !=
+                    sourceReactors.end()) {
+                rollbackCompoundImage();
+                return recordWriteResult(WriteSkipKind::Object, false);
+            }
+            const auto reserveReference = [w](std::uint32_t reference) {
+                if (reference != 0u)
+                    w->reserveHandle(reference);
+            };
+            reserveReference(image.handle);
+            reserveReference(imageDef.parentHandle);
+            reserveReference(imageDef.xDictHandle);
+            reserveReference(reactor.xDictHandle);
+            for (const auto reference : sourceReactors)
+                reserveReference(reference);
+            for (const auto reference : reactor.reactorHandles)
+                reserveReference(reference);
+
+            // IMAGEDEF's common preamble must count its generated reactor. Keep
+            // the original definition/IMAGE/reactor allocation order, but allocate
+            // all three before emitting the first frame or any common count.
+            imageDef.handle = w->allocNextHandle();
+            if (image.handle == 0u)
+                image.handle = w->allocNextHandle();
+            reactor.handle = w->allocNextHandle();
+            reactor.parentHandle = image.handle;
+            imageDef.reactorHandles.push_back(reactor.handle);
+            DRW::DwgObjectFrameReceipt imageDefFrame;
+            if (!w->writeImageDef(imageDef) || !w->getLastDwgObjectFrame(imageDefFrame) ||
+                !imageDefFrame.valid || imageDefFrame.objectHandle != imageDef.handle ||
+                imageDefFrame.version != version || imageDefFrame.generation == 0u ||
+                imageDefFrame.generation == compoundCheckpoint.lastDwgObjectFrameGeneration) {
+                rollbackCompoundImage();
+                return recordWriteResult(WriteSkipKind::Object, false);
+            }
+
+            if (!w->writeImageDefinitionReactor(reactor)) {
+                rollbackCompoundImage();
+                return recordWriteResult(WriteSkipKind::Object, false);
+            }
+            DRW::DwgObjectFrameReceipt reactorFrame;
+            if (!w->getLastDwgObjectFrame(reactorFrame) || !reactorFrame.valid ||
+                reactorFrame.objectHandle != reactor.handle || reactorFrame.version != version ||
+                reactorFrame.generation == 0u ||
+                reactorFrame.generation == imageDefFrame.generation) {
+                // The outer IMAGE checkpoint already owns the complete
+                // IMAGEDEF/REACTOR/IMAGE rollback, including the class-instance
+                // ledgers registered by the reactor. Require the intermediate
+                // frame receipt here without taking a second full snapshot.
+                rollbackCompoundImage();
+                return recordWriteResult(WriteSkipKind::Object, false);
+            }
+
+            image.ref = imageDef.handle;
+            image.m_imageDefReactorHandle = reactor.handle;
+            precedingFrameGeneration = reactorFrame.generation;
+        } else if (image.ref == 0u || image.m_imageDefReactorHandle == 0u) {
             return recordWriteResult(WriteSkipKind::Entity, false);
-
-        // IMAGE is a compound write: IMAGEDEF and IMAGEDEF_REACTOR must not
-        // survive if the final IMAGE frame is rejected. Keep one boundary
-        // around all three frames and retain it for the public rollback API.
-        compoundCheckpoint = writer->checkpointCompoundWrite();
-        hasCompoundWrite = true;
-
-        if ((definition != nullptr && definition->hasDataStorageBinaryData())
-            || (reactorDefinition != nullptr
-                && reactorDefinition->hasDataStorageBinaryData())) {
-            return recordWriteResult(WriteSkipKind::Object, false);
         }
 
-        DRW_ImageDef imageDef;
-        if (definition != nullptr)
-            imageDef = *definition;
-        imageDef.handle = 0;
-        imageDef.name = *fileName;
-        if (definition == nullptr) {
-            imageDef.u = image.sizeu;
-            imageDef.v = image.sizev;
-            imageDef.up = 1.0;
-            imageDef.vp = 1.0;
-            imageDef.loaded = 1;
-            imageDef.resolution = 0;
+        // IMAGE uses fixed oType 101 — no custom class registration.
+        if (image.m_clipBoundaryType == 0 && image.clipPath.empty()) {
+            // Default full-image rectangle so encodeDwg accepts a fresh IMAGE.
+            image.m_clipBoundaryType = 1;
+            image.clipPath = {DRW_Coord{-0.5, -0.5, 0.0},
+                              DRW_Coord{image.sizeu - 0.5, image.sizev - 0.5, 0.0}};
         }
-        if (imageDef.parentHandle == 0)
-            imageDef.parentHandle = 0xC;  // named object dictionary default owner
-        if (!w->writeImageDef(imageDef)) {
+        // Unknown writers without the compact entity rollback contract need an
+        // outer fallback boundary even when companions were supplied separately.
+        if (!hasCompoundWrite && writer != nullptr && !writer->supportsLastEntityWriteRollback()) {
+            compoundCheckpoint = writer->checkpointCompoundWrite();
+            hasCompoundWrite = true;
+        }
+        if (!hasCompoundWrite && asWriter15(writer) != nullptr) {
+            entityCheckpointWriter = asWriter15(writer);
+            entityCheckpoint = entityCheckpointWriter->checkpointEntityFrame();
+        }
+        imageEncodingStarted = true;
+        if (!encodeEntityForWrite(&image, ent)) {
             rollbackCompoundImage();
-            return recordWriteResult(WriteSkipKind::Object, false);
+            return false;
         }
-
-        // Allocate the image entity handle before the reactor so the reactor
-        // can name the image as its owner when the caller left it unset.
-        if (image.handle == 0)
-            image.handle = w->allocNextHandle();
-        else
-            w->reserveHandle(image.handle);
-
-        DRW_ImageDefinitionReactor reactor;
-        if (reactorDefinition != nullptr)
-            reactor = *reactorDefinition;
-        reactor.handle = 0;
-        if (reactorDefinition == nullptr)
-            reactor.m_classVersion = 2;
-        reactor.parentHandle = image.handle;
-        if (!w->writeImageDefinitionReactor(reactor)) {
+        hasImageFrame = true;
+        if (!m_lastWriteTransaction || !m_lastDwgObjectFrameValid || !m_lastDwgObjectFrame.valid ||
+            m_lastDwgObjectFrame.objectHandle != image.handle ||
+            m_lastDwgObjectFrame.version != version || m_lastDwgObjectFrame.generation == 0u ||
+            m_lastDwgObjectFrame.generation == precedingFrameGeneration) {
+            if (!hasCompoundWrite)
+                (void)rollbackLastDwgObjectWrite();
             rollbackCompoundImage();
-            return recordWriteResult(WriteSkipKind::Object, false);
+            return recordWriteResult(WriteSkipKind::Entity, false);
         }
-
-        image.ref = imageDef.handle;
-        image.m_imageDefReactorHandle = reactor.handle;
-    }
-
-    // IMAGE uses fixed oType 101 — no custom class registration.
-    if (image.m_clipBoundaryType == 0 && image.clipPath.empty()) {
-        // Default full-image rectangle so encodeDwg accepts a fresh IMAGE.
-        image.m_clipBoundaryType = 1;
-        image.clipPath = {DRW_Coord{-0.5, -0.5, 0.0},
-                          DRW_Coord{image.sizeu - 0.5, image.sizev - 0.5, 0.0}};
-    }
-    if (!encodeEntityForWrite(&image, ent)) {
-        rollbackCompoundImage();
-        return false;
-    }
-    if (hasCompoundWrite && m_lastWriteTransaction)
-        m_lastWriteTransaction->checkpoint = compoundCheckpoint;
-    else {
+        *ent = image;
+        if (hasCompoundWrite) {
+            // The companions precede the entity, so retain the outer boundary
+            // instead of the entity-only rollback. Move only after publication.
+            m_lastWriteTransaction->checkpoint = std::move(compoundCheckpoint);
+            m_lastWriteTransaction->usesWriterEntityRollback = false;
+        }
+        hasCompoundWrite = false;
+        entityCheckpointWriter = nullptr;
+        return true;
+    } catch (...) {
+        if (!hasCompoundWrite && imageEncodingStarted) {
+            if (hasImageFrame || m_lastWriteTransaction)
+                (void)rollbackLastDwgObjectWrite();
+            else if (writer != nullptr && writer->supportsLastEntityWriteRollback())
+                writer->rollbackLastEntityWrite();
+        }
         rollbackCompoundImage();
         return recordWriteResult(WriteSkipKind::Entity, false);
     }
-    *ent = image;
-    return true;
 }
 
 bool dwgRW::writePointCloud(DRW_PointCloud *ent) {
@@ -2487,6 +3064,16 @@ std::uint32_t dwgRW::defineBlock(const std::string& name, const DRW_Coord& baseP
         return 0;
     }
     const std::uint32_t handle = writer->defineBlock(name, basePoint, insUnits);
+    (void)recordWriteResult(WriteSkipKind::BlockDefinition, handle != 0);
+    return handle;
+}
+
+std::uint32_t dwgRW::defineBlock(const DRW_Block_Record& record) {
+    if (writer == nullptr) {
+        (void)recordWriteResult(WriteSkipKind::BlockDefinition, false);
+        return 0;
+    }
+    const std::uint32_t handle = writer->defineBlock(record);
     (void)recordWriteResult(WriteSkipKind::BlockDefinition, handle != 0);
     return handle;
 }
@@ -2634,8 +3221,9 @@ bool dwgRW::writeAcDbPlaceholder(DRW_AcDbPlaceholder *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object,
+
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, nullptr,
         [w, object] { return w->writeAcDbPlaceholder(*object); });
 }
 
@@ -2645,8 +3233,9 @@ bool dwgRW::writeVbaProject(DRW_VbaProject *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object, [w, object] { return w->writeVbaProject(*object); });
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, nullptr,
+        [w, object] { return w->writeVbaProject(*object); });
 }
 
 bool dwgRW::writeDbColor(DRW_DbColor *object) {
@@ -2655,8 +3244,9 @@ bool dwgRW::writeDbColor(DRW_DbColor *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object, [w, object] { return w->writeDbColor(*object); });
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, nullptr,
+        [w, object] { return w->writeDbColor(*object); });
 }
 
 bool dwgRW::registerDbColorObjectClass(DRW_DbColor *object) {
@@ -2733,8 +3323,8 @@ bool dwgRW::writeBlockRepresentationData(
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object,
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, nullptr,
         [w, object] { return w->writeBlockRepresentationData(*object); });
 }
 
@@ -2796,6 +3386,116 @@ bool dwgRW::writeTableStyle(DRW_TableStyle *object) {
     return writeObjectTransaction(
         WriteSkipKind::Object,
         [w, object] { return w->writeTableStyle(*object); });
+}
+
+bool dwgRW::registerCellStyleMapObjectClass(DRW_CellStyleMap *object) {
+    if (object == nullptr || writer == nullptr)
+        return recordWriteResult(WriteSkipKind::ClassRegistration, false);
+    if (object->handle != 0)
+        writer->reserveHandle(object->handle);
+    return recordWriteResult(
+        WriteSkipKind::ClassRegistration,
+        writer->registerCellStyleMapObjectClass(object->handle));
+}
+
+bool dwgRW::writeCellStyleMap(DRW_CellStyleMap *object) {
+    if (object == nullptr)
+        return recordWriteResult(WriteSkipKind::Object, false);
+    auto *w = asWriter15(writer);
+    if (w == nullptr)
+        return recordWriteResult(WriteSkipKind::Object, false);
+    return writeObjectTransaction(
+        WriteSkipKind::Object,
+        [w, object] { return w->writeCellStyleMap(*object); });
+}
+
+bool dwgRW::registerTableContentObjectClass(DRW_TableContentObject *object) {
+    if (object == nullptr || writer == nullptr || getVersion() != DRW::AC1021)
+        return recordWriteResult(WriteSkipKind::ClassRegistration, false);
+    if (object->handle != 0)
+        writer->reserveHandle(object->handle);
+    return recordWriteResult(
+        WriteSkipKind::ClassRegistration,
+        writer->registerTableContentObjectClass(object->handle));
+}
+
+bool dwgRW::writeTableContent(DRW_TableContentObject *object) {
+    if (object == nullptr || getVersion() != DRW::AC1021)
+        return recordWriteResult(WriteSkipKind::Object, false);
+    auto *w = asWriter15(writer);
+    if (w == nullptr)
+        return recordWriteResult(WriteSkipKind::Object, false);
+    return writeObjectTransaction(
+        WriteSkipKind::Object,
+        [w, object] { return w->writeTableContent(*object); });
+}
+
+bool dwgRW::writeTableStyleCellStyleMapGraph(
+    DRW_TableStyle *tableStyle, DRW_Dictionary *extensionDictionary,
+    DRW_CellStyleMap *cellStyleMap) {
+    if (tableStyle == nullptr || extensionDictionary == nullptr
+        || cellStyleMap == nullptr || writer == nullptr
+        || getVersion() != DRW::AC1021) {
+        return recordWriteResult(WriteSkipKind::Object, false);
+    }
+
+    static constexpr char kCellStyleMapKey[] =
+        "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP";
+    const std::uint32_t tableStyleHandle = tableStyle->handle;
+    const std::uint32_t dictionaryHandle = extensionDictionary->handle;
+    const std::uint32_t cellStyleMapHandle = cellStyleMap->handle;
+    if (tableStyleHandle == 0u || dictionaryHandle == 0u
+        || cellStyleMapHandle == 0u
+        || tableStyleHandle == dictionaryHandle
+        || tableStyleHandle == cellStyleMapHandle
+        || dictionaryHandle == cellStyleMapHandle
+        || tableStyle->parentHandle == 0u
+        || tableStyle->xDictHandle != dictionaryHandle
+        // In the DWG common-object header, zero means the hard xdictionary
+        // handle follows; one suppresses it.
+        || tableStyle->extensionDictionaryFlag() != 0u
+        || extensionDictionary->parentHandle != tableStyleHandle
+        || extensionDictionary->hardOwner != 1
+        || cellStyleMap->parentHandle != dictionaryHandle) {
+        return recordWriteResult(WriteSkipKind::Object, false);
+    }
+
+    const auto canonicalKeyCount = std::count_if(
+        extensionDictionary->m_entries.cbegin(),
+        extensionDictionary->m_entries.cend(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == kCellStyleMapKey;
+        });
+    const auto targetHandleCount = std::count_if(
+        extensionDictionary->m_entries.cbegin(),
+        extensionDictionary->m_entries.cend(),
+        [cellStyleMapHandle](const DRW_Dictionary::Entry& entry) {
+            return entry.m_handle == cellStyleMapHandle;
+        });
+    if (canonicalKeyCount != 1 || targetHandleCount != 1) {
+        return recordWriteResult(WriteSkipKind::Object, false);
+    }
+    const auto canonicalEntry = std::find_if(
+        extensionDictionary->m_entries.cbegin(),
+        extensionDictionary->m_entries.cend(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == kCellStyleMapKey;
+        });
+    if (canonicalEntry == extensionDictionary->m_entries.cend()
+        || canonicalEntry->m_handle != cellStyleMapHandle) {
+        return recordWriteResult(WriteSkipKind::Object, false);
+    }
+
+    auto *objectWriter = asWriter15(writer);
+    if (objectWriter == nullptr)
+        return recordWriteResult(WriteSkipKind::Object, false);
+    return writeObjectTransaction(
+        WriteSkipKind::Object,
+        [objectWriter, tableStyle, extensionDictionary, cellStyleMap] {
+            return objectWriter->writeTableStyle(*tableStyle)
+                && objectWriter->writeDictionary(*extensionDictionary)
+                && objectWriter->writeCellStyleMap(*cellStyleMap);
+        });
 }
 
 bool dwgRW::registerMaterialObjectClass(DRW_Material *object) {
@@ -3036,8 +3736,8 @@ bool dwgRW::writeDictionary(DRW_Dictionary *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object,
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, nullptr,
         [w, object] { return w->writeDictionary(*object); });
 }
 
@@ -3047,8 +3747,9 @@ bool dwgRW::writeXRecord(DRW_XRecord *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object, [w, object] { return w->writeXRecord(*object); });
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, nullptr,
+        [w, object] { return w->writeXRecord(*object); });
 }
 
 bool dwgRW::writePlotSettings(DRW_PlotSettings *object) {
@@ -3057,6 +3758,15 @@ bool dwgRW::writePlotSettings(DRW_PlotSettings *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
+    // The explicit-handle path emits one PlotSettings frame and only consumes
+    // that handle's pre-registered class-instance entry. The zero-handle path
+    // instead records a class-wide emission count with no handle key, so keep
+    // its comprehensive transaction until that count has a bounded checkpoint.
+    if (object->handle != 0) {
+        return writeFixedObjectFrameTransaction(
+            WriteSkipKind::Object, w, object, nullptr,
+            [w, object] { return w->writePlotSettings(*object); });
+    }
     return writeObjectTransaction(
         WriteSkipKind::Object,
         [w, object] { return w->writePlotSettings(*object); });
@@ -3068,8 +3778,9 @@ bool dwgRW::writeLayout(DRW_Layout *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
-        WriteSkipKind::Object, [w, object] { return w->writeLayout(*object); });
+    return writeFixedObjectFrameTransaction(
+        WriteSkipKind::Object, w, object, nullptr,
+        [w, object] { return w->writeLayout(*object); });
 }
 
 bool dwgRW::writeGroup(DRW_Group *object) {
@@ -3078,8 +3789,11 @@ bool dwgRW::writeGroup(DRW_Group *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    return writeObjectTransaction(
+    const bool written = writeObjectTransaction(
         WriteSkipKind::Object, [w, object] { return w->writeGroup(*object); });
+    if (!written)
+        markDwgWriteFailure();
+    return written;
 }
 
 bool dwgRW::writeMLineStyle(DRW_MLineStyle *object) {
@@ -3090,7 +3804,7 @@ bool dwgRW::writeMLineStyle(DRW_MLineStyle *object) {
         return recordWriteResult(WriteSkipKind::Object, false);
     return writeObjectTransaction(
         WriteSkipKind::Object,
-        [w, object] { return w->writeMLineStyle(*object); });
+        [w, object] { return w->writeMLineStyle(*object); }, true);
 }
 
 bool dwgRW::registerRasterVariablesObjectClass(DRW_RasterVariables *object) {
@@ -3400,7 +4114,21 @@ bool dwgRW::writeRawDwgObject(DRW_UnsupportedObject *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::RawObject, false);
-    const bool written = w->replayRawObject(*object);
+    const bool written = w->replayRawObject(*object, nullptr);
+    if (!written)
+        w->rollbackRawObjectClassInstance(*object);
+    return recordWriteResult(WriteSkipKind::RawObject, written);
+}
+
+bool dwgRW::writeRawDwgObject(
+    DRW_UnsupportedObject *object,
+    const DRW_ModelerGeometry *typedModeler) {
+    if (object == nullptr || typedModeler == nullptr)
+        return recordWriteResult(WriteSkipKind::RawObject, false);
+    auto *w = asWriter15(writer);
+    if (w == nullptr)
+        return recordWriteResult(WriteSkipKind::RawObject, false);
+    const bool written = w->replayRawObject(*object, typedModeler);
     if (!written)
         w->rollbackRawObjectClassInstance(*object);
     return recordWriteResult(WriteSkipKind::RawObject, written);
@@ -3843,8 +4571,8 @@ bool dwgRW::processDwg() {
         try {
         for (const DRW_RawDwgSection& section : reader->m_rawDwgSections)
             iface->addRawDwgSection(section);
-        for (const DRW_DataStorageSection& storage : reader->m_dataStorageSections)
-            iface->addDataStorage(storage);
+        for (DRW_DataStorageSection& storage : reader->m_dataStorageSections)
+            iface->addDataStorage(std::move(storage));
         } catch (...) {
             recordOperationDiagnostic(
                 DRW::OperationPhase::Callback,

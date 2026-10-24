@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader release-fresh LibreDWG writer and ezdxf ACIS boundaries",
+  "mode": "primary-source web research and read-only local plan reconciliation",
+  "scope": [
+    "Refresh GNU LibreDWG DWG-writer evidence at its current release boundary",
+    "Refresh ezdxf ACIS parsing, export, and mesh-projection limitations",
+    "Refine existing optional peer admission without delaying local implementation"
+  ],
+  "method": {
+    "kind": "Read project-owned release history, README, API documentation, and reconcile with the existing plan",
+    "accessed": "2026-10-20",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-route-coverage-closure-2026-10-20.json",
+      "docs/research/deeper-broader-acis-mesh-projection-and-solid-consumer-route-review-2026-10-16.json",
+      "docs/research/deeper-broader-open-source-implementation-evidence-review-2026-10-18.json"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "The LibreDWG NEWS/README and ezdxf stable documentation are mutable project-owned sources and were not tied to an executed binary or source artifact in this pass. They establish advertised route boundaries only; no peer behavior or libdxfrw conformance was reproduced."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS#L2325-L2337",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS#L2184-L2192",
+        "https://github.com/LibreDWG/libredwg#readme"
+      ],
+      "revision": "Mutable master pages accessed 2026-10-20",
+      "observed": "NEWS records R2004/AC1018 DWG writing as a 0.14 feature, while wider R2004+ support is described as started but incomplete; 0.14.1 NEWS records a decompression security fix. The README presents a coarse writer boundary through R2004 rather than a per-class matrix.",
+      "limits": "No LibreDWG binary, output, independent reopen, per-class status, or native application result was executed."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation accessed 2026-10-20; docs identify ezdxf 1.4.5",
+      "observed": "The ACIS API documents a limited set of known structures, potential loss of unsupported entities loaded as NONE_ENTITY, export refusal for those entities, planar-face-only mesh extraction, and version-specific SAT (R2000-R2010) versus SAB (R2013/R2018) export boundaries.",
+      "limits": "No ezdxf package was installed or run; documentation does not qualify arbitrary ACIS roundtrip, curved-surface semantics, DWG/AcDs association, or native consumer acceptance."
+    }
+  ],
+  "assessment": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelImplementationSubplan": false,
+    "findingsCount": 141,
+    "topLevelSubplansCount": 78,
+    "existingOwnersRefined": [
+      "PAR-07",
+      "S5",
+      "S8"
+    ],
+    "supportClaimChanged": false,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "mandatoryPeerGateAdded": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing composed-checkpoint candidate boundaries: LibreDWG 0.14+ is considered only for an exact AC1018 writer question after artifact pinning, and ezdxf only for a fully represented planar ACIS-DXF profile. Continue local implementation without either peer; separate file writing, parsing, graph association, opaque retention, geometric semantics, and native acceptance."
+  },
+  "validation": {
+    "jsonValidation": "PASS: jq empty",
+    "scopedDiffCheck": "PASS: git diff --check for the plan and receipt paths",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

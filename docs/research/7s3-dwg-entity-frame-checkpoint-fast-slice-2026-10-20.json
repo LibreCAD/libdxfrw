@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "title": "7S.3 DWG per-entity frame checkpoint",
+  "date": "2026-10-20",
+  "scope": "Generated fast implementation slice replacing document-wide snapshots on ordinary entity writes with a bounded frame checkpoint.",
+  "changes": [
+    "Added an entity-frame checkpoint for byte length, object-map length, sticky error flags, and DWG object-frame provenance.",
+    "Added bounded rollback for the current frame's object-map publication and owner/INSERT memberships; retained full compound snapshots for class-associated handles and larger transaction boundaries.",
+    "Extended the existing block-owner membership selector to assert ordinary entity encoding performs no full checkpoint and to exercise frame publication and owner-index rollback."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "focusedOwnershipCTest": "PASS: libdxfrw_dwg_block_owner_membership_index (1/1)",
+    "focusedBlockRoundtripCTest": "PASS: libdxfrw_dwg_block_record_xref_roundtrip (1/1)",
+    "localRoundtripCTest": "PASS: libdxfrw_dwg_local_roundtrip (1/1, 3.18 sec)",
+    "diffCheck": "PASS: git diff --check on touched code, test, and plan files"
+  },
+  "notPerformed": [
+    "No full CTest suite",
+    "No external drawing or persistent fixture",
+    "No external peer runtime or native CAD application",
+    "No wall-clock performance benchmark",
+    "No support claim promotion"
+  ],
+  "planInventory": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

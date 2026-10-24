@@ -1,4 +1,5 @@
 #include <array>
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -42,9 +43,11 @@ std::shared_ptr<DRW_LWPolyline> polyline(const std::array<Point, 4>& points) {
     return value;
 }
 
-std::unique_ptr<dx_data> drawing(bool hatchFirst, bool reactors, bool detached = false) {
+std::unique_ptr<dx_data> drawing(bool hatchFirst, bool reactors,
+                                 bool detached = false, bool mpolygon = false) {
     auto data = std::make_unique<dx_data>();
-    auto* hatch = new DRW_Hatch();
+    DRW_Hatch* hatch = mpolygon
+        ? static_cast<DRW_Hatch*>(new DRW_MPolygon()) : new DRW_Hatch();
     hatch->handle = 0x40;
     hatch->layer = "HATCH_CONTROL";
     hatch->name = "SOLID";
@@ -168,7 +171,11 @@ bool readRecords(const std::filesystem::path& path, std::map<std::string, Record
             else record.owner = reader->getString();
         } else if (code == 5) record.handle = reader->getString();
         else if (code == 8) record.layer = reader->getString();
-        else if (code == 100 && reader->getString() == "AcDbHatch") body = true;
+        else if (code == 100) {
+            const std::string subclass = reader->getString();
+            if (subclass == "AcDbHatch" || subclass == "AcDbMPolygon")
+                body = true;
+        }
     }
     return false;
 }
@@ -217,7 +224,9 @@ bool verify(const std::filesystem::path& path, bool reactors, bool detached,
         expected.emplace_back(330, records.at("BOUNDARY_3").handle);
     }
     addPolyline(2, inner);
-    add(97, 0); add(75, 0); add(76, 1); add(78, 0); add(98, 0);
+    add(97, 0); add(75, 0); add(76, 1); add(78, 0);
+    add(47, 0); // the first boundary path is derived, so emit pixel size
+    add(98, 0);
     if (hatch.type != "HATCH" || hatch.body != expected) {
         std::cerr << "HATCH ordered path/reference tags differ: " << path << '\n';
         for (std::size_t i = 0; i < hatch.body.size() && i < expected.size(); ++i) {
@@ -273,6 +282,283 @@ bool verify(const std::filesystem::path& path, bool reactors, bool detached,
     return true;
 }
 
+bool verifyAliasedHatchPublication(const std::filesystem::path& path) {
+    std::map<std::string, Record> records;
+    if (!readRecords(path, records) || records.size() != 3u
+        || records.count("HATCH_CONTROL") != 1u
+        || records.count("BOUNDARY_1") != 1u
+        || records.count("FOLLOWING_CONTROL") != 1u)
+        return false;
+    const Record& hatchRecord = records.at("HATCH_CONTROL");
+    const Record& boundaryRecord = records.at("BOUNDARY_1");
+    const Record& followingRecord = records.at("FOLLOWING_CONTROL");
+    std::vector<std::string> boundaryRefs;
+    for (const Tag& tag : hatchRecord.body)
+        if (tag.first == 330) boundaryRefs.push_back(tag.second);
+    if (hatchRecord.type != "HATCH" || hatchRecord.handle != "30"
+        || boundaryRecord.type != "LWPOLYLINE" || boundaryRecord.handle != "31"
+        || followingRecord.type != "LINE" || followingRecord.handle.empty()
+        || followingRecord.handle == hatchRecord.handle
+        || followingRecord.handle == boundaryRecord.handle
+        || hatchRecord.owner.empty() || hatchRecord.owner != boundaryRecord.owner
+        || hatchRecord.owner != followingRecord.owner
+        || boundaryRefs != std::vector<std::string>{"31"}
+        || boundaryRecord.reactors != std::vector<std::string>{"30"})
+        return false;
+
+    dx_data imported;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &imported, false)
+        || imported.mBlock->ent.size() != 3u)
+        return false;
+    const DRW_Hatch* hatch = nullptr;
+    const DRW_LWPolyline* boundary = nullptr;
+    const DRW_Line* following = nullptr;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity->layer == "HATCH_CONTROL")
+            hatch = dynamic_cast<const DRW_Hatch*>(entity);
+        else if (entity->layer == "BOUNDARY_1")
+            boundary = dynamic_cast<const DRW_LWPolyline*>(entity);
+        else if (entity->layer == "FOLLOWING_CONTROL")
+            following = dynamic_cast<const DRW_Line*>(entity);
+    }
+    return hatch != nullptr && boundary != nullptr && following != nullptr
+        && hatch->handle == std::stoul(hatchRecord.handle, nullptr, 16)
+        && hatch->associative == 1
+        && hatch->looplist.size() == 1u && hatch->looplist.front() != nullptr
+        && hatch->looplist.front()->m_boundaryHandles
+            == std::vector<std::uint32_t>{0x31u}
+        && boundary->handle == std::stoul(boundaryRecord.handle, nullptr, 16)
+        && boundary->reactorHandles == std::vector<std::uint32_t>{0x30u}
+        && following->handle == std::stoul(followingRecord.handle, nullptr, 16)
+        && following->basePoint.x == 20 && following->basePoint.y == 21
+        && following->basePoint.z == 22 && following->secPoint.x == 23
+        && following->secPoint.y == 24 && following->secPoint.z == 25;
+}
+
+bool write(const std::filesystem::path& path, dx_data& data, bool binary,
+           bool preplan, bool resolver);
+
+bool rewriteHatchPixelSizeToZero(const std::filesystem::path& path,
+                                 bool binary) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input) return false;
+    std::string bytes((std::istreambuf_iterator<char>(input)), {});
+    input.close();
+    std::size_t replacements = 0;
+    if (binary) {
+        const std::string signature("AutoCAD Binary DXF\r\n\x1a\0", 22);
+        if (bytes.size() < signature.size()
+            || bytes.compare(0, signature.size(), signature) != 0)
+            return false;
+        std::istringstream stream(bytes, std::ios::binary);
+        stream.seekg(static_cast<std::streamoff>(signature.size()));
+        dxfReaderBinary reader(&stream);
+        bool hatch = false;
+        int code = 0;
+        while (true) {
+            const std::streampos recordStart = stream.tellg();
+            if (!reader.readRec(&code)) break;
+            if (code == 0) {
+                hatch = reader.getString() == "HATCH";
+            } else if (code == 47 && hatch) {
+                const std::streamoff valueStart =
+                    static_cast<std::streamoff>(recordStart)
+                    + static_cast<std::streamoff>(2);
+                if (valueStart < 0
+                    || static_cast<std::size_t>(valueStart) > bytes.size()
+                    || bytes.size() - static_cast<std::size_t>(valueStart) < 8u)
+                    return false;
+                bytes.replace(static_cast<std::size_t>(valueStart), 8u, 8u, '\0');
+                ++replacements;
+            }
+        }
+    } else {
+        std::istringstream lines(bytes);
+        std::ostringstream rewritten;
+        std::string codeLine, valueLine;
+        bool hatch = false;
+        while (std::getline(lines, codeLine)) {
+            if (!std::getline(lines, valueLine)) return false;
+            int code = -1;
+            try {
+                code = std::stoi(codeLine);
+            } catch (...) {
+                return false;
+            }
+            std::string valueWithoutCr = valueLine;
+            if (!valueWithoutCr.empty() && valueWithoutCr.back() == '\r')
+                valueWithoutCr.pop_back();
+            if (code == 0)
+                hatch = valueWithoutCr == "HATCH";
+            if (code == 47 && hatch) {
+                const bool crlf = !valueLine.empty() && valueLine.back() == '\r';
+                valueLine = crlf ? "0\r" : "0";
+                ++replacements;
+            }
+            rewritten << codeLine << '\n' << valueLine << '\n';
+        }
+        if (lines.bad()) return false;
+        bytes = rewritten.str();
+    }
+    if (replacements != 1u) return false;
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output) return false;
+    output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+    output.close();
+    return output.good();
+}
+
+bool verifyHatchPixelSize(const std::filesystem::path& path,
+                          bool expectedPresent, double expectedValue,
+                          int expectedLoopType, bool patterned) {
+    std::map<std::string, Record> records;
+    if (!readRecords(path, records) || records.size() != 5u
+        || records.count("HATCH_CONTROL") != 1u
+        || records.count("FOLLOWING_CONTROL") != 1u)
+        return false;
+    const Record& hatchRecord = records.at("HATCH_CONTROL");
+    std::size_t pixelTags = 0;
+    std::size_t pixelPosition = 0;
+    std::size_t seedsPosition = hatchRecord.body.size();
+    bool firstLoopSeen = false;
+    bool patternLineSeen = false;
+    std::size_t lastPatternLinePosition = 0;
+    double observedPixelSize = 0.0;
+    for (std::size_t i = 0; i < hatchRecord.body.size(); ++i) {
+        const Tag& tag = hatchRecord.body[i];
+        if (!firstLoopSeen && tag.first == 92) {
+            firstLoopSeen = true;
+            if (tag.second != std::to_string(expectedLoopType)) return false;
+        }
+        if (tag.first == 47) {
+            ++pixelTags;
+            pixelPosition = i;
+            try {
+                observedPixelSize = std::stod(tag.second);
+            } catch (...) {
+                return false;
+            }
+        }
+        if (tag.first == 49) {
+            patternLineSeen = true;
+            lastPatternLinePosition = i;
+        }
+        if (tag.first == 98) seedsPosition = i;
+    }
+    const bool derivedBoundary = (expectedLoopType & 4) != 0;
+    if (!firstLoopSeen || seedsPosition == hatchRecord.body.size()
+        || pixelTags != ((expectedPresent || derivedBoundary) ? 1u : 0u))
+        return false;
+    if (expectedPresent
+        && (pixelPosition >= seedsPosition || observedPixelSize != expectedValue))
+        return false;
+    if (patterned && (!patternLineSeen
+        || (expectedPresent && pixelPosition <= lastPatternLinePosition)))
+        return false;
+
+    dx_data imported;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &imported, false)
+        || imported.mBlock->ent.size() != 5u)
+        return false;
+    const DRW_Hatch* hatch = nullptr;
+    const DRW_Line* following = nullptr;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        if (entity->layer == "HATCH_CONTROL")
+            hatch = dynamic_cast<const DRW_Hatch*>(entity);
+        else if (entity->layer == "FOLLOWING_CONTROL")
+            following = dynamic_cast<const DRW_Line*>(entity);
+    }
+    return hatch != nullptr && following != nullptr
+        && hatch->pixelSize == expectedValue
+        && hatch->solid == (patterned ? 0 : 1)
+        && (!patterned || (hatch->name == "LOCAL_PHASE"
+            && hatch->patternLines.size() == 1u
+            && hatch->patternLines.front().angle == 30
+            && hatch->patternLines.front().baseX == 2
+            && hatch->patternLines.front().baseY == 3
+            && hatch->patternLines.front().offsetX == 4
+            && hatch->patternLines.front().offsetY == 7
+            && hatch->patternLines.front().dashList
+                == std::vector<double>{1, -2, 0}))
+        && following->basePoint.x == 20 && following->basePoint.y == 21
+        && following->basePoint.z == 22 && following->secPoint.x == 23
+        && following->secPoint.y == 24 && following->secPoint.z == 25;
+}
+
+bool runHatchPixelPresenceTestsImpl(const std::filesystem::path& parent) {
+    const auto directory = parent / ("libdxfrw-hatch-pixel-presence-" + std::to_string(
+        std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    std::size_t controls = 0;
+    bool passed = true;
+    for (bool binary : {false, true}) {
+        for (int loopType : {3, 7}) {
+            for (bool patterned : {false, true}) {
+                const std::string stem = std::to_string(binary) + '-'
+                    + std::to_string(loopType) + '-'
+                    + std::to_string(patterned);
+                const auto configure = [loopType, patterned](dx_data& data,
+                                                             double pixelSize) {
+                    auto* entity = static_cast<DRW_Hatch*>(data.mBlock->ent.front());
+                    entity->looplist.front()->type = loopType;
+                    entity->pixelSize = pixelSize;
+                    if (patterned) {
+                        entity->name = "LOCAL_PHASE";
+                        entity->solid = 0;
+                        entity->hpattern = 2;
+                        entity->angle = 17;
+                        entity->scale = 2.5;
+                        entity->patternLines = {{30, 2, 3, 4, 7, {1, -2, 0}}};
+                    }
+                };
+                auto source = drawing(true, true);
+                configure(*source, 0.0);
+                const auto absent = directory / (stem + "-absent.dxf");
+                bool valid = write(absent, *source, binary, true, true)
+                    && verifyHatchPixelSize(
+                        absent, (loopType & 4) != 0, 0.0, loopType,
+                        patterned);
+                ++controls;
+
+                source = drawing(true, true);
+                configure(*source, 0.125);
+                const auto nonzero = directory / (stem + "-nonzero.dxf");
+                valid = write(nonzero, *source, binary, true, true)
+                    && verifyHatchPixelSize(nonzero, true, 0.125, loopType, patterned)
+                    && valid;
+                ++controls;
+
+                const auto explicitZero = directory / (stem + "-explicit-zero.dxf");
+                std::error_code copyError;
+                std::filesystem::copy_file(nonzero, explicitZero,
+                    std::filesystem::copy_options::overwrite_existing, copyError);
+                valid = !copyError
+                    && rewriteHatchPixelSizeToZero(explicitZero, binary)
+                    && verifyHatchPixelSize(explicitZero, true, 0.0, loopType, patterned)
+                    && valid;
+                ++controls;
+                if (!valid)
+                    std::cerr << "HATCH group-47 presence control failed: binary="
+                              << binary << " loop-type=" << loopType
+                              << " patterned=" << patterned << '\n';
+                passed = valid && passed;
+            }
+        }
+    }
+    std::cout << "HATCH group-47 presence characterization: "
+              << (passed ? "PASS" : "FAIL") << " (controls=" << controls
+              << ", generated ASCII/Binary; no external fixtures)\n";
+    if (passed) {
+        std::error_code cleanupError;
+        std::filesystem::remove_all(directory, cleanupError);
+        return !cleanupError;
+    }
+    std::cout << "HATCH group-47 evidence: " << directory << '\n';
+    return false;
+}
+
 bool emit(dxfRW& output, dx_data& data, bool binary,
           bool preplan, bool resolver, std::uint32_t rejectedSource = 0) {
     Writer iface(output, data, preplan);
@@ -289,7 +575,176 @@ bool write(const std::filesystem::path& path, dx_data& data, bool binary,
     return output.reserveHandle(0x30) && emit(output, data, binary, preplan, resolver);
 }
 
+bool verifyPatternedAssociativeHatch(const std::filesystem::path& path) {
+    const std::vector<DRW_Hatch::PatternLine> expectedPatternLines{
+        {30.0, 2.0, 3.0, 4.0, 7.0, {1.0, -2.0, 0.0}},
+        {-45.0, -1.5, 5.25, 6.5, -7.75, {0.5, -0.25}}
+    };
+    std::map<std::string, Record> records;
+    if (!readRecords(path, records) || records.size() != 5u
+        || records.count("HATCH_CONTROL") != 1u
+        || records.count("BOUNDARY_1") != 1u
+        || records.count("BOUNDARY_2") != 1u
+        || records.count("BOUNDARY_3") != 1u
+        || records.count("FOLLOWING_CONTROL") != 1u)
+        return false;
+
+    const Record& hatchRecord = records.at("HATCH_CONTROL");
+    if (hatchRecord.type != "HATCH" || hatchRecord.handle.empty()
+        || hatchRecord.handle == "0" || hatchRecord.owner.empty())
+        return false;
+    std::set<std::string> recordHandles;
+    for (const auto& entry : records) {
+        if (entry.second.handle.empty() || entry.second.handle == "0"
+            || entry.second.owner != hatchRecord.owner
+            || !recordHandles.insert(entry.second.handle).second)
+            return false;
+    }
+
+    std::vector<std::vector<std::string>> pathReferences;
+    for (const Tag& tag : hatchRecord.body) {
+        if (tag.first == 92)
+            pathReferences.emplace_back();
+        else if (tag.first == 330) {
+            if (pathReferences.empty())
+                return false;
+            pathReferences.back().push_back(tag.second);
+        }
+    }
+    const std::vector<std::vector<std::string>> expectedReferences{
+        {records.at("BOUNDARY_1").handle},
+        {records.at("BOUNDARY_2").handle, records.at("BOUNDARY_3").handle},
+        {}
+    };
+    if (pathReferences != expectedReferences)
+        return false;
+
+    std::vector<Tag> expectedPatternTags{
+        {75, "0"}, {76, "2"}, {52, number(22.5)}, {41, number(1.25)},
+        {77, "1"}, {78, "2"}
+    };
+    for (const DRW_Hatch::PatternLine& line : expectedPatternLines) {
+        expectedPatternTags.emplace_back(53, number(line.angle));
+        expectedPatternTags.emplace_back(43, number(line.baseX));
+        expectedPatternTags.emplace_back(44, number(line.baseY));
+        expectedPatternTags.emplace_back(45, number(line.offsetX));
+        expectedPatternTags.emplace_back(46, number(line.offsetY));
+        expectedPatternTags.emplace_back(
+            79, std::to_string(line.dashList.size()));
+        for (double dash : line.dashList)
+            expectedPatternTags.emplace_back(49, number(dash));
+    }
+    // The first boundary path has the derived bit, so DXF group 47 is
+    // required even though this generated drawing uses pixelSize == 0.
+    expectedPatternTags.emplace_back(47, number(0.0));
+    expectedPatternTags.emplace_back(98, "0");
+    const auto patternStart = std::find_if(
+        hatchRecord.body.cbegin(), hatchRecord.body.cend(),
+        [](const Tag& tag) { return tag.first == 75; });
+    if (patternStart == hatchRecord.body.cend()
+        || static_cast<std::size_t>(hatchRecord.body.cend() - patternStart)
+            != expectedPatternTags.size()
+        || !std::equal(expectedPatternTags.cbegin(), expectedPatternTags.cend(),
+                       patternStart))
+        return false;
+
+    dx_data imported;
+    dx_iface reader;
+    if (!reader.fileImport(path.string(), &imported, false)
+        || imported.mBlock->ent.size() != 5u)
+        return false;
+    const DRW_Hatch* hatch = nullptr;
+    const DRW_Line* following = nullptr;
+    std::map<std::string, std::uint32_t> typedHandles;
+    for (const DRW_Entity* entity : imported.mBlock->ent) {
+        typedHandles.emplace(entity->layer, entity->handle);
+        if (entity->layer == "HATCH_CONTROL")
+            hatch = dynamic_cast<const DRW_Hatch*>(entity);
+        else if (entity->layer == "FOLLOWING_CONTROL")
+            following = dynamic_cast<const DRW_Line*>(entity);
+    }
+    if (hatch == nullptr || following == nullptr
+        || hatch->handle != std::stoul(hatchRecord.handle, nullptr, 16)
+        || hatch->name != "LOCAL_PHASE" || hatch->solid != 0
+        || hatch->associative != 1 || hatch->hpattern != 2
+        || hatch->angle != 22.5 || hatch->scale != 1.25
+        || hatch->doubleflag != 1 || hatch->deflines != 2
+        || hatch->patternLines.size() != expectedPatternLines.size()
+        || hatch->looplist.size() != 3u)
+        return false;
+    for (std::size_t index = 0u; index < expectedPatternLines.size(); ++index) {
+        const DRW_Hatch::PatternLine& actual = hatch->patternLines[index];
+        const DRW_Hatch::PatternLine& expected = expectedPatternLines[index];
+        if (actual.angle != expected.angle || actual.baseX != expected.baseX
+            || actual.baseY != expected.baseY
+            || actual.offsetX != expected.offsetX
+            || actual.offsetY != expected.offsetY
+            || actual.dashList != expected.dashList)
+            return false;
+    }
+    const std::array<std::vector<std::string>, 3> expectedBoundaryLayers{{
+        {"BOUNDARY_1"}, {"BOUNDARY_2", "BOUNDARY_3"}, {}
+    }};
+    for (std::size_t index = 0u; index < hatch->looplist.size(); ++index) {
+        if (!hatch->looplist[index]
+            || hatch->looplist[index]->m_boundaryHandles.size()
+                != expectedBoundaryLayers[index].size())
+            return false;
+        std::vector<std::uint32_t> expectedHandles;
+        for (const std::string& layer : expectedBoundaryLayers[index]) {
+            const auto found = typedHandles.find(layer);
+            if (found == typedHandles.end())
+                return false;
+            expectedHandles.push_back(found->second);
+        }
+        if (hatch->looplist[index]->m_boundaryHandles != expectedHandles)
+            return false;
+    }
+    const auto* spline = hatch->looplist[1]->objlist.empty()
+        ? nullptr
+        : dynamic_cast<const DRW_Spline*>(
+              hatch->looplist[1]->objlist.front().get());
+    return spline != nullptr && spline->degree == 2
+        && spline->knotslist == knots && spline->weightlist == weights
+        && following->basePoint.x == 20 && following->basePoint.y == 21
+        && following->basePoint.z == 22 && following->secPoint.x == 23
+        && following->secPoint.y == 24 && following->secPoint.z == 25;
+}
+
+bool runPatternedAssociativeHatchRoundTrips(
+    const std::filesystem::path& directory) {
+    bool passed = true;
+    for (bool binary : {false, true}) {
+        auto source = drawing(true, true);
+        auto* hatch = static_cast<DRW_Hatch*>(source->mBlock->ent.front());
+        hatch->name = "LOCAL_PHASE";
+        hatch->solid = 0;
+        hatch->hpattern = 2;
+        hatch->angle = 22.5;
+        hatch->scale = 1.25;
+        hatch->doubleflag = 1;
+        hatch->patternLines = {
+            {30.0, 2.0, 3.0, 4.0, 7.0, {1.0, -2.0, 0.0}},
+            {-45.0, -1.5, 5.25, 6.5, -7.75, {0.5, -0.25}}
+        };
+        const auto path = directory / (binary
+            ? "patterned-associative-binary.dxf"
+            : "patterned-associative-ascii.dxf");
+        const bool exported = write(path, *source, binary, true, true);
+        const bool verified = exported && verifyPatternedAssociativeHatch(path);
+        if (!verified)
+            std::cerr << "patterned associative multi-path HATCH failed: binary="
+                      << binary << " exported=" << exported << '\n';
+        passed = verified && passed;
+    }
+    return passed;
+}
+
 } // namespace
+
+bool runHatchPixelPresenceTests(const std::filesystem::path& parent) {
+    return runHatchPixelPresenceTestsImpl(parent);
+}
 
 bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary) {
     auto data = drawing(true, true);
@@ -520,7 +975,7 @@ bool runHatchPublicationTests(const std::filesystem::path& parent) {
         }
     } adapter;
     bool passed = true;
-    std::size_t rejected = 0, retries = 0;
+    std::size_t rejected = 0, retries = 0, aliasedPublications = 0;
     for (bool binary : {false, true}) {
         for (int mode = 1; mode <= 11; ++mode) {
             auto data = drawing(true, true);
@@ -544,6 +999,7 @@ bool runHatchPublicationTests(const std::filesystem::path& parent) {
                 data = std::make_unique<dx_data>();
                 auto* hatch = new DRW_Hatch();
                 hatch->handle = 0x30; // Same number preallocation will return.
+                hatch->layer = "HATCH_CONTROL";
                 hatch->name = "SOLID";
                 hatch->associative = 1;
                 auto loop = std::make_shared<DRW_HatchLoop>(3);
@@ -554,14 +1010,46 @@ bool runHatchPublicationTests(const std::filesystem::path& parent) {
                 hatch->loopsnum = 1;
                 auto* contour = new DRW_LWPolyline(*polyline(outer));
                 contour->handle = 0x31;
+                contour->layer = "BOUNDARY_1";
                 contour->reactorHandles = {0x30};
-                data->mBlock->ent = {hatch, contour};
+                auto* following = new DRW_Line();
+                following->handle = 0x32;
+                following->layer = "FOLLOWING_CONTROL";
+                following->basePoint = {20, 21, 22};
+                following->secPoint = {23, 24, 25};
+                data->mBlock->ent = {hatch, contour, following};
+                for (const char* name : {"HATCH_CONTROL", "BOUNDARY_1",
+                                         "FOLLOWING_CONTROL"}) {
+                    DRW_Layer layer;
+                    layer.name = name;
+                    data->layers.push_back(layer);
+                }
             }
             const auto path = directory / (std::to_string(binary) + '-' + std::to_string(mode) + ".dxf");
             const std::string sentinel = "HATCH publication destination\n";
             { std::ofstream stream(path, std::ios::binary); stream << sentinel; }
             adapter.mode = mode;
-            const bool success = adapter.fileExport(path.string(), mode == 11 ? DRW::AC1009 : DRW::AC1027,
+            if (mode == 11) {
+                std::vector<std::pair<const DRW_Entity*, std::uint32_t>> identities;
+                for (const DRW_Entity* entity : data->mBlock->ent)
+                    identities.emplace_back(entity, entity->handle);
+                const bool success = adapter.fileExport(path.string(), DRW::AC1027,
+                                                         binary, data.get(), false);
+                bool identitiesRestored = true;
+                for (const auto& identity : identities)
+                    identitiesRestored = identitiesRestored
+                        && identity.first->handle == identity.second;
+                const bool valid = success && verifyAliasedHatchPublication(path)
+                    && identitiesRestored;
+                if (valid) ++aliasedPublications;
+                else std::cerr << "HATCH publication alias mode failed: success="
+                               << success << " graph-failure="
+                               << static_cast<int>(adapter.hatchGraphFailure()) << '\n';
+                passed = valid && passed;
+                adapter.mode = 0;
+                continue;
+            }
+            const bool success = adapter.fileExport(path.string(), DRW::AC1027,
                                                      binary, data.get(), false);
             std::ifstream input(path, std::ios::binary);
             const std::string bytes((std::istreambuf_iterator<char>(input)), {});
@@ -583,7 +1071,8 @@ bool runHatchPublicationTests(const std::filesystem::path& parent) {
         }
     }
     std::cout << "HATCH publication controls: " << (passed ? "PASS" : "FAIL")
-              << " (rejected=" << rejected << ", fresh-data retries=" << retries << ")\n";
+              << " (rejected=" << rejected << ", fresh-data retries=" << retries
+              << ", alias publications=" << aliasedPublications << ")\n";
     if (passed) std::filesystem::remove_all(directory);
     else std::cout << "HATCH publication evidence: " << directory << '\n';
     return passed;
@@ -708,7 +1197,7 @@ bool runHatchAdmissionTests(const std::filesystem::path& parent) {
     for (bool binary : {false, true}) {
         const auto path = directory / (binary ? "binary.dxf" : "ascii.dxf");
         dx_iface iface;
-        const auto accept = [&](dx_data& data) {
+        const auto accept = [&](dx_data& data, bool expectMpolygon = false) {
             const bool success = iface.fileExport(path.string(), DRW::AC1027, binary, &data, false);
             if (success) ++accepted;
             std::map<std::string, Record> records;
@@ -719,15 +1208,62 @@ bool runHatchAdmissionTests(const std::filesystem::path& parent) {
                 for (const char* layer : {"BOUNDARY_1", "BOUNDARY_2", "BOUNDARY_3"})
                     ownersMatch = records.at(layer).owner == owner && ownersMatch;
             }
+            const bool typeMatches = ownersMatch
+                && records.at("HATCH_CONTROL").type
+                    == (expectMpolygon ? "MPOLYGON" : "HATCH");
+            if (!success || !ownersMatch || !typeMatches ||
+                iface.hatchGraphFailure() !=
+                    dx_iface::ExtensionGraphFailure::None) {
+                std::cerr << "HATCH admission accepted-case mismatch: binary="
+                          << binary << " mpolygon=" << expectMpolygon
+                          << " success=" << success
+                          << " owners=" << ownersMatch
+                          << " type=" << typeMatches
+                          << " failure="
+                          << static_cast<int>(iface.hatchGraphFailure())
+                          << " records=" << records.size() << '\n';
+                for (const auto &entry : records)
+                    std::cerr << "  " << entry.first << " type="
+                              << entry.second.type << " owner="
+                              << entry.second.owner << " layer="
+                              << entry.second.layer << '\n';
+            }
             passed = success && ownersMatch
+                && typeMatches
                 && iface.hatchGraphFailure() == dx_iface::ExtensionGraphFailure::None && passed;
             return success;
         };
         auto baseline = drawing(false, false);
         accept(*baseline);
         const auto stats = iface.hatchGraphStats();
+        if (!(stats.visitedNodes == 4 && stats.stagedHandles == 4
+              && stats.examinedEdges == 3 && stats.sourceRecords > 0)) {
+            std::cerr << "HATCH admission baseline stats mismatch: binary="
+                      << binary << " nodes=" << stats.visitedNodes
+                      << " handles=" << stats.stagedHandles
+                      << " edges=" << stats.examinedEdges
+                      << " sources=" << stats.sourceRecords << '\n';
+        }
         passed = stats.visitedNodes == 4 && stats.stagedHandles == 4
             && stats.examinedEdges == 3 && stats.sourceRecords > 0 && passed;
+
+        // MPOLYGON shares the boundary-reference graph, despite group 71
+        // carrying its solid-fill state rather than HATCH associativity.
+        auto polygon = drawing(false, false, false, true);
+        passed = accept(*polygon, true) && passed;
+        const auto polygonStats = iface.hatchGraphStats();
+        if (!(polygonStats.visitedNodes == 4
+              && polygonStats.stagedHandles == 4
+              && polygonStats.examinedEdges == 3)) {
+            std::cerr << "HATCH admission MPOLYGON stats mismatch: binary="
+                      << binary << " nodes=" << polygonStats.visitedNodes
+                      << " handles=" << polygonStats.stagedHandles
+                      << " edges=" << polygonStats.examinedEdges
+                      << " sources=" << polygonStats.sourceRecords << '\n';
+        }
+        passed = polygonStats.visitedNodes == 4
+            && polygonStats.stagedHandles == 4
+            && polygonStats.examinedEdges == 3 && passed;
 
         // Explicit owners are source identities, not output fixed literals.
         for (bool paper : {false, true}) {
@@ -785,8 +1321,9 @@ bool runHatchAdmissionTests(const std::filesystem::path& parent) {
             passed = valid && passed;
             return valid;
         };
-        for (int mutation = 0; mutation < 16; ++mutation) {
-            auto data = drawing(false, false);
+        for (bool asMpolygon : {false, true}) {
+          for (int mutation = 0; mutation < 16; ++mutation) {
+            auto data = drawing(false, false, false, asMpolygon);
             DRW_Hatch* hatch = hatchOf(*data);
             switch (mutation) {
             case 0: hatch->looplist[0]->m_boundaryHandles = {0x777}; break;
@@ -868,6 +1405,7 @@ bool runHatchAdmissionTests(const std::filesystem::path& parent) {
             }
             }
             reject(*data, dx_iface::ExtensionGraphFailure::InvalidGraph);
+          }
         }
         auto absent = drawing(false, false);
         hatchOf(*absent)->looplist[0]->m_boundaryHandles = {0x777};
@@ -878,6 +1416,26 @@ bool runHatchAdmissionTests(const std::filesystem::path& parent) {
             && iface.hatchGraphFailure() == dx_iface::ExtensionGraphFailure::InvalidGraph;
         if (noPublication) ++rejected;
         passed = noPublication && passed;
+        auto absentPolygon = drawing(false, false, false, true);
+        hatchOf(*absentPolygon)->looplist[0]->m_boundaryHandles = {0x777};
+        const auto absentPolygonPath = directory
+            / (binary ? "absent-mpolygon-binary.dxf"
+                      : "absent-mpolygon-ascii.dxf");
+        const std::string polygonSentinel = "MPOLYGON admission destination\n";
+        { std::ofstream stream(absentPolygonPath, std::ios::binary);
+          stream << polygonSentinel; }
+        const bool polygonNoPublication = !iface.fileExport(
+                absentPolygonPath.string(), DRW::AC1027, binary,
+                absentPolygon.get(), false)
+            && iface.hatchGraphFailure()
+                == dx_iface::ExtensionGraphFailure::InvalidGraph;
+        std::ifstream polygonInput(absentPolygonPath, std::ios::binary);
+        const std::string polygonBytes(
+            (std::istreambuf_iterator<char>(polygonInput)), {});
+        passed = polygonNoPublication && polygonBytes == polygonSentinel
+            && passed;
+        if (polygonNoPublication && polygonBytes == polygonSentinel)
+            ++rejected;
         // The same caller data survives an early rejection and is usable after
         // correcting the reference. Successful export handle restoration is a
         // separate later adapter slice, not asserted by this admission test.
@@ -908,6 +1466,10 @@ bool runHatchAdmissionTests(const std::filesystem::path& parent) {
         iface.setHatchGraphLimits({});
         data = drawing(false, false, true);
         accept(*data);
+        if (iface.hatchGraphStats().visitedNodes != 0)
+            std::cerr << "HATCH admission detached graph stats mismatch: binary="
+                      << binary << " nodes="
+                      << iface.hatchGraphStats().visitedNodes << '\n';
         passed = iface.hatchGraphStats().visitedNodes == 0 && passed;
     }
     std::cout << "HATCH graph admission controls: " << (passed ? "PASS" : "FAIL")
@@ -966,6 +1528,11 @@ bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutput
                 && verify(path, true, false) && passed;
         }
     }
+    const bool patternedAssociative =
+        runPatternedAssociativeHatchRoundTrips(directory);
+    if (!patternedAssociative)
+        std::cerr << "patterned associative multi-path HATCH ASCII/Binary round-trip failed\n";
+    passed = patternedAssociative && passed;
     std::cout << "HATCH reference/path writer controls: " << (passed ? "PASS" : "FAIL") << '\n';
     if (passed && !keepOutputs) std::filesystem::remove_all(directory);
     else std::cout << "HATCH reference evidence: " << directory << '\n';

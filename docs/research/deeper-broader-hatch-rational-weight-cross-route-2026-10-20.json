@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "HATCH rational-weight ownership across DWG and DXF",
+  "mode": "research-only plan refinement",
+  "scope": [
+    "Reconcile ODA DWG HATCH spline grammar with Autodesk DXF HATCH edge fields",
+    "Compare independent open-source HATCH data models and reader behavior",
+    "Audit local PAR-115 implementation and existing focused test ownership",
+    "Refine the existing 7N.2a reader handoff into an implementation-ready fast slice"
+  ],
+  "method": {
+    "kind": "Normative specification review, primary project source/documentation review, and local source/test audit",
+    "odaAuthority": "Open Design Specification v5.4.1, §20.4.75, printed page 196; local PDF was read from the user-provided doc/dwg path",
+    "webSources": [
+      "Autodesk DXF Boundary Path Data: https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "ACadSharp current master DwgObjectReader.readHatch: https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "LibreDWG 0.13.4 OBJECTS manual: https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "LibreDWG current NEWS: https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "ezdxf current HATCH reference: https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/hatch.rst"
+    ],
+    "peerExecutablesRun": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "ACadSharp and ezdxf links target mutable master documentation/source and were not pinned to release artifacts. LibreDWG documentation is release-versioned while NEWS is mutable. No runtime interoperability or peer behavior was executed; sources refine data-shape expectations but do not replace ODA wire authority or independent semantic/native qualification."
+  },
+  "findings": {
+    "existingFinding": "PAR-115",
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "localGapConfirmedBySourceAudit": "DWG HATCH parsing places rational BD values only in nested control Z; canonical DRW_Spline.weightlist remains empty, while DXF HATCH writing serializes weights from weightlist.",
+    "existingTestCoverage": "Focused generated ASCII/Binary tests exercise DXF HATCH/MPOLYGON weights and validation, but no focused DWG-reader assertion was found for canonical weightlist plus legacy Z mirror.",
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "implementationRefinement": {
+    "owner": "PAR-115 / 7N.2a",
+    "modelInvariant": "For rational HATCH control i, preserve XY and store the scalar wire weight both in weightlist[i] and legacy controllist[i]->z. The nested planar grammar has no geometric control Z. Keep nonrational weightlist empty and current zero-Z default.",
+    "versionControls": [
+      "Generated AC1018 rational zero-fit control",
+      "Generated AC1027 rational one-fit control with tangent fields to avoid 7N.3 zero-fit ambiguity"
+    ],
+    "fastAcceptance": [
+      "Independently authored ODA-order control vectors rather than a production-encoder-only self-roundtrip",
+      "Exact canonical weights, legacy mirrors, rational flags, knot/control order and finite-value behavior",
+      "ASCII and Binary DXF group-42 export/readback with unchanged OCS XY and no geometric Z leakage",
+      "Independent rational quadratic quarter-circle evaluation at (sqrt(0.5), sqrt(0.5))",
+      "Truncated-weight negative and following edge/object sentinel alignment",
+      "Reuse existing local-roundtrip executable and one focused fast CTest owner; no new target or persistent fixture",
+      "Keep 7N.2b DWG writer authority and 7N.3 R24 zero-fit tangent policy independent"
+    ],
+    "executionProtocol": "After the implementation slice, update plan status and receipt, report slice progress, and continue with the next local-ready item; external/platform gates do not block this fix."
+  },
+  "validation": {
+    "codeChanged": false,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "projectBuildRun": false,
+    "fixtureOrDependencyChange": false
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "par27-cepsnid-null-handle",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Retain explicit null $CEPSNID group-390 values through ASCII and Binary DXF HEADER parse/write while preserving absent as absent.",
+    "Refuse malformed/repeated $CEPSNID state, non-null references without a remapped plot-style object graph, and present values for targets before the local writer's AC1015+ HEADER branch."
+  ],
+  "source": {
+    "title": "Autodesk DXF HEADER system variables",
+    "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+    "use": "$CEPSNID is identified as group 390 and a PlotStyleName object handle when $CEPSNTYPE is 3; this does not establish local native acceptance."
+  },
+  "implementation": {
+    "files_changed": [
+      "CMakeLists.txt",
+      "src/drw_header.h",
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par27-cepsnid-null-handle-fast-slice-2026-10-22.json"
+    ],
+    "tests": [
+      "Generated ASCII/Binary absent and explicit-null parse/write/readback controls.",
+      "Copy/assignment/move, malformed repeated-variable/repeated-value/wrong-code, explicit repair, invalid handle lexeme, and following-LINE controls.",
+      "Non-null adapter-export refusal preserves a pre-existing destination sentinel."
+    ],
+    "validation": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2: PASS (-Werror)",
+      "ctest --test-dir build-gcc -R '^libdxfrw_header_cepsnid$' --output-on-failure: PASS (1/1)",
+      "git diff --check -- CMakeLists.txt src/drw_header.cpp src/drw_header.h src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+    ]
+  },
+  "limitations": [
+    "No persistent DWG/DXF fixture was added.",
+    "Non-null plot-style references remain unsupported until their object graph can be closed and remapped.",
+    "No independent producer/native acceptance or support-claim promotion was performed.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL; FreeCAD Linux/Windows and independent ACIS/ACDS qualification remain open."
+  ]
+}

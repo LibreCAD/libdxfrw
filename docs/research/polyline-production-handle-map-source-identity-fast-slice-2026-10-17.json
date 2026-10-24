@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-polyline-production-handle-map-source-identity-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Replace test-seeded POLYLINE source identities with entries produced by the real HANDLES section parser, then carry matching identities through actual locally generated AC1015/1018/1021/1024/1027/1032 object frames, production entity dispatch, and block/modelspace traversal.",
+  "method": {
+    "kind": "Local implementation and focused generated test slice",
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixtureFilesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false,
+    "fullTestSuiteRun": false,
+    "nativeCadApplicationRun": false,
+    "externalPeerRun": false
+  },
+  "implementation": {
+    "testTargets": [
+      "libdxfrw_dwg_reader_matrix_tests",
+      "libdxfrw_dwg_local_roundtrip"
+    ],
+    "selector": "--polyline-staging-growth",
+    "changedFiles": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "productionEntryPointsExercised": [
+      "dwgReader::readDwgHandles",
+      "dwgReader::readDwgEntities",
+      "dwgRW::read"
+    ],
+    "generatedInput": "The focused reader control builds four ordered handle/location delta pairs, big-endian group sizes, an empty terminator group, and independently computed CRC16 values. The end-to-end control uses the existing local writer to create complete AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 DWGs from scratch, each with a POLYLINE in a named block and one in modelspace.",
+    "coverage": [
+      "Production HANDLES parsing populates ObjectMap with the expected handles and object offsets.",
+      "Production HANDLE-map order yields the expected source ordinals 0 through 3.",
+      "The requested DecodedBuffer address space is retained by every map entry and coverage-ledger entry.",
+      "The existing synthetic POLYLINE/VERTEX/SEQEND stage/adopt transcript consumes those production-seeded identities.",
+      "No entity/publication callback occurs before the declared children and SEQEND complete in the focused stage/adopt transcript.",
+      "For each of the six generated versions, the writer records exact parent, two vertex, and SEQEND handles for both block and modelspace POLYLINE chains.",
+      "The production read returns both exact chains through addPolyline after decoding real generated entity frames and traversing the named block and modelspace in all six versions.",
+      "For every chain member, the unique callback publication and final coverage entry agree on source offset, source-map ordinal, and address space; coverage is Published exactly once."
+    ],
+    "limits": [
+      "The focused transcript control remains synthetic; actual object-frame coverage is supplied separately by the locally authored AC1021 scratch DWG.",
+      "The end-to-end result is same-library writer→reader evidence for two generated 2-vertex POLYLINE chains per version; it is not independent-producer interoperability or coverage of other entity shapes.",
+      "No external DWG or fixture is used; no broad performance, allocator/RSS, or general format-support claim follows."
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "endToEndRoundtripCTest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_local_roundtrip$'",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0
+    },
+    "compatibilityTarget": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": "PASS",
+    "receiptJsonSyntaxChecked": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "owner": "7BA compound child work bounds",
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "next": "Continue 7BA with allocator-boundary review and independent-producer qualification when an allowed source is available; exact-chain evidence covers only these locally generated versions and shapes and does not promote a support claim."
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The shared checkout has broad existing uncommitted changes; no unrelated files were staged."
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 exact ISO-8859-11 decoder",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "b4641838b0fd9ef4564864e4424f0883b009453e217f86f1ced4dee2ca36f3f3",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-11.TXT",
+      "role": "Primary Unicode Consortium mapping for ISO/IEC 8859-11:2001; documents its relationship to TIS 620-2533 and the 0xA0 NO-BREAK SPACE addition."
+    },
+    {
+      "source": "Python standard-library strict iso8859_11 codec",
+      "role": "Independent local cross-check of all 128 production table entries, including eight undefined positions."
+    }
+  ],
+  "scope": {
+    "change": "Completed the exact ISO-8859-11 table/resolver/factory path with an appended Iso8859_11 consumed-source identity, exact-resolution controls, generated ASCII/Binary profile/admission controls, and a focused CTest. Exact alias admission is limited to ISO8859-11 case-insensitively; no TIS-620 alias is inferred.",
+    "definedBytes": 120,
+    "undefinedBytes": [219, 220, 221, 222, 252, 253, 254, 255],
+    "compatibilityBehavior": "Unchanged: compact ISO8859-11 selects Windows-874 under Compatible. Hyphenated ISO-8859-11 remains an unknown label; TIS-620 retains its historical Windows-874 compatibility selection but is unavailable under ExactNamed.",
+    "sourceAdmission": "Clean exact ISO-8859-11 remains UnsupportedProfile; imports with undefined-byte loss report ObservedIssues.",
+    "fixturesAdded": false,
+    "publicLayoutChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_11_codepage$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --iso8859-11-codepage",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_(9|10|11)_codepage$' --output-on-failure",
+      "result": "PASS (3/3)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "Compare DRW_TableISO8859_11 against Python strict iso8859_11 for bytes 0x80-0xFF",
+      "result": "PASS (128 entries; 8 undefined; 0 mismatches)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/intern/drw_cptables.h src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "34356df4303f688430f877dad763c4317c2722e12de8cabbd4046a0ca0927525",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b4641838b0fd9ef4564864e4424f0883b009453e217f86f1ced4dee2ca36f3f3",
+    "src/drw_base.h": "696ee0c8175edf969bdc13a3782ca8162904b9fdfabfa91fb8d13cc92e1dfdeb",
+    "src/intern/drw_cptables.h": "eedae16d7bcfba3decf6429e5eb4e8ad8ba6027de7e82891adcdf96dfb8b33a8",
+    "src/intern/drw_textcodec.cpp": "5bcdf1978cbeea2950fdf597295e912e640254c494d7c54baec251f0a7007dab",
+    "tests/gbk_codepage_tests.cpp": "03d911fcc4a9efd2aa6c606e988269135252788a8a1d8523657c14f63f3872ef"
+  },
+  "evidenceLimits": [
+    "The mapping and generated tests establish decoder and local parser behavior only, not CAD producer emission or native consumer acceptance of the ISO-8859-11 label.",
+    "Compatible fallback behavior is unchanged and is not an exact ISO-8859-11 decoder or a strict-source support claim.",
+    "No full format suite, external peer runtime, native CAD consumer, or persistent sample was used.",
+    "The appended public source profile changes observation structure layout; downstream binaries must rebuild together with the library."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

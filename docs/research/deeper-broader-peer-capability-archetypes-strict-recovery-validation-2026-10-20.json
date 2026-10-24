@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer capability archetypes, strict/recovery, and validation evidence",
+  "mode": "Primary-source web research and read-only local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden the peer crosswalk across DWG format libraries, DXF preservation libraries, CAD object models, GIS projection drivers, and the FreeCAD converter/importer chain.",
+    "Check how peer operation/version matrices, parser recovery, raw-field retention, diagnostics, and tests should be interpreted.",
+    "Refine the existing implementation queue while preserving generated fast validation and advisory external qualification boundaries."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/AGENTS.md",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "status": "current_primary_source_and_test_guidance_reviewed_2026-10-20",
+      "observation": "The repository guidance recommends focused test cases and make check, documents a DWG-to-DXF check flow, and says JSON round trips are useful only through R2000. The manual distinguishes stable, unstable, debug-only, and unhandled classes.",
+      "limits": "Documentation does not prove a specific installed executable or per-record behavior; GPL-3-or-later source reuse requires separate compatibility review."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://github.com/mozman/ezdxf",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+      ],
+      "status": "current_readme_and_stable_recovery_documentation_reviewed_2026-10-20",
+      "observation": "The README declares ASCII/Binary DXF support across R12 and R2000-R2018, plus older read-only conversion paths. Recovery documentation warns that binary payload decode errors can be unrecoverable and that writing recovered content may invalidate the DXF or lose information; strict decoding is available.",
+      "limits": "This is a DXF route, not DWG or arbitrary ACIS/B-rep support; recovery acceptance is not strict compatibility evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "status": "current_repository_matrix_and_read-notification_example_reviewed_2026-10-20",
+      "observation": "The public matrix declares read/write availability by format direction and version; for example its AC1021 DWG writer cell is unchecked. Reader notifications expose warnings to callers.",
+      "limits": "A format/version matrix and warning callback do not establish individual object-family completeness, correctness, or native acceptance."
+    },
+    {
+      "project": "GDAL",
+      "references": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "status": "current_DXF_driver_documentation_reviewed_2026-10-20",
+      "observation": "The driver documents Binary-DXF reading from GDAL 3.12, an option to expose unhandled raw code values, and optional AC1027+ raw ASM bytes plus transform. It maps CAD data into OGR features and does not construct modeler B-rep geometry from ASM.",
+      "limits": "This is a projection/field observation route, not a complete CAD graph or DWG semantic oracle."
+    },
+    {
+      "project": "FreeCAD",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "status": "current_source_and_documented_importer_routes_reviewed_2026-10-20",
+      "observation": "FreeCAD exposes C++ and legacy Python DXF paths with different coverage. DWG handling uses an external converter to produce DXF before the selected DXF importer; the documented stock importer does not consume embedded ACIS/SAT solids.",
+      "limits": "Documentation is not a Linux/Windows execution result. Converter success, intermediate DXF validity, importer behavior, and ACIS semantics remain separate evidence."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "docs/research/deeper-broader-open-source-reader-writer-route-consumer-policy-crosswalk-2026-10-19.json",
+        "docs/research/deeper-broader-3d-modeler-cross-peer-capability-and-loss-notification-2026-10-20.json"
+      ],
+      "status": "shared_worktree_read_only_plan_reconciliation_2026-10-20",
+      "observation": "Existing plan entries already own peer route boundaries, FreeCAD stages, generated per-family controls, and the PAR-20/7G queue. This pass adds evidence-mode distinctions and a route tuple requirement rather than duplicating findings or tests.",
+      "limits": "No local test target or source implementation was changed or executed in this research pass."
+    }
+  ],
+  "planImpact": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "The plan now classifies comparators by product archetype, requires exact route tuples and per-record dispositions, keeps recovery evidence distinct from strict parsing, and binds FreeCAD checks to converter/intermediate/importer stages. The local implementation order remains on PAR-20/7G.3 root/owner closure.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-capability-archetypes-strict-recovery-validation-2026-10-20.json"
+    ],
+    "limitations": "Public docs and repository source guidance are mutable and were read as evidence of declared scope and intended workflow only. No runtime behavior, peer interoperability, native acceptance, or format rule was independently tested."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check for plan; trailing-whitespace scan for new receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Research-only plan update; no commit requested. The shared worktree contains extensive pre-existing edits and Git metadata is read-only in this session."
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-rooted-dictionaryvar-output-closure-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Implement and fast-validate the existing 7G.3f.4b.1 DICTIONARYVAR writer path for direct NOD-rooted records.",
+  "implementationSlice": {
+    "existingSubplan": "7G.3f.4b.1",
+    "status": "LOCAL_FAST_SLICE_PASSING_UNCOMMITTED",
+    "filesChangedForSlice": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "testCases": [
+      "Generated ASCII and binary DXF with a direct NOD-to-DICTIONARYVAR edge at source handle 0x1C.",
+      "DXF-origin raw replay preserves an opaque group-300 tag, remaps the fixed self handle, and keeps root and owner edges aligned.",
+      "A generated adapter-only DWG-origin route emits the typed DICTIONARYVAR without a raw DXF companion and preserves its remapped root/owner graph."
+    ],
+    "limitations": [
+      "The typed DWG-origin branch is a synthetic adapter control, not a real DWG parser/readback result.",
+      "This slice does not qualify SCALE, MLINESTYLE, MLEADERSTYLE, other root families, downstream consumers, or semantic 3D support.",
+      "No new drawing fixture, test registration, dependency, full-suite run, or external peer runtime was added or used."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "ctest --test-dir build -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+      "git diff --check -- tests/dwg2dxf_adapter_tests.cpp dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h src/libdxfrw.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md",
+      "python3 -m json.tool docs/research/deeper-broader-independent-route-peer-maturity-refresh-2026-10-16.json"
+    ],
+    "adapterTargetBuildPassed": true,
+    "lc3CompatibilityTargetPassed": true,
+    "focusedCTest": {
+      "name": "libdxfrw_named_resource_import_evidence",
+      "passed": true,
+      "passedTests": 1,
+      "failedTests": 0,
+      "generatedEncodings": ["ASCII DXF", "binary DXF"]
+    },
+    "scopedDiffCheckPassed": true,
+    "researchReceiptJsonParsed": true,
+    "fullSuiteRun": false
+  },
+  "planDelta": {
+    "findingsAdded": 0,
+    "topLevelImplementationSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktreeCommitted": false
+  }
+}

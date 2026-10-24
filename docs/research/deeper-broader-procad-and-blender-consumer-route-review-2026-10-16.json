@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.peer-research.v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Screen underrepresented open-source 3D consumer routes and assess whether they add independent parser or ACIS semantic evidence, without changing implementation or support scope.",
+  "method": {
+    "evidenceKinds": [
+      "official project source and documentation",
+      "local plan and peer-lineage cross-check"
+    ],
+    "notPerformed": [
+      "ProCad or Blender runtime execution",
+      "local test or build execution",
+      "repository clone, application installation, or package installation",
+      "external drawing download"
+    ],
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "evidence": [
+    {
+      "route": "ProCad",
+      "sources": [
+        "https://github.com/wieslawsoltes/ProCad",
+        "https://github.com/wieslawsoltes/ProCad/blob/main/LICENSE",
+        "https://github.com/wieslawsoltes/ProCad/blob/main/ProCad.IO/ProCad.IO.csproj",
+        "https://github.com/wieslawsoltes/ProCad/blob/main/ProCad.TraceCli/README.md",
+        "https://wieslawsoltes.github.io/ProCad/articles/guides/diagnostics-performance/"
+      ],
+      "observed": [
+        "The project describes a .NET 10 DWG/DXF application, an ACadSharp-backed IO layer, and rendering for common 2D/3D entities plus ACIS SAT/SAB geometry.",
+        "Its headless TraceCli supports wireframe, hidden-line, and shaded rendering; project documentation describes render statistics, unsupported/fallback diagnostics, and JSON export.",
+        "The IO project references the ACadSharp source project directly; it is therefore another ACadSharp-backed application route, not an independent parser family."
+      ],
+      "limits": [
+        "The reviewed documentation is mutable and project-authored; no immutable app release, exact submodule commit, or runtime result was established.",
+        "A rendered image or primitive count does not prove DXF/DWG wire preservation, owner-graph closure, or exact B-rep validity.",
+        "The ACIS rendering claim does not establish a kernel independent of other already-reviewed routes."
+      ],
+      "planAction": "Add ProCad only as an optional one-time composed application/render consumer if exact source/submodule revisions and the required runtime are already available. Pin both revisions, platform, options and input; compare source identity/owner inventory, output dispositions, renderer diagnostics, bounds, primitive/body counts, and an independent expected manifest. Count parser evidence with ACadSharp and do not grant independent-kernel or ACIS semantic credit."
+    },
+    {
+      "route": "Blender official legacy DXF importer",
+      "sources": [
+        "https://github.com/blender/blender-addons/tree/main/io_import_dxf",
+        "https://github.com/blender/blender-addons/blob/main/io_import_dxf/__init__.py",
+        "https://docs.blender.org/manual/id/3.1/addons/import_export/scene_dxf.html",
+        "https://github.com/mozman/dxfgrabber/blob/master/NEWS.rst"
+      ],
+      "observed": [
+        "The official blender-addons mirror is archived; the DXF addon identifies version 0.9.8 and credits the dxfgrabber library lineage.",
+        "The manual describes mapping DXF records into Blender curves and meshes.",
+        "The optional ACIS action exports payloads for BODY, REGION, PLANESURFACE, SURFACE, and 3DSOLID to SAT/SAB sidecar files; this is raw-carrier extraction, not solid interpretation.",
+        "dxfgrabber labels itself outdated and directs users to ezdxf."
+      ],
+      "limits": [
+        "Blender mesh/curve output is a consumer projection and can merge source entities; it is not a lossless CAD graph round trip.",
+        "The optional sidecar export does not provide an ACIS kernel, B-rep validation, or DWG AcDs association evidence.",
+        "The addon is archived and related to the ezdxf author/parser lineage, so it is neither a current independent parser vote nor a modern broad-format gate."
+      ],
+      "planAction": "Exclude by default from independent DXF, DWG, and ACIS semantic evidence. If already available, it may be used once as an explicit-geometry projection check with exact Blender/addon versions, merge/transform settings, source-item disposition, and output topology; do not install it, add a test/dependency, or count SAT/SAB extraction as parsing."
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationBlocked": false,
+    "optionalRouteOrder": [
+      "Continue local generated tests and touched-target strict builds without waiting for these consumers.",
+      "At the existing composed consumer checkpoint, consider ProCad only when the exact app/submodule build and runtime are already available.",
+      "Treat Blender's archived importer as an explicit-geometry projection only; default disposition is EXCLUDED / NOT_RUN."
+    ],
+    "fixturePolicy": "Use only locally generated controls already permitted by the plan and keep them temporary; no external DWG/DXF/SAT/SAB fixture is added.",
+    "dependenciesOrRegistrations": "None",
+    "peerRuntime": "NOT_RUN"
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "peerOrNativeRuntimeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw-peer-issue-route-scope-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Refresh current LibreDWG and ACadSharp issue horizons",
+    "Classify reported failure routes separately across DWG, DXF, JSON, writer, projection, and native-consumer paths",
+    "Map relevant reports to existing local findings, implementation owners, and focused tests without duplicating work"
+  ],
+  "method": {
+    "kind": "Primary repository issue-index/page research plus local plan/source/test-owner cross-check",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsRun": false,
+    "localFilesInspected": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: current issue mappings and PAR-14/19/22/26/33/52/126 owners",
+      "src/drw_entities.cpp: common DWG material/plotstyle flag and handle parsing",
+      "src/intern/dwgreader.cpp: block/compound entity traversal and publication paths",
+      "tests/dxf_fixture_tests.cpp: classic VERTEX subclass-omission owner",
+      "tests/gbk_codepage_tests.cpp: CP1254 Turkish-locale and CP949 end-to-end owners",
+      "tests/dwg_object_vectors_tests.cpp: EED size-boundary owner"
+    ],
+    "limitations": "LibreDWG issue pages #1450-#1452 and #1436/#1439 were not available beyond the current issue-index titles in this pass. No peer defect was reproduced locally. The ACadSharp #1282/#1283 full-body observations are carried forward from earlier plan research; this pass used the current index and did not acquire external samples."
+  },
+  "evidence": [
+    {
+      "project": "LibreDWG current issue index",
+      "url": "https://github.com/LibreDWG/libredwg/issues",
+      "observed": "The index lists #1450 (R2007+ DXF LTYPE dash-text heap-buffer-overflow), #1451 (FIELD import with zero child values and use-after-free), #1452 (misaligned BITCODE_RS access in R2007+ XDATA/EED encoding), #1439 (LWPOLYLINE widths JSON-import overflow), and #1436 (R2007+ material-versus-plotstyle handle confusion). The issue titles do not establish matching libdxfrw defects, root causes, or current peer fix/release status."
+    },
+    {
+      "project": "ACadSharp issue #1282",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1282",
+      "observed": "Earlier full-body research in the plan records a DWG-writer extended-data per-APPID signed-size/cast and readback-loss report. Its reported threshold is peer-specific, not a format maximum or native-acceptance result."
+    },
+    {
+      "project": "ACadSharp issue #1283",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1283",
+      "observed": "Earlier full-body research in the plan records a nested-block deep-copy/stack-growth report in an Insert(BlockRecord) construction path. It does not establish recursive parsing behavior or illegal nesting in libdxfrw."
+    },
+    {
+      "project": "ACadSharp issue #1279",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1279",
+      "observed": "The report describes an AC1014 2D POLYLINE child VERTEX with AcDbVertex but no more-specific subtype marker, leaving a placeholder that later fails during typed builder construction. The issue is not a normative grammar statement."
+    },
+    {
+      "project": "ACadSharp issue #1280",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1280",
+      "observed": "The report describes current-culture lowercasing corrupting ANSI_1254 lookup under Turkish/Azeri cultures and therefore CP1254 text decoding. Local libdxfrw uses explicit ASCII folding and has a Turkish-locale generated CP1254 end-to-end control; this is not a literal .NET CultureInfo reproduction."
+    },
+    {
+      "project": "ACadSharp issue #1297",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "observed": "The report is an AC1032 DWG-writer/AutoCAD whole-file rejection for MTEXT frame-only flag 16, with 17 and an AC1027 control reported to open. The root cause is unresolved; matching entity bytes alone did not explain whole-file acceptance."
+    },
+    {
+      "project": "ACadSharp issue #1299",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "observed": "The report is a DWG-to-DXF conversion followed by GDAL spline projection failure. Its body does not provide machine-checkable offending spline arrays and independently measured expected geometry; linked artifacts were not downloaded."
+    },
+    {
+      "project": "ACadSharp issue #1264",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1264",
+      "observed": "The report compares DWG and AutoCAD-authored DXF TABLE block-cell value representations. Existing local PAR-126 work retains conservative incomplete-state behavior and generated ambiguity controls; the issue is not a general TABLE semantic oracle."
+    },
+    {
+      "project": "LibreDWG HACKING and manual",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "The project documents distinct fuzz/conversion entry points and route-specific class status. A reported or tested interface cannot be generalized to every format direction, entity class, build profile, and semantic outcome."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyIncreased": false,
+    "newTestsOrRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "peerRuntimeExecutions": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 129,
+    "topLevelImplementationSubplans": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "routeDispositions": {
+      "LibreDWG-1450": "TITLE_ONLY; existing LTYPE/PAR-14/7BF owner",
+      "LibreDWG-1451": "TITLE_ONLY; existing FIELD fail-closed object route",
+      "LibreDWG-1452": "TITLE_ONLY; existing PAR-26/EED/XDATA route",
+      "LibreDWG-1439": "JSON_IMPORT_OUT_OF_SCOPE; no libdxfrw JSON ingress",
+      "LibreDWG-1436": "DWG_R2007_PLUS_COMMON_HANDLE_ROLE; existing PAR-33",
+      "ACadSharp-1282": "DWG_WRITER_EED_SIZE_BOUNDARY; existing 7K generated local-wire matrix",
+      "ACadSharp-1283": "INSERT_CONSTRUCTION_DEEP_COPY; existing block-graph/complexity owner, not reader recursion"
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planDiffCheck": true,
+    "testsRun": false,
+    "fullSuite": "NOT RUN",
+    "fuzzOrSanitizer": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0
+  }
+}

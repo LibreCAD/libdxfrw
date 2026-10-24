@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-wave1-dictionary-group-version-gate-test-correction-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Resolve the focused Wave 1 generated DICTIONARY/GROUP assertion failure without changing production behavior or adding drawing fixtures.",
+  "finding": {
+    "test": "testGeneratedDictionaryGroupCommonMetadata",
+    "priorFailureCount": 8,
+    "cause": "The generated expectation required DICTIONARY group 281 for AC1014, while the current writer deliberately emits it only for target versions greater than AC1014.",
+    "sourceEvidence": "src/libdxfrw.cpp dxfRW::writeDictionary() gates writer->writeInt16(281, dict.cloning) on version > DRW::AC1014.",
+    "resolution": "Expect no group 281 at AC1014 and exactly one at later tested target versions; preserve GROUP checks.",
+    "productionCodeChanged": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+    "buildPassed": true,
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+    "focusedCtestPassed": true,
+    "focusedCtestTests": 1,
+    "focusedCtestElapsedSeconds": 0.77,
+    "scopedDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "fullSuiteRun": false
+  },
+  "scopeLimits": {
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

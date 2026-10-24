@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "OpenCADStudio v2026.42 record and kernel evidence scope",
+  "mode": "Primary-source research plus local plan and PAR-138 source audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the optional application-consumer route to the latest OpenCADStudio release and inspect its documented audit/record/kernel evidence surfaces.",
+    "Cross-check application-level loss reports and DXF style-property documentation against the existing modeler and PAR-138 gates.",
+    "Refine the composed acceptance recipe without adding local findings, tests, fixtures, dependencies, or support claims."
+  ],
+  "method": {
+    "kind": "Read-only primary-source review and local source/plan reconciliation",
+    "sources": [
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/docs/automation/README.md",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_DetailViewStyle.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_SectionViewStyle.html",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm"
+    ],
+    "localEvidence": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing PAR-07/S8 peer/application evidence and PAR-138 serializer progress",
+      "dwg2dxf/dx_iface.cpp DetailViewStyle/SectionViewStyle raw-carrier overlays and insertion paths",
+      "src/drw_objects.h and src/drw_objects.cpp typed style fields, parser subclass/group/occurrence mapping"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "limitations": "The GitHub release and issue pages are peer-authored claims, not independent executions. The v2026.42 tag identifies an application release but its full dependency graph and release-artifact-to-source build correspondence were not resolved here. OpenCADStudio save/reopen uses its own stack and is not an independent codec result. Its documented canned acceptance profile is not a 3D ACIS/AcDs qualification. Autodesk property references name semantic properties and generic group data types but do not establish every style-specific wire sequence or DWG byte layout. No outcome qualifies native FreeCAD, arbitrary SAT/SAB, or AcDs entity-to-record association."
+  },
+  "observations": {
+    "openCadStudioRelease": {
+      "release": "v2026.42, identified by GitHub at short commit b6fbac3 and dated 2026-10-18",
+      "declaredFeatures": "Dynamic-block authoring and SAT/ACIS, STEP, IGES, and related model-import workflows are listed in release notes.",
+      "automationEvidence": "The tagged guide documents audit, database record queries, kernel measurements, save_verified, and SHA-256 output receipts. The canned MCP acceptance profile documents visible-geometry save/reopen for DWG 2000/2013/2018 and DXF 2000; the Windows reference-CAD AUDIT script is a separate route.",
+      "limits": "No run occurred. The documented acceptance matrix does not establish 3D body semantics, modern DXF/SAB, FreeCAD acceptance, or external-parser independence. The tagged dependency graph was not resolved."
+    },
+    "peerFailureShapes": {
+      "openCadStudioIssue1078": "The issue reports an earlier writer output requiring RECOVER and losing graph/layout data; the maintainer later reports a source-level fix, semantic record comparisons, same-version AcDs byte equality, and project-suite passes. Treat as peer route/version evidence, not a libdxfrw defect or independent current run.",
+      "acadSharpIssue1195": "The report describes DWG 3DSOLID/REGION shells surviving parse while the peer DXF writer silently emits none. This reinforces identity/disposition accounting, but is not a local reproduction or universal peer-version claim."
+    },
+    "viewStyleReadiness": {
+      "autodeskApi": "DetailViewStyle and SectionViewStyle APIs expose named property families including resource IDs, colors, weights, label values, hatch values and angles.",
+      "wireMapping": "Generic group-code type ranges do not define style-specific semantics. Local parse/write logic depends on subclass, group marker, ordered occurrences, and cardinality.",
+      "planAction": "Continue PAR-138 bounded slices; add generated repeated-handle/color/scalar sequences and opaque sentinels where the local map indicates a changed field is currently refused. Do not derive DWG order or semantics from DXF properties alone."
+    }
+  },
+  "planEffect": {
+    "existingOwners": [
+      "PAR-07/S8 modeler and consumer qualification",
+      "PAR-138 DetailViewStyle/SectionViewStyle typed DXF field serialization"
+    ],
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "composedCheckpointRefined": true,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "peerBuildsOrRuns": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

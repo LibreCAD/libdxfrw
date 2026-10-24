@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-hatch-gradient-431-string-type-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Correct the source-confirmed DXF wire-kind mismatch for HATCH/MPOLYGON gradient group 431 without guessing a semantic mapping for DWG-side color-method metadata.",
+  "primaryResearch": {
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "https://docs.rs/acadrust/latest/src/acadrust/entities/hatch.rs.html"
+    ],
+    "observed": [
+      "Autodesk's HATCH reference documents the gradient control fields and per-stop value/color groups, but does not define group 431 as an integer color-method field.",
+      "Autodesk classifies the 430-439 group-code range as strings.",
+      "The reviewed peer API model does not expose a per-gradient-stop integer color-method mapping; it is corroborative only, not normative or independent of related Rust lineage."
+    ],
+    "evidenceBoundary": "Absence of group 431 from Autodesk's entity table is not proof that no producer uses it. The type table establishes its wire value is a string, not the meaning of that string. No mapping to GradientStop::colorMethod is inferred."
+  },
+  "implementation": {
+    "filesChanged": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/hatch-gradient-431-string-type-fast-slice-2026-10-16.json"
+    ],
+    "parser431": "No longer parsed as an integer; uses existing unknown-group handling, while subsequent string-valued groups remain aligned and readable.",
+    "writer431": "No longer emitted as a four-byte integer.",
+    "unsupportedProjectionPolicy": "An active DXF gradient with nonzero DWG-side colorMethod is rejected by shared HATCH/MPOLYGON preflight before record publication. Inactive stale values remain ignored.",
+    "otherFields": "Existing groups 432/433 string handling is unchanged; their entity-specific semantics are still not qualified."
+  },
+  "validation": {
+    "status": "PASS",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests -j 2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "git diff --check"
+    ],
+    "focusedCtestPassed": true,
+    "asciiAndBinaryInputTypeControls": true,
+    "asciiAndBinaryWriterControls": true,
+    "hatchAndMpolygonTransactionalRejectControls": true,
+    "fullSuiteRun": false,
+    "nativeCadOrPeerRuntimeRun": false,
+    "externalDrawingDownloaded": 0
+  },
+  "planDelta": {
+    "existingOwner": "PAR-34 / 7Q",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false
+  }
+}

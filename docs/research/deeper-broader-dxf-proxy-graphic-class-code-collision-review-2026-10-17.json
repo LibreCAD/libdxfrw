@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-dxf-proxy-graphic-class-code-collision-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Cross-check the typed proxy-graphic generic replay gate against authoritative DXF class group-code tables and local parser scope; refine existing PAR-76/7AP without widening peer or native validation cadence.",
+  "method": {
+    "kind": "Primary DXF specification table review plus local source audit",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-69B9139A-48B4-48A5-B3CF-A3233ABFBE49.htm",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-77747CE6-82C6-4452-97ED-4CEEB38BE960.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+      "https://github.com/mozman/ezdxf/issues/1412",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/wiki/FreeCAD_and_DWG_Import"
+    ],
+    "localInspection": [
+      "src/libdxfrw.cpp: canReplayTypedProxyGraphics and common entity proxy emission",
+      "src/drw_entities.cpp: DRW_MLeader::parseCode group 92 handling",
+      "src/drw_entities.cpp: DRW_Ole2Frame::parseCode and DRW_OleFrame::parseCode group 310 handling",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-76/7AP and current parsed-cache replay evidence"
+    ],
+    "limitations": "The interaction is source/spec-confirmed but was not reproduced with a generated MLEADER or OLE file. No code or tests changed. Current behavior for every entity class and platform is not inferred from this focused audit."
+  },
+  "evidence": [
+    {
+      "topic": "Class-local group-code meanings make a generic denylist insufficient",
+      "observed": "Autodesk documents groups 92/310 as common AcDbEntity proxy graphics, MLEADER group 92 as text color, OLE2FRAME group 310 as OLE binary payload, and TABLE group 92 as both common proxy length and later AcDbTable column count. Local canReplayTypedProxyGraphics currently admits MLEADER and OLE frame types. Local MLEADER parsing maps 92 directly to styleTextColor; OLE frame parsers capture 310 as class payload.",
+      "doesNotEstablish": [
+        "runtime corruption or loss on a producer-authored MLEADER/OLE file",
+        "that all classes other than these examples have collisions",
+        "that a peer or native application accepts the emitted result"
+      ],
+      "planUse": "Add PAR-128/7AP.5: replace broad generic admission via incomplete exclusions with an explicit per-entity capability tied to parse/write subclass scope; retain LINE as sole positive until a generated type-specific round-trip closes."
+    },
+    {
+      "topic": "Peer and application evidence is route-specific",
+      "observed": "ezdxf retains generic proxy graphics as bytes and has a distinct ASCII/Binary writer fix, while FreeCAD's DWG importer invokes a selectable external converter and then its DXF importer.",
+      "doesNotEstablish": [
+        "DWG proxy decoding or custom-object semantics from ezdxf",
+        "proxy geometry semantics or direct DWG reading from FreeCAD converter success",
+        "independent codec evidence when a wrapper uses a named peer backend"
+      ],
+      "planUse": "Keep ezdxf as optional DXF wire evidence only and record the exact FreeCAD converter/backend plus downstream DXF import route at the existing composed consumer checkpoint."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "newFindings": 1,
+    "findingIds": [
+      "PAR-128"
+    ],
+    "newTopLevelImplementationSubplans": 0,
+    "existingSubplanUpdated": "7AP.5",
+    "implementationOrderChanged": true,
+    "implementationOrderNote": "7AP.5 is a prerequisite to widening generic typed-proxy entity admission; unrelated plan lanes are unchanged.",
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "currentFindings": 128,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextLocalControls": [
+      "generated caller-authorized MLEADER and OLEFRAME/OLE2FRAME caches must fail strict export before destination publication",
+      "verify MLEADER group-92 common proxy count versus class-local text color",
+      "retain positive LINE AC1021/AC1024 ASCII/Binary matrix and following-record sentinel",
+      "run the existing focused selector and lc3_compat_check only"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "localTests": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

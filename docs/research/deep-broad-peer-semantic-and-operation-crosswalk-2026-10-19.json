@@ -1,0 +1,147 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deep cross-implementation route, claim, and failure-shape reconciliation",
+  "mode": "Primary-source comparative research and local plan-owner crosswalk; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare public version/operation support statements against project-documented limitations and issue reports for LibreDWG, ACadSharp, ezdxf, and FreeCAD.",
+    "Cross-reference reported loss, malformed output, parser robustness, and semantic failures against current local plan owners.",
+    "Refine implementation readiness and evidence rules without duplicating findings or changing routine validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/issues/1415",
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/issues/1357"
+      ],
+      "revision": "Mutable master documentation and issue pages reviewed 2026-10-19; runtime behavior remains revision-specific",
+      "observed": "The manual separately marks stable, halfway, unhandled, and untested families; it notes absent R2007 DWG writing and R2010-R2018 CRC/audit limitations. Open reports describe AcDs/SAB carrier loss, string emission defects, CMC color-index confusion, incomplete output, and unresolved-reference interruption. These are issue-level peer observations, not local reproductions or universal claims about current LibreDWG."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "revision": "Mutable README and issue pages reviewed 2026-10-19",
+      "observed": "The README's operation/version matrix is a declared route map. Current reports identify separate MTEXT native-rejection, DWG-to-DXF spline, repeated-token parser recursion, and EED length narrowing shapes. The spline issue names a package and includes an attachment, but its public body does not identify exact bad arrays or an independent curve. Reports and current source must not be conflated with a formal release artifact."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html"
+      ],
+      "revision": "Stable documentation identifies version 1.4.5; reviewed 2026-10-19",
+      "observed": "The project declares ASCII/Binary DXF read/write version support from R12 through R2018 at listed milestones and third-party-content retention; DWG access is via optional ODA File Converter. Import/copy operations have entity/object limitations, and ACIS support is described only as added/basic. It is a bounded DXF codec/generator/checker, not an independent DWG implementation or general ACIS-kernel oracle."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "revision": "Public docs/source/issues reviewed 2026-10-19; documentation repository page states it was archived 2026-04-01",
+      "observed": "DWG uses an external converter to DXF followed by a selected DXF importer. The documented C++ and legacy Python importers have different family coverage; stock routes do not read embedded ACIS/SAT solids. This defines a consumer-route boundary only; it does not qualify a particular installed FreeCAD binary or converter."
+    },
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification for DWG v5.4.1",
+      "observed": "Remains the controlling byte-layout source for DWG implementation changes; peer implementations and issue reports are not normative substitutes. This research pass did not change any parser grammar."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-05/PAR-136 bounded string sinks and output finalization",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-07/7G owner identity, block closure, and entity reachability",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-14/PAR-26/7K bounded parser progress and EED/XDATA size controls",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-22/7H/7I/7AB spline field and independent curve evidence",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-33/PAR-134/7Q color semantics",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: modeler/AcDs carrier bytes, owner association, independent parse, topology, and native consumer gates"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies route-specific oracle scope, strengthens structure-versus-semantics and output-finalization checks, and maps current peer failure shapes to existing local owners. Does not create duplicate work or promote any implementation/support claim."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan-owner crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalSampleDownloads": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deep-broad-peer-semantic-and-operation-crosswalk-2026-10-19.json"
+    ],
+    "limitations": "Issue pages are mutable, peer-reported observations and may reflect unreleased or stale package/source states. Public support matrices are declarations, not per-family conformance evidence. FreeCAD documentation is descriptive of documented routes, and its documentation repository is archived; the exact runtime must be pinned during native qualification. No current peer build or local reproduction was performed."
+  },
+  "implementationReadyChecks": [
+    "At the existing composed checkpoint, compare only a concrete unresolved local family and bind tool artifact/source revision, direction, version, runtime/platform, hashes, and per-handle/type/owner disposition.",
+    "Use a generated minimal valid case, following sentinel, and nearby negative/positive control before changing local parser or writer behavior from a peer report.",
+    "For outputs, check group/value framing, section and EOF closure, references, and fail-closed publication before treating an independent reader's result as semantic evidence.",
+    "Keep FreeCAD converter, DXF version, importer backend/settings, and consumer scope explicit; mark unsupported stock ACIS paths as not applicable.",
+    "Keep opaque modeler payload retention, owner association, independent ACIS parsing, topology/analytic validity, and native regeneration as separate gates.",
+    "Do not add peer dependencies, downloaded fixtures, native runs, or full suites to ordinary fast implementation slices."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deep-broad-peer-semantic-and-operation-crosswalk-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deep-broad-peer-semantic-and-operation-crosswalk-2026-10-19.json",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "43910f6d237d64ba1187e3fff08827aeaf5221b4d067aef79c930c21639bd7cb"
+}

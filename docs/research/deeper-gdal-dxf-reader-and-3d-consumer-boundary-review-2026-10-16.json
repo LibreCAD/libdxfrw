@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-deeper-gdal-dxf-reader-and-3d-consumer-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Research the exact GDAL DXF comparator route and downstream FreeCAD boundary; refine existing 3D carrier and validation subplans without inferring local defects or promoting support claims.",
+  "method": {
+    "kind": "Primary GDAL and Autodesk documentation, official current-release page, FreeCAD project documentation and maintainer issue report, cross-checked against the existing plan",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": false,
+    "scopeLimit": "Public documentation establishes candidate capabilities and exclusions, not execution of this repository's output. The documented Binary DXF reader and AC1027+ 3D_EXTENSIBLE_MODE are not explicitly qualified in combination; test that combination before admitting it as a comparator cell."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL read-only feature route versus binary-DXF direct-transcode shortcut",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/download.html"
+      ],
+      "observed": "The DXF driver documentation says binary DXF reading starts in GDAL 3.12; its AC1027+ 3D_EXTENSIBLE_MODE exposes raw ASMData and a 12-real ASMTransform but does not produce OGR solid geometry. INLINE_BLOCKS=NO preserves block definitions and references as separate layer/features and fields. The same docs say no-option ogr2ogr binary-DXF to ASCII conversion follows a direct-conversion path. The current release page lists GDAL 3.13.3, released 2026-08-18.",
+      "doesNotEstablish": [
+        "that the direct-conversion path executes the GDAL DXF feature reader",
+        "that every GDAL build supports binary-DXF input and 3D_EXTENSIBLE_MODE together",
+        "ACIS/ASM interpretation, valid B-rep construction, or shape equivalence"
+      ],
+      "planUse": "Use read-only ogrinfo for open/read diagnostics and a small optional GDAL API probe when exact binary ASMData extraction is required. Enable 3D_EXTENSIBLE_MODE; set INLINE_BLOCKS=NO for block-owner checks and capture block reference fields separately from per-entity ASMTransform. Probe model-space, block-owned, ASCII and Binary DXF cells separately. Label no-option ogr2ogr conversion as direct-transcode/syntax evidence only. Pin exact GDAL build; if capability composition is absent, mark the comparator cell not applicable rather than a libdxfrw failure."
+    },
+    {
+      "topic": "DXF modeler payload contract and history edge",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-BB62483A-89C3-47C4-80E5-EA3F08979863.htm"
+      ],
+      "observed": "3DSOLID, BODY, REGION and SURFACE reference pages define AcDbModelerGeometry, modeler-format group 70 and repeated proprietary modeler-data string groups 1/3. The 3DSOLID page additionally defines a history-object reference. These wrappers identify where modeler payload and history linkage live, but do not specify the complete internal ACIS/ASM grammar.",
+      "doesNotEstablish": [
+        "that group 310 proxy graphics is the 3D modeler payload",
+        "the semantic meaning or validity of the inner SAT/SAB/ASM stream",
+        "that entity presence alone proves owner/history/AcDs closure"
+      ],
+      "planUse": "Keep wrapper class, handle/owner, ordered group-1/3 payload reassembly, applicable history handle, DWG AcDs links and shape semantics as separate assertions."
+    },
+    {
+      "topic": "FreeCAD stock route is not a 3D ACIS acceptance oracle",
+      "sources": [
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "FreeCAD documentation says its stock DXF importer cannot read ACIS/SAT blobs and DWG import proceeds by converting to DXF before using the DXF importer. In issue #18454 a maintainer confirms the reported 3D solids use ACIS blobs that stock FreeCAD cannot read.",
+      "doesNotEstablish": [
+        "that an ignored ACIS entity is malformed or lost by libdxfrw",
+        "the behavior of a separately installed ACIS plugin or converter",
+        "3D geometry correctness from successful 2D import"
+      ],
+      "planUse": "Retain the configured FreeCAD DWG-to-DXF-to-import path as a 2D consumer gate. Mark stock ACIS consumer cells not applicable unless a specific ACIS-capable plugin/converter is recorded. Keep 3D semantic acceptance on an independent compatible reader/kernel gate."
+    }
+  ],
+  "implementationReadiness": {
+    "optionalComposedComparator": {
+      "candidatePin": "GDAL 3.13.3; update only with an exact release/build and recorded provenance",
+      "inputProfiles": ["ASCII DXF AC1027+", "Binary DXF AC1027+"],
+      "readerMode": "Read original input with GDAL DXF feature reader/API and 3D_EXTENSIBLE_MODE=YES; use INLINE_BLOCKS=NO for block/owner checks; do not use the no-option ogr2ogr direct-conversion path as a readback substitute.",
+      "record": ["process result", "GDAL build identity", "diagnostics", "entity handle and class", "ASMData byte length and digest", "12-value ASMTransform", "separate INSERT block name, scale, angle and OCS placement where applicable"],
+      "interpretation": "Raw-carrier/association differential only; no B-rep or support-claim promotion. Probe binary plus 3D mode composition before comparing it."
+    },
+    "fastPerSliceChecks": [
+      "locally generated in-memory or temporary ASCII/Binary DXF carrier control",
+      "touched strict build and existing focused fast test",
+      "relevant LibreCAD/LibreCAD_3 compile or compatibility target",
+      "git diff --check"
+    ],
+    "composedChecksOnly": [
+      "one optional pinned GDAL raw-carrier comparison after related carrier slices compose",
+      "one pinned strict parser/audit checkpoint",
+      "one independent SAT/SAB reader/kernel profile check after exact payload binding is available",
+      "separate native 2D consumer run"
+    ],
+    "fixturePolicy": "No downloaded or newly checked-in drawing fixture; generate locally in memory or a temporary directory.",
+    "consumerDisposition": "Stock FreeCAD ACIS route is CONSUMER_NOT_APPLICABLE absent an identified ACIS-capable plugin/converter; its 2D compatibility check remains in scope."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

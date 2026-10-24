@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed TABLE list-node capture bounds",
+  "mode": "Local adapter implementation with generated focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": [
+    "Charge by-value DRW_Table list-node links during dx_iface callback capture.",
+    "Keep TABLE snapshot and legacy INSERT projection as separate retained copies.",
+    "Verify exact-cap admission and one-byte-over refusal with a locally generated empty TABLE control.",
+    "Preserve the reduced fast build and owning-test cadence."
+  ],
+  "changes": {
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "implementation": "dx_iface::addTable adds two logical pointer slots for its std::list<DRW_Table> node to the retained estimate before testing the shared typed-entity byte budget. The table-specific and aggregate counters receive the adjusted total. The subsequent INSERT projection remains separately charged by the entity-list retention helper.",
+    "generatedControl": "The adapter test computes the expected byte total for an empty DRW_Table from its exact inherited/content strings, sizeof(DRW_Table), and two link pointers. It admits at exact remaining shared budget and rejects a one-byte-over attempt before appending the table. Existing populated-table assertions include the link-byte lower bound.",
+    "limitations": "List links are a logical budget estimate, not allocator-specific node size or process RSS. This does not qualify TABLE format semantics or writer interoperability."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedCtests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_basic_table_typed_capture_limits|dwg2dxf_typed_entity_capture_limits)$' --output-on-failure",
+      "result": "passed 2/2 in 0.04 sec"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "fixtureAdded": false,
+    "scopedDiffCheck": "passed"
+  },
+  "planImpact": {
+    "existingOwner": "7S.2c adapter-owned callback retention census",
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitationsAndNext": "The typed TABLE list-node estimate gap is closed. The current std::list callback stores identified in dx_data, dx_ifaceBlock, block indices, and image indices now have explicit logical link charges. Continue the broader retained container and owner census. The shared worktree remains user-owned and uncommitted; Git metadata is read-only."
+}

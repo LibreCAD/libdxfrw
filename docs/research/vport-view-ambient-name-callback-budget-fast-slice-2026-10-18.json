@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "VPORT/VIEW ambient color-book name TABLES callback budget boundary",
+  "mode": "local generated fast implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Close the full TABLES callback-publication gap for retained DXF group-431 names in VPORT and VIEW",
+    "Verify one-byte-under refusal, exact-cap retry on the same facade, and a following table-record sentinel",
+    "Use existing hardening test owner and avoid external or committed fixtures"
+  ],
+  "method": {
+    "kind": "Extend the existing generated DXF retained-string budget test and run focused validation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "temporaryGeneratedBinaryDxf": true,
+    "temporaryGeneratedBinaryDxfRemoved": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "newCtestRegistrations": 0,
+    "localFilesChanged": [
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/vport-view-ambient-name-callback-budget-fast-slice-2026-10-18.json"
+    ],
+    "validation": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-vport-view-ambient-name-callback-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-vport-view-ambient-color-name-owner-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/vport-view-ambient-name-callback-budget-fast-slice-2026-10-18.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "limitations": "Generated controls establish only the bounded DXF TABLES callback/refusal/retry path for VPORT and VIEW group 431. They do not test DWG string accounting, rendering, reference graph semantics, native acceptance, or support claims."
+  },
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Closes the callback-boundary test gap inside existing 7S.2c.d.17.64 using the current hardening target. No production implementation change or new CTest registration was needed.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Use separate minimal AC1027 TABLES inputs for VPORT and VIEW so an earlier table cannot publish callbacks before the tested refusal point.",
+    "For ASCII and Binary DXF, establish the minimum successful full-read budget, refuse at one byte below it before callbacks, then retry on the same facade at the exact cap.",
+    "Require the target record and following same-table sentinel to be published in order with their group-431 values intact.",
+    "Keep the Binary DXF in temporary storage only and remove it; do not add a sample or a new CTest target.",
+    "Keep the result limited to DXF retained-string/callback behavior; DWG strings and external/native evidence are separate gates.",
+    "Keep findings 130/73 and J256/J260/J268/J284/J293/J295 DEFERRED_EXTERNAL."
+  ]
+}

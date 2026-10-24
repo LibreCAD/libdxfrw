@@ -32,6 +32,11 @@ from typing import Any
 REPORT_SCHEMA = "libdxfrw-acis218-cqacis-observation-v2"
 PROFILE_ID = "cq-acis-0.3.8-typed-acis218-box-v1"
 PROFILE_SOURCE = "a2eefa38eaeeb95f17dcdabe8132bcbb18e32310"
+PROFILE_REGISTRY = {
+    "0.3.8": (PROFILE_ID, PROFILE_SOURCE),
+    "0.3.12": ("cq-acis-0.3.12-typed-acis218-box-v1",
+               "e05a8f470d2f6799277f7b7df467d2fc35625889"),
+}
 MAX_SAB_BYTES = 8 * 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_REPORT_BYTES = 256 * 1024
@@ -363,7 +368,8 @@ def verify(sab: bytes, manifest: dict[str, Any], api: Any, api_types: Any,
             "model container must be text or unavailable")
     for key in ("cq_acis", "cadquery", "occt"):
         text(versions.get(key), f"runtime {key}", maximum=128)
-    profile_matched = versions["cq_acis"] == "0.3.8" and container == "sab" and save_version == 21800
+    profile = PROFILE_REGISTRY.get(versions["cq_acis"])
+    profile_matched = profile is not None and container == "sab" and save_version == 21800
     coverage, diagnostics, raw_rows = observe_model(model, api_types, sab, source_id, profile_matched)
 
     shapes = api.convert_model(model)
@@ -403,7 +409,8 @@ def verify(sab: bytes, manifest: dict[str, Any], api: Any, api_types: Any,
         blockers.append("observed-source-topology-unavailable-or-not-box-profile")
     return {
         "schema": REPORT_SCHEMA, "schemaVersion": 2,
-        "profile": {"id": PROFILE_ID, "sourceRevision": PROFILE_SOURCE,
+        "profile": {"id": profile[0] if profile is not None else PROFILE_ID,
+                    "sourceRevision": profile[1] if profile is not None else PROFILE_SOURCE,
                     "matched": profile_matched, "runtimeAttestation": "version-strings-only"},
         "result": "PASS", "geometryCheck": "passed",
         "geometryObservationEligible": (known_units
@@ -552,7 +559,7 @@ def self_test() -> None:
     def span(start=0, end=4):
         return SimpleNamespace(source_id="mock.sab", start_offset=start, end_offset=end)
 
-    def run(*, units=1.0, raw_type=None, code=None, referenced=False,
+    def run(*, units=1.0, raw_type=None, code=None, referenced=False, cq_version=None,
             shapes=1, factor=1.0, mutate=None, manifest_mutate=None):
         header = RawEntity(0, "asmheader", span(), sab[:4])
         body = BodyEntity(RawEntity(1, "body"), EntityRef(2))
@@ -575,7 +582,10 @@ def self_test() -> None:
                                                       source=span(4, len(sab)) if raw_type else None))
         shape = Shape()
         shape.factor = factor
-        context = SimpleNamespace(model=model, shape=shape, versions=versions.copy(),
+        runtime_versions = versions.copy()
+        if cq_version is not None:
+            runtime_versions["cq_acis"] = cq_version
+        context = SimpleNamespace(model=model, shape=shape, versions=runtime_versions,
                                   types=SimpleNamespace(**vars(types)))
         if mutate:
             mutate(context)
@@ -666,6 +676,46 @@ def self_test() -> None:
     result = run(mutate=lambda c: c.versions.update(cq_acis="future"))
     assert not result["profile"]["matched"] and result["coverage"]["status"] == "unknown"
     count += 1
+    current_profile = run(cq_version="0.3.12", code="sab.raw_entities")
+    assert current_profile["profile"]["id"] == "cq-acis-0.3.12-typed-acis218-box-v1"
+    assert current_profile["profile"]["sourceRevision"] == "e05a8f470d2f6799277f7b7df467d2fc35625889"
+    assert current_profile["profile"]["matched"] and current_profile["geometryObservationEligible"]
+    assert not current_profile["qualificationEligible"]
+    count += 1
+    current_unknown_raw = run(cq_version="0.3.12", raw_type="unclassified-attribute")
+    assert current_unknown_raw["profile"]["matched"]
+    assert current_unknown_raw["coverage"]["status"] == "unknown"
+    assert not current_unknown_raw["geometryObservationEligible"]
+    count += 1
+    current_unknown_diagnostic = run(cq_version="0.3.12", code="future.loss.marker")
+    assert current_unknown_diagnostic["profile"]["matched"]
+    assert current_unknown_diagnostic["coverage"]["status"] == "unknown"
+    count += 1
+    current_wrong_container = run(cq_version="0.3.12",
+        mutate=lambda c: setattr(c.model.metadata, "container", "sat"))
+    assert not current_wrong_container["profile"]["matched"]
+    assert current_wrong_container["coverage"]["status"] == "unknown"
+    count += 1
+    current_wrong_save_version = run(cq_version="0.3.12",
+        mutate=lambda c: setattr(c.model.metadata, "save_version", 22000))
+    assert not current_wrong_save_version["profile"]["matched"]
+    assert current_wrong_save_version["coverage"]["status"] == "unknown"
+    count += 1
+    current_bad_span = run(cq_version="0.3.12", code="sab.raw_entities",
+        mutate=lambda c: (setattr(c.model.entities[0].source, "start_offset", 1),
+                          setattr(c.model.entities[0].source, "end_offset", 5)))
+    assert current_bad_span["profile"]["matched"]
+    assert current_bad_span["coverage"]["status"] == "unknown"
+    assert current_bad_span["raw_entities"][0]["sourceBytesMatched"] is False
+    count += 1
+    current_bad_raw_bytes = run(cq_version="0.3.12", code="sab.raw_entities",
+        mutate=lambda c: setattr(c.model.entities[0], "raw_data", b"nope"))
+    assert current_bad_raw_bytes["profile"]["matched"]
+    assert current_bad_raw_bytes["coverage"]["status"] == "unknown"
+    assert current_bad_raw_bytes["raw_entities"][0]["sourceBytesMatched"] is False
+    count += 1
+    reject("current-profile unsupported referenced geometry",
+        lambda: run(cq_version="0.3.12", raw_type="unknown-surface", referenced=True))
     result = run(mutate=lambda c: c.model.diagnostics.extend([
         SimpleNamespace(code="sab.raw_entities", message="x", entity_index=None, source=None)
     ] * (MAX_DIAGNOSTICS + 1)))

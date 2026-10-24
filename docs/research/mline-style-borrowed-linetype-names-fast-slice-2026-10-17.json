@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-mline-style-borrowed-linetype-names-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "7S.2c.d.17.49",
+  "scope": "Avoid owned staging copies for synchronous MLINESTYLE linetype output while preserving resolved names and emitted tag order.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp"
+    ],
+    "change": "writeMLineStyle stores std::string_view entries sourced from immutable caller element strings, stable writing-context LTYPE map keys, or the BYLAYER literal. dxfSymbolNameKey accepts string_view and creates the same owned uppercase lookup key.",
+    "copyAvoidance": "Eliminates the per-element owned lineType string and owning staging-vector copies. This is source-level evidence only; no allocation/RSS/throughput measurement was made.",
+    "lifetimeInvariant": "All views remain valid through the synchronous MLINESTYLE emission loop; source element strings and the context map are not mutated by this writer path, and BYLAYER is a string literal.",
+    "publicApiOrLayoutChanged": false
+  },
+  "generatedControl": {
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "direct linetype-name match",
+      "empty linetype name resolved through its handle to a writing-context LTYPE name",
+      "unset linetype defaults to BYLAYER",
+      "ordered group-6 values",
+      "caller-owned source names unchanged",
+      "following MLINE record and sentinel framing",
+      "ASCII/Binary projection agreement"
+    ],
+    "persistentFixtureAdded": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_wave1_tests --mline-style-validation",
+      "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mline-style-borrowed-linetype-names-fast-slice-2026-10-17.json"
+    ],
+    "buildPassed": true,
+    "focusedSelectorPassed": true,
+    "owningCtestPassed": true,
+    "owningCtestTests": 1,
+    "owningCtestElapsedSeconds": 0.46,
+    "compatibilityTargetBuilt": true,
+    "scopedDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "scopeLimits": {
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

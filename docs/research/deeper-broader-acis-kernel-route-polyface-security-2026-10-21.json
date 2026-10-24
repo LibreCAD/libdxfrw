@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ACIS semantic-route eligibility and DXF polyface security crosswalk",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Widen the open-source 3D consumer and SAT/SAB semantic-reader route screen",
+    "Check legal/artifact eligibility for newly surfaced SAT semantic routes",
+    "Crosswalk BRL-CAD DXF POLYLINE face-index vulnerability report with the existing libdxfrw reader/writer guard and focused test owner",
+    "Refine PAR-07/S8 and PAR-06 implementation readiness without changing support claims or validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "BRL-CAD conversion documentation",
+      "references": [
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter2.html",
+        "https://brl-cad.github.io/docs/wiki/_attachments/Geometry_Conversions.pdf"
+      ],
+      "status": "open-source-consumer-documentation-reviewed_2026-10-21",
+      "observation": "The reviewed material describes DXF conversion support and a legacy dxf-g profile limited to 3DFACE/3DMESH, not ACIS. The PDF cites a 2002 presentation, so this is a candidate route boundary to re-check against a pinned current source/build, not current-main capability proof."
+    },
+    {
+      "project": "BRL-CAD issue #228 and PR #245",
+      "references": [
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/pull/245"
+      ],
+      "status": "peer-security-report-and-open-pr-reviewed_2026-10-21",
+      "observation": "Issue #228 reports a full dxf-g import-path heap out-of-bounds read when untrusted POLYLINE face indices exceed the completed vertex pool. PR #245 was open on the review date and proposes bounds validation and skipping the bad triangle. This remains a peer report/proposal and not a local vulnerability or semantic-support result."
+    },
+    {
+      "project": "libdxfrw local polyface implementation and test owner",
+      "references": [
+        "src/drw_entities.cpp: DRW_Polyline::validatePolyfaceDxf",
+        "src/libdxfrw.cpp: dxfRW::processPolyline and dxfRW::writePolyline",
+        "tests/dwg_local_roundtrip_tests.cpp: runDxfPolyfaceCompletedPool",
+        "tests/CMakeLists.txt: dxf_polyface_completed_pool"
+      ],
+      "status": "read-only-local-source-crosscheck_2026-10-21",
+      "observation": "The local DXF reader validates the completed VERTEX...SEQEND pool before callback publication; the writer validates before emitting. The validator checks signed one-based indices against the actual coordinate count, and the existing generated test includes malformed positive/negative indices, INT16_MIN magnitude, transactional output refusal, ASCII/Binary readback, and following-entity preservation. The test was not executed in this research pass."
+    },
+    {
+      "project": "ezdxf ACIS API v1.4.5",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "status": "current-public-api-documentation-reviewed_2026-10-21",
+      "observation": "Documentation states that ezdxf recognizes a limited ACIS subset; unsupported records can become NONE_ENTITY with data loss. mesh_from_body only extracts flat polygonal faces, and vertex-derived bounds are exact only for flat polyhedra. This is not general ACIS-kernel or arbitrary opaque round-trip evidence."
+    },
+    {
+      "project": "CADKernel detailed format matrix",
+      "reference": "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "status": "current-repository-format-matrix-reviewed_2026-10-21",
+      "observation": "The README overview advertises a broad set of formats, while the detailed matrix marks ACIS SAT/SAB read and write as not implemented. The format-specific matrix excludes this project from the current ACIS comparator denominator."
+    },
+    {
+      "project": "NativeCAD interoperability and terms",
+      "references": [
+        "https://featureboard.ai/nativecad/web/interop/",
+        "https://featureboard.ai/nativecad/web/pricing"
+      ],
+      "status": "current-commercial-product-and-license-review_2026-10-21",
+      "observation": "The product matrix advertises SAT import/export for single-body solids, without a reviewed claim for SAB, DWG/AcDs, or general DXF entity import. Published terms require prior written consent for benchmarks/feature comparisons and impose competitor restrictions. No artifact was downloaded or run; the route is excluded pending explicit written permission and exact artifact/profile review."
+    },
+    {
+      "project": "Open CASCADE commercial ACIS component",
+      "references": [
+        "https://www.occt3d.com/components/acis-exchange/",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "status": "official-component-and-license-boundary-reviewed_2026-10-21",
+      "observation": "Official pages distinguish the open-source OCCT core from commercial ACIS SAT/SAB and DXF exchange components. The ACIS component maps geometry/topology to OCCT/XDE, may heal or approximate, and requires separate source-read/output-version decisions. It remains optional commercial evidence, not open-source or independent-kernel evidence against OCCT-backed consumers."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: keep carrier, AcDs ownership, ACIS semantics, kernel validity, and consumer acceptance as separate evidence layers",
+      "PAR-06 and existing polyface fast owner: map peer parser hardening reports to local validation before adding duplicate tests",
+      "External route ledger: require artifact/profile and license eligibility before optional comparison"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "commercialComponentsInstalledOrRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add BRL-CAD as a possible explicit-facet consumer only after current revision/profile qualification; map its polyface-index peer security report to the existing guarded local fast test; exclude NativeCAD until written comparison permission and exact profile admission; retain commercial OCCT ACIS as optional, same-kernel-family evidence only."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "commercialComponentsInstalledOrRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-acis-kernel-route-polyface-security-2026-10-21.json"
+    ],
+    "limitations": "BRL-CAD capability documentation reviewed here is partly historical and must be rechecked against a pinned current route before use. GitHub peer issue/PR text is not a local reproduction. Product capability and license pages are vendor statements. The peer-source screen is not exhaustive and does not prove no other open-source ACIS reader exists."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files; no whitespace diagnostics from receipt check)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "TABLESTYLE resolved-handle writer handoff",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid an unnecessary copy when handing the validated TABLESTYLE source-handle list from the adapter to the DXF writer.",
+    "Preserve existing const-reference setter behavior and ASCII/Binary graph output."
+  ],
+  "sourceChange": {
+    "file": "src/libdxfrw.h",
+    "adapterFile": "dwg2dxf/dx_iface.cpp",
+    "api": "dxfRW::setResolvedTableStyleHandles",
+    "before": "The adapter passed m_tableStylesToEmit to a const-reference setter, which copied the vector into dxfRW.",
+    "after": "An additive rvalue overload transfers the vector into dxfRW; fileExport moves the validated list because it has no later adapter reads. The const-reference overload is unchanged.",
+    "effect": "Removes one full vector copy at the writer setup boundary without changing ownership contracts for existing callers, object layout, or emitted references."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_sortents_adapter$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 0.25,
+        "coverageNote": "Existing generated owner-graph test exercises resolved TABLESTYLE handles and typed/raw table-style output/readback in ASCII and Binary DXF."
+      }
+    ],
+    "diffCheck": "passed for src/libdxfrw.h, dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one adapter-to-writer TABLESTYLE handle-vector copy. The const-reference API remains available; external qualification and semantic support gates are unchanged."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict adapter-test target build",
+      "Focused existing SORTENTSTABLE/TABLESTYLE owner-graph round-trip CTest"
+    ],
+    "limitations": "No allocation instrumentation or process-RSS measurement was performed; this is source-confirmed elimination of one vector copy, not a general memory or performance bound."
+  }
+}

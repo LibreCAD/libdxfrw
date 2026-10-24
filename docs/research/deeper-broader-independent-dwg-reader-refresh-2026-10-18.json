@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Independent DWG reader refresh and evidence tiering",
+  "mode": "primary-source repository/package research and read-only local plan reconciliation",
+  "scope": [
+    "Broaden the independent DWG reader screen beyond the already-covered LibreDWG, ACadSharp, ACadRust, ezdxf, GDAL, and ft_model routes",
+    "Classify raw-container, native-object, neutral-projection, and entity-level evidence separately",
+    "Refine optional comparator selection for implementation speed without changing per-slice validation",
+    "Preserve the existing 3D semantic/native evidence gates and deferred external items"
+  ],
+  "method": {
+    "kind": "Read public repository documentation, crate metadata/API pages and clean-room/provenance notes; reconcile against existing local plan owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "All capability and corpus statements are project-authored documentation; none of the candidates was built or executed, input samples and expected manifests were not independently audited, and mutable main branches were not resolved to immutable commits. These candidates are implementation-differential options only, not normative format authorities or semantic/native qualification. ACadSharp issue closure and PR merge state were checked, but the exact fixed release binary was not executed."
+  },
+  "sources": [
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/README.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/examples/coverage_report.rs"
+      ],
+      "revision": "main branch documentation and coverage report accessed 2026-10-18; no immutable commit pinned",
+      "observed": "Project identifies itself as Apache-2.0, 0.1.0-alpha.1/pre-alpha, and spec-based on ODA v5.4.1. It separates DWG container/object enumeration from entity decoding, exposes raw objects and per-file decoded/skipped/errored accounting, and reports a 19-file real corpus with version-specific coverage and nine named errors plus unhandled types.",
+      "limits": "Coverage and corpus claims were not independently reproduced. Explicit pre-alpha status and decoder errors disqualify it as a correctness oracle. No DXF parse or independent ACIS/B-rep/native result was established."
+    },
+    {
+      "project": "TNYCL/cadkit",
+      "urls": [
+        "https://github.com/TNYCL/cadkit",
+        "https://github.com/TNYCL/cadkit/blob/main/docs/PROVENANCE.md",
+        "https://docs.rs/cadkit-dwg/0.3.0/cadkit_dwg/",
+        "https://docs.rs/crate/cadkit-dxf/0.3.3"
+      ],
+      "revision": "cadkit-dwg 0.3.0 and cadkit-dxf 0.3.3; package dates through 2026-10-16; mutable repository main also reviewed",
+      "observed": "The DWG reader documents a native raw-object view as well as mapping into a neutral model. The DXF crate documents ASCII/binary R12–2018 reading and ASCII writing. The provenance ledger lists ODA v5.4.1 and ACadSharp knowledge/sample cross-checks and describes a public corpus containing ACadSharp and Apache Tika samples. Repository README explicitly calls AC1012/R13 untested.",
+      "limits": "A crate API version listing is not evidence that AC1012 is tested; corpus overlaps with ACadSharp and private corpus cannot be inspected. No DWG writer or ACIS/B-rep route is documented. Exact matching crate/source revisions and corpus hashes were not audited."
+    },
+    {
+      "project": "monozukuri-ai/ezdwg",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/README.md",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/index.md",
+        "https://github.com/monozukuri-ai/ezdwg/tree/main/tests",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/crates/ezdwg-core/Cargo.toml"
+      ],
+      "revision": "Mutable main documentation and manifest reviewed 2026-10-18; manifest version 0.16.3; no immutable commit pinned",
+      "observed": "The project describes a Rust/Python DWG reader from AC1012 through AC1032, broad ODA-layout-based legacy 2D coverage, and a narrower explicitly regression-tested modern entity set. Raw inspection APIs expose section locators, object-map entries, object headers, and type codes. DXF export uses ezdxf; native DWG writing targets AC1015 and a subset.",
+      "limits": "Modern decode claims and paired-DXF expectations were not independently reproduced or provenance-audited. DXF export is not an independent DXF writer. No ACIS/B-rep semantic or native acceptance result was established."
+    },
+    {
+      "project": "ACadSharp issues #1194/#1184 and merged PR #1201",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1194",
+        "https://github.com/DomCR/ACadSharp/pull/1201",
+        "https://github.com/DomCR/ACadSharp/issues/1184"
+      ],
+      "revision": "Issue and pull-request state accessed 2026-10-18; PR #1201 merged 2026-08-21",
+      "observed": "Issue #1194's zero-height text/attribute loss report is closed by PR #1201, merged into master; the PR refactored the height setter to allow stored zero and negative values. Distinct issue #1184 remains open and concerns a validating plot-DPI setter dropping/losing LAYOUT plot settings for stored values.",
+      "limits": "Peer reports are not local reproductions or normative rules. The exact fixed ACadSharp release binary was not run. Existing libdxfrw generated controls cover hidden zero-height ATTRIB preservation; they do not establish negative-height policy. #1184 remains mapped to the existing PAR-20/7G test owner."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newWatchlistCandidates": [
+      "DrunkOnJava/dwg-rs — optional raw container/object-boundary and disposition differential only",
+      "TNYCL/cadkit — optional native-object versus neutral-projection loss differential; AC1012 unqualified",
+      "monozukuri-ai/ezdwg — optional version/entity-scoped 2D decode differential; DXF writer not independent"
+    ],
+    "existingPeerStatusRefresh": [
+      "ACadSharp #1194 closed via merged PR #1201; existing local zero-height ATTRIB controls suffice for current scope; negative-height semantics remain unqualified",
+      "ACadSharp #1184 remains open and mapped to existing PAR-20/7G"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "routineValidationAdded": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Select at most one optional comparator at an existing composed checkpoint, and only for a named unresolved operation/version question. Pin immutable source/artifact, toolchain, lockfile, input hash and corpus provenance first. Compare record-level raw/value/identity/owner/boundary/disposition and use independent expected values. If pinning/provenance cannot be established, record NOT_RUN and continue local implementation. No candidate supports ACIS/B-rep or native-application claims.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check for DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false
+  }
+}

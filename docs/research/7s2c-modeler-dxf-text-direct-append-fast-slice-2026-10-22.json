@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c modeler DXF text direct append",
+  "mode": "generated in-memory fast implementation slice",
+  "scope": [
+    "Remove the payload-sized decodedText temporary from modeler DXF text parsing",
+    "Preserve caret decoding, group-1 separators, payload chunk offsets, and logical retained-byte admission",
+    "Keep failed chunk publication from leaving partially appended raw bytes"
+  ],
+  "evidence": {
+    "localSource": {
+      "files": [
+        "src/drw_entities.cpp",
+        "tests/hardening_tests.cpp",
+        "CMakeLists.txt"
+      ],
+      "finding": "The previous parser copied getString() into decodedText and then copied decodedText into m_rawBytes. The new path pre-counts decoded bytes and writes directly to the final payload vector after limits, capacities, and retained-byte lease are admitted."
+    }
+  },
+  "changes": {
+    "production": [
+      "Count caret-decoded output bytes without materializing a second string.",
+      "Preflight aggregate buffer and chunk-count limits and reserve both destination vectors before modifying payload state.",
+      "Charge the exact logical retained length before direct append; preserve group-1 newline separators and group-3 concatenation.",
+      "Restore the original raw-byte length if chunk metadata publication unexpectedly throws; lease checkpoint rolls back the charge."
+    ],
+    "generatedTests": [
+      "Generated ASCII parser input checks escaped-caret decoding, group-1/group-3 concatenation, inserted group-1 separator, exact chunk offsets/lengths, and exact retained lease size.",
+      "Existing generated ASCII/Binary ACIS carrier retained-budget and modeler writer chunk-boundary controls were rerun."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror; compatibility target succeeds)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-direct-append",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_modeler_text_direct_append$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-acis-carrier-retained-budget",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-chunk-borrow",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.cpp tests/hardening_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "Generated modeler payload bytes and chunk metadata are unchanged while a second payload-sized decode string is no longer constructed; exact logical retained accounting remains covered.",
+    "unresolved": [
+      "Continue the exact-source 7S.2c retained-owner and writer-copy audit",
+      "Associative-action class-specific grammar for unresolved values",
+      "Remaining HATCH semantic gaps",
+      "Three AC1024 sample object failures and separate CLASSES CRC attribution",
+      "Remaining DWG/version-specific typed semantics",
+      "Native FreeCAD Linux/Windows qualification and independent ACIS/ACDS semantic evidence"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the exact-source 7S.2c owner audit and advance the next locally evidenced semantic slice independently of external gates."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

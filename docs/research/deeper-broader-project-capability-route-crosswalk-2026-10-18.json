@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader project capability claims and executable route crosswalk",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile standalone libdxfrw's published capability and ABI boundaries with local claim authority",
+    "Refresh LibreDWG reader/writer operation and effective-version boundaries",
+    "Separate FreeCAD DXF importer qualification from converter-mediated DWG qualification",
+    "Keep explicit 3D geometry, opaque ACIS/AcDs carriers, semantic solids, and native acceptance distinct"
+  ],
+  "method": {
+    "kind": "Read current primary project documentation/source and reconcile with the local parity plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "README.md",
+      "metadata/qualified-format-claims-v1.json",
+      "metadata/qualified-format-status-v1.json"
+    ],
+    "limitations": "GitHub master/main documentation is mutable and was not bound to exact commit SHAs. Documentation establishes declared routes and project policy only; no peer artifact, native application, or independent semantic route was executed."
+  },
+  "sources": [
+    {
+      "project": "Standalone LibreCAD/libdxfrw README",
+      "urls": [
+        "https://github.com/LibreCAD/libdxfrw/blob/master/README.md"
+      ],
+      "revision": "Mutable master reviewed 2026-10-18",
+      "observed": "The project describes the 2.x line as C++17 with a 2.0.0 ABI boundary and separates baseline ASCII/Binary DXF from experimental raw/opaque/ACIS/SAB preservation, experimental DWG read/write, narrow source-compatibility checks, and exact 3D carrier evidence."
+    },
+    {
+      "project": "GNU LibreDWG README and NEWS",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/README",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable master reviewed 2026-10-18; 0.14 NEWS entry dated 2026-06-27",
+      "observed": "Current docs describe writing through R2004 and dxf2dwg output through R2000. NEWS says the R2004 encoder writes the newer section/object layout and requested R2007 output falls back to R2010. These statements motivate recording requested versus actual output version; they do not qualify a particular released binary or file."
+    },
+    {
+      "project": "FreeCAD importer documentation and source",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable main documentation/source reviewed 2026-10-18",
+      "observed": "The docs distinguish an incomplete native C++ DXF importer and optional legacy Python importer. DWG is handed through a selected external converter to DXF, then into the selected importer; this is a composed consumer route, not a direct DWG reader or general 3D-solid oracle."
+    },
+    {
+      "project": "LibreCAD/LibreCAD_3 consumer policy cross-check",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The LibreCAD inventory labels itself source inventory rather than byte-level conformance; LibreCAD_3 describes DWG import as opt-in/read-only and DWG writing as absent. These sources define migration/product boundaries but are not independent semantic votes."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Strengthens the existing peer and consumer evidence gates with project-level operational-route context. Require the exact artifact and effective output version for peer writer comparisons; isolate direct FreeCAD DXF import from the converter-mediated DWG route; and retain separate evidence rows for explicit geometry, opaque carrier retention, AcDs association, semantic solids, and native acceptance."
+  },
+  "implementationReadyChecks": [
+    "Do not infer file-format support from the C++ standard, ABI boundary, callback inventory, project README, or static source inventory.",
+    "For any peer writer run, record exact artifact/build, requested target, actual DWG signature or DXF $ACADVER, process diagnostics, strict reopen, and per-handle/type/owner disposition.",
+    "Treat LibreDWG R2004, R2000, and effective R2007-fallback-to-R2010 routes as distinct operation profiles; verify output rather than trusting the request or banner.",
+    "Test libdxfrw-produced DXF directly through the selected FreeCAD DXF backend; for DWG, capture and independently validate the fresh converter output before importer evaluation.",
+    "Keep generated focused tests and the owning CTest per local slice; defer peer, native platform, fuzz, sanitizer, and broad corpus runs to existing composed checkpoints.",
+    "Do not add downloaded/peer drawings as committed fixtures; use existing eligible repository fixtures or local-from-scratch controls.",
+    "Keep plan counts at 130/73 and J256, J260, J268, J284, J293, J295 DEFERRED_EXTERNAL."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive user changes. This pass edited only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and added this receipt; unrelated files and existing changes were preserved."
+  }
+}

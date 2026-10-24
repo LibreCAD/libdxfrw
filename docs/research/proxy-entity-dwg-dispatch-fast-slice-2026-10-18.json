@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Generated AC1024 DWG proxy-entity dispatch and bounded payload copy",
+  "mode": "Focused implementation slice; no external fixture",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise ACAD_PROXY_ENTITY through dwgReader::readDwgEntity using an in-memory AC1024 object frame",
+    "Verify opaque non-byte-aligned entity data, metadata, object IDs, proxy graphics, failure behavior, and following-record alignment",
+    "Correct the DWG proxy entity-data bit-range copy and metadata flags"
+  ],
+  "changes": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Map the DWG proxy-specific bit-long to application class ID (DXF group 91), while retaining the fixed proxy carrier ID 498 (group 90)",
+      "Mark DWG entity-data bit-size presence and preserve common proxy-graphics byte-count provenance",
+      "Copy only admitted tail bits in a partial final octet and zero padding, avoiding following-stream leakage",
+      "Generate valid 5-bit and 3-bit payload controls, absent/present graphics, ordered references, a following LINE, malformed typed handle data in a valid outer frame, and physical frame truncation"
+    ],
+    "publicApiChanged": false,
+    "persistentDrawingFixtureAdded": false,
+    "dependencyAdded": false,
+    "ctestRegistrationChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --proxy-entity-dispatch",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "focusedSelectorPassed": true,
+    "owningCtestPassed": true,
+    "fullSuiteRun": false,
+    "externalPeerOrNativeRun": false,
+    "scopedDiffCheckPassed": true
+  },
+  "supportBoundary": {
+    "proxySemanticSupportPromoted": false,
+    "3dSupportPromoted": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": "Broadly modified, unstaged, and uncommitted; changes preserved in shared worktree."
+}

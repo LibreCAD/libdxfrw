@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7Y.2b typed/raw finite-underflow parity",
+  "mode": "Generated local implementation slice and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Align raw ASCII numeric admission with the typed ASCII reader for finite underflow.",
+    "Preserve raw numeric spelling and keep overflow/nonfinite rejection transactional.",
+    "Keep string-backed ARCALIGNEDTEXT ERANGE behavior as an explicitly separate legacy policy."
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/numeric_locale_tests.cpp"
+    ],
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "f6b055836bb230daf072a10131b2a755e1d1da5a5912c9bdd049eec7435eccf1",
+      "tests/numeric_locale_tests.cpp": "4bfa0cc6d45911558840b074455c9fe1ed05c5702e4dbeca39a427ce2806ae41"
+    },
+    "behavior": "isValidDxfDoubleString now admits full-token parses whose result is finite even when strtod reports ERANGE for underflow. Raw ASCII output preserves the original lexeme; nonfinite overflow and malformed values remain rejected. The typed reader's behavior is unchanged, and the separate string-backed ARCALIGNEDTEXT DxfNumeric::parsePrefix path retains its legacy ERANGE rejection."
+  },
+  "generatedControls": [
+    "Typed and raw 1e-9999 parses underflow to zero and remain valid.",
+    "Typed and raw 4.9406564584124654e-324 parses produce the smallest positive subnormal.",
+    "Raw output preserves each accepted source token exactly.",
+    "Comma-decimal and 1e9999 overflow tokens are refused without changing the destination sentinel.",
+    "Existing padded numeric-token acceptance remains covered."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_numeric_locale_tests -j2",
+    "fastSelector": "PASS: build-gcc/tests/libdxfrw_numeric_locale_tests",
+    "ctest": "PASS (1/1): libdxfrw_numeric_locale",
+    "fullSuiteRun": false,
+    "wallClockBenchmarkRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionAndTestChanges": true,
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "No external/platform qualification is implied by the local generated controls.",
+    "The shared worktree contains extensive unrelated dirty changes and Git metadata is read-only in this session; no commit was created."
+  ],
+  "commitCreated": false
+}

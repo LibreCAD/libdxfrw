@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-2 color and lineweight overlay insertion",
+  "mode": "generated ASCII/Binary fast implementation slice",
+  "scope": [
+    "Preserve edits to typed SectionViewStyle plane/bend colors when the corresponding raw group-2 code-62 values are absent",
+    "Preserve edits to typed SectionViewStyle plane/bend lineweights when raw group-2 code-90 values are absent",
+    "Exercise the second lineweight ordinal with a default plane placeholder",
+    "Isolate the view-style control from the broader named-object callback selector"
+  ],
+  "implementation": {
+    "production": [
+      "The same-version raw overlay now inserts missing group-2 code-62 plane/bend colors when their typed values differ from defaults.",
+      "The same-version raw overlay now inserts missing group-2 code-90 plane/bend lineweights when typed values change.",
+      "A changed bend value with a default/missing plane slot emits the plane placeholder first, preserving ordinal decoding."
+    ],
+    "tests": [
+      "Generated ASCII and Binary controls remove the original group-2 color and lineweight groups, change both colors, retain the default plane lineweight, and change the bend lineweight.",
+      "The test compares the complete expected raw group sequence and verifies typed readback after same-version export/import.",
+      "Added --modeldoc-view-style-callbacks and dwg2dxf_modeldoc_view_style_callbacks for focused execution."
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+      "result": "passed; ASCII and Binary"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    "compatibilityTarget": "lc3_compat_check passed",
+    "broaderNamedObjectSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "fails earlier at the separate TABLE -> TABLESTYLE dictionary/carrier reference assertion; not treated as a pass or attributed to the isolated SectionViewStyle changes"
+    },
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "persistentGeneratedFiles": 0,
+    "commitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "disposition": {
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This validates generated same-version raw-overlay preservation and local typed readback only. Autodesk's public SectionViewStyle API names the PlaneLineColor, BendLineColor, PlaneLineWeight, and BendLineWeight properties but does not establish the DXF group-2 occurrence schema. It does not qualify a native producer, cross-version serializer, native rendering, or external application behavior."
+}

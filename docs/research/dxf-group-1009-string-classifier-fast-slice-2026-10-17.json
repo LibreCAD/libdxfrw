@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "PAR-130 / 7BU.1 DXF XDATA group-1009 string classifier correction",
+  "mode": "local implementation with generated in-memory fast tests",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Correct the 1009/1010 DXF code-type boundary in the canonical classifier",
+    "Verify ASCII and Binary DXF decoding and raw typed capture at the boundary",
+    "Assert Binary DXF cursor alignment through a following EOF record",
+    "Update the parity plan and preserve external/semantic support boundaries"
+  ],
+  "evidence": {
+    "authoritativeTypeTable": "Autodesk Group Code Value Types Reference maps 1000-1009 to String and 1010-1059 to Double-precision floating-point value.",
+    "numericalCodeReference": "Autodesk DXF Group Codes in Numerical Order identifies 1000 as extended-data ASCII string and 1010 as the X coordinate in a real-valued 3D point.",
+    "urls": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+    ]
+  },
+  "changes": {
+    "classifier": "src/intern/dxfcode.h now maps 1005-1009 to DxfValueKind::Str and 1010-1059 to DxfValueKind::Dbl.",
+    "tests": [
+      "tests/wave1_tests.cpp asserts 1009=Str, 1010/1059=Dbl, ASCII record typing, raw typed capture, and Binary DXF 1009/1010/EOF cursor alignment.",
+      "Added the focused selector --dxf-code-type-boundaries to the existing Wave 1 test executable; no new CTest registration."
+    ],
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md adds PAR-130 / 7BU.1 and updates current totals to 130 findings / 73 top-level subplans.",
+    "dwgParserChanged": false,
+    "externalFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "jq receipt schema/invariants and scoped git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "confirmedLocalDefect": "The canonical classifier labeled group 1009 as Double instead of String, misdirecting ASCII/Binary reader and raw typed-value routes.",
+    "closedScope": "DXF classifier boundary and generated ASCII/Binary typed-read/capture behavior for group 1009 with the following group-1010 real and EOF alignment.",
+    "remainingAudit": "The complete manually typed binary writer call-site census and independent general raw-width walker are still outstanding; this slice does not claim general Binary DXF width parity.",
+    "supportClaimsPromoted": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

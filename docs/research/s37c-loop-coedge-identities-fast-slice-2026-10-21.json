@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-s37c-loop-coedge-identities-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "scope": "Generated in-memory and parser-fed SAB structural projection",
+  "implementation": {
+    "source": [
+      "src/drw_acis.h",
+      "src/drw_acis.cpp"
+    ],
+    "tests": "tests/graph_preservation_tests.cpp",
+    "consumerContract": "docs/3D_CONSUMER_CONTRACT.md",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Expose exact coedge node identities in each projected face loop, preserving source next-link order; charge temporary cycle-guard, cached ring, and per-face identity storage to the output-item budget.",
+    "coedgeCountRetained": true,
+    "publicStructLayoutChanged": true,
+    "fixtureFileAdded": false,
+    "externalDependencyAdded": false
+  },
+  "generatedCoverage": {
+    "inMemoryOnly": true,
+    "singleCoedgeLoop": true,
+    "multiCoedgeLoop": true,
+    "nonRecordIndexTraversalOrder": true,
+    "sharedLoopCopies": true,
+    "parserFedSab21800": true,
+    "sourceLoopToExactCoedgeNodeSequence": true
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 1.24
+    },
+    {
+      "command": "git diff --check -- src/drw_acis.h src/drw_acis.cpp tests/graph_preservation_tests.cpp docs/3D_CONSUMER_CONTRACT.md",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "This adds exact structural loop-to-coedge incidence, not coedge sense/orientation or edge-trim evaluation.",
+    "No outer-versus-inner loop classification, surface evaluation, B-rep validity, independent geometry metrics, or native consumer acceptance is established.",
+    "The addition changes the public DRW_AcisFaceLoop layout; downstream consumers must rebuild. DRW_Interface and the 2D callback contract are unchanged.",
+    "No external drawing fixture, peer executable, native CAD application, full suite, or support claim was added or used.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The implementation remains uncommitted because the shared worktree is broadly dirty."
+  ],
+  "next": "Continue with the next dependency-ready local S3.7c topology/semantic invariant without waiting for external qualification."
+}

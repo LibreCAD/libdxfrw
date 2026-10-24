@@ -16,11 +16,21 @@ The strict implementation digest at advanced head97a8bdba after integrating mast
 The status overlay has no native receipt references for this new implementation;
 all six older references remain archived only. No support claim is promoted:
 experimental rows stay experimental and eligible rows stay pending native.
-Hosted focused qualification had passed Linux GCC, macOS Clang and Windows MSVC
-for the prior `ceaf641` head, but those receipts do not qualify this digest or
-the updated master base. The current focused workflow was retriggered by the PR
-update and its native results are pending; no native receipt references are
-accepted until they are bound to this digest.
+The PR update produced successful focused workflow run #111 on Linux GCC,
+Windows MSVC and macOS Clang. All three downloaded receipts report 7/7 focused
+tests and the exact `45690883cb101663b384d1ca952e622ecfa05e4b03f077e5df36feb1effa0f7e`
+implementation digest. The run is a `pull_request` merge build: GitHub's run
+API binds source head `9b2685620ebda2f4a70c2042177be32b6abbe1c0`, while the
+receipt correctly records merge checkout `1cc874cb9b5f3d765f893018eb25e2c5046e3b47`.
+The receipt verifier had conflated those identities and therefore cannot accept
+the artifacts. Its reference model now binds both SHAs separately and its
+positive/negative PR-merge self-test passes. Because the verifier is itself in
+the frozen implementation manifest, this correction requires a refreshed
+strict digest and new hosted receipts; the run-111 artifacts remain diagnostic,
+not accepted qualification. No native receipts are accepted for the current
+worktree. The prior broad run remains incomplete (37/40 Linux/macOS tests passed;
+Windows did not reach broad tests), and LibreCAD ON/OFF consumer proof remains
+required.
 The hosted broad run for that prior head had 37/40 tests pass on Linux/macOS;
 Windows MSVC additionally failed while linking `libdxfrw_gbk_codepage_tests`, so
 its broad tests did not run. Native requalification of the current head remains
@@ -33,11 +43,75 @@ S15 UTF-8/native-filesystem follow-up (2026-10-12) is VERIFYING. Its strict
 `45690883cb101663b384d1ca952e622ecfa05e4b03f077e5df36feb1effa0f7e`.
 Only the digest-excluded mutable status overlay is refreshed; it still accepts
 zero native receipts. Frozen inputs, historical receipts and support statuses
-are unchanged. Portable native Mac and ARM Linux focused7/controls3 pass, but
-own hosted three-platform and LibreCAD ON/OFF consumer proof remain required.
+are unchanged. Portable native Mac and ARM Linux focused7/controls3 pass; the
+run-111 artifacts are not admissible after the verifier fix changed a frozen
+input, and LibreCAD ON/OFF consumer proof remains required.
 The unchanged baseline admission tool rejects the existing numeric registry
 schema before scanning candidate paths. This failure is retained, not waived
 or described as a passing fixture-admission gate; no drawing bytes are added.
+
+### Independent open-source route and 3D evidence refresh (2026-10-19)
+
+This read-only review compares the current implementation and qualification
+plan with the published routes of LibreDWG, ACadSharp, ezdxf, GDAL/libopencad,
+and FreeCAD, and screens cq-acis as a limited ACIS semantic cross-check. The
+source review is advisory: no peer repository was built, no external drawing
+was downloaded, and no peer/native/kernel result is counted as local evidence.
+The detailed source observations are recorded in
+`docs/research/deeper-broader-open-source-routes-and-3d-evidence-2026-10-19.json`.
+
+The review identifies these plan corrections:
+
+1. **FreeCAD is a composed consumer route, not a general 3D ACIS oracle.** Its
+   DWG path runs a selected external converter and then a selected DXF
+   importer. The published stock DXF importers do not read embedded ACIS/SAT
+   solids. Native Linux/Windows FreeCAD qualification therefore tests the
+   actual converter-to-DXF-to-FreeCAD 2D/explicit-geometry route and must name
+   the converter and importer; it cannot satisfy the ACIS B-rep semantic gate.
+2. **Peer capability declarations have different evidence ceilings.**
+   LibreDWG documents skipped advanced R2010+ objects, and its project
+   history records an earlier incomplete/brute-force `AcDsPrototype_1b`
+   extraction; behavior of the exact current release must be tested rather
+   than assumed. ACadSharp publishes direction/version
+   matrices but a current no-op DWG round-trip issue shows self-read is not
+   writer acceptance; ezdxf is an independent DXF structure/carrier checker,
+   not a DWG reader or CAD kernel; GDAL's DWG route is a read-only geometry
+   projection over libopencad. The plan must bind each comparison to the exact
+   executable, version, direction, input digest, options, warnings, omitted
+   records, and canonicalizer. Counts from different corpora are not
+   comparable.
+3. **ACIS evidence needs a capability ladder.** Retained SAT/SAB bytes,
+   valid syntax/record graph, resolved DWG/AcDs ownership, constructed
+   boundary representation, tessellation, editable semantics, and writer
+   acceptance are separate results. ezdxf can inspect/parse a limited subset
+   and expose raw SAT/SAB, but its own documentation lists unimplemented ACIS
+   structures and shows that flat polygon extraction omits curved faces; its
+   drawing add-on does not render ACIS. cq-acis is an
+   experimental, subset-limited candidate whose published wheel provenance
+   does not bind every mutable-main profile note to that release. Neither
+   route may promote general ACIS support.
+4. **Recent peer fixes identify high-value boundary controls.** LibreDWG
+   v0.14 lists a fix for dropping the final SAT block on DXF export and a
+   separate binary-DXF group-310 double-hex-decoding fix. These are targeted
+   differential probes, not evidence that the same defects exist here. The
+   current local tests already exercise multi-chunk/final-carrier readback,
+   group-310 framing/readback, and a two-chunk AC1015 SAT-v1 output; bind those
+   focused tests to the cross-peer lane and add a narrowly generated control
+   only if the compared outputs expose an uncovered boundary.
+5. **DWG sources must not be confused with DXF output.** The ODA v5.4.1
+   specification and traced local samples remain the layout authority; peer
+   DWG-to-DXF conversion is a projection whose warnings, skipped types, and
+   carrier changes must be preserved in the evidence record. In particular,
+   the historical LibreDWG R2013+ AcDs extraction caveat is a reason to
+   inspect the exact pinned peer output, not a claim about current peer status;
+   local AcDs owner/key/range resolution must be independently validated
+   before any semantic result is credited.
+
+Implementation consequence: keep the five existing support dispositions
+`EXPERIMENTAL`, preserve all six `DEFERRED_EXTERNAL` items, and add the
+operation-specific comparison and 3D capability gates below. This review
+changes test selection and evidence routing only; it does not add dependencies,
+fixture files, or support claims.
 
 This document plans an upgrade of the standalone `libdxfrw` repository from
 `origin/master` to the implementation maintained in
@@ -624,7 +698,7 @@ advisory only and cannot promote a support row.
 | Tables and tabular content | ACAD_TABLE, table content/style/geometry, cell-style map, DataTable | Import entity/object/class registration as one slice | Row/column/cell payload and class metadata round trips |
 | Blocks and symbol tables | Block records, layer, linetype, style, dimstyle, VPORT, VIEW, UCS, APPID, viewport entity header | Keep handle maps, table controls, emitters, and writer phases synchronized | Named-record lookup, owner handles, codepage behavior, duplicate names |
 | Hatch and area | HATCH and MPOLYGON | Preserve safe forwarding fallback | Loops, edges, islands, pattern data, associativity |
-| 3D/modeler | Mesh, 3DSOLID/BODY/REGION, ACIS, plane/extruded/lofted/revolved/swept/NURBS surfaces | Import typed shells, ACIS payload handling, and raw fallback | Policy-admitted fixture-backed payload preservation; semantic editing claims remain narrow |
+| 3D/modeler | Explicit 3D primitives/faces/meshes; 3DSOLID/BODY/REGION shells; inline SAT/SAB and DWG AcDs-backed ACIS; plane/extruded/lofted/revolved/swept/NURBS surfaces | Track explicit geometry, modeler carrier, AcDs ownership, structural ACIS parsing, kernel semantics, and raw fallback as separate routes | Per-version carrier identity and owner graph; malformed/truncated negatives; independent kernel/consumer evidence for any B-rep claim; no promotion from dispatch or payload retention |
 | Image/underlay graphs | IMAGE + IMAGEDEF + reactor; PDF, DGN, and DWF underlays; wipeout | Import each definition/reactor/entity graph together | Definition/entity linkage, transform/clip fields, rollback, missing-reference behavior |
 | Point cloud/model references | Legacy and extended point clouds, reactors, color maps, Navisworks definitions, GeoMapImage | Preserve variant-specific class identities and links | Definition/entity linkage, class/version gates, absent external resources |
 | Rendering/geospatial | Light, camera, sun, sun study, background, material, visual style, render settings, geodata/map image/geoposition marker | Import named-class routing and object models | Class identity, version gates, handles, representative field values |
@@ -655,6 +729,59 @@ under its selective replay path, with same-version identity, encoding 1/2/4,
 unencrypted payload, uniqueness, and size constraints. The section matrix must
 state these predicates and separately show which standard sections are
 regenerated, decoded, or dropped.
+
+### 3D capability ladder and comparator routing
+
+Do not collapse the following capabilities into “3D support.” Each row needs
+its own positive and negative case, source-version/profile, output route, and
+claim disposition. The peer observations and source links are in
+`docs/research/deeper-broader-open-source-routes-and-3d-evidence-2026-10-19.json`.
+
+| Capability | Evidence required | Useful independent route | Explicit non-evidence |
+| --- | --- | --- | --- |
+| Explicit 3D geometry (`3DFACE`, mesh/polyface, 3D coordinates) | Per-type counts, vertices/faces, normals/flags, coordinate tolerance, and round-trip/readback; malformed indices and degenerate geometry negatives | LibreDWG/ACadSharp direct DWG decode where the exact route handles the type; GDAL CAD projection as a narrow 3DFACE geometry cross-check | A `3D` label, class registration, rendered top view, or a peer's version matrix |
+| DXF modeler carrier retention | Exact source spelling/typed values as applicable, SAT/SAB payload hash and size, proxy-before-ACIS split, record/version profile, and write/read carrier identity | ezdxf tag/raw SAT/SAB inspection; independent DXF tag walk | `ezdxf` browse output or successful DXF parse does not establish body validity or solid semantics |
+| DWG ACIS/AcDs resolution | ODA-cited version rules plus traced sample offsets; exact entity-to-DataStorage key, owner, section/range, SAB frame and payload hash; absent/duplicate/orphan/wrong-owner controls | LibreDWG and ACadSharp may provide a second decoded/projection view only when diagnostics show the relevant AcDs record was actually resolved | A peer's historical brute-force extraction behavior, a copied byte signature, or a converter that silently omits the solid; verify the pinned peer release rather than assuming the historical limitation persists |
+| ACIS structural parsing | Versioned SAT/SAB grammar profile, bounded record counts/links, graph closure, and precise unsupported-node reporting | ezdxf limited parser for intersecting supported SAT/SAB subsets; pinned cq-acis release for its documented subset | Parser success, a raw dump, or a flat polygon mesh is not a kernel-valid B-rep |
+| Kernel B-rep / geometric semantics | Independent construction of a valid shape for a declared subset; topology counts, volume/area/bounds, finite coordinates, tolerance policy, and deliberately malformed/unsupported controls | A pinned, release-bound kernel-backed reader such as cq-acis only for the exact documented subset and dependencies; other qualified kernel readers only after proving they consume the same carrier | Stock FreeCAD import, ezdxf drawing/rendering, GDAL projection, libdxfrw self-read, or mutable-main documentation without a release-bound executable |
+| Consumer qualification | Exact executable/build, OS, importer selection, conversion command/options, exit code, diagnostic stream, resulting object inventory, and normalized geometry/retention assertions | Native FreeCAD Linux and Windows for its actual DWG-converter → DXF-import route; include the selected converter and C++/legacy importer | Converter output-file existence or GUI open alone; stock FreeCAD does not read ACIS/SAT solids from DXF |
+| 3D write acceptance | Writer profile/version and graph closure; second implementation read; kernel/native audit for promoted semantic rows; reject data that is only preserved opaquely | ACadSharp/LibreDWG as version-appropriate independent container readers, plus a native application/kernel for semantics when available | Successful same-library round-trip; ACadSharp issue #1277 documents a reported AC1032 no-op round-trip that still loses annotative MLeader context objects |
+
+Implementation-ready sub-plan:
+
+1. Create a capability row for each entity/modeler family and source version:
+   `dispatch`, `decoded form`, `published carrier`, `raw representation`,
+   `AcDs/handle graph`, `derived output`, `writer route`, and independent
+   evidence status. Keep `MESH`/`3DFACE` independent from B-rep solids.
+2. For AC1024 inline ACIS and AC1027+ DataStorage/SAB, derive positive and
+   negative generated controls from local builders or admitted repository
+   material. Assert one-to-one entity/body association, key/owner resolution,
+   byte range, and source payload hash. Never use a downloaded/converter-
+   generated DWG/DXF as a committed fixture.
+3. Cross-check wire/canonical DXF with ezdxf and a raw tag walker, and direct
+   DWG projections with pinned LibreDWG/ACadSharp routes. Record omissions,
+   warnings, and version conversions before comparing; an absent peer entity
+   is `not observed`, not evidence that the local parser is wrong or right.
+   In the first low-cost differential, specifically compare binary group-310
+   hex handling and multi-block SAT final-chunk retention against a pinned
+   LibreDWG release; reuse the existing local selectors before adding tests.
+4. Run native FreeCAD on Linux and Windows for the converter-to-importer path
+   and explicitly label the supported output as the observed 2D/explicit
+   geometry subset. Keep it independent from ACIS semantic qualification.
+5. Qualify one bounded ACIS subset through a pinned external reader/kernel
+   before considering semantic promotion. First bind package version, source
+   commit, wheel/artifact hash, runtime dependencies, grammar profile, and
+   declared geometry support to the exact installed binary. Require a known
+   positive plus malformed, unsupported-node, and geometry-mismatch negatives.
+   If the candidate cannot meet this within the run horizon, retain raw
+   carrier support only and leave semantic rows `EXPERIMENTAL`.
+6. For writer rows, require a second implementation to parse the output and a
+   separate native/kernel acceptance check for semantic claims. Compare object
+   graph inventories and geometry summaries as well as process status; retain
+   ACadSharp's MLeader no-op report as a negative-control design, not as a
+   local defect or proof about current peer code. If the private issue inputs
+   cannot be shared, generate a minimal context/ownership control from scratch
+   and keep the issue's reported counts advisory.
 
 ### Quantitative target surface
 
@@ -1297,11 +1424,14 @@ Actions:
      AC1027+ object presence bit.
 
 9. Give ACIS and proxy graphics independent capability matrices. ACIS rows
-   separately cover SAB payload retention, structural parsing, graph
-   resolution, wireframe extraction, semantic editing, tessellation/SAT/NURBS,
-   and typed output. Proxy rows cover opcode/version, transform/style state,
-   derived primitive, terminal stop reason, and resource limit. A derived
-   primitive must never replace or suppress the original raw carrier.
+   separately cover inline SAT/SAB retention, DWG AcDs key/owner/range
+   resolution, structural parsing, graph closure, wireframe extraction,
+   kernel B-rep construction, tessellation, semantic editing, SAT/NURBS
+   evaluation, and typed output. Bind each row to a precise version/profile
+   and operation-specific oracle. Proxy rows cover opcode/version,
+   transform/style state, derived primitive, terminal stop reason, and
+   resource limit. A derived primitive must never replace or suppress the
+   original raw carrier.
 10. Treat diagnostics as a versioned output contract: preserve callback order,
     severity, logical versus physical offsets, bounded-prefix storage, dropped
     counts, and independent frame/class reports.
@@ -1315,6 +1445,10 @@ Exit tests:
 - DataStorage duplicates, orphans, bindings, presence bits, and replay
   decisions are accounted for at AC1027+ boundaries.
 - Proxy/ACIS derived output never creates an unsupported semantic-editing claim.
+- FreeCAD's native converter-to-DXF-import result is reported separately from
+  ACIS semantics; stock FreeCAD success cannot clear the ACIS gate.
+- Peer version matrices and peer self-roundtrips never substitute for the
+  per-feature output inventory and independent reader/native-oracle checks.
 - The one finalized coverage report contains exactly one terminal entry per
   HANDLE-map frame using the target enum; every published entry maps to exactly
   one carrier classification, including deliberate typed-and-raw and control
@@ -1378,6 +1512,15 @@ Each writer version has three readiness levels:
   eligible local-from-scratch runtime cases plus its downgrade/replay rules;
   external fixtures remain advisory.
 
+For 3D/modeler features, `feature-ready` additionally requires route separation:
+explicit mesh/face geometry, opaque SAT/SAB retention, DWG AcDs resolution,
+ACIS structural parse, kernel B-rep semantics, and native consumer acceptance
+are distinct rows. A same-library round-trip is a local regression only. A
+second reader must report the same feature graph, while a kernel/native audit
+is required for any geometry-semantic or editable-solid claim. Preserve peer
+notifications and skipped-type reports so a successful file open cannot hide
+loss.
+
 Exit tests:
 
 - Unsupported versions fail before touching the destination.
@@ -1388,6 +1531,11 @@ Exit tests:
   tests preserve the destination according to the documented contract.
 - Writer support is promoted by version and feature, not inherited merely
   because one writer class derives from another.
+- For 3D/modeler output, the independent reader must show the expected
+  entity/body/owner graph and payload identity; a native or kernel-backed
+  acceptance test is separately required for semantic-solid claims. No-op
+  self-round-trips are insufficient, including where a peer reports successful
+  reopen but damaged dependent context objects.
 
 ### WP8: testing, packaging, and documentation
 
@@ -2315,6 +2463,24 @@ Run fixtures in cost tiers:
   source-tree includes excluded.
 - Run LibreCAD's fast libdxfrw-focused test targets where they do not require
   unrelated GUI components.
+- Run the native FreeCAD import route on Linux and Windows only for explicit
+  geometry and the importer-supported subset. Record FreeCAD build, selected
+  LibreDWG/ODA/QCAD converter, exact arguments, selected C++/legacy DXF
+  importer, logs, and normalized object inventory. Treat these as consumer
+  interoperability results, not general DXF or ACIS qualification.
+- Use pinned LibreDWG and ACadSharp builds for DWG semantic projections,
+  ezdxf for strict DXF/tag/carrier inspection, and GDAL/libopencad only for
+  its documented vector subset. Every route gets an operation-specific
+  versioned normalizer, exact input/output hashes, diagnostics, omitted-type
+  accounting, and an explicit evidence ceiling. Do not compare aggregate
+  success percentages from different corpora or count public capability
+  matrices as test receipts.
+- Keep any optional ACIS semantic harness pinned to an exact artifact/source
+  revision and documented profile. Before accepting it as an oracle, verify
+  that the release (not only mutable main documentation) contains the required
+  decoder path and runtime dependencies, and run positive plus malformed,
+  unsupported-node, and geometry-mismatch controls. It remains optional and
+  does not add a normal build dependency.
 - If any adaptation touches encoding/output, compare the pinned seven-format
   byte-identity hashes before and after the source overlay on the same
   host/toolchain and investigate every delta. Otherwise run this heavyweight
@@ -2720,6 +2886,20 @@ The convergence is complete only when all of the following are true:
   admitted or runtime-generated malformed/negative coverage, or remain
   documented as experimental.
 - Promoted DWG writers pass self-read and independent-reader validation.
+- No reader/writer support claim is promoted solely from a peer's advertised
+  version matrix, a same-library round trip, a converter exit code, or output
+  file existence. Each differential binds executable/revision, route,
+  direction, format version, source/output hashes, options, notifications,
+  dropped/unresolved types, and normalization schema.
+- Native FreeCAD Linux/Windows qualification names the converter and DXF
+  importer and records the composed route. Its stock route may qualify the
+  observed explicit-geometry/2D consumer subset only; it does not qualify
+  embedded ACIS/SAT B-rep semantics.
+- ACIS/AcDs support claims identify whether evidence covers payload retention,
+  key/owner resolution, structural parsing, kernel construction, tessellation,
+  editing, or output. General semantic claims require an independent,
+  release-pinned kernel-backed positive and negative case; otherwise the
+  support status remains experimental.
 - Oracle results follow the checked-in normalization schema and include tool
   version, exit status, semantic counts, graph relationships, floating-point
   policy, and hashes for retained opaque payloads.

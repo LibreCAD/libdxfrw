@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-dxf-mesh-component-order-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source schema review and generated ASCII/Binary regression",
+  "scope": [
+    "DXF MESH level-0 vertex component order",
+    "Preservation of MESH count/section framing and topology",
+    "Focused parser and LibreCAD_3 compatibility validation"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF Reference",
+      "revision": "Published 2021 MESH entity and 2024 entity-code guidance",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm"
+      ],
+      "observations": {
+        "meshSchema": "Group 92 declares level-0 vertex count, group 10 carries vertex positions, group 93 frames the face-list size, and groups 94/95 describe edge and crease counts.",
+        "ordering": "General DXF guidance says not to assume entity group-code order; entity-specific count and stream boundaries still define framing."
+      },
+      "limitation": "DXF entity field documentation does not establish DWG byte layout, rendered geometry, or downstream 3D semantics."
+    }
+  ],
+  "localAudit": {
+    "entity": "MESH",
+    "path": "src/drw_entities.cpp: DRW_Mesh::parseCode",
+    "reproducedFailure": "The prior parser required an X component to create the pending vertex; valid Y/Z-before-X coordinates were rejected before callback in both ASCII and Binary DXF.",
+    "correction": "Assign group 10/20/30 independently by per-axis occurrence ordinal into the declared vertex slots. Preserve same-code occurrence order and keep 92/93/94/95 phase framing and face/edge/crease parsing unchanged.",
+    "privateStorage": "Reuse the three existing private int32 parser-counter slots as per-axis occurrence counters in the vertex phase and as face/edge/crease counters afterward. Compile-time size/alignment assertions protect the storage contract; no public field, callback, or virtual was added.",
+    "generatedCoverage": [
+      "Scratch-generated ASCII and Binary DXF; no persistent fixture",
+      "Reorder the first MESH coordinate records to all Y, then all Z, then all X while preserving same-code order and count/section delimiters",
+      "Compare exact MESH vertices and topology against the source payload",
+      "Verify a following LINE sentinel remains intact",
+      "Retain missing-Y, missing-Z, and excess-Y negative controls that refuse publication"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_dxf_fixture_tests --mesh-raw-field-tags",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    }
+  ],
+  "planDelta": {
+    "existingOwnerOnly": true,
+    "newFindingOrSubplan": false,
+    "nextLocalProbe": "LWPOLYLINE point-component order; then HATCH/LEADER and nested MLEADER, each only after a schema-checked generated regression reproduces a mismatch.",
+    "selfUnblock": "If no mismatch reproduces or optional external/native routes are unavailable, record that bounded result and continue to the next local candidate; do not wait on external qualification."
+  },
+  "limits": {
+    "persistentFixtureAdded": false,
+    "externalPeerOrNativeRuntimeRun": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": false,
+    "semanticGeometryEstablished": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "deferredStatus": "All six remain DEFERRED_EXTERNAL and non-promoting."
+  }
+}

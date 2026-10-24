@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Consumer-route semantics and documentation conflict",
+  "mode": "Deeper/broader primary-source research and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile format-level interchange claims with concrete FreeCAD converter and DXF importer behavior.",
+    "Refresh LibreCAD_3 DWG consumer policy and scope ezdxf ACIS inspection and XREF-copy routes.",
+    "Refine existing PAR-07/S8 and 3D consumer qualification without adding routine peer work or fixture cost."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD Draft DXF documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "revision": "Mutable public documentation inspected 2026-10-20; no source commit or installed application was pinned or run.",
+      "observation": "The page describes separate C++ and legacy Python DXF importers, states both handle DXF R12 onward, lists omissions in each route, and says stock FreeCAD cannot read ACIS 3D solids from DXF. The same page makes a generic no-data-loss claim for same-version DWG/DXF interchange.",
+      "limit": "Documentation does not qualify a particular converter/importer build. The general interchange claim is not evidence that a specific consumer route retains every record."
+    },
+    {
+      "project": "FreeCAD DWG/import-export documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "revision": "Mutable public documentation inspected 2026-10-20; no converter, importer, or application runtime was pinned or run.",
+      "observation": "DWG import is documented as an external converter producing DXF followed by the selected FreeCAD DXF importer; importer limitations apply. The docs distinguish converter options and identify CADExchanger as a 3D DWG conversion route.",
+      "limit": "This documents possible routes and settings, not native Linux/Windows acceptance or semantic modeler support."
+    },
+    {
+      "project": "LibreCAD_3 DWG support policy",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "revision": "Mutable master documentation inspected 2026-10-20; the referenced pinned libdxfrw checkout and application runtime were not independently inspected or run.",
+      "observation": "The document states WITH_DWG_IMPORT is opt-in/off by default, DWG writing is deliberately unavailable, existing DWG-origin documents are Save-As-to-DXF, and its stated DWG claims are read-direction only and unpromoted.",
+      "limit": "Consumer policy evidence only; it does not establish runtime acceptance, upstream library parity, or 3D editing."
+    },
+    {
+      "project": "ezdxf XREF and ACIS documentation",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/README.md"
+      ],
+      "revision": "Mutable master documentation inspected 2026-10-20; no release artifact or runtime was pinned or run.",
+      "observation": "The XREF module supports a documented copyable/transformable entity/resource subset and can ignore unsupported content; a separate browser exposes SAT/SAB data for inspection/export. These routes do not amount to a unified whole-document or ACIS-semantic round trip.",
+      "limit": "Project documentation is not proof of behavior for a particular installed package or input."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: treat converter, strict intermediate DXF parse, selected consumer importer, object retention, and semantic geometry as separate stages.",
+      "PAR-07/S8: treat format-level no-loss statements as non-promoting when the selected route documents narrower importer capability.",
+      "Consumer qualification: bind the intended FreeCAD importer/backend and settings; test a second backend only when it is a supported route or needed to diagnose a concrete discrepancy.",
+      "LibreCAD_3 compatibility: preserve its opt-in/read-only DWG policy and Save-As-to-DXF expectation; do not treat it as a DWG writer or 3D editor.",
+      "3D qualification: separate opaque carrier retention, SAT/SAB inspection, kernel/B-rep validity, analytic semantics, and native acceptance."
+    ],
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerOrNativeRuntimeRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "planChanges": [
+    "Added a route reconciliation explaining that FreeCAD's broad same-version interchange statement does not qualify the selected converter plus importer path where route-specific omissions are documented.",
+    "Made exact converter status/output identity, selected importer configuration, and per-source consumed/skipped disposition explicit in the existing composed FreeCAD gate.",
+    "Clarified that LibreCAD_3 is an opt-in, read-only DWG consumer with Save-As-to-DXF policy, not a DWG-writing or 3D-consumer acceptance target.",
+    "Distinguished ezdxf raw ACIS inspection from XREF copy/import and from ACIS geometry semantics.",
+    "Preserved fast local generated checks, milestone-only external validation, no external fixture additions, and all six DEFERRED_EXTERNAL states."
+  ],
+  "limitations": [
+    "Public project documentation is mutable and was not tied to exact release commits or binaries.",
+    "No FreeCAD, LibreCAD_3, ezdxf, converter, or geometry-kernel executable was run; no external DWG/DXF drawing was downloaded.",
+    "No conclusion is made about exact platform behavior. Native Linux/Windows qualification remains a separate composed gate.",
+    "No finding, top-level subplan, support matrix promotion, or J-item transition was established."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq schema, totals, and deferred-item invariants)",
+    "planDiffCheck": "PASS (git diff --check on DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; receipt trailing-whitespace check)",
+    "runtimeTests": "NOT_RUN (research-only update)",
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

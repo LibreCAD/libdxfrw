@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader CADCraft split DXF/DWG route and new candidate-admission review",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Separate a downstream CAD application's independently implemented DXF route from its delegated DWG codec route",
+    "Resolve a current lockfile-versus-documentation version mismatch before admitting peer evidence",
+    "Screen newly surfaced DXF viewer and native AutoCAD orchestration projects by their actual parser/writer operation",
+    "Refine candidate admission without adding mandatory peer runs, dependencies, fixtures, or support claims"
+  ],
+  "method": {
+    "kind": "Read official project repository pages, project-owned route matrix, and lockfile",
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsUploaded": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "limitations": "Mutable GitHub pages were reviewed 2026-10-18. CADCraft's parity inventory identifies itself as reviewed 2026-10-10 and updated 2026-10-12; its current main Cargo.lock resolves a different ACadRust version than that inventory says. No immutable source commit, lockfile digest, binary artifact, runtime behavior, or semantic output was captured. All peer capability statements remain project-authored claims."
+  },
+  "sources": [
+    {
+      "project": "CADCraft file-format parity inventory",
+      "url": "https://github.com/storytold/cadcraft/blob/main/docs/file-format-parity.md",
+      "revision": "Mutable main; document says reviewed 2026-10-10, updated 2026-10-12; retrieved 2026-10-18",
+      "observed": "The project documents separate `cadcraft-dxf` and `cadcraft-dwg` packages. It says its DXF route is its own ASCII/binary parser/writer and that DWG is converted through ACadRust before application DXF parsing. The document names ACadRust 0.6.3, says the file tests at its review date were synthetic, says no test opened a file from another program, and says no external validator ran in CI. It also describes loss boundaries between DXF and DWG paths, including raw/unmodelled data behavior."
+    },
+    {
+      "project": "CADCraft Cargo.lock",
+      "url": "https://github.com/storytold/cadcraft/blob/main/Cargo.lock",
+      "revision": "Mutable main lockfile retrieved 2026-10-18; package entry resolves acadrust 0.6.4 from crates.io",
+      "observed": "The lockfile lists `cadcraft-dwg` as depending on `acadrust` and a separate workspace package `cadcraft-dxf`; the acadrust lock entry is version 0.6.4, not the 0.6.3 cited by the parity document. This does not establish which exact dependency was used in any published application binary."
+    },
+    {
+      "project": "OpenCAD VS Code project README",
+      "url": "https://github.com/kjarada/OpenCAD",
+      "revision": "Mutable master page retrieved 2026-10-18",
+      "observed": "The README lists DXF as supported and DWG as experimental; it describes the DXF route as a Node.js `dxf` parser mapped into a simplified geometry model, and says the DWG path currently advises users to export to DXF. Its named entity subset includes common 2D entities and 3DFACE, not ACIS-bearing solids."
+    },
+    {
+      "project": "dwgforge README",
+      "url": "https://github.com/NOVA-XO/dwgforge",
+      "revision": "Mutable master page retrieved 2026-10-18; README identifies release 0.2.0",
+      "observed": "The project generates AutoLISP from a Python API and asks Autodesk AutoCAD/Civil 3D `accoreconsole.exe` to create DWG; it requires Windows and an installed AutoCAD release. Its own README distinguishes the open-source orchestration layer from Autodesk's native DWG writer and lists a narrow current 2D/solid command API."
+    },
+    {
+      "project": "BRL-CAD dxf-g POLYFACE issue #228",
+      "url": "https://github.com/BRL-CAD/brlcad/issues/228",
+      "revision": "Public issue page retrieved 2026-10-18; issue opened 2026-03-23 and shown open",
+      "observed": "The issue reports an ASan heap over-read through the normal `dxf-g` path when untrusted POLYFACE indices are used to index the vertex pool without bounds validation. This is a peer-specific report, not a reproduced libdxfrw defect; existing local PAR-37/7V generated bounds and rejection checks already own the analogous safety question."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "routeSpecificComparatorAdmissionClarification": true,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Admit CADCraft only by route: its local cadcraft-dxf package is an optional candidate for focused DXF projection/field observations, while its DWG evidence remains ACadRust-lineage. Resolve the 0.6.3 documentation versus 0.6.4 lockfile mismatch against an immutable checkout before any peer result. Exclude OpenCAD from DWG/ACIS evidence because its README routes DWG users to export DXF. Treat dwgforge as a possible Windows AutoCAD authoring/native-acceptance harness, not an open-source codec. Keep all such runs optional at existing composed gates; no new local work item is warranted."
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "Only the requested parity plan and this research receipt are changed by this turn; the shared checkout already contains broad user/work-in-progress changes."
+  }
+}

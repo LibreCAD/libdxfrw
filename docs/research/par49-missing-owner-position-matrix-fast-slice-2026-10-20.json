@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-49/7G.3 missing-owner position matrix",
+  "mode": "Generated local AC1027 fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Extend the missing BLOCK_RECORD entMap reference regression from middle-only to first, middle, and final positions.",
+    "Keep tolerant lower-walker behavior distinct from strict outer block preflight and prove a following valid owner still publishes."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationAdded": true,
+    "behavior": "For each missing position, generated in-memory AC1027 frames verify lower-walker source-order callbacks for all resolvable siblings and the exact missing-handle/owner diagnostic. Strict readBlocks() returns incomplete, diagnoses the exact missing identity, quarantines callbacks from that malformed owner, and publishes the next valid owner and its modeler entity."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "selector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --mixed-missing-block-ownership",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_dwg_mixed_missing_block_ownership$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- CMakeLists.txt tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par49-missing-owner-position-matrix-fast-slice-2026-10-20.json",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportImpact": {
+    "supportPromotion": false,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "Shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

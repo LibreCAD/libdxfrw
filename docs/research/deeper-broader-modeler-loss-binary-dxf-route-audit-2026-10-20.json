@@ -1,0 +1,147 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Modeler loss and Binary-DXF route audit",
+  "mode": "primary-source peer and release research with bounded local scratch probe; plan update only",
+  "scope": [
+    "Recheck open-source DWG/DXF modeler carrier loss reports and exact release/PR status",
+    "Separate raw carrier inspection, B-rep semantics, AcDs association, and native consumer capability",
+    "Screen current Binary-DXF parser routes and refresh the S2.2.5b readiness path",
+    "Record a self-unblock path without increasing routine validation cost"
+  ],
+  "method": {
+    "kind": "Primary project documentation/source, issue and release pages, plus existing local scratch artifacts",
+    "sources": [
+      {
+        "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+        "use": "Current open report for 0.14.8593 where R2013+ modeler entity shells survive while AcDs-associated SAB payloads are absent from conversion output."
+      },
+      {
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "use": "Current source contains an AcDs section-reading path; its presence alone does not prove the named release's conversion/API exposes exact owner/key/payload closure."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+        "use": "Open report of silent 3DSOLID/REGION omission by a named ACadSharp DXF writer version, including solid-only blocks."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+        "use": "Still-open, undeployed linked proposal; visible commit summary targets DWG ModelerGeometry serialization and is not proof of the DXF-writer issue being fixed."
+      },
+      {
+        "url": "https://github.com/DomCR/ACadSharp/releases",
+        "use": "Latest listed release is v3.8.0; its release notes do not list the still-open #1240 branch."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/master/README.md",
+        "use": "ASCII/Binary DXF read/write capability scope."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "use": "ezdxf exposes raw SAT/SAB browsing/export, not a solid B-rep semantic result."
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "use": "ACIS carrier creation is documented as an external-library responsibility."
+      },
+      {
+        "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "use": "GDAL 3.12 adds Binary-DXF input; AC1027+ extensible modeler mode exposes raw ASM bytes plus a transform but does not create OGR solids."
+      },
+      {
+        "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "use": "FreeCAD's two stock DXF importers have distinct entity sets and do not currently read embedded ACIS/SAT solids."
+      },
+      {
+        "url": "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+        "use": "Current document claims an AcisSabParser route and edge reconstruction."
+      },
+      {
+        "url": "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+        "use": "Current architecture document says the older ProGPU.Dxf ACIS readers/shader were inspected and rejected as incomplete. Source/tests were not independently traced; mark the contradictory documentation unverified."
+      },
+      {
+        "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "use": "LibreCAD 3 documents a read-only DWG product policy gated by native write evidence."
+      }
+    ],
+    "localScratch": {
+      "writer": "LibreDWG dxfwrite 0.14",
+      "writerCommand": "dxfwrite --as r2010 --binary --overwrite --file <scratch-output> <existing-local-source>",
+      "inputSha256": "8193d9917354a9165d500098aa31209218f0b3d6bf3b24632b89003295806c4d",
+      "binaryOutputSha256": "705b4f7e4e9fbe864a75b97188a3cb4fa7dc09c2b825925e3e9578fe4523c16c",
+      "fullFileParserAttempts": [
+        {
+          "parser": "libdxfrw local diagnostic mode",
+          "result": "FAIL_PARTIAL",
+          "detail": "Modeler entities delivered, then BAD_READ_OBJECTS (12); source record 0/handle 153 payload length 11808 versus Binary-DXF read length 11805, first difference at byte 11805."
+        },
+        {
+          "parser": "same installed LibreDWG dxfwrite 0.14",
+          "result": "FAIL_OBJECTS",
+          "detail": "Failed reading its generated Binary DXF at DETAILVIEWSTYLE: expected group code 340; returned error 0x800."
+        }
+      ],
+      "disposition": "NOT_QUALIFIED; no claim that the generated file, payload delta, or cut policy is valid"
+    },
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutableRuns": "LibreDWG dxfwrite 0.14 was run to create a scratch Binary DXF and then failed to parse the produced full document.",
+    "independentRuntimeToolsAvailable": {
+      "gdal": false,
+      "ezdxf": false,
+      "odaHeadlessRoute": false
+    },
+    "nativeCadOrKernelRuns": false,
+    "externalDrawingsDownloaded": 0,
+    "repositoryDrawingFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fullSuiteRun": false,
+    "limitations": "Peer documentation and current main branches are mutable and project-specific. Issue reports identify failure shapes, not normative format rules or libdxfrw defects. The local source file is an existing user-owned non-repository input with unverified producer provenance; the generated output was temporary. No independent parser accepted the full candidate document, so no positive Binary-DXF or SAT claim is made."
+  },
+  "findings": {
+    "newLocalFinding": false,
+    "newTopLevelSubplan": false,
+    "existingGateRefined": "S2.2.5b Binary-DXF/SAT positive admission and next-ready self-unblock",
+    "peerRouteAssessment": {
+      "LibreDWG": "Open #1411 is release-scoped; current source path presence is not conversion qualification.",
+      "ACadSharp": "#1195 remains open; #1240 is open/undeployed and its visible change targets DWG serialization.",
+      "ezdxf": "Binary DXF carrier/parser and raw ACIS utility; not B-rep semantics; ACIS authoring requires another library.",
+      "GDAL": "Binary-DXF reader candidate from 3.12; modern 3D extensible path is raw ASM+transform, not solid semantics; not installed locally.",
+      "FreeCAD": "Stock DXF import does not consume ACIS/SAT bodies.",
+      "ProGPU": "Conflicting DXF.md and architecture claims; source/test route unresolved and non-admitted."
+    },
+    "planUpdates": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "findingsAndSubplans": "141 / 78 unchanged",
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false
+  },
+  "implementationReadyChecks": [
+    "Keep the existing generated ASCII/Binary boundary matrix as fast local preservation coverage; do not alter production cuts from the failed peer candidate.",
+    "At most once at the existing composed checkpoint, use an already-installed independent DXF reader on scratch-only locally authored AC1018/AC1021 Binary-DXF input; require full-document acceptance through terminal EOF and no section error.",
+    "Compare modeler handle/type, ordered group-1/group-3 chunks, decoded length/hash, following-record sentinel, owning block, and complete source/output disposition.",
+    "Do not equate entity survival with payload preservation or use the original ASCII carrier as an exact oracle after a peer conversion unless byte changes are independently explained.",
+    "If no available independent reader accepts the whole document and exposes the legacy SAT carrier, record NOT_QUALIFIED and continue the next dependency-ready local ledger item without installing a dependency, downloading a drawing, or running a full suite.",
+    "Keep AC1027+ SAB/AcDs association, independent analytic geometry, and FreeCAD/native consumer evidence in their existing composed gates."
+  ],
+  "validation": {
+    "localBinaryProbe": "Expected failure/partial result captured; status 1 is not a passing test.",
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check on the two plan files and this receipt)",
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes; no staging or commit performed."
+  }
+}

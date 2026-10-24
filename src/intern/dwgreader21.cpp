@@ -356,6 +356,14 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, std::uint8_t *dData){
     };
     constexpr std::uint64_t maxPageCap = dwgSafety::MaxPageCap;
     constexpr std::uint64_t maxBufferSize = dwgSafety::MaxBufferSize;
+    const auto alignR2007PageSize = [](std::uint64_t value,
+                                      std::uint64_t& aligned) {
+        std::uint64_t adjusted = 0;
+        if (!dwgSafety::add(value, 31u, adjusted))
+            return false;
+        aligned = adjusted & ~std::uint64_t{31u};
+        return true;
+    };
     if (dData == nullptr || si.size == 0) {
         recordSectionFailure(DwgIntegrityCheckKind::PageGeometry);
         return false;
@@ -528,7 +536,7 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, std::uint8_t *dData){
             recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
             return false;
         }
-        if (pi.uSize == 0 || pi.cSize == 0) {
+        if (pi.uSize == 0 || pi.cSize == 0 || pi.cSize > pi.uSize) {
             recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
             return false;
         }
@@ -546,10 +554,9 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, std::uint8_t *dData){
         } DRW_DBG("\n");
     #endif
 
-        std::vector<std::uint8_t> tmpPageRS;
-        if (pi.size > std::numeric_limits<int>::max()
-            || !DRW::resize(tmpPageRS, static_cast<int>(pi.size))) {
+        if (si.compressed != 1 && si.compressed != 4) {
             recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
+            DRW_DBG("\nERROR: dwgReader21::parseDataPage: unsupported R2007 page encoding\n");
             return false;
         }
         std::uint64_t alignedCSize = 0;
@@ -561,37 +568,125 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, std::uint8_t *dData){
         }
         const std::uint64_t chunks64 = chunksNumerator / 251;
         std::uint64_t decodedSize = 0;
+        std::uint64_t encodedSize = 0;
+        std::uint64_t rsPageSize = 0;
+        std::uint64_t rawPageSize = 0;
         if (chunks64 == 0 || chunks64 > std::numeric_limits<std::uint32_t>::max()
             || !dwgSafety::multiply(chunks64, 251, decodedSize)
-            || !dwgSafety::multiply(chunks64, 255, chunksNumerator)
-            || chunksNumerator > pi.size
+            || !dwgSafety::multiply(chunks64, 255, encodedSize)
+            || !alignR2007PageSize(encodedSize, rsPageSize)
+            || !alignR2007PageSize(pi.cSize, rawPageSize)
             || pi.cSize > decodedSize) {
             recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
             return false;
         }
         const std::uint32_t chunks = static_cast<std::uint32_t>(chunks64);
-        bool decoded = false;
-        if (si.compressed == 1) {
-            decoded = dwgRSCodec::decode251(
-                tmpPageRaw.data(), tmpPageRS.data(), chunks);
-        } else if (si.compressed == 4) {
-            decoded = dwgRSCodec::decode251I(
-                tmpPageRaw.data(), tmpPageRS.data(), chunks);
-        } else {
+        const bool rsExtent = pi.size == rsPageSize;
+        const bool rawExtent = pi.size == rawPageSize;
+        const bool compressionApplied = pi.cSize < pi.uSize;
+        if (compressionApplied && !rsExtent) {
             recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
-            DRW_DBG("\nERROR: dwgReader21::parseDataPage: unsupported R2007 page encoding\n");
+            DRW_DBG("\nERROR: dwgReader21::parseDataPage: compressed R2007 page lacks RS-sized extent\n");
             return false;
         }
-        if (!decoded) {
+
+        std::vector<std::uint8_t> tmpPageRS;
+        bool rsDecoded = false;
+        if (rsExtent) {
+            if (pi.size > std::numeric_limits<int>::max()
+                || !DRW::resize(tmpPageRS, static_cast<int>(pi.size))) {
+                recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
+                return false;
+            }
+            rsDecoded = si.compressed == 1
+                ? dwgRSCodec::decode251(
+                      tmpPageRaw.data(), tmpPageRS.data(), chunks)
+                : dwgRSCodec::decode251I(
+                      tmpPageRaw.data(), tmpPageRS.data(), chunks);
+        }
+
+        bool useRsDecodedPage = rsExtent;
+        if (compressionApplied) {
+            // ODA §5.4 applies the section's Reed-Solomon encoding after
+            // optional compression.  A physical extent can coincidentally
+            // equal both align32(cSize) and align32(RS(cSize)); for compressed
+            // pages that geometry collision does not make the stored bytes
+            // verbatim.  Select the required RS transform and report a bad
+            // CRC below without using it to override the format sequence.
+            if (!rsDecoded) {
+                recordPageFailure(pi, DwgIntegrityCheckKind::ReedSolomonDecode);
+                DRW_DBG("\nERROR: dwgReader21::parseDataPage: RS decode failed\n");
+                return false;
+            }
+            useRsDecodedPage = true;
+        } else if (rsExtent && rawExtent) {
+            // The page map carries no per-page RS-present flag.  For the few
+            // uncompressed pages whose physical sizes can describe either
+            // representation, use the section-map CRC to select a transform.
+            // Without a unique integrity witness, fail closed.
+            if (pi.crc == 0) {
+                recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
+                return false;
+            }
+            const auto rawCrc = dwgUtil::crc64Mirrored(
+                dwgUtil::updateSeed1(r2007CrcSeed, pi.cSize),
+                tmpPageRaw.data(), pi.cSize);
+            const bool rawCrcMatches = rawCrc == pi.crc;
+            std::uint64_t rsCrc = 0;
+            bool rsCrcMatches = false;
+            if (rsDecoded) {
+                rsCrc = dwgUtil::crc64Mirrored(
+                    dwgUtil::updateSeed1(r2007CrcSeed, pi.cSize),
+                    tmpPageRS.data(), pi.cSize);
+                rsCrcMatches = rsCrc == pi.crc;
+            }
+            if (!rawCrcMatches && !rsCrcMatches) {
+                recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
+                return false;
+            }
+            if (rawCrcMatches && rsCrcMatches) {
+                const bool sameLogicalPrefix = rsDecoded
+                    && std::equal(tmpPageRaw.begin(),
+                                  tmpPageRaw.begin()
+                                      + static_cast<std::ptrdiff_t>(pi.cSize),
+                                  tmpPageRS.begin());
+                if (!sameLogicalPrefix) {
+                    recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
+                    return false;
+                }
+                // At a geometry collision, some one-block/non-interleaved
+                // pages have identical stored and RS-decoded data prefixes.
+                // Accept only when the RS codeword is valid and both views
+                // agree byte-for-byte over the declared compressed payload.
+                useRsDecodedPage = true;
+            } else {
+                useRsDecodedPage = rsCrcMatches;
+            }
+        } else if (rsExtent && !rsDecoded) {
             recordPageFailure(pi, DwgIntegrityCheckKind::ReedSolomonDecode);
             DRW_DBG("\nERROR: dwgReader21::parseDataPage: RS decode failed\n");
             return false;
+        } else if (!rsExtent) {
+            // LibreDWG documents an AC1021 compatibility profile with
+            // uncompressed metadata pages stored verbatim. The global page
+            // extent can include more tail padding than align32(cSize), so
+            // lack of the RS-sized extent is the profile discriminator here.
+            // CRC remains a separately reported integrity check below.
+            useRsDecodedPage = false;
         }
+        if (compressionApplied && !useRsDecodedPage) {
+            recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
+            DRW_DBG("\nERROR: dwgReader21::parseDataPage: compressed R2007 page is not RS decoded\n");
+            return false;
+        }
+
+        const std::uint8_t* compressedPageData = useRsDecodedPage
+            ? tmpPageRS.data() : tmpPageRaw.data();
 
         if (pi.crc != 0) {
             const auto calculated = dwgUtil::crc64Mirrored(
                 dwgUtil::updateSeed1(r2007CrcSeed, pi.cSize),
-                tmpPageRS.data(), pi.cSize);
+                compressedPageData, pi.cSize);
             if (calculated != pi.crc) {
                 ++m_r2007CrcMismatch;
                 recordPageValue(pi, DwgIntegrityCheckKind::DataPageCrc,
@@ -601,9 +696,10 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, std::uint8_t *dData){
             }
         }
     #ifdef DRW_DBG_DUMP
-        DRW_DBG("\nSection OBJECTS RS data=\n");
-        for (unsigned int i=0, j=0; i< pi.size;i++) {
-            DRW_DBGH( (unsigned char)tmpPageRS[i]);
+        DRW_DBG(useRsDecodedPage ? "\nSection OBJECTS RS data=\n"
+                                 : "\nSection OBJECTS verbatim data=\n");
+        for (unsigned int i=0, j=0; i< pi.cSize;i++) {
+            DRW_DBGH( static_cast<unsigned char>(compressedPageData[i]));
             if (j == 7) { DRW_DBG("\n"); j = 0;
             } else { DRW_DBG(", "); j++; }
         } DRW_DBG("\n");
@@ -617,17 +713,20 @@ bool dwgReader21::parseDataPage(const dwgSectionInfo &si, std::uint8_t *dData){
         DRW_DBG(static_cast<unsigned long long>(pi.startOffset));
         std::uint8_t *pageData = decodedBuffer.data() + pi.startOffset;
         dwgCompressor comp;
-        if (pi.cSize == pi.uSize) {
-            if (pi.uSize > tmpPageRS.size()) {
-                recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
-                DRW_DBG("\nERROR: dwgReader21::parseDataPage: stored page uSize exceeds RS-decoded page\n");
+        if (pi.cSize < pi.uSize) {
+            if (!comp.decompress21(compressedPageData, pageData, pi.cSize,
+                                   pi.uSize)) {
+                recordPageFailure(pi, DwgIntegrityCheckKind::Decompression);
                 return false;
             }
-            std::memcpy(pageData, tmpPageRS.data(), pi.uSize);
-        } else if (!comp.decompress21(tmpPageRS.data(), pageData, pi.cSize,
-                                     pi.uSize)) {
-            recordPageFailure(pi, DwgIntegrityCheckKind::Decompression);
-            return false;
+        } else {
+            if ((useRsDecodedPage && pi.uSize > decodedSize)
+                || pi.uSize > pi.cSize) {
+                recordPageFailure(pi, DwgIntegrityCheckKind::PageGeometry);
+                DRW_DBG("\nERROR: dwgReader21::parseDataPage: stored page size exceeds decoded payload\n");
+                return false;
+            }
+            std::memcpy(pageData, compressedPageData, pi.uSize);
         }
 
         if (pi.checksum != 0) {
@@ -684,6 +783,7 @@ bool dwgReader21::readFileHeader() {
     m_rawDwgSections.clear();
     m_dataStorageSections.clear();
     m_dataStorageLinkedRecords.clear();
+    m_dataStorageLinkedPayloadBytes = 0;
     objData.reset();
     dataSize = 0;
     r2007CrcSeed = 0;
@@ -1402,7 +1502,7 @@ bool dwgReader21::readDwgHeader(DRW_Header& hdr){
         return false;
     }
 
-    if (!dwgReader21::parseDataPage( si, &tmpHeaderData.front())) {
+    if (!dwgReader21::parseDataPage(si, &tmpHeaderData.front())) {
         return false;
     }
 

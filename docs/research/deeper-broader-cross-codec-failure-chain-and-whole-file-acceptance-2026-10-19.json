@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader cross-codec DWG failure-chain and whole-file acceptance audit",
+  "mode": "Primary-source review of peer issue histories and current local implementation/test owners",
+  "scope": [
+    "Reconcile LibreDWG AC1021 decode and owner-iteration reports with their subsequent fix status.",
+    "Refresh ACadSharp MTEXT whole-file and SPLINE reports against local read-only and semantic evidence boundaries.",
+    "Confirm existing local robustness/EED tests cover the adversarial shapes from current peer reports.",
+    "Refine implementation-ready gates without adding fixtures, peer prerequisites, or per-slice test cost."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "issue_attachments_downloaded": 0,
+    "peer_drawings_downloaded": 0,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "local_source_files_inspected": [
+      "src/intern/dwgreader21.cpp: dwgReader21::parseDataPage",
+      "tests/dwg_local_roundtrip_tests.cpp: AC1021 data-page profile selector",
+      "tests/dxf_fixture_tests.cpp: repeated DXF record robustness and XDATA boundaries",
+      "tests/dwg_local_roundtrip_tests.cpp: EED encoded-size boundary vectors",
+      "tests/block_owner_tests.cpp: PAR-49/7G.3 composite BLOCK/INSERT ownership control",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: 7BE/PAR-14/PAR-26, PAR-49/7G.3, PAR-22/7H/7I/7AB"
+    ],
+    "local_checks": [
+      "Verified the LibreDWG #1361 report is closed and #1363 merged; the reporter corrected the original LWPOLYLINE-array hypothesis to Reed-Solomon decoding of uncompressed AC1021 pages.",
+      "Verified #1357's reporter later measured restored counts on named LibreDWG master commit 56a05f98 and identified the contemporaneous AC1021 decoder change as the likely cause; the separate defensive #1359 pull request remains open in the reviewed page state.",
+      "Compared the local AC1021 generated page transform matrix with the peer profile and retained the existing unresolved tablet CRC/sample limitation; no peer output was treated as a CRC oracle.",
+      "Verified ACadSharp #1297 reports an object-level MTEXT match but whole-AC1032 DWG rejection; omitted VisualStyle/section-view-style objects are an unproven hypothesis, and libdxfrw has no DWG writer.",
+      "Verified ACadSharp #1299 remains under-specified in its public issue text despite a linked archive; no artifact was downloaded and no spline diagnosis was transferred.",
+      "Confirmed the exact #1281 recursive-run and #1282 32,768-byte EED peer shapes map to existing local robustness and EED boundary owners; no duplicate tests or peer limits were added.",
+      "Updated both plan files with causal/status corrections and a bounded implementation-readiness sequence; no code, test, fixture, dependency, or support-claim change was made."
+    ],
+    "limitations": "Peer reports and issue-maintainer measurements are version- and route-specific, not normative format rules or libdxfrw reproductions. The AC1021 tablet sample retains CRC warnings and is not a passing independent semantic witness. ACadSharp #1297's suspected document dependency is unproved; #1299's attached DWG/DXF archive was not inspected. This pass is research-only."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue #1361 and merged PR #1363",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1361",
+        "https://github.com/LibreDWG/libredwg/pull/1363",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "observed": "The issue's original point-array desynchronization diagnosis was withdrawn; the reported values came from reading RS codewords on uncompressed AC1021 data pages. PR #1363 merged to master on 2026-08-07 and reports a page-extent classifier plus comparison against ODA on named peer inputs.",
+      "evidence_ceiling": "Peer AC1021 implementation evidence only; not a CRC oracle or libdxfrw semantic result."
+    },
+    {
+      "project": "LibreDWG issue #1357 and defensive PR #1359",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/pull/1359"
+      ],
+      "observed": "The reporter later verified restored entity counts at named LibreDWG master commit 56a05f98 and pointed to contemporaneous R2007 decode changes as the likely cause of the original three-file truncation symptom. PR #1359 separately proposes continuing after unresolved owned references with diagnostics and remains open in the reviewed page state.",
+      "evidence_ceiling": "Separates root-cause recovery from defensive iterator hardening; neither is a local defect or a support claim."
+    },
+    {
+      "project": "ACadSharp issue #1297",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "observed": "An AC1032 frame-only MTEXT with BackgroundFillFlags value 16 is reported rejected by AutoCAD 2025 while value 17 and AC1027 are accepted. The reporter says the MTEXT object payload can match AutoCAD byte-for-byte while the whole DWG remains rejected; absent VisualStyle and section/detail-view-style objects are only suspected causes.",
+      "evidence_ceiling": "ACadSharp DWG-writer and AutoCAD whole-file report; root cause unresolved and not applicable to a libdxfrw DWG writer."
+    },
+    {
+      "project": "ACadSharp issue #1299",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "observed": "The public report targets NuGet 3.8.0 and links a DWG/DXF archive, but does not publish offending SPLINE arrays, an entity handle, exact DXF version, GDAL diagnostic, or an independent expected curve.",
+      "evidence_ceiling": "Candidate SPLINE test shape only; artifact not fetched and no behavior transferred."
+    },
+    {
+      "project": "ACadSharp issues #1281 and #1282",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282"
+      ],
+      "observed": "The issue bodies provide exact recursive-run examples for comments, XDATA application groups, and clip-boundary counts, plus a 32,768-byte signed-short DWG EED overflow example. Existing libdxfrw generated robustness and EED boundary controls already own these shapes.",
+      "evidence_ceiling": "Peer-specific failure thresholds and integer choices are not format limits and are not transferred."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

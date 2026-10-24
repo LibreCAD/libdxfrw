@@ -181,7 +181,7 @@ bool dwgCharStream::read(std::uint8_t* s, std::uint64_t n){
     return true;
 }
 
-dwgBuffer::dwgBuffer(std::uint8_t *buf, std::uint64_t size, DRW_TextCodec *dc)
+dwgBuffer::dwgBuffer(const std::uint8_t *buf, std::uint64_t size, DRW_TextCodec *dc)
     :decoder{dc}
     ,filestr{new dwgCharStream(buf, size)}
     ,maxSize{size}
@@ -827,8 +827,13 @@ std::string dwgBuffer::get8bitStr(){
     std::string str(reinterpret_cast<char*>(tmpBuffer.data()), textSize);
     // R13/R14 TV strings include the null terminator in the length field;
     // strip it so comparisons like recName == "LWPOLYLINE" work correctly.
+    const auto declaredBytes = str.size();
     while (!str.empty() && str.back() == '\0')
         str.pop_back();
+    // Preserve tolerant text/cursor behavior, but do not hide additional
+    // discarded content behind the existing single-terminator convention.
+    if (decoder != nullptr && declaredBytes - str.size() > 1u)
+        decoder->mergeDecodeIssues(DRW::dxfTextIssueMask(DRW::DxfTextIssue::DiscardedSource));
     return str;
 }
 
@@ -948,7 +953,15 @@ std::string dwgBuffer::getUCSText(bool nullTerm){
     if (!decoder)
         return strData;
 
-    return stripTrailingNulls(decoder->toUtf8(strData));
+    // Keep the existing terminal-NUL normalization at this framed TU
+    // boundary, not in the generic Unicode decoder. Exclude exactly one
+    // complete final code unit; embedded/repeated NULs remain observed loss.
+    // Cursor/length handling and the tolerant public string are unchanged.
+    std::string_view text(strData);
+    if (text.size() >= 2u && (text.size() & 1u) == 0u
+        && text[text.size() - 2u] == '\0' && text.back() == '\0')
+        text.remove_suffix(2u);
+    return stripTrailingNulls(decoder->toUtf8(text));
 }
 
 //RLZ: read a T or TU if version is 2007+
@@ -1064,15 +1077,35 @@ std::uint32_t dwgBuffer::getCmColor(DRW::Version v, std::int32_t* rgb24,
                               dwgBuffer* strBuf,
                               UTF8STRING* outName,
                               UTF8STRING* outBookName,
-                              bool* hasRgbColor) {
+                              bool* hasRgbColor,
+                              std::uint8_t* outMethod,
+                              std::uint8_t* outFlags,
+                              std::uint16_t* outIndex) {
     if (hasRgbColor != nullptr)
         *hasRgbColor = false;
-    if (v < DRW::AC1018) //2000-
-        return getSBitShort();
+    if (outMethod != nullptr)
+        *outMethod = 0;
+    if (outFlags != nullptr)
+        *outFlags = 0;
+    if (v < DRW::AC1018) { //2000-
+        const std::uint32_t color = static_cast<std::uint32_t>(getSBitShort());
+        if (outIndex != nullptr)
+            *outIndex = static_cast<std::uint16_t>(color);
+        if (outMethod != nullptr)
+            *outMethod = color == 0 ? dwgColor::BYBLOCK
+                : color == 256 ? dwgColor::BYLAYER : dwgColor::ACIS;
+        return color;
+    }
     std::uint16_t idx = getBitShort();
+    if (outIndex != nullptr)
+        *outIndex = idx;
     std::uint32_t rgb = getBitLong();
     std::uint8_t cb = getRawChar8();
     std::uint8_t type = rgb >> 24;
+    if (outMethod != nullptr)
+        *outMethod = type;
+    if (outFlags != nullptr)
+        *outFlags = cb;
     DRW_DBG("\ntype COLOR: "); DRW_DBGH(type);
     DRW_DBG("\nindex COLOR: "); DRW_DBGH(idx);
     DRW_DBG("\nRGB COLOR: "); DRW_DBGH(rgb);
@@ -1105,6 +1138,11 @@ std::uint32_t dwgBuffer::getCmColor(DRW::Version v, std::int32_t* rgb24,
         return 256;
     case dwgColor::ACIS:
         return rgb&0xFF;
+    case dwgColor::FOREGROUND:
+        // Autodesk defines kForeground as a distinct method whose ACI
+        // foreground equivalent is 7. Keep outMethod intact for consumers
+        // that retain method identity while projecting its scalar fallback.
+        return 7;
     default:
         break;
     }
@@ -1135,6 +1173,16 @@ std::uint32_t dwgBuffer::getEnColor(DRW::Version v) {
     idx = idx & 0x1FF;
     DRW_DBG("\nflag COLOR: "); DRW_DBGH(flags);
     DRW_DBG(", index COLOR: "); DRW_DBGH(idx);
+    // ODA v5.4.1 §2.11 defines ENC bits 0x80 (inline RGB), 0x40
+    // (AcDbColor reference), and 0x20 (transparency). The remaining bits
+    // 0x04, 0x08, and 0x10 have no documented payload grammar. Refuse them
+    // before consuming subsequent fields: otherwise an unknown extension
+    // could be mistaken for the next entity field and leave the record
+    // misaligned. Preserve the locally supported 0x01/0x02 name flags.
+    if ((flags & 0x1Cu) != 0u) {
+        invalidate();
+        return 256;
+    }
     // ODA, ACadSharp, and dwg-parser all read inline RGB before alpha.
     // Both fields are BL; reversing them produces a plausible but invalid
     // alpha type whenever an ENC carries both values.

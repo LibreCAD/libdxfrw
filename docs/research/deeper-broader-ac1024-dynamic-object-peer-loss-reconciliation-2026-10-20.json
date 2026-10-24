@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "AC1024 dynamic-object candidates and peer silent-loss reconciliation",
+  "mode": "Primary-source web research; plan-only update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the dynamic-block writer and reader evidence for the local AC1024 BLOCKLOOKUPACTION residual.",
+    "Compare candidate PERSUBENTMGR parser evidence with the unresolved LibreDWG layout report and source-version provenance.",
+    "Cross-check a current AC1032 INSERT silent-loss report and refine existing per-source disposition gates.",
+    "Update implementation readiness without adding external fixtures, peer dependencies, full-suite frequency, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp PR #1151 / issue #1133",
+      "revision": "PR merged 2026-07-31 as 35a1aad; five checks passed",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1151",
+        "https://github.com/DomCR/ACadSharp/issues/1133",
+        "https://github.com/DomCR/ACadSharp/commit/35a1aad"
+      ],
+      "observed": "The merged PR records DWG/DXF reader and writer work for evaluation graphs, block representation data, lookup actions/parameters, stretch actions, and multiple dynamic-block parameter/grip types. Its description says modified instances still lose parameter relationships; it also adds peer test files and cases.",
+      "evidenceCeiling": "A merged peer PR and its source tests do not establish current native dynamic-block semantics or libdxfrw behavior. Its fixtures are not copied."
+    },
+    {
+      "project": "LibreDWG BLOCKLOOKUPACTION source/manual",
+      "revision": "Mutable master manual, objects.in, and NEWS reviewed 2026-10-20",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The manual publishes a typed field and DXF-code inventory for BLOCKLOOKUPACTION. Current LibreDWG metadata classifies BLOCKLOOKUPACTION and BLOCKLOOKUPPARAMETER as UNSTABLE; the prior same-sample trace had read overflow and unknown body bits.",
+      "evidenceCeiling": "The field inventory is not authoritative DWG byte order, and unstable status plus one peer trace is not a general parser result. ODA v5.4.1 remains authoritative."
+    },
+    {
+      "project": "LibreDWG PERSUBENTMGR issue #1398",
+      "revision": "Issue remains open at review time; mutable issue/NEWS reviewed 2026-10-20",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1398",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The reported candidate field order produces an implausibly large subentity count. The issue author clarified that an earlier merged change concerned ASSOCPERSSUBENTMANAGER, a distinct class, so PERSUBENTMGR remains unresolved/debugging evidence.",
+      "evidenceCeiling": "The issue does not establish a valid general grammar or libdxfrw defect."
+    },
+    {
+      "project": "ACadRust v0.6.5 provenance and candidate PERSUBENTMGR source",
+      "revision": "Release tag v0.6.5 at commit 289a616, released 2026-10-18; source view checked 2026-10-20",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+        "https://github.com/hakanaktt/acadrust/commit/289a616",
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/Cargo.toml",
+        "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_readers/object_reader/class_object.rs.html",
+        "https://docs.rs/crate/acadrust/0.2.5"
+      ],
+      "observed": "The release page and main Cargo.toml identify v0.6.5 / 289a616. The visible docs.rs latest source page identifies itself as 0.5.5 and contains a candidate PERSUBENTMGR sequence with step and subentity arrays; the registry version list includes 0.6.5 dated 2026-10-18. The repository main README/docs snapshot also still advertises 0.5.5.",
+      "evidenceCeiling": "The displayed parser source is not shown to be the 0.6.5 tag implementation. Require a matching source/archive checksum before treating it as version-pinned evidence; its candidate sequence is not a format rule or semantic result."
+    },
+    {
+      "project": "ACadSharp AC1032 issue #1172",
+      "revision": "Open peer issue reviewed 2026-10-20; customer files unavailable",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172"
+      ],
+      "observed": "The reporter describes INSERT counts falling from 9 to 3 and 14 to 13 after AC1032 DWG read followed by DXF or DWG output and peer readback; the report suspects read-side loss because both writers share the result.",
+      "evidenceCeiling": "This is a peer report without shareable inputs or independent reproduction; it does not indicate a libdxfrw failure."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06: keep PERSUBENTMGR unsupported/debugging until authoritative/versioned layout and boundary evidence exist",
+      "PAR-07/PAR-133: use peer source as a candidate field inventory for BLOCKLOOKUPACTION while requiring ODA and producer-trace reconciliation",
+      "PAR-07/7G and PAR-14: measure INSERT identity/disposition per block/layout through read, write, and strict reopen rather than aggregate counts"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "formalTestsRun": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refresh dynamic-block evidence, keep PERSUBENTMGR type 515 non-typed until source-version and normative/producer evidence align, and strengthen source-INSERT accounting using existing plan owners."
+  },
+  "method": {
+    "kind": "Primary-source web research; plan and receipt update only",
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-ac1024-dynamic-object-peer-loss-reconciliation-2026-10-20.json"
+    ],
+    "limitations": "Peer issues and master documentation can change. ACadRust's docs.rs latest source is not aligned with the inspected 0.6.5 release identity; no field sequence from that page is used as 0.6.5 evidence. ODA v5.4.1 and a versioned producer trace remain necessary for DWG layout decisions."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq parse)",
+    "planDiffCheck": "PASS (git diff --check on plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

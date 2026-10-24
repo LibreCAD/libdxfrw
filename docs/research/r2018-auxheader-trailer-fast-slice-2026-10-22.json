@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "R2018 AuxHeader trailer generated regression",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "scope": "Generated test coverage for existing AC1032 writer output; no production behavior or support claim changed.",
+  "normative_basis": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "sections": [
+      {
+        "section": "8",
+        "requirement": "AC1032 appends three zero-valued Int16 values to the end of AcDb:AuxHeader."
+      },
+      {
+        "section": "27",
+        "requirement": "Defines the AuxHeader record and raw version values AC1027=31 and AC1032=33."
+      }
+    ]
+  },
+  "generated_control": {
+    "input": "In-memory AC1027 and AC1032 DWG outputs, each decoded using its matching reader class.",
+    "assertions": [
+      "AuxHeader section exists and decodes for both versions.",
+      "Raw version words are 31 for AC1027 and 33 for AC1032.",
+      "AC1032 AuxHeader payload is exactly six bytes longer than AC1027.",
+      "The final six AC1032 AuxHeader bytes are all zero."
+    ],
+    "persistent_fixture_added": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --r2018-auxheader-trailer",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_r2018_auxheader_trailer$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sha256": {
+    "CMakeLists.txt": "2d441f6c14c6f719ffbad1b115022587d4813ba2bbeade7f9f565f392cd722cd",
+    "tests/dwg_reader_matrix_tests.cpp": "23a193fa61b5f036bc1e3d4e9e05d2ecb3c4bf5c8b33e139f2a432096e8c49b6",
+    "src/intern/dwgwriter18.cpp": "d283f6c06bd89a981f171b2f27187a7c79953bffd88f6a7ded5f150c8ad5e822"
+  },
+  "evidence_limits": [
+    "Test exercises locally generated writer output and the matching libdxfrw reader; it is not an independent producer result.",
+    "No native CAD application or full test suite was run.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw-cross-peer-3d-evidence-independence-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Broaden the open-source DWG/DXF comparison by reconciling parser, payload-reader, geometry-kernel, projection, and native-consumer evidence dependencies; refine the existing 3D composed gate without adding per-slice validation cost.",
+  "method": {
+    "kind": "Primary-source documentation, release-note, and issue review with local implementation/test-plan reconciliation",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/The_FreeCAD_source_code.md",
+      "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.1",
+      "https://docs.rs/cadmpeg-codec-sat/0.6.1/",
+      "https://github.com/monozukuri-ai/cq-acis",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing Slice8/PAR-06/PAR-07, S2/S3/S5/S8 and external-J evidence gates",
+      "tests/dwg_reader_matrix_tests.cpp: marker-payload AcDs record dispatch, physical/index order, and Blob01 page-chain controls",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: 7BA implementation ledger and 2026-10-17 stage/adopt rollback progress section"
+    ],
+    "limitations": "Sources disclose intended routes and known limits but do not qualify a particular local drawing or installed consumer. LibreDWG issue #1411 is scoped to the reported build and was not rerun. CADMPEG source-lineage independence was not audited. No external geometry was generated or decoded in this review."
+  },
+  "evidence": [
+    {
+      "topic": "Outer DWG/AcDs versus bare ACIS evidence",
+      "observed": "LibreDWG issue #1411 reports that an AC1032 REGION survives a conversion while its SAB body stored in AcDb:AcDsPrototype_1b is lost in the named 0.14.8593 build. CADMPEG v0.6.1 reads bare SAT/SAB rather than DWG/DXF/AcDs. Therefore a bare-payload parse cannot prove the DWG entity-to-data-storage association.",
+      "doesNotEstablish": [
+        "the issue's behavior on current LibreDWG master or on libdxfrw",
+        "a complete AcDs index/owner join from source code presence or entity counts",
+        "B-rep validity from payload framing"
+      ],
+      "planUse": "Require a separately established per-handle entity→AcDs key/index→payload digest join; classify unresolved or order-only association as INCONCLUSIVE."
+    },
+    {
+      "topic": "Parser, kernel, and application independence",
+      "observed": "ezdxf documents ACIS carrier browsing and limitations in rendering/general 3D. cq-acis supplies selected SAT/SAB-to-OpenCASCADE shapes, while FreeCAD is also OpenCASCADE-based and its DWG wrapper converts through an external converter to DXF before the selected DXF importer. These are distinct processing stages but not two independent kernel results.",
+      "doesNotEstablish": [
+        "stock FreeCAD acceptance of ACIS/SAB as solids",
+        "general B-rep transfer by ezdxf or cq-acis",
+        "an independent geometry-kernel vote from FreeCAD when the same OCCT lineage is used"
+      ],
+      "planUse": "Record parser identity, kernel identity, FreeCAD converter/importer/backend, platform, options, and each result as separate evidence fields. Mark stock ACIS import not applicable absent an exact modeler-capable plugin."
+    },
+    {
+      "topic": "Fast local tests versus one composed valid-geometry checkpoint",
+      "observed": "The local AcDs reader-matrix vectors cover framing, record order, owner association, and byte identity with marker payloads. They do not contain a valid SAB shape. Peer documentation supports using an ezdxf-authored scratch payload as a producer/carrier control but not as its own semantic oracle; CADMPEG is a candidate bare-stream cross-check with a declared L1 profile score.",
+      "doesNotEstablish": [
+        "valid SAB semantics from marker-byte tests",
+        "semantic correctness from producer self-readback or CADMPEG L1",
+        "a need to execute external tools for each implementation slice"
+      ],
+      "planUse": "Keep focused generated fast tests per slice. At the existing composed checkpoint only, generate a temporary non-symmetric cube, use separately authored analytic expectations, pin/hash any optional tool, and record unavailable routes without blocking local implementation."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "make outer-container association, bare-payload parsing, B-rep/kernel validation, explicit-geometry projection, and native consumer acceptance separate report layers",
+      "do not count FreeCAD and cq-acis as independent kernel votes when both use OpenCASCADE",
+      "require independent AcDs owner/index/payload association for any DWG solid claim; a payload reader cannot satisfy that layer",
+      "defer valid generated SAB and optional peer/kernel/native routes to one composed checkpoint, with no new per-slice runs",
+      "synchronize the 7BA ledger to reflect the already-passing synthetic rollback transcript while retaining actual-pipeline and allocator-accounting work as open"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

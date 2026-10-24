@@ -1,0 +1,71 @@
+{
+  "title": "S3.7c canonical ACIS cylinder-surface projection and signed distance",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Closest point and signed radial distance on the untrimmed circular-cylinder locus represented by the canonical cone-surface profile",
+    "domain": "Finite decoded cone-surface face with ratio=1, sineAngle=0, cosineAngle=1, finite origin/axis/major-axis, nonzero axis, and positive representable major-axis magnitude",
+    "projection_policy": "Project the query onto the axis line through the decoded origin and add the decoded major-axis magnitude along the normalized radial query direction",
+    "ambiguity_policy": "Refuse points whose radial component is zero or within a small floating-point roundoff floor of the axis; for exactly coordinate-aligned axes, preserve nonzero representable perpendicular components when both perpendicular point-origin differences are finite, rather than comparing them with the axial magnitude; leave caller output unchanged",
+    "numeric_policy": "Scale axis/radius and point-origin arithmetic; preserve tiny representable radii when their normalized fraction underflows; for exact coordinate-aligned axes, derive radial direction/distance from the two perpendicular point-origin differences even if the axial difference overflows; refuse unrepresentable final coordinates",
+    "reference_scope": "Versioned ACadRust 0.5.5 docs.rs source documents the cylinder angle profile and writer radius convention; the newer release/source identity mismatch remains unresolved, so this is implementation corroboration only, not normative ACIS semantics",
+    "non_claims": [
+      "general cone or elliptic-cylinder evaluation",
+      "cylinder parameterization, face orientation, UV trims, or pcurve evaluation",
+      "body transform or source-unit application",
+      "B-rep validity",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_canonical_cylinder_profile": "PASS",
+    "radial_projection_with_axial_offset": "PASS",
+    "oblique_radial_query_and_nonunit_axis": "PASS",
+    "signed_distance_on_locus_inside_outside_boundary_and_axis": "PASS",
+    "explicit_tolerance_just_outside_atomic_refusal": "PASS",
+    "axis_ambiguity_and_unsupported_cone_profiles_refused_atomically": "PASS",
+    "wrong_or_missing_surface_and_malformed_fields_refused_atomically": "PASS",
+    "overflowing_point_origin_difference_with_representable_projection": "PASS",
+    "overflowing_point_origin_difference_with_representable_signed_distance": "PASS",
+    "unrepresentable_output_refused_atomically": "PASS",
+    "tiny_radius_survives_extreme_coordinate_scaling": "PASS",
+    "tiny_radial_component_survives_extreme_finite_axial_coordinate_for_projection_and_distance": "PASS",
+    "tiny_radial_component_survives_overflowing_axial_difference_for_projection_and_distance": "PASS",
+    "tiny_radius_coordinates_X_Y_Z_axis_frames": "PASS",
+    "oblique_nonunit_axis_analytic_projection_and_distance": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.01 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "source": {
+    "implementation_reference": "https://docs.rs/acadrust/0.5.5/src/acadrust/entities/acis/writer.rs.html",
+    "reference_reviewed": "The versioned 0.5.5 writer documents cos_half_angle=1 and sin_half_angle=0 for its cylinder profile and derives the reference cross-section radius from the major-axis vector magnitude. The plan notes a newer v0.6.5 release/source identity discrepancy, so this supports only the bounded implementation profile selected here; it is not an independent ACIS semantic oracle."
+  }
+}

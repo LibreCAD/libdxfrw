@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DWG AcDs versus versioned DXF SAT/SAB route review",
+  "mode": "deeper/broader primary-source research and implementation-readiness refinement",
+  "scope": [
+    "Reconcile ODA DWG DataStorage offset and Blob01 roles with current peer extraction code",
+    "Separate DWG AcDs carriers from versioned DXF SAT and ACDSDATA/SAB representations",
+    "Refresh open-source ACIS parser and downstream consumer evidence boundaries",
+    "Name the next falsifiable generated fast check without increasing routine validation cost"
+  ],
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification v5.4.1",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "status": "normative_layout_reference_sections_24_2_2_2_through_24_2_2_7",
+      "observation": "DataIndex rows address Data segments and locate record headers relative to the segment stream start. Record payload offsets are relative to the data-start marker; neighboring sorted offsets bound payloads. Blob01 pages are reached through blob-reference records. The record-header second UInt32 is described as unknown, although ODA writes 1.",
+      "limits": "The AcDs description does not specify ACIS topology semantics or prove a downstream consumer accepts the assembled payload. The ODA-written unknown value is not promoted to a universal invariant."
+    },
+    {
+      "project": "LibreDWG current master",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c"
+      ],
+      "status": "mutable_current_source_reviewed_2026_10_20",
+      "observation": "The AcDs source parses the directory and DataIndex/schema/search metadata, but its segment switch still leaves _data_ and blob01 unhandled. A later extraction pass scans for ACIS/SAB markers and consumes queued handles. The shared modeler-family predicate includes 3DSOLID, REGION, BODY, and several surfaces.",
+      "limits": "This is not a per-record offset/page-to-handle oracle. ODA explicitly names REGION and 3DSOLID for DataStorage ACIS records; other entity families need producer-backed route evidence. Mutable master is not pinned to a release package."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "status": "official_DXF_3DSOLID_group_code_reference",
+      "observation": "The public 3DSOLID reference identifies AcDbModelerGeometry, modeler format version, proprietary group-1 text with optional group-3 continuation strings, and the AcDb3dSolid group-350 history pointer.",
+      "limits": "This entity page does not make DWG AcDs DataStorage interchangeable with DXF modeler groups or establish ACIS interpretation."
+    },
+    {
+      "project": "ezdxf ACIS tools",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html"
+      ],
+      "status": "current_documented_DXF_reader_and_inspection_boundary",
+      "observation": "The documentation describes SAT for DXF R2000-R2010 and SAB for R2013+, supports raw ACIS browsing/export, and warns that only a limited number of ACIS entities are supported; unsupported entities become NONE_ENTITY and their data is lost.",
+      "limits": "Not an arbitrary ACIS round-trip or general B-rep semantic oracle."
+    },
+    {
+      "project": "FreeCAD documentation and source project status",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation"
+      ],
+      "status": "archived_documentation_snapshot",
+      "observation": "The checked-in Draft DXF page says stock FreeCAD does not read ACIS solids; GitHub marks the documentation repository archived on 2026-04-01.",
+      "limits": "Use only as route background. Any native qualification must record the tested FreeCAD build, platform, importer selection, converter, and effective options."
+    },
+    {
+      "project": "cq-acis",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md"
+      ],
+      "status": "current_experimental_profile_limited_parser_and_converter",
+      "observation": "The project lists selected SAT/SAB/ASM versions and bounded supported geometry, retains unsupported records, and raises on unsupported conversion profiles.",
+      "limits": "Parsing does not imply conversion completeness. Its CadQuery/OpenCascade route is not an independent kernel vote for OCCT-based consumers."
+    },
+    {
+      "project": "Local libdxfrw plan and source",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_datastorage.cpp",
+        "src/libdxfrw.cpp",
+        "tests/graph_preservation_tests.cpp",
+        "tests/modeler_dxf_writer_matrix_tests.cpp"
+      ],
+      "status": "local_read_only_source_and_test_inventory_audit",
+      "observation": "The local implementation separates DataIndex record rows from Blob01 descriptor pages and has generated role/alignment controls. A new generated in-range false-boundary control points into a neighboring payload; the parser marks the section invalid/non-replayable, withholds the overlapping records, and preserves exact bytes for independently bounded records.",
+      "limits": "The conservative refusal is not evidence that a malformed source record can be recovered; no production defect or heuristic boundary repair was established."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Made the DWG AcDs, legacy DXF SAT text, and AC1027+ ACDSDATA/SAB routes explicit and separate; tightened peer roles; added a conditional false-boundary generated probe before any production parser change.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "nextImplementation": "Continue to remaining Blob01/page-chain boundary coverage in the existing graph-preservation test owner; retain the generated false-boundary control as a fail-closed regression guard.",
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testsRun": true,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/graph_preservation_tests.cpp",
+      "docs/research/deeper-broader-acds-dxf-sat-sab-route-2026-10-20.json",
+      "docs/research/par07-acds-malformed-inrange-boundary-generated-fast-control-2026-10-20.json"
+    ],
+    "limitations": "Peer source branches and documentation may change. No peer behavior, CAD runtime, or ACIS kernel semantics were reproduced; all support claims remain profile- and route-specific."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check)",
+    "strictTargetBuild": "PASS (libdxfrw_graph_preservation_tests)",
+    "testExecutable": "PASS (Graph/preservation tests)",
+    "focusedCTest": "PASS (libdxfrw_graph_preservation 1/1, 0.71 s)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; the shared worktree contains extensive existing changes and nothing was staged."
+  }
+}

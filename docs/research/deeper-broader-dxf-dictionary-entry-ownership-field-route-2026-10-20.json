@@ -1,0 +1,155 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader DXF DICTIONARY entry-ownership and FIELD route",
+  "mode": "Primary-source web research and local plan/source/test reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Separate immediate object ownership, DICTIONARY key-edge kind, dictionary-wide hard-owner policy, and FIELD-internal pointer roles.",
+    "Reconcile current Autodesk DXF references with the current ACadRust release/source and LibreDWG release history.",
+    "Refine an implementation-ready, fast generated test for the exact ACAD_FIELD extension-dictionary route without promoting support claims."
+  ],
+  "sources": [
+    {
+      "name": "Autodesk current DICTIONARY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "observations": [
+        "Group 280 is the dictionary-wide hard-owner flag; the entry-handle row is group 350.",
+        "The page permits applications to create/use their own dictionaries, so this table alone does not specify every application-specific edge profile."
+      ]
+    },
+    {
+      "name": "Autodesk DXF group-code ranges",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm",
+      "observations": [
+        "Group codes 350-359 are soft-owner IDs and 360-369 are hard-owner IDs."
+      ]
+    },
+    {
+      "name": "Autodesk OBJECTS and FIELD references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+        "https://blog.autodesk.io/how-to-find-all-fields-in-a-drawing/"
+      ],
+      "observations": [
+        "The OBJECTS example emits NOD entries as group 350.",
+        "FIELD child fields use group 360; expression object IDs use group 331.",
+        "Autodesk's developer article distinguishes the NOD ACAD_FIELDLIST entry to FIELDLIST from FIELD objects typically reachable through entity extension dictionaries."
+      ]
+    },
+    {
+      "name": "Older official Autodesk DXF reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf",
+      "revision": "2013 DXF reference PDF; accessed 2026-10-20",
+      "observations": [
+        "The NOD text describes associated entry-name pairs as hard-ownership pointer references, which is not a clean match for the current generic DICTIONARY table and OBJECTS example."
+      ],
+      "limits": [
+        "The conflict is recorded as version/profile documentation ambiguity; it does not establish that every NOD key must be serialized as group 360."
+      ]
+    },
+    {
+      "name": "ACadRust release history and current writer source",
+      "urls": [
+        "https://docs.rs/crate/acadrust/0.5.5",
+        "https://docs.rs/acadrust/0.6.5/src/acadrust/io/dxf/writer/section_writer.rs.html"
+      ],
+      "revision": "0.5.5 changelog published 2026-09-10; current 0.6.5 source surface accessed 2026-10-20",
+      "observations": [
+        "The 0.5.5 changelog states ACAD_FIELD is written with hard-owner code 360 and remaining NOD entries match BricsCAD.",
+        "The current 0.6.5 writer source retains per-entry hard-owner state and a canonical ACAD_FIELD exception.",
+        "An adjacent source comment generalizes to ACAD_LAYOUT and ACAD_PLOTSTYLENAME, but the same mutable source has a BricsCAD audit note requiring the NOD ACAD_PLOTSTYLENAME entry as group 350; the broader comment is not adopted as a rule."
+      ],
+      "limits": [
+        "No ACadRust binary was installed or run; peer source/docs are comparative evidence, not normative format authority or an interoperability result."
+      ]
+    },
+    {
+      "name": "LibreDWG current NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "Mutable master snapshot accessed 2026-10-20",
+      "observations": [
+        "Release history includes an older DICTIONARY hard_owner DXF 350/360 fix, demonstrating sensitivity of this serialization area."
+      ],
+      "limits": [
+        "The historical note does not specify the current key-by-key output matrix and is not evidence of a current LibreDWG defect."
+      ]
+    },
+    {
+      "name": "Local libdxfrw source and generated test inventory",
+      "urls": [
+        "src/libdxfrw.cpp::dxfRW::writeDictionary",
+        "src/libdxfrw.cpp::dxfRW::writeObjects",
+        "tests/dwg2dxf_adapter_tests.cpp::populateAutoCadFieldGraph",
+        "tests/dwg2dxf_adapter_tests.cpp::validateAutoCadFieldGraph"
+      ],
+      "revision": "Shared worktree inspected 2026-10-20; no code/test changed during this pass",
+      "observations": [
+        "Ordinary DICTIONARY output currently chooses group 360 iff hardOwner == 1, otherwise 350; the reserved regenerated NOD emits group 350 for its entries.",
+        "DRW_Dictionary::Entry does not retain per-entry edge kind.",
+        "The existing FIELD graph control checks in-memory closure for ACAD_FIELDLIST and ACAD_FIELD routes but does not assert their emitted ASCII/Binary edge codes or strict output readback."
+      ],
+      "limits": [
+        "Source inspection and existing generated controls identify a test gap, not a reproduced production failure or external consumer rejection."
+      ]
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: treat ACAD_FIELD extension-dictionary entry code as a narrow generated-output candidate, distinct from NOD ACAD_FIELDLIST, generic DICTIONARY flag policy, and FIELD-internal 360/331 links.",
+      "PAR-20/7G: preserve the existing generic writer rules until a focused ASCII/Binary output/readback control states the exact key/target/owner contract; do not generalize to ACAD_LAYOUT, ACAD_PLOTSTYLENAME, or arbitrary ACAD_* keys.",
+      "PAR-20/7G: use existing generated test owners and focused validation only; defer optional exact-version peer comparison to a composed checkpoint."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a newest-summary entry and a detailed research section separating immediate owner, dictionary key-edge kind, dictionary-wide hard-owner flag, and FIELD-internal edge roles.",
+    "Recorded the conflicting official Autodesk documentation surfaces and ACadRust 0.5.5 release note plus current 0.6.5 source behavior without claiming a universal 350/360 rule.",
+    "Identified an existing test gap: generated FIELD graph checks validate in-memory closure but not exact emitted ACAD_FIELD versus ACAD_FIELDLIST edge codes or strict readback.",
+    "Specified an implementation-ready generated ASCII/Binary matrix and the smallest per-entry/canonical-key change only if the focused control confirms the selected route contract.",
+    "Kept counts, support claims, test cadence, fixture policy, and all six deferred external statuses unchanged."
+  ],
+  "limitations": [
+    "Autodesk documentation differs across versions/surfaces about hard ownership for NOD entries; this research does not resolve a universal rule.",
+    "ACadRust documentation and mutable source contain broader comments that conflict with its release summary and adjacent BricsCAD audit note; only ACAD_FIELD is retained as a candidate.",
+    "No generated writer output was executed or inspected during this research-only pass; the candidate is not a confirmed local defect.",
+    "No peer, native CAD, external drawing, full suite, or six-item DEFERRED_EXTERNAL qualification was performed."
+  ],
+  "validation": {
+    "localTestsRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullSuiteRun": false,
+    "receiptJsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; receipt whitespace check)",
+    "commitCreated": false
+  }
+}

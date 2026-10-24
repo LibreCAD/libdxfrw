@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "slice": "RPP-5ai",
+  "date": "2026-10-22",
+  "state": "implemented_uncommitted",
+  "baselineHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "DWG GROUP description versus dictionary identity, validated adapter name resolution, and source-handle preservation for repeated GROUP exports",
+  "authority": {
+    "dwgLayout": "ODA Open Design Specification v5.4.1 section 20.4.72, pages 191-192 visually reviewed",
+    "dwgLayoutCeiling": "The table labels the TV as a group name. Its byte layout is unchanged; producer-paired evidence distinguishes its description text from dictionary identity.",
+    "dxfDescription": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-5F1372C4-37C8-4056-9303-EE1715F58E67.htm",
+    "peerSourceCorroboration": "ACadSharp readGroup/writeGroup map the TV to Group.Description; LibreDWG maps the same text to DXF 300. Source implementations are corroboration, not native qualification."
+  },
+  "producerEvidence": {
+    "leader": {
+      "repository": "https://github.com/LibreDWG/libredwg",
+      "fixtureCheckoutCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "dwg": "test/test-data/2007/Leader.dwg",
+      "dwgSha256": "8e9750fd2f6af2134d3db0fecc940fb57312ce61d8c0c7299a184f5e2ea7529a",
+      "dxf": "test/test-data/2007/Leader.dxf",
+      "dxfSha256": "4ab43c49dceb119d8e666a169faa87f6bbfa72f345ac109397752286a3676171",
+      "groupHandle": "829",
+      "dictionaryHandle": "D",
+      "dictionaryKey": "*A1",
+      "bodyTextAndDxf300": "Superhatch",
+      "memberCount": 5,
+      "unnamed": true
+    },
+    "acadsharp": {
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "fixtureCheckoutCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "dwg": "samples/sample_AC1021.dwg",
+      "dwgSha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "dxf": "samples/sample_AC1021_ascii.dxf",
+      "dxfSha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+      "groups": [
+        {"handle": "69E", "dictionaryKey": "*A1", "description": "", "members": 6},
+        {"handle": "6A5", "dictionaryKey": "*A2", "description": "", "members": 6}
+      ]
+    },
+    "artifactUse": "Existing tracked/clean peer-repository inputs read in place. No external drawing copied or committed."
+  },
+  "implementation": {
+    "nativeReader": "The bounded TV populates m_description; name stays unresolved at the low-level callback, matching DXF callback semantics.",
+    "nativeWriter": "Emit m_description, including empty descriptions. Reject embedded NUL or malformed UTF-8 before bytes. Facade dictionary registration still requires a valid nonempty name/key.",
+    "adapterIdentity": "Both source formats resolve name from a complete unique NOD/ACAD_GROUP dictionary graph and reciprocal owner; prepopulated conflicts remain refused. Description is never used as an identity substitute.",
+    "repeatExportFinding": "An ASCII export changed borrowed LINE handles from 1280/1281 while GROUP member IDs remained in the source namespace. The subsequent encoding failed during OBJECTS emission.",
+    "repeatExportFix": "Latch the existing scoped source-identity guard for GROUP graphs before their list is adopted by the writer. Rename the private flag to m_preserveGraphSourceIdentities; retain callback-local child lifetimes, bounds, exception restoration and HATCH behavior.",
+    "publicLayoutGrowth": false,
+    "newPureVirtuals": false,
+    "compatibility": "Source compatibility checked; no binary ABI or native UI claim. Low-level GROUP callback name is intentionally no longer mislabelled body description."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "literalDescriptionWireCases": 6,
+    "modernUnicodeCases": 4,
+    "malformedDescriptionRefusals": 18,
+    "nativeDictionaryWriterCases": 32,
+    "manyGroupCountPerVersion": 128,
+    "namedAndEmptyDescriptionFacadeSources": 12,
+    "repeatedAsciiBinaryPartialProjections": 24,
+    "completeReadPolicyDestinationRefusals": 24,
+    "identityFaults": ["prepopulated name conflict", "wrong owner", "duplicate ACAD_GROUP root", "wrong target", "case-folded duplicate key"],
+    "identityFaultReadDiagnoses": 10,
+    "identityFaultPolicyDestinationRefusals": 20,
+    "correctedFreshDataSameAdapterExporterRetries": 10,
+    "sourceIdentityChecks": "Source GROUP/member/LINE graph remains unchanged after each successful or failed export",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-group-dictionary-control <new-path>; refuses existing destination",
+    "fixtures": "Runtime generated from scratch; no persistent DWG/DXF fixture added"
+  },
+  "sourceAndPeerProbes": {
+    "identityProbe": "libdxfrw_dwg_local_roundtrip --dwg-group-source-identity <path>",
+    "identityProbeResultSha256": "126c9a201ef7cae6b337c36c873df6c1bf70f97d6ee52470c0e195c29b96d1a9",
+    "identityProbeResults": "Generated control plus both producer samples pass dictionary-key/description/member-count identity checks. This does not qualify full drawing conversion.",
+    "generatedDwgSha256": "2e43f42089ad927ccf7025b3c0c2d37a4c131a871d2bc8c7bb1fa1b08dfe92d1",
+    "independentReader": {"version": "LibreDWG dwgread 0.14", "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff", "binarySourceCommitNotInferred": true},
+    "generatedPeerJsonSha256": "6ed916791cf7da2c973ffd9ea72a9068ea6ce68874aa03cacfc4958308b1cb1e",
+    "independentGeneratedGroup": "Peer reads the generated GROUP body text as GROUP_DESCRIPTION_IS_DISTINCT and retains member handles 1280/1281. Its JSON property is named name; it is not the dictionary key.",
+    "independentGraphLimit": "The same peer reports one generated ACAD_GROUP dictionary item but an empty items map, while the producer Leader positive control exposes *A1 -> 829. Thus external dictionary/whole-graph writer interoperability is not established and remains a local trace-driven follow-up.",
+    "sourceCli": "Both producer drawings pass GROUP capture/name preflight, then remain refused by strict DWG completeness. The ACadSharp drawing retains 29 integrity mismatches; Leader retains 12. No guard was relaxed.",
+    "generatedCli": "Corrected supported -v2010 Binary CLI probe with --allow-partial-dwg-read succeeds and emits the explicit partial-output warning. Initial -v2018 usage rejection was a CLI option error, not format evidence.",
+    "finalCliProbe": {
+      "directory": "/tmp/libdxfrw-group-final.PbCVsc",
+      "identityExit": 0,
+      "identitySha256": "2b473de5fb0d6e860ceac1d5df31002c5cd70d45f327e907f08d3131ee8002ed",
+      "strictExit": 1,
+      "strictDestinationPublished": false,
+      "explicitPartialAsciiExit": 0,
+      "explicitPartialBinaryExit": 0,
+      "asciiSha256": "376c3e9b396a291fcc9943b88983e85afd2c59dae2790af413051ffe96add3a6",
+      "binarySha256": "2f785a1f292e69e4588fc82d9f4d40e286620a3e2b5fe9957b1effa95539a0f1",
+      "scope": "Generated GROUP subset under explicit bounded partial mode only; strict conversion refusal and owner/reference gates remain intact."
+    }
+  },
+  "remainingCompleteOutputGap": {
+    "generatedOpaqueCallbacks": 4,
+    "retainedForCorrelation": 0,
+    "types": [{"type": 42, "count": 2}, {"type": 72, "count": 1}, {"type": 79, "count": 1}],
+    "policy": "Legacy plus strict owners implies RequireComplete. Keep that refusal; explicit AllowPartial projections above prove the GROUP subset only, not complete source retention.",
+    "next": "Implement bounded, source-bound standard-object raw-companion retention and qualified output handoff; never clear read receipts or increment retention counters without retaining the exact corresponding frames."
+  },
+  "validation": {
+    "redBeforeFix": "All six literal native GROUP TV assertions failed; repeated conversion exposed source/member ID divergence and second-encoding emission failure.",
+    "strictTargets": ["dwg2dxf", "libdxfrw_dwg_object_vectors_tests", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg2dxf_adapter_tests", "libdxfrw_dwg_reader_matrix_tests", "lc3_compat_check"],
+    "focusedCohort": {"passed": 7, "failed": 0, "seconds": 2.31, "tests": [
+      "libdxfrw_dwg_group_dictionary_controls", "dwg_hatch_reference_graph", "libdxfrw_dwg_object_vectors",
+      "libdxfrw_persistent_manager_exact_footer", "libdxfrw_group_adapter_roundtrip",
+      "libdxfrw_dwg_read_outcome_policy", "libdxfrw_persistent_manager_prefix_dispatch"
+    ]},
+    "fullSuiteRun": false,
+    "sanitizersRun": false,
+    "nativeConsumersRun": false
+  },
+  "supportClaimsPromoted": 0,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "worktree": "Uncommitted and unstaged; pre-existing overlapping edits preserved"
+}

@@ -1,0 +1,57 @@
+{
+  "title": "PAR-21 DXF ELLIPSE and OCS extrusion fast gate",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "DXF ASCII/Binary ELLIPSE extrusion modes and OCS projection",
+    "source_reconciliation": "The ELLIPSE mode test already passed applyExtrusion to dxfRW::read; current production code normalizes only the temporary arbitrary-axis basis and preserves the source extrusion vector.",
+    "change_in_this_slice": "Added a dedicated fast command selector and CTest registration, plus an independent readback ARC start-point and angular-sweep assertion.",
+    "primary_reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm",
+    "explicit_nonclaims": [
+      "native CAD or FreeCAD acceptance",
+      "all planar OCS entity families or format versions",
+      "DWG coordinate-frame qualification",
+      "general curve evaluator support"
+    ]
+  },
+  "coverage": {
+    "actual_ellipse_apply_extrusion_mode_argument": "PASS",
+    "invalid_ellipse_geometry_refusal_controls": "PASS",
+    "ascii_and_binary_nonunit_normal_projection": "PASS",
+    "reflected_normal_angular_sweep": "PASS",
+    "independent_decoded_arc_start_point": "PASS",
+    "exact_one_over_64_arbitrary_axis_boundary": "PASS",
+    "new_fixture_file_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configure_result": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^dxf_ellipse_extrusion_policy$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 0.30 seconds)",
+    "diff_check": "PASS",
+    "json_validation": "PASS (jq empty)",
+    "address_sanitizer": "NOT_RUN"
+  },
+  "compatibility": {
+    "public_api_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "2d_projection_policy_changed": false
+  },
+  "external_gate": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

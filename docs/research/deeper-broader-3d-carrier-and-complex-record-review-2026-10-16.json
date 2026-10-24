@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw-deeper-broader-3d-carrier-and-complex-record-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the open-source DWG/DXF comparison across explicit 3D entities, ACIS carriers, complex-record framing, and silent output loss; reconcile evidence into the existing plan without creating duplicate findings.",
+  "method": {
+    "kind": "Official Autodesk DXF/API documentation, current ezdxf API documentation, current public peer issue reports, and local plan/source/test-owner crosswalk",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-AutoLISP/files/GUID-7DA0E2BA-963F-4E41-AF33-C6B9D89D4688.htm",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/LibreDWG/libredwg/issues/1409",
+      "https://github.com/LibreDWG/libredwg/issues/1357",
+      "https://github.com/LibreDWG/libredwg/issues/1351",
+      "https://github.com/LibreDWG/libredwg/issues/1410",
+      "https://github.com/DomCR/ACadSharp/issues/1195"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Autodesk documentation supplies DXF/API contract evidence. Peer issues are reporter/maintainer claims scoped to their stated versions and inputs, not reproduced here and not evidence of an equivalent libdxfrw defect. ezdxf limitations describe its documented profile, not all open-source implementations."
+  },
+  "evidence": [
+    {
+      "topic": "Explicit mesh versus modeler carrier contract",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm"
+      ],
+      "observed": [
+        "The 3DSOLID DXF wrapper has modeler-version and proprietary group 1/3 carrier fields, followed by an optional group-350 soft-owner/history-object reference.",
+        "MESH explicitly carries subdivision, vertex, face, edge, crease, and per-subentity override data.",
+        "POLYLINE mode flags select distinct 2D, 3D, polygon-mesh, and polyface structures; polyface child VERTEX records use coordinate/face roles, signed 1-based indices, and negative-index edge-visibility semantics."
+      ],
+      "doesNotEstablish": [
+        "ACIS/ASM internal semantic validity",
+        "that the optional group-350 history object is necessary for geometric display/import",
+        "that a MESH or POLYFACE projection is a boundary-representation solid"
+      ],
+      "planUse": "Keep wrapper bytes, optional history-link closure, explicit polygon topology, and semantic solid metrics as separate evidence rows. Preserve existing 7V/PAR-37 and Slice8/S8 owners."
+    },
+    {
+      "topic": "Version/context-sensitive complex DXF framing",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-AutoLISP/files/GUID-7DA0E2BA-963F-4E41-AF33-C6B9D89D4688.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm"
+      ],
+      "observed": [
+        "Autodesk's complex-entity construction reference describes legacy POLYLINE VERTEX sequences and INSERT ATTRIB sequences ending with SEQEND; the legacy construction examples use group 66 equal to 1.",
+        "The POLYLINE DXF code table describes group 66 as obsolete/optional and to be ignored when present."
+      ],
+      "planUse": "Version-scope group-66 checks; test actual child record framing, terminal SEQEND/ENDBLK, and following-record alignment independently so no version-independent rule is inferred from one API-construction guide."
+    },
+    {
+      "topic": "ezdxf ACIS limits",
+      "source": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "observed": [
+        "Current stable documentation identifies ezdxf 1.4.5, states arbitrary existing ACIS structures are not a project goal, and says unsupported entities are loaded as NONE_ENTITY with data loss.",
+        "The project documents no ACIS kernel; its mesh extraction returns flat polygonal faces only, so curved faces are lost without a kernel.",
+        "The documented carrier versions include SAT v700 for DXF R2000-R2010 and SAB v21800 for R2013/R2018."
+      ],
+      "classification": "BOUNDED_CARRIER_AND_KNOWN_SCHEMA_COMPARATOR_NOT_GENERAL_ACIS_ORACLE",
+      "planUse": "Pin exact ezdxf version and selected schema; capture unsupported record and payload dispositions. Do not promote arbitrary ACIS preservation, curved-shape semantics, or kernel correctness from a successful ezdxf load/export."
+    },
+    {
+      "topic": "Current peer-reported silent loss and framing failures",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/issues/1351",
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": [
+        "LibreDWG #1411 reports modern AcDs/SAB geometry loss while REGION/3DSOLID/BODY records survive.",
+        "LibreDWG #1409/#1357 report empty block/layout output and early traversal termination after an unresolved entity reference.",
+        "LibreDWG #1351 reports malformed INSERT attribute sequence framing; #1410 reports valid zero-valued HATCH data and embedded MTEXT attribute fields mishandled on input.",
+        "ACadSharp #1195 reports 3DSOLID/REGION omission on DXF writing, including solid-only blocks."
+      ],
+      "doesNotEstablish": [
+        "current behavior at unpinned future peer revisions",
+        "a matching libdxfrw defect",
+        "that raw record survival proves payload or semantic geometry survival"
+      ],
+      "planUse": "Cross-reference existing emitted identity/owner closure, complex sequence, zero-value, and AcDs carrier gates; treat each issue as a test-design lead only and do not duplicate findings without local contradictory evidence."
+    },
+    {
+      "topic": "R2004+ CMC test-vector correction from ODA",
+      "source": "Repository-local ODA Open Design Specification v5.4.1, §2.11 (available locally; not downloaded in this review)",
+      "observed": "The R2004+ CMC BS color index is specified as always zero.",
+      "planUse": "Keep valid generated CMC vectors fixed at BS=0. If nonzero BS is tested, mark it malformed-input coverage only; do not vary it as a valid method/index discriminator."
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationOrderChanged": false,
+    "existingFindingsOrSubplansChanged": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local slices with the strict touched-target build and the nearest generated fast test; do not wait for external CAD, peer, or kernel availability.",
+      "For explicit MESH/POLYFACE, validate exact tags, topology/index roles, versioned child framing, and following-record alignment in existing fast test owners.",
+      "For modeler entities, record carrier bytes/association and optional history-edge closure separately from kernel shape validity and native application acceptance.",
+      "At one existing composed inventory checkpoint, reconcile source handle and owner/block path to emitted, explicitly refused/reported, or documented unsupported/lost status.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  }
+}

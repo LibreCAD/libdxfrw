@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-implementation-progress-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "public-header None macro collision remediation",
+  "status": "implemented; focused public-header and proxy replay gates passed",
+  "changes": [
+    {
+      "file": "src/drw_acis.h",
+      "change": "Made DRW_AcisProjectionFailure::NoFailure the canonical macro-safe spelling, added a conditional None alias only when the X11 macro is absent, and updated the default rooted-projection report value."
+    },
+    {
+      "file": "src/drw_entities.h",
+      "change": "Made DRW_ProxyGraphicsOrigin::Unspecified the canonical macro-safe spelling, added a conditional None alias only when the X11 macro is absent, and updated provenance defaults/authorization checks."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "change": "Updated the expected no-failure projection state and added compile-time checks that both source-compatible None aliases retain their canonical zero values."
+    },
+    {
+      "file": "tests/dxf_fixture_tests.cpp",
+      "change": "Updated expected unset proxy-origin values and corrected the generated ELLIPSE replay vector so its WCS major axis is perpendicular to the default +Z extrusion normal."
+    }
+  ],
+  "evidence": {
+    "trigger": "The existing public-header hygiene test defines an X11-style None macro before including public headers; both enum names collided during compilation.",
+    "enumOrdinalsPreserved": true,
+    "legacyAliasesAvailableWhenNoneMacroAbsent": true,
+    "conflictingAliasesOmittedWhenNoneMacroPresent": true,
+    "productionParserOrWriterBehaviorChanged": false,
+    "tests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_public_header_hygiene$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_graph_preservation_tests",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy",
+        "result": "PASS after correcting invalid generated ELLIPSE geometry; no production validation was weakened"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.h src/drw_entities.h tests/graph_preservation_tests.cpp tests/dxf_fixture_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuitesRun": false,
+    "supportClaimPromoted": false,
+    "externalJItemsChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktreeCommit": "not created; checkout contains broad pre-existing local changes"
+  }
+}

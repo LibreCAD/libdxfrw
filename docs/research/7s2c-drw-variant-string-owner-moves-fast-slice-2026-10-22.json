@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c DRW_Variant string-owner moves",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move DRW_Variant string constructor and addString by-value parameters into the owned sdata member rather than copying them.",
+    "routes": [
+      "DRW_Variant(int, UTF8STRING)",
+      "DRW_Variant(int, UTF8STRING, bool)",
+      "DRW_Variant::addString(int, UTF8STRING)"
+    ],
+    "semantic_equivalence": "Lvalue callers still copy into the by-value parameter; rvalue callers can transfer storage. The member sdata remains at the same object address, so content.s continues to point to the same member. Variant type/code, layer-reference initialization/reset, and DWG metadata clearing remain unchanged.",
+    "non_claims": [
+      "no public data-layout change",
+      "no overload/signature change",
+      "no DXF or DWG wire behavior change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_wave1_tests libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^(libdxfrw_wave1|libdxfrw_hardening|libdxfrw_header_(unknown_variable_roundtrip|cepsnid)|libdxfrw_visual_style_import_evidence|libdxfrw_render_settings_text_owner_budget|libdxfrw_section_text_owner_budget|libdxfrw_dxf_color_book_name_token_transfer)$' --output-on-failure",
+    "focused_ctest_result": "PASS (8/8)",
+    "coverage": "The selected generated and aggregate tests exercise string-bearing variants across parser, copy/move, raw/typed carrier, HEADER, entity, table/object, and adapter-projection paths.",
+    "diff_check": "PASS (src/drw_base.h, CMakeLists.txt, src/drw_header.cpp, src/drw_objects.cpp, plan, receipt)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue with the next locally demonstrated 7S.2c ownership or typed-projection copy; keep caller-owned copies outside the stated library budget and move past unavailable external qualification gates."
+}

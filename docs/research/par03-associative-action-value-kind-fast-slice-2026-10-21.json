@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03/PAR-04 associative-action value-kind parser coverage",
+  "mode": "generated in-memory fast implementation-readiness slice",
+  "scope": [
+    "Add direct fast coverage for each value category the associative-action parser currently consumes",
+    "Retain fail-closed behavior for recognized value categories without an action-specific decoder",
+    "Register a focused CTest selector to avoid rerunning the broad object-vector test for this slice"
+  ],
+  "evidence": {
+    "localSource": {
+      "file": "src/drw_objects.cpp",
+      "function": "DRW_AssociativeObject::parseDwg / readActionFields / readValueVariant",
+      "finding": "The typed action reader consumes Real, Int16, Int32, String, and Handle categories; it has no Int8 decoder and rejects unimplemented ObjectId, Int64, Point3d, Bool, Binary, and Invalid categories."
+    },
+    "libreDwgCrossCheck": {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "checked": "2026-10-21",
+      "symbol": "dwg_resbuf_value_type",
+      "finding": "The inspected general group-code-to-value-category table agrees with the local dwgResbufValueKind mapping for the tested codes.",
+      "limit": "Mutable master source, not pinned peer evidence and not an authority for AcDbAssocAction-specific DWG payload serialization."
+    },
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "finding": "The available ODA specification does not provide the class-specific associative-action value-parameter grammar; no wire-width assumption is justified by the generic resbuf category map."
+    }
+  },
+  "changes": {
+    "production": false,
+    "generatedTests": [
+      "tests/dwg_object_vectors_tests.cpp now generates AC1024 action vectors for Real 40, Int16 70, Int32 90, String 1/1000/1005, and Handle 5/105/320.",
+      "Each supported control re-reads its encoded group code, requires successful typed publication, and verifies a following 3-bit body sentinel.",
+      "Int8 280 joins the generated fail-closed cases; unsupported vectors still cover ObjectId 350, Int64 160, Point3d 10, Bool 290, Binary 1004, and Invalid 700."
+    ],
+    "focusedCtestAdded": "libdxfrw_associative_action_value_kinds",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_action_value_kinds$' --output-on-failure",
+        "result": "PASS (1/1, 0.24 seconds)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "The currently supported parser categories have generated alignment/sentinel coverage; unsupported categories remain fail-closed.",
+    "unresolved": [
+      "Exact AcDbAssocAction value-parameter DWG payload grammar and producer serialization evidence",
+      "Typed decoding and semantic interpretation for unsupported categories",
+      "Broader PAR-03/PAR-04 code/context audit",
+      "External/native qualification and independent ACIS/ACDS semantic evidence"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue another locally evidenced PAR implementation item without waiting on external qualification; revisit action-value decoding only with an authoritative class-specific layout or traceable producer witness."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

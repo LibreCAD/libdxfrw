@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "CADKit 0.3.5 artifact refresh and PAR-33 diagnostic ceiling",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Refresh the current published CADKit DWG reader artifact surfaced by docs.rs",
+    "Reconcile package documentation with the mutable repository README, changelog, provenance, and DWG format notes",
+    "Assess whether CADKit's native/raw common entity view can help diagnose PAR-33 without promoting claims",
+    "Make the optional comparison gate precise, fast, fixture-safe, and self-unblocking"
+  ],
+  "sources": [
+    {
+      "project": "cadkit-dwg current docs.rs crate page",
+      "reference": "https://docs.rs/cadkit-dwg/latest/cadkit_dwg/",
+      "status": "current_latest_page_reviewed_2026-10-21",
+      "observation": "The page identifies cadkit-dwg 0.3.5 and describes native/raw object data including common/type-specific fields and raw bytes. Because this is a mutable latest URL and other docs pages lag, it does not bind the archive to the reviewed repository source."
+    },
+    {
+      "project": "TNYCL/cadkit README and DWG format notes",
+      "references": [
+        "https://github.com/TNYCL/cadkit",
+        "https://github.com/TNYCL/cadkit/blob/main/docs/dwg/FORMAT_NOTES.md",
+        "https://github.com/TNYCL/cadkit/blob/main/docs/INTERCHANGE_STATUS.md"
+      ],
+      "status": "mutable_repository_documentation_reviewed_2026-10-21",
+      "observation": "The README describes DWG AC1014-AC1032, growing entity coverage, no DWG writer, and AC1012 untested. Format notes report six-version DWG-to-project-DXF comparisons and 19 Apache Tika structural samples, but use the project's own DXF reader/model and include no independent semantic oracle. REGION/3DSOLID/BODY ACIS is not decoded beyond header/SAT bytes."
+    },
+    {
+      "project": "TNYCL/cadkit provenance and changelog",
+      "references": [
+        "https://github.com/TNYCL/cadkit/blob/main/docs/PROVENANCE.md",
+        "https://github.com/TNYCL/cadkit/blob/main/CHANGELOG.md"
+      ],
+      "status": "mutable_provenance_and_release_surface_reviewed_2026-10-21",
+      "observation": "The provenance ledger identifies ODA v5.4.1 and ACadSharp cross-check/sample lineage, explicitly attributing R2007 LZ77/container flow to ACadSharp. The current public changelog still ends at 0.2.1, while docs.rs latest identifies 0.3.5; exact package/source correspondence remains unbound."
+    },
+    {
+      "project": "cadkit-dwg EntityCommon API documentation",
+      "reference": "https://docs.rs/cadkit-dwg/latest/cadkit_dwg/native/struct.EntityCommon.html",
+      "status": "indexed_schema_page_reviewed_2026-10-21_page_still_identifies_0.3.0",
+      "observation": "The documented schema exposes plotstyle flags/handle before material flags/handle, matching the ODA common-field order. This is only an API/schema observation, not evidence that an uninspected 0.3.5 parser consumes those raw fields in that order."
+    },
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "status": "normative_reference_cross_checked",
+      "observation": "Sections 20.4.1-20.4.2 remain the normative common-entity data and handle-sequence reference. PAR-33 remains open because the available issue evidence does not yet provide the admitted both-references producer sample needed to discriminate the peer disagreement."
+    }
+  ],
+  "planImpact": {
+    "existingOwner": "PAR-33 / OPEN_SPEC_RECONCILIATION; PAR-07/S8 optional structural comparator",
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingsAndTopLevelPlanCounts": "unchanged (143 / 78)",
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Refreshes the CADKit candidate from older 0.3.0/0.3.3 snapshots to the current docs.rs 0.3.5 surface while retaining artifact/source mismatch as a hard gate. CADKit may be a raw structural diagnostic only; its public API ordering does not resolve PAR-33 without a source-audited parser and a qualifying both-reference DWG/DXF pair. Its published format notes explicitly do not decode ACIS geometry or AcDs modeler attachment.",
+    "nextImplementation": "At the existing composed checkpoint only, inspect already-present admitted sample pairs for one entity with both material and plotstyle references. If none exists, record NO_QUALIFYING_BOTH_REFERENCE_SAMPLE and self-unblock. If one exists, bind package checksum to embedded VCS source SHA, inspect the exact decoder, and compare raw flags, handle targets, paired DXF 347/390 roles, and following-cursor closure. Keep PAR-33 open unless all evidence layers agree.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-cadkit-035-artifact-refresh-par33-2026-10-21.json"
+    ],
+    "limitations": "The docs.rs latest crate page, stale version-labeled API pages, and mutable GitHub main documentation disagree on freshness. No archive checksum, embedded VCS SHA, exact lockfile, or source-to-artifact mapping was obtained. No peer code or drawing was downloaded or executed; no qualifying both-reference sample was identified in this research pass."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on the two plan files; receipt parses as JSON)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "schema": "libdxfrw-modeler-carrier-loss-generated-polyhedron-v1",
+  "title": "Deeper/broader modeler carrier-loss and generated-polyhedron route",
+  "date": "2026-10-21",
+  "status": "research_only",
+  "repository": "LibreCAD/libdxfrw",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "scope": [
+    "Compare current open-source source declarations and reported loss shapes across DWG/DXF modeler read, carrier, write, and consumer routes.",
+    "Identify a locally generatable scratch-only SAT/SAB polyhedron candidate with independently calculated expectations.",
+    "Refine existing PAR-07/S8 implementation readiness without treating peer reports or generated carriers as universal semantic evidence."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review",
+    "dateReviewed": "2026-10-21",
+    "peerSourceRevisionsPinned": false,
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "externalDrawingsDownloaded": 0,
+    "generatedOutputs": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "productionSourceChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+      "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454"
+    ],
+    "evidenceRule": "Mutable documentation and issue reports establish only declared scope or a version-specific reported failure shape. No current peer behavior, exact compatibility, geometry semantics, or native acceptance is established without pinned execution."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG AcDs source and issue revision boundary",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "NEWS describes AcDsPrototype_1b as incomplete and says R2013+ SAB extraction was not reliable, with a brute-force extraction route. Current master exposes an R2007+ AcDs section-reading path. Issue #1411 reports geometry loss on LibreDWG 0.14.8593 at commit 8a1ae764. These do not resolve whether a later source revision handles the same generated case or all owner/key/body mappings.",
+      "doesNotEstablish": [
+        "That current LibreDWG master has no AcDs reader",
+        "That the issue's exact failure remains in a later revision",
+        "Complete AcDs DataStorage parsing or entity-to-payload ownership",
+        "SAT/SAB semantic validity or B-rep correctness"
+      ],
+      "planUse": "At the existing optional composed checkpoint, pin source and binary, use a local profile-matched generated input, and record section, owner/key association, exact payload disposition, and strict reread separately."
+    },
+    {
+      "topic": "Silent 3DSOLID and REGION DXF writer omission failure shape",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observed": "The issue remains open as of review and reports ACadSharp 3.4.9 reading DWG 3DSOLID/REGION entities but omitting them silently during DXF writing, including solids in blocks. The cited customer drawings are not published. Linked PR #1240 is also open; it proposes ACIS-dependent Region, CadBody, and Solid3D writing, depends on ACDS/ACIS schema-storage refactor #1174, and its branch is not deployed. PR #1174 remains open; an Aug 12 comment reported that a branch-tested DxfAcdsDataSectionTests.ReadAcdsDataAttachesAcisPayloadToOwnerEntity test failed with NotImplementedException in readAcdsRecord, while ten other ACDS tests passed. This is historical feedback from that tested branch revision, not current CI status.",
+      "doesNotEstablish": [
+        "A current ACadSharp master or release defect",
+        "A merged or deployed fix from PR #1240",
+        "Passing CI, release behavior, or successful native interoperability from the open PR",
+        "Current head behavior of the owner-payload attachment path from the historical PR #1174 comment",
+        "A matching libdxfrw defect",
+        "A reusable public customer drawing or fixture"
+      ],
+      "planUse": "Audit local modeler writer dispatch and require source-handle disposition in modelspace and nested blocks. Never fetch or add the customer drawings; do not accept entity/block counts as proof that bodies survived."
+    },
+    {
+      "topic": "ezdxf as a bounded carrier generator and structural observer",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "observed": "The stable docs describe parsing/authoring only simple known ACIS structures, not arbitrary ACIS editing and not a kernel. They document body_from_mesh() and export_dxf() for polyhedra, and state their polyhedral output loads in Autodesk/BricsCAD for DXF R2000-R2010 SAT and R2013-R2018 SAB. The ACIS browser can expose raw payload, while the drawing add-on does not render ACIS or provide a 3D engine.",
+      "doesNotEstablish": [
+        "A local execution or exact installed-package behavior",
+        "Arbitrary ACIS parse/re-export support",
+        "Independent reader or kernel acceptance of bytes generated by ezdxf",
+        "Curved B-rep semantics or native CAD acceptance"
+      ],
+      "planUse": "Conditionally admit one exact-pinned, temporary asymmetric polyhedron input. Capture version, profile/signature, producer parameters, payload hash, and independent analytic expectations. Select a decoder only if its admitted profile matches the exact bytes."
+    },
+    {
+      "topic": "FreeCAD consumer boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "Official documentation lists explicit entity subsets for C++ and legacy DXF importers and says embedded ACIS/SAT solids cannot currently be read. A maintainer response describes the ACIS blob as proprietary/undocumented and closed the request as not planned.",
+      "doesNotEstablish": [
+        "ACIS interpretation by stock FreeCAD",
+        "Linux/Windows application qualification",
+        "A general open-source ACIS kernel"
+      ],
+      "planUse": "Keep native FreeCAD qualification scoped to its named 2D/explicit-entity converter and importer route. ACIS semantics need a separately named, permitted, profile-matched reader/kernel route."
+    }
+  ],
+  "implementationReadiness": {
+    "existingPlanOwner": "PAR-07/S8",
+    "nextLocalOrder": [
+      "Complete existing generated block/INSERT history-proxy closure assertions after strict re-export/readback when uncovered.",
+      "Inventory local read dispatch, API representation, and ASCII/Binary writer cases for 3DSOLID, REGION, BODY, and supported SURFACE records.",
+      "Add only a concrete local writer-omission or silent-loss regression, recording one disposition per source modeler handle.",
+      "At the existing composed checkpoint only, generate one exact-pinned scratch polyhedron and compare exact carrier extraction before optional profile-matched semantic decoding."
+    ],
+    "fastValidation": "Build the owning target, run its direct selector and existing focused CTest, then scoped git diff --check. No new CTest lane, per-slice peer execution, persistent external fixture, or routine full-suite run.",
+    "selfUnblock": "If ezdxf, a matching independent decoder, a kernel, or native platform is unavailable, record NOT_RUN/DEFERRED_EXTERNAL and continue the next local carrier/owner/source-disposition slice.",
+    "supportPromotionAllowed": false
+  },
+  "planImpact": {
+    "existingCandidatesAndGatesOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "readinessSequenceRefined": true,
+    "newTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "testsRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "externalFilesDownloaded": 0,
+    "generatedOutputs": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  },
+  "limitations": [
+    "GitHub issues and project documentation are mutable; peer source commits and binaries were not pinned or executed.",
+    "The ezdxf-generated polyhedron route is proposed only; it has not been run or admitted as a decoder/consumer oracle.",
+    "No current peer or native platform result establishes semantic ACIS/AcDs support.",
+    "Historical count discrepancies remain; the working summary is 142 findings / 78 subplans, with older entries retaining prior counts."
+  ]
+}

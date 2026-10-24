@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-polyline-owner-map-baseline-bucket-accounting-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Include both owner maps' initial bucket arrays in the existing 7BA staging estimate instead of charging only growth above those baselines.",
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixtureFilesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false,
+    "changedFiles": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "behavior": [
+      "Reader construction seeds the staging ledger with the full current bucket-pointer-array estimate for the pending and orphan POLYLINE owner maps.",
+      "The estimate is the sum of current bucket_count values multiplied by sizeof(void*), including initial empty-map buckets and any retained buckets after clear/retry.",
+      "Bucket-count multiplication/addition overflow or an initial estimate above the shared staging limit fails closed and latches the integrity violation.",
+      "Existing pre-reserve admission continues to charge retained and conservative transient replacement-array estimates against the remaining budget."
+    ],
+    "boundary": "This is an explicit portable pointer-array estimate, not an observation of actual allocator bytes. Unordered-map node allocator overhead, allocator metadata/retention, and implementation-specific transient allocations remain outside the model; no RSS guarantee follows."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "result": "PASS"
+    },
+    "consumerCompatibilityBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "diffCheck": "PASS",
+    "receiptJsonSyntaxChecked": true,
+    "fullTestSuiteRun": false,
+    "sanitizerRun": false,
+    "nativeCadApplicationRun": false,
+    "externalPeerRun": false
+  },
+  "planImpact": {
+    "owner": "7BA compound child work bounds",
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "next": "Continue 7BA with a precise audit of remaining per-state node and transient allocation estimates; keep allocator/RSS claims explicitly unqualified unless a custom/accounting allocator supplies authoritative byte observations."
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The checkout contains extensive unrelated and mixed changes, including pre-existing edits in the touched files; no safe isolated commit was available."
+  }
+}

@@ -7,6 +7,7 @@ from pathlib import Path
 import struct
 import sys
 import tempfile
+import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from bounded_process import run_bounded
@@ -18,6 +19,56 @@ SOURCE = (b"0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n0\nENDSEC\n"
           b"0\nENDSEC\n0\nEOF\n")
 BINARY_PREFIX = b"AutoCAD Binary DXF\r\n\x1a\x00"
 SENTINEL = b"CLI overwrite-authority sentinel\n"
+PRE_R13_MARKERS = (
+    (5, b"unsupported-r11-repeat"),
+    (6, b"unsupported-r11-endrep"),
+    (10, b"unsupported-r11-load"),
+)
+
+
+def make_pre_r13_marker_dwg(magic, marker_type):
+    """Build a minimal AC1006/AC1009 drawing entirely from local bytes."""
+    entity_start = 0x600
+    header_vars = 158 if magic == b"AC1006" else 205
+    header = bytearray(entity_start)
+    header[:6] = magic
+    struct.pack_into("<H", header, 0x11, header_vars)
+    struct.pack_into("<I", header, 0x14, entity_start)
+    marker = struct.pack("<BBHHH", marker_type, 0, 8, 0, 0)
+    # This supported block/end-block pair is a following-record sentinel. If
+    # the marker is silently skipped, the reader can continue to a callback.
+    block = struct.pack("<BBHHHdd", 12, 0, 24, 0, 0, 4.0, 9.0)
+    endblock = struct.pack("<BBHHH", 13, 0, 8, 0, 0)
+    records = marker + block + endblock
+    struct.pack_into("<I", header, 0x18, entity_start + len(records))
+    return bytes(header) + records
+
+
+def check_pre_r13_marker_failure(converter, root):
+    checked = 0
+    for magic in (b"AC1006", b"AC1009"):
+        for marker_type, diagnostic in PRE_R13_MARKERS:
+            label = f"{magic.decode()} marker {marker_type}"
+            source = root / f"{label}.dwg"
+            destination = root / f"{label}.dxf"
+            source_bytes = make_pre_r13_marker_dwg(magic, marker_type)
+            source.write_bytes(source_bytes)
+            if magic == b"AC1009" and marker_type == 10:
+                destination.write_bytes(SENTINEL)
+            before = destination.read_bytes() if destination.exists() else None
+            result = run_bounded(
+                [str(converter), str(source), "-y", "-v2010", str(destination)],
+                5, 131072, cwd=root)
+            output = result.stdout + result.stderr
+            after = destination.read_bytes() if destination.exists() else None
+            if (result.returncode == 0 or diagnostic not in output
+                    or before != after or source.read_bytes() != source_bytes):
+                raise AssertionError(
+                    f"{label}: incomplete read was published or not identified; "
+                    f"exit={result.returncode}, diagnostic={diagnostic!r}, "
+                    f"output={output[:2048]!r}, destination-preserved={before == after}")
+            checked += 1
+    return checked
 
 
 def check_options(converter, root):
@@ -46,7 +97,8 @@ def check_options(converter, root):
 
     # The invalid token itself must never confer overwrite authorization.
     for token in ("-yUnexpected", "-bad", "-Bextra", "-dextra", "-Dextra",
-                  "-v2007suffix", "--", "", "-", "-unknown"):
+                  "-v2007suffix", "--allow-partial-dwg-read-extra",
+                  "--", "", "-", "-unknown"):
         destination.write_bytes(SENTINEL)
         reject(f"legacy invalid {token!r}",
                [source, "-v2007", token, destination], [source, destination])
@@ -103,6 +155,24 @@ def check_options(converter, root):
     if result.returncode != 0 or b"AC1021" not in freecad.read_bytes()[:2048]:
         raise AssertionError("four-argument FreeCAD command changed")
     checked += 1
+
+    partial_positional = root / "partial option positional.dxf"
+    result = invoke([source, "--allow-partial-dwg-read", "-v2007",
+                     partial_positional])
+    if result.returncode != 0 or b"AC1021" not in partial_positional.read_bytes()[:2048]:
+        raise AssertionError("exact partial-read option was not accepted positionally")
+    checked += 1
+    partial_freecad = root / "partial option FreeCAD.dxf"
+    result = invoke([source, "-o", partial_freecad, "--allow-partial-dwg-read"])
+    if result.returncode != 0 or b"AC1021" not in partial_freecad.read_bytes()[:2048]:
+        raise AssertionError("exact partial-read option changed the -o route")
+    checked += 1
+    protected = root / "partial option cannot overwrite.dxf"
+    protected.write_bytes(SENTINEL)
+    result = invoke([source, "-o", protected, "--allow-partial-dwg-read"])
+    if result.returncode != 1 or protected.read_bytes() != SENTINEL:
+        raise AssertionError("partial-read option unexpectedly authorized overwrite")
+    checked += 1
     if source.read_bytes() != SOURCE or dash_source.read_bytes() != SOURCE:
         raise AssertionError("CLI checks changed their locally generated input")
     return checked
@@ -113,6 +183,10 @@ def check_batch(converter, root):
     source_dir.mkdir()
     source = source_dir / " leading é trailing .dxf"
     source.write_bytes(SOURCE)
+
+    def output_name(path):
+        return Path(path).with_suffix(".dxf").name
+
     list_path = root / "batch list.txt"
     checked = 0
 
@@ -122,7 +196,7 @@ def check_batch(converter, root):
         output_dir = root / ("batch result " + label)
         output_dir.mkdir()
         if existing:
-            (output_dir / source.name).write_bytes(SENTINEL)
+            (output_dir / output_name(source)).write_bytes(SENTINEL)
         list_path.write_bytes(payload)
         before = {path: path.read_bytes() for path in inputs}
         args = [str(converter), str(list_path), "-B", "-v2007"]
@@ -143,20 +217,20 @@ def check_batch(converter, root):
 
     for label, ending in (("LF", b"\n"), ("CRLF", b"\r\n"), ("no newline", b"")):
         output, result = invoke(str(source).encode("utf-8") + ending, label, 0)
-        if not (output / source.name).is_file() or b"Success:" not in result.stdout:
+        if not (output / output_name(source)).is_file() or b"Success:" not in result.stdout:
             raise AssertionError(f"batch {label}: lost input whitespace/UTF-8 or outcome")
 
     missing = source_dir / "missing.dxf"
     mixed = (str(missing) + "\n" + str(source) + "\n").encode("utf-8")
     output, result = invoke(mixed, "mixed missing first", 1)
-    if not (output / source.name).is_file() or b"Failed:" not in result.stdout:
+    if not (output / output_name(source)).is_file() or b"Failed:" not in result.stdout:
         raise AssertionError("mixed batch did not continue/report independent item")
     output, _ = invoke((str(missing) + "\n").encode(), "missing only", 1)
     if list(output.iterdir()):
         raise AssertionError("missing-only batch published output")
     output, result = invoke(str(source).encode() + b"\n", "existing no overwrite", 1,
                             overwrite=False, existing=True)
-    if (output / source.name).read_bytes() != SENTINEL or b"refusing to overwrite" not in result.stdout:
+    if (output / output_name(source)).read_bytes() != SENTINEL or b"refusing to overwrite" not in result.stdout:
         raise AssertionError("batch prompted or modified an unauthorized destination")
     for label, payload in (("empty", b""), ("blank", b"\n\r\n"),
                            ("NUL", str(source).encode() + b"\x00\n"),
@@ -186,7 +260,7 @@ def check_batch(converter, root):
         os.mkfifo(fifo)
         output, _ = invoke((str(fifo) + "\n" + str(source) + "\n").encode(),
                            "FIFO input", 1)
-        if not (output / source.name).is_file() or (output / fifo.name).exists():
+        if not (output / output_name(source)).is_file() or (output / output_name(fifo)).exists():
             raise AssertionError("special input blocked/lost a later independent item")
         output = root / "batch result FIFO list"
         output.mkdir()
@@ -215,7 +289,144 @@ def check_batch(converter, root):
     if result.returncode != 2 or alias_source.read_bytes() != SOURCE:
         raise AssertionError("batch -y authorized an input alias")
     checked += 1
+
+    # Existing output names that alias a source through filesystem identity
+    # must be rejected even when their lexical paths are distinct.
+    for alias_kind, create_alias in (("symlink", getattr(os, "symlink", None)),
+                                     ("hardlink", getattr(os, "link", None))):
+        if create_alias is None:
+            continue
+        source_alias = source_dir / ("batch " + alias_kind + " source.dwg")
+        source_alias.write_bytes(SOURCE)
+        alias_output = root / ("batch " + alias_kind + " output")
+        alias_output.mkdir()
+        alias_destination = alias_output / source_alias.with_suffix(".dxf").name
+        try:
+            create_alias(source_alias, alias_destination)
+        except (AttributeError, NotImplementedError, OSError):
+            # Some Windows configurations do not grant unprivileged symlink
+            # creation; only count a control when the filesystem created it.
+            continue
+        list_path.write_text(str(source_alias) + "\n", encoding="utf-8")
+        result = run_bounded([str(converter), str(list_path), "-B", "-v2007", "-y",
+                              str(alias_output)], 5, 131072, cwd=root)
+        if (result.returncode != 2 or not os.path.samefile(source_alias, alias_destination)
+                or alias_destination.read_bytes() != SOURCE
+                or source_alias.read_bytes() != SOURCE
+                or list(alias_output.iterdir()) != [alias_destination]):
+            raise AssertionError(f"batch {alias_kind} alias was not rejected unchanged: {result!r}")
+        checked += 1
+
+    # Future output names are admitted by native filesystem lookup in a
+    # verified same-collation namespace, not by a portable ASCII/Unicode fold.
+    case_dwg_source = Path(__file__).resolve().parent / "fixtures" / "dwg" / "ordinary_enc_AC1015.dwg"
+
+    def aliases_in_directory(directory, first_name, second_name):
+        first = directory / first_name
+        second = directory / second_name
+        first.mkdir()
+        aliases = second.exists() and os.path.samefile(first, second)
+        first.rmdir()
+        return aliases
+
+    for label, first_stem, second_stem in (
+            ("case collision", "CaseCollision", "casecollision"),
+            ("Unicode normalization collision", "caf\u00e9", "cafe\u0301")):
+        first_source_dir = root / ("batch " + label + " source A")
+        second_source_dir = root / ("batch " + label + " source B")
+        first_source_dir.mkdir()
+        second_source_dir.mkdir()
+        first_source = first_source_dir / (first_stem + ".dwg")
+        second_source = second_source_dir / (second_stem + ".dxf")
+        first_source.write_bytes(case_dwg_source.read_bytes())
+        second_source.write_bytes(SOURCE)
+
+        output = root / ("batch " + label + " output")
+        output.mkdir()
+        first_output_name = first_stem + ".dxf"
+        second_output_name = second_stem + ".dxf"
+        aliases = aliases_in_directory(output, first_output_name, second_output_name)
+        list_path.write_text(str(first_source) + "\n" + str(second_source) + "\n",
+                             encoding="utf-8")
+        result = run_bounded([str(converter), str(list_path), "-B", "-v2007", "-y",
+                              str(output)], 5, 131072, cwd=root)
+        if aliases:
+            if (result.returncode != 2 or b"colliding output names" not in result.stdout
+                    or list(output.iterdir())):
+                raise AssertionError(f"batch {label}: native collision was not rejected: {result!r}")
+        elif (result.returncode != 0
+              or not (output / first_output_name).is_file()
+              or not (output / second_output_name).is_file()
+              or set(output.iterdir()) != {output / first_output_name,
+                                           output / second_output_name}
+              or os.path.samefile(output / first_output_name, output / second_output_name)):
+            raise AssertionError(f"batch {label}: native distinct names failed: {result!r}")
+        checked += 1
+
+    relative_output = root / "batch relative output"
+    relative_output.mkdir()
+    list_path.write_text(str(source) + "\n", encoding="utf-8")
+    result = run_bounded([str(converter), str(list_path), "-B", "-v2007", "-y",
+                          relative_output.name], 5, 131072, cwd=root)
+    if (result.returncode != 0
+            or not (relative_output / output_name(source)).is_file()
+            or set(relative_output.iterdir()) != {relative_output / output_name(source)}):
+        raise AssertionError(f"batch relative output directory failed: {result!r}")
+    checked += 1
+
+    # Use an existing repository fixture to verify that DWG input publishes
+    # DXF data with a .dxf suffix; do not add or download a fixture.
+    dwg_source = Path(__file__).resolve().parent / "fixtures" / "dwg" / "ordinary_enc_AC1015.dwg"
+    list_path.write_text(str(dwg_source) + "\n", encoding="utf-8")
+    output = root / "batch DWG suffix"
+    output.mkdir()
+    result = run_bounded([str(converter), str(list_path), "-B", "-v2007", "-y",
+                          str(output)], 5, 131072, cwd=root)
+    dwg_output = output / dwg_source.with_suffix(".dxf").name
+    dwg_payload = dwg_output.read_bytes() if dwg_output.is_file() else b""
+    if result.returncode != 0 or not dwg_payload or dwg_payload.startswith(BINARY_PREFIX):
+        raise AssertionError(f"batch DWG did not publish ASCII DXF with .dxf suffix: {result!r}")
+    checked += 1
+    readback = output / "ordinary_enc_AC1015_readback.dxf"
+    result = run_bounded([str(converter), str(dwg_output), "-v2007", str(readback)],
+                         5, 131072, cwd=root)
+    if result.returncode != 0 or not readback.is_file():
+        raise AssertionError(f"batch DWG output could not be reopened by suffix-dispatched CLI: {result!r}")
+    checked += 1
+
+    # Same-stem DWG/DXF inputs map to one output; reject in both orders before
+    # converting either source or publishing any destination.
+    colliding_dxf = source_dir / dwg_source.with_suffix(".dxf").name
+    colliding_dxf.write_bytes(SOURCE)
+    for label, paths in (("DWG first", (dwg_source, colliding_dxf)),
+                         ("DXF first", (colliding_dxf, dwg_source))):
+        output = root / ("batch collision " + label)
+        output.mkdir()
+        list_path.write_text("".join(str(path) + "\n" for path in paths), encoding="utf-8")
+        result = run_bounded([str(converter), str(list_path), "-B", "-v2007", "-y",
+                              str(output)], 5, 131072, cwd=root)
+        if result.returncode != 2 or list(output.iterdir()):
+            raise AssertionError(f"batch {label}: colliding stems were not rejected preflight")
+        checked += 1
     return checked
+
+
+def check_batch_name_limit(converter, root):
+    output = root / "batch name-limit output"
+    output.mkdir()
+    listing = root / "batch name-limit list.txt"
+    missing = root / "batch name-limit missing inputs"
+    lines = [str(missing / f"missing-{index:05d}.dxf") for index in range(10000)]
+    payload = ("\n".join(lines) + "\n").encode("utf-8")
+    listing.write_bytes(payload)
+    started = time.monotonic()
+    result = run_bounded([str(converter), str(listing), "-B", "-v2007", "-y",
+                          str(output)], 20, 4 * 1024 * 1024, cwd=root)
+    elapsed = time.monotonic() - started
+    if (result.returncode != 1 or b"Failed:" not in result.stdout
+            or listing.read_bytes() != payload or list(output.iterdir())):
+        raise AssertionError(f"10,000-name preflight control failed: {result!r}")
+    return elapsed
 
 
 def check_read_observations(converter, root):
@@ -239,6 +450,37 @@ def check_read_observations(converter, root):
             raise AssertionError(f"{label}: observation report escaped its ASCII/byte contract")
         checked += 1
     return checked
+
+
+def check_unsupported_dwg_codepage(converter, root):
+    """Mutate only the envelope codepage of an admitted local sample."""
+    fixture = (Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "dwg"
+               / "ordinary_enc_AC1021.dwg")
+    payload = bytearray(fixture.read_bytes())
+    if len(payload) < 21 or payload[:6] != b"AC1021":
+        raise AssertionError("eligible AC1021 repository fixture is unavailable")
+    original_id = struct.unpack_from("<H", payload, 19)[0]
+    if original_id in (0, 0xFF, 999):
+        raise AssertionError(f"unexpected repository fixture codepage id {original_id}")
+    struct.pack_into("<H", payload, 19, 999)
+    source = root / "unsupported-codepage.dwg"
+    output = root / "unsupported-codepage.dxf"
+    source.write_bytes(payload)
+    result = run_bounded(
+        [str(converter), str(source), "-y", "-v2010", str(output)],
+        20, 2 * 1024 * 1024, cwd=root)
+    report = result.stderr
+    required = (b"DWG read observations: schema=1 operationSucceeded=true",
+                b"sourceCodePage: fieldPresent=true id=999 codecRecognized=false",
+                b"fallback=version-selected textMayBeMisdecoded=true")
+    if (any(value not in report for value in required)
+            or b"Error reading file" in result.stdout
+            or source.read_bytes() != payload):
+        raise AssertionError(
+            "unsupported DWG codepage was not surfaced after a successful read: "
+            f"exit={result.returncode}, stdout={result.stdout[:1024]!r}, "
+            f"stderr={report[:2048]!r}")
+    return 1
 
 
 def encode_authored_pairs(pairs, binary):
@@ -464,6 +706,147 @@ def check_target_text_transport(converter, root):
     return refused, retries, modern, repeated
 
 
+def check_embedded_mtext_downlevel(converter, root):
+    """R2018 ATTRIB MTEXT must not silently downgrade through the CLI."""
+    pairs = [
+        (0, b"SECTION"), (2, b"HEADER"), (9, b"$ACADVER"), (1, b"AC1032"),
+        (9, b"$DWGCODEPAGE"), (3, b"ANSI_1252"), (0, b"ENDSEC"),
+        (0, b"SECTION"), (2, b"BLOCKS"),
+        (0, b"BLOCK"), (5, b"3000"), (100, b"AcDbEntity"), (8, b"0"),
+        (100, b"AcDbBlockBegin"), (2, b"MTEXT_BLOCK"), (70, b"0"),
+        (10, 0.0), (20, 0.0), (30, 0.0), (3, b"MTEXT_BLOCK"),
+        (0, b"ENDBLK"), (5, b"3001"), (100, b"AcDbEntity"), (8, b"0"),
+        (100, b"AcDbBlockEnd"), (0, b"ENDSEC"),
+        (0, b"SECTION"), (2, b"ENTITIES"),
+        (0, b"INSERT"), (5, b"3002"), (100, b"AcDbEntity"), (8, b"0"),
+        (100, b"AcDbBlockReference"), (66, b"1"), (2, b"MTEXT_BLOCK"),
+        (10, 0.0), (20, 0.0), (30, 0.0), (41, 1.0), (42, 1.0), (43, 1.0),
+    ]
+
+    def source_pairs(embedded):
+        result = list(pairs)
+        result += [
+            (0, b"ATTRIB"), (5, b"4000"), (100, b"AcDbEntity"), (8, b"0"),
+            (100, b"AcDbText"), (10, 4.0), (20, 5.0), (30, 6.0), (40, 2.0),
+            (1, b"fallback attribute"),
+        ]
+        if embedded:
+            result += [
+                (101, b"Embedded Object"), (10, 1.0), (20, 2.0), (30, 3.0),
+                (40, 2.0), (41, 10.0), (46, 200.0), (71, b"1"), (72, b"1"),
+                (1, b"multiline\\Pattribute"),
+            ]
+        result += [
+            (100, b"AcDbAttribute"), (2, b"MTEXT_TAG"), (70, b"0"),
+            (0, b"SEQEND"), (5, b"4001"), (100, b"AcDbEntity"), (8, b"0"),
+            (0, b"LINE"), (5, b"5000"), (100, b"AcDbEntity"), (8, b"0"),
+            (100, b"AcDbLine"), (10, 71.0), (20, 72.0), (30, 73.0),
+            (11, 74.0), (21, 75.0), (31, 76.0), (0, b"ENDSEC"),
+        ]
+        return result
+
+    source = root / "r2018 embedded mtext source.dxf"
+    original = encode_authored_pairs(source_pairs(True), False)
+    plain = encode_authored_pairs(source_pairs(False), False)
+    source.write_bytes(original)
+    checked = 0
+    for binary in (False, True):
+        for freecad in (False, True):
+            output = root / f"downlevel embedded result {binary}-{freecad}.dxf"
+            sentinel = SENTINEL if binary else b"pre-existing output sentinel\n"
+            for existing in (False, True):
+                output.write_bytes(sentinel) if existing else output.unlink(missing_ok=True)
+                before = set(root.iterdir())
+                args = ([source, "-o", output, "-v2007", "-y"] if freecad
+                        else [source, "-v2007", "-y", output])
+                if binary:
+                    args.insert(len(args) if freecad else len(args) - 1, "-b")
+                result = run_bounded([str(converter), *map(str, args)], 5, 65536,
+                                     cwd=root)
+                actual = output.read_bytes() if output.exists() else None
+                if (result.returncode != 1 or b"Conversion failed" not in result.stdout
+                        or b"Error reading file" in result.stdout
+                        or b"multiline attribute (not in this DXF version)" not in result.stderr
+                        or actual != (sentinel if existing else None)
+                        or set(root.iterdir()) != before or source.read_bytes() != original):
+                    raise AssertionError(
+                        f"embedded MTEXT downlevel published through CLI: {result!r}")
+                checked += 1
+
+            # Same source route without the embedded object remains supported;
+            # this distinguishes the targeted refusal from a broken ATTRIB path.
+            source.write_bytes(plain)
+            output.unlink(missing_ok=True)
+            args = ([source, "-o", output, "-v2007", "-y"] if freecad
+                    else [source, "-v2007", "-y", output])
+            if binary:
+                args.insert(len(args) if freecad else len(args) - 1, "-b")
+            result = run_bounded([str(converter), *map(str, args)], 5, 65536,
+                                 cwd=root)
+            payload = output.read_bytes() if output.exists() else b""
+            valid_encoding = payload.startswith(BINARY_PREFIX) if binary else (
+                not payload.startswith(BINARY_PREFIX) and b"AC1021" in payload[:2048])
+            if (result.returncode != 0 or b"Success:" not in result.stdout
+                    or not valid_encoding or b"ATTRIB" not in payload
+                    or source.read_bytes() != plain):
+                raise AssertionError(f"plain ATTRIB CLI retry control failed: {result!r}")
+            checked += 1
+            source.write_bytes(original)
+    return checked
+
+
+def check_proxy_graphics_loss(converter, root):
+    """Strict CLI export must not publish when a typed entity cache is lost."""
+    proxy = (bytes(8) + struct.pack("<II", 64, 2)
+             + struct.pack("<7d", 2.0, 3.0, 4.0, 5.0, 0.0, 0.0, 1.0))
+    if len(proxy) != 72:
+        raise AssertionError("source-only proxy circle recipe must be exactly 72 bytes")
+    pairs = [
+        (0, b"SECTION"), (2, b"HEADER"), (9, b"$ACADVER"), (1, b"AC1024"),
+        (0, b"ENDSEC"), (0, b"SECTION"), (2, b"ENTITIES"),
+        (0, b"LINE"), (5, b"A0"), (8, b"0"), (100, b"AcDbEntity"),
+        (100, b"AcDbLine"), (10, 10.0), (20, 20.0), (30, 0.0),
+        (11, 15.0), (21, 25.0), (31, 0.0), (92, 72), (310, proxy.hex().upper().encode()),
+        (0, b"ENDSEC"),
+    ]
+    source = root / "proxy graphics source.dxf"
+    original = encode_authored_pairs(pairs, False)
+    source.write_bytes(original)
+
+    checked = 0
+    for freecad in (False, True):
+        for binary in (False, True):
+            for existing in (False, True):
+                output = root / f"proxy output {freecad}-{binary}-{existing}.dxf"
+                if existing:
+                    output.write_bytes(SENTINEL)
+                arguments = [str(converter), str(source)]
+                if freecad:
+                    arguments += ["-o", str(output)]
+                    arguments += ["-v2010", "-y"]
+                else:
+                    arguments += ["-v2010", "-y"]
+                if binary:
+                    arguments.append("-b")
+                if not freecad:
+                    arguments.append(str(output))
+                before = set(root.iterdir())
+                result = run_bounded(arguments, 5, 65536, cwd=root)
+                expected = SENTINEL if existing else None
+                if (result.returncode != 1
+                        or b"typed-proxy-graphics-not-preserved" not in result.stderr
+                        or b"Success:" in result.stdout
+                        or (output.read_bytes() if output.exists() else None) != expected
+                        or set(root.iterdir()) != before
+                        or source.read_bytes() != original):
+                    raise AssertionError(
+                        f"strict proxy loss was not reported/published atomically "
+                        f"(FreeCAD={freecad}, binary={binary}, existing={existing}): "
+                        f"{result!r}")
+                checked += 1
+    return checked
+
+
 def check_exact_input_policy(converter, root):
     """Actual option, profile refusal and repeated-conversion handoff; no peer."""
     exact = "--dxf-codepage-policy=exact-named"
@@ -634,14 +1017,32 @@ def check_exact_input_policy(converter, root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--converter", required=True, type=Path)
+    parser.add_argument("--options-only", action="store_true",
+                        help="run only fast option-token and overwrite-authority controls")
     parser.add_argument("--target-text-only", action="store_true",
                         help="run only the focused target transport controls while iterating")
     parser.add_argument("--exact-input-only", action="store_true",
                         help="run only explicit input policy/profile controls while iterating")
+    parser.add_argument("--batch-only", action="store_true",
+                        help="run only bounded batch conversion controls while iterating")
+    parser.add_argument("--batch-name-limit-only", action="store_true",
+                        help="run only the bounded 10,000-name preflight performance control")
+    parser.add_argument("--embedded-mtext-only", action="store_true",
+                        help="run only embedded-MTEXT downlevel CLI refusal controls")
+    parser.add_argument("--proxy-graphics-only", action="store_true",
+                        help="run only strict typed proxy-graphics loss CLI controls")
+    parser.add_argument("--pre-r13-marker-only", action="store_true",
+                        help="run only generated AC1006/AC1009 marker publication refusals")
+    parser.add_argument("--unsupported-dwg-codepage-only", action="store_true",
+                        help="run only the unsupported DWG envelope-codepage diagnostic control")
     args = parser.parse_args()
     converter = args.converter.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="libdxfrw-cli-contract-") as directory:
         root = Path(directory)
+        if args.options_only:
+            checked = check_options(converter, root)
+            print(f"CLI option contract: PASS ({checked} token/filename/overwrite controls)")
+            return
         if args.exact_input_only:
             policy = check_exact_input_policy(converter, root)
             print(f"CLI exact input: PASS ({policy[0]} option refusals/{policy[1]} two-pass routes/"
@@ -653,17 +1054,47 @@ def main():
             print(f"CLI target transport: PASS ({target[0]} refusals/{target[1]} retries/"
                   f"{target[2]} modern positives/{target[3]} two-pass literal routes)")
             return
+        if args.batch_only:
+            batch_checked = check_batch(converter, root)
+            print(f"CLI batch: PASS ({batch_checked} bounded batch controls)")
+            return
+        if args.batch_name_limit_only:
+            elapsed = check_batch_name_limit(converter, root)
+            print(f"CLI batch name limit: PASS (10000 planned names; {elapsed:.3f}s)")
+            return
+        if args.embedded_mtext_only:
+            checked = check_embedded_mtext_downlevel(converter, root)
+            print(f"CLI embedded-MTEXT downlevel: PASS ({checked} refusal/retry controls)")
+            return
+        if args.proxy_graphics_only:
+            checked = check_proxy_graphics_loss(converter, root)
+            print(f"CLI proxy graphics loss: PASS ({checked} atomic refusal controls)")
+            return
+        if args.pre_r13_marker_only:
+            checked = check_pre_r13_marker_failure(converter, root)
+            print(f"CLI pre-R13 markers: PASS ({checked} atomic refusal controls)")
+            return
+        if args.unsupported_dwg_codepage_only:
+            checked = check_unsupported_dwg_codepage(converter, root)
+            print(f"CLI unsupported DWG codepage: PASS ({checked} diagnostic control)")
+            return
         checked = check_options(converter, root)
         batch_checked = check_batch(converter, root)
         observation_checked = check_read_observations(converter, root)
         source_checked = check_source_text_admission(converter, root)
         target = check_target_text_transport(converter, root)
+        embedded_mtext = check_embedded_mtext_downlevel(converter, root)
+        proxy_graphics = check_proxy_graphics_loss(converter, root)
+        pre_r13_markers = check_pre_r13_marker_failure(converter, root)
         policy = check_exact_input_policy(converter, root)
     print(f"CLI contract: PASS ({checked} option/filename and "
           f"{batch_checked} batch controls, {observation_checked} read-observation controls; "
           f"source text {source_checked[0]} refusals/{source_checked[1]} retries/"
           f"{source_checked[2]} positives/{source_checked[3]} mixed batch; target text "
           f"{target[0]} refusals/{target[1]} retries/{target[2]} modern/{target[3]} two-pass routes; "
+          f"embedded-MTEXT downlevel {embedded_mtext} refusal/retry controls; "
+          f"proxy graphics {proxy_graphics} atomic refusals; "
+          f"pre-R13 marker {pre_r13_markers} atomic refusals; "
           f"exact input {policy[0]} option refusals/{policy[1]} two-pass/{policy[2]} independent/"
           f"{policy[3]} atomic refusals/{policy[4]} retries/{policy[5]} mixed batch, bounded subprocesses)")
 

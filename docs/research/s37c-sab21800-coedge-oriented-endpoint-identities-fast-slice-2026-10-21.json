@@ -1,0 +1,79 @@
+{
+  "title": "S3.7c SAB 21800 coedge-oriented endpoint identities and chain continuity",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "ACIS BinaryFile SAB 21800 rooted projection",
+    "public_projection": "DRW_AcisFaceLoop retains coedge traversal start/end vertex node identities, separately from raw edge-order endpoints.",
+    "derivation": {
+      "forward_sense_0": "coedge start/end use raw edge start/end",
+      "reversed_sense_1": "coedge start/end use raw edge end/start",
+      "unknown_or_misordered_sense": "both derived endpoint identities are -1",
+      "missing_raw_endpoint": "the corresponding derived endpoint remains -1 independently"
+    },
+    "endpoint_chain_observation": {
+      "closed_ring": "compares every oriented coedge end with the following coedge start, including the final-to-first join",
+      "open_chain": "compares only internal joins",
+      "incomplete_endpoint_or_sense": "withholds the complete observation",
+      "known_discontinuity": "records count and first preceding coedge node and marks projection coverage as a known gap",
+      "meaning": "topological vertex identity continuity only, not geometric curve or pcurve continuity"
+    },
+    "source": {
+      "title": "ACIS Modeling Software Topology Manual, Model Topology / Coedges",
+      "url": "https://manualzz.com/doc/23441667/acis-modeling-software-topology-manual",
+      "used_for": "A coedge traverses its edge either in the same or reverse direction. The numeric forward/reversed mapping follows the already-retained SAB boolean interpretation and is not independently asserted as a native-kernel result."
+    },
+    "compatibility_boundary": "Raw DRW_AcisEdge start/end fields remain unchanged. New face-loop rows apply only coedge-to-edge direction and do not infer face-normal-relative winding."
+  },
+  "coverage": {
+    "parser_fed_forward_sense_preserves_raw_order": "PASS",
+    "parser_fed_reversed_sense_swaps_derived_order": "PASS",
+    "parser_fed_missing_start_remains_independently_unresolved": "PASS",
+    "parser_fed_missing_end_remains_independently_unresolved": "PASS",
+    "parser_fed_unknown_misordered_sense_yields_unresolved_derived_pair": "PASS",
+    "missing_endpoint_or_unknown_sense_withholds_chain_observation": "PASS",
+    "connected_closed_cycle_is_observed_continuous": "PASS",
+    "disconnected_cycle_reports_count_and_first_coedge": "PASS",
+    "parsed_sab_and_in_memory_projection_match": "PASS",
+    "inconsistent_derived_pair_marks_known_coverage_gap": "PASS",
+    "inconsistent_endpoint_chain_observation_marks_known_coverage_gap": "PASS",
+    "exact_output_and_extraction_work_budget_controls": "PASS",
+    "new_drawing_fixture_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.30 seconds)",
+    "diff_check": "PASS",
+    "json_validation": "PASS (jq empty)",
+    "address_sanitizer": "NOT_RUN"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": true,
+    "consumer_rebuild_required": true,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "non_claims": [
+    "pcurve or trim evaluation",
+    "face-normal-relative loop orientation",
+    "oriented-boundary reconstruction",
+    "manifoldness or B-rep validity",
+    "source-record completeness before model construction",
+    "native CAD acceptance"
+  ]
+}

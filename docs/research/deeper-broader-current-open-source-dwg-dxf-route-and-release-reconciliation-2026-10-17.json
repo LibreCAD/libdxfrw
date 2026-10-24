@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader current open-source DWG/DXF route and release reconciliation",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Current formal release versus mutable-source capability claims across independent DWG/DXF projects",
+    "ACIS payload, raw ASM carrier, semantic geometry, and writer evidence boundaries",
+    "LibreCAD_3 DWG direction policy and current local FreeCAD consumer-profile boundary",
+    "Implementation readiness and optional-comparator cost at composed checkpoints"
+  ],
+  "method": {
+    "kind": "Read-only cross-check of current primary project release pages, official project documentation, and the local plan/README",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "GitHub default-branch pages are mutable and are treated as discovery/source statements, not release behavior. ACadSharp PR #1240 status and project release notes do not prove output correctness. ACadRust v0.6.4 notes summarize maintainer/reporter tests whose inputs and independent semantic outputs were not rerun here. The local README's FreeCAD profile was not independently rerun in this research pass. No peer or native CAD result was produced."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "revision": "mutable README and manual reviewed 2026-10-17",
+      "observed": "The README describes broad DWG reading but discloses advanced R2010+ object skips and warns that R2010-R2018 writing can yield CRC errors. This is a version/direction caveat, not a result for every build."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/releases",
+      "revision": "latest listed signed release v3.8.0 at 3a1c66b, reviewed 2026-10-17",
+      "observed": "The v3.8.0 release notes list an InternalsVisibleTo change; they do not list ACIS DXF writing. The v3.6.51 release notes include ACIS payload reading and Prototype1b work."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "revision": "pull request listing reviewed 2026-10-17",
+      "observed": "The ACIS entity writer PR remains open in the current pull-request list and is not part of the latest formal release."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "The issue reports silent DXF omission of ACIS-bearing 3DSOLID/REGION entities on an ACadSharp 3.4.9 route, particularly leaving solid-only blocks empty. It is a route- and version-specific report, not evidence of current v3.8.0 behavior."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/releases",
+      "revision": "latest listed formal release v0.6.4 at 8d5c46d, released 2026-10-11",
+      "observed": "The release notes report generation-specific ACIS silhouette/inline-surface work, strict reads of the supplied corpus, and BricsCAD V20 checks on 18 of 20 generated files. These are release notes, not an independent B-rep semantic report."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust",
+      "revision": "mutable main README reviewed 2026-10-17; current commit not pinned",
+      "observed": "The README advertises R12-R2018+ DXF/DWG, ACIS SAT/SAB parsing and writing, B-rep topology, and primitive builders. This broader main-branch claim is not retroactive evidence for the v0.6.4 package."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "revision": "stable documentation 1.4.5 reviewed 2026-10-17",
+      "observed": "The docs describe SAT/SAB load/export and flat polygonal-face extraction, explicitly state that ezdxf has no ACIS kernel, and warn that curved faces are lost by the mesh projection."
+    },
+    {
+      "project": "GDAL",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "revision": "stable documentation reviewed 2026-10-17; DXF_3D_EXTENSIBLE_MODE added in GDAL 3.10",
+      "observed": "The option retains raw ASM bytes and a column-major 12-value transform for AC1027+ DXF; it does not create OGR solid geometry. The documented DXF writer targets AutoCAD 2004."
+    },
+    {
+      "project": "LibreCAD_3",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "revision": "mutable master policy reviewed 2026-10-17",
+      "observed": "The document says DWG import is opt-in and read-only; its pinned ledger has 15 read claims (11 EXPERIMENTAL, 4 PENDING_NATIVE), none PROMOTED, and no write-direction claims. This is downstream policy, not an upstream runtime result."
+    },
+    {
+      "project": "Local consumer documentation",
+      "url": "README.md",
+      "revision": "local worktree snapshot at baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9; modified worktree content inspected",
+      "observed": "The README records a FreeCAD 1.1.3/macOS 27 ARM64 converter open/insert smoke profile with a generated AC1015 3D LINE and leaves native Linux/Windows profiles unqualified. This research pass did not rerun or independently validate the receipt."
+    }
+  ],
+  "assessment": {
+    "releaseRule": "Record each peer by exact release/commit and operation. A mutable main feature list or unmerged PR does not upgrade the capability of the latest tagged artifact.",
+    "evidenceRoleRule": "Separate reader structure, writer output, carrier retention, source-owner linkage, complete B-rep semantics, and native application acceptance. Self-roundtrip, raw payload, mesh projection, and entity counts are narrower evidence grades.",
+    "lineageRule": "ACadRust, OpenCADStudio, and CADCraft are one codec lineage for parser-vote counting. ACadSharp is a separate structured implementation; ezdxf and GDAL have distinct but bounded DXF/carrier roles.",
+    "consumerRule": "Keep the exact FreeCAD macOS smoke profile separate from native Linux and Windows qualification. LibreCAD_3 remains an opt-in read-only DWG consumer, not a DWG writer acceptance target.",
+    "speedRule": "Do not run every optional peer or full suite per slice. Select at most one exact-pinned comparator at the existing composed checkpoint for a named unresolved question; continue local fast implementation independently."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-current-open-source-dwg-dxf-route-and-release-reconciliation-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-current-open-source-dwg-dxf-route-and-release-reconciliation-2026-10-17.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-current-open-source-dwg-dxf-route-and-release-reconciliation-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "research": "FreeCAD DWG-wrapper success semantics and route pinning",
+  "date": "2026-10-21",
+  "type": "primary-source review; no peer runtime or native CAD executed",
+  "scope": [
+    "Existing PAR-07/S8 FreeCAD consumer qualification gate",
+    "Current FreeCAD DWG converter selection and process-result handling",
+    "Selected FreeCAD DXF importer behavior",
+    "Cross-project DWG/DXF peer report evidence limits"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "finding": "Current convertToDxf invokes LibreDWG as dwg2dxf <input> -o <output>, waits with communicate(), and treats output-file existence as success without checking child return code. Automatic converter selection can continue to ODA and QCAD; ODA is explicitly asked for ACAD2000 DXF."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+      "finding": "The DWG wrapper passes its DXF artifact to importDXF.open, which selects a DXF importer backend and exposes importer statistics."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "finding": "FreeCAD documents distinct C++ and legacy Python DXF importer subsets: the legacy list includes 3DFACE, the C++ list omits it and skips text/dimensions/attributes inside blocks; embedded ACIS/SAT solids are not currently read."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "finding": "Open issue reports malformed DWG-to-DXF spline output using NuGet v3.8.0, but the attached/private source drawing and expected control arrays were not inspected. It is a scenario lead, not a local defect or normative rule."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "finding": "Open issue reports AC1032 output rejected by AutoCAD even when the reporter's MTEXT frame object matched the producer object byte-for-byte, demonstrating that entity-frame equality alone does not establish whole-file acceptance."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1264",
+      "finding": "Open issue describes DWG/DXF TABLE block-cell value differences using repository samples. Treat as a model/route comparison lead; ODA's versioned DWG content grammar remains authoritative."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg",
+      "finding": "LibreDWG is a distinct open-source DWG codec; its advertised version coverage must be evaluated by read/write direction and feature, not as a blanket correctness oracle."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "finding": "ezdxf's drawing add-on documents no 3D rendering engine and no ACIS rendering; its parser and raw SAT/SAB inspection routes do not provide B-rep semantic evidence."
+    }
+  ],
+  "plan_changes": [
+    "For FreeCAD qualification, pin the converter explicitly to the tested libdxfrw-built dwg2dxf and disable automatic fallback to ODA/QCAD.",
+    "Capture converter exit status and stdout/stderr independently because the current FreeCAD wrapper accepts an existing output file without checking the exit code.",
+    "Validate the emitted DXF artifact itself (nonempty, recognized version/encoding, strict structural parse, hash) before scoring FreeCAD import.",
+    "Pin C++ versus legacy Python DXF importer and record backend-specific entity disposition and importer statistics.",
+    "Keep ACIS/SAB semantic qualification separate from stock FreeCAD DXF consumption and retain exact peer artifact/version/direction boundaries."
+  ],
+  "implementation_findings_added": 0,
+  "top_level_subplans_added": 0,
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "runtime_executed": [],
+  "native_cad_run": false,
+  "external_fixture_added": false,
+  "dependency_added": false
+}

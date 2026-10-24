@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-18",
+  "plan_owner": "PAR-20/7G.3",
+  "slice": "DWG LAYOUT viewport count/list typed target and owner closure",
+  "status": "implemented_locally_uncommitted",
+  "spec_evidence": {
+    "source": "/Users/dli/doc/dwg/dwg.pdf",
+    "configured_name_resolution": "The AGENTS.md filename was absent; this local copy has the same SHA-256 as OpenDesign_Specification_for_.dwg_files (1).pdf in the same directory.",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "ODA Open Design Specification v5.4.1, §20.4.84, PDF page 211",
+    "contract": "R2004+ viewport count is RL; handle stream repeats one soft-pointer viewport handle per count."
+  },
+  "implementation": {
+    "decoder_encoder": "Already present in DRW_Layout::parseDwg/encodeDwg; bounded count is at most 10,000 and parsing uses framed handle reads.",
+    "new_adapter_gate": [
+      "DWG count is bounded and equals the retained handle vector length",
+      "each handle resolves to one retained paper-space DRW_Viewport",
+      "a viewport cannot be assigned to multiple LAYOUT lists",
+      "explicit entity owner agrees with the reciprocal paper-space BLOCK_RECORD/LAYOUT pair",
+      "ownerless inference is limited to main ENTITIES plus the unique reciprocal *PAPER_SPACE record"
+    ],
+    "separation": "The list is not used as an assumed index or status mapping to DXF groups 68/69."
+  },
+  "validation": {
+    "strict_target": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "generated_adapter_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dwg-viewport-projection",
+      "result": "PASS",
+      "coverage": [
+        "two paper layouts",
+        "explicit and current-space owner cases",
+        "ASCII/Binary output projection and readback",
+        "count mismatch",
+        "missing target",
+        "wrong entity type",
+        "cross-layout target",
+        "duplicate list entry",
+        "atomic destination preservation"
+      ]
+    },
+    "layout_graph_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --layout-graph-read-contract",
+      "result": "PASS"
+    },
+    "object_vector_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1
+    },
+    "dxf_fixture_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "FAIL",
+      "failures": [
+        "ASCII DXF XDATA output succeeds after same-writer retry",
+        "Binary DXF XDATA output succeeds after same-writer retry"
+      ],
+      "isolated_selector": "build-gcc/libdxfrw_dxf_fixture_tests --block-record-xdata-roundtrip reproduces the same two assertions; the generated AC1021 source has no LAYOUT records."
+    },
+    "sample_probe": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Pool_Detail.dwg -y -d -v2010 /private/tmp/libdxfrw-layout-list-probe.dxf",
+      "observed": "AC1021 reader trace reports Model viewportCount=0 and Layout1 viewportCount=2; whole-file read is partial-observed with one type-509 object failure, so strict conversion stops before adapter preflight.",
+      "result": "PARTIAL_READ_ONLY"
+    },
+    "full_suite": "not_run"
+  },
+  "fixture_policy": "Generated adapter inputs were temporary and locally authored; no external drawing was copied or committed.",
+  "evidence_ceiling": "Typed graph consistency only; no composed conversion, consumer, native, or semantic support claim.",
+  "next_unresolved": "Determine the composed DXF output policy for DWG-only list semantics without conflating them with viewport groups 68/69.",
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "No changes staged or committed."
+}

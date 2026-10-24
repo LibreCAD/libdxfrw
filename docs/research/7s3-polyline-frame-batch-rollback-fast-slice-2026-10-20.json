@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.3 POLYLINE frame-batch rollback fast slice",
+  "mode": "Local implementation slice with generated in-memory controls",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Remove the facade's document-wide writer snapshot from ordinary POLYLINE/VERTEX/SEQEND emission.",
+    "Preserve exact frame, object-map, owner-index, and caller-state rollback after a partial compound write."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter15.h",
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "routes": [
+      "dwgRW::writePolyline",
+      "dwgWriter15::rollbackEntityFrameBatch",
+      "dwgRW::rollbackLastDwgObjectWrite"
+    ],
+    "behavior": [
+      "For dwgWriter15-family writers advertising retained entity rollback, retain compact per-frame checkpoints for a contiguous POLYLINE/VERTEX/SEQEND batch when no emitted handle is explicitly class-associated.",
+      "Validate the object-map suffix, emitted-handle membership, common owner, owner-list suffix, and absence of INSERT references before reverse rollback mutates state.",
+      "Retain the comprehensive snapshot for unsupported writers and class-associated handles; explicit caller transactions continue to own their existing full checkpoint.",
+      "Clear stale retained-frame rollback state after a compound rollback."
+    ],
+    "testChanges": [
+      "Extends the existing --block-owner-membership-index selector with a generated two-vertex polyline, receipt-role checks, zero full-checkpoint assertion, and implicit rollback that preserves an already-written LINE.",
+      "Injects a missing vertex frame receipt and a SEQEND-stage failure; both paths remove all successfully emitted prefix frames and restore parent/vertex caller handles.",
+      "Exercises an enclosing caller-mutation-tracking transaction and asserts exactly its one full checkpoint, with no additional polyline snapshot."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_block_owner_membership_index$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "adjacentFastTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_block_owner_membership_index|libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_block_record_xref_roundtrip|dwg_dxf_issue_1410_cross_codec)$' --output-on-failure",
+      "result": "PASS (4/4)"
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/intern/dwgwriter15.cpp src/intern/dwgwriter15.h src/libdwgr.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receiptJson": {
+      "command": "jq empty docs/research/7s3-polyline-frame-batch-rollback-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "fullCheckpointCallsAssertedForOrdinaryPolyline": 0,
+    "outerTransactionCheckpointCallsExpected": 1,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "newTestsOrCtestRegistrations": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "fullSuiteRun": false,
+    "benchmarkRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The zero-full-checkpoint assertion is deterministic work evidence, not a measured throughput improvement.",
+    "The fast rollback helper intentionally accepts only one-owner batches with no INSERT-reference effects; unsupported writers and explicitly class-associated handles retain full snapshots.",
+    "The shared worktree is broadly dirty and repository Git metadata is read-only; this slice is uncommitted."
+  ],
+  "nextReadinessSlice": "Audit the next locally actionable high-cardinality writer path for a bounded rollback suffix. Keep comprehensive snapshots where deferred ledgers, multiple owners, or INSERT-reference effects cannot be safely isolated."
+}

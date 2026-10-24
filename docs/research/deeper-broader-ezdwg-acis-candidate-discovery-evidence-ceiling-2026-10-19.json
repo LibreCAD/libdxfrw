@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ezdwg ACIS candidate-reference evidence ceiling",
+  "mode": "Primary-source research and evidence-boundary review; plan-only update",
+  "scope": [
+    "Revisit the previously screened ezdwg route after finding its 3DSOLID ACIS-candidate inspection API and tests.",
+    "Separate package release identity from mutable repository source and test outcomes.",
+    "Determine whether candidate ACIS record association constitutes independent ACDS/SAT/SAB semantic evidence.",
+    "Refine optional peer admission without adding fixtures, dependencies, recurring peer builds, or support claims."
+  ],
+  "method": {
+    "kind": "Read-only review of PyPI metadata, project README/docs, public type stubs, and tests",
+    "packageInstalled": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "peerFixtureFilesDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "PyPI metadata identifies immutable package hashes but does not establish source-commit correspondence. Repository tests and README are mutable main-branch sources. Candidate-handle assertions and API self-consistency checks do not establish authoritative ACIS ownership or B-rep semantics. The provenance and license of ezdwg's acadsharp test corpus were not independently examined."
+  },
+  "sources": [
+    {
+      "project": "ezdwg 0.16.3 PyPI release",
+      "urls": [
+        "https://pypi.org/project/ezdwg/0.16.3/"
+      ],
+      "artifactIdentity": {
+        "sdist": {
+          "filename": "ezdwg-0.16.3.tar.gz",
+          "sha256": "77978afa63fdcc61a18abbd581b9bb1cdac09e5a1747840bb689fbd9771b230c"
+        },
+        "macosUniversal2Wheel": {
+          "filename": "ezdwg-0.16.3-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl",
+          "sha256": "50414743576011389c2382c7a129da78cdd0b3bf17af05f3beef88597b7ff0c8"
+        }
+      },
+      "observed": "PyPI lists release 0.16.3 uploaded 2026-10-17, MIT license, macOS universal2 ARM64/x86-64 wheel and source distribution. PyPI reports the upload did not use Trusted Publishing. Project documentation describes a read-focused R13-R2018 DWG parser and an AC1015-only native writer subset.",
+      "evidenceCeiling": "Exact package hashes support artifact pinning; no package was installed or run, and the PyPI artifacts were not mapped to a specific source commit during this pass."
+    },
+    {
+      "project": "ezdwg README and conversion documentation",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/README.md",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/guide/convert.md"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-19",
+      "observed": "The README states that DWG-to-DXF uses ezdxf as the writing backend and that native DWG write targets AC1015 with a bounded entity and object subset. Strict mode reports selected unsupported or undecoded content and attribute loss.",
+      "evidenceCeiling": "Project-declared route and scope only; not independent DXF writer evidence, whole-document preservation, or native application acceptance."
+    },
+    {
+      "project": "ezdwg 3DSOLID ACIS candidate-reference tests and API type stub",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/tests/test_solid3d_document.py",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/src/ezdwg/_core.pyi"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-19",
+      "observed": "The API exposes decode_acis_candidate_infos and high-level candidate records. Tests exercise confidence-scored header-prefers-entity, payload-fallback-header, stream/scan overlap, low-confidence drop, and entity-fallback rules. The AC1032 sample smoke test checks candidate handles against object-map membership and layer handles; it does not parse SAT/SAB topology or validate geometry.",
+      "evidenceCeiling": "Reverse-engineering candidate association only. Candidate edges and confidence fields are hypotheses, not authoritative owner closure, successful ACIS decoding, valid/closed B-rep, or analytic semantic evidence."
+    },
+    {
+      "project": "ezdwg AC1032 sample-consistency tests",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/tests/test_ac1032_samples.py"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-19",
+      "observed": "The test names files under test_dwg/acadsharp and compares bulk decode results with per-type decode results from the same library. The fixture corpus provenance and licensing were not reviewed.",
+      "evidenceCeiling": "Internal API-consistency test only; not independent expected-value evidence. Do not fetch or import the named files without separate provenance review."
+    },
+    {
+      "project": "cq-acis and cad2d-ir route declarations",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/monozukuri-ai/cad2d-ir"
+      ],
+      "revision": "Mutable project documentation reviewed 2026-10-19",
+      "observed": "cq-acis is separately documented as an experimental profile-bounded SAT/SAB parser/converter using CadQuery/OCCT. No reviewed source establishes integration from ezdwg's candidate-link API into cq-acis. cad2d-ir declares its DWG adapter through ezdwg.",
+      "evidenceCeiling": "Separate SAT/SAB parsing and 2D downstream projection do not combine into a qualified DWG-to-B-rep route; cad2d-ir is not an independent DWG parser vote."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "localImplementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 137,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

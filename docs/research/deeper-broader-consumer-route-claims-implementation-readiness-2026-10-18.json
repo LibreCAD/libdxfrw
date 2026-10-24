@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Consumer-route claims and implementation readiness",
+  "mode": "Deeper/broader primary-source and local-harness review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile FreeCAD's documented DXF/DWG consumer paths with current wrapper behavior",
+    "Audit the local FreeCAD-named CTest to define exactly what it qualifies",
+    "Compare open-source reader, writer, and projection routes by operation and evidence layer",
+    "Refine implementation readiness without adding dependencies, fixtures, or routine slow validation"
+  ],
+  "method": {
+    "kind": "Read-only primary-source review plus local test-harness source inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub main/master and project documentation pages are mutable and were reviewed on 2026-10-18 without resolving immutable commits. ACadSharp issue reports are historical route-specific observations, not current-release reproductions. The local CTest was source-inspected but not rerun in this documentation-only pass. No result here establishes native FreeCAD behavior, external semantic correctness, or a DWG/DXF format rule; ODA Open Design Specification v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD Draft DXF and DWG workflow",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable documentation and main source pages reviewed 2026-10-18; no release commit or installed application pinned",
+      "observed": "The documentation distinguishes built-in C++ and optional legacy Python DXF importers, provides different feature lists, states that stock FreeCAD cannot read embedded ACIS/SAT solids, and routes DWG through an external converter followed by the selected DXF importer. Its broad 1:1 DXF/DWG statement is not a normative conversion contract and does not override its documented importer limitations."
+    },
+    {
+      "project": "Local FreeCAD-shaped converter compatibility test",
+      "urls": [
+        "tests/run_freecad_dwg2dxf_compat_test.cmake"
+      ],
+      "revision": "Local shared worktree source inspected 2026-10-18; test not rerun in this research pass",
+      "observed": "The CTest exercises the [input, -o, output] CLI shape, output structure/version, DXF readback, selected explicit refusals, overwrite behavior, and paths. It does not launch FreeCAD, call importDWG.py, select an importer backend, or inspect a FreeCAD document or shape. Its result is CLI compatibility only."
+    },
+    {
+      "project": "ACadSharp version declarations and peer writer reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues/1038"
+      ],
+      "revision": "Mutable repository and issue pages reviewed 2026-10-18; no peer artifact or output reproduced",
+      "observed": "The README's version matrix separates operation/version availability but not per-entity completeness. Issue #1195 reports silent 3DSOLID/REGION omission from an older DXF writer, including solid-only blocks. Issue #1038 records an MESH entity emitted/recognized as ACAD_PROXY_ENTITY in a peer route and references a later fix. These are useful source-identity and output-census test shapes, not local defects or current-release results."
+    },
+    {
+      "project": "ezdxf document/tag and xref/export routes",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "revision": "Mutable master source/documentation reviewed 2026-10-18; no package version or runtime pinned",
+      "observed": "The DXF model contains DXFTagStorage for retained raw tag structures. Its xref operation handles only selected copyable/transformable entities and can ignore unsupported entities without raising. Its export contract says changing the target DXF version does not convert unsupported features and they may be ignored. These operations qualify different evidence layers."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Stable driver documentation reviewed 2026-10-18; no binary/runtime pinned",
+      "observed": "The DXF driver projects records to OGR and may tessellate or omit CAD-specific semantics. Documentation identifies Binary-DXF read support from GDAL 3.12. For AC1027+ the optional 3D extensible mode exposes raw ASMData plus transform and explicitly does not create OGR solids."
+    },
+    {
+      "project": "Open CASCADE ACIS Exchange and cq-acis",
+      "urls": [
+        "https://occt3d.com/components/acis-exchange/",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "revision": "Mutable official component and cq-acis pages reviewed 2026-10-18; the plan's separately pinned cq-acis artifact remains the optional reproducibility candidate",
+      "observed": "Open CASCADE lists ACIS SAT/SAB exchange as a commercial component. cq-acis describes an experimental parser/converter for selected SAT/SAB/ASM profiles and a bounded analytic geometry set, with shape construction through CadQuery/OCCT. It is not an outer DWG/AcDs reader and shares the OCCT kernel family with FreeCAD."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing evidence and acceptance pipeline: the FreeCAD-named fast CTest is explicitly CLI compatibility only; native FreeCAD import is still a separate Linux/Windows composed gate; stock FreeCAD ACIS consumption is not assumed; peer outputs require exact version, route, and per-record disposition; CADMPEG/ACIS parser output, shared OCCT construction, and DWG entity-to-AcDs ownership remain separate. Findings/top-level subplans remain 133/76."
+  },
+  "nextActions": [
+    "Continue local implementation slices without waiting for native FreeCAD, peer, or ACIS semantic routes.",
+    "At the existing composed FreeCAD gate, explicitly select the converter and DXF importer, then record actual application import and per-entity dispositions on separate Linux and Windows cells.",
+    "Keep 2D entities, 3DFACE, mesh/PFACE/POLYMESH, and ACIS-bearing solids as independent profile rows.",
+    "For any peer output, record typed, raw-retained, transformed, omitted, refused, and unsupported records by source identity; do not infer completeness from project matrices or aggregate counts.",
+    "Use only repository-owned fixtures or locally authored temporary controls; add no external drawings to the repository.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

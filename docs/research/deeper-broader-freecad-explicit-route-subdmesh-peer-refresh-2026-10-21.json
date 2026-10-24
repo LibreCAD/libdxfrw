@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-freecad-explicit-route-subdmesh-peer-refresh-v1",
+  "observedAt": "2026-10-21",
+  "title": "FreeCAD explicit-entity route and SubDMesh peer refresh",
+  "evidenceKind": "primary-source review plus existing local consumer observation",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "externalPeerRuntimeRun": false,
+    "nativeCadRuntimeRun": false,
+    "externalDrawingDownloaded": 0,
+    "persistentFixtureAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/yorikvanhavre/CADExchanger",
+      "https://github.com/FreeCAD/FreeCAD-addons/blob/master/AddonCatalog.json",
+      "https://cadexchanger.com/formats/",
+      "https://cadexchanger.com/freecad/",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "docs/3D_SUPPORT_STATUS.md"
+    ],
+    "evidenceRule": "Documentation, source routes, and runtime outcomes are separate evidence. A generic importer fallback, entity count, or peer changelog entry does not establish semantic correctness or a libdxfrw defect."
+  },
+  "evidence": [
+    {
+      "route": "FreeCAD explicit DXF entities",
+      "observed": "FreeCAD documentation lists 3DFACE only for its optional legacy importer and does not list MESH; it says embedded ACIS/SAT solids cannot be read. Current C++ importer source contains a generic-shape fallback for built geometry, but that alone does not establish which entity callbacks are accepted end-to-end. The existing FreeCAD 1.1.3 macOS observation records mixed outcomes: both libdxfrw- and ODA-produced DXFs yielded the same total imported-object count, but the importer reported 38 3DFACE, 69 SOLID, and 22 HATCH entities unsupported and logged entity-read exceptions.",
+      "planUse": "Keep C++ 3DFACE/MESH as NOT_DOCUMENTED until exact runtime qualification. Treat the installed-build observation as partial and sample-bound. Future consumer rows must map each source entity to imported shape/topology, unsupported, skipped, or errored outcomes; aggregate object totals are insufficient."
+    },
+    {
+      "route": "CADExchanger to FreeCAD",
+      "observed": "The third-party FreeCAD addon is present in FreeCAD's addon catalog and describes ExchangerConv conversion through an intermediate BREP. CAD Exchanger documents DWG/DXF and SAT/SAB format support, but its current FreeCAD page says FreeCAD is not supported yet. The converter/application is commercial and the addon is not part of stock FreeCAD.",
+      "planUse": "Classify as an optional THIRD_PARTY_COMMERCIAL_INTEGRATION_CANDIDATE. A run requires an already-authorized installation and pinned addon commit, converter version/hash, OS, command, BREP hash, and FreeCAD result. No installation, purchase, or trial is implied; no stock-FreeCAD, AcDs-association, or independent-kernel claim follows."
+    },
+    {
+      "route": "LibreDWG SubDMesh and security regression prompts",
+      "observed": "LibreDWG NEWS records a DXF SubDMesh binary-import fix (GH #272) and recent 3DSOLID block-size arithmetic hardening. These are peer change notes, not local defect evidence.",
+      "planUse": "Retain the existing generated AC1027 ASCII/Binary MESH round-trip controls as the fast local owner. Do not add fixtures, dependencies, a peer run, or a test registration solely to mirror the peer fixes. Check local size/index boundaries separately from DWG class support and subdivision rendering."
+    }
+  ],
+  "implementationReadiness": [
+    "Keep documentation, current source inspection, and installed runtime evidence in separate S8 columns.",
+    "For each consumer claim, bind source entity handles/types to converter output and record imported shape type, topology, bounds/units, unsupported/skipped/error outcome, and warnings.",
+    "For DWG consumer paths, record converter binary/arguments/exit status and fresh intermediate DXF hash/$ACADVER, then identify FreeCAD build, importer backend, and settings.",
+    "Treat the CADExchanger addon as an optional commercially licensed route only; it cannot qualify the stock dwg2dxf-to-FreeCAD route or AcDs owner/key closure.",
+    "Continue with the existing focused CTests; this research adds no full-suite run, fixture, dependency, or production change."
+  ],
+  "planImpact": {
+    "newLibdxfrwFinding": false,
+    "newTopLevelSubplan": false,
+    "existingS8AcceptancePrecisionImproved": true,
+    "localTestAdded": false,
+    "testRegistrationAdded": false,
+    "fixturesOrDependenciesAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "This was not a new FreeCAD or LibreDWG runtime execution.",
+    "FreeCAD's current code and mutable addon catalog must be pinned before any future runtime qualification.",
+    "The existing consumer observation is one host/build/sample and does not establish general entity support.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

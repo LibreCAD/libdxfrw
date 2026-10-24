@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ProGPU, cadcodec, and cross-peer route-boundary refresh",
+  "mode": "primary-source repository documentation and issue-timeline review; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen newly surfaced open-source CAD repositories for independent DWG/DXF parser or ACIS semantic evidence",
+    "Bind renderer observations to their actual file-format reader lineage and route",
+    "Refresh current ACadSharp issue leads and route each to an existing local finding/subplan without promoting peer reports into local defects"
+  ],
+  "method": {
+    "kind": "Read-only review of primary GitHub repositories, project documentation, and issue discussions",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedThisResearchPass": false,
+    "testCodeChangedThisResearchPass": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ProGPU, cadcodec, and issue sources are mutable/report-authored web sources. ProGPU's renderer/source call path and ACIS decoder were not inspected or executed; cadcodec's source diff against opencadcodec was not inspected. Issue attachments and claimed third-party reproductions were not downloaded or independently reproduced. No claim of exhaustive discovery is made."
+  },
+  "sources": [
+    {
+      "project": "ProGPU",
+      "urls": [
+        "https://github.com/wieslawsoltes/ProGPU",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/browser.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md"
+      ],
+      "revision": "Mutable GitHub main documentation, reviewed 2026-10-18",
+      "observed": "The architecture document assigns CAD file-format object-model ownership to ACadSharp and presentation/rendering to ProGPU. A separate browser sample documents netDxf.netstandard 2.4.0 as a parser assembly. The DXF guide describes a renderer-side SAT/SAB scan including a tagless fixed-layout fallback and projects extracted edges to line segments. Exact current call paths, parser use, ACIS grammar, and runtime behavior were not verified."
+    },
+    {
+      "project": "cadcodec/opencadcodec/ACadRust",
+      "urls": [
+        "https://github.com/compscientific/cadcodec",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Mutable GitHub main pages, reviewed 2026-10-18",
+      "observed": "GitHub identifies compscientific/cadcodec as forked from HakanSeven12/opencadcodec. Its README identifies the crate/API as acadrust 0.5.5 and repeats broad feature/version claims. No release is listed on the reviewed repository page. The code diff and ACIS module lineage were not audited."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1001",
+        "https://github.com/DomCR/ACadSharp/issues/1253",
+        "https://github.com/DomCR/ACadSharp/issues/1261",
+        "https://github.com/DomCR/ACadSharp/issues/1277",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm"
+      ],
+      "revision": "Open GitHub issue pages and Autodesk HATCH reference, reviewed 2026-10-18",
+      "observed": "Issue #1172 remains a private-input AC1032 missing-INSERT report with a possible TableEntity inheritance/count confound raised in discussion, not a proven resolution. #1253's follow-up comment reports group 47 on derived-boundary HATCH records (path flag 92=7), conflicting with the initial zero-pixel-size omission claim; the strict-consumer condition remains unresolved. #1261 is a private R2009 GEODATA class-version-tail report and spec-comparison lead. #1277 reports native AUDIT failures for standalone annotative MLeader context objects without shareable DWG inputs."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newIndependentDwgParserCandidates": 0,
+    "newIndependentAcisSemanticOracles": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 132,
+      "topLevelSubplans": 75
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Classifies cadcodec as an ACadRust/opencadcodec-family fork pending source-diff review; classifies ProGPU as a conditional downstream renderer with route-dependent ACadSharp or netDxf parser lineage and unverified edge-projection claims; refreshes ACadSharp #1172/#1253/#1261/#1277 as non-promoting leads attached to existing PAR-49, 7AH/7Z, PAR-119/7BP, and PAR-07/S8 work. No parser candidate, local finding, implementation subplan, dependency, fixture, test, peer run, support promotion, or J-item transition is added."
+  },
+  "implementationReadyChecks": [
+    "Do not admit a peer route based on repository description, version matrix, fork count, or renderer output; bind exact source commit and effective parser entry point first.",
+    "Treat ProGPU's ACIS edge projection as renderer-only evidence unless source audit and independent expected values establish the exact narrower route; it cannot prove body completeness, topology, volume, or B-rep semantics.",
+    "Count cadcodec with opencadcodec/ACadRust unless a source-level delta is identified and independently tested for a named behavior; separately audit any ACIS parser module before claiming implementation independence.",
+    "Route ACadSharp #1172 to exact runtime type/handle/owner identity and diagnostic checks; do not rely on base-class INSERT counts.",
+    "Keep #1253 HATCH group-47 presence unresolved; use generated factor-isolated profiles, exact output ordering, and a pinned strict consumer before changing writer behavior.",
+    "Keep #1261 on the ODA-backed GEODATA class-version path and #1277 on standalone MLeader context; neither private issue report authorizes peer-derived wire-format changes.",
+    "Preserve locally generated scratch controls only, focused fast tests per changed slice, no routine peer runtime, no external committed drawing, and all six J items as DEFERRED_EXTERNAL."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-progpu-cadcodec-peer-route-boundary-2026-10-18.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-progpu-cadcodec-peer-route-boundary-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-progpu-cadcodec-peer-route-boundary-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

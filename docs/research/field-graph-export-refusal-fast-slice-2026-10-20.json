@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "FIELD graph strict export refusal and destination preservation",
+  "mode": "Generated local adapter implementation and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Verify malformed ACAD_FIELD extension-dictionary owner/target graphs fail strict adapter export.",
+    "Verify ASCII and Binary refusal preserves a pre-seeded destination byte-for-byte.",
+    "Retain the established DXFRW adapter refusal for all typed/raw FIELD and FIELDLIST carrier exports."
+  ],
+  "implementation": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp::rejectIncompleteAutoCadFieldGraph",
+      "tests/dwg2dxf_adapter_tests.cpp::--field-graph-export-refusal",
+      "tests/CMakeLists.txt::libdxfrw_field_graph_export_refusal",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedCases": [
+      "wrong extension-dictionary owner handle",
+      "missing ACAD_FIELD dictionary target",
+      "ASCII and Binary destination-preservation controls",
+      "existing generic FIELD/FIELDLIST typed/raw adapter refusal",
+      "existing in-memory graph negatives for NOD FIELDLIST, child ownership, TABLE and entity dictionary links, and unresolved FIELD references"
+    ],
+    "fixtures": "Only temporary generated DXFs are used; the test removes them through scoped cleanup. No persistent fixture was added.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --field-graph-export-refusal",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(acad_field_writer_candidate|field_graph_export_refusal)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false,
+    "commitStatus": "Not created; Git metadata is read-only in this workspace."
+  },
+  "assessment": {
+    "wrongOwnerRejected": true,
+    "missingFieldTargetRejected": true,
+    "asciiDestinationPreserved": true,
+    "binaryDestinationPreserved": true,
+    "adapterFieldExportEnabled": false,
+    "nativeConsumerSemanticsVerified": false,
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "nextLocalAction": "Continue PAR-20/7G.3 root/owner closure from the next dependency-ready family with a bounded generated control and focused CTest.",
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

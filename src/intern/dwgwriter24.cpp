@@ -45,15 +45,19 @@ bool dwgWriter24::appendR2007StringStream(dwgBufferW& data,
         return true;
     }
 
+    // Keep the string start at the exact data bit boundary. Only the tail
+    // before the size/presence trailer is padded to align the handle stream.
     // The extended trailer stores a 31-bit bit count split as 16 + 15 bits.
+    const unsigned int paddingBits =
+        static_cast<unsigned int>((7u - (data.bitCount() & 7u)) & 7u);
     const std::uint64_t stringBitSize =
-        static_cast<std::uint64_t>(stringBytes) * 8u + 7u;
+        static_cast<std::uint64_t>(stringBytes) * 8u + paddingBits;
     if (stringBitSize > 0x7FFFFFFFULL)
         return false;
 
     if (stringBytes != 0)
         data.putBytes(strings.data().data(), stringBytes);
-    for (int bit = 0; bit < 7; ++bit)
+    for (unsigned int bit = 0; bit < paddingBits; ++bit)
         data.putBit(0);
     if (stringBitSize <= 0x7FFFU) {
         data.putRawShort16(static_cast<std::uint16_t>(stringBitSize));
@@ -97,7 +101,9 @@ bool dwgWriter24::writeDwgHeader() {
         dwgBufferW handleBuf;
         dwgBufferW strBuf;
         // Propagate encode failure: writeDwgHeader reports success as a bool.
-        if (!m_header->encodeDwg(m_version, &dataBuf, &handleBuf, &strBuf))
+        if (!m_header->encodeDwgForWriter(
+                m_version, &dataBuf, &handleBuf, &strBuf,
+                DRW::DwgNamedObjectsDictionaryHandle))
             return false;
         dataBuf.alignToByte();
         strBuf.alignToByte();
@@ -114,9 +120,10 @@ bool dwgWriter24::writeDwgHeader() {
         std::uint32_t bitSize = 32u + static_cast<std::uint32_t>(dataBuf.size()) * 8u;
         m_buf.patchRawLong32(bitSizeOffset, bitSize);
 
-        const std::uint32_t dataStartBit = m_buf.bitCount();
+        const std::uint64_t dataStartBit = m_buf.bitCount();
         m_buf.putBytes(dataBuf.data().data(), dataBuf.size());
-        recordHeaderHandseedOffset(dataStartBit);
+        if (!recordHeaderHandseedOffset(dataStartBit))
+            return false;
         if (handleBuf.size() > 0)
             m_buf.putBytes(handleBuf.data().data(), handleBuf.size());
     }
@@ -191,7 +198,7 @@ bool dwgWriter24::writeDwgClasses() {
     // 159/191-bit base then lands on the marker's first bit.
     m_buf.putBit(1);
     const std::uint64_t endBit =
-        static_cast<std::uint64_t>(m_buf.bitCount())
+        m_buf.bitCount()
         - static_cast<std::uint64_t>(sectionStart) * 8u;
     const std::uint64_t dataStartBit =
         (static_cast<std::uint64_t>(bitSizeOffset) + 4u) * 8u
@@ -231,14 +238,36 @@ bool dwgWriter24::writeDwgClasses() {
 bool dwgWriter24::encodeEntity(DRW_Entity *ent) {
     if (ent == nullptr || objectWriteFailed() || blockControlEmitted())
         return false;
+
+    m_lastEntityWriteCheckpointValid = false;
+    m_lastEntityWriteUsesCompoundCheckpoint = false;
+    m_lastEntityCompoundCheckpoint = {};
+    EntityFrameCheckpoint checkpoint = checkpointEntityFrame();
+    CompoundWriteCheckpoint classCheckpoint;
+    bool hasClassCheckpoint = false;
+    bool frameStarted = false;
+    const auto fail = [this, &checkpoint, &classCheckpoint,
+                       &hasClassCheckpoint, &frameStarted]() {
+        if (hasClassCheckpoint)
+            rollbackCompoundWrite(classCheckpoint);
+        else
+            rollbackEntityFrame(checkpoint, frameStarted);
+        return false;
+    };
+
     if (!prepareEntityEed(*ent)) {
         m_entityEedWriteFailure = !ent->extData.empty();
-        return false;
+        return fail();
     }
     if (ent->handle == 0) {
         ent->handle = m_handles.next();
     } else {
         m_handles.reserve(ent->handle);
+    }
+    if (m_dwgClassInstanceHandleOwners.find(ent->handle)
+        != m_dwgClassInstanceHandleOwners.end()) {
+        classCheckpoint = checkpointCompoundWrite();
+        hasClassCheckpoint = true;
     }
     // Layer name → handle resolution (same logic as dwgWriter15::encodeEntity).
     if (ent->layerH.ref == 0) {
@@ -263,8 +292,50 @@ bool dwgWriter24::encodeEntity(DRW_Entity *ent) {
     }
     prepareBlockOwnedEntity(*ent);
     if (!canRecordBlockOwnedEntity(*ent))
-        return false;
+        return fail();
 
+    // The outer R2018 multiline-attribute pointer is drawing-local. Resolve
+    // it through the APPID identity collected before the APPID table was
+    // emitted, and restore the source-model handle immediately after codec
+    // execution so callers never observe an output handle in their input
+    // object. This belongs in the R2007+ override: AC1032 inherits this
+    // three-stream encoder rather than dwgWriter15::encodeEntity.
+    DRW_Attrib* outerAnnotativeAttribute = dynamic_cast<DRW_Attrib*>(ent);
+    struct OuterAnnotativeAppHandleRestore {
+        DRW_Attrib* attribute {nullptr};
+        std::uint32_t sourceHandle {0u};
+
+        ~OuterAnnotativeAppHandleRestore() {
+            if (attribute != nullptr)
+                attribute->m_r2018OuterAnnotativeAppHandle = sourceHandle;
+        }
+    } restoreOuterAppHandle;
+    if (m_version >= DRW::AC1032 && outerAnnotativeAttribute != nullptr
+        && !outerAnnotativeAttribute->m_r2018OuterAnnotativeData.empty()) {
+        std::string appIdName =
+            outerAnnotativeAttribute->m_r2018OuterAnnotativeAppIdName;
+        if (appIdName.empty()
+            && (outerAnnotativeAttribute->m_r2018OuterAnnotativeAppHandle == 0
+                || outerAnnotativeAttribute->m_r2018OuterAnnotativeAppHandle
+                    == DRW::DwgAcadAppIdHandle))
+            appIdName = "ACAD";
+        const std::uint32_t outputAppHandle = findAppIdHandle(appIdName);
+        if (outputAppHandle == 0) {
+            // A callback-level false is normally a skippable entity. Here it
+            // would silently turn an unsupported APPID identity into a
+            // successful but semantically corrupt drawing, so poison the
+            // writer and make the outer output transaction abort.
+            m_writeError = true;
+            return fail();
+        }
+        restoreOuterAppHandle.attribute = outerAnnotativeAttribute;
+        restoreOuterAppHandle.sourceHandle =
+            outerAnnotativeAttribute->m_r2018OuterAnnotativeAppHandle;
+        outerAnnotativeAttribute->m_r2018OuterAnnotativeAppHandle =
+            outputAppHandle;
+    }
+
+    frameStarted = true;
     beginObject(ent->handle);
     bool ok = false;
     if (m_version > DRW::AC1018) {
@@ -278,14 +349,29 @@ bool dwgWriter24::encodeEntity(DRW_Entity *ent) {
     if (!ok) {
         if (!ent->extData.empty())
             m_entityEedWriteFailure = true;
-        return false;
+        return fail();
     }
     finishObject();
     if (objectWriteFailed())
-        return false;
-    if (!recordBlockOwnedEntity(*ent))
-        return false;
-    return recordBlockInsertReference(*ent);
+        return fail();
+    if (!recordBlockOwnedEntity(*ent, &checkpoint.blockOwnerHandle))
+        return fail();
+    checkpoint.entityHandle = ent->handle;
+    checkpoint.blockOwnedEntityRecorded = true;
+    if (!recordBlockInsertReference(*ent))
+        return fail();
+    if (const auto* insert = dynamic_cast<const DRW_Insert*>(ent)) {
+        checkpoint.insertOwnerHandle = insert->blockRecH.ref;
+        checkpoint.blockInsertReferenceRecorded = m_version > DRW::AC1014;
+    }
+
+    m_lastEntityFrameCheckpoint = checkpoint;
+    if (hasClassCheckpoint) {
+        m_lastEntityCompoundCheckpoint = std::move(classCheckpoint);
+        m_lastEntityWriteUsesCompoundCheckpoint = true;
+    }
+    m_lastEntityWriteCheckpointValid = true;
+    return true;
 }
 
 // --- dwgWriter24::finishObject ----------------------------------------------
@@ -301,10 +387,7 @@ bool dwgWriter24::encodeEntity(DRW_Entity *ent) {
 void dwgWriter24::finishObject() {
     // Keep the R2010+ three-stream writer consistent with the legacy frame
     // assembler: reject duplicate handles before appending a second frame.
-    if (std::any_of(m_objectMap.cbegin(), m_objectMap.cend(),
-                    [this](const auto& entry) {
-                        return entry.first == m_currentHandle;
-                    })) {
+    if (hasEmittedDwgObjectHandle(m_currentHandle)) {
         m_writeError = true;
         return;
     }
@@ -315,9 +398,11 @@ void dwgWriter24::finishObject() {
         m_writeError = true;
         return;
     }
-    // The footer stores strBytes * 8 + 7 bits. Its low size word carries
-    // 0x8000 when the preceding word supplies the upper 16 bits.
-    m_objectBody.alignToByte();
+    // Keep strings contiguous with the scalar data. The footer accounts for
+    // trailing alignment; its low size word carries 0x8000 when the preceding
+    // word supplies the upper 16 bits. Preserve the no-strings framing.
+    if (m_objectStrings.data().empty())
+        m_objectBody.alignToByte();
     const std::uint64_t mergedStringBaseBit = m_objectBody.bitCount();
     if (!appendR2007StringStream(m_objectBody, m_objectStrings, true)) {
         m_writeError = true;
@@ -325,7 +410,7 @@ void dwgWriter24::finishObject() {
         m_objectHandles.reset();
         return;
     }
-    // The short trailer occupies 3 bytes; extended trailers occupy 5 bytes.
+    // The assembled data/string/footer stream ends on a byte boundary.
 
     // --- Byte-align the handle section -------------------------------------
     m_objectHandles.alignToByte();
@@ -387,7 +472,17 @@ void dwgWriter24::finishObject() {
         m_objectHandles.reset();
         return;
     }
-    m_objectMap.emplace_back(m_currentHandle, frameStart);
+    if (!publishDwgObjectMapEntry(m_currentHandle, frameStart)) {
+        m_buf.truncate(frameStart);
+        m_writeError = true;
+        m_currentHandle = 0;
+        m_objectStrings.reset();
+        m_objectHandles.reset();
+        m_lastDwgObjectFrame = {};
+        m_lastDwgObjectFrameValid = false;
+        m_currentDwgObjectFrameProvenance = {};
+        return;
+    }
     markDwgClassInstanceEmitted(m_currentHandle);
     m_currentHandle = 0;
 }

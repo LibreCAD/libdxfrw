@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "QCAD dxflib comparator and lineage screen",
+  "mode": "read-only primary-source research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Broaden the open-source DXF/DWG implementation comparator inventory beyond the peer routes already recorded in the parity plan",
+    "Determine whether standalone QCAD dxflib offers a bounded independent 2D DXF comparison route",
+    "Separate library declarations and observable callbacks from application-level, proprietary, binary-DXF, DWG, and semantic support claims",
+    "Record implementation readiness and cost without expanding required tests or promoting support claims"
+  ],
+  "method": {
+    "sourceTypes": [
+      "Official QCAD dxflib feature, download, overview, and writer documentation",
+      "QCAD-generated public API reference",
+      "Public QCAD source tree and license",
+      "Historical LibreCAD project note used only as an unverified lineage lead"
+    ],
+    "sourceArchivesDownloaded": 0,
+    "peerBuilds": 0,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Official pages and the qcad/qcad master source are mutable and were not resolved to a release archive hash. No exact-source ancestry or copied-code audit, source build, runtime trial, or external drawing test was performed."
+  },
+  "sources": [
+    {
+      "project": "QCAD dxflib",
+      "url": "https://www.qcad.org/es/90-dxflib",
+      "revision": "Official mutable feature page; lists source release 3.26.4; archive SHA-256 not captured",
+      "observed": "Declares reading all DXF format versions for a bounded set of HEADER, table, block, entity, XRECORD, and XDATA content; declares writing DXF R15/AC1015. These are feature claims, not test results or completeness proof."
+    },
+    {
+      "project": "QCAD dxflib",
+      "url": "https://www.qcad.org/en/dxflib-downloads",
+      "revision": "Official mutable download listing",
+      "observed": "Lists the dxflib 3.26.4 source release. Exact archive contents and hash were not fetched."
+    },
+    {
+      "project": "QCAD dxflib API",
+      "url": "https://www.qcad.io/doc/qcad/latest/developer/dl__dxf_8h_source.html",
+      "revision": "Generated mutable API reference; reports DL_VERSION 3.26.4.0",
+      "observed": "Provides public API/version corroboration, but does not establish the exact downloaded archive or runtime behavior."
+    },
+    {
+      "project": "QCAD dxflib",
+      "url": "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+      "revision": "Official legacy documentation page",
+      "observed": "Describes a callback-oriented parser that delivers supported objects to a consumer rather than retaining a complete drawing model."
+    },
+    {
+      "project": "QCAD dxflib",
+      "url": "https://qcad.org/doc/dxflib/2.5/reference/writing.html",
+      "revision": "Official legacy documentation page",
+      "observed": "Documents order-sensitive writer calls and older R12/DXF 2000/2002 profiles. The current feature page lists AC1015 only; exact current release behavior needs direct verification before use."
+    },
+    {
+      "project": "QCAD dxflib source",
+      "url": "https://github.com/qcad/qcad/blob/master/src/3rdparty/dxflib/src/dl_dxf.cpp",
+      "revision": "Mutable qcad/qcad master; not tied to the listed 3.26.4 archive",
+      "observed": "The reviewed readDxfGroups route consumes text group-code/value lines via line-reading helpers and dispatches supported content. This screen did not establish binary-DXF support, raw-group preservation, or a full unsupported-record skip census."
+    },
+    {
+      "project": "QCAD license and product boundary",
+      "url": "https://github.com/qcad/qcad/blob/master/LICENSE.txt",
+      "revision": "Mutable qcad/qcad master license file",
+      "observed": "Identifies dxflib under GPL-2.0-or-later; commercial QCAD add-ons are a separate product component and cannot be used to infer standalone dxflib DWG or extended-DXF support."
+    },
+    {
+      "project": "QCAD product license boundary",
+      "url": "https://www.qcad.org/en/license/",
+      "revision": "Official mutable product page",
+      "observed": "Separates community source from commercial plugin functionality; application-level open/save results would not qualify as dxflib-only evidence."
+    },
+    {
+      "project": "LibreCAD historical project note",
+      "url": "https://forum.librecad.org/libdxfrw-td5707837.html",
+      "revision": "Forum post dated April 2013",
+      "observed": "Describes a historical switch from older dxflib usage to libdxfrw due to maintenance/coverage concerns. This is a lead only; no Git ancestry or source-similarity audit was done."
+    }
+  ],
+  "localCrossCheck": {
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "assessment": "The plan already records multiple peer and consumer routes. Standalone dxflib was not present in the comparator inventory. No local code, tests, or fixture corpus were changed or executed for this research slice."
+  },
+  "implementationDisposition": {
+    "candidate": "DISCOVERY_ONLY / OPTIONAL_ASCII_COMMON_2D_STRUCTURAL_COMPARATOR",
+    "potentialScope": [
+      "ASCII DXF common 2D entities and fields actually exposed through dxflib callbacks",
+      "Optional writer smoke experiment limited to locally generated ASCII AC1015 controls after exact artifact pinning"
+    ],
+    "notQualified": [
+      "Binary DXF",
+      "DWG",
+      "3DSOLID, REGION, BODY, SURFACE, or MESH semantics",
+      "ACAD_TABLE and arbitrary object/reference graph completeness",
+      "unknown or unsupported raw-group preservation",
+      "full document-model round trip",
+      "native CAD acceptance or independent semantic expected values"
+    ],
+    "independence": "UNVERIFIED; exact source history and copied/shared-code audit required before counting as an independent parser vote",
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "queueChanged": false,
+    "validationCadenceChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "localTests": "NOT_RUN (research only)",
+    "peerBuildOrRuntime": "NOT_RUN",
+    "nativeCad": "NOT_RUN",
+    "externalFixtureChanges": 0,
+    "receiptJsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on the plan and receipt paths)"
+  },
+  "evidenceLimits": [
+    "Public feature matrices describe intended coverage but do not provide per-version or per-record execution evidence.",
+    "The current mutable source view was not pinned to the listed release archive, so implementation details may differ in 3.26.4.",
+    "A successful callback parse would establish only projected supported records, not unknown data retention, owner/reference closure, semantic round-trip, or native acceptance.",
+    "QCAD application and proprietary plugin capabilities are excluded from all standalone dxflib claims.",
+    "Historical migration notes do not substitute for a source ancestry or code-similarity audit."
+  ]
+}

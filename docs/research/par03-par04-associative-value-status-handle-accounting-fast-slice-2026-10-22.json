@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-03/PAR-04 associative prefix-status handle accounting",
+  "scope": "Report decoded handle counts at already-bounded associative action value, vertex-action-param, and osnap-point-ref-action-param prefixes.",
+  "files": {
+    "src/drw_objects.cpp": "fbba60102076d559e68c659359d4785f62fbcc3dd2bc10a318bfb3d78a6b928f",
+    "tests/dwg_object_vectors_tests.cpp": "b7c6c00c93d39d6b213c3bf4a228afccdbc5f6e9d5a97c94cefa8e900986242e"
+  },
+  "change": {
+    "summary": "Action value-prefix statuses report the consumed handle-count delta; vertex action-param and osnap point-ref action-param statuses increment counts at each successful handle read.",
+    "wireGrammarChanged": false,
+    "groupCodeAcceptanceChanged": false,
+    "payloadWidthChanged": false,
+    "publicApiOrLayoutChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "generatedControl": {
+    "formatVersion": "AC1024 action values; AC1024 and AC1027 parameter prefixes",
+    "input": "Generated in-memory associative-action vectors covering Real, Int16, Int32, String, XDATA string, XDATA handle-string, and handle-valued variants; generated vertex-action-param and osnap-point-ref-action-param frames.",
+    "checks": [
+      "each complete value-prefix status reports two associated/trailing handle references for scalar and string variants",
+      "each complete handle-valued variant reports three handles, including the value handle",
+      "parent action status reports the per-value handle count plus its two leading object references",
+      "vertex action-param status reports its one consumed dependency handle",
+      "osnap point-ref action-param status covers zero and multiple compound handles, absent/present child parameters, zero/nonzero child IDs, and resulting exact counts 0/2/4/5",
+      "all generated vectors still reach the independent body sentinel"
+    ]
+  },
+  "evidenceCeiling": "Generated vectors verify diagnostics for already-bounded decoder paths only. Targeted lookup in the official ODA v5.4.1 PDF did not identify class-specific associative parameter grammar; no unresolved payload kind, width, or semantic support claim is promoted.",
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_associative_action_value_kinds|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+      "result": "PASS (2/2; 0.25 s)"
+    },
+    {
+      "command": "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par03-par04-associative-value-status-handle-accounting-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "externalProducerOrNativeApplicationRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Continue PAR-03/PAR-04 only when exact field-context evidence supports a specific local correction; otherwise resume a locally evidenced HATCH/DWG semantic or DXF ownership slice. External semantic evidence and native FreeCAD Linux/Windows qualification do not pause local implementation."
+}

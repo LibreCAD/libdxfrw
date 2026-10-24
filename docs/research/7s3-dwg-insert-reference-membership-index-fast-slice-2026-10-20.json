@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-65/7S.3 DWG retained-work and membership audit",
+  "slice": "DWG INSERT reverse-reference membership index",
+  "status": "implemented_locally_uncommitted",
+  "problem": "Each INSERT reverse reference scanned its target BLOCK_RECORD insertHandles vector for duplicates, producing repeated O(I) work as I INSERTs accumulated in one target block.",
+  "implementation": {
+    "files_changed": [
+      "src/intern/dwgwriter15.h",
+      "src/intern/dwgwriter15.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/7s3-dwg-insert-reference-membership-index-fast-slice-2026-10-20.json"
+    ],
+    "details": [
+      "Added a packed 64-bit target-owner/INSERT-handle key in an unordered membership set, preserving duplicate scoping by target BLOCK_RECORD.",
+      "Keep the existing serialized insertHandles vectors and their encounter order; membership admission now avoids rescanning those vectors.",
+      "Bound the aggregate index to MaxDwgReadObjectCount and remove keys when rollback truncates modelspace, paperspace, user-block insert lists, or removes newly created blocks.",
+      "If appending a vector entry throws, erase the tentative membership key before propagating the exception.",
+      "Extended the existing generated owner-index selector with duplicate, per-target scoping, and rollback/retry controls; no DWG/DXF fixture was added."
+    ],
+    "complexity": "For I INSERT references targeting one block, duplicate admission changes from cumulative O(I^2) vector scans to average O(I) total membership work via unordered-set lookups/inserts. The set is capped at 1,000,000 references, matching the existing DWG aggregate object budget. Standard unordered-container worst-case remains linear; no timing benchmark is claimed.",
+    "wire_behavior": "Serialized INSERT list contents, target ownership, encounter order, handle fields, and support claims are unchanged."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "cross_version_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_block_record_xref_roundtrip|libdxfrw_dwg_block_owner_membership_index|libdxfrw_dwg_group_dictionary_controls|libdxfrw_dwg_reader_matrix)$' --output-on-failure",
+      "passed": 5,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "generated_selectors": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_block_owner_membership_index$' --output-on-failure",
+        "result": "PASS (selector includes duplicate, target scoping, and rollback/retry cases)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-block-census",
+        "result": "PASS (positive=8, negative=14)"
+      }
+    ],
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/intern/dwgwriter15.cpp src/intern/dwgwriter15.h tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s3-dwg-insert-reference-membership-index-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    },
+    "not_run": [
+      "full test suite",
+      "sanitizers or fuzzing",
+      "performance benchmark or RSS measurement",
+      "peer executable or independent producer",
+      "native CAD application"
+    ]
+  },
+  "assessment": {
+    "new_format_findings": 0,
+    "new_top_level_subplans": 0,
+    "production_code_changed": true,
+    "tests_added": false,
+    "existing_generated_selector_extended": true,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 141,
+      "top_level_subplans": 78
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next_local_work": "Continue the local 7S.3 membership and retained-work audit; external semantic and platform evidence remains advisory and non-blocking.",
+  "repository_state": "Broadly dirty shared worktree; .git metadata is read-only, so the slice remains uncommitted."
+}

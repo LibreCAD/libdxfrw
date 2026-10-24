@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-plan-research-receipt",
+  "date": "2026-10-16",
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "e9b7cdb0008a67cd4c9cfffd2e0945dc721eaf9c54f98194baf08d81655f47b0"
+  },
+  "question": "Can the 7F.1b generated opaque OBJECT readback slice be specified precisely and implemented without committing a drawing fixture or inventing a DWG body?",
+  "primarySource": {
+    "title": "ODA Open Design Specification for .dwg files",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": {
+      "10.2": "R18+ class-section layout and fields, including class number, proxy flags, names, item-class id, instance count, and version fields",
+      "20.1": "common non-entity OBJECT framing: object size/type, pre-handle data-size boundary, common handle/EED/reactor/xdictionary fields, versioned DataStorage bit, optional string stream, detached handles, padding, and CRC",
+      "20.3": "custom object type maps to the class list by subtracting 500; the class DXF name identifies the class"
+    },
+    "relevantPdfPages": [84, 85, 99, 100, 104, 105]
+  },
+  "repositoryEvidence": {
+    "publicApiBothBuilds": {
+      "standalone": [
+        "src/libdwgr.h:709 registerRawDwgObjectClass",
+        "src/libdwgr.h:712 writeRawDwgObject",
+        "src/libdwgr.h:800 getReadObservations"
+      ],
+      "lockedTargetCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+      "lockedTargetHeaderMethods": [
+        "libdxfrw/libraries/libdxfrw/src/libdwgr.h:566 registerRawDwgObjectClass",
+        "libdxfrw/libraries/libdxfrw/src/libdwgr.h:567 writeRawDwgObject"
+      ],
+      "lockedTargetReadObservationApi": "absent"
+    },
+    "existingGeneratedControl": {
+      "path": "tests/dwg_local_roundtrip_tests.cpp",
+      "builder": "makeLocalRawReplayObject around line 9931 constructs a version-bound custom class body, common object header, string stream, detached handles, and bounded raw bytes",
+      "writerAndReaderControl": "ReadOutcomeControl/runDwgReadOutcomeControls around lines 12529-12647 registers/writes the generated class and asserts standalone readback, one skipped custom class/object, complete frame coverage, and non-retention/export wording"
+    }
+  },
+  "researchConclusion": {
+    "readiness": "ready for a small adapter self-test by extracting/reusing the existing generated control; no new wire recipe required",
+    "targetObservationBoundary": "assert actual callbacks and read disposition; preserve explicit unavailable counters because the locked API has no observation accessor",
+    "standaloneObservationBoundary": "assert exact skipped class/object names and complete frame coverage",
+    "meaning": "opaque carrier/read-disposition evidence only; not custom-class semantics, geometry, cross-version replay, independent peer acceptance, or support parity",
+    "specLimit": "ODA supplies the generic common-object layout, but the custom application's type-specific semantic payload is class-defined and must not be fabricated as proof"
+  },
+  "validation": {
+    "externalPeerRun": false,
+    "newFixtureOrDependency": false,
+    "fullTestSuiteRun": false,
+    "gitDiffCheck": "pass"
+  },
+  "qualification": {
+    "supportClaimsPromoted": false,
+    "externalJItemsChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

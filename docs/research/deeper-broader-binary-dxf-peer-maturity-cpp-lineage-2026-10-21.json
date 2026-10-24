@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Binary-DXF peer maturity and C++ lineage",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile LibreDWG's declared DXB support with its current source warning",
+    "Recheck binary-DXF capability claims and direction-specific version matrices in ACadSharp and ezdxf",
+    "Screen the archived C++ libezdxf project for production and independence eligibility",
+    "Refine existing peer-admission instructions without adding local implementation work"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observation": "Current dwgwrite.c recognizes DXB/DXFB and invokes the binary-DXF reader, but its verbose branch prints that the route is highly experimental and untested. NEWS 0.14 records DXB input/output support and a dxfb.test. These statements establish implementation presence and a test declaration, not broad per-entity correctness or independent qualification."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "observation": "The README advertises Binary/ASCII DXF read/write and provides direction-specific version rows. The table does not supply measured entity-family denominators, opaque-payload retention, or independent acceptance evidence."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/management.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observation": "Project docs declare ASCII/Binary DXF routes and version-specific read/write behavior, including older inputs upgraded to newer internal versions. The drawing add-on does not render ACIS and lacks a 3D rendering engine. Documentation supports candidate route selection only, not independent native or B-rep qualification."
+    },
+    {
+      "project": "libezdxf",
+      "references": [
+        "https://github.com/mozman/libezdxf"
+      ],
+      "observation": "GitHub marks the C++ repository archived/read-only since 2023. Its README calls it a non-production learning project, describes its design as a C++ interface like Python ezdxf, lists ASCII/Binary DXF and raw-tag retention as goals, and explicitly says it has no DWG exporter. It belongs to related ezdxf maintainer/design lineage and is not an independent production comparator."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: make ASCII/Binary encoding and exact peer operation explicit in evidence identity; do not accept LibreDWG DXB as a positive oracle by default",
+      "PAR-144: classify archived libezdxf as design-reference-only under ezdxf lineage; preserve peer artifact/release and route pinning"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Makes Binary-DXF evidence encoding-specific and prevents the current LibreDWG DXB warning or archived related-lineage libezdxf project from being treated as independent positive support. No new local work was identified."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "localPlanAudited": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-binary-dxf-peer-maturity-cpp-lineage-2026-10-21.json"
+    ],
+    "limitations": "Mutable project master/docs were reviewed online. No exact peer commit was executed, no sample was downloaded, and no local parser behavior was changed or newly tested. The reviewed sources do not establish independent semantic or native CAD acceptance."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

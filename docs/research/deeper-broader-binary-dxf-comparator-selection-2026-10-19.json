@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader Binary DXF comparator selection: LibreDWG DXB and GDAL 3.12+",
+  "mode": "Primary-source comparative research and implementation-readiness update; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh Binary DXF comparator options beyond the previously identified narrow dxfscan parser.",
+    "Separate record-codec, OGR projection, and direct binary-to-ASCII translation evidence.",
+    "Update the optional composed-checkpoint decision order without adding routine peer validation or support claims."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Programs.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/dxfb-check"
+      ],
+      "revision": "Mutable NEWS/manual/source reviewed 2026-10-19; NEWS places DXB support in the 0.14 release entry; exact run artifact remains to be pinned.",
+      "observed": "The 0.14 NEWS entry documents DXB input/output for dwgread, dwgwrite, and dwg2dxf, DXB output for dxfwrite, and a dedicated dxfb.test. The dxfb-check helper may compose LibreDWG with ODA File Converter, so any such result must identify the converter stage separately. LibreDWG's own DWG/DXF version and direction limits remain operation-specific."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Stable driver documentation reviewed 2026-10-19; binary DXF support is documented as added in GDAL 3.12.",
+      "observed": "The DXF driver reads Binary DXF starting in 3.12 and documents a direct binary-to-ASCII conversion path. OGR projects a selected geometry/entity subset; optional RawCodeValues covers unhandled codes, not the full original document. AC1027+ 3D extensibility exposes raw ASM data and a transform, not B-rep semantics."
+    },
+    {
+      "project": "xorgy/dxfscan",
+      "urls": [
+        "https://github.com/xorgy/dxfscan"
+      ],
+      "revision": "Mutable repository page reviewed 2026-10-19.",
+      "observed": "Remains a narrow source-level parser lead with an Unknown fallback; this pass found no release/test evidence that makes it preferable to the more established optional comparator routes for general Binary-DXF questions."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-07/S8 generated ASCII/Binary DXF strict-reopen and carrier controls",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing optional GDAL route and Binary-DXF peer boundaries",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: fixture policy requiring generated local controls and excluding downloaded peer drawings",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: native FreeCAD and independent ACIS/AcDs conditions remain separate external gates"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a question-driven optional Binary-DXF comparator order: LibreDWG DXB for codec-level record questions, GDAL 3.12+ for its supported projection or direct translation boundary, and dxfscan only as a last-resort low-level source comparator. No route is a full-document or ACIS semantic oracle."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalSampleDownloads": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-binary-dxf-comparator-selection-2026-10-19.json"
+    ],
+    "limitations": "The LibreDWG NEWS, manual, and helper script are mutable references; pin and verify the exact source/package at execution time. GDAL stable documentation establishes project-declared route scope, not an executed local parse. No peer artifact, Binary-DXF control, or native consumer was run."
+  },
+  "implementationReadyChecks": [
+    "Run no peer in an ordinary local implementation slice; keep local generated ASCII/Binary strict-reopen controls as the routine gate.",
+    "For an unresolved Binary-DXF record grammar/encoding question, pin a LibreDWG 0.14-series revision that contains dxfb.test and compare normalized typed fields and per-record disposition on a locally generated minimal control with a following-record sentinel.",
+    "For a supported geometry projection or direct binary-to-ASCII boundary, use only a pinned GDAL 3.12+ build; set raw-code, block inlining, encoding, geometry approximation, and 3D options explicitly as applicable.",
+    "Treat LibreDWG and GDAL output as route-specific differential evidence, not full-document preservation, DWG parity, owner-graph closure, ACIS semantics, or native acceptance.",
+    "Use dxfscan only when a named low-level question remains unanswered, and only after its source revision and buildability are pinned.",
+    "Create all controls locally from scratch in temporary storage; add no downloaded/third-party fixture, runtime dependency, routine CTest, or full-suite cadence change.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL until their existing exact external/platform or independent semantic conditions are separately satisfied."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-binary-dxf-comparator-selection-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-binary-dxf-comparator-selection-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "1041efa1b6168005a573ef6496e955bb02a4ac420fd8744a4b8a33d1564499af"
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-03 associative value-kind unassigned spans",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": "Keep general-unassigned DXF group-code spans 150-159 and 240-269 untyped in the associative value-kind helper rather than inheriting adjacent numeric ranges.",
+  "evidence": {
+    "primarySourceReviews": [
+      {
+        "receipt": "docs/research/par03-dxf-150-159-180-209-unknown-binary-raw-fast-slice-2026-10-21.json",
+        "finding": "The cited Autodesk general type and numerical references leave 150-159 and 180-209 without a general assignment."
+      },
+      {
+        "receipt": "docs/research/par03-image-background-240-259-fast-slice-2026-10-21.json",
+        "finding": "The cited Autodesk references document 210-239 and resume at 270-279, leaving 240-259 without a general assignment."
+      },
+      {
+        "receipt": "docs/research/par03-dxf-260-269-unknown-fast-slice-2026-10-21.json",
+        "finding": "The cited Autodesk references leave 260-269 without a general assignment; contextual or producer-private uses remain possible."
+      }
+    ],
+    "priorClassifierMismatch": "resbufValueKind inherited Int64 for 150-159 and Point3d for 240-269 from broad adjacent ranges.",
+    "scopeLimit": "No class-specific AcDbEvalVariant body grammar or producer interpretation is established by these general DXF code-table sources."
+  },
+  "changes": {
+    "files": [
+      "src/intern/dwgvaluekind.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "classifier": "150-159 and 240-269 now return Kind::Invalid; assigned neighbors 149/160, 239/270 retain their existing categories.",
+    "generatedControls": "Boundary matrix plus AC1024 refusal vectors for 150, 159, 240, 259, 260, and 269 carry counterfactual payload bytes matching the prior guessed Int64/3D-point categories.",
+    "publicLayoutOrCallbackChanged": false,
+    "dwgWriterOrWireBytesChanged": false,
+    "persistentFixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --associative-action-value-kinds",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_action_value_kinds$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|dwg_associative_failed_frame_retention)$' --output-on-failure",
+      "result": "PASS (2/2; 0.23 s)"
+    },
+    {
+      "command": "git diff --check -- src/intern/dwgvaluekind.h tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    {
+      "command": "! rg -n '[[:blank:]]+$' src/intern/dwgvaluekind.h",
+      "result": "PASS"
+    }
+  ],
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "freecadLinuxWindowsQualification": "OPEN",
+    "independentAcisAcdsSemanticEvidence": "OPEN"
+  },
+  "repositoryState": {
+    "commitStatus": "UNCOMMITTED",
+    "reason": "The shared worktree is broadly dirty; no unrelated files were staged."
+  },
+  "selfUnblockingContinuation": "Continue exact-source associative value-code/context review only where a documented general type and class-specific DWG grammar are established; otherwise take the next locally evidenced HATCH or DWG semantic gap."
+}

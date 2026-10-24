@@ -45,7 +45,7 @@ constexpr std::uint32_t SCHEMA_PROPERTY_TYPE_COUNT = 16;
 constexpr std::uint32_t SCHEMA_PROPERTY_NO_NAME = 0xffffffffu;
 //! Hard ceiling on declared index counts (malicious/absurd inputs).
 constexpr std::uint32_t HARD_MAX_ENTRIES = 1000000u;
-//! Retain record payload bytes only when the full section is within this size.
+//! Maximum section size and aggregate retained record-payload copy budget.
 constexpr std::size_t PAYLOAD_BLOB_SECTION_CAP = 8u * 1024u * 1024u;
 } // namespace DRW_DataStorageConst
 
@@ -202,16 +202,19 @@ struct DRW_DataStorageSection {
     std::int32_t previousSaveIndex = -1;
     std::uint32_t fileSize = 0;
     std::size_t sectionByteLength = 0;
+    //! True only when every record payload was retained under the aggregate cap.
     bool payloadsRetained = false;
     std::vector<DRW_DataStorageSegment> segments;
     std::vector<DRW_DataStorageIndexEntry> dataIndexEntries;
-    //! The first and second reference tables from the schidx segment.
+    //! ODA §24.2.2.5 first-table count and schema-index unknown field.
     std::uint32_t schemaIndexUnknownPropertyCount = 0;
     std::uint32_t schemaIndexUnknown1 = 0;
     std::uint64_t schemaIndexTag = 0;
     std::uint32_t schemaIndexPropertyEntryCount = 0;
     std::uint32_t schemaIndexUnknown2 = 0;
+    //! Schema-data references from the second schidx table.
     std::vector<DRW_DataStorageSchemaIndexEntry> schemaIndexEntries;
+    //! Opaque schema-property header references from the first table.
     std::vector<DRW_DataStorageSchemaIndexEntry> schemaPropertyEntries;
     //! Unknown-property headers and schemas decoded from schdat.
     std::uint32_t schemaUnknownPropertyCount = 0;
@@ -290,10 +293,26 @@ DRW_DataStorageSection DRW_parseDataStorage(
     std::size_t size,
     DRW::Version version = DRW::UNKNOWNV);
 
+//! Parse only the bounded typed index and record metadata when payload bytes
+//! are not needed by the caller (for example, writer preflight validation).
+DRW_DataStorageSection DRW_parseDataStorage(
+    const std::uint8_t* data,
+    std::size_t size,
+    DRW::Version version,
+    bool retainPayloads);
+
 inline DRW_DataStorageSection DRW_parseDataStorage(
     const std::vector<std::uint8_t>& data,
     DRW::Version version = DRW::UNKNOWNV) {
     return DRW_parseDataStorage(data.data(), data.size(), version);
+}
+
+inline DRW_DataStorageSection DRW_parseDataStorage(
+    const std::vector<std::uint8_t>& data,
+    DRW::Version version,
+    bool retainPayloads) {
+    return DRW_parseDataStorage(data.data(), data.size(), version,
+                                retainPayloads);
 }
 
 #endif // DRW_DATASTORAGE_H

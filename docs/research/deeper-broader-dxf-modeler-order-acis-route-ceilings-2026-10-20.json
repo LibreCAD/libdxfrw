@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF modeler group-order tolerance and open-source ACIS route ceilings",
+  "mode": "deeper/broader primary-source research and implementation-readiness refinement",
+  "scope": [
+    "Cross-check DXF modeler group/subclass assumptions against Autodesk references",
+    "Inspect existing local modeler parser/writer controls for legal field-order coverage",
+    "Reconcile current open-source ACIS parser, carrier, kernel, and consumer boundaries",
+    "Specify the next fast, generated-only implementation test without changing validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF common entity group-code guidance",
+      "reference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "status": "official_documentation_reviewed_2026-10-20",
+      "observation": "The order in group-code tables is typical, not guaranteed. The guidance does not authorize reordering ordered payload chunks or crossing entity subclass scopes."
+    },
+    {
+      "project": "Autodesk DXF 3DSOLID reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "status": "official_documentation_reviewed_2026-10-20",
+      "observation": "3DSOLID has modeler subclass/version and proprietary group-1/3 content followed by AcDb3dSolid history handle group 350. This describes the DXF record, not B-rep semantics."
+    },
+    {
+      "project": "Local libdxfrw parser and generated modeler tests",
+      "references": [
+        "src/drw_entities.cpp:DRW_ModelerGeometry::parseCode",
+        "src/libdxfrw.cpp:dxfRW::processModelerGeometry",
+        "tests/modeler_dxf_writer_matrix_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "status": "read_only_source_and_test_inventory_reviewed_2026-10-20",
+      "observation": "The switch-based parser retains ordered group-1/3 chunks, group-350 history, and proxy group-310 bytes distinctly. The generated modeler matrix now includes a legal AC1027 field-order variation and an odd-length group-310 negative control, asserting history/proxy/payload values and following LINE coordinates. This is a test-coverage improvement, not a reproduced bug."
+    },
+    {
+      "project": "Open Cascade OCCT Components preview",
+      "reference": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "status": "official_project_source_reviewed_2026-10-20",
+      "observation": "The vendor describes ACIS SAT/SAB exchange as a commercial OCCT component, not an open-source-core importer."
+    },
+    {
+      "project": "cq-acis 0.3.12",
+      "reference": "https://pypi.org/project/cq-acis/0.3.12/",
+      "sourceCommit": "e05a8f470d2f6799277f7b7df467d2fc35625889",
+      "status": "pinned_release_metadata_and_project_scope_reviewed_2026-10-20",
+      "observation": "The project documents experimental, profile-limited SAT/SAB parsing and CadQuery/OCCT shape conversion. PyPI provenance binds the package to a source revision; this does not make it an independent kernel from FreeCAD or a DWG/AcDs reader."
+    },
+    {
+      "project": "FreeCAD Draft DXF guide",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "status": "current_project_documentation_reviewed_2026-10-20",
+      "observation": "The stock importer documentation says DXF ACIS/SAT solids are not read; the DWG path depends on conversion to DXF and a selected importer backend."
+    },
+    {
+      "project": "ezdxf ACIS interface",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "status": "current_project_documentation_reviewed_2026-10-20",
+      "observation": "Carrier parsing and a limited ACIS subset are documented, with unsupported records not constituting arbitrary B-rep semantics."
+    },
+    {
+      "project": "LibreDWG 0.14.1 NEWS",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "status": "release_documentation_reviewed_2026-10-20",
+      "observation": "The release notes continue to describe R2013+ AcDsPrototype_1b SAB extraction as incomplete/not fully reliable. Current source work is not equivalent to released, independently qualified owner/key/payload association."
+    },
+    {
+      "project": "ACadSharp issue #1195",
+      "reference": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "status": "version_specific_peer_report_reviewed_2026-10-20",
+      "observation": "The report describes ACadSharp 3.4.9 omitting DWG-read 3DSOLID/REGION entities from DXF output, including solid-only blocks. It is not a current-release test or local defect reproduction."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 142,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_PLUS_GENERATED_FAST_SLICE",
+    "implementationSummary": "Added a scratch-generated AC1027 DXF parser-order control to the existing modeler matrix. It verifies within-subclass field ordering, ordered payload chunks, group-310 proxy separation, group-350 history, malformed-chunk refusal, and following-entity continuity. No production behavior, support claim, dependency, or validation cadence changed.",
+    "nextImplementation": "Continue with the existing AC1027+ per-body block/INSERT and AcDs owner/key/payload disposition work; keep external semantic and native-platform gates at their composed checkpoints.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": true,
+    "testChange": "tests/modeler_dxf_writer_matrix_tests.cpp: generated legal noncanonical field-order control plus malformed group-310 negative control",
+    "targetedValidation": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2: PASS",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix: PASS",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_modeler_dxf_writer_matrix$' --output-on-failure: PASS (1/1, 0.29s)",
+      "git diff --check -- scoped plans and modeler test: PASS"
+    ],
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "tests/modeler_dxf_writer_matrix_tests.cpp",
+      "docs/research/deeper-broader-dxf-modeler-order-acis-route-ceilings-2026-10-20.json"
+    ],
+    "limitations": "Autodesk group-order guidance is general and does not define all subclass-specific ordering rules. The peer sources are project documentation/issues; package provenance is not correctness evidence. No external input, peer build/runtime, or native CAD/kernel was run."
+  },
+  "validation": {
+    "jsonValidation": "jq schema/claim/J-status check passed",
+    "scopedDiffCheck": "git diff --check passed for both plans and the modeler test; the receipt was validated with jq",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitNote": "Research and generated local test update in a broadly dirty shared worktree; no commit attempted."
+  }
+}

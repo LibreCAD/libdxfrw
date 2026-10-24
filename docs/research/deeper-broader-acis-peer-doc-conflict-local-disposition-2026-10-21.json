@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw-acis-peer-doc-conflict-local-disposition-v1",
+  "title": "ACIS peer status, ezdxf documentation conflict, and local disposition audit",
+  "date": "2026-10-21",
+  "status": "research_and_fast_implementation_slice",
+  "repository": "LibreCAD/libdxfrw",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "kind": "Primary-source web review plus local source/test audit",
+    "peerSourceRevisionsPinned": false,
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "localEzdxfAvailability": "not installed: python3 import failed with ModuleNotFoundError; no install or network fetch attempted",
+    "externalDrawingsDownloaded": 0,
+    "scratchGeneratedDrawings": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1150",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/faq.html",
+      "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454"
+    ],
+    "evidenceRule": "Mutable peer reports and documentation establish only their named revision, declared API, or reported loss shape. No current release behavior, independent semantic correctness, B-rep validity, or native application acceptance is established without pinned execution and independent checks."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG AcDs loss report and source boundary",
+      "observed": "Issue #1411 remains open and reports R2018 SAB loss for LibreDWG 0.14.8593 at commit 8a1ae764. The report distinguishes the surviving entity shell from payload carried in AcDb:AcDsPrototype_1b. Current master source contains an R2007+ AcDs-section read path, while NEWS describes remaining datastore/extraction limitations.",
+      "doesNotEstablish": [
+        "That the issue's exact generated repro fails on a later source revision",
+        "Complete current-master AcDs parsing, owner/key association, or writing",
+        "Valid ACIS geometry or independent B-rep semantics"
+      ],
+      "planUse": "At the existing optional checkpoint only, pin exact source and binary and inspect section, entity-to-owner/key join, exact payload, and strict reread on temporary locally generated input."
+    },
+    {
+      "topic": "ACadSharp writer reports and proposals",
+      "observed": "Issue #1195 remains open and reports silent omission in ACadSharp 3.4.9. PRs #1150 and #1240 remain open; #1150 proposes writing modeler payloads to DXF/DWG, while #1240 proposes ACIS-dependent entity writing and depends on #1174. GitHub reports #1240 as undeployed. PR #1174 remains open, and its Aug 12 branch-test comment reports the owner-payload test failed at readAcdsRecord with NotImplementedException.",
+      "doesNotEstablish": [
+        "Current behavior on ACadSharp master or a current release",
+        "Merged/deployed completion of any proposed fix",
+        "A local libdxfrw defect or semantic ACIS correctness",
+        "Public availability of the issue's customer DWGs"
+      ],
+      "planUse": "Keep these as version/branch-specific evidence and retain local per-entity, per-block, payload, and readback disposition checks. Do not fetch the customer drawings."
+    },
+    {
+      "topic": "ezdxf API documentation conflict and bounded generation route",
+      "observed": "The specific ACIS API page documents body_from_mesh() and export_dxf() for known polyhedra, SAT for DXF R2000-R2010 and SAB for R2013/R2018. The same page limits parsing to a subset and explicitly states that ezdxf has no ACIS kernel and cannot round-trip arbitrary ACIS. The FAQ conflicts by saying only SAT can be written and no ACIS creation is provided. The drawing add-on does not render ACIS and has no 3D engine.",
+      "doesNotEstablish": [
+        "Exact behavior of an unpinned local ezdxf artifact",
+        "Arbitrary ACIS read/write support",
+        "Independent semantic validation when the same package generated and parsed the carrier",
+        "Curved B-rep support, kernel validity, or native consumer acceptance"
+      ],
+      "planUse": "Prefer the specific API reference over the stale FAQ for the existing optional generator; pin package/runtime and capture emitted version, SAT/SAB type, parameters, and exact hash. Use a distinct admitted reader plus independently computed expectations for semantics."
+    },
+    {
+      "topic": "Stock FreeCAD consumer boundary",
+      "observed": "Official Draft DXF documentation says embedded ACIS solids cannot currently be read by stock FreeCAD's DXF import path; issue #18454 discusses the proprietary ACIS blob boundary.",
+      "doesNotEstablish": [
+        "Any ACIS semantic support in stock FreeCAD",
+        "Linux or Windows native 3D qualification",
+        "An independent open-source ACIS kernel"
+      ],
+      "planUse": "Keep native FreeCAD checks scoped to explicit 2D/entity conversion; gate any ACIS-capable consumer separately."
+    },
+    {
+      "topic": "Local typed writer matrix audit",
+      "observed": "tests/modeler_dxf_writer_matrix_tests.cpp already exercises 3DSOLID, REGION, and BODY over ASCII and Binary DXF for AC1015, AC1018, AC1021, AC1024, and AC1027; it verifies record tags/readback and a following LINE. Marker payloads establish carriage and boundary behavior only. Surface round-trip cases are separate.",
+      "doesNotEstablish": [
+        "Valid SAT/SAB semantic content",
+        "Universal DWG/DXF modeler support",
+        "Downstream CAD rendering or solid construction"
+      ],
+      "planUse": "Close the one-time audit with no duplicate BODY case or new CTest lane; preserve the existing fast matrix as typed-carrier and record-boundary evidence."
+    }
+  ],
+  "implementation": {
+    "slice": "AC1027 block modeler history-proxy closure after strict replay",
+    "filesChangedForSlice": [
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "assertionsAdded": [
+      "Unique expected history, evaluation-graph, and operation proxy handles and class ids",
+      "Solid-to-history ownership and complete proxy parent/reference chain",
+      "Exact bounded opaque payload bit sizes and marker bytes for each proxy",
+      "Terminal material reference, material owner, and ByLayer dictionary entry closure",
+      "Closure on both initial import and strict re-export/readback"
+    ],
+    "semanticClaimPromoted": false,
+    "persistentFixtureAdded": false,
+    "writerAuditOutcome": "Existing modeler matrix covers all typed modeler families; no new positive writer test required."
+  },
+  "validation": {
+    "owningTargetBuild": "passed: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "directBlockProjectionSelector": "passed: --modeler-acds-block-projection",
+    "focusedCTest": "passed: dwg2dxf_modeler_acds_block_projection and dwg2dxf_modeler_dxf_writer_matrix (2/2)",
+    "companionMultipleDataStorageSelector": "passed: --dxf-acds-multiple-data-storage",
+    "gitDiffCheckPassed": true,
+    "testsRun": true,
+    "peerOrNativeRuntimeRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "readinessSequenceUpdated": true,
+    "newTestRegistrations": 0,
+    "newDependencies": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "Peer repositories and mutable documentation were not pinned to immutable source revisions.",
+    "No peer or native runtime was installed or run.",
+    "The generated polyhedron candidate was not executed; no generated input was added.",
+    "The optional ezdxf generator was unavailable locally; the implementation self-unblocked to existing local tests and plan work.",
+    "The shared worktree is broadly dirty and the slice is uncommitted; unrelated state was not staged or altered.",
+    "The six deferred external items remain non-promoting."
+  ]
+}

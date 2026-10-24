@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader comparator route, capability-matrix, and throughput screen",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare current open-source DWG/DXF project capability statements by operation and version",
+    "Identify bounded optional tools for raw, owner-bound, and large-file DXF comparison",
+    "Refine comparator routing without increasing per-slice validation cost"
+  ],
+  "method": {
+    "kind": "Read current project READMEs, documentation, capability tables, and local plan inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Project README/version matrices and mutable branch documentation are capability-discovery evidence only. No peer artifact was pinned or executed, and no runtime semantic conclusion is claimed. The optional ezdxf utilities have deliberately narrower scope than a full document/graph or native-consumer check."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/AGENTS.md"
+      ],
+      "revision": "Mutable project README/manual/guidance reviewed 2026-10-18",
+      "observed": "The project documents DWG↔DXF converter coverage estimates and a version-limited DXF-to-DWG route; its manual describes DWG writer version caveats. Its prepared-feature comparison, ODA conversion tests, and dwgrewrite self-reread are distinct evidence paths."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable README and four-column DXF/DWG read/write matrix reviewed 2026-10-18",
+      "observed": "The README claims separate DXF and DWG reader/writer support by AC code; AC1012 is DXF-only, AC1021 is listed read-only for DWG, and AC1024/AC1027/AC1032 are listed for both directions. This is not tied to a tested immutable release in this research pass."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Mutable README and documentation reviewed 2026-10-18",
+      "observed": "The project documents ASCII/Binary DXF version support, an optional iterdxf modelspace iterator for files larger than memory, and a minimal R12 direct writer with a restricted document scope. Its loader separates raw tag/entity creation from later section and owner/layout binding; its information and audit/recovery commands do not represent the same raw/strict route."
+    },
+    {
+      "project": "LibreCAD_3 and LibreCAD bundled libdxfrw inventory",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md"
+      ],
+      "revision": "Current mutable project docs reviewed 2026-10-18",
+      "observed": "LibreCAD_3 documents optional read-only DWG import and no DWG writing. The bundled-fork inventory calls itself a deterministic source inventory rather than byte-level conformance and marks route evidence as fixture-needed."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing composed comparator checkpoint: choose a peer by exact operation/version; distinguish raw DXF tags, owner-bound graph, and consumer semantics; optionally use streaming tools only for their documented narrow scope. No new required step, dependency, or per-slice validation was added."
+  },
+  "implementationReadyChecks": [
+    "Pin repository and immutable artifact/revision before consuming any peer result; record operation, direction, format version, entity/carrier, options/backend/platform, expected manifest, per-identity disposition, diagnostics, and recovery state.",
+    "Use LibreDWG only for an overlapping exact route and do not interpret its aggregate percentages or same-implementation reread as libdxfrw qualification.",
+    "Use ACadSharp's version matrix for discovery only; confirm the exact installed release and tested route before drawing a compatibility conclusion.",
+    "Use ezdxf raw browsing/ordinary reads for DXF structural comparison; keep recovery/audit separate and compare owner-bound document behavior separately from raw tags.",
+    "At the existing composed checkpoint only, optionally use iterdxf for a large modelspace census or its R12 writer for an ENTITIES-only case; neither proves full document graph closure.",
+    "Do not add peer dependencies, external drawing fixtures, new CI jobs, or peer/native runs to ordinary implementation slices.",
+    "Keep LibreCAD_3 2D consumer compatibility separate from DWG writing, 3D projection, and ACIS semantic claims; retain all six external J items as deferred and non-promoting."
+  ]
+}

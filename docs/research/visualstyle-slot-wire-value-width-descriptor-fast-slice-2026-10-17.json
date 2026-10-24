@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "VisualStyle candidate group-code value-width descriptor guard",
+  "mode": "local manifest/test hardening",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bind candidate VISUALSTYLE source fields and candidate DXF group codes to the generic value types declared by Autodesk's DXF group-code table",
+    "Check group presence against the existing R2010 specified/unresolved/not-applicable partition",
+    "Retain all R2013b slot mappings and serializer admissions as unresolved"
+  ],
+  "implementation": {
+    "testOwner": "libdxfrw_visualstyle_slot_manifest",
+    "source": "tests/check_visualstyle_slot_manifest.py",
+    "candidateManifest": "docs/research/visualstyle-slot-map-readiness-2026-10-15.json",
+    "evidenceGrades": "docs/research/visualstyle-slot-evidence-grades-2026-10-16.json",
+    "sourceFieldCount": 58,
+    "genericDxfGroupValueTypes": {
+      "string": [1],
+      "float64": [40, 41, 42, 43, 44],
+      "int16": [62, 63, 64, 65, 66, 67, 71, 72, 73, 74, 75, 76, 77, 78, 79, 170, 171, 173, 175, 176],
+      "int32": [90, 91, 92, 93],
+      "boolean": [290]
+    },
+    "autodeskReference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "assertions": [
+      "every non-null R2010, R2013b candidate, peer companion, and importer-candidate group has a recognized generic value-type range",
+      "R2010 specified and unresolved slots have group candidates; not-applicable extension slots do not",
+      "each R2013b candidate slot retains a candidate code while its semantic assignment remains unresolved",
+      "all R2013b serializer admissions remain unresolved and serializer admission remains denied"
+    ],
+    "productionCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j2",
+    "buildResult": "PASS",
+    "focusedTests": "ctest --test-dir build-gcc -R '^libdxfrw_(dwg_object_vectors|visualstyle_slot_manifest)$' --output-on-failure",
+    "focusedTestsResult": "PASS (2/2, 0.11 seconds)",
+    "scopedDiffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "peerRuntime": "NOT_RUN",
+    "nativeCad": "NOT_RUN"
+  },
+  "planImpact": {
+    "existingFindingAndSubplanOnly": true,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "candidateGroupValueWidths": "LOCALLY_CHECKED",
+    "R2013bSlotSemantics": "UNRESOLVED",
+    "CMCOutputPolicy": "UNRESOLVED",
+    "visualStyleSerializerAdmission": "DENIED",
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "evidenceLimits": [
+    "Autodesk's generic group-code ranges establish only the encoded value type/width associated with a code, not the meaning of that code at a particular VisualStyle slot.",
+    "The R2013b group assignments remain LibreDWG-derived candidates; same primary tag sequence observations do not establish producer semantics.",
+    "This guard does not resolve groups 31/33/45, group-176 companion meaning, group 177, CMC encoding, owner closure, or native acceptance.",
+    "The existing manifest/vector checks and this type-width guard do not enable a VisualStyle serializer or promote DWG/DXF support."
+  ]
+}

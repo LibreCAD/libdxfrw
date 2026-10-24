@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-polyline-allocation-request-envelope-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Calibrate existing POLYLINE staging node and bucket-pointer-array estimates against allocator-requested bytes for production-shaped STL containers, without changing production behavior or claiming an RSS bound.",
+  "method": {
+    "kind": "Focused generated in-memory test with a rebind-aware accounting allocator",
+    "productionFilesChanged": [],
+    "testFilesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiChanged": false,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "platformsQualified": [
+      "Local GCC build and active standard-library implementation only"
+    ]
+  },
+  "implementation": {
+    "trackedShapes": [
+      "std::map<Handle, std::set<Handle>> claim index with the production key/value shapes",
+      "pending owner unordered_map with the exact PendingPolylineState mapped value",
+      "orphan owner unordered_map with the exact OrphanPolylineVertexState mapped value"
+    ],
+    "observed": "Rebind-aware test allocator records live, peak, and call counts for requested allocate(n) bytes across each container's allocator rebinds.",
+    "assertions": [
+      "The existing conservative claim-map/set node estimates cover the active STL's measured peak requested bytes for the generated population.",
+      "The existing pending/orphan node plus full current bucket-pointer-array estimate covers measured peak requested bytes when insertion does not rehash.",
+      "Clear releases tracked tree nodes and owner-map nodes while retaining no more than the modeled bucket requests; container destruction releases all tracked requests."
+    ],
+    "notMeasured": [
+      "allocator metadata and per-allocation hidden overhead",
+      "allocator retention of freed memory",
+      "implementation-specific transient allocations outside observed allocate(n) calls",
+      "production-path allocator activity",
+      "process RSS or a whole-reader memory bound",
+      "other standard-library implementations or platform qualification"
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+    "owningCtest": "PASS: libdxfrw_dwg_reader_matrix (1/1)",
+    "compatibilityTarget": "PASS: cmake --build build-gcc --target lc3_compat_check -j2",
+    "receiptJsonParsed": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "existingOwnerOnly": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

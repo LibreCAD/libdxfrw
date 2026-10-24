@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-dxf-carrier-and-geometry-import-route-screen-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Screen additional open-source DXF parsers and 3D geometry importers for potential structural-carrier or explicit-geometry evidence roles, then update the existing plan without adding routine validation cost.",
+  "method": {
+    "kind": "Primary-source repository, release, and issue review",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/dxfjs/parser",
+      "https://github.com/dxfjs/parser/blob/main/src/EntitiesParser/EntitiesParser.ts",
+      "https://github.com/dxfjs/parser/blob/main/package.json",
+      "https://github.com/dxfjs/parser/releases",
+      "https://github.com/coin3d/dime",
+      "https://github.com/openscad/openscad/wiki/DXF-Library-overview",
+      "https://github.com/assimp/assimp/tree/master/code/AssetLib/DXF",
+      "https://github.com/assimp/assimp/blob/master/doc/dox.h",
+      "https://github.com/assimp/assimp/issues/2645"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing peer lineage, structural carrier, explicit mesh, ACIS/AcDs, consumer and composed-checkpoint gates",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: current finding/subplan totals and deferred external J-item status"
+    ],
+    "limitations": "Mutable README and source statements do not establish released runtime behavior. The dxfjs Solid3D field parser was not independently inspected or executed; the Assimp issue does not identify whether the input record was SOLID or 3DSOLID beyond the reporter's wording. No source-generated differential or semantic geometry result was produced."
+  },
+  "evidence": [
+    {
+      "route": "dxfjs/parser",
+      "observed": "The mutable README lists 3DFACE and 3DSOLID, and the current ENTITIES dispatcher creates and calls a dedicated Solid3D parser. The public usage accepts text content. package.json on mutable main says 0.3.2, while the newest visible GitHub release is v0.3.0 at eb52655; the visible release notes do not establish when 3DSOLID support entered the published artifact.",
+      "doesNotEstablish": [
+        "which exact published artifact contains the current Solid3D dispatch",
+        "complete handling or byte-for-byte retention of group codes 1, 3, and 310",
+        "binary DXF support",
+        "ACIS/SAT/SAB syntax or geometry semantics",
+        "DWG/AcDs association or native CAD acceptance"
+      ],
+      "planUse": "Discovery-only ASCII DXF structural-parser candidate. If a named composed-checkpoint question requires it, pin source and package artifact, verify source correspondence, and use one scratch-generated minimal 3DSOLID plus following sentinel. Record exact tags, group-310 byte concatenation/hash, identity, alignment, and diagnostics; do not add dependency or per-slice run."
+    },
+    {
+      "route": "Coin3D DIME",
+      "observed": "The project describes a C++ DXF data import/manipulation/export library with geometry extraction helpers, and its dxf2vrml example converts polygon data only. The 2019 OpenSCAD comparison labels DIME a 3D option but explicitly says the survey had not tested every library against all DXF cases.",
+      "doesNotEstablish": [
+        "current tested 3D entity coverage",
+        "DWG support",
+        "modern ACIS carrier preservation or parsing",
+        "B-rep validity or analytic solid semantics",
+        "complete CAD document or object graph round-trip"
+      ],
+      "planUse": "Optional explicit-polygon projection observation only if required by a named composed consumer question. Pin the revision/build and compare against a scratch-generated asymmetric WCS manifest. A VRML mesh is not document-preservation or ACIS evidence."
+    },
+    {
+      "route": "Assimp DXF importer and issue 2645",
+      "observed": "Assimp is a general 3D asset importer. Its reopened #2645 report says an input DXF using SOLID produced a 'no 3d data' diagnostic; the issue has no current pinned runtime reproduction in this review. SOLID is a distinct record name from 3DSOLID.",
+      "doesNotEstablish": [
+        "a defect in libdxfrw",
+        "whether the reporter's file used SOLID or 3DSOLID wire grammar beyond the report text",
+        "ACIS/SAT/SAB parsing or solid semantics",
+        "CAD document preservation, writing, or DWG support"
+      ],
+      "planUse": "Do not use as a document completeness or ACIS oracle. Only consider a pinned, exact-record consumer projection check if a named issue requires it; any failure must be reduced to a source-authored minimal control before attribution."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "testsAdded": 0,
+    "peerRunsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 128,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "keep structural DXF 3DSOLID carrier checks separate from ACIS parsing and B-rep semantics",
+      "keep explicit polygon projection separate from full DXF document preservation",
+      "run additional peers only at the existing composed checkpoint when a named evidence gap requires them",
+      "use scratch-generated controls and require immutable parser/source/artifact provenance"
+    ]
+  }
+}

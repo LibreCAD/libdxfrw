@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SORTENTSTABLE/TABLESTYLE raw companion adapter capture bounds",
+  "mode": "Local implementation slice with generated fast tests",
+  "scope": [
+    "Bound adapter-owned raw DXF callback copies for SORTENTSTABLE and TABLESTYLE.",
+    "Preserve separate typed callback, graph, sorting, TABLESTYLE, and serializer behavior.",
+    "Complete the direct persistent raw OBJECTS-list store audit in dx_iface::addRawDxfObject."
+  ],
+  "implementation": {
+    "limits": {
+      "aggregateRawRecords": 100000,
+      "aggregateRawGroups": 4000000,
+      "aggregateLogicalRetainedBytes": 67108864,
+      "lifetime": "dx_data container lifetime; aggregate counters and failure persist across appended imports"
+    },
+    "behavior": [
+      "SORTENTSTABLE and TABLESTYLE use one shared raw companion budget.",
+      "Counters advance only after successful insertion; budget or allocation failure is sticky.",
+      "DXF export rejects failed raw capture before publishing output."
+    ],
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_(dictionary_default|render_background_sun|field_carrier|sort_table_style|visual_style)_raw_capture_limits|libdxfrw_(dictionary_default_adapter_roundtrip|named_resource_import_evidence|sortents_adapter|visual_style_import_evidence))$' --output-on-failure",
+      "result": "PASS",
+      "passed": 9,
+      "failed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt",
+      "result": "PASS"
+    },
+    "fullTestSuiteRun": false,
+    "externalPeerOrNativeRuns": 0
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "repositoryDrawingFixturesAdded": 0,
+    "externalFixturesDownloaded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planEffect": "Records the completed direct raw OBJECTS-list callback-store census in addRawDxfObject. The next implementation audit is typed callback storage; owner graph and output semantics remain separate."
+  },
+  "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "14954599c4d2a0018352c17c84e68533c63f4a04d8c368904ed0c13253cf845b"
+}

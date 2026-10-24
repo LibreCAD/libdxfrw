@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-field-emitted-record-identity-extension-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE_RECORD_IDENTITY_AND_DUPLICATE_GUARD_ONLY",
+  "scope": "Extend the opt-in bounded DXF output ledger to retain normalized record type and section, reject duplicate emitted handles, and use type/section identity for HATCH target finalization.",
+  "implementation": {
+    "capturedPrimaryHandleCodes": [
+      5,
+      105
+    ],
+    "recordTypeAndSectionCaptured": true,
+    "namesNormalizedCaseInsensitively": true,
+    "headerHandseedExcluded": true,
+    "duplicateEmittedHandlesRejected": true,
+    "nestedRecordScopeRollback": true,
+    "finalizationQueriesHandleTypeSection": true,
+    "hatchTargetsCheckExpectedTypeAndSection": true,
+    "fieldAndTable344ExportRemainFailClosed": true
+  },
+  "modifiedFiles": [
+    {
+      "path": "src/intern/dxfwriter.h",
+      "sha256": "0e1bb2615329cfda6b278ff194a48144c4a976871ac8e3543d3130d29f232024"
+    },
+    {
+      "path": "src/intern/dxfwriter.cpp",
+      "sha256": "ee372cd1a8392e948102ad52a57c6c74a6484f85cab55689ba9d0f919c015927"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "188b5fdc36142274754ba02de4a6d200dbf5fd427235e6417d59d920ec985e51"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "e82562d2f21522999f6cccbce91f34212e40d27d9166cab80cfd6cab7f885846"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "3b767bda529bc9970076f0e1fef4f8c5871e46ec6febc8c69930ba199380209e"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "fca56285ae36d8a7ed854edae9424992352878edd49a6cc4a5179dae64622eaf"
+    }
+  ],
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_wave1|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "passed": 2,
+      "failed": 0
+    },
+    "generatedTestCoverage": [
+      "ASCII and binary emitted-handle inventories agree",
+      "record identity is case-insensitive for type and section names",
+      "HEADER $HANDSEED is not treated as a record handle",
+      "group 105 record handles are inventoried",
+      "nested committed record scope rolls back with aborted parent",
+      "inventory limit errors remain sticky across scope rollback",
+      "duplicate emitted handles fail inventory finalization",
+      "complete-write finalizer sees canonical BLOCK and source LINE identities",
+      "failed write clears the successful-attempt inventory"
+    ],
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; use existing focused fast-test cadence",
+    "externalPeerOrNativeRun": "not run",
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "doesNotEstablish": [
+    "complete enrollment of every raw, typed, generated, block, and section route",
+    "a universal source-handle to minted-output-handle crosswalk",
+    "BLOCKS sub-owner or per-layout identity in the ledger",
+    "enclosing OBJECTS or whole-output rollback completeness beyond current record scope tests",
+    "semantic FIELD/FIELDLIST graph edge target-type compatibility",
+    "post-write ASCII/binary parser readback inventory parity",
+    "FIELD producer wire semantics or FIELD/TABLE group-344 support"
+  ],
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The same source/test paths contain unrelated pre-existing workspace edits."
+  }
+}

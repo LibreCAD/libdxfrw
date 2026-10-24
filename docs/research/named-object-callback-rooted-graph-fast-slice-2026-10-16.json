@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-named-object-callback-rooted-graph-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Complete 7G.3f.4a local adapter-retention validation for a generated named-object dictionary graph, including DICTIONARYWDFLT's default PLACEHOLDER edge and seven observed descendant families.",
+  "method": {
+    "kind": "Generated in-memory ASCII DXF plus direct calls to the existing concrete adapter callbacks; no external drawing fixtures",
+    "existingTestTarget": "libdxfrw_dwg2dxf_adapter_tests",
+    "existingCTest": "dwg2dxf_named_object_callback_storage",
+    "productionFilesChanged": false,
+    "newCtestRegistration": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "coverage": [
+    "One generated NOD root with eight ordered key/handle entries.",
+    "Parsed DICTIONARYWDFLT with exactly one code-340 target to PLACEHOLDER and rejection of missing or duplicate code 340 before publication.",
+    "Parsed DICTIONARYVAR and typed PLACEHOLDER, MLINESTYLE, MLEADERSTYLE, TABLESTYLE, DETAILVIEWSTYLE, SECTIONVIEWSTYLE and SCALE callback records with exact type, handle and owner checks.",
+    "Owned-copy checks after mutating local callback source values; null MLEADER callback is a no-op.",
+    "One expected raw named-resource companion per observed raw family, with exact name/handle/owner/group-5 identity and duplicate count guards."
+  ],
+  "limitations": [
+    "Adapter retention only; does not establish DXF or DWG writer emission, handle remapping, writer graph closure, downstream consumer acceptance, or semantic support.",
+    "No writer/peer/native runtime, full suite, sanitizer, or external fixture was used."
+  ],
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+      "ctest --test-dir build -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "focusedCTest": {
+      "passed": true,
+      "passedTests": 1,
+      "failedTests": 0
+    },
+    "buildPassed": true,
+    "lc3CompatibilityTargetPassed": true,
+    "gitDiffCheckPassed": true,
+    "jsonParsed": true
+  },
+  "planDelta": {
+    "subplan": "7G.3f.4a",
+    "status": "LOCAL_ROOTED_HANDOFF_COMPLETE_UNCOMMITTED",
+    "findingsAdded": 0,
+    "topLevelImplementationSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

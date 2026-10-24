@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-peer-writer-version-maturity-dxf-comparator-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Reconcile current open-source DWG writer version claims against the exact CLI/release documentation and define operation-specific limits for optional DXF-only comparators; update the parity implementation plan without code or support-claim changes.",
+  "method": {
+    "kind": "Primary-source web research plus targeted plan inspection",
+    "localTestsRun": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "localWorktreeWasDirty": true,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.1",
+      "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.c",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/milestone/22",
+      "https://github.com/LibreDWG/libredwg/releases",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp",
+      "https://github.com/DomCR/ACadSharp/issues",
+      "https://github.com/ixmilia/dxf",
+      "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md",
+      "https://github.com/mozman/ezdxf/blob/master/README.md",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+    ],
+    "localFilesInspected": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "edited in this pass; prior SHA-256 7720db8aa9cf670c442dc4724eea6889b6373c5b2db109aaa113a66ea7c4bbb5"
+    },
+    "localInspection": [
+      "Confirmed the plan already carries specific LibreDWG, ACadSharp, LibreCAD_3, ezdxf and other peer limitations; this update adds no duplicate finding or top-level subplan.",
+      "The plan's current finding/subplan totals are 127/71; the six gated items remain DEFERRED_EXTERNAL."
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG's DWG writer claims are version- and source-specific",
+      "observed": "The project README says R2010-R2018 writing still leads to CRC/audit problems and excludes R2007. Generated dwgwrite help says only R2000 for now but lists later version tokens as valid and R2007 as planned. NEWS announces the R2004 encoder in 0.14.1 and says R2007 encoding falls back to R2010. The closed 0.14 milestone describes a goal of writing 2004-2018 except 2007. The release page lists nightly 0.14.8612 at commit f860b0f on 2026-10-13. These statements differ in scope and maturity; no output was generated or independently validated in this pass.",
+      "doesNotEstablish": [
+        "that a recognized CLI target token produces a valid DWG",
+        "that R2007 fallback output is valid or semantically equivalent",
+        "that R2010-R2018 output passes CRC, audit, or native acceptance",
+        "entity/object completeness, owner closure, or ACIS/AcDs semantics"
+      ],
+      "planDisposition": "At most, admit the exact released R2004 encoder as an optional AC1018 candidate producer at the composed gate. Bind exact source/build/artifact, command, output magic/hash and diagnostics; independently validate structure, per-handle identity, ownership and payloads. Do not use modern version-token acceptance or fallback as a positive control."
+    },
+    {
+      "topic": "Peer version matrices must be narrowed to exact operation and entity route",
+      "observed": "ACadSharp v3.8.0's release entry lists assembly visibility only, while its broad public compatibility matrix coexists with current issue reports involving AC1032 INSERTs, TABLE block-cell values, SPLINE conversion and DXF 3DSOLID/REGION omission. The reports are scoped leads, not confirmed defects in every release. IxMilia.Dxf documents DXF R10-R2014 with exclusions for MESH, MLEADER, SURFACE, TABLE and VIEWPORT, and warns that its writer output for ACIS-bearing or incomplete entities may be rejected by AutoCAD. ezdxf documents DXF read/write/new versions through R2018 with older input normalized/upgraded and offers audit/recovery; none of these is a DWG implementation.",
+      "doesNotEstablish": [
+        "current runtime behavior for a specific peer package not executed here",
+        "DWG, AcDs, ACIS solid or B-rep support from a DXF compatibility matrix",
+        "AutoCAD acceptance from a peer writer's version claim",
+        "raw wire preservation from a normalized or audited document"
+      ],
+      "planDisposition": "Keep ACadSharp as optional route-specific structural comparison and IxMilia/ezdxf as optional DXF-only comparators. Pin exact source/artifact/runtime and record operation, version, feature, nested owner route, diagnostics and per-source-record disposition. Do not add peer runtime to the local fast-test loop."
+    }
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "nestedReadinessClarificationsAdded": 2,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": {
+    "peerSourceCommitPinnedForExecution": false,
+    "peerPackagesBuiltOrRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false
+  }
+}

@@ -73,10 +73,26 @@ public:
     DRW_TextCodec(DRW_TextCodec&&) noexcept = default;
     DRW_TextCodec& operator=(DRW_TextCodec&&) noexcept = default;
     std::string fromUtf8(std::string_view s);
-    std::string toUtf8(std::string_view s);
+    std::string toUtf8(std::string_view s,
+                       bool decodeDxfAsciiControlEscapes = false);
     // Last completed conversion only; the reader owns cumulative observations.
     DRW_TextDecodeObservation lastDecodeObservation() const noexcept {
         return m_lastDecodeObservation;
+    }
+    // Issues across semantic decode calls since the explicit reset. In
+    // particular, a later clean value cannot hide earlier replacement/loss.
+    // This is an observation, not an exhaustive mapping/schema certificate.
+    std::uint32_t accumulatedDecodeIssues() const noexcept {
+        return m_accumulatedDecodeIssues;
+    }
+    void resetAccumulatedDecodeIssues() noexcept {
+        m_accumulatedDecodeIssues = 0u;
+    }
+    // Bounded subordinate decoders (e.g. per-value DWG EED codecs) can
+    // contribute source issues without changing this codec's selection or
+    // its last primary-conversion snapshot. This never grants admission.
+    void mergeDecodeIssues(std::uint32_t issues) noexcept {
+        m_accumulatedDecodeIssues |= issues;
     }
     // DXF reader only, immediately after primary toUtf8 with the same input.
     // Reports the effective decoder, not a normalized/requested source label.
@@ -88,6 +104,7 @@ public:
     std::string toUtf8CP8(std::string_view s);
     int getVersion(){return version;}
     DRW::Version getSourceVersion() const { return sourceVersion; }
+    bool isDxfFormat() const noexcept { return m_dxfFormat; }
     bool hasSourceVersion() const { return m_sourceVersionSet; }
     void setVersion(const std::string &v, bool dxfFormat);
     void setVersion(DRW::Version v, bool dxfFormat);
@@ -158,6 +175,7 @@ private:
     std::unique_ptr< DRW_Converter> conv;
     std::unique_ptr< DRW_Converter> cp8Conv;
     DRW_TextDecodeObservation m_lastDecodeObservation;
+    std::uint32_t m_accumulatedDecodeIssues{0u};
 };
 
 class DRW_Converter
@@ -172,6 +190,9 @@ public:
     virtual ~DRW_Converter()=default;
     virtual std::string fromUtf8(std::string_view s) {return std::string{s};}
     virtual std::string toUtf8(std::string_view s);
+    void setDecodeDxfAsciiControlEscapes(bool enabled) noexcept {
+        m_decodeDxfAsciiControlEscapes = enabled;
+    }
     DRW_TextDecodeObservation decodeObservation() const noexcept {
         return m_decodeObservation;
     }
@@ -203,6 +224,13 @@ protected:
     void markDecodeIssue(DRW::DxfTextIssue issue) noexcept {
         m_decodeObservation.issues |= DRW::dxfTextIssueMask(issue);
     }
+    bool m_decodeDxfAsciiControlEscapes {false};
+    // Decode one Autodesk ASCII-DXF caret pair at a byte position already
+    // identified as ASCII by this converter. Returns the number of consumed
+    // source bytes (zero when the bytes are not a recognized caret spelling).
+    std::size_t decodeDxfAsciiControlEscape(std::string_view source,
+                                            std::size_t offset,
+                                            std::string& output);
     void observeEscapePrefix(std::string_view suffix) noexcept;
     /// Unicode -> DBCS, over the caller's cpLength-entry double table, built
     /// once per converter. Filled in table order, so a repeated code point

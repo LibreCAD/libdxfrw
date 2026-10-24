@@ -18,6 +18,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 
@@ -333,8 +334,14 @@ public:
     void setTypedVariantNodeBudget(std::size_t budget) noexcept {
         m_typedVariantNodeBudget = budget;
     }
-    // Count entity/DRW_TableEntry-base XDATA variants before allocation.
-    // Custom object parsers/appData/raw carriers remain outside this counter.
+    // Count materialized typed DXF variant nodes before allocation. Current
+    // routes include entity/table-entry XDATA and appData, modeled-object
+    // XDATA delegated to DRW_TableEntry, HEADER vars, DIMSTYLE's synthesized
+    // vars map, typed XRECORD payload entries, LOFTEDSURFACE reference data,
+    // and captured raw-carrier groups plus raw-backed appData copies. Mirrored
+    // XRECORD compatibility/ordered variants and distinct appData/raw-carrier
+    // copies are charged as separate nodes; handle payloads add one ordered
+    // variant node. Custom object maps and container copies remain outside it.
     bool chargeTypedVariantNode() noexcept {
         if (m_typedVariantNodeBudgetExceeded)
             return false;
@@ -425,6 +432,27 @@ public:
             return decodeSemanticText(strData, m_currentCode, true);
         return strData;
     }
+    // Transfer the current string token into a retained model value instead
+    // of copying it. Like getString(), semantic XDATA/color-book text is
+    // decoded first; all other string carriers retain their exact token bytes.
+    // This invalidates any getStringView() for the current record.
+    std::string takeString() {
+        if ((m_decodeSemanticStrings && m_currentCode == 430)
+            || m_currentCode == 1000 || m_currentCode == 1001
+            || m_currentCode == 1003) {
+            std::string value = decodeSemanticText(strData, m_currentCode, true);
+            strData.clear();
+            return value;
+        }
+        std::string value;
+        value.swap(strData);
+        return value;
+    }
+    // Borrow the current decoded string token without allocating an owned
+    // return value. The view is valid only until the next readRec() call and
+    // deliberately skips semantic code-page conversion; use it only for raw
+    // string-carrier fields whose parseCode contract preserves source bytes.
+    std::string_view getStringView() const noexcept { return strData; }
     const std::string& getRawValue() const { return rawData; }
     // Convert a validated hexadecimal handle string representable by the
     // legacy 32-bit object model. Typed records must use this form.
@@ -468,6 +496,7 @@ public:
         std::uint64_t valueEndOffset = 0, bool hasValueEndOffset = false) noexcept;
     double getDouble() {return doubleData;}
     int getInt32() {return intData;}
+    std::uint32_t getUInt32() const noexcept { return uint32Data; }
     std::int64_t getInt64() {return int64;}
     bool getBool() { return (intData==0) ? false : true;}
     int getVersion(){return decoder.getVersion();}
@@ -488,6 +517,7 @@ public:
     std::string getCodePage(){ return decoder.getCodePage();}
     DRW::Version getSourceVersion() const { return decoder.getSourceVersion(); }
     bool hasSourceVersion() const { return decoder.hasSourceVersion(); }
+    bool isBinary() const noexcept { return !skip; }
     void setSemanticStringMode(bool enabled) noexcept {
         m_decodeSemanticStrings = enabled;
     }
@@ -501,6 +531,15 @@ public:
     DxfClassifierProfile classifierProfile() const {
         return m_classifierProfile;
     }
+    bool setMaterialUnsignedColorValues(bool enabled) noexcept {
+        const bool previous = m_materialUnsignedColorValues;
+        m_materialUnsignedColorValues = enabled;
+        return previous;
+    }
+    bool materialUnsignedColorValuesEnabled() const noexcept {
+        return m_materialUnsignedColorValues;
+    }
+    int currentCode() const noexcept { return m_currentCode; }
 
 protected:
     // Only accepted tokens retain text. Failure/throw clears it, rather than
@@ -541,6 +580,7 @@ protected:
     std::string rawData;
     double doubleData = 0.0;
     signed int intData = 0; //32 bits integer
+    std::uint32_t uint32Data = 0u;
     std::int64_t int64 = 0; // signed 64-bit integer (DXF codes 160-169)
     bool skip = false; //set to true for ascii dxf, false for binary
 private:
@@ -554,6 +594,7 @@ private:
     bool m_allowWideHandleLexemes {false};
     bool m_allowDimstyleNames {false};
     bool m_decodeSemanticStrings {false};
+    bool m_materialUnsignedColorValues {false};
     std::unordered_set<std::uint64_t> m_selfHandles;
     std::uint64_t m_currentSelfHandle {0};
     bool m_currentSelfHandleRegistered {false};

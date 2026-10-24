@@ -869,10 +869,7 @@ void dwgWriter21::finishObject() {
     // AC1021 keeps the R2007 data, string, and handle streams inside one
     // object frame. The object-size RL marks the end of the data/string
     // stream; handles follow it and there is no AC1024 UMC prefix.
-    if (std::any_of(m_objectMap.cbegin(), m_objectMap.cend(),
-                    [this](const auto& entry) {
-                        return entry.first == m_currentHandle;
-                    })) {
+    if (hasEmittedDwgObjectHandle(m_currentHandle)) {
         m_writeError = true;
         return;
     }
@@ -881,7 +878,11 @@ void dwgWriter21::finishObject() {
         m_writeError = true;
         return;
     }
-    m_objectBody.alignToByte();
+    // R2007 strings follow the scalar data at its bit boundary. Padding
+    // before the strings makes a contiguous TV array (e.g. DICTIONARY)
+    // decode the padding as its length. Put alignment in the trailer instead.
+    if (m_objectStrings.data().empty())
+        m_objectBody.alignToByte();
     if (m_objectStrings.data().size() > std::numeric_limits<std::uint32_t>::max()
         || m_objectBody.size() > std::numeric_limits<std::uint32_t>::max()
         || m_objectHandles.size() > std::numeric_limits<std::uint32_t>::max()
@@ -948,7 +949,17 @@ void dwgWriter21::finishObject() {
         m_objectHandles.reset();
         return;
     }
-    m_objectMap.emplace_back(m_currentHandle, frameStart);
+    if (!publishDwgObjectMapEntry(m_currentHandle, frameStart)) {
+        m_buf.truncate(frameStart);
+        m_writeError = true;
+        m_currentHandle = 0;
+        m_objectStrings.reset();
+        m_objectHandles.reset();
+        m_lastDwgObjectFrame = {};
+        m_lastDwgObjectFrameValid = false;
+        m_currentDwgObjectFrameProvenance = {};
+        return;
+    }
     markDwgClassInstanceEmitted(m_currentHandle);
     m_currentHandle = 0;
     m_objectStrings.reset();

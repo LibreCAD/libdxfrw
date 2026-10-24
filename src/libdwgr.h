@@ -48,6 +48,7 @@
 class dwgReader;
 class dwgBuffer;
 class dwgWriter;
+class dwgWriter15;
 class DwgCompoundWriteTestAccess;
 class DwgWriteFailureTestAccess;
 class DwgReadObservationTestAccess;
@@ -413,6 +414,11 @@ public:
     bool registerDwgNamedObjectDictionaryEntry(
         const std::string& name, std::uint32_t childHandle);
 
+    /// Register one GROUP dictionary key and its exact GROUP object handle.
+    /// The key is emitted inside ACAD_GROUP, never directly in the NOD.
+    bool registerDwgGroupDictionaryEntry(
+        const std::string& name, std::uint32_t groupHandle);
+
     /// Copy the physical Named Objects Dictionary receipt after the deferred
     /// OBJECTS-table phase has committed.
     bool getEmittedDwgNamedObjectDictionaryEntries(
@@ -438,8 +444,8 @@ public:
     /// committed DWG object frame.
     bool getLastDwgObjectFrame(DRW::DwgObjectFrameReceipt& frame) const;
 
-    /// Copy ordered frame evidence for the most recently committed
-    /// POLYLINE/VERTEX/SEQEND write. Other writes and any rollback clear it.
+    /// Copy ordered frame evidence for the most recently committed compound
+    /// entity write. Other writes and any rollback clear it.
     bool getLastDwgCompoundEntityWriteReceipt(
         DRW::DwgCompoundEntityWriteReceipt& receipt) const;
 
@@ -579,6 +585,11 @@ public:
     std::uint32_t defineBlock(const std::string& name, const DRW_Coord& basePoint,
                         int insUnits = 0);
 
+    /// Define a user block while retaining representable BLOCK_RECORD
+    /// metadata, including DWG XREF fields. This is additive to the legacy
+    /// overload; unsupported metadata is rejected by the concrete writer.
+    std::uint32_t defineBlock(const DRW_Block_Record& record);
+
     bool beginBlockContent(std::uint32_t blockRecordHandle);
     bool endBlockContent();
 
@@ -643,6 +654,20 @@ public:
     bool writeMLeaderStyle(DRW_MLeaderStyle *object);
     bool registerTableStyleObjectClass(DRW_TableStyle *object);
     bool writeTableStyle(DRW_TableStyle *object);
+    bool registerCellStyleMapObjectClass(DRW_CellStyleMap *object);
+    bool writeCellStyleMap(DRW_CellStyleMap *object);
+    /// Standalone AC1021 TABLECONTENT only. Register before CLASSES freezes;
+    /// the caller supplies the owning dictionary and referenced object graph.
+    bool registerTableContentObjectClass(DRW_TableContentObject *object);
+    bool writeTableContent(DRW_TableContentObject *object);
+    /// Atomically write the AC1021 TABLESTYLE extension-DICTIONARY graph
+    /// containing one CELLSTYLEMAP at the canonical round-trip key. The
+    /// caller supplies and links all three objects; malformed ownership,
+    /// duplicate/dangling map targets, noncanonical keys, and other DWG
+    /// versions are refused before any object frame is published.
+    bool writeTableStyleCellStyleMapGraph(
+        DRW_TableStyle *tableStyle, DRW_Dictionary *extensionDictionary,
+        DRW_CellStyleMap *cellStyleMap);
     bool registerMaterialObjectClass(DRW_Material *object);
     bool writeMaterial(DRW_Material *object);
     bool registerLightListObjectClass(DRW_LightList *object);
@@ -707,7 +732,14 @@ public:
     bool registerNavisworksModelEntityClass();
     bool writeUnderlayDefinition(DRW_UnderlayDefinition *object);
     bool registerRawDwgObjectClass(const DRW_UnsupportedObject *object);
+    /// Replay validated opaque non-modeler frames. Fixed modeler entities
+    /// require the typed-peer overload below.
     bool writeRawDwgObject(DRW_UnsupportedObject *object);
+    /// Replay a fixed ACIS modeler frame only when paired with its unchanged
+    /// typed entity. AcDs-backed frames and unresolved history links are
+    /// refused until their external reference closure can be validated.
+    bool writeRawDwgObject(DRW_UnsupportedObject *object,
+                           const DRW_ModelerGeometry *typedModeler);
     bool writeRawDwgSection(const DRW_RawDwgSection *section);
     bool registerSectionObjectClass(DRW_Section *object);
     bool writeSection(const DRW_Section *section);
@@ -735,6 +767,20 @@ public:
     /// The resolved source codepage name (e.g. "ANSI_1252"), captured from the
     /// reader's DWG metadata after a successful read. Empty before any read.
     std::string getCodePage() const { return codePage; }
+    /// Raw DWG envelope codepage id, when a codepage field was present in the
+    /// source file. A present but unrecognized id is preserved here even when
+    /// getCodePage() is empty and the reader used its version-selected fallback.
+    std::uint16_t getSourceCodePageId() const noexcept {
+        return m_sourceCodePageId;
+    }
+    /// Distinguish a missing DWG codepage field from an unsupported id.
+    bool hasSourceCodePageField() const noexcept {
+        return m_hasSourceCodePageField;
+    }
+    /// True only when the source id maps to a codec the reader recognizes.
+    bool hasRecognizedSourceCodePage() const noexcept {
+        return m_hasRecognizedSourceCodePage;
+    }
     /// Per-entity parseDwg failures accumulated during the load. These
     /// are warnings — the file still loads with the surviving entities.
     /// Zero on a clean load. Surface alongside the entity count so users
@@ -808,9 +854,11 @@ bool testReader();
     friend class dwgReader;
 
 private:
+    friend class DwgBlockRecordXrefWireTestAccess;
     friend class DwgCompoundWriteTestAccess;
     friend class DwgWriteFailureTestAccess;
     friend class DwgReadObservationTestAccess;
+    friend class DwgCodePageTestAccess;
 
     enum class DwgWriteFailurePoint : std::uint8_t {
         AfterFirstDeferredTableRecord = 1,
@@ -856,9 +904,15 @@ private:
     void recordOperationDiagnosticForError(DRW::error value);
     [[nodiscard]] bool recordWriteResult(WriteSkipKind kind, bool ok);
     [[nodiscard]] bool writeObjectTransaction(
-        WriteSkipKind kind, const std::function<bool()>& write);
+        WriteSkipKind kind, const std::function<bool()>& write,
+        bool allowIdempotentNoFrame = false);
     [[nodiscard]] bool writeObjectTransaction(
         WriteSkipKind kind, DRW_TableEntry *mutationTarget,
+        const std::function<bool()>& write,
+        bool allowIdempotentNoFrame = false);
+    [[nodiscard]] bool writeFixedObjectFrameTransaction(
+        WriteSkipKind kind, dwgWriter15 *objectWriter,
+        const DRW_TableEntry *object, DRW_TableEntry *mutationTarget,
         const std::function<bool()>& write);
     [[nodiscard]] bool encodeEntityForWrite(
         DRW_Entity *ent, DRW_Entity *mutationTarget = nullptr);
@@ -898,6 +952,9 @@ private:
     std::string fileName;
     bool applyExt { false }; /*apply extrusion in entities to conv in 2D?*/
     std::string codePage;
+    std::uint16_t m_sourceCodePageId { 0 };
+    bool m_hasSourceCodePageField { false };
+    bool m_hasRecognizedSourceCodePage { false };
     DRW_Interface *iface { nullptr };
     std::unique_ptr< dwgReader > reader;
     std::unique_ptr< dwgWriter > writer;
@@ -977,6 +1034,15 @@ public:
     DRW::Version getVersion() const { return implementation.getVersion(); }
     DRW::error getError() const { return implementation.getError(); }
     std::string getCodePage() const { return implementation.getCodePage(); }
+    std::uint16_t getSourceCodePageId() const noexcept {
+        return implementation.getSourceCodePageId();
+    }
+    bool hasSourceCodePageField() const noexcept {
+        return implementation.hasSourceCodePageField();
+    }
+    bool hasRecognizedSourceCodePage() const noexcept {
+        return implementation.hasRecognizedSourceCodePage();
+    }
     DRW_OperationDiagnostic getLastDiagnostic() const {
         return implementation.getLastDiagnostic();
     }

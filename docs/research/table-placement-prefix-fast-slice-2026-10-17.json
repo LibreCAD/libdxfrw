@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "ACAD_TABLE placement-prefix fast slice",
+  "mode": "generated in-memory regression only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Complete the existing 7G.3d/PAR-126 placement-prefix matrix for AC1021 and AC1024 TABLE entities",
+    "Verify all four documented R2000+ scale encodings and inherited INSERT placement fields",
+    "Add a following body-tail sentinel to prove the TABLE parser stops at the exact semantic-data boundary",
+    "Keep the change in the existing DWG object-vector test owner without persistent fixtures or test registration changes"
+  ],
+  "implementation": {
+    "testOwner": "libdxfrw_dwg_object_vectors_tests",
+    "selector": "--table-placement",
+    "source": "tests/dwg_object_vectors_tests.cpp",
+    "generatedProfiles": ["AC1021 legacy TABLE content", "AC1024 inline TABLECONTENT"],
+    "scaleModes": {
+      "0": "raw X and Y/Z deltas",
+      "1": "default X with Y/Z deltas",
+      "2": "one uniform raw scale",
+      "3": "default unit XYZ"
+    },
+    "placement": {
+      "insertion": [8.25, -3.5, 6.125],
+      "nonDefaultScaleExamples": [
+        [2.25, 3.5, 4.75],
+        [1.0, 2.25, 0.75],
+        [1.5, 1.5, 1.5]
+      ],
+      "rotationRadians": 1.125,
+      "extrusion": [0.0, 1.0, 0.0]
+    },
+    "assertions": [
+      "exact inherited INSERT insertion, XYZ scale, radians, and extrusion",
+      "TABLE handle 0xA500, owner BLOCK_RECORD handle 0xA600, TABLESTYLE handle 0xA700, and empty attribute handles",
+      "semantic content is present and complete",
+      "main body cursor equals the recorded end-of-table bit before reading the sentinel",
+      "the immediate body-tail BitLong sentinel 0x53A17C2D remains aligned and readable after the boundary check"
+    ],
+    "productionCodeChanged": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiOrLayoutChanged": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+    "buildResult": "PASS",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-placement",
+    "focusedSelectorResult": "PASS (AC1021 and AC1024, four scale modes each)",
+    "owningCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+    "owningCTestResult": "PASS (1/1, 0.05 seconds)",
+    "compatibilityCompile": "NOT_RUN (no public API/layout change)",
+    "fullSuite": "NOT_RUN",
+    "peerRuntime": "NOT_RUN",
+    "nativeCad": "NOT_RUN",
+    "scopedDiffCheck": "PASS"
+  },
+  "evidenceLimits": [
+    "The generated vectors prove the local parser's documented placement fields and cursor alignment, not independent DWG writer interoperability.",
+    "The body-tail sentinel is not a real following DWG object and does not independently validate handle-stream consumption beyond the exact asserted owner/style handles.",
+    "The local field assertions do not prove anonymous *T geometry placement, 2D consumer behavior, native rendering, or CAD semantic acceptance.",
+    "R24 extra TABLE prefix values remain opaque; this slice verifies consumption/alignment only where covered by existing tests."
+  ],
+  "planImpact": {
+    "existingFindingAndSubplanOnly": true,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "placementPrefixMatrix": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS",
+    "broaderTableSubplan": "REMAINS_IN_PROGRESS",
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

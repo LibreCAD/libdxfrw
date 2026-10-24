@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_MLINESTYLE owner order fast slice",
+  "mode": "Locally generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert NOD-first output and ACAD_MLINESTYLE DICTIONARY-before-MLINESTYLE physical order in the existing named-resource control.",
+    "Use handles resolved from strict readback and retain prior graph/payload assertions.",
+    "Validate only the touched adapter target and focused CTest."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-mlinestyle-owner-order-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "The existing generated one-style MLINESTYLE graph is exported in ASCII and Binary DXF.",
+      "Physical OBJECTS scan requires the decoded NOD first and its ACAD_MLINESTYLE dictionary before the remapped MLINESTYLE object.",
+      "Existing readback asserts dictionary/style/entity identity, owner handles, style fields, CLASS count, and opaque tag retention."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS (exit 0): --named-resource-import-evidence with existing tests/fixtures/dwg/rtext_arctext.dwg; parser diagnostics are not counted as a complete DWG qualification",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on plan and adapter test; receipt parsed by jq and trailing-whitespace scanned",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Physical NOD-first and root-DICTIONARY-before-MLINESTYLE output ordering for the existing generated ACAD_MLINESTYLE graph in ASCII and Binary DXF.",
+    "doesNotClose": [
+      "Every MLINESTYLE variant, all OBJECTS owner edges, or a generic scheduling algorithm.",
+      "Independent producer/native acceptance or complete DWG read qualification.",
+      "Broad named-resource, DWG/DXF, or 3D semantic support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

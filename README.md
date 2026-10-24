@@ -51,7 +51,7 @@ Every install includes the unchanged source `COPYING` at
 `${CMAKE_INSTALL_DATADIR}/licenses/libdxfrw/COPYING` (normally
 `share/licenses/libdxfrw/COPYING`), including runtime-only installs and Conan
 packages produced through the same CMake install rules. The generated
-ISO8859-4 mapping data also carries [Unicode License V3](LICENSES/Unicode-3.0.txt)
+ISO8859-4 mapping and symbol-name case-ambiguity data carry [Unicode License V3](LICENSES/Unicode-3.0.txt)
 as `Unicode-3.0.txt` in that directory. The staged-package checker requires both
 source-identical notices and manifest entries, as well as development consumers. For a
 runtime-only prefix, skip compilation and check its install manifest instead:
@@ -163,6 +163,11 @@ For example, explicit legacy input named `ISO8859-4` or `ISO-8859-4` decodes
 byte A1 as U+0104, using the fixed ISO table rather than a similar Windows
 page. This is input-only: normalized HEADER values and the writer's selected
 output codec remain unchanged; physical declaration bytes remain provenance.
+Explicit `LATIN1`, `ISO8859-1`, and recognized ISO-8859-1 aliases now use the
+ISO mapping as well: byte 80 decodes to U+0080, not Windows-1252's U+20AC.
+Ordinary `Compatible` decoding still preserves its historical Windows-1252
+selection for those aliases. Exact decoder availability does not itself admit
+the ISO-8859-1 source profile for strict complete-conversion mode.
 Modern DXF remains UTF-8 regardless of this legacy metadata, and DWG byte/TU
 channels are unaffected. Missing declarations retain the existing default and
 ambiguity behavior. Explicit LibreCAD UTF8 recovery still applies only to its
@@ -191,9 +196,10 @@ the caller model; resetting the outcome does not clear previously imported data.
 exact input additionally uses cumulative per-consumption profile facts below,
 not intersections of overlapping counts or the final HEADER. Existing Windows
 compatibility transports, represented ASCII escapes and modern UTF8 remain
-eligible; exact ISO8859-4 high-byte input is still a separate unqualified
-producer-profile gate. Callers choosing compatible source admission can export
-that input under separate target-text guarding, without producer qualification.
+eligible; exact ISO8859-1 and ISO8859-4 high-byte inputs remain separate
+unqualified producer-profile gates. Callers choosing compatible source
+admission can export those inputs under separate target-text guarding, without
+producer qualification.
 The CLI offers `--dxf-codepage-policy=exact-named` to request this mapping
 policy explicitly, or `--dxf-codepage-policy=compatible` to spell out the
 unchanged default. Use one complete token, once, in positional, `-o` or batch

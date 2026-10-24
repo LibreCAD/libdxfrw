@@ -1,0 +1,45 @@
+{
+  "id": "par27-header-unknown-scalar-retention",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Retain classifier-supported scalar values for unknown DXF HEADER variables, including their names and stored text under the configured retained-byte budget.",
+    "Serialize retained unknown vars and caller-provided customVars deterministically while keeping known variables on their field-specific canonical writer paths.",
+    "Fail closed on unsupported compounds/coordinate groups, out-of-range integer values, malformed names or string boundaries, duplicate aliases, and non-null translated references; validate both direct HEADER writing and adapter publication."
+  ],
+  "source": {
+    "title": "Autodesk DXF group-code value types",
+    "url": "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm",
+    "use": "Typed retention uses the repository's shared DXF value-kind classifier, aligned with the published general group-code type ranges; multi-value and coordinate forms remain outside this scalar preservation profile."
+  },
+  "implementation": {
+    "files_changed": [
+      "CMakeLists.txt",
+      "src/drw_header.h",
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par27-header-unknown-scalar-retention-fast-slice-2026-10-22.json"
+    ],
+    "tests": [
+      "Generated ASCII/Binary HEADER controls cover unknown group-1 text, int16/int32/int64, finite double, bool, binary chunk, arbitrary handle spelling, and explicit null translated handle.",
+      "Round-trip checks include copy/assignment/move, UTF-8 values, deterministic repeated output, and caller customVars serialization.",
+      "Negative controls cover zero retained-byte budget, compound/multi-group and coordinate forms, non-null translated refs, case-variant canonical names, dollar/bare collisions, malformed handle spelling, out-of-range Int16, line-injection text, and sentinel-preserving adapter refusal."
+    ],
+    "validation": [
+      "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2: PASS (-Werror; compatibility target succeeds)",
+      "ctest --test-dir build-gcc -R '^libdxfrw_header_(unknown_variable_roundtrip|repeated_groups|cepsnid|required_versions|custom_property_roundtrip)$' --output-on-failure: PASS (5/5)",
+      "ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 build-asan-custom/libdxfrw_dxf_fixture_tests --header-unknown-variable-roundtrip: PASS",
+      "git diff --check on touched implementation/test files: PASS"
+    ]
+  },
+  "limitations": [
+    "This preserves only one-record scalar unknown variables whose group-code type and numeric range are supported by the shared classifier/writer. Unknown compounds, coordinate groups, unassigned binary forms, and non-null translated object references remain fail-closed.",
+    "No persistent drawing fixture, full suite, independent producer/native acceptance, or support-claim promotion was added. The generated evidence is local structural coverage only.",
+    "The DRW_Header layout now owns a retained-byte lease; downstream consumers must rebuild, and no binary ABI compatibility claim is made.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL; FreeCAD Linux/Windows and independent ACIS/ACDS semantic qualification remain separate open gates."
+  ]
+}

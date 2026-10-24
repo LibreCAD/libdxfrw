@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-mleader-context-group172-scope-correction-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Keep MLEADER entity-level content type and nested context flow-direction group 172 distinct, and allow context flow direction independently of the hasTextContents branch flag.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": [
+      "Removes context group 172 from the MLEADER text-branch payload admission set; it is context-level flow direction and is parsed independently of hasTextContents.",
+      "Retains the context flow-direction value only when nonnegative and representable as uint16_t.",
+      "Keeps entity-level group 172 as a separately parsed content-type field with its own narrowing check."
+    ]
+  },
+  "tests": {
+    "file": "tests/hardening_tests.cpp",
+    "coverage": [
+      "A nested CONTEXT_DATA group 172 value of 6 parses and closes when no MTEXT-content flag is set.",
+      "Negative entity-level and context-level group 172 values are rejected by the parser-level tests.",
+      "An ASCII reader control rejects 65536 at the 16-bit DXF group-value carrier boundary."
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_wave1_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$|^libdxfrw_mleader_writer_version$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp tests/hardening_tests.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "strictTargets": "passed",
+      "focusedOwningCTests": "passed 2/2",
+      "diffCheck": "passed"
+    },
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0
+  },
+  "limits": {
+    "producerAuthoredCombinationMatrix": false,
+    "independentPeerReadback": false,
+    "nativeCadRun": false,
+    "dwgMleaderContextQualified": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains other user changes"
+  },
+  "nextReadinessSlice": "Continue MLEADER producer-backed allowed-tuple and semantic-consumer work; keep fail-closed writer admission for unmodeled payloads."
+}

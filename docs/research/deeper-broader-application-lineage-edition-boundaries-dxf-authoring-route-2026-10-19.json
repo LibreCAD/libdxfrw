@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Application lineage, edition boundaries, and optional DXF authoring route",
+  "mode": "Primary-source repository and product-documentation review with local plan reconciliation",
+  "scope": [
+    "Refresh source attribution for Zephyr's DXF and DWG paths.",
+    "Clarify QCAD Community Edition versus Professional route boundaries for optional 2D consumer evidence.",
+    "Screen the surfaced dxfjs/writer repository as a possible DXF authoring route.",
+    "Reconfirm the open-source versus commercial Open CASCADE exchange-component boundary.",
+    "Update route admission rules without adding dependencies, fixtures, or validation cadence."
+  ],
+  "method": {
+    "repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "external_drawings_downloaded": 0,
+    "external_fixtures_copied": 0,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "plan_updated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub master/main and product-documentation pages are mutable. README claims establish intended route attribution, not the effective converter binary or a qualified result. No peer artifact or application route was executed."
+  },
+  "sources": [
+    {
+      "project": "Zephyr",
+      "urls": [
+        "https://github.com/joseph-montanez/zephyr"
+      ],
+      "observed": "The current README calls SwiftDXFrw a Swift port of libdxfrw and lists DWG I/O as an ODA CLI bridge. It does not identify the effective ODA executable/version or bind the claim to a released app artifact. This corrects older snapshots in the local plan that attributed the DWG route to LibreDWG.",
+      "evidence_ceiling": "Source README route intent only; not a build-bound converter result, independent codec, or 3D/ACIS semantic result."
+    },
+    {
+      "project": "QCAD",
+      "urls": [
+        "https://github.com/qcad/qcad",
+        "https://www.qcad.org/en/license/",
+        "https://www.qcad.org/en/features/",
+        "https://github.com/qcad/qcad/blob/master/src/io/dxf/dxf.dox"
+      ],
+      "observed": "Official sources distinguish the GPLv3 Community Edition's DXF route from proprietary Professional add-ons that provide DWG and enhanced DXF support. The source descriptor says QCAD's DXF module is based on dxflib. The feature table identifies an R15 DXF boundary for the Community Edition.",
+      "evidence_ceiling": "Edition and source-route boundary only; no runtime observation and no whole-document, DWG, modern-DXF, or 3D qualification."
+    },
+    {
+      "project": "dxfjs/writer",
+      "urls": [
+        "https://github.com/dxfjs/writer",
+        "https://github.com/dxfjs/writer/blob/next/docs/v2/guide/objects.md"
+      ],
+      "observed": "The repository advertises a TypeScript DXF generator and documents examples authoring DICTIONARY and IMAGEDEF object relationships. The documentation's package/import identity requires reconciliation with an exact repository revision and published package before attributing behavior.",
+      "evidence_ceiling": "Potential scratch DXF author only; not a reader, DWG implementation, ACIS kernel, or consumer. No package was installed or run."
+    },
+    {
+      "project": "Open CASCADE Technology",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://github.com/Open-Cascade-SAS/OCCT/wiki"
+      ],
+      "observed": "Project sources distinguish the open-source OCCT geometry kernel from separately distributed commercial exchange components, including ACIS and DXF translators.",
+      "evidence_ceiling": "Vendor component availability/licensing boundary; does not establish stock FreeCAD or open-source ACIS import capability."
+    }
+  ],
+  "plan_impact": {
+    "zephyr_route_split": {
+      "DXF": "LIBDXFRW_DERIVATIVE",
+      "DWG": "ODA_CLI_PROVENANCE_INCOMPLETE"
+    },
+    "qcad_admission": "Optional exact-edition Community Edition 2D DXF consumer only; bind build and verify Professional add-ons are absent; scope to actual version/entity support.",
+    "dxfjs_writer_admission": "Optional scratch-vector author only after repo/package/revision identity is resolved and relevant writer behavior is audited.",
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "new_local_defects": 0,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "peer_runs": 0,
+    "native_runs": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    }
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and research receipt updated in a broadly dirty shared worktree. No files were staged or committed."
+}

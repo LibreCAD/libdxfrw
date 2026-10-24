@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Live peer route status, output closure, and validation methods",
+  "mode": "Primary-source web research and read-only local source/test crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh full ACadSharp and LibreDWG issue/PR evidence for writer, route, and output-completeness failure shapes.",
+    "Separate issue status, named source-commit behavior, merged/released behavior, and local control coverage.",
+    "Review how LibreDWG's documented test scripts establish structural, differential, and native-converter evidence.",
+    "Refine existing plan owners and preserve fast local implementation validation without external gates."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1351",
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/pull/1360",
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh",
+        "https://github.com/LibreDWG/libredwg/blob/master/dxf-roundtrip.sh",
+        "https://github.com/LibreDWG/libredwg/blob/master/AGENTS.md"
+      ],
+      "revision": "GitHub issue, PR, and master-source pages reviewed 2026-10-20",
+      "observed": "Issue #1351 remains open in the page snapshot although its author says the exact synthetic repro passes on master commit 56a05f98. PR #1360 remains open/unmerged; its author says it repairs the specific #1355 decode-loss input but explicitly leaves silent-success reporting unresolved. #1408 has no public sample/minimal reproducer. #1413 reports root-DICTIONARY ordering loss. LibreDWG documents filtered text diffs and a cross-format script that depends on ODA File Converter."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1277",
+        "https://github.com/DomCR/ACadSharp/issues/1261",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1282"
+      ],
+      "revision": "Issue bodies reviewed 2026-10-20",
+      "observed": "The reports cover standalone AC1032 MLeader context-object no-op writer losses, an R2009 GeoData Civil-tail/units writer issue, culture-sensitive Turkish/Azeri codepage folding, and a peer signed-short EED length overflow. The MLeader and GeoData reports do not provide public source drawings; none is a local reproduction or a normative DWG field-order source."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-D939EA11-0CEC-4636-91A8-756640A031D3.htm"
+      ],
+      "revision": "Official DXF reference pages reviewed 2026-10-20",
+      "observed": "INSERT group 66 value 1 requires a following ATTRIB sequence terminated by SEQEND. DXF sections have explicit ENDSEC closure and the full file has explicit EOF."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/sections/objects_section.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-20",
+      "observed": "The OBJECTS root dictionary is position-sensitive for readers and is expected first; this supports using identity/order controls, not lowest-handle selection."
+    }
+  ],
+  "localEvidence": [
+    "src/libdxfrw.cpp writeInsert conditionally emits group 66, writes attributes, and terminates the sequence with writeSequenceEnd",
+    "tests/block_owner_tests.cpp and tests/dxf_fixture_tests.cpp existing generated INSERT/ATTRIB/SEQEND ownership and closure coverage",
+    "src/intern/dxfwriter.cpp ASCII string sink rejects unsafe CR/LF string values before emitting group-code records",
+    "tests/dxf_fixture_tests.cpp generated field-specific MTEXT newline serialization controls",
+    "src/intern/dwg_dxf_output_transaction.cpp and dwg2dxf CLI contract tests for output publication/failure behavior",
+    "Existing OBJECTS/NOD identity and ordering controls in tests/dxf_fixture_tests.cpp",
+    "Existing AC1032 MLeader embedded-context and standalone object-context support/refusal plan gates",
+    "PAR-119 GeoData target-version versus internal-object-version generated cross-product",
+    "tests/gbk_codepage_tests.cpp explicit ASCII-folding and Turkish-locale CP1254 controls",
+    "tests/dwg_object_vectors_tests.cpp unsigned EED width, 32768/65536 boundary, split/refusal, and following-field controls"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 route-specific peer evidence and completeness",
+      "PAR-14 issue/source/release provenance and existing fast-owner reuse",
+      "PAR-20 standalone MLeader context-object evidence boundary",
+      "PAR-119 target-version/internal GeoData-version distinction"
+    ],
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullTestSuitesRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Distinguish current issue status from the exact named source commit, package/release behavior, and whether a proposed correction is merged/released.",
+    "Keep decode success, record/object dispositions, DXF/DWG structural closure, strict independent reopen, semantic comparison, and native audit as independent evidence stages.",
+    "Reuse current local generated-test owners when they already cover a report shape; add tests only for a confirmed uncovered local source invariant.",
+    "Keep peer/native execution to an optional composed checkpoint and out of the routine per-slice validation loop."
+  ],
+  "limitations": [
+    "Research was a source/issue/document crosswalk only; no external runtime or native CAD application was executed.",
+    "Peer issue reports, even with a named reproduction, are version- and route-specific and do not prove a libdxfrw defect.",
+    "No private ACadSharp/LibreDWG DWG/DXF samples were retrieved or used.",
+    "No local test command was run because this pass made a plan/receipt-only update; the plan diff was checked for whitespace errors."
+  ]
+}

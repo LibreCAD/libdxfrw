@@ -28,11 +28,13 @@
 # endif
 #endif
 
+#include <bitset>
 #include <map>
 #include <memory>
 #include <limits>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 #include <optional>
 #include "drw_base.h"
 
@@ -40,6 +42,7 @@ class dxfReader;
 class dxfWriter;
 class dwgBuffer;
 class dwgBufferW;
+class DxfReadRetainedLease;
 class DrwHeaderEncodeTestAccess;  // test-only friend; defined in tests/dwg_header_encode_round_trip_tests.cpp
 class DwgHandseedTestAccess;      // test-only friend; defined in tests/dwg_handseed_tests.cpp
 class dwgWriter24;                // forward declaration for friend access
@@ -117,6 +120,7 @@ public:
         : m_handseedValueOffset(h.m_handseedValueOffset),
           vars(std::move(h.vars)),
           customVars(std::move(h.customVars)),
+          customProperties(std::move(h.customProperties)),
           comments(std::move(h.comments)),
           name(std::move(h.name)),
           curr(h.curr),
@@ -124,6 +128,16 @@ public:
           m_dxfHeaderFinalized(h.m_dxfHeaderFinalized),
           m_dxfSourceVersion(h.m_dxfSourceVersion),
           m_dxfCodePageSource(std::move(h.m_dxfCodePageSource)),
+          m_dxfCustomPropertiesWellFormed(h.m_dxfCustomPropertiesWellFormed),
+          m_dxfHeaderStructureWellFormed(
+              h.m_dxfHeaderStructureWellFormed),
+          m_dxfHeaderCurrentGroupCodes(h.m_dxfHeaderCurrentGroupCodes),
+          m_dxfUnknownHeaderLease(std::move(h.m_dxfUnknownHeaderLease)),
+          m_dxfRequiredVersionsWellFormed(
+              h.m_dxfRequiredVersionsWellFormed),
+          m_dxfPlotStyleIdWellFormed(h.m_dxfPlotStyleIdWellFormed),
+          m_pendingCustomPropertyTag(std::move(h.m_pendingCustomPropertyTag)),
+          m_customPropertyFieldValueSeen(h.m_customPropertyFieldValueSeen),
           m_hasDerivedDimunitAlias(h.m_hasDerivedDimunitAlias),
           m_dimunitSourceCode(h.m_dimunitSourceCode),
           m_dimunitSourceValue(h.m_dimunitSourceValue),
@@ -145,6 +159,14 @@ public:
         h.curr = nullptr;
         h.m_dxfHeaderFinalized = false;
         h.m_dxfSourceVersion = DRW::UNKNOWNV;
+        h.m_dxfCustomPropertiesWellFormed = true;
+        h.m_dxfHeaderStructureWellFormed = true;
+        h.m_dxfHeaderCurrentGroupCodes.reset();
+        h.m_dxfUnknownHeaderLease.reset();
+        h.m_dxfRequiredVersionsWellFormed = true;
+        h.m_dxfPlotStyleIdWellFormed = true;
+        h.m_pendingCustomPropertyTag.reset();
+        h.m_customPropertyFieldValueSeen = false;
         h.clearDxfDimunitAliasProvenance();
         h.m_dwgNamedObjectDictionaryReference.reset();
     }
@@ -167,12 +189,71 @@ public:
 
     void addDouble(std::string key, double value, int code);
     void addInt(std::string key, int value, int code);
+    void addInt64(std::string key, std::int64_t value, int code);
     void addStr(std::string key, std::string value, int code);
     void addCoord(std::string key, DRW_Coord value, int code);
+    /// Validate HEADER hard pointers to VISUALSTYLE objects. The current
+    /// conservative writer floor is R2007 (AC1021) for all three; this is not
+    /// a claim that their individual introduction releases are identical.
+    /// Presence remains distinct from an explicit null handle.
+    bool canWriteDxfVisualStyleReferences(DRW::Version target) const;
+    /// Read one named DXF HEADER VisualStyle handle without consuming it.
+    /// Returns false for an unknown name, duplicate aliases, or malformed
+    /// value; `present` distinguishes an absent variable from explicit null.
+    bool getDxfVisualStyleReferenceHandle(const char* name,
+                                          std::uint32_t& handle,
+                                          bool& present) const;
+    /// Return whether the dimension-variable family can be represented in the
+    /// requested DXF revision without dropping modern split-variable values.
+    bool canWriteDxfDimensionVariables(DRW::Version target) const;
     void addCustomVar(std::string key, std::string value, int code = 1) {
         storeCustomVar(key, std::make_unique<DRW_Variant>(
             code, UTF8STRING(std::move(value))));
     }
+    /// Ordered DXF drawing properties, serialized as alternating
+    /// $CUSTOMPROPERTYTAG/$CUSTOMPROPERTY group-1 pairs. Repeated tags are
+    /// retained in order. DXF R2004 (AC1018) or later is required for output.
+    void addCustomProperty(std::string tag, std::string value) {
+        customProperties.emplace_back(std::move(tag), std::move(value));
+    }
+    /// Discard parsed custom-property data and clear any malformed-source
+    /// state so callers can intentionally replace it with a new list.
+    void clearDxfCustomProperties() noexcept {
+        customProperties.clear();
+        m_pendingCustomPropertyTag.reset();
+        m_customPropertyFieldValueSeen = false;
+        m_dxfCustomPropertiesWellFormed = true;
+    }
+    /// Check whether custom properties can be emitted without loss for the
+    /// requested target revision.
+    bool canWriteDxfCustomProperties(DRW::Version target) const noexcept;
+    /// Refuse rewriting a DXF HEADER that repeated an ordinary variable or a
+    /// group code within one variable. The parser remains tolerant; callers
+    /// may explicitly acknowledge a repaired/replaced value before writing.
+    bool canWriteDxfHeaderStructure() const noexcept {
+        return m_dxfHeaderStructureWellFormed;
+    }
+    /// Validate scalar unknown HEADER values retained with a supported DXF
+    /// group type. Unknown compounds and non-null reference roles fail closed.
+    bool canWriteDxfUnknownHeaderVariables() const noexcept;
+    void clearDxfHeaderStructureError() noexcept {
+        m_dxfHeaderStructureWellFormed = true;
+        m_dxfHeaderCurrentGroupCodes.reset();
+    }
+    /// `$REQUIREDVERSIONS` is a 64-bit HEADER value introduced in AC1027.
+    /// Preserve its exact bits for AC1027+, and refuse older targets rather
+    /// than silently dropping an unknown required-feature mask.
+    bool canWriteDxfRequiredVersions(DRW::Version target) const noexcept;
+    /// Remove the parsed or caller-provided `$REQUIREDVERSIONS` entry and
+    /// clear malformed/repeated-source state so a caller can replace it.
+    void clearDxfRequiredVersions();
+    /// Validate the `$CEPSNID` handle's shape and target-version availability.
+    /// A graph-aware adapter must separately close and remap non-null targets.
+    bool canWriteDxfPlotStyleId(DRW::Version target) const noexcept;
+    bool getDxfPlotStyleIdHandle(std::uint64_t& handle,
+                                 bool& present) const noexcept;
+    /// Discard parsed `$CEPSNID` state and clear malformed-source status.
+    void clearDxfPlotStyleId();
     std::string getComments() const {return comments;}
     void write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ver);
     void addComment(std::string c);
@@ -284,10 +365,19 @@ protected:
     [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
                    dwgBufferW *strBuf = nullptr);
 private:
+    /// Writer-only variant supplies the root object identity from the
+    /// writer's reserved graph; source HEADER provenance remains separate.
+    [[nodiscard]] bool encodeDwgForWriter(
+        DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
+        dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle);
     bool parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,
                        bool deferText);
-    void finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader);
+    bool finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader);
     bool captureDxfCodePageDeclaration(const std::unique_ptr<dxfReader>& reader);
+    bool resolveDxfDimensionVariables(DRW::Version target,
+                                      int& legacyUnit, int& legacyFit,
+                                      int& linearUnit, int& fraction,
+                                      int& textArrowFit, int& textMove) const;
     static bool matchesIntVar(const std::unordered_map<std::string, DRW_Variant*>& values,
                               const char* key, int code, int value);
     template <typename Map>
@@ -314,6 +404,17 @@ private:
         m_dxfHeaderFinalized = h.m_dxfHeaderFinalized;
         m_dxfSourceVersion = h.m_dxfSourceVersion;
         m_dxfCodePageSource = h.m_dxfCodePageSource;
+        customProperties = h.customProperties;
+        m_dxfCustomPropertiesWellFormed = h.m_dxfCustomPropertiesWellFormed;
+        m_dxfHeaderStructureWellFormed =
+            h.m_dxfHeaderStructureWellFormed;
+        m_dxfHeaderCurrentGroupCodes = h.m_dxfHeaderCurrentGroupCodes;
+        m_dxfUnknownHeaderLease = h.m_dxfUnknownHeaderLease;
+        m_dxfRequiredVersionsWellFormed =
+            h.m_dxfRequiredVersionsWellFormed;
+        m_dxfPlotStyleIdWellFormed = h.m_dxfPlotStyleIdWellFormed;
+        m_pendingCustomPropertyTag = h.m_pendingCustomPropertyTag;
+        m_customPropertyFieldValueSeen = h.m_customPropertyFieldValueSeen;
         m_hasDerivedDimunitAlias = h.m_hasDerivedDimunitAlias;
         m_dimunitSourceCode = h.m_dimunitSourceCode;
         m_dimunitSourceValue = h.m_dimunitSourceValue;
@@ -337,6 +438,7 @@ private:
         swap(m_handseedValueOffset, other.m_handseedValueOffset);
         vars.swap(other.vars);
         customVars.swap(other.customVars);
+        customProperties.swap(other.customProperties);
         swap(comments, other.comments);
         swap(name, other.name);
         swap(curr, other.curr);
@@ -344,6 +446,20 @@ private:
         swap(m_dxfHeaderFinalized, other.m_dxfHeaderFinalized);
         swap(m_dxfSourceVersion, other.m_dxfSourceVersion);
         swap(m_dxfCodePageSource, other.m_dxfCodePageSource);
+        swap(m_dxfCustomPropertiesWellFormed,
+             other.m_dxfCustomPropertiesWellFormed);
+        swap(m_dxfHeaderStructureWellFormed,
+             other.m_dxfHeaderStructureWellFormed);
+        swap(m_dxfHeaderCurrentGroupCodes,
+             other.m_dxfHeaderCurrentGroupCodes);
+        swap(m_dxfUnknownHeaderLease, other.m_dxfUnknownHeaderLease);
+        swap(m_dxfRequiredVersionsWellFormed,
+             other.m_dxfRequiredVersionsWellFormed);
+        swap(m_dxfPlotStyleIdWellFormed,
+             other.m_dxfPlotStyleIdWellFormed);
+        swap(m_pendingCustomPropertyTag, other.m_pendingCustomPropertyTag);
+        swap(m_customPropertyFieldValueSeen,
+             other.m_customPropertyFieldValueSeen);
         swap(m_hasDerivedDimunitAlias, other.m_hasDerivedDimunitAlias);
         swap(m_dimunitSourceCode, other.m_dimunitSourceCode);
         swap(m_dimunitSourceValue, other.m_dimunitSourceValue);
@@ -375,6 +491,15 @@ private:
         for (auto it=customVars.begin(); it!=customVars.end(); ++it)
             delete it->second;
         customVars.clear();
+        customProperties.clear();
+        m_dxfCustomPropertiesWellFormed = true;
+        m_dxfHeaderStructureWellFormed = true;
+        m_dxfHeaderCurrentGroupCodes.reset();
+        m_dxfUnknownHeaderLease.reset();
+        m_dxfRequiredVersionsWellFormed = true;
+        m_dxfPlotStyleIdWellFormed = true;
+        m_pendingCustomPropertyTag.reset();
+        m_customPropertyFieldValueSeen = false;
         m_dxfHeaderFinalized = false;
         m_dxfSourceVersion = DRW::UNKNOWNV;
         clearDxfCodePageDeclaration();
@@ -423,6 +548,7 @@ private:
 public:
     std::unordered_map<std::string,DRW_Variant*> vars;
     std::map<std::string, DRW_Variant*> customVars; /*!< custom/unknown header variables */
+    std::vector<std::pair<std::string, std::string>> customProperties;
 private:
     std::string comments;
     std::string name;
@@ -432,6 +558,14 @@ private:
     DRW::Version m_dxfSourceVersion {DRW::UNKNOWNV};
     struct DxfCodePageSource;
     std::shared_ptr<const DxfCodePageSource> m_dxfCodePageSource;
+    bool m_dxfCustomPropertiesWellFormed {true};
+    bool m_dxfHeaderStructureWellFormed {true};
+    std::bitset<1072> m_dxfHeaderCurrentGroupCodes;
+    std::shared_ptr<DxfReadRetainedLease> m_dxfUnknownHeaderLease;
+    bool m_dxfRequiredVersionsWellFormed {true};
+    bool m_dxfPlotStyleIdWellFormed {true};
+    std::optional<std::string> m_pendingCustomPropertyTag;
+    bool m_customPropertyFieldValueSeen {false};
     bool m_hasDerivedDimunitAlias {false};
     int m_dimunitSourceCode {0};
     int m_dimunitSourceValue {0};

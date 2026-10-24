@@ -27,6 +27,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <cstdint>
 #include <string>
 
 /// Owns the temporary output and publishes it only after a complete flush.
@@ -49,7 +50,22 @@ public:
     std::ofstream& stream() noexcept { return m_stream; }
 
 private:
+    struct TargetSnapshot {
+        bool captured {false};
+        bool exists {false};
+        std::uint64_t device {0};
+        std::uint64_t file {0};
+        std::uint64_t size {0};
+        std::uint64_t modifiedSeconds {0};
+        std::uint64_t modifiedSubseconds {0};
+        std::uint64_t changedSeconds {0};
+        std::uint64_t changedSubseconds {0};
+        std::uint32_t type {0};
+    };
+
     bool createExclusiveTemporary();
+    bool captureTargetSnapshot() noexcept;
+    bool targetSnapshotMatches() const noexcept;
     bool temporaryIdentityMatches() const noexcept;
     bool directoryIdentityMatchesPath() const noexcept;
     bool flushFileToStorage() const noexcept;
@@ -64,6 +80,7 @@ private:
     std::ofstream m_stream;
     int m_exclusiveDescriptor {-1};
     int m_directoryDescriptor {-1};
+    TargetSnapshot m_targetSnapshot;
     // Mode of the file this write replaces, or -1 when it is a new file.
     // Applied to the temporary immediately before the rename, so an overwrite
     // keeps the permissions the target already had.

@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-open-source-research-v1",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "date": "2026-10-19",
+  "title": "Deeper/broader converter-stage, raw-ASM projection, and bounded SAB evidence review",
+  "mode": "Primary-source research and current-plan refinement",
+  "scope": [
+    "Audit the current FreeCAD DWG conversion wrapper and identify what its success signal proves.",
+    "Compare GDAL DXF raw-modeler projection and ezdxf SAT/SAB API documentation at exact version boundaries.",
+    "Translate source-backed route limits into PAR-07/S8 implementation-ready evidence requirements without adding peer dependencies or fixtures."
+  ],
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "3f7341e6385222ec441bb54fb49c20790f04dd39d0661bf7ddeae8fdc5acd97c",
+    "findings": 139,
+    "topLevelSubplans": 77,
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "Mutable main source reviewed 2026-10-19",
+      "observation": "The DWG-to-DXF wrapper waits for the selected converter and reports success based on the expected output path existing; the inspected path does not check the converter child-process return code.",
+      "evidenceCeiling": "Qualification-harness design evidence only; no converter or native FreeCAD run was made, and this does not establish a libdxfrw defect."
+    },
+    {
+      "project": "GDAL/OGR",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "revision": "Stable driver documentation reviewed 2026-10-19",
+      "observation": "DXF_3D_EXTENSIBLE_MODE exposes ASMData and a 12-real ASMTransform for AC1027+ modeler entities; default behavior skips them because the driver cannot convert them to OGR geometry. Binary DXF input is documented beginning with GDAL 3.12.",
+      "evidenceCeiling": "Optional DXF carrier/projection comparison only; not DWG parsing, source-owner closure, ACIS semantics, B-rep validity, or full document retention."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "revision": "Stable docs identify ezdxf 1.4.5; reviewed 2026-10-19",
+      "observation": "The ACIS API documents SAT/SAB loading, export_sab, and Body-from-mesh output versioned as SAT for R2000-R2010 and SAB for R2013+. The older FAQ broadly says only SAT is written. mesh_from_body only extracts flat polygonal faces and curved faces are lost.",
+      "evidenceCeiling": "A pinned-release check may qualify the documented mesh-origin subset; export_sab does not establish arbitrary ACIS/SAB edit or round-trip semantics."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "Mutable master NEWS reviewed 2026-10-19",
+      "observation": "Specific SAT final-block and binary DXF group-310 history provides candidate comparator probes that overlap existing local fast selectors.",
+      "evidenceCeiling": "Release-note leads only; pin an exact peer build and compare its observed output before drawing any per-feature conclusion."
+    }
+  ],
+  "planChanges": [
+    "At PAR-07/S8 record exact converter identity/arguments/status/diagnostics, fresh intermediate hash and actual DXF version, then strict-parse the intermediate before native import.",
+    "Treat GDAL optional raw ASM output as a versioned carrier/projection check, not semantic geometry.",
+    "Separate ezdxf general arbitrary-carrier claims from bounded mesh-origin SAB generation and test the exact release/profile only at the composed checkpoint.",
+    "Keep LibreCAD and LibreCAD_3 2D compatibility separate from optional 3D semantic qualification; retain existing no-peer-per-slice and no-external-fixture policies."
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "limitations": "Mutable documentation/source establishes route descriptions, not results for an exact installed peer build. No FreeCAD, GDAL, ezdxf, LibreDWG, or kernel execution was performed."
+  },
+  "validation": {
+    "planDiffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/libdxfrw.cpp tests/hardening_tests.cpp",
+    "planSha256": "3f7341e6385222ec441bb54fb49c20790f04dd39d0661bf7ddeae8fdc5acd97c",
+    "tests": "NOT_RUN for research-only route claims",
+    "supportClaimsPromoted": 0
+  },
+  "disposition": "PLAN_UPDATED; claims unchanged; six external J items remain explicitly non-promoting"
+}

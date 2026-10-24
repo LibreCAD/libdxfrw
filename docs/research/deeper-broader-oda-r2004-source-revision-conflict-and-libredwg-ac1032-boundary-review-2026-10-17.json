@@ -1,0 +1,144 @@
+{
+  "schema": "libdxfrw-deeper-broader-oda-r2004-source-revision-conflict-and-libredwg-ac1032-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Compare the exact local ODA PDF snapshot with the currently hosted ODA PDF carrying the same version label; inspect LibreDWG's documentation diff, AC1032 issue/PR, and release security notes; audit libdxfrw's production reader/test seam and one local sample trace; update existing plan owners without declaring an unverified local defect.",
+  "method": {
+    "kind": "Pinned local ODA PDF snapshot and same-label current hosted ODA PDF comparison; primary LibreDWG documentation, issue/PR and NEWS; read-only local source audit and existing AC1024 diagnostic trace",
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg.patch",
+      "https://github.com/LibreDWG/libredwg/issues/1294",
+      "https://github.com/LibreDWG/libredwg/pull/1358",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/issues/1281"
+    ],
+    "externalFilesDownloadedOrRun": false,
+    "peerBuiltOrRun": false,
+    "localTestsRun": false,
+    "localReadOnlyDiagnosticRun": true,
+    "localDiagnostic": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-iso.dwg -y -d -v2010 /tmp/libdxfrw_title_trace.dxf",
+      "trace": "/tmp/libdxfrw_title_trace.log",
+      "result": "AC1024 DWG reader reported operationSucceeded=true and legacyError=0. The complete CLI conversion later failed at unrelated LAYOUT export preflight: last-active viewport missing or wrong owner. This is not a successful end-to-end conversion or semantic qualification."
+    },
+    "pinnedLocalOdaSnapshot": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "titleVersion": "5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "pdfCreationDate": "2018-02-15",
+      "pageCount": 279,
+      "agentsExpectedNoSuffixPathExists": false
+    },
+    "hostedOdaWebView": {
+      "titleVersion": "5.4.1",
+      "reportedPageCount": 270,
+      "contentHashAvailable": false,
+      "note": "The official URL is mutable; the currently web-rendered sections materially differ from the local PDF snapshot. Same title/version does not establish byte identity or a formal erratum."
+    },
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "AGENTS.md names the local ODA v5.4.1 PDF as normative. The exact expected no-suffix path is absent; the available local snapshot conflicts with current text at the same official ODA URL/title/version. Preserve the repo authority instruction and do not silently substitute the mutable hosted copy. LibreDWG documentation, NEWS and issue/PR content are corroborating peer evidence only. The local trace is one observed AC1024 page profile, not broad conformance or semantic qualification. No local defect is declared."
+  },
+  "evidence": [
+    {
+      "topic": "Local pinned ODA snapshot versus currently hosted same-label PDF",
+      "localSections": ["4.5", "4.6"],
+      "observed": {
+        "localPdf": "Title says 5.4.1; §4.6 gives 0x0C Page Size (decompressed), a four-byte start offset at 0x10, header/data checksums at 0x14/0x18, and unknown 0x1C.",
+        "hostedPdf": "Current web-rendered PDF also says 5.4.1 but gives 0x08 stored payload size, 0x0C physical page extent, 64-bit start offset at 0x10, checksums at 0x18/0x1C; §4.5 describes padded stored pages, omitted zero-only pages, and logical-prefix publication.",
+        "pageCountsAndIdentity": "The hosted view reports 270 pages; the local 2018 PDF has 279 pages. Same version label does not establish identical bytes or formal erratum status."
+      },
+      "disposition": "PRIMARY_SOURCE_REVISION_CONFLICT_UNRESOLVED",
+      "planAction": "Retain the AGENTS.md rule that the local pinned PDF controls. Resolve source identity and hash before normative byte-layout edits; do not silently use the mutable hosted copy or a peer diff as the new oracle."
+    },
+    {
+      "topic": "LibreDWG documentation-diff corroboration is narrow",
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg.patch",
+      "observed": "The diff changes masked-header checksum fields to unknown at 0x14, header checksum at 0x18, and data checksum at 0x1C. It does not resolve the local-vs-hosted 0x0C page-size wording and is not an ODA-authored authority source.",
+      "planAction": "Use only to guide a later checksum-specific generated vector; never transplant it or call it the normative oracle."
+    },
+    {
+      "topic": "Local production parser, test seam, and observed AC1024 page",
+      "localSources": [
+        "src/intern/dwgreader18.cpp: dwgReader18::parseDataPage",
+        "src/intern/dwgreader.h: dwgPageInfo",
+        "src/intern/dwgsafety.h: sectionBufferCapacity",
+        "tests/dwg_reader_matrix_tests.cpp",
+        "tests/hardening_tests.cpp"
+      ],
+      "observed": [
+        "Production parser reads header 0x08 into cSize, 0x0C into pi.uSize, one 32-bit word at 0x10, treats 0x14 as unknown, and validates checksums at 0x18/0x1C. It compares mapped dataSize to cSize and bounds cSize inside physical map size minus the 32-byte header, but does not directly require header 0x0C to equal map extent.",
+        "The parser uses pi.uSize for output-cap/size checks and requires cSize == uSize for compressed==1. These are source-conflict audit points, not proven bugs. sectionBufferCapacity already takes max(written-page capacity, rounded logical size); existing tests exercise only helper arithmetic and the reader-matrix seam overrides production parseDataPage.",
+        "For title_block-iso.dwg AC1024 AcDb:AcDbObjects page 0x0b, map size is 0x6a0, mapped payload 0x67a, start 0x1d000; decrypted header 0x08=0x67a, 0x0C=0x6a0, 0x10 low word=0x1d000 and upper word zero. Checksums at 0x18/0x1C match; reader reports operationSucceeded=true, legacyError=0, and decompresses a 0x7400 window. The CLI later fails at unrelated LAYOUT export preflight."
+      ],
+      "disposition": "OBSERVED_SAMPLE_PROFILE_NOT_BROAD_CONFORMANCE",
+      "planAction": "Add one fast in-memory selector reaching production parseDataPage under existing PAR-14/7BE. Assert safe declared-size capacity, short final logical tail, exact published sectionSize, failure atomicity, and retry using a locally authored vector anchored to the trace. Defer disputed field-role and 64-bit offset assertions until the normative source is reconciled."
+    },
+    {
+      "topic": "LibreDWG AC1032 declared-size/page-estimate boundary report",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1294",
+        "https://github.com/LibreDWG/libredwg/pull/1358"
+      ],
+      "observed": [
+        "As of 2026-10-17, #1294 and #1358 remain open; #1358 still has cla_needed. The issue has multiple public AC1032 drawings from varied histories plus a control.",
+        "The PR author reports three public drawings matching ODA File Converter 25.6 modelspace counts, 270 passing local tests, 146 corpus conversions with no worse outputs, and a 190-drawing sweep improving 160 to 166 OK. The original reporter later verified 83,917 objects on a private case and byte-identical output on the other 91/92 drawings tested.",
+        "A Sep. 26 independent commenter reported a LibreDWG 0.14 Classes section of 89,089 bytes against an 89,088-byte estimate; an allocation-only local backport recovered 293 classes/4,100 objects including two WIPEOUTs, while other 73/74 outputs were byte-identical. The commenter had not separately tested the PR page-bound guard and could not share the source DWG."
+      ],
+      "disposition": "STRONGER_PEER_FAILURE_SHAPE_UNMERGED_AND_NONPROMOTING",
+      "planAction": "Generate a fast local production test for declared logical size exceeding written-page estimate and a short logical tail. Do not download/commit peer drawings, use peer-reported counts as local expectations, or transplant PR logic. Keep distinct from #1355 handle-map/false-success behavior."
+    },
+    {
+      "topic": "LibreDWG released R2004 decoder security fixes as risk taxonomy",
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "LibreDWG 0.14.1 release notes report separate R2004 issues involving decompression-buffer shrink/overflow, 32-bit page-count-times-maximum-size under-allocation, and an unchecked section-page-map offset.",
+      "planAction": "Map these categories to existing PAR-14/PAR-26 arithmetic-before-allocation, source-map-range, and capacity-stability checks. They are not evidence of matching local vulnerabilities; do not create duplicate fuzz plans or new findings."
+    },
+    {
+      "topic": "Previously screened ACadSharp hostile-run examples remain separately owned",
+      "source": "https://github.com/DomCR/ACadSharp/issues/1281",
+      "observed": "Previously screened report describes peer-specific recursive processing for long comment runs, repeated XDATA application blocks, and repeated IMAGE/WIPEOUT clip groups; thresholds are not format limits.",
+      "planAction": "Retain current PAR-14/PAR-26/7BA/7S forward-progress controls without duplicating parser stress tests."
+    }
+  ],
+  "implementationReadyDelta": {
+    "existingOwnersOnly": true,
+    "priority": "Run the non-disputed declared-section-size/final-tail production regression first under PAR-14/7BE; resolve ODA source identity before normative field-role edits.",
+    "fastSlice": {
+      "testOwner": "Existing DWG reader-matrix/hardening owner; no new CTest registration.",
+      "path": "One source-generated in-memory selector must reach the production R2004+ parseDataPage implementation; the current matrix subclass override is not sufficient.",
+      "controls": [
+        "Captured AC1024 page profile for disputed header bytes, with expected checksum independently calculated.",
+        "Declared logical section larger than written-page-count times page capacity, using a supported trailing omitted-zero-page shape if the section map allows it.",
+        "Short final logical page with full page output window; assert exact logical-prefix publication and no padding exposure.",
+        "Truncated/malformed page, failure atomicity, following-page sentinel, and same-reader retry."
+      ],
+      "deferredFieldAuditAfterAuthorityResolution": [
+        "Header-vs-map physical extent agreement and exact payload/checksum spans.",
+        "Uncompressed padded payload and the 64-bit start-offset high-word control.",
+        "Version-scoped names separating physical extent, stored payload length, page output capacity, and logical section size."
+      ]
+    },
+    "validation": "Strict -Werror owning target, focused selector, lc3_compat_check, owning CTest, receipt JSON validation, and scoped diff check only. Keep full suites/sanitizers at their existing composed checkpoint. Report progress after each implementation slice is committed.",
+    "fixturePolicy": "No external DWG/DXF fixture. Do not download the LibreDWG attachment. Generate test bytes in memory or from scratch in scratch storage only if a file API is unavoidable.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 129,
+      "topLevelImplementationSubplans": 72
+    },
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "scopedDiffCheckPassed": true,
+    "localTestsRun": false,
+    "localReadOnlyDiagnosticRun": true,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

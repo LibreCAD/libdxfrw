@@ -43,6 +43,9 @@ bool testTypedInput() {
         && expect(readDouble("-0", value) && std::signbit(value), "signed zero changed")
         && expect(readDouble("1e-9999", value) && value == 0,
                   "typed finite-underflow policy changed")
+        && expect(readDouble("4.9406564584124654e-324", value)
+                      && value == std::numeric_limits<double>::denorm_min(),
+                  "typed subnormal-underflow policy changed")
         && expect(readDouble("0x1.4p+1", value) && value == 2.5,
                   "existing C-strtod hexadecimal compatibility changed");
     for (const char* token : {"1,25", "nan", "inf", "1e9999", "1.5trailing", ""})
@@ -138,7 +141,10 @@ public:
         DRW_RawDxfObject raw;
         raw.name = "LOCAL_NUMERIC"; raw.handle = 0xA0; raw.m_version = DRW::AC1027;
         raw.hasRawValues = true;
-        raw.groups = {DRW_Variant(5, std::string("A0")), DRW_Variant(10, 1234.5)};
+        const double typedValue = token == "1e-9999" ? 0.0
+            : token == "4.9406564584124654e-324"
+                ? std::numeric_limits<double>::denorm_min() : 1234.5;
+        raw.groups = {DRW_Variant(5, std::string("A0")), DRW_Variant(10, typedValue)};
         raw.rawValues = {"A0", token};
         dxfW->writeRawDxfObject(&raw);
     }
@@ -148,8 +154,10 @@ private:
 
 bool testRawInput(const std::filesystem::path& directory) {
     unsigned index = 0;
-    for (const std::string& token : {std::string(" +1.234500e3 "), std::string("1e-9999"),
-                                    std::string("1,25"), std::string("1e9999")}) {
+    for (const std::string& token : {
+             std::string(" +1.234500e3 "), std::string("1e-9999"),
+             std::string("4.9406564584124654e-324"), std::string("1,25"),
+             std::string("1e9999")}) {
         const auto path = directory / ("raw-" + std::to_string(index++) + ".dxf");
         const std::string sentinel = "original destination\n";
         { std::ofstream stream(path); stream << sentinel; }
@@ -158,11 +166,14 @@ bool testRawInput(const std::filesystem::path& directory) {
         const bool written = sink.fileExport(path.string(), DRW::AC1027, false, &data, false);
         std::ifstream stream(path);
         const std::string bytes((std::istreambuf_iterator<char>(stream)), {});
-        if (token.front() == ' ') {
+        const bool finiteUnderflow = token == "1e-9999"
+            || token == "4.9406564584124654e-324";
+        const bool lexicalPositive = token.front() == ' ';
+        if (lexicalPositive || finiteUnderflow) {
             if (!expect(written && bytes.find(token + "\n") != std::string::npos,
-                        "raw numeric validation rejected/rewrote source dot-decimal spelling")) return false;
+                        "raw numeric validation rejected/rewrote valid finite underflow spelling")) return false;
         } else if (!expect(!written && bytes == sentinel,
-                           "raw ERANGE/invalid policy changed or failed output replaced destination")) return false;
+                           "raw invalid/overflow policy changed or failed output replaced destination")) return false;
     }
     return true;
 }

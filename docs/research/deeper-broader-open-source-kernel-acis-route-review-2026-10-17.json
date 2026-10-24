@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw-open-source-kernel-acis-route-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Broaden the DWG/DXF peer survey to independent open B-rep kernels and current ACIS import routes; determine whether any candidate adds an implementation-ready, independent semantic lane without changing the fast local implementation loop.",
+  "method": {
+    "kind": "Primary-source release manifest, repository documentation, package metadata, and license-route review",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/Cargo.toml",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+      "https://github.com/ricosjp/truck",
+      "https://docs.rs/crate/BREP_kernel/0.9.0",
+      "https://github.com/cadbuildr/ironstream",
+      "https://github.com/rdeioris/cadaclysm-sdk"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing Slice8/S5/S8 parser, AcDs, geometry, and consumer evidence gates",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: prior OpenCADStudio release and kernel-lineage research",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: findings/subplan totals and external-J disposition"
+    ],
+    "limitations": "Release manifests and project-authored documentation establish declared dependency/features and project scope, not runtime reachability, parsing completeness, geometric correctness, or independent expected semantics. The exact OpenCADStudio v2026.41 opencadkernel commit was not built or executed; its mutable default-branch README is only a maturity disclosure. No candidate was run against the same source-authored ACIS payload."
+  },
+  "evidence": [
+    {
+      "topic": "OpenCADStudio v2026.41 codec/kernel binding",
+      "observed": "The release page identifies v2026.41 at cff240e. Its tagged Cargo manifest pins opencadcodec at 8189f83 and opencadkernel at 71770e1, enabling the kernel acis feature. The kernel repository describes an ACIS lift/lower layer and labels its current project status early.",
+      "doesNotEstablish": [
+        "that every imported 3DSOLID reaches the ACIS kernel path",
+        "that the pinned kernel commit implements complete ACIS geometry coverage",
+        "that output is a valid closed B-rep or retains units and topology",
+        "independent parser, kernel, or semantic evidence"
+      ],
+      "planUse": "At the existing composed checkpoint only, bind exact app/codec/kernel revisions, feature selection, source entity, and payload hash; trace the runtime path and report losses, validity, units, and independent analytic metrics. Treat the app/codec/kernel as one correlated lineage."
+    },
+    {
+      "topic": "OpenCASCADE and FreeCAD ACIS availability",
+      "observed": "Open CASCADE's official components catalog and data-exchange announcement list ACIS SAT/SAB import/export as commercial components, separate from LGPL core formats.",
+      "doesNotEstablish": [
+        "that every OCCT-based application lacks separately licensed or third-party ACIS add-ons",
+        "the behavior of a specific FreeCAD build configured with an extra component"
+      ],
+      "planUse": "Do not count stock FreeCAD/OCCT as a second open ACIS reader. Any add-on or commercial component must be identified, licensed, version-pinned, and treated as a separate route."
+    },
+    {
+      "topic": "Independent open B-rep kernel candidates",
+      "observed": "Truck documents open Rust topology/modeling/boolean crates and STEP I/O. BREP_kernel 0.9.0 documents B-rep validation, mass properties, and STEP import/export. IronStream labels itself early/evolving, describes a tessellating B-rep with exact geometry in progress, and documents STL/faceted-STEP rather than SAT/SAB I/O.",
+      "doesNotEstablish": [
+        "direct DWG/DXF or ACIS SAT/SAB parsing by these kernels",
+        "a proven bridge from an ACIS parser's neutral topology into these kernel types",
+        "independent ACIS semantic correctness from project-authored tests or metrics"
+      ],
+      "planUse": "Do not add a mandatory peer, dependency, or support claim. A future kernel-only comparison requires a bounded, tested neutral-topology bridge, source-authored analytic shapes, and explicit transfer-loss reporting; it cannot vote on file parsing or AcDs ownership."
+    },
+    {
+      "topic": "Proprietary SDK wrapper exclusion",
+      "observed": "cadaclysm-sdk describes its wrappers, headers, and samples as Apache-2.0 while stating that the underlying CAD import/modeling libraries are proprietary and governed by an EULA.",
+      "doesNotEstablish": [
+        "an open-source implementation suitable for code comparison or reuse",
+        "an independently qualified ACIS read result"
+      ],
+      "planUse": "Keep it outside the open-source peer set. Any future runtime evaluation is a separate commercial route with exact binary and license provenance."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "pin both the OpenCADStudio codec and kernel commits and runtime feature selection at any composed evaluation",
+      "count the OpenCADStudio parser/kernel/application as one project lineage and require separate expected semantic values",
+      "do not treat stock FreeCAD/OCCT as a free ACIS reader because the official OCCT catalog places ACIS exchange in commercial components",
+      "keep Truck and BREP_kernel as possible future kernel-only candidates only after a tested neutral-topology bridge; exclude early tessellating IronStream from exact ACIS semantics",
+      "exclude cadaclysm-sdk from open-source implementation evidence because its underlying libraries are proprietary"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

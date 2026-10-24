@@ -243,7 +243,7 @@ bool dwgRSCodec::decode251(unsigned char *in, unsigned char *out,
 
 // Decode state is now instance state (declared + initialized in dwgutil.h).
 
-std::uint32_t dwgCompressor::twoByteOffset(std::uint32_t *ll){
+std::uint32_t dwgCompressor::twoByteOffset(std::uint64_t *ll){
     std::uint32_t cont = 0;
     std::uint8_t fb = compressedByte();
     cont = (fb >> 2) | (compressedByte() << 6);
@@ -251,8 +251,8 @@ std::uint32_t dwgCompressor::twoByteOffset(std::uint32_t *ll){
     return cont;
 }
 
-std::uint32_t dwgCompressor::longCompressionOffset(){
-    std::uint32_t cont = 0;
+std::uint64_t dwgCompressor::longCompressionOffset(){
+    std::uint64_t cont = 0;
     std::uint8_t ll = compressedByte();
     while (ll == 0x00 && compressedGood) {
         cont += 0xFF;
@@ -274,8 +274,8 @@ std::uint32_t dwgCompressor::long20CompressionOffset(){
     return cont;
 }
 
-std::uint32_t dwgCompressor::litLength18(){
-    std::uint32_t cont = 0;
+std::uint64_t dwgCompressor::litLength18(){
+    std::uint64_t cont = 0;
     std::uint8_t ll = compressedByte();
     //no literal length, this byte is next opCode
     if (ll > 0x0F) {
@@ -296,10 +296,22 @@ std::uint32_t dwgCompressor::litLength18(){
 }
 
 bool dwgCompressor::decompress18(const std::uint8_t *cbuf, std::uint8_t *dbuf, std::uint64_t csize, std::uint64_t dsize){
+    if (csize > std::numeric_limits<std::uint32_t>::max()
+        || dsize > std::numeric_limits<std::uint32_t>::max()) {
+        compressedBuffer = nullptr;
+        compressedSize = 0;
+        compressedPos = 0;
+        compressedGood = false;
+        decompBuffer = nullptr;
+        decompSize = 0;
+        decompPos = 0;
+        decompGood = false;
+        return false;
+    }
     compressedBuffer = cbuf;
     decompBuffer = dbuf;
-    compressedSize = csize;
-    decompSize = dsize;
+    compressedSize = static_cast<std::uint32_t>(csize);
+    decompSize = static_cast<std::uint32_t>(dsize);
     compressedPos = 0;
     decompPos = 0;
     compressedGood = true;
@@ -315,12 +327,14 @@ bool dwgCompressor::decompress18(const std::uint8_t *cbuf, std::uint8_t *dbuf, s
     DRW_DBG("dwgCompressor::decompress, last 2 bytes: ");
     DRW_DBGH(compressedBuffer[compressedSize - 2]);DRW_DBG(" ");DRW_DBGH(compressedBuffer[compressedSize - 1]);DRW_DBG("\n");
 
-    std::uint32_t compBytes {0};
+    // Extended R2004 lengths can exceed the 32-bit output cursor; retain the
+    // wide value until it is clipped against the remaining output window.
+    std::uint64_t compBytes {0};
     std::uint32_t compOffset {0};
-    std::uint32_t litCount {litLength18()};
+    std::uint64_t litCount {litLength18()};
 
     //copy first literal length
-    for (std::uint32_t i = 0; i < litCount && buffersGood(); ++i) {
+    for (std::uint64_t i = 0; i < litCount && buffersGood(); ++i) {
         decompSet( compressedByte());
     }
 
@@ -392,25 +406,27 @@ bool dwgCompressor::decompress18(const std::uint8_t *cbuf, std::uint8_t *dbuf, s
             return false;
         }
         //copy "compressed data", if size allows
-        if (decompSize < decompPos + compBytes) {
+        const std::uint32_t availableCopyBytes = decompSize - decompPos;
+        if (compBytes > availableCopyBytes) {
             DRW_DBG("WARNING dwgCompressor::decompress18, bad compBytes size, Cpos: ");
-            DRW_DBG(compressedPos);DRW_DBG(", Dpos: ");DRW_DBG(decompPos);DRW_DBG(", need ");DRW_DBG(compBytes);DRW_DBG(", available ");DRW_DBG(decompSize - decompPos);DRW_DBG("\n");
+            DRW_DBG(compressedPos);DRW_DBG(", Dpos: ");DRW_DBG(decompPos);DRW_DBG(", need ");DRW_DBG(compBytes);DRW_DBG(", available ");DRW_DBG(availableCopyBytes);DRW_DBG("\n");
             // only copy what we can fit
-            compBytes = decompSize - decompPos;
+            compBytes = availableCopyBytes;
         }
         std::uint32_t j {decompPos - compOffset - 1};
-        for (std::uint32_t i = 0; i < compBytes && buffersGood(); i++) {
+        for (std::uint64_t i = 0; i < compBytes && buffersGood(); i++) {
             decompSet( decompByte( j++));
         }
 
         //copy "uncompressed data", if size allows
-        if (decompSize < decompPos + litCount) {
+        const std::uint32_t availableLiteralBytes = decompSize - decompPos;
+        if (litCount > availableLiteralBytes) {
             DRW_DBG("WARNING dwgCompressor::decompress18, bad litCount size, Cpos: ");
-            DRW_DBG(compressedPos);DRW_DBG(", Dpos: ");DRW_DBG(decompPos);DRW_DBG(", need ");DRW_DBG(litCount);DRW_DBG(", available ");DRW_DBG(decompSize - decompPos);DRW_DBG("\n");
+            DRW_DBG(compressedPos);DRW_DBG(", Dpos: ");DRW_DBG(decompPos);DRW_DBG(", need ");DRW_DBG(litCount);DRW_DBG(", available ");DRW_DBG(availableLiteralBytes);DRW_DBG("\n");
             // only copy what we can fit
-            litCount = decompSize - decompPos;
+            litCount = availableLiteralBytes;
         }
-        for (std::uint32_t i=0; i < litCount && buffersGood(); i++) {
+        for (std::uint64_t i=0; i < litCount && buffersGood(); i++) {
             decompSet( compressedByte());
         }
     }
@@ -768,10 +784,22 @@ std::uint32_t dwgCompressor::litLength21(std::uint8_t opCode)
 }
 
 bool dwgCompressor::decompress21(const std::uint8_t *cbuf, std::uint8_t *dbuf, std::uint64_t csize, std::uint64_t dsize){
+    if (csize > std::numeric_limits<std::uint32_t>::max()
+        || dsize > std::numeric_limits<std::uint32_t>::max()) {
+        compressedBuffer = nullptr;
+        compressedSize = 0;
+        compressedPos = 0;
+        compressedGood = false;
+        decompBuffer = nullptr;
+        decompSize = 0;
+        decompPos = 0;
+        decompGood = false;
+        return false;
+    }
     compressedBuffer = cbuf;
     decompBuffer = dbuf;
-    compressedSize = csize;
-    decompSize = dsize;
+    compressedSize = static_cast<std::uint32_t>(csize);
+    decompSize = static_cast<std::uint32_t>(dsize);
     compressedPos = 0;
     decompPos = 0;
     compressedGood = true;

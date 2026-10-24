@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-peer-research-v1",
+  "date": "2026-10-16",
+  "title": "Deeper AcDs queue/association implementation audit",
+  "researchOnly": true,
+  "execution": {
+    "peerBinaryRun": false,
+    "nativeCadRun": false,
+    "localSourceReviewed": true,
+    "drawingFixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "productionSourceChanged": false
+  },
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/acds.spec",
+      "fact": "The reviewed source parses AcDs segment/index structures, but its SAB recovery scans for ACIS BinaryFile and End of ASM data markers and pairs each recovered span with the next queued acis_sab_hdl entry; it checks aggregate counts at the end. The shown _data_ and blob01 cases are unhandled. This is mutable-master source inspection, not a runtime result or proof that the ordering is wrong for every producer."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/decode_r2007.c",
+      "fact": "The R2007 decoder invokes the AcDs section parser; source presence does not establish complete schema interpretation, exact entity-to-payload binding, or current released behavior."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "fact": "The open report gives a from-scratch ezdxf AC1032 REGION/cube control with a 5489-byte SAB and reports silent payload/ACDSDATA loss through LibreDWG 0.14.8593 at 8a1ae764 in DXF-to-DWG-to-DXF conversion. The confidential AutoCAD drawing is unavailable; the report is not a result for current master."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "fact": "The report describes ACIS solids read from DWG but silently omitted by a DXF writer, including solid-only blocks; the maintainer says these entity types were not yet supported by that DXF writer."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "fact": "The issue-linked ACIS DXF writer change remained open in the current pull request list at the time of review; an unmerged branch is not released writer behavior."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "fact": "ezdxf documents no ACIS kernel and flat-polygon-only mesh extraction from ACIS bodies; this is useful carrier/projection evidence but not arbitrary curved B-rep semantics."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "fact": "FreeCAD documentation describes the stock DXF importer routes and says ACIS/SAT blobs cannot currently be read; the documentation is not a runtime result for a pinned build."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "fact": "A maintainer response says stock FreeCAD cannot read the proprietary ACIS blob and recommends conversion to an open format; the issue is route-boundary evidence, not native qualification."
+    }
+  ],
+  "disposition": {
+    "implementationImpact": "Refine existing AcDs per-entity association and optional peer-comparison gates; do not add a new finding or block local implementation.",
+    "localSourceReview": {
+      "file": "tests/graph_preservation_tests.cpp",
+      "test": "testDataStorageBlobPages",
+      "finding": "Existing generated coverage links two distinct payload vectors to A17/A18 after reversed entity traversal and checks each handle/key/payload association; no duplicate local test is needed for that invariant."
+    },
+    "acceptanceFieldsToKeepSeparate": [
+      "AcDs section and segment discovery",
+      "per-entity handle/key/index/offset association",
+      "SAB payload length and digest retention",
+      "DXF/DWG writer emission and block/INSERT closure",
+      "strict parser and recovery diagnostics",
+      "consumer object/mesh projection",
+      "closed B-rep validity and independent analytic geometry comparison"
+    ],
+    "supportTotals": {
+      "findings": 125,
+      "topLevelSubplans": 71,
+      "externalItems": {
+        "J256": "DEFERRED_EXTERNAL",
+        "J260": "DEFERRED_EXTERNAL",
+        "J268": "DEFERRED_EXTERNAL",
+        "J284": "DEFERRED_EXTERNAL",
+        "J293": "DEFERRED_EXTERNAL",
+        "J295": "DEFERRED_EXTERNAL"
+      }
+    }
+  }
+}

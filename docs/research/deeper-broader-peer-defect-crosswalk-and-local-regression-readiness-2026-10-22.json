@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw-open-source-research-v1",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "date": "2026-10-22",
+  "title": "Peer defect crosswalk and local regression readiness",
+  "mode": "Primary-source research and read-only local source/test audit; conditional plan refinement",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "2086bb9262431eadf3eb7414c822907d2e538d5da725caaf2ecbd290751d064c",
+  "method": {
+    "localSourceAndTestsInspected": [
+      "src/intern/dwgreader21.cpp: parseDataPage and parseSectionsMap range admission",
+      "tests/dwg_reader_matrix_tests.cpp: testR2007DataPageProfiles and testR2004SectionMapPublication",
+      "tests/dwg_local_roundtrip_tests.cpp: runModelerDwgSatV1Extraction and modeler DXF chunk matrix",
+      "tests/hardening_tests.cpp: generated group-310 direct-decode test",
+      "tests/dxf_fixture_tests.cpp: generated ASCII/Binary MESH topology round-trip and following-LINE controls",
+      "tests/wave1_tests.cpp: MLINESTYLE NaN/Infinity ASCII/Binary write refusal",
+      "tests/hatch_reference_tests.cpp: associative multi-path/rational-spline HATCH controls"
+    ],
+    "authoritativeSpec": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sectionsReviewed": ["5.1", "5.4"],
+      "role": "DWG byte-layout authority per repository AGENTS.md"
+    },
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "LibreDWG NEWS is a mutable master page and describes a beta source version; the 0.14.1 release-tag URL returned 404 in this review. Peer fix notes/issues are not evidence of matching local defects. ACadSharp issue #1195 reports package 3.4.9 while its linked writer PR #1240 is still open; this does not establish behavior of release 3.8.0. No positive external DWG containing independently authored AcDs data was obtained."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "NEWS labels version 0.14.1 as beta dated 2026-07-25 and records fixes covering R2004/R2007 range and decompression hardening, SAT block-size arithmetic, non-finite MLINESTYLE angles, associative HATCH path state and spline knot/weight handling, binary pair 310-319 encoding, final SAT-block output, and SubDMesh binary import. Issue #1411 reports AcDsPrototype_1b/SAB loss for LibreDWG build 8a1ae764 and includes a source-DXF recipe whose dxf2dwg output lacks AcDs data.",
+      "evidenceCeiling": "Peer-maintained release notes and issue report identify regression shapes only. The issue recipe tests the peer's missing AcDs writer/reader route, not a valid positive AcDs DWG or local semantic correctness."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "The releases page lists v3.8.0 at signed commit 3a1c66b as latest during this review. Issue #1195 reports DXF writer omission against ACadSharp 3.4.9 and links still-open PR #1240, whose description depends on ACDS/ACIS refactor #1174.",
+      "evidenceCeiling": "The 3.4.9 issue cannot be projected onto 3.8.0. An open PR is not a merged/released result; no peer executable was run."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "The DXF entity documentation lists ACIS-bearing entities and says ACIS data creation depends on an external source/library; the LibreDWG issue gives a narrow ezdxf-generated R2018 REGION/SAB cube recipe.",
+      "evidenceCeiling": "Useful for a generated DXF carrier and raw DXF inspection, not a DWG AcDs producer, general ACIS kernel, or independent semantic oracle."
+    }
+  ],
+  "localCrosswalk": {
+    "alreadyCovered": [
+      "AC1015 multi-block SAT extraction plus group-1/group-3 DXF output/readback and terminal continuation",
+      "group-310 direct binary decode named test",
+      "AC1027 generated SubDMesh open/concave/closed topology round-trip in ASCII and Binary DXF, including following LINE",
+      "MLINESTYLE NaN/+Infinity/-Infinity start/end writer refusal in ASCII and Binary DXF",
+      "R2004 overflowing page-map offset refusal and AC1021 raw/RS page decoding profile controls"
+    ],
+    "coverageGapsToProbe": [
+      {
+        "id": "RPP-1",
+        "priority": "P0",
+        "target": "AC1021 generated section-map decoded page extent",
+        "status": "TEST_GAP_ONLY; production parser already performs checked offset/size admission",
+        "plannedAssertions": "Mutate one valid generated section-map page so its uncompressed range exceeds the declared section size; valid header/map CRC otherwise; expect refusal before callbacks, range diagnostic, and retry success after restoration."
+      },
+      {
+        "id": "RPP-2",
+        "priority": "P1",
+        "target": "patterned associative multi-path HATCH",
+        "status": "TEST_GAP_ONLY; current shared generator uses SOLID without pattern lines",
+        "plannedAssertions": "In ASCII/Binary DXF, assert pattern line order/fields, associative flag, per-path boundary-reference order, weighted spline knots/control points/weights, HATCH record, and following-record alignment."
+      }
+    ],
+    "explicitlyNotAdded": [
+      "duplicate SubDMesh binary topology test",
+      "duplicate SAT continuation/final-block test",
+      "duplicate binary group-310 direct-decode test",
+      "duplicate MLINESTYLE non-finite angle test"
+    ]
+  },
+  "planChanges": {
+    "newConfirmedProductionDefects": 0,
+    "conditionalGeneratedFastTestSlices": 2,
+    "supportClaimsPromoted": 0,
+    "fixturePolicy": "No peer/customer drawings downloaded or added. Future controls must be generated locally from scratch or use already-admitted repository fixtures.",
+    "externalGates": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL",
+      "freecadLinuxWindows": "OPEN_SEPARATE_QUALIFICATION",
+      "independentAcisAcdsSemantics": "OPEN_SEPARATE_QUALIFICATION"
+    }
+  },
+  "validation": {
+    "planDiffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; receipt JSON parses with jq empty",
+    "tests": "NOT_RUN: research-only update",
+    "fullSuite": "NOT_RUN",
+    "peerComparatorsRun": 0,
+    "planUpdated": true
+  },
+  "disposition": "PLAN_UPDATED; two conditional local generated fast-test gaps documented; no production defect or support claim inferred from peer evidence"
+}

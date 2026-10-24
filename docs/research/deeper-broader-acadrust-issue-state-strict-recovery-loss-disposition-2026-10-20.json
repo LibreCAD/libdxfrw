@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACadRust 0.6.5 release freshness, issue-state, strict-recovery, test-denominator, and loss-disposition audit",
+  "mode": "Primary-source web research and existing-plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Freshness-check the current ACadRust package/docs/Cargo manifest/changelog and issue states against the earlier provisional comparator screen.",
+    "Separate malformed DWG header bounds from object-record counts, allocations, and optional-object recovery.",
+    "Refine existing PAR-07/S8, parser-hardening, owner-closure, writer-disposition, test-denominator, and ACIS semantic-evidence gates without adding fixtures or routine peer jobs."
+  ],
+  "sources": [
+    {
+      "project": "ACadRust issue #124: malformed header-section bounds",
+      "revision": "Issue page reviewed 2026-10-20; report reproduces ACadRust 0.6.3; issue remains open; linked commits include 3097271, 4838a42, and a80defa",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/124"
+      ],
+      "observed": "The issue describes a locally generated AC1024 DWG whose header-section size field is mutated, causing an unchecked slice/panic. Maintainer commits and a request to re-check are present, but no independent verification is recorded on the issue.",
+      "evidenceCeiling": "A version-specific peer failure report and fix discussion; it is not evidence of a libdxfrw defect or a DWG size rule."
+    },
+    {
+      "project": "ACadRust issue #123: object count and allocation bounds",
+      "revision": "Issue page reviewed 2026-10-20; report reproduces ACadRust 0.6.3; issue remains open; linked commit 53007f3 and maintainer request to re-check",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/123"
+      ],
+      "observed": "The report describes object-data mutations that can yield a clamped but fabricated large vertex array with zero-filled reads, or an allocation request reported at roughly 12 TiB. The maintainer says some fixes were implemented but no public independent retest is recorded.",
+      "evidenceCeiling": "Peer-specific hardening lead only; do not copy its caps, byte offsets, or behavior as format requirements."
+    },
+    {
+      "project": "ACadRust issue #133: orphaned owner recovery",
+      "revision": "Issue page reviewed 2026-10-20; report concerns ACadRust 0.6.3 and a private 351-file corpus; issue remains open; linked commit b62555f requests corpus retest",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/133"
+      ],
+      "observed": "The issue alleges that re-homing entities with missing block owners to model space produces phantom dimension geometry. It compares against an ODA-converted path on a private corpus and reports no public post-fix retest.",
+      "evidenceCeiling": "An owner-graph failure shape, not independent ground truth or a verified current-peer result; the private files were not accessed."
+    },
+    {
+      "project": "ACadRust issue #134: AC1032 auxiliary-object strict-bounds regression",
+      "revision": "Issue page reviewed 2026-10-20; report concerns 0.6.4; issue remains open; linked commit 0e46236 and maintainer request for corpus retest",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "observed": "The report says 70 of 351 private AC1032 drawings that worked on 0.6.3 fail on MLeader-context or associative records in 0.6.4 after stricter record-size bounds. The linked change attempts bounded auxiliary-record preservation; no public corpus result confirms the fix.",
+      "evidenceCeiling": "A compatibility-versus-bounds tradeoff report for a peer. It does not justify relaxing libdxfrw bounds or a broad current-peer claim."
+    },
+    {
+      "project": "ACadRust issue #132: DXF-to-DWG loss disposition",
+      "revision": "Issue page reviewed 2026-10-20; original reproduction names 0.6.3 and main ea68744; closed as completed on 2026-10-20 after commit 95a8c2f; current 0.6.5 changelog records the claimed resolution, but no independent public corpus retest is linked",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/132"
+      ],
+      "observed": "The report covers raw-only custom-class records, group-430 color-book names, and table/block XDATA. The 0.6.4 changelog says named colors and table-record XDATA are preserved and unsupported custom records are reported. The issue was closed by its owner on 2026-10-20, but neither the issue nor release note publishes an independent retest of the private corpus or promises byte-preserving output for unsupported custom classes.",
+      "evidenceCeiling": "A closed peer issue confirms only its tracked resolution state, not full arbitrary-record fidelity or current-release qualification."
+    },
+    {
+      "project": "ACadRust published crate, docs.rs package page, current manifest, changelog, and ACIS primitive API",
+      "revision": "Freshness correction reviewed 2026-10-20: docs.rs latest and raw Cargo.toml identify 0.6.5, published 2026-10-18; prior note that docs.rs displayed 0.6.4 was stale/incorrect",
+      "urls": [
+        "https://docs.rs/crate/acadrust/latest",
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/Cargo.toml",
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/CHANGELOG.md",
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/primitives/index.html"
+      ],
+      "observed": "Published docs.rs, docs.rs latest, and raw Cargo.toml agree on acadrust 0.6.5, published 2026-10-18; the manifest identifies MPL-2.0 and dependencies including nom, flate2, and encoding_rs. Docs declare DXF/DWG R/W across AC1009-AC1032 but qualify variable entity availability, incomplete AC1009 DWG fidelity, and default promotion of R12-tagged documents to R13 output. Docs state CI covers stable Linux/Windows/macOS plus wasm builds and that tests requiring drawings absent from the repository are ignored. Changelog 0.6.5 claims malformed-header reporting, bounded auxiliary-record recovery, orphan exclusion from model space, ACIS color/body-history fixes, and regression fixtures. ACIS primitive docs describe builders that construct topology for listed primitives; this is structural API scope, not independent kernel validation.",
+      "evidenceCeiling": "The correction removes the false docs.rs version mismatch. Mutable main/latest claims still require an exact crate checksum, source commit, command, platform/features, ignored-test count, and file/entity denominator before a candidate comparison can be scored. Release notes and constructed topology do not independently verify fixes, arbitrary 3D B-rep validity, or named consumer acceptance."
+    },
+    {
+      "project": "Existing local plan and owners",
+      "revision": "Shared worktree plan reviewed 2026-10-20",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "The plan already contains a provisional ACadRust screen and independent owners for bounded parsing, object frames, graph closure, explicit loss, and evidence admission.",
+      "evidenceCeiling": "This update links peer failure shapes to existing implementation owners; it does not confirm an uncovered local defect or add a new feature claim."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: keep ACadRust SCREENED_NOT_ADMITTED until source, crate, tests, lineage, and exact route are pinned coherently",
+      "DWG hardening: separate checked header-section ranges from object-frame count/allocation bounds and distinguish strict error from safe bounded auxiliary-record recovery",
+      "Owner closure: distinguish null, resolved, and missing owners; do not silently manufacture model-space membership",
+      "Writer disposition: separately account for raw-only classes, color-book names, and table/block XDATA as preserved, explicitly refused, diagnosed omission, or silent loss"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Treat recent ACadRust issues as version-specific test-design evidence and record 0.6.5 release-note fixes separately from independently verified outcomes. Preserve bounded parsing, isolate only well-framed optional failures, prevent owner re-homing from inflating valid geometry, and score writer routes by per-record loss disposition. Account for ignored missing-drawing tests, explicit AC1009 caveats, and the distinction between ACIS topology construction and independent kernel semantics. No peer run or support promotion is justified."
+  },
+  "method": {
+    "kind": "Read-only primary-source issue/documentation review; plan and receipt update",
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acadrust-issue-state-strict-recovery-loss-disposition-2026-10-20.json"
+    ],
+    "limitations": "Issue reports, docs.rs latest, and repository documentation are mutable. The 0.6.3/0.6.4 issue reproductions predate published 0.6.5; release-note fixes were not built or independently retested here. Missing-drawing tests are documented as ignored, and their full denominator was not inspected or run. Private customer corpora were not accessed. No peer source or artifact was executed."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq parses receipt and asserts schema, plan totals, and six deferred-state values)",
+    "planDiffCheck": "PASS (scoped git diff check for tracked content; awk whitespace scan for plan and untracked receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Explicit-facet peer geometry and subdivision evidence boundaries",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Separate classic POLYFACE topology from AcDbSubDMesh control cages and ACIS modeler bodies",
+    "Audit authoritative DXF group semantics for POLYFACE, VERTEX, and MESH",
+    "Refine optional GDAL DXF projection settings to preserve source identity and avoid block feature truncation",
+    "Keep peer execution optional and support evidence route-specific"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF reference: POLYLINE, POLYFACE, and VERTEX",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+        "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm"
+      ],
+      "observation": "POLYFACE is represented through a POLYLINE and child VERTEX records. The references define one-based face indices, negative indices for invisible edges, and zero termination. Writers should place coordinate vertices before face-definition vertices, while readers should tolerate unusual order. A face record is limited to four vertex indices, so larger faces require decomposition."
+    },
+    {
+      "project": "Autodesk 2024 DXF MESH reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "observation": "The AcDbSubDMesh reference documents level-0 cage vertices, faces, edges, crease values, and subentity property overrides. Retention of the base cage and metadata is distinct from evaluating the subdivision surface."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "reference": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "observation": "The driver projects POLYFACE to OGR POLYHEDRALSURFACE and 3DFACE to polygon features, exposes EntityHandle and optional raw unhandled values, and documents configurable block inlining/merging. INSERT expansion is capped at 10,000 features per block by default; -1 removes the cap. Binary DXF input is documented beginning with GDAL 3.12. This is a projection route, not a lossless object graph, MESH evaluator, or ACIS kernel."
+    },
+    {
+      "project": "IxMilia.Dxf current project compatibility notes",
+      "reference": "https://github.com/ixmilia/dxf",
+      "observation": "The project lists MESH among exceptions to its stated R10-R2014 coverage and warns that its writer output for 3DSOLID, REGION, and BODY may not open in AutoCAD. It may be considered only for exact supported parser routes, not a positive modeler writer or MESH evaluator oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S2/S8: distinguish POLYFACE explicit surfaces, AcDbSubDMesh base-cage retention/evaluated-surface claims, and ACIS carrier/shape claims",
+      "PAR-07/S8: optional GDAL projection must pin route/options, remove block feature cap, disable identity-collapsing block expansion, and compare by source handle and block occurrence",
+      "Existing POLYFACE and MESH generated test owners remain the local fast-test authorities; no peer-mirroring test is needed"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "geometryKernelsRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies that the optional GDAL route can provide a narrowly matched geometry projection for classic POLYFACE only; it does not qualify AcDbSubDMesh evaluation, ACIS semantics, or full document preservation. The existing local tests and implementation sequence remain unchanged."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "geometryKernelsRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-explicit-facet-peer-geometry-subdivision-boundaries-2026-10-21.json"
+    ],
+    "limitations": "Research used current public project documentation only. The GDAL binary/runtime was not present or executed, so its projection settings remain an optional recipe. No ACIS body, subdivision surface, or native application semantics were independently exercised."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plans)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-134 FIELD unqualified format flags fail closed",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "c9b69a8d43f21ca4901c4e122f70bf0d2c4431be49af242672a167072d0858b5",
+  "normative_basis": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.99",
+    "finding": "Format bit 0x01 selects kGeneral. The reviewed section does not define 0x02 as an empty-value flag or assign semantics to other bits."
+  },
+  "peer_source_audit": [
+    {
+      "source": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/CadValue.cs",
+      "observation": "CadValue.IsEmpty maps the least significant flag bit (0x01) to empty."
+    },
+    {
+      "source": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs",
+      "observation": "The current reader consumes the data-type BL before gating the payload on IsEmpty."
+    },
+    {
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg_spec_shared.h",
+      "observation": "TABLE_value_fields consumes the data-type BL and skips the payload when either low bit is set."
+    }
+  ],
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "change": "The reader returns Unsupported before interpreting any format bits other than documented 0x01, leaving the enclosing FIELD as an incomplete bounded shell. The typed writer rejects modern format masks containing bits outside 0x01 before output.",
+    "documented_behavior_retained": "The 0x01 kGeneral/type-512 path is unchanged."
+  },
+  "generated_control": {
+    "inputs": "Valid in-memory FIELD frames with only the root CadValue format field patched to 0x02, 0x03, or 0x04.",
+    "assertions": [
+      "AC1021 and AC1024 readers keep each unqualified flag value in an incomplete FIELD shell without publishing a typed value or child values.",
+      "Constructed typed FIELD writers refuse flags 0x02, 0x03, and 0x04 before body, string, or handle output.",
+      "The documented 0x01 kGeneral route and existing kUnknown incomplete/refusal controls still pass."
+    ],
+    "persistent_fixture_added": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-unqualified-format-flags",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-general-format-flag",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-unknown-type",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_field_(unqualified_format_flags|cadvalue_general_format_flag|cadvalue_unknown_type)$' --output-on-failure",
+      "result": "PASS (3/3)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "df16006129a41d8602ff9782ed6d4dd3776f6ff7f34958f44be99baf760dc650",
+    "src/drw_objects.cpp": "3d2334f73ccbce179dd601c66e14b3f3177d861bde1525197293615435682752",
+    "tests/dwg_object_vectors_tests.cpp": "7ce41eb2f13771e3faeb0609251b300be76d04605b07608c2907278951f6bc5d"
+  },
+  "evidence_limits": [
+    "Generated local structural/refusal coverage only; no producer-authored DWG or native consumer result was obtained.",
+    "The semantics of format bit 0x02 and other non-0x01 bits remain unresolved; this change intentionally does not claim them as empty or assign another meaning.",
+    "Current peer-source behavior conflicts with ODA framing and between peers; it is not a substitute for producer-authored evidence.",
+    "No DWG/DXF support claim is promoted, and no full suite was run."
+  ],
+  "deferred_external": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and no files were staged"
+}

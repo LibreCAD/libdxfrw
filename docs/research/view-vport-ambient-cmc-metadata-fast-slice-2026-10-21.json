@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 VIEW/VPORT ambient CMC metadata and class-specific DXF projection",
+  "mode": "generated AC1024/AC1032 DWG and ASCII/Binary DXF fast slice",
+  "scope": [
+    "Retain R2007+ ambient CMC method, flags, reserved BS index, and separate optional names/books for VIEW and VPORT table records",
+    "Replay source CMC metadata or refuse unsupported/mismatched DWG representations before output",
+    "Apply documented class-specific DXF mappings and refuse unrepresentable legacy/richer VIEW states"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "VIEW object", "VPORT table record"],
+      "finding": "R2007+ VIEW and VPORT ambient fields use CMC; ODA maps VIEW ambient color to group 63 and documents VPORT groups 63, 421, and 431. R2004+ CMC has a zero reserved BS index, a packed method/color BL, and optional-name flags/strings."
+    },
+    "autodeskDxfReferences": {
+      "view": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "vport": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+      "groupCodeKinds": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "finding": "Autodesk's VPORT DXF table explicitly lists ambient groups 63, 421, and 431; its numerical group-code table classifies 430-437 as strings used for named truecolors, so VPORT keeps 431 as one color-name string (including the existing BOOK$ENTRY spelling) without inventing a separate 430 field. Its current VIEW table does not list ambient-color groups; accordingly, VIEW serialization is limited to ODA's scalar group 63 and refuses RGB/name/book state rather than emitting undocumented 421/431 fields."
+    },
+    "localSource": {
+      "files": ["src/drw_objects.h", "src/drw_objects.cpp", "src/libdxfrw.cpp", "dwg2dxf/dx_iface.cpp"],
+      "finding": "VIEW/VPORT bounded CMC reads previously requested RGB/name/book but omitted raw method/flags/index, and DWG writers canonicalized to indexed or RGB forms while dropping other metadata. Writers now preflight metadata before bytes, preserve supported C0-C3 with optional strings, and charge retained strings in adapter accounting. DXF group parsing clears DWG-only provenance."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Retain and expose ambient CMC source metadata for both VIEW and VPORT; compose BOOK$ENTRY names using the raw book-present flag, including empty-book cases.",
+      "DWG encoders replay supported C0-C3 methods, name/book flags, and separate strings; reject unknown flags, nonzero reserved indices, method/value mismatch, unsupported methods, and non-default pre-R2007 ambient state before output.",
+      "DXF VPORT keeps its documented 63/421/431 projection. DXF VIEW emits only scalar group 63 and atomically rejects RGB/name/book state; legacy output rejects non-default ambient values.",
+      "Adapter memory estimates include the retained CMC name and book strings for VIEW/VPORT."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": "libdxfrw_view_vport_ambient_cmc",
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "VIEW/VPORT object sizes grow by retained private CMC metadata; a non-virtual read-only accessor was added. Downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "fullDwgRoundtrip": "AC1024 and AC1032 generated DWG routes cover VPORT named RGB and VIEW book-only ACI, plus an empty-book VIEW name; checks include method/flags/index, copy/reset, rewrite, and reread.",
+    "dxfProjection": "ASCII and Binary DXF controls inspect literal VPORT groups 63/421/431 and scalar-only VIEW group 63, then parse back and verify DXF import clears DWG provenance.",
+    "failClosed": "Direct DWG encoders reject unknown CMC flags, nonzero reserved index, C5 Foreground writer mapping, and non-default pre-R2007 fields without changing body/string/handle buffers. Atomic DXF controls reject legacy ambient data and rich VIEW RGB/name projections while preserving an existing destination.",
+    "emptyBook": "Generated DWG checks preserve an explicitly-present but empty book name via flags and the public $ENTRY form; no persistent fixture was added."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg_object_vectors_tests dwg2dxf lc3_compat_check -j4",
+    "build_result": "PASS (-Werror strict build)",
+    "focused_ctests": "ctest --test-dir build-gcc -R '^(libdxfrw_view_vport_ambient_cmc|libdxfrw_layer_dwg_cmc_roundtrip|libdxfrw_dwg_object_vectors|libdxfrw_viewport_ambient_color_method)$' --output-on-failure",
+    "focused_ctest_result": "PASS (4/4; 0.49 sec)",
+    "diff_check": "git diff --check -- CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_objects.h src/drw_objects.cpp src/libdxfrw.cpp dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp",
+    "diff_check_result": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated local writer/parser round-trips and DXF tag walks validate implementation consistency, not independent DWG producer semantics.",
+    "No persistent fixture, external CAD application, independent semantic reader, full suite, or native Linux/Windows FreeCAD qualification was run.",
+    "The VIEW DXF reference boundary remains source-sensitive: ODA maps scalar group 63 while Autodesk's current VIEW table omits ambient groups; no undocumented VIEW 421/431 output is enabled.",
+    "Findings/subplans remain 144/78; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the PAR-134 CMC consumer/class-specific DXF mapping audit, then resume exact-source PAR-03/PAR-04 associative-action classification; keep the malformed-HATCH stage-1 sentinel as a separate fast-control repair."
+}

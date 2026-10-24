@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-schema3-crc-warning-eligibility-guard-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "slice": "7F.1b-observation-eligibility-crc-warning-guard",
+  "scope": "Prevent schema-3 DWG comparisons with warn-only CRC mismatches from being marked claim-eligible, without changing parser behavior.",
+  "changes": {
+    "files": [
+      "tools/run_qualified_differential_v2.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/schema3-crc-warning-eligibility-guard-fast-slice-2026-10-16.json"
+    ],
+    "crcCountersBlocked": [
+      "classesCrcMismatch",
+      "reader21CrcMismatch",
+      "reader18HeaderCrcMismatch"
+    ],
+    "blockerShape": "{side}.observations.{phase}.crcMismatch:{counter}",
+    "behavior": "A nonzero counter blocks claim eligibility while preserving successful operation status and existing parser warn-only behavior.",
+    "testCoverage": "For each CRC counter, identical target and standalone warning observations produce reviewedNonPromoting, claimEligible=false, operationSucceeded=true, and both side-specific blockers; the clean baseline remains eligible."
+  },
+  "validation": {
+    "commands": [
+      "python3 -B -m py_compile tools/run_qualified_differential_v2.py",
+      "python3 -B tools/run_qualified_differential_v2.py --self-test",
+      "git diff --check -- tools/run_qualified_differential_v2.py DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/schema3-crc-warning-eligibility-guard-fast-slice-2026-10-16.json"
+    ],
+    "results": {
+      "pythonCompile": "PASS",
+      "runnerSelfTest": "PASS",
+      "diffCheck": "PASS",
+      "receiptJson": "PASS"
+    },
+    "fullSuiteRun": false,
+    "cppBuildRun": false
+  },
+  "evidenceBoundary": "The CRC counters are parser diagnostics and can be warn-only for compatibility. This guard affects only evidence eligibility. It does not establish an integrity failure policy for all DWG consumers or any format-support claim.",
+  "planDelta": {
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "productionParserOrWriterChanged": false,
+    "supportClaimsPromoted": false,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -85,6 +85,19 @@ def require_context_unchanged(before, after):
         raise ValueError("oracle content or configuration changed during comparison")
 
 
+def missing_required_checks(observed, required):
+    """Return required full-file checks absent from a parser's observed claims."""
+    if (type(observed) is not list
+            or any(type(value) is not str or not value for value in observed)
+            or len(set(observed)) != len(observed)):
+        raise ValueError("observed checks must be a list of unique nonempty strings")
+    if (type(required) is not list or not required
+            or any(type(value) is not str or not value for value in required)
+            or len(set(required)) != len(required)):
+        raise ValueError("required checks must be a nonempty list of unique strings")
+    return [check for check in required if check not in observed]
+
+
 def bytecode_profile():
     prefix = Path(_ORACLE_CACHE_ROOT.name).resolve()
     if (sys.pycache_prefix != _ORACLE_CACHE_ROOT.name or not sys.dont_write_bytecode
@@ -657,6 +670,19 @@ def self_test():
             pass
         else:
             raise AssertionError("changed oracle context admitted: " + key)
+    required_full_file_checks = ["sentinel", "envelope", "trailer", "versioned-header-fields"]
+    assert missing_required_checks(["minimum-prefix"], required_full_file_checks) == required_full_file_checks
+    assert missing_required_checks([], required_full_file_checks) == required_full_file_checks
+    assert missing_required_checks(required_full_file_checks, required_full_file_checks) == []
+    for observed, required in ((["minimum-prefix", "minimum-prefix"], required_full_file_checks),
+                               ([1], required_full_file_checks),
+                               (["minimum-prefix"], "sentinel")):
+        try:
+            missing_required_checks(observed, required)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("malformed full-file check inventory admitted")
     require_profile(dict(ORACLE_PROFILE), isolated=True,
                     loaded_configs=["profile.ini"], expected_config="profile.ini")
     for key in ORACLE_PROFILE:
@@ -789,7 +815,262 @@ def runtime_self_test(ezdxf, config_path):
     changes = differences(before, effective_profile(ezdxf, config_path))
     if changes:
         raise ValueError("runtime controls changed configuration: " + ", ".join(changes))
-    print("independent DXF runtime controls: PASS (proxy retention, six option mutations; supplemental only)")
+    controls = report_only_negative_controls(ezdxf)
+    print("independent DXF runtime controls: PASS (proxy retention, six option mutations, "
+          "%d report-only negatives; supplemental only)" % len(controls))
+    return controls
+
+
+def report_only_negative_controls(ezdxf):
+    """Exercise known oracle gaps without turning them into support evidence."""
+    from ezdxf.audit import Auditor
+    from ezdxf.acis import api
+    from ezdxf.disassemble import make_primitive, recursive_decompose
+    from ezdxf.entities import Dictionary, VisualStyle
+    from ezdxf.lldxf.tags import Tags
+    from ezdxf.render import forms
+    from ezdxf.lldxf.tagwriter import TagCollector
+    from ezdxf.xclip import XClip
+
+    required = ["sentinel", "envelope", "trailer", "versioned-header-fields"]
+    prefix_missing = missing_required_checks(["minimum-prefix"], required)
+    prefix = {
+        "id": "prefix-only-parser-is-not-full-file-conformance",
+        "execution": "not-run-source-review-only",
+        "observedChecks": ["minimum-prefix"],
+        "requiredFullFileChecks": required,
+        "missingChecks": prefix_missing,
+        "status": "excluded-from-full-file-conformance",
+        "claimEligible": False,
+        "qualificationEligible": False,
+    }
+
+    projection_doc = ezdxf.new("R2018")
+    projection_msp = projection_doc.modelspace()
+    projection_msp.add_line((0, 0, 0), (1, 0, 0))
+    projection_msp.add_ray((0, 0, 0), (1, 0, 0))
+    projection_msp.add_xline((0, 0, 0), (1, 0, 0))
+    solid = projection_msp.add_3dsolid()
+    api.export_dxf(solid, [api.body_from_mesh(forms.cube())])
+    projection_stream = io.StringIO()
+    projection_doc.write(projection_stream)
+    projection_source = projection_stream.getvalue().encode("utf-8")
+    projection_loaded = ordinary_load(ezdxf, Path("projection-negative.dxf"), projection_source)
+    projected = {}
+    for entity in projection_loaded.modelspace():
+        primitive = make_primitive(entity)
+        projected[entity.dxftype()] = {
+            "empty": primitive.is_empty,
+            "vertexCount": len(list(primitive.vertices())),
+        }
+    loaded_solid = next(entity for entity in projection_loaded.modelspace()
+                        if entity.dxftype() == "3DSOLID")
+    sab_bytes = len(loaded_solid.sab)
+    if (projection_loaded.dxfversion != "AC1032" or sab_bytes <= 0
+            or projected.get("LINE") != {"empty": False, "vertexCount": 2}
+            or any(projected.get(kind) != {"empty": True, "vertexCount": 0}
+                   for kind in ("RAY", "XLINE", "3DSOLID"))):
+        raise ValueError("pinned oracle projection negative did not reproduce")
+    projection = {
+        "id": "unsupported-empty-primitives-are-not-zero-geometry",
+        "execution": "pinned-ezdxf-1.4.4-in-memory-generated-dxf",
+        "sourceVersion": projection_loaded.dxfversion,
+        "sourceEntityCounts": {"LINE": 1, "RAY": 1, "XLINE": 1, "3DSOLID": 1},
+        "primitiveProjection": projected,
+        "solidSABBytes": sab_bytes,
+        "status": "empty-unsupported-projection-not-measured-as-zero",
+        "claimEligible": False,
+        "qualificationEligible": False,
+    }
+
+    clip_doc = ezdxf.new("R2013")
+    clip_msp = clip_doc.modelspace()
+    clip_block = clip_doc.blocks.new("CLIPPED")
+    clip_block.add_line((0, 0, 3), (1, 0, 3))
+    clip_block.add_line((10, 0, 3), (11, 0, 3))
+    insert = clip_msp.add_blockref("CLIPPED", (2, 4, 7))
+    clip = XClip(insert)
+    clip.set_block_clipping_path([(-1, -1), (2, -1), (2, 1), (-1, 1)])
+    clip.enable_clipping()
+    clip_stream = io.StringIO()
+    clip_doc.write(clip_stream)
+    clip_source = clip_stream.getvalue().encode("utf-8")
+    clip_loaded = ordinary_load(ezdxf, Path("xclip-negative.dxf"), clip_source)
+    loaded_insert = next(entity for entity in clip_loaded.modelspace()
+                         if entity.dxftype() == "INSERT")
+    loaded_clip = XClip(loaded_insert)
+    decomposed = list(recursive_decompose([loaded_insert]))
+    segments = sorted([
+        [list(entity.dxf.start), list(entity.dxf.end)] for entity in decomposed
+        if entity.dxftype() == "LINE"
+    ])
+    expected_segments = [
+        [[2.0, 4.0, 10.0], [3.0, 4.0, 10.0]],
+        [[12.0, 4.0, 10.0], [13.0, 4.0, 10.0]],
+    ]
+    if (clip_loaded.dxfversion != "AC1027" or not loaded_clip.has_clipping_path
+            or not loaded_clip.is_clipping_enabled or segments != expected_segments):
+        raise ValueError("pinned oracle XCLIP negative did not reproduce")
+    clipping = {
+        "id": "active-xclip-is-not-applied-by-recursive-decomposition",
+        "execution": "pinned-ezdxf-1.4.4-in-memory-generated-dxf",
+        "sourceVersion": clip_loaded.dxfversion,
+        "clippingPathPresent": loaded_clip.has_clipping_path,
+        "clippingEnabled": loaded_clip.is_clipping_enabled,
+        "expectedVisibleLines": 1,
+        "decomposedLineCount": len(segments),
+        "outsideLinesRetained": 1,
+        "decomposedLineEndpoints": segments,
+        "status": "clipping-profile-mismatch",
+        "claimEligible": False,
+        "qualificationEligible": False,
+    }
+
+    def dxf_source(pairs):
+        return "".join("%s\n%s\n" % pair for pair in pairs)
+
+    def emitted_tags(entity):
+        collector = TagCollector(dxfversion="AC1032")
+        entity.export_dxf(collector)
+        return [(tag.code, tag.value) for tag in collector.tags]
+
+    style_prefix = [
+        (0, "VISUALSTYLE"), (5, "A1"), (330, "B1"),
+        (100, "AcDbVisualStyle"), (2, "LOCAL_STYLE"), (70, 8),
+        (73, 6), (421, 16777215), (291, 0),
+    ]
+    style_tail = [
+        (70, 2), (62, 7), (420, 16777215), (176, 2),
+        (90, 123456), (176, 1),
+    ]
+    style_rows = []
+    style_cases = (
+        ("wrong-declared-property-count", [(70, 3)] + style_tail[1:], 3, 2, 1),
+        ("missing-final-property-companion", style_tail[:-1], 2, 2, 1),
+    )
+    for control_id, tail, declared_count, authored_count, companion_count in style_cases:
+        style = VisualStyle.from_text(dxf_source(style_prefix + tail))
+        emitted = emitted_tags(style)
+        emitted_tail = emitted[emitted.index((291, 0)) + 1:]
+        if emitted_tail != tail:
+            raise ValueError("pinned oracle VISUALSTYLE opaque-tail control changed")
+        style_rows.append({
+            "id": control_id,
+            "execution": "pinned-ezdxf-1.4.4-in-memory-generated-dxf",
+            "declaredPropertyCount": declared_count,
+            "authoredPropertyCount": authored_count,
+            "group176CompanionCount": companion_count,
+            "opaqueTailPreserved": True,
+            "status": "opaque-tail-preserved-without-grammar-validation",
+            "claimEligible": False,
+            "qualificationEligible": False,
+        })
+
+    dictionary_prefix = [
+        (0, "DICTIONARY"), (5, "B1"), (330, "0"),
+        (100, "AcDbDictionary"), (280, 0), (281, 1),
+    ]
+    dictionary_rows = []
+    dictionary_cases = (
+        ("mixed-soft-then-hard-edge-codes",
+         [(3, "A"), (350, "C1"), (3, "B"), (360, "C2")], 360,
+         [(360, "C1"), (360, "C2")]),
+        ("mixed-hard-then-soft-edge-codes",
+         [(3, "A"), (360, "C1"), (3, "B"), (350, "C2")], 350,
+         [(350, "C1"), (350, "C2")]),
+        ("duplicate-dictionary-key",
+         [(3, "A"), (350, "C1"), (3, "A"), (350, "C2")], 350,
+         [(350, "C2")]),
+    )
+    for control_id, entries, normalized_code, expected_edges in dictionary_cases:
+        dictionary = Dictionary.from_text(dxf_source(dictionary_prefix + entries))
+        emitted = emitted_tags(dictionary)
+        edges = [(code, value) for code, value in emitted if code in (350, 360)]
+        if edges != expected_edges:
+            raise ValueError("pinned oracle DICTIONARY negative control changed")
+        dictionary_rows.append({
+            "id": control_id,
+            "execution": "pinned-ezdxf-1.4.4-in-memory-generated-dxf",
+            "normalizedEdgeCode": normalized_code,
+            "emittedEdges": edges,
+            "status": "diagnostic-robustness-only-not-valid-format-policy",
+            "claimEligible": False,
+            "qualificationEligible": False,
+        })
+
+    dangling_doc = ezdxf.new("R2013")
+    dangling_dictionary = dangling_doc.rootdict.add_new_dict("LOCAL_DANGLING")
+    dangling_dictionary.load_dict(
+        Tags.from_text(dxf_source([(3, "MISSING"), (350, "FFFF")])))
+    dangling_before = list(dangling_dictionary.keys())
+    auditor = Auditor(dangling_doc)
+    dangling_dictionary.audit(auditor)
+    dangling_after = list(dangling_dictionary.keys())
+    if (dangling_before != ["MISSING"] or dangling_after
+            or auditor.errors or not auditor.fixes):
+        raise ValueError("pinned oracle dangling-DICTIONARY audit control changed")
+    dangling = {
+        "id": "audit-prunes-dangling-dictionary-target",
+        "execution": "pinned-ezdxf-1.4.4-in-memory-generated-dxf",
+        "entriesBeforeAudit": dangling_before,
+        "entriesAfterAudit": dangling_after,
+        "auditErrorCount": len(auditor.errors),
+        "auditFixCount": len(auditor.fixes),
+        "status": "repair-prunes-target-zero-errors-is-not-lossless-closure",
+        "claimEligible": False,
+        "qualificationEligible": False,
+    }
+    synthesized_defaults = {
+        "id": "acadrust-visualstyle-defaults-are-not-source-fidelity",
+        "execution": "not-run-source-review-only",
+        "modelBlob": "ac987d3",
+        "writerRevision": "a1a216d642d09c7548cc26ac6d3db6f79bd5a667",
+        "observedLimitation": "model-synthesizes-missing-properties-and-normalizes-legacy-magnitudes",
+        "status": "defaulted-projection-not-source-fidelity",
+        "claimEligible": False,
+        "qualificationEligible": False,
+    }
+    family_omission = {
+        "id": "acadsharp-visualstyle-writer-family-omission",
+        "execution": "not-run-source-review-only",
+        "peer": "ACadSharp",
+        "sourceRevision": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+        "reviewedMethod": "DxfObjectsSectionWriter.isObjectSupported",
+        "family": "VISUALSTYLE",
+        "observedDisposition": "explicitly-skipped-as-unsupported",
+        "status": "family-omission-not-a-peer-writer-vote",
+        "claimEligible": False,
+        "qualificationEligible": False,
+    }
+    additional_family_omissions = [
+        {
+            "id": "acadsharp-material-writer-family-omission",
+            "execution": "not-run-source-review-only",
+            "peer": "ACadSharp",
+            "sourceRevision": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+            "reviewedMethod": "DxfObjectsSectionWriter.isObjectSupported",
+            "family": "MATERIAL",
+            "observedDisposition": "explicitly-skipped-as-unsupported",
+            "status": "family-omission-not-a-peer-writer-vote",
+            "claimEligible": False,
+            "qualificationEligible": False,
+        },
+        {
+            "id": "acadsharp-dimension-association-writer-family-omission",
+            "execution": "not-run-source-review-only",
+            "peer": "ACadSharp",
+            "sourceRevision": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+            "reviewedMethod": "DxfObjectsSectionWriter.isObjectSupported",
+            "family": "DIMENSIONASSOCIATION",
+            "observedDisposition": "explicitly-skipped-as-unsupported",
+            "status": "family-omission-not-a-peer-writer-vote",
+            "claimEligible": False,
+            "qualificationEligible": False,
+        },
+    ]
+    return ([prefix, projection, clipping] + style_rows + dictionary_rows
+            + [dangling, synthesized_defaults, family_omission]
+            + additional_family_omissions)
 
 
 def main(argv=None):
@@ -820,8 +1101,9 @@ def main(argv=None):
         runtime_only = args.check_runtime or args.runtime_self_test
         with controlled_runtime() as (ezdxf, config_path, _):
             context = oracle_context(ezdxf, config_path)
+            report_only_controls = []
             if args.runtime_self_test:
-                runtime_self_test(ezdxf, config_path)
+                report_only_controls = runtime_self_test(ezdxf, config_path)
             if not runtime_only:
                 converter_before = digest(converter)
                 with tempfile.TemporaryDirectory(prefix="libdxfrw-independent-dxf-") as directory:
@@ -837,7 +1119,8 @@ def main(argv=None):
                        "qualificationEligible": False, "oracleContext": context,
                        "oracleConfigurationUnchanged": True,
                        "oracleContentBeforeAfterUnchanged": True,
-                       "runtimeControlsExecuted": bool(args.runtime_self_test)}
+                       "runtimeControlsExecuted": bool(args.runtime_self_test),
+                       "reportOnlyNegativeControls": report_only_controls}
             if output_path:
                 output_path.write_text(json.dumps(payload, sort_keys=True, indent=2,
                                                   allow_nan=False) + "\n", encoding="utf-8")

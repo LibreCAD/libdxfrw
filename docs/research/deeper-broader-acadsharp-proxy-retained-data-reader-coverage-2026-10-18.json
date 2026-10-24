@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer proxy payload, display-graphics, and DWG coverage review",
+  "mode": "Primary-source cross-project contract review and local source/test-coverage audit; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh merged status and exact revision of ACadSharp PR #1274",
+    "Compare DWG unknown-class retention/maturity boundaries documented by LibreDWG",
+    "Compare DXF ACAD_PROXY_ENTITY data versus display-graphics/explode semantics documented by ezdxf",
+    "Separate raw DWG proxy-data retention, saved graphics, vendor semantics, and DXF replay",
+    "Compare the peer capability against libdxfrw DWG proxy parser/dispatch and generated test inventory",
+    "Add a focused generated-frame test subplan without importing external DWG fixtures or adding a peer runtime"
+  ],
+  "method": {
+    "kind": "Read primary project documentation, GitHub PR/commit pages, and local parser, dispatch, and test sources",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localFilesReviewed": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/intern/dwgreader.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "limitations": "ACadSharp contributor corpus results were not independently reproduced and no public hashes were provided. LibreDWG and ezdxf pages were source-reviewed only, not built or executed. No proxy DWG fixture was downloaded. Static local coverage review does not prove that the existing parser is wrong; ODA v5.4.1 remains authoritative for any generated DWG field layout."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp PR #1274",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1274",
+        "https://github.com/DomCR/ACadSharp/commit/c9cb845"
+      ],
+      "revision": "Merged into DomCR/ACadSharp master as c9cb845 on 2026-10-13; page reviewed 2026-10-18",
+      "observed": "The change reads retained proxy data into an IProxy.Data property by using the proxy field end and handle-section offset. The PR states that its offset is available for R2010+ and data remains unset earlier. The author reports 21 drawings, 1,607,215 entities, unchanged type/handle fingerprints, and 2,358 retained proxy bytes. No regression DWG/test was included because the examples were private/large.",
+      "limits": "Reported counts and data totals are not hash-bound or independently reproduced. This establishes a merged peer implementation route, not complete proxy semantics, DXF writer support, or a DWG specification rule for all versions."
+    },
+    {
+      "project": "ACadSharp follow-up PR #1275",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1275"
+      ],
+      "revision": "Cross-linked from PR #1274; open in the reviewed page snapshot",
+      "observed": "The follow-up is a separate Tianzheng custom-payload interpretation route, distinct from retaining the opaque bytes.",
+      "limits": "One vendor-specific decoder does not define arbitrary proxy semantics or general class support."
+    },
+    {
+      "project": "LibreDWG class maturity documentation and NEWS",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable master pages reviewed 2026-10-18; no local clone or immutable source SHA pinned",
+      "observed": "The manual distinguishes stable, unstable, debugging, and unhandled classes. It documents unknown-class fallback and same-version raw-blob rewrite constraints for some unstable classes, while unhandled classes are ignored. NEWS includes a proxy-object version-corruption fix in the JSON roundtrip route.",
+      "limits": "Peer class policy and bug history are not ODA rules and do not establish libdxfrw behavior. A mutable documentation snapshot is an advisory route comparison, not a reproducible runtime result."
+    },
+    {
+      "project": "ezdxf ACAD_PROXY_ENTITY and ACIS documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/acad_proxy_entity.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation identifies ezdxf 1.4.5; pages reviewed 2026-10-18",
+      "observed": "ACAD_PROXY_ENTITY stores original data and graphics but internals are unknown; exploding replaces the proxy with virtual graphics and loses original meaning. The ACIS tools state they are not a general arbitrary-ACIS editor or kernel, unsupported records can lose data, and flat-face mesh projection drops curved boundaries.",
+      "limits": "Documentation defines ezdxf's own DXF/ACIS route only. It does not say how libdxfrw behaves and cannot serve as a positive general proxy or ACIS semantic oracle."
+    },
+    {
+      "project": "libdxfrw local source and tests",
+      "urls": [],
+      "revision": "Local worktree HEAD de27a3391a624aba03ca71f3583c4b3a6e6396a9; source reviewed 2026-10-18",
+      "observed": "DRW_ProxyEntity::parseDwg captures a bounded entity-data bit range and object-ID references; dwgReader::readDwgEntity dispatches the proxy entity. Existing proxy tests cover DXF proxy entity/object payload grammar and DWG proxy-object/modeler paths, but no DWG test constructs a ProxyEntity frame or asserts that dispatch.",
+      "limits": "This is a source/test-inventory finding, not evidence of a production parse failure. A generated frame must follow ODA v5.4.1 §20.4.90 PROXY; the separate common proxy-graphics layout is in chapter 29. §20.4.95 is SPATIAL_INDEX."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newSourceConfirmedCoverageGaps": 1,
+    "newFindings": 1,
+    "newTopLevelSubplans": 1,
+    "findingId": "PAR-132",
+    "subplanId": "7CB",
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "peerRuntimeRequiredForLocalImplementation": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 132,
+      "topLevelSubplans": 75
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check on plan and receipt)",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reasonUncommitted": "The repository already contains extensive user changes. This research pass only updates the plan and adds this receipt; no files were staged or committed."
+  }
+}

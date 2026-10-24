@@ -11,7 +11,8 @@ dist_noinst_HEADERS = intern/dxfreader.h intern/dxfwriter.h intern/drw_dbg.h \
 	intern/dwgreader18.h intern/dwgreader21.h intern/dwgreader24.h \
 	intern/dwgreader27.h  intern/dwgbuffer.h intern/drw_cptable932.h \
 	intern/drw_cptable936.h intern/drw_cptable949.h intern/drw_cptable950.h \
-	intern/drw_cptables.h intern/drw_cptable_iso8859_4.h intern/drw_textcodec.h intern/rscodec.h
+	intern/drw_cptables.h intern/drw_cptable_iso8859_4.h intern/drw_textcodec.h intern/rscodec.h \
+	intern/drw_symbol_casefold_data.h
 
 lib_LTLIBRARIES = libdxfrw.la
 

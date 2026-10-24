@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-139.2 bounded SPATIAL_FILTER adapter capture and fail-closed export",
+  "mode": "Generated local ASCII/Binary implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain typed SPATIAL_FILTER callbacks in converter-owned storage",
+    "Retain complete DXF raw companions with bounded generation-bound accounting",
+    "Verify typed/raw identity for successful DXF imports and typed-only DWG provenance",
+    "Refuse export before destination publication while graph closure and serialization are unsupported"
+  ],
+  "localEvidence": [
+    "Generated ASCII and Binary DXF inputs each import one SPATIAL_FILTER and retain one typed callback plus one raw companion",
+    "The import receipt binds generation, source format/version, record ranges, callback/group counts, estimated retained bytes, and typed/raw handle-owner identity",
+    "The existing dwg2dxf_named_object_callback_storage CTest verifies fail-closed export preserves an existing destination",
+    "PAR-139.1 generated strict DXF field-admission selector remains passing"
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes bounded callback/raw capture and safe refusal only. Owner-graph closure and serializer admission remain the next local slices; capture does not qualify clipping semantics or format support."
+  },
+  "validation": {
+    "strictBuildTargets": [
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_hardening_tests"
+    ],
+    "strictBuildPassed": true,
+    "ctest": {
+      "name": "dwg2dxf_named_object_callback_storage",
+      "passed": true,
+      "passedCount": 1,
+      "failedCount": 0
+    },
+    "focusedSelectors": [
+      {
+        "name": "--spatial-filter-dxf-validation",
+        "passed": true
+      },
+      {
+        "name": "--dxf-geodata-modern-text-preflight",
+        "passed": false,
+        "failure": "Two unrelated GEODATA newline-to-caret-J assertions fail for AC1021 and AC1032 ASCII; Binary cases pass. The baseline provenance of this dirty worktree failure is unverified."
+      }
+    ],
+    "scopedDiffCheckPassed": true
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planUpdated": true,
+    "temporaryGeneratedAsciiBinaryInputs": true,
+    "temporaryInputsRemoved": true,
+    "repositoryFixturesAdded": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "limitations": "DXF owner-graph closure and replay are not implemented. DWG callback provenance is supported by the capture path but no committed DWG fixture or native consumer qualification was added."
+  },
+  "nextAction": "Implement PAR-139.3 order-independent INSERT-extension-dictionary-ACAD_FILTER-SPATIAL owner closure with generated positive and negative controls. Keep the isolated GEODATA ASCII assertion failure visible as a separate test issue."
+}

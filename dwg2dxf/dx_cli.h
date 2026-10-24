@@ -21,6 +21,7 @@ struct Options {
     bool overwrite = false;
     bool batch = false;
     bool debug = false;
+    bool allowPartialDwgRead = false;
     DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible;
     bool haveCodePagePolicy = false;
 };
@@ -46,6 +47,8 @@ inline bool applyOption(const std::string& token, Options& options,
         options.debug = true;
     } else if (token == "-B" && allowBatch) {
         options.batch = true;
+    } else if (token == "--allow-partial-dwg-read") {
+        options.allowPartialDwgRead = true;
     } else if (token == "--dxf-codepage-policy=compatible"
                || token == "--dxf-codepage-policy=exact-named") {
         if (options.haveCodePagePolicy) return false;

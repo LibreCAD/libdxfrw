@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5j TABLESTYLE row text-height edit merge",
+  "mode": "Generated ASCII/Binary row-edit, raw-preservation, and fail-closed validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "489f1c451f2e05ac5e6b94dcb055dd3107c5cd1a445870e5e59754db7fae9f4f",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "field": "Group 140 is the text-height field in the repeated TABLESTYLE row-style sequence.",
+    "implementationDomain": "Only finite, nonnegative edited values are accepted, matching the existing typed TABLESTYLE writer; untouched raw source values remain governed by the established raw/typed preservation path."
+  },
+  "implementation": {
+    "changes": [
+      "DXF-origin TABLESTYLE export overlays edits to existing group-140 text-height slots for the three documented row styles.",
+      "All other nested typed row fields must still match the retained raw projection; row slots are never inserted and malformed/raw-only records keep their prior replay/refusal behavior.",
+      "Edited ASCII group-140 lexemes are synchronized to a canonical finite numeric spelling while all unedited source spellings and raw group order are preserved.",
+      "Generated ASCII/Binary coverage verifies an edited height of 1.75 after readback and refuses a negative edited height without replacing an existing destination."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5j-tablestyle-row-height-edit-merge-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "diffCheck": "PASS: git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicLibdxfrwModelLayoutChanged": false,
+    "sourceCompatibilityCheck": "lc3_compat_check passed; no binary-ABI claim is made",
+    "rawCarrierPreserved": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Other typed TABLESTYLE row edits remain fail-closed until individually given field-presence and raw/typed merge rules.",
+      "Group-3 TABLESTYLE description edits remain gated on source-text encoding behavior.",
+      "Complete typed TABLESTYLE cell-style authoring is not inferred from the published TABLESTYLE row sequence.",
+      "MATERIAL procedural-property semantics and the group-90/group-149 mapping remain unresolved and untyped.",
+      "DWG TABLESTYLE cross-version/up-convert capability remains separate from this DXF-origin row edit."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

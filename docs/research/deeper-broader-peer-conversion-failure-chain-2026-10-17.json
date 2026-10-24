@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw-peer-conversion-failure-chain-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh peer-reported DWG-to-DXF failure status and refine the existing local reader, traversal, DXF sequence, finalization, and publication gates without adding duplicate findings or increasing per-slice validation.",
+  "method": {
+    "kind": "Primary-source web review plus read-only local plan/source/test-owner inspection",
+    "peerRevisionsBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localBuildsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/issues/1355",
+      "https://github.com/LibreDWG/libredwg/pull/1360",
+      "https://github.com/LibreDWG/libredwg/issues/1294",
+      "https://github.com/LibreDWG/libredwg/pull/1358",
+      "https://github.com/LibreDWG/libredwg/issues/1357",
+      "https://github.com/LibreDWG/libredwg/issues/1351",
+      "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: older text incorrectly said issue #1355 was withdrawn; corrected it to distinguish the reporter's retracted section-size theory from the still-open issue",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-49/7G.3, 7BE, and 7F.1 owners already separate reader integrity, object traversal, required DXF structure, conversion result, and output publication",
+      "tests/dwg2dxf_cli_contract_tests.py and DwgDxfOutputTransaction are recorded as existing composition owners; this review did not re-audit or execute every current test body"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG #1355 remains open; only its initial section-size theory was retracted",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/pull/1360"
+      ],
+      "observed": "The reporter corrected the initial claim that the AcDb:Handles map exceeded its declared section. The corrected report says a failed modular-character handleoff decode was followed by use of garbage, creating an implausible object size and losing later map entries. Open PR #1360 proposes a one-byte retry only for that modular-character parse failure and reports its own page-boundary and ODA comparison checks. The PR remains open and marked cla_needed. The issue itself remains open because the PR does not address a converter that stops before ENTITIES/EOF and returns success.",
+      "doesNotEstablish": [
+        "that the proposed resynchronization is merged or present in current LibreDWG master",
+        "that the skipped bytes are ignorable under the ODA specification",
+        "a matching libdxfrw defect or a license to copy peer byte offsets/recovery policy"
+      ],
+      "planUse": "Correct the wording and keep handle-map refusal/retry under the existing generated DWG hardening owner; keep false-success/finalization as a distinct composed CLI result gate."
+    },
+    {
+      "topic": "Three files initially grouped with #1355 belong to the separate #1294 AC1032 section-reader report",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1294",
+        "https://github.com/LibreDWG/libredwg/pull/1358"
+      ],
+      "observed": "Issue #1294 describes an R2004+ compressed-section/page-span failure. Open PR #1358 proposes accounting for declared decompressed section size and the final page's actual size. The reporter says its proposed fix resolves the related three cases and matches ODA counts, but the issue and PR remain open; no peer code was built or run in this review.",
+      "doesNotEstablish": [
+        "that #1358 is merged or a current-master result",
+        "that those three files share the #1355 handle-map trigger",
+        "a libdxfrw section-reader defect"
+      ],
+      "planUse": "Keep the R2004+ page-span path distinct from handle-map parsing; require local source-generated page/section boundary controls only when the affected local path changes."
+    },
+    {
+      "topic": "Traversal and DXF sequence grammar are independent loss boundaries",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/issues/1351",
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm"
+      ],
+      "observed": "#1357 reports an unresolved owned-entity reference being treated as end-of-list, hiding valid later siblings. #1351 reports an INSERT 66=1 sequence missing its required ATTRIB/SEQEND records. These are distinct from the handle-map and section-decompression failures.",
+      "doesNotEstablish": [
+        "a matching local traversal or writer defect",
+        "that aggregate entity counts prove handle, owner, order, or sequence identity"
+      ],
+      "planUse": "Retain the separate generated owned-child suffix census and INSERT/ATTRIB/SEQEND grammar assertions; do not use one as a substitute for the others."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "refinedOwners": [
+      "PAR-49/7G.3",
+      "PAR-14/7BE",
+      "7F.1 and existing dwg2dxf CLI publication contract"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "fullSuiteOrSanitizerCadenceChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "evidenceRule": "Open issue pages, reporter corrections, unmerged PR tests, ODA comparisons described by contributors, and successful output existence are all route-specific evidence. Do not promote them to current peer behavior or local support. Strict conversion completeness requires consistent reader/writer result, required sections and one terminal EOF, source-to-output identity/owner disposition, explicit partial/error state, and atomic publication policy."
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ModelDocViewStyle DetailViewStyle group-2 resource-reference insertion fast slice",
+  "mode": "Generated local ASCII/Binary implementation slice",
+  "scope": [
+    "Serialize a changed DetailViewStyle boundary-line linetype reference when its source group-2 group-340 field is absent.",
+    "Preserve style-group ordering, aligned ASCII raw lexemes/Binary placeholders, and handle-reference mapping.",
+    "Verify typed same-version ASCII and Binary readback without adding repository fixtures or a CTest registration."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The copied DetailViewStyle raw carrier inserts group 340 inside an existing group-2 style block when the typed boundary-line linetype handle differs from the class default and no source group represented it. The handle is rendered as checked hexadecimal text; zero and sentinel handles are refused. The raw-object writer applies its existing source-handle remapping to the inserted handle group.",
+    "generatedControl": "The secondary DetailViewStyle omits the group-2 group-340 reference while retaining the style-group marker. The test confirms the imported typed value is zero, edits it to the existing VIEW_STYLE_LINE linetype, verifies the full expected ordered raw stream, and checks typed ASCII/Binary readback resolves to that linetype."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/model-doc-view-style-group2-resource-reference-insertion-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Only same-version DXF serialization of this absent optional resource-reference field is covered.",
+    "Other absent fields, changed repeated-field cardinality, and unsupported raw carrier shapes remain fail-closed.",
+    "No DWG-origin typed output, cross-version translation, native style rendering, or consumer support qualification follows."
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findings": 138,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

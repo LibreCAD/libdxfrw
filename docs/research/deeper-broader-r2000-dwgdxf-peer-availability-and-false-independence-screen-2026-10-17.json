@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw-r2000-peer-availability-and-false-independence-screen-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Broaden the open-source DWG/DXF peer inventory around a potential AC1015-only DWG reader, establish lineage limits for same-project repositories, and refine comparator admission without increasing normal validation cost.",
+  "method": {
+    "kind": "Primary-source repository and package-documentation review with local plan reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesOrTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsDownloaded": 0,
+    "localBuildsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/nextgis-borsch/lib_opencad",
+      "https://github.com/sandyre/libopencad",
+      "https://github.com/codelibs/libdxfrw",
+      "https://github.com/gdsestimating/dxf-parser",
+      "https://github.com/gdsestimating/dxf-parser/blob/master/package.json"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing peer independence, composed comparison, and validation-cadence rules",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing dxf-rs, undxf, ezdwg, LibreDWG, and wrapper-lineage entries"
+    ],
+    "limitations": "Repository READMEs and package metadata identify candidate scope only. No immutable lib_opencad revision or reproducible build was selected, no source was inspected or executed, and no specific AC1015 file behavior was observed. Mutable branch documentation is not treated as release/runtime qualification."
+  },
+  "evidence": [
+    {
+      "topic": "A current lib_opencad successor advertises a narrow AC1015 route",
+      "source": "https://github.com/nextgis-borsch/lib_opencad",
+      "observed": [
+        "The README describes the library as under development and says that only DWG R2000 is currently supported.",
+        "The project is a candidate for an optional AC1015 comparison if an exact revision and runnable route are established."
+      ],
+      "doesNotEstablish": [
+        "Entity/object completeness, graph ownership, error recovery, output support, a released binary, or actual behavior on a specific drawing.",
+        "AC1015 version-wide support or any ACIS/3D semantic support."
+      ],
+      "planUse": "Keep as an optional AC1015-only structural candidate, gated on an active question, immutable source pin, license/build review, and source-generated expected manifest; do not add it to per-slice validation."
+    },
+    {
+      "topic": "The original libopencad repository is explicitly superseded",
+      "source": "https://github.com/sandyre/libopencad",
+      "observed": [
+        "The repository says it is abandoned and points to nextgis-borsch/lib_opencad as the repository to use.",
+        "Its historical README describes only limited R15 basic-geometry read coverage and explicit missing areas."
+      ],
+      "doesNotEstablish": [
+        "Whether the successor retains any particular old limitation or issue."
+      ],
+      "planUse": "Do not treat the abandoned repository as a current runtime candidate; verify inherited-risk hypotheses against the successor before turning them into local test cases."
+    },
+    {
+      "topic": "codelibs/libdxfrw is not an independent parser lineage",
+      "source": "https://github.com/codelibs/libdxfrw",
+      "observed": [
+        "Its project documentation identifies the library as libdxfrw, version 0.6.3, and describes the established ASCII/binary DXF plus R14–V2015 DWG-reader family."
+      ],
+      "doesNotEstablish": [
+        "That every file or current downstream patch is identical to this checkout."
+      ],
+      "planUse": "Use only for a concrete downstream source-delta question; do not count it as an independent DWG/DXF semantic vote."
+    },
+    {
+      "topic": "gdsestimating/dxf-parser is limited to an optional ASCII 2D projection role",
+      "sources": [
+        "https://github.com/gdsestimating/dxf-parser",
+        "https://github.com/gdsestimating/dxf-parser/blob/master/package.json"
+      ],
+      "observed": [
+        "The README accepts DXF text and describes a JavaScript object-model parser with most 2D entities.",
+        "The documented unsupported set includes 3DSolids and less-common objects/entities; package metadata identifies version 1.1.2."
+      ],
+      "doesNotEstablish": [
+        "Binary DXF, DWG, complete object/reference preservation, ACIS carrier support, or 3D solid semantics.",
+        "That the mutable repository source is identical to the published package artifact."
+      ],
+      "planUse": "At most a non-gating ASCII 2D projection diagnostic at an existing composed checkpoint; do not install it or add a routine test/dependency."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "dependenciesAdded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 128,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "Use lib_opencad only as an optional, exact-pinned AC1015 structural peer when an active AC1015 question warrants the extra build cost.",
+      "Do not count abandoned predecessors, downstream libdxfrw repositories, or wrappers as independent parser lineages.",
+      "Constrain gdsestimating/dxf-parser to optional ASCII 2D projection diagnostics; exclude binary DXF, DWG, and ACIS/3D claims.",
+      "Keep peer builds and runtime checks at the existing composed checkpoint; implementation slices continue with local generated fast tests and specification-backed work."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinkChecked": true,
+    "gitDiffCheck": true,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

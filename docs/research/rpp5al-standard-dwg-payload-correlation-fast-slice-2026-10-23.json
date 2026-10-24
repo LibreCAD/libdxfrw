@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5al",
+  "date": "2026-10-23",
+  "state": "PAYLOAD_CORRELATION_IMPLEMENTED_SERIALIZER_HANDOFF_PENDING",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "dirty, uncommitted and unstaged; not a clean-checkout qualification",
+  "scope": {
+    "families": [
+      "fixed DICTIONARY",
+      "fixed GROUP",
+      "fixed XRECORD"
+    ],
+    "implemented": [
+      "reparse retained bodies with saved version/codepage provenance",
+      "import-scoped typed and EED APPID/layer dependency matching",
+      "common metadata and complete family payload/membership correlation",
+      "separate typed and opaque match counts; sticky non-waivable correlation failure",
+      "canonical GROUP flag validation without changing wire order",
+      "immutable opaque XRECORD guard in graph preflight and public DXF writer",
+      "per-import cached decoder avoids repeated multibyte converter construction"
+    ],
+    "notImplemented": [
+      "actual standard-object serializer identity registration and final output mapping/edge proof",
+      "complete strict DWG-to-DXF conversion",
+      "general modeled-edit admission or raw replay"
+    ],
+    "noInstalledApiOrStructLayoutChange": true,
+    "noNewPureVirtuals": true,
+    "opaqueRetentionCounterUnchanged": true,
+    "comparisonBoundary": "Same production parser versus retained callback state: source correlation only, not independent grammar, semantic, kernel, or output evidence.",
+    "compatibility": "Optional callback contract unchanged; LibreCAD_3 source-compatibility target builds. No native application or binary ABI qualification."
+  },
+  "specification": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "chapter": "20.4.72 GROUP, complete pages 191-192 reviewed, page 191 rendered",
+    "effect": "Do not normalize BS values outside the modeled 0/1 flag domain into true; fail the bounded record atomically."
+  },
+  "contracts": {
+    "common": [
+      "type/handle/owner/name/flags",
+      "reactor count and ordered handles",
+      "extension flag and handle",
+      "data-storage presence",
+      "common-tail validation state",
+      "application groups and length-preserving typed EED values",
+      "saved raw layer-reference metadata"
+    ],
+    "dictionary": [
+      "complete flags and no capped count",
+      "cloning/hard-owner fields",
+      "ordered keys, targets and DXF edge-code provenance",
+      "exact agreement with source membership receipt"
+    ],
+    "group": [
+      "description kept distinct from dictionary-derived name",
+      "canonical unnamed/selectable flags",
+      "complete ordered non-null members and membership ordinals"
+    ],
+    "xrecord": [
+      "cloning",
+      "both compatibility and ordered variants including embedded-NUL suffixes and 64-bit handles",
+      "trailing handle values",
+      "exact opaque bytes/version/immutable-source/replay state",
+      "coordinate exactness"
+    ],
+    "generation": "Only current-import list suffixes and its NOD callback can satisfy frames. Older APPID/layer names do not resolve current dependencies; same-import aliases refuse when referenced.",
+    "decoding": "Each private frame profile selects its decoder; changed latest HEADER/read-outcome or later import does not relabel saved bytes. Unsupported source-codepage qualification is not promoted.",
+    "edits": "These verdicts describe import-time correlation, not arbitrary later edits. The output handoff must still qualify supported modeled edits and every actual outgoing edge."
+  },
+  "implementationBindings": {
+    "CMakeLists.txt": "413ec4c22ed441eada099d12c1eb9482ed5c830e3f1540b197c8550e0d7195a6",
+    "dwg2dxf/dx_data.h": "b0ece000854ad01529f21efd01f8542ad05d0daf70d3f169e765850645ad100e",
+    "dwg2dxf/dx_iface.h": "7a0134bc7bdd2a8956e2ee15c751624f9c9058173e569d2fb60074ef663f5487",
+    "dwg2dxf/dx_iface.cpp": "6f1b5bd059f939b949e9ba6518380e3e9acca400f251a73a67d8c63c290baa37",
+    "src/drw_objects.cpp": "5242c266e54376572f3f3d5f7f8433850cd64d4a007b3b149677a9aa788ce668",
+    "src/libdxfrw.cpp": "4863751769e759b9d2aa48cae6830262474352ad39dae816273a5d9b48f822b1",
+    "tests/CMakeLists.txt": "d555dbfb81214e3aebebd1d62e3636cf782449dc533f7aab3e0641990b9c4a9e",
+    "tests/dwg2dxf_adapter_tests.cpp": "7f484199b4aac3352f8c73d993d53385b954b81b03355e19362b2d03302afeb0",
+    "tests/dwg_local_roundtrip_tests.cpp": "0e1b8b041ef3ab4a42d2bd1ac808a15b23bfc3f3f6aeea9341116110eeaffcb4",
+    "tests/gbk_codepage_tests.cpp": "5818af61b8848eaf1f5df1b0ef25c0198d8ecfab0851949e0ed9a6f477d5efe8",
+    "tests/dwg_object_vectors_tests.cpp": "f347298a73bf3eec856cea41c0329d8945a9893038e568d12a7869bef5ebf284",
+    "tests/xrecord_test_helpers.h": "14e536f15e3cfe59fe74a8765ea0e93dbc4c4aba34d00410973c2541dac3f2ff",
+    "build/tests/libdxfrw_dwg2dxf_adapter_tests": "66332f8697bceb5ffdb413d29c47913af4c67296c71509495ebc1318aac15cae",
+    "build/libdxfrw_dwg_local_roundtrip": "030bab3f36ba7fdeb9504b5e3414f65b6ed484bca267049187b9503736846595",
+    "build/libdxfrw_gbk_codepage_tests": "344287df7995e3f0aad3c9546661763f6c301a9b4f901567506df1c13627efe0",
+    "build/dwg2dxf/dwg2dxf": "faa658f3e48373ae683dcb1d794157d374f35e2b572595f6e819b517e67121b5",
+    "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "74aa268288c0e3bf27785cd49f3caedab78e575026e7f95525e385d9ecb734e1"
+  },
+  "validation": {
+    "regularTargets": [
+      "libdxfrw_gbk_codepage_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dwg_object_vectors_tests",
+      "dwg2dxf",
+      "lc3_compat_check"
+    ],
+    "strictSyntaxCommand": "/usr/bin/clang++ -std=c++17 -Wall -Wextra -pedantic -Werror -I. -Isrc -Isrc/intern -Idwg2dxf -fsyntax-only dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/dwg_local_roundtrip_tests.cpp tests/gbk_codepage_tests.cpp tests/dwg_object_vectors_tests.cpp",
+    "strictSyntaxExitCode": 0,
+    "generatedControls": {
+      "xrecordVariantCases": 80,
+      "eedResolutionCases": 6,
+      "groupFlagCases": 48,
+      "wholeFileVersionMatrix": [
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "minimalTypedMatches": 4,
+      "largeGraphTypedMatches": 130,
+      "callbackFaultKinds": 12,
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "policies": [
+        "RequireComplete",
+        "AllowPartial"
+      ],
+      "atomicPolicyRefusals": 48,
+      "freshDataRetries": 24,
+      "retryBoundary": "existing explicit-partial GROUP projection only; orphan XRECORD still prevents complete output",
+      "opaqueGraphRefusals": 2,
+      "opaqueGraphReconstructionRetries": 2,
+      "publicWriterAtomicRefusals": 4,
+      "publicWriterReconstructionReadbacks": 4,
+      "savedProfileControl": "identical legacy D6 D0 bytes decode as CP1252 U+00D6 U+00D0 versus CP936 U+4E2D across two imports with the same source handle",
+      "allocationSweep": {
+        "injectedPositions": 68,
+        "allRefused": true,
+        "freshDataSuccessAfterSweep": true,
+        "forcedRawCaptureCopyFailure": true,
+        "harness": "existing executable-local replacement new; no production allocator hook"
+      }
+    },
+    "focusedCohort": {
+      "passed": 14,
+      "failed": 0,
+      "seconds": 8.4,
+      "tests": [
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg_hatch_reference_graph",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_table_callback_owner_order",
+        "libdxfrw_tablestyle_nested_raw_net",
+        "libdxfrw_cellstylemap_dxf_writer",
+        "dwg2dxf_acds_history_dwg_frame_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_dwg_read_outcome_policy",
+        "libdxfrw_persistent_manager_prefix_dispatch"
+      ]
+    },
+    "addressSanitizer": {
+      "command": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --standard-dwg-object-payload-correlation",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "exitCode": 0,
+      "scope": "core, adapter, generated payload/EED and direct ASCII/Binary refusal/reconstruction controls instrumented; allocator sweep itself not sanitizer-qualified"
+    },
+    "scopedDiffCheck": "PASS",
+    "fullProjectSuiteRun": false,
+    "ubsanRun": false,
+    "nativeApplicationsRun": false,
+    "warningCleanup": "Add the missing Latin-1 route-count assertion, remove a needless constexpr lambda capture, compare color wire bits with explicit unsigned expected values, and cast a count only after its negative guard; no warning disabled."
+  },
+  "producerProbes": [
+    {
+      "path": "/tmp/libdxfrw-dict-current.kbTUjv/group-AC1021.dwg",
+      "sha256": "be15af47a909e246ba4fa41e685400fd3c7bc7ea470724751d8e3410e45dd60f",
+      "exitCode": 0,
+      "sourceFramesMatched": 4,
+      "typedPayloadsMatched": 4,
+      "opaquePayloadsMatched": 0,
+      "existingHistoryCorrelationFrames": 0,
+      "log": "/tmp/libdxfrw-standard-payload.0MeBGK/probe-0.log"
+    },
+    {
+      "path": "/Users/dli/dev/LibreDWG/test/test-data/2000/Leader.dwg",
+      "sha256": "947e28fb312349efffe04dbfe8754892fceba872e41536d1fdcdf0a77a62c6e4",
+      "exitCode": 0,
+      "sourceFramesMatched": 110,
+      "typedPayloadsMatched": 110,
+      "opaquePayloadsMatched": 0,
+      "existingHistoryCorrelationFrames": 0,
+      "log": "/tmp/libdxfrw-standard-payload.0MeBGK/probe-1.log"
+    },
+    {
+      "path": "/Users/dli/dev/LibreDWG/test/test-data/2004/Leader.dwg",
+      "sha256": "ff0a14256eb22c0547495691903976387eaedbdf80c5c4a3ba62ce5ee5a23cc0",
+      "exitCode": 0,
+      "sourceFramesMatched": 104,
+      "typedPayloadsMatched": 104,
+      "opaquePayloadsMatched": 0,
+      "existingHistoryCorrelationFrames": 0,
+      "log": "/tmp/libdxfrw-standard-payload.0MeBGK/probe-2.log"
+    },
+    {
+      "path": "/Users/dli/dev/LibreDWG/test/test-data/2007/Leader.dwg",
+      "sha256": "8e9750fd2f6af2134d3db0fecc940fb57312ce61d8c0c7299a184f5e2ea7529a",
+      "exitCode": 0,
+      "sourceFramesMatched": 98,
+      "typedPayloadsMatched": 98,
+      "opaquePayloadsMatched": 0,
+      "existingHistoryCorrelationFrames": 0,
+      "log": "/tmp/libdxfrw-standard-payload.0MeBGK/probe-3.log"
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "exitCode": 0,
+      "sourceFramesMatched": 258,
+      "typedPayloadsMatched": 258,
+      "opaquePayloadsMatched": 0,
+      "existingHistoryCorrelationFrames": 7,
+      "log": "/tmp/libdxfrw-standard-payload.0MeBGK/probe-4.log"
+    }
+  ],
+  "producerProbeBoundary": "Local reader/callback correlation on existing producer files, not new independent-reader acceptance. ACadSharp still has 29 reader21 integrity mismatches (16 retained, 13 omitted); existing history correlation is not semantic output.",
+  "next": [
+    "Reuse/adapt the existing transaction-aware source-object binding and final record inventory for DICTIONARY/GROUP/XRECORD; it currently registers FIELD/FIELDLIST, not these standard families.",
+    "Register only within the successful record transaction; final proof requires committed record identity, final handle, expected owner and every outgoing edge. Planned handles are not emission proof.",
+    "Qualify NOD/ACAD_GROUP generated-dictionary source aliases explicitly and distinguish supported modeled edits from unmodeled rewrite.",
+    "Keep the orphan XRECORD negative control; add a rooted positive with actual XRECORD text readback before strict conversion admission.",
+    "Run the small strict composed checkpoint, then legacy TABLE entity/extension integration and AC1024+ inline authoring."
+  ],
+  "externalStatus": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsKernelSemantics": "NOT_RUN"
+  },
+  "persistentDrawingFixturesAdded": false,
+  "supportClaimsPromoted": false
+}

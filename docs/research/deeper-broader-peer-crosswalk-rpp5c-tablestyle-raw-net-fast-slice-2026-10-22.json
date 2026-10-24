@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5c TABLESTYLE nested DXF raw-net replay and refusal fast slice",
+  "mode": "Generated ASCII/Binary adapter round-trip validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "9b9d357f3c11bd33bad7c140e05f1e312839e0ee4fc709fad6ed62d623140c74",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {"description": "The following group codes are repeated for every cell"},
+      {"group": 7, "description": "Text style name"},
+      {"group": 140, "description": "Text height"},
+      {"group": 170, "description": "Cell alignment"},
+      {"group": 62, "description": "Text color"},
+      {"group": 63, "description": "Cell fill color"},
+      {"group": 283, "description": "Background color enabled flag"},
+      {"group": 90, "description": "Cell data type"},
+      {"group": 91, "description": "Cell unit type"},
+      {"groups": "274-279", "description": "Lineweight for each border type"},
+      {"groups": "284-289", "description": "Visibility for each border type"},
+      {"groups": "64-69", "description": "Color for each border type"}
+    ]
+  },
+  "implementation": {
+    "changes": [
+      "Added generated TABLESTYLE raw-net ASCII and Binary write/re-import controls for all official repeated-per-cell group families, asserting ordered semantic group/value identity.",
+      "ASCII generated values use noncanonical numeric spellings and verify source-spelling preservation across raw replay.",
+      "Added a second generated TABLESTYLE OBJECT sentinel and verify it is parsed after the first nested payload.",
+      "An unresolved nested group-340 handle reference is refused without changing an existing destination; no typed nested model is introduced."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5c-tablestyle-raw-net-fast-slice-2026-10-22.json",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_tablestyle_nested_raw_net (1/1; 0.37 s; ASCII and Binary paths)",
+    "diffCheck": "PASS: git diff --check -- tests/CMakeLists.txt tests/dwg2dxf_adapter_tests.cpp tests/dwg_reader_matrix_tests.cpp CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "nestedDxfTableStyleTyped": false,
+    "dwgVersionUpconvertClaimPromoted": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-6: audit exact ordered-writer assertions for CLASSES and the version-specific DIMSTYLE table header; add only a missing generated canary",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

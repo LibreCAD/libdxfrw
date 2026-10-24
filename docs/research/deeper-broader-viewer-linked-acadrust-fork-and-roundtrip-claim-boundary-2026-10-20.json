@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "viewer-linked acadrust fork and round-trip claim boundary",
+  "mode": "Broader primary-source codec-lineage and evidence-claim review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen a newly surfaced viewer-linked DWG/DXF codec repository for an independent implementation lineage.",
+    "Reconcile its advertised DWG/DXF matrix and 208/208 round-trip claim with the existing acadrust-family comparator ceiling.",
+    "Separate primitive SAT/SAB authoring claims from embedded modeler preservation and independent B-rep semantics.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "method": {
+    "kind": "Mutable primary repository README and existing route-register reconciliation",
+    "peerRepositoriesCloned": false,
+    "peerExecutablesOrPackagesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "candidatePin": null,
+    "evidenceRule": "Repository capability statements and aggregate round-trip claims are candidate-selection evidence only until revision, input matrix, expected-value lineage, unsupported dispositions, and consumer acceptance are independently inspected. Same-family forks do not add independent codec votes."
+  },
+  "evidence": [
+    {
+      "route": "GiorgioBurbanelli89/acadrust viewer-linked fork",
+      "sources": [
+        "https://github.com/GiorgioBurbanelli89/acadrust",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "The fork repository describes itself as an MPL-2.0 acadrust fork for a DWG viewer build. Its README advertises ASCII/Binary DXF and DWG read/write, 41 entity types, primitive SAT/SAB authoring, and a 208/208 DWG round-trip claim across 26 entity types and 8 versions. The 208/208 statement appears under the 0.2.9 changelog while the current package example is 0.3.4; the 0.3.4 note says round-trip coverage was expanded without restating the denominator or comparison method.",
+      "limits": "The README does not identify the sample provenance, independent expected-value source, unsupported/skipped denominator, exact tested source or binary hash, or native consumer audit. This screen did not inspect the fork's test implementation or prove that tests are absent; the mutable README and aggregate claim alone do not establish complete support or semantics.",
+      "planUse": "Record as a same-family alias under the existing provisional acadrust route, not an independent peer. Keep status SCREENED_NOT_ADMITTED until an exact profile, immutable artifact, test-input provenance, oracle, and result disposition can be audited. Do not infer general ACIS import or B-rep correctness from primitive authoring or round trips."
+    },
+    {
+      "route": "Local plan reconciliation",
+      "sources": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Extended the existing PAR-07/S8 lineage and evidence-ceiling guidance to include viewer-linked acadrust forks and version-ambiguous aggregate round-trip claims. Existing source-entity/owner/carrier/parser/shape/analytic/consumer stages remain unchanged.",
+      "limits": "No production code, tests, fixtures, or dependencies were changed or run. No new finding, top-level subplan, comparator admission, support claim, or validation cadence was added.",
+      "planUse": "Continue local fast-gated work under existing owners. If peer provenance cannot be pinned, record NOT_RUN and self-unblock rather than install or depend on the fork."
+    }
+  ],
+  "assessment": {
+    "newCandidateFamiliesScreened": 0,
+    "newSameFamilyAliasesScreened": 1,
+    "newEligibleIndependentComparatorRoutes": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8 comparator register: cluster viewer-linked acadrust forks and applications with their actual codec lineage.",
+      "3D evidence: primitive SAT/SAB authoring and entity counts do not promote imported-body, AcDs association, topology, or analytic semantic support.",
+      "Comparator admission: resolve exact artifact, test corpus, oracle, dispositions, and consumer route before considering a peer run."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq schema and deferred-external invariants)",
+    "scopedDiffCheck": "PASS (git diff --check for plan; untracked receipt parsed and invariants checked with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

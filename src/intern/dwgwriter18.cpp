@@ -20,6 +20,8 @@
 #include "dwgwriter18.h"
 #include "dwgtemplate.h"
 #include "drw_reserve.h"
+#include "dwg_header_time.h"
+#include "../drw_datastorage.h"
 #include "dwgsafety.h"
 #include "dwgutil.h"
 #include "dwgwriterlayoutvalidation.h"
@@ -358,25 +360,14 @@ static double headerDoubleVar(const DRW_Header *header, const std::string& key) 
     return it->second->d_val();
 }
 
-static void splitAuxDate(double stored, std::int32_t& day, std::int32_t& msec) {
-    // Canonical DWG aux-header date encoding: `stored` is julianDay + msec/86_400_000.
-    constexpr double kMsecPerDay = 86400000.0;
-    const double dayFloor = std::floor(stored);
-    day = static_cast<std::int32_t>(dayFloor);
-    const double frac = stored - dayFloor;
-    msec = static_cast<std::int32_t>(std::lround(frac * kMsecPerDay));
-    if (msec >= static_cast<std::int32_t>(kMsecPerDay)) {
-        day += 1;
-        msec = 0;
-    }
-}
-
-static void putAuxDate(std::vector<std::uint8_t>& v, double stored) {
+static bool putAuxDate(std::vector<std::uint8_t>& v, double stored) {
     std::int32_t day = 0;
     std::int32_t msec = 0;
-    splitAuxDate(stored, day, msec);
+    if (!dwgHeaderTime::split(stored, day, msec))
+        return false;
     putRL(v, static_cast<std::uint32_t>(day));
     putRL(v, static_cast<std::uint32_t>(msec));
+    return true;
 }
 
 static std::vector<std::uint8_t> buildAuxHeaderContent(DRW::Version version,
@@ -409,8 +400,9 @@ static std::vector<std::uint8_t> buildAuxHeaderContent(DRW::Version version,
     for (int i = 0; i < 5; ++i)
         putRL(v, 0);
 
-    putAuxDate(v, headerDoubleVar(header, "TDCREATE"));
-    putAuxDate(v, headerDoubleVar(header, "TDUPDATE"));
+    if (!putAuxDate(v, headerDoubleVar(header, "TDCREATE"))
+        || !putAuxDate(v, headerDoubleVar(header, "TDUPDATE")))
+        return {};
 
     const std::uint32_t handSeed = header ? header->getHandSeed() : 0;
     putRL(v, handSeed <= 0x7fffffffu ? handSeed : static_cast<std::uint32_t>(-1));
@@ -568,12 +560,25 @@ bool dwgWriter18::addRawDwgSection(const DRW_RawDwgSection& section) {
     if ((section.m_encoding != 1 && section.m_encoding != 2
          && section.m_encoding != 4)
         || section.m_encrypted != 0
+        || section.m_data.size() > dwgSafety::MaxBufferSize
         || section.m_maxSize > dwgSafety::MaxBufferSize
         || (section.m_maxSize != 0
             && section.m_maxSize > dwgSafety::MaxPageCap))
         return false;
     if (section.m_data.size() > UINT32_MAX)
         return false;
+    if (section.m_name == "AcDb:AcDsPrototype_1b"
+        && !section.m_data.empty()) {
+        try {
+            const DRW_DataStorageSection parsed =
+                DRW_parseDataStorage(section.m_data, m_version, false);
+            if (parsed.parseFailed || !parsed.structurallyValid
+                || !parsed.replayAllowed)
+                return false;
+        } catch (...) {
+            return false;
+        }
+    }
     for (const DRW_RawDwgSection& existing : m_rawDwgSections) {
         if (existing.m_name == section.m_name)
             return false;
@@ -675,6 +680,30 @@ std::vector<std::uint8_t> dwgWriter18::buildAppInfoContent(DRW::Version version)
 
 bool dwgWriter18::finalize() {
     if (objectWriteFailed() || m_stream == nullptr || !m_stream->good())
+        return false;
+
+    DRW_DataStorageSection parsedDataStorage;
+    const DRW_DataStorageSection* dataStorage = nullptr;
+    const std::uint8_t* dataStorageBytes = nullptr;
+    std::size_t dataStorageByteLength = 0;
+    for (const DRW_RawDwgSection& section : m_rawDwgSections) {
+        if (section.m_name != "AcDb:AcDsPrototype_1b")
+            continue;
+        if (!section.m_data.empty()) {
+            try {
+                parsedDataStorage = DRW_parseDataStorage(
+                    section.m_data, section.m_version, false);
+            } catch (...) {
+                return false;
+            }
+            dataStorage = &parsedDataStorage;
+            dataStorageBytes = section.m_data.data();
+            dataStorageByteLength = section.m_data.size();
+        }
+        break;
+    }
+    if (!validatePendingModelerDataStorageReplay(
+            dataStorage, dataStorageBytes, dataStorageByteLength))
         return false;
 
     // Extract section ranges from the inherited m_buf accumulator.
@@ -817,6 +846,8 @@ bool dwgWriter18::finalize() {
     const std::vector<std::uint8_t> auxHeaderData =
         (m_version >= DRW::AC1018) ? buildAuxHeaderContent(m_version, m_header)
                                    : std::vector<std::uint8_t>();
+    if (m_version >= DRW::AC1018 && auxHeaderData.empty())
+        return false;
     const bool hasAuxHeader = !auxHeaderData.empty();
 
     if (hasAuxHeader) {

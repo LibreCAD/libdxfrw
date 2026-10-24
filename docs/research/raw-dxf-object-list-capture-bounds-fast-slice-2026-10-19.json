@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Raw DXF object-list callback capture bounds",
+  "mode": "Local adapter implementation with generated focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": [
+    "Charge two logical list-link pointer slots for bounded raw DXF object callbacks stored in std::list.",
+    "Use a shared estimator for raw object list-backed retention and preserve vector-backed raw estimates.",
+    "Update expected logical-retention totals and add exact-byte cross-family generated controls.",
+    "Keep the fast strict-target plus owning CTest validation cadence."
+  ],
+  "changes": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "implementation": "estimateRawDxfObjectListNodeBytes adds two logical pointer slots to the bounded raw-object estimate. It is used for VISUALSTYLE, DICTIONARYWDFLT/PLACEHOLDER, MATERIAL, DETAILVIEWSTYLE/SECTIONVIEWSTYLE, RENDERSETTINGS/background/SUN, SORTENTSTABLE/TABLESTYLE, FIELD/FIELDLIST, named-resource, and raw ACAD_PROXY_OBJECT list stores. Vector-backed raw associative/spatial-filter stores and raw sections remain unchanged. Raw proxy had already been charged two slots and now uses the common helper without changing its estimate.",
+    "generatedControl": "One generated selector sends empty-group raw records through each list-backed callback family and asserts the exact sizeof(DRW_RawDxfObject) + name bytes + two pointer links total. Existing owner tests were updated for the same logical charge while preserving their limit and fail-closed checks.",
+    "limitations": "The two pointer slots are logical bounded-retention accounting, not allocator-specific node overhead or process RSS. This does not qualify raw-carrier serialization or external semantics."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --raw-dxf-object-list-node-accounting",
+      "result": "passed"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_(visual_style_raw_capture_limits|dictionary_default_raw_capture_limits|render_background_sun_raw_capture_limits|field_carrier_raw_capture_limits|sort_table_style_raw_capture_limits|named_resource_typed_capture_limits|named_resource_raw_capture_limits|proxy_object_capture_limits|raw_dxf_object_list_node_accounting))$' --output-on-failure",
+      "result": "passed 9/9 in 0.42 sec"
+    },
+    "relatedRegressionCTest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_named_object_callback_storage|dwg2dxf_visual_style_.*|dwg2dxf_field_carrier_.*)$' --output-on-failure",
+      "result": "passed 5/5 in 0.39 sec"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "fixtureAdded": false,
+    "scopedDiffCheck": "passed"
+  },
+  "planImpact": {
+    "existingOwner": "7S.2c adapter-owned callback retention census",
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitationsAndNext": "The raw list-backed adapter estimate gap is closed for the enumerated callback routes. Continue the remaining 7S.2c list/vector owner census and do not equate logical accounting with RSS, complete preservation, or semantic support. The shared worktree remains user-owned and uncommitted; Git metadata is read-only."
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4m MATERIAL procedural-property schema peer audit",
+  "mode": "Pinned source crosswalk and implementation-readiness review",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "dbc0a1f6bcef24259717b813ebeb17834bc9a3cb395f0f16fe566746a4a98c10",
+  "sources": [
+    {
+      "repository": "Autodesk AutoCAD DXF Reference 2024",
+      "kind": "Normative DXF group list",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36D-5C739878B272.htm",
+      "accessed": "2026-10-22"
+    },
+    {
+      "repository": "LibreDWG/libredwg",
+      "revision": "e0a152d728cd5b794dc9361a65417fa12d920509",
+      "path": "src/in_dxf.c",
+      "url": "https://github.com/LibreDWG/libredwg/blob/e0a152d728cd5b794dc9361a65417fa12d920509/src/in_dxf.c#L9598-L9605",
+      "accessed": "2026-10-22"
+    },
+    {
+      "repository": "LibreDWG 0.13.4 manual",
+      "kind": "Peer implementation schema, not normative DXF semantics",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "accessed": "2026-10-22"
+    }
+  ],
+  "findings": [
+    "Autodesk lists procedural MATERIAL group codes 300, 291, 271, 469, 301, 292, 62, 420, and 430, but the table does not define complete per-property cardinality or the association rules for optional color components.",
+    "Pinned LibreDWG in_dxf.c states that its procedural-texture variants are not written by its DXF writer and remain unhandled by its generic MATERIAL import path; its handler returns unknown pairs to the generic object parser. This corroborates a peer support gap but does not define the missing semantics.",
+    "LibreDWG's internal MATERIAL schema lists genprocname, genproctype, typed values, and a CMC color value, but that internal schema alone cannot establish the DXF wire sequence.",
+    "Autodesk's DXF reference maps self-illumination to group 90 while LibreDWG's DWG schema/reader uses group 149; the conflict remains unresolved and both routes stay untyped locally."
+  ],
+  "disposition": {
+    "typedImplementation": "NOT_IMPLEMENTED: insufficient authoritative or producer-backed name/type/value sequence evidence",
+    "localAction": "Preserve the full ordered raw MATERIAL carrier; do not infer typed procedure fields from peer internal structures.",
+    "nextEvidenceNeeded": [
+      "A versioned product-authored MATERIAL DXF witness that shows a complete procedural property sequence, including scalar and CMC cases.",
+      "An authoritative source resolving whether DXF self-illumination is group 90 or group 149 for the targeted version."
+    ],
+    "supportClaimsPromoted": 0,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeFreeCADLinuxWindows": "NOT_RUN",
+    "independentAcisAcDsEvidence": "NOT_RUN"
+  },
+  "changes": {
+    "productionCode": false,
+    "tests": false,
+    "persistentFixtures": 0,
+    "dependencies": 0,
+    "externalDrawingsDownloaded": 0,
+    "commitCreated": false
+  }
+}

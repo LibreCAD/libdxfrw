@@ -1,0 +1,173 @@
+{
+  "schema": "libdxfrw-deeper-broader-application-peer-and-native-acceptance-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Add current OpenCADStudio application, codec-lineage, native-output acceptance, and cross-version DWG graph evidence to the existing DWG/DXF parity plan.",
+  "method": {
+    "kind": "Primary project documentation/source, issue reports and maintainer resolutions, plus local plan reconciliation",
+    "sourcesOpened": [
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+      "https://github.com/HakanSeven12/OpenCADStudio/issues/570",
+      "https://github.com/HakanSeven12/OpenCADStudio/issues/1670",
+      "https://github.com/HakanSeven12/OpenCADStudio/issues/1615",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "OpenCADStudio is a current downstream application candidate, but its current Cargo manifest uses opencadcodec, whose repository identifies it as a fork of ACadRust; do not count those as independent parser lineages. OpenCADStudio issue reports and maintainer resolutions are peer-specific, release/source/operation scoped, and not local reproductions. The app's audit/self-readback is distinct from reference-CAD AUDIT. No attached drawing was downloaded, no peer was executed, and no support claim was promoted."
+  },
+  "evidence": [
+    {
+      "topic": "OpenCADStudio current application route and ACadRust codec lineage",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec"
+      ],
+      "observed": [
+        "OpenCADStudio advertises native DWG/DXF read/write from R14 through R2018 and a 2D/3D CAD consumer workflow.",
+        "Its current Cargo manifest identifies package version 2026.41.0 and pins opencadcodec, opencadkernel, and opencadgraph by Git revisions.",
+        "The opencadcodec repository identifies itself as forked from hakanaktt/acadrust; therefore OpenCADStudio and ACadRust are correlated parser evidence, even though OpenCADStudio is a separate application consumer."
+      ],
+      "doesNotEstablish": [
+        "per-family or per-direction fidelity from the advertised version range",
+        "that current main behavior matches a released binary",
+        "an independent parser vote from ACadRust"
+      ],
+      "planUse": "Admit OpenCADStudio as an optional application/consumer route at a composed checkpoint. Record exact app, codec and kernel revisions, build/platform, operation, file versions and diagnostics. Do not count it as an independent parser lineage beside ACadRust."
+    },
+    {
+      "topic": "Application audit, verified save and native reference acceptance",
+      "source": "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+      "observed": [
+        "The documented audit reports manifests, layers, blocks, finite bounds, duplicate handles, dangling DXF handle references, source hash and dropped-on-save data.",
+        "save_verified writes an explicit target version, reopens the output, checks its actual version and compares a semantic entity manifest.",
+        "A separate Windows reference-acceptance script opens versioned DWGs read-only and runs native AUDIT without repairs."
+      ],
+      "doesNotEstablish": [
+        "independence of app self-audit or self-readback from the app's writer/parser",
+        "that the documented harness has been run against libdxfrw output",
+        "3D topology or geometry semantics from a successful file audit"
+      ],
+      "planUse": "At one planned composed checkpoint, audit the exact locally generated libdxfrw artifacts with a pinned app build, then run reference-CAD read-only AUDIT only when the native console is available. Keep app parse, native audit, graph closure and 3D semantic results separate."
+    },
+    {
+      "topic": "Resolved peer DWG graph/writer incident",
+      "source": "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+      "observed": [
+        "The issue reported an AC1021 source rewritten as AC1032, with recovery failures spanning Layout/EvalGraph framing, dynamic-block relations, MLeader records, XDATA handle references, and XREF-dependent layer/path state.",
+        "The maintainer reported a fix to the R2013+ entity header and Layout field order/widths, same-version AcDs link retention, and validation against the supplied source pair using AutoCAD recovery/audit.",
+        "The maintainer reported 345 MLeader and 8 Layout records matching, removal of 344 invalid MLeader version records, and a byte-identical 613-segment AcDs section for the same-version save."
+      ],
+      "doesNotEstablish": [
+        "a defect in libdxfrw",
+        "an independently reproduced result or a current OpenCADStudio defect",
+        "cross-version AcDs byte identity"
+      ],
+      "planUse": "Use the incident as a generated test-design lead for the existing graph-preservation and writer gates. Verify actual output AC code, separate same-version AcDs replay from conversion, and retain native audit logs."
+    },
+    {
+      "topic": "HATCH/polyline structural acceptance lead",
+      "source": "https://github.com/HakanSeven12/OpenCADStudio/issues/570",
+      "observed": [
+        "The issue was closed after the maintainer reported that the supplied HATCH/polyline case saved as R2018 opened without recovery in a strict third-party reader and produced no LibreDWG errors."
+      ],
+      "doesNotEstablish": [
+        "that libdxfrw has the same defect",
+        "associative boundary fidelity, rendered parity or solid semantics",
+        "local reproduction; the supplied drawing was not downloaded"
+      ],
+      "planUse": "Retain locally generated HATCH boundary/owner controls in the composed DWG output gate; do not add the issue attachment as a repository fixture."
+    },
+    {
+      "topic": "Application state versus file-stored viewport data",
+      "source": "https://github.com/HakanSeven12/OpenCADStudio/issues/1670",
+      "observed": [
+        "An unresolved OpenCADStudio report distinguishes the active paper editing viewport/effective UCS after reopen from the stored viewport identities and values."
+      ],
+      "doesNotEstablish": [
+        "whether the report is an application-state defect, codec defect or format limitation",
+        "a missing libdxfrw field or an authoritative DWG layout rule"
+      ],
+      "planUse": "Keep application-current-context qualification distinct from file Layout/VIEWPORT/UCS preservation. Verify any format interpretation against the repository's authoritative ODA specification before changing byte logic."
+    },
+    {
+      "topic": "3D open versus geometry semantics",
+      "source": "https://github.com/HakanSeven12/OpenCADStudio/issues/1615",
+      "observed": [
+        "A user reported 3D object interoperability problems; the maintainer later reported one pyramid/cylinder Boolean example saved as R2018 and accepted by a strict third-party reader."
+      ],
+      "doesNotEstablish": [
+        "exact ACIS/ASM body identity, B-rep topology, units or geometric metrics",
+        "general DWG/DXF 3D support from one sample or successful open"
+      ],
+      "planUse": "Preserve the existing evidence ladder: file acceptance, exact wrapper/carrier closure, projection, B-rep metrics and named native application results remain separate."
+    },
+    {
+      "topic": "FreeCAD DXF consumer route selection",
+      "source": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "observed": [
+        "FreeCAD documents C++ and legacy Python DXF import/export routes with different feature sets and options affecting units/scaling, output geometry, hatches, colors, splines and polyface export."
+      ],
+      "doesNotEstablish": [
+        "the behavior of every FreeCAD release/platform",
+        "DWG parser or ACIS support from a DXF importer selection"
+      ],
+      "planUse": "For a FreeCAD consumer qualification, bind the exact release, converter, importer/exporter mode, operation, preferences and resulting document geometry."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-07",
+      "7AG peer admission",
+      "7G.3 graph preservation",
+      "S8.9.5 native consumer qualification"
+    ],
+    "composedCheckpointOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue fast per-slice local build/test/compatibility checks without requiring optional peers or native applications.",
+      "At the existing composed output checkpoint, reuse generated scratch controls and verify requested versus actual file version.",
+      "Treat OpenCADStudio as a correlated ACadRust-family application result; capture exact app/codec/kernel revisions and full loss/diagnostic manifest.",
+      "Keep same-version AcDs retention separate from cross-version conversion and exact carrier identity separate from 3D geometry semantics.",
+      "If a native reference CAD console is available, run read-only AUDIT without repair on the exact output and preserve the per-version raw logs; otherwise report NOT_RUN.",
+      "Keep all six J items DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

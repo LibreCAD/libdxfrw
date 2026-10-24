@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-peer-consumer-and-spline-risk-review-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source documentation and source review; no runtime qualification",
+  "scope": [
+    "Current LibreCAD_3 persistence and libdxfrw integration boundary",
+    "Current ACadSharp SPLINE conversion failure report status and evidence limits"
+  ],
+  "sources": [
+    {
+      "project": "LibreCAD_3",
+      "revision": "master (mutable; commit not captured)",
+      "references": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/README.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/CMakeLists.txt#L1060-L1086",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/CMakeLists.txt#L1577-L1621",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/persistence/CMakeLists.txt#L433-L435",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/persistence/libdxfrw/dxfimpl.h#L779-L889",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/persistence/libdxfrw/dxfimpl.cpp#L2586-L2635"
+      ],
+      "observations": {
+        "productScope": "2D CAD with DXF persistence",
+        "withPersistenceDefault": true,
+        "withDwgImportDefault": false,
+        "dwgImportPolicy": "experimental/read-only",
+        "integration": "root CMake builds third_party/libdxfrw submodule and exports libdxfrw::libdxfrw alias; persistence target links that target",
+        "adapter": {
+          "base": "DRW_Interface",
+          "plain3dFaceCallback": "explicit no-op",
+          "plainSolidCallback": "explicit no-op",
+          "modelerAcisCallbacks": "no matching override found",
+          "splineCallback": "implemented; maps control points, fit points, degree, tolerance, tangents, normal, and flags into LibreCAD_3 curve model",
+          "splineKnotAdaptation": "removes first and last values when knot list has at least two items"
+        }
+      },
+      "limitation": "Source review on mutable master is discovery evidence only. No commit was captured, checkout built, drawing loaded, or app behavior qualified."
+    },
+    {
+      "project": "ACadSharp",
+      "revision": "issue #1299, opened 2026-10-14; report names release 3.8.0",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "observations": {
+        "reportedBehavior": "DWG-to-DXF output has SPLINE data rejected by a downstream GDAL-to-GeoJSON conversion",
+        "availableDiagnosis": "issue body does not identify the failing spline handle, exact arrays, GDAL version/options, or independently expected curve",
+        "attachment": "issue contains an attached ZIP; not fetched or inspected"
+      },
+      "limitation": "Peer-reported scenario only; not evidence of a libdxfrw defect or a peer fix."
+    }
+  ],
+  "planDelta": {
+    "existingOwnersOnly": [
+      "PAR-07/S8 downstream consumer disposition and 2D non-regression",
+      "existing SPLINE/NURBS owners including PAR-47/7AB"
+    ],
+    "consumerDisposition": "LibreCAD_3 is a source/API and supported-2D integration target, not a 3D modeler consumer. Record omitted 3D/modeler families as consumer_unsupported, separately from codec disposition.",
+    "implementationReadySequence": [
+      "For public API changes, build the owning libdxfrw target and focused tests; run lc3_compat_check when public signatures/layout are touched.",
+      "At one composed milestone, pin LibreCAD_3 and libdxfrw commits, source-overlay the library into an isolated consumer checkout, and build persistence before the full application.",
+      "Use WITH_PERSISTENCE=ON and WITH_DWG_IMPORT=OFF for default 2D compatibility; test WITH_DWG_IMPORT=ON only as a separate optional experimental/read-only smoke.",
+      "Use local generated mixed 2D/3D content to assert supported 2D records/blocks remain intact while recording 3D/modeler no-op behavior explicitly.",
+      "For SPLINE controls, compare exact fields and at least one analytically evaluated curve point; defer independent GDAL/peer execution to the existing composed checkpoint.",
+      "If an external consumer/source/platform is unavailable, record NOT_RUN and self-unblock to the next local slice."
+    ],
+    "noNewFindingOrSubplan": true,
+    "noTestFixtureDependencyOrPeerRunAdded": true,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limits": [
+    "No peer repository was cloned or built; no executable, app, or native CAD consumer was run.",
+    "No customer DWG/DXF attachment or external test fixture was downloaded or committed.",
+    "The LibreCAD_3 master links are mutable and must be commit-pinned before a reproducible consumer run.",
+    "LibreCAD_3 2D callback compatibility cannot establish 3D display, modeler payload preservation, ACIS semantics, or DWG writer support.",
+    "Historical finding/subplan counters in the plan remain unreconciled; this entry does not change them."
+  ]
+}

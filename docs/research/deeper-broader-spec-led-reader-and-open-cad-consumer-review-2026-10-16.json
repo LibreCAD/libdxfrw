@@ -1,0 +1,190 @@
+{
+  "schema": "libdxfrw-deeper-broader-reader-consumer-and-dxf-license-screen-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refine the existing spec-led DWG and Open CAD Studio comparator entries with current maturity/repair evidence; profile undxf as a separate DXF-only reader including its corpus, binary, unknown-record, and ACIS-wireframe boundaries; screen a source-visible proprietary DXF project out of the open-source comparator set.",
+  "method": {
+    "kind": "Current primary project repositories, package documentation, source examples, and release pages",
+    "sourcesOpened": [
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/iyulab/uncad",
+      "https://docs.rs/uncad/latest/uncad/",
+      "https://github.com/iyulab/undxf",
+      "https://docs.rs/crate/undxf/0.2.0",
+      "https://docs.rs/crate/undxf/0.2.0/source/CAVEATS.md",
+      "https://docs.rs/undxf/latest/undxf/enum.ReadError.html",
+      "https://docs.rs/uncad/latest/src/uncad/model.rs.html",
+      "https://docs.rs/acadrust/latest/acadrust/",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/src/app/document.rs",
+      "https://github.com/HakanSeven12/OpenCADStudio/releases",
+      "https://open-aec.com/en/open-cad-studio/",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/seaflower205/Sea-DXF-Core"
+    ],
+    "repositoriesCloned": false,
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "This review checked public source/docs only. Project-reported features, aggregate coverage, app screenshots, release claims, and test counts were not reproduced. No parser output, native consumer acceptance, shape semantics, or binary artifact identity was verified. The moving undxf 0.x package/source snapshots must be bound before comparing capabilities."
+  },
+  "evidence": [
+    {
+      "topic": "dwg-rs specification-led DWG reader",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "The repository describes an Apache-2.0, 0.1.0-alpha.1 DWG reader implemented from ODA Open Design Specification v5.4.1, with no LibreDWG executable code consulted/imported and no ODA SDK dependency. Its README explicitly calls the project pre-alpha and says the container layer is more mature than per-entity decoding. Its repository-reported coverage snapshot (2026-08-30) includes 19 local files: three each for AC1014 through AC1027 and one AC1032 file; its own per-version decode rates vary and include skipped/error objects. It says ACadSharp algorithm-description comments were consulted for one LZ77 ambiguity, so this is not a formal two-team clean-room process.",
+      "doesNotEstablish": [
+        "production readiness, per-feature semantic completeness, or coverage of independently authored files",
+        "independence of the sample corpus or its provenance from other public corpora",
+        "writer behavior, DXF conversion, owner-graph preservation, or ACIS/AcDs semantics",
+        "that a self-reported aggregate success percentage predicts libdxfrw parity"
+      ],
+      "planUse": "Add as an optional, source-described spec-led parser comparator for container structure and only measured entity/version intersections. Pin exact source commit and build; use locally generated/approved controls with an independent expected-value manifest; record skipped/error counts and handle/owner placement. Never import its code or its corpus into this repository, and do not use its pre-alpha aggregate percentage as a support threshold. If not already available at a composed checkpoint, mark NOT_RUN and continue implementation."
+    },
+    {
+      "topic": "uncad composite parser route",
+      "sources": [
+        "https://github.com/iyulab/uncad"
+      ],
+      "observed": "The current docs.rs uncad package is 0.12.0 and its public scope documents a read-only model/output library: DWG is parsed through LibreDWG FFI, while ASCII/binary DXF is parsed by the separate pure-Rust undxf crate; output is JSON/SVG/PNG and DWG/DXF writing is not offered. The separate undxf crate supplies the DXF parser path; it does not make uncad an independent DWG implementation.",
+      "doesNotEstablish": [
+        "a second independent DWG parser relative to LibreDWG",
+        "DWG/DXF writer or conversion acceptance",
+        "full typed/opaque document preservation or 3D solid semantics"
+      ],
+      "planUse": "Keep this out of the independent-DWG-reader vote. Consider undxf only as a separately pinned DXF read/projection route; treat uncad JSON/SVG output as a normalized model/render, not wire or full graph fidelity. No new mandatory comparator is added."
+    },
+    {
+      "topic": "ACadRust and Open CAD Studio as a shared-engine consumer route",
+      "sources": [
+        "https://docs.rs/acadrust/latest/acadrust/",
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/src/app/document.rs",
+        "https://open-aec.com/en/open-cad-studio/"
+      ],
+      "observed": "ACadRust's package/repository advertises ASCII and binary DXF plus DWG read/write, a bounded set of entity variants, SAT/SAB processing, and AcDs linking. Open CAD Studio's latest listed release is v2026.41 (cff240e, 2026-10-11); v2026.40.1 release notes say missing BLOCK/ENDBLK sentinels are materialized during damaged-drawing load. Its source imports ACadRust types and ACadRust identifies it as a consumer. The release and repair claims are not tested in this review.",
+      "doesNotEstablish": [
+        "an independent DWG/DXF parser or writer vote from ACadRust",
+        "native AutoCAD/BricsCAD/ODA acceptance, audit cleanliness, or exact DWG/DXF round-trip fidelity",
+        "a general ACIS B-rep kernel or analytic shape correctness from rendering/tessellation",
+        "that all documented R13–R2018 routes work for all entities and payload schemas"
+      ],
+      "planUse": "Retain Open CAD Studio only as an optional same-engine application/visual-consumer smoke. Pin app and ACadRust revisions, platform, input/output magic, warnings, pre/post-load entity/owner census, repairs, and rendered result. Any synthesized sentinel changes the status to OPENED_AFTER_REPAIR rather than clean acceptance; app display is neither independent parser evidence nor a 3D semantic claim."
+    },
+    {
+      "topic": "Current peer maturity remains feature- and route-specific",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "ACadSharp's release page currently lists v3.8.0 (commit 3a1c66b) and v3.7.1 (which specifically added DWG/DXF read/write for DimensionArc). LibreDWG's current NEWS includes 2026 hardening work on decompression buffer capacity/logical-size consistency, page-map offsets, and object lifetime around realloc. These are peer release/source facts, not local failures or format mandates.",
+      "doesNotEstablish": [
+        "a complete per-feature matrix from release labels or version tables",
+        "that fixes in either peer imply corresponding libdxfrw defects",
+        "native acceptance or semantic correctness of a shared test output"
+      ],
+      "planUse": "Refresh optional peer pins only at composed comparator checkpoints. For source-confirmed analogous local code, reuse existing bounds, arithmetic, allocation-capacity, and pointer-lifetime owners; do not create duplicate issues from peer fixes. Record entity × direction × version and disposition rather than promoting broad release claims."
+    }
+  ],
+  "additionalEvidence": [
+    {
+      "topic": "undxf as a distinct DXF-only reader and limited 3D projection",
+      "sources": [
+        "https://github.com/iyulab/undxf",
+        "https://docs.rs/crate/undxf/0.2.0",
+        "https://docs.rs/crate/undxf/0.2.0/source/CAVEATS.md",
+        "https://docs.rs/undxf/latest/undxf/enum.ReadError.html",
+        "https://docs.rs/uncad/latest/src/uncad/model.rs.html"
+      ],
+      "observed": "undxf is MIT-licensed and reads DXF into uncad-model, retaining unsupported entity names as UNKNOWN and unresolved layer/block references. Project documentation describes binary DXF decoding through its text-equivalent group representation; docs.rs latest exposes a Binary read error with byte offset. The 0.2.0 CAVEATS measurement covers LibreDWG's 67-file DXF corpus (66 read, including two binary fixtures), so it is a useful regression corpus but not an independent producer corpus. The 0.2.0 3DSOLID/REGION route extracts ACIS edges from inline SAT through R2010 and ACDSDATA/SAB from R2013, yielding wireframe/chords rather than faces or a B-rep. Documentation snapshots differ across the evolving 0.x line.",
+      "doesNotEstablish": [
+        "DWG parsing or DWG/DXF writing",
+        "exact wire round-trip or complete typed semantics from UNKNOWN retention",
+        "independent producer coverage from a corpus sourced from LibreDWG test data",
+        "closed-solid topology, analytic surfaces, volume, or native acceptance from wireframe extraction"
+      ],
+      "planUse": "Admit only as optional DXF parser/projection evidence. Bind exact package checksum to matching source revision; verify ASCII and binary paths separately; test locally generated or already-approved data against an independent manifest. Keep 3DSOLID/REGION edge survival and skipped-edge diagnostics separate from semantic shape gates."
+    },
+    {
+      "topic": "Sea-DXF-Core license-screen exclusion",
+      "sources": [
+        "https://github.com/seaflower205/Sea-DXF-Core"
+      ],
+      "observed": "The repository describes a lossless, resource-bounded ASCII/binary DXF core and clean-room implementation, but its README states the source is proprietary and source visibility grants no permission to use, copy, modify, or redistribute it.",
+      "doesNotEstablish": [
+        "an open-source implementation or usable comparator dependency",
+        "any capability or correctness claim for libdxfrw"
+      ],
+      "planUse": "Exclude from the open-source comparator set; do not clone, build, run, copy code, or import its corpus/derived tables. The license statement alone resolves the classification."
+    }
+  ],
+  "implementationReadiness": {
+    "comparatorReceiptFields": [
+      "exact peer release/commit and executable/package hash",
+      "parser, writer, and application consumer lineage as separate fields",
+      "input producer, format magic/version, and conversion direction",
+      "full versus partial read and per-type decoded/skipped/error counts",
+      "source identity, owner/layout closure, and units/frame disposition",
+      "all warnings, repairs, unsupported records, and rendered/projection choices",
+      "independently authored expected values and output hash",
+      "for DXF peers: ASCII versus binary path, exact crate/source pair, and corpus provenance",
+      "for application consumers: pre/post-load identity and whether any repair ran"
+    ],
+    "cadence": "One optional composed checkpoint only; no per-slice peer install/run and no full-suite dependency. Use existing or locally generated temporary inputs, not downloaded files. Keep focused strict build/tests for local changes unchanged.",
+    "evidenceLanes": [
+      "spec/container decoding",
+      "typed and opaque document/graph preservation",
+      "writer output and independent syntax parse",
+      "DXF-only reader/projection (undxf), not DWG independence",
+      "same-engine application display/consumer behavior",
+      "independent analytic shape semantics",
+      "native CAD/ODA acceptance"
+    ]
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "proprietarySourcesExcluded": [
+      "Sea-DXF-Core / SeaCad"
+    ],
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

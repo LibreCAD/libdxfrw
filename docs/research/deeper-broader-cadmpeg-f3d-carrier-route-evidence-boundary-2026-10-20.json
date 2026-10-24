@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "CADMPEG F3D carrier route and evidence-independence boundary",
+  "mode": "Exact-release source audit and broader open-source candidate screening",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Determine whether CADMPEG's exact v0.6.2 F3D codec adds a distinct open-source semantic witness for the existing DWG/DXF ACIS route.",
+    "Separate container/profile coverage from parser implementation lineage and from direct DWG AcDs association evidence.",
+    "Reconcile CADMPEG's scored single-document F3D profile with its tagged evaluation ledger.",
+    "Screen a recently visible F3D viewer route for source availability, license status, and semantic output level.",
+    "Refine the optional PAR-07/S8 composed checkpoint without adding local tests, samples, dependencies, or implementation gates."
+  ],
+  "sources": [
+    {
+      "project": "CADMPEG v0.6.2 release and tag",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.2",
+        "https://api.github.com/repos/cadmpeg/cadmpeg/git/ref/tags/v0.6.2",
+        "https://github.com/cadmpeg/cadmpeg/tree/7bcc95276548de4e4876894b9a650a84ea9c4d6d"
+      ],
+      "revision": "Exact tag v0.6.2 resolves to commit 7bcc95276548de4e4876894b9a650a84ea9c4d6d; source and ref fetched 2026-10-20.",
+      "observed": "The CLI package's exact Cargo manifest enables both f3d and sat features by default. The F3D codec package directly depends on cadmpeg-asm, as does the existing bare ASM/SAT implementation family.",
+      "limits": "Manifest dependencies establish shared implementation lineage, not runtime behavior or independent evidence. No release binary was downloaded or run."
+    },
+    {
+      "project": "CADMPEG tagged F3D codec and support profile",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/crates/cadmpeg-codec-f3d/src/lib.rs",
+        "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/crates/cadmpeg-codec-f3d/Cargo.toml",
+        "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/format-support.md"
+      ],
+      "revision": "Exact v0.6.2 tag source; fetched 2026-10-20.",
+      "observed": "The codec source says F3D body maps select B-rep blobs, .smb/.smbh extensions do not determine history/model role, and selected ASM records flow through cadmpeg-asm. It describes B-rep topology, analytic/cached NURBS geometry, transforms, design/history data, and appearances. The tagged profile assigns L4 to f3d:manifest-3-2-0-0.",
+      "limits": "This is source and project-authored capability evidence only. It does not make F3D a DWG/DXF parser, prove independent correctness of the shared ASM decoder, or qualify arbitrary Fusion/ASM versions."
+    },
+    {
+      "project": "CADMPEG tagged evaluation ledger",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/evaluations.toml"
+      ],
+      "revision": "Exact v0.6.2 tag source; fetched 2026-10-20.",
+      "observed": "The ledger contains an L4 evaluation row for f3d:f3z-multi-document dated 2026-08-28 with 12 files. It reports validation findings on legacy-generation inner documents and one archive exceeding the evaluation time budget. No direct evaluation row for f3d:manifest-3-2-0-0 appears in the ledger.",
+      "limits": "Absence from this ledger is not proof that no other unpublished evaluation occurred. The F3Z row does not establish direct coverage of every single-document F3D profile or serve as an independent semantic oracle."
+    },
+    {
+      "project": "ezf3d independent Fusion ASM BinaryFile8 reader",
+      "urls": [
+        "https://github.com/AlexSabaka/ezf3d/tree/97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e",
+        "https://github.com/AlexSabaka/ezf3d/blob/97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e/README.md",
+        "https://github.com/AlexSabaka/ezf3d/blob/97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e/LICENSE",
+        "https://github.com/AlexSabaka/ezf3d/blob/97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e/pyproject.toml",
+        "https://github.com/AlexSabaka/ezf3d/blob/97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e/src/ezf3d/asm/brep.py"
+      ],
+      "revision": "Current default-branch HEAD pinned to commit 97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e, dated 2026-08-28; source, LICENSE, and package metadata reviewed 2026-10-20. GitHub reports no published releases.",
+      "observed": "The repository is a distinct Python implementation with MIT license. It reads Fusion F3D/F3Z documents and documents embedded ASM BinaryFile8 .smb/.smbh geometry. The project README reports alpha status, four real designs, 42 B-rep bodies, 99.8 MB of Shape Manager data, topology/analytic checks, and comparisons to Fusion's cached display mesh. Its package requires Python >=3.13,<3.14 and does not list CADMPEG as a dependency.",
+      "limits": "This is a separate parser candidate only for the documented Fusion-contained BinaryFile8 profile until the exact source is executed. Its self-tests and cached mesh share Fusion producer provenance and are not independently authored semantic truth. It does not document DWG/DXF parsing, AcDs association, or generic raw ACIS 217/218 input. No environment, sample, or peer runtime was used."
+    },
+    {
+      "project": "Native CAD Viewer F3D route",
+      "urls": [
+        "https://github.com/jfk-solutions/native-cad-viewer/blob/main/FORMAT_SUPPORT.md",
+        "https://github.com/jfk-solutions/native-cad-viewer/blob/main/THIRD_PARTY_NOTICES.md"
+      ],
+      "revision": "Mutable main-branch documentation reviewed 2026-10-20; no immutable source commit or package artifact was pinned.",
+      "observed": "FORMAT_SUPPORT.md describes the F3D path as MIT-licensed and says selected native ShapeManager faces are tessellated with diagnostics for unsupported geometry. THIRD_PARTY_NOTICES.md identifies @jfk-solutions/fusion-file-format as unpublished, proprietary/confidential, all-rights-reserved, and license pending.",
+      "limits": "The license statements conflict, implementation source is not available for audit in the reviewed evidence, and tessellated display output is not an independent analytic/topological B-rep result. Exclude from open-source candidate admission unless resolved by a published source and license."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: classify exact CADMPEG F3D as a second container/profile coverage lead within the same cadmpeg-asm implementation lineage; do not count it as an independent parser or kernel vote.",
+      "PAR-07/S8: pin the existing ezf3d watchlist at commit 97fe90ab8c39c3978fa6354f4a21c5ebdbc38c6e as a distinct MIT parser candidate for exact Fusion-contained ASM BinaryFile8 members only; require a same-byte run before any candidate result and do not assume generic DWG/SAB compatibility.",
+      "PAR-07/S8: keep ezf3d optional and non-blocking because it is alpha, has no published release, requires Python 3.13, and its internal cached-mesh checks are not independent expected geometry.",
+      "PAR-07/S8: at the existing composed checkpoint only, capture F3D parent/member hashes, dialect, body-map selector resolution, ASM framing/revision, units/transforms, losses, and per-body topology when an exact licensed sample is already available.",
+      "PAR-07/S8: do not apply the bare ACIS BinaryFile 217/218 qualification to embedded Fusion ASM payloads; identify the exact branch and revision from payload framing.",
+      "Candidate admission: mark the tagged L4 F3D profile as project-authored capability, note the F3Z-only evaluation-ledger entry and its findings/timeout, and exclude the viewer route until its open-license contradiction and source availability are resolved.",
+      "End-to-end evidence: retain the DWG section, AcDs DataStorage, entity/key association, exact modeler bytes, DXF carrier, and consumer/native gates as distinct from any F3D result."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-cadmpeg-f3d-carrier-route-evidence-boundary-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsOrF3DFilesDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a precise crosswalk between the exact CADMPEG F3D codec and its bare SAT/ASM decoder lineage.",
+    "Updated the existing ezf3d watchlist with a pinned MIT source revision and implementation-readiness status as a separate parser candidate for the narrow Fusion-contained ASM BinaryFile8 profile.",
+    "Recorded that tagged F3D documentation reports L4 for f3d:manifest-3-2-0-0 while the exact tagged evaluation ledger only records f3d:f3z-multi-document, with legacy validation findings and one timeout.",
+    "Added an optional, one-time composed-checkpoint capture recipe for an already-available licensed F3D file; it does not add a dependency, test target, persistent fixture, or blocking gate.",
+    "Explicitly prevented transfer of ACIS 217/218 bare BinaryFile qualification to F3D embedded ASM payloads.",
+    "Excluded the Native CAD Viewer F3D route from open-source comparator counts pending resolution of its conflicting license claims; noted that its declared geometry result is tessellated display geometry.",
+    "Preserved the full DWG/AcDs/DXF/native evidence chain, implementation order, fast-test cadence, fixture policy, support claims, plan counts, and all six DEFERRED_EXTERNAL items."
+  ],
+  "limitations": [
+    "Only primary project source/configuration and documentation were reviewed; no F3D sample, CADMPEG executable, browser runtime, native CAD application, or geometry kernel was executed.",
+    "The CADMPEG F3D and bare SAT paths share cadmpeg-asm and therefore are correlated parser evidence, not independent votes.",
+    "ezf3d is a separate open-source parser implementation, but no run was performed and its exact Fusion-contained BinaryFile8 profile has not been shown compatible with a libdxfrw DWG/DXF carrier.",
+    "The F3D L4 profile is project-authored; the tagged evaluations ledger does not contain a direct single-document F3D row.",
+    "Native CAD Viewer documentation is mutable and internally inconsistent on the F3D reader's license; no immutable revision or implementation artifact was audited.",
+    "No evidence here qualifies DWG container parsing, AcDs association, DXF modeler-carrier writing, LibreCAD/LibreCAD_3 consumption, or native application behavior.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (plan: git diff --check; receipt: jq validation and trailing-whitespace scan)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

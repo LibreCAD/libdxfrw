@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Unicode scalar, SHX glyph, and MTEXT layout evidence boundary",
+  "mode": "deeper and broader research; plan refinement only",
+  "scope": [
+    "Recheck peer Arabic-script text extraction report and independent DXF encoding documentation",
+    "Separate file-codec byte/scalar behavior from external font mapping and right-to-left rendering",
+    "Review CJK MTEXT width-wrap report against the peer layout helper's documented scope",
+    "Audit existing local CP1256 codec anchor and SHAPE identity plan for duplicate work"
+  ],
+  "sources": [
+    {
+      "name": "ezdxf issue #1271",
+      "url": "https://github.com/mozman/ezdxf/issues/1271",
+      "observed": "The report's author eventually attributes the apparent Persian glyph problem to a custom Unicode-to-Persian glyph mapping; the attached drawing and SHX file were not inspected. The maintainer distinguishes text extraction from unsupported RTL rendering.",
+      "limit": "Peer report only; not a local reproduction, normative codec rule, or visual oracle."
+    },
+    {
+      "name": "ezdxf DXF file encoding and Unicode decoder documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/fileencoding.html",
+      "relatedUrls": [
+        "https://ezdxf.readthedocs.io/en/stable/low_level_tools/dxf_unicode_decoder.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/dxftags.html"
+      ],
+      "observed": "The peer docs describe codepage/CIF transport before R2007, UTF-8 from R2007, and explicit Unicode-escape decoding as a separate step.",
+      "limit": "Independent implementation documentation, not the normative Autodesk DXF authority."
+    },
+    {
+      "name": "ezdxf font resource documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/concepts/fonts.html",
+      "relatedUrls": [
+        "https://ezdxf.readthedocs.io/en/stable/tools/fonts.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/style_table.html"
+      ],
+      "observed": "Font files are external resources and rendering depends on resource availability or substitution; Unicode string transport alone does not prove glyph resolution.",
+      "limit": "Describes ezdxf and does not establish behavior of every CAD consumer."
+    },
+    {
+      "name": "ezdxf issue #1389 and MTextExplode documentation",
+      "url": "https://github.com/mozman/ezdxf/issues/1389",
+      "relatedUrls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/mtext.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/mtxpl.html"
+      ],
+      "observed": "The peer issue reports CJK no-whitespace wrapping overflow in an MTEXT explode/layout helper and is labeled wontfix; the docs describe the helper as approximate and limited.",
+      "limit": "Consumer utility issue, not parser/writer behavior or a DXF wire contract."
+    }
+  ],
+  "localAudit": {
+    "files": [
+      "tests/gbk_codepage_tests.cpp",
+      "src/intern/drw_textcodec.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "observed": [
+      "The existing generated codepage anchor includes ANSI_1256 byte C7 mapping to Unicode U+0627 and reverse encoding.",
+      "The existing PAR-05/7AR plan separates source-version/field transport from target-DXF-version byte encoding.",
+      "The PAR-90/7AZ plan already keeps SHAPE numeric index, SHAPEFILE identity, and DXF glyph-name alias distinct and does not claim SHX resolution.",
+      "libdxfrw text codec is not a bidi shaper, font resolver, or MTEXT line-layout engine."
+    ],
+    "testsRun": false
+  },
+  "findings": {
+    "newLocalFinding": false,
+    "newTopLevelSubplan": false,
+    "findingCount": 140,
+    "topLevelSubplanCount": 78,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "implementationReadiness": {
+    "reuseExistingOwners": [
+      "Reuse ANSI_1256 byte/scalar and reverse-encode anchors in tests/gbk_codepage_tests.cpp; do not add a duplicate test from the peer report alone.",
+      "Keep raw bytes, Unicode scalar sequence, target version/codepage, and UTF-8 validity as separate assertions under PAR-05/7AR.",
+      "Keep text-style/font resource mapping separate from legacy T_SHAPE identity under PAR-90/7AZ.",
+      "Keep bidi shaping, glyph rendering, CJK line breaking, and MTEXT explode in a consumer-specific optional gate only if required by product claims."
+    ],
+    "fixturePolicy": "Do not inspect or redistribute confidential issue attachments; use locally generated text values and no external drawing/font fixture.",
+    "validationCadence": "No tests were run for this plan-only research. For a future leaf, use one focused selector and owning CTest; full suites remain scheduled composed checkpoints.",
+    "externalJDisposition": "All six listed J items remain DEFERRED_EXTERNAL and non-promoting."
+  },
+  "validation": {
+    "codeChanged": false,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "fixtureOrDependencyChange": false
+  }
+}
