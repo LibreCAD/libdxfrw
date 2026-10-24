@@ -76,6 +76,14 @@ public:
     }
     static std::size_t retained(const dx_data& data) { return data.m_classSourceRetainedBytes; }
     static std::size_t reports(const dx_data& data) { return data.m_classSourceReports.size(); }
+    static void nameLimits(dx_data& data, std::size_t bytes, std::size_t count = 1024u) {
+        data.m_rasterDwgNameByteLimit = bytes; data.m_rasterDwgNameImportLimit = count;
+    }
+    static std::size_t nameBytes(const dx_data& data) { return data.m_rasterDwgNameBytes; }
+    static std::size_t nameCount(const dx_data& data) { return data.m_rasterDwgNameImports.size(); }
+    static void name(dx_iface& adapter, const DRW_AppId& row, const std::string& value) {
+        adapter.retainRasterDwgName(row.handle, value, row.dwgNameSource(), false);
+    }
 };
 
 namespace {
@@ -546,6 +554,39 @@ public:
         return true;
     }
 };
+bool nameEvidenceContracts(const std::filesystem::path& root) {
+    // Contract fault seam, not native qualification. Obtain a real immutable
+    // field owner first; all allocation faults are scoped to capture itself.
+    dx_data seed; dx_iface reader;
+    const auto path = (root / "ordinary_enc_AC1027.dwg").string();
+    CHECK(reader.fileImport(path, &seed, false) && !seed.appIds.empty());
+    const auto& row = seed.appIds.front();
+    CHECK(row.dwgNameSource() && row.dwgNameSource()->matches(row.handle, row.name));
+    const auto report = *seed.dwgClassSource();
+    const std::string longName(1024u, 'X');
+    for (long count = 0; count < 2; ++count) {
+        dx_data data; dx_iface adapter;
+        { AllocationFailure fault(count); EvidenceAccess::open(adapter, data, 1u); }
+        EvidenceAccess::finish(adapter, report);
+        CHECK(EvidenceAccess::nameBytes(data) == 0u && EvidenceAccess::nameCount(data) == 0u);
+    }
+    for (unsigned phase = 0u; phase < 4u; ++phase) {
+        dx_data data; dx_iface adapter;
+        EvidenceAccess::open(adapter, data, 1u);
+        if (phase == 2u) EvidenceAccess::nameLimits(data, EvidenceAccess::nameBytes(data));
+        if (phase < 3u) {
+            AllocationFailure fault(phase == 1u ? 1 : 0);
+            EvidenceAccess::name(adapter, row, longName);
+        } else EvidenceAccess::name(adapter, row, row.name);
+        { AllocationFailure fault(0); EvidenceAccess::finish(adapter, report, phase != 3u); }
+        CHECK(EvidenceAccess::nameBytes(data) == 0u && EvidenceAccess::nameCount(data) == 0u);
+        EvidenceAccess::nameLimits(data, DRW::kMaxDwgClassSourceBytes);
+        CHECK(adapter.fileImport(path, &data, false) && EvidenceAccess::nameBytes(data) != 0u
+            && EvidenceAccess::nameCount(data) == 1u);
+    }
+    return true;
+}
+
 bool evidenceContracts(const std::filesystem::path& root) {
     const auto path = (root / "ordinary_enc_AC1015.dwg").string();
     dx_iface importer;
@@ -736,6 +777,10 @@ int main(int argc, char** argv) {
         std::shared_ptr<const std::vector<std::uint8_t>>>::value, "source bytes must be immutable");
     static_assert(std::is_same<decltype(std::declval<const dx_data&>().dwgClassSource()),
         const Report*>::value, "source report must be read-only");
+    static_assert(std::is_same<decltype(std::declval<const DRW_AppId&>().dwgNameSource()),
+        std::shared_ptr<const DRW_DwgTableNameSource>>::value, "APPID source owner must be a read-only value, not an installable reference");
+    static_assert(std::is_same<decltype(std::declval<const DRW_Layer&>().dwgNameSource()),
+        std::shared_ptr<const DRW_DwgTableNameSource>>::value, "LAYER source owner must be a read-only value");
     if (argc != 3) return 2;
     std::filesystem::create_directories(argv[2]);
     std::vector<std::uint8_t> bytes(32u);
@@ -747,7 +792,7 @@ int main(int argc, char** argv) {
     dwgBuffer file(&input), fileControl(&reference);
     if (!captureContracts() || !readerTails() || !physicalCursor(memory, control, bytes)
         || !physicalCursor(file, fileControl, bytes) || !adapterContracts() || !native(argv[1])
-        || !evidenceContracts(argv[1])) return 1;
+        || !evidenceContracts(argv[1]) || !nameEvidenceContracts(argv[1])) return 1;
     std::cout << "DWG class source: " << checks << " checks PASS; no framing/semantic qualification\n";
     return 0;
 }

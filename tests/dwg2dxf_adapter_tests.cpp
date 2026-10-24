@@ -171,6 +171,67 @@ public:
     }
     static void rasterClassBudget(dx_data& data, std::size_t bytes) { data.m_classEvidenceByteLimit = bytes; }
     static std::size_t rasterClassBytes(const dx_data& data) { return data.m_classEvidenceBytes; }
+    static void rasterNameBudget(dx_data& data, std::size_t bytes, std::size_t imports = 1024u) {
+        data.m_rasterDwgNameByteLimit = bytes; data.m_rasterDwgNameImportLimit = imports;
+    }
+    static std::size_t rasterNameBytes(const dx_data& data) { return data.m_rasterDwgNameBytes; }
+    static bool rasterNameScope(const dx_data& data, std::uint64_t generation, bool bound) {
+        unsigned dependencies = 0u;
+        for (const auto& source : data.m_rasterDwgSources) {
+            if (source.first.first != generation) continue;
+            const auto& frame = source.second;
+            if (static_cast<bool>(frame.nameImport) != bound) return false;
+            for (const auto& dep : frame.eedDependencies) {
+                ++dependencies;
+                if (bound) {
+                    if (!dep.event || !dep.read || dep.read != frame.nameImport
+                        || dep.read->attempt != frame.classReadAttempt || dep.read->generation != generation
+                        || !dep.read->closed || !dep.read->valid || !dep.event->source
+                        || dep.event->duplicate || dep.event->handle != dep.wire.value
+                        || dep.event->ordinal >= (dep.wire.code == 1001u ? dep.read->appEvents : dep.read->layerEvents)
+                        || dep.binding != dx_data::RasterDwgDependency::Binding::SourceName) return false;
+                } else if (dep.event || dep.read || dep.source
+                    || dep.binding != dx_data::RasterDwgDependency::Binding::MissingSource
+                    || !(frame.profileIssues & dx_raster_wire::UnboundDependency)) return false;
+            }
+        }
+        return dependencies == 4u;
+    }
+    static bool rasterEedHistoryControls(dx_data& data, const dx_data& foreign) {
+        dx_iface checker; checker.cData = &data;
+        const auto nameBytes = data.m_rasterDwgNameBytes, rasterBytes = data.m_rasterDwgSourceBytes;
+        const auto exercise = [&](auto& rows, const auto& outside, const std::string& name) {
+            const auto original = rows;
+            std::vector<decltype(rows.begin())> selected;
+            for (auto at = rows.begin(); at != rows.end(); ++at) if (at->name == name) selected.push_back(at);
+            if (selected.size() != 2u || !selected[0]->sameDwgNameSource(*selected[1])
+                || !selected[0]->dwgNameSource() || selected[0]->dwgNameSource() == selected[1]->dwgNameSource()) return false;
+            const auto other = std::find_if(outside.begin(), outside.end(), [&](const auto& row) { return row.name == name; });
+            if (other == outside.end() || !selected[0]->sameDwgNameSource(*other)
+                || selected[0]->dwgNameSource() == other->dwgNameSource()) return false;
+            for (unsigned import = 0u; import < 2u; ++import) for (unsigned fault = 0u; fault < 7u; ++fault) {
+                selected.clear();
+                for (auto at = rows.begin(); at != rows.end(); ++at) if (at->name == name) selected.push_back(at);
+                auto at = selected[import];
+                if (fault == 0u) at->name += "_EDIT";
+                if (fault == 1u) at->handle ^= 1u;
+                if (fault == 2u) rows.erase(at);
+                if (fault == 3u) rows.push_back(*at); // Duplicate owner, not merely equal bytes.
+                if (fault == 4u) { const auto handle = at->handle; at->reset(); at->handle = handle; at->name = name; }
+                if (fault == 5u) *at = *selected[1u - import]; // Foreign historical owner cannot replace this one.
+                if (fault == 6u) rows.push_back(*other); // Equal bytes from a read outside this dataset's receipt ledger.
+                const bool refused = !checker.hasUnchangedRasterDwgSources();
+                rows = original;
+                if (!refused || !checker.hasUnchangedRasterDwgSources()) return false;
+            }
+            return true;
+        };
+        if (!exercise(data.appIds, foreign.appIds, "RASTER_EED_APP")
+            || !exercise(data.layers, foreign.layers, "RASTER_EED_LAYER")) return false;
+        checker.finishRasterDwgSources(true);
+        return checker.hasUnchangedRasterDwgSources() && nameBytes == data.m_rasterDwgNameBytes
+            && rasterBytes == data.m_rasterDwgSourceBytes;
+    }
     static bool rasterClassBindingControls(dx_data& data, dx_iface& iface) {
         using State = dx_class_evidence::RasterState;
         for (const auto& source : data.m_rasterDwgSources) {
@@ -294,7 +355,7 @@ public:
             for (const auto& dep : frame.eedDependencies) {
                 ++dependencies;
                 if ((dep.binding == dx_data::RasterDwgDependency::Binding::SourceName) != bound
-                    || (bound && !dep.source) || !dep.wire.valueSpan.present
+                    || (bound && !dep.source && !dep.event) || !dep.wire.valueSpan.present
                     || (dep.wire.code == 1003u && dep.wire.valueSpan.width() != 64u)) {
                     std::cerr << "raster dependency code=" << dep.wire.code << " value=" << dep.wire.value
                               << " binding=" << static_cast<int>(dep.binding) << '\n'; return false;
@@ -2530,8 +2591,8 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false) {
             && std::string(def.extData[1]->c_str()) == "RASTER_EED_LAYER";
     };
     unsigned cells = 0u, wireRefusals = 0u, sourceRefusals = 0u, classRefusals = 0u;
-    unsigned unknownCases = 0u, aliasCases = 0u, historyCases = 0u, lateRefusals = 0u, eedHistoryRefusals = 0u;
-    unsigned mixedHistories = 0u, labelConflicts = 0u;
+    unsigned unknownCases = 0u, aliasCases = 0u, historyCases = 0u, lateRefusals = 0u, eedHistories = 0u, nameBudgetCases = 0u;
+    unsigned mixedHistories = 0u, labelConflicts = 0u, nameCallbackRefusals = 0u, eedMixedHistories = 0u;
     for (auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) {
         dwgRW output(native.string().c_str()); Author author(output);
         dx_data data; dx_iface reader;
@@ -2701,16 +2762,85 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false) {
                 if (!historyOutput.write(&eedAuthor, version, true) || !importer.fileImport(native.string(), &history, false)
                     || !Access::rasterUnchanged(importer)) return fail("EED-bearing history first import failed");
                 const auto first = Access::rasterClassSnapshot(history, 1u);
-                // Known separate gap: global public table handles alias on a
-                // second import, even though class authority is per attempt.
-                // Keep this closed until EED dependency scopes are implemented.
+                // Per-read name owners distinguish equal-looking historical
+                // rows; neither import may borrow the other's table events.
                 if (!importer.fileImport(native.string(), &history, false) || history.dwgClassEvidence().state != ClassState::Joined
-                    || Access::rasterUnchanged(importer) || !Access::rasterClassSnapshotUnchanged(history, 1u, first))
-                    return fail("ambiguous cross-import EED names were silently accepted or class history changed");
+                    || !Access::rasterUnchanged(importer) || !Access::rasterEedReady(history, 8u)
+                    || !Access::rasterClassSnapshotUnchanged(history, 1u, first))
+                    return fail("generation-scoped EED history did not bind its own names");
                 dx_data recovered;
                 if (!importer.fileImport(native.string(), &recovered, false) || !Access::rasterUnchanged(importer))
-                    return fail("cross-import EED refusal did not recover with fresh data");
-                ++eedHistoryRefusals;
+                    return fail("EED history adapter did not accept fresh data");
+                if (!Access::rasterNameScope(history, 1u, true) || !Access::rasterNameScope(history, 2u, true)
+                    || !Access::rasterEedHistoryControls(history, recovered)) return fail("EED read identity/owner mutation-restoration failed");
+                const auto charge = Access::rasterNameBytes(recovered);
+                for (unsigned limit = 0u; limit < 4u; ++limit) {
+                    dx_data bounded;
+                    Access::rasterNameBudget(bounded, limit == 0u ? charge : limit == 1u ? charge - 1u : limit == 2u ? 0u : charge,
+                        limit == 3u ? 0u : 1024u);
+                    if (!importer.fileImport(native.string(), &bounded, false) || !Access::rasterUnchanged(importer)
+                        || !Access::rasterNameScope(bounded, bounded.importGeneration, limit == 0u)
+                        || (limit != 0u && Access::rasterNameBytes(bounded) != 0u))
+                        return fail("raster name budget did not keep missing actual-read evidence unqualified");
+                    for (const bool binary : {false, true})
+                        if (!write(bounded, binary) || !readback()) return fail("name-budget compatible projection/readback failed");
+                    ++nameBudgetCases;
+                }
+                {
+                    dx_data capped;
+                    Access::rasterNameBudget(capped, DRW::kMaxDwgClassSourceBytes, 1u);
+                    if (!importer.fileImport(native.string(), &capped, false) || !Access::rasterNameScope(capped, 1u, true))
+                        return fail("name receipt import-count cap initial import failed");
+                    const auto bytes = Access::rasterNameBytes(capped);
+                    if (!importer.fileImport(native.string(), &capped, false) || !Access::rasterNameScope(capped, 2u, false)
+                        || !Access::rasterNameScope(capped, 1u, true) || Access::rasterNameBytes(capped) != bytes)
+                        return fail("name import-count cap borrowed or refreshed an older receipt");
+                }
+                {
+                    const auto otherVersion = version == DRW::AC1032 ? DRW::AC1015 : DRW::AC1032;
+                    dwgRW mixedOutput(native.string().c_str()); Author mixedAuthor(mixedOutput);
+                    if (!mixedOutput.write(&mixedAuthor, otherVersion, true) || !importer.fileImport(native.string(), &history, false)
+                        || !Access::rasterUnchanged(importer) || !Access::rasterNameScope(history, 3u, true)
+                        || !Access::rasterEedReady(history, 12u) || !Access::rasterClassSnapshotUnchanged(history, 1u, first))
+                        return fail("mixed-version EED history borrowed a global name/codepage profile");
+                    dwgRW originalOutput(native.string().c_str()); Author originalAuthor(originalOutput);
+                    if (!originalOutput.write(&originalAuthor, version, true)) return fail("EED history original source regeneration failed");
+                    ++eedMixedHistories;
+                }
+                ++eedHistories;
+            }
+            {
+                class NameFault final : public dx_iface {
+                public:
+                    unsigned mode{0u}; bool changed{false};
+                    void addAppId(const DRW_AppId& row) override {
+                        if (row.name != "RASTER_EED_APP" || (mode != 1u && mode != 3u)) { dx_iface::addAppId(row); return; }
+                        changed = true;
+                        if (mode == 3u) { dx_iface::addAppId(row); dx_iface::addAppId(row); }
+                    }
+                    void addLayer(const DRW_Layer& row) override {
+                        if (row.name != "RASTER_EED_LAYER" || (mode != 2u && mode != 4u)) { dx_iface::addLayer(row); return; }
+                        changed = true;
+                        if (mode == 4u) { dx_iface::addLayer(row); dx_iface::addLayer(row); }
+                    }
+                };
+                for (unsigned mode = 1u; mode <= 4u; ++mode) {
+                    dx_data bad; NameFault importer; importer.mode = mode;
+                    if (!importer.fileImport(native.string(), &bad, false) || !importer.changed || Access::rasterUnchanged(importer))
+                        return fail("missing/duplicate actual EED table callback did not refuse raster evidence");
+                    for (const bool binary : {false, true}) {
+                        const std::string sentinel = "RASTER_NAME_CALLBACK_DESTINATION";
+                        { std::ofstream file(target, std::ios::binary); file << sentinel; }
+                        const bool wrote = write(bad, binary);
+                        std::ifstream file(target, std::ios::binary); const std::string kept((std::istreambuf_iterator<char>(file)), {}); file.close();
+                        importer.mode = 0u; dx_data recovered;
+                        if (wrote || kept != sentinel || !importer.fileImport(native.string(), &recovered, false)
+                            || !Access::rasterNameScope(recovered, recovered.importGeneration, true)
+                            || !write(recovered, binary) || !readback())
+                            return fail("EED name callback atomic refusal/fresh-data retry failed");
+                        ++nameCallbackRefusals;
+                    }
+                }
             }
             continue;
         }
@@ -2860,12 +2990,13 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false) {
         }
     }
     if (historyOnly) {
-        if (unknownCases != 48u || aliasCases != 18u || historyCases != 6u || lateRefusals != 12u || eedHistoryRefusals != 6u
-            || mixedHistories != 6u || labelConflicts != 6u)
+        if (unknownCases != 48u || aliasCases != 18u || historyCases != 6u || lateRefusals != 12u || eedHistories != 6u || nameBudgetCases != 24u
+            || mixedHistories != 6u || labelConflicts != 6u || nameCallbackRefusals != 48u || eedMixedHistories != 6u)
             return fail("raster class history matrix skipped a case");
         std::cout << "Raster class integration: unavailable=" << unknownCases << " aliases=" << aliasCases << " histories=" << historyCases
-                  << " isolated late refusal/retries=" << lateRefusals << " EED history refusals=" << eedHistoryRefusals
-                  << " mixed histories=" << mixedHistories << " label conflicts=" << labelConflicts << '\n';
+                  << " isolated late refusal/retries=" << lateRefusals << " EED histories=" << eedHistories << " name budgets=" << nameBudgetCases
+                  << " mixed histories=" << mixedHistories << " label conflicts=" << labelConflicts
+                  << " name callback refusal/retries=" << nameCallbackRefusals << " mixed EED histories=" << eedMixedHistories << '\n';
         return true;
     }
     if (classRefusals != 132u) return fail("raster class contradiction matrix was unexpectedly skipped");

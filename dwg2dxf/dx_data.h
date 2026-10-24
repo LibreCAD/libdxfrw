@@ -1018,17 +1018,41 @@ private:
     // IMAGEDEF/reactor source correlation is deliberately separate from the
     // qualified standard-object output lane. These records never increase its
     // completeness counters or acquire output certificates by self-readback.
+    struct RasterDwgNameEvent {
+        std::uint64_t ordinal{0u};
+        std::uint32_t handle{0u};
+        UTF8STRING name;
+        std::shared_ptr<const DRW_DwgTableNameSource> source;
+        bool duplicate{false};
+    };
+    struct RasterDwgNameImport {
+        std::uint64_t attempt{0u}, generation{0u}, appEvents{0u}, layerEvents{0u};
+        DRW::Version version{DRW::UNKNOWNV};
+        std::uint16_t codePage{0u};
+        bool codePagePresent{false}, codePageRecognized{false}, closed{false}, valid{true};
+        std::map<std::uint32_t, RasterDwgNameEvent> apps, layers;
+        std::size_t retainedBytes{0u};
+    };
+    std::map<std::uint64_t, std::shared_ptr<RasterDwgNameImport>> m_rasterDwgNameImports;
+    std::size_t m_rasterDwgNameBytes{0u}, m_rasterDwgNameByteLimit{64u * 1024u * 1024u};
+    std::size_t m_rasterDwgNameImportLimit{1024u};
     struct RasterDwgDependency {
-        enum class Binding { MissingSource, WideLayer, UnboundNameProfile, SourceName };
+        enum class Binding { MissingSource, WideLayer, UnboundNameProfile, UnboundReadContext, SourceName };
         dx_raster_wire::EedToken wire;
         // Shared immutable callback owner, not another copy of its name bytes.
         std::shared_ptr<const DRW_TableEntry> source;
+        // Stable map entry owned by the closed actual-read receipt. Neither
+        // the entry nor its buffers may be refreshed after publication.
+        std::shared_ptr<const RasterDwgNameImport> read;
+        const RasterDwgNameEvent* event{nullptr};
         Binding binding{Binding::MissingSource};
     };
     struct RasterDwgObjectFrame : StandardDwgObjectFrame {
         std::uint64_t classReadAttempt{0}, classPublicationAttempt{0};
         dx_class_evidence::RasterBinding classBinding;
         bool classBindingObserved{false};
+        std::shared_ptr<const RasterDwgNameImport> nameImport;
+        std::size_t appIdBegin{0u}, layerBegin{0u};
         dx_raster_wire::Proof wire;
         dx_raster_wire::Profile profile;
         std::vector<RasterDwgDependency> eedDependencies;

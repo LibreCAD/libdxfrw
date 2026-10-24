@@ -13070,6 +13070,99 @@ void dx_iface::retainStandardDwgLayerSource(const DRW_Layer& data) {
     }
 }
 
+void dx_iface::beginRasterDwgNamesRead(dx_data& data) noexcept {
+    m_rasterDwgNameRead.reset();
+    const auto existing = data.m_rasterDwgNameImports.find(data.m_classEvidenceGeneration);
+    if (existing != data.m_rasterDwgNameImports.end()) { existing->second->valid = false; return; }
+    if (!m_classEvidenceReadAttempt || data.m_classEvidenceFailure.state == dx_class_evidence::State::ContextMismatch)
+        return;
+    const auto bytes = sizeof(dx_data::RasterDwgNameImport) + 8u * sizeof(void*);
+    if (data.m_rasterDwgNameImports.size() >= data.m_rasterDwgNameImportLimit
+        || data.m_rasterDwgNameBytes > data.m_rasterDwgNameByteLimit
+        || bytes > data.m_rasterDwgNameByteLimit - data.m_rasterDwgNameBytes) return;
+    try {
+        auto value = std::make_shared<dx_data::RasterDwgNameImport>();
+        value->attempt = m_classEvidenceReadAttempt; value->generation = data.m_classEvidenceGeneration;
+        value->retainedBytes = bytes;
+        data.m_rasterDwgNameImports.emplace(value->generation, value);
+        data.m_rasterDwgNameBytes += bytes; m_rasterDwgNameRead = std::move(value);
+    } catch (...) { m_rasterDwgNameRead.reset(); }
+}
+
+void dx_iface::retainRasterDwgName(std::uint32_t handle, const UTF8STRING& name,
+        const std::shared_ptr<const DRW_DwgTableNameSource>& source, bool layer) noexcept {
+    if (!m_rasterDwgNameRead || !m_classEvidenceReadData) return; // Late/authored callbacks cannot refresh a receipt.
+    auto& read = *m_rasterDwgNameRead; auto& data = *m_classEvidenceReadData;
+    if (!read.valid || read.closed) return;
+    if (cData != &data || data.m_classEvidenceOwner != this || data.m_classEvidenceAttempt != read.attempt
+        || data.importGeneration != read.generation || data.sourceFormat != dx_source_format::DWG) {
+        read.valid = false; rejectDwgClassEvidence(data, dx_class_evidence::State::ContextMismatch);
+        data.m_rasterDwgSourceFailed = true;
+        if (cData) cData->m_rasterDwgSourceFailed = true;
+        return;
+    }
+    auto& rows = layer ? read.layers : read.apps;
+    auto& other = layer ? read.apps : read.layers;
+    auto& ordinal = layer ? read.layerEvents : read.appEvents;
+    if (ordinal >= kMaxAdapterBasicTableRecords || !handle || handle == DRW::NoHandle) { read.valid = false; return; }
+    const auto eventOrdinal = ordinal++;
+    const auto duplicate = rows.find(handle);
+    if (duplicate != rows.end()) { duplicate->second.duplicate = true; return; }
+    const auto crossRole = other.find(handle);
+    if (crossRole != other.end()) crossRole->second.duplicate = true;
+    const auto base = sizeof(dx_data::RasterDwgNameEvent) + sizeof(handle) + 6u * sizeof(void*);
+    std::size_t bytes = base;
+    const auto add = [&bytes](std::size_t value) {
+        if (value > 64u * 1024u * 1024u || bytes > 64u * 1024u * 1024u - value) return false;
+        bytes += value; return true;
+    };
+    if (!add(name.size()) || (source && !add(source->retainedBytes()))
+        || data.m_rasterDwgNameBytes > data.m_rasterDwgNameByteLimit
+        || bytes > data.m_rasterDwgNameByteLimit - data.m_rasterDwgNameBytes) { read.valid = false; return; }
+    try {
+        dx_data::RasterDwgNameEvent event;
+        event.ordinal = eventOrdinal; event.handle = handle; event.name = name; event.source = source;
+        event.duplicate = crossRole != other.end();
+        if (event.name.capacity() > event.name.size()) {
+            const auto extra = event.name.capacity() - event.name.size();
+            if (!add(extra) || bytes > data.m_rasterDwgNameByteLimit - data.m_rasterDwgNameBytes) { read.valid = false; return; }
+        }
+        rows.emplace(handle, std::move(event));
+        read.retainedBytes += bytes; data.m_rasterDwgNameBytes += bytes;
+    } catch (...) { read.valid = false; }
+}
+
+void dx_iface::finishRasterDwgNamesRead(bool successfulRead, DRW::Version version, std::uint16_t page,
+                                      bool present, bool recognized) noexcept {
+    if (!m_rasterDwgNameRead || !m_classEvidenceReadData) return;
+    auto& read = *m_rasterDwgNameRead; auto& data = *m_classEvidenceReadData;
+    read.closed = true; read.version = version; read.codePage = page;
+    read.codePagePresent = present; read.codePageRecognized = recognized;
+    const bool context = cData == &data
+        && data.m_classEvidenceOwner == this && data.m_classEvidenceAttempt == read.attempt
+        && data.importGeneration == read.generation && data.sourceFormat == dx_source_format::DWG;
+    if (!context) {
+        rejectDwgClassEvidence(data, dx_class_evidence::State::ContextMismatch);
+        data.m_rasterDwgSourceFailed = true;
+        if (cData) cData->m_rasterDwgSourceFailed = true;
+    }
+    read.valid = read.valid && successfulRead && version != DRW::UNKNOWNV && context;
+    if (!read.valid) {
+        data.m_rasterDwgNameBytes -= read.retainedBytes;
+        data.m_rasterDwgNameImports.erase(read.generation);
+    }
+    m_rasterDwgNameRead.reset();
+}
+
+std::shared_ptr<const dx_data::RasterDwgNameImport> dx_iface::rasterDwgNameImport(
+        const dx_data::RasterDwgObjectFrame& frame) const noexcept {
+    if (!cData || !frame.classReadAttempt) return {};
+    const auto found = cData->m_rasterDwgNameImports.find(frame.generation);
+    if (found == cData->m_rasterDwgNameImports.end()) return {};
+    const auto& read = found->second;
+    return read && read->closed && read->valid && read->attempt == frame.classReadAttempt ? read : nullptr;
+}
+
 std::uint64_t dx_iface::rasterClassReadAttempt() noexcept {
     if (m_classEvidenceReadData == nullptr) return 0u;
     auto& data = *m_classEvidenceReadData;
@@ -13242,7 +13335,7 @@ void dx_iface::retainRasterDwgPublication(const DRW_DwgFramePublication &data) n
     }
 }
 
-void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
+void dx_iface::finishRasterDwgSources(bool successfulRead, std::size_t appIdBegin, std::size_t layerBegin) noexcept {
     if (cData == nullptr)
         return;
     cData->m_rasterDwgClosedThrough =
@@ -13272,8 +13365,14 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
     }
     try {
         StandardDwgNameIndex appIds, layers;
-        if (!standardDwgNames(cData->appIds, 0u, appIds)
-            || !standardDwgNames(cData->layers, 0u, layers)) {
+        const auto nameImport = rasterDwgNameImport(begin->second);
+        if (nameImport) {
+            const auto index = [](const auto& rows, auto& names) {
+                for (const auto& row : rows) names.emplace(row.first, row.second.duplicate ? nullptr : &row.second.name);
+            };
+            index(nameImport->apps, appIds); index(nameImport->layers, layers);
+        } else if (!standardDwgNames(cData->appIds, begin->second.typedBaseline ? begin->second.appIdBegin : appIdBegin, appIds)
+            || !standardDwgNames(cData->layers, begin->second.typedBaseline ? begin->second.layerBegin : layerBegin, layers)) {
             reject();
             return;
         }
@@ -13317,6 +13416,9 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
             }
             const auto classBinding = rasterClassBinding(frame);
             if (classBinding.state == dx_class_evidence::RasterState::Contradiction) { reject(); return; }
+            if (nameImport && (nameImport->attempt != frame.classReadAttempt || nameImport->version != raw.m_version
+                || nameImport->codePage != outcome.sourceCodePageId || nameImport->codePagePresent != outcome.sourceCodePageFieldPresent
+                || nameImport->codePageRecognized != outcome.sourceCodePageRecognized)) { reject(); return; }
             const auto visitReactor = [typed](std::uint32_t ordinal, std::uint32_t value,
                     dx_raster_wire::Span, std::uint8_t) noexcept {
                 return ordinal < typed->reactorHandles.size() && typed->reactorHandles[ordinal] == value;
@@ -13393,7 +13495,20 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
                     if (!value || !value->content.s) return false;
                     if (token.code == 1003u && token.value > (std::numeric_limits<std::uint32_t>::max)())
                         dep.binding = dx_data::RasterDwgDependency::Binding::WideLayer;
-                    else if (token.code == 1003u) {
+                    else if (nameImport) {
+                        const auto& events = token.code == 1003u ? nameImport->layers : nameImport->apps;
+                        const auto event = events.find(static_cast<std::uint32_t>(token.value));
+                        if (event != events.end()) {
+                            const auto& row = event->second;
+                            if (row.duplicate || row.name != *value->content.s || found == names.end() || *found->second != row.name) return false;
+                            dep.read = nameImport; dep.event = &row;
+                            dep.binding = row.source && row.source->matches(row.handle, row.name) && namePage
+                                && row.source->bound(raw.m_version, namePage) && !row.source->decodeIssues()
+                                ? dx_data::RasterDwgDependency::Binding::SourceName : dx_data::RasterDwgDependency::Binding::UnboundNameProfile;
+                        }
+                    } else if (frame.classReadAttempt != 0u) {
+                        // Missing actual-read evidence cannot borrow legacy/advisory snapshots.
+                    } else if (token.code == 1003u) {
                         const auto source = cData->m_standardDwgLayerSources.find({frame.generation, static_cast<std::uint32_t>(token.value)});
                         if (source != cData->m_standardDwgLayerSources.end()) {
                             const auto& row = source->second;
@@ -13418,6 +13533,9 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
                                 : dx_data::RasterDwgDependency::Binding::UnboundNameProfile;
                         }
                     }
+                    if (!nameImport && frame.classReadAttempt == 0u
+                        && dep.binding == dx_data::RasterDwgDependency::Binding::SourceName)
+                        dep.binding = dx_data::RasterDwgDependency::Binding::UnboundReadContext;
                     if (dep.binding != dx_data::RasterDwgDependency::Binding::SourceName)
                         profileIssues |= dx_raster_wire::UnboundDependency;
                     dependencies.push_back(std::move(dep));
@@ -13475,6 +13593,7 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
             }
             if (frame.typedBaseline) {
                 if (!rasterDwgModelEqual(*frame.typedBaseline, *typed, raw.m_version, definition)
+                    || frame.nameImport != nameImport
                     || !frame.classBindingObserved || !dx_class_evidence::sameRasterBinding(frame.classBinding, classBinding)
                     || !frame.wireObserved || !dx_raster_wire::sameProof(frame.wire, wire)
                     || !frame.dependenciesObserved || frame.profileIssues != profileIssues
@@ -13485,7 +13604,7 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
                 for (std::size_t n = 0; n < dependencies.size(); ++n) {
                     const auto& a = frame.eedDependencies[n]; const auto& b = dependencies[n];
                     if (!dx_raster_wire::sameToken(a.wire, b.wire)
-                        || a.binding != b.binding || a.source != b.source) { reject(); return; }
+                        || a.binding != b.binding || a.source != b.source || a.read != b.read || a.event != b.event) { reject(); return; }
                 }
                 for (std::size_t n = 0; n < strings.size(); ++n)
                     if (!dx_raster_wire::sameToken(frame.eedStrings[n], strings[n])) { reject(); return; }
@@ -13524,6 +13643,8 @@ void dx_iface::finishRasterDwgSources(bool successfulRead) noexcept {
                 snapshot = std::make_shared<const DRW_ImageDefinitionReactor>(
                     dynamic_cast<const DRW_ImageDefinitionReactor &>(*typed));
             frame.typedBaseline = std::move(snapshot);
+            frame.nameImport = nameImport;
+            frame.appIdBegin = appIdBegin; frame.layerBegin = layerBegin;
             frame.classBinding = classBinding;
             frame.classBindingObserved = true;
             frame.wire = wire;
@@ -13562,6 +13683,11 @@ bool dx_iface::hasUnchangedRasterDwgSources() const noexcept {
         if (!definition && reactor != cData->imageDefinitionReactors.end())
             typed = &reactor->second;
         if (!typed || !frame.typedBaseline || !frame.sourceProfileBound || !frame.payloadMatched
+            || frame.nameImport != rasterDwgNameImport(frame)
+            || (frame.nameImport && (frame.nameImport->version != frame.raw.m_version
+                || frame.nameImport->codePage != frame.sourceCodePageId
+                || frame.nameImport->codePagePresent != frame.sourceCodePageFieldPresent
+                || frame.nameImport->codePageRecognized != frame.sourceCodePageRecognized))
             || !frame.classBindingObserved || !dx_class_evidence::sameRasterBinding(frame.classBinding, rasterClassBinding(frame))
             || !frame.wireObserved || !frame.dependenciesObserved || frame.wire.status == dx_raster_wire::Status::Malformed
             || !frame.publicationSeen || source.first.first != frame.generation
@@ -13578,15 +13704,52 @@ bool dx_iface::hasUnchangedRasterDwgSources() const noexcept {
             return false;
         std::map<std::uint32_t, const DRW_AppId*> apps;
         std::map<std::uint32_t, const DRW_Layer*> layers;
+        using Owner = const DRW_DwgTableNameSource*;
+        std::set<Owner> knownApps, knownLayers;
+        for (const auto& entry : cData->m_rasterDwgNameImports) {
+            const auto& read = entry.second;
+            if (!read || !read->closed || !read->valid) continue;
+            for (const auto& event : read->apps) if (event.second.source) knownApps.insert(event.second.source.get());
+            for (const auto& event : read->layers) if (event.second.source) knownLayers.insert(event.second.source.get());
+        }
+        std::map<Owner, std::pair<std::size_t, const DRW_AppId*>> appOwners;
+        std::map<Owner, std::pair<std::size_t, const DRW_Layer*>> layerOwners;
+        std::set<std::uint32_t> unreceiptedApps, unreceiptedLayers;
         for (const auto& row : cData->appIds) {
             const auto inserted = apps.emplace(row.handle, &row);
             if (!inserted.second) inserted.first->second = nullptr;
+            const auto owner = row.dwgNameSource().get();
+            if (!owner || !knownApps.count(owner)) unreceiptedApps.insert(row.handle);
+            else { auto& current = appOwners[owner]; ++current.first; current.second = &row; }
         }
         for (const auto& row : cData->layers) {
             const auto inserted = layers.emplace(row.handle, &row);
             if (!inserted.second) inserted.first->second = nullptr;
+            const auto owner = row.dwgNameSource().get();
+            if (!owner || !knownLayers.count(owner)) unreceiptedLayers.insert(row.handle);
+            else { auto& current = layerOwners[owner]; ++current.first; current.second = &row; }
         }
         for (const auto& source : cData->m_rasterDwgSources) for (const auto& dep : source.second.eedDependencies) {
+            if (dep.event) {
+                const auto& event = *dep.event;
+                if (dep.read != source.second.nameImport || !dep.read || !dep.read->closed || !dep.read->valid
+                    || dep.read->attempt != source.second.classReadAttempt || dep.read->generation != source.second.generation
+                    || event.duplicate || event.handle != dep.wire.value) return false;
+                const auto& events = dep.wire.code == 1001u ? dep.read->apps : dep.read->layers;
+                const auto retained = events.find(event.handle);
+                if (retained == events.end() || &retained->second != dep.event) return false;
+                if (!event.source) continue; // Unknown native name field stays unqualified.
+                if (dep.wire.code == 1001u) {
+                    const auto current = appOwners.find(event.source.get());
+                    if (unreceiptedApps.count(event.handle) || current == appOwners.end() || current->second.first != 1u
+                        || current->second.second->handle != event.handle || current->second.second->name != event.name) return false;
+                } else if (dep.wire.code == 1003u) {
+                    const auto current = layerOwners.find(event.source.get());
+                    if (unreceiptedLayers.count(event.handle) || current == layerOwners.end() || current->second.first != 1u
+                        || current->second.second->handle != event.handle || current->second.second->name != event.name) return false;
+                } else return false;
+                continue;
+            }
             if (!dep.source) continue; // Permanently unqualified, never filled from later rows.
             if (dep.wire.value > (std::numeric_limits<std::uint32_t>::max)()) return false;
             const auto handle = static_cast<std::uint32_t>(dep.wire.value);
@@ -15548,6 +15711,7 @@ void dx_iface::beginDwgClassEvidenceRead(dx_data& data) noexcept {
     m_classEvidenceReadData = &data;
     m_classEvidenceReadAttempt = data.m_classEvidenceAttempt;
     data.m_classEvidenceOwner = this;
+    beginRasterDwgNamesRead(data);
     if (data.m_classEvidenceFailure.state == ClassEvidenceState::ContextMismatch) return;
     data.m_classEvidenceFailure.state = ClassEvidenceState::Pending;
     const auto base = sizeof(dx_data::ClassEvidenceImport) + 6u * sizeof(void*);
@@ -15644,6 +15808,7 @@ void dx_iface::finishDwgClassEvidenceRead(bool success, DRW::Version version, st
                                         bool present, bool recognized) noexcept {
     if (m_classEvidenceReadData == nullptr) return;
     auto& data = *m_classEvidenceReadData;
+    finishRasterDwgNamesRead(success, version, page, present, recognized);
     auto* frame = activeDwgClassEvidence();
     if (frame != nullptr) {
         frame->codePage = page; frame->codePagePresent = present; frame->codePageRecognized = recognized;
@@ -15761,6 +15926,8 @@ void dx_iface::addAppId(const DRW_AppId& data) {
         estimateAppIdTypedBytes);
     if (cData->appIds.size() == previousSize + 1u)
         retainStandardDwgAppIdSource(data);
+    if (cData->appIds.size() == previousSize + 1u)
+        retainRasterDwgName(data.handle, data.name, data.dwgNameSource(), false);
 }
 
 void dx_iface::addLayer(const DRW_Layer& data) {
@@ -15770,6 +15937,8 @@ void dx_iface::addLayer(const DRW_Layer& data) {
     retainBasicTableTyped(cData, cData->layers, data, estimateLayerTypedBytes);
     if (cData->layers.size() == previousSize + 1u)
         retainStandardDwgLayerSource(data);
+    if (cData->layers.size() == previousSize + 1u)
+        retainRasterDwgName(data.handle, data.name, data.dwgNameSource(), true);
 }
 
 void dx_iface::addLType(const DRW_LType& data) {
@@ -19348,7 +19517,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             dwg.hasRecognizedSourceCodePage();
         fData->dwgReadOutcome.observations = dwg.getReadObservations();
         finishStandardDwgObjectCapture(success);
-        finishRasterDwgSources(success);
+        finishRasterDwgSources(success, standardObjectRange.appIdBegin, standardObjectRange.layerBegin);
         if (success) {
             fData->sourceVersion = dwg.getVersion();
             fData->resolveDwgModelDocViewStyleNames();

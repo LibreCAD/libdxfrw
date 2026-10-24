@@ -2466,6 +2466,11 @@ protected:
 
 public:
   [[nodiscard]] bool hasDwgNameSource() const noexcept { return m_dwgNameSource != nullptr; }
+  // Ownership identity, unlike content equality below. Read-only access does
+  // not install evidence or certify the entire record or its containing file.
+  [[nodiscard]] std::shared_ptr<const DRW_DwgTableNameSource> dwgNameSource() const noexcept {
+    return m_dwgNameSource;
+  }
   [[nodiscard]] bool hasUnchangedDwgSourceName() const noexcept {
     return m_dwgNameSource && m_dwgNameSource->matches(handle, name);
   }
@@ -3438,6 +3443,9 @@ public:
   // it. Editing name/handle never refreshes it, and authored/DXF rows have none.
   [[nodiscard]] bool hasDwgNameSource() const noexcept {
     return m_dwgNameSource != nullptr;
+  }
+  [[nodiscard]] std::shared_ptr<const DRW_DwgTableNameSource> dwgNameSource() const noexcept {
+    return m_dwgNameSource;
   }
   [[nodiscard]] bool hasUnchangedDwgSourceName() const noexcept {
     return m_dwgNameSource && m_dwgNameSource->matches(handle, name);

@@ -1466,7 +1466,15 @@ private:
     void retainRasterDwgPublication(const DRW_DwgFramePublication& data) noexcept;
     std::uint64_t rasterClassReadAttempt() noexcept;
     dx_class_evidence::RasterBinding rasterClassBinding(const dx_data::RasterDwgObjectFrame& frame) const noexcept;
-    void finishRasterDwgSources(bool successfulRead) noexcept;
+    std::shared_ptr<dx_data::RasterDwgNameImport> m_rasterDwgNameRead;
+    void beginRasterDwgNamesRead(dx_data& data) noexcept;
+    void finishRasterDwgNamesRead(bool successfulRead, DRW::Version version, std::uint16_t page,
+                                 bool present, bool recognized) noexcept;
+    void retainRasterDwgName(std::uint32_t handle, const UTF8STRING& name,
+                            const std::shared_ptr<const DRW_DwgTableNameSource>& source, bool layer) noexcept;
+    std::shared_ptr<const dx_data::RasterDwgNameImport> rasterDwgNameImport(
+        const dx_data::RasterDwgObjectFrame& frame) const noexcept;
+    void finishRasterDwgSources(bool successfulRead, std::size_t appIdBegin = 0u, std::size_t layerBegin = 0u) noexcept;
     bool hasUnchangedRasterDwgSources() const noexcept;
     struct StandardDwgObjectImportRange {
         std::size_t dictionaryBegin{0};

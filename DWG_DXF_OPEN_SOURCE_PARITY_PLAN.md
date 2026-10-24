@@ -119787,7 +119787,7 @@ history and combined-document projection are explicitly still incomplete.
 
 Implementation-ready continuation, retaining the full original scope:
 
-- [ ] **Implement generation-scoped raster EED dependency evidence.** Capture
+- [x] **Implement generation-scoped raster EED dependency evidence (RPP-5bs).** Capture
   actual-read identity and table-event provenance for APPID/LAYER references;
   resolve each frame only within its own import and codepage profile. The
   existing public lists and content-based `sameDwgNameSource` equality alone
@@ -119821,3 +119821,108 @@ and no remote, PR or issue mutation is included.
 
 Receipt:
 [`rpp5br-raster-class-context-integration-2026-10-24.json`](docs/research/rpp5br-raster-class-context-integration-2026-10-24.json).
+
+## Implementation progress — RPP-5bs actual-read-scoped raster EED names (2026-10-24)
+
+The global APPID/LAYER handle lookup no longer prevents independently retained
+raster imports from correlating their own EED dependencies. Actual-read receipts
+and immutable name-field ownership distinguish equal-looking historical rows.
+This resolves RPP-5br's six EED capture refusals, not duplicate document-root
+composition, independent name/text semantics, or support admission.
+
+1. [x] Add read-only `dwgNameSource()` accessors to APPID and LAYER. Return a
+   `shared_ptr<const DRW_DwgTableNameSource>` by value, not a reference to the
+   private member that could install another owner. Preserve existing
+   content-based `sameDwgNameSource` semantics. No record layout, virtual table
+   or callback changes; the installed API change is additive. These owners are
+   production parser name-field observations, not whole-record/file or
+   independent semantic certificates.
+2. [x] Capture private APPID/LAYER event receipts only within the actual DWG
+   read scope: private attempt, expected generation, per-role delivery ordinal,
+   handle, frozen name and shared immutable field owner. Seal against the
+   returned read result and direct reader version/codepage. Context conflicts
+   reject raster capture, including conflicts discovered at seal; repeated
+   labels poison the collided receipt. No parser grammar or dispatch changes.
+3. [x] Bound this separate ledger to a conservative64 MiB/1024-import estimate,
+   including map/index costs, name capacity and retained shared field bytes.
+   Preflight before copying the name and check actual string capacity before
+   publication. Failed/invalid active reads refund and release their private
+   entry; successful historical receipts stay charged. This is not a process-
+   wide peak-memory guarantee. Missing/budget-failed receipt evidence stays
+   unknown and cannot fall back to an older generation or advisory snapshot.
+4. [x] Resolve raw reparse/correlation names from the frame's own closed receipt,
+   not all public rows. Retain duplicate-handle markers, including cross-role
+   collisions, and refuse referenced duplicates rather than guessing. When
+   actual receipt capture is unavailable, use the actual import's public-row
+   suffix only for compatible model correlation, never a qualified dependency;
+   freeze the fallback boundary. Context-free legacy callbacks retain their
+   advisory behavior with `UnboundReadContext`, not `SourceName` promotion.
+5. [x] Freeze receipt/event owners alongside EED wire spans. Repeated finishing
+   must reproduce the same receipt, event and byte charge. Before export,
+   require exactly one current row sharing the retained immutable field owner,
+   with unchanged handle/name. Equal-content foreign reads cannot replace it;
+   owner duplicates, authored/reset rows and unreceipted handle shadows refuse.
+   Copies restoring the original owner/value may recover without relying on
+   list-node addresses. Known distinct imports may reuse a handle without
+   aliasing each other's dependency receipt. The no-EED check remains
+   allocation-free; table indexes are built once per pre-export check.
+6. [x] Convert all six real EED history refusals into positive scoped evidence:
+   two same-version imports retain eight dependencies; a third mixed-version
+   import retains twelve. Earlier class snapshots stay unchanged. Pair each
+   revision with R2018 (R2018 with R2000) to exercise frozen per-frame profiles,
+   not merely equal current codepages. Full drawing composition remains closed
+   where ACAD_GROUP/NOD roots are duplicated.
+7. [x] Add168 public-row mutation/restoration refusals across both APPID/LAYER
+   roles and both retained imports: name edit, handle edit, erasure, duplicate
+   owner, reset/authored replacement, another historical owner, and an equal-
+   content row from a read outside this dataset's receipt ledger. Explicitly
+   verify content equality with different ownership. All restorations and
+   repeated finishing pass without refreshing private evidence.
+8. [x] Add24 native budget cases (exact, one-under, zero-byte, zero-import),48
+   compatible ASCII/binary budget-fallback readbacks and six import-count-cap
+   histories. A capped later read cannot borrow its earlier receipt or increase
+   the retained charge. Inject24 actual missing/duplicate APPID/LAYER callback
+   faults;48 atomic destination refusals and fresh-data output/readback retries
+   pass. Existing class/alias/history, wire, dependency-edit and class-fault
+   refusal controls remain green.
+9. [x] Add six capture/allocation/refund fault cases (12 new assertions) using a real field owner:
+   receipt-owner/map allocation, name-string/map allocation, pre-allocation
+   budget refusal and failed-read sealing, followed by genuine native recovery.
+   These friend-scoped faults are not native qualification. Native source/
+   capture tests now pass2,001 assertions. Compile-time checks require owner
+   access by immutable value; no installable member reference is exposed.
+10. [x] Rebuild affected static-library consumers and CLI with strict warnings;
+    LibreCAD_3 and public-header hygiene pass. Eight focused tests pass10.50 s;
+    five owning checkpoints pass9.40 s; four reader/fixture/adapter/3D-consumer
+    checks pass2.14 s. Three ASan tests pass9.32 s. Heavy owning cohorts run
+    sequentially, with parallelism3 within cohorts. No full suite, throughput
+    or external-platform qualification claim is implied.
+
+Implementation-ready continuation:
+
+- [ ] Complete actual custom IMAGEDEF class-alias integration alongside the
+  existing reactor aliases, with selected/rooted output where required. Keep
+  aliased/missing identities unqualified; verify ordinary compatible behavior,
+  refusal, restoration and fresh-attempt recovery without source-frame forgery.
+- [ ] Continue the existing NOD/image-dictionary/document-closure contract.
+  Multiple root dictionaries still refuse; dependency-local history is not a
+  document merge/remapping policy. Do not silently choose a root, discard
+  entities or infer composition semantics from the newly positive EED receipts.
+- [ ] Complete independent name/body/path/EED text and source-profile evidence,
+  exact output fields/references and full IMAGE/common state before admission.
+  The new ledger correlates trusted converter callback delivery with immutable
+  production name-field owners; it is not an independent table-page grammar/
+  semantic validator or a certificate against arbitrary in-process callback
+  forgery. Keep `ClassEnvelope`, `TextSemanticsNotIndependent`, byte-order and
+  other unresolved issues. Carry external producer qualification, sparse
+  native cardinality and remaining APPID/LAYER/XRECORD dependencies forward.
+
+Self-update/unblock after each item and report actual slice commits. Strict
+admission stays **CLOSED**; J256/J260/J268/J284/J293/J295 stay
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification stay **NOT_RUN**. No drawing is added, downloaded
+or committed. Preserve all17 untracked drawings and unrelated files; no earlier
+receipt, remote branch, PR or issue is changed.
+
+Receipt:
+[`rpp5bs-read-scoped-raster-eed-names-2026-10-24.json`](docs/research/rpp5bs-read-scoped-raster-eed-names-2026-10-24.json).
