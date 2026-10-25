@@ -966,6 +966,30 @@ public:
     bool hasUnchangedAcdsRawDxfSections() const noexcept;
 
 private:
+    // Immutable-by-API import baselines, not editable drawing state or an
+    // output certificate. Never reset these to launder an appended import.
+    struct TableDxfSourceCapture {
+        struct Table {
+            Table(const DRW_Table& model, const DRW_RawDxfObject& source)
+                : typed(model), raw(source) {}
+            DRW_Table typed;
+            DRW_RawDxfObject raw;
+        };
+        std::uint64_t generation{0};
+        DRW::Version version{DRW::UNKNOWNV};
+        const void* reader{nullptr};
+        bool closed{false}, successful{false}, failed{false}, contextFailed{false};
+        std::size_t records{0}, groups{0}, bytes{0}, selectionWork{0};
+        std::size_t maxRecords{100000u}, maxGroups{4000000u};
+        std::size_t maxBytes{64u * 1024u * 1024u}, maxWork{4000000u};
+        std::map<std::uint32_t, Table> tables;
+        std::map<std::uint32_t, DRW_TableContentObject> contents;
+        std::map<std::uint32_t, DRW_TableGeometry> geometries;
+        std::map<std::uint32_t, DRW_Dictionary> dictionaries;
+        std::map<std::uint32_t, DRW_XRecord> xrecords;
+        std::map<std::uint32_t, DRW_RawDxfObject> rawObjects;
+    } m_tableDxfSource;
+    friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {
         dx_class_evidence::Result result;
         DRW_DwgClassSourceReport source;

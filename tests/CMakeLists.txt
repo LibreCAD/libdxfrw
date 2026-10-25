@@ -498,6 +498,10 @@ target_link_libraries(libdxfrw_table_content_dxf_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_table_content_dxf_projection COMMAND libdxfrw_table_content_dxf_tests)
 set_tests_properties(libdxfrw_table_content_dxf_projection PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_table_compound_source
+    COMMAND libdxfrw_table_content_dxf_tests --compound-source)
+set_tests_properties(libdxfrw_table_compound_source PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value

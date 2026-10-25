@@ -62,6 +62,41 @@ not invented as a field-reference count. The raw companion remains available.
 Both converter modes still refuse table dependencies pending complete source,
 wrapper and output closure; typed acceptance does not waive that loss guard.
 
+Consumers needing the original TABLE parent record may separately implement
+`DRW_DxfTableSourceHandler` and opt in with `wantsDxfTableSource`. This does not
+extend `DRW_Interface`'s vtable, duplicate `addRawDxfEntity`, or require existing
+2D consumers to copy raw bytes. `addDxfTableSource` runs after an accepted
+entity/attribute boundary and before `addTable`. The raw record excludes separate
+ATTRIB/SEQEND records; the typed TABLE still owns their parsed views. Copy data
+needed after the callback. Opted-in raw capture obeys the existing parser budgets.
+
+The converter retains private paired typed/raw TABLE, TABLECONTENT and
+TABLEGEOMETRY import baselines, plus candidate DICTIONARY and literal TABLE
+round-trip XRECORD records. Copies are precharged to cumulative 100,000-record,
+4,000,000-group and 64-MiB logical-retention ceilings, including nested rich
+metadata, actual string lengths and container overhead. Selection and structural
+work are independently bounded to 4,000,000 slots per phase. These are logical
+policy limits, not allocator capacity/RSS measurements. Capture failure is sticky;
+it does not turn a tolerant import into permission for incomplete output.
+
+`dx_iface::tableSourceReport` describes only frozen selected source-chain and
+dimension correlation after a successful first actual DXF import into fresh
+table state. Failed/exceptional reads, stale or appended generations, direct
+source callbacks and capture limits cannot produce a complete verdict. It
+checks TABLE -> extension dictionary -> `ACAD_XREC_ROUNDTRIP` XRECORD with the
+literal `ACAD_ROUNDTRIP_2008_TABLE_ENTITY` marker and ordered 360 content / 361
+geometry ownership slots, reciprocal owners and matching dimensions. The same
+dictionary key on other entity families is not a TABLE wrapper. Unknown wrapper
+scalars are retained without guessed meaning. Attribute/footer profiles are
+captured as typed views but remain structurally unqualified for this route.
+
+`StructurallyComplete` is not live editable-state equality, auxiliary resource
+closure, table evaluation, exact rich-field equivalence or output qualification.
+The report's `outputEligible` remains false, including after a complete source
+chain; the existing loss refusal remains enabled in both output modes. Full
+resource binding, live/source comparison and atomic emission with exact staged
+and final-field proof are separate remaining implementation gates.
+
 DWG HEADER admission distinguishes the inner CRC/sentinel-bounded body from
 the section-directory length. A witnessed AC1032 compatibility form excludes
 the optional four-byte word from RL; it is admitted only with zero unknown

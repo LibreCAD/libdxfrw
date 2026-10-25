@@ -697,6 +697,19 @@ public:
   virtual void addUnmodeledDxfObject(const DRW_RawDxfObject &data) = 0;
 };
 
+/** Opt-in source record for DXF TABLE compound correlation. Does not extend
+ * DRW_Interface's vtable or duplicate addRawDxfEntity. The parent record
+ * excludes separate ATTRIB/SEQEND records; the typed view retains those.
+ * Delivered before addTable, only after the entity boundary is accepted.
+ * This is source transport, not semantic or output qualification. */
+class DRW_DxfTableSourceHandler {
+public:
+  virtual ~DRW_DxfTableSourceHandler() = default;
+  virtual bool wantsDxfTableSource() const { return false; }
+  virtual void addDxfTableSource(const DRW_Table& table,
+                                const DRW_RawDxfObject& source) = 0;
+};
+
 /** Optional source-evidence side channel. Does not extend DRW_Interface's
  * established vtable or require existing 2D consumers to retain source bytes.
  * Request once per read; default false performs no source copy. Reports are

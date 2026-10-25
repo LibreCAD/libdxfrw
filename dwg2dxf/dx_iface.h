@@ -30,8 +30,27 @@
 class DxIfaceExtensionGraphTestAccess;
 
 class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
-                 public DRW_DwgClassSourceHandler {
+                 public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler {
 public:
+    enum class TableSourceState {
+        NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
+        InvalidGraph, UnsupportedProfile, WorkLimit, StructurallyComplete
+    };
+    struct TableSourceReport {
+        // Frozen selected owner-chain/dimensions only. Does not compare
+        // editable consumer state, resolve auxiliary resources or prove output.
+        TableSourceState state{TableSourceState::NotCaptured};
+        std::uint64_t generation{0};
+        std::size_t tables{0}, contents{0}, geometries{0}, compounds{0};
+        std::size_t dictionaryCandidates{0}, tableWrappers{0};
+        std::size_t records{0}, groups{0}, retainedBytes{0}, examinedSlots{0};
+        // Structural source correlation never authorizes replay/support.
+        bool outputEligible{false};
+    };
+    static TableSourceReport tableSourceReport(const dx_data& data) noexcept;
+    bool wantsDxfTableSource() const override;
+    void addDxfTableSource(const DRW_Table& table,
+                           const DRW_RawDxfObject& source) override;
     // Converter resource policy, not a DXF nesting/size restriction. Separate
     // limits also provide a small deterministic boundary-test seam.
     struct ExtensionGraphLimits {
@@ -1460,6 +1479,14 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    dx_data* m_tableSourceReadData{nullptr};
+    bool tableSourceCaptureOpen() const noexcept;
+    bool chargeTableSource(std::size_t bytes, std::size_t groups,
+                           std::size_t records = 1u) noexcept;
+    void finishTableSourceRead(bool success) noexcept;
+    void retainTableSourceDictionary(const DRW_Dictionary& data);
+    void retainTableSourceXRecord(const DRW_XRecord& data);
+    bool retainTableSourceRaw(const DRW_RawDxfObject& data);
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};
     std::uint64_t m_classEvidenceReadAttempt{0};

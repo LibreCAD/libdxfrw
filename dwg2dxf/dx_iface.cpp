@@ -10451,9 +10451,8 @@ bool addCadValueRetainedBytes(
         && addVectorPayloadBytes(value.m_rawData, estimate);
 }
 
-bool addTableRetainedBytes(
-        const DRW_Table& table, std::size_t& estimate) noexcept {
-    const DRW_TableContent& content = table.m_content;
+bool addTableContentRetainedBytes(
+        const DRW_TableContent& content, std::size_t& estimate) noexcept {
     if (!addStringPayloadBytes(content.m_name, estimate)
         || !addStringPayloadBytes(content.m_description, estimate)
         || !addVectorPayloadBytes(content.m_columns, estimate)
@@ -10462,6 +10461,8 @@ bool addTableRetainedBytes(
         || !addVectorPayloadBytes(content.m_mergedRanges, estimate)
         || !addVectorPayloadBytes(content.m_subrecordRanges, estimate))
         return false;
+    for (const auto& range : content.m_subrecordRanges)
+        if (!addStringPayloadBytes(range.m_name, estimate)) return false;
     for (const DRW_TableColumn& column : content.m_columns) {
         if (!addStringPayloadBytes(column.m_name, estimate))
             return false;
@@ -10489,6 +10490,97 @@ bool addTableRetainedBytes(
         }
     }
     return estimate <= kMaxAdapterTypedEntityRetainedBytes;
+}
+
+bool addTableRetainedBytes(
+        const DRW_Table& table, std::size_t& estimate) noexcept {
+    return addTableContentRetainedBytes(table.m_content, estimate);
+}
+
+bool addTableSourceColorBytes(
+        const DRW_TableStyleCmcColor& color, std::size_t& bytes) noexcept {
+    return addStringPayloadBytes(color.m_name, bytes)
+        && addStringPayloadBytes(color.m_bookName, bytes);
+}
+
+bool addTableSourceFormatBytes(
+        const DRW_TableStyleContentFormat& format, std::size_t& bytes) noexcept {
+    return addStringPayloadBytes(format.m_valueFormatString, bytes)
+        && addTableSourceColorBytes(format.m_contentColorCmc, bytes);
+}
+
+bool addTableSourceStyleBytes(
+        const DRW_TableStyleCellStyle& style, std::size_t& bytes) noexcept {
+    if (!addStringPayloadBytes(style.m_name, bytes)
+        || !addTableSourceColorBytes(style.m_backgroundColorCmc, bytes)
+        || !addTableSourceFormatBytes(style.m_contentFormat, bytes)
+        || !addVectorPayloadBytes(style.m_borders, bytes))
+        return false;
+    for (const auto& border : style.m_borders)
+        if (!addTableSourceColorBytes(border.m_colorCmc, bytes)) return false;
+    return true;
+}
+
+bool addTableSourceObjectNodeBytes(
+        const DRW_TableEntry& object, std::size_t& bytes) noexcept {
+    // The reusable object estimator charges the list headers and variants;
+    // these source snapshots also charge both levels of list-node links.
+    if (!addAssociativeSlotBytes(object.appData.size(), 2u * sizeof(void*), bytes)) return false;
+    for (const auto& group : object.appData)
+        if (!addAssociativeSlotBytes(group.size(), 2u * sizeof(void*), bytes)) return false;
+    return true;
+}
+
+bool estimateTableContentSourceBytes(
+        const DRW_TableContentObject& content, std::size_t& bytes) noexcept {
+    bytes = sizeof(DRW_TableContentObject);
+    if (!addTableEntryRetainedBytes(content, bytes)
+        || !addTableSourceObjectNodeBytes(content, bytes)
+        || !addTableContentRetainedBytes(content.m_content, bytes)) return false;
+    if (!content.m_dxfMetadata) return true;
+    const auto& metadata = *content.m_dxfMetadata;
+    const auto scopeBytes = [&bytes](const DRW_TableContentDxfMetadata::Scope& scope) {
+        if (!addVectorPayloadBytes(scope.m_customItems, bytes)
+            || !addTableSourceStyleBytes(scope.m_style, bytes)) return false;
+        for (const auto& item : scope.m_customItems)
+            if (!addStringPayloadBytes(item.m_name, bytes)
+                || !addCadValueRetainedBytes(item.m_value, bytes)) return false;
+        return true;
+    };
+    // Charge the full shared companion per baseline, including its control
+    // block/lease overhead. Sharing is never used to bypass adapter ceilings.
+    if (!addAssociativeRetainedBytes(sizeof(DRW_TableContentDxfMetadata)
+            + 8u * sizeof(void*), bytes)
+        || !addVectorPayloadBytes(metadata.m_columns, bytes)
+        || !addVectorPayloadBytes(metadata.m_rows, bytes)
+        || !addTableSourceStyleBytes(metadata.m_tableStyle, bytes)) return false;
+    for (const auto& column : metadata.m_columns)
+        if (!scopeBytes(column)) return false;
+    for (const auto& row : metadata.m_rows) {
+        if (!scopeBytes(row.m_scope) || !addVectorPayloadBytes(row.m_cells, bytes)) return false;
+        for (const auto& cell : row.m_cells) {
+            if (!scopeBytes(cell.m_scope)
+                || !addVectorPayloadBytes(cell.m_contentFormats, bytes)
+                || !addVectorPayloadBytes(cell.m_geometry, bytes)) return false;
+            for (const auto& format : cell.m_contentFormats) {
+                if (format && (!addAssociativeRetainedBytes(
+                        sizeof(DRW_TableStyleContentFormat) + 4u * sizeof(void*), bytes)
+                    || !addTableSourceFormatBytes(*format, bytes))) return false;
+            }
+        }
+    }
+    return bytes <= kMaxAdapterTypedEntityRetainedBytes;
+}
+
+bool estimateTableGeometrySourceBytes(
+        const DRW_TableGeometry& geometry, std::size_t& bytes) noexcept {
+    bytes = sizeof(DRW_TableGeometry);
+    if (!addTableEntryRetainedBytes(geometry, bytes)
+        || !addTableSourceObjectNodeBytes(geometry, bytes)
+        || !addVectorPayloadBytes(geometry.m_cells, bytes)) return false;
+    for (const auto& cell : geometry.m_cells)
+        if (!addVectorPayloadBytes(cell.m_contents, bytes)) return false;
+    return bytes <= kMaxAdapterTypedEntityRetainedBytes;
 }
 
 bool addDimensionRetainedBytes(
@@ -16479,16 +16571,329 @@ void dx_iface::addObjectContextData(const DRW_ObjectContextData& data) {
         cData->standaloneObjectContextDataPresent = true;
 }
 
+dx_iface::TableSourceReport dx_iface::tableSourceReport(const dx_data& data) noexcept {
+    TableSourceReport report;
+    const auto& source = data.m_tableDxfSource;
+    report.generation = source.generation;
+    report.tables = source.tables.size();
+    report.contents = source.contents.size();
+    report.geometries = source.geometries.size();
+    report.dictionaryCandidates = source.dictionaries.size();
+    report.tableWrappers = source.xrecords.size();
+    report.records = source.records;
+    report.groups = source.groups;
+    report.retainedBytes = source.bytes;
+    if (source.contextFailed) { report.state = TableSourceState::ContextMismatch; return report; }
+    if (source.generation == 0u) return report;
+    if (!source.closed) { report.state = TableSourceState::Reading; return report; }
+    if (source.failed) { report.state = TableSourceState::CaptureFailed; return report; }
+    if (data.sourceFormat != dx_source_format::DXF) return report;
+    if (!source.successful) { report.state = TableSourceState::ImportFailed; return report; }
+    if (source.generation != data.importGeneration || source.generation != 1u
+        || source.reader || source.version != data.sourceVersion
+        || source.version != data.dxfReadOutcome.sourceVersion
+        || !data.dxfReadOutcome.readReturned || data.dxfReadOutcome.readThrew
+        || !data.dxfReadOutcome.operationSucceeded || data.dxfReadOutcome.error != DRW::BAD_NONE) {
+        report.state = TableSourceState::ContextMismatch; return report;
+    }
+    if (source.records == 0u) return report;
+    report.state = TableSourceState::InvalidGraph;
+    const auto work = [&report, &source](std::size_t count) {
+        if (report.examinedSlots > source.maxWork || count > source.maxWork - report.examinedSlots) {
+            report.state = TableSourceState::WorkLimit; return false;
+        }
+        report.examinedSlots += count;
+        return true;
+    };
+    // Precharge every retained raw slot, including the uninspected body. No
+    // unbounded scan or graph allocation precedes the structural verdict.
+    if (!work(source.groups) || !work(source.records)) return report;
+    if (source.version < DRW::AC1021 || source.version > DRW::AC1032) {
+        report.state = TableSourceState::UnsupportedProfile; return report;
+    }
+    const auto uniqueFamily = [&source](std::uint32_t handle) {
+        return handle != 0u && source.tables.count(handle) + source.contents.count(handle)
+            + source.geometries.count(handle) + source.dictionaries.count(handle)
+            + source.xrecords.count(handle) == 1u;
+    };
+    const auto headerMatches = [&source](const DRW_RawDxfObject& raw,
+                                         std::uint32_t handle, std::uint32_t owner) {
+        if (raw.m_version != source.version || raw.handle != handle || raw.parentHandle != owner
+            || raw.groups.size() != raw.rawValues.size()) return false;
+        unsigned selves = 0u, owners = 0u, depth = 0u;
+        for (const auto& group : raw.groups) {
+            if (group.code() == 100 && depth == 0u) break;
+            if (group.code() == 102) {
+                if (group.type() != DRW_Variant::STRING || !group.content.s) return false;
+                const auto& text = *group.content.s;
+                if (!text.empty() && text.front() == '{') ++depth;
+                else if (text == "}" && depth != 0u) --depth;
+                else return false;
+            } else if (depth == 0u && (group.code() == 5 || group.code() == 330)) {
+                if (group.type() != DRW_Variant::STRING || !group.content.s) return false;
+                const auto& text = *group.content.s;
+                std::uint32_t value = 0u;
+                const auto parsed = std::from_chars(text.data(), text.data() + text.size(), value, 16);
+                if (text.empty() || parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size()) return false;
+                if (group.code() == 5) { if (++selves != 1u || value != handle) return false; }
+                else if (++owners != 1u || value != owner) return false;
+            }
+        }
+        return selves == 1u && owners == 1u && depth == 0u;
+    };
+    const auto rawMatches = [&source, &headerMatches](const DRW_TableEntry& typed,
+                                                     std::string_view type, std::string_view alias) {
+        const auto raw = source.rawObjects.find(typed.handle);
+        return raw != source.rawObjects.end()
+            && (asciiIdentifierEquals(raw->second.name, type)
+                || asciiIdentifierEquals(raw->second.name, alias))
+            && headerMatches(raw->second, typed.handle, typed.parentHandle);
+    };
+    if (source.tables.empty() || source.contents.size() != source.tables.size()
+        || source.geometries.size() != source.tables.size()
+        || source.dictionaries.size() < source.tables.size()
+        || source.xrecords.size() != source.tables.size()
+        || source.rawObjects.size() != source.contents.size() + source.geometries.size()
+            + source.dictionaries.size() + source.xrecords.size()) return report;
+    for (const auto& item : source.tables) {
+        if (!work(32u)) return report;
+        const auto& table = item.second.typed;
+        if (!uniqueFamily(table.handle) || !headerMatches(item.second.raw, table.handle, table.parentHandle)
+            || !(asciiIdentifierEquals(item.second.raw.name, "ACAD_TABLE")
+                 || asciiIdentifierEquals(item.second.raw.name, "TABLE"))) return report;
+        if (table.parentHandle == 0u || source.tables.count(table.parentHandle)
+            || source.contents.count(table.parentHandle) || source.geometries.count(table.parentHandle)
+            || source.dictionaries.count(table.parentHandle) || source.xrecords.count(table.parentHandle)) return report;
+        const auto dictionary = source.dictionaries.find(table.xDictHandle);
+        if (dictionary == source.dictionaries.end()) return report;
+        const auto& dict = dictionary->second;
+        if (!uniqueFamily(dict.handle) || dict.parentHandle != table.handle
+            || !rawMatches(dict, "DICTIONARY", "DICTIONARY")
+            || !dict.hasCompleteDxfEntries()) return report;
+        if (dict.m_entries.size() != 1u) {
+            report.state = TableSourceState::UnsupportedProfile; return report;
+        }
+        const auto& edge = dict.m_entries.front();
+        if (edge.m_name != "ACAD_XREC_ROUNDTRIP"
+            || edge.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::HardOwner) return report;
+        const auto wrapper = source.xrecords.find(edge.m_handle);
+        if (wrapper == source.xrecords.end()) return report;
+        const auto& xrecord = wrapper->second;
+        if (!uniqueFamily(xrecord.handle) || xrecord.parentHandle != dict.handle
+            || !rawMatches(xrecord, "XRECORD", "XRECORD")
+            || !xrecord.hasExactDxfCoordinateTuples()) return report;
+        const auto& values = xrecord.m_dataEntries;
+        if (!work(values.size())) return report;
+        if (values.size() != 8u) {
+            report.state = TableSourceState::UnsupportedProfile; return report;
+        }
+        constexpr int codes[] = {102, 360, 70, 90, 10, 90, 90, 361};
+        const DRW_Variant::TYPE types[] = {
+            DRW_Variant::STRING, DRW_Variant::INTEGER64, DRW_Variant::INTEGER,
+            DRW_Variant::INTEGER, DRW_Variant::COORD, DRW_Variant::INTEGER,
+            DRW_Variant::INTEGER, DRW_Variant::INTEGER64};
+        for (std::size_t index = 0u; index < values.size(); ++index)
+            if (values[index].code() != codes[index] || values[index].type() != types[index]) return report;
+        if (!values[0].content.s || *values[0].content.s != "ACAD_ROUNDTRIP_2008_TABLE_ENTITY"
+            || values[1].i64_val() <= 0 || values[7].i64_val() <= 0
+            || static_cast<std::uint64_t>(values[1].i64_val()) > UINT32_MAX
+            || static_cast<std::uint64_t>(values[7].i64_val()) > UINT32_MAX) return report;
+        const auto* point = values[4].coord();
+        if (!point || !std::isfinite(point->x) || !std::isfinite(point->y) || !std::isfinite(point->z)) return report;
+        const auto content = source.contents.find(static_cast<std::uint32_t>(values[1].i64_val()));
+        const auto geometry = source.geometries.find(static_cast<std::uint32_t>(values[7].i64_val()));
+        if (content == source.contents.end() || geometry == source.geometries.end()) return report;
+        const auto& c = content->second;
+        const auto& g = geometry->second;
+        if (!uniqueFamily(c.handle) || !uniqueFamily(g.handle)
+            || c.parentHandle != xrecord.handle || g.parentHandle != xrecord.handle
+            || !rawMatches(c, "TABLECONTENT", "ACDBTABLECONTENT")
+            || !rawMatches(g, "TABLEGEOMETRY", "ACDBTABLEGEOMETRY")
+            || !c.m_parseComplete || !c.m_dxfMetadata) return report;
+        if (!table.attlist.empty() || table.seqEndEntity || !table.m_hasSemanticContent) {
+            report.state = TableSourceState::UnsupportedProfile; return report;
+        }
+        const auto rows = c.m_content.m_rows.size(), columns = c.m_content.m_columns.size();
+        if (!work(rows) || !work(table.m_content.m_rows.size())) return report;
+        if (rows == 0u || columns == 0u || rows > DRW_TableGeometry::kMaxCells / columns
+            || table.m_content.m_rows.size() != rows || table.m_content.m_columns.size() != columns
+            || g.m_rowCount < 0 || static_cast<std::size_t>(g.m_rowCount) != rows
+            || g.m_columnCount < 0 || static_cast<std::size_t>(g.m_columnCount) != columns
+            || g.m_cellCount < 0 || static_cast<std::size_t>(g.m_cellCount) != rows * columns
+            || g.m_cells.size() != rows * columns) return report;
+        for (const auto& row : c.m_content.m_rows) if (row.m_cells.size() != columns) return report;
+        for (const auto& row : table.m_content.m_rows) if (row.m_cells.size() != columns) return report;
+        ++report.compounds;
+    }
+    // Other entity families use the same dictionary key with a different
+    // XRECORD marker. Their candidates are not table compounds. Conversely,
+    // an extra candidate owned by a captured TABLE cannot be ignored.
+    for (const auto& item : source.dictionaries) {
+        if (!work(1u)) return report;
+        const auto owner = source.tables.find(item.second.parentHandle);
+        if (owner != source.tables.end() && owner->second.typed.xDictHandle != item.first) return report;
+    }
+    report.state = TableSourceState::StructurallyComplete;
+    return report;
+}
+
+bool dx_iface::tableSourceCaptureOpen() const noexcept {
+    if (!cData || m_tableSourceReadData != cData) return false;
+    const auto& source = cData->m_tableDxfSource;
+    return source.reader == this && !source.closed && !source.failed
+        && !source.contextFailed && source.generation == cData->importGeneration
+        && source.generation == 1u && cData->sourceFormat == dx_source_format::DXF;
+}
+
+bool dx_iface::wantsDxfTableSource() const {
+    return tableSourceCaptureOpen();
+}
+
+bool dx_iface::chargeTableSource(
+        std::size_t bytes, std::size_t groups, std::size_t records) noexcept {
+    if (!cData) return false;
+    auto& source = cData->m_tableDxfSource;
+    if (!tableSourceCaptureOpen()) {
+        source.contextFailed = true;
+        return false;
+    }
+    // Conservative map-node/key/alignment overhead for each owned record.
+    if (!addAssociativeSlotBytes(records, 8u * sizeof(void*), bytes)
+        || source.records > source.maxRecords || records > source.maxRecords - source.records
+        || source.groups > source.maxGroups || groups > source.maxGroups - source.groups
+        || source.bytes > source.maxBytes || bytes > source.maxBytes - source.bytes) {
+        source.failed = true;
+        return false;
+    }
+    source.records += records;
+    source.groups += groups;
+    source.bytes += bytes;
+    return true;
+}
+
+void dx_iface::addDxfTableSource(const DRW_Table& table,
+                                const DRW_RawDxfObject& raw) {
+    if (!cData) return;
+    auto& source = cData->m_tableDxfSource;
+    if (!tableSourceCaptureOpen()) { source.contextFailed = true; return; }
+    std::size_t bytes = 0u, rawBytes = 0u;
+    if (!estimateTypedEntityRetainedBytes(table, sizeof(DRW_Table), bytes)
+        || !estimateRawDxfObjectBytes(raw, rawBytes)
+        || !addAssociativeRetainedBytes(rawBytes, bytes)) {
+        source.failed = true;
+        return;
+    }
+    if (!chargeTableSource(bytes, raw.groups.size(), 2u)) return;
+    try {
+        if (!source.tables.try_emplace(table.handle, table, raw).second)
+            source.failed = true;
+    } catch (...) { source.failed = true; }
+}
+
+void dx_iface::retainTableSourceDictionary(const DRW_Dictionary& data) {
+    if (!tableSourceCaptureOpen()) return;
+    auto& source = cData->m_tableDxfSource;
+    if (source.selectionWork > source.maxWork
+        || data.m_entries.size() > source.maxWork - source.selectionWork) {
+        source.failed = true; return;
+    }
+    source.selectionWork += data.m_entries.size();
+    const bool selected = std::any_of(data.m_entries.begin(), data.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) { return entry.m_name == "ACAD_XREC_ROUNDTRIP"; });
+    if (!selected) return;
+    std::size_t bytes = 0u, items = 0u;
+    if (!estimateDictionaryTypedBytes(data, bytes, items)
+        || !addTableSourceObjectNodeBytes(data, bytes)) { source.failed = true; return; }
+    if (!chargeTableSource(bytes, 0u)) return;
+    try {
+        if (!source.dictionaries.emplace(data.handle, data).second) source.failed = true;
+    } catch (...) { source.failed = true; }
+}
+
+void dx_iface::retainTableSourceXRecord(const DRW_XRecord& data) {
+    if (!tableSourceCaptureOpen()) return;
+    auto& source = cData->m_tableDxfSource;
+    if (source.selectionWork > source.maxWork
+        || data.m_dataEntries.size() > source.maxWork - source.selectionWork) {
+        source.failed = true; return;
+    }
+    source.selectionWork += data.m_dataEntries.size();
+    const bool selected = std::any_of(data.m_dataEntries.begin(), data.m_dataEntries.end(),
+        [](const DRW_Variant& value) {
+            return value.code() == 102 && value.type() == DRW_Variant::STRING
+                && value.content.s && *value.content.s == "ACAD_ROUNDTRIP_2008_TABLE_ENTITY";
+        });
+    if (!selected) return;
+    std::size_t bytes = 0u, items = 0u;
+    if (!estimateXRecordTypedBytes(data, bytes, items)
+        || !addTableSourceObjectNodeBytes(data, bytes)) { source.failed = true; return; }
+    if (!chargeTableSource(bytes, 0u)) return;
+    try {
+        if (!source.xrecords.emplace(data.handle, data).second) source.failed = true;
+    } catch (...) { source.failed = true; }
+}
+
+bool dx_iface::retainTableSourceRaw(const DRW_RawDxfObject& data) {
+    const bool content = asciiIdentifierEquals(data.name, "TABLECONTENT")
+        || asciiIdentifierEquals(data.name, "ACDBTABLECONTENT");
+    const bool geometry = asciiIdentifierEquals(data.name, "TABLEGEOMETRY")
+        || asciiIdentifierEquals(data.name, "ACDBTABLEGEOMETRY");
+    if (content) cData->standaloneTableContentPresent = true;
+    if (geometry) cData->standaloneTableGeometryPresent = true;
+    if (!tableSourceCaptureOpen()) return content || geometry;
+    auto& source = cData->m_tableDxfSource;
+    const bool selected = content || geometry
+        || (asciiIdentifierEquals(data.name, "DICTIONARY") && source.dictionaries.count(data.handle))
+        || (asciiIdentifierEquals(data.name, "XRECORD") && source.xrecords.count(data.handle));
+    if (!selected) return false;
+    std::size_t bytes = 0u;
+    if (!estimateRawDxfObjectBytes(data, bytes)) { source.failed = true; return content || geometry; }
+    if (!chargeTableSource(bytes, data.groups.size())) return content || geometry;
+    try {
+        if (!source.rawObjects.emplace(data.handle, data).second) source.failed = true;
+    } catch (...) { source.failed = true; }
+    // Wrappers still need their established editable/output lane. Children
+    // have no output lane and are retained only in this private source capture.
+    return content || geometry;
+}
+
+void dx_iface::finishTableSourceRead(bool success) noexcept {
+    if (!m_tableSourceReadData) return;
+    auto& data = *m_tableSourceReadData;
+    auto& source = data.m_tableDxfSource;
+    source.closed = true;
+    source.successful = success && data.sourceFormat == dx_source_format::DXF
+        && data.dxfReadOutcome.operationSucceeded && !data.dxfReadOutcome.readThrew
+        && data.dxfReadOutcome.error == DRW::BAD_NONE;
+    source.version = source.successful ? data.sourceVersion : DRW::UNKNOWNV;
+    source.reader = nullptr;
+    m_tableSourceReadData = nullptr;
+}
+
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
-    (void)data;
-    if (cData != nullptr)
-        cData->standaloneTableContentPresent = true;
+    if (!cData) return;
+    cData->standaloneTableContentPresent = true;
+    if (!tableSourceCaptureOpen()) return;
+    auto& source = cData->m_tableDxfSource;
+    std::size_t bytes = 0u;
+    if (!estimateTableContentSourceBytes(data, bytes)) { source.failed = true; return; }
+    if (!chargeTableSource(bytes, 0u)) return;
+    try {
+        if (!source.contents.emplace(data.handle, data).second) source.failed = true;
+    } catch (...) { source.failed = true; }
 }
 
 void dx_iface::addTableGeometry(const DRW_TableGeometry& data) {
-    (void)data;
-    if (cData != nullptr)
-        cData->standaloneTableGeometryPresent = true;
+    if (!cData) return;
+    cData->standaloneTableGeometryPresent = true;
+    if (!tableSourceCaptureOpen()) return;
+    auto& source = cData->m_tableDxfSource;
+    std::size_t bytes = 0u;
+    if (!estimateTableGeometrySourceBytes(data, bytes)) { source.failed = true; return; }
+    if (!chargeTableSource(bytes, 0u)) return;
+    try {
+        if (!source.geometries.emplace(data.handle, data).second) source.failed = true;
+    } catch (...) { source.failed = true; }
 }
 
 void dx_iface::addRenderSettings(const DRW_RenderSettings& data) {
@@ -16900,6 +17305,7 @@ void dx_iface::addDataLink(const DRW_DataLink& data) {
 }
 
 void dx_iface::addDictionary(const DRW_Dictionary& data) {
+    retainTableSourceDictionary(data);
     retainDictionaryTyped(cData, data, 2u * sizeof(void*), [this, &data]() {
         cData->dictionaries.push_back(data);
     });
@@ -17343,6 +17749,7 @@ void dx_iface::addNamedObjectDictionary(const DRW_Dictionary& data) {
 }
 
 void dx_iface::addXRecord(const DRW_XRecord& data) {
+    retainTableSourceXRecord(data);
     retainXRecordTyped(cData, data);
 }
 
@@ -17644,6 +18051,7 @@ bool dx_data::hasUnchangedAcdsRawDxfSections() const noexcept {
 void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
     if (cData == nullptr)
         return;
+    if (retainTableSourceRaw(data)) return;
     if (data.name.rfind("ACSH_", 0u) == 0u || data.name == "ACAD_EVALUATION_GRAPH") {
         auto& receipt = cData->acdsHistoryDxfImport;
         if (data.name.rfind("ACSH_", 0u) == 0u && receipt.historyCallbacks < kMaxAcdsDxfHistoryRecords)
@@ -20512,6 +20920,11 @@ bool validateNamedObjectRootForExport(const dx_data& data,
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
     if (fData == nullptr) return false;
+    if (m_tableSourceReadData != nullptr) {
+        m_tableSourceReadData->m_tableDxfSource.contextFailed = true;
+        fData->m_tableDxfSource.contextFailed = true;
+        return false;
+    }
     if (m_classEvidenceReadData != nullptr || fData->m_classEvidenceOwner != nullptr) {
         if (m_classEvidenceReadData != nullptr)
             rejectDwgClassEvidence(*m_classEvidenceReadData, ClassEvidenceState::ContextMismatch);
@@ -20629,6 +21042,18 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                    });
     cData = fData;
     currentBlock = cData->mBlock;
+    auto& tableSource = fData->m_tableDxfSource;
+    if (tableSource.generation != 0u || fData->importGeneration != 1u
+        || !fData->tables.empty() || fData->standaloneTableContentPresent
+        || fData->standaloneTableGeometryPresent)
+        tableSource.contextFailed = true;
+    if (tableSource.generation == 0u) tableSource.generation = fData->importGeneration;
+    tableSource.reader = this;
+    m_tableSourceReadData = fData;
+    struct TableSourceReadScope {
+        dx_iface& owner;
+        ~TableSourceReadScope() { owner.finishTableSourceRead(false); }
+    } tableSourceScope{*this};
     const auto finishVisualStyleImport = [fData](bool success) {
         dx_visualStyleImportReceipt& receipt = fData->visualStyleImport;
         receipt.sourceFormat = fData->sourceFormat;
@@ -20787,6 +21212,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         completeAssociativeDxfImportReceipt(*fData, success);
         fData->acdsHistoryDxfImport.successful = success;
         fData->acdsHistoryDxfImport.version = success ? fData->sourceVersion : DRW::UNKNOWNV;
+        finishTableSourceRead(success);
         if (!success) {
             std::cout << "DXF file error: format " << dxf.getVersion() << " error " << dxf.getError() << std::endl;
         }

@@ -445,6 +445,13 @@ the existing minimal core view. That view alone is not lossless: native encoding
 and converter replay remain guarded. Consumers must rebuild for the extended
 `DRW_TableContentObject` layout; callback signatures remain source-compatible.
 
+An optional, separate `DRW_DxfTableSourceHandler` facet can retain a complete
+TABLE parent record before its typed callback. The converter now retains bounded
+compound-source snapshots and checks the selected dictionary/XRECORD/child owner
+chain and dimensions. This is frozen source evidence only: auxiliary dependencies,
+editable-state equivalence and verified compound output remain open. Export
+refusal stays enabled; separate ATTRIB/SEQEND raw records are not yet qualified.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

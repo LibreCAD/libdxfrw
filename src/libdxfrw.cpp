@@ -17274,6 +17274,12 @@ bool dxfRW::processTable() {
     DRW_DBG("dxfRW::processTable");
     int code;
     DRW_Table table;
+    auto* sourceHandler = dynamic_cast<DRW_DxfTableSourceHandler*>(iface);
+    const bool captureSource = sourceHandler != nullptr
+        && sourceHandler->wantsDxfTableSource();
+    DRW_RawDxfObject raw;
+    if (captureSource && !copyRawDxfCarrierName(raw, nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -17297,11 +17303,18 @@ bool dxfRW::processTable() {
                 return setError(DRW::BAD_READ_ENTITIES);
             }
             table.finalizeDxfParse();
+            if (captureSource) {
+                if (!validateCapturedRawDxfObject(
+                        raw, binFile, reader->classifierProfile()))
+                    return setError(DRW::BAD_CODE_PARSED);
+                sourceHandler->addDxfTableSource(table, raw);
+            }
             iface->addTable(table);
             return true;
         }
 
-        if (!table.parseCode(code, reader)) {
+        if (captureSource ? !captureAndParseRawDxfGroup(raw, code, table)
+                          : !table.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }
