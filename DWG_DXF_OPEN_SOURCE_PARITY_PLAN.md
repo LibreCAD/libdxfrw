@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dd exact TABLESTYLE source proof and selected format closure (2026-10-25):** the immutable proof path now covers TABLESTYLE's exposed legacy/common fields and default-only native fields, including physical header presence and both description baselines. Legacy row font names and proved map STYLE/LTYPE references bind through frozen indexes with explicit null inheritance. Both external sources retain complete selected style/map proof; the independent observer matches eight TABLESTYLE and 27 map events per source. Other source families, full transitive/live/output and native/consumer parity remain open; export refusal and the support ledger stay closed. [Implementation and next work](#implementation-progress-rpp-5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25) · [receipt](docs/research/rpp5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5de actual STYLE/LTYPE source proof (2026-10-25):** selected target rows now require bounded immutable raw/typed agreement, using a separate opt-in facet that preserves historical callbacks and avoids raw capture charges for opt-out consumers. Batch boundaries, complex public LTYPE projections, mismatch/callback/limit failures and corrected retries are covered. Full symbol semantics/transitive closure, other source families, live/output and native/consumer parity remain open; table export refusal and the support ledger stay closed. [Implementation and next work](#implementation-progress-rpp-5de-actual-styleltype-source-proof-2026-10-25) · [receipt](docs/research/rpp5de-actual-style-ltype-source-proof-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dd exact TABLESTYLE source proof and selected format closure (2026-10-25):** committed as `88c35d18`. Its exact exposed legacy/common fields, description accounting, legacy font-name and selected map format bindings remain valid. RPP-5de additionally requires target STYLE/LTYPE row source proof, not full resource/document or output qualification. [Historical implementation](#implementation-progress-rpp-5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25) · [immutable receipt](docs/research/rpp5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dc exact CELLSTYLEMAP source proof and reference spans (2026-10-25):** committed as `dbe7b2a4`. Its map source proof, 27 independent spans, limits and refusal/recovery controls remain valid. RPP-5dd adds the selecting style and selected format bindings only, not whole-resource/document or output qualification. [Historical implementation](#implementation-progress-rpp-5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25) · [immutable receipt](docs/research/rpp5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25.json).
 
@@ -124589,3 +124591,96 @@ The support ledger remains **CLOSED**. J256/J260/J268/J284/J293/J295 stay
 semantic/kernel qualification remain **NOT_RUN**. No support claims or remote
 writes are authorized by this checkpoint. The full implementation goal remains
 active.
+
+## Implementation progress RPP-5de actual STYLE/LTYPE source proof (2026-10-25)
+
+Parent checkpoint: `88c35d18` (RPP-5dd). This coherent slice advances the target
+symbol-row part of B2a; it does not complete the original parity objective.
+
+1. [x] Add separate default-off `DRW_DxfSymbolSourceHandler`, without changing
+   `DRW_Interface`'s established vtable. Latch selection per symbol-table batch;
+   stage complete STYLE/LTYPE bodies until valid `ENDTAB`, then deliver source
+   immediately before each typed row. Reuse budgeted raw capture and validation.
+   Malformed later rows and missing terminators publish no batch callbacks;
+   ordinary opt-out consumers pay no raw-copy/raw-variant charge.
+2. [x] Join actual-import source-first rows to frozen typed identities, with
+   precharged pending nodes and shared cumulative source record/group/byte/work
+   caps. Compare every exposed STYLE/LTYPE/common field, handle component and
+   complex dash field against bounded production-parser replay. Apply the same
+   public LTYPE normalization as the reader; do not mistake its recomputed total
+   length or normalized path views for literal or independent semantic proof.
+   Preserve original raw values separately. Unnamed shape STYLE rows remain
+   direct identities without fabricating a global font name. Legacy handle-free
+   rows are transport-only; unknown source fields remain unqualified for output.
+3. [x] Require matched row source proof for selected STYLE/LTYPE bindings.
+   Missing source or typed callbacks, duplicate identities, same-read attempted
+   repair, raw/typed mismatches, capture exhaustion, late callbacks and failed
+   reads cannot promote those bindings. Cache proof on immutable source state;
+   keep complete live equality and output admission as separate gates.
+4. [x] Add eight revision/encoding routes, 40 typed mutation kinds / 320
+   mismatch/recovery pairs, 88 raw pairs, 32 callback recovery pairs, 64 exact/
+   below-limit checks and 32 malformed-batch/corrected-reader controls. Include
+   explicit opt-out low-node success versus opted-in atomic exhaustion,
+   callback exceptions, corrected same-facade fresh-drawing retries, late
+   delivery and unnamed shape/complex LTYPE projections. All new controls are
+   authored locally from scratch; no external drawing payload is committed.
+
+Both unchanged external examples now retain six style/map/symbol source
+receipts, 464 groups, 100,835 logical proof bytes and 29,696 work slots. Thirteen
+selected symbol-proof uses bind, alongside six map format uses and 18 explicit
+null LTYPE inheritance slots. These are same-library exposed-source consistency
+observations, not new independent semantic evidence. The existing independent
+TABLESTYLE/CELLSTYLEMAP observer is unchanged and does not prove symbol rows.
+Validation, source hashes and qualification limits are recorded in the fresh
+[RPP-5de receipt](docs/research/rpp5de-actual-style-ltype-source-proof-2026-10-25.json).
+
+Final affected cohorts pass 34/34 normally in 42.01 s and 34/34 under ASan in
+83.87 s (`halt_on_error=1:detect_leaks=0`). Normal/ASan LibreCAD_3 source-compile
+gates and affected library/adapter/CLI targets build with warnings treated as
+errors. Both real CLI external-example conversions remain refused without a
+published destination. No full suite or leak check is repeated. This is macOS
+ARM64 Apple Clang evidence, not Linux/GCC despite the build directory name,
+Windows or native FreeCAD qualification. Existing independent observer selftests
+pass but are not new independent symbol-row evidence.
+
+Next implementation-ready work, ordered to minimize repeated work:
+
+1. [ ] **B2b complex symbol and common edges.** Consume the already captured
+   LTYPE code-340 slots with a bounded worklist. Establish text/shape role and
+   null policy from primary specifications and independent original-tag/typed
+   evidence before enforcing them. Require proved STYLE targets, preserving
+   legitimate unnamed shape rows. Extend the optional observer to original
+   STYLE/LTYPE tags, not re-exported defaults. Add missing/wrong/ambiguous target,
+   cycle/back-reference, cumulative-work and same-facade recovery controls.
+2. [ ] **B2a remaining object source families.** Reuse the existing body/replay/
+   reference and immutable registry helpers for FIELD, DATALINK, dictionary/
+   XRECORD, ATTDEF/block and common dependencies. FIELD needs the production
+   `processField` grammar extracted/reused, not a second handwritten parser.
+   Preserve raw companions and default/unmodeled-profile refusal.
+3. [ ] **B2b full transitive/common closure.** Resolve APPID/LAYER/XDATA,
+   dictionary membership, owners/reactors/extensions and FIELD/DATALINK/block
+   edges using role-specific policy and complete collision coverage. Separate
+   legitimate reactor back-references from ownership cycles; numeric handle
+   equality or a description spelling never establishes a target family.
+4. [ ] **B3/C compound, live and atomic output.** Finish parent/wrapper/cache/
+   common source proof and complete editable/frozen equality; preserve or
+   explicitly refuse ATTRIB/SEQEND. Plan compound identities before writing,
+   preserve every rich companion and prove exact staged/final fields and unique
+   references. Require repeated conversions, allocation/write rollback,
+   destination preservation and corrected same-exporter readbacks before
+   enabling only a fully proved output lane. Both current export guards remain.
+5. [ ] **Full parity / execution loop.** Continue independent rich/native
+   evidence, native decimal/bit resolution, SWEEP/EXTRUSION, carrier/schema/owner,
+   complete IMAGE/document and LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD
+   requirements. After each item update evidence/limits, safely unblock the next
+   ready dependency and commit/report each coherent slice. Reuse frozen indexes
+   and successful proof; run fast owning checks first and affected normal/ASan
+   cohorts next, reserving full suites for integration checkpoints. Continue
+   implementation without waiting on advisory external qualifications.
+
+The support ledger remains **CLOSED**; output eligibility stays false.
+J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. No native layout/parser/writer or global codec changes, remote
+writes, external fixture commits or support promotion are part of this slice.
+The full implementation goal remains active.

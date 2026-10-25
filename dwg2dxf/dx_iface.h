@@ -30,7 +30,8 @@
 class DxIfaceExtensionGraphTestAccess;
 
 class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
-                 public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler {
+                 public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
+                 public DRW_DxfSymbolSourceHandler {
 public:
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
@@ -66,6 +67,7 @@ public:
         std::size_t resourceProofRecords{0}, resourceProofGroups{0}, resourceProofBytes{0}, resourceProofWork{0};
         std::size_t sourceMapMatches{0}, sourceStyleMatches{0}, unknownResourceReferences{0};
         std::size_t boundResourceReferences{0}, inheritedResourceReferences{0};
+        std::size_t symbolProofUses{0};
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates.
@@ -75,6 +77,8 @@ public:
     bool wantsDxfTableSource() const override;
     void addDxfTableSource(const DRW_Table& table,
                            const DRW_RawDxfObject& source) override;
+    bool wantsDxfSymbolSource() const override;
+    void addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& source) override;
     // Converter resource policy, not a DXF nesting/size restriction. Separate
     // limits also provide a small deterministic boundary-test seam.
     struct ExtensionGraphLimits {
@@ -1515,7 +1519,8 @@ private:
     bool chargeTableResource(std::size_t bytes, std::size_t items) noexcept;
     template<class T> void retainTableResource(dx_tableResourceFamily family,const T& data) noexcept;
     void retainTableEntityIdentity(const DRW_Entity& data) noexcept;
-    void retainTableResourceSource(const DRW_RawDxfObject& data) noexcept;
+    void retainTableResourceSource(const DRW_RawDxfObject& data,const DRW_TableEntry* symbol=nullptr) noexcept;
+    void proveTableResourceSource(std::uint32_t handle) noexcept;
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};
     std::uint64_t m_classEvidenceReadAttempt{0};

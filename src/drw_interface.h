@@ -710,6 +710,21 @@ public:
                                 const DRW_RawDxfObject& source) = 0;
 };
 
+/** Opt-in complete STYLE/LTYPE source rows. Separate from DRW_Interface's
+ * established vtable. Selection is latched per symbol-table batch; default
+ * false performs no raw copy or raw-variant charging. Rows are delivered only
+ * after a valid ENDTAB, immediately before each corresponding typed callback.
+ * Includes the source record body, not its code-0 marker or table control.
+ * Source transport alone does not qualify semantics, target closure or output.
+ */
+class DRW_DxfSymbolSourceHandler {
+public:
+  virtual ~DRW_DxfSymbolSourceHandler() = default;
+  virtual bool wantsDxfSymbolSource() const { return false; }
+  virtual void addDxfSymbolSource(const DRW_TableEntry& row,
+                                 const DRW_RawDxfObject& source) = 0;
+};
+
 /** Optional source-evidence side channel. Does not extend DRW_Interface's
  * established vtable or require existing 2D consumers to retain source bytes.
  * Request once per read; default false performs no source copy. Reports are

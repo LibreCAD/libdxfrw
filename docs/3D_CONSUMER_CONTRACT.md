@@ -191,9 +191,29 @@ also require observed targets of the correct family, with explicit null slots
 retaining inheritance. Missing targets, ambiguous names, wrong families and
 nonnull unknown resource roles remain unqualified. This is selected format
 closure only: common owner/reactor/extension and APPID/LAYER/FIELD/DATALINK/block
-recursion, exact source proof of the named target rows, and complete document
+recursion, complex LTYPE-to-STYLE dependencies, and complete document
 closure remain separate gates. In particular, a TABLESTYLE reactor can target
 both its owner dictionary and a TABLE entity; it is not an owner-only relation.
+
+Actual STYLE/LTYPE row sources are now delivered by the separate, default-off
+`DRW_DxfSymbolSourceHandler` facet without extending `DRW_Interface`'s vtable.
+Opt-in is latched per table batch. Complete rows are staged through an accepted
+`ENDTAB`, then each raw row precedes its matching historical typed callback.
+An invalid later row or missing terminator publishes neither row callback for
+that batch. A consumer exception can interrupt delivery; it cannot qualify a
+partial import. Opt-out has no raw-copy or raw-variant accounting cost.
+
+The converter joins source-first rows to their typed identity only inside the
+actual import scope. Immutable raw snapshots, exact exposed/common-field
+comparison and source reference positions share the existing cumulative proof
+limits across all four style/map/symbol families. Pending, duplicate, malformed,
+late, context-mismatched or unproved rows cannot qualify selected bindings.
+Handle-free legacy rows remain transport-only. Unnamed shape-file STYLE rows
+are valid direct identities, not invented font-name entries. LTYPE uses the same
+production `update()` normalization for public dash/path/handle views and total
+length; raw literal values remain separately retained. This is not hidden-state,
+independent symbol-schema/font semantics, transitive closure, live equality or
+output proof. Unknown source fields are not thereby qualified for export.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds

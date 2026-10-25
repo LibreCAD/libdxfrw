@@ -16835,6 +16835,81 @@ bool tableStyleSourceEqual(const DRW_TableStyle& a,const DRW_TableStyle& b,DRW::
     return true;
 }
 
+bool symbolHandleEqual(const dwgHandle& a,const dwgHandle& b) noexcept {
+    return a.code==b.code && a.size==b.size && a.ref==b.ref && a.ref64==b.ref64;
+}
+
+bool textStyleSourceEqual(const DRW_Textstyle& a,const DRW_Textstyle& b,DRW::Version version) {
+    return standardDwgCommonEqual(a,b,version) && a.font==b.font && a.bigFont==b.bigFont
+        && a.genFlag==b.genFlag && a.fontFamily==b.fontFamily && symbolHandleEqual(a.xrefBlockHandle,b.xrefBlockHandle)
+        && retainedDoubleEqual(a.height,b.height) && retainedDoubleEqual(a.width,b.width)
+        && retainedDoubleEqual(a.oblique,b.oblique) && retainedDoubleEqual(a.lastHeight,b.lastHeight);
+}
+
+bool lineTypeSourceEqual(const DRW_LType& a,const DRW_LType& b,DRW::Version version) {
+    if(!standardDwgCommonEqual(a,b,version) || a.desc!=b.desc || a.size!=b.size || a.alignment!=b.alignment
+        || !retainedDoubleEqual(a.length,b.length) || !symbolHandleEqual(a.xrefBlockHandle,b.xrefBlockHandle)
+        || a.path.size()!=b.path.size() || a.segments.size()!=b.segments.size() || a.shapeHandles!=b.shapeHandles
+        || a.synchronizedLengthCount()!=b.synchronizedLengthCount() || a.retainedSegmentTextCount()!=b.retainedSegmentTextCount())return false;
+    for(std::size_t i=0;i<a.path.size();++i)if(!retainedDoubleEqual(a.path[i],b.path[i]))return false;
+    for(std::size_t i=0;i<a.segments.size();++i) {
+        const auto& x=a.segments[i];const auto& y=b.segments[i];
+        if(x.complexShapeCode!=y.complexShapeCode || x.shapeFlags!=y.shapeFlags || x.text!=y.text
+            || !symbolHandleEqual(x.styleHandle,y.styleHandle) || !retainedDoubleEqual(x.length,y.length)
+            || !retainedDoubleEqual(x.xOffset,y.xOffset) || !retainedDoubleEqual(x.yOffset,y.yOffset)
+            || !retainedDoubleEqual(x.scale,y.scale) || !retainedDoubleEqual(x.rotation,y.rotation))return false;
+    }
+    return true;
+}
+
+bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx_tableResourceReference>& refs) {
+    using R=dx_tableResourceRole;
+    std::string_view application;unsigned self=0u,owner=0u,base=0u,body=0u;bool xdata=false,dash=false;
+    std::array<bool,74> core{};
+    for(std::size_t i=0;i<raw.groups.size();++i) {
+        const auto& value=raw.groups[i];const int code=value.code();
+        const auto text=value.type()==DRW_Variant::STRING && value.content.s?std::string_view(*value.content.s):std::string_view{};
+        if(code==102) {
+            if(text=="}"){if(application.empty())return false;application={};}
+            else if(!text.empty() && text.front()=='{' && application.empty())application=text;
+            else return false;
+            continue;
+        }
+        if(application.empty()) {
+            if(code==100) {
+                if(text=="AcDbSymbolTableRecord"){if(++base!=1u || body)return false;}
+                else if(text==(line?"AcDbLinetypeTableRecord":"AcDbTextStyleTableRecord")){if(base!=1u || ++body!=1u)return false;}
+                else return false;
+            }
+            if(!xdata && body) {
+                const bool field=line?(code==2 || code==70 || code==3 || code==72 || code==73 || code==40)
+                    :(code==2 || code==70 || code==40 || code==41 || code==50 || code==71 || code==42 || code==3 || code==4);
+                if(field){if(core[static_cast<std::size_t>(code)])return false;core[static_cast<std::size_t>(code)]=true;}
+                if(line && code==49)dash=true;
+            }
+            if(code==1001){xdata=true;refs.push_back({R::AppIdName,i,code,0u});}
+            if(code==1003)refs.push_back({R::LayerName,i,code,0u});
+        }
+        if(!isDxfHandleCode(code))continue;
+        std::uint64_t handle=0u;if(!dx_standard_output::handleValue(value,handle) || handle>UINT32_MAX)return false;
+        R kind=R::Unknown;
+        if(application=="{ACAD_REACTORS" && code==330)kind=R::Reactor;
+        else if(application=="{ACAD_XDICTIONARY" && code==360)kind=R::ExtensionDictionary;
+        else if(application.empty()) {
+            if(code==5 && !base){kind=R::Self;if(++self!=1u || !handle || handle!=raw.handle)return false;}
+            else if(code==330 && !base){kind=R::Owner;if(++owner!=1u || handle!=raw.parentHandle)return false;}
+            else if(code==340 && line && dash && !xdata)kind=R::TextStyle;
+            else if(code==1005 && xdata)kind=R::XdataObjectId;
+        }
+        refs.push_back({kind,i,code,static_cast<std::uint32_t>(handle)});
+    }
+    // Optional payload fields keep their production-parser defaults. Require
+    // identity, class and the declared dash-count/flags rather than inferring
+    // those from a normalized row. Shape-file STYLE may legitimately omit 2.
+    return application.empty() && self==1u && owner==1u && base==1u && body==1u
+        && core[70] && (!line || (core[2] && core[72] && core[73] && core[40]));
+}
+
 bool tableResourceSourceReferences(const DRW_RawDxfObject& raw,bool tableStyle,std::vector<dx_tableResourceReference>& result) {
     using R=dx_tableResourceRole;
     enum class Section {None,Table,Content,Grid,Identity};
@@ -17131,6 +17206,12 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         if (!any && found->second.family!=expected) {fail(S::WrongFamily,handle);return nullptr;}
         if (found->second.invalidName) {fail(S::InvalidNamespace,handle);return nullptr;}
         if (found->second.ambiguousName) {fail(S::AmbiguousIdentity,handle);return nullptr;}
+        if(found->second.family==F::TextStyle || found->second.family==F::LineType) {
+            if(found->second.awaitingSymbol || !found->second.raw){fail(S::ResourceProofMissing,handle);return nullptr;}
+            if(found->second.rawTypedMismatch){fail(S::ResourceRawTypedMismatch,handle);return nullptr;}
+            if(!found->second.rawTypedMatched){fail(S::ResourceProofMissing,handle);return nullptr;}
+            ++report.symbolProofUses;
+        }
         return &found->second;
     };
     const auto resourceSource=[&](const dx_data::TableDxfSourceCapture::Resource& resource,std::uint32_t handle,bool style) {
@@ -17326,7 +17407,10 @@ template<class T> void dx_iface::retainTableResource(dx_tableResourceFamily fami
     if (!tableSourceCaptureOpen() || data.handle==0u) return;
     auto& source=cData->m_tableDxfSource;
     if (source.resourceCaptureFailed) return;
-    if (source.resources.count(data.handle)) {source.resourceCaptureFailed=true;return;}
+    const auto pending=source.resources.find(data.handle);
+    const bool symbol=pending!=source.resources.end() && pending->second.awaitingSymbol
+        && pending->second.family==family && !pending->second.model;
+    if (pending!=source.resources.end() && !symbol) {source.resourceCaptureFailed=true;return;}
     std::size_t bytes=0u,items=0u;
     const auto* map=dynamic_cast<const DRW_CellStyleMap*>(&data);
     using F=dx_tableResourceFamily;
@@ -17349,9 +17433,11 @@ template<class T> void dx_iface::retainTableResource(dx_tableResourceFamily fami
         resource.model=std::move(model);
         if (named) {
             std::string key;
-            resource.invalidName=data.name.empty() || data.name.find('\0')!=std::string::npos
-                || !dx_symbol_output::nameKey(data.name,key);
-            if (!resource.invalidName) {
+            const auto* textStyle=dynamic_cast<const DRW_Textstyle*>(&data);
+            const bool unnamedShape=textStyle && (textStyle->flags&1)!=0 && data.name.empty();
+            resource.invalidName=!unnamedShape && (data.name.empty() || data.name.find('\0')!=std::string::npos
+                || !dx_symbol_output::nameKey(data.name,key));
+            if (!resource.invalidName && !unnamedShape) {
                 const auto name=source.resourceNames.emplace(std::make_pair(family,std::move(key)),data.handle);
                 if (!name.second) {
                     resource.ambiguousName=true;
@@ -17378,7 +17464,12 @@ template<class T> void dx_iface::retainTableResource(dx_tableResourceFamily fami
                     || entry.m_dxfHandleCode==Role::HardOwner;
             }
         }
-        if (!source.resources.emplace(data.handle,std::move(resource)).second) source.resourceCaptureFailed=true;
+        if(symbol) {
+            resource.raw=std::move(pending->second.raw);
+            resource.rawTypedMismatch=pending->second.rawTypedMismatch;
+            pending->second=std::move(resource);
+            proveTableResourceSource(data.handle);
+        } else if (!source.resources.emplace(data.handle,std::move(resource)).second) source.resourceCaptureFailed=true;
     } catch (...) {source.resourceCaptureFailed=true;}
 }
 
@@ -17397,18 +17488,37 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
     } catch (...) {source.resourceCaptureFailed=true;}
 }
 
-void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
+bool dx_iface::wantsDxfSymbolSource() const {return tableSourceCaptureOpen();}
+
+void dx_iface::addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& raw) {
+    if(!cData)return;
+    if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
+    retainTableResourceSource(raw,&row);
+}
+
+void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_TableEntry* symbol) noexcept {
     const bool style=asciiIdentifierEquals(raw.name,"TABLESTYLE");
-    if (!tableSourceCaptureOpen() || (!style && !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP"))) return;
+    const bool text=symbol && asciiIdentifierEquals(raw.name,"STYLE");
+    const bool line=symbol && asciiIdentifierEquals(raw.name,"LTYPE");
+    if (!tableSourceCaptureOpen() || (!symbol && !style && !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP"))) return;
     auto& source=cData->m_tableDxfSource;
     if (source.resourceProofCaptureFailed) return;
     const auto found=source.resources.find(raw.handle);
     // Unmatched raw-only records retain their ordinary fallback, not partial proof.
-    const auto family=style?dx_tableResourceFamily::TableStyle:dx_tableResourceFamily::CellStyleMap;
-    if (found==source.resources.end() || found->second.family!=family) return;
-    auto& resource=found->second;
-    if (resource.raw || resource.rawTypedMismatch) {source.resourceProofCaptureFailed=true;return;}
-    resource.rawTypedMismatch=true;
+    using F=dx_tableResourceFamily;
+    const auto family=text?F::TextStyle:line?F::LineType:style?F::TableStyle:F::CellStyleMap;
+    if(symbol) {
+        if((!text && !line) || symbol->handle!=raw.handle || symbol->parentHandle!=raw.parentHandle
+            || (text && (symbol->tType!=DRW::STYLE || !dynamic_cast<const DRW_Textstyle*>(symbol)))
+            || (line && (symbol->tType!=DRW::LTYPE || !dynamic_cast<const DRW_LType*>(symbol)))
+            || found!=source.resources.end()){source.resourceProofCaptureFailed=true;return;}
+        if(!raw.handle)return; // legacy handle-free rows cannot be selected by a modern compound
+    } else {
+        if (found==source.resources.end() || found->second.family!=family) return;
+        if(found->second.raw || found->second.rawTypedMismatch){source.resourceProofCaptureFailed=true;return;}
+        found->second.rawTypedMismatch=true;
+    }
+    const auto invalid=[&](){if(symbol)source.resourceProofCaptureFailed=true;};
     const auto groups=raw.groups.size();
     if(source.resourceProofRecords>=source.maxResourceProofRecords
         || source.resourceProofGroups>source.maxResourceProofGroups || groups>source.maxResourceProofGroups-source.resourceProofGroups
@@ -17424,10 +17534,10 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
         if((value.type()!=DRW_Variant::STRING && value.type()!=DRW_Variant::INTEGER
                 && value.type()!=DRW_Variant::INTEGER64 && value.type()!=DRW_Variant::DOUBLE)
             || (value.type()==DRW_Variant::STRING && !value.content.s)
-            || value.isLayerRef() || value.rawDwgLayerReference()!=0u || value.dwgCmColorValue())return;
+            || value.isLayerRef() || value.rawDwgLayerReference()!=0u || value.dwgCmColorValue()){invalid();return;}
     std::size_t bytes=0u;
-    bool nameBudget=true;
-    if(const auto* model=dynamic_cast<const DRW_TableStyle*>(resource.model.get())) {
+    bool nameBudget=!symbol || addAssociativeRetainedBytes(sizeof(dx_data::TableDxfSourceCapture::Resource)+8u*sizeof(void*),bytes);
+    if(const auto* model=symbol?nullptr:dynamic_cast<const DRW_TableStyle*>(found->second.model.get())) {
         if(model->m_rowStyles.size()>3u)return; // production DXF profile admits at most three rows
         nameBudget=addAssociativeSlotBytes(model->m_rowStyles.size(),sizeof(UTF8STRING),bytes);
         for(const auto& row:model->m_rowStyles)
@@ -17443,8 +17553,29 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
     }
     ++source.resourceProofRecords;source.resourceProofGroups+=raw.groups.size();source.resourceProofBytes+=bytes;
     try {
-        resource.raw=std::make_shared<const DRW_RawDxfObject>(raw);
-        resource.rawTypedMismatch=true;
+        auto copy=std::make_shared<const DRW_RawDxfObject>(raw);
+        if(symbol) {
+            dx_data::TableDxfSourceCapture::Resource resource;
+            resource.family=family;resource.owner=symbol->parentHandle;resource.raw=std::move(copy);
+            resource.awaitingSymbol=true;resource.rawTypedMismatch=true;
+            if(!source.resources.emplace(raw.handle,std::move(resource)).second)source.resourceProofCaptureFailed=true;
+            return;
+        }
+        found->second.raw=std::move(copy);
+        proveTableResourceSource(raw.handle);
+    } catch (...) {source.resourceProofCaptureFailed=true;}
+}
+
+void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
+    if(!tableSourceCaptureOpen())return;
+    auto& source=cData->m_tableDxfSource;
+    const auto found=source.resources.find(handle);
+    if(source.resourceProofCaptureFailed || found==source.resources.end() || !found->second.raw || !found->second.model)return;
+    auto& resource=found->second;const auto& raw=*resource.raw;
+    const bool style=resource.family==dx_tableResourceFamily::TableStyle;
+    const bool text=resource.family==dx_tableResourceFamily::TextStyle;
+    const bool line=resource.family==dx_tableResourceFamily::LineType;
+    try {
         // fileImport publishes data.sourceVersion only after read() returns.
         // During callbacks use the already delivered declared HEADER context.
         if (raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
@@ -17471,7 +17602,15 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
         };
         std::vector<UTF8STRING> nameKeys;
         bool invalidName=false;
-        if(style) {
+        if(text) {
+            struct Replay:DRW_Textstyle{using DRW_Textstyle::parseCode;using DRW_Textstyle::validateDxf;};
+            Replay parsed;const auto* model=dynamic_cast<const DRW_Textstyle*>(resource.model.get());
+            if(!model || !decode(parsed) || !parsed.validateDxf() || !textStyleSourceEqual(parsed,*model,raw.m_version))return;
+        } else if(line) {
+            struct Replay:DRW_LType{using DRW_LType::parseCode;using DRW_LType::update;using DRW_LType::validateDxf;};
+            Replay parsed;const auto* model=dynamic_cast<const DRW_LType*>(resource.model.get());
+            if(!model || !decode(parsed) || !parsed.update() || !parsed.validateDxf() || !lineTypeSourceEqual(parsed,*model,raw.m_version))return;
+        } else if(style) {
             const auto* model=dynamic_cast<const DRW_TableStyle*>(resource.model.get());
             dx_standard_output::Probe<DRW_TableStyle> parsed;
             if(!model || !decode(parsed) || !resource.namespaceComplete || !parsed.finalizeDxfNestedStyles()
@@ -17491,7 +17630,8 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
                 || !standardDwgCommonEqual(parsed,*model,raw.m_version))return;
         }
         std::vector<dx_tableResourceReference> references;references.reserve(raw.groups.size());
-        if (!tableResourceSourceReferences(raw,style,references)) return;
+        if(text || line) {if(!symbolSourceReferences(raw,line,references))return;}
+        else if (!tableResourceSourceReferences(raw,style,references)) return;
         if(style && std::count_if(references.begin(),references.end(),[](const auto& ref){return ref.kind==dx_tableResourceRole::TextStyleName;})
             !=static_cast<std::ptrdiff_t>(nameKeys.size()))return;
         resource.references=std::move(references);

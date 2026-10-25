@@ -470,8 +470,13 @@ immutable raw/typed proof of their exposed style/common fields, including
 names, classes, IDs and default-only native fields. Cached receipts retain exact
 handle, local-definition and legacy font-name positions. Legacy row fonts and
 map format STYLE/LTYPE targets bind through the frozen identity/name indexes;
-null map formats retain explicit inheritance. Other resource families, complete
-transitive dependencies, editable equality and compound output remain open.
+selected STYLE/LTYPE rows now also require immutable raw/typed source agreement
+through the separate opt-in `DRW_DxfSymbolSourceHandler` facet. It delivers each
+source row immediately before its typed callback, only after a valid `ENDTAB`;
+opt-out consumers incur no raw-copy or raw-variant charge. LTYPE proof compares
+the production parser's normalized public projection, not independent dash/font
+semantics. Null map formats retain explicit inheritance. Other resource families,
+complete transitive dependencies, editable equality and compound output remain open.
 Same-library source agreement is not independent semantic qualification.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and

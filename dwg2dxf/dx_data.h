@@ -1028,6 +1028,7 @@ private:
             std::vector<UTF8STRING> referenceNameKeys;
             bool invalidTextStyleName{false};
             bool rawTypedMatched{false}, rawTypedMismatch{false};
+            bool awaitingSymbol{false};
         };
         std::map<std::uint32_t,Resource> resources;
         std::map<std::pair<dx_tableResourceFamily,UTF8STRING>,std::uint32_t> resourceNames;

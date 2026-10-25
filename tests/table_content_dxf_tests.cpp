@@ -71,9 +71,15 @@ struct Probe final : dx_iface {
     bool skipStyleRaw=false,duplicateStyleRaw=false;
     bool keepMutableAliases=false;
     bool duplicateStyleCallback=false;
+    bool symbolOptIn=true, forceSymbols=false, observeSymbols=false;
+    bool skipSymbolRaw=false, duplicateSymbolRaw=false, throwSymbolRaw=false;
+    std::function<void(DRW_RawDxfObject&)> alterSymbolRaw;
+    std::function<void(DRW_Textstyle&)> alterTextStyle;
+    std::function<void(DRW_LType&)> alterLType;
+    std::vector<std::string> symbolEvents;
     std::shared_ptr<DRW_TableContentDxfMetadata> mutableAlias;
     std::shared_ptr<DRW_TableStyleContentFormat> mutableFormatAlias;
-    void clear() { content.clear(); raw.clear(); unknown=0u; }
+    void clear() { content.clear(); raw.clear(); symbolEvents.clear(); unknown=0u; }
     void addTableContent(const DRW_TableContentObject& value) override {
         auto copy=value;
         if (alterContent || keepMutableAliases) {
@@ -139,8 +145,26 @@ struct Probe final : dx_iface {
         dx_iface::addTable(table);
     }
     void addTextStyle(const DRW_Textstyle& style) override {
-        dx_iface::addTextStyle(style);
+        if(observeSymbols)symbolEvents.push_back("typed:STYLE");
+        if(alterTextStyle){auto copy=style;alterTextStyle(copy);dx_iface::addTextStyle(copy);}
+        else dx_iface::addTextStyle(style);
         if (duplicateStyleCallback) dx_iface::addTextStyle(style);
+    }
+    void addLType(const DRW_LType& value) override {
+        if(observeSymbols)symbolEvents.push_back("typed:LTYPE");
+        if(alterLType){auto copy=value;alterLType(copy);dx_iface::addLType(copy);}
+        else dx_iface::addLType(value);
+    }
+    bool wantsDxfSymbolSource() const override {
+        return symbolOptIn && (forceSymbols || dx_iface::wantsDxfSymbolSource());
+    }
+    void addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& source) override {
+        if(observeSymbols)symbolEvents.push_back("raw:"+source.name);
+        if(skipSymbolRaw)return;
+        if(alterSymbolRaw){auto copy=source;alterSymbolRaw(copy);dx_iface::addDxfSymbolSource(row,copy);}
+        else dx_iface::addDxfSymbolSource(row,source);
+        if(duplicateSymbolRaw)dx_iface::addDxfSymbolSource(row,source);
+        if(throwSymbolRaw)throw std::runtime_error("injected symbol source failure");
     }
 };
 void format(Tags& tags) {
@@ -1382,7 +1406,7 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("map proof source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean);
-        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=2u||!frozen.rawTypedMatched
+        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=4u||!frozen.rawTypedMatched
             ||frozen.references.empty()||!frozen.raw)return fail("map canonical proof failed");
         std::array<unsigned,11> roles{};unsigned handles=0u;
         for(const auto& ref:frozen.references) {
@@ -1652,6 +1676,159 @@ bool tableStyleProofTests(const std::filesystem::path& dir) {
     return routes==8u&&negative==mutations.size()*routes&&rawRefusals==rawFaults.size()*routes&&boundaries==64u&&callbacks==24u&&dependencies==88u&&accounting==8u;
 }
 
+// All source bodies in this test are authored locally, not copied from corpus
+// drawings. Complex dash metadata exercises the public normalized projection;
+// its STYLE dependencies are retained references, not transitive qualification.
+bool symbolSourceProofTests(const std::filesystem::path& dir) {
+    using S=dx_iface::TableBindingState;
+    const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
+    const auto path=dir/"symbol-source-proof.dxf";
+    const std::vector<std::function<void(DRW_Textstyle&)>> styleFaults{
+        [](auto& s){s.font+="changed";},[](auto& s){s.bigFont+="changed";},
+        [](auto& s){++s.genFlag;},[](auto& s){++s.fontFamily;},
+        [](auto& s){s.height+=0.5;},[](auto& s){s.width+=0.5;},
+        [](auto& s){s.oblique+=0.5;},[](auto& s){s.lastHeight+=0.5;},
+        [](auto& s){++s.xrefBlockHandle.code;},[](auto& s){++s.xrefBlockHandle.size;},
+        [](auto& s){++s.xrefBlockHandle.ref;},[](auto& s){++s.xrefBlockHandle.ref64;},
+        [](auto& s){++s.flags;},[](auto& s){s.reactorHandles.push_back(0xC110u);},
+        [](auto& s){s.setDwgCommonLinkTailValidated(true);}
+    };
+    const std::vector<std::function<void(DRW_LType&)>> lineFaults{
+        [](auto& s){s.desc+="changed";},[](auto& s){++s.size;},[](auto& s){++s.alignment;},
+        [](auto& s){s.length+=0.5;},[](auto& s){s.path[0]+=0.5;},
+        [](auto& s){s.segments[0].length+=0.5;},[](auto& s){++s.segments[0].complexShapeCode;},
+        [](auto& s){++s.segments[0].shapeFlags;},[](auto& s){s.segments[0].text+="changed";},
+        [](auto& s){s.segments[0].xOffset+=0.5;},[](auto& s){s.segments[0].yOffset+=0.5;},
+        [](auto& s){s.segments[0].scale+=0.5;},[](auto& s){s.segments[0].rotation+=0.5;},
+        [](auto& s){++s.segments[0].styleHandle.code;},[](auto& s){++s.segments[0].styleHandle.size;},
+        [](auto& s){++s.segments[0].styleHandle.ref;},[](auto& s){++s.segments[0].styleHandle.ref64;},
+        [](auto& s){s.shapeHandles.push_back(0xC101u);},[](auto& s){++s.xrefBlockHandle.code;},
+        [](auto& s){++s.xrefBlockHandle.size;},[](auto& s){++s.xrefBlockHandle.ref;},
+        [](auto& s){++s.xrefBlockHandle.ref64;},[](auto& s){++s.flags;},
+        [](auto& s){s.reactorHandles.push_back(0xC110u);},
+        [](auto& s){s.setDwgCommonLinkTailValidated(true);}
+    };
+    const std::vector<std::function<void(DRW_RawDxfObject&)>> rawFaults{
+        [](auto& r){r.m_version=DRW::AC1015;},[](auto& r){r.name="LAYER";},
+        [](auto& r){++r.handle;},[](auto& r){++r.parentHandle;},
+        [](auto& r){r.groups[0].addString(5,"FFFF");},
+        [](auto& r){for(auto& g:r.groups)if(g.code()==100){g.addString(100,"UnknownSubclass");break;}},
+        [](auto& r){for(std::size_t i=0;i<r.groups.size();++i)if(r.groups[i].code()==70){r.groups.erase(r.groups.begin()+static_cast<std::ptrdiff_t>(i));if(r.hasRawValues)r.rawValues.erase(r.rawValues.begin()+static_cast<std::ptrdiff_t>(i));break;}},
+        [](auto& r){r.groups.emplace_back(70,0);if(r.hasRawValues)r.rawValues.push_back("0");},
+        [](auto& r){if(r.hasRawValues)r.rawValues[0]="wrong scalar";else r.hasRawValues=true;},
+        [](auto& r){r.groups.emplace_back(10,DRW_Coord(1,2,3));if(r.hasRawValues)r.rawValues.push_back("1");},
+        [](auto& r){r.groups.front().setLayerRefName("not a raw scalar");}
+    };
+    unsigned routes=0u,typed=0u,raw=0u,callbacks=0u,boundaries=0u,transport=0u;
+    for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
+        auto good=legacyTableStyleSource(revision);
+        const auto line=slot(good,5,"C102");auto lineEnd=line;while(good[lineEnd].code!=0)++lineEnd;
+        good[slot(good,73,"0")].value="2";
+        const Tags segments{{49,"1.25"},{74,"2"},{75,"0"},{340,"C101"},{46,"0.75"},
+            {50,"30"},{44,"0.125"},{45,"-0.25"},{9,"dash-é"},
+            {49,"-0.5"},{74,"4"},{75,"7"},{340,"C103"},{46,"2"},{50,"45"},{44,"0"},{45,"0"}};
+        good.insert(good.begin()+static_cast<std::ptrdiff_t>(lineEnd),segments.begin(),segments.end());
+        const auto text=slot(good,5,"C101");auto textEnd=text;while(good[textEnd].code!=0)++textEnd;
+        const Tags shape{{0,"STYLE"},{5,"C103"},{330,"20"},{100,"AcDbSymbolTableRecord"},
+            {100,"AcDbTextStyleTableRecord"},{2,""},{70,"1"},{40,"0"},{41,"1"},
+            {50,"0"},{71,"0"},{42,"1"},{3,"local-shape.shx"},{4,""}};
+        good.insert(good.begin()+static_cast<std::ptrdiff_t>(textEnd),shape.begin(),shape.end());
+        if(!write(path,good,binary))return false;
+        Probe probe;probe.observeSymbols=true;dx_data clean;
+        if(!probe.fileImport(path.string(),&clean,false))return fail("symbol source import failed");
+        const auto report=dx_iface::tableContentBindingReport(clean);
+        const std::vector<std::string> events{"raw:STYLE","typed:STYLE","raw:STYLE","typed:STYLE","raw:LTYPE","typed:LTYPE"};
+        if(report.state!=S::Bound||report.resourceProofRecords!=5u||report.symbolProofUses==0u||probe.symbolEvents!=events)
+            return fail("symbol canonical proof/order failed");
+        for(auto handle:{0xC101u,0xC102u,0xC103u}) {
+            const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean,handle);
+            if(!frozen.raw||!frozen.rawTypedMatched||frozen.awaitingSymbol||frozen.references.empty())return fail("symbol snapshot missing");
+            for(const auto& ref:frozen.references)if(frozen.raw->groups.at(ref.groupIndex).code()!=ref.code)return fail("symbol span differs");
+        }
+        const auto* ltype=dynamic_cast<const DRW_LType*>(DxIfaceTableSourceTestAccess::resource(clean,0xC102u));
+        if(!ltype||ltype->segments.size()!=2u||ltype->length!=1.75||ltype->segments[1].styleHandle.ref!=0xC103u)
+            return fail("complex LTYPE normalization changed");
+        ++routes;
+        for(unsigned family=0;family<2u;++family) {
+            const auto count=family?lineFaults.size():styleFaults.size();
+            for(std::size_t i=0;i<count;++i) {
+                if(family)probe.alterLType=lineFaults[i];else probe.alterTextStyle=styleFaults[i];
+                dx_data bad;
+                if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)
+                    return fail("symbol typed mutation escaped family="+std::to_string(family)+" index="+std::to_string(i));
+                probe.alterTextStyle={};probe.alterLType={};dx_data restored;
+                if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("symbol typed recovery failed");
+                probe.clear();++typed;
+            }
+        }
+        for(const auto& fault:rawFaults) {
+            probe.alterSymbolRaw=fault;dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("symbol raw mutation qualified");
+            probe.alterSymbolRaw={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("symbol raw recovery failed");
+            probe.clear();++raw;
+        }
+        for(unsigned mode=0;mode<4u;++mode) {
+            probe.skipSymbolRaw=mode==0u;probe.duplicateSymbolRaw=mode==1u||mode==2u;
+            if(mode==2u)probe.alterSymbolRaw=rawFaults.back();
+            probe.symbolOptIn=mode!=3u;dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("missing/duplicate/optout symbol qualified");
+            probe.skipSymbolRaw=false;probe.duplicateSymbolRaw=false;probe.alterSymbolRaw={};probe.symbolOptIn=true;
+            dx_data restored;if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            probe.clear();++callbacks;
+        }
+        for(unsigned i=0;i<8u;++i) {
+            dx_data limited;DxIfaceTableSourceTestAccess::resourceProofLimits(limited,
+                i==0?report.resourceProofRecords-1u:i==4?report.resourceProofRecords:100000u,
+                i==1?report.resourceProofGroups-1u:i==5?report.resourceProofGroups:4000000u,
+                i==2?report.resourceProofBytes-1u:i==6?report.resourceProofBytes:64u*1024u*1024u,
+                i==3?report.resourceProofWork-1u:i==7?report.resourceProofWork:4000000u);
+            if(!probe.fileImport(path.string(),&limited,false)||dx_iface::tableContentBindingReport(limited).state!=(i<4u?S::CaptureFailed:S::Bound))return fail("symbol cumulative proof cap failed");
+            ++boundaries;
+        }
+        probe.throwSymbolRaw=true;dx_data thrown;bool threw=false;
+        try{(void)probe.fileImport(path.string(),&thrown,false);}catch(const std::runtime_error&){threw=true;}
+        if(!threw||dx_iface::tableContentBindingReport(thrown).state==S::Bound)return fail("symbol callback throw qualified");
+        probe.throwSymbolRaw=false;dx_data retry;
+        if(!probe.fileImport(path.string(),&retry,false)||dx_iface::tableContentBindingReport(retry).state!=S::Bound)return fail("symbol exception recovery failed");
+        const auto& snapshot=DxIfaceTableSourceTestAccess::mapResource(retry,0xC101u);
+        probe.addDxfSymbolSource(*snapshot.model,*snapshot.raw);
+        if(dx_iface::tableContentBindingReport(retry).state==S::Bound)return fail("late symbol callback qualified");
+        // Direct public-reader transport: default opt-out costs no raw variant
+        // nodes. Opt-in is latched for the table and fails atomically on a bad
+        // later row or missing ENDTAB, then succeeds on the same reader retry.
+        for(const char* family:{"STYLE","LTYPE"}) {
+            Tags minimal{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,revision},{0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"}};
+            const auto table=slot(good,2,family)-1u;auto end=table;while(!(good[end].code==0&&good[end].value=="ENDTAB"))++end;
+            minimal.insert(minimal.end(),good.begin()+static_cast<std::ptrdiff_t>(table),good.begin()+static_cast<std::ptrdiff_t>(end+1u));
+            minimal.insert(minimal.end(),{{0,"ENDSEC"},{0,"EOF"}});
+            if(!write(path,minimal,binary))return false;
+            Probe direct;direct.observeSymbols=true;direct.symbolOptIn=false;dx_data directData;direct.cData=&directData;
+            dxfRW codec(path.string().c_str());codec.setDxfReadTypedVariantNodeBudget(2u);
+            if(!codec.read(&direct,false)||direct.symbolEvents.empty()||direct.symbolEvents.front().find("typed:")!=0u)return fail("symbol optout charged raw nodes");
+            direct.clear();direct.symbolOptIn=true;direct.forceSymbols=true;
+            if(codec.read(&direct,false)||!direct.symbolEvents.empty())return fail("symbol raw node exhaustion published batch");
+            codec.setDxfReadTypedVariantNodeBudget(100000u);
+            if(!codec.read(&direct,false)||direct.symbolEvents.empty()||direct.symbolEvents.front().find("raw:")!=0u)return fail("symbol public-reader retry failed");
+            for(unsigned fault=0;fault<2u;++fault) {
+                auto bad=minimal;const auto endtab=slot(bad,0,"ENDTAB");
+                if(fault==0u)bad[endtab].value="ENDSEC";
+                else {
+                    const auto row=slot(bad,0,family);
+                    const Tags duplicate(bad.begin()+static_cast<std::ptrdiff_t>(row),bad.begin()+static_cast<std::ptrdiff_t>(endtab));
+                    bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(endtab),duplicate.begin(),duplicate.end());
+                }
+                direct.clear();if(!write(path,bad,binary)||codec.read(&direct,false)||!direct.symbolEvents.empty())return fail("malformed symbol batch published callbacks");
+                direct.clear();if(!write(path,minimal,binary)||!codec.read(&direct,false)||direct.symbolEvents.empty())return fail("malformed symbol batch retry failed");
+                ++transport;
+            }
+        }
+    }
+    std::cout<<"symbol source: "<<routes<<" routes; "<<typed<<" typed pairs; "<<raw<<" raw pairs; "<<callbacks
+        <<" callback pairs; "<<boundaries<<" exact/below caps; "<<transport<<" malformed batch/retry controls\n";
+    return routes==8u&&typed==320u&&raw==88u&&callbacks==32u&&boundaries==64u&&transport==32u;
+}
+
 int inspect(const char* path) {
     Probe p; dx_data data;
     const bool ok=p.fileImport(path,&data,false);
@@ -1664,7 +1841,8 @@ int inspect(const char* path) {
     std::cout<<"resource-proof records="<<bindings.resourceProofRecords<<" groups="<<bindings.resourceProofGroups
         <<" bytes="<<bindings.resourceProofBytes<<" work="<<bindings.resourceProofWork<<" map-matches="<<bindings.sourceMapMatches
         <<" style-matches="<<bindings.sourceStyleMatches<<" bound-formats="<<bindings.boundResourceReferences
-        <<" inherited-formats="<<bindings.inheritedResourceReferences<<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
+        <<" inherited-formats="<<bindings.inheritedResourceReferences<<" symbol-proof-uses="<<bindings.symbolProofUses
+        <<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
     std::cout<<"compound-state="<<static_cast<int>(compound.state)<<" tables="<<compound.tables
              <<" contents="<<compound.contents<<" geometries="<<compound.geometries
              <<" compounds="<<compound.compounds<<" records="<<compound.records
@@ -1729,10 +1907,11 @@ int main(int argc,char** argv) {
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof) return 2;
+    const bool symbolProof=argc==2 && std::string(argv[1])=="--symbol-source-proof";
+    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

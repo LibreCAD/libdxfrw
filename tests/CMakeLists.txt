@@ -532,6 +532,10 @@ add_test(NAME libdxfrw_tablestyle_source_proof
     COMMAND libdxfrw_table_content_dxf_tests --table-style-proof)
 set_tests_properties(libdxfrw_tablestyle_source_proof PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 90)
+add_test(NAME libdxfrw_symbol_source_proof
+    COMMAND libdxfrw_table_content_dxf_tests --symbol-source-proof)
+set_tests_properties(libdxfrw_symbol_source_proof PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated" TIMEOUT 60)
 
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value

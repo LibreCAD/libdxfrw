@@ -15572,6 +15572,10 @@ bool dxfRW::processLType() {
     std::string_view sectionstr;
     bool reading = false;
     DRW_LType ltype;
+    auto* sourceHandler=dynamic_cast<DRW_DxfSymbolSourceHandler*>(iface);
+    const bool captureSource=sourceHandler && sourceHandler->wantsDxfSymbolSource();
+    DRW_RawDxfObject raw;
+    std::vector<DRW_RawDxfObject> pendingSources;
     std::vector<DRW_LType> pendingLTypes;
     std::set<std::uint32_t> pendingLineTypeHandles;
     std::size_t pendingLineTypeNameBytes = 0u;
@@ -15598,6 +15602,7 @@ bool dxfRW::processLType() {
         // This object remains staged until ENDTAB. Moving it avoids an
         // uncharged duplicate of its retained strings and shared lease.
         pendingLTypes.push_back(std::move(ltype));
+        if(captureSource)pendingSources.push_back(std::move(raw));
         return true;
     };
     const auto publishLTypes = [&]() -> bool {
@@ -15615,8 +15620,15 @@ bool dxfRW::processLType() {
         if (!pendingLineTypeNameMapReservation.resize(
                 pendingLineTypeNameBytes))
             return failDxfReadRetainedBudget();
-        for (const DRW_LType &entry : pendingLTypes)
-            iface->addLType(entry);
+        if(captureSource) {
+            if(pendingSources.size()!=pendingLTypes.size())return false;
+            for(const auto& source:pendingSources)
+                if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return false;
+        }
+        for(std::size_t i=0;i<pendingLTypes.size();++i) {
+            if(captureSource)sourceHandler->addDxfSymbolSource(pendingLTypes[i],pendingSources[i]);
+            iface->addLType(pendingLTypes[i]);
+        }
         for (const DRW_LType &entry : pendingLTypes) {
             if (entry.handle != 0 && !entry.name.empty()) {
                 const auto inserted = m_readingContext.lineTypeNameMap.emplace(
@@ -15638,6 +15650,10 @@ bool dxfRW::processLType() {
             if (dxfKeywordEquals(sectionstr, "LTYPE")) {
                 reading = true;
                 ltype.reset();
+                if(captureSource) {
+                    raw=DRW_RawDxfObject{};
+                    if(!copyRawDxfCarrierName(raw,std::string(sectionstr)))return setError(DRW::BAD_CODE_PARSED);
+                }
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
                 if (!publishLTypes())
                     return setError(DRW::BAD_CODE_PARSED);
@@ -15646,7 +15662,7 @@ bool dxfRW::processLType() {
                 return setError(DRW::BAD_READ_TABLES);
             }
         } else if (reading) {
-            if (!ltype.parseCode(code, reader)) {
+            if (captureSource ? !captureAndParseRawDxfGroup(raw,code,ltype) : !ltype.parseCode(code, reader)) {
                 return setError( DRW::BAD_CODE_PARSED);
             }
         }
@@ -15776,6 +15792,10 @@ bool dxfRW::processTextStyle(){
     std::string_view sectionstr;
     bool reading = false;
     DRW_Textstyle TxtSty;
+    auto* sourceHandler=dynamic_cast<DRW_DxfSymbolSourceHandler*>(iface);
+    const bool captureSource=sourceHandler && sourceHandler->wantsDxfSymbolSource();
+    DRW_RawDxfObject raw;
+    std::vector<DRW_RawDxfObject> pendingSources;
     std::vector<DRW_Textstyle> pendingTextStyles;
     std::set<std::uint32_t> seenHandles;
     const auto publishTextStyle = [&]() -> bool {
@@ -15787,6 +15807,7 @@ bool dxfRW::processTextStyle(){
             && !seenHandles.insert(TxtSty.handle).second)
             return false;
         pendingTextStyles.push_back(std::move(TxtSty));
+        if(captureSource)pendingSources.push_back(std::move(raw));
         return true;
     };
     while (reader->readRec(&code)) {
@@ -15799,15 +15820,26 @@ bool dxfRW::processTextStyle(){
             if (dxfKeywordEquals(sectionstr, "STYLE")) {
                 reading = true;
                 TxtSty.reset();
+                if(captureSource) {
+                    raw=DRW_RawDxfObject{};
+                    if(!copyRawDxfCarrierName(raw,std::string(sectionstr)))return setError(DRW::BAD_CODE_PARSED);
+                }
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
-                for (const DRW_Textstyle &entry : pendingTextStyles)
-                    iface->addTextStyle(entry);
+                if(captureSource) {
+                    if(pendingSources.size()!=pendingTextStyles.size())return setError(DRW::BAD_CODE_PARSED);
+                    for(const auto& source:pendingSources)
+                        if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return setError(DRW::BAD_CODE_PARSED);
+                }
+                for(std::size_t i=0;i<pendingTextStyles.size();++i) {
+                    if(captureSource)sourceHandler->addDxfSymbolSource(pendingTextStyles[i],pendingSources[i]);
+                    iface->addTextStyle(pendingTextStyles[i]);
+                }
                 return true;  //found ENDTAB terminate
             } else {
                 return setError(DRW::BAD_READ_TABLES);
             }
         } else if (reading) {
-            if (!TxtSty.parseCode(code, reader)) {
+            if (captureSource ? !captureAndParseRawDxfGroup(raw,code,TxtSty) : !TxtSty.parseCode(code, reader)) {
                 return setError( DRW::BAD_CODE_PARSED);
             }
         }
