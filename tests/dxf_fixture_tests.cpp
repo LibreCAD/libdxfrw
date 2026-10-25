@@ -27,6 +27,7 @@
 #include "drw_objects.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
+#include "dwg2dxf/dx_raster_output.h"
 #include "dxf_entity_identity_test_helpers.h"
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
@@ -26154,6 +26155,227 @@ bool readDxfObjectsRecordOrder(
         && !inObjects && !input.bad();
 }
 
+void testMaterialColorLexemes(TestContext& t) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-material-color-lexemes-" + std::to_string(nonce));
+    std::error_code error;
+    if (!std::filesystem::create_directory(directory, error) || error) {
+        t.expect(false, "fresh MATERIAL color test directory is available");
+        return;
+    }
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code ignored; std::filesystem::remove_all(path, ignored); }
+    } cleanup{directory};
+    const auto bytes = [](const std::filesystem::path& path) {
+        std::ifstream stream(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(stream), {});
+    };
+    const auto captureMatches = [](const dx_data& data, int code,
+                                   std::uint32_t expected,
+                                   const std::string* lexeme) {
+        if (data.materials.size() != 1u || data.rawMaterialObjects.size() != 1u)
+            return false;
+        const auto& material = data.materials.front();
+        if (material.m_ambientColorValue != (code == 90 ? expected : 0xFFFFFFFFu)
+            || material.m_diffuseColorValue != (code == 91 ? expected : 0x80000001u)
+            || material.m_specularColorValue != (code == 92 ? expected : 0xFEDCBA98u))
+            return false;
+        const auto& raw = data.rawMaterialObjects.front();
+        std::size_t count = 0u;
+        for (std::size_t index = 0u; index < raw.groups.size(); ++index) {
+            const auto& group = raw.groups[index];
+            if (group.code() != code)
+                continue;
+            ++count;
+            if (group.type() != DRW_Variant::INTEGER64
+                || group.i64_val() != static_cast<std::int64_t>(expected)
+                || (lexeme != nullptr && (!raw.hasRawValues
+                    || raw.rawValues.size() != raw.groups.size()
+                    || raw.rawValues[index] != *lexeme)))
+                return false;
+        }
+        return count == 1u;
+    };
+    struct Value { std::string spelling; std::uint32_t bits; };
+    const std::array<Value, 9> values{{
+        {"-2147483648", 0x80000000u}, {"-1", 0xFFFFFFFFu},
+        {"-1027297396", static_cast<std::uint32_t>(-1027297396LL)},
+        {"0", 0u}, {"2147483647", 0x7FFFFFFFu},
+        {"2147483648", 0x80000000u}, {"4294967295", 0xFFFFFFFFu},
+        {" \t+04294967295 \t", 0xFFFFFFFFu}, {"-0", 0u}
+    }};
+    const std::vector<std::string> invalid{
+        "-2147483649", "4294967296", "9223372036854775808",
+        "-9223372036854775809", "1trailing", "1.0", "1e0", "0x1",
+        "", "+-1", "++1", std::string("1\0trailing", 10)
+    };
+    const auto source = directory / "source.dxf";
+    const auto output = directory / "output.dxf";
+    const auto replay = directory / "replay.dxf";
+    unsigned positives = 0u, replays = 0u, importRefusals = 0u, retries = 0u;
+    unsigned outputRefusals = 0u, outputRetries = 0u;
+    for (const auto version : {DRW::AC1027, DRW::AC1032}) {
+        const std::string revision = version == DRW::AC1027 ? "AC1027" : "AC1032";
+        for (const int code : {90, 91, 92}) {
+            for (const auto& value : values) {
+                const bool written = writeMaterialRawCaptureControl(source, false)
+                    && replaceAsciiDxfGroupValue(source, 1, revision, 0u)
+                    && replaceAsciiDxfGroupValue(source, code, value.spelling);
+                dx_iface importer;
+                dx_data data;
+                const bool imported = written && importer.fileImport(source.string(), &data, false);
+                t.expect(imported && captureMatches(data, code, value.bits, &value.spelling),
+                         "signed/unsigned MATERIAL source preserves typed bits, raw bits and exact spelling");
+                if (!imported)
+                    continue;
+                const auto original = bytes(source);
+                for (const bool binary : {false, true}) {
+                    dx_iface exporter, reader, reexporter, rereader;
+                    dx_data readback, second;
+                    const bool exported = exporter.fileExport(output.string(), version, binary, &data, false);
+                    const bool read = exported && reader.fileImport(output.string(), &readback, false);
+                    t.expect(read && captureMatches(readback, code, value.bits,
+                                                   binary ? nullptr : &value.spelling),
+                             "MATERIAL ASCII/binary output preserves color bits and ASCII raw spelling");
+                    if (!read)
+                        std::cerr << "MATERIAL color failure revision=" << revision
+                                  << " code=" << code << " binary=" << binary
+                                  << " spelling=[" << value.spelling << "] exported=" << exported << '\n';
+                    if (!read)
+                        continue;
+                    ++positives;
+                    const auto first = bytes(output);
+                    const bool reexported = reexporter.fileExport(replay.string(), version, !binary, &readback, false);
+                    t.expect(reexported && rereader.fileImport(replay.string(), &second, false)
+                                 && captureMatches(second, code, value.bits, nullptr)
+                                 && bytes(output) == first && bytes(source) == original
+                                 && captureMatches(data, code, value.bits, &value.spelling),
+                             "actual imported MATERIAL opposite-encoding reexport preserves color and source state");
+                    ++replays;
+                }
+            }
+            for (const auto& spelling : invalid) {
+                const bool written = writeMaterialRawCaptureControl(source, false)
+                    && replaceAsciiDxfGroupValue(source, 1, revision, 0u)
+                    && replaceAsciiDxfGroupValue(source, code, spelling);
+                dx_iface importer;
+                dx_data rejected;
+                const auto original = bytes(source);
+                t.expect(written && !importer.fileImport(source.string(), &rejected, false)
+                             && rejected.materials.empty() && rejected.rawMaterialObjects.empty()
+                             && bytes(source) == original,
+                         "invalid MATERIAL color rejects before typed/raw publication without editing source");
+                ++importRefusals;
+                dx_data corrected;
+                t.expect(replaceAsciiDxfGroupValue(source, code, "-1")
+                             && importer.fileImport(source.string(), &corrected, false)
+                             && captureMatches(corrected, code, 0xFFFFFFFFu, nullptr),
+                         "same importer accepts corrected signed color after numeric rejection");
+                ++retries;
+            }
+            // Exercise rollback and same-facade recovery on an actual import,
+            // not just a hand-built raw object detached from its source receipt.
+            const bool written = writeMaterialRawCaptureControl(source, false)
+                && replaceAsciiDxfGroupValue(source, 1, revision, 0u)
+                && replaceAsciiDxfGroupValue(source, code, "-1");
+            dx_iface importer, exporter;
+            dx_data data;
+            const bool imported = written && importer.fileImport(source.string(), &data, false);
+            t.expect(imported, "fault-control source imports with signed color");
+            if (!imported || data.rawMaterialObjects.size() != 1u)
+                continue;
+            auto& raw = data.rawMaterialObjects.front();
+            const auto found = std::find_if(raw.groups.begin(), raw.groups.end(),
+                [code](const DRW_Variant& group) { return group.code() == code; });
+            if (found == raw.groups.end() || raw.rawValues.size() != raw.groups.size()) {
+                t.expect(false, "fault-control raw color slot is present");
+                continue;
+            }
+            const auto index = static_cast<std::size_t>(found - raw.groups.begin());
+            const std::string savedSpelling = raw.rawValues[index];
+            const DRW_Variant savedGroup = raw.groups[index];
+            const auto original = bytes(source);
+            const std::string sentinel = "MATERIAL_COLOR_OUTPUT_MUST_STAY_UNCHANGED\n";
+            const auto refuseThenRetry = [&](bool binary, bool editGroup,
+                                             const std::string& spelling,
+                                             std::int64_t bits) {
+                { std::ofstream stream(output, std::ios::binary); stream << sentinel; }
+                if (editGroup)
+                    raw.groups[index] = DRW_Variant(code, bits);
+                else
+                    raw.rawValues[index] = spelling;
+                t.expect(!exporter.fileExport(output.string(), version, binary, &data, false)
+                             && bytes(output) == sentinel && bytes(source) == original,
+                         "invalid raw color output is atomic and leaves source bytes unchanged");
+                ++outputRefusals;
+                raw.groups[index] = savedGroup;
+                raw.rawValues[index] = savedSpelling;
+                dx_iface reader;
+                dx_data actual;
+                t.expect(exporter.fileExport(output.string(), version, binary, &data, false)
+                             && reader.fileImport(output.string(), &actual, false)
+                             && captureMatches(actual, code, 0xFFFFFFFFu,
+                                               binary ? nullptr : &savedSpelling)
+                             && captureMatches(data, code, 0xFFFFFFFFu, &savedSpelling),
+                         "restored raw color retries on the same exporter with actual readback");
+                ++outputRetries;
+            };
+            for (const auto& spelling : invalid)
+                refuseThenRetry(false, false, spelling, 0);
+            for (const auto bits : {std::int64_t(-1), std::int64_t(4294967296LL)})
+                for (const bool binary : {false, true})
+                    refuseThenRetry(binary, true, {}, bits);
+        }
+    }
+    // The MATERIAL exception must not widen ordinary groups or remain enabled
+    // after the caller restores its previous reader mode.
+    for (const int code : {90, 91, 92, 93, 420}) {
+        std::istringstream stream(std::to_string(code) + "\n4294967295\n");
+        dxfReaderAscii reader(&stream);
+        int actual = 0;
+        t.expect(!reader.readRec(&actual), "ordinary int32 group still rejects unsigned-only spelling");
+    }
+    std::istringstream stream("90\n-1\n93\n4294967295\n");
+    dxfReaderAscii reader(&stream);
+    int code = 0;
+    const bool previous = reader.setMaterialUnsignedColorValues(true);
+    t.expect(!previous && reader.readRec(&code) && code == 90 && reader.getUInt32() == 0xFFFFFFFFu,
+             "scoped MATERIAL reader exposes exact signed-decimal uint32 bits");
+    reader.setMaterialUnsignedColorValues(previous);
+    t.expect(!reader.materialUnsignedColorValuesEnabled() && !reader.readRec(&code),
+             "restoring reader mode retains ordinary numeric bounds");
+    std::istringstream unrelated("93\n4294967295\n");
+    dxfReaderAscii unrelatedReader(&unrelated);
+    unrelatedReader.setMaterialUnsignedColorValues(true);
+    t.expect(!unrelatedReader.readRec(&code), "even enabled MATERIAL mode leaves unrelated int32 groups signed-only");
+    // Independent staged-section tokenization must accept valid decimal signs
+    // in unrelated records without loosening handle grammar or integer bounds.
+    for (const auto& value : values) {
+        std::int64_t number = 0;
+        const bool read = dx_raster_output::integer(value.spelling, number);
+        t.expect(read && static_cast<std::uint32_t>(number) == value.bits,
+                 "independent observer agrees on valid signed/unsigned decimal color bits");
+    }
+    for (const auto* spelling : {"+", "+-1", "++1", "+ 1", "+1x", "9223372036854775808"}) {
+        std::int64_t number = 0;
+        t.expect(!dx_raster_output::integer(spelling, number),
+                 "independent observer rejects malformed decimal signs and overflow");
+    }
+    std::uint32_t handle = 0;
+    t.expect(!dx_raster_output::integer("+FACE", handle, 16)
+                 && !dx_raster_output::integer("-1", handle, 16),
+             "independent observer does not permit decimal sign syntax on hex handles");
+    t.expect(positives == 108u && replays == 108u && importRefusals == 72u && retries == 72u
+                 && outputRefusals == 96u && outputRetries == 96u,
+             "all MATERIAL spelling/revision/encoding/refusal/retry cells execute");
+    std::cout << "MATERIAL color controls: " << positives << " projections/"
+              << replays << " reexports/" << importRefusals << " import refusals/"
+              << retries << " corrected import retries/" << outputRefusals
+              << " output refusals/" << outputRetries << " corrected output readbacks\n";
+}
+
 void testMaterialRawCapture(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
@@ -34268,6 +34490,11 @@ int main(int argc, char** argv) {
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--material-color-lexemes") {
+        TestContext context;
+        testMaterialColorLexemes(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--material-raw-capture") {
         TestContext context;
         testMaterialRawCapture(context);
@@ -34774,6 +35001,7 @@ int main(int argc, char** argv) {
     testRawClassEntity(context);
     testEed(context);
     testRawControls(context);
+    testMaterialColorLexemes(context);
     testMaterialRawCapture(context);
     testDictionaryWithoutOwner(context);
     testNodRootOrdering(context);

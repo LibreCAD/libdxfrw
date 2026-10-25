@@ -417,6 +417,12 @@ ledger has no advertised format routes; parser acceptance and self-round-trip
 tests alone do not promote support. See [support and release notes](docs/UPGRADE_SUPPORT.md)
 for the evidence policy.
 
+DXF MATERIAL color words (groups 90/91/92) accept signed-int32 and
+unsigned-uint32 decimal spellings of the same 32-bit payload. ASCII raw replay
+keeps the original spelling; binary transport preserves the bits. Other
+numeric fields retain their existing bounds. This is color-word transport,
+not material/shading or complete drawing qualification.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

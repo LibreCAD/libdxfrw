@@ -1827,6 +1827,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --material-object-order)
     set_tests_properties(libdxfrw_material_root_output_compatibility PROPERTIES
         LABELS "fast;dxf;adapter;material;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_material_color_lexemes
+        COMMAND libdxfrw_dxf_fixture_tests --material-color-lexemes)
+    set_tests_properties(libdxfrw_material_color_lexemes PROPERTIES
+        LABELS "fast;dxf;reader;writer;material;generated" TIMEOUT 30)
     add_test(NAME libdxfrw_dxf_consumer_finalization
         COMMAND libdxfrw_dxf_fixture_tests --dxf-consumer-finalization)
     set_tests_properties(libdxfrw_dxf_consumer_finalization PROPERTIES

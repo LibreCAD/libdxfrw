@@ -55,6 +55,12 @@ inline std::string_view trim(std::string_view s) {
 }
 template<class I> bool integer(std::string_view s, I& value, int base = 10) {
     s = trim(s);
+    // Decimal DXF integers permit a leading plus. Hexadecimal handles do not.
+    // Strip only one sign and require a digit, never accept "+-1" or "++1".
+    if (base == 10 && !s.empty() && s.front() == '+') {
+        s.remove_prefix(1);
+        if (s.empty() || s.front() < '0' || s.front() > '9') return false;
+    }
     const auto p = std::from_chars(s.data(), s.data() + s.size(), value, base);
     return !s.empty() && p.ec == std::errc{} && p.ptr == s.data() + s.size();
 }

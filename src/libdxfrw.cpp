@@ -21572,7 +21572,7 @@ int dxfSignedInt32BitPattern(std::uint32_t value) noexcept {
             (std::numeric_limits<std::uint32_t>::max)() - value);
 }
 
-bool isValidRawDxfUInt32Lexeme(const std::string& text) {
+bool isValidRawDxfMaterialColorLexeme(const std::string& text) {
     if (!isSafeAsciiDxfLexeme(text))
         return false;
     std::size_t begin = 0u;
@@ -21583,11 +21583,18 @@ bool isValidRawDxfUInt32Lexeme(const std::string& text) {
         --end;
     if (begin == end)
         return false;
-    std::uint32_t value = 0u;
+    std::int64_t value = 0;
     const char* first = text.data() + begin;
     const char* last = text.data() + end;
+    if (*first == '+') {
+        if (++first == last || *first < '0' || *first > '9')
+            return false;
+    }
     const auto parsed = std::from_chars(first, last, value, 10);
-    return parsed.ec == std::errc{} && parsed.ptr == last;
+    return parsed.ec == std::errc{} && parsed.ptr == last
+        && value >= std::numeric_limits<std::int32_t>::min()
+        && value <= static_cast<std::int64_t>(
+            std::numeric_limits<std::uint32_t>::max());
 }
 
 bool isValidRawDxfLexeme(int code, RawValType type,
@@ -21632,7 +21639,7 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
             && group.type() == DRW_Variant::INTEGER64;
         if (writesRawValues
             && !(materialUnsignedColor
-                     ? isValidRawDxfUInt32Lexeme(rawValues[groupIndex])
+                     ? isValidRawDxfMaterialColorLexeme(rawValues[groupIndex])
                      : isValidRawDxfLexeme(code, type,
                                            rawValues[groupIndex]))) {
             return false;

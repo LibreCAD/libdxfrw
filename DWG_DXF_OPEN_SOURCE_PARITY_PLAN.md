@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cs modern CLI targets and history-source readiness (2026-10-25):** explicit `-v2013`/`-v2018` now work in positional, FreeCAD-style `-o` and batch forms without changing defaults or safety gates. Fast normal/ASan checks cover 24 two-pass routes, four batches, twelve atomic refusals and four corrected retries; the normal CLI contract and both LibreCAD_3 gates also pass. Research identifies separate signed MATERIAL-color import and strict dictionary-closure failures; broader SWEEP history still needs embedded-carrier/reference evidence. These failures are not fixed by version selection. [Implementation and ready sub-plans](#implementation-progress-rpp-5cs-modern-cli-targets-and-history-source-readiness-2026-10-25) · [receipt](docs/research/rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json). Strict admission stays **CLOSED**; external/platform and independent semantic qualification remain open.
+**Newest implementation checkpoint — RPP-5ct signed MATERIAL color-word transport (2026-10-25):** scoped ASCII import and raw replay now preserve signed/unsigned spellings of MATERIAL's 32-bit color words. The independent staged token observer also accepts a single decimal plus without relaxing hex handles. Two revisions/encodings pass 108 projections, 108 imported reexports, 72 import refusal/recovery pairs and 96 atomic output refusal/readback pairs. Sixteen affected normal/ASan tests, CLI optional-build registration and both LibreCAD_3 gates pass. The real AC1032 example now imports to EOF, then correctly refuses unqualified OBJECTS export. Strict dictionary closure and broader history/native/platform qualification remain open; strict admission stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5ct-signed-material-color-word-transport-2026-10-25) · [receipt](docs/research/rpp5ct-signed-material-color-word-transport-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5cs modern CLI targets and history-source readiness (2026-10-25):** committed as `bad481d230499c78f37c4a91d35f224993754e57`. Explicit `-v2013`/`-v2018` work in positional, FreeCAD-style `-o` and batch forms without changing defaults or safety gates. Its modern CLI/readback evidence remains valid. RPP-5ct supersedes only the then-open signed MATERIAL-color failure; its strict dictionary and broader SWEEP prerequisites remain open. [Historical implementation and sub-plans](#implementation-progress-rpp-5cs-modern-cli-targets-and-history-source-readiness-2026-10-25) · [immutable receipt](docs/research/rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5cr selected raw ACSH history DXF reexport (2026-10-25):** committed as `a646f4f00c6d3cfb54fc8a6769ab1d49c3b6b159`. The canonical BOX/history reexport gap is fixed through bounded raw capture, paired typed identities, reciprocal role closure, frozen source context and exact staged/final output proof. Both revisions/encodings pass 88 preflight and 104 late-callback refusals with 192 restored readbacks; an independent reader verifies all 12 retained files. The 29-test normal/ASan cohorts, final extended scalar controls and both LibreCAD_3 gates pass. This proves the selected facade route, not strict CLI document closure: RPP-5cs records that distinct remaining refusal. Other history profiles and native semantic/platform qualification remain open; strict admission stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cr-selected-raw-acsh-history-dxf-reexport-2026-10-25) · [receipt](docs/research/rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json).
 
@@ -123110,7 +123112,9 @@ native ACIS/ACDS semantics.
 
 Next implementation-ready sub-plans, in dependency order:
 
-1. [ ] **Signed MATERIAL color spellings.** Reproduce with minimal locally
+1. [x] **Signed MATERIAL color spellings.** Implemented and verified by
+   [RPP-5ct](#implementation-progress-rpp-5ct-signed-material-color-word-transport-2026-10-25).
+   The following is the original readiness contract. Reproduce with minimal locally
    authored ASCII records, then consult primary DXF color definitions. If
    confirmed, accept only the signed-int32 and unsigned-uint32 decimal union
    for MATERIAL color groups 90/91/92, preserving the uint32 bit pattern and
@@ -123165,3 +123169,106 @@ a local slice only; no push, PR or other remote mutation is performed.
 
 Receipt:
 [`rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json`](docs/research/rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json).
+
+## Implementation progress RPP-5ct signed MATERIAL color-word transport (2026-10-25)
+
+RPP-5cs is committed as `bad481d230499c78f37c4a91d35f224993754e57`.
+Complete its signed-color import prerequisite without opening unqualified
+OBJECTS/history routes or reducing the full original parity objective.
+
+1. [x] Check primary format evidence before changing numeric acceptance.
+   Autodesk defines MATERIAL groups 90/91/92 as unsigned 32-bit color words;
+   the general group table assigns 32-bit integers to 90..99. The actual paired
+   example and ezdxf's signed default independently demonstrate negative
+   decimal spellings. Treat admitting signed-int32 spellings as a bounded
+   compatibility interpretation of those same bits, not a claim that the
+   MATERIAL table normatively specifies negative decimal syntax.
+   [Autodesk MATERIAL fields](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm),
+   [group value types](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm),
+   [ezdxf 1.4.4 MATERIAL](https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/material.py).
+2. [x] Reproduce the failure with scratch-authored rooted MATERIAL records.
+   Before implementation, the focused test exits 1 with 104 assertions failed;
+   signed imports and corrected retries fail, as does plus-prefixed raw replay.
+   Change only the existing MATERIAL-mode groups 90/91/92 to the inclusive
+   INT32_MIN..UINT32_MAX decimal range. Convert to uint32 modulo 2^32 and
+   derive the signed accessor without implementation-defined narrowing.
+   Ordinary int32 groups retain their original signed bounds. No native DWG
+   parser/layout, public library API/ABI/callback or support predicate changes.
+3. [x] Match the raw MATERIAL lexeme validator to that range. Preserve exact
+   safe ASCII spelling, including sign, leading zeroes, spaces/tabs and -0;
+   binary output uses the original uint32 payload. Reject overflow, one-beyond
+   bounds, malformed signs, fractions, exponents, hex, suffixes, empty text
+   and embedded NUL. Do not widen generic integer lexeme validation.
+4. [x] Resolve a dependency exposed by the extended positive matrix. The
+   independent staged-section integer observer rejected `+` before a decimal
+   integer even after the raw writer accepted it. Teach only base-10 parsing
+   to strip one plus followed by a digit. Keep complete-token/range checks,
+   malformed-sign refusals and hexadecimal handle grammar. This fixes a
+   proved legitimate spelling; no observer, root or owner check is disabled.
+   Initial post-fix 102/108 results were failures, not accepted completion.
+5. [x] Cover all three fields, nine positive spellings, AC1027/AC1032 and both
+   output encodings: 108 projections and 108 actual-import opposite-encoding
+   reexports. Compare all three typed color values, unique raw field/uint32
+   payload and exact first ASCII spelling; retain source/first-pass bytes and
+   source DTO state. Seventy-two malformed source cases reject before typed/
+   raw MATERIAL publication and recover using the same importer. Seventy-two
+   malformed raw spellings plus 24 out-of-range raw numeric/encoding cases
+   give 96 sentinel-preserving output refusals, each followed by restoration,
+   same-exporter retry and actual readback. Direct controls retain ordinary
+   reader bounds, mode restoration and independent observer sign/handle rules.
+   All drawings are authored at runtime; no new fixture file is committed.
+6. [x] Run affected tests rather than an entire suite per edit. Sixteen normal
+   tests pass in 7.21 s; the matching ASan cohort passes in 13.98 s. They include
+   MATERIAL replay/root compatibility, numeric locale/CLI controls, generated
+   root closure, independent token widths/profiles/faults, raw ACSH scalar and
+   history retry controls, independent native raster vectors and modern CLI
+   targets. Both LibreCAD_3 compile gates pass; normal CLI static/shared-on/off
+   registration passes in 2.69 s. ASan uses halt_on_error=1:detect_leaks=0.
+   These are scoped tests on macOS Apple Clang, not Linux/GCC, leak detection,
+   native FreeCAD or full independent geometry qualification.
+7. [x] Retry the unmodified external AC1032 example. It now parses all four
+   MATERIAL records and reaches EOF without the former group-90/read error.
+   Export then refuses `unmodeled OBJECTS record has no qualified owner/remap/
+   output route`. No output is published, and the source hash remains
+   `e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997`.
+   This closes that import blocker only: it is not a successful full-source
+   conversion, independent source equivalence or semantic/kernel certificate.
+
+Next implementation-ready actions, with the full parity objective retained:
+
+1. [ ] Resolve the canonical selected-history strict dictionary closure from
+   RPP-5cs. Identify the exact source entry/target role and source/emitted
+   inventories; require unique owner/identity mappings and frozen generation.
+   Add strict CLI ASCII/binary readback/reexport positives, wrong/missing/
+   duplicated/ambiguous-role controls, late mutation, sentinel rollback and
+   restoration/same-facade retry. Do not bypass `requireResolvedOwners` or
+   admit mere arbitrary-handle presence. Existing non-strict BOX/history
+   transport proof remains narrower than strict document closure.
+2. [ ] Inventory the external example's actually rejected unmodeled OBJECTS,
+   then implement each necessary source profile with explicit class/body and
+   reference roles. For SWEEP/EXTRUSION, independently establish embedded
+   binary carrier widths, nested handles, EED APPID/LAYER/material dependencies,
+   common links and native-vs-DXF authority before admission. Preserve exact
+   staged/final fields and references, unsupported-profile refusal and corrected
+   readback. Do not normalize away peer disagreements or copy GPL-3.0 code.
+3. [ ] Continue full native carrier/schema/owner propagation, cumulative bounds,
+   source-generation aliases, callbacks, names/body/path/EED, sparse native
+   classes, full IMAGE geometry and named-root/document closure. Preserve
+   LibreCAD/LibreCAD_3 2D compatibility and all 3D/dwg2dxf/FreeCAD requirements,
+   including independent native schema and producer-paired kernel evidence.
+4. [ ] After every implemented item, update evidence, limitations and next
+   dependency, create a fresh immutable receipt and commit/report the slice.
+   Safely self-unblock in-scope dependencies without weakening evidence or
+   authority. Prefer fast affected tests; aggregate/full suites are checkpoint
+   work, not per-edit repetition. Owning cohorts from different build trees
+   remain sequential until their legacy fixed temporary paths are isolated.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; their evidence cannot promote support claims. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. Earlier receipts are unchanged. All seventeen pre-existing
+untracked drawings and unrelated files remain excluded. No remote mutation
+or general support promotion is performed.
+
+Receipt:
+[`rpp5ct-signed-material-color-word-transport-2026-10-25.json`](docs/research/rpp5ct-signed-material-color-word-transport-2026-10-25.json).

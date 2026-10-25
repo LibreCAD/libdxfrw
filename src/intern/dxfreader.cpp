@@ -698,17 +698,24 @@ bool dxfReaderAscii::readInt32() {
         if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || errno == ERANGE
             || (materialColorValue
-                ? (parsed < 0
-                   || static_cast<unsigned long long>(parsed)
-                       > std::numeric_limits<std::uint32_t>::max())
+                ? (parsed < std::numeric_limits<std::int32_t>::min()
+                   || parsed > static_cast<long long>(
+                       std::numeric_limits<std::uint32_t>::max()))
                 : (parsed < std::numeric_limits<std::int32_t>::min()
                    || parsed > std::numeric_limits<std::int32_t>::max()))) {
             return false;
         }
         type = INT32;
         if (materialColorValue) {
+            // MATERIAL colors are uint32 bit patterns, but real producers
+            // also spell their high-bit-set values as signed decimal int32.
+            // The conversion to uint32 is modulo 2^32; keep ordinary groups
+            // signed-only and avoid implementation-defined uint32->int casts.
             uint32Data = static_cast<std::uint32_t>(parsed);
-            intData = static_cast<std::int32_t>(uint32Data);
+            intData = parsed <= std::numeric_limits<std::int32_t>::max()
+                ? static_cast<int>(parsed)
+                : -1 - static_cast<int>(
+                    std::numeric_limits<std::uint32_t>::max() - uint32Data);
         } else {
             intData = static_cast<int>(parsed);
             uint32Data = static_cast<std::uint32_t>(intData);
