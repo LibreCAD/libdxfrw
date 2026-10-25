@@ -1,3 +1,5 @@
+**Newest commit/plan checkpoint (2026-10-25):** RPP-5cp is committed as `a20cf67121b09dde2d471682c72a58d3b7d92c8f`. No tracked implementation changes remain pending. This documentation-only checkpoint records the existing verified results and narrows the next investigation to an entity-correct SAB witness and the converter's two historyless-3DSOLID guards; it does not implement that route or promote support. [Committed state and next-slice readiness](#commit-checkpoint-rpp-5cp-and-next-slice-readiness-2026-10-25).
+
 **Newest implementation checkpoint — RPP-5cp native paged DataStorage source and output proof (2026-10-25):** the RPP-5co route now has complete generated AC1027/AC1032 file imports, with native schema/search segments and a layer-bound REGION. No schema/record transplant occurs after import. Source-section bytes, decoded joins and canonical output fields pass 36 projections and 36 actual-import opposite-encoding reexports, 32 source-edit atomic restoration retries and eight strict-policy refusals. Literal record controls pass two positives and 26 corruption/restoration pairs. Final 22 normal / 22 ASan tests, CLI optional-build registration and both LibreCAD_3 compile gates pass. LibreDWG corroborates container/entity/layer/membership facts, but its schema role/decoder/search limitations do not qualify full schema or SAB semantics. Generated SAB/PNG markers are not valid geometry/image witnesses; general native carrier, semantic and platform work stays open. Strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5cp-native-paged-datastorage-source-and-output-proof-2026-10-25) · [receipt](docs/research/rpp5cp-native-paged-datastorage-source-proof-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5co retained paged DataStorage logical-payload projection (2026-10-25):** the converter no longer blanket-refuses fully retained paged payloads in the existing qualified schema/modeler projection lane. Bounded page-count/length checks reject partial or inconsistent metadata; existing version/schema/owner gates stay unchanged. Parsed local blob bytes paired with the authored profile pass four same-profile projections, four cross-profile atomic refusals with explicit corrected retries, and 22 fault/restoration retries: 30 successful projections and 30 actual-import opposite-encoding reexports preserve exact 262,145-byte payloads, lengths, chunk widths and associations. Final 19 normal / 19 ASan tests and both LibreCAD_3 compile gates pass. These are decoded-fragment byte-transport controls, not complete native DWG/schema or independent SAB qualification. Native raw-carrier/owner/document and external work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5co-retained-paged-datastorage-logical-payload-projection-2026-10-25) · [receipt](docs/research/rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json).
@@ -122731,3 +122733,76 @@ unrelated files remain excluded. Earlier receipts and remote state are unchanged
 
 Receipt:
 [`rpp5cp-native-paged-datastorage-source-proof-2026-10-25.json`](docs/research/rpp5cp-native-paged-datastorage-source-proof-2026-10-25.json).
+
+## Commit checkpoint RPP-5cp and next-slice readiness (2026-10-25)
+
+RPP-5cp implementation, test registration, plan and immutable receipt are
+committed as `a20cf67121b09dde2d471682c72a58d3b7d92c8f`. The tracked
+working tree was clean before this plan-only update. No new codec, converter,
+public API, test assertion or support predicate is changed by this checkpoint.
+
+Verified completed work remains:
+
+- [x] Complete generated AC1027/AC1032 native imports, schema/record joins,
+  whole-section byte identity and layer-bound REGION ownership proof.
+- [x] 36 projections/readbacks, 36 actual-import opposite-encoding reexports,
+  32 atomic source-edit refusal/restoration retries and eight strict refusals.
+- [x] Exact canonical ACDS record fields, associations and payload chunks;
+  two literal positives and 26 observer corruption/restoration controls.
+- [x] Existing recorded validation: 22 normal tests (16.44 s), 22 ASan tests
+  (26.96 s), both LibreCAD_3 compile gates and CLI static/shared-on/off
+  registration (3.17 s). These results belong to RPP-5cp, not a fresh suite
+  run for this documentation edit; the original receipt remains unchanged.
+
+Next bounded slice — candidate RPP-5cq, not yet implemented or reproduced:
+
+1. [ ] Use an actual valid six-face solid SAB from the existing scratch witness
+   tool and preserve its native 3DSOLID entity kind. Start with the small inline
+   payload; do not pad a valid SAB to force paging, relabel it as REGION or
+   replace the existing marker-bearing paged REGION regression controls.
+   Capture payload hashes, topology/metric expectations, units evidence and
+   raw optional-reader observations separately from transport assertions.
+2. [ ] Reproduce and attribute the historyless-solid export refusal before
+   changing production. Inspection identifies REGION-only zero-history guards
+   in both `collectAcdsHistoryProxyObjects` and
+   `collectAcdsTypedBoxHistoryObjects`. This is a candidate bounded restriction,
+   not yet evidence that all other source/profile requirements are satisfied.
+   Verify the relevant specification and actual source/imported fields before
+   deciding which admission changes are justified.
+3. [ ] Extend only the scratch source generator as needed for a bounded inline
+   SAB and an explicit 3DSOLID type. Preserve default helper bytes, existing
+   paged controls, safe empty-directory admission and original source identity.
+   Exercise actual AC1027/AC1032 native import, ASCII/binary output and parsed
+   opposite-encoding reexport; correlate exact bytes and mapped references.
+4. [ ] If the baseline and source evidence justify absent history, permit only
+   the witnessed entity/profile combination without synthesizing history.
+   Keep BODY refusal, duplicate/unused/orphaned history/proxy checks, schema/
+   version/owner/retention limits and strict-completeness refusal intact.
+   Add atomic malformed-source refusals, restored same-facade retries and
+   positive readback in both history lanes. Do not infer a general ACIS profile.
+5. [ ] Run fast affected controls during edits; run proportionate owning,
+   LibreCAD_3 and normal/ASan checkpoints once the slice stabilizes. Keep
+   cross-build owning cohorts sequential. Record baseline/fix results and
+   limits in a new immutable receipt, update this plan, then commit/report
+   the verified slice. Do not repeat full suites for documentation changes.
+
+Optional-tool readiness is distinct from completed witness evidence. A fresh
+isolated Python 3.12 environment under
+`/private/tmp/libdxfrw-rpp5cq-runtime.eu0KY0/venv` now reports ezdxf 1.4.4,
+cq-acis 0.3.12 and cadquery 2.8.0 from installed package metadata. Its verifier
+self-test passes 89 contract controls and explicitly reports that no parser
+or kernel was executed, with `qualificationEligible=false`. No new geometry
+observation, native witness conversion or semantic qualification is claimed.
+The environment and install report are temporary tooling, not repository
+dependencies or durable qualification artifacts; recreate and recheck them
+if unavailable rather than relying on this path as evidence.
+
+The broader remaining work above is unchanged: independent full schema/
+payload/owner evidence; general native raw-carrier propagation and cumulative
+retention/owner bounds; owning/common-extension/source-generation closure;
+full IMAGE/named-root/document coverage; and platform/consumer qualification.
+Strict admission remains **CLOSED**; J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Keep the full LibreCAD/
+LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD objective. No drawing fixture, earlier
+receipt, unrelated untracked file or remote state is changed by this update.
