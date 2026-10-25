@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5co retained paged DataStorage logical-payload projection (2026-10-25):** the converter no longer blanket-refuses fully retained paged payloads in the existing qualified schema/modeler projection lane. Bounded page-count/length checks reject partial or inconsistent metadata; existing version/schema/owner gates stay unchanged. Parsed local blob bytes paired with the authored profile pass four same-profile projections, four cross-profile atomic refusals with explicit corrected retries, and 22 fault/restoration retries: 30 successful projections and 30 actual-import opposite-encoding reexports preserve exact 262,145-byte payloads, lengths, chunk widths and associations. Final 19 normal / 19 ASan tests and both LibreCAD_3 compile gates pass. These are decoded-fragment byte-transport controls, not complete native DWG/schema or independent SAB qualification. Native raw-carrier/owner/document and external work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5co-retained-paged-datastorage-logical-payload-projection-2026-10-25) · [receipt](docs/research/rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5cp native paged DataStorage source and output proof (2026-10-25):** the RPP-5co route now has complete generated AC1027/AC1032 file imports, with native schema/search segments and a layer-bound REGION. No schema/record transplant occurs after import. Source-section bytes, decoded joins and canonical output fields pass 36 projections and 36 actual-import opposite-encoding reexports, 32 source-edit atomic restoration retries and eight strict-policy refusals. Literal record controls pass two positives and 26 corruption/restoration pairs. Final 22 normal / 22 ASan tests, CLI optional-build registration and both LibreCAD_3 compile gates pass. LibreDWG corroborates container/entity/layer/membership facts, but its schema role/decoder/search limitations do not qualify full schema or SAB semantics. Generated SAB/PNG markers are not valid geometry/image witnesses; general native carrier, semantic and platform work stays open. Strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5cp-native-paged-datastorage-source-and-output-proof-2026-10-25) · [receipt](docs/research/rpp5cp-native-paged-datastorage-source-proof-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5co retained paged DataStorage logical-payload projection (2026-10-25):** the converter no longer blanket-refuses fully retained paged payloads in the existing qualified schema/modeler projection lane. Bounded page-count/length checks reject partial or inconsistent metadata; existing version/schema/owner gates stay unchanged. Parsed local blob bytes paired with the authored profile pass four same-profile projections, four cross-profile atomic refusals with explicit corrected retries, and 22 fault/restoration retries: 30 successful projections and 30 actual-import opposite-encoding reexports preserve exact 262,145-byte payloads, lengths, chunk widths and associations. Final 19 normal / 19 ASan tests and both LibreCAD_3 compile gates pass. These are decoded-fragment byte-transport controls, not complete native DWG/schema or independent SAB qualification. Native raw-carrier/owner/document and external work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5co-retained-paged-datastorage-logical-payload-projection-2026-10-25) · [receipt](docs/research/rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5cn audited root test adapter deduplication (2026-10-25):** two explicitly matched, uninstalled root test contexts now share adapter objects; fixture paths stay on their three driver sources. Actual normal/ASan graphs each reduce adapter compile actions from ten to six. CLI/framework, strict-warning, GBK/debug, MSVC Wave1 and sanitizer/configuration boundaries remain separate, with opt-out/PIC/export fallbacks and context-drift refusal. Makefiles and Ninja Multi-Config scratch controls pass; 23 normal and 22 ASan scoped runtime tests, four build-context/speed tests and both LibreCAD_3 compile gates pass. This is measured compile-action reduction, not a paired full-build wall-time benchmark or new format support. Owning-family/raw-carrier/document and external qualification work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5cn-audited-root-test-adapter-deduplication-2026-10-25) · [receipt](docs/research/rpp5cn-root-test-adapter-deduplication-2026-10-25.json).
 
@@ -122603,3 +122605,129 @@ excluded. Earlier receipts remain immutable.
 
 Receipt:
 [`rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json`](docs/research/rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json).
+
+## Implementation progress — RPP-5cp native paged DataStorage source and output proof (2026-10-25)
+
+RPP-5co is committed as `7d48ef27c48b7068ed325579ff42457d130a7de9`.
+Close its decoded-fragment-only verification gap by authoring and importing
+complete native files through the real reader. This is an internal generated
+source-to-output byte/reference milestone, not an independent producer,
+application/schema, kernel or whole-document support qualification.
+
+1. [x] Read ODA specification v5.4.1 sections 20.4.41, 24.1/24.2.1 and
+   24.2.2.1/.3/.4/.5/.6/.7 before extending the local native source generator.
+   Use the cached reference PDF and unchanged recorded SHA-256. Delegate common
+   entity encoding to existing library encoders; preserve existing helper
+   defaults while explicitly gating new REGION/3DSOLID and AC1027/AC1032 inputs.
+   Use existing fixed-type/handle constants, not guessed class ordinals.
+2. [x] Author a native schema-bearing paged section, not a post-import DTO
+   transplant. Grow the seed segment index from 128 to 192 bytes, relocate
+   following offsets, serialize six schemas/seven names, and add schema-index,
+   schema-data and search segments with the specified field widths/order.
+   Set the authored version/header fields, blob-header flags and 0x70 segment
+   padding from the specification. The resulting 525,952-byte section has
+   eight segments, a 262,145-byte paged payload and 262,144-byte inline thumbnail
+   carrier. Native replay writes it; the real file reader publishes exactly
+   those complete decompressed bytes and actual decoded records/schemas.
+3. [x] Author/import one minimal REGION at handle 0x708 in each native revision.
+   Bind its layer to the existing layer-0 handle 0x12 and its DataStorage tuple
+   to segment 2/schema 1/key 708. The real reader must deliver that REGION and
+   complete payload without modifying its schema/record DTO after import.
+   Check source type/profile, layer, no invented history, two blob pages,
+   decoded joins and complete raw section equality. Preserve original modeler
+   frame/payload/source identities after all exports and restoration retries.
+4. [x] Make the generator safe and reusable. Default tests create/clean only
+   a fresh owned scratch directory. Optional EMPTY_DIRECTORY preserves generated
+   artifacts for independent readers and rejects occupied destinations (actual
+   exit 1, all existing generated artifact hashes unchanged); update
+   the harness usage. Override all minimal-author table callbacks, including
+   Views/UCSs, and bind the typed external-storage peer before native writing.
+   Initial callback/context and test-call setup failures are harness readiness
+   fixes, not production parser regressions. Source generation does not change
+   production codecs, public API/ABI, callbacks, support masks or admission.
+5. [x] Keep geometry claims explicit. SAB/PNG prefixes plus deterministic
+   bytes exercise transport only; these are not valid geometry/image witnesses.
+   Do not use these generated files to qualify an application/kernel reader or
+   advertise a supported producer drawing profile. REGION is used because the
+   existing qualified route permits its absent history; do not relabel a solid
+   or invent history to bypass a profile contract.
+6. [x] Prove actual native-source output. Across the positive/fault selectors,
+   four native file instances per cohort cover two source revisions and both
+   DXF encodings. Four ordinary projections plus 32 corrected same-facade
+   projections/readbacks pass; all 36 actually imported outputs then reexport
+   to the opposite encoding and pass readback. Verify output revision, six
+   expected schemas, remapped REGION on layer 0 with the DXF modelspace owner,
+   canonical record schema-ID/ID-name/type/owner/payload-name/type/length fields,
+   and every exact 127-byte hex chunk/final chunk for both named payloads.
+   ASM_Data follows the actual emitted REGION; Thumbnail_Data retains key 700.
+7. [x] Verify atomic refusal/restoration on real imported source DTOs. Eight
+   edits in each version/encoding cover incomplete retention, total/page-sum
+   mismatch, record/modeler payload divergence, handle-key/schema-role/schema-
+   count edits: 32 sentinel-preserving refusals and restored same-facade retries
+   pass. Both selectors also prove eight strict-completeness sentinel refusals
+   before explicit AllowPartial projections. No default/strict support claim
+   follows from partial transport or corrected retries.
+8. [x] Protect the output observer itself. Literal canonical ASM/thumbnail
+   records, authored without a library writer/parser, pass two positives and
+   26 corruption/restoration pairs: wrong/missing/duplicate length, wrong bytes/
+   width, duplicate/missing/wrong-role/wrong-key owner, duplicate payload name,
+   wrong schema ID, wrong ID-section name and wrong payload type. This is local
+   independent-from-serializer field checking, not external semantic evidence.
+9. [x] Research the installed independent peer without overclaiming it.
+   LibreDWG 0.14 exits 0/SUCCESS on both retained generated files. Hashed source,
+   binary and JSON artifacts corroborate fixed REGION type 37/handle 0x708,
+   DataStorage flag/modeler version, layer hard-pointer code 5 resolving layer 0,
+   modelspace membership code 3, version-2 DataStorage and eight segment headers.
+   Six schema-index/search rows are counts only. The peer's second schema table
+   labels roles differently from the ODA order, its schema decoder hardcodes an
+   unknown-property count, and its search counters use narrower widths. The
+   pinned [0.14 decoder](https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/src/acds.spec)
+   explains those limitations; the inspected
+   [master source](https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/acds.spec)
+   still shows them. Retain the raw mismatching observations, do not reorder our
+   bytes to fit that peer, and do not count it as full schema/payload/SAB proof.
+10. [x] Final scoped verification passes: 22 normal tests in 16.44 s and
+   22 ASan tests in 26.96 s, parallelism 3 inside sequential cohorts; ASan
+   halt_on_error=1:detect_leaks=0. Both LibreCAD_3 compile gates pass. The real
+   static/shared CLI-on/off registration check passes in 3.17 s. Retain existing
+   inline/multiple/block/native replay, typed DataStorage refusal, IMAGE reactor,
+   rooted XRECORD and owning coverage. No full suite, leak/platform qualification
+   or comparative performance benchmark is claimed.
+
+Next implementation-ready work, retaining the full original parity objective:
+
+1. [ ] Obtain a genuinely valid SAB witness appropriate to its native entity
+   kind, with independently verified structure/geometry and expected metrics.
+   Do not substitute a 3D solid/mesh for a REGION merely to reuse this generator.
+   Inspect existing witness tools/readers first; native producer/schema and
+   kernel evidence remain separate requirements. A new local observer or the
+   incomplete peer's declared counts cannot satisfy independent qualification.
+2. [ ] Complete independent schema/payload/owner evidence with a capable reader
+   or producer-paired witness. Preserve the actual second-table order and 64-bit
+   search widths from ODA when comparing implementations; track the peer gaps
+   rather than hiding them behind exit status or renaming partial observations.
+3. [ ] Extend native DataStorage raw-carrier/schema/owner-byte propagation beyond
+   the generated same-profile selected REGION route, including cumulative
+   decoded-owner/retention bounds, late-source mutation and other families/
+   source generations. Existing typed-state refusal is not the final supported
+   byte route; this generated positive does not complete that general route.
+4. [ ] Continue owning/common-extension/source-generation alias contracts,
+   profile callbacks, independent names/body/path/EED, sparse native classes,
+   full IMAGE geometry and named-root/document closure. Native point19 and
+   component-coded 20/30 still need specification plus actual-source proof.
+   Preserve LibreCAD/LibreCAD_3 2D and full 3D/dwg2dxf/FreeCAD scope.
+5. [ ] Self-update plan/evidence/limits/next action and a new immutable receipt
+   after each item, safely resolve in-scope dependencies, commit/report verified
+   slices and use fast affected tests with proportionate owning/consumer/ASan
+   checkpoints. Keep cross-build owning cohorts sequential until legacy fixed
+   temp paths are isolated; avoid full-suite repetition and unnecessary stops.
+
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No independent producer/
+schema drawing or general support claim is promoted. Generated drawings/peer
+JSON stay outside the repository; all 17 pre-existing untracked drawings and
+unrelated files remain excluded. Earlier receipts and remote state are unchanged.
+
+Receipt:
+[`rpp5cp-native-paged-datastorage-source-proof-2026-10-25.json`](docs/research/rpp5cp-native-paged-datastorage-source-proof-2026-10-25.json).

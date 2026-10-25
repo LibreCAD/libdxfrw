@@ -974,6 +974,18 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-projection)
     set_tests_properties(dwg2dxf_modeler_acds_blob_projection PROPERTIES
         LABELS "fast;dwg;dxf;modeler;acds;blob;generated" TIMEOUT 60)
+    add_test(NAME dwg2dxf_native_paged_datastorage
+        COMMAND libdxfrw_dwg_local_roundtrip --native-paged-datastorage)
+    set_tests_properties(dwg2dxf_native_paged_datastorage PROPERTIES
+        LABELS "fast;dwg;dxf;modeler;acds;blob;generated" TIMEOUT 60)
+    add_test(NAME dwg2dxf_native_paged_datastorage_faults
+        COMMAND libdxfrw_dwg_local_roundtrip --native-paged-datastorage-faults)
+    set_tests_properties(dwg2dxf_native_paged_datastorage_faults PROPERTIES
+        LABELS "fast;dwg;dxf;modeler;acds;blob;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_acds_exact_record_wire_controls
+        COMMAND libdxfrw_dwg_local_roundtrip --acds-record-wire-controls)
+    set_tests_properties(libdxfrw_acds_exact_record_wire_controls PROPERTIES
+        LABELS "fast;dxf;modeler;acds;wire;generated" TIMEOUT 10)
     add_test(NAME dwg2dxf_modeler_acds_blob_faults
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-faults)
     set_tests_properties(dwg2dxf_modeler_acds_blob_faults PROPERTIES
