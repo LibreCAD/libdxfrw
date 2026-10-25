@@ -1006,6 +1006,14 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dwg_local_roundtrip --acds-typed-historyless-companion)
     set_tests_properties(dwg2dxf_acds_typed_historyless_companion PROPERTIES
         LABELS "fast;dwg;dxf;modeler;acds;history;transaction;generated" TIMEOUT 30)
+    add_test(NAME dwg2dxf_acds_history_reexport_faults
+        COMMAND libdxfrw_dwg_local_roundtrip --acds-history-reexport-faults)
+    set_tests_properties(dwg2dxf_acds_history_reexport_faults PROPERTIES
+        LABELS "fast;dxf;modeler;acds;history;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_acds_raw_scalar_wire_controls
+        COMMAND libdxfrw_dwg_local_roundtrip --acds-raw-scalar-wire-controls)
+    set_tests_properties(libdxfrw_acds_raw_scalar_wire_controls PROPERTIES
+        LABELS "fast;dxf;modeler;acds;wire;generated" TIMEOUT 10)
     add_test(NAME dwg2dxf_modeler_acds_blob_faults
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-faults)
     set_tests_properties(dwg2dxf_modeler_acds_blob_faults PROPERTIES

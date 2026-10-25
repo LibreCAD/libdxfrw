@@ -82,6 +82,38 @@ inline std::unique_ptr<dxfReader> readerFor(
 }
 
 enum class Family { Other, Dictionary, Group, Xrecord };
+// Exact ordered primitive transport for a separately admitted raw profile.
+// The caller owns field-role admission; no unknown widths or record defaults
+// are inferred. Only the current token is decoded, never a record inventory.
+template<class Mapper> bool rawScalarTransportEqual(
+        const std::vector<DRW_Variant>& source, std::string_view body,
+        const dxfRW::DxfObjectsWriteView& view, Mapper&& map) {
+    InputBuffer buffer(body); std::istream input(&buffer);
+    auto reader = readerFor(input, view,
+        std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes));
+    if (!reader) return false;
+    for (const auto& value : source) {
+        int code = 0;
+        if (!reader->readRec(&code) || code != value.code()) return false;
+        if (isDxfHandleCode(code)) {
+            if (value.type() != DRW_Variant::STRING || !value.content.s) return false;
+            std::uint32_t key = 0u, expected = 0u;
+            const auto& token = *value.content.s;
+            const auto parsed = std::from_chars(token.data(), token.data() + token.size(), key, 16);
+            if (token.empty() || parsed.ec != std::errc{} || parsed.ptr != token.data() + token.size()
+                || !map(key, expected) || reader->getHandleString() != expected) return false;
+        } else if (value.type() == DRW_Variant::STRING) {
+            if (!value.content.s || reader->getStringView() != *value.content.s) return false;
+        } else if (value.type() == DRW_Variant::INTEGER) {
+            if (reader->getInt32() != value.i_val()) return false;
+        } else if (value.type() == DRW_Variant::DOUBLE) {
+            const double actual = reader->getDouble(), expected = value.d_val();
+            if (std::memcmp(&actual, &expected, sizeof(double)) != 0) return false;
+        } else return false;
+    }
+    return buffer.position() == body.size();
+}
+
 inline Family family(std::string_view name) noexcept {
     return name == "DICTIONARY" ? Family::Dictionary
         : name == "GROUP" ? Family::Group

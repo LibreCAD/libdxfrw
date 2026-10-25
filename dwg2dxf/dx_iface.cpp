@@ -53,6 +53,8 @@ dx_raster_output::Profile rasterOutputProfile(dxfRW::DxfCompatibilityProfile pro
 }
 
 constexpr std::size_t kMaxAdapterCellStyleMapRecords = 100000u;
+constexpr std::size_t kMaxAcdsDxfHistoryRecords = 100000u;
+constexpr std::size_t kMaxAcdsDxfHistoryGroups = 4000000u;
 constexpr std::size_t kMaxAdapterCellStyleMapItems = 4000000u;
 constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
@@ -6362,6 +6364,246 @@ bool dx_iface::collectAcdsTypedBoxHistoryObjects(
     return true;
 }
 
+namespace {
+// Selected same-profile raw BOX history transport. This is a field/role
+// contract, not a generic ACSH decoder or an ACIS semantic qualification.
+bool hasAcdsDxfHistorySources(const dx_data& data) {
+    return data.acdsHistoryDxfImport.historyCallbacks != 0u
+        || std::any_of(data.rawAcdsHistoryObjects.begin(), data.rawAcdsHistoryObjects.end(),
+            [](const auto& row) { return row.name.rfind("ACSH_", 0u) == 0u; });
+}
+bool acdsDxfHistoryClosure(const dx_data& data, DRW::Version version, bool sectionsAdopted = false) {
+    const auto& receipt = data.acdsHistoryDxfImport;
+    if (receipt.historyCallbacks == 0u) return false;
+    if (data.sourceFormat != dx_source_format::DXF || data.sourceVersion != version
+        || (version != DRW::AC1027 && version != DRW::AC1032)
+        || receipt.generation == 0u || receipt.generation != data.importGeneration
+        || receipt.version != version || !receipt.successful || receipt.failed
+        || receipt.callbacks != data.rawAcdsHistoryObjects.size()
+        || receipt.callbacks > kMaxAcdsDxfHistoryRecords
+        || data.evaluationGraphs.size() > kMaxAcdsDxfHistoryRecords
+        || data.acshHistoryObjects.size() > kMaxAcdsDxfHistoryRecords
+        || data.materials.size() > kMaxAcdsDxfHistoryRecords
+        || data.dxfClasses.size() > kMaxAcdsDxfHistoryRecords
+        || !data.dataStorageSections.empty() || data.acshHistoryCaptureFailed || data.evaluationGraphCaptureFailed
+        || (sectionsAdopted ? !data.rawDxfSections.empty()
+            : data.rawDxfSections.empty() || !data.hasUnchangedAcdsRawDxfSections())) return false;
+    using Raw = DRW_RawDxfObject;
+    std::unordered_map<std::uint32_t, const Raw*> rows;
+    std::unordered_map<std::uint32_t, const DRW_EvaluationGraph*> graphs;
+    std::unordered_map<std::uint32_t, const DRW_ModelerGeometry*> modelers;
+    std::unordered_map<std::uint32_t, unsigned> materials;
+    std::map<std::string, int> classes;
+    std::size_t groups = 0u, histories = 0u;
+    for (const auto& raw : data.rawAcdsHistoryObjects) {
+        if (raw.groups.size() > kMaxAcdsDxfHistoryGroups - groups
+            || raw.handle == 0u || raw.handle == DRW::NoHandle
+            || raw.m_version != version || !rows.emplace(raw.handle, &raw).second) return false;
+        groups += raw.groups.size();
+        if (raw.name != "ACSH_HISTORY_CLASS" && raw.name != "ACSH_BOX_CLASS"
+            && raw.name != "ACAD_EVALUATION_GRAPH") return false;
+        histories += raw.name != "ACAD_EVALUATION_GRAPH";
+        ++classes[raw.name];
+    }
+    if (groups != receipt.groups || histories != receipt.historyCallbacks) return false;
+    // DXF's typed ACSH callback publishes an identity shell, not the native
+    // field body. Pair it exactly; the retained raw groups own the body proof.
+    std::unordered_set<std::uint32_t> typedHistory;
+    for (const auto& typed : data.acshHistoryObjects) {
+        const auto raw = rows.find(typed.handle);
+        if (raw == rows.end() || raw->second->name != typed.m_recordName
+            || raw->second->name == "ACAD_EVALUATION_GRAPH"
+            || raw->second->parentHandle != typed.parentHandle
+            || !typedHistory.insert(typed.handle).second
+            || !typed.appData.empty() || !typed.extData.empty()
+            || !typed.reactorHandles.empty() || typed.xDictHandle != 0u
+            || typed.m_major != 0u || typed.m_minor != 0u || typed.m_ownerHandle != 0u
+            || typed.m_historyNodeId != 0u || typed.m_showHistory || typed.m_recordHistory
+            || !typed.m_shapeParams.empty() || !typed.m_prefixStatuses.empty()
+            || typed.m_evalExprPrefix.m_complete || typed.m_historyNodePrefix.m_complete
+            || typed.m_extrusionDxfProjection.m_transformAndOptionFieldsComplete) return false;
+    }
+    if (typedHistory.size() != histories) return false;
+    for (const auto& expected : classes) {
+        DRW_Class known;
+        if (!dxfRW::dxfClassForRecordName(expected.first.c_str(), known)) return false;
+        unsigned count = 0u;
+        for (const auto& cls : data.dxfClasses) if (cls.recName == expected.first) {
+            if (++count != 1u || cls.className != known.className
+                || cls.instanceCount != expected.second || cls.wasaProxyFlag != 0) return false;
+        }
+        if (count != 1u) return false;
+    }
+    for (const auto& graph : data.evaluationGraphs)
+        if (!graphs.emplace(graph.handle, &graph).second) return false;
+    for (const auto& material : data.materials) ++materials[material.handle];
+    std::size_t examinedEntities = 0u;
+    const auto inspect = [&](const dx_ifaceBlock* block) {
+        if (!block) return true;
+        for (const auto* entity : block->ent) {
+            if (++examinedEntities > kMaxAcdsDxfHistoryGroups) return false;
+            if (!entity || (entity->eType != DRW::E3DSOLID && entity->eType != DRW::REGION)) continue;
+            if (entity->handle == 0u || entity->handle == DRW::NoHandle
+                || !modelers.emplace(entity->handle, static_cast<const DRW_ModelerGeometry*>(entity)).second
+                || rows.count(entity->handle) != 0u) return false;
+        }
+        return true;
+    };
+    if (!inspect(data.mBlock)) return false;
+    for (const auto* block : data.blocks) if (block != data.mBlock && !inspect(block)) return false;
+    const auto text = [](const Raw& row, std::size_t at, int code, const char* value) {
+        return at < row.groups.size() && row.groups[at].code() == code
+            && row.groups[at].type() == DRW_Variant::STRING && row.groups[at].c_str()
+            && std::strcmp(row.groups[at].c_str(), value) == 0;
+    };
+    const auto integer = [](const Raw& row, std::size_t at, int code, std::int32_t value) {
+        return at < row.groups.size() && row.groups[at].code() == code
+            && row.groups[at].type() == DRW_Variant::INTEGER && row.groups[at].i_val() == value;
+    };
+    const auto handle = [](const Raw& row, std::size_t at, int code, std::uint32_t& value) {
+        if (at >= row.groups.size() || row.groups[at].code() != code
+            || row.groups[at].type() != DRW_Variant::STRING || !row.groups[at].content.s) return false;
+        const auto& token = *row.groups[at].content.s;
+        if (token.empty() || token.size() > 8u) return false;
+        const auto parsed = std::from_chars(token.data(), token.data() + token.size(), value, 16);
+        return parsed.ec == std::errc{} && parsed.ptr == token.data() + token.size()
+            && value != 0u && value != DRW::NoHandle;
+    };
+    const auto identity = [&](const Raw& row) {
+        std::uint32_t self = 0u, owner = 0u;
+        return handle(row, 0u, 5, self) && self == row.handle
+            && handle(row, 1u, 330, owner) && owner == row.parentHandle;
+    };
+    std::unordered_set<std::uint32_t> used;
+    for (const auto& item : modelers) {
+        const auto& modeler = *item.second;
+        if (modeler.m_historyHandle == 0u) continue;
+        if (modeler.eType != DRW::E3DSOLID) return false;
+        const auto history = rows.find(modeler.m_historyHandle);
+        if (history == rows.end()) return false;
+        const auto& h = *history->second;
+        std::uint32_t graphHandle = 0u;
+        if (h.name != "ACSH_HISTORY_CLASS" || h.groups.size() != 9u || !identity(h)
+            || h.parentHandle != modeler.handle || !text(h, 2u, 100, "AcDbShHistory")
+            || !handle(h, 5u, 360, graphHandle)) return false;
+        for (auto at : {3u, 4u, 6u, 7u, 8u}) {
+            const int code = at == 3u ? 90 : at == 4u ? 91 : at == 6u ? 92 : at == 7u ? 280 : 281;
+            if (h.groups[at].code() != code || h.groups[at].type() != DRW_Variant::INTEGER
+                || h.groups[at].i_val() < 0 || (at >= 7u && h.groups[at].i_val() > 1)) return false;
+        }
+        const auto graphRaw = rows.find(graphHandle);
+        const auto graphTyped = graphs.find(graphHandle);
+        if (graphRaw == rows.end() || graphTyped == graphs.end()) return false;
+        const auto& g = *graphRaw->second;
+        const auto& typed = *graphTyped->second;
+        if (g.name != "ACAD_EVALUATION_GRAPH" || g.groups.size() != 13u || !identity(g)
+            || g.parentHandle != h.handle || typed.parentHandle != h.handle
+            || typed.m_nodes.size() != 1u || !typed.m_edges.empty()
+            || !typed.appData.empty() || !typed.extData.empty() || !typed.reactorHandles.empty() || typed.xDictHandle != 0u
+            || !text(g, 2u, 100, "AcDbEvalGraph")
+            || !integer(g, 3u, 96, typed.m_value96) || !integer(g, 4u, 97, typed.m_value97)) return false;
+        const auto& node = typed.m_nodes.front();
+        std::uint32_t expression = 0u;
+        if (!integer(g, 5u, 91, node.m_index) || !integer(g, 6u, 93, node.m_flags)
+            || !integer(g, 7u, 95, node.m_nextNodeIndex) || !handle(g, 8u, 360, expression)
+            || expression != node.m_expressionHandle
+            || !integer(g, 9u, 92, node.m_data1) || !integer(g, 10u, 92, node.m_data2)
+            || !integer(g, 11u, 92, node.m_data3) || !integer(g, 12u, 92, node.m_data4)) return false;
+        const auto box = rows.find(expression);
+        if (box == rows.end()) return false;
+        const auto& b = *box->second;
+        std::uint32_t material = 0u;
+        if (b.name != "ACSH_BOX_CLASS" || b.groups.size() != 35u || !identity(b)
+            || b.parentHandle != g.handle || !text(b, 2u, 100, "AcDbEvalExpr")
+            || !text(b, 6u, 100, "AcDbShHistoryNode") || !text(b, 28u, 100, "AcDbShPrimitive")
+            || !text(b, 29u, 100, "AcDbShBox") || !handle(b, 27u, 347, material)
+            || materials[material] != 1u || rows.count(material) != 0u || modelers.count(material) != 0u) return false;
+        for (auto at : {3u,4u,5u,7u,8u,25u,26u,30u,31u}) {
+            const int code = at == 3u || at == 7u || at == 30u ? 90 : at == 4u ? 98
+                : at == 5u ? 99 : at == 8u || at == 31u ? 91 : at == 25u ? 62 : 92;
+            if (b.groups[at].code() != code || b.groups[at].type() != DRW_Variant::INTEGER) return false;
+        }
+        for (std::size_t at = 9u; at != 25u; ++at)
+            if (b.groups[at].code() != 40 + static_cast<int>(at - 9u)
+                || b.groups[at].type() != DRW_Variant::DOUBLE || !std::isfinite(b.groups[at].d_val())) return false;
+        for (std::size_t at = 32u; at != 35u; ++at)
+            if (b.groups[at].code() != 40 + static_cast<int>(at - 32u)
+                || b.groups[at].type() != DRW_Variant::DOUBLE || !std::isfinite(b.groups[at].d_val())
+                || b.groups[at].d_val() <= 0.0) return false;
+        if (!used.insert(h.handle).second || !used.insert(g.handle).second || !used.insert(b.handle).second) return false;
+    }
+    return used.size() == rows.size() && graphs.size() * 3u == rows.size();
+}
+}
+
+bool dx_iface::prepareAcdsDxfHistory(DRW::Version version) {
+    if (cData->rawAcdsHistoryObjects.size() > kMaxAcdsDxfHistoryRecords) return false;
+    if (!hasAcdsDxfHistorySources(*cData)) return true;
+    try {
+        if (!acdsDxfHistoryClosure(*cData, version)) return false;
+        m_acdsDxfHistoryObjects = cData->rawAcdsHistoryObjects;
+        m_acdsDxfHistoryClasses = cData->dxfClasses;
+        m_acdsDxfHistoryReceipt = cData->acdsHistoryDxfImport;
+        m_acdsDxfHistoryGeneration = cData->importGeneration;
+        return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasUnchangedAcdsDxfHistorySources() const noexcept {
+    if (m_acdsDxfHistoryObjects.empty()) return cData == nullptr
+        || (cData->rawAcdsHistoryObjects.size() <= kMaxAcdsDxfHistoryRecords && !hasAcdsDxfHistorySources(*cData));
+    try {
+        if (!cData || cData->importGeneration != m_acdsDxfHistoryGeneration
+            || cData->rawAcdsHistoryObjects.size() != m_acdsDxfHistoryObjects.size()
+            || cData->dxfClasses.size() != m_acdsDxfHistoryClasses.size()
+            // The codec exclusively owns the already-validated raw sections
+            // during write(); the caller's moved-from container must stay empty.
+            || !acdsDxfHistoryClosure(*cData, m_acdsDxfHistoryObjects.front().m_version, true)) return false;
+        const auto& r = cData->acdsHistoryDxfImport; const auto& s = m_acdsDxfHistoryReceipt;
+        if (r.generation != s.generation || r.version != s.version || r.callbacks != s.callbacks
+            || r.historyCallbacks != s.historyCallbacks || r.groups != s.groups || r.bytes != s.bytes
+            || r.failed != s.failed || r.successful != s.successful) return false;
+        for (std::size_t n = 0u; n != m_acdsDxfHistoryClasses.size(); ++n) {
+            const auto& a = cData->dxfClasses[n]; const auto& b = m_acdsDxfHistoryClasses[n];
+            if (a.recName != b.recName || a.className != b.className || a.appName != b.appName
+                || a.proxyFlag != b.proxyFlag || a.instanceCount != b.instanceCount
+                || a.wasaProxyFlag != b.wasaProxyFlag || a.entityFlag != b.entityFlag) return false;
+        }
+        for (std::size_t n = 0u; n != m_acdsDxfHistoryObjects.size(); ++n) {
+            const auto& a = cData->rawAcdsHistoryObjects[n]; const auto& b = m_acdsDxfHistoryObjects[n];
+            if (a.name != b.name || a.handle != b.handle || a.parentHandle != b.parentHandle
+                || a.m_version != b.m_version || a.hasRawValues != b.hasRawValues || a.rawValues != b.rawValues
+                || a.groups.size() != b.groups.size()) return false;
+            for (std::size_t k = 0u; k != a.groups.size(); ++k)
+                if (!retainedVariantEqual(a.groups[k], b.groups[k])) return false;
+        }
+        return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectAcdsDxfHistory(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (m_acdsDxfHistoryObjects.empty()) return true;
+    if (m_acdsDxfHistoryInspected || !hasUnchangedAcdsDxfHistorySources()) return false;
+    m_acdsDxfHistoryInspected = true;
+    try {
+        std::map<std::uint32_t, const DRW_RawDxfObject*> expected;
+        for (const auto& row : m_acdsDxfHistoryObjects) expected.emplace(dxfW->remapHandle(row.handle), &row);
+        std::unordered_set<std::uint32_t> seen;
+        const bool inspected = dx_standard_output::inspectSelected(view, [&](std::string_view, std::uint32_t handle) {
+            return expected.count(handle) != 0u;
+        }, [&](const auto& shape, std::string_view body) {
+            const auto& row = *expected.at(shape.handle);
+            if (!seen.insert(shape.handle).second) return false;
+            return dx_standard_output::rawScalarTransportEqual(row.groups, body, view,
+                [this](std::uint32_t source, std::uint32_t& actual) {
+                    actual = dxfW->remapHandle(source);
+                    return actual != 0u && actual != DRW::NoHandle;
+                });
+        });
+        return inspected && seen.size() == expected.size();
+    } catch (...) { return false; }
+}
+
 bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                            bool includeNamedObjectRoot) {
     m_extensionDictionaryHandles.clear();
@@ -6510,6 +6752,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_map<std::uint32_t, const DRW_RenderSettings*> renderSettings;
         std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> rawRenderSettings;
         std::unordered_set<std::uint32_t> sourceHandles;
+        std::unordered_set<std::uint32_t> selectedAcdsHistoryOwners;
         std::unordered_set<std::uint32_t> sourceEntityHandles;
         std::unordered_set<std::uint32_t> linetypeHandles;
         std::unordered_set<std::uint32_t> groupReferenceHandles;
@@ -7246,6 +7489,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "invalid or duplicate EvaluationGraph handle "
                     + std::to_string(graph.handle));
+        }
+        inventoryFamily = "selected raw ACSH records";
+        for (const auto& raw : m_acdsDxfHistoryObjects) {
+            if (!examineSourceRecord()) return false;
+            if (raw.name != "ACAD_EVALUATION_GRAPH" && !sourceHandles.insert(raw.handle).second)
+                return reject(ExtensionGraphFailure::InvalidGraph, "selected ACSH handle collision");
+            if (raw.name == "ACSH_HISTORY_CLASS") selectedAcdsHistoryOwners.insert(raw.handle);
         }
         inventoryFamily = "Background records";
         for (const DRW_Background& background : data->backgrounds) {
@@ -8713,8 +8963,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         && parent == data->namedObjectDictionary.handle);
             };
             for (const DRW_EvaluationGraph& graph : data->evaluationGraphs) {
+                const bool selectedHistory = selectedAcdsHistoryOwners.count(graph.parentHandle) != 0u;
                 if (!examineEdge()
-                    || !hasEvaluationGraphOwner(graph.parentHandle))
+                    || (!selectedHistory && !hasEvaluationGraphOwner(graph.parentHandle)))
                     return reject(ExtensionGraphFailure::InvalidGraph,
                         "EvaluationGraph owner is unresolved or not representable");
                 for (const DRW_EvaluationGraphNode& node : graph.m_nodes) {
@@ -17151,6 +17402,28 @@ bool dx_data::hasUnchangedAcdsRawDxfSections() const noexcept {
 void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
     if (cData == nullptr)
         return;
+    if (data.name.rfind("ACSH_", 0u) == 0u || data.name == "ACAD_EVALUATION_GRAPH") {
+        auto& receipt = cData->acdsHistoryDxfImport;
+        if (data.name.rfind("ACSH_", 0u) == 0u && receipt.historyCallbacks < kMaxAcdsDxfHistoryRecords)
+            ++receipt.historyCallbacks;
+        if (receipt.failed) return;
+        std::size_t bytes = 0u;
+        if (cData->sourceFormat != dx_source_format::DXF
+            || receipt.generation != cData->importGeneration
+            || receipt.callbacks >= kMaxAcdsDxfHistoryRecords
+            || receipt.groups > kMaxAcdsDxfHistoryGroups
+            || data.groups.size() > kMaxAcdsDxfHistoryGroups - receipt.groups
+            || !estimateRawDxfObjectBytes(data, bytes)
+            || receipt.bytes > DRW::kMaxDxfBinaryPayloadBytes
+            || bytes > DRW::kMaxDxfBinaryPayloadBytes - receipt.bytes) {
+            receipt.failed = true; return;
+        }
+        try {
+            cData->rawAcdsHistoryObjects.push_back(data);
+            ++receipt.callbacks; receipt.groups += data.groups.size(); receipt.bytes += bytes;
+        } catch (...) { receipt.failed = true; }
+        return;
+    }
     if (data.name == "ACAD_PROXY_OBJECT") {
         if (cData->proxyObjectCaptureFailed)
             return;
@@ -20082,6 +20355,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->dictionaries.size();
     fData->dxfReadOutcome = {};
     fData->dwgReadOutcome = {};
+    fData->acdsHistoryDxfImport = {};
+    fData->acdsHistoryDxfImport.generation = fData->importGeneration;
+    fData->acdsHistoryDxfImport.failed = !fData->rawAcdsHistoryObjects.empty();
     fData->associativeDxfImport = {};
     fData->associativeDxfImport.generation = fData->importGeneration;
     fData->associativeDxfImport.typedRange.begin =
@@ -20261,6 +20537,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         finishFieldCarrierImport(success);
         finishSpatialFilterImport(success);
         completeAssociativeDxfImportReceipt(*fData, success);
+        fData->acdsHistoryDxfImport.successful = success;
+        fData->acdsHistoryDxfImport.version = success ? fData->sourceVersion : DRW::UNKNOWNV;
         if (!success) {
             std::cout << "DXF file error: format " << dxf.getVersion() << " error " << dxf.getError() << std::endl;
         }
@@ -21356,6 +21634,21 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
+    if (!hasUnchangedAcdsDxfHistorySources()
+        || (!m_acdsDxfHistoryObjects.empty() && !m_acdsDxfHistoryInspected)) return false;
+    for (const auto& row : m_acdsDxfHistoryObjects) {
+        // Generic raw writers preserve a reserved self key; unlike typed
+        // writers they do not publish a source-object binding. Prove that
+        // explicit raw contract, not a binding the codec never produced.
+        if (!dxfW || dxfW->remapHandle(row.handle) != row.handle
+            || !dxfW->dxfWriteRecordHasIdentity(row.handle, row.name, "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(row.handle, dxfW->remapHandle(row.parentHandle))) return false;
+        for (const auto& field : row.groups) if (isDxfHandleCode(field.code())) {
+            std::uint64_t source = 0u;
+            if (!dx_standard_output::handleValue(field, source)
+                || dxfW->dxfWriteRecordHandleCount(dxfW->remapHandle(static_cast<std::uint32_t>(source))) != 1u) return false;
+        }
+    }
     if (m_hatchPlanningFailed
         || !hasUnchangedXrecordWriteSources()
         || (cData != nullptr && !hasUnchangedStandardDwgObjectSources())
@@ -22237,6 +22530,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                      m_preserveGraphSourceIdentities};
     cData = fData;
     m_acdsHistoryObjects.clear();
+    m_acdsDxfHistoryObjects.clear();
+    m_acdsDxfHistoryClasses.clear();
+    m_acdsDxfHistoryReceipt = {};
+    m_acdsDxfHistoryInspected = false;
+    m_acdsDxfHistoryGeneration = 0u;
     m_acdsTypedHistoryObjects.clear();
     m_acdsTypedEvaluationGraphs.clear();
     m_acdsMaterialHandles.clear();
@@ -22990,6 +23288,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || (dwgRoot->ref64 != 0u && (!cData->hasNamedObjectDictionary
             || dwgRoot->ref64 != cData->namedObjectDictionary.handle)))) {
         reportPreflightFailure("DWG HEADER NOD reference has no validated root handoff");
+        return false;
+    }
+    if (!prepareAcdsDxfHistory(v)) {
+        reportPreflightFailure("selected raw ACSH source/role closure");
         return false;
     }
     if (!prepareExtensionObjectGraph(cData, includeNamedObjectRoot)) {
@@ -24483,6 +24785,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
+    for (const auto& row : m_acdsDxfHistoryObjects) {
+        if (!dxfW->reserveHandle(row.handle)) {
+            delete dxfW; dxfW = nullptr; return false;
+        }
+    }
     for (const DRW_EvaluationGraph& graph : cData->evaluationGraphs) {
         if (cData->dataStorageSections.empty()
             && (graph.handle == 0
@@ -24844,7 +25151,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         rawXdataHandleInventory = rawXdataHandleInventory
             || hasRawXdataHandle(block);
     dxfW->setDxfWriteRecordInventoryEnabled(
-        !m_hatchTargets.empty() || rawXdataHandleInventory
+        !m_hatchTargets.empty() || rawXdataHandleInventory || !m_acdsDxfHistoryObjects.empty()
         || !cData->m_standardDwgObjectFrames.empty()
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
         || cData->hasNamedObjectDictionary);
@@ -24859,9 +25166,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     const bool needsRasterOutput = !cData->imageDefinitions.empty() || sourceImageDictionary;
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
-    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots)
+    if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || !m_acdsDxfHistoryObjects.empty())
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots](const auto& view) {
             return hasUnchangedXrecordWriteSources()
+                && inspectAcdsDxfHistory(view)
                 && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
                 && (!needsRasterOutput || inspectRasterOutput(view))
                 && (!needsGeneratedRoots || inspectGeneratedRootOutput(view));

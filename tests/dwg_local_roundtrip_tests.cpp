@@ -15042,10 +15042,13 @@ bool runDxfAcShExtrusionProjectionCapture(
 
 bool runDxfTypedAcdsBoxRoundTrip(
     bool binary, const std::filesystem::path& directory, bool keepOutput,
-    int cmcMutation = 0, bool historylessCompanion = false) {
+    int cmcMutation = 0, bool historylessCompanion = false,
+    DRW::Version targetVersion = DRW::AC1027) {
+    if (targetVersion != DRW::AC1027 && targetVersion != DRW::AC1032) return false;
     const std::filesystem::path output = directory /
         (std::string("libdxfrw-ac1027-typed-acds-box-")
          + (binary ? "binary" : "ascii")
+         + (targetVersion == DRW::AC1032 ? "-AC1032" : "")
          + (historylessCompanion ? "-historyless-companion" : "")
          + (cmcMutation == 0 ? "" : "-cmc-refusal-"
             + std::to_string(cmcMutation)) + ".dxf");
@@ -15065,7 +15068,7 @@ bool runDxfTypedAcdsBoxRoundTrip(
     auto* modeler = new DRW_ModelerGeometry(DRW::E3DSOLID);
     modeler->handle = modelerHandle;
     modeler->m_modelerVersion = 2;
-    modeler->m_dwgSourceVersion = DRW::AC1027;
+    modeler->m_dwgSourceVersion = targetVersion;
     modeler->m_hasModelerData = true;
     modeler->m_historyHandle = historyHandle;
     modeler->setHasDataStorageBinaryData(true);
@@ -15077,6 +15080,7 @@ bool runDxfTypedAcdsBoxRoundTrip(
     source.mBlock->ent.push_back(modeler);
     source.dataStorageSections.push_back(
         makeLocalAcadSharpDataStorageSection(modelerHandle, payload));
+    source.dataStorageSections.front().m_version = targetVersion;
     DRW_ModelerGeometry* companion = nullptr;
     std::vector<std::uint8_t> companionPayload = payload;
     companionPayload.back() ^= 1u;
@@ -15238,7 +15242,7 @@ bool runDxfTypedAcdsBoxRoundTrip(
             }
             const std::string sentinel = "preserve mixed typed history destination";
             { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; if (!out) return false; }
-            const bool refused = !exporter.fileExport(output.string(), DRW::AC1027, binary, &source, false);
+            const bool refused = !exporter.fileExport(output.string(), targetVersion, binary, &source, false);
             std::ifstream in(output, std::ios::binary);
             const std::string retained(std::istreambuf_iterator<char>{in}, std::istreambuf_iterator<char>{});
             in.close();
@@ -15247,7 +15251,7 @@ bool runDxfTypedAcdsBoxRoundTrip(
             if (fault == 3u) source.acshHistoryObjects.pop_back();
             if (fault == 4u) source.evaluationGraphs.pop_back();
             if (!refused || retained != sentinel) return false;
-            if (!exporter.fileExport(output.string(), DRW::AC1027, binary, &source, false)) return false;
+            if (!exporter.fileExport(output.string(), targetVersion, binary, &source, false)) return false;
             dx_data retry; dx_iface retryReader;
             if (!retryReader.fileImport(output.string(), &retry, false)
                 || retry.rawDxfSections.size() != 1u || retry.evaluationGraphs.size() != 1u) return false;
@@ -15264,7 +15268,7 @@ bool runDxfTypedAcdsBoxRoundTrip(
             return false;
     }
     const bool exported = exporter.fileExport(
-        output.string(), DRW::AC1027, binary, &source, false);
+        output.string(), targetVersion, binary, &source, false);
     if (cmcMutation != 0) {
         std::ifstream retainedInput(output, std::ios::binary);
         const std::string retained(
@@ -15430,21 +15434,34 @@ bool runDxfTypedAcdsBoxRoundTrip(
     if (historylessCompanion) {
         const bool initialCompanion = verifyCompanion(imported);
         const auto replayPath = std::filesystem::path(output.string() + ".replay.dxf");
-        // Separate existing gap: the DXF-imported raw ACSH owner is not yet
-        // represented by the extension graph. Preserve its fail-closed path;
-        // never drop that graph just to allow the historyless neighbor.
+        // Actual imported raw history must retain the full reciprocal graph,
+        // not merely admit its owner's numeric handle to pass an inventory.
         const std::string replaySentinel = "preserve unresolved raw ACSH graph";
         { std::ofstream out(replayPath, std::ios::binary | std::ios::trunc); out << replaySentinel; if (!out) return false; }
         dx_iface replay;
         const bool replayExported = result && initialCompanion
-            && replay.fileExport(replayPath.string(), DRW::AC1027, !binary, &imported, false);
+            && replay.fileExport(replayPath.string(), targetVersion, !binary, &imported, false);
         std::ifstream retainedInput(replayPath, std::ios::binary);
         const std::string retained(std::istreambuf_iterator<char>{retainedInput}, std::istreambuf_iterator<char>{});
         retainedInput.close();
-        if (!result || !initialCompanion || replayExported || retained != replaySentinel)
+        dx_data reparsed; RawCaptureIface replayReader;
+        const bool replayRead = replayExported && replayReader.fileImport(replayPath.string(), &reparsed, false);
+        if (!replayExported) {
+            const auto& receipt = imported.acdsHistoryDxfImport;
+            std::cerr << "Raw history captured=" << imported.rawAcdsHistoryObjects.size()
+                << " callbacks=" << receipt.callbacks << " history=" << receipt.historyCallbacks
+                << " successful=" << receipt.successful << " failed=" << receipt.failed << '\n';
+            for (const auto& raw : imported.rawAcdsHistoryObjects) {
+                std::cerr << raw.name << " handle=" << raw.handle << " owner=" << raw.parentHandle << " groups=" << raw.groups.size() << ':';
+                for (const auto& field : raw.groups) std::cerr << ' ' << field.code();
+                std::cerr << '\n';
+            }
+        }
+        if (!result || !initialCompanion || !replayRead)
             std::cerr << "Mixed typed history proof: base=" << result << " companion=" << initialCompanion
-                << " unresolved-owner-reexport=" << replayExported << " sentinel=" << (retained == replaySentinel) << '\n';
-        result = result && initialCompanion && !replayExported && retained == replaySentinel;
+                << " history-reexport=" << replayExported << " sentinel=" << (retained == replaySentinel) << '\n';
+        result = result && initialCompanion && replayRead && verifyCompanion(reparsed)
+            && replayReader.objects.size() >= 3u;
         if (!keepOutput) std::filesystem::remove(replayPath, ec);
     }
     if (!result) {
@@ -15470,6 +15487,231 @@ bool runDxfTypedAcdsBoxRoundTrip(
     if (!keepOutput)
         std::filesystem::remove(output, ec);
     return result;
+}
+
+bool acdsRawScalarWireControls() {
+    const std::vector<DRW_Variant> source{{5, std::string("708")}, {330, std::string("700")},
+        {100, std::string("AcDbShHistory")}, {90, 33}, {40, 1.5}, {347, std::string("96")}};
+    const std::vector<DRW_Variant> literal{{5, std::string("901")}, {330, std::string("902")},
+        {100, std::string("AcDbShHistory")}, {90, 33}, {40, 1.5}, {347, std::string("903")}};
+    unsigned rejected = 0u;
+    for (auto version : {DRW::AC1027, DRW::AC1032}) for (bool binary : {false, true}) {
+        const auto encode = [&](const std::vector<DRW_Variant>& fields) {
+            // Author literal physical fields without any library serializer.
+            std::string out;
+            const auto number = [&](std::uint64_t value, unsigned bytes) {
+                for (unsigned i = 0; i != bytes; ++i) out.push_back(static_cast<char>(value >> (8u * i)));
+            };
+            for (const auto& field : fields) {
+                if (binary) number(static_cast<unsigned>(field.code()), 2u);
+                else out += std::to_string(field.code()) + "\n";
+                if (field.type() == DRW_Variant::STRING) {
+                    out += *field.content.s; out.push_back(binary ? '\0' : '\n');
+                } else if (field.type() == DRW_Variant::INTEGER) {
+                    if (binary) number(static_cast<std::uint32_t>(field.i_val()), 4u);
+                    else out += std::to_string(field.i_val()) + "\n";
+                } else if (field.type() == DRW_Variant::DOUBLE) {
+                    if (binary) { const double value = field.d_val(); std::uint64_t bits = 0u;
+                        std::memcpy(&bits, &value, sizeof(bits)); number(bits, 8u); }
+                    else out += field.d_val() == 1.5 ? "1.5\n" : "2.5\n";
+                }
+            }
+            return out;
+        };
+        const auto check = [&](const std::string& bytes) {
+            const dxfRW::DxfObjectsWriteView view{bytes, version, binary, "UTF-8", dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            return dx_standard_output::rawScalarTransportEqual(source, bytes, view,
+                [](std::uint32_t key, std::uint32_t& actual) {
+                    actual = key == 0x708u ? 0x901u : key == 0x700u ? 0x902u : key == 0x96u ? 0x903u : 0u;
+                    return actual != 0u;
+                });
+        };
+        if (!check(encode(literal))) return false;
+        for (unsigned fault = 1u; fault != 13u; ++fault) {
+            auto changed = literal;
+            if (fault == 1u) changed[0] = DRW_Variant(5, "999");
+            if (fault == 2u) changed[1] = DRW_Variant(330, "999");
+            if (fault == 3u) changed[5] = DRW_Variant(347, "999");
+            if (fault == 4u) changed[5] = DRW_Variant(340, "903");
+            if (fault == 5u) changed[2] = DRW_Variant(100, "WrongSubclass");
+            if (fault == 6u) changed[3] = DRW_Variant(90, 34);
+            if (fault == 7u) changed[4] = DRW_Variant(40, 2.5);
+            if (fault == 8u) changed.pop_back();
+            if (fault == 9u) changed.push_back(changed.back());
+            if (fault == 10u) std::swap(changed[3], changed[4]);
+            if (fault == 12u) changed[5] = DRW_Variant(347, "100000903");
+            auto bytes = encode(changed);
+            if (fault == 11u) bytes.resize(bytes.size() - (binary ? 1u : 2u));
+            if (check(bytes) || !check(encode(literal))) return false;
+            ++rejected;
+        }
+    }
+    std::cout << "Raw scalar wire positives=4 corruption-restoration-pairs=" << rejected << '\n';
+    return true;
+}
+
+bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {}) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto directory = keepDirectory.empty()
+        ? std::filesystem::temp_directory_path() / ("libdxfrw-acsh-replay-" + std::to_string(nonce)) : keepDirectory;
+    std::error_code ec;
+    if (!std::filesystem::create_directory(directory, ec)
+        && (ec || keepDirectory.empty() || !std::filesystem::is_directory(directory)
+            || !std::filesystem::is_empty(directory))) return false;
+    struct Cleanup { std::filesystem::path path; bool active; ~Cleanup() {
+        if (active) { std::error_code ignored; std::filesystem::remove_all(path, ignored); }
+    } } cleanup{directory, keepDirectory.empty()};
+    unsigned refusals = 0u, retries = 0u, late = 0u;
+    for (const auto version : {DRW::AC1027, DRW::AC1032}) for (bool binary : {false, true}) {
+        if (!runDxfTypedAcdsBoxRoundTrip(binary, directory, true, 0, true, version)) return false;
+        const auto input = directory / (std::string("libdxfrw-ac1027-typed-acds-box-")
+            + (binary ? "binary" : "ascii") + (version == DRW::AC1032 ? "-AC1032" : "") + "-historyless-companion.dxf");
+        dx_data source; dx_iface reader;
+        if (!reader.fileImport(input.string(), &source, false) || source.rawAcdsHistoryObjects.size() != 3u) return false;
+        const auto raw = source.rawAcdsHistoryObjects;
+        const auto graphs = source.evaluationGraphs;
+        const auto shells = source.acshHistoryObjects;
+        const auto classes = source.dxfClasses;
+        const auto materials = source.materials;
+        const auto receipt = source.acdsHistoryDxfImport;
+        const auto generation = source.importGeneration;
+        const auto rawIndex = [&](const char* name) {
+            for (std::size_t i = 0u; i != raw.size(); ++i) if (raw[i].name == name) return i;
+            return raw.size();
+        };
+        const auto h = rawIndex("ACSH_HISTORY_CLASS"), b = rawIndex("ACSH_BOX_CLASS"), g = rawIndex("ACAD_EVALUATION_GRAPH");
+        if (h == raw.size() || b == raw.size() || g == raw.size()) return false;
+        const auto restore = [&]() {
+            source.rawAcdsHistoryObjects = raw; source.evaluationGraphs = graphs;
+            source.acshHistoryObjects = shells; source.dxfClasses = classes; source.materials = materials;
+            source.acdsHistoryDxfImport = receipt; source.importGeneration = generation;
+            source.sourceVersion = version; source.sourceFormat = dx_source_format::DXF;
+        };
+        const auto verify = [&](const std::filesystem::path& output) {
+            dx_data actual; dx_iface importer;
+            if (!importer.fileImport(output.string(), &actual, false)
+                || actual.rawAcdsHistoryObjects.size() != raw.size() || actual.evaluationGraphs.size() != 1u
+                || actual.rawDxfSections.size() != 1u || actual.dxfClasses.size() != classes.size()) return false;
+            std::uint32_t actualModeler = 0u; unsigned solids = 0u, bare = 0u;
+            for (const auto* entity : actual.mBlock->ent) if (entity && entity->eType == DRW::E3DSOLID) {
+                ++solids; const auto* solid = static_cast<const DRW_ModelerGeometry*>(entity);
+                if (solid->m_historyHandle == raw[h].handle) actualModeler = solid->handle;
+                else if (solid->m_historyHandle == 0u) ++bare; else return false;
+            }
+            if (solids != 2u || bare != 1u || actualModeler == 0u) return false;
+            for (const auto& expected : raw) {
+                const DRW_RawDxfObject* found = nullptr;
+                for (const auto& row : actual.rawAcdsHistoryObjects) if (row.handle == expected.handle) {
+                    if (found) return false; found = &row;
+                }
+                if (!found || found->name != expected.name || found->groups.size() != expected.groups.size()) return false;
+                for (std::size_t i = 0u; i != expected.groups.size(); ++i) {
+                    const auto& a = expected.groups[i]; const auto& v = found->groups[i];
+                    if (a.code() != v.code() || a.type() != v.type()) return false;
+                    if (a.type() == DRW_Variant::STRING) {
+                        if (!a.content.s || !v.content.s) return false;
+                        if (isDxfHandleCode(a.code())) {
+                            auto value = static_cast<std::uint32_t>(std::stoul(*a.content.s, nullptr, 16));
+                            if (value == raw[h].parentHandle) value = actualModeler;
+                            if (static_cast<std::uint32_t>(std::stoul(*v.content.s, nullptr, 16)) != value) return false;
+                        } else if (*a.content.s != *v.content.s) return false;
+                    } else if (a.type() == DRW_Variant::INTEGER) {
+                        if (a.i_val() != v.i_val()) return false;
+                    } else if (a.type() == DRW_Variant::DOUBLE) {
+                        if (a.d_val() != v.d_val()) return false;
+                    } else return false;
+                }
+            }
+            std::vector<LocalAcdsRecordPayload> expectedPayloads, actualPayloads;
+            if (!collectAcdsRecordPayloads(source.rawDxfSections.front(), "ASM_Data", expectedPayloads)
+                || !collectAcdsRecordPayloads(actual.rawDxfSections.front(), "ASM_Data", actualPayloads)
+                || expectedPayloads.size() != 2u || actualPayloads.size() != 2u) return false;
+            // Match bytes to the solid's history role, not just a global count.
+            for (const auto* entity : source.mBlock->ent) if (entity && entity->eType == DRW::E3DSOLID) {
+                const auto* solid = static_cast<const DRW_ModelerGeometry*>(entity);
+                char sourceKey[16]{}; std::snprintf(sourceKey, sizeof(sourceKey), "%X", solid->handle);
+                const auto old = std::find_if(expectedPayloads.begin(), expectedPayloads.end(), [&](const auto& row) { return row.first == sourceKey; });
+                if (old == expectedPayloads.end()) return false;
+                bool match = false;
+                for (const auto* emitted : actual.mBlock->ent) if (emitted && emitted->eType == DRW::E3DSOLID
+                    && static_cast<const DRW_ModelerGeometry*>(emitted)->m_historyHandle == solid->m_historyHandle) {
+                    char key[16]{}; std::snprintf(key, sizeof(key), "%X", emitted->handle);
+                    match = std::any_of(actualPayloads.begin(), actualPayloads.end(), [&](const auto& row) {
+                        return row.first == key && row.second == old->second;
+                    });
+                }
+                if (!match) return false;
+            }
+            return true;
+        };
+        const auto output = directory / (std::string(version == DRW::AC1027 ? "AC1027-" : "AC1032-")
+            + (binary ? "retry-ascii.dxf" : "retry-binary.dxf"));
+        const std::string sentinel = "preserve raw history destination";
+        const auto save = [&]() { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; return bool(out); };
+        const auto preserved = [&]() { std::ifstream in(output, std::ios::binary);
+            return std::string(std::istreambuf_iterator<char>{in}, std::istreambuf_iterator<char>{}) == sentinel; };
+        const auto mutate = [&](unsigned fault) {
+            auto& rows = source.rawAcdsHistoryObjects;
+            switch (fault) {
+            case 0: source.acdsHistoryDxfImport.successful = false; break;
+            case 1: ++source.importGeneration; break;
+            case 2: ++source.acdsHistoryDxfImport.generation; break;
+            case 3: rows[h].parentHandle = 0xDEADu; break;
+            case 4: rows[h].groups[1] = DRW_Variant(330, "DEAD"); break;
+            case 5: rows[b].groups[27] = DRW_Variant(340, "96"); break;
+            case 6: rows[g].groups[8] = DRW_Variant(360, "DEAD"); break;
+            case 7: source.evaluationGraphs.front().parentHandle = 0xDEADu; break;
+            case 8: source.evaluationGraphs.front().m_nodes.front().m_expressionHandle = 0xDEADu; break;
+            case 9: rows.push_back(rows.front()); ++source.acdsHistoryDxfImport.callbacks; break;
+            case 10: source.acshHistoryObjects.front().parentHandle = 0xDEADu; break;
+            case 11: rows[h].groups[0] = DRW_Variant(5, "DEAD"); break;
+            case 12: rows[b].groups.emplace_back(102, "{ACAD_REACTORS"); break;
+            case 13: for (auto& cls : source.dxfClasses) if (cls.recName == "ACSH_HISTORY_CLASS") --cls.instanceCount; break;
+            case 14: for (auto& material : source.materials) if (material.handle == 0x96u) material.handle = 0xDEADu; break;
+            case 15: source.acshHistoryObjects.front().m_major = 1u; break;
+            case 16: source.acdsHistoryDxfImport.failed = true; break;
+            case 17: source.acdsHistoryDxfImport.historyCallbacks = 0u; break;
+            case 18: source.sourceVersion = DRW::AC1024; break;
+            case 19: source.sourceFormat = dx_source_format::DWG; break;
+            case 20: source.evaluationGraphs.front().m_nodes.push_back(source.evaluationGraphs.front().m_nodes.front()); break;
+            case 21: rows[b].name = "ACSH_BREP_CLASS"; break;
+            case 22: rows[b].groups[32] = DRW_Variant(40, 9.0); break;
+            case 23: source.dxfClasses.front().appName = "changed after admission"; break;
+            case 24: ++source.acdsHistoryDxfImport.bytes; break;
+            }
+        };
+        dx_iface exporter;
+        for (unsigned fault = 0u; fault != 22u; ++fault) {
+            mutate(fault);
+            if (!save()) return false;
+            const bool refused = !exporter.fileExport(output.string(), version, !binary, &source, false) && preserved();
+            restore();
+            if (!refused || !exporter.fileExport(output.string(), version, !binary, &source, false) || !verify(output)) {
+                std::cerr << "Raw ACSH preflight retry failed fault=" << fault << " binary=" << binary << '\n'; return false;
+            }
+            ++refusals; ++retries;
+        }
+        class Late final : public dx_iface {
+        public:
+            std::function<void()> edit; bool afterObjects = false, fired = false;
+            void writeEntities() override { dx_iface::writeEntities(); if (!afterObjects && edit) { fired = true; edit(); } }
+            void writeObjects() override { dx_iface::writeObjects(); if (afterObjects && edit) { fired = true; edit(); } }
+        } callback;
+        for (bool after : {false, true}) for (unsigned fault : {1u, 3u, 5u, 7u, 8u, 10u, 13u, 15u, 17u, 19u, 22u, 23u, 24u}) {
+            callback.afterObjects = after; callback.fired = false; callback.edit = [&]() { mutate(fault); };
+            if (!save()) return false;
+            const bool refused = !callback.fileExport(output.string(), version, !binary, &source, false)
+                && callback.fired && preserved();
+            restore(); callback.edit = {};
+            if (!refused || !callback.fileExport(output.string(), version, !binary, &source, false) || !verify(output)) {
+                std::cerr << "Raw ACSH late retry failed fault=" << fault << " afterObjects=" << after << '\n'; return false;
+            }
+            ++late; ++retries;
+        }
+    }
+    std::cout << "Raw ACSH reexport preflight-refusals=" << refusals << " late-refusals=" << late
+        << " restored-readbacks=" << retries << '\n';
+    return true;
 }
 
 const DRW_Variant* findDynamicDxfGroup(
@@ -33666,6 +33908,10 @@ int main(int argc, char** argv) {
         return verifyHatchReferenceFile(argv[2]) ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--acds-record-wire-controls") {
         return acdsRecordWireControls() ? 0 : 1;
+    } else if (argc == 2 && std::string(argv[1]) == "--acds-raw-scalar-wire-controls") {
+        return acdsRawScalarWireControls() ? 0 : 1;
+    } else if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--acds-history-reexport-faults") {
+        return acdsHistoryDxfReplayFaults(argc == 3 ? std::filesystem::path(argv[2]) : std::filesystem::path{}) ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--acds-typed-historyless-companion") {
         return runDxfTypedAcdsBoxRoundTrip(false, directory, false, 0, true)
             && runDxfTypedAcdsBoxRoundTrip(true, directory, false, 0, true) ? 0 : 1;
@@ -33853,6 +34099,8 @@ int main(int argc, char** argv) {
                      " [--native-historyless-solid[-inline][-faults] [EMPTY_DIRECTORY]]"
                      " [--native-historyless-solid-witness[-faults] SAB_FILE EMPTY_DIRECTORY]"
                      " [--acds-typed-historyless-companion]"
+                     " [--acds-history-reexport-faults [EMPTY_DIRECTORY]]"
+                     " [--acds-raw-scalar-wire-controls]"
                      " [--acds-record-wire-controls]"
                      " [--modeler-dxf-long-carrier]"
                      " [--modeler-dxf-chunk-boundaries]"

@@ -304,6 +304,15 @@ struct dx_materialImportReceipt {
     bool successful{false};
 };
 
+// CLI-only raw ACSH/EvaluationGraph capture; retained bytes are not serializer
+// or semantic qualification. One successful source generation is required.
+struct dx_acdsHistoryDxfImportReceipt {
+    std::uint64_t generation{0};
+    DRW::Version version{DRW::UNKNOWNV};
+    std::size_t callbacks{0}, historyCallbacks{0}, groups{0}, bytes{0};
+    bool failed{false}, successful{false};
+};
+
 // Binds the typed model-document view-style callbacks to their complete
 // ordered DXF carriers for one import. This proves capture pairing only; the
 // styles' resource edges and any writer route remain separate gates.
@@ -694,6 +703,8 @@ public:
     // The unsupported-object companions are DWG frame bodies, not DXF groups;
     // they are retained only for correlation/diagnostics, never DXF replay.
     std::vector<DRW_EvaluationGraph> evaluationGraphs;
+    std::vector<DRW_RawDxfObject> rawAcdsHistoryObjects;
+    dx_acdsHistoryDxfImportReceipt acdsHistoryDxfImport;
     std::size_t evaluationGraphRetainedBytes{0};
     bool evaluationGraphCaptureFailed{false};
     std::vector<DRW_AcShHistoryObject> acshHistoryObjects;

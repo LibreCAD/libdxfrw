@@ -830,6 +830,14 @@ public:
         if (dxfW == nullptr)
             return;
 
+        if (!hasUnchangedAcdsDxfHistorySources()) {
+            dxfW->writeRawDxfObject(nullptr);
+            return;
+        }
+        for (auto& record : m_acdsDxfHistoryObjects) {
+            if (!dxfW->writeRawDxfObject(&record)) return;
+        }
+
         std::uint32_t layoutDictionaryHandle = 0;
         if (cData->hasNamedObjectDictionary) {
             for (const DRW_Dictionary::Entry& entry :
@@ -1423,7 +1431,7 @@ public:
         // The bounded typed EvaluationGraph writer is independently usable
         // for ordinary DXF input. AC1027 DataStorage closures stay on their
         // stricter proxy-graph gate until ACSH field serialization is complete.
-        if (cData->dataStorageSections.empty()) {
+        if (cData->dataStorageSections.empty() && m_acdsDxfHistoryObjects.empty()) {
             for (DRW_EvaluationGraph& graph : cData->evaluationGraphs) {
                 if (!dxfW->writeEvaluationGraph(
                         &graph, "ACAD_EVALUATION_GRAPH")) {
@@ -1651,6 +1659,14 @@ private:
         std::vector<DRW_EvaluationGraph>& graphs,
         std::vector<std::uint32_t>& materialHandles, bool debug);
     std::vector<DRW_RawDxfObject> m_acdsHistoryObjects;
+    std::vector<DRW_RawDxfObject> m_acdsDxfHistoryObjects;
+    std::vector<DRW_Class> m_acdsDxfHistoryClasses;
+    dx_acdsHistoryDxfImportReceipt m_acdsDxfHistoryReceipt;
+    std::uint64_t m_acdsDxfHistoryGeneration{0};
+    bool m_acdsDxfHistoryInspected{false};
+    bool prepareAcdsDxfHistory(DRW::Version version);
+    bool hasUnchangedAcdsDxfHistorySources() const noexcept;
+    bool inspectAcdsDxfHistory(const dxfRW::DxfObjectsWriteView& view) noexcept;
     std::vector<DRW_RawDxfObject> m_acdsTypedHistoryObjects;
     std::vector<DRW_EvaluationGraph> m_acdsTypedEvaluationGraphs;
     std::vector<std::uint32_t> m_acdsMaterialHandles;

@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cq historyless 3DSOLID native transport (2026-10-25):** reproduced inline/paged refusals are fixed without inventing history or relaxing ownership inventories. A genuine six-face solid remains 3DSOLID through native AC1027/AC1032 import and DXF reexport, with independent output parsing and advisory geometry observations. All 27 normal/27 ASan tests and both LibreCAD_3 compile gates pass. Mixed typed-history DXF reexport still refuses an unrepresented raw ACSH graph owner; that separate gap remains open. Strict admission stays **CLOSED**. [Implementation and remaining work](#implementation-progress-rpp-5cq-historyless-solid-native-transport-2026-10-25) · [receipt](docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5cr selected raw ACSH history DXF reexport (2026-10-25):** the canonical BOX/history reexport gap is fixed through bounded raw capture, paired typed identities, reciprocal role closure, frozen source context and exact staged/final output proof. Both revisions/encodings pass 88 preflight and 104 late-callback refusals with 192 restored readbacks; an independent reader verifies all 12 retained files. The 29-test normal/ASan cohorts, final extended scalar controls and both LibreCAD_3 gates pass. Other history profiles and native semantic/platform qualification remain open; strict admission stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cr-selected-raw-acsh-history-dxf-reexport-2026-10-25) · [receipt](docs/research/rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5cq historyless 3DSOLID native transport (2026-10-25):** committed as `b077272a59ebad21a45a3edd55671f1ee54c2839`. Its valid-solid transport/advisory observations and 27 normal/27 ASan checks remain recorded. Its then-open mixed raw ACSH graph-owner reexport gap is superseded only for RPP-5cr's explicitly proved canonical BOX profile, not general history/native semantics. [Historical implementation](#implementation-progress-rpp-5cq-historyless-solid-native-transport-2026-10-25) · [immutable receipt](docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json).
 
 **Previous commit/plan checkpoint (2026-10-25):** RPP-5cp is committed as `a20cf67121b09dde2d471682c72a58d3b7d92c8f`; its plan-only commit is `4cf0bed34fab40d6862a49d0d3b057b5be8dd187`. The following readiness record is historical; RPP-5cq's actual results and remaining limitations supersede its unimplemented candidate status. [Committed state and next-slice readiness](#commit-checkpoint-rpp-5cp-and-next-slice-readiness-2026-10-25).
 
@@ -122934,3 +122936,114 @@ and unrelated files remain excluded.
 
 Receipt:
 [`rpp5cq-historyless-solid-native-transport-2026-10-25.json`](docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json).
+
+## Implementation progress RPP-5cr selected raw ACSH history DXF reexport (2026-10-25)
+
+RPP-5cq is committed as `b077272a59ebad21a45a3edd55671f1ee54c2839`.
+Close its concrete canonical BOX/history DXF reexport gap without replacing
+the remaining full parity objective with this one profile.
+
+1. [x] Trace the actual import and writer contracts. DXF publishes typed ACSH
+   identity shells and complete raw bodies; the adapter retained the shells
+   but discarded the raw bodies. An EvaluationGraph therefore had no safely
+   serializable ACSH owner. Do not fix that by accepting arbitrary raw handle
+   presence, clearing the graph or applying native-body DTO assumptions to a
+   DXF identity shell. The earlier receipt preserves the original refusal.
+2. [x] Add CLI-only bounded raw ACSH/EvaluationGraph capture and one-import
+   provenance: generation/version, callback/history/group/byte counts and
+   sticky capture failure. Cap records at 100,000, groups at 4,000,000 and
+   retained bytes at the existing DXF payload budget; subtraction checks are
+   guarded. Capture unsupported ACSH names too, then explicitly refuse their
+   unqualified output rather than silently dropping their records. Ordinary
+   graph-only input retains its separate existing typed route.
+3. [x] Admit only the tested exact-source AC1027/AC1032 canonical BOX profile.
+   Pair typed shells to raw identities/owners and graph DTO fields. Validate
+   unique modeler -> history -> graph -> BOX -> material relationships, class
+   identities/counts, fixed field roles and all used-record inventory. Empty
+   history is still valid for the neighboring solid. Extra common metadata,
+   unknown families, orphan/shared/duplicate records and malformed references
+   remain fail-closed. No native parsing/encoding, library API/ABI/callback,
+   strict-completeness or support predicate changes are made.
+4. [x] Freeze raw values/spellings, class metadata, receipt and source generation
+   at admission; recheck live typed/raw roles during callbacks, staged output
+   inspection and finalization. Respect existing codec ownership: raw ACDSDATA
+   is validated before adoption, then exclusively owned by the codec during
+   writing. Require the caller's moved-from container to remain empty; do not
+   confuse legitimate adoption with a missing source section or bypass initial
+   capture checks. Preserve caller identities and restoration on failure.
+5. [x] Keep the three raw records' actual identity contract. Reserve their self
+   keys and replay exact ordered groups; do not also emit a duplicate typed
+   graph. Generic raw writers do not create typed source-object bindings, so
+   do not invent such a binding or expand a private codec API. Instead prove
+   unchanged reserved self, unique final record name/OBJECTS identity, mapped
+   owner and exactly one emitted record for every classified target.
+6. [x] Inspect actual staged fields with a bounded scalar observer, not declared
+   counts or a permissive class decoder. Check all 57 ordered groups across
+   history (9), BOX (35) and graph (13): self/owner/reference roles, subclasses,
+   integer values and exact doubles. Retain no decoded unrelated-object model.
+   A separately authored literal ASCII/binary corpus in both revisions passes
+   four positives and 48 corruption/restoration pairs, including wrong role,
+   missing/duplicate/reordered fields, bad values, truncation and over-wide
+   actual references. The wide control rejects without a production change.
+7. [x] Verify malformed input and callbacks on actual imported source DTOs.
+   Across two revisions and both encodings, 22 preflight modes produce 88
+   atomic refusals; thirteen late mutations in each of two callback phases
+   produce 104 more. Restore and retry on the same facade after all 192
+   refusals, then actually import each correction. Independently check every
+   raw group, mapped owner/target, both solid history roles, graph/classes and
+   exact distinct payload-to-modeler associations. Both callback phases must
+   actually fire; do not count an earlier incidental preflight failure.
+8. [x] Replace the old mixed-history refusal expectation with successful actual
+   opposite-encoding reexport/readback. Reuse the typed author for both source
+   revisions; its source-edit controls remain intact. Its marker SAB data is
+   intentionally not valid geometry. This is an authored DTO -> DXF -> actual
+   import -> reexport proof, not a complete independently produced native DWG
+   history witness. No new drawing fixtures are committed.
+9. [x] Independently read all twelve retained source/reexport/final-retry files
+   with ezdxf 1.4.4. Check complete raw groups, reciprocal history/graph/BOX
+   ownership, graph hard-owner expression, material target, one linked and one
+   historyless solid, and both distinct exact payload associations. This is
+   independent DXF transport corroboration, not parsing of every overwritten
+   intermediate retry or independent ACIS/ACDS semantic/schema qualification.
+   Reusing an occupied output directory exits 1 with all twelve hashes intact.
+10. [x] Scoped validation passes: 29 normal tests in 19.21 s and 29 ASan tests
+    in 38.35 s, parallelism 3 inside sequential owning cohorts. Both LibreCAD_3
+    compile gates and CLI static/shared-on/off registration (2.98 s) pass.
+    After those cohorts, extend the literal corpus from 44 to 48 pairs and
+    rerun its normal CTest (0.31 s) plus all three new/updated ASan history/
+    scalar CTests (6.34 s). Production is unchanged by that final test addition.
+    ASan uses halt_on_error=1:detect_leaks=0; the host compiler is Apple Clang,
+    not Linux/GCC. Do not rerun a full suite for each edit or claim a full suite,
+    leak check, native platform or independent kernel gate.
+
+Next implementation-ready work, preserving the full original objective:
+
+1. [ ] Broaden raw-history preservation from this canonical one-node BOX
+   profile using actual source/producers and field-role evidence: other ACSH
+   primitive/operation families, nondefault graph shapes, native/proxy source
+   generations and common metadata. Preserve distinct family contracts and
+   source authority; do not reinterpret a DXF identity shell as a decoded
+   native body. Add exact staged/final field/reference proof and malformed/
+   late-source atomic refusal/restoration before opening each route.
+2. [ ] Complete independent native DataStorage schema/payload/owner and
+   producer-paired semantic/kernel evidence. Generalize raw-carrier/schema
+   propagation and cumulative decoded-owner/retention controls across source
+   generations. The generated BOX DXF control does not replace these gates.
+3. [ ] Continue owning/common-extension/source-generation aliases, profile
+   callbacks, names/body/path/EED, sparse native classes, full IMAGE geometry
+   and named-root/document closure. Retain LibreCAD/LibreCAD_3 2D compatibility
+   and the entire 3D/dwg2dxf/FreeCAD objective, including external/platform work.
+4. [ ] Update the plan, evidence, limitations and new immutable receipt after
+   each item; safely self-unblock, commit/report verified slices, prefer fast
+   affected tests and keep cross-build owning cohorts sequential until legacy
+   fixed temporary paths are isolated. Earlier receipts remain immutable.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No general support or
+independent producer/schema claim is promoted. Generated files stay outside
+the repository; all 17 pre-existing untracked drawings and unrelated files
+remain excluded. No remote state is changed.
+
+Receipt:
+[`rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json`](docs/research/rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json).
