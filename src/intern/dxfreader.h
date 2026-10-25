@@ -29,6 +29,26 @@
 // Shared by one public DXF read operation so independently retained buffers
 // can use one aggregate logical-byte ceiling. This deliberately measures
 // logical lengths, not std::string/vector capacity or process RSS.
+// Borrowed original scalar, before semantic decoding/takeString. Offsets are
+// logical consumed source bytes, not seek positions; ordinals include ignored
+// comments. The views expire when the observer returns.
+struct DxfReadRecordView {
+    enum Kind { Text, Integer, WideInteger, Real, Binary } kind{Text};
+    int code{0};
+    std::size_t ordinal{0},beginOffset{0},endOffset{0};
+    std::string_view text,raw;
+    std::int32_t integer{0};
+    std::int64_t wide{0};
+    double real{0.0};
+    bool ignoredComment{false};
+};
+class DxfReadRecordObserver {
+public:
+    virtual ~DxfReadRecordObserver() = default;
+    // Evidence collection must latch its own failure, not alter typed import.
+    virtual void observe(const DxfReadRecordView&) noexcept = 0;
+};
+
 class DxfReadRetainedBudget final {
 public:
     explicit DxfReadRetainedBudget(std::size_t limit) noexcept
@@ -273,6 +293,13 @@ public:
     }
     virtual ~dxfReader() { releaseCurrentRecordRetainedBytes(); }
     bool readRec(int *code);
+    DxfReadRecordObserver* exchangeRecordObserver(DxfReadRecordObserver* value) noexcept {
+        auto* previous=m_recordObserver;m_recordObserver=value;return previous;
+    }
+    bool currentRecordView(DxfReadRecordView& value) const noexcept {
+        if(!m_hasCurrentRecord)return false;
+        value=recordView(m_currentCode,false);return true;
+    }
 
     /// Bound the aggregate number of physical records consumed by this
     /// reader. The budget is reset by constructing a reader for each public
@@ -619,6 +646,23 @@ private:
     std::size_t m_currentRecordRetainedBytes {0};
     int m_currentCode {0};
     int m_previousCode {0};
+    DxfReadRecordObserver* m_recordObserver{nullptr};
+    std::size_t m_recordBeginOffset{0};
+    bool m_hasCurrentRecord{false};
+    DxfReadRecordView recordView(int code,bool comment) const noexcept {
+        DxfReadRecordView value;
+        value.code=code;value.ordinal=m_recordCount;value.beginOffset=m_recordBeginOffset;
+        value.endOffset=m_inputByteCount;value.text=strData;value.raw=rawData;
+        value.integer=intData;value.wide=int64;value.real=doubleData;value.ignoredComment=comment;
+        switch(type) {
+        case INT32:value.kind=DxfReadRecordView::Integer;break;
+        case INT64:value.kind=DxfReadRecordView::WideInteger;break;
+        case DOUBLE:value.kind=DxfReadRecordView::Real;break;
+        case BINARY:value.kind=DxfReadRecordView::Binary;break;
+        default:break;
+        }
+        return value;
+    }
 
     void releaseCurrentRecordRetainedBytes() noexcept {
         releaseCurrentRecordBytes(m_currentRecordRetainedBytes);

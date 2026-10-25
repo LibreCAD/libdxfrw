@@ -775,6 +775,54 @@ public:
                                     const DRW_RawDxfObject& source) = 0;
 };
 
+/** Original physical child stream, not a typed/semantic/graph certificate.
+ * Includes compound subrecords and ignored comments. Groups exclude code 0;
+ * each group's span parallels its original scalar and ASCII raw spelling
+ * (empty raw spelling in binary). Identity/owner roles are NOT guessed from
+ * arbitrary code-5/330 values: the original scalars preserve the evidence.
+ */
+struct DRW_DxfPhysicalRecordSpan {
+  std::size_t ordinal{0},beginOffset{0},endOffset{0};
+  bool ignoredComment{false};
+};
+struct DRW_DxfPhysicalEntitySource {
+  UTF8STRING name;
+  DRW_DxfPhysicalRecordSpan marker;
+  std::size_t endOrdinal{0},endOffset{0}; // next code-0 marker, excluded
+  std::vector<DRW_Variant> groups;
+  std::vector<UTF8STRING> rawValues;
+  std::vector<DRW_DxfPhysicalRecordSpan> spans;
+};
+struct DRW_DxfBlockChildrenSourceLimits {
+  std::size_t records{65536u},groups{262144u};
+  std::size_t bytes{32u*1024u*1024u},work{64u*1024u*1024u};
+};
+struct DRW_DxfBlockChildrenSource {
+  enum class Status : std::uint8_t { NotStarted, Collecting, Complete, Quota, Allocation, InvalidBoundary };
+  Status status{Status::NotStarted};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false};
+  std::uint32_t blockHandle{0},blockRecord{0};
+  DRW_DxfPhysicalRecordSpan endMarker;
+  std::vector<DRW_DxfPhysicalEntitySource> records;
+  std::size_t groups{0},bytes{0},work{0},ignoredComments{0};
+};
+/** Separate optional facet, selected once per BLOCK. No established
+ * DRW_Interface vtable change. Dropped/invalid blocks deliver no inventory.
+ * Delivery follows accepted addBlockEnd and precedes staged child callbacks.
+ * Complete means the physical stream reached ENDBLK, NOT successful whole
+ * import, callback pairing, compound interpretation or selected support.
+ * Its own quota/allocation failure is explicit, not a format rejection. Shared
+ * reader byte/node limits still bound the extra owners and may fail the read.
+ */
+class DRW_DxfBlockChildrenSourceHandler {
+public:
+  virtual ~DRW_DxfBlockChildrenSourceHandler() = default;
+  virtual bool wantsDxfBlockChildrenSource() const {return false;}
+  virtual DRW_DxfBlockChildrenSourceLimits dxfBlockChildrenSourceLimits() const {return {};}
+  virtual void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource&) = 0;
+};
+
 /** Source interpretation context, not a geometry/support certificate.
  * applyExtrusion records the read option used for final callback preparation;
  * its actual effect is defined by the entity's implementation (TEXT is currently

@@ -33,7 +33,7 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
                  public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler,
-                 public DRW_DxfBlockSourceHandler {
+                 public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler {
 public:
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
@@ -253,6 +253,8 @@ public:
     bool wantsDxfBlockSource() const override;
     void addDxfBlockBeginSource(const DRW_Block&,const DRW_RawDxfObject&) override;
     void addDxfBlockEndSource(const DRW_Block&,const DRW_RawDxfObject&) override;
+    bool wantsDxfBlockChildrenSource() const override;
+    void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource&) override;
     void addLayout(const DRW_Layout& data) override;
     void addDictionary(const DRW_Dictionary& data) override;
     void addSortEntsTable(const DRW_SortEntsTable& data) override;

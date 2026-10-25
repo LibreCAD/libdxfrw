@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
 #include "intern/dxfattdef.h"
+#include "intern/dxfblockchildren.h"
 #include "attdef_source_field_faults.h"
 #include <algorithm>
 #include <array>
@@ -59,6 +60,19 @@ public:
         return at==rows.end()?nullptr:&at->second;
     }
     static bool blockFailed(const dx_data& data) {return data.m_tableDxfSource.blockSourceCaptureFailed;}
+    static bool childrenFailed(const dx_data& data) {return data.m_tableDxfSource.blockChildrenCaptureFailed;}
+    static bool childrenTransport(const dx_data& data) {
+        const auto* row=block(data);return blockTransport(data)&&row->children&&!childrenFailed(data)
+            &&row->children->status==DRW_DxfBlockChildrenSource::Status::Complete;
+    }
+    static std::array<std::size_t,4> childrenUsage(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;return {s.blockChildrenRecords,s.blockChildrenBytes,s.blockChildrenGroups,s.blockChildrenWork};
+    }
+    static void childrenLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;
+        switch(which){case 0:s.maxBlockChildrenRecords=n;break;case 1:s.maxBlockChildrenBytes=n;break;
+        case 2:s.maxBlockChildrenGroups=n;break;case 3:s.maxBlockChildrenWork=n;break;default:throw std::runtime_error("bad children quota");}
+    }
     static bool blockTransport(const dx_data& data) {
         const auto* row=block(data);return row&&row->beginPaired&&row->footerPaired&&row->closed
             &&data.m_tableDxfSource.successful&&data.m_tableDxfSource.closed
@@ -246,14 +260,14 @@ Tags document(const std::string& version,const Tags& row,bool block,bool dropped
     result.insert(result.end(),{{0,"ENDSEC"},{0,"EOF"}});
     return result;
 }
-bool write(const std::filesystem::path& path,const Tags& tags,bool binary) {
+bool write(const std::filesystem::path& path,const Tags& tags,bool binary,bool crlf=false) {
     std::ofstream out(path,std::ios::binary);
     const auto word=[&](std::uint64_t value,unsigned bytes) {
         for(unsigned i=0;i<bytes;++i)out.put(static_cast<char>(value>>(8u*i)));
     };
     if(binary)out.write("AutoCAD Binary DXF\r\n\x1a\0",22);
     for(const auto& tag:tags) {
-        if(!binary)out<<tag.code<<'\n'<<tag.value<<'\n';
+        if(!binary)out<<tag.code<<(crlf?"\r\n":"\n")<<tag.value<<(crlf?"\r\n":"\n");
         else {
             word(static_cast<unsigned>(tag.code),2u);
             if((tag.code>=60&&tag.code<=79)||(tag.code>=170&&tag.code<=179)
@@ -585,6 +599,7 @@ public:
 #include "attdef_source_profile_controls.h"
 #include "block_source_controls.h"
 #include "block_source_proof_controls.h"
+#include "block_children_source_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -980,12 +995,14 @@ int main(int argc,char** argv) {
     const bool profile=argc==2&&std::string(argv[1])=="--source-profile";
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
     const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof)return 2;
+    const bool blockChildren=argc==2&&std::string(argv[1])=="--block-children";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return (blockProof?blockSourceProofTests(scratch/"generated.dxf"):
+    try {return (blockChildren?blockChildrenSourceTests(scratch/"generated.dxf"):
+        blockProof?blockSourceProofTests(scratch/"generated.dxf"):
         blocks?blockSourceTests(scratch/"generated.dxf"):
         profile?sourceProfileTests(scratch/"generated.dxf"):
         capture?immutableCaptureTests(scratch/"generated.dxf"):

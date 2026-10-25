@@ -314,6 +314,7 @@ bool dxfReader::readRec(int *codeData) {
         return false;
 
     auto invalidateRecord = [this]() {
+        m_hasCurrentRecord=false;
         releaseCurrentRecordRetainedBytes();
         type = INVALID;
         strData.clear();
@@ -345,6 +346,7 @@ bool dxfReader::readRec(int *codeData) {
         return true;
     };
     do {
+        m_recordBeginOffset=m_inputByteCount;
         if (!consumeRecordBudget())
             return false;
         if (!readCode(&code))
@@ -355,6 +357,7 @@ bool dxfReader::readRec(int *codeData) {
             invalidateRecord();
             return false;
         }
+        if(m_recordObserver)m_recordObserver->observe(recordView(code,true));
     } while (true);
 
     *codeData = code;
@@ -405,6 +408,8 @@ bool dxfReader::readRec(int *codeData) {
         invalidateRecord();
         return false;
     }
+    m_hasCurrentRecord=true;
+    if(m_recordObserver)m_recordObserver->observe(recordView(code,false));
     return true;
 }
 std::uint32_t dxfReader::getHandleString(){

@@ -22,7 +22,9 @@ std::vector<AttdefWireTag> attdefWireTags(const std::filesystem::path& path,bool
     const auto line=[&]() {
         const auto end=bytes.find('\n',at);
         if(end==std::string::npos)throw std::runtime_error("independent wire observer: truncated line");
-        auto result=bytes.substr(at,end-at);at=end+1u;return result;
+        auto result=bytes.substr(at,end-at);at=end+1u;
+        if(!result.empty()&&result.back()=='\r')result.pop_back();
+        return result;
     };
     while(at<bytes.size()) {
         AttdefWireTag tag;tag.begin=at;

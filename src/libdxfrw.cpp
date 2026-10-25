@@ -44,6 +44,7 @@
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfblock.h"
+#include "intern/dxfblockchildren.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
 #include "intern/dwg_dxf_output_transaction.h"
@@ -16010,10 +16011,13 @@ bool dxfRW::processBlock() {
     int code;
     DRW_Block block;
     dxfBlock::Decoder beginDecoder(block,false);
+    dxfBlockChildren::Capture childSource(*reader);
     bool blockPublished = false;
     bool hasStagedBlockRecord = false;
     DRW_ParsingContext::BlockRecordInfo stagedBlockRecord;
     auto* sourceHandler=dynamic_cast<DRW_DxfBlockSourceHandler*>(iface);
+    auto* childrenHandler=dynamic_cast<DRW_DxfBlockChildrenSourceHandler*>(iface);
+    const bool captureChildren=childrenHandler&&childrenHandler->wantsDxfBlockChildrenSource();
     const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockSource();
     bool beginSourceDelivered=false;
     DRW_RawDxfObject beginSource;
@@ -16102,6 +16106,10 @@ bool dxfRW::processBlock() {
                 // resolution entry or publish a second scope with the same id.
                 return setError(DRW::BAD_READ_BLOCKS);
             }
+            // Freeze source scope identity before either source or legacy
+            // callbacks can expose the mutable parser-owned BLOCK view.
+            const auto originalBlockHandle=block.handle;
+            const auto originalBlockRecord=block.parentHandle;
             const auto recordName=block.parentHandle!=DRW::NoHandle
                 ?m_readingContext.resolveBlockRecordName(block.parentHandle):UTF8STRING{};
             const bool dropBlock=recordName.empty()&&(!beginDecoder.hasDeclaredName()||block.name.empty());
@@ -16135,11 +16143,15 @@ bool dxfRW::processBlock() {
                     blockPublished = true;
                     iface->addBlock(block);
                 }
+                if(captureChildren&&!dropBlock)
+                    childSource.start(originalBlockHandle,originalBlockRecord,childrenHandler->dxfBlockChildrenSourceLimits());
                 if (boundary == DxfEntityBoundary::EndBlock) {
                     if (!consumeEndBlock()) {
                         closePublishedBlock();
                         return setError(DRW::BAD_READ_BLOCKS);
                     }
+                    childSource.detach();
+                    if(captureChildren&&!dropBlock)childrenHandler->addDxfBlockChildrenSource(childSource.source());
                     publishBlockRecord();
                     closePublishedBlock();
                     return true;  //found ENDBLK, terminate
@@ -16171,6 +16183,8 @@ bool dxfRW::processBlock() {
                         closePublishedBlock();
                         return setError(DRW::BAD_READ_BLOCKS);
                     }
+                    childSource.detach();
+                    if(captureChildren&&!dropBlock)childrenHandler->addDxfBlockChildrenSource(childSource.source());
                     if (!dropBlock && !blockEvents.flush()) {
                         closePublishedBlock();
                         return setError(DRW::BAD_READ_BLOCKS);

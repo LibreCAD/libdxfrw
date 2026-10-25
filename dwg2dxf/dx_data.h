@@ -1070,6 +1070,7 @@ private:
             dx_attdef_source::Audit beginProfile,endProfile;
             enum class Reconciliation : std::uint8_t { NotChecked, MissingBlockRecord, SourceMismatch, WrongOwner, Matched };
             Reconciliation reconciliation{Reconciliation::NotChecked};
+            std::shared_ptr<const DRW_DxfBlockChildrenSource> children;
         };
         std::map<std::uint32_t,BlockSource> blockSources;
         std::uint32_t blockSourceActive{0};
@@ -1077,6 +1078,10 @@ private:
         std::size_t maxBlockSourceRecords{100000u},maxBlockSourceBytes{64u*1024u*1024u};
         std::size_t maxBlockSourceGroups{4000000u},maxBlockSourceWork{4000000u};
         bool blockSourceCaptureFailed{false};
+        std::size_t blockChildrenRecords{0},blockChildrenGroups{0},blockChildrenBytes{0},blockChildrenWork{0};
+        std::size_t maxBlockChildrenRecords{100000u},maxBlockChildrenGroups{4000000u};
+        std::size_t maxBlockChildrenBytes{64u*1024u*1024u},maxBlockChildrenWork{4000000u};
+        bool blockChildrenCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

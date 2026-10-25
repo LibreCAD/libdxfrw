@@ -18040,6 +18040,78 @@ void dx_iface::proveDxfBlockSource(std::uint32_t handle) noexcept {
     } catch(...) {source.blockSourceCaptureFailed=true;}
 }
 
+bool dx_iface::wantsDxfBlockChildrenSource() const {
+    if(!tableSourceCaptureOpen())return false;
+    const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);
+    return version>=DRW::AC1021&&version<=DRW::AC1032;
+}
+
+void dx_iface::addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource& value) {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    const auto fail=[&](){source.blockChildrenCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()){fail();return;}
+    if(source.blockChildrenCaptureFailed)return;
+    const auto found=source.blockSources.find(value.blockHandle);
+    if(value.status!=DRW_DxfBlockChildrenSource::Status::Complete||found==source.blockSources.end()
+        ||source.blockSourceActive!=value.blockHandle||!currentBlock||currentBlock==cData->mBlock
+        ||currentBlock->handle!=value.blockHandle||!found->second.original||!found->second.footerPaired
+        ||found->second.closed||found->second.children||!found->second.beginRaw
+        ||value.binary==found->second.beginRaw->hasRawValues||value.blockRecord!=found->second.original->parentHandle
+        ||value.version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
+        ||!value.endMarker.ordinal||value.endMarker.ignoredComment||value.endMarker.beginOffset>=value.endMarker.endOffset) {fail();return;}
+    const auto count=value.records.size();
+    if(count>=source.maxBlockChildrenRecords||source.blockChildrenRecords>source.maxBlockChildrenRecords-count-1u
+        ||source.blockChildrenWork>source.maxBlockChildrenWork
+        ||count+1u>(source.maxBlockChildrenWork-source.blockChildrenWork)/64u) {fail();return;}
+    source.blockChildrenRecords+=count+1u;source.blockChildrenWork+=(count+1u)*64u;
+    std::size_t bytes=sizeof(value)+8u*sizeof(void*),groups=0u,comments=0u;
+    try {
+        for(std::size_t i=0;i<count;++i) {
+            const auto& record=value.records[i];const auto n=record.groups.size();
+            const auto next=i+1u<count?value.records[i+1u].marker:value.endMarker;
+            if(record.name.empty()||record.marker.ignoredComment||record.marker.ordinal==0u
+                ||record.marker.beginOffset>=record.marker.endOffset||record.endOrdinal!=next.ordinal||record.endOffset!=next.beginOffset
+                ||n!=record.rawValues.size()||n!=record.spans.size()
+                ||record.marker.ordinal>=record.endOrdinal||record.marker.endOffset>record.endOffset
+                ||source.blockChildrenGroups>source.maxBlockChildrenGroups||n>source.maxBlockChildrenGroups-source.blockChildrenGroups
+                ||source.blockChildrenWork>source.maxBlockChildrenWork||n>(source.maxBlockChildrenWork-source.blockChildrenWork)/64u
+                ||!addAssociativeRetainedBytes(sizeof(record),bytes)||!addAssociativeRetainedBytes(record.name.size(),bytes)
+                ||!addAssociativeSlotBytes(n,sizeof(DRW_Variant)+sizeof(UTF8STRING)+sizeof(DRW_DxfPhysicalRecordSpan),bytes)) {fail();return;}
+            source.blockChildrenGroups+=n;source.blockChildrenWork+=n*64u;groups+=n;
+            auto ordinal=record.marker.ordinal;auto offset=record.marker.endOffset;
+            for(std::size_t j=0;j<n;++j) {
+                const auto& field=record.groups[j];const auto& span=record.spans[j];
+                if(ordinal==(std::numeric_limits<std::size_t>::max)()||span.ordinal!=ordinal+1u
+                    ||span.beginOffset<offset||span.beginOffset>=span.endOffset
+                    ||(span.ignoredComment&&field.code()!=999)||field.code()==0
+                    ||(value.binary&&!record.rawValues[j].empty())
+                    ||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()) {fail();return;}
+                ordinal=span.ordinal;offset=span.endOffset;if(span.ignoredComment)++comments;
+                if(field.type()==DRW_Variant::STRING) {
+                    if(!field.content.s){fail();return;}
+                } else if(field.type()!=DRW_Variant::INTEGER&&field.type()!=DRW_Variant::INTEGER64&&field.type()!=DRW_Variant::DOUBLE) {fail();return;}
+                // The variant copy also owns dormant string/binary buffers
+                // and private source spelling, not just its active scalar.
+                std::size_t payload=0u;
+                if(!field.estimateRetainedPayloadBytes(source.maxBlockChildrenBytes,payload)
+                    ||!addAssociativeRetainedBytes(payload,bytes)
+                    ||!addAssociativeRetainedBytes(record.rawValues[j].size(),bytes)) {fail();return;}
+            }
+            if(ordinal==(std::numeric_limits<std::size_t>::max)()||ordinal+1u!=record.endOrdinal||offset>record.endOffset) {fail();return;}
+        }
+        std::size_t allowance=0u;
+        if(groups!=value.groups||comments!=value.ignoredComments||!addAssociativeSlotBytes(bytes,2u,allowance)
+            ||source.blockChildrenBytes>source.maxBlockChildrenBytes||allowance>source.maxBlockChildrenBytes-source.blockChildrenBytes
+            ||source.blockChildrenWork>source.maxBlockChildrenWork||allowance>source.maxBlockChildrenWork-source.blockChildrenWork) {fail();return;}
+        // Allow the immutable owner and copy temporaries before cloning.
+        source.blockChildrenBytes+=allowance;source.blockChildrenWork+=allowance;
+        found->second.children=std::make_shared<const DRW_DxfBlockChildrenSource>(value);
+        // Physical source transport only. Staged callback/compound roles,
+        // ATTDEF membership and common/dependency/output proof remain separate.
+    } catch(...) {fail();}
+}
+
 bool dx_iface::wantsDxfAttdefSource() const {
     if(!tableSourceCaptureOpen())return false;
     const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);

@@ -42,6 +42,23 @@ public:
     DRW_RawDxfObject beginAlias,endAlias;
     std::function<void(DRW_Block&)> alterBegin,alterEnd;
     std::function<void(DRW_RawDxfObject&)> alterBeginRaw,alterEndRaw;
+    bool childrenSelected=true,traceChildren=false,forceChildrenTransport=false,skipChildrenReport=false,duplicateChildrenReport=false;
+    unsigned childReports=0u;
+    DRW_DxfBlockChildrenSource childrenAlias;
+    DRW_DxfBlockChildrenSourceLimits childrenLimits;
+    std::function<void(DRW_DxfBlockChildrenSource&)> alterChildren;
+    bool wantsDxfBlockChildrenSource() const override {return selected&&childrenSelected&&(forceChildrenTransport||dx_iface::wantsDxfBlockChildrenSource());}
+    DRW_DxfBlockChildrenSourceLimits dxfBlockChildrenSourceLimits() const override {return childrenLimits;}
+    void addDxfBlockChildrenSource(const DRW_DxfBlockChildrenSource& value) override {
+        ++childReports;if(traceChildren)events.push_back("C");childrenAlias=value;
+        if(alterChildren)alterChildren(childrenAlias);
+        if(!skipChildrenReport)allocating(6,[&](){dx_iface::addDxfBlockChildrenSource(childrenAlias);});
+        if(duplicateChildrenReport)dx_iface::addDxfBlockChildrenSource(childrenAlias);
+        if(throwPhase==7)throw std::runtime_error("block children source fault");
+    }
+    void addPolyline(const DRW_Polyline& v) override {if(traceChildren)events.push_back("P");dx_iface::addPolyline(v);}
+    void addInsert(const DRW_Insert& v) override {if(traceChildren)events.push_back("I");dx_iface::addInsert(v);}
+    void addRawDxfEntity(const DRW_RawDxfObject& v) override {if(traceChildren)events.push_back("R");dx_iface::addRawDxfEntity(v);}
     void addHeader(const DRW_Header* header) override {if(cData)dx_iface::addHeader(header);}
     bool wantsDxfBlockSource() const override {
         if(injectOnSelect>=0)allocationRemaining=injectOnSelect;
