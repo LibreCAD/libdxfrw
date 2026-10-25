@@ -134,6 +134,9 @@ public:
      * the fail-closed handling of disputed binary widths. LibreCadMasterLegacy
      * is an explicit opt-in for adapters migrating from LibreCAD's bundled
      * fork; it is never selected implicitly from a version or file format.
+     * Each admitted read/write keeps one profile for the complete operation;
+     * callback changes select subsequent operations, not new widths within
+     * the active file. Raw writes use the active writer's admitted profile.
      */
     void setDxfCompatibilityProfile(DxfCompatibilityProfile profile) noexcept;
     /** Return the currently selected DXF compatibility profile. */

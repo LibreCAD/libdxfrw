@@ -4072,9 +4072,14 @@ bool dxfRW::preflightDxfWrite() noexcept {
         m_writeError = true;
         return false;
     }
-    writer->setClassifierProfile(m_useTargetLegacyClassifier
-        ? DxfClassifierProfile::LibreCadMasterLegacy
-        : DxfClassifierProfile::StandaloneSafe);
+    // The writer owns the profile admitted at write entry. Callback setters
+    // select later operations; do not change widths partway through a file.
+    // Direct record probes without a whole-file attempt retain their existing
+    // configured-profile setup; they have no admitted operation to snapshot.
+    if (!m_dxfWriteAttemptActive)
+        writer->setClassifierProfile(m_useTargetLegacyClassifier
+            ? DxfClassifierProfile::LibreCadMasterLegacy
+            : DxfClassifierProfile::StandaloneSafe);
     return true;
 }
 
@@ -4843,9 +4848,7 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
     // Validate every application-data group before writing its opener.  This
     // keeps malformed nesting or union storage from producing a partial 102
     // group in the containing record.
-    const DxfClassifierProfile profile = m_useTargetLegacyClassifier
-        ? DxfClassifierProfile::LibreCadMasterLegacy
-        : DxfClassifierProfile::StandaloneSafe;
+    const DxfClassifierProfile profile = writer->classifierProfile();
     const auto validGroup = [this, profile](const std::list<DRW_Variant>& group) {
         bool opened = false;
         int depth = 0;
@@ -23253,9 +23256,7 @@ bool dxfRW::writeRawDxfObjectInternal(
         m_writeError = true;
         return false;
     }
-    const DxfClassifierProfile profile = m_useTargetLegacyClassifier
-        ? DxfClassifierProfile::LibreCadMasterLegacy
-        : DxfClassifierProfile::StandaloneSafe;
+    const DxfClassifierProfile profile = writer->classifierProfile();
     const bool allowMaterialUnsignedColorValues =
         dxfKeywordEquals(obj->name, "MATERIAL");
     if (obj->name.empty()
@@ -23332,13 +23333,13 @@ bool dxfRW::writeRawDxfObjectInternal(
         ? writeRawDxfGroups(
               obj->groups, obj->rawValues, obj->hasRawValues,
               obj->m_version, /*remapSourceHandles=*/true,
-              m_useTargetLegacyClassifier,
+              profile == DxfClassifierProfile::LibreCadMasterLegacy,
               dxfKeywordEquals(obj->name, "SORTENTSTABLE"), stringOverrides,
               allowMaterialUnsignedColorValues, int32Overrides)
         : writeRawDxfEntityGroups(
               obj->groups, obj->rawValues, obj->hasRawValues,
               obj->m_version, /*remapSourceHandles=*/true,
-              m_useTargetLegacyClassifier,
+              profile == DxfClassifierProfile::LibreCadMasterLegacy,
               dxfKeywordEquals(obj->name, "SORTENTSTABLE"),
               static_cast<int>(ownerGroupIndex), emittedOwner,
               /*remapEntityXdataHandleReferences=*/false,
@@ -23367,9 +23368,7 @@ bool dxfRW::writeRawDxfEntity(DRW_RawDxfObject *entity,
             && entity->m_version != version))
         return rejectRawEntity(
             "raw entity is null or its source DXF version differs from target");
-    const DxfClassifierProfile profile = m_useTargetLegacyClassifier
-        ? DxfClassifierProfile::LibreCadMasterLegacy
-        : DxfClassifierProfile::StandaloneSafe;
+    const DxfClassifierProfile profile = writer->classifierProfile();
     if (entity->name.empty() || entity->handle == 0
         || !validateRawDxfGroups(entity->groups, entity->rawValues,
                                  entity->hasRawValues, binFile,
@@ -23555,7 +23554,7 @@ bool dxfRW::writeRawDxfEntity(DRW_RawDxfObject *entity,
         || !writeRawDxfEntityGroups(
             entity->groups, entity->rawValues, entity->hasRawValues,
             entity->m_version, /*remapSourceHandles=*/true,
-            m_useTargetLegacyClassifier, /*sortEntsTableRecord=*/false,
+            profile == DxfClassifierProfile::LibreCadMasterLegacy, /*sortEntsTableRecord=*/false,
             hasOwnerOverride ? static_cast<int>(ownerGroupIndex) : -1,
             ownerOverride, /*remapEntityXdataHandleReferences=*/true,
             /*stringOverrides=*/nullptr,
@@ -23668,9 +23667,7 @@ bool dxfRW::writeRawDxfSection(const DRW_RawDxfSection &section) {
         m_writeError = true;
         return false;
     }
-    const DxfClassifierProfile profile = m_useTargetLegacyClassifier
-        ? DxfClassifierProfile::LibreCadMasterLegacy
-        : DxfClassifierProfile::StandaloneSafe;
+    const DxfClassifierProfile profile = writer->classifierProfile();
     // ACDSDATA owner remapping is represented as a tiny output overlay. Keep
     // the caller's potentially large typed/raw vectors const and avoid cloning
     // the complete section merely to replace one or more group-320 spellings.
@@ -23692,7 +23689,7 @@ bool dxfRW::writeRawDxfSection(const DRW_RawDxfSection &section) {
                               section.m_hasRawValues,
                               section.m_version,
                               /*remapSourceHandles=*/false,
-                              m_useTargetLegacyClassifier,
+                              profile == DxfClassifierProfile::LibreCadMasterLegacy,
                               /*sortEntsTableRecord=*/false,
                               &stringOverrides)
         || !writer->writeString(0, "ENDSEC")) {
@@ -24603,9 +24600,7 @@ bool dxfRW::writeXRecord(DRW_XRecord *ent) {
                 && writer->writeDouble(code + 10, point->y)
                 && writer->writeDouble(code + 20, point->z);
         }
-        const DxfClassifierProfile profile = m_useTargetLegacyClassifier
-            ? DxfClassifierProfile::LibreCadMasterLegacy
-            : DxfClassifierProfile::StandaloneSafe;
+        const DxfClassifierProfile profile = writer->classifierProfile();
         switch (value.type()) {
         case DRW_Variant::STRING:
             return classifyDxfCode(code, profile) == RawValType::Str

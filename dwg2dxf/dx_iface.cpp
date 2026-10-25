@@ -44,6 +44,14 @@
 
 namespace {
 
+dx_raster_output::Profile rasterOutputProfile(dxfRW::DxfCompatibilityProfile profile) noexcept {
+    switch (profile) {
+    case dxfRW::DxfCompatibilityProfile::StandaloneSafe: return dx_raster_output::Profile::StandaloneSafe;
+    case dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy: return dx_raster_output::Profile::LibreCadMasterLegacy;
+    }
+    return dx_raster_output::Profile::Invalid;
+}
+
 constexpr std::size_t kMaxAdapterCellStyleMapRecords = 100000u;
 constexpr std::size_t kMaxAdapterCellStyleMapItems = 4000000u;
 constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
@@ -14724,7 +14732,8 @@ bool dx_iface::hasQualifiedStandardDwgOutputNames(std::uint64_t generation,
 }
 
 bool dx_iface::inspectRasterImageEdges(const dxfRW::DxfObjectsWriteView& view, std::string_view section) noexcept {
-    if (!cData || !dxfW || (section != "BLOCKS" && section != "ENTITIES")) return false;
+    const auto profile = rasterOutputProfile(view.compatibilityProfile);
+    if (!cData || !dxfW || !dx_raster_output::valid(profile) || (section != "BLOCKS" && section != "ENTITIES")) return false;
     const bool blocks = section == "BLOCKS";
     const unsigned bit = blocks ? 1u : 2u;
     if (m_rasterEntitySectionsInspected & bit) return false;
@@ -14786,7 +14795,7 @@ bool dx_iface::inspectRasterImageEdges(const dxfRW::DxfObjectsWriteView& view, s
             const auto found = expected.find(handle);
             if (found == expected.end()) return true;
             if (name != "IMAGE" || !seen.insert(handle).second) return false;
-            dx_raster_output::Cursor input(body, view.binary);
+            dx_raster_output::Cursor input(body,view.binary,profile);
             dx_raster_output::Token t;
             unsigned depth = 0, definitions = 0, reactors = 0, subclasses = 0;
             bool raster = false;
@@ -14810,7 +14819,7 @@ bool dx_iface::inspectRasterImageEdges(const dxfRW::DxfObjectsWriteView& view, s
                 || !m_rasterImageEdges.emplace(handle, found->second).second) return false;
             m_rasterOutputBytes += sizeof(RasterImageEdges) + 5u * sizeof(void*);
             return true;
-        }) && seen.size() == expected.size();
+        },profile) && seen.size() == expected.size();
     } catch (...) { return false; }
 }
 
@@ -14968,7 +14977,8 @@ bool dx_iface::hasUnchangedGeneratedRootSources(bool final) const {
 }
 
 bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
-    if (!cData || !dxfW || m_generatedRootOutputInspected) return false;
+    const auto profile = rasterOutputProfile(view.compatibilityProfile);
+    if (!cData || !dxfW || !dx_raster_output::valid(profile) || m_generatedRootOutputInspected) return false;
     m_generatedRootOutputInspected = true;
     try {
         const auto* context = dxfW->getWritingContext();
@@ -15054,7 +15064,7 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                     if (name != "DICTIONARY" || seen) return false;
                     seen = true;
                     matchedBody = body;
-                    dx_raster_output::Cursor input(body, view.binary); dx_raster_output::Token token;
+                    dx_raster_output::Cursor input(body,view.binary,profile); dx_raster_output::Token token;
                     unsigned depth = 0u, selves = 0u, owners = 0u, classes = 0u, hard = 0u, cloning = 0u, reactors = 0u, extensions = 0u;
                     std::string_view app; std::size_t reactor = 0u, entry = 0u; bool pending = false, xdata = false;
                     const auto reference = [&](std::uint32_t source, std::uint32_t actual) {
@@ -15111,7 +15121,7 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                     }
                     return !depth && !pending && selves == 1u && owners == 1u && classes == 1u && hard == 1u && cloning == 1u
                         && entry == expected.size() && reactors == (frozen->reactorHandles.empty() ? 0u : 1u) && extensions == (frozen->xDictHandle ? 1u : 0u);
-                }) || !seen) return false;
+                },profile) || !seen) return false;
             // Decode only the independently selected root. Reading unrelated
             // records here would impose this dictionary observer's classifier
             // on other supported profiles (e.g. MATERIAL unsigned colors).
@@ -15198,6 +15208,8 @@ bool dx_iface::hasUnchangedRasterDictionaryOutputSource(bool final) const {
 }
 
 bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    const auto profile = rasterOutputProfile(view.compatibilityProfile);
+    if (!cData || !dxfW || !dx_raster_output::valid(profile)) return false;
     try {
         std::uint32_t output = 0u;
         const auto* frozen = dxfW->dxfWriteImageDictionarySource(output);
@@ -15248,7 +15260,7 @@ bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& v
                 if (name != "DICTIONARY" || physical) return false;
                 physical = true;
                 matchedBody = body;
-                dx_raster_output::Cursor input(body, view.binary); dx_raster_output::Token token;
+                dx_raster_output::Cursor input(body,view.binary,profile); dx_raster_output::Token token;
                 unsigned depth = 0u, selves = 0u, owners = 0u, classes = 0u, hard = 0u, cloning = 0u, reactors = 0u, extensions = 0u;
                 std::string_view app; std::size_t reactor = 0u;
                 std::size_t entries = 0u; bool pending = false, xdata = false;
@@ -15308,7 +15320,7 @@ bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& v
                 return !depth && !pending && selves == 1u && owners == 1u && classes == 1u
                     && hard == 1u && cloning == 1u && entries >= frozen->m_entries.size()
                     && reactors == (frozen->reactorHandles.empty() ? 0u : 1u) && extensions == (frozen->xDictHandle ? 1u : 0u);
-            }) || !physical) return false;
+            },profile) || !physical) return false;
         if (physicalEntries > 1000000u - commonSlots
             || !charge(physicalEntries * (2u * sizeof(std::uint32_t) + 6u * sizeof(void*)))) return false;
         m_rasterDictionaryReferences.reserve(commonSlots + physicalEntries);
@@ -15354,7 +15366,8 @@ bool dx_iface::inspectRasterDictionaryOutput(const dxfRW::DxfObjectsWriteView& v
 }
 
 bool dx_iface::inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
-    if (!cData || !dxfW || m_rasterOutputInspected) return false;
+    const auto profile = rasterOutputProfile(view.compatibilityProfile);
+    if (!cData || !dxfW || !dx_raster_output::valid(profile) || m_rasterOutputInspected) return false;
     m_rasterOutputInspected = true;
     if (!inspectRasterDictionaryOutput(view)) return false;
     try {
@@ -15448,7 +15461,7 @@ bool dx_iface::inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexc
                 || scratchNodes > m_rasterOutputByteLimit - m_rasterOutputBytes
                 || slots > (m_rasterOutputByteLimit - m_rasterOutputBytes - scratchNodes) / sizeof(std::uint32_t)) return false;
             proof.references.reserve(slots);
-            dx_raster_output::Match match(body, view.binary);
+            dx_raster_output::Match match(body,view.binary,profile);
             const auto reference = [&](int code, std::uint32_t target, bool outputId = false) {
                 const auto output = outputId ? target : map(target);
                 if (target && !output) return false;
@@ -15466,7 +15479,7 @@ bool dx_iface::inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexc
                 switch (v.type()) {
                 case DRW_Variant::STRING:
                     if (!v.content.s) return false;
-                    if (dx_raster_output::kind(code) == dx_raster_output::Kind::Bytes) {
+                    if (dx_raster_output::kind(code,profile) == dx_raster_output::Kind::Bytes) {
                         const auto& hex = *v.content.s;
                         if (hex.size() % 2u) return false;
                         const std::size_t chunk = code == 1004 ? 127u : 255u;
@@ -15559,7 +15572,7 @@ bool dx_iface::inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexc
             m_rasterOutputBytes += cost;
             m_rasterOutputProofs.push_back(std::move(proof));
             return true;
-        }) && seen.size() == expected.size();
+        },profile) && seen.size() == expected.size();
     } catch (...) { return false; }
 }
 

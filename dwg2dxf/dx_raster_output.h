@@ -16,7 +16,20 @@
 
 namespace dx_raster_output {
 enum class Kind { Text, Double, Integer, Bytes, Invalid };
-inline Kind kind(int c) {
+enum class Profile { StandaloneSafe, LibreCadMasterLegacy, Invalid };
+inline bool valid(Profile profile) {
+    return profile == Profile::StandaloneSafe || profile == Profile::LibreCadMasterLegacy;
+}
+inline Kind kind(int c, Profile profile = Profile::StandaloneSafe) {
+    if (!valid(profile)) return Kind::Invalid;
+    // Explicit compatibility transport only: these disputed widths are not
+    // standalone assignments or independent application/native semantics.
+    if (profile == Profile::LibreCadMasterLegacy) {
+        if ((c >= 80 && c <= 89) || (c >= 150 && c <= 159)
+            || (c >= 180 && c <= 209) || (c >= 1006 && c <= 1009)) return Kind::Text;
+        if ((c >= 240 && c <= 259) || (c >= 482 && c <= 998)) return Kind::Double;
+        if (c >= 260 && c <= 269) return Kind::Integer;
+    }
     // The standalone/LibreCAD compatible 100..109 string transport includes
     // ordinary XRECORD application strings, not only the named markers.
     // This independent width table must not call the production classifier.
@@ -54,12 +67,13 @@ struct Token {
 };
 class Cursor {
 public:
-    Cursor(std::string_view bytes, bool binary) : bytes(bytes), binary(binary) {}
+    Cursor(std::string_view bytes, bool binary, Profile profile = Profile::StandaloneSafe)
+        : bytes(bytes), binary(binary), profile(profile) {}
     std::size_t position() const { return at; }
     bool done() const { return at == bytes.size(); }
     bool next(Token& t) {
         t = {};
-        if (++tokens > 4000000u) return false;
+        if (!valid(profile) || ++tokens > 4000000u) return false;
         std::uint64_t raw = 0;
         if (binary) {
             if (!word(2, raw)) return false;
@@ -68,7 +82,7 @@ public:
             std::string_view line;
             if (!readLine(line) || !integer(line, t.code)) return false;
         }
-        t.type = kind(t.code);
+        t.type = kind(t.code,profile);
         // ASCII can carry opaque application codes whose binary widths are
         // deliberately unqualified. They remain visible to exact matching.
         if (!binary && t.type == Kind::Invalid && t.code >= 0 && t.code <= 1071) t.type = Kind::Text;
@@ -93,7 +107,8 @@ public:
             t.text = bytes.substr(at, static_cast<std::size_t>(raw)); at += raw; return true;
         }
         const unsigned width = t.type == Kind::Double || (t.code >= 160 && t.code <= 169) ? 8u
-            : (t.code >= 290 && t.code <= 299) ? 1u
+            : ((t.code >= 290 && t.code <= 299)
+                || (profile == Profile::LibreCadMasterLegacy && t.code >= 260 && t.code <= 269)) ? 1u
             : (t.code >= 90 && t.code <= 99) || (t.code >= 420 && t.code <= 459) || t.code == 1071 ? 4u : 2u;
         if (!word(width, raw)) return false;
         if (t.type == Kind::Double) { std::memcpy(&t.real, &raw, 8); return std::isfinite(t.real); }
@@ -119,12 +134,14 @@ private:
     }
     std::string_view bytes;
     bool binary;
+    Profile profile;
     std::size_t at{0}, tokens{0};
 };
 
 class Match {
 public:
-    Match(std::string_view body, bool binary) : cursor(body, binary), binary(binary) {}
+    Match(std::string_view body, bool binary, Profile profile = Profile::StandaloneSafe)
+        : cursor(body,binary,profile), binary(binary) {}
     bool text(int code, std::string_view value) {
         Token t; return cursor.next(t) && t.code == code && t.type == Kind::Text && t.text == value;
     }
@@ -160,9 +177,10 @@ private:
 
 // Scan all records without keeping a section-sized copy/model. Body includes
 // the self/owner fields but excludes the opening group0. Visitors choose roots.
-template<class Visitor> bool inspect(std::string_view bytes, bool binary, Visitor&& visit) {
-    if (bytes.size() > 256u * 1024u * 1024u) return false;
-    Cursor input(bytes, binary);
+template<class Visitor> bool inspect(std::string_view bytes, bool binary, Visitor&& visit,
+                                    Profile profile = Profile::StandaloneSafe) {
+    if (!valid(profile) || bytes.size() > 256u * 1024u * 1024u) return false;
+    Cursor input(bytes,binary,profile);
     Token t;
     std::string_view name;
     std::size_t begin = 0, records = 0;

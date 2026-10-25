@@ -609,6 +609,18 @@ add_test(NAME dwg2dxf_raster_token_width_controls
     COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-token-width-controls)
 set_tests_properties(dwg2dxf_raster_token_width_controls PROPERTIES
     LABELS "fast;dxf;objects;reader;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_raster_observer_profiles
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-observer-profiles)
+set_tests_properties(dwg2dxf_raster_observer_profiles PROPERTIES
+    LABELS "fast;dxf;objects;image;compatibility;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_raster_observer_profile_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-observer-profile-faults)
+set_tests_properties(dwg2dxf_raster_observer_profile_faults PROPERTIES
+    LABELS "fast;dxf;objects;image;compatibility;transaction;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_raster_profile_token_controls
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-profile-token-controls)
+set_tests_properties(dwg2dxf_raster_profile_token_controls PROPERTIES
+    LABELS "fast;dxf;objects;reader;compatibility;adapter;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_standard_output_framing_controls
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-output-framing-controls)
 set_tests_properties(dwg2dxf_standard_output_framing_controls PROPERTIES

@@ -3561,6 +3561,313 @@ bool standardOutputFramingControls() {
     return true;
 }
 
+bool rasterObserverProfiles(bool faultsOnly = false) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-raster-profiles-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("raster profile scratch directory failed");
+    }
+    if (directory.empty()) return fail("raster profile scratch directory exhausted");
+    const auto path = directory / "profile.dxf";
+    struct Cleanup { std::filesystem::path path, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path,error); std::filesystem::remove(directory,error);
+    } } cleanup{path,directory};
+    class Direct final : public dx_iface {
+    public:
+        std::function<void()> afterObjects, beforeFinalize, headerPolicy;
+        void writeHeader(DRW_Header& header) override { header.vars.clear(); if (headerPolicy) headerPolicy(); }
+        void writeEntities() override {
+            for (const auto* image : cData->images) {
+                auto output = *image;
+                (void)dxfW->writeImage(&output,image->path,image->sourceImportGeneration,image->ref);
+            }
+            auto output = entity; (void)dxfW->writeRawDxfEntity(&output,0x1Fu);
+        }
+        void writeObjects() override {
+            (void)dxfW->writeXRecord(&record); (void)dxfW->writeRawDxfObject(&object);
+            if (afterObjects) afterObjects();
+        }
+        bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
+        DRW_XRecord record;
+        DRW_RawDxfObject object, entity;
+    };
+    class Readback final : public dx_iface {
+    public:
+        void addDictionary(const DRW_Dictionary& record) override { dictionaries.push_back(record); }
+        void addNamedObjectDictionary(const DRW_Dictionary& record) override { dictionaries.push_back(record); }
+        void addXRecord(const DRW_XRecord& record) override { records.push_back(record); }
+        void addRawDxfObject(const DRW_RawDxfObject& record) override { if (record.name == "PROFILE_RAW_OBJECT") objects.push_back(record); }
+        void addRawDxfEntity(const DRW_RawDxfObject& record) override { if (record.name == "PROFILE_RAW_ENTITY") entities.push_back(record); }
+        void addRawDxfSection(const DRW_RawDxfSection& section) override { if (section.m_name == "PROFILE_SECTION") sections.push_back(section); }
+        std::vector<DRW_Dictionary> dictionaries;
+        std::vector<DRW_XRecord> records;
+        std::vector<DRW_RawDxfObject> objects, entities;
+        std::vector<DRW_RawDxfSection> sections;
+    };
+    unsigned cells = 0u, viewRetries = 0u, fieldRetries = 0u, lateRetries = 0u, entityRetries = 0u, policyCells = 0u;
+    for (const auto version : {DRW::AC1015,DRW::AC1021,DRW::AC1032}) for (const bool binary : {false,true})
+      for (const bool legacy : {false,true}) for (unsigned kind = 0u; kind != 3u; ++kind) {
+        if (faultsOnly && version != DRW::AC1032) continue;
+        dx_data data; Direct direct; direct.cData = &data; direct.currentBlock = data.mBlock;
+        data.hasNamedObjectDictionary = true; data.namedObjectDictionary.handle = 0xA000u;
+        DRW_Dictionary* root = &data.namedObjectDictionary;
+        if (kind) {
+            root->m_entries = {{kind == 1u ? "ACAD_GROUP" : "ACAD_IMAGE_DICT",0xA010u}};
+            DRW_Dictionary child; child.handle = 0xA010u; child.parentHandle = root->handle;
+            data.dictionaries.push_back(child); root = &data.dictionaries.back();
+        }
+        data.namedObjectDictionary.m_entries.push_back({"PROFILE_XRECORD",0xA050u});
+        data.namedObjectDictionary.m_entries.push_back({"PROFILE_RAW_OBJECT",0xA060u});
+        const auto payload = [legacy](const char* text) {
+            std::vector<DRW_Variant> values{{1,std::string(text)}};
+            if (legacy) { values.emplace_back(80,std::string("legacy-payload")); values.emplace_back(240,4.25); values.emplace_back(260,1); }
+            return values;
+        };
+        direct.record.handle = 0xA050u; direct.record.parentHandle = 0xA000u; direct.record.m_dataEntries = payload("record-payload");
+        direct.object.name = "PROFILE_RAW_OBJECT"; direct.object.handle = 0xA060u; direct.object.parentHandle = 0xCu; direct.object.m_version = version;
+        direct.object.groups = {{5,std::string("A060")},{330,std::string("C")},{100,std::string("ProfileRawObject")}};
+        const auto objectValues = payload("object-payload"); direct.object.groups.insert(direct.object.groups.end(),objectValues.begin(),objectValues.end());
+        direct.entity.name = "PROFILE_RAW_ENTITY"; direct.entity.handle = 0xA070u; direct.entity.parentHandle = 0x1Fu; direct.entity.m_version = version;
+        direct.entity.groups = {{5,std::string("A070")},{330,std::string("1F")},{100,std::string("AcDbEntity")},{8,std::string("0")},{100,std::string("ProfileRawEntity")}};
+        const auto entityValues = payload("entity-payload"); direct.entity.groups.insert(direct.entity.groups.end(),entityValues.begin(),entityValues.end());
+        DRW_RawDxfSection section; section.m_name = "PROFILE_SECTION"; section.m_version = version;
+        section.m_groups = {{0,std::string("PROFILE_SECTION_RECORD")}};
+        const auto sectionValues = payload("section-payload"); section.m_groups.insert(section.m_groups.end(),sectionValues.begin(),sectionValues.end());
+        root->cloning = 2; root->hardOwner = 1;
+        std::list<DRW_Variant> metadata{{102,std::string("{PROFILE_META")},{1,std::string("profile-common")}};
+        if (legacy) {
+            for (const int code : {80,89,150,159,180,209}) metadata.emplace_back(code,std::string("legacy-string"));
+            for (const int code : {240,259}) metadata.emplace_back(code,4.25);
+            for (const int code : {260,269}) metadata.emplace_back(code,1);
+        }
+        metadata.emplace_back(102,std::string("}")); root->appData.push_back(metadata);
+        std::vector<dxfRW::ImageDefinitionPlanEntry> plan;
+        if (kind == 2u) {
+            DRW_Image image; image.handle = 0xA030u; image.ref = 0xA020u; image.m_imageDefReactorHandle = 0xA031u;
+            image.secPoint = {1,0,0}; image.vVector = {0,1,0}; image.sizeu = 8; image.sizev = 4; direct.addImage(&image);
+            DRW_ImageDef definition; definition.handle = image.ref; definition.parentHandle = root->handle;
+            definition.name = "profile-image.png"; definition.u = 8; definition.v = 4; definition.up = 0.5; definition.vp = 0.25;
+            definition.loaded = 1; definition.resolution = 5; definition.reactorHandles = {image.m_imageDefReactorHandle}; direct.linkImage(&definition);
+            DRW_ImageDefinitionReactor reactor; reactor.handle = image.m_imageDefReactorHandle; reactor.parentHandle = image.handle;
+            reactor.m_classVersion = 2; direct.addImageDefinitionReactor(reactor);
+            root->m_entries = {{"PROFILE_IMAGE",definition.handle}};
+            plan.push_back({data.importGeneration,definition.handle,definition,{reactor}});
+        }
+        dxfRW codec(path.string().c_str()); direct.dxfW = &codec;
+        codec.setRootDictEntries({{"PROFILE_XRECORD","A050"},{"PROFILE_RAW_OBJECT","A060"}});
+        codec.setRawDxfSections({section});
+        for (const auto handle : {0xA050u,0xA060u,0xA070u}) if (!codec.reserveHandle(handle)) return fail("profile companion handle reservation failed");
+        codec.setDxfCompatibilityProfile(legacy ? dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy : dxfRW::DxfCompatibilityProfile::StandaloneSafe);
+        std::map<std::uint32_t,std::uint32_t> aliases{{0xA000u,0xCu}};
+        if (kind == 1u) aliases.emplace(0xA010u,0xDu);
+        codec.setHandleRemap(aliases); codec.setDxfWriteRecordInventoryEnabled(true);
+        if (!codec.setImageDefinitionPlan(std::move(plan)) || !codec.setGeneratedDictionarySourceRecords(
+                std::make_unique<DRW_Dictionary>(data.namedObjectDictionary),kind == 1u ? std::make_unique<DRW_Dictionary>(*root) : nullptr,
+                kind == 2u ? std::make_unique<DRW_Dictionary>(*root) : nullptr,data.importGeneration)) return fail("profile codec source plan setup failed");
+        bool objectsSeen = false, fieldApplied = false; unsigned fault = 0u, entityFault = 0u;
+        auto activeProfile = codec.dxfCompatibilityProfile(), observedProfile = activeProfile;
+        codec.setDxfObjectsWriteInspector([&](auto view) {
+            objectsSeen = true;
+            observedProfile = view.compatibilityProfile;
+            if (view.compatibilityProfile != activeProfile) return false;
+            std::string changed;
+            if (fault == 1u) view.compatibilityProfile = static_cast<dxfRW::DxfCompatibilityProfile>(99);
+            if (fault == 2u) view.compatibilityProfile = dxfRW::DxfCompatibilityProfile::StandaloneSafe;
+            if (fault == 3u) {
+                changed.assign(view.bytes);
+                const auto profile = legacy ? dx_raster_output::Profile::LibreCadMasterLegacy : dx_raster_output::Profile::StandaloneSafe;
+                dx_raster_output::Cursor cursor(view.bytes,view.binary,profile); dx_raster_output::Token token;
+                while (!cursor.done()) {
+                    const auto begin = cursor.position(); if (!cursor.next(token)) return false;
+                    if (token.code != 1 || token.text != "profile-common") continue;
+                    const auto at = view.binary ? begin + 2u : changed.find('\n',begin) + 1u;
+                    changed[at] = 'X'; fieldApplied = true; break;
+                }
+                if (!fieldApplied) return false;
+                view.bytes = changed;
+            }
+            return (kind != 2u || Access::rasterObjects(direct,view)) && Access::generatedRoots(direct,view);
+        });
+        if (kind == 2u) codec.setDxfEntitySectionsWriteInspector([&](auto view, auto section) {
+            if ((entityFault == 1u && section == "BLOCKS") || (entityFault == 2u && section == "ENTITIES"))
+                view.compatibilityProfile = static_cast<dxfRW::DxfCompatibilityProfile>(99);
+            return Access::rasterImages(direct,view,section);
+        });
+        const auto write = [&]() { Access::resetRasterOutput(direct); objectsSeen = false; activeProfile = codec.dxfCompatibilityProfile(); return codec.write(&direct,version,binary); };
+        const auto check = [&]() {
+            if (!objectsSeen || !Access::generatedRootsFinal(direct,kind == 1u ? 2u : 1u) || (kind == 2u && !Access::rasterFinal(direct,2u))) return false;
+            Readback reader; dx_data actual; reader.cData = &actual; reader.currentBlock = actual.mBlock;
+            dxfRW input(path.string().c_str()); input.setDxfCompatibilityProfile(legacy
+                ? dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy : dxfRW::DxfCompatibilityProfile::StandaloneSafe);
+            if (!input.read(&reader,false)) return false;
+            const auto exactPayload = [&](const auto& expected, const auto& values) {
+                if (expected.size() != values.size()) return false;
+                for (std::size_t n = 0u; n < expected.size(); ++n) {
+                    const auto& a = expected[n]; const auto& b = values[n];
+                    if (a.code() != b.code() || a.type() != b.type()) return false;
+                    if (a.type() == DRW_Variant::STRING) { if (!a.content.s || !b.content.s || *a.content.s != *b.content.s) return false; }
+                    else if (a.type() == DRW_Variant::DOUBLE) { if (a.d_val() != b.d_val()) return false; }
+                    else if (a.i_val() != b.i_val()) return false;
+                }
+                return true;
+            };
+            const auto tail = [](const auto& values, std::size_t count) { return std::vector<DRW_Variant>(values.end() - static_cast<std::ptrdiff_t>(count),values.end()); };
+            if (reader.records.size() != 1u || reader.objects.size() != 1u || reader.entities.size() != 1u || reader.sections.size() != 1u
+                || reader.objects.front().groups.size() < objectValues.size() || reader.entities.front().groups.size() < entityValues.size()
+                || reader.sections.front().m_groups.size() < sectionValues.size()
+                || !exactPayload(direct.record.m_dataEntries,reader.records.front().m_dataEntries)
+                || !exactPayload(objectValues,tail(reader.objects.front().groups,objectValues.size()))
+                || !exactPayload(entityValues,tail(reader.entities.front().groups,entityValues.size()))
+                || !exactPayload(sectionValues,tail(reader.sections.front().m_groups,sectionValues.size()))) return false;
+            const auto found = std::find_if(reader.dictionaries.begin(),reader.dictionaries.end(),[&](const auto& record) { return record.cloning == 2 && record.hardOwner == 1; });
+            if (found == reader.dictionaries.end()) return false;
+            const auto group = std::find_if(found->appData.begin(),found->appData.end(),[](const auto& app) {
+                return !app.empty() && app.front().c_str() && std::string_view(app.front().c_str()) == "PROFILE_META";
+            });
+            if (group == found->appData.end() || group->size() != metadata.size()) return false;
+            auto expected = metadata.begin();
+            for (const auto& value : *group) {
+                if (value.code() != expected->code() || value.type() != expected->type()) return false;
+                if (value.type() == DRW_Variant::STRING) {
+                    const auto text = expected == metadata.begin() ? "PROFILE_META" : *expected->content.s;
+                    if (!value.content.s || *value.content.s != text) return false;
+                } else if (value.type() == DRW_Variant::DOUBLE) {
+                    if (value.d_val() != expected->d_val()) return false;
+                } else if (value.i_val() != expected->i_val()) return false;
+                ++expected;
+            }
+            return kind != 2u || (actual.images.size() == 1u && actual.imageDefinitions.size() == 1u && actual.imageDefinitionReactors.size() == 1u
+                && actual.imageDefinitions.begin()->second.name == "profile-image.png"
+                && actual.images.front()->ref == actual.imageDefinitions.begin()->second.handle
+                && actual.images.front()->m_imageDefReactorHandle == actual.imageDefinitionReactors.begin()->second.handle);
+        };
+        if (!write() || !check()) return fail("real profile observer write/readback refused version=" + std::to_string(version)
+                + " binary=" + std::to_string(binary) + " legacy=" + std::to_string(legacy) + " kind=" + std::to_string(kind)
+                + " objectsSeen=" + std::to_string(objectsSeen));
+        if (!faultsOnly) {
+            const auto admitted = codec.dxfCompatibilityProfile();
+            const auto future = legacy ? dxfRW::DxfCompatibilityProfile::StandaloneSafe : dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy;
+            direct.headerPolicy = [&]() { codec.setDxfCompatibilityProfile(future); };
+            const bool wrote = write(), checked = wrote && check();
+            if (!wrote || !checked || codec.dxfCompatibilityProfile() != future)
+                return fail("observer profile changed inside admitted write version=" + std::to_string(version) + " binary=" + std::to_string(binary)
+                    + " legacy=" + std::to_string(legacy) + " kind=" + std::to_string(kind) + " wrote=" + std::to_string(wrote)
+                    + " readback=" + std::to_string(checked) + " objectsSeen=" + std::to_string(objectsSeen)
+                    + " expected=" + std::to_string(static_cast<int>(activeProfile)) + " observed=" + std::to_string(static_cast<int>(observedProfile)));
+            direct.headerPolicy = {}; codec.setDxfCompatibilityProfile(admitted); ++policyCells;
+        }
+        if (faultsOnly) {
+            const auto refused = [&]() {
+                const std::string sentinel = "RASTER_PROFILE_ATOMIC_DESTINATION";
+                { std::ofstream prior(path,std::ios::binary); prior << sentinel; }
+                const bool wrote = write(); std::ifstream prior(path,std::ios::binary);
+                return !wrote && std::string((std::istreambuf_iterator<char>(prior)),{}) == sentinel;
+            };
+            for (const auto mode : {1u,2u,3u}) {
+                if (mode == 2u && !legacy) continue; // Common widths can agree across profiles.
+                fault = mode; fieldApplied = false; const bool failed = refused(); fault = 0u;
+                if (!failed || (mode == 3u && !fieldApplied) || !write() || !check()) return fail("profile view/field refusal-restored same-codec readback failed");
+                if (mode == 3u) ++fieldRetries; else ++viewRetries;
+            }
+            const auto original = *root;
+            for (const bool final : {false,true}) {
+                const auto edit = [&]() { auto field = std::next(root->appData.front().begin()); field->addString(1,"late-profile-common"); };
+                if (final) direct.beforeFinalize = edit; else direct.afterObjects = edit;
+                const bool failed = refused(); direct.beforeFinalize = {}; direct.afterObjects = {}; *root = original;
+                if (!failed || !write() || !check()) return fail("profile late-source refusal-restored same-codec retry failed");
+                ++lateRetries;
+            }
+            if (kind == 2u) for (entityFault = 1u; entityFault != 3u; ++entityFault) {
+                const bool failed = refused(); const auto saved = entityFault; entityFault = 0u;
+                if (!failed || !write() || !check()) return fail("entity observer unknown-profile refusal-restored same-codec retry failed");
+                entityFault = saved; ++entityRetries;
+            }
+        }
+        ++cells; direct.dxfW = nullptr;
+    }
+    if (cells != (faultsOnly ? 12u : 36u) || policyCells != (faultsOnly ? 0u : 36u) || viewRetries != (faultsOnly ? 18u : 0u) || fieldRetries != (faultsOnly ? 12u : 0u)
+        || lateRetries != (faultsOnly ? 24u : 0u) || entityRetries != (faultsOnly ? 8u : 0u)) return fail("profile observer matrix skipped a cell");
+    std::cout << "Actual public codec observer profile cells=" << cells << " view retries=" << viewRetries << " field retries=" << fieldRetries
+        << " late-source retries=" << lateRetries << " entity-profile retries=" << entityRetries << " snapped/future-policy cells=" << policyCells << '\n';
+    return true;
+}
+
+bool rasterProfileTokenControls() {
+    using Profile = dx_raster_output::Profile;
+    unsigned strings = 0u, doubles = 0u, booleans = 0u, standalone = 0u, invalid = 0u, truncated = 0u;
+    const auto word = [](std::string& bytes, std::uint64_t value, unsigned width) {
+        for (unsigned n = 0u; n < width; ++n) bytes.push_back(static_cast<char>((value >> (8u * n)) & 255u));
+    };
+    const auto verify = [&](int code, const std::string& first, bool binary, const auto& check) {
+        const auto suffix = binary ? std::string("\0\0DICTIONARY\0",13u) : std::string("0\nDICTIONARY\n");
+        const auto bytes = first + suffix;
+        dx_raster_output::Cursor cursor(bytes,binary,Profile::LibreCadMasterLegacy); dx_raster_output::Token token;
+        if (!cursor.next(token) || token.code != code || !check(token) || cursor.position() != first.size()
+            || !cursor.next(token) || token.code != 0 || token.text != "DICTIONARY" || !cursor.done()) return false;
+        for (std::size_t n = 0u; n < first.size(); ++n) {
+            dx_raster_output::Cursor partial(std::string_view(first).substr(0,n),binary,Profile::LibreCadMasterLegacy);
+            if (partial.next(token)) return false;
+            ++truncated;
+        }
+        if (binary) {
+            dx_raster_output::Cursor safe(bytes,true);
+            if (safe.next(token)) return false;
+            ++standalone;
+        }
+        return true;
+    };
+    // These explicit compatibility widths are hand-encoded independently.
+    // A positive transport cell is not a schema/native support receipt.
+    for (const bool binary : {false,true}) {
+        for (const auto& range : {std::pair<int,int>{80,89},{150,159},{180,209},{1006,1009}})
+          for (int code = range.first; code <= range.second; ++code) for (const auto* text : {"","profile-string","caf\xC3\xA9"}) {
+            std::string first;
+            if (binary) { word(first,code,2u); first += text; first.push_back('\0'); }
+            else first = std::to_string(code) + "\n" + text + "\n";
+            if (!verify(code,first,binary,[&](const auto& token) { return token.type == dx_raster_output::Kind::Text && token.text == text; }))
+                return fail("independent legacy string width/span control failed");
+            ++strings;
+        }
+        for (const auto& range : {std::pair<int,int>{240,259},{482,998}})
+          for (int code = range.first; code <= range.second; ++code) for (const bool negativeZero : {false,true}) {
+            const std::uint64_t bits = negativeZero ? UINT64_C(0x8000000000000000) : UINT64_C(0x4011000000000000);
+            std::string first;
+            if (binary) { word(first,code,2u); word(first,bits,8u); }
+            else first = std::to_string(code) + "\n" + (negativeZero ? "-0.0\n" : "4.25\n");
+            if (!verify(code,first,binary,[&](const auto& token) {
+                    std::uint64_t actual = 0u; std::memcpy(&actual,&token.real,sizeof(actual));
+                    return token.type == dx_raster_output::Kind::Double && actual == bits;
+                })) return fail("independent legacy double width/bits/span control failed");
+            ++doubles;
+        }
+        for (int code = 260; code <= 269; ++code) for (const unsigned value : {0u,1u,255u}) {
+            std::string first;
+            if (binary) { word(first,code,2u); word(first,value,1u); }
+            else first = std::to_string(code) + "\n" + std::to_string(value) + "\n";
+            if (!verify(code,first,binary,[&](const auto& token) { return token.type == dx_raster_output::Kind::Integer && token.number == value; }))
+                return fail("independent legacy Boolean transport was widened or truthiness-normalized");
+            ++booleans;
+        }
+        for (const auto profile : {Profile::Invalid,static_cast<Profile>(99)}) {
+            const auto bytes = binary ? std::string("\0\0DICTIONARY\0",13u) : std::string("0\nDICTIONARY\n");
+            dx_raster_output::Cursor cursor(bytes,binary,profile); dx_raster_output::Token token; bool visited = false;
+            if (cursor.next(token) || dx_raster_output::inspect(bytes,binary,[&](auto, auto, auto) { visited = true; return true; },profile)
+                || dx_raster_output::inspect({},binary,[](auto, auto, auto) { return true; },profile) || visited)
+                return fail("independent observer accepted an invalid profile or invoked its visitor");
+            ++invalid;
+        }
+    }
+    if (strings != 324u || doubles != 2148u || booleans != 60u || standalone != 1266u || invalid != 4u || truncated == 0u)
+        return fail("independent profile token matrix skipped a cell");
+    std::cout << "Independent legacy string cells=" << strings << " double cells=" << doubles << " Boolean transport cells=" << booleans
+        << " standalone binary refusals=" << standalone << " invalid-profile cells=" << invalid << " partial-token refusals=" << truncated << '\n';
+    return true;
+}
+
 bool rasterTokenWidthControls() {
     unsigned strings = 0u, shorts = 0u, truncations = 0u, unknowns = 0u;
     const auto field = [](int code, std::string_view text, bool binary) {
@@ -33414,6 +33721,12 @@ int main(int argc, char** argv) {
         return rootedXrecordStringWidths(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--raster-token-width-controls")
         return rasterTokenWidthControls() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--raster-observer-profiles")
+        return rasterObserverProfiles() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--raster-observer-profile-faults")
+        return rasterObserverProfiles(true) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--raster-profile-token-controls")
+        return rasterProfileTokenControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-output-framing-controls")
         return standardOutputFramingControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-scalar-transport")
