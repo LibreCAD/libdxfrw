@@ -165,8 +165,9 @@ template<class Visitor> bool inspect(std::string_view bytes, bool binary, Visito
     std::size_t begin = 0, records = 0;
     std::uint32_t handle = 0;
     unsigned self = 0, depth = 0;
-    bool body = false;
+    bool body = false, xrecordXdata = false;
     const auto complete = [&]() {
+        if (name == "XRECORD" && depth != 0u) return false;
         return (name != "IMAGEDEF" && name != "IMAGEDEF_REACTOR" && name != "IMAGE")
             || (self == 1u && handle != 0u);
     };
@@ -176,9 +177,17 @@ template<class Visitor> bool inspect(std::string_view bytes, bool binary, Visito
         if (t.code == 0) {
             if (!name.empty() && (!complete() || !visit(name, handle, bytes.substr(begin, start - begin)))) return false;
             if (t.text.empty() || ++records > 1000000u) return false;
-            name = t.text; begin = input.position(); handle = 0; self = 0; depth = 0; body = false;
+            name = t.text; begin = input.position(); handle = 0; self = 0; depth = 0; body = false; xrecordXdata = false;
         } else if (name.empty()) return false;
+        else if (name == "XRECORD" && body && t.code == 1001) xrecordXdata = true;
         else if (t.code == 102) {
+            // After the outer XRECORD subclass, ordinary102 values belong to
+            // application data, not common groups. Trailing XDATA ends that
+            // application channel; it cannot be reopened by another102.
+            if (name == "XRECORD" && body) {
+                if (xrecordXdata) return false;
+                continue;
+            }
             if (!t.text.empty() && t.text.front() == '{') ++depth;
             else if (t.text == "}" && depth != 0u) --depth;
             else return false;

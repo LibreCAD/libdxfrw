@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cd DXF XRECORD legacy scalar parity (2026-10-24):** independently reproduced public readback failures are fixed for explicit legacy doubles 240..259 and Booleans 260..269. Cached active-classifier dispatch reuses existing bounded mirrored-value paths; newly admitted Boolean wire values must be 0/1. Two independent fast tests pass 56 authored exports, 56 cross-encoding reexports, 56 standalone/profile read retries, four exact/one-node-under budget controls, 96 atomic source/profile retries and 30 malformed-wire/common-boundary retries. Finite extremes, subnormals and signed zero retain exact double bits. Final 37 focused, five owning, four reader/consumer and 18 ASan tests pass, with both LibreCAD_3 compile gates. Default-profile unknown widths, native predicates and qualification stay unchanged; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cd-dxf-xrecord-legacy-scalar-parity-2026-10-24) · [receipt](docs/research/rpp5cd-dxf-xrecord-legacy-scalar-parity-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5ce native XRECORD application-scope preservation (2026-10-24):** a live native-import/facade export refusal is fixed by keeping post-subclass XRECORD 102 text in the application channel, not common-group syntax. Thirty scratch native sources pass 360 projections and 360 actual-import cross-encoding reexports; 80 atomic late-source refusal/restoration retries pass. Framing controls pass ten positives, 48 raw refusals, two ambiguous shifted-header modeled refusals and eight other-family rejection probes. Final 40 focused, five owning, four reader/consumer and 21 ASan tests pass, with both LibreCAD_3 compile gates. The independent observer remains separate from the production classifier; native grammar, source qualification and strict admission (**CLOSED**) stay unchanged. [Implementation record](#implementation-progress-rpp-5ce-native-xrecord-application-scope-preservation-2026-10-24) · [receipt](docs/research/rpp5ce-native-xrecord-application-scope-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5cd DXF XRECORD legacy scalar parity (2026-10-24):** independently reproduced public readback failures are fixed for explicit legacy doubles 240..259 and Booleans 260..269. Cached active-classifier dispatch reuses existing bounded mirrored-value paths; newly admitted Boolean wire values must be 0/1. Two independent fast tests pass 56 authored exports, 56 cross-encoding reexports, 56 standalone/profile read retries, four exact/one-node-under budget controls, 96 atomic source/profile retries and 30 malformed-wire/common-boundary retries. Finite extremes, subnormals and signed zero retain exact double bits. Final 37 focused, five owning, four reader/consumer and 18 ASan tests pass, with both LibreCAD_3 compile gates. Default-profile unknown widths, native predicates and qualification stay unchanged; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cd-dxf-xrecord-legacy-scalar-parity-2026-10-24) · [receipt](docs/research/rpp5cd-dxf-xrecord-legacy-scalar-parity-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5cc DXF XRECORD string-code parity (2026-10-24):** a public writer/readback failure is fixed for normal application string codes 103/104/106..109. DXF-only dispatch now follows the active canonical classifier through the existing bounded two-owner path; native DWG predicates and qualification stay unchanged. Controls pass 28 authored exports, 28 cross-encoding reexports, 80 atomic source-domain retries, 12 common-XDATA boundary retries, and both encodings of all 50 explicit legacy string codes with profile/refusal retries. Fourteen ownership-budget cells retain exact/one-byte-under and copy/reset controls. Final 35 focused, five owning, four reader/consumer and 16 ASan tests pass, with both LibreCAD_3 compile gates. Other value-kind/observer audits and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cc-dxf-xrecord-string-code-parity-2026-10-24) · [receipt](docs/research/rpp5cc-dxf-xrecord-string-code-parity-2026-10-24.json).
 
@@ -121197,7 +121199,7 @@ native/document/geometry or independent semantic qualification requirements.
 
 Next executable work, retaining the full parity objective:
 
-1. [ ] Audit generated-root/raster whole-OBJECTS observation using real native
+1. [x] Audit generated-root/raster whole-OBJECTS observation using real native
    XRECORDs with application 102/100/280/330 values. Extend the existing public
    native author/import fixture with ordinary 102 text (including literal
    non-group/braced spellings), repeated application 100, later 280 and mapped
@@ -121205,13 +121207,17 @@ Next executable work, retaining the full parity objective:
    reproduce any facade export failure before changing production logic. The
    standard helper's model tests and direct public codec tests do not prove
    every whole-document observer respects XRECORD application scope.
-2. [ ] If the whole-OBJECTS failure is reproduced, scope any raw-framing change
+   Completed in RPP-5ce below: successful native capture/correlation precedes
+   the reproduced first-cell facade refusal and the final full scoped matrix.
+2. [x] If the whole-OBJECTS failure is reproduced, scope any raw-framing change
    to XRECORD application fields after its outer subclass. Preserve common
    application-group validation before the subclass, other object families,
    IMAGE/IMAGEDEF/reactor field/reference checks, final identities/ownership,
    frozen sources, budgets and unique references. Add malformed-common-group,
    changed-field, late-source, atomic refusal and same-codec restored retries;
    do not replace qualification with successful generated output/readback.
+   Completed in RPP-5ce below with narrow framing changes, layered ambiguous
+   header controls and actual late-source refusal/restoration readback retries.
 3. [ ] Continue native XRECORD string/code qualification using the authoritative
    DWG specification and actual bounded source traces before changing native
    predicates or encoder/parser grammar. Continue independent APPID/LAYER/
@@ -121234,3 +121240,117 @@ excluded. Earlier receipts and remote state remain unchanged.
 
 Receipt:
 [`rpp5cd-dxf-xrecord-legacy-scalar-parity-2026-10-24.json`](docs/research/rpp5cd-dxf-xrecord-legacy-scalar-parity-2026-10-24.json).
+
+## Implementation progress — RPP-5ce native XRECORD application-scope preservation (2026-10-24)
+
+RPP-5cd is committed as `968f269bc0244c6a365f48b0b0c088a6adb26ee2`.
+This completes the preceding real-native application-scope audit and its
+reproduced facade blocker, not whole-document or independent native support
+qualification. The broader parity objective remains active.
+
+1. [x] Reproduce before changing production code. A scratch public native
+   writer/import succeeds, exact application values survive capture and
+   correlation, and source eligibility has its expected existing disposition.
+   The first R2000 ASCII compatible facade export then fails during OBJECTS
+   emission for plain application 102 text `BODY_CONTROL` (baseline CTest exit
+   8, first test 0.35 s, total 0.36 s). The preceding default strict-policy
+   refusal is expected. Only this first matrix cell is exercised at baseline;
+   do not infer that every marker/revision failed before the fix.
+2. [x] Scope the independent raw observer's 102 handling to XRECORD application
+   fields after the outer subclass. Preserve common-prefix grouping, require
+   genuinely unclosed XRECORD common groups to fail at record completion and
+   refuse application 102 after trailing common XDATA starts. Other families
+   retain their grouping rules. The independent cursor still does not call
+   the production classifier or decoder; its width subset is not widened.
+   Existing selected-record model, identities, ownership/reference roles,
+   frozen-source joins, limits and admission predicates remain required.
+3. [x] Add the fast `dwg2dxf_native_xrecord_application_scope` selector using
+   public native author/import followed by actual facade output/readback.
+   Six source revisions AC1015/18/21/24/27/32 times five 102 spellings produce
+   30 scratch native sources. Markers cover ordinary text, an unmatched-looking
+   open brace, a standalone closer, reserved-looking `{ACAD_REACTORS` and a
+   literal open/close pair. Every body also carries repeated application 100
+   `AcDbXrecord`, later application 280=7 and a mapped application 330 handle.
+   Six DXF targets and both encodings pass 360 projections, then 360 actual
+   parsed cross-encoding reexports/readbacks. Check exact ordered values,
+   mapped GROUP references, dictionary membership/owner, common EED transport
+   and absence of accidental common appData/reactors/extension dictionaries.
+   The original native source remains unchanged. All 120 legacy-source cells
+   stay unqualified; all 240 modern cells retain the existing three modeled
+   standard-object facts. Sixty default strict-policy sentinel refusals pass.
+4. [x] Keep late-source checks in a separate fast selector,
+   `dwg2dxf_native_xrecord_scope_faults`, for implementation speed. Ten actual
+   native sources cover AC1015 and AC1032 with all five markers. Across both
+   output encodings, edit application 102 text or 280 after OBJECTS emission
+   or just before finalization. All 80 attempted edits refuse atomically and
+   preserve destination sentinels. Restore the original public record and
+   retry on the same facade; actual readback, source correlation and original
+   qualified/unqualified facts pass. No private source receipt is refreshed
+   or fabricated; each file-export operation creates its own codec as before.
+5. [x] Add `dwg2dxf_raster_xrecord_scope_framing`: ten scratch positive cases
+   preserve a real common-prefix group, exact application order and the next
+   record's identity. Fifty malformed/restored-byte controls yield 48 raw
+   framing refusals and two modeled refusals. In the latter, a later literal
+   application `}` can balance a deliberately deleted common-prefix closer:
+   raw framing alone cannot infer intent, but the unchanged model rejects
+   the shifted subclass/cloning header. Do not claim 50 raw refusals or ban
+   all subclass-like text within unknown common groups. Eight other-family
+   rejection probes show the exception does not leak to DICTIONARY, IMAGEDEF,
+   IMAGEDEF_REACTOR or IMAGE. These are framing/model controls, not valid IMAGE
+   semantic fixtures, atomic wire-fault cases or independent native evidence.
+6. [x] Preserve existing binary-transport and MATERIAL profile-isolation
+   selector behavior/counts while strengthening their exact application and
+   owner assertions. Test-only modes select positive, profile or late-fault
+   work independently. No writer encoding, native predicate/parser/encoder,
+   public API/layout, DRW_Interface callback, issue mask, source evidence or
+   document composition policy changes. No speculative native format code.
+7. [x] Final strict affected normal and ASan builds and both LibreCAD_3 compile
+   gates pass. Forty focused tests pass 21.79 s; five owning tests pass 9.67 s;
+   four reader/consumer tests pass 2.16 s; 21 scoped ASan tests pass 46.44 s.
+   Normal cohorts run sequentially with parallelism 3 inside each; ASan uses
+   `halt_on_error=1:detect_leaks=0`. No full suite, leak qualification,
+   platform/independent producer qualification or memory/speed benchmark is
+   claimed. Record the final scoped evidence in a new immutable receipt and
+   commit only this verified implementation/test/plan slice.
+
+Next executable work, retaining completeness and implementation readiness:
+
+1. [ ] Audit whole-OBJECTS token width/profile parity with already-supported
+   DXF XRECORD fields. Direct codec successes from RPP-5cc/5cd do not prove the
+   root/raster observer can scan unrelated rooted XRECORD application values.
+   Start with public scratch NOD-to-XRECORD DXF containing normal string codes
+   103/104/106..109; require actual accepted import, facade exports in ASCII
+   and binary, then parsed cross-encoding reexports. Separately exercise
+   explicitly selected legacy string/double/Boolean widths where the public
+   facade/profile supports them. This is a code-inspection hypothesis until a
+   live failure is reproduced, not an established new support claim.
+2. [ ] If reproduced, independently qualify only the required observer widths
+   and profile boundaries against primary DXF documentation; do not silently
+   share the production classifier with an observer claimed independent.
+   Keep unknown binary widths closed, preserve selected IMAGEDEF/reactor
+   field-span and handle-role proof, and test actual rooted-object coexistence,
+   truncation, unknown-profile refusal, late changes and restored readback.
+   Separate fast positive/framing/fault selectors; run the smallest failing
+   selector first and rebuild affected consumers at the production checkpoint.
+3. [ ] Continue authoritative-spec/real-source-trace work before changing
+   native XRECORD string/scalar predicates or native encoder/parser grammar.
+   Complete independent APPID/LAYER/XRECORD name/body/path/EED evidence, sparse
+   native class cardinality, full IMAGE/common geometry and broader named-root/
+   full-document closure. Verify ownership, generation isolation and remapping
+   contracts before enabling multi-document composition. Successful locally
+   generated output/readback cannot substitute for independent source evidence.
+4. [ ] Self-update this plan and a new immutable receipt after every item;
+   self-unblock safe in-scope dependencies, commit each verified slice and show
+   progress. Continue without avoidable stops, but do not expand authority or
+   waive external qualifications. Prefer fast affected tests over repeated full
+   suites; use scoped owning/reader/sanitizer checkpoints for material changes.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Preserve LibreCAD/LibreCAD_3
+2D compatibility and the original 3D/dwg2dxf scope. No drawing is added or
+committed; all 17 existing untracked drawings and unrelated files remain
+excluded. Earlier receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5ce-native-xrecord-application-scope-2026-10-24.json`](docs/research/rpp5ce-native-xrecord-application-scope-2026-10-24.json).

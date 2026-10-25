@@ -585,6 +585,18 @@ add_test(NAME dwg2dxf_standard_dwg_profile_isolation
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-profile-isolation)
 set_tests_properties(dwg2dxf_standard_dwg_profile_isolation PROPERTIES
     LABELS "fast;dwg;dxf;objects;material;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_native_xrecord_application_scope
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-application-scope)
+set_tests_properties(dwg2dxf_native_xrecord_application_scope PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_native_xrecord_scope_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-scope-faults)
+set_tests_properties(dwg2dxf_native_xrecord_scope_faults PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;transaction;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_raster_xrecord_scope_framing
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-xrecord-scope-framing)
+set_tests_properties(dwg2dxf_raster_xrecord_scope_framing PROPERTIES
+    LABELS "fast;dxf;objects;xrecord;adapter;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_standard_output_framing_controls
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-output-framing-controls)
 set_tests_properties(dwg2dxf_standard_output_framing_controls PROPERTIES
