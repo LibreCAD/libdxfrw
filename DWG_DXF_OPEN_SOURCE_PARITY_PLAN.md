@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dn legacy MTEXT immutable identities and independent XDATA wire proof (2026-10-25):** the remaining legacy control had stale caller-handle mutation expectations. Production already preserves source identities and emits the correct remapped links. The corrected oracle checks those source identities, successful binding maps and original ASCII/binary output directly: four wire profiles, 48 corruption refusals and four failed transactions plus two corrected same-adapter exports per owning invocation. All 32 XDATA values, linked entities and following geometry remain checked. A fast isolated selector and 22/22 normal/ASan affected checks pass; no production code or support gate changes. Full immutable ATTDEF source proof is next. [Implementation and next work](#implementation-progress-rpp-5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25) · [receipt](docs/research/rpp5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5do nested MTEXT common-owner accounting prerequisite (2026-10-25):** immutable ATTDEF capture readiness exposed an existing retained-byte gap: nested MTEXT text/formatting was charged, but its common strings, application groups, XDATA and metadata vectors were omitted. Attribute retention now calls the existing common-owner estimator too. Sixty payload/container cells, 120 exact/short boundaries, 60 budget retries, 119 calibrated allocation refusals/retries and 32 actual import routes pass. The fast affected selection passes 24/24 normally and under ASan. This fixes a prerequisite, not the still-open immutable ATTDEF source proof or a new qualified resource family. [Implementation and next work](#implementation-progress-rpp-5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25) · [receipt](docs/research/rpp5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dn legacy MTEXT immutable identities and independent XDATA wire proof (2026-10-25):** committed as `9bfd7320`. Its corrected source-identity oracle, original-byte link/XDATA checks, corruption controls and failure/recovery coverage remain valid. RPP-5do fixes an additional retained-owner prerequisite before converter ATTDEF snapshots are introduced; it does not reopen support/export gates. Full immutable ATTDEF source proof remains next. [Historical implementation](#implementation-progress-rpp-5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25) · [receipt](docs/research/rpp5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dm DXF RGB-to-CMC projection and native retries (2026-10-25):** committed as `09a93b86`. Its native issue-1410 admission fix, strict retained-native guards and rollback/retry coverage remain valid. The historical 95/96 results are retained in its immutable receipt. RPP-5dn resolves the sole legacy control as a stale mutation oracle, with independent physical output checks rather than dropping assertions about emitted identities or links. Full immutable ATTDEF proof and original consumer/semantic/platform parity remain open. [Historical implementation](#implementation-progress-rpp-5dm-dxf-rgb-to-cmc-projection-and-native-retries-2026-10-25) · [receipt](docs/research/rpp5dm-dxf-mtext-rgb-cmc-projection-and-native-retry-2026-10-25.json).
 
@@ -125829,3 +125831,114 @@ The proved CLI resource-family count remains **nine**. The support ledger stays
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full goal is still open;
 no push, PR mutation or support promotion is included in this slice.
+
+## Implementation progress RPP-5do nested MTEXT common-owner accounting prerequisite (2026-10-25)
+
+Parent is `9bfd7320b2d4a7fd16ff169900fe3a136ee35207`. Work toward converter ATTDEF
+snapshots found a concrete defect in the estimator those snapshots must reuse:
+`addAttributeRetainedBytes` counted nested MTEXT object/text/formatting payloads
+but omitted `addEntityCommonRetainedBytes`. The copied nested object retains
+common application groups, XDATA and other dynamic metadata too. A new owning
+baseline reproduced this on the unchanged parent estimator: replacing the
+nested layer name by 16,384 bytes left the parent estimate at **2,473 bytes**,
+despite **16,383 bytes** of additional common string payload.
+
+Completed prerequisite work:
+
+1. [x] Route nested MTEXT through the existing common-owner estimator before
+   its MTEXT-specific fields. This applies to direct ATTDEF, generic ATTRIB
+   retention and INSERT-owned attributes. No model/public-interface/vtable,
+   native byte layout, DXF grammar, callback ordering or export gate changes.
+2. [x] Test **60 cells**: four container routes (ATTDEF, direct ATTRIB retention
+   seam, INSERT with one attribute, INSERT with two) × 14 individual common
+   payload categories plus one combined profile. Categories are layer, linetype,
+   proxy bytes, color name, data-storage handle key/marker section/bytes,
+   reactors, pending APPID/layer refs, XDATA string/binary, application groups
+   and proxy source-codepage metadata. These are authored retained-model inputs,
+   not qualification of arbitrary metadata for serialization.
+3. [x] Require nested common growth to equal the sum of common-only LINE-sliced
+   estimates, with an independent minimum payload-growth check. Cover **120
+   exact/one-byte-short boundaries** and **60 corrected budget retries**. Check
+   copied payload estimates, no partial record or byte charge on refusal,
+   repeated refusal and fresh-destination recovery on the same adapter. The
+   tests seed the logical byte counter; they do not allocate 64 MiB or establish
+   a process RSS/capacity/CPU bound.
+4. [x] Calibrate the combined profile for each container route; fail every one
+   of **119 observed copy/publication allocations**, checking no partial clone
+   or counter update, followed by a corrected fresh-destination retry on the
+   same adapter. This is the calibrated callback interval for these profiles,
+   not every process allocation or an import-wide allocation proof.
+5. [x] Add **32 actual converter import routes**: AC1021/AC1024/AC1027/AC1032 ×
+   ASCII/binary × BLOCKS/ENTITIES × 101/legacy-100 embedded MTEXT spelling.
+   Compare an original and a 16,384-byte nested application-string variant:
+   require the exact **16,375-byte** retained-counter increase, complete retained
+   application value, and unchanged actual MTEXT content. This proves the
+   estimator is reached by actual import, not merely a synthetic test call.
+6. [x] Register fast `libdxfrw_nested_mtext_common_owner_budget`; retain the
+   existing transport test's behavior. The strict owning target, adapter/CLI
+   targets and `lc3_compat_check` build in both configurations. The exact prior
+   22 fast checks plus this owner test and the existing general typed-entity
+   capture-limit test pass **24/24 normally in 2.74 s** and **24/24 under ASan in
+   8.70 s**, sequentially, with leak checks disabled. No full suite or new native
+   consumer/platform qualification is claimed. Host is macOS ARM64 Apple Clang
+   21; `build-gcc` does not mean Linux/GCC.
+
+The [RPP-5do receipt](docs/research/rpp5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25.json)
+records the exact baseline, counters, selected tests and hashes. All new inputs
+are locally authored runtime models/files; no external DWG/DXF fixture is added.
+This closes the identified nested-common charge omission, **not** a complete
+owner/temporary/capacity audit or immutable source certificate.
+
+Implementation-readiness findings that must guide the next source-proof work:
+
+- `DRW_Entity::init` deliberately clears the XDATA parser cursor/mask when
+  copying. `DRW_Attrib` copies clear `dxfInAttributeSubclass`; MTEXT's
+  `DxfOrientationScope` copy/move resets its nested-grammar scope. A frozen model
+  copy therefore cannot establish the **original callback's** pending/parser
+  state. Capture or validate that state before copying, using a bounded internal
+  observation; never let copy/reset sanitize an unqualified source into proof.
+- The shared `dxfAttdef::Decoder` supplies `parseCode`, `applicationEntity` and
+  `finish(applyExtrusion)`. Replay must reproduce host/nested application and
+  XDATA routing, required fields and finalization under the actual declared
+  revision/encoding/read policy. A normalized writer round-trip is insufficient.
+- Common-owner accounting now includes the nested fields above, but future
+  proof owners/temporaries, private/native-only write state and allocation/
+  capacity overhead still require their own explicit admission/census. Do not
+  reinterpret this retained logical-byte check as whole-model memory proof.
+
+Next implementation-ready work, with the full objective unchanged:
+
+1. [ ] **Immutable ATTDEF capture and original-state observation.** Opt into
+   the separate source facet only in the real bounded CLI import session. Add
+   an entity snapshot owner to `TableDxfSourceCapture::Resource`, not a cast into
+   its table-entry owner. Precharge raw/model/temporary owners using the corrected
+   estimator and shared limits. Observe original pending/provenance state before
+   copies reset it; preserve opt-out behavior and old virtual interfaces.
+2. [ ] **Replay, equality and selected-target gate.** Share the production
+   decoder and actual context; compare every exposed/default/native-only common,
+   TEXT/ATTRIB/ATTDEF/nested-MTEXT field and original-state observation. Add a
+   field census and one-field mutations, sticky missing/duplicate/late/session
+   failures, quota/allocation refusals and corrected retries. Only then replace
+   identity-only selected ATTDEF binding with complete source proof.
+3. [ ] **Block/physical/secondary profiles.** Carry actual enclosing block
+   identity/owner evidence (`inBlock` alone is insufficient), extend independent
+   original-tag reference spans, and qualify or explicitly refuse unproved
+   secondary/duplicate/multiline `AcDbXrecord` attribute forms. Complete the
+   BLOCK/ENDBLK, ATTRIB/SEQEND and APPID/LAYER prerequisites without treating raw
+   retention or a copied model as full semantics.
+4. [ ] **Remaining full parity and self-updating execution.** Continue B2b/B3/C
+   common/target/live/output, compound IDs/fields/references/atomic rollback,
+   IMAGE/document, native bit/decimal/carrier/schema/owner and speed/ownership/
+   allocation work. Preserve LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD plus
+   independent semantic/platform obligations. After each item, update exact
+   evidence and limits, choose the next safe ready dependency, commit/report
+   coherent slices and continue. Use owning/affected fast selectors normally;
+   sequential broader normal/ASan runs remain integration checkpoints. Commit
+   only repository-existing or locally authored drawings, not external samples.
+
+The converter still does **not** request the ATTDEF source facet; its proved
+resource-family count stays **nine**. The support ledger remains **CLOSED**,
+`outputEligible=false`; J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**.
+Native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel work
+remain **NOT_RUN**. The full implementation goal stays open. No remote mutation
+or support promotion is included.

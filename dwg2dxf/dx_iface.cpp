@@ -10417,6 +10417,10 @@ bool addAttributeRetainedBytes(
     if (attribute.mtext != nullptr) {
         if (!addAssociativeRetainedBytes(
                 sizeof(DRW_MText), estimate)
+            // Nested MTEXT owns the same common strings, variants and
+            // metadata vectors as a standalone entity. Its copy retains all
+            // of them, not only the text/column/background-specific payload.
+            || !addEntityCommonRetainedBytes(*attribute.mtext, estimate)
             || !addMTextRetainedBytes(*attribute.mtext, estimate)
             || !addStringPayloadBytes(
                     attribute.mtext->text, estimate)

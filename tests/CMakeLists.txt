@@ -498,6 +498,10 @@ target_link_libraries(libdxfrw_attdef_source_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_attdef_source_transport COMMAND libdxfrw_attdef_source_tests)
 set_tests_properties(libdxfrw_attdef_source_transport PROPERTIES
     LABELS "fast;dxf;attdef;source;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_nested_mtext_common_owner_budget
+    COMMAND libdxfrw_attdef_source_tests --nested-common-budget)
+set_tests_properties(libdxfrw_nested_mtext_common_owner_budget PROPERTIES
+    LABELS "fast;dxf;attdef;mtext;resource-budget;generated" TIMEOUT 30)
 
 add_executable(libdxfrw_table_content_dxf_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/table_content_dxf_tests.cpp ${_libdxfrw_test_adapter_source})

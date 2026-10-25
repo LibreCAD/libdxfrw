@@ -29,12 +29,140 @@ void operator delete[](void* value) noexcept {std::free(value);}
 void operator delete(void* value,std::size_t) noexcept {std::free(value);}
 void operator delete[](void* value,std::size_t) noexcept {std::free(value);}
 
+class DxIfaceStandardDwgCaptureTestAccess {
+public:
+    static bool estimate(const dx_iface& iface,const DRW_Entity& entity,
+                         std::size_t inlineBytes,std::size_t& bytes) {
+        return iface.estimateTypedEntityRetainedBytes(entity,inlineBytes,bytes);
+    }
+    static void attribute(dx_iface& iface,const DRW_Attrib& value) {
+        (void)iface.retainTypedEntity<DRW_Attrib>(value);
+    }
+};
+
 namespace {
 struct Tag {int code;std::string value;};
 using Tags=std::vector<Tag>;
 bool check(bool value,const char* label) {
     if(!value)std::cerr<<"ATTDEF source: "<<label<<'\n';
     return value;
+}
+bool nestedCommonBudgetTests() {
+    constexpr std::size_t payload=16384u;
+    unsigned cells=0u, boundaries=0u, retries=0u;
+    long allocationSchedules=0;
+    const auto fill=[](DRW_MText& value,unsigned field) {
+        const std::string text(payload,'q');
+        switch(field) {
+        case 0:value.layer=text;break;
+        case 1:value.lineType=text;break;
+        case 2:value.proxyGraphics=text;value.numProxyGraph=static_cast<int>(payload);break;
+        case 3:value.colorName=text;break;
+        case 4:value.dataStorageHandleKey=text;break;
+        case 5:value.dataStoragePayloadMarkerSection=text;break;
+        case 6:value.dataStorageData.assign(payload,0x5Au);break;
+        case 7:value.reactorHandles.assign(payload/sizeof(std::uint32_t),0x12u);break;
+        case 8:value.pendingAppIdResolutions.resize(payload/sizeof(DRW_Entity::PendingHandleRef)+1u);break;
+        case 9:value.pendingLayerRefResolutions.resize(payload/sizeof(DRW_Entity::PendingHandleRef)+1u);break;
+        case 10:value.extData.push_back(std::make_shared<DRW_Variant>(1000,text));break;
+        case 11:value.extData.push_back(std::make_shared<DRW_Variant>(1004,std::vector<std::uint8_t>(payload,0xA5u)));break;
+        case 12:value.appData.push_back({DRW_Variant(102,std::string("{APP")),DRW_Variant(1,text),DRW_Variant(102,std::string("}"))});break;
+        case 13:
+            value.numProxyGraph=1;value.proxyGraphics="x";
+            if(!value.authorizeProxyGraphicsReplay(DRW::AC1032,text))throw std::runtime_error("authored proxy provenance setup");
+            break;
+        default:throw std::runtime_error("unknown nested common payload field");
+        }
+    };
+    for(unsigned family=0u;family<4u;++family)for(unsigned field=0u;field<15u;++field) {
+        DRW_Attdef definition;DRW_Attrib attribute;DRW_Insert insert;
+        std::vector<DRW_MText*> nested;
+        DRW_Entity* host=nullptr;std::size_t inlineBytes=0u;
+        if(family<2u) {
+            DRW_Attrib& value=family==0u?static_cast<DRW_Attrib&>(definition):attribute;
+            value.mtext=std::make_unique<DRW_MText>();nested.push_back(value.mtext.get());
+            host=&value;inlineBytes=family==0u?sizeof(DRW_Attdef):sizeof(DRW_Attrib);
+        } else {
+            for(unsigned i=0u;i<(family==2u?1u:2u);++i) {
+                auto value=std::make_shared<DRW_Attrib>();value->mtext=std::make_unique<DRW_MText>();
+                nested.push_back(value->mtext.get());insert.attlist.push_back(std::move(value));
+            }
+            host=&insert;inlineBytes=sizeof(DRW_Insert);
+        }
+        dx_iface estimator;
+        std::size_t before=0u,after=0u,expectedGrowth=0u;
+        if(!DxIfaceStandardDwgCaptureTestAccess::estimate(estimator,*host,inlineBytes,before))return false;
+        for(auto* value:nested) {
+            // Slice to LINE to measure only the known common dynamic owners,
+            // independently of TEXT/attribute nesting and duplicated text charges.
+            DRW_Line commonBefore=static_cast<const DRW_Line&>(*value);
+            std::size_t oldCommon=0u,newCommon=0u;
+            if(!DxIfaceStandardDwgCaptureTestAccess::estimate(estimator,commonBefore,sizeof(DRW_Line),oldCommon))return false;
+            if(field==14u)for(unsigned part=0u;part<14u;++part)fill(*value,part);
+            else fill(*value,field);
+            DRW_Line commonAfter=static_cast<const DRW_Line&>(*value);
+            if(!DxIfaceStandardDwgCaptureTestAccess::estimate(estimator,commonAfter,sizeof(DRW_Line),newCommon)
+                ||newCommon<oldCommon||newCommon-oldCommon<payload-32u)return false;
+            expectedGrowth+=newCommon-oldCommon;
+        }
+        if(!check(DxIfaceStandardDwgCaptureTestAccess::estimate(estimator,*host,inlineBytes,after)
+            &&after>=before&&after-before==expectedGrowth,
+            "nested MTEXT common owner growth must be charged in every attribute container")) {
+            std::cerr<<"family="<<family<<" field="<<field<<" before="<<before
+                <<" after="<<after<<" expected growth="<<expectedGrowth<<'\n';return false;
+        }
+        const auto capture=[&](dx_iface& iface) {
+            if(family==0u)iface.addAttDef(definition);
+            else if(family==1u)DxIfaceStandardDwgCaptureTestAccess::attribute(iface,attribute);
+            else iface.addInsert(insert);
+        };
+        const std::size_t charge=after+dx_iface::TypedEntityListNodeBytes;
+        if(charge>=dx_iface::TypedEntityCaptureMaxRetainedBytes)return false;
+        for(bool below:{false,true}) {
+            dx_data data;dx_ifaceBlock block;dx_iface iface;iface.cData=&data;iface.currentBlock=&block;
+            const auto initial=dx_iface::TypedEntityCaptureMaxRetainedBytes-charge+(below?1u:0u);
+            data.typedEntityRetainedBytes=initial;capture(iface);
+            if(!check(below?(data.typedEntityCaptureFailed&&block.ent.empty()&&data.typedEntityRetainedRecords==0u
+                    &&data.typedEntityRetainedBytes==initial)
+                :(!data.typedEntityCaptureFailed&&block.ent.size()==1u&&data.typedEntityRetainedRecords==1u
+                    &&data.typedEntityRetainedBytes==dx_iface::TypedEntityCaptureMaxRetainedBytes),
+                "nested common payload exact/one-byte-short callback boundary"))return false;
+            if(!below) {
+                std::size_t retained=0u;
+                if(!check(DxIfaceStandardDwgCaptureTestAccess::estimate(estimator,*block.ent.front(),inlineBytes,retained)
+                    &&retained==after,"retained clone keeps the measured nested payload"))return false;
+            } else {
+                capture(iface);
+                if(!check(data.typedEntityCaptureFailed&&block.ent.empty(),"repeated over-budget callback remains refused"))return false;
+                dx_data fresh;dx_ifaceBlock freshBlock;iface.cData=&fresh;iface.currentBlock=&freshBlock;capture(iface);
+                if(!check(!fresh.typedEntityCaptureFailed&&freshBlock.ent.size()==1u
+                    &&fresh.typedEntityRetainedBytes==charge,"same adapter recovers on a fresh destination after budget refusal"))return false;
+                ++retries;
+            }
+            ++boundaries;
+        }
+        if(field==14u) {
+            dx_data measured;dx_ifaceBlock measuredBlock;dx_iface iface;iface.cData=&measured;iface.currentBlock=&measuredBlock;
+            allocationRemaining=(std::numeric_limits<long>::max)();capture(iface);
+            const long allocations=(std::numeric_limits<long>::max)()-allocationRemaining;allocationRemaining=-1;
+            if(!check(!measured.typedEntityCaptureFailed&&allocations>0&&allocations<5000,"nested common copy allocation calibration"))return false;
+            for(long failure=0;failure<allocations;++failure) {
+                dx_data rejected;dx_ifaceBlock rejectedBlock;iface.cData=&rejected;iface.currentBlock=&rejectedBlock;
+                allocationRemaining=failure;capture(iface);allocationRemaining=-1;
+                if(!check(rejected.typedEntityCaptureFailed&&rejectedBlock.ent.empty()
+                    &&rejected.typedEntityRetainedBytes==0u&&rejected.typedEntityRetainedRecords==0u,
+                    "nested common allocation failure cannot publish or charge a partial clone"))return false;
+                dx_data fresh;dx_ifaceBlock freshBlock;iface.cData=&fresh;iface.currentBlock=&freshBlock;capture(iface);
+                if(!check(!fresh.typedEntityCaptureFailed&&freshBlock.ent.size()==1u
+                    &&fresh.typedEntityRetainedBytes==charge,"same adapter fresh-destination retry after nested allocation failure"))return false;
+                ++allocationSchedules;
+            }
+        }
+        ++cells;
+    }
+    std::cout<<"Nested MTEXT common budget cells="<<cells<<"; exact/below boundaries="<<boundaries
+        <<"; budget retries="<<retries<<"; allocation refusals/retries="<<allocationSchedules<<'\n';
+    return cells==60u&&boundaries==120u&&retries==60u;
 }
 Tags body(unsigned mode) {
     Tags result{{5,"A1"},{330,"B0"},{100,"AcDbEntity"},{8,"host-layer"},
@@ -86,6 +214,48 @@ bool write(const std::filesystem::path& path,const Tags& tags,bool binary) {
     }
     return out.good();
 }
+bool nestedCommonImportTests(const std::filesystem::path& path) {
+    unsigned routes=0u;
+    const auto definition=[](const dx_data& data)->const DRW_Attdef* {
+        const auto find=[](const dx_ifaceBlock* block)->const DRW_Attdef* {
+            if(block)for(const auto* entity:block->ent)
+                if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity))return value;
+            return nullptr;
+        };
+        if(const auto* value=find(data.mBlock))return value;
+        for(const auto* block:data.blocks)if(const auto* value=find(block))return value;
+        return nullptr;
+    };
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
+     for(bool binary:{false,true})for(bool block:{false,true})for(unsigned mode:{1u,2u}) {
+        auto row=body(mode);
+        if(!write(path,document(version,row,block),binary))return false;
+        dx_data baseline;dx_iface baselineReader;
+        if(!check(baselineReader.fileImport(path.string(),&baseline,false),"baseline actual-import nested owner route"))return false;
+        constexpr std::size_t length=16384u;
+        bool changed=false;
+        for(auto& field:row)if(field.code==1&&field.value=="not-mtext") {
+            field.value.assign(length,'q');changed=true;
+        }
+        if(!changed||!write(path,document(version,row,block),binary))return false;
+        dx_data data;dx_iface reader;
+        if(!check(reader.fileImport(path.string(),&data,false)&&!data.typedEntityCaptureFailed
+            &&data.typedEntityRetainedBytes==baseline.typedEntityRetainedBytes+length-std::string("not-mtext").size(),
+            "actual import charges exact added nested application text bytes"))return false;
+        const auto* value=definition(data);
+        if(!check(value&&value->mtext&&value->mtext->text=="FIRST_LAST-é",
+            "opaque nested application text does not replace MTEXT content"))return false;
+        bool retained=false;
+        for(const auto& group:value->mtext->appData)for(const auto& field:group)
+            if(field.code()==1&&field.type()==DRW_Variant::STRING&&field.content.s
+                &&*field.content.s==std::string(length,'q'))retained=true;
+        if(!check(retained,"actual-import nested application owner retains the complete authored value"))return false;
+        ++routes;
+    }
+    std::cout<<"Nested MTEXT common actual-import routes="<<routes<<'\n';
+    return routes==32u;
+}
+
 std::string snapshot(const DRW_Attdef& value) {
     std::ostringstream out;
     out.precision(17);
@@ -305,11 +475,14 @@ bool tests(const std::filesystem::path& path) {
     return true;
 }
 }
-int main() {
+int main(int argc,char** argv) {
+    const bool budget=argc==2&&std::string(argv[1])=="--nested-common-budget";
+    if(argc!=1&&!budget)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return tests(scratch/"generated.dxf")?0:1;}
+    try {return (budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))
+        :tests(scratch/"generated.dxf"))?0:1;}
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }
