@@ -32,6 +32,8 @@ bool blockLedgerMatches(const dx_attdef_source::Audit& audit,bool footer) {
     }
     return true;
 }
+#include "block_source_rich_controls.h"
+
 bool blockSourceProofTests(const std::filesystem::path& path) {
     using A=DxIfaceTableSourceTestAccess;using R=A::BlockReconciliation;
     unsigned profiles=0u,bindings=0u,faults=0u,rawFaults=0u,reconcileFaults=0u;std::size_t spans=0u;
@@ -53,6 +55,7 @@ bool blockSourceProofTests(const std::filesystem::path& path) {
             "manual role ledger matches every independent original-file scalar span"))return false;
         ++profiles;if(reconcile)++bindings;
     }
+    if(!blockEndpointRichTests(path))return false;
     for(bool binary:{false,true})for(bool footer:{false,true}) {
         const auto clean=blockFixture("AC1032",1u,true);
         for(unsigned fault=0;fault<8u;++fault) {

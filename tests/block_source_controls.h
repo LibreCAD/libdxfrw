@@ -98,6 +98,7 @@ bool blockRawMatches(const DRW_RawDxfObject& raw,const Tags& tags,bool binary,co
         if(v.type()==DRW_Variant::STRING) {if(!v.content.s||*v.content.s!=tag.value)return false;}
         else if(v.type()==DRW_Variant::DOUBLE) {if(v.d_val()!=std::stod(tag.value))return false;}
         else if(v.type()==DRW_Variant::INTEGER) {if(v.i_val()!=std::stoi(tag.value))return false;}
+        else if(v.type()==DRW_Variant::INTEGER64) {if(v.i64_val()!=std::stoll(tag.value))return false;}
         else return false;
     }
     return true;

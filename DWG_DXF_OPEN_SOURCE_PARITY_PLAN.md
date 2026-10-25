@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ds shared BLOCK/ENDBLK replay and scoped reconciliation (2026-10-25):** production and bounded original-source replay share endpoint admission. Modern source profiles now inventory original scalar roles, refuse unmodeled/duplicate/partial forms, and compare actual effective name/units/preview with the retained BLOCK_RECORD source. The authored baseline covers 48 imports and 2,064 original-file role spans; richer endpoint coverage, complete child/space/dependency closure and live/output qualification remain open. [Implementation and next work](#implementation-progress-rpp-5ds-shared-blockendblk-replay-and-scoped-reconciliation-2026-10-25).
+**Newest implementation checkpoint — RPP-5dt rich endpoint evidence and child-inventory readiness (2026-10-25):** the shared BLOCK/ENDBLK implementation now has rich common/geometry/proxy/reference coverage across four modern versions and both encodings, 408 field-fault/retry cases, 96 rich grammar refusals, Unicode/default-name controls, later-failure invalidation, 32 exact/below quotas and 209 rich replay allocation failures/retries. Five owning tests pass normally and under ASan. Production behavior and support gates are unchanged; original child/space/dependency and live/output closure remain next. [Implementation and next work](#implementation-progress-rpp-5dt-rich-endpoint-evidence-and-child-inventory-readiness-2026-10-25).
+
+**Previous implementation checkpoint — RPP-5ds shared BLOCK/ENDBLK replay and scoped reconciliation (2026-10-25):** committed as `af528653`. Its shared production/replay decoder, bounded endpoint field/profile audit and scoped BLOCK_RECORD normalization remain valid. RPP-5dt extends their authored coverage without treating endpoint facts as complete child/target/output proof. [Historical implementation](#implementation-progress-rpp-5ds-shared-blockendblk-replay-and-scoped-reconciliation-2026-10-25).
 
 **Previous implementation checkpoint — RPP-5dr pre-reconciled BLOCK/ENDBLK capture and callback cleanup (2026-10-25):** committed as `d3310d26`. Its original/effective/footer immutable owners, source transport, callback cleanup and failure/retry evidence remain valid. RPP-5ds adds replay/profile and scoped normalization facts, not whole-block/ATTDEF/target/output qualification. [Historical implementation](#implementation-progress-rpp-5dr-pre-reconciled-blockendblk-capture-and-callback-cleanup-2026-10-25).
 
@@ -126464,7 +126466,8 @@ Windows, native CAD execution or independent ACIS/ACDS semantic evidence.
 
 Next implementation-ready sequence, in dependency order:
 
-1. [ ] **Finish endpoint coverage before expanding qualification.** Add rich
+1. [x] **Finish endpoint coverage before expanding qualification.** RPP-5dt
+   below implements this bounded authored-coverage prerequisite. Add rich
    common/geometry/proxy/reserved-application/reference positives across the
    four versions and both encodings; decoded escaped/literal Unicode redundant
    names, conflicting/duplicate/absent names, broad common/native field faults,
@@ -126500,3 +126503,111 @@ remains **false**, the ledger remains **CLOSED**, and `outputEligible=false`.
 J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows
 FreeCAD and independent ACIS/ACDS semantic/kernel qualification are **NOT_RUN**.
 No new support claim, remote mutation or full-goal completion is included.
+
+## Implementation progress RPP-5dt rich endpoint evidence and child-inventory readiness (2026-10-25)
+
+Parent is `af528653`. This closes the preceding authored endpoint-coverage
+prerequisite, not the full source graph, consumer, output or original parity goal.
+No production source/header or decoder behavior changes in this slice.
+
+Completed controls:
+
+1. [x] Add **eight** rich actual-import profiles: four modern versions ×
+   ASCII/Binary. Exercise common names/colors/lineweight/visibility/material/
+   visual/plot-style fields, multiple reserved reactors and extension dictionary,
+   versioned proxy count and two binary chunks, BLOCK thickness/angle/extrusion/
+   unload state, and balanced XDATA lists/object reference/binary/scalar/string
+   data. Verify retained values separately from replay/profile agreement.
+   Nonzero references are original-role observations, not qualified targets.
+2. [x] Compare **848** additional original-file scalar spans with an independent
+   byte walker and separately authored field/role/reference ledger. **5,088**
+   index/code/scope/field/role/handle corruptions exercise the ledger oracle;
+   they do not claim 5,088 malformed drawing inputs. Add INTEGER64 comparison
+   to the test-only raw observer so R2010+ proxy counts are checked correctly.
+3. [x] **14** name-profile/corrected-retry routes distinguish escaped/literal
+   Unicode equality, conflicting and duplicate redundant names, optional absent
+   group 3, and tolerated missing/empty group 2 rescued by BLOCK_RECORD. The
+   last two retain ordinary import compatibility without becoming admitted
+   source profiles. **408** field-fault/retry routes cover 102 common/native/
+   cursor/POINT/BLOCK mutations × both endpoints × both encodings. Extract the
+   shared common-field test census without changing the prior **296** ATTDEF
+   fault cases. Guards, pairing and reconciliation may refuse at different
+   stages; this is not an isolated theorem about just one comparator.
+4. [x] **96** rich grammar refusal/retry routes cover wrong/missing/duplicate
+   proxy counts, forbidden nesting/foreign fields in reserved applications,
+   incomplete extrusion, unknown handle fields, lossy unload state, duplicate
+   angle, empty APPID and early XDATA. A parser-level refusal is valid fail-
+   closed behavior, not evidence every input reached the profile scanner.
+   **Ten** context/retry routes retain tolerant pending-XDATA/wrong-owner
+   imports while refusing qualification, and invalidate prior endpoint facts
+   after later malformed ENTITIES input or a post-proof cleanup exception.
+5. [x] **32** rich exact/one-below aggregate quota/retry routes span records,
+   logical bytes, groups and work across all eight rich profiles. **209**
+   calibrated rich replay/profile allocation failures and fresh-data/session
+   retries cover both encodings on the same adapter; the existing **59**
+   baseline replay faults and all source-capture controls still pass. Logical
+   allowances and observed C++ allocation intervals are not RSS/CPU or complete
+   process-allocator proofs.
+
+The owning cohort passes **5/5 normally in 3.42 s** and **5/5 under ASan in
+7.54 s**, sequentially, with zero failures/skips/disabled cases. Strict owning
+builds and `lc3_compat_check` pass in both configurations on macOS ARM64 Apple
+Clang 21.0.0, C++17, warnings as errors; ASan uses `detect_leaks=0`. The previous
+17/17 affected production checkpoint remains historical evidence: production
+files are unchanged, so no full or broad runtime suite is repeated for this
+test-only extension. There is no new production regression/fix claim.
+The [RPP-5dt receipt](docs/research/rpp5dt-rich-block-endpoint-proof-and-readiness-2026-10-25.json)
+records exact membership, counts, hashes and limits.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Capture the original child stream, not callback reconstruction.**
+   `dxfReader::readRec` is the centralized scalar admission point for both
+   encodings; `processEntities` dispatches top-level records, and compound
+   INSERT/ATTRIB/SEQEND and POLYLINE/VERTEX paths consume additional physical
+   records internally. Design bounded opt-in original observations before
+   semantic conversion/consumption. Preserve source version/encoding, physical
+   record ordinal/span and original identities/owner roles, including unknown
+   raw records, ignored-comment accounting and compound membership. Anchor the
+   already-read pending code-0 boundary explicitly so the first child is not
+   omitted or counted twice. Opaque application handles cannot supply outer
+   self/owner fields. Failed/incomplete/duplicate observations stay unqualified.
+2. [ ] **Pair inventory with staged delivery and scope.** Reuse
+   `DxfBlockEventSink` and the actual accepted ENDBLK boundary; preserve normal
+   legacy callback order. Associate physical child slots with actual typed/raw/
+   no-callback dispositions and immutable ATTDEF source pairs. Do not infer
+   completeness from the delivered typed subset or the number of callbacks.
+   Current generic unknown entities already use `processRawEntity` and staged
+   `addRawDxfEntity`; inventory must include them, not assume they are dropped.
+   Invalid/dropped blocks and throwing callbacks may leave preliminary prefixes
+   but cannot publish complete eligible graphs. Avoid mandatory DRW_Interface
+   virtuals; keep selection, counters and source ownership opt-in and bounded.
+3. [ ] **Verify inventory before promoting selected ATTDEF closure.** Author
+   mixed known/unknown records, zero/one/multiple ATTDEFs, compound subrecords,
+   missing/duplicate/wrong-owner/late endpoints, callback omission/reordering,
+   child mutation, dropped blocks and malformed later input in both encodings.
+   Independently walk original record order/roles; test exact/below quotas,
+   allocation/callback failures, cleanup and same-facade recovery. Match actual
+   ATTDEF owner/context/order to admitted original block and BLOCK_RECORD facts.
+4. [ ] **ENTITIES and selected dependency closure.** Prove standalone model/
+   paper-space association with original entity/space/BLOCK_RECORD evidence,
+   without inventing explicit BLOCK envelopes. Qualify selected common/style/
+   APPID/LAYER/object targets, absent defaults and opaque references or refuse
+   them explicitly. Finish ATTRIB/SEQEND. Only after complete enclosing/source/
+   dependency evidence may identity-only ATTDEF lookup/advisory `Bound` and its
+   `rawTypedMatched` gate change. Rich endpoint agreement cannot bypass it.
+5. [ ] **Full parity/live/output and execution loop.** Preserve all B2b/B3/C,
+   exact output fields/references, immutable/editable and compound identity,
+   atomic rollback/retry, IMAGE/document/native bit/decimal/carrier/schema/owner,
+   speed/ownership/allocation, LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD and
+   independent semantic/platform work. After every item self-update evidence,
+   limits and next ready dependency, safely unblock, commit/report coherent
+   slices and continue. Prefer fast owning/affected checks; broader normal/ASan
+   are integration gates. Commit only existing repository or locally authored
+   drawing controls, never downloaded external drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+is **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Full goal completion and
+support promotion are not claimed; no remote mutation is included.

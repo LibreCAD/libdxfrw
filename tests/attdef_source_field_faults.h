@@ -11,6 +11,10 @@
 // deliberately. These only operate on mutable library-owned test records.
 class DrwEntityEncodeTestAccess {
 public:
+    static void corruptCursor(DRW_Entity& value,bool mask) {
+        if(mask)value.currCoordMask^=1u;
+        else value.curr=std::make_shared<DRW_Variant>(1010,DRW_Coord{});
+    }
     using CommonFault=std::pair<std::string,std::function<void(DRW_Entity&)>>;
     static std::vector<CommonFault> nativeFaults() {
         std::vector<CommonFault> result;
@@ -93,9 +97,8 @@ public:
     }
 };
 
-inline std::vector<DrwEntityEncodeTestAccess::Fault> attdefSourceFieldFaults() {
+inline std::vector<DrwEntityEncodeTestAccess::CommonFault> commonEntitySourceFaults() {
     using Access=DrwEntityEncodeTestAccess;
-    std::vector<Access::Fault> result;
     std::vector<Access::CommonFault> common=Access::nativeFaults();
     common.emplace_back("eType",[](DRW_Entity& v){v.eType=DRW::LINE;});
     common.emplace_back("handle",[](DRW_Entity& v){v.handle=0xABCDEu;});
@@ -136,6 +139,13 @@ inline std::vector<DrwEntityEncodeTestAccess::Fault> attdefSourceFieldFaults() {
     common.emplace_back("pendingLayerRefResolutions",[](DRW_Entity& v){v.pendingLayerRefResolutions={{1u,2u,3u,true}};});
     common.emplace_back("appData",[](DRW_Entity& v){v.appData.front().front()=DRW_Variant(102,std::string("{CHANGED"));});
     common.emplace_back("extData",[](DRW_Entity& v){v.extData.push_back(std::make_shared<DRW_Variant>(1070,12));});
+    return common;
+}
+
+inline std::vector<DrwEntityEncodeTestAccess::Fault> attdefSourceFieldFaults() {
+    using Access=DrwEntityEncodeTestAccess;
+    std::vector<Access::Fault> result;
+    const auto common=commonEntitySourceFaults();
     for(const auto& fault:common) {
         result.emplace_back("host."+fault.first,[f=fault.second](DRW_Attdef& v){f(v);});
         result.emplace_back("nested."+fault.first,[f=fault.second](DRW_Attdef& v){f(*v.mtext);});
