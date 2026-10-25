@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dg FIELD/DATALINK source proof and shared FIELD decoding",
+  "date": "2026-10-25",
+  "parentCommit": "1236e45d0e6ec5fc261f362bc50d45d74b0c185c",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "FIELD_DATALINK_SOURCE_PROOF_AND_DOCUMENTED_ALIAS_IMPLEMENTED_FULL_OWNERSHIP_GRAPH_LIVE_OUTPUT_AND_PARITY_OPEN",
+  "previousGoalTurn": "PROGRESS: 1236e45d implemented selected complex LTYPE dependencies and independent symbol observations",
+  "scope": {
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "sourceFamiliesAdded": [
+      "FIELD",
+      "DATALINK"
+    ],
+    "fieldDecoder": "Normal import and bounded proof replay share the extracted production state machine in noninstalled src/intern/dxffield.h; same value/chunk/count/legacy termination grammar",
+    "aliases": [
+      "FIELD",
+      "ACDBFIELD",
+      "ACAD_FIELD"
+    ],
+    "aliasEvidence": "Parent dispatch/capture lacked the documented ACAD_FIELD spelling; a new positive alias route failed before the dispatch/capture/classification fix",
+    "sourceAuthority": "Same-library exposed/default/common-field agreement, not independent full payload semantics",
+    "fieldReferences": "Per-consumed-scalar role emitted by the shared production decoder, merged with physical common/header/XDATA positions using one bounded vector",
+    "dataLinkReferences": "Existing production custom-marker/pending-target protocol with complete count/closure checks; external connection text remains inert",
+    "sourceRolesAdded": {
+      "14": "FieldChild",
+      "15": "FieldObject",
+      "16": "FieldValueObject",
+      "17": "DataLinkCustomTarget",
+      "18": "DataLinkHardOwner"
+    },
+    "publicLibraryModelOrDrwInterfaceVtableChanged": false,
+    "nativeDwgLayoutParserWriterChanged": false,
+    "globalCodecChanged": false,
+    "expressionsEvaluated": false,
+    "externalConnectionsOpened": false,
+    "fullChildObjectCustomCommonClosure": false,
+    "completeLiveEquality": false,
+    "independentCachedValueOrRoleSemanticsQualified": false,
+    "completeDecodedFieldOwnershipLeaseCoverageProved": false,
+    "outputEligible": false,
+    "supportClaimsPromoted": false
+  },
+  "research": {
+    "primaryFieldSource": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+    "primaryScope": "Documented FIELD spelling and contextual child/object/value handle codes; not a claim of all modern CadValue or DATALINK semantics",
+    "dataLinkScope": "Reuse existing production metadata protocol. Full independent DATALINK schema/connection semantics remain unqualified",
+    "independentRuntime": {
+      "ezdxfVersion": "1.4.4",
+      "python": "/private/tmp/libdxfrw-rpp5cq-runtime.eu0KY0/venv/bin/python",
+      "authority": "Original scalar tags for source positions and values. Reported package version is metadata, not loaded-dependency attestation"
+    }
+  },
+  "implementation": {
+    "actualImportOnly": true,
+    "immutableSnapshots": true,
+    "sharedSourceProofLimits": {
+      "records": 100000,
+      "groups": 4000000,
+      "logicalBytes": 67108864,
+      "workSlots": 4000000,
+      "workSlotsReservedPerGroup": 64,
+      "scope": "Cumulative across six resource families; logical source/model copy allowances are not process RSS caps"
+    },
+    "comparison": "All exposed/common FIELD components, CadValue fields/defaults and metadata, child/object handles and child keys/values; DATALINK scalar/calendar/status/custom metadata including exposed retained-text counts",
+    "strictSourceProfile": "Require physical identity/class/core fields, correct pending custom-target closure and declared count. Body fields hidden after trailing XDATA cannot qualify; ordinary tolerant reads remain separate",
+    "failurePolicy": "No partial receipt on recognized-source mismatch, absent/duplicate source or typed callbacks, capture exhaustion or failed/throwing import; recognized-source mismatches are sticky and later delivery cannot repair a closed generation. Corrected fresh-drawing same-facade retries remain usable",
+    "manifests": [
+      "libdxfrw_sources.cmake",
+      "src/Makefile.am"
+    ],
+    "autotoolsRuntimeQualified": false,
+    "ownershipAccounting": "Shared decoder preserves prior read accounting. Full decoded FIELD payload-owner lease audit remains required before broader per-read retained-memory claims"
+  },
+  "generatedControls": {
+    "provenance": "All new drawings authored locally from scratch; no external DWG/DXF payload committed",
+    "revisionEncodingRoutes": 8,
+    "fieldTypedMutationKinds": 62,
+    "dataLinkTypedMutationKinds": 28,
+    "typedMismatchRecoveryPairs": 720,
+    "rawMismatchRecoveryPairs": 160,
+    "callbackAndExceptionCorrections": 96,
+    "wireProfileRecoveryPairs": 64,
+    "compatibilityVariants": 40,
+    "exactAndBelowSharedProofLimits": 64,
+    "publicReaderBudgetCorrectedRetries": 16,
+    "destinationPreservingOutputRefusalCorrectedReadbacks": 16,
+    "coverage": [
+      "All eight retained CadValue categories",
+      "Binary raw/variant views and signed-zero coordinate defaults",
+      "Source index/code/handle value/role census and no partial proofs",
+      "Native metadata-only/default injections",
+      "Missing/duplicate core fields and complete/incomplete DATALINK custom records",
+      "FIELD, ACDBFIELD, ACAD_FIELD and legacy implicit value endings",
+      "Application/XDATA/common fields, actual target-record scope and immutable/live separation",
+      "Both export policies refuse table output, preserve destinations and allow corrected same-exporter line readbacks"
+    ],
+    "log": "/tmp/rpp5dg-aux-tests.log"
+  },
+  "independentObserver": {
+    "schemaVersion": 4,
+    "originalTagsNeverReexported": true,
+    "fieldDataLinkScope": "Handle/name positions and handle values only; not complete cached values or context-dependent role/target semantics",
+    "selftest": {
+      "positives": 7,
+      "corruptions": 20,
+      "originalScopeAndApplicationChecks": true,
+      "optimizedPythonRefused": true
+    },
+    "generatedAuxiliaryRoutes": 8,
+    "fieldHandleSlotsPerRoute": 11,
+    "fieldReferenceEventsPerRoute": 13,
+    "dataLinkHandleSlotsPerRoute": 7,
+    "dataLinkReferenceEventsPerRoute": 9,
+    "normalGeneratedLog": "/tmp/rpp5dg-independent-generated.json",
+    "asanGeneratedLog": "/tmp/rpp5dg-asan-independent-generated.json",
+    "existingSymbolRoutesRerun": 8,
+    "existingSymbolLog": "/tmp/rpp5dg-independent-symbol-generated.json",
+    "qualificationEligible": false,
+    "optionalCmake": {
+      "gate": "LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE with explicit existing ezdxf 1.4.4 Python; no automatic installation",
+      "tests": [
+        "libdxfrw_independent_symbol_source",
+        "libdxfrw_independent_auxiliary_source"
+      ],
+      "registered": 2,
+      "buildDirectory": "/private/tmp/libdxfrw-rpp5dg-optional.aJC8Yh",
+      "configureLog": "/tmp/rpp5dg-optional-configure.log",
+      "registrationLog": "/tmp/rpp5dg-optional-registration.log",
+      "executionScope": "Generated entry points executed against existing normal/ASan probes; no second complete optional build"
+    }
+  },
+  "externalObservations": {
+    "sourceRoot": "/private/tmp/libdxfrw-rpp5cs-history-sources.O5TTcC",
+    "drawingsUnchanged": true,
+    "files": [
+      {
+        "file": "example-AC1027.dxf",
+        "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+        "inspectionLog": "/tmp/rpp5dg-ac1027-inspect.log",
+        "independentLog": "/tmp/rpp5dg-ac1027-independent.json"
+      },
+      {
+        "file": "example-AC1032.dxf",
+        "sha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997",
+        "inspectionLog": "/tmp/rpp5dg-ac1032-inspect.log",
+        "independentLog": "/tmp/rpp5dg-ac1032-independent.json"
+      }
+    ],
+    "sameResultPerSource": {
+      "bindingState": "Bound",
+      "observedResources": 6,
+      "independentReferenceEvents": 43,
+      "sourceProofRecords": 6,
+      "sourceProofGroups": 464,
+      "sourceProofLogicalBytes": 100835,
+      "sourceProofWorkSlots": 29696,
+      "selectedFieldProofUses": 0,
+      "selectedDataLinkProofUses": 0
+    },
+    "limitation": "These external examples do not exercise or qualify the new rich FIELD/DATALINK routes",
+    "cli": {
+      "actualConversionsRefused": 2,
+      "publishedDestinations": 0,
+      "logRoot": "/private/tmp/libdxfrw-rpp5dg-cli.dAWXzl"
+    }
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc is a directory name, not Linux/GCC evidence",
+    "normal": {
+      "passed": 57,
+      "total": 57,
+      "elapsedSeconds": 48.73,
+      "log": "/tmp/rpp5dg-normal-cohort.log"
+    },
+    "asan": {
+      "passed": 57,
+      "total": 57,
+      "elapsedSeconds": 102.1,
+      "log": "/tmp/rpp5dg-asan-cohort.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "cohortScope": "Final production and C++ controls. Subsequently the oracle-only family-marker fix is rerun through its selftest, both generated auxiliary probes and existing symbol routes",
+    "preReviewObserverSha256": "bb3884f16c7870d262b34a5071273a11e114970e01d49db67cb0e9cf626b43b6",
+    "finalObserverSelftest": {
+      "passed": 1,
+      "total": 1,
+      "elapsedSeconds": 0.05,
+      "log": "/tmp/rpp5dg-final-observer-selftest.log"
+    },
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "scope": "Source compile only, not native application runtime"
+    },
+    "strictWarningsRetained": true,
+    "cliOptionalBuildRegistration": {
+      "passed": 1,
+      "total": 1,
+      "elapsedSeconds": 2.73,
+      "log": "/tmp/rpp5dg-cli-optional.log"
+    },
+    "fullProjectSuiteRepeated": false,
+    "leakCheckRun": false,
+    "buildLogs": [
+      "/tmp/rpp5dg-normal-cohort-build.log",
+      "/tmp/rpp5dg-asan-cohort-build.log",
+      "/tmp/rpp5dg-final-probe-build.log",
+      "/tmp/rpp5dg-final-asan-probe-build.log"
+    ],
+    "tests": [
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_datalink_typed_capture_limits",
+      "dwg2dxf_field_carrier_raw_capture_limits",
+      "dwg2dxf_field_carrier_typed_capture_limits",
+      "dwg2dxf_field_dxf_multichunk_value",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_acad_field_writer_candidate",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+      "libdxfrw_cellstylemap_dxf_writer",
+      "libdxfrw_cellstylemap_identity_domains",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_datalink_text_owner_budget",
+      "libdxfrw_dxf_ltype_retained_owner_budget",
+      "libdxfrw_dxf_shape_style_name_owner_budget",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_extension_graph_limits",
+      "libdxfrw_field_cadvalue_date_payload",
+      "libdxfrw_field_cadvalue_double",
+      "libdxfrw_field_cadvalue_general_format_flag",
+      "libdxfrw_field_cadvalue_long",
+      "libdxfrw_field_cadvalue_object_id",
+      "libdxfrw_field_cadvalue_points",
+      "libdxfrw_field_cadvalue_string",
+      "libdxfrw_field_cadvalue_unknown_type",
+      "libdxfrw_field_child_cadvalue_types",
+      "libdxfrw_field_child_object_id_invalid_handle_role",
+      "libdxfrw_field_graph_export_refusal",
+      "libdxfrw_field_oversized_child_value_count",
+      "libdxfrw_field_unknown_child_cadvalue_versions",
+      "libdxfrw_field_unqualified_format_flags",
+      "libdxfrw_field_unsupported_child_cadvalue_buffers",
+      "libdxfrw_linetype_extension_graph",
+      "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_content_reference_observer_selftest",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "libdxfrw_table_resource_reference_observer_selftest",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "libdxfrw_tablestyle_source_proof"
+    ]
+  },
+  "sourceSha256": {
+    "src/intern/dxffield.h": "a84da149aa00f3120c836390c4169c9b824beebeb77a159ea982d04710643f75",
+    "src/libdxfrw.cpp": "c9fe17536c9ce71b8e065406eb01917f8d343a73a778c6b2c0ae3fc30f2d1cad",
+    "src/Makefile.am": "5fa939fb439df3b3a35aa5032bee0c8ed0c43e3f4b3352bb90a3c320171e43f5",
+    "libdxfrw_sources.cmake": "db4b79dc3bb065d235fcf5e1b9188b1df4f273e32764fbeef764a0a5b5d3f968",
+    "dwg2dxf/dx_iface.cpp": "08fe515d8db06ed053eaf4f7a0db983782b7d7d8cc0b3e59a4686b9d43b8e6fd",
+    "dwg2dxf/dx_iface.h": "24c62e6436491805e08b3a48652f4feb2993b0a7d367c10f550bb9a464bd1695",
+    "dwg2dxf/dx_data.h": "270d1318910e170da497115a849db2be56bc5e01b1d4e6dbf9b6786e49972369",
+    "tests/table_content_dxf_tests.cpp": "cdeed0aa626199f22011f3e98955c6a498abceffabbfc4af2051b36d6724a016",
+    "tests/table_resource_reference_observer.py": "a463293d54654f7d160a834c5d11b639628ad774fbeadc9be58ef49b03664fa5",
+    "tests/CMakeLists.txt": "e7861aae37eb0d2fba2e41f8a7b954ac39b2b2d5cffb40ba66614d4df888e333"
+  },
+  "remaining": [
+    "Audit decoded FIELD payload/container owner leases and exact ownership limits before broader retained-memory claims",
+    "Dictionary/XRECORD/ATTDEF/block and explicit APPID/LAYER/table-owner source proof",
+    "Full FIELD/DATALINK child/object/custom/common target, ownership, null, cycle and collision closure",
+    "Complete TABLE parent/wrapper/cache and editable/frozen equality with fully proved atomic output",
+    "Independent nonzero LTYPE angle, FIELD/CadValue/DATALINK semantic profiles and original native/document/2D/3D consumer parity"
+  ],
+  "qualification": {
+    "supportLedger": "CLOSED",
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "externalDrawingFixturesCommitted": false,
+    "remoteWrites": false,
+    "fullImplementationGoalComplete": false
+  }
+}

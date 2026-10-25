@@ -3,6 +3,8 @@
 Corroborates handle/local-ID scalar spans and named-reference positions.
 For STYLE/LTYPE also checks original row flags, per-element text/shape codes and
 STYLE handles against ezdxf's retained pattern tags and observed target kinds.
+FIELD/DATALINK observations cover original handle/name positions and handle
+values only, not complete payloads, context-dependent role or target semantics.
 It does not certify decoded names, full rich/symbol schema, font/glyph/rendering
 or rotation semantics, common/transitive closure, output, native layouts or
 modeler semantics. Original source tags, never re-exported defaults, own spans.
@@ -18,18 +20,19 @@ import sys
 import tempfile
 
 
-PATTERN = re.compile(r"^(map|style|STYLE|LTYPE)-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
+PATTERN = re.compile(r"^(map|style|STYLE|LTYPE|FIELD|DATALINK)-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
 ROWS = re.compile(r"^symbol-row handle=([0-9a-f]+) family=(STYLE|LTYPE) flags=(\d+)$", re.M)
 SEGMENTS = re.compile(r"^symbol-segment handle=([0-9a-f]+) index=(\d+) flags=(\d+) shape=(\d+) style=([0-9a-f]+)$", re.M)
 CODES = {0: 5, 1: 330, 2: 330, 3: 360, 4: 340, 5: 340,
-         6: 90, 7: 1005, 8: 1001, 9: 1003, 11: 7, 12: 340, 13: 340}
+         6: 90, 7: 1005, 8: 1001, 9: 1003, 11: 7, 12: 340, 13: 340,
+         14: 360, 15: 331, 16: 330, 17: 330, 18: 360}
 
 
 def is_handle(code):
     return code == 5 or 320 <= code <= 369 or 390 <= code <= 399 or code in (480, 481, 1005)
 
 
-def compare(tags, events, table_style=False):
+def compare(tags, events, table_style=False, local_styles=True):
     if not events or len(tags) > 65536 or len(events) > len(tags):
         raise ValueError("empty/oversized map projection")
     previous = -1
@@ -68,7 +71,7 @@ def compare(tags, events, table_style=False):
             else:
                 raise ValueError("bad application framing")
         elif not depth:
-            if not table_style and (code, scalar) == (1, "CELLSTYLE_BEGIN"):
+            if local_styles and not table_style and (code, scalar) == (1, "CELLSTYLE_BEGIN"):
                 expected.add(i + 1)
             if code in (1001, 1003) or (table_style and code == 7):
                 expected_names.add(i)
@@ -109,7 +112,7 @@ def source_records(records):
     for record in records:
         if not record:
             continue
-        family = record[0][1]
+        family = {"ACDBFIELD": "FIELD", "ACAD_FIELD": "FIELD"}.get(record[0][1], record[0][1])
         if family == "SECTION":
             section = next((v for c, v in record[1:] if c == 2), None)
         elif family == "ENDSEC":
@@ -119,7 +122,7 @@ def source_records(records):
         elif family == "ENDTAB":
             table = None
         elif (family in ("STYLE", "LTYPE") and section == "TABLES" and table == family
-              or family in ("TABLESTYLE", "CELLSTYLEMAP") and section == "OBJECTS"):
+              or family in ("TABLESTYLE", "CELLSTYLEMAP", "FIELD", "DATALINK") and section == "OBJECTS"):
             if len(record) > 65537:
                 raise ValueError("oversized original resource body")
             handle = next((v for c, v in record[1:] if c == 5), "0").upper()
@@ -167,7 +170,7 @@ def pattern_elements(tags):
 
 
 def compare_symbol(tags, events, family, projected_flags, projected_segments):
-    result = compare(tags, events)
+    result = compare(tags, events, local_styles=False)
     application = None
     body = xdata = False
     dash = -1
@@ -256,7 +259,7 @@ def observe(source, projection):
         segments.setdefault(handle.upper(), []).append((int(index), int(flags), int(shape), int(style, 16)))
     for (family, handle), values in events.items():
         obj = document.entitydb[handle]
-        if obj.dxftype() != family:
+        if {"ACDBFIELD": "FIELD", "ACAD_FIELD": "FIELD"}.get(obj.dxftype(), obj.dxftype()) != family:
             raise ValueError("wrong source resource family")
         tags = original[(family, handle)]
         if family in ("STYLE", "LTYPE"):
@@ -278,18 +281,18 @@ def observe(source, projection):
                                 or target_obj.dxftype() != "STYLE" or bool(target_obj.dxf.flags & 1) != (kind == 4)):
                             raise ValueError("independent complex STYLE target kind differs")
         else:
-            details = compare(tags, values, family == "TABLESTYLE")
+            details = compare(tags, values, family == "TABLESTYLE", family == "CELLSTYLEMAP")
         results.append({"family": family, "handle": handle, **details})
     if rows or segments:
         raise ValueError("unmatched symbol row/element projection")
-    return {"schemaVersion": 3, "status": "SCOPED_RESOURCE_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
+    return {"schemaVersion": 4, "status": "SCOPED_RESOURCE_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
             "ezdxfVersion": ezdxf.__version__, "resources": results,
             "sourceSha256": hashlib.sha256(Path(source).read_bytes()).hexdigest(),
             "projectionSha256": hashlib.sha256(Path(projection).read_bytes()).hexdigest(),
             "limits": __doc__.split("\n\n", 1)[1].strip()}
 
 
-def generated_check(executable):
+def generated_check(executable, auxiliary=False):
     results = []
     with tempfile.TemporaryDirectory(prefix="libdxfrw-symbol-observer-") as directory:
         root = Path(directory)
@@ -297,7 +300,8 @@ def generated_check(executable):
             for encoding in ("ascii", "binary"):
                 source = root / (version + "-" + encoding + ".dxf")
                 projection = source.with_suffix(".log")
-                subprocess.run([executable, "--generate-symbol-source", version, encoding, str(source)], check=True)
+                mode = "--generate-auxiliary-source" if auxiliary else "--generate-symbol-source"
+                subprocess.run([executable, mode, version, encoding, str(source)], check=True)
                 observed = subprocess.run([executable, "--inspect", str(source)], check=True, capture_output=True, text=True)
                 projection.write_text(observed.stdout, encoding="utf-8")
                 result = observe(source, projection)
@@ -306,8 +310,12 @@ def generated_check(executable):
                 if (len(symbols) != 3 or len(linetypes) != 1 or linetypes[0]["elements"] != 2
                         or linetypes[0]["textElements"] != 1 or linetypes[0]["shapeElements"] != 1):
                     raise ValueError("independent generated symbol inventory differs")
+                if auxiliary:
+                    families = {r["family"]: r for r in result["resources"] if r["family"] in ("FIELD", "DATALINK")}
+                    if set(families) != {"FIELD", "DATALINK"} or families["FIELD"]["handleSlots"] != 11 or families["DATALINK"]["handleSlots"] != 7:
+                        raise ValueError("independent auxiliary handle inventory differs")
                 results.append({"version": version, "encoding": encoding, **result})
-    return {"schemaVersion": 3, "status": "GENERATED_SYMBOL_OBSERVATIONS_MATCH", "qualificationEligible": False, "routes": results}
+    return {"schemaVersion": 4, "status": "GENERATED_AUXILIARY_OBSERVATIONS_MATCH" if auxiliary else "GENERATED_SYMBOL_OBSERVATIONS_MATCH", "qualificationEligible": False, "routes": results}
 
 
 def self_test():
@@ -347,6 +355,7 @@ def self_test():
     ltype_events = [(0, 0, 5, 10), (1, 1, 330, 11), (12, 9, 340, 12), (13, 15, 340, 13)]
     parts = [(0, 2, 0, 12), (1, 4, 7, 13)]
     assert compare_symbol(ltype, ltype_events, "LTYPE", 0, parts)["shapeElements"] == 1
+    assert compare_symbol([*ltype, (1, "CELLSTYLE_BEGIN")], ltype_events, "LTYPE", 0, parts)["elements"] == 2
     textstyle = [(5, "C"), (330, "B"), (100, "AcDbSymbolTableRecord"), (100, "AcDbTextStyleTableRecord"), (70, 1)]
     assert compare_symbol(textstyle, [(0, 0, 5, 12), (1, 1, 330, 11)], "STYLE", 1, [])["flags"] == 1
     corruptions = [
@@ -373,7 +382,17 @@ def self_test():
         pass
     else:
         raise AssertionError("duplicate original resource accepted")
-    print("resource reference observer: four positives, 18 corruptions, appData expansion and original scopes; no eligibility")
+    field = [(5, "A"), (330, "B"), (360, "C"), (331, "D"), (330, "E"), (1, "CELLSTYLE_BEGIN")]
+    field_events = [(0, 0, 5, 10), (1, 1, 330, 11), (14, 2, 360, 12), (15, 3, 331, 13), (16, 4, 330, 14)]
+    assert compare(field, field_events, local_styles=False)["handleSlots"] == 5
+    assert compare([(5, "A"), (330, "B"), (360, "C")], [(0, 0, 5, 10), (17, 1, 330, 11), (18, 2, 360, 12)], local_styles=False)["handleSlots"] == 3
+    for events in (field_events[:-1], [*field_events[:2], (14, 2, 331, 12), *field_events[3:]]):
+        try:
+            compare(field, events, local_styles=False)
+        except ValueError:
+            continue
+        raise AssertionError("corrupt auxiliary handle observation passed")
+    print("resource reference observer: seven positives, 20 corruptions, appData expansion and original scopes; no eligibility")
 
 
 if __name__ == "__main__":
@@ -384,11 +403,14 @@ if __name__ == "__main__":
     parser.add_argument("--source")
     parser.add_argument("--projection")
     parser.add_argument("--generated-executable")
+    parser.add_argument("--generated-auxiliary-executable")
     args = parser.parse_args()
     if args.self_test:
         self_test()
     elif args.generated_executable:
         print(json.dumps(generated_check(str(Path(args.generated_executable).resolve())), indent=2, allow_nan=False))
+    elif args.generated_auxiliary_executable:
+        print(json.dumps(generated_check(str(Path(args.generated_auxiliary_executable).resolve()), auxiliary=True), indent=2, allow_nan=False))
     elif args.source and args.projection:
         print(json.dumps(observe(args.source, args.projection), indent=2, allow_nan=False))
     else:

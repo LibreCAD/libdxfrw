@@ -69,6 +69,7 @@ public:
         std::size_t boundResourceReferences{0}, inheritedResourceReferences{0};
         std::size_t symbolProofUses{0};
         std::size_t lineTypeDependencyRows{0}, complexTextStyleBindings{0}, complexShapeStyleBindings{0};
+        std::size_t fieldProofUses{0}, dataLinkProofUses{0};
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates.

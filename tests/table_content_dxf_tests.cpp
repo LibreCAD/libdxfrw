@@ -101,6 +101,12 @@ struct Probe final : dx_iface {
     std::function<void(DRW_RawDxfObject&)> alterSymbolRaw;
     std::function<void(DRW_Textstyle&)> alterTextStyle;
     std::function<void(DRW_LType&)> alterLType;
+    std::function<void(DRW_Field&)> alterField;
+    std::function<void(DRW_DataLink&)> alterDataLink;
+    std::function<void(DRW_RawDxfObject&)> alterAuxRaw;
+    std::uint32_t skipAuxRaw=0u,duplicateAuxRaw=0u,skipAuxTyped=0u,duplicateAuxTyped=0u;
+    std::uint32_t throwAuxTyped=0u;
+    unsigned fieldCallbacks=0u,dataLinkCallbacks=0u;
     std::vector<std::string> symbolEvents;
     std::shared_ptr<DRW_TableContentDxfMetadata> mutableAlias;
     std::shared_ptr<DRW_TableStyleContentFormat> mutableFormatAlias;
@@ -122,6 +128,13 @@ struct Probe final : dx_iface {
         content.push_back(copy); dx_iface::addTableContent(copy);
     }
     void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        if(value.name=="FIELD"||value.name=="ACDBFIELD"||value.name=="ACAD_FIELD"||value.name=="DATALINK") {
+            if(skipAuxRaw&&value.handle==skipAuxRaw)return;
+            if(alterAuxRaw){auto copy=value;alterAuxRaw(copy);dx_iface::addRawDxfObject(copy);}
+            else dx_iface::addRawDxfObject(value);
+            if(duplicateAuxRaw&&value.handle==duplicateAuxRaw)dx_iface::addRawDxfObject(value);
+            return;
+        }
         if(value.name=="TABLESTYLE") {
             if(skipStyleRaw)return;
             if(alterStyleRaw){auto copy=value;alterStyleRaw(copy);dx_iface::addRawDxfObject(copy);if(duplicateStyleRaw)dx_iface::addRawDxfObject(value);return;}
@@ -181,6 +194,18 @@ struct Probe final : dx_iface {
         if(observeSymbols)symbolEvents.push_back("typed:LTYPE");
         if(alterLType){auto copy=value;alterLType(copy);dx_iface::addLType(copy);}
         else dx_iface::addLType(value);
+    }
+    void addField(const DRW_Field& value) override {
+        ++fieldCallbacks;if(skipAuxTyped&&value.handle==skipAuxTyped)return;
+        if(alterField){auto copy=value;alterField(copy);dx_iface::addField(copy);}else dx_iface::addField(value);
+        if(duplicateAuxTyped&&value.handle==duplicateAuxTyped)dx_iface::addField(value);
+        if(throwAuxTyped&&value.handle==throwAuxTyped)throw std::runtime_error("injected FIELD callback exception");
+    }
+    void addDataLink(const DRW_DataLink& value) override {
+        ++dataLinkCallbacks;if(skipAuxTyped&&value.handle==skipAuxTyped)return;
+        if(alterDataLink){auto copy=value;alterDataLink(copy);dx_iface::addDataLink(copy);}else dx_iface::addDataLink(value);
+        if(duplicateAuxTyped&&value.handle==duplicateAuxTyped)dx_iface::addDataLink(value);
+        if(throwAuxTyped&&value.handle==throwAuxTyped)throw std::runtime_error("injected DATALINK callback exception");
     }
     bool wantsDxfSymbolSource() const override {
         return symbolOptIn && (forceSymbols || dx_iface::wantsDxfSymbolSource());
@@ -1433,7 +1458,7 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("map proof source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean);
-        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=4u||!frozen.rawTypedMatched
+        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=6u||!frozen.rawTypedMatched
             ||frozen.references.empty()||!frozen.raw)return fail("map canonical proof failed");
         std::array<unsigned,11> roles{};unsigned handles=0u;
         for(const auto& ref:frozen.references) {
@@ -1770,7 +1795,7 @@ bool symbolSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("symbol source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const std::vector<std::string> events{"raw:STYLE","typed:STYLE","raw:STYLE","typed:STYLE","raw:LTYPE","typed:LTYPE"};
-        if(report.state!=S::Bound||report.resourceProofRecords!=5u||report.symbolProofUses==0u||probe.symbolEvents!=events)
+        if(report.state!=S::Bound||report.resourceProofRecords!=7u||report.symbolProofUses==0u||probe.symbolEvents!=events)
             return fail("symbol canonical proof/order failed");
         for(auto handle:{0xC101u,0xC102u,0xC103u}) {
             const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean,handle);
@@ -1992,6 +2017,263 @@ bool complexSymbolBindingTests(const std::filesystem::path& dir) {
     return routes==8u&&pairs==faults.size()*routes&&variants==56u&&callbacks==24u&&boundaries==16u&&allocations>=16u&&refusals==16u;
 }
 
+// Authored from scratch. FIELD children cover all retained payload categories;
+// DATALINK connection text is inert and must never cause external access.
+Tags auxiliaryResourceSource(const std::string& revision) {
+    auto tags=complexSymbolSource(revision);
+    const auto replace=[&](const char* handle,const Tags& body) {
+        const auto begin=slot(tags,5,handle)-1u;auto end=begin+1u;while(tags[end].code!=0)++end;
+        tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(begin),tags.begin()+static_cast<std::ptrdiff_t>(end));
+        tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(begin),body.begin(),body.end());
+    };
+    Tags field{{0,"FIELD"},{5,"F100"},{102,"{FIELD_META"},{300,"common-é"},{102,"}"},
+        {102,"{ACAD_REACTORS"},{330,"A0"},{102,"}"},{102,"{ACAD_XDICTIONARY"},{360,"C110"},{102,"}"},
+        {330,"A0"},{100,"AcDbObject"},{100,"AcDbField"},{1,"AcExpr"},{2,"first-é"},{3," + tail ^J code"},
+        {4,"outer-format"},{90,"2"},{360,"F101"},{360,"F102"},{97,"2"},{331,"B100"},{331,"C101"},
+        {91,"3"},{92,"4"},{94,"5"},{95,"6"},{96,"7"},{300,"status ^J message-é"},{93,"8"}};
+    const int types[]{0,1,2,4,8,16,32,64};
+    for(unsigned i=0;i<8u;++i) {
+        field.insert(field.end(),{{6,"key-"+std::to_string(i)},{93,"0"},{90,std::to_string(types[i])}});
+        if(i==0u||i==1u)field.push_back({91,i?"-9":"11"});
+        if(i==2u)field.push_back({140,"2.25"});
+        if(i==3u)field.insert(field.end(),{{1,"first-é"},{2," + second ^J chunk"}});
+        if(i==4u)field.insert(field.end(),{{92,"4"},{310,"00FF"},{310,"1080"}});
+        if(i==5u)field.insert(field.end(),{{92,"16"},{11,"1.25"},{21,"-2.5"}});
+        if(i==6u)field.insert(field.end(),{{92,"24"},{11,"1"},{21,"2"},{31,"3"}});
+        if(i==7u)field.push_back({330,"C101"});
+        field.insert(field.end(),{{94,"0"},{300,"fmt-"+std::to_string(i)},{302,"cache-é"},{304,"ACVALUE_END"}});
+    }
+    field.insert(field.end(),{{7,"ACFD_FIELD_VALUE"},{93,"0"},{90,"64"},{330,"F001"},{94,"0"},
+        {300,"object-format"},{302,"cached-object"},{304,"ACVALUE_END"},
+        {301,"display-é"},{9," + tail ^J display"},{98,"31"},
+        {1001,"FIELD_APP"},{1000,"field xdata-é"},{1003,"FIELD_LAYER"},{1005,"C101"}});
+    replace("F100",field);
+    const Tags dataLink{{0,"DATALINK"},{5,"F001"},{102,"{ACAD_REACTORS"},{330,"C"},{102,"}"},
+        {330,"C"},{100,"AcDbObject"},{100,"AcDbDataLink"},{1,"EXCEL"},{300,"link description-é"},
+        {301,"tooltip ^J text"},{302,"never-open://authored-control.xlsx"},{90,"7"},{91,"511"},{92,"-3"},
+        {170,"2026"},{171,"10"},{172,"25"},{173,"23"},{174,"59"},{175,"1"},{176,"250"},{177,"3"},
+        {93,"19"},{304,"ready ^J status-é"},{94,"2"},{305,"CUSTOMDATA"},
+        {330,"F100"},{304,"field ref-é"},{330,"C101"},{304,"style ref-é"},{309,"DATAMAP_END"},{360,"F200"},
+        {1001,"LINK_APP"},{1000,"link xdata-é"},{1003,"LINK_LAYER"},{1005,"C101"}};
+    replace("F001",dataLink);
+    return tags;
+}
+
+bool auxiliarySourceProofTests(const std::filesystem::path& dir) {
+    using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
+    const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
+    const auto path=dir/"auxiliary-source-proof.dxf";
+    const auto rowSlot=[](const Tags& tags,const char* handle,int code,std::string_view value={}) {
+        for(auto i=slot(tags,5,handle);i<tags.size()&&tags[i].code!=0;++i)
+            if(tags[i].code==code&&(value.empty()||tags[i].value==value))return i;
+        throw std::runtime_error("missing auxiliary row mutation slot");
+    };
+    std::vector<std::function<void(DRW_Field&)>> fieldFaults{
+        [](auto& f){f.m_evaluatorId+="changed";},[](auto& f){f.m_fieldCode+="changed";},[](auto& f){f.m_formatString+="changed";},
+        [](auto& f){++f.m_evaluationOptionFlags;},[](auto& f){++f.m_filingOptionFlags;},[](auto& f){++f.m_fieldStateFlags;},
+        [](auto& f){++f.m_evaluationStatusFlags;},[](auto& f){++f.m_evaluationErrorCode;},[](auto& f){f.m_evaluationErrorMessage+="changed";},
+        [](auto& f){f.m_valueString+="changed";},[](auto& f){++f.m_valueStringLength;},
+        [](auto& f){++f.m_childHandles[0];},[](auto& f){f.m_childHandles.pop_back();},
+        [](auto& f){++f.m_objectHandles[0];},[](auto& f){f.m_objectHandles.pop_back();},[](auto& f){f.m_childValues.pop_back();},
+        [](auto& f){++f.flags;},[](auto& f){f.name="injected-name";},[](auto& f){++f.xDictHandle;},
+        [](auto& f){f.reactorHandles.push_back(0xC101u);},[](auto& f){f.setDwgCommonLinkTailValidated(true);},
+        [](auto& f){f.setDwgCommonObjectState(f.reactorCount(),f.extensionDictionaryFlag(),true);},
+        [](auto& f){f.appData.front().push_back(DRW_Variant(300,"injected"));},
+        [](auto& f){f.extData.front()->addString(1001,"different-app");}
+    };
+    const std::vector<std::function<void(DRW_CadValue&)>> valueFaults{
+        [](auto& v){++v.m_formatFlags;},[](auto& v){++v.m_dataType;},[](auto& v){++v.m_dataSize;},
+        [](auto& v){++v.m_unitType;},[](auto& v){v.m_formatString+="changed";},[](auto& v){v.m_valueString+="changed";},
+        [](auto& v){++v.m_handle;},[](auto& v){v.m_rawData.push_back(17u);},
+        [](auto& v){v.m_value.addInt(331,99);},[](auto& v){DRW_DwgCmColor color;color.flags=1u;v.m_value.setDwgCmColor(color);}
+    };
+    for(const auto& fault:valueFaults) {
+        fieldFaults.push_back([fault](auto& f){fault(f.m_value);});
+        fieldFaults.push_back([fault](auto& f){fault(f.m_childValues[0].m_value);});
+    }
+    for(unsigned i=0;i<8u;++i)fieldFaults.push_back([i](auto& f){f.m_childValues[i].m_key+="changed";});
+    fieldFaults.push_back([](auto& f){f.m_childValues[0].m_value.m_value.addInt(91,12);});
+    fieldFaults.push_back([](auto& f){f.m_childValues[1].m_value.m_value.addInt(91,-10);});
+    fieldFaults.push_back([](auto& f){f.m_childValues[2].m_value.m_value.addDouble(140,-0.0);});
+    fieldFaults.push_back([](auto& f){f.m_childValues[3].m_value.m_value.addString(1,"changed");});
+    fieldFaults.push_back([](auto& f){auto& v=f.m_childValues[3].m_value.m_value;v.setLayerRefName(*v.content.s);});
+    fieldFaults.push_back([](auto& f){f.m_childValues[4].m_value.m_rawData[0]^=1u;});
+    fieldFaults.push_back([](auto& f){f.m_childValues[4].m_value.m_value.addBinary(310,{1,2,3,4});});
+    fieldFaults.push_back([](auto& f){f.m_childValues[5].m_value.m_value.setCoordZ(-0.0);});
+    fieldFaults.push_back([](auto& f){f.m_childValues[6].m_value.m_value.setCoordY(4.0);});
+    fieldFaults.push_back([](auto& f){++f.m_childValues[7].m_value.m_handle;});
+    const std::vector<std::function<void(DRW_DataLink&)>> linkFaults{
+        [](auto& l){l.m_dataAdapter+="changed";},[](auto& l){l.m_description+="changed";},[](auto& l){l.m_tooltip+="changed";},
+        [](auto& l){l.m_connectionString+="changed";},[](auto& l){++l.m_option;},[](auto& l){++l.m_updateOption;},
+        [](auto& l){++l.m_value92;},[](auto& l){++l.m_year;},[](auto& l){++l.m_month;},[](auto& l){++l.m_day;},
+        [](auto& l){++l.m_hour;},[](auto& l){++l.m_minute;},[](auto& l){++l.m_seconds;},[](auto& l){++l.m_milliseconds;},
+        [](auto& l){++l.m_pathOption;},[](auto& l){++l.m_value93;},[](auto& l){l.m_updateStatus+="changed";},
+        [](auto& l){++l.m_customDataCount;},[](auto& l){l.m_customData.pop_back();},[](auto& l){++l.m_hardOwnerHandle;},
+        [](auto& l){++l.m_customData[0].m_targetHandle;},[](auto& l){l.m_customData[1].m_text+="changed";},
+        [](auto& l){++l.m_customData[0].m_dxfRetainedTextBytes;},[](auto& l){++l.flags;},
+        [](auto& l){l.name="injected-name";},[](auto& l){l.reactorHandles.push_back(0xC101u);},
+        [](auto& l){l.setDwgCommonLinkTailValidated(true);},[](auto& l){l.extData.front()->addString(1001,"different-app");}
+    };
+    const std::vector<std::function<void(DRW_RawDxfObject&)>> rawFaults{
+        [](auto& r){r.m_version=DRW::AC1015;},[](auto& r){r.name="UNKNOWN_RESOURCE";},
+        [](auto& r){++r.handle;},[](auto& r){++r.parentHandle;},[](auto& r){r.groups[0].addString(5,"FFFF");},
+        [](auto& r){r.groups.emplace_back(100,"UnknownSubclass");r.rawValues.emplace_back("UnknownSubclass");},
+        [](auto& r){if(r.hasRawValues)r.rawValues[0]="wrong scalar";else r.hasRawValues=true;},
+        [](auto& r){for(std::size_t i=0;i<r.groups.size();++i)if(r.groups[i].code()==1){r.groups.erase(r.groups.begin()+static_cast<std::ptrdiff_t>(i));r.rawValues.erase(r.rawValues.begin()+static_cast<std::ptrdiff_t>(i));break;}},
+        [](auto& r){r.groups.emplace_back(10,DRW_Coord(1,2,3));r.rawValues.emplace_back("1");},
+        [](auto& r){r.groups.front().setLayerRefName("not a raw scalar");}
+    };
+    unsigned routes=0u,typed=0u,raw=0u,callbacks=0u,boundaries=0u,refusals=0u,wire=0u,variants=0u,publicBudgets=0u;
+    for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
+        const auto good=auxiliaryResourceSource(revision);Probe probe;dx_data clean;
+        if(!write(path,good,binary)||!probe.fileImport(path.string(),&clean,false))return fail("rich auxiliary source import failed");
+        const auto report=dx_iface::tableContentBindingReport(clean);
+        if(report.state!=S::Bound||report.fieldProofUses==0u||report.dataLinkProofUses==0u||report.resourceProofRecords!=7u)return fail("auxiliary canonical proof failed");
+        const auto& field=DxIfaceTableSourceTestAccess::mapResource(clean,0xF100u);
+        const auto& link=DxIfaceTableSourceTestAccess::mapResource(clean,0xF001u);
+        if(!field.rawTypedMatched||!link.rawTypedMatched)return false;
+        std::array<unsigned,19> roles{};
+        for(const auto* resource:{&field,&link})for(const auto& ref:resource->references) {
+            if(resource->raw->groups.at(ref.groupIndex).code()!=ref.code)return fail("auxiliary source position differs");
+            if(isDxfHandleCode(ref.code)) {
+                const auto& scalar=resource->raw->groups[ref.groupIndex];
+                if(scalar.type()!=DRW_Variant::STRING||std::stoull(*scalar.content.s,nullptr,16)!=ref.value)return fail("auxiliary source handle differs");
+            }
+            ++roles.at(static_cast<unsigned>(ref.kind));
+        }
+        if(roles[static_cast<unsigned>(R::FieldChild)]!=2u||roles[static_cast<unsigned>(R::FieldObject)]!=2u
+            ||roles[static_cast<unsigned>(R::FieldValueObject)]!=2u||roles[static_cast<unsigned>(R::DataLinkCustomTarget)]!=2u
+            ||roles[static_cast<unsigned>(R::DataLinkHardOwner)]!=1u)return fail("auxiliary reference census differs");
+        ++routes;
+        for(unsigned family=0;family<2u;++family) {
+            const auto count=family?linkFaults.size():fieldFaults.size();
+            for(std::size_t i=0;i<count;++i) {
+                if(family)probe.alterDataLink=linkFaults[i];else probe.alterField=fieldFaults[i];
+                dx_data bad;if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)
+                    return fail("auxiliary typed mutation escaped family="+std::to_string(family)+" index="+std::to_string(i));
+                const auto& resources=DxIfaceTableSourceTestAccess::resources(bad);
+                const auto found=resources.find(family?0xF001u:0xF100u);
+                if(found!=resources.end()&&(found->second.rawTypedMatched||!found->second.references.empty()))return fail("partial auxiliary typed proof published");
+                probe.alterField={};probe.alterDataLink={};dx_data restored;
+                if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("auxiliary typed correction failed");
+                probe.clear();++typed;
+            }
+            const std::uint32_t handle=family?0xF001u:0xF100u;
+            for(const auto& fault:rawFaults) {
+                probe.alterAuxRaw=[fault,handle](auto& r){if(r.handle==handle)fault(r);};dx_data bad;
+                if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("auxiliary raw fault qualified");
+                const auto& resource=DxIfaceTableSourceTestAccess::mapResource(bad,handle);
+                if(resource.rawTypedMatched||!resource.references.empty())return fail("partial auxiliary raw proof published");
+                probe.alterAuxRaw={};dx_data restored;
+                if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("auxiliary raw correction failed");
+                probe.clear();++raw;
+            }
+            for(unsigned mode=0;mode<5u;++mode) {
+                probe.skipAuxRaw=mode==0u?handle:0u;probe.duplicateAuxRaw=(mode==1u||mode==4u)?handle:0u;
+                probe.skipAuxTyped=mode==2u?handle:0u;probe.duplicateAuxTyped=mode==3u?handle:0u;
+                if(mode==4u)probe.alterAuxRaw=[handle](auto& r){if(r.handle==handle)r.groups.front().setLayerRefName("not raw");};
+                dx_data bad;if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("auxiliary callback gap qualified");
+                const auto& original=family?link:field;probe.addRawDxfObject(*original.raw);
+                if(dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("late raw callback repaired source evidence");
+                probe.skipAuxRaw=probe.duplicateAuxRaw=probe.skipAuxTyped=probe.duplicateAuxTyped=0u;probe.alterAuxRaw={};
+                dx_data restored;if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+                probe.clear();++callbacks;
+            }
+            probe.throwAuxTyped=handle;dx_data interrupted;bool threw=false;
+            try{(void)probe.fileImport(path.string(),&interrupted,false);}catch(const std::runtime_error&){threw=true;}
+            if(!threw||dx_iface::tableContentBindingReport(interrupted).state==S::Bound)return fail("auxiliary callback exception qualified");
+            probe.throwAuxTyped=0u;dx_data corrected;
+            if(!probe.fileImport(path.string(),&corrected,false)||dx_iface::tableContentBindingReport(corrected).state!=S::Bound)return fail("auxiliary exception recovery failed");
+            probe.clear();++callbacks;
+        }
+        for(unsigned mode=0;mode<8u;++mode) {
+            auto bad=good;const bool fieldFault=mode>=4u;const auto start=slot(bad,5,fieldFault?"F100":"F001");
+            auto end=start;while(bad[end].code!=0)++end;
+            if(mode==0u)bad.erase(bad.begin()+static_cast<std::ptrdiff_t>(rowSlot(bad,"F001",309,"DATAMAP_END")));
+            if(mode==1u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(rowSlot(bad,"F001",309,"DATAMAP_END")),{330,"C102"});
+            if(mode==2u)for(auto i=start;i<end;++i)if(bad[i].code==94){bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(i),{94,"2"});break;}
+            if(mode==3u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(end),{1,"ignored second adapter"});
+            if(mode==4u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(end),{1,"duplicate evaluator"});
+            if(mode==5u)for(auto i=start;i<end;++i)if(bad[i].code==2){bad.erase(bad.begin()+static_cast<std::ptrdiff_t>(i));break;}
+            if(mode==6u||mode==7u) {
+                const auto tail=rowSlot(bad,mode==6u?"F100":"F001",1001);
+                bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(tail),{341,"C101"});
+            }
+            dx_data rejected;if(!write(path,bad,binary)||!probe.fileImport(path.string(),&rejected,false)
+                ||dx_iface::tableContentBindingReport(rejected).state==S::Bound)return fail("auxiliary wire profile fault qualified mode="+std::to_string(mode));
+            if(dx_iface::tableSourceReport(rejected).state!=dx_iface::TableSourceState::StructurallyComplete
+                ||(mode>=6u&&dx_iface::tableContentBindingReport(rejected).state!=S::UnknownRole))return fail("auxiliary wire fault affected the wrong source scope");
+            dx_data retry;if(!write(path,good,binary)||!probe.fileImport(path.string(),&retry,false)||dx_iface::tableContentBindingReport(retry).state!=S::Bound)return fail("auxiliary wire recovery failed");
+            probe.clear();++wire;
+        }
+        for(unsigned mode=0;mode<5u;++mode) {
+            auto tags=good;
+            if(mode==0u)tags[slot(tags,0,"FIELD")].value="ACAD_FIELD";
+            if(mode==4u)tags[slot(tags,0,"FIELD")].value="ACDBFIELD";
+            if(mode==1u) {
+                const auto start=slot(tags,5,"F100");auto end=start;while(tags[end].code!=0)++end;
+                for(auto i=end;i-->start;)if((tags[i].code==93&&tags[i].value=="0")||(tags[i].code==304&&tags[i].value=="ACVALUE_END"))tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(i));
+            }
+            if(mode==2u) {
+                auto i=rowSlot(tags,"F001",305,"CUSTOMDATA");tags[i]={1,"DATAMAP_BEGIN"};
+                i=rowSlot(tags,"F001",309,"DATAMAP_END");tags[i]={1,"DATAMAP_END"};
+            }
+            if(mode==3u) {
+                const auto i=rowSlot(tags,"F100",100,"AcDbObject");tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(i));
+            }
+            dx_data variant;if(!write(path,tags,binary)||!probe.fileImport(path.string(),&variant,false)
+                ||dx_iface::tableContentBindingReport(variant).state!=S::Bound)return fail("auxiliary compatibility variant failed mode="+std::to_string(mode));
+            probe.clear();++variants;
+        }
+        if(!write(path,good,binary))return false;
+        for(unsigned i=0;i<8u;++i) {
+            dx_data limited;DxIfaceTableSourceTestAccess::resourceProofLimits(limited,
+                i==0?report.resourceProofRecords-1u:i==4?report.resourceProofRecords:100000u,
+                i==1?report.resourceProofGroups-1u:i==5?report.resourceProofGroups:4000000u,
+                i==2?report.resourceProofBytes-1u:i==6?report.resourceProofBytes:64u*1024u*1024u,
+                i==3?report.resourceProofWork-1u:i==7?report.resourceProofWork:4000000u);
+            if(!probe.fileImport(path.string(),&limited,false)||dx_iface::tableContentBindingReport(limited).state!=(i<4u?S::CaptureFailed:S::Bound))return fail("auxiliary cumulative proof boundary failed");
+            ++boundaries;
+        }
+        clean.fields.front().m_childValues[4].m_value.m_rawData.clear();clean.dataLinks.front().m_customData.clear();
+        if(dx_iface::tableContentBindingReport(clean).state!=S::Bound)return fail("public edit changed immutable auxiliary evidence");
+        for(bool strict:{false,true}) {
+            const auto output=dir/"auxiliary-refused.dxf";{std::ofstream out(output);out<<"preserve";}
+            dx_iface exporter;if(exporter.fileExport(output.string(),clean.sourceVersion,binary,&clean,false,strict))return fail("auxiliary proof promoted output");
+            std::ifstream old(output);if(std::string(std::istreambuf_iterator<char>(old),{})!="preserve")return fail("auxiliary refusal replaced destination");
+            dx_data plain;dx_iface author;author.cData=&plain;author.currentBlock=plain.mBlock;
+            DRW_Line line;line.basePoint={1,2,3};line.secPoint={4,5,6};author.addLine(line);
+            if(!exporter.fileExport(output.string(),clean.sourceVersion,binary,&plain,false,strict))return fail("auxiliary refusal poisoned retry");
+            dx_data readback;dx_iface reader;
+            if(!reader.fileImport(output.string(),&readback,false)||readback.mBlock->ent.size()!=1u)return fail("auxiliary retry readback failed");
+            const auto* actual=dynamic_cast<const DRW_Line*>(readback.mBlock->ent.front());
+            if(!actual||actual->basePoint.z!=3||actual->secPoint.z!=6)return fail("auxiliary retry changed coordinates");
+            ++refusals;
+        }
+        Tags minimal{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,revision},{0,"ENDSEC"},{0,"SECTION"},{2,"OBJECTS"}};
+        const auto begin=slot(good,5,"F100")-1u;auto end=begin+1u;while(good[end].code!=0)++end;
+        minimal.insert(minimal.end(),good.begin()+static_cast<std::ptrdiff_t>(begin),good.begin()+static_cast<std::ptrdiff_t>(end));
+        minimal.insert(minimal.end(),{{0,"ENDSEC"},{0,"EOF"}});
+        if(!write(path,minimal,binary))return false;
+        Probe direct;dx_data directData;direct.cData=&directData;dxfRW codec(path.string().c_str());
+        codec.setDxfReadTypedVariantNodeBudget(2u);
+        if(codec.read(&direct,false)||direct.fieldCallbacks)return fail("FIELD node exhaustion published a callback");
+        codec.setDxfReadTypedVariantNodeBudget(100000u);
+        if(!codec.read(&direct,false)||direct.fieldCallbacks!=1u)return fail("FIELD node exhaustion retry failed");
+        ++publicBudgets;
+        codec.setDxfReadRetainedByteBudget(64u);
+        if(codec.read(&direct,false)||direct.fieldCallbacks!=1u)return fail("FIELD byte exhaustion published a callback");
+        codec.setDxfReadRetainedByteBudget(2u*1024u*1024u);
+        if(!codec.read(&direct,false)||direct.fieldCallbacks!=2u)return fail("FIELD byte exhaustion retry failed");
+        ++publicBudgets;
+    }
+    std::cout<<"auxiliary source proof: "<<routes<<" routes; "<<fieldFaults.size()<<" FIELD + "<<linkFaults.size()<<" DATALINK mutation kinds; "
+        <<typed<<" typed pairs; "<<raw<<" raw pairs; "<<callbacks<<" callback corrections; "<<wire<<" wire pairs; "<<variants<<" variants; "
+        <<boundaries<<" proof boundaries; "<<publicBudgets<<" reader budget retries; "<<refusals<<" atomic refusal/retry readbacks\n";
+    return routes==8u&&typed==(fieldFaults.size()+linkFaults.size())*routes&&raw==160u&&callbacks==96u&&wire==64u&&variants==40u
+        &&boundaries==64u&&publicBudgets==16u&&refusals==16u;
+}
+
 int inspect(const char* path) {
     Probe p; dx_data data;
     const bool ok=p.fileImport(path,&data,false);
@@ -2007,6 +2289,7 @@ int inspect(const char* path) {
         <<" inherited-formats="<<bindings.inheritedResourceReferences<<" symbol-proof-uses="<<bindings.symbolProofUses
         <<" ltype-dependency-rows="<<bindings.lineTypeDependencyRows<<" complex-text-bindings="<<bindings.complexTextStyleBindings
         <<" complex-shape-bindings="<<bindings.complexShapeStyleBindings
+        <<" field-proof-uses="<<bindings.fieldProofUses<<" datalink-proof-uses="<<bindings.dataLinkProofUses
         <<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
     std::cout<<"compound-state="<<static_cast<int>(compound.state)<<" tables="<<compound.tables
              <<" contents="<<compound.contents<<" geometries="<<compound.geometries
@@ -2028,10 +2311,13 @@ int inspect(const char* path) {
                 <<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
     }
     std::cout<<"imported="<<ok<<" matched="<<p.content.size()<<" unknown="<<p.unknown<<'\n';
-    const auto symbol=[&](const DRW_TableEntry& row,const char* prefix,const auto& resource) {
-        std::cout<<"symbol-row handle="<<std::hex<<row.handle<<std::dec<<" family="<<prefix<<" flags="<<row.flags<<'\n';
+    const auto resourceReferences=[&](const DRW_TableEntry& row,const char* prefix,const auto& resource) {
         for(const auto& ref:resource.references)std::cout<<prefix<<"-reference handle="<<std::hex<<row.handle<<std::dec
             <<" kind="<<static_cast<unsigned>(ref.kind)<<" index="<<ref.groupIndex<<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
+    };
+    const auto symbol=[&](const DRW_TableEntry& row,const char* prefix,const auto& resource) {
+        std::cout<<"symbol-row handle="<<std::hex<<row.handle<<std::dec<<" family="<<prefix<<" flags="<<row.flags<<'\n';
+        resourceReferences(row,prefix,resource);
         if(const auto* ltype=dynamic_cast<const DRW_LType*>(&row))for(std::size_t i=0;i<ltype->segments.size();++i) {
             const auto& segment=ltype->segments[i];
             std::cout<<"symbol-segment handle="<<std::hex<<row.handle<<std::dec<<" index="<<i<<" flags="<<segment.shapeFlags
@@ -2043,6 +2329,8 @@ int inspect(const char* path) {
         if(!resource.rawTypedMatched||!resource.model)continue;
         if(resource.family==dx_tableResourceFamily::TextStyle)symbol(*resource.model,"STYLE",resource);
         if(resource.family==dx_tableResourceFamily::LineType)symbol(*resource.model,"LTYPE",resource);
+        if(resource.family==dx_tableResourceFamily::Field)resourceReferences(*resource.model,"FIELD",resource);
+        if(resource.family==dx_tableResourceFamily::DataLink)resourceReferences(*resource.model,"DATALINK",resource);
     }
     if(bindings.sourceStyleMatches)for(const auto& style:data.tableStyles) {
         const auto& resource=DxIfaceTableSourceTestAccess::mapResource(data,style.handle);
@@ -2082,10 +2370,11 @@ int inspect(const char* path) {
 } // namespace
 int main(int argc,char** argv) {
     if (argc==3 && std::string(argv[1])=="--inspect") return inspect(argv[2]);
-    if(argc==5 && std::string(argv[1])=="--generate-symbol-source") {
+    if(argc==5 && (std::string(argv[1])=="--generate-symbol-source"||std::string(argv[1])=="--generate-auxiliary-source")) {
         const std::string revision=argv[2],encoding=argv[3];
         if((revision!="AC1021"&&revision!="AC1024"&&revision!="AC1027"&&revision!="AC1032") || (encoding!="ascii"&&encoding!="binary"))return 2;
-        return write(argv[4],complexSymbolSource(revision),encoding=="binary")?0:1;
+        const auto tags=std::string(argv[1])=="--generate-symbol-source"?complexSymbolSource(revision):auxiliaryResourceSource(revision);
+        return write(argv[4],tags,encoding=="binary")?0:1;
     }
     const bool compound=argc==2 && std::string(argv[1])=="--compound-source";
     const bool proof=argc==2 && std::string(argv[1])=="--compound-content-proof";
@@ -2095,10 +2384,11 @@ int main(int argc,char** argv) {
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
     const bool symbolProof=argc==2 && std::string(argv[1])=="--symbol-source-proof";
     const bool complexBindings=argc==2 && std::string(argv[1])=="--complex-symbol-bindings";
-    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings) return 2;
+    const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
+    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

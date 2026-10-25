@@ -110,7 +110,7 @@ The same opt-in configuration registers `libdxfrw_independent_symbol_source`:
 
 ```sh
 cmake --build build --target libdxfrw_table_content_dxf_tests
-ctest --test-dir build -R '^libdxfrw_independent_symbol_source$' --output-on-failure
+ctest --test-dir build -R '^libdxfrw_independent_(symbol|auxiliary)_source$' --output-on-failure
 ```
 
 It checks eight locally authored ASCII/binary STYLE/LTYPE routes against original
@@ -118,6 +118,9 @@ source tags and ezdxf's retained pattern tags, including every complex element's
 STYLE handle and text/shape target kind. It never re-exports source rows to infer
 their field positions. These scoped observations do not qualify font/glyph or
 rotation semantics, full resource closure, output or format support.
+The auxiliary test adds eight authored FIELD/DATALINK routes; its independent
+observations cover handle/name positions and handle values, not complete cached
+values, context-dependent reference semantics or external data execution.
 
 ### Text decoding and codepage advisories
 
@@ -498,6 +501,15 @@ matching kind; unnamed shape-file entries retain direct handle binding.
 Missing/duplicate element fields and nonnull unknown handle roles cannot earn
 qualification. Null map formats still inherit, but null complex-element targets
 do not. The worklist does not yet qualify common links or font rendering.
+
+Selected FIELD/DATALINK resources now also require immutable exposed/common-field
+source agreement. FIELD import and proof share one production decoder, retaining
+cached-value/chunk behavior; `FIELD`, `ACDBFIELD` and documented `ACAD_FIELD`
+spellings use the same path. Missing/mismatched sources, incomplete DATALINK
+custom-data records and unknown nonnull reference roles cannot qualify a binding.
+Source positions are retained separately from full transitive target proof.
+Expressions and connection strings remain inert; no evaluation or data access
+is added. Full graph/live/output qualification remains open.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without

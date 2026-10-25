@@ -206,7 +206,7 @@ partial import. Opt-out has no raw-copy or raw-variant accounting cost.
 The converter joins source-first rows to their typed identity only inside the
 actual import scope. Immutable raw snapshots, exact exposed/common-field
 comparison and source reference positions share the existing cumulative proof
-limits across all four style/map/symbol families. Pending, duplicate, malformed,
+limits across style/map/symbol and FIELD/DATALINK families. Pending, duplicate, malformed,
 late, context-mismatched or unproved rows cannot qualify selected bindings.
 Handle-free legacy rows remain transport-only. Unnamed shape-file STYLE rows
 are valid direct identities, not invented font-name entries. LTYPE uses the same
@@ -230,8 +230,8 @@ are not treated as these per-element edges or rejected as ownership cycles.
 Explicit null map-format inheritance is unchanged, but is not a policy for a
 missing complex STYLE target. `outputEligible` remains false.
 
-The optional ezdxf 1.4.4 observer now uses original ASCII/binary scalar tags for
-all four resource families (JSON schema 3), plus retained per-element pattern
+The optional ezdxf 1.4.4 observer uses original ASCII/binary scalar tags for
+STYLE/LTYPE/TABLESTYLE/CELLSTYLEMAP observations, plus retained per-element pattern
 tags and STYLE flags/target kinds. Its generated eight-route control and two
 unchanged external examples corroborate only the reported source positions and
 symbol identities. It intentionally does not use a first-style-handle convenience
@@ -241,6 +241,34 @@ full common/transitive closure is qualified by that check. In particular, the
 Autodesk LTYPE page describes group 50 in radians while its general numerical
 DXF-code table describes group 50 angles in degrees; current normalization is
 unchanged pending independent nonzero-angle semantic evidence.
+
+Selected FIELD and DATALINK references now require the same actual-import-only,
+immutable raw/typed proof. FIELD's complete production DXF state machine lives
+in the noninstalled `intern/dxffield.h`; normal import and bounded proof replay
+share its cached-value, chunk, implicit legacy terminator and reference-slot
+logic. `FIELD` and `ACDBFIELD` remain accepted, and the documented `ACAD_FIELD`
+spelling now reaches that decoder and converter capture rather than raw-only
+fallback. No public model layout or `DRW_Interface` vtable changes are required.
+
+Proof compares exposed scalar/common state, every retained CadValue component,
+children/objects/keys, binary and coordinate views and default-only fields.
+DATALINK additionally requires a complete custom-data marker/pending-target
+sequence and agreement between declared and retained custom entries. Missing or
+duplicate source callbacks, failed/throwing imports, unsupported scalar owners,
+source/model mismatches and exhausted shared record/group/byte/work limits stay
+unqualified; later callbacks cannot repair a closed source generation. Exact
+per-record reference positions are published only after complete agreement.
+
+The optional observer now reports JSON schema 4, adding original FIELD/DATALINK
+handle/name positions and handle values. These are independent scalar-span
+observations, not independent cached-value or context-dependent role/target
+semantics. No expressions or external connections are evaluated or opened.
+FIELD child/object/value and DATALINK custom/hard-owner targets still need full
+transitive/common source and ownership proof, as do the remaining object
+families. Immutable proof is not editable-state equality or output admission.
+The extracted decoder preserves existing read accounting; full decoded FIELD
+payload-owner lease coverage remains an audit gate before broader per-read
+retained-memory claims. Logical source/model copy caps are not process RSS caps.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds

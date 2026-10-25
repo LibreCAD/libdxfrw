@@ -45,6 +45,7 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgreader.h"
 #include "intern/dxftablecontent.h"
+#include "intern/dxffield.h"
 
 namespace {
 
@@ -16835,6 +16836,100 @@ bool tableStyleSourceEqual(const DRW_TableStyle& a,const DRW_TableStyle& b,DRW::
     return true;
 }
 
+bool fieldSourceEqual(const DRW_Field& a,const DRW_Field& b,DRW::Version version) {
+    if(!standardDwgCommonEqual(a,b,version) || a.hasCompleteDwgPayload()!=b.hasCompleteDwgPayload()
+        || std::tie(a.m_evaluatorId,a.m_fieldCode,a.m_formatString,a.m_evaluationOptionFlags,a.m_filingOptionFlags,
+            a.m_fieldStateFlags,a.m_evaluationStatusFlags,a.m_evaluationErrorCode,a.m_evaluationErrorMessage,
+            a.m_valueString,a.m_valueStringLength,a.m_childHandles,a.m_objectHandles)
+        !=std::tie(b.m_evaluatorId,b.m_fieldCode,b.m_formatString,b.m_evaluationOptionFlags,b.m_filingOptionFlags,
+            b.m_fieldStateFlags,b.m_evaluationStatusFlags,b.m_evaluationErrorCode,b.m_evaluationErrorMessage,
+            b.m_valueString,b.m_valueStringLength,b.m_childHandles,b.m_objectHandles)
+        || !tableSourceCadValueEqual(a.m_value,b.m_value) || a.m_childValues.size()!=b.m_childValues.size())return false;
+    for(std::size_t i=0;i<a.m_childValues.size();++i)
+        if(a.m_childValues[i].m_key!=b.m_childValues[i].m_key
+            || !tableSourceCadValueEqual(a.m_childValues[i].m_value,b.m_childValues[i].m_value))return false;
+    return true;
+}
+
+bool dataLinkSourceEqual(const DRW_DataLink& a,const DRW_DataLink& b,DRW::Version version) {
+    if(!standardDwgCommonEqual(a,b,version)
+        || std::tie(a.m_dataAdapter,a.m_description,a.m_tooltip,a.m_connectionString,a.m_option,a.m_updateOption,
+            a.m_value92,a.m_year,a.m_month,a.m_day,a.m_hour,a.m_minute,a.m_seconds,a.m_milliseconds,a.m_pathOption,
+            a.m_value93,a.m_updateStatus,a.m_customDataCount,a.m_hardOwnerHandle)
+        !=std::tie(b.m_dataAdapter,b.m_description,b.m_tooltip,b.m_connectionString,b.m_option,b.m_updateOption,
+            b.m_value92,b.m_year,b.m_month,b.m_day,b.m_hour,b.m_minute,b.m_seconds,b.m_milliseconds,b.m_pathOption,
+            b.m_value93,b.m_updateStatus,b.m_customDataCount,b.m_hardOwnerHandle)
+        || a.m_customData.size()!=b.m_customData.size() || a.m_customDataCount<0
+        || static_cast<std::size_t>(a.m_customDataCount)!=a.m_customData.size())return false;
+    for(std::size_t i=0;i<a.m_customData.size();++i)
+        if(a.m_customData[i].m_targetHandle!=b.m_customData[i].m_targetHandle
+            || a.m_customData[i].m_text!=b.m_customData[i].m_text
+            || a.m_customData[i].m_dxfRetainedTextBytes!=b.m_customData[i].m_dxfRetainedTextBytes)return false;
+    return true;
+}
+
+// FIELD body roles come directly from the shared production decoder. This
+// pass only merges those slots with common application/XDATA/header roles.
+// DATALINK's existing marker protocol disambiguates custom target group 330
+// from the owner and update-status text; it does not qualify external data IO.
+bool auxiliarySourceReferences(const DRW_RawDxfObject& raw,bool field,std::vector<dx_tableResourceReference>& refs) {
+    using R=dx_tableResourceRole;
+    if(refs.size()!=raw.groups.size())return false;
+    std::string_view application;bool body=false,xdata=false,custom=false,pending=false;
+    unsigned selves=0u,owners=0u,classes=0u,objects=0u,adapters=0u,counts=0u;
+    std::size_t output=0u;
+    for(std::size_t i=0;i<raw.groups.size();++i) {
+        const auto& value=raw.groups[i];const int code=value.code();
+        const auto text=value.type()==DRW_Variant::STRING&&value.content.s?std::string_view(*value.content.s):std::string_view{};
+        auto kind=refs[i].kind;
+        if(code==102) {
+            if(text=="}"){if(application.empty())return false;application={};}
+            else if(!text.empty()&&text.front()=='{'&&application.empty())application=text;
+            else return false;
+            continue;
+        }
+        if(application.empty()) {
+            if(xdata&&code<1000)return false; // no body fields hidden after trailing XDATA
+            if(code==100) {
+                if(text=="AcDbObject"){if(body||++objects!=1u)return false;}
+                else if(text==(field?"AcDbField":"AcDbDataLink")){if(++classes!=1u)return false;body=true;}
+                else return false;
+            }
+            if(code==1001){xdata=true;refs[output++]={R::AppIdName,i,code,0u};}
+            if(code==1003)refs[output++]={R::LayerName,i,code,0u};
+            if(!field && body && !xdata) {
+                if(code==1) {
+                    if(text=="CUSTOMDATA"||text=="DATAMAP_BEGIN"){if(pending)return false;custom=true;}
+                    else if(text=="DATAMAP_END"){if(pending)return false;custom=false;}
+                    else if(++adapters!=1u)return false;
+                } else if(code==94) {if(++counts!=1u)return false;}
+                else if(code==305){if(pending)return false;custom=true;}
+                else if(code==309){if(pending)return false;custom=false;}
+                else if(code==330 && custom) {
+                    if(pending)return false;
+                    pending=true;kind=R::DataLinkCustomTarget;
+                } else if(code==304 && custom) {
+                    if(!pending)return false;
+                    pending=false;
+                } else if(code==360)kind=R::DataLinkHardOwner;
+            }
+        }
+        if(!isDxfHandleCode(code))continue;
+        std::uint64_t handle=0u;if(!dx_standard_output::handleValue(value,handle)||handle>UINT32_MAX)return false;
+        if(application=="{ACAD_REACTORS"&&code==330)kind=R::Reactor;
+        else if(application=="{ACAD_XDICTIONARY"&&code==360)kind=R::ExtensionDictionary;
+        else if(application.empty()) {
+            if(code==5&&!body){kind=R::Self;if(++selves!=1u||!handle||handle!=raw.handle)return false;}
+            else if(code==330&&!body){kind=R::Owner;if(++owners!=1u||handle!=raw.parentHandle)return false;}
+            else if(code==1005&&xdata)kind=R::XdataObjectId;
+        }
+        refs[output++]={kind,i,code,static_cast<std::uint32_t>(handle)};
+    }
+    refs.resize(output);
+    return application.empty()&&selves==1u&&owners==1u&&classes==1u
+        && (field || (!custom&&!pending&&adapters==1u&&counts==1u));
+}
+
 bool symbolHandleEqual(const dwgHandle& a,const dwgHandle& b) noexcept {
     return a.code==b.code && a.size==b.size && a.ref==b.ref && a.ref64==b.ref64;
 }
@@ -17258,6 +17353,16 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             }
             ++report.symbolProofUses;
         }
+        if(found->second.family==F::Field || found->second.family==F::DataLink) {
+            if(!found->second.raw){fail(S::ResourceProofMissing,handle);return nullptr;}
+            if(found->second.rawTypedMismatch){fail(S::ResourceRawTypedMismatch,handle);return nullptr;}
+            if(!found->second.rawTypedMatched){fail(S::ResourceProofMissing,handle);return nullptr;}
+            if(!work(found->second.references.size()))return nullptr;
+            for(const auto& ref:found->second.references)if(ref.kind==dx_tableResourceRole::Unknown&&ref.value!=0u) {
+                ++report.unknownResourceReferences;fail(S::UnknownRole,ref.value);return nullptr;
+            }
+            if(found->second.family==F::Field)++report.fieldProofUses;else ++report.dataLinkProofUses;
+        }
         return &found->second;
     };
     const auto resourceSource=[&](const dx_data::TableDxfSourceCapture::Resource& resource,std::uint32_t handle,bool style) {
@@ -17566,15 +17671,17 @@ void dx_iface::addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObje
 
 void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_TableEntry* symbol) noexcept {
     const bool style=asciiIdentifierEquals(raw.name,"TABLESTYLE");
+    const bool field=asciiIdentifierEquals(raw.name,"FIELD")||asciiIdentifierEquals(raw.name,"ACDBFIELD")||asciiIdentifierEquals(raw.name,"ACAD_FIELD");
+    const bool dataLink=asciiIdentifierEquals(raw.name,"DATALINK");
     const bool text=symbol && asciiIdentifierEquals(raw.name,"STYLE");
     const bool line=symbol && asciiIdentifierEquals(raw.name,"LTYPE");
-    if (!tableSourceCaptureOpen() || (!symbol && !style && !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP"))) return;
+    if (!tableSourceCaptureOpen() || (!symbol && !style && !field && !dataLink && !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP"))) return;
     auto& source=cData->m_tableDxfSource;
     if (source.resourceProofCaptureFailed) return;
     const auto found=source.resources.find(raw.handle);
     // Unmatched raw-only records retain their ordinary fallback, not partial proof.
     using F=dx_tableResourceFamily;
-    const auto family=text?F::TextStyle:line?F::LineType:style?F::TableStyle:F::CellStyleMap;
+    const auto family=text?F::TextStyle:line?F::LineType:style?F::TableStyle:field?F::Field:dataLink?F::DataLink:F::CellStyleMap;
     if(symbol) {
         if((!text && !line) || symbol->handle!=raw.handle || symbol->parentHandle!=raw.parentHandle
             || (text && (symbol->tType!=DRW::STYLE || !dynamic_cast<const DRW_Textstyle*>(symbol)))
@@ -17643,6 +17750,8 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
     const bool style=resource.family==dx_tableResourceFamily::TableStyle;
     const bool text=resource.family==dx_tableResourceFamily::TextStyle;
     const bool line=resource.family==dx_tableResourceFamily::LineType;
+    const bool field=resource.family==dx_tableResourceFamily::Field;
+    const bool dataLink=resource.family==dx_tableResourceFamily::DataLink;
     try {
         // fileImport publishes data.sourceVersion only after read() returns.
         // During callbacks use the already delivered declared HEADER context.
@@ -17657,6 +17766,11 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
         auto reader=dx_standard_output::readerFor(input,view,budget);
         if (!reader) return;
         reader->setTypedVariantNodeBudget(source.maxResourceProofWork);
+        const auto replayBudgetFailure=[&]() {
+            if(budget->exceeded()||reader->typedVariantNodeBudgetExceeded())source.resourceProofCaptureFailed=true;
+        };
+        std::vector<dx_tableResourceReference> references;references.reserve(raw.groups.size());
+        if(field||dataLink)references.resize(raw.groups.size(),{dx_tableResourceRole::Unknown,0u,0,0u});
         const auto decode=[&](auto& parsed) {
             int code=0;
             while(buffer.position()<body.size()) {
@@ -17670,7 +17784,34 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
         };
         std::vector<UTF8STRING> nameKeys;
         bool invalidName=false;
-        if(text) {
+        if(field) {
+            struct Replay:DRW_Field{using DRW_Field::parseCode;};
+            Replay parsed;dxfField::Decoder decoder(parsed,raw.m_version);
+            const auto* model=dynamic_cast<const DRW_Field*>(resource.model.get());
+            if(!model)return;
+            int code=0;
+            while(buffer.position()<body.size()) {
+                if(!reader->readRec(&code)||code==0||!decoder.beforeRecord(code)){replayBudgetFailure();return;}
+                const auto index=reader->recordCount()-1u;
+                if(index>=references.size())return;
+                if(code==102||(code>=1000&&code<=1071)) {
+                    if(!parsed.parseCode(code,reader)){replayBudgetFailure();return;}
+                } else {
+                    dxfField::ReferenceKind kind;
+                    if(!decoder.parseCode(code,reader,kind)){replayBudgetFailure();return;}
+                    using K=dxfField::ReferenceKind;using R=dx_tableResourceRole;
+                    references[index].kind=kind==K::ChildField?R::FieldChild:kind==K::Object?R::FieldObject:
+                        kind==K::CadValueObject?R::FieldValueObject:R::Unknown;
+                }
+            }
+            if(budget->exceeded()||reader->typedVariantNodeBudgetExceeded()){source.resourceProofCaptureFailed=true;return;}
+            if(reader->recordCount()!=raw.groups.size()||!decoder.finish()||!decoder.sourceCorePresent()
+                ||raw.handle!=parsed.handle||raw.parentHandle!=parsed.parentHandle||!fieldSourceEqual(parsed,*model,raw.m_version))return;
+        } else if(dataLink) {
+            struct Replay:DRW_DataLink{using DRW_DataLink::parseCode;};
+            Replay parsed;const auto* model=dynamic_cast<const DRW_DataLink*>(resource.model.get());
+            if(!model||!decode(parsed)||!dataLinkSourceEqual(parsed,*model,raw.m_version))return;
+        } else if(text) {
             struct Replay:DRW_Textstyle{using DRW_Textstyle::parseCode;using DRW_Textstyle::validateDxf;};
             Replay parsed;const auto* model=dynamic_cast<const DRW_Textstyle*>(resource.model.get());
             if(!model || !decode(parsed) || !parsed.validateDxf() || !textStyleSourceEqual(parsed,*model,raw.m_version))return;
@@ -17697,8 +17838,8 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
                 || !retainedCellStyleMapsEqual(parsed,*model,true,true)
                 || !standardDwgCommonEqual(parsed,*model,raw.m_version))return;
         }
-        std::vector<dx_tableResourceReference> references;references.reserve(raw.groups.size());
-        if(text || line) {if(!symbolSourceReferences(raw,line,references))return;}
+        if(field || dataLink){if(!auxiliarySourceReferences(raw,field,references))return;}
+        else if(text || line) {if(!symbolSourceReferences(raw,line,references))return;}
         else if (!tableResourceSourceReferences(raw,style,references)) return;
         if(style && std::count_if(references.begin(),references.end(),[](const auto& ref){return ref.kind==dx_tableResourceRole::TextStyleName;})
             !=static_cast<std::ptrdiff_t>(nameKeys.size()))return;
@@ -19551,7 +19692,8 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
         return;
     }
     const bool isField = asciiIdentifierEquals(normalizedName, "FIELD")
-        || asciiIdentifierEquals(normalizedName, "ACDBFIELD");
+        || asciiIdentifierEquals(normalizedName, "ACDBFIELD")
+        || asciiIdentifierEquals(normalizedName, "ACAD_FIELD");
     const bool isFieldList =
         asciiIdentifierEquals(normalizedName, "FIELDLIST")
         || asciiIdentifierEquals(normalizedName, "ACDBFIELDLIST");
@@ -21405,7 +21547,7 @@ bool dx_data::hasSingleSuccessfulFieldCarrierImport() const {
                 if (character >= 'a' && character <= 'z')
                     character = static_cast<char>(character - 'a' + 'A');
             }
-            if (name == "FIELD" || name == "ACDBFIELD") return 1u;
+            if (name == "FIELD" || name == "ACDBFIELD" || name == "ACAD_FIELD") return 1u;
             if (name == "FIELDLIST" || name == "ACDBFIELDLIST") return 2u;
             return 0u;
         };
