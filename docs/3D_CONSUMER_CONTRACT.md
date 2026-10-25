@@ -191,8 +191,8 @@ also require observed targets of the correct family, with explicit null slots
 retaining inheritance. Missing targets, ambiguous names, wrong families and
 nonnull unknown resource roles remain unqualified. This is selected format
 closure only: common owner/reactor/extension and APPID/LAYER/FIELD/DATALINK/block
-recursion, complex LTYPE-to-STYLE dependencies, and complete document
-closure remain separate gates. In particular, a TABLESTYLE reactor can target
+recursion and complete document closure remain separate gates. In particular,
+a TABLESTYLE reactor can target
 both its owner dictionary and a TABLE entity; it is not an owner-only relation.
 
 Actual STYLE/LTYPE row sources are now delivered by the separate, default-off
@@ -214,6 +214,33 @@ production `update()` normalization for public dash/path/handle views and total
 length; raw literal values remain separately retained. This is not hidden-state,
 independent symbol-schema/font semantics, transitive closure, live equality or
 output proof. Unknown source fields are not thereby qualified for export.
+
+Selected LTYPE rows now enter a deduplicated, work-limited inspection queue.
+Each embedded text/shape group has its own physical STYLE-reference position;
+the complete admitted per-element field profile is checked before publishing
+those roles. Duplicate or missing required fields and inconsistent element
+counts cannot be replaced by normalized defaults. Every complex element needs
+a nonnull target with matched STYLE source proof and matching flag-1 text/shape
+kind. An unnamed shape-file target is legitimate; it is not a global font name.
+Repeated direct/map selections process a row once; unselected LTYPE targets do
+not block the selected graph. Allocation failure returns unqualified capture
+failure without modifying frozen evidence; corrected inspection remains usable.
+Nonzero unknown LTYPE handle roles remain unqualified. Common back-references
+are not treated as these per-element edges or rejected as ownership cycles.
+Explicit null map-format inheritance is unchanged, but is not a policy for a
+missing complex STYLE target. `outputEligible` remains false.
+
+The optional ezdxf 1.4.4 observer now uses original ASCII/binary scalar tags for
+all four resource families (JSON schema 3), plus retained per-element pattern
+tags and STYLE flags/target kinds. Its generated eight-route control and two
+unchanged external examples corroborate only the reported source positions and
+symbol identities. It intentionally does not use a first-style-handle convenience
+accessor or re-exported defaults to infer complete source coverage. Neither
+glyph availability, font loading, full symbol schema, rotation semantics nor
+full common/transitive closure is qualified by that check. In particular, the
+Autodesk LTYPE page describes group 50 in radians while its general numerical
+DXF-code table describes group 50 angles in degrees; current normalization is
+unchanged pending independent nonzero-angle semantic evidence.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds

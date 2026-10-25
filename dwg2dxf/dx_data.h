@@ -191,7 +191,7 @@ enum class dx_tableResourceFamily : std::uint8_t {
 enum class dx_tableResourceRole : std::uint8_t {
     Self, Owner, Reactor, ExtensionDictionary, TextStyle, LineType,
     LocalStyleDefinition, XdataObjectId, AppIdName, LayerName, Unknown,
-    TextStyleName
+    TextStyleName, LTypeTextStyle, LTypeShapeStyle
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;

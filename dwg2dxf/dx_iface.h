@@ -57,7 +57,7 @@ public:
     enum class TableBindingState {
         SourceNotReady, CaptureFailed, WorkLimit, MissingTarget, WrongFamily,
         AmbiguousIdentity, InvalidNamespace, UnknownRole, Bound, WrongOwner,
-        ResourceProofMissing, ResourceRawTypedMismatch
+        ResourceProofMissing, ResourceRawTypedMismatch, WrongSymbolKind
     };
     struct TableContentBindingReport {
         TableBindingState state{TableBindingState::SourceNotReady};
@@ -68,6 +68,7 @@ public:
         std::size_t sourceMapMatches{0}, sourceStyleMatches{0}, unknownResourceReferences{0};
         std::size_t boundResourceReferences{0}, inheritedResourceReferences{0};
         std::size_t symbolProofUses{0};
+        std::size_t lineTypeDependencyRows{0}, complexTextStyleBindings{0}, complexShapeStyleBindings{0};
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates.

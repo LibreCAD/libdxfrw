@@ -6,6 +6,7 @@
 #include <array>
 #include <chrono>
 #include <cstring>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -13,8 +14,30 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <new>
 #include <sstream>
 #include <stdexcept>
+
+// Scoped only around immutable report inspection below. No source fixture,
+// reader, callback or assertion is built while allocation failure is armed.
+namespace {
+long symbolAllocationsBeforeFailure=-1;
+struct SymbolAllocationFailure {
+    explicit SymbolAllocationFailure(long count){symbolAllocationsBeforeFailure=count;}
+    ~SymbolAllocationFailure(){symbolAllocationsBeforeFailure=-1;}
+};
+}
+void* operator new(std::size_t size) {
+    if(symbolAllocationsBeforeFailure==0)throw std::bad_alloc();
+    if(symbolAllocationsBeforeFailure>0)--symbolAllocationsBeforeFailure;
+    if(void* value=std::malloc(size?size:1u))return value;
+    throw std::bad_alloc();
+}
+void* operator new[](std::size_t size){return ::operator new(size);}
+void operator delete(void* value) noexcept {std::free(value);}
+void operator delete[](void* value) noexcept {std::free(value);}
+void operator delete(void* value,std::size_t) noexcept {std::free(value);}
+void operator delete[](void* value,std::size_t) noexcept {std::free(value);}
 
 class DxIfaceTableSourceTestAccess {
 public:
@@ -44,6 +67,7 @@ public:
     static const auto& mapResource(const dx_data& data,std::uint32_t handle=0xC120u) {
         return data.m_tableDxfSource.resources.at(handle);
     }
+    static const auto& resources(const dx_data& data) {return data.m_tableDxfSource.resources;}
     static void resourceProofLimits(dx_data& data,std::size_t records,std::size_t groups,std::size_t bytes,std::size_t work) {
         auto& s=data.m_tableDxfSource;s.maxResourceProofRecords=records;s.maxResourceProofGroups=groups;
         s.maxResourceProofBytes=bytes;s.maxResourceProofWork=work;
@@ -73,6 +97,7 @@ struct Probe final : dx_iface {
     bool duplicateStyleCallback=false;
     bool symbolOptIn=true, forceSymbols=false, observeSymbols=false;
     bool skipSymbolRaw=false, duplicateSymbolRaw=false, throwSymbolRaw=false;
+    std::uint32_t skipSymbolTypedHandle=0u;
     std::function<void(DRW_RawDxfObject&)> alterSymbolRaw;
     std::function<void(DRW_Textstyle&)> alterTextStyle;
     std::function<void(DRW_LType&)> alterLType;
@@ -145,12 +170,14 @@ struct Probe final : dx_iface {
         dx_iface::addTable(table);
     }
     void addTextStyle(const DRW_Textstyle& style) override {
+        if(style.handle==skipSymbolTypedHandle && skipSymbolTypedHandle!=0u)return;
         if(observeSymbols)symbolEvents.push_back("typed:STYLE");
         if(alterTextStyle){auto copy=style;alterTextStyle(copy);dx_iface::addTextStyle(copy);}
         else dx_iface::addTextStyle(style);
         if (duplicateStyleCallback) dx_iface::addTextStyle(style);
     }
     void addLType(const DRW_LType& value) override {
+        if(value.handle==skipSymbolTypedHandle && skipSymbolTypedHandle!=0u)return;
         if(observeSymbols)symbolEvents.push_back("typed:LTYPE");
         if(alterLType){auto copy=value;alterLType(copy);dx_iface::addLType(copy);}
         else dx_iface::addLType(value);
@@ -1678,7 +1705,23 @@ bool tableStyleProofTests(const std::filesystem::path& dir) {
 
 // All source bodies in this test are authored locally, not copied from corpus
 // drawings. Complex dash metadata exercises the public normalized projection;
-// its STYLE dependencies are retained references, not transitive qualification.
+// its STYLE dependencies do not establish full common/transitive qualification.
+Tags complexSymbolSource(const std::string& revision) {
+    auto good=legacyTableStyleSource(revision);
+    const auto line=slot(good,5,"C102");auto lineEnd=line;while(good[lineEnd].code!=0)++lineEnd;
+    good[slot(good,73,"0")].value="2";
+    const Tags segments{{49,"1.25"},{74,"2"},{75,"0"},{340,"C101"},{46,"0.75"},
+        {50,"30"},{44,"0.125"},{45,"-0.25"},{9,"dash-é"},
+        {49,"-0.5"},{74,"4"},{75,"7"},{340,"C103"},{46,"2"},{50,"45"},{44,"0"},{45,"0"}};
+    good.insert(good.begin()+static_cast<std::ptrdiff_t>(lineEnd),segments.begin(),segments.end());
+    const auto text=slot(good,5,"C101");auto textEnd=text;while(good[textEnd].code!=0)++textEnd;
+    const Tags shape{{0,"STYLE"},{5,"C103"},{330,"20"},{100,"AcDbSymbolTableRecord"},
+        {100,"AcDbTextStyleTableRecord"},{2,""},{70,"1"},{40,"0"},{41,"1"},
+        {50,"0"},{71,"0"},{42,"1"},{3,"local-shape.shx"},{4,""}};
+    good.insert(good.begin()+static_cast<std::ptrdiff_t>(textEnd),shape.begin(),shape.end());
+    return good;
+}
+
 bool symbolSourceProofTests(const std::filesystem::path& dir) {
     using S=dx_iface::TableBindingState;
     const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
@@ -1721,18 +1764,7 @@ bool symbolSourceProofTests(const std::filesystem::path& dir) {
     };
     unsigned routes=0u,typed=0u,raw=0u,callbacks=0u,boundaries=0u,transport=0u;
     for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
-        auto good=legacyTableStyleSource(revision);
-        const auto line=slot(good,5,"C102");auto lineEnd=line;while(good[lineEnd].code!=0)++lineEnd;
-        good[slot(good,73,"0")].value="2";
-        const Tags segments{{49,"1.25"},{74,"2"},{75,"0"},{340,"C101"},{46,"0.75"},
-            {50,"30"},{44,"0.125"},{45,"-0.25"},{9,"dash-é"},
-            {49,"-0.5"},{74,"4"},{75,"7"},{340,"C103"},{46,"2"},{50,"45"},{44,"0"},{45,"0"}};
-        good.insert(good.begin()+static_cast<std::ptrdiff_t>(lineEnd),segments.begin(),segments.end());
-        const auto text=slot(good,5,"C101");auto textEnd=text;while(good[textEnd].code!=0)++textEnd;
-        const Tags shape{{0,"STYLE"},{5,"C103"},{330,"20"},{100,"AcDbSymbolTableRecord"},
-            {100,"AcDbTextStyleTableRecord"},{2,""},{70,"1"},{40,"0"},{41,"1"},
-            {50,"0"},{71,"0"},{42,"1"},{3,"local-shape.shx"},{4,""}};
-        good.insert(good.begin()+static_cast<std::ptrdiff_t>(textEnd),shape.begin(),shape.end());
+        const auto good=complexSymbolSource(revision);
         if(!write(path,good,binary))return false;
         Probe probe;probe.observeSymbols=true;dx_data clean;
         if(!probe.fileImport(path.string(),&clean,false))return fail("symbol source import failed");
@@ -1829,6 +1861,137 @@ bool symbolSourceProofTests(const std::filesystem::path& dir) {
     return routes==8u&&typed==320u&&raw==88u&&callbacks==32u&&boundaries==64u&&transport==32u;
 }
 
+bool complexSymbolBindingTests(const std::filesystem::path& dir) {
+    using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
+    const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
+    const auto path=dir/"complex-symbol-binding.dxf";
+    const auto element=[](const Tags& tags,int code,bool shape=false) {
+        auto i=slot(tags,5,"C102");while(tags[i].code!=49)++i;
+        if(shape){++i;while(tags[i].code!=49)++i;}
+        for(++i;i<tags.size()&&tags[i].code!=0&&tags[i].code!=49;++i)if(tags[i].code==code)return i;
+        throw std::runtime_error("missing complex segment mutation slot");
+    };
+    const auto removeRow=[](Tags& tags,const char* handle) {
+        const auto begin=slot(tags,5,handle)-1u;auto end=begin+1u;while(tags[end].code!=0)++end;
+        tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(begin),tags.begin()+static_cast<std::ptrdiff_t>(end));
+    };
+    std::vector<std::pair<std::function<void(Tags&)>,S>> faults{
+        {[element](auto& t){t[element(t,340,true)].value="C199";},S::MissingTarget},
+        {[element](auto& t){t[element(t,340,true)].value="0";},S::MissingTarget},
+        {[element](auto& t){t[element(t,340,true)].value="F100";},S::WrongFamily},
+        {[element](auto& t){t[element(t,340,true)].value="C102";},S::WrongFamily},
+        {[element](auto& t){t[element(t,340,true)].value="C101";},S::WrongSymbolKind},
+        {[element](auto& t){t[element(t,340)].value="C103";},S::WrongSymbolKind},
+        {[removeRow](auto& t){removeRow(t,"C103");},S::MissingTarget},
+        {[](auto& t){const auto i=slot(t,5,"C103");t[i+4u].value="not-a-shape";t[i+5u].value="0";},S::WrongSymbolKind},
+        {[element](auto& t){t[element(t,75)].value="7";},S::ResourceRawTypedMismatch},
+        {[element](auto& t){t[element(t,74)].value="6";},S::ResourceRawTypedMismatch},
+        {[](auto& t){const auto i=slot(t,5,"C102");auto end=i;while(t[end].code!=0)++end;
+            t.insert(t.begin()+static_cast<std::ptrdiff_t>(end),{341,"C101"});},S::UnknownRole},
+        {[](auto& t){t[slot(t,73,"2")].value="3";},S::SourceNotReady}
+    };
+    for(int code:{340,74,75,50,9})faults.push_back({[element,code](auto& t){
+        const auto i=element(t,code);t.erase(t.begin()+static_cast<std::ptrdiff_t>(i));},code==74?S::SourceNotReady:S::ResourceRawTypedMismatch});
+    for(int code:{340,74,75,50,9,44,45,46})faults.push_back({[element,code](auto& t){
+        const auto i=element(t,code);const auto copy=t[i];t.insert(t.begin()+static_cast<std::ptrdiff_t>(i),copy);},S::ResourceRawTypedMismatch});
+    unsigned routes=0u,pairs=0u,variants=0u,callbacks=0u,boundaries=0u,refusals=0u,allocations=0u;
+    for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
+        const auto good=complexSymbolSource(revision);Probe probe;dx_data clean;
+        if(!write(path,good,binary)||!probe.fileImport(path.string(),&clean,false))return false;
+        const auto report=dx_iface::tableContentBindingReport(clean);
+        if(report.state!=S::Bound||report.lineTypeDependencyRows!=1u||report.complexTextStyleBindings!=1u
+            ||report.complexShapeStyleBindings!=1u||report.outputEligible)return fail("complex symbol closure failed");
+        const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean,0xC102u);
+        unsigned text=0u,shape=0u;for(const auto& ref:frozen.references) {
+            if(ref.kind==R::LTypeTextStyle)++text;
+            if(ref.kind==R::LTypeShapeStyle)++shape;
+        }
+        if(text!=1u||shape!=1u)return fail("complex source roles differ");
+        bool allocationSweepComplete=false;
+        for(long i=0;i<16;++i) {
+            dx_iface::TableContentBindingReport observed;
+            {SymbolAllocationFailure fault(i);observed=dx_iface::tableContentBindingReport(clean);}
+            if(observed.state==S::Bound){allocationSweepComplete=true;break;}
+            if(observed.state!=S::CaptureFailed||observed.outputEligible)return fail("allocation failure escaped bounded inspection");
+            if(dx_iface::tableContentBindingReport(clean).state!=S::Bound)return fail("allocation fault poisoned frozen report retry");
+            ++allocations;
+        }
+        if(!allocationSweepComplete)return fail("complex report allocation sweep did not finish");
+        ++routes;
+        for(std::size_t i=0;i<faults.size();++i) {
+            auto bad=good;faults[i].first(bad);dx_data rejected;
+            if(!write(path,bad,binary))return false;
+            const bool imported=probe.fileImport(path.string(),&rejected,false);
+            if(imported==(faults[i].second==S::SourceNotReady))return fail("complex source read outcome changed index="+std::to_string(i));
+            const auto failed=dx_iface::tableContentBindingReport(rejected);
+            if(failed.state!=faults[i].second||failed.outputEligible)return fail("complex dependency fault index="+std::to_string(i)+" actual="+std::to_string(static_cast<int>(failed.state)));
+            dx_data restored;if(!write(path,good,binary)||!probe.fileImport(path.string(),&restored,false)
+                ||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("complex same-facade correction failed");
+            probe.clear();++pairs;
+        }
+        for(unsigned mode=0;mode<7u;++mode) {
+            auto tags=good;
+            if(mode==0u){tags[element(tags,74)].value="3";tags[element(tags,74,true)].value="5";}
+            if(mode==1u){tags[element(tags,74)].value="10";tags[element(tags,74,true)].value="12";}
+            if(mode==2u)std::swap(tags[element(tags,74,true)],tags[element(tags,340,true)]);
+            if(mode==3u)for(int code:{44,45,46}){const auto i=element(tags,code);tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(i));}
+            if(mode==4u) {
+                const auto end=slot(tags,2,"OBJECTS");for(std::size_t i=0;i<end;++i)
+                    if(tags[i].code==340&&tags[i].value=="C102")tags[i].value="0";
+            }
+            if(mode==5u) {
+                const auto begin=slot(tags,5,"C102")-1u;auto end=begin+1u;while(tags[end].code!=0)++end;
+                Tags other(tags.begin()+static_cast<std::ptrdiff_t>(begin),tags.begin()+static_cast<std::ptrdiff_t>(end));
+                other[slot(other,5,"C102")].value="C104";other[slot(other,2,"TABLE-LTYPE")].value="UNSELECTED-LTYPE";
+                other[slot(other,340,"C103")].value="FFFF";
+                tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(end),other.begin(),other.end());
+            }
+            if(mode==6u) {
+                const auto begin=slot(tags,5,"C103");tags[begin+4u].value="named-shape-entry";
+            }
+            dx_data variant;if(!write(path,tags,binary)||!probe.fileImport(path.string(),&variant,false))return false;
+            const auto actual=dx_iface::tableContentBindingReport(variant);
+            if(actual.state!=S::Bound||actual.lineTypeDependencyRows!=1u||actual.complexTextStyleBindings!=1u||actual.complexShapeStyleBindings!=1u)
+                return fail("complex positive variant failed mode="+std::to_string(mode));
+            probe.clear();++variants;
+        }
+        if(!write(path,good,binary))return false;
+        for(unsigned mode=0;mode<3u;++mode) {
+            if(mode==0u)probe.skipSymbolTypedHandle=0xC103u;
+            if(mode==1u)probe.alterSymbolRaw=[](auto& r){if(r.handle==0xC103u)r.m_version=DRW::AC1015;};
+            if(mode==2u)probe.alterTextStyle=[](auto& s){if(s.handle==0xC103u)s.font+="modified";};
+            dx_data bad;if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("unproved shape target qualified");
+            probe.skipSymbolTypedHandle=0u;probe.alterSymbolRaw={};probe.alterTextStyle={};dx_data retry;
+            if(!probe.fileImport(path.string(),&retry,false)||dx_iface::tableContentBindingReport(retry).state!=S::Bound)return fail("shape callback correction failed");
+            probe.clear();++callbacks;
+        }
+        for(bool exact:{false,true}) {
+            dx_data limited;DxIfaceTableSourceTestAccess::resourceLimits(limited,100000u,4000000u,64u*1024u*1024u,report.examinedSlots-(exact?0u:1u));
+            if(!probe.fileImport(path.string(),&limited,false)||dx_iface::tableContentBindingReport(limited).state!=(exact?S::Bound:S::WorkLimit))return fail("complex worklist bound failed");
+            ++boundaries;
+        }
+        clean.lineTypes.front().segments.clear();clean.textStyles.back().flags=0;
+        if(dx_iface::tableContentBindingReport(clean).state!=S::Bound)return fail("live edit altered frozen dependency receipt");
+        for(bool strict:{false,true}) {
+            const auto output=dir/"complex-refused.dxf";{std::ofstream out(output);out<<"preserve";}
+            dx_iface exporter;if(exporter.fileExport(output.string(),clean.sourceVersion,binary,&clean,false,strict))return fail("complex proof promoted output");
+            std::ifstream old(output);if(std::string(std::istreambuf_iterator<char>(old),{})!="preserve")return fail("complex refusal replaced destination");
+            dx_data plain;dx_iface author;author.cData=&plain;author.currentBlock=plain.mBlock;
+            DRW_Line line;line.basePoint={1,2,3};line.secPoint={4,5,6};author.addLine(line);
+            if(!exporter.fileExport(output.string(),clean.sourceVersion,binary,&plain,false,strict))return fail("complex refusal poisoned exporter retry");
+            dx_data readback;dx_iface reader;
+            if(!reader.fileImport(output.string(),&readback,false)||readback.mBlock->ent.size()!=1u)return fail("complex retry readback failed");
+            const auto* actual=dynamic_cast<const DRW_Line*>(readback.mBlock->ent.front());
+            if(!actual||actual->basePoint.z!=3||actual->secPoint.z!=6)return fail("complex retry changed coordinates");
+            ++refusals;
+        }
+    }
+    std::cout<<"complex LTYPE bindings: "<<routes<<" routes; "<<faults.size()<<" fault kinds; "<<pairs<<" fault/recovery pairs; "
+        <<variants<<" variants; "<<callbacks<<" callback corrections; "<<boundaries<<" work boundaries; "
+        <<allocations<<" allocation refusal/retries; "<<refusals<<" atomic refusal/retry readbacks\n";
+    return routes==8u&&pairs==faults.size()*routes&&variants==56u&&callbacks==24u&&boundaries==16u&&allocations>=16u&&refusals==16u;
+}
+
 int inspect(const char* path) {
     Probe p; dx_data data;
     const bool ok=p.fileImport(path,&data,false);
@@ -1842,6 +2005,8 @@ int inspect(const char* path) {
         <<" bytes="<<bindings.resourceProofBytes<<" work="<<bindings.resourceProofWork<<" map-matches="<<bindings.sourceMapMatches
         <<" style-matches="<<bindings.sourceStyleMatches<<" bound-formats="<<bindings.boundResourceReferences
         <<" inherited-formats="<<bindings.inheritedResourceReferences<<" symbol-proof-uses="<<bindings.symbolProofUses
+        <<" ltype-dependency-rows="<<bindings.lineTypeDependencyRows<<" complex-text-bindings="<<bindings.complexTextStyleBindings
+        <<" complex-shape-bindings="<<bindings.complexShapeStyleBindings
         <<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
     std::cout<<"compound-state="<<static_cast<int>(compound.state)<<" tables="<<compound.tables
              <<" contents="<<compound.contents<<" geometries="<<compound.geometries
@@ -1863,6 +2028,22 @@ int inspect(const char* path) {
                 <<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
     }
     std::cout<<"imported="<<ok<<" matched="<<p.content.size()<<" unknown="<<p.unknown<<'\n';
+    const auto symbol=[&](const DRW_TableEntry& row,const char* prefix,const auto& resource) {
+        std::cout<<"symbol-row handle="<<std::hex<<row.handle<<std::dec<<" family="<<prefix<<" flags="<<row.flags<<'\n';
+        for(const auto& ref:resource.references)std::cout<<prefix<<"-reference handle="<<std::hex<<row.handle<<std::dec
+            <<" kind="<<static_cast<unsigned>(ref.kind)<<" index="<<ref.groupIndex<<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
+        if(const auto* ltype=dynamic_cast<const DRW_LType*>(&row))for(std::size_t i=0;i<ltype->segments.size();++i) {
+            const auto& segment=ltype->segments[i];
+            std::cout<<"symbol-segment handle="<<std::hex<<row.handle<<std::dec<<" index="<<i<<" flags="<<segment.shapeFlags
+                <<" shape="<<segment.complexShapeCode<<" style="<<std::hex<<segment.styleHandle.ref<<std::dec<<'\n';
+        }
+    };
+    for(const auto& item:DxIfaceTableSourceTestAccess::resources(data)) {
+        const auto& resource=item.second;
+        if(!resource.rawTypedMatched||!resource.model)continue;
+        if(resource.family==dx_tableResourceFamily::TextStyle)symbol(*resource.model,"STYLE",resource);
+        if(resource.family==dx_tableResourceFamily::LineType)symbol(*resource.model,"LTYPE",resource);
+    }
     if(bindings.sourceStyleMatches)for(const auto& style:data.tableStyles) {
         const auto& resource=DxIfaceTableSourceTestAccess::mapResource(data,style.handle);
         if(!resource.rawTypedMatched)continue;
@@ -1901,6 +2082,11 @@ int inspect(const char* path) {
 } // namespace
 int main(int argc,char** argv) {
     if (argc==3 && std::string(argv[1])=="--inspect") return inspect(argv[2]);
+    if(argc==5 && std::string(argv[1])=="--generate-symbol-source") {
+        const std::string revision=argv[2],encoding=argv[3];
+        if((revision!="AC1021"&&revision!="AC1024"&&revision!="AC1027"&&revision!="AC1032") || (encoding!="ascii"&&encoding!="binary"))return 2;
+        return write(argv[4],complexSymbolSource(revision),encoding=="binary")?0:1;
+    }
     const bool compound=argc==2 && std::string(argv[1])=="--compound-source";
     const bool proof=argc==2 && std::string(argv[1])=="--compound-content-proof";
     const bool bindings=argc==2 && std::string(argv[1])=="--compound-bindings";
@@ -1908,10 +2094,11 @@ int main(int argc,char** argv) {
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
     const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
     const bool symbolProof=argc==2 && std::string(argv[1])=="--symbol-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof) return 2;
+    const bool complexBindings=argc==2 && std::string(argv[1])=="--complex-symbol-bindings";
+    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

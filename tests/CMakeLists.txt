@@ -536,6 +536,18 @@ add_test(NAME libdxfrw_symbol_source_proof
     COMMAND libdxfrw_table_content_dxf_tests --symbol-source-proof)
 set_tests_properties(libdxfrw_symbol_source_proof PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_complex_symbol_bindings
+    COMMAND libdxfrw_table_content_dxf_tests --complex-symbol-bindings)
+set_tests_properties(libdxfrw_complex_symbol_bindings PROPERTIES
+    LABELS "fast;dxf;adapter;table;linetype;generated" TIMEOUT 30)
+if(LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE)
+    add_test(NAME libdxfrw_independent_symbol_source
+        COMMAND "${LIBDXFRW_EZDXF_PYTHON_EXECUTABLE}" -I -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/table_resource_reference_observer.py
+            --generated-executable $<TARGET_FILE:libdxfrw_table_content_dxf_tests>)
+    set_tests_properties(libdxfrw_independent_symbol_source PROPERTIES
+        LABELS "advisory;independent;dxf;table;linetype;generated" TIMEOUT 30)
+endif()
 
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value

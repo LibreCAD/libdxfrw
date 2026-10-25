@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5de actual STYLE/LTYPE source proof (2026-10-25):** selected target rows now require bounded immutable raw/typed agreement, using a separate opt-in facet that preserves historical callbacks and avoids raw capture charges for opt-out consumers. Batch boundaries, complex public LTYPE projections, mismatch/callback/limit failures and corrected retries are covered. Full symbol semantics/transitive closure, other source families, live/output and native/consumer parity remain open; table export refusal and the support ledger stay closed. [Implementation and next work](#implementation-progress-rpp-5de-actual-styleltype-source-proof-2026-10-25) · [receipt](docs/research/rpp5de-actual-style-ltype-source-proof-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5df complex LTYPE dependency closure and independent symbol observations (2026-10-25):** every selected complex element now requires its own source-proved STYLE target of the correct text/shape kind, through a bounded deduplicated worklist. The observer compares original row/reference positions and retained per-element identities across eight authored revision/encoding routes and both unchanged external examples. Scoped normal/ASan tests pass; full common/source-family/live/output and native/consumer parity remain open. Rotation semantics are explicitly unresolved; table export and support qualification stay closed. [Implementation and next work](#implementation-progress-rpp-5df-complex-ltype-dependencies-and-independent-symbol-observations-2026-10-25) · [receipt](docs/research/rpp5df-complex-ltype-dependencies-and-independent-symbol-observations-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5de actual STYLE/LTYPE source proof (2026-10-25):** committed as `8df06e61`. Its separate opt-in facet, batch-atomic source transport, frozen exposed-field proof and failure/recovery boundaries remain valid. RPP-5df adds selected per-element STYLE target closure and scoped independent observations, not complete symbol/common/document or output qualification. [Historical implementation](#implementation-progress-rpp-5de-actual-styleltype-source-proof-2026-10-25) · [immutable receipt](docs/research/rpp5de-actual-style-ltype-source-proof-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dd exact TABLESTYLE source proof and selected format closure (2026-10-25):** committed as `88c35d18`. Its exact exposed legacy/common fields, description accounting, legacy font-name and selected map format bindings remain valid. RPP-5de additionally requires target STYLE/LTYPE row source proof, not full resource/document or output qualification. [Historical implementation](#implementation-progress-rpp-5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25) · [immutable receipt](docs/research/rpp5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25.json).
 
@@ -124684,3 +124686,125 @@ FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
 **NOT_RUN**. No native layout/parser/writer or global codec changes, remote
 writes, external fixture commits or support promotion are part of this slice.
 The full implementation goal remains active.
+
+## Implementation progress RPP-5df complex LTYPE dependencies and independent symbol observations (2026-10-25)
+
+Parent checkpoint: `8df06e61` (RPP-5de). The previous goal turn made verified
+progress in that commit. This slice completes the selected complex-element
+dependency portion of B2b and the scoped symbol-source observer, preserving the
+original full native/DXF, document and 2D/3D-consumer objective.
+
+1. [x] Verify per-element STYLE pointers and text/shape interpretation against
+   primary [LTYPE](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm)
+   and [STYLE](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm)
+   documentation, plus the installed pinned ezdxf 1.4.4 implementation. Its
+   convenience resource accessor returns the first STYLE handle; do not reuse
+   that as proof of every element. Retain all element slots, including a later
+   shape target in a mixed pattern and legitimate unnamed shape-file STYLEs.
+2. [x] Finalize distinct text/shape reference roles at each physical element
+   boundary. Check required/duplicate element fields and declared physical
+   counts before publishing proof; normalized defaults cannot substitute for
+   missing source. Retain existing tolerant parser behavior, bit-8 metadata and
+   angle normalization. Role classification does not qualify those flags'
+   rendering/rotation semantics or glyph contents.
+3. [x] Enqueue selected, source-proved LTYPEs once; precharge lookup and edge
+   work before queue/set allocation or traversal. Require every complex target
+   to be nonnull, uniquely identified, source-proved and a STYLE of the matching
+   flag-1 kind. Wrong-family/self targets cannot form a valid element cycle.
+   Ignore unselected LTYPE dependencies. Preserve map null inheritance without
+   applying it to required complex targets. Catch allocation failures inside
+   the noexcept report boundary; frozen evidence remains reusable on retry.
+   Leave common reactor/owner/XDATA closure separate, including legitimate
+   source back-references. Nonnull unknown LTYPE handle roles remain unqualified.
+4. [x] Add eight revision/encoding routes, 25 fault kinds / 200 corrected
+   same-facade recovery pairs, 56 positive variants, 24 missing/mutated target
+   callback corrections, 16 exact/below work boundaries, 16 allocation refusal/
+   inspection retries and 16 destination-preserving output refusal/corrected
+   same-exporter readbacks. Include second-element target faults, text/shape
+   mismatch, absent/duplicate source fields, existing malformed-read behavior,
+   absolute/bit-8 flags, field order, optional defaults, map-only selection,
+   unselected dangling rows, named/unnamed shape identities and live/frozen
+   separation. Both current output modes remain refused for table replay.
+5. [x] Extend the optional reference observer to JSON schema 3, using original
+   ASCII/binary scalar tag positions, not entity re-export defaults. Compare
+   STYLE flags and each LTYPE element's flags/shape code/STYLE handle with
+   ezdxf's retained pattern tags and observed target kinds. Add dependency-free
+   four-positive/18-corruption/scope controls and retain optimized-Python refusal.
+   Register `libdxfrw_independent_symbol_source` only under the existing explicit
+   pinned-oracle opt-in; never install a dependency automatically. Eight authored
+   routes pass with both normal and ASan-built C++ probes. Actual optional CMake
+   registration is verified separately; no new broad/default qualification lane.
+
+Each unchanged external example has six matched observed resources and 43
+reference events: eight symbol handle slots, eight TABLESTYLE events and 27
+CELLSTYLEMAP events. The three observed external LTYPEs are simple, so they do
+not independently demonstrate complex target behavior; those eight mixed-pattern
+controls are locally authored. Source proof totals remain six records, 464
+groups, 100,835 logical bytes and 29,696 work slots, with 13 selected symbol
+proof uses and zero selected LTYPE dependency rows in those external examples.
+This is scoped independent source/identity corroboration, not glyph/font,
+complete symbol/common/transitive schema, native-byte or modeler semantics.
+
+Research also exposes an unresolved primary-document discrepancy: the LTYPE
+page labels group 50 as radians, while the
+[general numerical group-code table](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
+describes DXF angle groups 50–58 in degrees. Keep the current public projection
+unchanged and resolve this with independent nonzero-angle semantic evidence
+before promoting rotation/output claims. Same-library normalization equality
+and ezdxf's raw pattern retention do not resolve that question.
+
+Final affected cohorts pass 35/35 normally in 40.82 s and 35/35 under ASan in
+103.08 s (`halt_on_error=1:detect_leaks=0`). Affected adapter/CLI targets and both
+LibreCAD_3 compile gates build with strict warnings retained. CLI-optional
+registration/build tests pass in 3.12 s. No full suite or leak check is repeated.
+The cohorts precede a diagnostic-only change to enumerate proved frozen symbol
+resources instead of assuming every public row has a retained resource. On that
+final probe, the new owning test passes normally in 1.96 s and under ASan in
+4.02 s, and both eight-route independent observations are rerun. Production
+code is unchanged between those validation stages.
+The host is macOS ARM64 Apple Clang, not Linux/GCC despite the build folder name,
+Windows or native FreeCAD runtime evidence. Exact source/runtime hashes, scopes,
+controls and remaining gates are in the fresh
+[RPP-5df receipt](docs/research/rpp5df-complex-ltype-dependencies-and-independent-symbol-observations-2026-10-25.json).
+
+Implementation-ready next work, retaining original scope and speed:
+
+1. [ ] **B2a complete object source families.** Reuse shared bounded raw-body,
+   production replay, immutable registry and reference helpers for FIELD,
+   DATALINK, dictionary/XRECORD and ATTDEF/block. Extract/reuse FIELD's actual
+   `processField` decoder rather than implementing a competing grammar. Test
+   every modeled/default/common field and physical source boundary, cumulative
+   limits, duplicates/aliases/late callbacks and corrected same-facade retries.
+2. [ ] **B2b common target-source and edge closure.** Add explicit opt-in source
+   proof for APPID/LAYER and symbol-table owners without silently adding capture
+   costs or callbacks to existing consumers. Resolve APPID/LAYER/XDATA,
+   dictionary membership, owners/reactors/extensions and FIELD/DATALINK/block
+   dependencies with role-specific null/owner rules and collision coverage.
+   Reuse cached immutable proof and indexed worklists; test multiple selected
+   rows, fan-out, growth/allocation boundaries and valid back-references versus
+   ownership cycles. Source role counts alone never qualify those targets.
+3. [ ] **B3 parent/cache/live and C atomic output.** Finish complete TABLE/
+   wrapper/cache/common source proof and every editable/frozen comparison.
+   Preserve or explicitly refuse ATTRIB/SEQEND. Plan all identities, preserve
+   rich companions and inspect exact staged/final fields and unique references.
+   Require repeated conversions, allocation/write rollback, preserved existing
+   destinations and corrected same-exporter readbacks before enabling only a
+   fully proved lane. Resolve nonzero LTYPE angle semantics before promoting
+   that output profile; both existing table export guards stay active meanwhile.
+4. [ ] **Full parity and self-unblocking loop.** Continue independent rich/native
+   source and writer evidence, native decimal/bit resolution, SWEEP/EXTRUSION,
+   carrier/schema/owner, complete IMAGE/document and LibreCAD/LibreCAD_3 2D plus
+   3D/dwg2dxf/FreeCAD requirements. After each implemented item update evidence,
+   limits and the next ready dependency; commit and report coherent progress.
+   Run fast owning checks first, then affected normal/ASan cohorts; reserve full
+   suites for integration checkpoints. Continue safe implementation without
+   waiting on advisory external qualification or promoting unsupported claims.
+
+The support ledger remains **CLOSED**, and `outputEligible` remains false.
+J256/J260/J268/J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. Existing source/user/external drawing files and immutable receipts
+are unchanged; no external payload is committed. No native DWG layout/parser/
+writer, public library model/DRW_Interface vtable, global codec, remote write or
+support promotion is part of this slice. The full implementation goal stays
+active.

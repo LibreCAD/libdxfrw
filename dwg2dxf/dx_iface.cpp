@@ -16865,6 +16865,17 @@ bool lineTypeSourceEqual(const DRW_LType& a,const DRW_LType& b,DRW::Version vers
 bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx_tableResourceReference>& refs) {
     using R=dx_tableResourceRole;
     std::string_view application;unsigned self=0u,owner=0u,base=0u,body=0u;bool xdata=false,dash=false;
+    std::size_t dashCount=0u,dashReference=SIZE_MAX;int declaredDashes=-1,flags=0,shapeCode=0;
+    unsigned dashFields=0u;
+    const auto finishDash=[&]() {
+        if(!dash)return true;
+        if(flags==0)return (dashFields&~1u)==0u; // optional default-0 group 74 only
+        const int kind=flags&6;
+        if((kind!=2 && kind!=4) || (dashFields&15u)!=15u || dashReference==SIZE_MAX)return false;
+        if(kind==2 ? ((dashFields&16u)==0u || shapeCode!=0) : (dashFields&16u)!=0u)return false;
+        refs[dashReference].kind=kind==2?R::LTypeTextStyle:R::LTypeShapeStyle;
+        return true;
+    };
     std::array<bool,74> core{};
     for(std::size_t i=0;i<raw.groups.size();++i) {
         const auto& value=raw.groups[i];const int code=value.code();
@@ -16885,9 +16896,32 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
                 const bool field=line?(code==2 || code==70 || code==3 || code==72 || code==73 || code==40)
                     :(code==2 || code==70 || code==40 || code==41 || code==50 || code==71 || code==42 || code==3 || code==4);
                 if(field){if(core[static_cast<std::size_t>(code)])return false;core[static_cast<std::size_t>(code)]=true;}
-                if(line && code==49)dash=true;
+                if(line && code==73) {
+                    if(value.type()!=DRW_Variant::INTEGER || dash)return false;
+                    declaredDashes=value.i_val();
+                }
+                if(line && code==49) {
+                    if(!finishDash())return false;
+                    dash=true;++dashCount;flags=0;shapeCode=0;dashFields=0u;dashReference=SIZE_MAX;
+                } else if(line) {
+                    unsigned bit=0u;
+                    switch(code) {
+                    case 74:bit=1u;break;case 75:bit=2u;break;case 340:bit=4u;break;
+                    case 50:bit=8u;break;case 9:bit=16u;break;
+                    case 44:bit=32u;break;case 45:bit=64u;break;case 46:bit=128u;break;
+                    default:break;
+                    }
+                    if(bit) {
+                        if(!dash || (dashFields&bit)!=0u)return false;
+                        dashFields|=bit;
+                        if(code==74 || code==75) {
+                            if(value.type()!=DRW_Variant::INTEGER)return false;
+                            if(code==74)flags=value.i_val();else shapeCode=value.i_val();
+                        }
+                    }
+                }
             }
-            if(code==1001){xdata=true;refs.push_back({R::AppIdName,i,code,0u});}
+            if(code==1001){if(!xdata && !finishDash())return false;xdata=true;refs.push_back({R::AppIdName,i,code,0u});}
             if(code==1003)refs.push_back({R::LayerName,i,code,0u});
         }
         if(!isDxfHandleCode(code))continue;
@@ -16898,7 +16932,7 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
         else if(application.empty()) {
             if(code==5 && !base){kind=R::Self;if(++self!=1u || !handle || handle!=raw.handle)return false;}
             else if(code==330 && !base){kind=R::Owner;if(++owner!=1u || handle!=raw.parentHandle)return false;}
-            else if(code==340 && line && dash && !xdata)kind=R::TextStyle;
+            else if(code==340 && line && dash && !xdata)dashReference=refs.size();
             else if(code==1005 && xdata)kind=R::XdataObjectId;
         }
         refs.push_back({kind,i,code,static_cast<std::uint32_t>(handle)});
@@ -16907,7 +16941,8 @@ bool symbolSourceReferences(const DRW_RawDxfObject& raw,bool line,std::vector<dx
     // identity, class and the declared dash-count/flags rather than inferring
     // those from a normalized row. Shape-file STYLE may legitimately omit 2.
     return application.empty() && self==1u && owner==1u && base==1u && body==1u
-        && core[70] && (!line || (core[2] && core[72] && core[73] && core[40]));
+        && core[70] && (!line || (core[2] && core[72] && core[73] && core[40]
+            && declaredDashes>=0 && dashCount==static_cast<std::size_t>(declaredDashes) && finishDash()));
 }
 
 bool tableResourceSourceReferences(const DRW_RawDxfObject& raw,bool tableStyle,std::vector<dx_tableResourceReference>& result) {
@@ -17173,6 +17208,9 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
     if (tableSourceReport(data).state!=TableSourceState::StructurallyComplete) return report;
     if (source.resourceCaptureFailed || source.resourceProofCaptureFailed) {report.state=S::CaptureFailed;return report;}
     report.state=S::Bound;
+    try {
+    std::vector<std::uint32_t> pendingLineTypes;
+    std::set<std::uint32_t> queuedLineTypes;
     const auto fail=[&](S state,std::uint32_t handle) {
         if (report.state==S::Bound) {report.state=state;report.firstHandle=handle;}
     };
@@ -17191,7 +17229,7 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         if (source.xrecords.count(handle)) {family=F::XRecord;++count;}
         return count;
     };
-    const auto lookup=[&](std::uint32_t handle,F expected,bool any=false)
+    const auto lookup=[&](std::uint32_t handle,F expected,bool any=false,bool shapeStyle=false)
             ->const dx_data::TableDxfSourceCapture::Resource* {
         const auto found=source.resources.find(handle);
         F core=F::Entity;
@@ -17210,6 +17248,14 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             if(found->second.awaitingSymbol || !found->second.raw){fail(S::ResourceProofMissing,handle);return nullptr;}
             if(found->second.rawTypedMismatch){fail(S::ResourceRawTypedMismatch,handle);return nullptr;}
             if(!found->second.rawTypedMatched){fail(S::ResourceProofMissing,handle);return nullptr;}
+            if(found->second.family==F::TextStyle && !any) {
+                const auto* style=dynamic_cast<const DRW_Textstyle*>(found->second.model.get());
+                if(!style || ((style->flags&1)!=0)!=shapeStyle){fail(S::WrongSymbolKind,handle);return nullptr;}
+            }
+            if(found->second.family==F::LineType) {
+                if(!work(1u))return nullptr; // bound queue lookup/allocation before touching it
+                if(queuedLineTypes.insert(handle).second)pendingLineTypes.push_back(handle);
+            }
             ++report.symbolProofUses;
         }
         return &found->second;
@@ -17326,7 +17372,29 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             }
         }
     }
+    // Only selected, source-proved LTYPE rows enter this worklist. Repeated
+    // direct/map selections process each row once. STYLE target kind breaks
+    // self/cross-family cycles without confusing common reactor back-links
+    // (whose separate qualification gate remains open) with these dash roles.
+    for(const auto handle:pendingLineTypes) {
+        const auto& resource=source.resources.at(handle);
+        if(!work(resource.references.size()+1u))return report;
+        ++report.lineTypeDependencyRows;
+        for(const auto& reference:resource.references) {
+            using R=dx_tableResourceRole;
+            if(reference.kind==R::LTypeTextStyle || reference.kind==R::LTypeShapeStyle) {
+                if(reference.value==0u){fail(S::MissingTarget,0u);continue;}
+                const bool shape=reference.kind==R::LTypeShapeStyle;
+                if(lookup(reference.value,F::TextStyle,false,shape)) {
+                    if(shape)++report.complexShapeStyleBindings;else ++report.complexTextStyleBindings;
+                }
+            } else if(reference.kind==R::Unknown && reference.value!=0u) {
+                ++report.unknownResourceReferences;fail(S::UnknownRole,reference.value);
+            }
+        }
+    }
     return report;
+    } catch (...) {report.state=S::CaptureFailed;return report;}
 }
 
 bool dx_iface::tableSourceCaptureOpen() const noexcept {
