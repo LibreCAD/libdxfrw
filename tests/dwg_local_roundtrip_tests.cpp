@@ -2439,9 +2439,7 @@ public:
         return !frameBytes.empty();
     }
 
-    static bool acceptsBlockRecordLayoutAssociation() {
-        DRW_Header header;
-        dwgWriter15 writer(nullptr, &header);
+    static bool acceptsBlockRecordLayoutAssociation(dwgWriter15& writer) {
         DRW_Block_Record record;
         record.name = "*Paper_Space7";
         record.layoutHandle = 0xA701u;
@@ -2452,11 +2450,73 @@ public:
             return false;
         }
 
-        record.name = "INVALID_LAYOUT_OWNER";
-        record.layoutHandle = DRW::NoHandle;
-        if (writer.defineBlock(record) != 0) {
-            std::cerr << "invalid BLOCK_RECORD layout handle was accepted\n";
+        record.name = "ORDINARY_NULL_LAYOUT";
+        record.layoutHandle = 0;
+        const auto ordinary = writer.defineBlock(record);
+        if (ordinary == 0 || !writer.beginBlockContent(ordinary)
+            || !writer.endBlockContent()
+            || writer.m_userBlocks.back().layoutHandle != 0
+            || writer.m_userBlocks.back().ownerKind
+                   != dwgWriter15::BlockOwnerKind::OrdinaryBlock) {
+            std::cerr << "ordinary null-layout block was not admitted\n";
             return false;
+        }
+
+        for (const bool overlay : {false, true}) {
+            record.name = overlay ? "OVERLAY_NULL_LAYOUT" : "XREF_NULL_LAYOUT";
+            record.flags = 4 | (overlay ? 8 : 0);
+            record.layoutHandle = 0xA701u;
+            const auto beforeBytes = writer.m_buf.data();
+            const auto beforeMap = writer.m_objectMap;
+            const auto beforeHandle = writer.highWaterHandle();
+            const auto beforeBlocks = writer.m_userBlocks.size();
+            if (writer.defineBlock(record) != 0
+                || writer.m_buf.data() != beforeBytes
+                || writer.m_objectMap != beforeMap
+                || writer.highWaterHandle() != beforeHandle
+                || writer.m_userBlocks.size() != beforeBlocks
+                || writer.m_activeUserBlockRecordHandle != 0) {
+                std::cerr << "XREF nonnull layout refusal mutated writer state\n";
+                return false;
+            }
+            record.layoutHandle = 0;
+            const auto xref = writer.defineBlock(record);
+            if (xref == 0 || writer.beginBlockContent(xref)
+                || writer.m_activeUserBlockRecordHandle != 0
+                || !writer.beginBlockContent(ordinary)
+                || !writer.endBlockContent()) {
+                std::cerr << "XREF null layout/scope refusal or following scope failed\n";
+                return false;
+            }
+        }
+
+        for (const int failure : {dwgWriter15::kBeforeEndBlockFrame,
+                                  dwgWriter15::kAfterEndBlockFrame}) {
+            record.name = "XREF_RETRY_" + std::to_string(failure);
+            const auto beforeBytes = writer.m_buf.data();
+            const auto beforeMap = writer.m_objectMap;
+            const auto beforeBlocks = writer.m_userBlocks.size();
+            const auto beforeNames = writer.m_userBlockHandles;
+            const auto beforeEmitted = writer.m_emittedDwgBlockEntityHandles;
+            writer.setWriteFailurePointForTest(failure);
+            if (writer.defineBlock(record) != 0
+                || writer.m_buf.data() != beforeBytes
+                || writer.m_objectMap != beforeMap
+                || writer.m_userBlocks.size() != beforeBlocks
+                || writer.m_userBlockHandles != beforeNames
+                || writer.m_emittedDwgBlockEntityHandles != beforeEmitted
+                || writer.m_activeUserBlockRecordHandle != 0
+                || writer.objectWriteFailed()) {
+                std::cerr << "XREF frame refusal did not roll back published state\n";
+                return false;
+            }
+            // Handle allocation remains monotonic, but no failed frame or
+            // owner may remain published. Retry on this same concrete writer.
+            const auto retry = writer.defineBlock(record);
+            if (retry == 0 || writer.beginBlockContent(retry)
+                || !writer.beginBlockContent(ordinary)
+                || !writer.endBlockContent())
+                return false;
         }
         return true;
     }
@@ -31779,8 +31839,14 @@ public:
             return;
         const std::uint32_t following = writer_.defineBlock(
             "FOLLOWING_BLOCK", DRW_Coord(0.0, 0.0, 0.0));
-        if (following == 0 || !writer_.beginBlockContent(following)
-            || !writer_.endBlockContent())
+        if (following == 0 || !writer_.beginBlockContent(following)) {
+            fail();
+            return;
+        }
+        DRW_Line line;
+        line.basePoint = DRW_Coord(10.0, 20.0, 0.0);
+        line.secPoint = DRW_Coord(30.0, 40.0, 0.0);
+        if (!writer_.writeLine(&line) || !writer_.endBlockContent())
             fail();
     }
 
@@ -32018,25 +32084,37 @@ public:
             encodedSize = (encodedSize & 0x7FFFu) | (highSize << 15u);
             sizeEndBit = endBitOffset - 17u;
         }
-        if (!good_ || encodedSize < 7u
-            || ((encodedSize - 7u) & 7u) != 0u
-            || sizeEndBit < 16u
+        if (!good_ || encodedSize == 0u || sizeEndBit < 16u
             || encodedSize > sizeEndBit - 16u)
             return false;
         const std::size_t encodedBits =
             static_cast<std::size_t>(encodedSize);
         startBitOffset = sizeEndBit - 16u - encodedBits;
-        stringBitSize = encodedBits - 7u;
-        if (stringBitSize > endBitOffset - startBitOffset
-            || startBitOffset + stringBitSize > sizeEndBit - 16u)
-            return false;
+        // The declared bit range includes trailing pad bits;
+        // its start is a bit position, not necessarily a byte boundary.
+        // Owning callers consume their exact strings, then verify bounded
+        // zero padding. Do not infer a fixed separator from generated frames.
+        stringBitSize = encodedBits;
+        return true;
+    }
 
-        // The seven separator bits are required zero padding. This check is
-        // independent of the production footer locator and keeps malformed
-        // generated layouts from silently moving the string cursor.
-        if (!seekBits(startBitOffset + stringBitSize)
-            || bits(7u) != 0u || !good_)
+    bool skipStringPadding(std::size_t startBit, bool byteSizedCarrier) {
+        if (!good_ || bitOffset_ < startBit || bitOffset_ > limitBitOffset_)
             return false;
+        // Generated frames carry the string buffer in whole bytes, then
+        // align the combined stream before its footer. Bound both phases
+        // exactly, rather than accepting an arbitrary 14-bit allowance.
+        const std::size_t carrierPadding = byteSizedCarrier
+            ? (8u - ((bitOffset_ - startBit) & 7u)) & 7u : 0u;
+        const std::size_t footerPadding = byteSizedCarrier
+            ? (7u - (startBit & 7u)) & 7u
+            : (7u - (bitOffset_ & 7u)) & 7u;
+        if (limitBitOffset_ - bitOffset_ != carrierPadding + footerPadding)
+            return false;
+        while (bitOffset_ < limitBitOffset_) {
+            if (bits(1u) != 0u || !good_)
+                return false;
+        }
         return true;
     }
 
@@ -32046,6 +32124,99 @@ private:
     std::size_t limitBitOffset_ {0};
     bool good_ {true};
 };
+
+bool independentR2007StringFooterControls() {
+    // Hand-pack the specification's bit fields, without dwgBufferW or the
+    // production footer assembler/locator. Exercise every start-bit residue
+    // and both the ordinary and extended (16+15-bit) size forms.
+    for (const bool extended : {false, true}) {
+     for (const bool byteSizedCarrier : {false, true}) {
+      for (std::size_t residue = 0u; residue < 8u; ++residue) {
+        std::vector<std::uint8_t> bytes;
+        std::size_t bitCount = 0u;
+        const auto put = [&](std::uint64_t value, unsigned count) {
+            for (unsigned bit = count; bit != 0u; --bit) {
+                if ((bitCount & 7u) == 0u)
+                    bytes.push_back(0u);
+                bytes.back() |= static_cast<std::uint8_t>(
+                    ((value >> (bit - 1u)) & 1u)
+                    << (7u - (bitCount & 7u)));
+                ++bitCount;
+            }
+        };
+        const auto shortWord = [&](std::uint16_t value) {
+            put(value & 0xFFu, 8u);
+            put(value >> 8u, 8u);
+        };
+        for (std::size_t bit = 0u; bit < 80u + residue; ++bit)
+            put(0u, 1u);
+        const std::size_t start = bitCount;
+        const std::string text(extended ? 2050u : 1u, 'A');
+        const auto units = static_cast<std::uint16_t>(text.size() + 1u);
+        put(extended ? 0u : 1u, 2u);
+        if (extended)
+            shortWord(units);
+        else
+            put(units, 8u);
+        for (const unsigned char unit : text)
+            shortWord(unit);
+        shortWord(0u);
+        const auto textEnd = bitCount;
+        if (byteSizedCarrier) {
+            while (((bitCount - start) & 7u) != 0u)
+                put(0u, 1u);
+        }
+        while ((bitCount & 7u) != 7u)
+            put(0u, 1u);
+        const auto encodedSize = bitCount - start;
+        if (extended != (encodedSize > 0x7FFFu))
+            return false;
+        const auto footerStart = bitCount;
+        if (extended)
+            shortWord(static_cast<std::uint16_t>(encodedSize >> 15u));
+        shortWord(static_cast<std::uint16_t>(
+            (extended ? 0x8000u : 0u) | (encodedSize & 0x7FFFu)));
+        put(1u, 1u);
+        const auto matches = [&](const std::vector<std::uint8_t>& source,
+                                 std::size_t end) {
+            IndependentDwgBitCursor footer(source, end);
+            std::size_t observedStart = 0u;
+            std::size_t observedSize = 0u;
+            if (!footer.r2007StringStreamBounds(end, observedStart, observedSize)
+                || observedStart != start || observedSize != encodedSize)
+                return false;
+            IndependentDwgBitCursor strings(source, observedStart + observedSize);
+            if (!strings.seekBits(observedStart)
+                || !strings.skipUnicodeText(text))
+                return false;
+            return strings.skipStringPadding(observedStart, byteSizedCarrier);
+        };
+        const auto corruptBit = [](std::vector<std::uint8_t>& source,
+                                   std::size_t bit) {
+            source[bit / 8u] ^= static_cast<std::uint8_t>(
+                1u << (7u - (bit & 7u)));
+        };
+        if ((bitCount & 7u) != 0u || !matches(bytes, bitCount))
+            return false;
+        auto corrupt = bytes;
+        corruptBit(corrupt, start + 20u);
+        if (matches(corrupt, bitCount))
+            return false;
+        corrupt = bytes;
+        corruptBit(corrupt, footerStart);
+        if (matches(corrupt, bitCount) || matches(bytes, bitCount - 1u))
+            return false;
+        if (textEnd != footerStart) {
+            corrupt = bytes;
+            corruptBit(corrupt, textEnd);
+            if (matches(corrupt, bitCount))
+                return false;
+        }
+      }
+     }
+    }
+    return true;
+}
 
 bool independentSerializedHandleOccurrenceMatches(
         DRW::Version version, const std::vector<std::uint8_t>& frameBytes,
@@ -32086,32 +32257,20 @@ bool independentLayoutViewportCountMatches(
         return false;
 
     std::size_t bodyFieldLimit = static_cast<std::size_t>(dataBitSize);
-    std::vector<std::uint8_t> stringBytes;
+    std::size_t stringStartBit = 0u;
+    std::size_t stringEndBit = 0u;
     if (version >= DRW::AC1021) {
         IndependentDwgBitCursor footerCursor(serializedBody,
                                               bodyFieldLimit);
-        std::size_t stringStartBit = 0u;
         std::size_t stringBitSize = 0u;
         if (!footerCursor.r2007StringStreamBounds(
                 bodyFieldLimit, stringStartBit, stringBitSize)
             || !footerCursor.good() || stringBitSize == 0u
-            || (stringStartBit & 7u) != 0u
-            || (stringBitSize & 7u) != 0u
             || stringStartBit > bodyFieldLimit
             || stringBitSize > bodyFieldLimit - stringStartBit)
             return false;
         bodyFieldLimit = stringStartBit;
-        const std::size_t stringStartByte = stringStartBit / 8u;
-        const std::size_t stringByteCount = stringBitSize / 8u;
-        if (stringStartByte > serializedBody.size()
-            || stringByteCount > serializedBody.size() - stringStartByte)
-            return false;
-        stringBytes.assign(
-            serializedBody.begin()
-                + static_cast<std::ptrdiff_t>(stringStartByte),
-            serializedBody.begin()
-                + static_cast<std::ptrdiff_t>(stringStartByte
-                                                + stringByteCount));
+        stringEndBit = stringStartBit + stringBitSize;
     }
 
     IndependentDwgBitCursor dataCursor(serializedBody, bodyFieldLimit);
@@ -32130,7 +32289,9 @@ bool independentLayoutViewportCountMatches(
     if (version > DRW::AC1024 && dataCursor.bits(1u) != 0u)
         return false;  // AC1027+ binary data flag
 
-    IndependentDwgBitCursor stringCursor(stringBytes);
+    IndependentDwgBitCursor stringCursor(serializedBody, stringEndBit);
+    if (!stringCursor.seekBits(stringStartBit))
+        return false;
     const auto skipText = [&](const std::string& expected) {
         return version > DRW::AC1018
             ? stringCursor.skipUnicodeText(expected)
@@ -32205,14 +32366,8 @@ bool independentLayoutViewportCountMatches(
     }
 
     if (version > DRW::AC1018) {
-        if (!stringCursor.good()
-            || stringCursor.bitOffset() > stringCursor.limitBitOffset()
-            || stringCursor.limitBitOffset() - stringCursor.bitOffset() > 7u)
+        if (!stringCursor.skipStringPadding(stringStartBit, true))
             return false;
-        while (stringCursor.bitOffset() < stringCursor.limitBitOffset()) {
-            if (stringCursor.bits(1u) != 0u || !stringCursor.good())
-                return false;
-        }
     }
     return dataCursor.good() && stringCursor.good();
 }
@@ -32298,32 +32453,20 @@ bool independentLayoutDictionaryEntriesMatch(
             return fail("legacy object data size");
     }
     std::size_t bodyFieldLimit = static_cast<std::size_t>(dataBitSize);
-    std::vector<std::uint8_t> stringBytes;
+    std::size_t stringStartBit = 0u;
+    std::size_t stringEndBit = 0u;
     if (version >= DRW::AC1021) {
         IndependentDwgBitCursor footerCursor(
             serializedBody, bodyFieldLimit);
-        std::size_t stringStartBit = 0u;
         std::size_t stringBitSize = 0u;
         if (!footerCursor.r2007StringStreamBounds(
                 bodyFieldLimit, stringStartBit, stringBitSize)
             || !footerCursor.good() || stringBitSize == 0u
-            || (stringStartBit & 7u) != 0u
-            || (stringBitSize & 7u) != 0u
             || stringStartBit > bodyFieldLimit
             || stringBitSize > bodyFieldLimit - stringStartBit)
             return fail("R2007 string footer");
         bodyFieldLimit = stringStartBit;
-        const std::size_t stringStartByte = stringStartBit / 8u;
-        const std::size_t stringByteCount = stringBitSize / 8u;
-        if (stringStartByte > serializedBody.size()
-            || stringByteCount > serializedBody.size() - stringStartByte)
-            return fail("R2007 string bounds");
-        stringBytes.assign(
-            serializedBody.begin()
-                + static_cast<std::ptrdiff_t>(stringStartByte),
-            serializedBody.begin()
-                + static_cast<std::ptrdiff_t>(stringStartByte
-                                                + stringByteCount));
+        stringEndBit = stringStartBit + stringBitSize;
     }
 
     IndependentDwgBitCursor dataCursor(serializedBody, bodyFieldLimit);
@@ -32348,7 +32491,9 @@ bool independentLayoutDictionaryEntriesMatch(
         && (dataCursor.bitShort() != 1u || dataCursor.byte() != 0u))
         return fail("dictionary flags");
 
-    IndependentDwgBitCursor stringCursor(stringBytes);
+    IndependentDwgBitCursor stringCursor(serializedBody, stringEndBit);
+    if (!stringCursor.seekBits(stringStartBit))
+        return fail("R2007 string start");
     for (const auto& entry : expectedEntries) {
         const bool textMatches = version > DRW::AC1018
             ? stringCursor.skipUnicodeText(entry.first)
@@ -32359,8 +32504,11 @@ bool independentLayoutDictionaryEntriesMatch(
 
     const auto boundedPadding = [&fail](IndependentDwgBitCursor& cursor) {
         if (!cursor.good() || cursor.bitOffset() > cursor.limitBitOffset()
-            || cursor.limitBitOffset() - cursor.bitOffset() > 7u)
+            || cursor.limitBitOffset() - cursor.bitOffset() > 7u) {
+            std::cerr << "dictionary cursor offset=" << cursor.bitOffset()
+                      << " limit=" << cursor.limitBitOffset() << '\n';
             return fail("entry stream padding");
+        }
         while (cursor.bitOffset() < cursor.limitBitOffset()) {
             if (cursor.bits(1u) != 0u || !cursor.good())
                 return fail("nonzero entry stream padding");
@@ -32368,7 +32516,8 @@ bool independentLayoutDictionaryEntriesMatch(
         return cursor.good();
     };
     if (!boundedPadding(dataCursor)
-        || (version >= DRW::AC1021 && !boundedPadding(stringCursor)))
+        || (version >= DRW::AC1021
+            && !stringCursor.skipStringPadding(stringStartBit, true)))
         return fail("entry stream padding");
 
     std::vector<std::uint32_t> observedChildren;
@@ -33488,15 +33637,22 @@ bool independentTwoLayoutViewportFramesMatch(DRW::Version version) {
 }
 
 bool runBlockRecordLayoutAssociationControls() {
-    if (!DwgBlockRecordXrefWireTestAccess::
-            acceptsBlockRecordLayoutAssociation())
+    if (!independentR2007StringFooterControls()) {
+        std::cerr << "hand-packed R2007 independent string-footer controls failed\n";
         return false;
+    }
     const std::array<DRW::Version, 6> versions{{
         DRW::AC1015, DRW::AC1018, DRW::AC1021,
         DRW::AC1024, DRW::AC1027, DRW::AC1032}};
     return std::all_of(versions.cbegin(), versions.cend(),
         [](DRW::Version version) {
-            return independentBlockRecordLayoutHandleMatches(version)
+            DRW_Header header;
+            auto probe = makeBlockRecordWireProbe(version, header);
+            auto* writer = dynamic_cast<dwgWriter15*>(probe.get());
+            return writer != nullptr
+                && DwgBlockRecordXrefWireTestAccess::
+                    acceptsBlockRecordLayoutAssociation(*writer)
+                && independentBlockRecordLayoutHandleMatches(version)
                 && independentBlockRecordOwnedEntityHandlesMatch(version)
                 && independentLayoutViewportHandlesMatch(version)
                 && independentTwoLayoutViewportFramesMatch(version);
@@ -33522,13 +33678,14 @@ bool runBlockRecordXrefMetadataRoundTrip(
         DRW::AC1015, DRW::AC1018, DRW::AC1021,
         DRW::AC1024, DRW::AC1027, DRW::AC1032}};
     for (const DRW::Version version : versions) {
+     for (const bool overlay : {false, true}) {
       for (const bool unloaded : {false, true}) {
         const std::string suffix = std::to_string(static_cast<int>(version))
+            + (overlay ? "-overlay" : "-reference")
             + (unloaded ? "-unloaded" : "-loaded");
         const auto output = scratch / ("xref-" + suffix + ".dwg");
         DRW_Block_Record sourceRecord = generatedXrefBlockRecord(
-            version, version == DRW::AC1018 || version == DRW::AC1027,
-            !unloaded);
+            version, overlay, !unloaded);
         if (!independentBlockRecordXrefBitsMatch(version, sourceRecord)) {
             std::cerr << "independent BLOCK_RECORD bit-walk mismatch for "
                       << suffix << '\n';
@@ -33559,7 +33716,8 @@ bool runBlockRecordXrefMetadataRoundTrip(
         }
         const DRW_Block_Record* xref = nullptr;
         const DRW_Block_Record* following = nullptr;
-        const DRW_Block* xrefBlock = nullptr;
+        const dx_ifaceBlock* xrefBlock = nullptr;
+        const dx_ifaceBlock* followingBlock = nullptr;
         for (const DRW_Block_Record& record : readback.blockRecords) {
             if (record.name == "GENERATED_XREF")
                 xref = &record;
@@ -33569,20 +33727,20 @@ bool runBlockRecordXrefMetadataRoundTrip(
         for (const dx_ifaceBlock* block : readback.blocks) {
             if (block != nullptr && block->name == "GENERATED_XREF") {
                 xrefBlock = block;
-                break;
-            }
+            } else if (block != nullptr && block->name == "FOLLOWING_BLOCK")
+                followingBlock = block;
         }
         const bool modern = version > DRW::AC1018;
-        const bool expectedOverlay =
-            version == DRW::AC1018 || version == DRW::AC1027;
         const int expectedFlags = 4 | 16 | 64
-            | (expectedOverlay ? 8 : 0);
+            | (overlay ? 8 : 0);
         const std::int32_t expectedIndex = version == DRW::AC1015
             ? 41 : version == DRW::AC1018 ? 32768 : -1;
         const std::string expectedPath = version == DRW::AC1015
             ? std::string{} : "refs/generated-source.dwg";
         if (xref == nullptr || following == nullptr
-            || xrefBlock == nullptr
+            || xrefBlock == nullptr || followingBlock == nullptr
+            || !xrefBlock->ent.empty() || followingBlock->ent.size() != 1u
+            || xref->layoutHandle != 0 || following->layoutHandle != 0
             || xref->xrefIndex != expectedIndex
             || xref->flags != expectedFlags
             || xref->xrefUnloaded != unloaded
@@ -33599,35 +33757,77 @@ bool runBlockRecordXrefMetadataRoundTrip(
             std::cerr << "XREF metadata mismatch for " << suffix << '\n';
             return false;
         }
+        const auto* followingLine = dynamic_cast<const DRW_Line*>(
+            followingBlock->ent.front());
+        if (followingLine == nullptr
+            || followingLine->parentHandle != following->handle
+            || followingLine->basePoint.x != 10.0
+            || followingLine->basePoint.y != 20.0
+            || followingLine->secPoint.x != 30.0
+            || followingLine->secPoint.y != 40.0) {
+            std::cerr << "following geometry escaped ordinary block for " << suffix << '\n';
+            return false;
+        }
       }
+     }
     }
 
-    const auto rejectedOutput = scratch / "xref-unresolved-pointer.dwg";
-    DRW_Block_Record unresolved = generatedXrefBlockRecord(
-        DRW::AC1024, false);
-    unresolved.xrefBlockHandle.ref = 0xDEADu;
-    dwgRW rejectedWriter(rejectedOutput.string().c_str());
-    XrefMetadataDwgWriter rejectedAdapter(
-        rejectedWriter, std::move(unresolved), false);
-    if (rejectedWriter.write(&rejectedAdapter, DRW::AC1024, false)
-        || rejectedAdapter.succeeded()
-        || std::filesystem::exists(rejectedOutput)) {
-        std::cerr << "non-null XREF hard-pointer value was not refused before publication\n";
-        return false;
-    }
-
-    const auto invalidOverlayOutput = scratch / "xref-overlay-without-xref.dwg";
-    DRW_Block_Record invalidOverlay = generatedXrefBlockRecord(
-        DRW::AC1024, true);
-    invalidOverlay.flags &= ~4;
-    dwgRW invalidOverlayWriter(invalidOverlayOutput.string().c_str());
-    XrefMetadataDwgWriter invalidOverlayAdapter(
-        invalidOverlayWriter, std::move(invalidOverlay), false);
-    if (invalidOverlayWriter.write(&invalidOverlayAdapter, DRW::AC1024, false)
-        || invalidOverlayAdapter.succeeded()
-        || std::filesystem::exists(invalidOverlayOutput)) {
-        std::cerr << "XREF overlay without XREF flag was not refused before publication\n";
-        return false;
+    for (const auto version : versions) {
+      for (unsigned fault = 0u; fault < 4u; ++fault) {
+        const auto output = scratch / ("xref-refusal-"
+            + std::to_string(static_cast<int>(version)) + "-"
+            + std::to_string(fault) + ".dwg");
+        auto invalid = generatedXrefBlockRecord(version, true);
+        if (fault == 0u) invalid.xrefBlockHandle.ref = 0xDEADu;
+        else if (fault == 1u) invalid.flags &= ~4;
+        else if (fault == 2u) invalid.layoutHandle = 0xDEADu;
+        else invalid.xrefBlockHandle.ref64 = std::uint64_t{1} << 40u;
+        dwgRW writer(output.string().c_str());
+        XrefMetadataDwgWriter absent(writer, invalid, false);
+        if (writer.write(&absent, version, false) || absent.succeeded()
+            || absent.xrefRecordHandle() != 0u
+            || std::filesystem::exists(output)
+            || writer.getLastDiagnostic().code != "dwg-block-callback") {
+            std::cerr << "invalid XREF unexpectedly published a new destination\n";
+            return false;
+        }
+        const std::string sentinel = "existing scratch-authored destination";
+        {
+            std::ofstream stream(output, std::ios::binary);
+            stream << sentinel;
+            if (!stream.good()) return false;
+        }
+        XrefMetadataDwgWriter existing(writer, invalid, false);
+        if (writer.write(&existing, version, false) || existing.succeeded())
+            return false;
+        {
+            std::ifstream stream(output, std::ios::binary);
+            const std::string contents((std::istreambuf_iterator<char>(stream)),
+                                       std::istreambuf_iterator<char>());
+            if (contents != sentinel) {
+                std::cerr << "failed XREF transaction changed existing destination\n";
+                return false;
+            }
+        }
+        XrefMetadataDwgWriter corrected(
+            writer, generatedXrefBlockRecord(version, true), true);
+        if (!writer.write(&corrected, version, false) || !corrected.succeeded()
+            || !corrected.rejectedXrefContentScope()) {
+            std::cerr << "corrected XREF transaction failed on same facade\n";
+            return false;
+        }
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(output.string(), &readback, false)
+            || std::count_if(readback.blockRecords.begin(), readback.blockRecords.end(),
+                [](const auto& record) {
+                    return record.name == "GENERATED_XREF"
+                        && record.layoutHandle == 0u && (record.flags & 12) == 12;
+                }) != 1) {
+            std::cerr << "corrected XREF destination did not read back uniquely\n";
+            return false;
+        }
+      }
     }
     return true;
 }

@@ -1,6 +1,6 @@
-**Current plan checkpoint — native-control triage (2026-10-25):** RPP-5dj is committed as `8939f7f8`. Source review confirms contradictory XREF layout-handle admission, not the earlier suspected rejected-content-scope transaction problem. Both owning controls still fail in fresh normal/ASan reruns; neither is fixed or waived. The next slice has explicit admission, rollback/retry, independent LAYOUT and compatibility acceptance gates. This is a plan-only update, with no native-byte or support-claim change. [Ready sub-plan](#plan-update-native-control-triage-and-next-slice-readiness-2026-10-25).
+**Newest implementation checkpoint — RPP-5dk native block admission and independent string bounds (2026-10-25):** the contradictory null-layout guard is removed, while XREF-owned geometry and nonnull XREF layout associations remain refused. Both previously failing controls now pass with expanded six-version metadata, rollback, destination-preservation and same-facade retry coverage. Independent LAYOUT/dictionary walkers retain exact bit bounds instead of requiring byte-aligned strings and a fixed seven-bit separator; hand-packed positive/corrupt controls cover every alignment and both footer sizes. No production LAYOUT encoding or BL/RL decision changes. Full ATTDEF/block/common/target/live/output and original consumer/semantic/platform parity remain open. [Implementation and next work](#implementation-progress-rpp-5dk-native-block-admission-and-independent-string-bounds-2026-10-25) · [receipt](docs/research/rpp5dk-native-block-admission-and-independent-string-bounds-2026-10-25.json).
 
-**Newest implementation checkpoint — RPP-5dj BLOCK_RECORD source proof and application-scope isolation (2026-10-25):** committed as `8939f7f8`. Import and source proof share the production row decoder; opaque application fields no longer overwrite row metadata. A separate opt-in facet delivers complete source/typed batches after ENDTAB, and selected block/table-owner rows require immutable agreement. Eight authored routes pass source/budget/failure/retry controls. Broader normal/ASan runs each pass 67/69; both native failures reproduce unchanged on parent `e0848ddc` and remain required follow-ups. The independent rich control reports, rather than hides, a peer typed-scalar scope discrepancy. BLOCK/ENDBLK/ATTDEF, APPID/LAYER, full common/target/live/output and native/consumer parity stay open. [Implementation and next work](#implementation-progress-rpp-5dj-block_record-source-proof-and-application-scope-isolation-2026-10-25) · [receipt](docs/research/rpp5dj-block-record-source-proof-and-application-scope-isolation-2026-10-25.json).
+**Previous implementation checkpoint — RPP-5dj BLOCK_RECORD source proof and application-scope isolation (2026-10-25):** committed as `8939f7f8`. Its row-source agreement and application-scope isolation remain valid. Its historical 67/69 normal/ASan results and identical pristine-parent native failures are preserved in the immutable receipt; RPP-5dk resolves those two controls without erasing their red history. The known independent peer typed-scalar scope discrepancy remains explicit, not a support claim. [Historical implementation](#implementation-progress-rpp-5dj-block_record-source-proof-and-application-scope-isolation-2026-10-25) · [receipt](docs/research/rpp5dj-block-record-source-proof-and-application-scope-isolation-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5di dictionary/XRECORD resource-source proof (2026-10-25):** committed as `e0848ddc`. Its immutable source families, root facet, copied-pending-state guard, failure/retry and independent spans remain valid. RPP-5dj adds BLOCK_RECORD source rows, not full block entities, target closure, semantic/output or native qualification. [Historical implementation](#implementation-progress-rpp-5di-dictionaryxrecord-resource-source-proof-2026-10-25) · [immutable receipt](docs/research/rpp5di-dictionary-xrecord-resource-source-proof-2026-10-25.json).
 
@@ -125217,15 +125217,12 @@ existing pinned-runtime/tests/CLI opt-in; no extra optional build is claimed.
 
 Next ready work, preserving the full implementation objective:
 
-1. [ ] **Resolve the two native controls.** Correct the now-confirmed contradictory
-   XREF layout-handle admission without admitting XREF-owned geometry. The
-   content-scope refusal itself does not latch the required-write failure; keep
-   that useful negative probe. Reconcile the separate LAYOUT independent DATA
-   cursor against the authoritative ODA specification and real/sample evidence,
-   preserving independent roles/spans rather than copying production parsing
-   into an oracle. Follow the [native-control sub-plan](#plan-update-native-control-triage-and-next-slice-readiness-2026-10-25)
-   for rollback/retry, version coverage and fast acceptance gates. These remain
-   local required work, not DEFERRED_EXTERNAL or support qualification.
+1. [x] **Resolve the two identified native controls.** RPP-5dk corrects XREF
+   layout-handle admission and the stale independent bit-boundary assumptions,
+   retaining geometry refusal and exact rollback/retry checks. See the
+   [implementation record](#implementation-progress-rpp-5dk-native-block-admission-and-independent-string-bounds-2026-10-25).
+   This does not close exhaustive allocation failure, full independent native
+   field/reference profiles, the BL/RL discrepancy or support qualification.
 2. [ ] **ATTDEF source/context.** Reuse production parsing and finalization for
    classic and embedded MTEXT forms, including 101/legacy-100 markers, tag/prompt/
    flags, XDATA and column/angle finalization. Add an opt-in source facet without
@@ -125349,3 +125346,98 @@ support ledger remains **CLOSED**, `outputEligible=false`, all six J items remai
 **DEFERRED_EXTERNAL**, and native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. No push or PR change is part
 of this local commit request; the full implementation goal remains active.
+
+## Implementation progress RPP-5dk native block admission and independent string bounds (2026-10-25)
+
+This resolves the two failing controls identified by RPP-5dj and triaged in
+`f6eeabb9`. It does not finish native block/LAYOUT semantics or the full objective.
+The authoritative ODA v5.4.1 sections 20.1, 20.4.52 and 20.4.84 were read, with
+the complete relevant PDF pages visually inspected. The source hash and exact
+validation scope are recorded in the [RPP-5dk receipt](docs/research/rpp5dk-native-block-admission-and-independent-string-bounds-2026-10-25.json).
+The PDF's bit-based stream bounds inform the independent cursor; the generated
+writer's byte-carrier padding profile is separately labelled, not attributed
+to the specification as a universal rule.
+
+Completed:
+
+1. [x] Remove only the contradictory `layoutHandle == DRW::NoHandle` admission
+   guard. Zero is the ordinary/XREF block's null association, not an invalid
+   sentinel. Keep nonnull XREF-layout refusal, overlay/flags/dependency/version
+   validation and XREF content-scope refusal. Do not invent a reserved handle.
+   No production entity/object encoder, parser or public API/layout changes.
+2. [x] Expand loaded/unloaded and reference/overlay coverage to all six writer
+   revisions, AC1015/AC1018/AC1021/AC1024/AC1027/AC1032: 24 successful metadata
+   writes/readbacks and independent existing flag/index/loaded-bit walks.
+   Emit a real following-block LINE and verify its exact coordinates/owner,
+   empty XREF content and null layout links. These are not independent proof
+   of every native metadata field or reference slot.
+3. [x] Exercise ordinary null and paper-layout nonnull admission in every
+   revision, reject XREF nonnull association without changing state, and retain
+   the benign rejected content-scope probe before following ordinary scopes.
+   Inject both existing before/after-ENDBLK frame failures in six revisions;
+   verify exact published bytes/map/name/block-owner rollback and corrected
+   low-level retries. The allocator's high-water mark intentionally remains
+   monotonic; this is not an exact-handle-reuse or exhaustive allocation proof.
+4. [x] In each revision, refuse four invalid metadata profiles with a missing
+   destination and with a scratch-authored existing destination: nonnull XREF
+   hard-pointer, overlay without XREF, nonnull layout, and nonnull 64-bit XREF
+   hard-pointer. All 48 failed transactions preserve publication boundaries.
+   All 24 corrected fresh transactions on the same facade succeed and read
+   back uniquely. Keep sticky failure within a transaction, not across retries.
+5. [x] Localize the independent LAYOUT failure to stale string framing: the
+   observed R2007 frame has DATA end 1928 and encoded string size 1480, yielding
+   start bit **431**, not a byte boundary, with no footer-alignment padding.
+   Correct both LAYOUT and ACAD_LAYOUT-dictionary walkers to use bounded views
+   of original bits, not copied byte slices. Bound exact consumed strings and
+   both generated carrier/alignment padding phases; reject nonzero, excessive
+   or missing padding. The dictionary control also exposed eight residual pad
+   bits, which cannot be handled by a single seven-bit allowance. No production
+   framing change and no BL/RL viewport-count decision is made by this fix.
+6. [x] Hand-pack 32 positive footer controls without production writer/buffer/
+   locator helpers: eight start residues, short/extended sizes and direct-bit/
+   byte-carrier profiles. Reject 126 text/size/truncation/padding corruptions.
+   Existing independent handle roles, CRCs, multi-layout membership and sentinel
+   adjacency checks remain active. No external drawing payload is added.
+
+Verification: the final owning selection passes **3/3 normally in
+1.17 s** and **3/3 under ASan in 2.20 s**. The expanded affected normal cohort
+passes **77/77 in 69.32 s**; the sequential ASan cohort passes **77/77 in
+154.50 s**, with leak checks disabled. Strict warnings and both LibreCAD_3
+compile gates pass. The affected selection reuses RPP-5dj's exact 69 tests and
+adds eight block/layout/writer/CLI controls; no full project suite is repeated.
+`dwg2dxf_freecad_cli_compat` tests the CLI contract with repository fixtures,
+not a native FreeCAD installation. This host remains macOS ARM64 Apple Clang.
+
+Next ready work, preserving the full objective:
+
+1. [ ] **ATTDEF source/context.** Share the actual `processAttdef` grammar and
+   its required-field checks, embedded MTEXT column finalization/angle update
+   and optional extrusion transform. Preserve original source versus projected
+   callback state explicitly. Add the opt-in facet through `DxfBlockEventSink`,
+   staging owned source/typed pairs until accepted ENDBLK, with no new pure
+   `DRW_Interface` callback. Cover classic/101/legacy-100 forms, encoding, quotas,
+   throw/allocation/bad-footer refusal, opt-out and corrected fresh reads.
+2. [ ] **BLOCK/ENDBLK and APPID/LAYER.** Complete bounded source/context agreement,
+   begin/end/record ownership, ATTRIB/SEQEND and balanced scope/child order, then
+   opt-in batch-atomic APPID/LAYER sources and declared/default/native profiles.
+3. [ ] **Full common/target/live/output closure.** Continue the complete B2b/B3/C
+   worklist, reached families, pre-identity callback collisions, effective target
+   rules, multiple roots/soft cycles, editable/frozen equality and preplanned
+   compound IDs. Keep both export guards closed until the whole lane is proved.
+4. [ ] **Speed/owner and native failure audits.** Remove repeated/quadratic work
+   without weakening logical quotas or rollback. Exhaustive allocation throws,
+   full independent native block/LAYOUT fields/references, BL/RL, decimal/bit,
+   SWEEP/EXTRUSION, carrier/schema/owner and complete IMAGE/document parity remain
+   required; these two green controls do not establish those broader results.
+5. [ ] **Consumer/semantic/platform parity and self-unblocking.** Preserve
+   LibreCAD/LibreCAD_3 2D and enable 3D/dwg2dxf/FreeCAD requirements with independent
+   semantics and native platform evidence where required. After each ready item,
+   update evidence/dependencies, choose the next safe item, commit/report a
+   coherent slice and continue. Prefer fast owning tests and affected sequential
+   normal/ASan cohorts; reserve full suites for integration checkpoints. Commit
+   only repository-existing or scratch-authored fixtures, not external drawings.
+
+The support ledger remains **CLOSED**, `outputEligible=false`, and all six J
+items remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
+ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. No remote write is
+included; the full implementation goal remains active and incomplete.

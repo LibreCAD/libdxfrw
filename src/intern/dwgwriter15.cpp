@@ -814,7 +814,6 @@ std::uint32_t dwgWriter15::defineBlock(
                > static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())
         || !record.extData.empty() || !record.appData.empty()
         || !record.reactorHandles.empty() || record.xDictHandle != 0
-        || record.layoutHandle == DRW::NoHandle
         || !record.insertHandles.empty()) {
         return 0;
     }
@@ -845,6 +844,8 @@ std::uint32_t dwgWriter15::defineBlock(
     const bool isOverlay = (metadata.flags & 8) != 0;
     if (isOverlay && !isXref)
         return 0;
+    // A null layout reference is the ordinary/XREF block profile. Only a
+    // paper-layout block carries a nonnull association; XREFs cannot own it.
     if (isXref && record.layoutHandle != 0)
         return 0;
     const bool carriesXrefState = (metadata.flags & (16 | 32 | 64)) != 0
