@@ -8,6 +8,7 @@
 #include "appid_test_helpers.h"
 #include "layer_test_helpers.h"
 #include "dx_raster_output.h"
+#include "dx_standard_output.h"
 
 #include <algorithm>
 #include <array>
@@ -51,6 +52,17 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool standardSourceEligible(const dx_data& data, std::uint32_t handle) {
+        const auto found = data.m_standardDwgObjectFrames.find({data.importGeneration,handle});
+        if (found == data.m_standardDwgObjectFrames.end()) return false;
+        const auto& frame = found->second;
+        return frame.typedBaseline && frame.payloadMatched && !frame.opaquePayload && frame.hasNoObservedTextDecodeIssues()
+            && drwDwgCommonLinkEvidenceValidated(frame.raw.m_commonLinkEvidence)
+            && (!frame.sourceCodePageFieldPresent || frame.sourceCodePageRecognized);
+    }
+    static bool standardOutputHas(const dx_iface& iface, std::uint32_t handle) {
+        return iface.m_standardDwgOutputPublished && iface.m_standardDwgOutputFinalized && iface.m_standardDwgOutputProofs.count(handle) == 1u;
+    }
     static bool rasterDictionaryCommon(const dx_iface& iface) { return iface.m_rasterDictionaryCommonCompared; }
     static bool rasterFinal(const dx_iface& iface, std::size_t count) {
         return iface.m_rasterOutputFinalized && iface.m_rasterOutputProofs.size() == count && iface.m_rasterDictionaryCommonCompared;
@@ -3437,6 +3449,149 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
     if (classRefusals != 132u) return fail("raster class contradiction matrix was unexpectedly skipped");
     std::cout << "Raster source-profile/EED native projections=" << cells << " wire refusal/retries=" << wireRefusals
               << " name-source refusal/retries=" << sourceRefusals << " class refusal/retries=" << classRefusals << '\n';
+    return true;
+}
+
+bool standardDwgBinaryTransport() {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-standard-chunks-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("standard chunk temporary directory failed");
+    }
+    if (directory.empty()) return fail("standard chunk temporary directory exhausted");
+    const auto native = directory / "source.dwg", target = directory / "output.dxf";
+    struct Cleanup { std::filesystem::path a, b, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(a,error); std::filesystem::remove(b,error); std::filesystem::remove(directory,error);
+    } } cleanup{native,target,directory};
+    class Author final : public dx_iface {
+    public:
+        Author(dwgRW& output, std::size_t size) : output(output), payload(size) {
+            cData = &storage; currentBlock = storage.mBlock; app.name = "STD_CHUNK_APP";
+            for (std::size_t n = 0u; n < size; ++n) payload[n] = static_cast<std::uint8_t>(0xABu + 17u * n);
+            for (const auto h : {0xB010u,0xB020u,0xB030u,0xB040u}) ok = output.reserveHandle(h) && ok;
+        }
+        void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+        void writeDwgClasses() override {
+            ok = output.registerDwgNamedObjectDictionaryEntry("STD_TRANSPORT",0xB010u)
+                && output.registerDwgGroupDictionaryEntry("STD_GROUP",0xB030u) && ok;
+        }
+        void collectDwgAppIds() override { ok = output.addAppId(&app) && ok; }
+        void writeAppId() override {}
+        void writeEntities() override {
+            DRW_Line line; line.handle = 0xB040u; line.basePoint = {1,2,3}; line.secPoint = {4,5,6}; ok = output.writeLine(&line) && ok;
+        }
+        void common(DRW_TableEntry& value) {
+            value.extData.push_back(new DRW_Variant(1001,std::string("STD_CHUNK_APP")));
+            value.extData.push_back(new DRW_Variant(1004,payload));
+        }
+        void writeObjects() override {
+            DRW_Dictionary dictionary; dictionary.handle = 0xB010u; dictionary.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+            dictionary.cloning = 2; dictionary.hardOwner = 1; dictionary.m_entries = {{"STD_XRECORD",0xB020u}}; common(dictionary);
+            DRW_XRecord record; record.handle = 0xB020u; record.parentHandle = dictionary.handle;
+            record.m_dataEntries = {{1,std::string("standard-payload")},{330,static_cast<dint64>(0xB030u)},{160,static_cast<dint64>(1234567890123LL)}};
+            common(record);
+            DRW_Group group; group.handle = 0xB030u; group.parentHandle = DRW::DwgAcadGroupDictionaryHandle;
+            group.name = "STD_GROUP"; group.m_description = "standard-group"; group.m_entityHandles = {0xB040u}; common(group);
+            ok = output.writeDictionary(&dictionary) && output.writeXRecord(&record) && output.writeGroup(&group) && ok;
+        }
+        bool finalizeDwgWrite() override { return ok; }
+        dwgRW& output; dx_data storage; DRW_AppId app; std::vector<std::uint8_t> payload; bool ok{true};
+    };
+    unsigned sources = 0u, projections = 0u, closedLegacy = 0u, transportFaultRetries = 0u, strictRefusals = 0u;
+    for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const auto size : {0u,127u,128u,254u,255u}) {
+        dwgRW writer(native.string().c_str()); Author author(writer,size);
+        dx_data data; dx_iface importer;
+        if (!writer.write(&author,version,true) || !importer.fileImport(native.string(),&data,false)
+            || data.hasStandardDwgObjectCaptureFailure() || data.hasStandardDwgObjectPayloadFailure()
+            || data.xRecords.size() != 1u || data.groups.size() != 1u || !Access::unchanged(importer)) return fail("standard chunk native source/correlation failed");
+        const bool modern = version > DRW::AC1018;
+        for (const auto handle : {0xB010u,0xB020u,0xB030u}) {
+            if (Access::standardSourceEligible(data,handle) != modern) return fail("standard chunk source gate was unexpectedly closed or upgraded");
+        }
+        const auto originalDictionary = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) { return value.handle == 0xB010u; });
+        if (originalDictionary == data.dictionaries.end()) return fail("standard chunk native dictionary missing");
+        const std::array<const DRW_TableEntry*,3> originals{{&*originalDictionary,&data.xRecords.front(),&data.groups.front()}};
+        ++sources;
+        dx_iface exporter;
+        for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
+            if (outputVersion == DRW::AC1015) {
+                const std::string sentinel = "STANDARD_NATIVE_TRANSPORT_STRICT_GATE_STAYS_CLOSED";
+                { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+                if (exporter.fileExport(target.string(),outputVersion,binary,&data,false,true)) return fail("standard chunk modeled proof bypassed strict admission");
+                std::ifstream prior(target,std::ios::binary);
+                const std::string retained((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>());
+                if (retained != sentinel) return fail("standard chunk strict refusal replaced destination");
+                ++strictRefusals;
+            }
+            if (!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true,
+                    dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,
+                    dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial)) return fail("standard chunk compatible projection failed");
+            for (const auto handle : {0xB010u,0xB020u,0xB030u}) if (Access::standardOutputHas(exporter,handle) != modern)
+                return fail("standard chunk modeled output proof missing kind-handle=" + std::to_string(handle)
+                    + " size=" + std::to_string(size) + " source=" + std::to_string(version) + " target=" + std::to_string(outputVersion)
+                    + " binary=" + std::to_string(binary));
+            dx_data actual; dx_iface reader;
+            if (!reader.fileImport(target.string(),&actual,false) || actual.groups.size() != 1u || actual.xRecords.size() != 1u)
+                return fail("standard chunk actual output/readback failed");
+            const auto dictionary = std::find_if(actual.dictionaries.begin(),actual.dictionaries.end(),[](const auto& value) {
+                return value.m_entries.size() == 1u && value.m_entries.front().m_name == "STD_XRECORD";
+            });
+            if (dictionary == actual.dictionaries.end()) return fail("standard chunk rooted dictionary lost its XRECORD edge");
+            const std::array<const DRW_TableEntry*,3> decoded{{&*dictionary,&actual.xRecords.front(),&actual.groups.front()}};
+            for (std::size_t family = 0u; family < decoded.size(); ++family) {
+                const auto* value = decoded[family];
+                const std::size_t count = size ? (size + 126u) / 127u : 1u;
+                if (value->extData.size() != count + 1u || !value->extData.front()->c_str()
+                    || std::string(value->extData.front()->c_str()) != "STD_CHUNK_APP") return fail("standard chunk EED boundary/app name changed");
+                for (std::size_t n = 0u; n < count; ++n) {
+                    const auto* chunk = value->extData[n + 1u];
+                    const auto bytes = std::min<std::size_t>(127u,size - 127u * n);
+                    if (!chunk || chunk->code() != 1004 || !chunk->c_str() || std::string_view(chunk->c_str()).size() != 2u * bytes)
+                        return fail("standard chunk output lengths changed");
+                    for (std::size_t at = 0u; at < bytes; ++at) {
+                        unsigned byte = 0u;
+                        if (!dx_raster_output::integer(std::string_view(chunk->c_str()).substr(2u * at,2u),byte,16)
+                            || byte != author.payload[127u * n + at]) return fail("standard chunk payload changed");
+                    }
+                }
+                // Fault only a deep-copied readback for the shared comparison;
+                // this neither fabricates source frames nor changes wire data.
+                if (modern && size >= 128u) for (unsigned fault = 0u; fault < 5u; ++fault) {
+                    DRW_Dictionary altered;
+                    static_cast<DRW_TableEntry&>(altered) = *value;
+                    auto& fields = altered.extData;
+                    if (fault == 0u) (*fields[1]->content.s)[0] = fields[1]->content.s->front() == '0' ? '1' : '0';
+                    if (fault == 1u) { delete fields[1]; fields.erase(fields.begin() + 1); }
+                    if (fault == 2u) { auto duplicate = std::make_unique<DRW_Variant>(*fields[1]); fields.insert(fields.begin() + 1,duplicate.get()); duplicate.release(); }
+                    if (fault == 3u) fields[1]->addString(1000,*fields[1]->content.s);
+                    if (fault == 4u) {
+                        const auto lastByte = fields[1]->content.s->substr(fields[1]->content.s->size() - 2u);
+                        fields[1]->content.s->resize(fields[1]->content.s->size() - 2u);
+                        fields[2]->content.s->insert(0,lastByte);
+                    }
+                    auto unusedMap = [](std::uint32_t, std::uint32_t&) { return false; };
+                    dx_standard_output::NoLayerReferences noLayers;
+                    std::vector<std::uint32_t> references;
+                    if (dx_standard_output::extendedDataTransportEqual(*originals[family],altered,unusedMap,references,noLayers))
+                        return fail("standard chunk shared comparison accepted a payload/boundary fault");
+                    static_cast<DRW_TableEntry&>(altered) = *value;
+                    if (!dx_standard_output::extendedDataTransportEqual(*originals[family],altered,unusedMap,references,noLayers) || !references.empty())
+                        return fail("standard chunk restored readback comparison failed");
+                    ++transportFaultRetries;
+                }
+            }
+            if (!modern) ++closedLegacy;
+            ++projections;
+        }
+    }
+    if (sources != 30u || projections != 360u || closedLegacy != 120u || transportFaultRetries != 2160u || strictRefusals != 60u)
+        return fail("standard chunk source matrix skipped a cell");
+    std::cout << "Standard native chunk sources=" << sources << " projections=" << projections << " legacy unqualified cells=" << closedLegacy
+        << " copied-readback comparison fault/restoration retries=" << transportFaultRetries << " strict refusals=" << strictRefusals << '\n';
     return true;
 }
 
@@ -32488,6 +32643,8 @@ int main(int argc, char** argv) {
         return generatedDictionaryBinaryChunks() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-chunk-faults")
         return generatedDictionaryBinaryChunks(true) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--standard-dwg-binary-transport")
+        return standardDwgBinaryTransport() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--image-dictionary-imported-common")
         return rootedImageDictionaryUnselectedControls(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")

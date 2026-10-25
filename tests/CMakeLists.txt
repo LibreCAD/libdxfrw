@@ -577,6 +577,10 @@ add_test(NAME dwg2dxf_generated_dictionary_chunk_faults
     COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-dictionary-chunk-faults)
 set_tests_properties(dwg2dxf_generated_dictionary_chunk_faults PROPERTIES
     LABELS "fast;dxf;dictionary;xdata;transaction;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_standard_dwg_binary_transport
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-binary-transport)
+set_tests_properties(dwg2dxf_standard_dwg_binary_transport PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xdata;adapter;generated" TIMEOUT 60)
 add_test(NAME dwg2dxf_image_dictionary_imported_common
     COMMAND libdxfrw_dwg2dxf_adapter_tests --image-dictionary-imported-common)
 set_tests_properties(dwg2dxf_image_dictionary_imported_common PROPERTIES

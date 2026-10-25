@@ -14843,55 +14843,6 @@ bool generatedDictionaryXdataProjectionBytes(const DRW_Dictionary& source, std::
     return true;
 }
 
-template<class Mapper, class LayerVerifier> bool generatedDictionaryXdataEqual(
-        const DRW_TableEntry& source, const DRW_TableEntry& actual, Mapper& map,
-        std::vector<std::uint32_t>& references, LayerVerifier& verifyLayer) {
-    if (source.extData.size() > DRW_TableEntry::kMaxExtendedDataItems
-        || actual.extData.size() > DRW_TableEntry::kMaxExtendedDataItems) return false;
-    const auto nibble = [](unsigned char c) -> int {
-        return c >= '0' && c <= '9' ? c - '0' : c >= 'A' && c <= 'F' ? c - 'A' + 10 : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
-    };
-    std::size_t next = 0u;
-    for (const auto* value : source.extData) {
-        if (!value || next >= actual.extData.size()) return false;
-        if (value->code() != 1004) {
-            const auto* output = actual.extData[next++];
-            if (!output) return false;
-            if (value->code() == 1003 && (value->isLayerRef() || value->rawDwgLayerReference())) {
-                if (!verifyLayer(*value,*output,references)) return false;
-            } else if (!dx_standard_output::valueEqual(*value,*output,map,references)) return false;
-            continue;
-        }
-        if (value->dwgCmColorValue() || value->isLayerRef() || value->rawDwgLayerReference()) return false;
-        const auto* bytes = value->type() == DRW_Variant::BINARY ? value->binary() : nullptr;
-        const auto* hex = value->type() == DRW_Variant::STRING ? value->content.s : nullptr;
-        if ((!bytes && !hex) || (hex && (hex->size() & 1u))) return false;
-        const auto size = bytes ? bytes->size() : hex->size() / 2u;
-        if (size > DRW::kMaxDxfBinaryPayloadBytes) return false;
-        const auto chunks = size ? (size + 126u) / 127u : 1u;
-        if (chunks > actual.extData.size() - next) return false;
-        for (std::size_t offset = 0u; offset < size || (offset == 0u && !size); offset += 127u) {
-            const auto count = std::min<std::size_t>(127u,size - offset);
-            const auto* output = actual.extData[next++];
-            if (!output || output->code() != 1004 || output->type() != DRW_Variant::STRING || !output->content.s
-                || output->content.s->size() != 2u * count) return false;
-            for (std::size_t n = 0u; n < count; ++n) {
-                const int high = nibble((*output->content.s)[2u * n]), low = nibble((*output->content.s)[2u * n + 1u]);
-                if (high < 0 || low < 0) return false;
-                unsigned expected = 0u;
-                if (bytes) expected = (*bytes)[offset + n];
-                else {
-                    const int a = nibble((*hex)[2u * (offset + n)]), b = nibble((*hex)[2u * (offset + n) + 1u]);
-                    if (a < 0 || b < 0) return false;
-                    expected = static_cast<unsigned>(16 * a + b);
-                }
-                if (static_cast<unsigned>(16 * high + low) != expected) return false;
-            }
-        }
-    }
-    return next == actual.extData.size();
-}
-
 // DXF retains explicit reserved groups in addition to typed common links.
 // Validate their exact correspondence before removing this duplicate syntax
 // from the modeled comparison. Unknown application schemas stay lexical.
@@ -14938,17 +14889,6 @@ template<class Mapper> bool generatedDictionaryCommonEqual(const DRW_Dictionary&
         return a.code() == 1003 && b.code() == 1003 && a.c_str() && b.c_str() && std::string_view(a.c_str()) == b.c_str();
     };
     auto verifyLayer = layer;
-    if (!generatedDictionaryXdataEqual(projected,decoded,map,references,verifyLayer)) return false;
-    // All original XDATA has been compared in transport order above. Keep
-    // ownership of the copied payloads locally while the common-link/appData
-    // comparator handles the remaining fields; never mutate frozen sources or
-    // concatenate adjacent source values to make cardinalities appear equal.
-    struct PayloadOwner {
-        std::vector<DRW_Variant*> values;
-        ~PayloadOwner() { for (auto* value : values) delete value; }
-    } expectedPayload, actualPayload;
-    expectedPayload.values.swap(projected.extData);
-    actualPayload.values.swap(decoded.extData);
     return dx_standard_output::commonEqual(projected, decoded, dx_standard_output::Family::Dictionary,
         map, references, verifyLayer);
 }

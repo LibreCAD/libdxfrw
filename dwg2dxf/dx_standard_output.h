@@ -359,6 +359,58 @@ struct NoLayerReferences {
                     std::vector<std::uint32_t>&) const noexcept { return false; }
 };
 
+// Compare each source value with its prescribed physical transport, rather
+// than joining adjacent values or requiring source/decoded cardinality parity.
+// This is shared by generated roots and admitted standard-object frames.
+template<class Mapper, class LayerVerifier> bool extendedDataTransportEqual(
+        const DRW_TableEntry& source, const DRW_TableEntry& actual, Mapper& map,
+        std::vector<std::uint32_t>& references, LayerVerifier& verifyLayer) {
+    if (source.extData.size() > DRW_TableEntry::kMaxExtendedDataItems
+        || actual.extData.size() > DRW_TableEntry::kMaxExtendedDataItems) return false;
+    const auto nibble = [](unsigned char c) -> int {
+        return c >= '0' && c <= '9' ? c - '0' : c >= 'A' && c <= 'F' ? c - 'A' + 10 : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1;
+    };
+    std::size_t next = 0u;
+    for (const auto* value : source.extData) {
+        if (!value || next >= actual.extData.size()) return false;
+        if (value->code() != 1004) {
+            const auto* output = actual.extData[next++];
+            if (!output) return false;
+            if (value->code() == 1003 && (value->isLayerRef() || value->rawDwgLayerReference())) {
+                if (!verifyLayer(*value,*output,references)) return false;
+            } else if (!valueEqual(*value,*output,map,references)) return false;
+            continue;
+        }
+        if (value->dwgCmColorValue() || value->isLayerRef() || value->rawDwgLayerReference()) return false;
+        const auto* bytes = value->type() == DRW_Variant::BINARY ? value->binary() : nullptr;
+        const auto* hex = value->type() == DRW_Variant::STRING ? value->content.s : nullptr;
+        if ((!bytes && !hex) || (hex && (hex->size() & 1u))) return false;
+        const auto size = bytes ? bytes->size() : hex->size() / 2u;
+        if (size > DRW::kMaxDxfBinaryPayloadBytes) return false;
+        const auto chunks = size ? (size + 126u) / 127u : 1u;
+        if (chunks > actual.extData.size() - next) return false;
+        for (std::size_t offset = 0u; offset < size || (offset == 0u && !size); offset += 127u) {
+            const auto count = std::min<std::size_t>(127u,size - offset);
+            const auto* output = actual.extData[next++];
+            if (!output || output->code() != 1004 || output->type() != DRW_Variant::STRING || !output->content.s
+                || output->content.s->size() != 2u * count) return false;
+            for (std::size_t n = 0u; n < count; ++n) {
+                const int high = nibble((*output->content.s)[2u * n]), low = nibble((*output->content.s)[2u * n + 1u]);
+                if (high < 0 || low < 0) return false;
+                unsigned expected = 0u;
+                if (bytes) expected = (*bytes)[offset + n];
+                else {
+                    const int a = nibble((*hex)[2u * (offset + n)]), b = nibble((*hex)[2u * (offset + n) + 1u]);
+                    if (a < 0 || b < 0) return false;
+                    expected = static_cast<unsigned>(16 * a + b);
+                }
+                if (static_cast<unsigned>(16 * high + low) != expected) return false;
+            }
+        }
+    }
+    return next == actual.extData.size();
+}
+
 template <class Mapper, class LayerVerifier> bool commonEqual(const DRW_TableEntry& source,
         const DRW_TableEntry& actual, Family kind, Mapper& map,
         std::vector<std::uint32_t>& references, LayerVerifier& verifyLayer) {
@@ -368,7 +420,6 @@ template <class Mapper, class LayerVerifier> bool commonEqual(const DRW_TableEnt
         || (kind != Family::Group && !source.name.empty())
         || !referenceEqual(source.parentHandle, actual.parentHandle, map, references)
         || source.reactorHandles.size() != actual.reactorHandles.size()
-        || source.extData.size() != actual.extData.size()
         || !referenceEqual(source.xDictHandle, actual.xDictHandle, map, references)) return false;
     // The caller must supply a frame whose bounded common-link receipt was
     // correlated to this model. The model's legacy marker is not a wire field.
@@ -376,14 +427,7 @@ template <class Mapper, class LayerVerifier> bool commonEqual(const DRW_TableEnt
     // an Unknown tail must never reach this admitted comparison.
     for (std::size_t index = 0; index < source.reactorHandles.size(); ++index)
         if (!referenceEqual(source.reactorHandles[index], actual.reactorHandles[index], map, references)) return false;
-    for (std::size_t index = 0; index < source.extData.size(); ++index) {
-        if (!source.extData[index] || !actual.extData[index]) return false;
-        const auto& a = *source.extData[index];
-        const auto& b = *actual.extData[index];
-        if (a.code() == 1003 && (a.isLayerRef() || a.rawDwgLayerReference() != 0u)) {
-            if (!verifyLayer(a, b, references)) return false;
-        } else if (!valueEqual(a, b, map, references)) return false;
-    }
+    if (!extendedDataTransportEqual(source,actual,map,references,verifyLayer)) return false;
     auto expected = source.appData.begin();
     unsigned reactorGroups = 0, dictionaryGroups = 0;
     for (const auto& group : actual.appData) {
