@@ -1,3 +1,5 @@
+**Latest commit/plan checkpoint (2026-10-25):** RPP-5cm implementation, tests, plan and receipt are committed as `c9f6774941ba36ec72892b361ba788ab9fab7473`. A post-commit rerun of its two positive/fault CTests passes in 4.66 s. This plan-only checkpoint records the committed state and prioritized remaining work; it adds no implementation or support qualification. [Commit checkpoint and next actions](#commit-checkpoint-rpp-5cm-and-remaining-work-2026-10-25).
+
 **Newest implementation checkpoint — RPP-5cm XRECORD-owned extension closure and common-link consistency (2026-10-24):** two reproduced publication gaps are fixed: extension dictionaries must name their referencing object as owner, and reserved common groups on selected DICTIONARY/XRECORD records must match typed links. Validation work is precharged; unrelated custom application groups remain preserved. Eighteen scratch DWG/DXF sources pass 216 projections and 216 actual-import reexports. Controls pass 96 preflight and 128 late-source atomic restoration retries, 16 snapshot-budget retries and eight graph-work retries. Final 78 focused, five owning, four reader/consumer and 60 ASan tests pass, with both LibreCAD_3 compile gates. Other families/generations/raw-carrier/document work and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cm-xrecord-owned-extension-closure-and-common-link-consistency-2026-10-24) · [receipt](docs/research/rpp5cm-xrecord-owned-extension-closure-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5cl branched XRECORD common-link parity (2026-10-24):** an included generated NOD with no outgoing common links is now recognized as a validated incoming reactor target. This fixes a reproduced refusal for valid child-to-owner back-references without relaxing owner/completeness checks or work limits. Eighteen scratch DWG/DXF sources pass 216 projections and 216 actual-import reexports through independent owner branches; twelve DXF sources prove physical NOD `A000 → C` owner/reactor remapping. Controls pass 512 late-source atomic retries, 24 preflight ownership/alias retries, 16 cumulative-budget retries and 16 unselected isolation cases. Final 75 focused, five owning, four reader/consumer and 57 ASan tests pass, with both LibreCAD_3 compile gates. Broader owning-family/generation/raw-carrier/document work remains open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cl-branched-xrecord-common-link-parity-2026-10-24) · [receipt](docs/research/rpp5cl-branched-xrecord-common-links-2026-10-24.json).
@@ -122335,3 +122337,56 @@ remain unchanged.
 
 Receipt:
 [`rpp5cm-xrecord-owned-extension-closure-2026-10-24.json`](docs/research/rpp5cm-xrecord-owned-extension-closure-2026-10-24.json).
+
+## Commit checkpoint — RPP-5cm and remaining work (2026-10-25)
+
+1. [x] Commit the verified implementation slice. Commit
+   `c9f6774941ba36ec72892b361ba788ab9fab7473` contains the reciprocal XRECORD
+   extension-owner and reserved common-link consistency fixes, their tests,
+   the implementation record and its immutable receipt. Its author timestamp
+   is 2026-10-25; the receipt retains the 2026-10-24 validation date. Historical
+   pre-commit capture state is not rewritten into a new qualification claim.
+2. [x] Confirm the post-commit state. No tracked implementation edits remain.
+   The two affected CTests, `dwg2dxf_xrecord_owned_extension` and
+   `dwg2dxf_xrecord_owned_extension_faults`, pass again (2/2, 4.66 s,
+   parallelism 2). The earlier 78 focused / five owning / four reader-consumer /
+   60 ASan results and both LibreCAD_3 compile gates are retained as prior
+   validation, not represented as rerun for this documentation-only update.
+3. [ ] Next bounded speed slice: finish the existing duplicate converter-
+   compilation sub-plan. Audit actual definitions, options, include order,
+   frameworks and link interfaces before sharing any uninstalled adapter
+   objects. Pool only identical contexts; retain separate CLI/framework,
+   MSVC test-seam, warning and sanitizer configurations where they differ.
+   Preserve the opt-out and PIC/export fallbacks, installed library/export
+   contract and C++14 consumer probes. Verify generated compile-command counts,
+   negative context-drift controls and affected CLI/LibreCAD_3/owning tests.
+   Record measured build effects without assuming a wall-time speedup. This
+   audit has begun; no new pooling implementation or measured speedup is
+   complete or committed at this checkpoint.
+4. [ ] Resume feature closure after that bounded build slice: remaining owning
+   families, common/extension metadata and source-generation aliases, with
+   actual-import field/reference proof, atomic refusal and restored readback.
+   Do not broaden DICTIONARY/XRECORD typed checks to raw-replay families without
+   a family-specific contract. Keep original LibreCAD/LibreCAD_3 2D behavior
+   and the full 3D/dwg2dxf/FreeCAD objective in scope.
+5. [ ] Complete DataStorage raw-carrier/schema/owner-byte preservation and
+   cumulative decoded-owner/retention controls using authoritative specification
+   and bounded actual-source evidence. Typed-state refusal is not preservation.
+   Remaining profile callbacks/incompatible subsequent attempts, independent
+   APPID/LAYER/XRECORD names/body/path/EED, sparse native classes, full IMAGE
+   geometry and named-root/document closure remain open. Native point19 and
+   component-coded 20/30 require specification and actual-source proof before
+   changing their grammar or layout.
+6. [ ] After each implemented slice, update the plan and a new immutable
+   receipt, resolve safe in-scope dependencies, run fast affected tests plus
+   risk-proportionate owning/consumer/sanitizer checkpoints, commit verified
+   work and report progress. Do not repeat a full suite for each edit or stop
+   for dependencies that can be resolved safely within existing authority.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No whole-plan completion,
+support promotion, new fixture, remote mutation or new platform qualification
+is claimed. All 17 pre-existing untracked drawings and unrelated files remain
+excluded. The existing RPP-5cm receipt stays immutable; this documentation-only
+commit checkpoint does not replace or extend its implementation evidence.
