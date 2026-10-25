@@ -13136,15 +13136,14 @@ struct LocalDataStorageWireRecord {
 
 std::vector<std::uint8_t> makeLocalDataStorageRecordsAcDsBytes(
     const std::vector<LocalDataStorageWireRecord>& records,
-    std::vector<std::size_t> dataIndexOrder = {}) {
+    std::vector<std::size_t> dataIndexOrder = {}, bool growInlineSegment = false) {
     constexpr std::size_t headerSize = 56u;
     constexpr std::size_t segmentIndexOffset = 64u;
     constexpr std::size_t indexSegmentSize = 128u;
     constexpr std::size_t dataIndexOffset =
         segmentIndexOffset + indexSegmentSize;
     constexpr std::size_t dataOffset = dataIndexOffset + indexSegmentSize;
-    constexpr std::size_t dataSegmentSize = 256u;
-    constexpr std::size_t sectionSize = dataOffset + dataSegmentSize;
+    std::size_t dataSegmentSize = 256u;
     if (records.empty() || records.size() > 4u)
         return {};
     if (dataIndexOrder.empty()) {
@@ -13167,10 +13166,15 @@ std::vector<std::uint8_t> makeLocalDataStorageRecordsAcDsBytes(
         (DRW_DataStorageConst::SEGMENT_HEADER_SIZE + recordHeaderBytes + 15u)
         & ~std::size_t{15u};
     std::size_t payloadByteCount = 0;
-    const std::size_t payloadRegionSize =
-        dataSegmentSize - dataRegionRelativeOffset;
+    // Preserve every existing small fixture byte by default. The opt-in
+    // native witness route may carry bounded, genuine inline SAB records.
+    const std::size_t payloadRegionSize = growInlineSegment
+        ? records.size() * (4u + DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE)
+        : dataSegmentSize - dataRegionRelativeOffset;
     for (const LocalDataStorageWireRecord& record : records) {
         if (record.payload.size() > UINT32_MAX
+            || (growInlineSegment && record.payload.size()
+                > DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE)
             || payloadByteCount > payloadRegionSize
             || 4u > payloadRegionSize - payloadByteCount
             || record.payload.size()
@@ -13178,6 +13182,10 @@ std::vector<std::uint8_t> makeLocalDataStorageRecordsAcDsBytes(
             return {};
         payloadByteCount += 4u + record.payload.size();
     }
+    if (growInlineSegment)
+        dataSegmentSize = std::max(dataSegmentSize,
+            (dataRegionRelativeOffset + payloadByteCount + 63u) & ~std::size_t{63u});
+    const std::size_t sectionSize = dataOffset + dataSegmentSize;
 
     std::vector<std::uint8_t> bytes(sectionSize, 0u);
     const auto putU16 = [&bytes](std::size_t offset, std::uint16_t value) {
@@ -15034,10 +15042,11 @@ bool runDxfAcShExtrusionProjectionCapture(
 
 bool runDxfTypedAcdsBoxRoundTrip(
     bool binary, const std::filesystem::path& directory, bool keepOutput,
-    int cmcMutation = 0) {
+    int cmcMutation = 0, bool historylessCompanion = false) {
     const std::filesystem::path output = directory /
         (std::string("libdxfrw-ac1027-typed-acds-box-")
          + (binary ? "binary" : "ascii")
+         + (historylessCompanion ? "-historyless-companion" : "")
          + (cmcMutation == 0 ? "" : "-cmc-refusal-"
             + std::to_string(cmcMutation)) + ".dxf");
     std::error_code ec;
@@ -15068,6 +15077,20 @@ bool runDxfTypedAcdsBoxRoundTrip(
     source.mBlock->ent.push_back(modeler);
     source.dataStorageSections.push_back(
         makeLocalAcadSharpDataStorageSection(modelerHandle, payload));
+    DRW_ModelerGeometry* companion = nullptr;
+    std::vector<std::uint8_t> companionPayload = payload;
+    companionPayload.back() ^= 1u;
+    if (historylessCompanion) {
+        companion = new DRW_ModelerGeometry(*modeler);
+        companion->handle = 0xFC24u;
+        companion->m_historyHandle = 0u;
+        companion->dataStorageHandle = companion->handle;
+        companion->dataStorageHandleKey = "FC24";
+        companion->dataStorageData = companionPayload;
+        source.mBlock->ent.push_back(companion);
+        const auto second = makeLocalAcadSharpDataStorageSection(companion->handle, companionPayload);
+        source.dataStorageSections.front().records.push_back(second.records.front());
+    }
 
     source.dwgClassCoverage.m_status =
         DRW_DwgClassCoverageStatus::FinalizedComplete;
@@ -15174,7 +15197,63 @@ bool runDxfTypedAcdsBoxRoundTrip(
         source.materials.push_back(std::move(material));
     }
 
+    const auto verifyCompanion = [&](const dx_data& data) {
+        if (data.rawDxfSections.size() != 1u || data.evaluationGraphs.size() != 1u) return false;
+        std::vector<LocalAcdsRecordPayload> records;
+        if (!collectAcdsRecordPayloads(data.rawDxfSections.front(), "ASM_Data", records)
+            || records.size() != 2u) return false;
+        unsigned solids = 0u, historyless = 0u, historic = 0u;
+        std::unordered_set<std::string> keys;
+        for (const auto* entity : data.mBlock->ent) {
+            if (!entity || entity->eType != DRW::E3DSOLID) continue;
+            const auto* solid = static_cast<const DRW_ModelerGeometry*>(entity);
+            ++solids;
+            char key[16]{}; std::snprintf(key, sizeof(key), "%X", solid->handle);
+            if (!keys.insert(key).second) return false;
+            const bool bare = solid->m_historyHandle == 0u;
+            if (bare) ++historyless;
+            else { if (solid->m_historyHandle != historyHandle) return false; ++historic; }
+            const auto& expected = bare ? companionPayload : payload;
+            if (std::count_if(records.begin(), records.end(), [&](const LocalAcdsRecordPayload& record) {
+                    return record.first == key && record.second == expected;
+                }) != 1) return false;
+        }
+        return solids == 2u && historyless == 1u && historic == 1u;
+    };
     dx_iface exporter;
+    if (historylessCompanion) {
+        // A missing reference must not hide the existing typed history graph;
+        // a historyless neighbor must not acquire one or admit BODY geometry.
+        for (unsigned fault = 0u; fault != 5u; ++fault) {
+            if (fault == 0u) modeler->m_historyHandle = 0u;
+            if (fault == 1u) companion->m_historyHandle = 0xDEADu;
+            if (fault == 2u) companion->eType = DRW::BODY;
+            if (fault == 3u) {
+                auto unused = source.acshHistoryObjects.front(); unused.handle = 0xFC25u;
+                source.acshHistoryObjects.push_back(std::move(unused));
+            }
+            if (fault == 4u) {
+                auto unused = source.evaluationGraphs.front(); unused.handle = 0xFC25u;
+                source.evaluationGraphs.push_back(std::move(unused));
+            }
+            const std::string sentinel = "preserve mixed typed history destination";
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; if (!out) return false; }
+            const bool refused = !exporter.fileExport(output.string(), DRW::AC1027, binary, &source, false);
+            std::ifstream in(output, std::ios::binary);
+            const std::string retained(std::istreambuf_iterator<char>{in}, std::istreambuf_iterator<char>{});
+            in.close();
+            modeler->m_historyHandle = historyHandle;
+            companion->m_historyHandle = 0u; companion->eType = DRW::E3DSOLID;
+            if (fault == 3u) source.acshHistoryObjects.pop_back();
+            if (fault == 4u) source.evaluationGraphs.pop_back();
+            if (!refused || retained != sentinel) return false;
+            if (!exporter.fileExport(output.string(), DRW::AC1027, binary, &source, false)) return false;
+            dx_data retry; dx_iface retryReader;
+            if (!retryReader.fileImport(output.string(), &retry, false)
+                || retry.rawDxfSections.size() != 1u || retry.evaluationGraphs.size() != 1u) return false;
+            if (!verifyCompanion(retry)) return false;
+        }
+    }
     constexpr const char* refusalSentinel = "ACSH-CMC-REFUSAL-SENTINEL";
     if (cmcMutation != 0) {
         std::ofstream sentinel(output, std::ios::binary | std::ios::trunc);
@@ -15314,7 +15393,7 @@ bool runDxfTypedAcdsBoxRoundTrip(
     const std::vector<double> expectedBoxTransform{
         1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
         0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-    const bool result = readOk && historyRaw != nullptr && boxRaw != nullptr
+    bool result = readOk && historyRaw != nullptr && boxRaw != nullptr
         && hasInt(historyRaw, 90, 33) && hasInt(historyRaw, 91, 329)
         && hasInt(historyRaw, 92, 1) && hasInt(historyRaw, 280, 0)
         && hasInt(historyRaw, 281, 0)
@@ -15348,6 +15427,26 @@ bool runDxfTypedAcdsBoxRoundTrip(
         && imported.rawDxfSections.size() == 1u
         && imported.rawDxfSections.front().m_name == "ACDSDATA"
         && acdsPayloadMatches;
+    if (historylessCompanion) {
+        const bool initialCompanion = verifyCompanion(imported);
+        const auto replayPath = std::filesystem::path(output.string() + ".replay.dxf");
+        // Separate existing gap: the DXF-imported raw ACSH owner is not yet
+        // represented by the extension graph. Preserve its fail-closed path;
+        // never drop that graph just to allow the historyless neighbor.
+        const std::string replaySentinel = "preserve unresolved raw ACSH graph";
+        { std::ofstream out(replayPath, std::ios::binary | std::ios::trunc); out << replaySentinel; if (!out) return false; }
+        dx_iface replay;
+        const bool replayExported = result && initialCompanion
+            && replay.fileExport(replayPath.string(), DRW::AC1027, !binary, &imported, false);
+        std::ifstream retainedInput(replayPath, std::ios::binary);
+        const std::string retained(std::istreambuf_iterator<char>{retainedInput}, std::istreambuf_iterator<char>{});
+        retainedInput.close();
+        if (!result || !initialCompanion || replayExported || retained != replaySentinel)
+            std::cerr << "Mixed typed history proof: base=" << result << " companion=" << initialCompanion
+                << " unresolved-owner-reexport=" << replayExported << " sentinel=" << (retained == replaySentinel) << '\n';
+        result = result && initialCompanion && !replayExported && retained == replaySentinel;
+        if (!keepOutput) std::filesystem::remove(replayPath, ec);
+    }
     if (!result) {
         std::cerr << "Typed ACDS BOX round-trip ("
                   << (binary ? "binary" : "ASCII") << "): read=" << readOk
@@ -19280,14 +19379,21 @@ bool buildModelerExternalSabFrame(std::uint16_t entityModelerVersion,
 // Extend the existing threshold/page fixture with complete schema and search
 // segments. These bytes are authored locally, not copied from a producer file.
 // ODA 5.4.1 24.2.1, 24.2.2.1/.5/.6/.7 define the segment/index/value fields.
-std::vector<std::uint8_t> makeLocalSchemaBlobAcDsBytes(
+std::vector<std::uint8_t> makeLocalSchemaCarrierAcDsBytes(
     const std::vector<std::uint8_t>& thumbnail,
     const std::vector<std::uint8_t>& payload) {
-    auto bytes = makeLocalDataStorageThresholdBlobVector(thumbnail, payload).bytes;
+    const bool paged = payload.size() > DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE;
+    auto bytes = paged
+        ? makeLocalDataStorageThresholdBlobVector(thumbnail, payload).bytes
+        : makeLocalDataStorageRecordsAcDsBytes(
+            {{0x700u, 0u, thumbnail}, {0x708u, 1u, payload}}, {1u, 0u}, true);
     if (bytes.empty()) return {};
-    // Eight segment references need 48+8*12 bytes, not the original 128-byte
-    // index segment. Grow that segment by 64 and relocate following segments.
-    bytes.insert(bytes.begin() + 192u, 64u, 0u);
+    const unsigned oldCount = paged ? 5u : 3u;
+    const unsigned newCount = oldCount + 3u;
+    const std::size_t indexSize = (48u + newCount * 12u + 63u) & ~std::size_t{63u};
+    const std::size_t growth = indexSize - 128u;
+    // Only the eight-segment paged carrier needs a larger segment index.
+    bytes.insert(bytes.begin() + 192u, growth, 0u);
     const auto readU64 = [&](std::size_t at) {
         std::uint64_t value = 0u;
         for (unsigned n = 0; n != 8u; ++n) value |= std::uint64_t(bytes.at(at + n)) << (8u * n);
@@ -19299,18 +19405,20 @@ std::vector<std::uint8_t> makeLocalSchemaBlobAcDsBytes(
     const auto append = [](std::vector<std::uint8_t>& out, std::uint64_t value, unsigned width = 4u) {
         for (unsigned n = 0; n != width; ++n) out.push_back(static_cast<std::uint8_t>(value >> (8u * n)));
     };
-    put(64u + 16u, 192u);
-    put(64u + 48u + 8u, 192u);
-    for (unsigned n = 1u; n != 5u; ++n) {
+    put(64u + 16u, indexSize);
+    put(64u + 48u + 8u, indexSize);
+    for (unsigned n = 1u; n != oldCount; ++n) {
         const auto at = 64u + 48u + n * 12u;
-        put(at, readU64(at) + 64u, 8u);
+        put(at, readU64(at) + growth, 8u);
     }
-    put(32u, 8u); put(36u, 5u); put(44u, 7u);
+    put(32u, newCount); put(36u, oldCount); put(44u, oldCount + 2u);
     put(8u, 2u); put(12u, 2u); // ODA 24.1's authored header profile.
-    for (unsigned n : {3u, 4u}) put(static_cast<std::size_t>(readU64(64u + 48u + n * 12u)) + 12u, 1u);
-    // The reversed data-index order is inherited: blob first, thumbnail second.
-    put(256u + 56u + 12u + 8u, 0u);
-    put(384u + 68u + 8u, 0x708u, 8u);
+    if (paged) {
+        for (unsigned n : {3u, 4u}) put(static_cast<std::size_t>(readU64(64u + 48u + n * 12u)) + 12u, 1u);
+        // The reversed data-index order is inherited: blob first, thumbnail second.
+        put(256u + 56u + 12u + 8u, 0u);
+        put(384u + 68u + 8u, 0x708u, 8u);
+    }
     const auto profile = makeLocalDataStorageSection(0x708u, payload);
     std::vector<std::uint8_t> schemas, schemaIndex, search;
     std::vector<std::uint32_t> offsets;
@@ -19340,7 +19448,7 @@ std::vector<std::uint8_t> makeLocalSchemaBlobAcDsBytes(
     append(schemaIndex, 0u); append(schemaIndex, 0u);
     append(schemaIndex, 0xaf10cu, 8u); append(schemaIndex, offsets.size()); append(schemaIndex, 0u);
     for (std::size_t n = 0; n != offsets.size(); ++n) {
-        append(schemaIndex, 6u); append(schemaIndex, offsets[n]); append(schemaIndex, n);
+        append(schemaIndex, oldCount + 1u); append(schemaIndex, offsets[n]); append(schemaIndex, n);
     }
     // Include the search joins required by the format, not just data/schema
     // tables that this reader can traverse without a search implementation.
@@ -19363,21 +19471,22 @@ std::vector<std::uint8_t> makeLocalSchemaBlobAcDsBytes(
         std::fill(bytes.begin() + static_cast<std::ptrdiff_t>(at), bytes.begin() + static_cast<std::ptrdiff_t>(at + 48u), 0u);
         put(at, DRW_DataStorageConst::SEGMENT_SIGNATURE, 2u);
         std::copy_n(extra[n].first, 6u, bytes.begin() + static_cast<std::ptrdiff_t>(at + 2u));
-        put(at + 8u, 5u + n); put(at + 16u, size); put(at + 24u, 1u);
+        put(at + 8u, oldCount + n); put(at + 16u, size); put(at + 24u, 1u);
         if (n == 1u) put(at + 32u, namesRelative / 16u);
         std::fill(bytes.begin() + static_cast<std::ptrdiff_t>(at + 40u), bytes.begin() + static_cast<std::ptrdiff_t>(at + 48u), 0x55u);
         std::copy(extra[n].second->begin(), extra[n].second->end(), bytes.begin() + static_cast<std::ptrdiff_t>(at + 48u));
-        put(64u + 48u + (5u + n) * 12u, at, 8u);
-        put(64u + 48u + (5u + n) * 12u + 8u, size);
+        put(64u + 48u + (oldCount + n) * 12u, at, 8u);
+        put(64u + 48u + (oldCount + n) * 12u + 8u, size);
     }
     // Unlike the decoder's boundary/fuzz fixture, author the unused segment
     // tails with the specification's 0x70 padding (24.2), not zero fill.
-    const std::array<std::size_t, 5> used{{48u + 8u * 12u, 48u + 8u + 2u * 12u,
-        96u + 4u + thumbnail.size() + 4u + DRW_DataStorageConst::DATA_BLOB_REFERENCE_FIXED_SIZE
-            + 2u * DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE,
+    const std::array<std::size_t, 5> used{{48u + newCount * 12u, 48u + 8u + 2u * 12u,
+        96u + 4u + thumbnail.size() + 4u + (paged
+            ? DRW_DataStorageConst::DATA_BLOB_REFERENCE_FIXED_SIZE
+                + 2u * DRW_DataStorageConst::DATA_BLOB_PAGE_ENTRY_SIZE : payload.size()),
         48u + DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE + 0x20000u,
-        48u + DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE + payload.size() - 0x20000u}};
-    for (unsigned n = 0; n != used.size(); ++n) {
+        48u + DRW_DataStorageConst::DATA_BLOB_PAGE_HEADER_SIZE + (paged ? payload.size() - 0x20000u : 0u)}};
+    for (unsigned n = 0; n != oldCount; ++n) {
         const auto entry = 64u + 48u + n * 12u;
         const auto at = static_cast<std::size_t>(readU64(entry));
         const auto size = static_cast<std::uint32_t>(readU64(entry + 8u));
@@ -19390,10 +19499,13 @@ std::vector<std::uint8_t> makeLocalSchemaBlobAcDsBytes(
 }
 
 bool nativePagedDataStorageProjection(bool faults = false,
-    const std::filesystem::path& keepDirectory = {}) {
+    const std::filesystem::path& keepDirectory = {},
+    DRW::ETYPE entityType = DRW::REGION,
+    const std::vector<std::uint8_t>& witnessPayload = {}) {
+    if (entityType != DRW::REGION && entityType != DRW::E3DSOLID) return false;
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto directory = keepDirectory.empty()
-        ? std::filesystem::temp_directory_path() / ("libdxfrw-native-paged-" + std::to_string(nonce))
+        ? std::filesystem::temp_directory_path() / ("libdxfrw-native-modeler-" + std::to_string(nonce))
         : keepDirectory;
     std::error_code ec;
     if (!std::filesystem::create_directory(directory, ec)
@@ -19402,16 +19514,20 @@ bool nativePagedDataStorageProjection(bool faults = false,
     struct Cleanup { std::filesystem::path path; bool active; ~Cleanup() {
         if (active) { std::error_code ignored; std::filesystem::remove_all(path, ignored); }
     } } cleanup{directory, keepDirectory.empty()};
-    // Marker-bearing byte-transport controls only: these are not semantically
-    // valid SAB geometry or a decoded PNG thumbnail. Never use them to qualify
-    // a kernel/application reader or to advertise a supported drawing profile.
-    std::vector<std::uint8_t> thumbnail(DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE, 0x29u);
+    // Default SAB/PNG marker controls prove byte transport, not semantics.
+    // Optional supplied SAB bytes receive separate parser/geometry observations;
+    // this harness cannot qualify a kernel or producer profile.
+    const bool paged = witnessPayload.empty();
+    std::vector<std::uint8_t> thumbnail(paged ? DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE : 8u, 0x29u);
     const std::array<std::uint8_t, 8> png{{0x89u,0x50u,0x4eu,0x47u,0x0du,0x0au,0x1au,0x0au}};
     std::copy(png.begin(), png.end(), thumbnail.begin());
     std::vector<std::uint8_t> payload(DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE + 1u, 0x53u);
     const std::string marker = "ACIS BinaryFile";
     std::copy(marker.begin(), marker.end(), payload.begin());
-    const auto sectionBytes = makeLocalSchemaBlobAcDsBytes(thumbnail, payload);
+    if (!paged) payload = witnessPayload;
+    if (payload.size() < marker.size() || !std::equal(marker.begin(), marker.end(), payload.begin())
+        || (!paged && payload.size() > DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE)) return false;
+    const auto sectionBytes = makeLocalSchemaCarrierAcDsBytes(thumbnail, payload);
     const auto decoded = DRW_parseDataStorage(sectionBytes, DRW::AC1027);
     if (decoded.parseFailed || !decoded.structurallyValid || !decoded.replayAllowed || !decoded.payloadsRetained
         || decoded.schemas.size() != 6u || decoded.schemaPropertyNames.size() != 7u || decoded.records.size() != 2u) {
@@ -19422,9 +19538,10 @@ bool nativePagedDataStorageProjection(bool faults = false,
     public:
         dwgRW* writer = nullptr;
         DRW_UnsupportedObject raw;
-        LocalModelerGeometry region{DRW::REGION};
+        explicit Author(DRW::ETYPE type) : modeler(type) {}
+        LocalModelerGeometry modeler;
         DRW_RawDwgSection section;
-        bool wroteRegion = false, wroteSection = false;
+        bool wroteModeler = false, wroteSection = false;
         void writeViews() override {}
         void writeUCSs() override {}
         void writeHeader(DRW_Header& h) override { h.vars.clear(); }
@@ -19437,9 +19554,9 @@ bool nativePagedDataStorageProjection(bool faults = false,
         void writeVports() override {}
         void writeDimstyles() override {}
         void writeAppId() override {}
-        void writeEntities() override { wroteRegion = writer->writeRawDwgObject(&raw, &region); }
+        void writeEntities() override { wroteModeler = writer->writeRawDwgObject(&raw, &modeler); }
         void writeObjects() override { wroteSection = writer->writeRawDwgSection(&section); }
-    } author;
+    } author(entityType);
     class Importer final : public dx_iface {
     public:
         std::vector<DRW_RawDwgSection> rawSections;
@@ -19450,35 +19567,35 @@ bool nativePagedDataStorageProjection(bool faults = false,
     unsigned projections = 0u, retries = 0u, strictRefusals = 0u, reexports = 0u;
     for (const auto version : {DRW::AC1027, DRW::AC1032}) {
         if (!buildModelerExternalSabFrame(2u, true, author.raw.m_rawBytes, author.raw.m_bodyBitSize,
-                0x708u, DRW::NoHandle, version, DRW::REGION, DRW::DwgLayer0Handle)) return false;
+                0x708u, DRW::NoHandle, version, entityType, DRW::DwgLayer0Handle)) return false;
         auto frame = author.raw.m_rawBytes;
         dwgBuffer buffer(frame.data(), frame.size());
-        if (!author.region.parseDwg(version, &buffer, author.raw.m_bodyBitSize) || !buffer.isGood()) return false;
-        author.raw.m_objectType = dwgType::REGION; author.raw.m_handle = 0x708u;
+        if (!author.modeler.parseDwg(version, &buffer, author.raw.m_bodyBitSize) || !buffer.isGood()) return false;
+        author.raw.m_objectType = entityType == DRW::REGION ? dwgType::REGION : dwgType::SOLID3D; author.raw.m_handle = 0x708u;
         author.raw.m_parentHandle = DRW::NoHandle;
         author.raw.m_blockOwnerHandle = DRW::DwgModelSpaceBlockRecordHandle;
         author.raw.m_objectSize = static_cast<std::uint32_t>(author.raw.m_rawBytes.size());
         author.raw.m_isEntity = true; author.raw.m_hasDataStorage = true; author.raw.m_version = version;
         author.raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::ValidatedAbsent);
-        author.region.m_rawBytes = author.raw.m_rawBytes;
-        author.region.m_objectSize = author.raw.m_objectSize;
-        author.region.m_bodyBitSize = author.raw.m_bodyBitSize;
-        author.region.hasDataStorageRecord = true; author.region.dataStorageHandle = 0x708u;
-        author.region.dataStorageHandleKey = "708"; author.region.dataStorageData = payload;
-        author.region.dataStorageSegmentIndex = 2u; author.region.dataStorageSchemaIndex = 1u;
-        author.region.hasDataStoragePayloadMarker = true; author.region.dataStoragePayloadMarkerOffset = 0u;
-        author.region.dataStoragePayloadMarkerLength = 15u; author.region.dataStoragePayloadMarkerSection = "datastore";
-        author.region.m_dwgSourceVersion = version;
-        author.region.m_modelerVersion = 2u; author.region.m_isEmpty = false; author.region.m_hasModelerData = true;
+        author.modeler.m_rawBytes = author.raw.m_rawBytes;
+        author.modeler.m_objectSize = author.raw.m_objectSize;
+        author.modeler.m_bodyBitSize = author.raw.m_bodyBitSize;
+        author.modeler.hasDataStorageRecord = true; author.modeler.dataStorageHandle = 0x708u;
+        author.modeler.dataStorageHandleKey = "708"; author.modeler.dataStorageData = payload;
+        author.modeler.dataStorageSegmentIndex = 2u; author.modeler.dataStorageSchemaIndex = 1u;
+        author.modeler.hasDataStoragePayloadMarker = true; author.modeler.dataStoragePayloadMarkerOffset = 0u;
+        author.modeler.dataStoragePayloadMarkerLength = 15u; author.modeler.dataStoragePayloadMarkerSection = "datastore";
+        author.modeler.m_dwgSourceVersion = version;
+        author.modeler.m_modelerVersion = 2u; author.modeler.m_isEmpty = false; author.modeler.m_hasModelerData = true;
         author.section.m_name = "AcDb:AcDsPrototype_1b"; author.section.m_version = version; author.section.m_data = sectionBytes;
         const std::string revision = version == DRW::AC1027 ? "AC1027" : "AC1032";
         const auto nativePath = directory / ("native-" + revision + ".dwg");
         dwgRW writer(nativePath.string().c_str()); author.writer = &writer;
         if (!writer.reserveHandle(0x708u) || !writer.reserveHandle(0x700u)
-            || !writer.write(&author, version, true) || !author.wroteRegion || !author.wroteSection) {
+            || !writer.write(&author, version, true) || !author.wroteModeler || !author.wroteSection) {
             const auto diagnostic = writer.getLastDiagnostic();
             std::cerr << "Native paged author failed version=" << version << " error=" << writer.getError()
-                << " region=" << author.wroteRegion << " storage=" << author.wroteSection
+                << " modeler=" << author.wroteModeler << " storage=" << author.wroteSection
                 << " code=" << diagnostic.code << " message=" << diagnostic.message << '\n'; return false;
         }
         dx_data source; Importer importer;
@@ -19486,40 +19603,56 @@ bool nativePagedDataStorageProjection(bool faults = false,
             || source.sourceVersion != version || source.dataStorageSections.size() != 1u) return false;
         auto& storage = source.dataStorageSections.front();
         const auto* blob = storage.findRecordByHandle(0x708u);
-        if (!blob || !blob->isBlobReference || !blob->blobPayloadRetained || blob->payload != payload
-            || storage.schemas.size() != 6u || storage.orphanRecordCount != 1u || storage.segments.size() != 8u
-            || blob->schemaIndex != 1u || blob->segmentIndex != 2u || blob->blobPages.size() != 2u
+        if (!blob || blob->isBlobReference != paged || (paged && !blob->blobPayloadRetained) || blob->payload != payload
+            || storage.schemas.size() != 6u || storage.orphanRecordCount != 1u || storage.segments.size() != (paged ? 8u : 6u)
+            || blob->schemaIndex != 1u || blob->segmentIndex != 2u || blob->blobPages.size() != (paged ? 2u : 0u)
             || importer.rawSections.size() != 1u || importer.rawSections.front().m_data != sectionBytes) return false;
-        DRW_ModelerGeometry* region = nullptr;
+        DRW_ModelerGeometry* modeler = nullptr;
         for (auto* entity : source.mBlock->ent) {
-            if (entity && entity->eType == DRW::REGION && entity->handle == 0x708u)
-                region = static_cast<DRW_ModelerGeometry*>(entity);
+            if (entity && entity->eType == entityType && entity->handle == 0x708u)
+                modeler = static_cast<DRW_ModelerGeometry*>(entity);
         }
-        if (!region || !region->hasDataStorageRecord || !region->hasDataStorageBinaryData()
-            || region->dataStorageHandle != blob->handle || region->dataStorageHandleKey != blob->handleKey
-            || region->dataStorageSegmentIndex != blob->segmentIndex || region->dataStorageSchemaIndex != blob->schemaIndex
-            || region->dataStorageData != payload || region->m_rawBytes.empty() || region->m_historyHandle != 0u
-            || region->dwgLayerHandle() != DRW::DwgLayer0Handle || region->layer != "0") return false;
+        if (!modeler || !modeler->hasDataStorageRecord || !modeler->hasDataStorageBinaryData()
+            || modeler->dataStorageHandle != blob->handle || modeler->dataStorageHandleKey != blob->handleKey
+            || modeler->dataStorageSegmentIndex != blob->segmentIndex || modeler->dataStorageSchemaIndex != blob->schemaIndex
+            || modeler->dataStorageData != payload || modeler->m_rawBytes.empty() || modeler->m_historyHandle != 0u
+            || modeler->dwgLayerHandle() != DRW::DwgLayer0Handle || modeler->layer != "0") return false;
         const auto recordIndex = static_cast<std::size_t>(blob - storage.records.data());
         const auto savedRecord = *blob;
         const auto savedSchemaCount = storage.schemaCount;
-        const auto savedFrame = region->m_rawBytes;
+        const auto savedFrame = modeler->m_rawBytes;
+        if (!keepDirectory.empty() && !paged) {
+            std::ofstream sab(directory / ("native-" + revision + ".sab"), std::ios::binary);
+            sab.write(reinterpret_cast<const char*>(blob->payload.data()), static_cast<std::streamsize>(blob->payload.size()));
+            if (!sab) return false;
+        }
         const auto verify = [&](const std::filesystem::path& path) {
             dx_data imported; dx_iface reader;
             if (!reader.fileImport(path.string(), &imported, false) || imported.rawDxfSections.size() != 1u
                 || imported.sourceVersion != version || !hasExpectedAcdsSchemaDefinitions(imported.rawDxfSections.front())) return false;
-            const DRW_ModelerGeometry* outputRegion = nullptr;
+            const DRW_ModelerGeometry* outputModeler = nullptr;
             for (const auto* entity : imported.mBlock->ent) {
-                if (entity && entity->eType == DRW::REGION) {
-                    if (outputRegion) return false;
-                    outputRegion = static_cast<const DRW_ModelerGeometry*>(entity);
+                if (entity && entity->eType == entityType) {
+                    if (outputModeler) return false;
+                    outputModeler = static_cast<const DRW_ModelerGeometry*>(entity);
                 }
             }
-            if (!outputRegion || outputRegion->handle == 0x708u || outputRegion->m_historyHandle != 0u
-                || outputRegion->parentHandle != DRW::DxfModelSpaceBlockRecordHandle || outputRegion->layer != "0") return false;
-            char key[16]{}; std::snprintf(key, sizeof(key), "%X", outputRegion->handle);
-            return exactAcdsRecordWire(imported.rawDxfSections.front(), "ASM_Data", key, payload)
-                && exactAcdsRecordWire(imported.rawDxfSections.front(), "Thumbnail_Data", "700", thumbnail);
+            if (!outputModeler || outputModeler->handle == 0x708u || outputModeler->m_historyHandle != 0u
+                || outputModeler->parentHandle != DRW::DxfModelSpaceBlockRecordHandle || outputModeler->layer != "0"
+                || !imported.acshHistoryObjects.empty() || !imported.evaluationGraphs.empty()
+                || !imported.rawProxyObjects.empty()) return false;
+            char key[16]{}; std::snprintf(key, sizeof(key), "%X", outputModeler->handle);
+            if (!exactAcdsRecordWire(imported.rawDxfSections.front(), "ASM_Data", key, payload)
+                || !exactAcdsRecordWire(imported.rawDxfSections.front(), "Thumbnail_Data", "700", thumbnail)) return false;
+            if (!keepDirectory.empty() && !paged) {
+                std::string owner; std::vector<std::uint8_t> extracted;
+                if (!findAcdsRecordPayload(imported.rawDxfSections.front(), "ASM_Data", owner, extracted)
+                    || owner != key || extracted != payload) return false;
+                std::ofstream sab(path.string() + ".sab", std::ios::binary);
+                sab.write(reinterpret_cast<const char*>(extracted.data()), static_cast<std::streamsize>(extracted.size()));
+                if (!sab) return false;
+            }
+            return true;
         };
         for (bool binary : {false, true}) {
             const auto output = directory / (revision + (binary ? "-binary.dxf" : "-ascii.dxf"));
@@ -19535,26 +19668,39 @@ bool nativePagedDataStorageProjection(bool faults = false,
                 return std::string(std::istreambuf_iterator<char>{in}, std::istreambuf_iterator<char>{}) == sentinel; };
             if (!saveSentinel() || publish(dx_dwgReadCompletenessPolicy::RequireComplete) || !preserved()) return false;
             ++strictRefusals;
-            for (unsigned fault = faults ? 1u : 0u; fault <= (faults ? 8u : 0u); ++fault) {
+            const unsigned lastFault = entityType == DRW::E3DSOLID ? 11u : 8u;
+            for (unsigned fault = faults ? 1u : 0u; fault <= (faults ? lastFault : 0u); ++fault) {
                 auto& record = storage.records[recordIndex];
                 if (fault) {
                     switch (fault) {
-                    case 1: record.blobPayloadRetained = false; break;
-                    case 2: --record.blobTotalByteLength; break;
-                    case 3: --record.blobPages.front().byteLength; break;
+                    case 1: if (paged) record.blobPayloadRetained = false; else storage.payloadsRetained = false; break;
+                    case 2: if (paged) --record.blobTotalByteLength; else --record.dataByteLength; break;
+                    case 3: if (paged) --record.blobPages.front().byteLength; else record.hasPayloadMarker = false; break;
                     case 4: record.payload.back() ^= 1u; break;
                     case 5: record.handleKey = "709"; break;
                     case 6: record.schemaIndex = 0u; break;
                     case 7: --storage.schemaCount; break;
-                    case 8: region->dataStorageData.back() ^= 1u; break;
+                    case 8: modeler->dataStorageData.back() ^= 1u; break;
+                    case 9: modeler->m_historyHandle = 0x709u; break;
+                    case 10: {
+                        DRW_ProxyObject unused; unused.handle = 0x709u;
+                        source.proxyObjects.push_back(std::move(unused)); break;
+                    }
+                    case 11: modeler->eType = DRW::BODY; break;
                     }
                     if (!saveSentinel()) return false;
                     const bool refused = !publish(dx_dwgReadCompletenessPolicy::AllowPartial) && preserved();
-                    record = savedRecord; storage.schemaCount = savedSchemaCount; region->dataStorageData = payload;
+                    record = savedRecord; storage.schemaCount = savedSchemaCount; modeler->dataStorageData = payload;
+                    storage.payloadsRetained = true; modeler->m_historyHandle = 0u; modeler->eType = entityType;
+                    if (fault == 10u) source.proxyObjects.pop_back();
                     if (!refused) { std::cerr << "Native paged fault did not refuse: " << fault << '\n'; return false; }
                     ++retries;
                 }
-                if (!publish(dx_dwgReadCompletenessPolicy::AllowPartial) || !verify(output)) return false;
+                if (!publish(dx_dwgReadCompletenessPolicy::AllowPartial) || !verify(output)) {
+                    std::cerr << "Native modeler projection failed: type=" << entityType
+                        << " paged=" << paged << " version=" << version << " fault=" << fault << '\n';
+                    return false;
+                }
                 ++projections;
                 dx_data imported; dx_iface reader, replay;
                 const auto second = directory / (revision + (binary ? "-replay-ascii.dxf" : "-replay-binary.dxf"));
@@ -19565,18 +19711,33 @@ bool nativePagedDataStorageProjection(bool faults = false,
             }
         }
         const auto& after = storage.records[recordIndex];
-        if (region->handle != 0x708u || region->m_rawBytes != savedFrame || region->dataStorageData != payload
+        if (modeler->handle != 0x708u || modeler->m_rawBytes != savedFrame || modeler->dataStorageData != payload
             || after.handle != savedRecord.handle || after.handleKey != savedRecord.handleKey
             || after.payload != savedRecord.payload || after.blobTotalByteLength != savedRecord.blobTotalByteLength
-            || !after.blobPayloadRetained || after.schemaIndex != savedRecord.schemaIndex
+            || after.blobPayloadRetained != savedRecord.blobPayloadRetained || after.schemaIndex != savedRecord.schemaIndex
             || after.blobPages.size() != savedRecord.blobPages.size()
-            || after.blobPages.front().byteLength != savedRecord.blobPages.front().byteLength
+            || (paged && after.blobPages.front().byteLength != savedRecord.blobPages.front().byteLength)
             || storage.schemaCount != savedSchemaCount || source.sourceFormat != dx_source_format::DWG
             || source.sourceVersion != version) return false;
     }
-    std::cout << "Native paged DataStorage imports=2 projections=" << projections << " reexports=" << reexports
+    std::cout << "Native DataStorage type=" << entityType << " paged=" << paged << " imports=2 projections=" << projections << " reexports=" << reexports
         << " strict-refusals=" << strictRefusals << " restored-retries=" << retries << '\n';
     return true;
+}
+
+bool nativeHistorylessSolidWitness(const std::filesystem::path& sabPath,
+    const std::filesystem::path& outputDirectory, bool faults) {
+    // Optional developer harness only. Bound allocation/reading independently
+    // of the supplied file size, and do not admit directories or special files.
+    std::error_code ec;
+    if (!std::filesystem::is_regular_file(sabPath, ec) || ec) return false;
+    const auto size = std::filesystem::file_size(sabPath, ec);
+    if (ec || size < 15u || size > DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE) return false;
+    std::ifstream input(sabPath, std::ios::binary);
+    std::vector<std::uint8_t> payload(static_cast<std::size_t>(size));
+    if (!input.read(reinterpret_cast<char*>(payload.data()), static_cast<std::streamsize>(payload.size()))
+        || input.peek() != std::char_traits<char>::eof()) return false;
+    return nativePagedDataStorageProjection(faults, outputDirectory, DRW::E3DSOLID, payload);
 }
 
 bool modelerStorageFlagMatchesWireBit(
@@ -33505,6 +33666,29 @@ int main(int argc, char** argv) {
         return verifyHatchReferenceFile(argv[2]) ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--acds-record-wire-controls") {
         return acdsRecordWireControls() ? 0 : 1;
+    } else if (argc == 2 && std::string(argv[1]) == "--acds-typed-historyless-companion") {
+        return runDxfTypedAcdsBoxRoundTrip(false, directory, false, 0, true)
+            && runDxfTypedAcdsBoxRoundTrip(true, directory, false, 0, true) ? 0 : 1;
+    } else if (argc == 4
+        && (std::string(argv[1]) == "--native-historyless-solid-witness"
+            || std::string(argv[1]) == "--native-historyless-solid-witness-faults")) {
+        return nativeHistorylessSolidWitness(argv[2], argv[3],
+            std::string(argv[1]) == "--native-historyless-solid-witness-faults") ? 0 : 1;
+    } else if ((argc == 2 || argc == 3)
+        && (std::string(argv[1]) == "--native-historyless-solid"
+            || std::string(argv[1]) == "--native-historyless-solid-faults"
+            || std::string(argv[1]) == "--native-historyless-solid-inline"
+            || std::string(argv[1]) == "--native-historyless-solid-inline-faults")) {
+        const std::string mode = argv[1];
+        std::vector<std::uint8_t> inlineControl;
+        if (mode.find("-inline") != std::string::npos) {
+            inlineControl.resize(513u, 0x53u);
+            const std::string marker = "ACIS BinaryFile";
+            std::copy(marker.begin(), marker.end(), inlineControl.begin());
+        }
+        return nativePagedDataStorageProjection(mode.find("-faults") != std::string::npos,
+            argc == 3 ? std::filesystem::path(argv[2]) : std::filesystem::path{},
+            DRW::E3DSOLID, inlineControl) ? 0 : 1;
     } else if ((argc == 2 || argc == 3)
         && (std::string(argv[1]) == "--native-paged-datastorage"
             || std::string(argv[1]) == "--native-paged-datastorage-faults")) {
@@ -33666,6 +33850,9 @@ int main(int argc, char** argv) {
                      " [--modeler-acds-r2013plus-projection]"
                      " [--modeler-acds-blob-projection] [--modeler-acds-blob-faults]"
                      " [--native-paged-datastorage[-faults] [EMPTY_DIRECTORY]]"
+                     " [--native-historyless-solid[-inline][-faults] [EMPTY_DIRECTORY]]"
+                     " [--native-historyless-solid-witness[-faults] SAB_FILE EMPTY_DIRECTORY]"
+                     " [--acds-typed-historyless-companion]"
                      " [--acds-record-wire-controls]"
                      " [--modeler-dxf-long-carrier]"
                      " [--modeler-dxf-chunk-boundaries]"

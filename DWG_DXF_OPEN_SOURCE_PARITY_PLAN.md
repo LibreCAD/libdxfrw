@@ -1,4 +1,6 @@
-**Newest commit/plan checkpoint (2026-10-25):** RPP-5cp is committed as `a20cf67121b09dde2d471682c72a58d3b7d92c8f`. No tracked implementation changes remain pending. This documentation-only checkpoint records the existing verified results and narrows the next investigation to an entity-correct SAB witness and the converter's two historyless-3DSOLID guards; it does not implement that route or promote support. [Committed state and next-slice readiness](#commit-checkpoint-rpp-5cp-and-next-slice-readiness-2026-10-25).
+**Newest implementation checkpoint — RPP-5cq historyless 3DSOLID native transport (2026-10-25):** reproduced inline/paged refusals are fixed without inventing history or relaxing ownership inventories. A genuine six-face solid remains 3DSOLID through native AC1027/AC1032 import and DXF reexport, with independent output parsing and advisory geometry observations. All 27 normal/27 ASan tests and both LibreCAD_3 compile gates pass. Mixed typed-history DXF reexport still refuses an unrepresented raw ACSH graph owner; that separate gap remains open. Strict admission stays **CLOSED**. [Implementation and remaining work](#implementation-progress-rpp-5cq-historyless-solid-native-transport-2026-10-25) · [receipt](docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json).
+
+**Previous commit/plan checkpoint (2026-10-25):** RPP-5cp is committed as `a20cf67121b09dde2d471682c72a58d3b7d92c8f`; its plan-only commit is `4cf0bed34fab40d6862a49d0d3b057b5be8dd187`. The following readiness record is historical; RPP-5cq's actual results and remaining limitations supersede its unimplemented candidate status. [Committed state and next-slice readiness](#commit-checkpoint-rpp-5cp-and-next-slice-readiness-2026-10-25).
 
 **Newest implementation checkpoint — RPP-5cp native paged DataStorage source and output proof (2026-10-25):** the RPP-5co route now has complete generated AC1027/AC1032 file imports, with native schema/search segments and a layer-bound REGION. No schema/record transplant occurs after import. Source-section bytes, decoded joins and canonical output fields pass 36 projections and 36 actual-import opposite-encoding reexports, 32 source-edit atomic restoration retries and eight strict-policy refusals. Literal record controls pass two positives and 26 corruption/restoration pairs. Final 22 normal / 22 ASan tests, CLI optional-build registration and both LibreCAD_3 compile gates pass. LibreDWG corroborates container/entity/layer/membership facts, but its schema role/decoder/search limitations do not qualify full schema or SAB semantics. Generated SAB/PNG markers are not valid geometry/image witnesses; general native carrier, semantic and platform work stays open. Strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5cp-native-paged-datastorage-source-and-output-proof-2026-10-25) · [receipt](docs/research/rpp5cp-native-paged-datastorage-source-proof-2026-10-25.json).
 
@@ -122806,3 +122808,129 @@ Strict admission remains **CLOSED**; J256/J260/J268/J284/J293/J295 remain
 semantic/kernel qualification remain **NOT_RUN**. Keep the full LibreCAD/
 LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD objective. No drawing fixture, earlier
 receipt, unrelated untracked file or remote state is changed by this update.
+
+## Implementation progress RPP-5cq historyless solid native transport (2026-10-25)
+
+The preceding commit/readiness checkpoint is committed as
+`4cf0bed34fab40d6862a49d0d3b057b5be8dd187`. Implement its bounded
+historyless-solid route without reducing the original full parity objective.
+
+1. [x] Read ODA v5.4.1 section 24's segment/header, inline record, schema and
+   search layouts before extending the scratch source author. Keep its second
+   schema table order and 64-bit search fields. Autodesk's official
+   [BREP command documentation](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-Core/files/GUID-AE581A57-7045-41AC-B1C4-3E8FDED0ACBA.htm)
+   establishes that solid history can be removed; it is not proof of an entire
+   native producer profile. No native production parser/encoder is changed.
+2. [x] Reproduce the defect against unchanged production code. New inline and
+   paged historyless-3DSOLID controls fail projection, while the existing paged
+   REGION control passes. An actual 5,489-byte SAB box also imports from its
+   generated native source and then fails export (harness exit 1). Attribute
+   the restriction to the two REGION-only zero-history guards, not a source
+   schema transplant, malformed container or absent payload.
+3. [x] Correct both proxy and typed BOX history collectors. Their existing
+   inspection already restricts DataStorage owners to REGION/3DSOLID; permit
+   absent history for either without creating any operation graph. Keep all
+   nonzero-history role/closure checks, duplicate and final unused-object
+   inventories, BODY refusal, material closure and version/schema/retention/
+   owner gates. Public API/ABI/callbacks, support masks, completeness policies
+   and semantic qualification predicates are unchanged.
+4. [x] Reuse the full native generator with an explicit entity kind and bounded
+   inline record growth. Existing helper defaults and paged REGION controls
+   remain intact. Inline carriers have six segments; paged carriers retain
+   eight. Both author complete native schema/search data and use the actual
+   imported records/joins and whole raw-section bytes. Add a bounded regular-
+   file SAB option and preserve actual source and output payload sidecars only
+   in an explicitly empty scratch directory. Reusing an occupied directory
+   exits 1 and preserves all 20 existing generated artifact hashes.
+5. [x] Register four dependency-free solid selectors: inline/paged positives
+   and faults. Per cohort, eight generated native file instances pass 96
+   projections/readbacks, 96 actual-import opposite-encoding reexports,
+   88 restored same-facade retries and 16 strict sentinel refusals. Eleven
+   faults cover retention, length/page sum or marker, bytes/key/schema roles,
+   nonzero unresolved history, unused proxies and BODY. Preserve exact canonical
+   ACDS fields/bytes, mapped solid owner, thumbnail key, layer and source frame.
+   These marker-bearing generated payloads are still not semantic witnesses.
+6. [x] Exercise the typed BOX lane with a distinct historyless solid and payload.
+   Across both encodings, ten sentinel-preserving refusals/restored readbacks
+   cover removing the original history, an unresolved neighbor history, BODY,
+   an unused ACSH record and an unused graph. Two final direct readbacks retain
+   exactly two remapped payload associations, one existing history and one
+   absent history, the graph, class and material fields. Do not weaken the
+   final used-history/graph counts to admit those malformed inventories.
+7. [x] Generate the genuine six-face box from scratch using the existing ezdxf
+   tool; never pad its SAB to force paging or relabel it as REGION. Both normal
+   and ASan optional witness runs pass 48 projections/readbacks and 48 parsed
+   opposite-encoding reexports, 44 restored retries and eight strict refusals
+   per configuration. The output SAB has the original SHA-256 in every retained
+   native/output extraction. No generated drawing fixture enters the repository.
+8. [x] Independently parse all 16 retained final normal-run DXFs with ezdxf
+   1.4.4: one 3DSOLID, no REGION, null history and exact SAB bytes in each. These
+   are eight positive and eight final corrected-fault outputs/reexports, not
+   independent parsing of every overwritten intermediate fault attempt. Read
+   the original SAB and an actual AC1032 binary-output extraction with cq-acis
+   0.3.12/cadquery 2.8.0: valid closed Solid, one shell, six faces, twelve edges,
+   bounds (-2.5,-3.5,-5.5)..(2.5,3.5,5.5), volume about 385 and area 334.
+   The reports retain `qualificationEligible=false`: model-coordinate truth is
+   locally authored, OCCT is shared, native semantic coverage is unqualified,
+   and parser-declared units do not establish source drawing-unit truth.
+9. [x] Obtain limited independent native structural corroboration. LibreDWG
+   0.14 reports SUCCESS on both complete genuine-payload files, confirming
+   3DSOLID fixed type 38/handle 708, null history, DataStorage flag/modeler
+   version, layer pointer and six segment names in a 6,784-byte section.
+   RPP-5cp's peer schema-role/decoder/search-width limitations still apply;
+   SUCCESS and declared counts do not qualify native schema or SAB semantics.
+10. [x] Final affected builds and both LibreCAD_3 compile gates pass. All 27
+    normal tests pass in 18.25 s and all 27 ASan tests pass in 38.37 s, with
+    parallelism 3 inside sequential cohorts and ASan
+    halt_on_error=1:detect_leaks=0. CLI static/shared-on/off registration passes
+    in 2.71 s. Preserve owning, rooted XRECORD, IMAGE reactor, existing modeler/
+    DataStorage and reader controls. No full suite or leak/platform gate is
+    claimed; optional pinned tools are not build or repository dependencies.
+
+Newly exposed gap — not fixed or hidden by this slice:
+
+- [ ] DXF reexport after importing the mixed typed BOX/history output still
+  fails `prepareExtensionObjectGraph` with “EvaluationGraph owner is unresolved
+  or not representable.” The owner is a raw ACSH history record that the
+  extension graph has not admitted. Two sentinel-preserving refusals now
+  protect that boundary. Direct typed projection/restored readback works;
+  successful parsed mixed-history reexport is explicitly **NOT_CLAIMED**.
+  The initial overbroad reexport assertion exposed this separate contract gap;
+  it was not repaired by discarding history, clearing graphs or admitting an
+  arbitrary raw handle. Preserve the debug evidence in the receipt.
+
+Next implementation-ready work, retaining the full original parity objective:
+
+1. [ ] Close the selected raw ACSH/EvaluationGraph owner/expression route.
+   Inspect the actual imported raw history and BOX records, graph owner/node
+   references, class identity and material closure. Define bounded selected
+   roles and source-generation/common-link contracts; prove exact emitted
+   identity, owners, expression targets and raw fields before admitting them.
+   Reproduce both encodings, then require successful actual-import opposite-
+   encoding reexport. Keep malformed/orphaned/ambiguous graphs atomic, restore
+   source state and prove same-facade retries. Never bypass `hasParent` with
+   mere presence of an arbitrary raw object or promote counts to support proof.
+2. [ ] Obtain independent complete native schema/payload/owner and producer-
+   paired semantic/kernel evidence. The locally authored box and advisory
+   cq-acis observations improve concrete evidence but do not complete that
+   qualification. Retain ODA field-order/width precedence and track peer gaps.
+3. [ ] Complete general native raw-carrier/schema/owner-byte propagation,
+   cumulative retention/decoded-owner bounds and late-source mutation across
+   families/generations. Continue owning/common-extension/source-generation
+   aliases, callbacks, names/body/path/EED, sparse classes, full IMAGE and
+   named-root/document closure. Preserve LibreCAD/LibreCAD_3 2D and the full
+   3D/dwg2dxf/FreeCAD scope; this slice does not replace the remaining plan.
+4. [ ] Self-update evidence, limits, next action and a new immutable receipt
+   after each item; safely resolve in-scope dependencies, commit/report each
+   verified slice and prefer fast affected tests. Keep cross-build owning
+   cohorts sequential until legacy fixed temporary paths are isolated.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support claim, native
+producer/schema qualification, fixture commit, earlier receipt mutation or
+remote update follows from this work. All 17 pre-existing untracked drawings
+and unrelated files remain excluded.
+
+Receipt:
+[`rpp5cq-historyless-solid-native-transport-2026-10-25.json`](docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json).

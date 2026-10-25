@@ -986,6 +986,26 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dwg_local_roundtrip --acds-record-wire-controls)
     set_tests_properties(libdxfrw_acds_exact_record_wire_controls PROPERTIES
         LABELS "fast;dxf;modeler;acds;wire;generated" TIMEOUT 10)
+    foreach(_solid_mode IN ITEMS paged inline)
+        if(_solid_mode STREQUAL "inline")
+            set(_solid_selector "--native-historyless-solid-inline")
+        else()
+            set(_solid_selector "--native-historyless-solid")
+        endif()
+        add_test(NAME dwg2dxf_native_historyless_solid_${_solid_mode}
+            COMMAND libdxfrw_dwg_local_roundtrip ${_solid_selector})
+        add_test(NAME dwg2dxf_native_historyless_solid_${_solid_mode}_faults
+            COMMAND libdxfrw_dwg_local_roundtrip ${_solid_selector}-faults)
+        set_tests_properties(dwg2dxf_native_historyless_solid_${_solid_mode}
+            dwg2dxf_native_historyless_solid_${_solid_mode}_faults PROPERTIES
+            LABELS "fast;dwg;dxf;modeler;acds;history;generated" TIMEOUT 60)
+    endforeach()
+    unset(_solid_selector)
+    unset(_solid_mode)
+    add_test(NAME dwg2dxf_acds_typed_historyless_companion
+        COMMAND libdxfrw_dwg_local_roundtrip --acds-typed-historyless-companion)
+    set_tests_properties(dwg2dxf_acds_typed_historyless_companion PROPERTIES
+        LABELS "fast;dwg;dxf;modeler;acds;history;transaction;generated" TIMEOUT 30)
     add_test(NAME dwg2dxf_modeler_acds_blob_faults
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-faults)
     set_tests_properties(dwg2dxf_modeler_acds_blob_faults PROPERTIES

@@ -6005,10 +6005,10 @@ bool dx_iface::collectAcdsHistoryProxyObjects(
             return false;
         }
         if (modeler->m_historyHandle == 0) {
-            // The independently witnessed REGION has no history reference.
-            // Do not synthesize an operation graph for that entity.
-            if (modeler->eType != DRW::REGION)
-                return false;
+            // REGION and 3DSOLID may lack operation history (e.g. BREP
+            // removes solid history). inspect() already limited the entity
+            // kinds. Do not invent a graph; the final inventory check still
+            // refuses every unused proxy rather than dropping it.
             continue;
         }
         if (modeler->eType != DRW::E3DSOLID
@@ -6231,8 +6231,9 @@ bool dx_iface::collectAcdsTypedBoxHistoryObjects(
             return reject("duplicate or zero DataStorage modeler handle");
         }
         if (modeler->m_historyHandle == 0) {
-            if (modeler->eType != DRW::REGION)
-                return reject("3DSOLID has no history owner", modeler->handle);
+            // A historyless REGION/3DSOLID may coexist with a typed BOX.
+            // Keep closing all actual histories and reject leftover objects
+            // below; absence is not permission to discard a partial graph.
             continue;
         }
         if (modeler->eType != DRW::E3DSOLID)
