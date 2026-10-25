@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ci XRECORD point18 and finite-real observer parity (2026-10-24):** two reproduced DXF projection failures are fixed: point18 now completes only on an exact 18/28/38 tuple without consuming standalone 38/39 scalars, and the independent decimal observer accepts representable subnormals without relaxing malformed/nonfinite/overflow refusal. Six scratch native sources pass 72 projections and 72 actual-import reexports; 24 legacy cells stay unqualified. Core controls pass 28 authored cells, 28 cross-encoding reexports, 52 atomic source retries, four node-budget boundaries and eight inexact reconstruction retries; 16 native late-source retries pass. Independent numeric controls pass 96 positives and 1,328 partial-token refusals. Final 58 focused, five owning, four reader/consumer and 39 ASan tests pass, with both LibreCAD_3 compile gates. Broader record/common-metadata closure and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ci-xrecord-point18-and-finite-real-observer-parity-2026-10-24) · [receipt](docs/research/rpp5ci-xrecord-point18-and-finite-real-parity-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5cj selected XRECORD dictionary-route and source-context guards (2026-10-24):** two reproduced late-source publication gaps are fixed by freezing the selecting ordinary-dictionary closure and source-format identity alongside selected XRECORD payloads. Eighteen actual scratch DWG/DXF sources pass 216 projections and 216 parsed cross-encoding reexports through nested dictionary routes; 384 atomic source-edit retries, 16 cumulative-budget retries and 16 unselected isolation controls pass. All 24 legacy native-source cells stay unqualified; unselected records earn no output fact. Final 64 focused, five owning, four reader/consumer and 45 ASan tests pass, with both LibreCAD_3 compile gates. Broader alias/common/raw-carrier/document closure and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cj-selected-xrecord-dictionary-route-and-source-context-guards-2026-10-24) · [receipt](docs/research/rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5ci XRECORD point18 and finite-real observer parity (2026-10-24):** two reproduced DXF projection failures are fixed: point18 now completes only on an exact 18/28/38 tuple without consuming standalone 38/39 scalars, and the independent decimal observer accepts representable subnormals without relaxing malformed/nonfinite/overflow refusal. Six scratch native sources pass 72 projections and 72 actual-import reexports; 24 legacy cells stay unqualified. Core controls pass 28 authored cells, 28 cross-encoding reexports, 52 atomic source retries, four node-budget boundaries and eight inexact reconstruction retries; 16 native late-source retries pass. Independent numeric controls pass 96 positives and 1,328 partial-token refusals. Final 58 focused, five owning, four reader/consumer and 39 ASan tests pass, with both LibreCAD_3 compile gates. Broader record/common-metadata closure and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ci-xrecord-point18-and-finite-real-observer-parity-2026-10-24) · [receipt](docs/research/rpp5ci-xrecord-point18-and-finite-real-parity-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5ch native XRECORD application binary transport (2026-10-24):** a reproduced missing modeled-output fact for a native 128-byte application BINARY value is fixed by matching each source value's exact 127-byte DXF chunks. The comparator preserves field codes, source-value boundaries, order and following mapped references without concatenation or new writer encoding. Forty-two scratch native sources pass 504 projections and 504 actual-import reexports; 168 legacy cells remain unqualified. Controls pass 112 actual late-source atomic refusal/restored-readback retries, 550 copied-model corruption/restoration checks, ten same-byte boundary refusals and six invalid source kind/code refusals. Final 53 focused, five owning, four reader/consumer and 34 ASan tests pass, with both LibreCAD_3 compile gates. Broader selected-record/coordinate/common-metadata closure and independent qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ch-native-xrecord-application-binary-transport-2026-10-24) · [receipt](docs/research/rpp5ch-native-xrecord-application-binary-transport-2026-10-24.json).
 
@@ -121807,6 +121809,9 @@ closure, whole-document immutability or the original DWG/DXF parity objective.
 Next implementation-ready work, retaining the full original parity objective:
 
 1. [ ] Add actual accepted multiple selected/unselected XRECORD source cases.
+   RPP-5cj below completes the bounded nested two-selected/one-unselected matrix,
+   closes dictionary-route/source-format gaps and adds cumulative snapshot-budget
+   retries; alias/branch and broader source-generation/family cases remain open.
    Check selection, alias/order, generation/ownership, following references,
    staged output, final-source comparison, atomic refusal and restored readback
    before changing normalization. The audited point18 path is complete only
@@ -121814,8 +121819,11 @@ Next implementation-ready work, retaining the full original parity objective:
    mapping needs authoritative DWG specification and bounded real-source proof;
    do not infer admission from DXF numeric ranges or scratch roundtrips alone.
 2. [ ] Complete supported common-metadata and cumulative snapshot/decoded-owner
-   budget controls across multiple records. Inspect DataStorage's raw carriers:
-   `hasDsData` Boolean equality does not prove payload-byte preservation. First
+   budget controls across multiple records. RPP-5cj completes the bounded
+   combined XRECORD/dictionary snapshot-budget
+   controls below, not every decoded-owner/raw-carrier retention requirement.
+   Inspect DataStorage's raw carriers: `hasDsData` Boolean equality does not
+   prove payload-byte preservation. First
    establish accepted source cases and explicit supported replay/refusal routes;
    do not claim all-field or whole-document immutability from this slice.
 3. [ ] Extend admitted/future profile checks to remaining callback phases and
@@ -121842,3 +121850,117 @@ unrelated files remain excluded. Earlier receipts and remote state are unchanged
 
 Receipt:
 [`rpp5ci-xrecord-point18-and-finite-real-parity-2026-10-24.json`](docs/research/rpp5ci-xrecord-point18-and-finite-real-parity-2026-10-24.json).
+
+## Implementation progress — RPP-5cj selected XRECORD dictionary-route and source-context guards (2026-10-24)
+
+RPP-5ci is committed as `817a37c832fbee9f058fa76838930bb297891123`.
+The multiple selected/unselected audit reproduces two late-source publication
+gaps and closes them without changing output normalization or native grammar.
+This is bounded selected-closure proof, not all-field/document immutability
+or completion of the original DWG/DXF parity objective.
+
+1. [x] Reproduce a real selecting-dictionary gap before production changes.
+   Twelve public scratch DXF sources pass 144 projections and 144 actual-import
+   cross-encoding reexports with two cross-referencing selected XRECORDs and an
+   interleaved unselected record. Yet swapping the selecting dictionary's child
+   targets after OBJECTS emission publishes successfully, despite an unchanged
+   destination sentinel being required (fault mode 8, R2018 ASCII source/target,
+   first fault test 0.41 s, CTest exit 8). Earlier payload/list/context refusals
+   are expected controls. This baseline does not exercise the full fault matrix.
+2. [x] Freeze selection routes, not just payload leaves. When XRECORDs are
+   selected, capture the validated ordinary-dictionary closure under the same
+   bounded per-write source budget. Precharge dictionary vector/handle storage,
+   dynamic common fields and entry names before copying, with cumulative
+   record/value/entry caps and overflow-safe subtraction. Retain distinct sorted
+   handle indexes and source-list ordering; reject missing/duplicate/reordered
+   selected records, changed entry names/targets/roles, parent/cloning/hard-owner
+   metadata, incomplete/capped carriers and XRECORD/DICTIONARY identity collisions.
+   Generated NOD/GROUP roots keep their existing separate source/output guards.
+   Use bounded scans plus handle-index lookup rather than rebuilding the graph
+   at every phase. No whole-process physical-memory or performance claim follows.
+3. [x] Reproduce the remaining source-context hole after adding dictionary guards.
+   An accepted scratch R2000 native import can change its source-format identity
+   DWG-to-DXF after OBJECTS and still publish (mode 14, ASCII target, fault
+   test 0.54 s, CTest exit 8). The nested positive matrix already passes 18 sources
+   and 216 exports/reexports at this stage. Freeze source format alongside the
+   existing owner/version/generation binding. Neither source receipt nor native
+   eligibility is refreshed. Do not describe setup corrections/no-op edits in
+   the test harness as production failures.
+4. [x] Register separate fast positive and fault selectors. Eighteen sources
+   comprise six native revisions AC1015/18/21/24/27/32 plus both DXF encodings of
+   those six revisions. Each actual source contains an NOD-to-ancestor-to-leaf
+   dictionary route, two cross-referencing selected XRECORDs and one unselected
+   record. Dictionary key order differs from record/handle order. Bodies combine
+   application 102/100/280, point18 signed zero/subnormal, standalone 38, a 128-byte
+   BINARY 310 and a following 330 reference/tail string. Six DXF targets and both
+   encodings pass 216 projections and 216 actual parsed cross-encoding reexports,
+   checking actual 128-to-127+1 transport, owners, membership/order, mapped reference
+   roles, payload values, compatibility handle/value views and unchanged sources.
+   Each active capture contains exactly two XRECORDs and two ordinary dictionaries.
+5. [x] Keep qualification separate from selection. All 24 legacy native-source
+   projection cells stay unqualified. All 48 modern native-source cells retain
+   only the four existing selected modeled facts (two DICTIONARYs/two XRECORDs);
+   the unselected native record earns no output fact. Twelve default strict-policy
+   sentinel refusals pass; explicit compatible/AllowPartial projections do not
+   widen admission. Scratch native writer/readback is not independent producer
+   or application-semantic evidence.
+6. [x] Exercise 384 real atomic source-edit refusal/restored-readback retries:
+   R2018 ASCII/binary DXF and R2000/R2018 native sources, both target encodings,
+   after-OBJECTS/before-finalization hooks, and 24 payload/list/order/identity/
+   owner/generation/version/format/dictionary route/role/metadata/count-cap edits.
+   Restoring original public records/context retries on the same facade and
+   preserves the destination sentinel on refusal. Native source-correlation
+   checks remain valid after restoration. Each facade export creates its own
+   codec; no private source receipt is changed.
+7. [x] Exercise 16 cumulative snapshot zero/one-byte-under refusals followed by
+   exact-budget successful readback retries. The budget covers both selected
+   XRECORDs and both ordinary dictionaries, not an independently measured heap
+   footprint or every decoded-owner budget. Sixteen DXF-only late unselected
+   payload/reorder edits remain outside the selected-source proof and preserve
+   selected output, avoiding blanket whole-document immutability claims. Native
+   source snapshots retain their stricter original import checks. Per-write
+   vectors/indexes and retained-byte totals are released on return/failure.
+8. [x] Final strict affected builds and both LibreCAD_3 compile gates pass.
+   Final 64 focused tests pass 33.74 s, five owning tests
+   pass 11.05 s, four reader/consumer tests pass 2.16 s
+   and 45 scoped ASan tests pass 68.14 s, parallelism 3 inside cohorts.
+   Normal cohorts run sequentially. ASan uses `halt_on_error=1:detect_leaks=0`.
+   No full suite, leak/platform/kernel qualification or speed/memory benchmark
+   is claimed. Public core API/layout, DRW_Interface callbacks, native
+   parser/encoder/predicates, strict masks and document composition are unchanged.
+
+Next implementation-ready work, retaining completeness and the full parity scope:
+
+1. [ ] Extend accepted alias/branch cases and supported common metadata rather
+   than marking all selected-graph closure complete. Cover more owning families,
+   source-generation aliases and cross-family identity routes with actual source
+   imports and readbacks. Keep explicit supported/replay/refusal contracts for
+   unselected and opaque records; this slice does not authorize source merging.
+2. [ ] Audit DataStorage raw carriers and cumulative decoded-owner/retention
+   accounting. `hasDsData` Boolean equality is not payload-byte proof; the
+   dictionary snapshot here freezes modeled common data, not every raw carrier.
+   Establish accepted source cases, compare actual bytes/references, and test
+   exact/under-budget failures and restored readback before claiming completeness.
+3. [ ] Continue remaining admitted/future-profile callback phases and incompatible
+   next-operation attempts, independent APPID/LAYER/XRECORD name/body/path/EED
+   evidence, sparse native class counts, full IMAGE/common geometry and named-root/
+   document closure. Native point19/component-coded 20/30 remain unqualified:
+   native grammar/layout changes require the authoritative DWG spec and bounded
+   real-source traces, not inferred DXF numeric ranges or scratch self-roundtrips.
+4. [ ] After each item, self-update evidence/status/limits/next action and a new
+   immutable receipt, resolve safe local blockers, commit verified slices and
+   show progress. Keep separate fast positive/fault/model selectors; run scoped
+   owning/consumer/sanitizer checkpoints without full-suite repetition per edit.
+   Preserve LibreCAD/LibreCAD_3 2D compatibility and original 3D/dwg2dxf/FreeCAD
+   requirements. Continue safe authorized work without avoidable stops; request
+   input only for new authority or a material user choice.
+
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. This local commit includes
+implementation, tests, the plan and a new receipt, not drawing fixtures. All 17
+pre-existing untracked drawings and unrelated files remain excluded. Earlier
+receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json`](docs/research/rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json).

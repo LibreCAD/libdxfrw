@@ -597,6 +597,14 @@ add_test(NAME dwg2dxf_native_xrecord_coordinates
     COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-coordinates)
 set_tests_properties(dwg2dxf_native_xrecord_coordinates PROPERTIES
     LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_multiple_selected_xrecords
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --multiple-selected-xrecords)
+set_tests_properties(dwg2dxf_multiple_selected_xrecords PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_multiple_selected_xrecord_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --multiple-selected-xrecord-faults)
+set_tests_properties(dwg2dxf_multiple_selected_xrecord_faults PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;transaction;adapter;generated" TIMEOUT 60)
 add_test(NAME dwg2dxf_native_xrecord_coordinate_faults
     COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-coordinate-faults)
 set_tests_properties(dwg2dxf_native_xrecord_coordinate_faults PROPERTIES

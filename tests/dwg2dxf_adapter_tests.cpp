@@ -53,6 +53,9 @@ public:
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
     static std::size_t xrecordWriteSourceBytes(const dx_iface& iface) { return iface.m_xrecordWriteSourceBytes; }
+    static std::pair<std::size_t,std::size_t> xrecordWriteSourceCounts(const dx_iface& iface) {
+        return {iface.m_xrecordWriteSources.size(),iface.m_xrecordWriteDictionaries.size()};
+    }
     static void xrecordWriteSourceLimit(dx_iface& iface, std::size_t bytes) { iface.m_xrecordWriteSourceByteLimit = bytes; }
     static bool standardSourceEligible(const dx_data& data, std::uint32_t handle) {
         const auto found = data.m_standardDwgObjectFrames.find({data.importGeneration,handle});
@@ -4128,6 +4131,251 @@ bool rootedXrecordStringWidths(bool faultsOnly = false) {
         || lateRetries != (faultsOnly ? 80u : 0u) || sourceRetries != (faultsOnly ? 24u : 0u) || budgetRetries != (faultsOnly ? 8u : 0u)) return fail("rooted XRECORD width matrix skipped a cell");
     std::cout << "Rooted XRECORD string sources=" << sources << " facade exports=" << exports << " actual-import reexports=" << reexports
         << " late-source retries=" << lateRetries << " source-variant retries=" << sourceRetries << " snapshot-budget retries=" << budgetRetries << '\n';
+    return true;
+}
+
+bool multipleSelectedXrecords(bool faultsOnly = false) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-multiple-xrecords-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) break;
+    }
+    if (directory.empty()) return fail("multiple XRECORD scratch directory failed");
+    const auto source = directory / "source.dxf", nativeSource = directory / "source.dwg", target = directory / "target.dxf";
+    struct Cleanup { std::filesystem::path a,b,c,directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(a,error); std::filesystem::remove(b,error); std::filesystem::remove(c,error); std::filesystem::remove(directory,error);
+    } } cleanup{source,nativeSource,target,directory};
+    class Author final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+        void writeEntities() override {}
+        void collectDwgAppIds() override {}
+        void writeAppId() override {}
+        void writeDwgClasses() override { ok = native && native->registerDwgNamedObjectDictionaryEntry("MULTIPLE_XRECORDS",0xD010u); }
+        bool finalizeDwgWrite() override { return ok; }
+        void writeObjects() override {
+            DRW_Dictionary ancestor; ancestor.handle = 0xD010u; ancestor.parentHandle = 0xCu;
+            ancestor.cloning = 2; ancestor.hardOwner = 1; ancestor.m_entries = {{"LEAVES",0xD050u}};
+            ok = native ? native->writeDictionary(&ancestor) : dxfW->writeDictionary(&ancestor);
+            DRW_Dictionary dictionary; dictionary.handle = 0xD050u; dictionary.parentHandle = ancestor.handle;
+            dictionary.cloning = 2; dictionary.hardOwner = 1;
+            dictionary.m_entries = {{"SECOND",0xD030u},{"FIRST",0xD020u}};
+            ok = (native ? native->writeDictionary(&dictionary) : dxfW->writeDictionary(&dictionary)) && ok;
+            for (const auto handle : {0xD020u,0xD040u,0xD030u}) {
+                DRW_XRecord record; record.handle = handle; record.parentHandle = dictionary.handle; record.m_cloning = 2;
+                const std::string label = handle == 0xD020u ? "FIRST" : handle == 0xD030u ? "SECOND" : "UNSELECTED";
+                record.m_dataEntries = {{1,label},{102,std::string("{application-literal")},{100,std::string("AcDbXrecord")},{280,7},
+                    {18,DRW_Coord(-0.0,std::numeric_limits<double>::denorm_min(),3.75)},{38,4.25},
+                    {310,std::vector<std::uint8_t>(128u,handle == 0xD020u ? 0xA1u : 0xB2u)}};
+                if (handle != 0xD040u) record.m_dataEntries.emplace_back(330,static_cast<dint64>(handle == 0xD020u ? 0xD030u : 0xD020u));
+                record.m_dataEntries.emplace_back(1,std::string("after-reference"));
+                ok = (native ? native->writeXRecord(&record) : dxfW->writeXRecord(&record)) && ok;
+            }
+        }
+        dwgRW* native{nullptr}; bool ok{false};
+    } author;
+    dx_data storage; author.cData = &storage; author.currentBlock = storage.mBlock;
+    class Exporter final : public dx_iface {
+    public:
+        std::function<void()> afterObjects, beforeFinalize;
+        void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
+        bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
+    };
+    const auto dictionary = [](auto& data) {
+        return std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) {
+            return value.m_entries.size() == 2u && value.m_entries[0].m_name == "SECOND" && value.m_entries[1].m_name == "FIRST";
+        });
+    };
+    const auto check = [&](const dx_data& data, bool original) {
+        const auto owner = dictionary(data);
+        if (!data.hasNamedObjectDictionary || owner == data.dictionaries.end()
+            || owner->hardOwner != 1 || owner->cloning != 2 || data.xRecords.size() != (original ? 3u : 2u)) return false;
+        const auto ancestor = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) {
+            return value.m_entries.size() == 1u && value.m_entries.front().m_name == "LEAVES";
+        });
+        if (ancestor == data.dictionaries.end() || ancestor->parentHandle != data.namedObjectDictionary.handle
+            || owner->parentHandle != ancestor->handle || ancestor->m_entries.front().m_handle != owner->handle) return false;
+        const auto root = std::find_if(data.namedObjectDictionary.m_entries.begin(),data.namedObjectDictionary.m_entries.end(),
+            [](const auto& entry) { return entry.m_name == "MULTIPLE_XRECORDS"; });
+        if (root == data.namedObjectDictionary.m_entries.end() || root->m_handle != ancestor->handle) return false;
+        const auto first = owner->m_entries[1].m_handle, second = owner->m_entries[0].m_handle;
+        for (const auto& record : data.xRecords) {
+            const bool selected = record.handle == first || record.handle == second;
+            if (!selected && !original) return false;
+            if (record.parentHandle != owner->handle || record.m_cloning != 2 || !record.hasExactDxfCoordinateTuples()
+                || !record.appData.empty() || !record.extData.empty() || record.xDictHandle || !record.reactorHandles.empty()) return false;
+            const std::string label = !selected ? "UNSELECTED" : record.handle == first ? "FIRST" : "SECOND";
+            const auto& values = record.m_dataEntries;
+            const bool native = original && data.sourceFormat == dx_source_format::DWG;
+            const std::size_t afterBinary = native ? 7u : 8u;
+            if (values.size() != afterBinary + (selected ? 2u : 1u) || values[0].code() != 1 || values[0].type() != DRW_Variant::STRING
+                || !values[0].content.s || *values[0].content.s != label || values[1].code() != 102 || !values[1].content.s
+                || *values[1].content.s != "{application-literal" || values[2].code() != 100 || !values[2].content.s
+                || *values[2].content.s != "AcDbXrecord" || values[3].code() != 280 || values[3].type() != DRW_Variant::INTEGER || values[3].i_val() != 7
+                || values[4].code() != 18 || values[4].type() != DRW_Variant::COORD || !values[4].coord()
+                || !std::signbit(values[4].coord()->x) || values[4].coord()->x != 0.0
+                || values[4].coord()->y != std::numeric_limits<double>::denorm_min() || values[4].coord()->z != 3.75
+                || values[5].code() != 38 || values[5].type() != DRW_Variant::DOUBLE || values[5].d_val() != 4.25) return false;
+            for (std::size_t n = 6u; n != afterBinary; ++n) if (values[n].code() != 310 || values[n].type() != DRW_Variant::BINARY || !values[n].binary()
+                || values[n].binary()->size() != (native ? 128u : n == 6u ? 127u : 1u)
+                || !std::all_of(values[n].binary()->begin(),values[n].binary()->end(),[&](auto byte) { return byte == (record.handle == first ? 0xA1u : 0xB2u); })) return false;
+            if (selected && (values[afterBinary].code() != 330 || values[afterBinary].type() != DRW_Variant::INTEGER64
+                || values[afterBinary].i64_val() != (record.handle == first ? second : first))) return false;
+            if (values.back().code() != 1 || !values.back().content.s || *values.back().content.s != "after-reference"
+                || record.m_values.size() != values.size() - (selected ? 1u : 0u)
+                || record.m_handleValues.size() != (selected ? 1u : 0u)) return false;
+            if (selected && (record.m_handleValues.front().first != 330
+                || record.m_handleValues.front().second != (record.handle == first ? second : first))) return false;
+            std::size_t ordinary = 0u;
+            for (std::size_t n = 0u; n < values.size(); ++n) {
+                if (values[n].code() == 330) continue;
+                auto identity = [](std::uint32_t h, std::uint32_t& out) { out = h; return true; };
+                std::vector<std::uint32_t> refs;
+                if (!dx_standard_output::valueEqual(values[n],record.m_values[ordinary++],identity,refs)) return false;
+            }
+        }
+        return first != second;
+    };
+    unsigned sources = 0u, exports = 0u, reexports = 0u, lateRetries = 0u, budgetRetries = 0u, isolation = 0u, strictRefusals = 0u;
+    for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
+        const bool native = format == 2u, sourceBinary = format == 1u;
+        if (faultsOnly && (native ? version != DRW::AC1015 && version != DRW::AC1032 : version != DRW::AC1032)) continue;
+        dxfRW codec(source.string().c_str()); dwgRW nativeCodec(nativeSource.string().c_str());
+        author.dxfW = native ? nullptr : &codec; author.native = native ? &nativeCodec : nullptr; author.ok = false;
+        DRW_Dictionary nod; nod.handle = 0xCu; nod.m_entries = {{"MULTIPLE_XRECORDS",0xD010u}};
+        codec.setRootDictEntries({{"MULTIPLE_XRECORDS","D010"}});
+        for (const auto handle : {0xD010u,0xD020u,0xD030u,0xD040u,0xD050u})
+            if (!(native ? nativeCodec.reserveHandle(handle) : codec.reserveHandle(handle))) return fail("multiple source handle reservation failed");
+        if (!(native ? nativeCodec.write(&author,version,true)
+                : codec.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(nod),nullptr) && codec.write(&author,version,sourceBinary))
+            || !author.ok) return fail("multiple public source authoring failed native=" + std::to_string(native));
+        author.dxfW = nullptr; author.native = nullptr;
+        dx_data data; dx_iface importer;
+        if (!importer.fileImport((native ? nativeSource : source).string(),&data,false) || !check(data,true))
+            return fail("multiple actual source import/closure failed native=" + std::to_string(native));
+        ++sources; Exporter exporter;
+        const auto write = [&](DRW::Version targetVersion, bool binary) {
+            return native ? exporter.fileExport(target.string(),targetVersion,binary,&data,false,true,
+                dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial)
+                : exporter.fileExport(target.string(),targetVersion,binary,&data,false,true);
+        };
+        const auto readback = [&]() { dx_data actual; dx_iface reader; return reader.fileImport(target.string(),&actual,false) && check(actual,false); };
+        std::size_t retained = 0u; bool captured = false;
+        exporter.afterObjects = [&]() { retained = Access::xrecordWriteSourceBytes(exporter); captured = Access::xrecordWriteSourceCounts(exporter) == std::make_pair(std::size_t(2),std::size_t(2)); };
+        if (!faultsOnly) for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
+            if (native && targetVersion == DRW::AC1015) {
+                const std::string sentinel = "MULTIPLE_NATIVE_STRICT_GATE_CLOSED";
+                { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+                const bool accepted = exporter.fileExport(target.string(),targetVersion,binary,&data,false,true);
+                std::ifstream prior(target,std::ios::binary); const std::string bytes((std::istreambuf_iterator<char>(prior)),{});
+                if (accepted || bytes != sentinel) return fail("multiple native source bypassed strict admission");
+                ++strictRefusals;
+            }
+            if (!write(targetVersion,binary) || !captured || !retained || !readback()) return fail("multiple selected facade export/readback refused or changed selected order/edges");
+            if (native) for (const auto handle : {0xD010u,0xD020u,0xD030u,0xD040u,0xD050u}) {
+                const bool modern = version > DRW::AC1018;
+                if (Access::standardSourceEligible(data,handle) != modern
+                    || Access::standardOutputHas(exporter,handle) != (modern && handle != 0xD040u)) return fail("multiple native selected/unselected proof qualification changed");
+            }
+            ++exports;
+            dx_data actual; dx_iface reader;
+            if (!reader.fileImport(target.string(),&actual,false) || !exporter.fileExport(target.string(),targetVersion,!binary,&actual,false,true)
+                || !readback() || !check(data,true) || (native && !Access::unchanged(importer))) return fail("multiple actual-import cross-encoding reexport failed");
+            ++reexports;
+        }
+        if (!faultsOnly) continue;
+        if (!write(DRW::AC1032,false) || !captured || !retained || !readback()) return fail("multiple cumulative snapshot budget premise failed");
+        exporter.afterObjects = {};
+        const auto originalRecords = data.xRecords;
+        const auto originalDictionaries = data.dictionaries;
+        const auto generation = data.importGeneration;
+        const auto sourceVersion = data.sourceVersion;
+        for (const bool binary : {false,true}) for (const bool final : {false,true}) for (unsigned mode = 0u; mode != 24u; ++mode) {
+            const auto edit = [&]() {
+                const auto find = [&](std::uint32_t handle) { return std::find_if(data.xRecords.begin(),data.xRecords.end(),[&](const auto& record) { return record.handle == handle; }); };
+                auto first = find(0xD020u), last = find(0xD030u), unselected = find(0xD040u);
+                auto owner = dictionary(data);
+                auto ancestor = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) { return value.handle == 0xD010u; });
+                switch (mode) {
+                case 0u: first->m_dataEntries.front().addString(1,"late-selected-body"); break;
+                case 1u: data.xRecords.erase(last); break;
+                case 2u: data.xRecords.push_back(*first); break;
+                case 3u: data.xRecords.splice(data.xRecords.begin(),data.xRecords,last); break;
+                case 4u: unselected->handle = first->handle; break;
+                case 5u: ++last->parentHandle; break;
+                case 6u: ++data.importGeneration; break;
+                case 7u: data.sourceVersion = sourceVersion == DRW::AC1015 ? DRW::AC1032 : DRW::AC1015; break;
+                case 8u: std::swap(owner->m_entries[0].m_handle,owner->m_entries[1].m_handle); break;
+                case 9u: owner->m_entries[0].m_name = "RENAMED"; break;
+                case 10u: std::swap(owner->m_entries[0],owner->m_entries[1]); break;
+                case 11u: ++owner->parentHandle; break;
+                case 12u: owner->extData.push_back(new DRW_Variant(1000,std::string("late-metadata"))); break;
+                case 13u: unselected->handle = owner->handle; break;
+                case 14u: data.sourceFormat = native ? dx_source_format::DXF : dx_source_format::DWG; break;
+                case 15u: ancestor->m_entries.front().m_handle = first->handle; break;
+                case 16u: data.dictionaries.splice(data.dictionaries.begin(),data.dictionaries,owner); break;
+                case 17u: data.dictionaries.erase(ancestor); break;
+                case 18u: data.dictionaries.push_back(*ancestor); break;
+                case 19u: owner->handle = first->handle; break;
+                case 20u: owner->countCap.emplace(); break;
+                case 21u: {
+                    using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                    owner->m_entries[0].m_dxfHandleCode = owner->m_entries[0].m_dxfHandleCode == Role::SoftOwner ? Role::HardOwner : Role::SoftOwner;
+                    break;
+                }
+                case 22u: owner->cloning = 3; break;
+                case 23u: owner->hardOwner = 0; break;
+                }
+            };
+            if (final) exporter.beforeFinalize = edit; else exporter.afterObjects = edit;
+            const std::string sentinel = "MULTIPLE_XRECORDS_ATOMIC_DESTINATION";
+            { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+            const bool accepted = write(DRW::AC1032,binary);
+            std::ifstream prior(target,std::ios::binary); const std::string retained((std::istreambuf_iterator<char>(prior)),{}); prior.close();
+            if (accepted || retained != sentinel) return fail("multiple late closure edit was published mode=" + std::to_string(mode)
+                + " final=" + std::to_string(final) + " binary=" + std::to_string(binary));
+            exporter.afterObjects = {}; exporter.beforeFinalize = {};
+            data.xRecords = originalRecords; data.dictionaries = originalDictionaries;
+            data.importGeneration = generation; data.sourceVersion = sourceVersion; data.sourceFormat = native ? dx_source_format::DWG : dx_source_format::DXF;
+            if (!write(DRW::AC1032,binary) || !readback() || !check(data,true) || (native && !Access::unchanged(importer))) return fail("multiple restored closure did not retry/read back");
+            ++lateRetries;
+        }
+        for (const bool binary : {false,true}) {
+            for (const auto cap : {std::size_t(0),retained - 1u}) {
+                Access::xrecordWriteSourceLimit(exporter,cap);
+                const std::string sentinel = "MULTIPLE_CUMULATIVE_SNAPSHOT_BUDGET";
+                { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+                const bool accepted = write(DRW::AC1032,binary);
+                std::ifstream prior(target,std::ios::binary); const std::string bytes((std::istreambuf_iterator<char>(prior)),{}); prior.close();
+                Access::xrecordWriteSourceLimit(exporter,retained);
+                if (accepted || bytes != sentinel || !write(DRW::AC1032,binary) || !readback()) return fail("multiple exact cumulative snapshot refusal/retry failed");
+                ++budgetRetries;
+            }
+            Access::xrecordWriteSourceLimit(exporter,dx_iface::ImageDefinitionCaptureMaxRetainedBytes);
+            if (!native) for (const bool final : {false,true}) for (const bool reorder : {false,true}) {
+                const auto edit = [&]() {
+                    auto orphan = std::find_if(data.xRecords.begin(),data.xRecords.end(),[](const auto& record) { return record.handle == 0xD040u; });
+                    if (reorder) data.xRecords.splice(data.xRecords.begin(),data.xRecords,orphan);
+                    else orphan->m_dataEntries.front().addString(1,"unselected-body-edit");
+                };
+                if (final) exporter.beforeFinalize = edit; else exporter.afterObjects = edit;
+                if (!write(DRW::AC1032,binary) || !readback()) return fail("unselected payload/reorder edit falsely changed selected closure");
+                exporter.beforeFinalize = {}; exporter.afterObjects = {}; data.xRecords = originalRecords;
+                ++isolation;
+            }
+        }
+        if (Access::xrecordWriteSourceBytes(exporter) || Access::xrecordWriteSourceCounts(exporter) != std::make_pair(std::size_t(0),std::size_t(0)))
+            return fail("multiple per-write snapshots retained after facade attempt");
+    }
+    if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 216u) || reexports != (faultsOnly ? 0u : 216u)
+        || lateRetries != (faultsOnly ? 384u : 0u) || budgetRetries != (faultsOnly ? 16u : 0u) || isolation != (faultsOnly ? 16u : 0u)
+        || strictRefusals != (faultsOnly ? 0u : 12u)) return fail("multiple XRECORD matrix skipped a cell");
+    std::cout << "Multiple XRECORD sources=" << sources << " exports=" << exports << " reexports=" << reexports << " late closure retries=" << lateRetries
+        << " cumulative snapshot retries=" << budgetRetries << " unselected isolation=" << isolation << " strict refusals=" << strictRefusals << '\n';
     return true;
 }
 
@@ -33884,6 +34132,10 @@ int main(int argc, char** argv) {
         return standardDwgBinaryTransport(StandardDwgProbe::BinaryApplicationFaults) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--native-xrecord-coordinates")
         return standardDwgBinaryTransport(StandardDwgProbe::CoordinateApplication) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--multiple-selected-xrecords")
+        return multipleSelectedXrecords() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--multiple-selected-xrecord-faults")
+        return multipleSelectedXrecords(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--native-xrecord-coordinate-faults")
         return standardDwgBinaryTransport(StandardDwgProbe::CoordinateApplicationFaults) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--xrecord-application-chunk-controls")

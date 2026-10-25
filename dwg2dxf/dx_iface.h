@@ -1537,7 +1537,12 @@ private:
     // Per-write typed snapshots, not independent import/support evidence.
     std::vector<DRW_XRecord> m_xrecordWriteSources;
     std::vector<std::uint32_t> m_xrecordWriteSourceHandles;
+    // Freeze the selecting ordinary dictionary closure as well as its leaves.
+    // Generated NOD/GROUP roots retain their separate source/output guards.
+    std::vector<DRW_Dictionary> m_xrecordWriteDictionaries;
+    std::vector<std::uint32_t> m_xrecordWriteDictionaryHandles;
     const dx_data* m_xrecordWriteSourceOwner{nullptr};
+    dx_source_format m_xrecordWriteSourceFormat{dx_source_format::Unknown};
     DRW::Version m_xrecordWriteSourceVersion{DRW::UNKNOWNV};
     std::uint64_t m_xrecordWriteSourceGeneration{0u};
     std::size_t m_xrecordWriteSourceBytes{0u};

@@ -14909,12 +14909,20 @@ bool dx_iface::captureXrecordWriteSources() noexcept {
     try {
         const auto count = m_extensionXRecordHandles.size();
         if (count == 0u) return true;
+        const auto dictionaries = m_extensionDictionaryHandles.size();
+        if (dictionaries > kMaxAdapterDictionaryTypedRecords) return false;
         if (count > m_xrecordWriteSourceByteLimit / (sizeof(DRW_XRecord) + sizeof(std::uint32_t))) return false;
         std::size_t bytes = count * (sizeof(DRW_XRecord) + sizeof(std::uint32_t)), items = 0u;
+        if (dictionaries > (m_xrecordWriteSourceByteLimit - bytes) / (sizeof(DRW_Dictionary) + sizeof(std::uint32_t))) return false;
+        bytes += dictionaries * (sizeof(DRW_Dictionary) + sizeof(std::uint32_t));
         m_xrecordWriteSourceHandles = m_extensionXRecordHandles;
         std::sort(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end());
         if (std::adjacent_find(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end()) != m_xrecordWriteSourceHandles.end()) return false;
+        m_xrecordWriteDictionaryHandles = m_extensionDictionaryHandles;
+        std::sort(m_xrecordWriteDictionaryHandles.begin(),m_xrecordWriteDictionaryHandles.end());
+        if (std::adjacent_find(m_xrecordWriteDictionaryHandles.begin(),m_xrecordWriteDictionaryHandles.end()) != m_xrecordWriteDictionaryHandles.end()) return false;
         m_xrecordWriteSources.reserve(count);
+        m_xrecordWriteDictionaries.reserve(dictionaries);
         for (const auto& record : cData->xRecords) {
             if (!std::binary_search(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end(),record.handle)) continue;
             std::size_t retained = 0u, slots = 0u;
@@ -14927,7 +14935,18 @@ bool dx_iface::captureXrecordWriteSources() noexcept {
             m_xrecordWriteSources.push_back(record);
         }
         if (m_xrecordWriteSources.size() != count) return false;
+        for (const auto& dictionary : cData->dictionaries) {
+            if (!std::binary_search(m_xrecordWriteDictionaryHandles.begin(),m_xrecordWriteDictionaryHandles.end(),dictionary.handle)) continue;
+            std::size_t retained = 0u, slots = 0u;
+            if (m_xrecordWriteDictionaries.size() >= dictionaries || !estimateDictionaryTypedBytes(dictionary,retained,slots)
+                || retained < sizeof(DRW_Dictionary) || retained - sizeof(DRW_Dictionary) > m_xrecordWriteSourceByteLimit - bytes
+                || slots > kMaxAdapterXRecordItems - items) return false;
+            bytes += retained - sizeof(DRW_Dictionary); items += slots;
+            m_xrecordWriteDictionaries.push_back(dictionary);
+        }
+        if (m_xrecordWriteDictionaries.size() != dictionaries) return false;
         m_xrecordWriteSourceBytes = bytes;
+        m_xrecordWriteSourceFormat = cData->sourceFormat;
         m_xrecordWriteSourceVersion = cData->sourceVersion;
         m_xrecordWriteSourceGeneration = cData->importGeneration;
         m_xrecordWriteSourceOwner = cData;
@@ -14937,15 +14956,27 @@ bool dx_iface::captureXrecordWriteSources() noexcept {
 
 bool dx_iface::hasUnchangedXrecordWriteSources() const noexcept {
     if (!m_xrecordWriteSourceOwner) return true; // Direct codec probes have no facade capture.
-    if (cData != m_xrecordWriteSourceOwner || cData->sourceVersion != m_xrecordWriteSourceVersion
-        || cData->importGeneration != m_xrecordWriteSourceGeneration || cData->xRecords.size() > kMaxAdapterXRecordRecords) return false;
+    if (cData != m_xrecordWriteSourceOwner || cData->sourceFormat != m_xrecordWriteSourceFormat
+        || cData->sourceVersion != m_xrecordWriteSourceVersion
+        || cData->importGeneration != m_xrecordWriteSourceGeneration || cData->xRecords.size() > kMaxAdapterXRecordRecords
+        || cData->dictionaries.size() > kMaxAdapterDictionaryTypedRecords) return false;
     std::size_t next = 0u;
     for (const auto& record : cData->xRecords) {
+        if (std::binary_search(m_xrecordWriteDictionaryHandles.begin(),m_xrecordWriteDictionaryHandles.end(),record.handle)) return false;
         if (!std::binary_search(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end(),record.handle)) continue;
         if (next >= m_xrecordWriteSources.size()
             || !standardDwgModelsEqual(m_xrecordWriteSources[next++],record,m_xrecordWriteSourceVersion,dwgObjType::XRECORD)) return false;
     }
-    return next == m_xrecordWriteSources.size();
+    if (next != m_xrecordWriteSources.size()) return false;
+    next = 0u;
+    for (const auto& dictionary : cData->dictionaries) {
+        if (std::binary_search(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end(),dictionary.handle)) return false;
+        if (!std::binary_search(m_xrecordWriteDictionaryHandles.begin(),m_xrecordWriteDictionaryHandles.end(),dictionary.handle)) continue;
+        if (next >= m_xrecordWriteDictionaries.size()
+            || m_xrecordWriteDictionaries[next].hasCompleteDxfEntries() != dictionary.hasCompleteDxfEntries()
+            || !standardDwgModelsEqual(m_xrecordWriteDictionaries[next++],dictionary,m_xrecordWriteSourceVersion,dwgObjType::DICTIONARY)) return false;
+    }
+    return next == m_xrecordWriteDictionaries.size();
 }
 
 bool dx_iface::hasUnchangedGeneratedRootSources(bool final) const {
@@ -22076,11 +22107,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
     m_xrecordWriteSources.clear(); m_xrecordWriteSourceHandles.clear(); m_xrecordWriteSourceOwner = nullptr; m_xrecordWriteSourceBytes = 0u;
+    m_xrecordWriteDictionaries.clear(); m_xrecordWriteDictionaryHandles.clear();
     struct XrecordSourceScope {
         dx_iface& owner;
         ~XrecordSourceScope() {
             std::vector<DRW_XRecord>().swap(owner.m_xrecordWriteSources);
             std::vector<std::uint32_t>().swap(owner.m_xrecordWriteSourceHandles);
+            std::vector<DRW_Dictionary>().swap(owner.m_xrecordWriteDictionaries);
+            std::vector<std::uint32_t>().swap(owner.m_xrecordWriteDictionaryHandles);
             owner.m_xrecordWriteSourceOwner = nullptr;
             owner.m_xrecordWriteSourceBytes = 0u;
         }
