@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cu strict MATERIAL dictionary/history closure (2026-10-25):** the strict graph now indexes validated MATERIAL leaves; their dictionary has one emitter, with frozen source/receipt/common links, complete selected scalar fields, dictionary role checks and final emitted identities. Modern history controls pass 133 preflight and 200 late refusals with 333 restored readbacks; strict color controls repeat all 108 projections/reexports. Four genuine authored controls pass two full-policy CLI passes each, independently read by ezdxf. Older dangling DIMSTYLE/STYLE replays remain refused. Native, broader history/nonprimitive-carrier and external/platform work remains open; the support qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cu-strict-material-dictionary-history-closure-2026-10-25) · [receipt](docs/research/rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5cv compatible DIMSTYLE resource remapping (2026-10-25):** known source references now follow actual emitted STYLE, BLOCK_RECORD and LTYPE bindings, including deprecated arrow-name aliases. The generated six-version ASCII/binary matrix passes 24 two-pass compatible routes followed by strict readback, 32 compatible unresolved controls, 48 atomic refusals/restored readbacks and four explicit-null routes. Strict dangling/wrong-family refusal remains enabled; already-invalid older replays are not repaired by guessing. Broader native/semantic/platform work remains open and the support qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cv-compatible-dimstyle-resource-remapping-2026-10-25) · [receipt](docs/research/rpp5cv-compatible-dimstyle-resource-remapping-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5cu strict MATERIAL dictionary/history closure (2026-10-25):** committed as `9ba6516698d0bdaf0d865b4122305ee63d98cca3`. Its scoped strict MATERIAL/root, frozen-source, staged-field and history controls remain valid. RPP-5cv closes its next known compatible DIMSTYLE remapping gap only; it does not qualify broader OBJECTS, native DWG or independent modeler semantics. [Historical implementation](#implementation-progress-rpp-5cu-strict-material-dictionary-history-closure-2026-10-25) · [immutable receipt](docs/research/rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5ct signed MATERIAL color-word transport (2026-10-25):** committed as `5806adf9a034799a2f9f16a6a3d787bb04bffa50`. Its scoped signed-color transport, rejection/recovery and 16 normal/ASan checks remain valid. RPP-5cu supersedes only its then-open canonical strict MATERIAL dictionary/history closure; the external example's unmodeled OBJECTS and semantic/platform prerequisites remain open. [Historical implementation](#implementation-progress-rpp-5ct-signed-material-color-word-transport-2026-10-25) · [immutable receipt](docs/research/rpp5ct-signed-material-color-word-transport-2026-10-25.json).
 
@@ -123360,7 +123362,8 @@ semantic qualification. Final owning normal/ASan cohorts are sequential.
 
 Next implementation-ready actions, retaining the complete original objective:
 
-1. [ ] Reproduce compatible modern DIMSTYLE/STYLE reexport with a minimal valid
+1. [x] Resolved for the tested profile by [RPP-5cv](#implementation-progress-rpp-5cv-compatible-dimstyle-resource-remapping-2026-10-25).
+   Reproduce compatible modern DIMSTYLE/STYLE reexport with a minimal valid
    source and distinct source/emitted handles. Trace raw resource-variable
    group 340 versus the actual STYLE row binding; remap known resource roles
    without treating arbitrary text as a handle or inventing a missing STYLE.
@@ -123396,3 +123399,97 @@ is part of this slice.
 
 Receipt:
 [`rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json`](docs/research/rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json).
+
+## Implementation progress RPP-5cv compatible DIMSTYLE resource remapping (2026-10-25)
+
+Parent checkpoint: `9ba6516698d0bdaf0d865b4122305ee63d98cca3` (RPP-5cu).
+This closes its first next action for the generated, same-revision DXF profile;
+it does not repair older files whose resource references are already dangling.
+
+1. [x] Reproduce with literal, locally authored ASCII/binary source tags, not
+   the library serializer. Distinct source and emitted handles expose the
+   compatible writer copying old DIMSTYLE resource text after reminting rows.
+   The baseline fails the actual emitted-row/reference comparison.
+2. [x] Resolve known source identities through the matching resource family:
+   340 -> STYLE, 341–344 -> BLOCK_RECORD, 345–347 -> LTYPE. Require source
+   name/identity and actual emitted binding agreement; do not resolve through
+   an unrelated generic alias or reinterpret arbitrary legacy name text.
+   Keep existing version gates and strict admission rules. Register known
+   arrow bodies through the existing transactional pending-resource path.
+3. [x] Write obsolete arrow-name aliases 5/6/7 from the matching known block
+   name, not the stale hexadecimal source handle. Otherwise these aliases
+   can overwrite the modern arrow name on the next import. Do not mutate the
+   caller's typed references, resource names or string overrides.
+4. [x] Preserve explicit zero and omitted-field behavior. `DRW::NoHandle`
+   equals zero; explicit null references are distinguished by handle presence
+   (`code == 5`), before generic absence handling. Four encoding routes check
+   explicit null 341–347; the pre-existing optional-handle tests retain the
+   omitted/legacy unresolved cases. Unknown compatible references remain
+   unqualified, not silently rebound to another resource family.
+5. [x] Cover AC1015/AC1018/AC1021/AC1024/AC1027/AC1032, two input encodings
+   and two output encodings: 24 routes. Each performs compatible export,
+   actual import, opposite-encoding compatible reexport, actual import and
+   full-policy strict export. Check unique resource slots against actual
+   reminted rows and arrow BLOCK owners, EOF and unchanged source resource
+   state. LTYPE references are tested only for AC1021 and later.
+6. [x] Exercise every resource role with missing and wrong-family source
+   identities in both outputs: 32 compatible unresolved controls followed by
+   strict atomic refusal and corrected same-facade readback. Duplicate dynamic
+   slots add 16 compatible atomic refusal/restoration pairs. Totals: 48
+   destination sentinels preserved and 48 corrected actual readbacks. Do not
+   disable strict resource checks to accept the older invalid RPP-5cr replays.
+7. [x] Reuse the existing optional-handle executable with one fast selector
+   and a unique temporary directory. Generate all drawing inputs from scratch;
+   commit no drawing payload or external fixture. Keep the older selectors
+   and consumer-facing API, layouts and callbacks unchanged.
+
+Role references: [Autodesk DIMSTYLE group-code specification](https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm)
+and [ezdxf 1.4.4 DIMSTYLE implementation](https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/dimstyle.py).
+The latter corroborates the 345–347 LTYPE roles. The physical test scanner
+uses the library's scalar reader; it is not an independent format or geometry
+oracle. No new independent-reader or native-platform qualification is claimed.
+
+Validation and exact test names/logs are recorded in the fresh
+[RPP-5cv receipt](docs/research/rpp5cv-compatible-dimstyle-resource-remapping-2026-10-25.json).
+The final 31 affected normal tests pass in 34.07 s and 31 ASan tests pass in
+74.35 s (`halt_on_error=1:detect_leaks=0`); both LibreCAD_3 compile gates pass.
+CLI static/shared-on/off registration passes in 2.70 s. These are macOS ARM64
+Apple Clang results; the `build-gcc` directory name does not qualify Linux/GCC.
+Affected normal and ASan owning cohorts run sequentially across build trees;
+builds retain `-Werror`. A full project suite is intentionally not repeated for
+this localized slice. LibreCAD_3 compile gates check source compatibility only.
+
+Next implementation-ready actions, in priority order:
+
+1. [ ] Inventory the external example's still-rejected OBJECTS, retaining its
+   original read-only source/hash and exact first diagnostic. Identify the
+   first unsupported family and dependencies; use a minimal locally authored
+   control to reproduce it before adding admission. Unknown-profile rejection
+   remains the safe outcome until complete field/owner/reference proof exists.
+2. [ ] For SWEEP/EXTRUSION, establish embedded binary widths, nested handles,
+   EED APPID/LAYER/material dependencies and raw-versus-native authority. Read
+   the authoritative ODA chapter before any DWG layout change. Implement one
+   bounded profile at a time with exact staged-output roles, missing/wrong-role
+   controls, rollback and same-facade retry; keep unsupported profiles closed.
+3. [ ] Extend DIMSTYLE evidence separately for native DWG sources, cross-target
+   revisions, legacy downwrites and broader name/body/resource collisions.
+   Current same-revision synthetic coverage does not qualify those routes.
+   Add independent emitted-reference corroboration when an eligible reader
+   and provenance-controlled source are available; do not call self-read proof
+   independent evidence.
+4. [ ] Continue native carrier/schema/owner propagation, cumulative retention
+   and decoded-owner controls, source-generation aliases, callbacks, sparse
+   classes, complete IMAGE geometry and named-root/document closure. Retain
+   LibreCAD/LibreCAD_3 2D compatibility and the complete 3D/dwg2dxf/FreeCAD goal.
+5. [ ] After each item, update status/evidence/limits and a fresh immutable
+   receipt, run fast affected tests, commit and show progress. Self-unblock
+   through safe local controls or the next independent ready item; never guess
+   missing semantics or expand authority. Full suites run at meaningful
+   integration checkpoints; avoid redundant whole-suite runs after each edit.
+
+The qualification ledger stays **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL** and cannot promote support claims. Native Linux/Windows
+FreeCAD and independent ACIS/ACDS semantic/kernel qualification are **NOT_RUN**.
+Earlier immutable receipts and all pre-existing untracked drawings are unchanged.
+No remote mutation is part of this checkpoint; the implementation goal remains
+active with the open work above.

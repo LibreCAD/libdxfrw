@@ -427,6 +427,12 @@ For admitted DXF MATERIAL scalar carriers, strict conversion checks the rooted
 dictionary links, frozen replay source, staged fields and final emitted
 identities. Unsupported carriers and unresolved resources still fail closed.
 
+Compatible DXF reexport remaps known DIMSTYLE STYLE, arrow BLOCK_RECORD and
+LTYPE references to their actual emitted rows. The focused AC1015–AC1032
+ASCII/binary controls cover repeated conversion, explicit nulls and atomic
+failure/retry. Unknown compatible references remain unqualified; strict
+conversion still rejects dangling or wrong-family references.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

@@ -1975,6 +1975,10 @@ add_test(NAME libdxfrw_dimstyle_optional_handles
     COMMAND libdxfrw_dimstyle_optional_handle_tests)
 set_tests_properties(libdxfrw_dimstyle_optional_handles PROPERTIES
     LABELS "dxf;fast;adapter")
+add_test(NAME libdxfrw_dimstyle_compatible_resource_remap
+    COMMAND libdxfrw_dimstyle_optional_handle_tests --resource-remap)
+set_tests_properties(libdxfrw_dimstyle_compatible_resource_remap PROPERTIES
+    LABELS "dxf;fast;adapter;resource;transaction" TIMEOUT 30)
 if(TARGET dwg2dxf)
     foreach(_encoding IN ITEMS ascii binary)
         set(_dimstyle_generate --generate)

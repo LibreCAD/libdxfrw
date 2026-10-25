@@ -5908,7 +5908,7 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         }
         if (version >= spec->minimumVersion) {
             dimVarCodes.insert(value->code());
-            if (strictModernConversion && value->code() >= 340
+            if (version > DRW::AC1009 && value->code() >= 340
                 && value->code() <= 347
                 && !resourceVars.emplace(value->code(), value).second) {
                 recordOperationDiagnostic(DRW::OperationPhase::Tables,
@@ -5926,6 +5926,7 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
     bool hasEmittedDimTextStyleHandle = false;
     std::map<int, std::uint32_t> emittedArrowBlockHandles;
     std::map<int, std::uint32_t> emittedLinetypeHandles;
+    std::map<int, std::string> compatibleArrowNames;
     std::vector<std::string> pendingArrowBlockNames;
     if (strictModernConversion) {
         const auto rejectResource = [this, ent](const char *code,
@@ -6137,6 +6138,79 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         }
     }
 
+    if (!strictModernConversion && version > DRW::AC1009) {
+        const std::array<const dwgHandle*, 8> sources{{&ent->dimtxstyH,
+            &ent->dimldrblkH, &ent->dimblkH, &ent->dimblk1H, &ent->dimblk2H,
+            &ent->dimltypeH, &ent->dimltex1H, &ent->dimltex2H}};
+        const std::array<std::string_view, 5> names{{ent->dimtxsty, ent->dimldrblk,
+            ent->dimblk, ent->dimblk1, ent->dimblk2}};
+        for (int code = 340; code <= 347; ++code) {
+            if ((code >= 341 && version <= DRW::AC1014)
+                || (code >= 345 && version < DRW::AC1021)) continue;
+            const auto field = resourceVars.find(code);
+            const std::string_view token = field != resourceVars.end()
+                ? std::string_view(*field->second->content.s)
+                : code <= 344 ? names[code - 340] : std::string_view{};
+            if (field != resourceVars.end() && token.empty()) continue;
+            const auto& source = *sources[code - 340];
+            std::uint64_t lexicalHandle = 0u;
+            const bool matchingHandle = parseRawDxfHandleLexeme(token, lexicalHandle)
+                && lexicalHandle == source.ref;
+            if (source.ref == 0u) {
+                if (code >= 341 && source.code == 5 && (token.empty() || matchingHandle)) {
+                    if (code <= 344) emittedArrowBlockHandles[code] = 0u;
+                    else emittedLinetypeHandles[code] = 0u;
+                }
+                continue;
+            }
+            std::uint32_t emitted = 0u;
+            std::string key;
+            if (code == 340) {
+                const auto named = m_sourceTextStyleNamesByHandle.find(source.ref);
+                const auto target = m_writingContext.sourceHandleToWrittenTableMap.find(source.ref);
+                if (named != m_sourceTextStyleNamesByHandle.end()
+                    && target != m_writingContext.sourceHandleToWrittenTableMap.end()) {
+                    const auto row = textStyleMap.find(named->second);
+                    if (row != textStyleMap.end() && row->second == target->second) {
+                        key = named->second; emitted = target->second;
+                    }
+                }
+            } else if (code <= 344) {
+                const auto named = m_sourceBlockRecordNamesByHandle.find(source.ref);
+                const auto target = m_sourceBlockRecordHandles.find(source.ref);
+                if (named != m_sourceBlockRecordNamesByHandle.end()
+                    && target != m_sourceBlockRecordHandles.end()) {
+                    const auto row = blockMap.find(named->second);
+                    if (row != blockMap.end() && row->second == target->second) {
+                        key = named->second; emitted = target->second;
+                    }
+                }
+            } else {
+                const auto row = m_sourceLinetypeTargetsByHandle.find(source.ref);
+                if (row != m_sourceLinetypeTargetsByHandle.end()) {
+                    key = row->second.name; emitted = row->second.emittedHandle;
+                }
+            }
+            // A known source identity, its field role, and the emitted row
+            // must agree. Never reinterpret arbitrary legacy name text as a
+            // handle or bind it through an unrelated table's alias map.
+            if (emitted && (token.empty() || matchingHandle || dxfSymbolNameKey(token) == key)) {
+                if (code == 340) { emittedDimTextStyleHandle = emitted; hasEmittedDimTextStyleHandle = true; }
+                else if (code <= 344) {
+                    emittedArrowBlockHandles[code] = emitted;
+                    compatibleArrowNames[code] = key;
+                    pendingArrowBlockNames.push_back(key);
+                } else emittedLinetypeHandles[code] = emitted;
+            } else if (code >= 341 && source.code == 5
+                       && (matchingHandle || (code >= 345 && field == resourceVars.end()))) {
+                // Compatible transport retains explicit unresolved references;
+                // it does not qualify them. Strict conversion still refuses.
+                if (code <= 344) emittedArrowBlockHandles[code] = source.ref;
+                else emittedLinetypeHandles[code] = source.ref;
+            }
+        }
+    }
+
     RecordStateScope state(*this, ent);
     for (const std::string& name : pendingArrowBlockNames) {
         if (!recordPendingDxfDimstyleBlockResource(name, ent->handle))
@@ -6266,10 +6340,9 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         writer->writeBool(290, ent->dimfxlon != 0);
     if (version > DRW::AC1009) {
         if (!dimVarCodes.count(340)) {
-            if (strictModernConversion) {
-                if (hasEmittedDimTextStyleHandle)
-                    writer->writeUtf8String(
-                        340, toHexStr(emittedDimTextStyleHandle));
+            if (hasEmittedDimTextStyleHandle) {
+                writer->writeUtf8String(
+                    340, toHexStr(emittedDimTextStyleHandle));
             } else {
                 const std::string txstyname =
                     dxfSymbolNameKey(ent->dimtxsty);
@@ -6288,7 +6361,7 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
                                                                const UTF8STRING& name) {
             if (dimVarCodes.count(code))
                 return;
-            if (strictModernConversion) {
+            if (strictModernConversion || emittedArrowBlockHandles.count(code) != 0u) {
                 const auto emitted = emittedArrowBlockHandles.find(code);
                 if (emitted != emittedArrowBlockHandles.end())
                     writer->writeUtf8String(code, toHexStr(emitted->second));
@@ -6317,7 +6390,8 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             findDxfDimstyleVariableSpec(v->code());
         if (spec == nullptr || version < spec->minimumVersion)
             continue;
-        if (strictModernConversion
+        if ((strictModernConversion || (v->code() == 340 && hasEmittedDimTextStyleHandle)
+                || emittedArrowBlockHandles.count(v->code()) != 0u)
             && v->code() >= 340 && v->code() <= 344) {
             if (v->code() == 340) {
                 if (hasEmittedDimTextStyleHandle)
@@ -6332,9 +6406,16 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
             }
             continue;
         }
-        if (strictModernConversion && version >= DRW::AC1021
+        if ((strictModernConversion || emittedLinetypeHandles.count(v->code()) != 0u) && version >= DRW::AC1021
             && v->code() >= 345 && v->code() <= 347)
             continue;
+        if (!strictModernConversion && version > DRW::AC1014 && v->code() >= 5 && v->code() <= 7) {
+            const auto name = compatibleArrowNames.find(v->code() + 337);
+            if (name != compatibleArrowNames.end()) {
+                writer->writeUtf8String(v->code(), name->second);
+                continue;
+            }
+        }
         switch (v->type()) {
             case DRW_Variant::STRING:
                 // syncStructToVars() supplies empty optional references for
