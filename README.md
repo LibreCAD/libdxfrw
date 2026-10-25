@@ -459,10 +459,11 @@ keeps style-local IDs in a separate namespace. A separately bounded frozen
 resource registry now binds admitted rich-child direct references by callback
 family, and local IDs through the selected TABLESTYLE extension's CELLSTYLEMAP
 membership and owners. This is not complete transitive dependency, resource
-payload, live-state or output proof. The external example maps still lack a
-matching typed source profile, and R2010 built-in ID 4 remains blocked by the
-existing codec-normalized revision check. Unknown geometry roles and table
-replay remain unqualified.
+payload, live-state or output proof. Declared source revisions now govern R2010+
+built-in ID 4, and witnessed rich maps retain background no-color value 257
+without widening native color emission. Both pinned external example maps now
+reach typed callbacks and direct binding; this does not qualify full resource
+or table replay. Unknown geometry roles remain unqualified.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without

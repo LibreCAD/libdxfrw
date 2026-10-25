@@ -28794,6 +28794,22 @@ bool cellStyleMapDxfWriter() {
     if (!versioned.fileExport(output.string(), DRW::AC1021, false,
                               &source, false) || !versioned.emitted)
         return fail("same CELLSTYLEMAP writer did not retry after ID repair");
+    // The declared DXF revision, not the codec's normalized UTF8 tier,
+    // controls built-in ID 4 on readback as well as on write.
+    versioned.first.m_cellStyles.front().m_id = 4;
+    for (const auto revision : {DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            dx_data readback;
+            dx_iface reader;
+            if (!versioned.fileExport(output.string(), revision, binary,
+                                      &source, false)
+                || !reader.fileImport(output.string(), &readback, false)
+                || readback.sourceVersion != revision
+                || readback.cellStyleMaps.size() != 2u
+                || readback.cellStyleMaps.front().m_cellStyles.front().m_id != 4)
+                return fail("R24+ CELLSTYLEMAP ID-4 writer/readback failed");
+        }
+    }
     return true;
 }
 

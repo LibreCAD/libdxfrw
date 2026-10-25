@@ -51,6 +51,7 @@ struct Probe final : dx_iface {
     std::vector<DRW_RawDxfObject> raw;
     unsigned unknown=0u;
     unsigned tableSources=0u, tableCallbacks=0u;
+    unsigned mapCallbacks=0u, rawMapCallbacks=0u;
     bool optIn=true, forceOptIn=false, throwOnTable=false, mutateTable=false, paddedRaw=false;
     std::size_t largestTableSourceString=0u;
     std::function<void(DRW_TableContentObject&)> alterContent;
@@ -77,11 +78,15 @@ struct Probe final : dx_iface {
         content.push_back(copy); dx_iface::addTableContent(copy);
     }
     void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        if (value.name=="CELLSTYLEMAP") ++rawMapCallbacks;
         if ((value.name=="TABLECONTENT" || value.name=="aCdBtAbLeCoNtEnT") && alterContentRaw) {
             auto copy=value; alterContentRaw(copy); raw.push_back(copy); dx_iface::addRawDxfObject(copy); return;
         }
         if (value.name=="TABLECONTENT" || value.name=="aCdBtAbLeCoNtEnT") raw.push_back(value);
         dx_iface::addRawDxfObject(value);
+    }
+    void addCellStyleMap(const DRW_CellStyleMap& value) override {
+        ++mapCallbacks; dx_iface::addCellStyleMap(value);
     }
     void addUnmodeledDxfObject(const DRW_RawDxfObject& value) override {
         ++unknown; dx_iface::addUnmodeledDxfObject(value);
@@ -1046,10 +1051,9 @@ bool bindingTests(const std::filesystem::path& dir) {
                 varied[slot(varied,340,"C101")].value="0";varied[slot(varied,340,"C102")].value="0";
             }
             if(mode==4u) {
-                // The existing CELLSTYLEMAP parser uses the codec-normalized
-                // revision (AC1021), so R24's ID 4 is not yet a source profile.
-                const auto cell=slot(varied,1,"TABLECELL_BEGIN");varied[cell+1u].value="3";
-                mapId(varied,101,3);
+                const int id=std::string(version)=="AC1021"?3:4;
+                const auto cell=slot(varied,1,"TABLECELL_BEGIN");varied[cell+1u].value=std::to_string(id);
+                mapId(varied,101,id);
             }
             if(!write(path,varied,binary))return false;
             dx_data variant;
@@ -1095,6 +1099,168 @@ bool bindingTests(const std::filesystem::path& dir) {
     return routes==8u&&negative==faults.size()*routes&&boundaries==64u&&variants==40u&&refusals==16u;
 }
 
+// Authored locally from scratch. Exercise the witnessed rich map shape without
+// copying either external drawing's payload, names or numeric style values.
+Tags richMapSource(const std::string& version) {
+    auto tags=bindingSource(version);
+    const auto begin=slot(tags,5,"C120")-1u;
+    auto end=begin+1u;while(tags[end].code!=0)++end;
+    Tags map{{0,"CELLSTYLEMAP"},{5,"C120"},{102,"{ACAD_REACTORS"},{330,"C110"},{102,"}"},
+        {330,"C110"},{100,"AcDbCellStyleMap"},{90,"3"}};
+    for(int id:{1,2,101}) {
+        map.push_back({300,"CELLSTYLE"});
+        const auto start=map.size();style(map,5,true);
+        // Make every rich map carry all six explicit edge slots.
+        const auto tail=map.size()-1u;
+        for(std::size_t i=start;i<tail;++i) {
+            if(map[i].code==94 && map[i].value=="1")map[i].value="6";
+            if(map[i].code==92 && map[i].value=="4")map[i].value="512";
+        }
+        Tags extra;
+        for(int edge:{2,4,8,16,32})extra.insert(extra.end(),{
+            {95,std::to_string(edge)},{302,"GRIDFORMAT"},{1,"GRIDFORMAT_BEGIN"},
+            {90,"63"},{91,"2"},{62,"7"},{92,"17"},{340,"C102"},{93,"1"},{40,"0.25"},{309,"GRIDFORMAT_END"}});
+        map.insert(map.begin()+static_cast<std::ptrdiff_t>(tail),extra.begin(),extra.end());
+        map.insert(map.end(),{{1,"CELLSTYLE_BEGIN"},{90,std::to_string(id)},{91,"1"},
+            {300,"generated-rich-"+std::to_string(id)},{309,"CELLSTYLE_END"}});
+    }
+    tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(begin),tags.begin()+static_cast<std::ptrdiff_t>(end));
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(begin),map.begin(),map.end());
+    return tags;
+}
+
+bool mapProfileTests(const std::filesystem::path& dir) {
+    const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
+    const auto path=dir/"map-profile.dxf";
+    const auto mapSlot=[](const Tags& tags,int code,const std::string& value) {
+        for(auto i=slot(tags,5,"C120");i<tags.size() && (tags[i].code!=0);++i)
+            if(tags[i].code==code && tags[i].value==value)return i;
+        throw std::runtime_error("map mutation slot missing");
+    };
+    const auto payloadMatches=[](const DRW_CellStyleMap& map) {
+        if(!map.finalizeDxf()||map.handle!=0xC120u||map.parentHandle!=0xC110u
+            ||map.reactorHandles!=std::vector<std::uint32_t>{0xC110u}||map.m_cellStyles.size()!=3u)return false;
+        const auto plainColor=[](const DRW_TableStyleCmcColor& color) {
+            return color.m_rgb==-1&&color.m_name.empty()&&color.m_bookName.empty()
+                &&color.m_method==0&&color.m_flags==0&&color.m_reservedIndex==0;
+        };
+        const int ids[]{1,2,101};
+        for(unsigned i=0;i<3u;++i) {
+            const auto& s=map.m_cellStyles[i];const auto& f=s.m_contentFormat;
+            if(s.m_type!=5||!s.m_hasData||s.m_propertyOverrideFlags!=512u||s.m_mergeFlags!=32768u
+                ||s.m_backgroundColor!=257||!plainColor(s.m_backgroundColorCmc)||s.m_contentLayout!=1u
+                ||s.m_marginOverrideFlags!=1||s.m_verticalMargin!=1||s.m_horizontalMargin!=2
+                ||s.m_bottomMargin!=3||s.m_rightMargin!=4||s.m_marginHorizontalSpacing!=5||s.m_marginVerticalSpacing!=6
+                ||s.m_id!=ids[i]||s.m_styleClass!=1||s.m_name!="generated-rich-"+std::to_string(ids[i])||s.m_borders.size()!=6u
+                ||f.m_propertyOverrideFlags!=3u||f.m_propertyFlags!=256u||f.m_valueDataType!=512||f.m_valueUnitType!=0
+                ||f.m_valueFormatString!="fmt-é"||f.m_rotation!=0.125||f.m_blockScale!=2||f.m_cellAlignment!=5
+                ||f.m_contentColor!=0||f.m_contentColorCmc.m_rgb!=1193046||f.m_contentColorCmc.m_method!=0xC2u
+                ||f.m_contentColorCmc.m_flags!=0||f.m_contentColorCmc.m_reservedIndex!=0
+                ||!f.m_contentColorCmc.m_name.empty()||!f.m_contentColorCmc.m_bookName.empty()
+                ||f.m_textStyleHandle!=0xC101u||f.m_textHeight!=3.25)return false;
+            for(unsigned edge=0;edge<6u;++edge) {
+                const auto& b=s.m_borders[edge];
+                if(b.m_edgeFlags!=static_cast<int>(1u<<edge)||b.m_propertyOverrideFlags!=63||b.m_borderType!=2
+                    ||b.m_color!=7||!plainColor(b.m_colorCmc)||b.m_lineWeight!=17||b.m_lineTypeHandle!=0xC102u
+                    ||b.m_visible!=1||b.m_doubleLineSpacing!=0.25)return false;
+            }
+        }
+        return true;
+    };
+    const std::vector<std::function<void(Tags&)>> faults{
+        [mapSlot](auto& t){t[mapSlot(t,62,"257")].value="258";},
+        [mapSlot](auto& t){t[mapSlot(t,62,"257")].value="-1";},
+        [mapSlot](auto& t){const auto i=mapSlot(t,62,"257");t.insert(t.begin()+static_cast<std::ptrdiff_t>(i+1u),{420,"1193046"});},
+        [mapSlot](auto& t){const auto i=mapSlot(t,62,"257");t.insert(t.begin()+static_cast<std::ptrdiff_t>(i+1u),{430,"unproved-none-name"});},
+        [mapSlot](auto& t){const auto i=mapSlot(t,62,"257");t.insert(t.begin()+static_cast<std::ptrdiff_t>(i+1u),{431,"unproved-none-book"});},
+        [mapSlot](auto& t){t[mapSlot(t,62,"0")].value="257";},
+        [mapSlot](auto& t){t[mapSlot(t,62,"7")].value="257";},
+        [mapSlot](auto& t){t[mapSlot(t,90,"3")].value="4";},
+        [mapSlot](auto& t){const auto i=mapSlot(t,1,"CELLSTYLE_BEGIN");t[i+1u].value="2";},
+        [mapSlot](auto& t){const auto i=mapSlot(t,1,"CELLSTYLE_BEGIN");t[i+1u].value="5";},
+        [mapSlot](auto& t){const auto i=mapSlot(t,1,"CELLSTYLE_BEGIN");t[i+1u].value="0";},
+        [mapSlot](auto& t){const auto i=mapSlot(t,1,"CELLSTYLE_BEGIN");t[i+1u].value="-1";},
+        [mapSlot](auto& t){t[mapSlot(t,309,"GRIDFORMAT_END")].value="UNKNOWN_GRID_END";},
+        [mapSlot](auto& t){const auto i=mapSlot(t,340,"C102");t.erase(t.begin()+static_cast<std::ptrdiff_t>(i));},
+        [mapSlot](auto& t){const auto i=mapSlot(t,94,"6");t[i].value="7";},
+        [mapSlot](auto& t){const auto i=mapSlot(t,309,"CELLSTYLE_END");t.insert(t.begin()+static_cast<std::ptrdiff_t>(i),{100,"UnknownMapSubclass"});}
+    };
+    unsigned routes=0u,negative=0u,revisionChecks=0u,versionless=0u,budgetRetries=0u;
+    for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
+        const auto good=richMapSource(revision);Probe probe;dx_data data;
+        if(!write(path,good,binary)||!probe.fileImport(path.string(),&data,false)||probe.mapCallbacks!=1u||probe.rawMapCallbacks!=1u
+            ||data.cellStyleMaps.size()!=1u||!payloadMatches(data.cellStyleMaps.front())
+            ||dx_iface::tableContentBindingReport(data).state!=dx_iface::TableBindingState::Bound)return fail("rich map source payload/binding failed");
+        ++routes;
+        for(std::size_t index=0;index<faults.size();++index) {
+            auto bad=good;faults[index](bad);dx_data rejected;
+            const auto callbacks=probe.mapCallbacks,raw=probe.rawMapCallbacks;
+            if(!write(path,bad,binary)||!probe.fileImport(path.string(),&rejected,false)||probe.mapCallbacks!=callbacks
+                ||probe.rawMapCallbacks!=raw+1u||!rejected.cellStyleMaps.empty()
+                ||dx_iface::tableContentBindingReport(rejected).state!=dx_iface::TableBindingState::MissingTarget)
+                return fail("malformed map published typed data index="+std::to_string(index));
+            dx_data corrected;
+            if(!write(path,good,binary)||!probe.fileImport(path.string(),&corrected,false)
+                ||corrected.cellStyleMaps.size()!=1u||!payloadMatches(corrected.cellStyleMaps.front())
+                ||dx_iface::tableContentBindingReport(corrected).state!=dx_iface::TableBindingState::Bound)return fail("map profile corrected import failed");
+            ++negative;
+        }
+        // A valid ID 4 is revision-specific, not a text codec tier decision.
+        auto id4=good;
+        const auto cell=slot(id4,1,"TABLECELL_BEGIN");id4[cell+1u].value="4";
+        const auto identity=mapSlot(id4,1,"CELLSTYLE_BEGIN");id4[identity+1u].value="4";
+        // Local ID 101 must remain in the map, while ID 1 is no longer used.
+        const auto column=slot(id4,1,"TABLECOLUMN_BEGIN");id4[column+1u].value="4";
+        dx_data versioned;const auto callbacks=probe.mapCallbacks;
+        const bool modern=std::string(revision)!="AC1021";
+        if(!write(path,id4,binary)||!probe.fileImport(path.string(),&versioned,false)
+            ||probe.mapCallbacks!=callbacks+(modern?1u:0u)
+            ||dx_iface::tableContentBindingReport(versioned).state!=(modern?dx_iface::TableBindingState::Bound:dx_iface::TableBindingState::SourceNotReady))
+            return fail("declared-revision ID 4 check failed");
+        ++revisionChecks;
+        // Direct/internal readers with no declared source revision stay at
+        // the conservative codec tier; do not silently assume R24.
+        struct ExposedMap:DRW_CellStyleMap{using DRW_CellStyleMap::parseCode;};
+        std::ostringstream body;
+        const auto begin=mapSlot(id4,5,"C120");auto end=begin;while(id4[end].code!=0)++end;
+        for(auto i=begin;i<end;++i)body<<id4[i].code<<'\n'<<id4[i].value<<'\n';
+        std::istringstream stream(body.str());std::unique_ptr<dxfReader> reader(new dxfReaderAscii(&stream));ExposedMap direct;
+        int code=0;while(reader->readRec(&code))if(!direct.parseCode(code,reader))return false;
+        if(reader->hasSourceVersion()||direct.finalizeDxf())return fail("versionless direct map assumed R24");
+        ++versionless;
+        // A public-reader retention failure cannot publish a partial typed or
+        // raw map. Reuse the same codec for the explicitly increased-budget retry.
+        Tags isolated{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,revision},{0,"ENDSEC"},
+            {0,"SECTION"},{2,"OBJECTS"}};
+        const auto record=slot(good,5,"C120")-1u;auto recordEnd=record+1u;
+        while(good[recordEnd].code!=0)++recordEnd;
+        isolated.insert(isolated.end(),good.begin()+static_cast<std::ptrdiff_t>(record),good.begin()+static_cast<std::ptrdiff_t>(recordEnd));
+        isolated.insert(isolated.end(),{{0,"ENDSEC"},{0,"EOF"}});
+        isolated[mapSlot(isolated,300,"generated-rich-1")].value=std::string(16000u,'q');
+        if(!write(path,isolated,binary))return false;
+        dxfRW codec(path.string().c_str());codec.setDxfReadRetainedByteBudget(4096u);
+        Probe bounded;dx_data shortBudget;bounded.cData=&shortBudget;bounded.currentBlock=shortBudget.mBlock;
+        if(codec.read(&bounded,false)||bounded.mapCallbacks||bounded.rawMapCallbacks)
+            return fail("short public budget published a partial map");
+        codec.setDxfReadRetainedByteBudget(2u*1024u*1024u);
+        dx_data restored;bounded.cData=&restored;bounded.currentBlock=restored.mBlock;
+        if(!codec.read(&bounded,false)||bounded.mapCallbacks!=1u||bounded.rawMapCallbacks!=1u
+            ||restored.cellStyleMaps.size()!=1u||restored.cellStyleMaps.front().m_cellStyles[0].m_name.size()!=16000u)
+            return fail("public map budget retry failed");
+        ++budgetRetries;
+    }
+    DRW_CellStyleMap native;DRW_TableStyleCellStyle nativeStyle;
+    nativeStyle.m_type=5;nativeStyle.m_hasData=true;nativeStyle.m_backgroundColor=256;
+    nativeStyle.m_contentFormat.m_cellAlignment=5;nativeStyle.m_id=101;nativeStyle.m_styleClass=1;
+    native.m_cellStyles.push_back(nativeStyle);
+    if(!native.validateDwgPayload(DRW::AC1021))return fail("native guard control was not initially writable");
+    native.m_cellStyles[0].m_backgroundColor=257;
+    if(native.validateDwgPayload(DRW::AC1021))return fail("DXF no-color source profile widened native CMC output");
+    std::cout<<"CELLSTYLEMAP source: "<<routes<<" rich routes; "<<negative<<" malformed/recovery pairs; "
+        <<revisionChecks<<" declared revision checks; "<<versionless<<" versionless refusals; "<<budgetRetries<<" budget retries; native guard retained\n";
+    return routes==8u&&negative==faults.size()*routes&&revisionChecks==8u&&versionless==8u&&budgetRetries==8u;
+}
+
 int inspect(const char* path) {
     Probe p; dx_data data;
     const bool ok=p.fileImport(path,&data,false);
@@ -1124,6 +1290,12 @@ int inspect(const char* path) {
                 <<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
     }
     std::cout<<"imported="<<ok<<" matched="<<p.content.size()<<" unknown="<<p.unknown<<'\n';
+    for(const auto& map:data.cellStyleMaps) {
+        std::cout<<"CELLSTYLEMAP handle="<<std::hex<<map.handle<<" owner="<<map.parentHandle<<std::dec
+            <<" styles="<<map.m_cellStyles.size()<<" complete="<<map.finalizeDxf()<<'\n';
+        for(const auto& s:map.m_cellStyles)std::cout<<"map-style id="<<s.m_id<<" type="<<s.m_type<<" class="<<s.m_styleClass
+            <<" data="<<s.m_hasData<<" background="<<s.m_backgroundColor<<" borders="<<s.m_borders.size()<<'\n';
+    }
     for (const auto& o:p.content) {
         unsigned cells=0u,items=0u,contents=0u,styles=0u,formats=0u;
         for (const auto& col:o.m_dxfMetadata->m_columns) items+=static_cast<unsigned>(col.m_customItems.size());
@@ -1149,10 +1321,11 @@ int main(int argc,char** argv) {
     const bool compound=argc==2 && std::string(argv[1])=="--compound-source";
     const bool proof=argc==2 && std::string(argv[1])=="--compound-content-proof";
     const bool bindings=argc==2 && std::string(argv[1])=="--compound-bindings";
-    if (argc!=1 && !compound && !proof && !bindings) return 2;
+    const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
+    if (argc!=1 && !compound && !proof && !bindings && !maps) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

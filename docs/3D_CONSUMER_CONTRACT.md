@@ -150,13 +150,21 @@ only these direct roles and the admitted namespace, not transitive dependencies,
 resource/common payloads, editable equality or output. `outputEligible` is always
 false and both export modes retain the table loss guard.
 
-Both pinned external examples currently report `MissingTarget` for their
-CELLSTYLEMAP, although independent ezdxf inspection sees the expected map and
-IDs 1/2/3: their rich map bodies do not match the current typed profile. Also,
-the existing CELLSTYLEMAP parser consults codec-normalized `getVersion()`
-(AC1021 for modern DXF), so R24 built-in ID 4 is not yet admitted. Do not infer
-complete map support from generated no-data styles or change the global codec
-normalization to bypass this remaining source-revision task.
+Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
+and `Bound` for the direct child/namespace report. Their rich map backgrounds
+use 257 (no color), now retained in that witnessed DXF role; content/border
+257 and unproved no-color RGB/name companions remain raw-only. This does not
+change native CMC writing or qualify every DXF color profile. Independent ezdxf
+inspection corroborates selected map identity, class, data flag, background,
+border-count and local-ID facts only, not the entire rich payload or semantics.
+
+CELLSTYLEMAP's version-specific checks now use the declared source revision,
+with the existing codec tier as a conservative fallback for versionless internal
+readers. R24+ built-in ID 4 works in ASCII/binary source imports and direct
+writer/readback; R2007 and versionless ID-4 profiles stay unqualified. Global
+text codec normalization is unchanged. Malformed marked bodies retain raw-only
+fallback without publishing partial typed maps; public retained-byte failures
+publish neither callback, and an explicitly corrected same-codec retry works.
 
 Reference-vector worst-case capacity is precharged alongside the raw record.
 Canonical parsing/comparison has a separate cumulative 4,000,000-slot policy:

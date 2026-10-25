@@ -16581,6 +16581,11 @@ bool DRW_CellStyleMap::parseCode(
 
     if (reader == nullptr)
         return false;
+    // TextCodec::getVersion() is the wire/text compatibility tier (all modern
+    // DXF is AC1021), not the declared source revision used by R24 style IDs.
+    const DRW::Version sourceVersion = reader->hasSourceVersion()
+        ? reader->getSourceVersion()
+        : static_cast<DRW::Version>(reader->getVersion());
     const auto invalid = [this]() {
         m_dxfValid = false;
         return true;
@@ -16839,11 +16844,9 @@ bool DRW_CellStyleMap::parseCode(
                         != (kIdentityId | kIdentityClass | kIdentityName))
                     return invalid();
                 const DRW_TableStyleCellStyle& style = *styleAt();
-                const DRW::Version version = static_cast<DRW::Version>(
-                    reader->getVersion());
                 const bool validId = style.m_id == 1 || style.m_id == 2
                     || style.m_id == 3
-                    || (version >= DRW::AC1024 && style.m_id == 4)
+                    || (sourceVersion >= DRW::AC1024 && style.m_id == 4)
                     || style.m_id >= 101;
                 if (!validId || style.m_styleClass < 0
                     || style.m_styleClass > 2
@@ -16969,8 +16972,7 @@ bool DRW_CellStyleMap::parseCode(
             if (m_dxfSection == DxfSection::Content) {
                 if (!mark(m_dxfContentFieldsPresent, kContentDataType))
                     return true;
-                if (!validTableStyleValueDataType(
-                        static_cast<DRW::Version>(reader->getVersion()), value))
+                if (!validTableStyleValueDataType(sourceVersion, value))
                     m_dxfValid = false;
                 style->m_contentFormat.m_valueDataType = value;
                 return true;
@@ -17001,8 +17003,7 @@ bool DRW_CellStyleMap::parseCode(
             if (m_dxfSection == DxfSection::Content) {
                 if (!mark(m_dxfContentFieldsPresent, kContentUnitType))
                     return true;
-                if (!validTableStyleValueUnitType(
-                        static_cast<DRW::Version>(reader->getVersion()), value))
+                if (!validTableStyleValueUnitType(sourceVersion, value))
                     m_dxfValid = false;
                 style->m_contentFormat.m_valueUnitType = value;
                 return true;
@@ -17135,7 +17136,11 @@ bool DRW_CellStyleMap::parseCode(
         case 62: {
             const int value = reader->getInt32();
             DRW_TableStyleCellStyle* style = styleAt();
-            if (style == nullptr || value < 0 || value > 256)
+            // Witnessed rich maps use 257 (no color) for the background.
+            // This DXF source profile does not broaden native CMC emission or
+            // infer the same sentinel for content/border colors.
+            const int maximum = m_dxfSection == DxfSection::Table ? 257 : 256;
+            if (style == nullptr || value < 0 || value > maximum)
                 return invalid();
             if (m_dxfSection == DxfSection::Table) {
                 if (!style->m_hasData
@@ -17167,6 +17172,8 @@ bool DRW_CellStyleMap::parseCode(
             const std::uint8_t bit = code == 420 ? kColorRgb
                 : code == 430 ? kColorName : kColorBookName;
             if (color == nullptr
+                || (m_dxfColorTarget == DxfColorTarget::Background
+                    && styleAt()->m_backgroundColor == 257)
                 || (m_dxfColorFieldsPresent & bit) != 0u)
                 return invalid();
             if (code == 420) {

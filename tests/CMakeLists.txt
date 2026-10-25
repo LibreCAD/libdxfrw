@@ -515,6 +515,10 @@ add_test(NAME libdxfrw_table_content_bindings
     COMMAND libdxfrw_table_content_dxf_tests --compound-bindings)
 set_tests_properties(libdxfrw_table_content_bindings PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_cellstylemap_source_profiles
+    COMMAND libdxfrw_table_content_dxf_tests --cell-style-map-source)
+set_tests_properties(libdxfrw_cellstylemap_source_profiles PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value
