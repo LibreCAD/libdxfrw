@@ -16253,7 +16253,8 @@ bool runDxfAcdsDataStorageProjection(
     bool reverseEntityOrder = false,
     bool reassignedClassIds = false, bool paperSpaceModeler = false,
     DRW::Version targetVersion = DRW::AC1027,
-    DRW::Version sourceVersion = DRW::AC1027) {
+    DRW::Version sourceVersion = DRW::AC1027, bool pagedPayload = false,
+    unsigned blobFault = 0u) {
     const std::string encoding = binary ? "binary" : "ascii";
     const std::filesystem::path output = directory /
         ("libdxfrw-acds-projection-"
@@ -16262,14 +16263,47 @@ bool runDxfAcdsDataStorageProjection(
          + (reverseEntityOrder ? "-reversed-entities" : "")
          + (reassignedClassIds ? "-reassigned-classes" : "")
          + (paperSpaceModeler ? "-paperspace" : "")
+         + (pagedPayload ? "-paged" : "")
+         + (blobFault ? "-fault-" + std::to_string(blobFault) : "")
          + ".dxf");
     std::error_code ec;
     std::filesystem::remove(output, ec);
 
-    constexpr std::uint32_t sourceHandle = 0xFC20u;
-    const std::vector<std::uint8_t> payload {
+    const std::uint32_t sourceHandle = pagedPayload ? 0x701u : 0xFC20u;
+    std::vector<std::uint8_t> payload {
         'A', 'C', 'I', 'S', ' ', 'B', 'i', 'n', 'a', 'r', 'y', 'F', 'i', 'l', 'e',
         0x01u, 0x02u, 0x03u, 0x04u};
+    if (pagedPayload) {
+        payload.resize(DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE + 1u);
+        for (std::size_t index = 19u; index < payload.size(); ++index)
+            payload[index] = static_cast<std::uint8_t>(index * 37u);
+    }
+    const auto exactPagedWire = [&](const DRW_RawDxfSection& section) {
+        if (!pagedPayload) return true;
+        bool record = false, asmData = false;
+        unsigned lengths = 0u, payloads = 0u;
+        std::size_t bytes = 0u;
+        for (const auto& field : section.m_groups) {
+            if (field.code() == 0) {
+                record = field.type() == DRW_Variant::STRING && field.c_str()
+                    && std::strcmp(field.c_str(), "ACDSRECORD") == 0;
+                asmData = false;
+            } else if (record && field.code() == 2 && field.type() == DRW_Variant::STRING
+                       && field.c_str() && std::strcmp(field.c_str(), "ASM_Data") == 0) {
+                asmData = true;
+                ++payloads;
+            } else if (asmData && field.code() == 94) {
+                if (++lengths != 1u || field.type() != DRW_Variant::INTEGER
+                    || field.i_val() != static_cast<int>(payload.size())) return false;
+            } else if (asmData && field.code() == 310) {
+                if (bytes >= payload.size() || field.type() != DRW_Variant::STRING || !field.c_str()) return false;
+                const std::size_t count = std::min(std::size_t{127u}, payload.size() - bytes);
+                if (std::strlen(field.c_str()) != count * 2u) return false;
+                bytes += count;
+            }
+        }
+        return payloads == 1u && lengths == 1u && bytes == payload.size();
+    };
     dx_data source;
     auto* neighborLine = new DRW_Line();
     neighborLine->basePoint = DRW_Coord(10.0, 20.0, 30.0);
@@ -16278,6 +16312,23 @@ bool runDxfAcdsDataStorageProjection(
         source.mBlock->ent.push_back(neighborLine);
     DRW_ModelerGeometry* sourceModeler = addLocalAcdsDataStorageModeler(
         source, sourceHandle, payload, DRW::E3DSOLID, true, sourceVersion);
+    if (pagedPayload) {
+        // Parse real paged storage bytes, then pair the decoded record with
+        // this control's existing authored schema/history profile. This is
+        // not a whole native DWG import or a semantically valid SAB sample.
+        const std::vector<std::uint8_t> direct(
+            DRW_DataStorageConst::DATA_RECORD_INLINE_MAX_SIZE, 0x29u);
+        const auto bytes = makeLocalDataStorageThresholdBlobVector(direct, payload);
+        const auto decoded = DRW_parseDataStorage(bytes.bytes, sourceVersion);
+        const auto* blob = decoded.findRecordByHandle(sourceHandle);
+        if (decoded.parseFailed || !decoded.structurallyValid || !decoded.replayAllowed
+            || !decoded.payloadsRetained || !blob || !blob->isBlobReference
+            || !blob->blobPayloadRetained || blob->payload != payload)
+            return false;
+        source.dataStorageSections.front().records.front() = *blob;
+        sourceModeler->dataStorageSegmentIndex = blob->segmentIndex;
+        sourceModeler->dataStorageSchemaIndex = blob->schemaIndex;
+    }
     sourceModeler->space = paperSpaceModeler
         ? DRW::PaperSpace : DRW::ModelSpace;
     sourceModeler->parentHandle = paperSpaceModeler
@@ -16304,6 +16355,43 @@ bool runDxfAcdsDataStorageProjection(
     }
 
     dx_iface exporter;
+    const bool blobVersionMismatch = pagedPayload && targetVersion != sourceVersion;
+    if (pagedPayload && (blobFault || blobVersionMismatch)) {
+        auto& record = source.dataStorageSections.front().records.front();
+        const auto saved = record;
+        switch (blobFault) {
+        case 0: break; // Explicit incompatible-target refusal, not a record edit.
+        case 1: record.blobPayloadRetained = false; break;
+        case 2: --record.blobTotalByteLength; break;
+        case 3: --record.blobPageCount; break;
+        case 4: record.blobPages.clear(); break;
+        case 5: --record.blobPages.front().byteLength; break;
+        case 6: record.blobPages.front().byteLength = 0u; break;
+        case 7: record.blobPages.front().byteLength = static_cast<std::uint32_t>(payload.size()); break;
+        case 8: record.blobPageCount = DRW_DataStorageConst::HARD_MAX_ENTRIES + 1u; break;
+        case 9: record.blobPages.front().byteLength = DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE + 1u; break;
+        case 10: --record.dataByteLength; break;
+        case 11: record.payload.back() ^= 1u; break;
+        default: return false;
+        }
+        const std::string sentinel = "preserve destination on incomplete paged payload";
+        { std::ofstream stream(output, std::ios::binary | std::ios::trunc); stream << sentinel; if (!stream) return false; }
+        const bool refused = !exporter.fileExport(output.string(), targetVersion, binary, &source, false);
+        std::ifstream stream(output, std::ios::binary);
+        const std::string after(std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{});
+        stream.close();
+        record = saved;
+        if (!refused || after != sentinel || sourceModeler->dataStorageData != payload) {
+            std::filesystem::remove(output, ec);
+            std::cerr << "Paged payload fault=" << blobFault << " did not refuse atomically\n";
+            return false;
+        }
+        // This is an explicit corrected test request, not a writer fallback:
+        // the incompatible original request above must refuse atomically.
+        if (blobVersionMismatch) targetVersion = sourceVersion;
+        // The successful path below retries on this same facade and verifies
+        // actual import and opposite-encoding reexport after restoration.
+    }
     if (!exporter.fileExport(output.string(), targetVersion, binary,
                              &source, false)) {
         if (!keepOutput)
@@ -16388,6 +16476,7 @@ bool runDxfAcdsDataStorageProjection(
         && importedModeler->m_historyHandle == 0x20Eu
         && schemaMatch
         && classesMatch
+        && exactPagedWire(imported.rawDxfSections.front())
         && findAcdsRecordPayload(imported.rawDxfSections.front(), "ASM_Data",
                                  linkedHandle, parsedPayload)
         && linkedHandle == expectedHandle
@@ -16469,11 +16558,12 @@ bool runDxfAcdsDataStorageProjection(
         dx_data replayed;
         dx_iface replayImporter;
         result = replayExporter.fileExport(replay.string(), targetVersion,
-                                           binary, &imported, false)
+                                           pagedPayload ? !binary : binary, &imported, false)
             && replayImporter.fileImport(replay.string(), &replayed, false)
             && replayed.dxfClasses.size() == imported.dxfClasses.size()
             && replayed.rawProxyObjects.size() == 3u
-            && replayed.rawDxfSections.size() == 1u;
+            && replayed.rawDxfSections.size() == 1u
+            && exactPagedWire(replayed.rawDxfSections.front());
         if (result) {
             for (std::size_t index = 0; index < imported.dxfClasses.size();
                  ++index) {
@@ -33016,6 +33106,34 @@ int main(int argc, char** argv) {
         return writeHatchReferenceFile(argv[2], std::string(argv[1]) == "--generate-hatch-references-binary") ? 0 : 1;
     } else if (argc == 3 && std::string(argv[1]) == "--verify-hatch-references") {
         return verifyHatchReferenceFile(argv[2]) ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--modeler-acds-blob-faults") {
+        bool passed = true;
+        for (bool binary : {false, true}) {
+            for (unsigned fault = 1u; fault <= 11u; ++fault)
+                passed = runDxfAcdsDataStorageProjection(binary, directory, false,
+                    false, false, false, false, DRW::AC1032, DRW::AC1032, true, fault) && passed;
+        }
+        std::cout << "Paged DataStorage atomic refusal/restored readback retries=22: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    } else if (argc == 2
+        && std::string(argv[1]) == "--modeler-acds-blob-projection") {
+        bool passed = true;
+        for (DRW::Version sourceVersion : {DRW::AC1027, DRW::AC1032}) {
+            for (DRW::Version targetVersion : {DRW::AC1027, DRW::AC1032}) {
+                for (bool binary : {false, true}) {
+                    const bool cell = runDxfAcdsDataStorageProjection(binary, directory, false,
+                        false, false, false, false, targetVersion, sourceVersion, true);
+                    if (!cell) std::cerr << "Paged projection source=" << sourceVersion
+                        << " target=" << targetVersion << " binary=" << binary << '\n';
+                    passed = cell && passed;
+                }
+            }
+        }
+        std::cout << "Paged DataStorage same-profile projections=4, cross-profile refusal/retries=4: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
     } else if (argc == 2
         && std::string(argv[1]) == "--modeler-acds-r2013plus-projection") {
         bool passed = true;

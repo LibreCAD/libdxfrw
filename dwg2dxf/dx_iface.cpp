@@ -5587,13 +5587,36 @@ bool appendAcdsDataSection(
     std::unordered_set<std::uint32_t> matchedModelers;
     std::size_t thumbnailCount = 0;
     for (const DRW_DataStorageRecord& record : storage.records) {
-        if (!record.isHandleSafe || record.isBlobReference
+        if (!record.isHandleSafe
             || record.handle == 0 || record.handleKey.empty()
             || !recordKeys.insert(record.handleKey).second
             || record.payload.empty()
             || record.payload.size() > DRW_DataStorageConst::PAYLOAD_BLOB_SECTION_CAP
             || record.dataByteLength != record.payload.size()) {
             return false;
+        }
+        if (record.isBlobReference) {
+            // ODA 5.4.1 24.2.2.3/.3.1: blob pages store one logical byte
+            // array. Emit its already-decoded bytes, never its page descriptor.
+            // Partial retention or inconsistent public page metadata is not
+            // evidence that the complete logical payload is available.
+            if (!record.blobPayloadRetained
+                || record.blobTotalByteLength != record.payload.size()
+                || record.blobPageCount == 0u
+                || record.blobPageCount > DRW_DataStorageConst::HARD_MAX_ENTRIES
+                || record.blobPages.size() != record.blobPageCount
+                || record.blobPages.size() > record.payload.size())
+                return false;
+            std::size_t pageBytes = 0u;
+            for (const auto& page : record.blobPages) {
+                if (page.byteLength == 0u
+                    || page.byteLength > DRW_DataStorageConst::DATA_BLOB_PAGE_MAX_SIZE
+                    || page.byteLength > record.payload.size() - pageBytes)
+                    return false;
+                pageBytes += page.byteLength;
+            }
+            if (pageBytes != record.payload.size())
+                return false;
         }
         if (record.schemaIndex == schemaRoles.thumbnailSchemaIndex
             && !record.hasPayloadMarker

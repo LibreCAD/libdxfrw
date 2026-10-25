@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cn audited root test adapter deduplication (2026-10-25):** two explicitly matched, uninstalled root test contexts now share adapter objects; fixture paths stay on their three driver sources. Actual normal/ASan graphs each reduce adapter compile actions from ten to six. CLI/framework, strict-warning, GBK/debug, MSVC Wave1 and sanitizer/configuration boundaries remain separate, with opt-out/PIC/export fallbacks and context-drift refusal. Makefiles and Ninja Multi-Config scratch controls pass; 23 normal and 22 ASan scoped runtime tests, four build-context/speed tests and both LibreCAD_3 compile gates pass. This is measured compile-action reduction, not a paired full-build wall-time benchmark or new format support. Owning-family/raw-carrier/document and external qualification work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5cn-audited-root-test-adapter-deduplication-2026-10-25) · [receipt](docs/research/rpp5cn-root-test-adapter-deduplication-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5co retained paged DataStorage logical-payload projection (2026-10-25):** the converter no longer blanket-refuses fully retained paged payloads in the existing qualified schema/modeler projection lane. Bounded page-count/length checks reject partial or inconsistent metadata; existing version/schema/owner gates stay unchanged. Parsed local blob bytes paired with the authored profile pass four same-profile projections, four cross-profile atomic refusals with explicit corrected retries, and 22 fault/restoration retries: 30 successful projections and 30 actual-import opposite-encoding reexports preserve exact 262,145-byte payloads, lengths, chunk widths and associations. Final 19 normal / 19 ASan tests and both LibreCAD_3 compile gates pass. These are decoded-fragment byte-transport controls, not complete native DWG/schema or independent SAB qualification. Native raw-carrier/owner/document and external work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5co-retained-paged-datastorage-logical-payload-projection-2026-10-25) · [receipt](docs/research/rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5cn audited root test adapter deduplication (2026-10-25):** two explicitly matched, uninstalled root test contexts now share adapter objects; fixture paths stay on their three driver sources. Actual normal/ASan graphs each reduce adapter compile actions from ten to six. CLI/framework, strict-warning, GBK/debug, MSVC Wave1 and sanitizer/configuration boundaries remain separate, with opt-out/PIC/export fallbacks and context-drift refusal. Makefiles and Ninja Multi-Config scratch controls pass; 23 normal and 22 ASan scoped runtime tests, four build-context/speed tests and both LibreCAD_3 compile gates pass. This is measured compile-action reduction, not a paired full-build wall-time benchmark or new format support. Owning-family/raw-carrier/document and external qualification work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5cn-audited-root-test-adapter-deduplication-2026-10-25) · [receipt](docs/research/rpp5cn-root-test-adapter-deduplication-2026-10-25.json).
 
 **Previous commit/plan checkpoint (2026-10-25):** RPP-5cm implementation, tests, plan and receipt are committed as `c9f6774941ba36ec72892b361ba788ab9fab7473`. A post-commit rerun of its two positive/fault CTests passes in 4.66 s. This plan-only checkpoint records the committed state and prioritized remaining work; it adds no implementation or support qualification. [Commit checkpoint and next actions](#commit-checkpoint-rpp-5cm-and-remaining-work-2026-10-25).
 
@@ -122496,3 +122498,108 @@ unrelated files remain excluded. Earlier immutable receipts are unchanged.
 
 Receipt:
 [`rpp5cn-root-test-adapter-deduplication-2026-10-25.json`](docs/research/rpp5cn-root-test-adapter-deduplication-2026-10-25.json).
+
+## Implementation progress — RPP-5co retained paged DataStorage logical-payload projection (2026-10-25)
+
+RPP-5cn is committed as `c037e7895a4707adfa059a92a188dc0913ca3c62`.
+Return to the feature objective after the build-speed slice: advance the actual
+DataStorage byte route instead of substituting additional permanent refusal for
+preservation. This completes one decoded logical-payload projection capability,
+not the general native raw-carrier/schema/owner-byte or semantic requirement.
+
+1. [x] Identify and reproduce a real transport refusal. The parser already
+   reconstructs retained DataStorage blob payloads, but appendAcdsDataSection
+   rejects every isBlobReference record. The new initial projection matrix
+   fails (0.49 s, CTest exit 8). Its mixed-version requests also encounter the
+   pre-existing storage.m_version/outputVersion equality gate; those are not
+   additional production defects or permission to reinterpret a source profile.
+2. [x] Read the authoritative ODA specification v5.4.1, sections 24,
+   24.2.2.3, 24.2.2.3.1 and 24.2.2.4. The configured ~/doc/dwg PDF is absent;
+   recover the cached ACadSharp reference copy, verify its title/version and
+   record its SHA-256 in the receipt. Its blob/page layout represents a logical
+   byte array, distinct from the descriptor and page framing. Do not change
+   native parsing, native encoding or the existing schema fingerprint.
+3. [x] Admit only complete retained logical payloads. Keep all existing section,
+   version, structural/replay, schema, duplicate-key, modeler/owner/marker and
+   payload-equality checks. For a blob require retained payload, exact logical
+   total, nonzero bounded page count matching the vector, nonzero bounded page
+   lengths and a subtraction-bounded sum equal to the logical payload size.
+   Bound scans by existing count/payload limits; do not raise retention caps.
+   Use the existing ACDSDATA emission of logical bytes, never page descriptors
+   or Blob01 headers. Public API/ABI/callbacks/support masks remain unchanged.
+4. [x] Exercise explicit source boundaries. Parse locally authored native page
+   bytes containing two physical pages (131,072 and 131,073 bytes) and pair the
+   selected decoded 262,145-byte blob record with the existing authored
+   schema/history/modeler control profile. The direct record in the parser
+   fixture is not selected into this projection. This is not a whole native
+   DWG import, independently produced schema, or semantically valid SAB sample.
+   The payload intentionally tests byte transport and association only.
+5. [x] Pass four AC1027/AC1032 same-profile ASCII/binary initial projections.
+   Four cross-profile requests must preserve destination sentinels and refuse;
+   then explicitly request the matching profile on the same facade and verify
+   actual import/readback. The writer does not silently change target versions.
+   Keep existing BODY profile refusal in both normal and ASan controls.
+6. [x] Pass 22 atomic metadata/payload refusal/restoration retries, both
+   encodings, on the same facade. Eleven modes cover incomplete retention,
+   wrong logical total/count/table/sum, zero/oversize pages, count limits,
+   logical dataByteLength mismatch and record-versus-modeler payload divergence.
+   Restore the saved record, publish and actually read back the correction.
+7. [x] Prove exact output and parsed cross-encoding replay. In total, 30
+   successful projections and 30 opposite-encoding actual-import reexports
+   preserve the complete bytes, one ASM_Data record, its mapped group-320
+   association, one group-94 logical length and 2,065 group-310 chunks (127-byte
+   chunks, 17-byte last chunk). Preserve six expected schemas, history/proxy/
+   material closure and the neighboring 3D LINE. These facts do not qualify
+   application/kernel semantics or a complete native source document.
+8. [x] Register separate fast positive/fault selectors and the existing direct/
+   blob parser and native replay controls. Initial overlapping normal/ASan
+   cohorts fail in old XRECORD/LTYPE tests using the same fixed temp names;
+   invalidate that run and recheck sequentially. Also protect the newly
+   registered raw-replay test and the owning test's shared helpers with the
+   CTest resource lock libdxfrw_raw_modeler_acds_tmpfiles. Inspect both actual
+   test properties. This lock works within one CTest process; separate build
+   trees' owning cohorts still run sequentially. No assertions are skipped or
+   relaxed. Isolating all legacy temp paths remains a follow-up, not claimed.
+9. [x] Final strict affected builds and both LibreCAD_3 compile gates pass.
+   With the lock installed and normal/ASan cohorts sequential, all 19 normal
+   tests pass in 14.08 s and all 19 ASan tests pass in 25.05 s (parallelism 3
+   inside each cohort; ASan halt_on_error=1:detect_leaks=0). Existing inline,
+   multiple/block modeler, native blob replay, typed DataStorage refusal,
+   selected IMAGE reactor, rooted XRECORD and owning tests remain green.
+   No full-suite, leak/platform or semantic/kernel qualification is claimed.
+
+Next implementation-ready work, preserving the full original parity objective:
+
+1. [ ] Close the remaining native source gap for paged DataStorage: import a
+   complete native DWG with consistent schema/owner/page data through the real
+   reader, correlate exact source records/handles/bytes to output, exercise
+   strict/partial policy and actual refusal/restoration routes, and obtain
+   independent semantic evidence separately. A decoded fragment plus authored
+   schema profile is not evidence to promote that whole-source capability.
+2. [ ] Complete general native DataStorage raw-carrier/schema/owner-byte
+   preservation and cumulative decoded-owner/retention controls, rather than
+   leaving typed-state refusal as the final capability. Keep version/schema
+   gates closed until supported conversion has its own proof.
+3. [ ] Continue remaining owning-family/common-extension/source-generation
+   alias contracts, exact staged/final field/reference proof and atomic
+   refusal/restored readback; retain family-specific raw-replay contracts.
+   Finish profile callbacks/incompatible next attempts, independent names/body/
+   path/EED, sparse classes, full IMAGE geometry and named-root/document closure.
+   Native point19/component-coded 20/30 still need specification and actual
+   source proof before grammar/layout changes. Preserve LibreCAD/LibreCAD_3 2D
+   and the full 3D/dwg2dxf/FreeCAD objective.
+4. [ ] Isolate legacy fixed temporary paths before allowing concurrent
+   cross-build owning cohorts. Continue safe self-unblocking, update the plan
+   and a new immutable receipt after each implemented slice, commit/report
+   verified progress and prefer fast affected tests with proportionate owning/
+   consumer/sanitizer checkpoints instead of a full suite per edit.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support promotion, native
+producer/schema qualification, new drawing fixture or remote mutation is
+claimed. All 17 pre-existing untracked drawings and unrelated files remain
+excluded. Earlier receipts remain immutable.
+
+Receipt:
+[`rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json`](docs/research/rpp5co-paged-datastorage-logical-payload-projection-2026-10-25.json).

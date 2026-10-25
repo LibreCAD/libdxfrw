@@ -970,6 +970,25 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(dwg2dxf_modeler_dxf_writer_matrix PROPERTIES
         LABELS "fast;dxf;writer;modeler"
         TIMEOUT 30)
+    add_test(NAME dwg2dxf_modeler_acds_blob_projection
+        COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-projection)
+    set_tests_properties(dwg2dxf_modeler_acds_blob_projection PROPERTIES
+        LABELS "fast;dwg;dxf;modeler;acds;blob;generated" TIMEOUT 60)
+    add_test(NAME dwg2dxf_modeler_acds_blob_faults
+        COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-faults)
+    set_tests_properties(dwg2dxf_modeler_acds_blob_faults PROPERTIES
+        LABELS "fast;dwg;dxf;modeler;acds;blob;transaction;generated" TIMEOUT 60)
+    add_test(NAME libdxfrw_datastorage_page_boundaries
+        COMMAND libdxfrw_dwg_local_roundtrip --datastorage-page-boundaries)
+    add_test(NAME libdxfrw_raw_modeler_acds_replay
+        COMMAND libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay)
+    set_tests_properties(libdxfrw_datastorage_page_boundaries libdxfrw_raw_modeler_acds_replay PROPERTIES
+        LABELS "fast;dwg;modeler;acds;blob;generated" TIMEOUT 30)
+    # The owning test also invokes these legacy helpers with fixed temp paths.
+    # Protect parallel CTest scheduling within a build; separate build trees'
+    # cohorts still run sequentially until the legacy paths are isolated.
+    set_property(TEST libdxfrw_dwg_local_roundtrip libdxfrw_raw_modeler_acds_replay
+        APPEND PROPERTY RESOURCE_LOCK libdxfrw_raw_modeler_acds_tmpfiles)
     add_test(NAME dwg2dxf_modeler_acds_r2013plus_projection
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-r2013plus-projection)
     set_tests_properties(dwg2dxf_modeler_acds_r2013plus_projection PROPERTIES
