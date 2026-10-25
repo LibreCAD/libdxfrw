@@ -1,4 +1,6 @@
-**Latest commit/plan checkpoint (2026-10-25):** RPP-5cm implementation, tests, plan and receipt are committed as `c9f6774941ba36ec72892b361ba788ab9fab7473`. A post-commit rerun of its two positive/fault CTests passes in 4.66 s. This plan-only checkpoint records the committed state and prioritized remaining work; it adds no implementation or support qualification. [Commit checkpoint and next actions](#commit-checkpoint-rpp-5cm-and-remaining-work-2026-10-25).
+**Newest implementation checkpoint — RPP-5cn audited root test adapter deduplication (2026-10-25):** two explicitly matched, uninstalled root test contexts now share adapter objects; fixture paths stay on their three driver sources. Actual normal/ASan graphs each reduce adapter compile actions from ten to six. CLI/framework, strict-warning, GBK/debug, MSVC Wave1 and sanitizer/configuration boundaries remain separate, with opt-out/PIC/export fallbacks and context-drift refusal. Makefiles and Ninja Multi-Config scratch controls pass; 23 normal and 22 ASan scoped runtime tests, four build-context/speed tests and both LibreCAD_3 compile gates pass. This is measured compile-action reduction, not a paired full-build wall-time benchmark or new format support. Owning-family/raw-carrier/document and external qualification work stays open; strict admission remains **CLOSED**. [Implementation record](#implementation-progress-rpp-5cn-audited-root-test-adapter-deduplication-2026-10-25) · [receipt](docs/research/rpp5cn-root-test-adapter-deduplication-2026-10-25.json).
+
+**Previous commit/plan checkpoint (2026-10-25):** RPP-5cm implementation, tests, plan and receipt are committed as `c9f6774941ba36ec72892b361ba788ab9fab7473`. A post-commit rerun of its two positive/fault CTests passes in 4.66 s. This plan-only checkpoint records the committed state and prioritized remaining work; it adds no implementation or support qualification. [Commit checkpoint and next actions](#commit-checkpoint-rpp-5cm-and-remaining-work-2026-10-25).
 
 **Newest implementation checkpoint — RPP-5cm XRECORD-owned extension closure and common-link consistency (2026-10-24):** two reproduced publication gaps are fixed: extension dictionaries must name their referencing object as owner, and reserved common groups on selected DICTIONARY/XRECORD records must match typed links. Validation work is precharged; unrelated custom application groups remain preserved. Eighteen scratch DWG/DXF sources pass 216 projections and 216 actual-import reexports. Controls pass 96 preflight and 128 late-source atomic restoration retries, 16 snapshot-budget retries and eight graph-work retries. Final 78 focused, five owning, four reader/consumer and 60 ASan tests pass, with both LibreCAD_3 compile gates. Other families/generations/raw-carrier/document work and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cm-xrecord-owned-extension-closure-and-common-link-consistency-2026-10-24) · [receipt](docs/research/rpp5cm-xrecord-owned-extension-closure-2026-10-24.json).
 
@@ -122352,17 +122354,14 @@ Receipt:
    parallelism 2). The earlier 78 focused / five owning / four reader-consumer /
    60 ASan results and both LibreCAD_3 compile gates are retained as prior
    validation, not represented as rerun for this documentation-only update.
-3. [ ] Next bounded speed slice: finish the existing duplicate converter-
-   compilation sub-plan. Audit actual definitions, options, include order,
-   frameworks and link interfaces before sharing any uninstalled adapter
-   objects. Pool only identical contexts; retain separate CLI/framework,
-   MSVC test-seam, warning and sanitizer configurations where they differ.
-   Preserve the opt-out and PIC/export fallbacks, installed library/export
-   contract and C++14 consumer probes. Verify generated compile-command counts,
-   negative context-drift controls and affected CLI/LibreCAD_3/owning tests.
-   Record measured build effects without assuming a wall-time speedup. This
-   audit has begun; no new pooling implementation or measured speedup is
-   complete or committed at this checkpoint.
+3. [x] Finish the bounded duplicate converter-compilation slice. The RPP-5cn
+   implementation record below completes the audited root-context pooling,
+   fixture-driver definition isolation, context-drift/fallback controls and
+   affected normal/ASan/CLI/LibreCAD_3 checks. Actual adapter compile graphs
+   reduce ten to six actions per configuration on this host; no paired clean
+   full-build wall-time speedup is claimed. Distinct CLI/framework, warnings,
+   MSVC seams and sanitizer contexts and the installed-library contract remain
+   separate. Broader parity requirements are not closed by this build change.
 4. [ ] Resume feature closure after that bounded build slice: remaining owning
    families, common/extension metadata and source-generation aliases, with
    actual-import field/reference proof, atomic refusal and restored readback.
@@ -122390,3 +122389,110 @@ support promotion, new fixture, remote mutation or new platform qualification
 is claimed. All 17 pre-existing untracked drawings and unrelated files remain
 excluded. The existing RPP-5cm receipt stays immutable; this documentation-only
 commit checkpoint does not replace or extend its implementation evidence.
+
+## Implementation progress — RPP-5cn audited root test adapter deduplication (2026-10-25)
+
+The prior plan-only commit is `ff8ac13e324552e541d79e4a91ae558aad0f5e40`;
+the preceding implementation is RPP-5cm, `c9f6774941ba36ec72892b361ba788ab9fab7473`.
+This slice completes the repeatedly queued duplicate converter-compilation
+sub-plan, including item 3 in the commit checkpoint above. It improves the
+implementation/validation loop without replacing the original feature objective
+with a build-only objective or promoting any DWG/DXF support claim.
+
+1. [x] Audit actual compile contexts before pooling. Both normal and ASan
+   compile-command inventories contain ten adapter actions per configuration.
+   Keep the CLI's Apple framework paths and warning flags, existing tests/
+   strict-warning pool, GBK include/fixture variant and debug-state warning/
+   fixture/Threads variant separate. Production adapter/includes do not use
+   the three moved fixture macros. Do not normalize include order or remove
+   warnings to manufacture equivalence.
+2. [x] Share only two matching root-directory contexts. The root pool serves
+   local roundtrip, DXF fixtures and DWG fixtures with ordered src/root includes.
+   The reader pool serves symbol output, reader matrix and non-MSVC Wave1 with
+   ordered src/src-intern/dwg2dxf includes. Move fixture-path definitions to
+   their three driver source files, preserving values. MSVC Wave1 retains
+   separate adapter compilation and its LIBDXFRW_FORCE_TEST_SEAMS definition.
+   Objects are uninstalled; executable link dependencies remain unchanged.
+3. [x] Preserve explicit fallback and mismatch refusal. Existing
+   LIBDXFRW_DEDUP_TEST_ADAPTER=OFF and global PIC/export configurations retain
+   per-executable compilation. Extract the existing context-property checker
+   without weakening its target-local/per-configuration/link-list comparisons;
+   additionally require identical source/binary creation directories. Run
+   checks after all root target customizations. This remains an explicitly
+   audited pool, not a generic proof that arbitrary target-sensitive transitive
+   generator expressions are equivalent. Separate build trees/configurations
+   and global sanitizer flags remain separate outputs. Add helper distribution
+   entries and narrow gitignore exceptions, not installed exports.
+4. [x] Protect positive and refusal paths with tiny generated C++ controls.
+   Each of Makefiles and Ninja Multi-Config passes six positive configurations
+   (shared, exports-off, disabled, PIC, exports, simulated MSVC seam routing),
+   18 refusal cases (nine context/directory drifts on each pool), and 36 tiny
+   executable runs. Driver-only macros must exist on three drivers and cause a
+   compile error if leaked to the adapter. Seam-dependent runtime values prove
+   Wave1's separate route. Multi-config runtime executes Debug; its exported
+   graph covers Debug/Release/RelWithDebInfo. This host simulation is not native
+   MSVC/Windows qualification. Preserve explicit toolchain, generator instance/
+   platform, compiler target/sysroot and configuration when running controls.
+5. [x] Verify real graph and command equivalence. Both actual normal/ASan
+   graphs now contain six adapter actions, four fewer (40% of adapter actions,
+   not total build time). All six pooled members' ASan commands match their
+   new pool after removing only object output paths and the now-unused driver
+   macros. The four intentionally separate variants' normalized commands stay
+   unchanged; all six actual ASan actions retain address-sanitizer flags.
+   Real driver compile commands retain the required fixture definitions and
+   pooled commands exclude fixture/seam macros. This structural reduction
+   applies to a full compile graph or a shared-source change across all adapter
+   consumers; no executed clean-build or incremental-edit speedup is claimed.
+6. [x] Record bounded local build observations. Affected normal and ASan builds
+   pass in 34.52 s and 83.15 s respectively (parallelism 3), including both
+   LibreCAD_3 compile gates. A subsequent affected normal no-op build takes
+   2.11 s. These are unpaired warm-tree observations with changed-target/stale-
+   object effects, not a comparative wall-time benchmark. Preserve installed
+   library/API/wire formats and the explicit C++14 class-wire probe targets.
+7. [x] Validate affected behavior without repeating the full suite. All 23
+   scoped normal CTests pass in 28.83 s, including CLI contract, all six pooled
+   executable families, unpooled GBK/debug controls, IMAGE compound transaction/
+   selected-reactor/source-profile/EED, rooted IMAGE/XRECORD refusal/readback,
+   symbol/table identity and consumer/wire probes. All 22 corresponding scoped
+   ASan tests pass in 39.07 s; the unchanged CLI process contract is not repeated
+   there. ASan uses halt_on_error=1:detect_leaks=0. Four final normal build-
+   context/implementation-speed tests pass in 4.60 s, and the real ASan-tree
+   context check passes in 5.49 s. Existing tests/-pool drift controls and the
+   real static/shared CLI-on/off registration matrix remain green.
+
+Next implementation-ready work, retaining the full original parity objective:
+
+1. [ ] Resume owning-family/common-extension/source-generation alias closure
+   with actual imports, exact staged/final output fields/references, atomic
+   refusal and restored same-facade readback. Require family-specific contracts
+   before extending typed reserved-group checks to raw replay; exercise root
+   inclusion/exclusion without changing legacy 2D policy. Arbitrary/shared-owner
+   and multi-document aliases still need explicit ownership/generation/remap
+   contracts and independent evidence.
+2. [ ] Implement actual DataStorage raw-carrier/schema/owner-byte preservation
+   and cumulative decoded-owner/retention controls using authoritative DWG
+   specification and bounded actual-source traces. The existing typed-state
+   refusal is not that capability; do not substitute permanent refusal for
+   the planned supported byte/reference route.
+3. [ ] Complete remaining admitted/future-profile callbacks/incompatible next
+   attempts, independent APPID/LAYER/XRECORD names/body/path/EED, sparse native
+   classes, full IMAGE geometry and named-root/document closure. Native point19
+   and component-coded 20/30 still require specification and actual-source
+   proof before grammar/layout changes. Preserve LibreCAD/LibreCAD_3 2D and
+   the full 3D/dwg2dxf/FreeCAD objective.
+4. [ ] Self-update the plan and a new immutable receipt after each implemented
+   item, safely resolve in-scope dependencies, commit verified slices and show
+   progress. Iterate with fast affected tests and proportionate owning/consumer/
+   sanitizer checkpoints; avoid a full suite per edit and avoid unnecessary
+   implementation stops. Ask only for genuinely new authority or material
+   user choices, not for already-authorized safe dependency work.
+
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No full suite, native GCC/
+Windows qualification, leak qualification, new drawing fixture, remote mutation
+or support promotion is claimed. All 17 pre-existing untracked drawings and
+unrelated files remain excluded. Earlier immutable receipts are unchanged.
+
+Receipt:
+[`rpp5cn-root-test-adapter-deduplication-2026-10-25.json`](docs/research/rpp5cn-root-test-adapter-deduplication-2026-10-25.json).

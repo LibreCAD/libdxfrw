@@ -31,6 +31,8 @@ Makefile*
 *.exe
 *.cmake
 !/cmake/libdxfrwTestAdapter.cmake
+!/cmake/libdxfrwAdapterContext.cmake
+!/cmake/libdxfrwRootTestAdapters.cmake
 tools/__pycache__/
 *.patch
 *~

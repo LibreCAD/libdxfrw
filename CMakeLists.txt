@@ -9,7 +9,7 @@ option(LIBDXFRW_BUILD_DOC "Build the documentation" ON)
 option(LIBDXFRW_BUILD_DWG2DXF "Build the dwg2dxf application" ON)
 option(LIBDXFRW_BUILD_TESTS "Build dependency-free Wave 1 tests" OFF)
 option(LIBDXFRW_DEDUP_TEST_ADAPTER
-    "Share the identical, uninstalled tests/ converter adapter objects" ON)
+    "Share explicitly audited, identical uninstalled test adapter objects" ON)
 # CMake 3.28 sets CMP0077 to NEW, so a parent project's normal variable is
 # preserved when this project is added as a subdirectory.
 option(LIBDXFRW_INSTALL_DEV
@@ -179,6 +179,7 @@ if(LIBDXFRW_BUILD_TESTS)
             "LIBDXFRW_BUILD_TESTS Python version probe failed (${LIBDXFRW_PYTHON_VERSION_OK})")
     endif()
     add_subdirectory(tests)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libdxfrwRootTestAdapters.cmake)
     # This compiler-only contract needs no library build or X11 dependency.
     # An explicit include root adds an actual X11 header control when available.
     set(LIBDXFRW_HEADER_X11_INCLUDE_DIR "" CACHE PATH
@@ -682,7 +683,7 @@ if(LIBDXFRW_BUILD_TESTS)
 
     add_executable(libdxfrw_wave1_tests
         tests/wave1_tests.cpp
-        dwg2dxf/dx_iface.cpp)
+        ${_libdxfrw_wave1_adapter_source})
     target_compile_features(libdxfrw_wave1_tests PRIVATE cxx_std_17)
     if(MSVC)
         target_compile_definitions(libdxfrw_wave1_tests PRIVATE
@@ -723,7 +724,7 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_symbol_unicode_keys PROPERTIES
         LABELS "fast;dxf;tables;unicode;generated" TIMEOUT 15)
     add_executable(libdxfrw_symbol_output_tests
-        tests/dxf_symbol_output_tests.cpp dwg2dxf/dx_iface.cpp)
+        tests/dxf_symbol_output_tests.cpp ${_libdxfrw_reader_test_adapter_source})
     target_compile_features(libdxfrw_symbol_output_tests PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_symbol_output_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
@@ -903,7 +904,7 @@ if(LIBDXFRW_BUILD_TESTS)
         tests/modeler_dxf_writer_matrix_tests.cpp
         tests/modeler_block_census_tests.cpp
         tests/hatch_reference_tests.cpp
-        dwg2dxf/dx_iface.cpp)
+        ${_libdxfrw_root_test_adapter_source})
     target_compile_features(libdxfrw_dwg_local_roundtrip PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_dwg_local_roundtrip PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -1012,9 +1013,10 @@ if(LIBDXFRW_BUILD_TESTS)
 
     add_executable(libdxfrw_dwg_reader_matrix_tests
         tests/dwg_reader_matrix_tests.cpp
-        dwg2dxf/dx_iface.cpp)
+        ${_libdxfrw_reader_test_adapter_source})
     target_compile_features(libdxfrw_dwg_reader_matrix_tests PRIVATE cxx_std_17)
-    target_compile_definitions(libdxfrw_dwg_reader_matrix_tests PRIVATE
+    # Fixture paths belong to test drivers, never the reusable adapter TU.
+    set_property(SOURCE tests/dwg_reader_matrix_tests.cpp APPEND PROPERTY COMPILE_DEFINITIONS
         LIBDXFRW_READER_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dwg")
     target_include_directories(libdxfrw_dwg_reader_matrix_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -1746,9 +1748,9 @@ if(LIBDXFRW_BUILD_TESTS)
 
     add_executable(libdxfrw_dxf_fixture_tests
         tests/dxf_fixture_tests.cpp
-        dwg2dxf/dx_iface.cpp)
+        ${_libdxfrw_root_test_adapter_source})
     target_compile_features(libdxfrw_dxf_fixture_tests PRIVATE cxx_std_17)
-    target_compile_definitions(libdxfrw_dxf_fixture_tests PRIVATE
+    set_property(SOURCE tests/dxf_fixture_tests.cpp APPEND PROPERTY COMPILE_DEFINITIONS
         LIBDXFRW_DXF_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dxf")
     target_include_directories(libdxfrw_dxf_fixture_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -1840,9 +1842,9 @@ if(LIBDXFRW_BUILD_TESTS)
 
     add_executable(libdxfrw_dwg_fixture_tests
         tests/dwg_fixture_tests.cpp
-        dwg2dxf/dx_iface.cpp)
+        ${_libdxfrw_root_test_adapter_source})
     target_compile_features(libdxfrw_dwg_fixture_tests PRIVATE cxx_std_17)
-    target_compile_definitions(libdxfrw_dwg_fixture_tests PRIVATE
+    set_property(SOURCE tests/dwg_fixture_tests.cpp APPEND PROPERTY COMPILE_DEFINITIONS
         LIBDXFRW_DWG_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/dwg")
     target_include_directories(libdxfrw_dwg_fixture_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -1866,6 +1868,7 @@ if(LIBDXFRW_BUILD_TESTS)
         libdxfrw_qualified_semantic_fields
         libdxfrw_qualified_support_metadata
         APPEND PROPERTY LABELS native-qualification-focused)
+    libdxfrw_check_root_test_adapter_context()
 endif()
 
 # INSTALLATION

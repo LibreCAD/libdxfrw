@@ -2066,6 +2066,28 @@ add_test(NAME libdxfrw_adapter_build_context
         --toolchain "${CMAKE_TOOLCHAIN_FILE}")
 set_tests_properties(libdxfrw_adapter_build_context PROPERTIES
     LABELS "fast;build;adapter" TIMEOUT 120)
+add_test(NAME libdxfrw_root_adapter_build_context
+    COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+        ${CMAKE_CURRENT_SOURCE_DIR}/root_adapter_build_context_tests.py
+        --cmake "${CMAKE_COMMAND}"
+        --ctest "${CMAKE_CTEST_COMMAND}"
+        --module "${CMAKE_SOURCE_DIR}/cmake/libdxfrwRootTestAdapters.cmake"
+        --build-dir "${CMAKE_BINARY_DIR}"
+        --compiler "${CMAKE_CXX_COMPILER}"
+        --generator "${CMAKE_GENERATOR}"
+        --generator-platform "${CMAKE_GENERATOR_PLATFORM}"
+        --generator-toolset "${CMAKE_GENERATOR_TOOLSET}"
+        --generator-instance "${CMAKE_GENERATOR_INSTANCE}"
+        --toolchain "${CMAKE_TOOLCHAIN_FILE}"
+        --make-program "${CMAKE_MAKE_PROGRAM}"
+        --compiler-target "${CMAKE_CXX_COMPILER_TARGET}"
+        --sysroot "${CMAKE_SYSROOT}"
+        --system-name "${CMAKE_SYSTEM_NAME}"
+        --system-version "${CMAKE_SYSTEM_VERSION}"
+        --system-processor "${CMAKE_SYSTEM_PROCESSOR}"
+        --configuration "$<CONFIG>")
+set_tests_properties(libdxfrw_root_adapter_build_context PROPERTIES
+    LABELS "fast;build;adapter" TIMEOUT 120)
 add_test(NAME libdxfrw_cli_optional_build
     COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
         ${CMAKE_CURRENT_SOURCE_DIR}/cli_optional_build_tests.py
