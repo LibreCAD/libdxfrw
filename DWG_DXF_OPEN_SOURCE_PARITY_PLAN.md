@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cj selected XRECORD dictionary-route and source-context guards (2026-10-24):** two reproduced late-source publication gaps are fixed by freezing the selecting ordinary-dictionary closure and source-format identity alongside selected XRECORD payloads. Eighteen actual scratch DWG/DXF sources pass 216 projections and 216 parsed cross-encoding reexports through nested dictionary routes; 384 atomic source-edit retries, 16 cumulative-budget retries and 16 unselected isolation controls pass. All 24 legacy native-source cells stay unqualified; unselected records earn no output fact. Final 64 focused, five owning, four reader/consumer and 45 ASan tests pass, with both LibreCAD_3 compile gates. Broader alias/common/raw-carrier/document closure and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cj-selected-xrecord-dictionary-route-and-source-context-guards-2026-10-24) · [receipt](docs/research/rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5ck typed DataStorage loss guards (2026-10-24):** reproduced direct XRECORD and planned GROUP writes accepted unmodeled native DataStorage-present state and published without a preservation diagnostic. Shared typed-record preflight and common emission now refuse that state atomically, leaving modeler ACDS and raw-DXF routes separate. Seventy cases across five families, seven target revisions and both encodings preserve destination sentinels and pass explicitly corrected same-codec readback retries. Final 73 focused, five owning, four reader/consumer and 54 ASan tests pass, including existing single/multiple/block modeler ACDS controls and both LibreCAD_3 compile gates. This is a negative typed-write contract, not native DataStorage byte/schema preservation or independent semantic qualification. Branch/common/raw-carrier work remains open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ck-typed-datastorage-loss-guards-2026-10-24) · [receipt](docs/research/rpp5ck-typed-datastorage-loss-guards-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5cj selected XRECORD dictionary-route and source-context guards (2026-10-24):** two reproduced late-source publication gaps are fixed by freezing the selecting ordinary-dictionary closure and source-format identity alongside selected XRECORD payloads. Eighteen actual scratch DWG/DXF sources pass 216 projections and 216 parsed cross-encoding reexports through nested dictionary routes; 384 atomic source-edit retries, 16 cumulative-budget retries and 16 unselected isolation controls pass. All 24 legacy native-source cells stay unqualified; unselected records earn no output fact. Final 64 focused, five owning, four reader/consumer and 45 ASan tests pass, with both LibreCAD_3 compile gates. Broader alias/common/raw-carrier/document closure and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cj-selected-xrecord-dictionary-route-and-source-context-guards-2026-10-24) · [receipt](docs/research/rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5ci XRECORD point18 and finite-real observer parity (2026-10-24):** two reproduced DXF projection failures are fixed: point18 now completes only on an exact 18/28/38 tuple without consuming standalone 38/39 scalars, and the independent decimal observer accepts representable subnormals without relaxing malformed/nonfinite/overflow refusal. Six scratch native sources pass 72 projections and 72 actual-import reexports; 24 legacy cells stay unqualified. Core controls pass 28 authored cells, 28 cross-encoding reexports, 52 atomic source retries, four node-budget boundaries and eight inexact reconstruction retries; 16 native late-source retries pass. Independent numeric controls pass 96 positives and 1,328 partial-token refusals. Final 58 focused, five owning, four reader/consumer and 39 ASan tests pass, with both LibreCAD_3 compile gates. Broader record/common-metadata closure and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ci-xrecord-point18-and-finite-real-observer-parity-2026-10-24) · [receipt](docs/research/rpp5ci-xrecord-point18-and-finite-real-parity-2026-10-24.json).
 
@@ -121939,6 +121941,8 @@ Next implementation-ready work, retaining completeness and the full parity scope
 2. [ ] Audit DataStorage raw carriers and cumulative decoded-owner/retention
    accounting. `hasDsData` Boolean equality is not payload-byte proof; the
    dictionary snapshot here freezes modeled common data, not every raw carrier.
+   RPP-5ck below closes direct/planned typed presence-state refusal gaps, not
+   actual native payload/schema preservation or cumulative raw-carrier budgets.
    Establish accepted source cases, compare actual bytes/references, and test
    exact/under-budget failures and restored readback before claiming completeness.
 3. [ ] Continue remaining admitted/future-profile callback phases and incompatible
@@ -121964,3 +121968,108 @@ receipts and remote state remain unchanged.
 
 Receipt:
 [`rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json`](docs/research/rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json).
+
+## Implementation progress — RPP-5ck typed DataStorage loss guards (2026-10-24)
+
+RPP-5cj is committed as `a7cb2b3b2ee5b6fff5d3eb905ea92deab788127c`.
+The raw-carrier audit identifies missing refusal routes before any attempt to
+qualify native DataStorage payload preservation. The public presence flag is
+not an opaque payload, owner binding or schema certificate. This slice closes
+a typed-write loss boundary; it does not complete raw DataStorage support,
+branch/alias/common-metadata closure or the original DWG/DXF parity objective.
+
+1. [x] Reproduce using a public authored XRECORD with
+   `setDwgCommonObjectState(0,1,true)`. The first R14 ASCII write returns true,
+   its record callback reports true, and the destination sentinel is replaced
+   without a diagnostic (first test 0.30 s, CTest exit 8). No actual opaque native
+   payload is authored or independently decoded here. The observed defect is
+   accepting an advertised unmodeled state, not proven preservation/loss of
+   bytes from an authentic DataStorage-bearing native sample.
+2. [x] Reject before direct typed table/object emission. The shared
+   `preflightTableEntry` records validation diagnostic
+   `table-entry-datastorage-unsupported`, sets the sticky write error and
+   refuses without clearing the caller's flag. The message requires a qualified
+   payload-preservation route or explicit reconstruction. No raw bytes, schema,
+   owner map or semantic evidence is invented from Boolean equality.
+3. [x] Audit generated/planned paths as well. With the direct preflight guard
+   already present, a flagged planned GROUP still publishes successfully in
+   R14 ASCII with no diagnostic (first test 0.37 s, CTest exit 8). GROUP emission
+   reaches common metadata without direct-record preflight. The shared common
+   emission path now applies the same DataStorage refusal for flagged records,
+   covering this bypass without broadening other common-field admission.
+4. [x] Register fast `libdxfrw_table_entry_datastorage_refusal` and include it
+   in the owning fixture executable. Five routes—XRECORD, DICTIONARY, LAYER,
+   APPID and planned GROUP—across R14/R2000/R2004/R2007/R2010/R2013/R2018 and
+   ASCII/binary output pass 70 atomic sentinel refusals. Each keeps the original
+   presence flag true and checks the stable diagnostic code. Explicitly correct
+   the public state, re-install a corrected GROUP plan where needed, and retry
+   the same codec: all 70 actual typed readbacks pass, preserving the modeled
+   payload/name/description/metadata relevant to the route. These retries are
+   intentional API reconstruction, not an automatic DS-to-DXF conversion.
+5. [x] Preserve legitimate 3D and raw-carrier lanes. Modeler entities do not use
+   the table-entry preflight and retain their separate qualified ACDS route.
+   Existing single/multiple-record/block modeler projections, native DataIndex
+   ordering, raw-DXF ACDS baseline, AcSh/history frame and evaluation-graph
+   capture-limit controls pass in the final scoped cohorts. No native parser/
+   encoder/reader, DataStorage schema codec, raw replay grammar, public API/
+   layout, DRW_Interface callback, support mask or composition policy changes.
+6. [x] Final strict affected builds and both LibreCAD_3 compile gates pass.
+   Final 73 focused tests pass 32.37 s, five owning tests
+   pass 11.01 s, four reader/consumer tests pass 1.87 s
+   and 54 scoped ASan tests pass 63.54 s, parallelism 3 inside cohorts.
+   Normal cohorts run sequentially. ASan uses `halt_on_error=1:detect_leaks=0`.
+   No full suite, leak/platform/kernel qualification, authentic native DS sample
+   qualification or performance/physical-memory benchmark is claimed.
+
+Research/readiness update, not a new support claim:
+
+- [Autodesk's ObjectARX dictionary insertion contract](https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbDictionary__setAt_ACHAR__AcDbObject__AcDbObjectId_.html)
+  requires the inserted object to have no owner, then establishes dictionary
+  ownership and a persistent reactor. Use this as producer/API guidance for
+  the next unique-owner branch controls, not as byte-layout proof or authority
+  to admit shared ownership or all same-target alias shapes.
+- [The numerical DXF reference](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
+  distinguishes 350..359 soft-owner and 360..369 hard-owner roles. Preserve role
+  and remapping evidence separately from mere numeric-target equality.
+
+Next implementation-ready work, with the full original parity objective intact:
+
+1. [ ] Build accepted unique-owner branched source controls: one NOD-owned
+   ancestor, two independently owned leaf dictionaries, cross-referencing
+   XRECORDs, and owner-backed persistent reactors. Exercise both owner-reference
+   roles, actual native/DXF imports, staged output, final-source comparison,
+   late edits and restored readback. Qualify/refuse alias shapes explicitly;
+   do not manufacture shared ownership or infer native qualification from API
+   documentation/self-roundtrips. Keep source-generation aliases and more
+   owning families open until actual cases prove the intended contract.
+2. [ ] Complete DataStorage raw-carrier/source-schema/owner evidence and
+   cumulative decoded-owner/retention accounting. The new 70 negative controls
+   do not compare native payload bytes, qualify a raw replay lane, or satisfy
+   independent semantic/kernel gates. Establish actual accepted source cases
+   using the authoritative DWG spec and bounded traces, preserve opaque bytes/
+   references through a supported route, and test exact/under-budget failures
+   with restored readback. Keep unsupported typed state explicitly refused;
+   do not substitute permanent refusal for the planned preservation capability.
+3. [ ] Continue remaining admitted/future-profile callback phases and incompatible
+   next-operation attempts, independent APPID/LAYER/XRECORD names/body/path/EED,
+   sparse native classes, full IMAGE/common geometry and named-root/document
+   closure. Point19/component-coded 20/30 remain unqualified. Native layout
+   changes require the authoritative spec and real source traces; composition
+   requires explicit ownership/generation/remapping contracts.
+4. [ ] After each item, self-update evidence/status/limits/next action and a new
+   immutable receipt, resolve safe local blockers, commit verified slices and
+   show progress. Use fast affected tests while iterating and scoped owning/
+   consumer/sanitizer checkpoints; do not repeat the full suite per edit.
+   Preserve LibreCAD/LibreCAD_3 2D compatibility and original 3D/dwg2dxf/FreeCAD
+   scope. Continue safe authorized work without avoidable stops; ask only when
+   new authority or a material user choice is required.
+
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support claim is promoted.
+This local checkpoint includes code, tests, the plan and a new receipt, not
+drawing fixtures. All 17 pre-existing untracked drawings and unrelated files
+remain excluded. Earlier receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5ck-typed-datastorage-loss-guards-2026-10-24.json`](docs/research/rpp5ck-typed-datastorage-loss-guards-2026-10-24.json).

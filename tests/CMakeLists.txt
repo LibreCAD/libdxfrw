@@ -613,6 +613,10 @@ add_test(NAME libdxfrw_xrecord_point18
     COMMAND libdxfrw_dxf_fixture_tests --xrecord-point18)
 set_tests_properties(libdxfrw_xrecord_point18 PROPERTIES
     LABELS "fast;dxf;objects;xrecord;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_table_entry_datastorage_refusal
+    COMMAND libdxfrw_dxf_fixture_tests --table-entry-datastorage-refusal)
+set_tests_properties(libdxfrw_table_entry_datastorage_refusal PROPERTIES
+    LABELS "fast;dxf;objects;tables;acds;transaction;generated" TIMEOUT 30)
 add_test(NAME libdxfrw_xrecord_coordinate_writer_domain
     COMMAND libdxfrw_dxf_fixture_tests --xrecord-coordinate-writer-domain)
 set_tests_properties(libdxfrw_xrecord_coordinate_writer_domain PROPERTIES

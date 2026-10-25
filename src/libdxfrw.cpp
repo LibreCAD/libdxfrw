@@ -4538,6 +4538,16 @@ bool dxfRW::preflightTableEntry(const DRW_TableEntry *ent) {
         m_writeError = true;
         return false;
     }
+    // The native presence bit is not the opaque DataStorage payload. Typed
+    // table/object emission has no ACDS carrier contract; never erase it by
+    // writing only modeled fields. Modeler entities use their separate route.
+    if (ent->hasDataStorageBinaryData()) {
+        recordOperationDiagnostic(DRW::OperationPhase::Validation,
+            DRW::OperationCause::ValidationFailure, "table-entry-datastorage-unsupported",
+            "typed table/object DataStorage requires a qualified payload preservation route or explicit reconstruction");
+        m_writeError = true;
+        return false;
+    }
     if (version < DRW::AC1014) {
         if (!ent->appData.empty() || !ent->reactorHandles.empty()
             || ent->xDictHandle != 0) {
@@ -5217,7 +5227,10 @@ bool dxfRW::writeAppData(const std::list<std::list<DRW_Variant>>& appData) {
 }
 
 bool dxfRW::writeTableEntryAppData(const DRW_TableEntry& entry, bool emitReactors) {
-    if (!preflightDxfWrite())
+    // Planned GROUP/IMAGE and other generated records can reach this shared
+    // emission path without the direct typed-record preflight above.
+    if (!preflightDxfWrite()
+        || (entry.hasDataStorageBinaryData() && !preflightTableEntry(&entry)))
         return false;
     if (version < DRW::AC1014) {
         if (!entry.appData.empty() || (emitReactors && !entry.reactorHandles.empty())

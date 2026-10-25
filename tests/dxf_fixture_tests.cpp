@@ -29749,6 +29749,99 @@ void testXRecordPoint18(TestContext& t) {
         << " exact node boundaries=" << budgets << " inexact reconstruction retries=" << inexactRetries << '\n';
 }
 
+void testTableEntryDataStorageRefusal(TestContext& t) {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-table-storage-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) break;
+    }
+    t.expect(!directory.empty(),"table-entry DataStorage controls own an exclusive scratch directory");
+    if (directory.empty()) return;
+    const auto path = directory / "target.dxf";
+    struct Cleanup { std::filesystem::path path,directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path,error); std::filesystem::remove(directory,error);
+    } } cleanup{path,directory};
+    class Author final : public dx_iface {
+    public:
+        DRW_XRecord record; DRW_Dictionary dictionary; DRW_Layer layer; DRW_AppId app; DRW_Group group;
+        unsigned kind{0u}; bool wrote{false};
+        DRW_TableEntry& entry() {
+            if (kind == 0u) return record;
+            if (kind == 1u) return dictionary;
+            if (kind == 2u) return layer;
+            if (kind == 3u) return app;
+            return group;
+        }
+        void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+        void writeEntities() override {}
+        void writeObjects() override {
+            if (kind == 0u) wrote = dxfW->writeXRecord(&record);
+            if (kind == 1u) wrote = dxfW->writeDictionary(&dictionary);
+            if (kind == 4u) wrote = true; // GROUP is emitted by the codec before this callback.
+        }
+        void writeLayers() override { if (kind == 2u) wrote = dxfW->writeLayer(&layer); }
+        void writeAppId() override { if (kind == 3u) wrote = dxfW->writeAppId(&app); }
+        bool finalizeDxfWrite() override { return wrote; }
+    } author;
+    dx_data storage; author.cData = &storage; author.currentBlock = storage.mBlock;
+    author.record.handle = 0xA910u; author.record.m_dataEntries = {{1,std::string("storage-guard-payload")}};
+    author.dictionary.handle = 0xA920u; author.dictionary.cloning = 2; author.dictionary.hardOwner = 1;
+    author.layer.handle = 0xA930u; author.layer.name = "STORAGE_GUARD_LAYER";
+    author.app.handle = 0xA940u; author.app.name = "STORAGE_GUARD_APP";
+    author.group.handle = 0xA950u; author.group.name = "STORAGE_GUARD_GROUP"; author.group.m_description = "planned-storage-guard";
+    unsigned refusals = 0u, retries = 0u;
+    for (const auto version : {DRW::AC1014,DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
+      for (const bool binary : {false,true}) for (unsigned kind = 0u; kind != 5u; ++kind) {
+        author.kind = kind; auto& entry = author.entry(); entry.setDwgCommonObjectState(0,1,true);
+        author.dictionary.cloning = version == DRW::AC1014 ? 0 : 2;
+        dxfRW codec(path.string().c_str()); author.dxfW = &codec; author.wrote = false;
+        if (kind == 4u) codec.setGroups({author.group});
+        const std::string sentinel = "TABLE_ENTRY_STORAGE_ATOMIC_DESTINATION";
+        { std::ofstream prior(path,std::ios::binary); prior << sentinel; }
+        const bool accepted = codec.write(&author,version,binary);
+        const auto diagnostic = codec.getLastDiagnostic();
+        std::ifstream prior(path,std::ios::binary); const std::string retained((std::istreambuf_iterator<char>(prior)),{}); prior.close();
+        const bool refused = !accepted && !author.wrote && retained == sentinel && entry.hasDataStorageBinaryData()
+            && diagnostic.code == "table-entry-datastorage-unsupported";
+        t.expect(refused,"typed table/object DataStorage presence cannot silently lose its unmodeled raw carrier");
+        if (!refused) {
+            std::cerr << "DataStorage refusal control kind=" << kind << " target=" << version << " binary=" << binary
+                << " accepted=" << accepted << " recordWrote=" << author.wrote << " sentinel=" << (retained == sentinel)
+                << " diagnostic=" << diagnostic.code << '\n';
+            author.dxfW = nullptr; return;
+        }
+        ++refusals;
+        entry.setDwgCommonObjectState(0,1,false); author.wrote = false;
+        if (kind == 4u) codec.setGroups({author.group});
+        const bool retried = codec.write(&author,version,binary) && author.wrote;
+        FixtureInterface reader; dx_data actual;
+        bool readback = retried && reader.fileImport(path.string(),&actual,false);
+        if (kind == 0u) readback = readback && reader.xrecords.size() == 1u && !reader.xrecords.front().hasDataStorageBinaryData()
+            && reader.xrecords.front().m_dataEntries.size() == 1u && reader.xrecords.front().m_dataEntries.front().c_str()
+            && std::string(reader.xrecords.front().m_dataEntries.front().c_str()) == "storage-guard-payload";
+        if (kind == 1u) readback = readback && std::any_of(reader.dictionaries.begin(),reader.dictionaries.end(),[&](const auto& value) {
+            return value.handle == 0xA920u && !value.hasDataStorageBinaryData() && value.m_entries.empty()
+                && value.cloning == author.dictionary.cloning && value.hardOwner == 1;
+        });
+        if (kind == 2u) readback = readback && std::any_of(actual.layers.begin(),actual.layers.end(),[](const auto& value) {
+            return value.name == "STORAGE_GUARD_LAYER" && !value.hasDataStorageBinaryData();
+        });
+        if (kind == 3u) readback = readback && std::any_of(actual.appIds.begin(),actual.appIds.end(),[](const auto& value) {
+            return value.name == "STORAGE_GUARD_APP" && !value.hasDataStorageBinaryData();
+        });
+        if (kind == 4u) readback = readback && reader.groups.size() == 1u && !reader.groups.front().hasDataStorageBinaryData()
+            && reader.groups.front().m_description == "planned-storage-guard" && reader.groups.front().m_entityHandles.empty();
+        t.expect(readback,"explicitly corrected carrier state retries with the same codec and actual typed readback");
+        if (!readback) { author.dxfW = nullptr; return; }
+        ++retries; author.dxfW = nullptr;
+    }
+    t.expect(refusals == 70u && retries == 70u,"table-entry DataStorage matrix covers both sections, encodings and every revision");
+    std::cout << "Table-entry DataStorage atomic refusals=" << refusals << " same-codec corrected-state readbacks=" << retries << '\n';
+}
+
 DRW_XRecord xRecordXdataControl() {
     DRW_XRecord record;
     record.handle = 0xA753u;
@@ -33997,6 +34090,9 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--xrecord-point18") {
         TestContext context; testXRecordPoint18(context); return context.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--table-entry-datastorage-refusal") {
+        TestContext context; testTableEntryDataStorageRefusal(context); return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--xrecord-normal-string-codes") {
         TestContext context;
         testXRecordNormalStringCodes(context);
@@ -34695,6 +34791,7 @@ int main(int argc, char** argv) {
     testXRecordXdataChannels(context);
     testXRecordCoordinateTuples(context);
     testXRecordPoint18(context);
+    testTableEntryDataStorageRefusal(context);
     testXRecordCoordinateBoundaries(context);
     testXRecordVersionedHeaderAndPayload(context);
     testLinetypeExtensionGraphRoundTrip(context);
