@@ -266,9 +266,22 @@ semantics. No expressions or external connections are evaluated or opened.
 FIELD child/object/value and DATALINK custom/hard-owner targets still need full
 transitive/common source and ownership proof, as do the remaining object
 families. Immutable proof is not editable-state equality or output admission.
-The extracted decoder preserves existing read accounting; full decoded FIELD
-payload-owner lease coverage remains an audit gate before broader per-read
-retained-memory claims. Logical source/model copy caps are not process RSS caps.
+The shared FIELD DXF decoder now precharges decoded scalar/value strings, both
+raw and variant binary buffers, handle elements and child-value slots to the
+existing base owner lease. Replacements admit the new value before releasing
+the old charge. Closed children move into the model without an extra payload
+copy; unfinished child storage releases its lexical charge on decoder teardown,
+including failed child-slot admission after a binary view was materialized.
+Distinct siblings aggregate charges; model copies share the originating charge
+until the last owner resets or dies. An active decoder rejects a different
+reader budget rather than migrating that lease. Public settings still apply to
+the next read, and fresh same-codec reads remain the retry boundary.
+
+This adds no public model member or callback. It covers the decoder's logical
+payload, not allocator metadata, container capacity, consumer-created copies or
+edits, whole-model memory or process RSS. Full common/resource-graph, source,
+live-state and output proof remain separate gates; source spans alone do not
+qualify FIELD/CadValue/DATALINK semantics.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds

@@ -511,6 +511,14 @@ Source positions are retained separately from full transitive target proof.
 Expressions and connection strings remain inert; no evaluation or data access
 is added. Full graph/live/output qualification remains open.
 
+The shared FIELD DXF decoder charges its decoded strings, CadValue binary views,
+handle elements and child-value slots to the existing read-owner lease before
+growth. Completed children move into the model; unfinished child charges are
+released on decoder teardown. Copies share the originating logical charge until
+the last owner resets or dies. This is scoped logical-payload accounting, not
+container capacity, consumer-copy/edited-model accounting or a process RSS cap.
+No public model layout or callback changes are introduced by this accounting fix.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

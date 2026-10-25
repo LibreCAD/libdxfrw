@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dg FIELD/DATALINK source proof and shared FIELD decoding (2026-10-25):** selected FIELD/DATALINK resources now require immutable exposed/common-field source agreement; FIELD replay reuses the production state machine, and documented `ACAD_FIELD` input joins the existing aliases. Rich cached values, custom-data/reference positions, failures/limits/retries and independent scalar-span observations pass. Both 57-test normal/ASan cohorts pass. Full target/common/source-family/live/output, decoded FIELD ownership-accounting audit and original native/consumer parity remain open; table export and support qualification stay closed. [Implementation and next work](#implementation-progress-rpp-5dg-fielddatalink-source-proof-and-shared-field-decoding-2026-10-25) · [receipt](docs/research/rpp5dg-field-datalink-source-proof-and-shared-field-decoding-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dh decoded FIELD payload ownership (2026-10-25):** the shared DXF decoder precharges decoded string/value/binary/container payloads on the existing base lease, moves completed children, and releases unfinished child charges. Exact/below-limit, allocation, sibling/copy/reset and budget-context controls pass. This is scoped logical-payload accounting without model-layout or callback changes, not whole-model/RSS or independent semantic qualification. Remaining source families, full target/common/live/output and original native/consumer parity stay open; table export and support qualification remain closed. [Implementation and next work](#implementation-progress-rpp-5dh-decoded-field-payload-ownership-2026-10-25) · [receipt](docs/research/rpp5dh-decoded-field-payload-ownership-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dg FIELD/DATALINK source proof and shared FIELD decoding (2026-10-25):** committed as `586e7d83`. Its selected immutable source proof, documented alias, failure/retry and scoped independent span observations remain valid. RPP-5dh closes the identified decoder-payload owner gap, not full source/target/common/live/output or native/consumer parity. [Historical implementation](#implementation-progress-rpp-5dg-fielddatalink-source-proof-and-shared-field-decoding-2026-10-25) · [immutable receipt](docs/research/rpp5dg-field-datalink-source-proof-and-shared-field-decoding-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5df complex LTYPE dependency closure and independent symbol observations (2026-10-25):** committed as `1236e45d`. Its bounded per-element STYLE binding, exact source roles, failures/retries and scoped independent observations remain valid. RPP-5dg adds two resource source families and a documented FIELD alias, not full graph, semantic or output qualification. [Historical implementation](#implementation-progress-rpp-5df-complex-ltype-dependencies-and-independent-symbol-observations-2026-10-25) · [immutable receipt](docs/research/rpp5df-complex-ltype-dependencies-and-independent-symbol-observations-2026-10-25.json).
 
@@ -124936,3 +124938,88 @@ FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
 **NOT_RUN**. No remote writes, external fixture commits, native DWG layout/
 parser/writer or global codec changes or support promotion are part of this
 slice. The full implementation goal stays active.
+
+## Implementation progress RPP-5dh decoded FIELD payload ownership (2026-10-25)
+
+This slice closes RPP-5dg's first ready dependency, the shared FIELD decoder's
+logical payload-owner accounting. The regression on parent `586e7d83` retained
+406 logical model bytes on this host but no owner charge after reader teardown.
+The same authored control now charges exactly the measured model payload.
+This is not independent FIELD semantics, a whole-read memory guarantee or an
+increase in format support.
+
+Completed:
+
+1. [x] Precharge scalar replacements/appends, CadValue text/format/cache, raw
+   binary and its separate variant view, child/object handle elements and
+   child-value slots. Reuse the existing base lease through private decoder
+   friendship; add no public model members, virtuals, new callbacks or DWG
+   byte-layout changes. Getter/transport reservations remain separate.
+2. [x] Admit replacements before releasing old charges; roll back uncommitted
+   reservations on allocation/admission failure. Keep unfinished child charges
+   lexical and release them on decoder teardown without releasing closed
+   siblings. A child binary view may exist before slot admission fails; it stays
+   charged until teardown, and no incomplete FIELD callback is published.
+3. [x] Move complete children instead of copying payloads. Preserve geometric
+   vector growth rather than reserving one element at every append. Charge
+   logical element bytes, not spare capacity or allocator overhead. Reject a
+   changed active budget context instead of migrating a copy-family lease.
+4. [x] Add 12 revision/encoding ownership routes, 42 exact/one-byte-below
+   operation pairs, 210 scoped allocation schedules, 16 pending-binary schedules
+   and budget-context isolation. Cover replacements, chunk appends, both binary
+   views, initial lease creation, empty child slots, pending/closed siblings,
+   independent sibling aggregation, disabled accounting, copies, moves and reset.
+   Controls are authored locally; no external DWG/DXF fixture is added.
+
+Validation passes **58/58 normally (48.83 s)** and **58/58 under ASan (101.71 s)**
+with `ASAN_OPTIONS=halt_on_error=1:detect_leaks=0`. Both LibreCAD_3 compile gates
+and affected library/adapter/CLI targets build with strict warnings. The pinned
+independent observer also passes its eight authored auxiliary routes; this
+remains scoped source-span evidence, not semantic/support qualification.
+Detailed results and source hashes are recorded in the
+[RPP-5dh receipt](docs/research/rpp5dh-decoded-field-payload-ownership-2026-10-25.json).
+Use the new fast owner test first; the affected cohort reuses RPP-5dg's exact
+57-test selection plus this new test. Normal/ASan runtime cohorts run sequentially
+to avoid older shared scratch paths. Strict warnings remain enabled. No full
+project suite, native FreeCAD application run or leak-check qualification is
+implied. `build-gcc` remains macOS ARM64 Apple Clang, not Linux/GCC evidence.
+
+Ready next, in dependency order:
+
+1. [ ] **B2a remaining resource-source families.** Add dictionary/XRECORD and
+   ATTDEF/block, then explicit opt-in APPID/LAYER/table-owner source receipts.
+   Reuse production decoding and frozen indexes under the shared record/group/
+   byte/work ceilings. Preserve unknown companions and scalar provenance. Prove
+   omitted/default/native-only injection, physical boundaries, alias/duplicate/
+   late callbacks, allocation exhaustion and corrected same-facade retries.
+   Consumers without opt-in must gain neither source capture nor capture charges.
+2. [ ] **B2b complete target/common worklist.** Resolve every proved FIELD
+   child/object/value and DATALINK custom/hard-owner reference with independently
+   established null/ownership/target rules. Cover APPID/LAYER/XDATA, dictionaries,
+   owners/reactors/extensions and block dependencies. Include mismatched-family
+   callback followed by original callback; do not claim universal same-read
+   collision resistance from recognized-source mismatches alone. Bound multiple
+   roots, fan-out, queues, legitimate soft cycles and failure/retry behavior.
+3. [ ] **B3/C live equality and atomic output.** Finish TABLE parent/wrapper/cache/
+   common source proof and editable/frozen comparison. Preserve or explicitly
+   refuse ATTRIB/SEQEND. Preplan compound identities; prove exact staged/final
+   fields and unique references, retries, rollback and existing-destination
+   preservation before admitting any output lane. Both export guards stay active.
+4. [ ] **Independent semantics and original parity.** Qualify nonzero LTYPE
+   angles, FIELD/CadValue/DATALINK roles/values and remaining rich/native writer
+   paths independently; continue native decimal/bit, SWEEP/EXTRUSION, carrier/
+   schema/owner, full IMAGE/document, LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD
+   requirements. These remain required work, not replaced by the accounting fix.
+5. [ ] **Self-update and self-unblock after every item.** Record exact evidence,
+   limits and remaining dependencies; select the next safe ready item; commit
+   coherent slices and report progress. Prefer fast owning checks and affected
+   normal/ASan cohorts, with full suites only at integration checkpoints. Reuse
+   existing proof/indexes and existing or scratch-authored fixtures; do not commit
+   unrelated external drawings. Keep implementing safe ready work without waiting
+   on advisory external qualification; request new authority only when necessary.
+
+The support ledger stays **CLOSED**, `outputEligible=false`, and all six external
+items J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/
+Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
+**NOT_RUN**. No support claim, push or PR mutation is authorized by this local
+commit/update slice. The full implementation goal remains active.

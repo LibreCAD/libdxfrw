@@ -544,6 +544,16 @@ add_test(NAME libdxfrw_auxiliary_source_proof
     COMMAND libdxfrw_table_content_dxf_tests --auxiliary-source-proof)
 set_tests_properties(libdxfrw_auxiliary_source_proof PROPERTIES
     LABELS "fast;dxf;adapter;table;field;datalink;generated" TIMEOUT 120)
+add_executable(libdxfrw_field_retained_budget_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/field_retained_budget_tests.cpp)
+target_link_libraries(libdxfrw_field_retained_budget_tests PRIVATE dxfrw)
+target_include_directories(libdxfrw_field_retained_budget_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../src/intern)
+target_compile_options(libdxfrw_field_retained_budget_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+add_test(NAME libdxfrw_field_retained_owner_budget
+    COMMAND libdxfrw_field_retained_budget_tests)
+set_tests_properties(libdxfrw_field_retained_owner_budget PROPERTIES
+    LABELS "fast;dxf;reader;field;resource-budget;generated" TIMEOUT 30)
 if(LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE)
     add_test(NAME libdxfrw_independent_symbol_source
         COMMAND "${LIBDXFRW_EZDXF_PYTHON_EXECUTABLE}" -I -B

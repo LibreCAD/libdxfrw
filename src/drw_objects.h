@@ -44,6 +44,7 @@
 class dxfReader;
 class dxfWriter;
 class DxfReadRetainedLease;
+namespace dxfField { class Decoder; }
 class dwgBuffer;
 class dwgRW;
 
@@ -204,6 +205,7 @@ private:
  */
 class DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfField::Decoder;
 public:
   static constexpr std::size_t kMaxExtendedDataItems = 1000000u;
 
