@@ -18,6 +18,7 @@
 #include "dx_dwg_class_evidence.h"
 #include "intern/dxftablereferences.h"
 #include "intern/dxfattdef.h"
+#include "dx_attdef_source_profile.h"
 
 #include <array>
 #include <cstddef>
@@ -1030,6 +1031,7 @@ private:
             UTF8STRING attdefBlockName;
             bool awaitingAttdef{false},attdefPairMatched{false};
             bool attdefFieldsMatched{false},attdefFieldMismatch{false};
+            dx_attdef_source::Audit attdefProfile;
             std::set<int> styleIds;
             bool duplicateStyleId{false}, invalidStyleId{false}, namespaceComplete{false};
             std::uint32_t cellMapTarget{0};

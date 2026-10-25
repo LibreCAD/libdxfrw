@@ -17,6 +17,7 @@ dwg2dxf
 !/dwg2dxf/dx_standard_output.h
 !/dwg2dxf/dx_symbol_output.h
 !/dwg2dxf/dx_symbol_name_key.h
+!/dwg2dxf/dx_attdef_source_profile.h
 !/dwg2dxf/dx_batch_output_names.h
 !/dwg2dxf/dx_batch_output_names.cpp
 libdxfrw.pro*

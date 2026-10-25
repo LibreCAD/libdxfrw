@@ -18063,8 +18063,22 @@ void dx_iface::proveAttdefSourceFields(std::uint32_t handle) noexcept {
         };
         if(!dxfAttdef::Decoder::sameModel(parsed,*row.attdefModel,equal))return;
         row.attdefFieldMismatch=false;row.attdefFieldsMatched=true;
-        // Deliberately NOT rawTypedMatched: full selected-profile/reference,
-        // enclosing block and secondary-attribute qualification are separate.
+        std::size_t spanBytes=sizeof(dx_attdef_source::Audit)+8u*sizeof(void*);
+        std::size_t profileWork=8192u; // fixed grammar masks plus linear scalar/string inspection
+        const auto groups=row.raw->groups.size();
+        if(!addAssociativeSlotBytes(groups,sizeof(dx_attdef_source::Span),spanBytes)
+            ||!addAssociativeRetainedBytes(rawBytes,profileWork)
+            ||!addAssociativeSlotBytes(groups,64u,profileWork)
+            ||source.resourceProofWork>source.maxResourceProofWork
+            ||profileWork>source.maxResourceProofWork-source.resourceProofWork
+            ||source.resourceProofBytes>source.maxResourceProofBytes
+            ||spanBytes>source.maxResourceProofBytes-source.resourceProofBytes) {
+            source.resourceProofCaptureFailed=true;return;
+        }
+        source.resourceProofBytes+=spanBytes;source.resourceProofWork+=profileWork;
+        row.attdefProfile=dx_attdef_source::audit(*row.raw);
+        // Still NOT rawTypedMatched: this exact physical-field profile is a
+        // prerequisite, not enclosing-block/dependency/secondary-profile proof.
     } catch (...) {source.resourceProofCaptureFailed=true;}
 }
 

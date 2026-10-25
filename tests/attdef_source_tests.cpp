@@ -557,6 +557,172 @@ public:
     }
 };
 
+#include "attdef_source_profile_controls.h"
+
+bool sourceProfileTests(const std::filesystem::path& path) {
+    using Access=DxIfaceTableSourceTestAccess;
+    unsigned tails=0u,attribTails=0u;
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
+     for(bool binary:{false,true})for(bool block:{false,true})for(unsigned mode:{0u,1u,2u}) {
+        if(!write(path,document(version,body(mode),block),binary))return false;
+        CaptureProbe reader;dx_data data;
+        if(!check(reader.fileImport(path.string(),&data,false)&&!Access::failed(data),"attribute tail import"))return false;
+        const auto* resource=Access::resource(data);
+        if(!check(resource&&resource->attdefModel&&resource->attdefModel->m_fieldLength==5
+            &&static_cast<int>(resource->attdefModel->alignV)==2
+            &&(!resource->attdefModel->mtext||resource->attdefModel->mtext->linespacingStyle==1),
+            "ATTDEF field length and vertical alignment belong to the host, not nested MTEXT"))return false;
+        ++tails;
+        auto attributeRow=body(mode);attributeRow[1].value="A0";
+        for(auto& tag:attributeRow) {
+            if(tag.code==100&&tag.value=="AcDbAttributeDefinition")tag.value="AcDbAttribute";
+        }
+        auto attributeTags=document(version,attributeRow,block);
+        const auto begin=std::find_if(attributeTags.begin(),attributeTags.end(),[](const Tag& tag){return tag.code==0&&tag.value=="ATTDEF";});
+        const auto index=static_cast<std::size_t>(begin-attributeTags.begin());begin->value="INSERT";
+        const Tags insertBody{{5,"A0"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockReference"},
+            {2,"TARGET"},{66,"1"},{10,"0"},{20,"0"},{30,"0"},{0,"ATTRIB"}};
+        attributeTags.insert(attributeTags.begin()+static_cast<std::ptrdiff_t>(index+1u),insertBody.begin(),insertBody.end());
+        const Tags footer{{0,"SEQEND"},{5,"A2"},{330,"A0"},{100,"AcDbEntity"},{8,"0"}};
+        attributeTags.insert(attributeTags.begin()+static_cast<std::ptrdiff_t>(index+1u+insertBody.size()+attributeRow.size()),footer.begin(),footer.end());
+        if(!write(path,attributeTags,binary))return false;
+        dx_iface plain;dx_data attributes;
+        if(!check(plain.fileImport(path.string(),&attributes,false),"ordinary ATTRIB tail import"))return false;
+        const DRW_Attrib* retained=nullptr;
+        const auto find=[&](const dx_ifaceBlock* owner) {
+            if(owner)for(const auto* entity:owner->ent)
+                if(const auto* candidate=dynamic_cast<const DRW_Insert*>(entity))
+                    if(!candidate->attlist.empty())retained=candidate->attlist.front().get();
+        };
+        find(attributes.mBlock);for(const auto* owner:attributes.blocks)find(owner);
+        if(!check(retained&&retained->m_fieldLength==5&&static_cast<int>(retained->alignV)==2
+            &&(!retained->mtext||retained->mtext->linespacingStyle==1),"ATTRIB shares corrected host tail routing"))return false;
+        ++attribTails;
+    }
+    unsigned qualified=0u,compatibility=0u,observerFaults=0u;
+    std::size_t spans=0u;
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
+     for(bool binary:{false,true})for(bool block:{false,true})for(unsigned mode:{0u,1u,2u,3u}) {
+        const auto ledger=attdefLedger(mode,version=="AC1021");
+        const auto tags=document(version,ledger.tags,block);
+        if(!write(path,tags,binary))return false;
+        CaptureProbe reader;dx_data data;
+        if(!check(reader.fileImport(path.string(),&data,false)&&!Access::failed(data),"source-profile actual import"))return false;
+        const auto* row=Access::resource(data);
+        if(!check(row&&row->attdefFieldsMatched&&!row->rawTypedMatched,"profile cannot substitute for block and target proof"))return false;
+        const bool supported=mode==0u||version=="AC1032";
+        if(!check(row->attdefProfile.complete()==supported,"known modern classic versus documented multiline revisions")) {
+            std::cerr<<"version="<<version<<" mode="<<mode<<" reason="<<static_cast<unsigned>(row->attdefProfile.reason)
+                <<" group="<<row->attdefProfile.rejectedGroup<<'\n';return false;
+        }
+        if(supported) {
+            if(!attdefOriginalSpans(path,binary,tags,ledger,row->attdefProfile,spans))return false;
+            for(unsigned which=0;which<4u;++which) {
+                auto corrupted=row->attdefProfile;
+                if(which==0u)corrupted.spans.front().scope=dx_attdef_source::Scope::Nested;
+                if(which==1u)corrupted.spans.front().role=dx_attdef_source::Role::Owner;
+                if(which==2u)corrupted.spans.front().handle=0xA2u;
+                if(which==3u)corrupted.spans.front().groupIndex=1u;
+                std::size_t ignored=0u;
+                if(!check(!attdefOriginalSpans(path,binary,tags,ledger,corrupted,ignored,true),
+                    "independent original-span observer detects scope/role/value/index corruption"))return false;
+                ++observerFaults;
+            }
+            if(!check(row->attdefModel->m_fieldLength==5&&static_cast<int>(row->attdefModel->alignV)==2
+                &&(!mode||row->attdefModel->mtext->linespacingStyle==2),"host tail and nested line spacing remain distinct"))return false;
+            ++qualified;
+        } else {
+            if(!check(row->attdefProfile.reason==dx_attdef_source::Reason::Revision&&row->attdefProfile.spans.empty(),
+                "pre-R2018 embedded compatibility never creates a partial source certificate"))return false;
+            ++compatibility;
+        }
+    }
+    unsigned chunkProfiles=0u,oversizedChunks=0u;std::size_t chunkSpans=0u;
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
+     for(bool binary:{false,true})for(bool block:{false,true})for(unsigned mode:{0u,1u,2u,3u}) {
+        if(mode&&version!="AC1032")continue;
+        auto ledger=attdefLedger(mode,version=="AC1021");
+        const std::string chunk(254u,'A');
+        for(auto& tag:ledger.tags) {
+            if(tag.code==160||tag.code==92)tag.value=std::to_string(2u+chunk.size()/2u);
+            if((tag.code==310&&tag.value=="A3")||tag.code==1004)tag.value=chunk;
+        }
+        const auto tags=document(version,ledger.tags,block);
+        if(!write(path,tags,binary))return false;
+        CaptureProbe reader;dx_data data;
+        if(!check(reader.fileImport(path.string(),&data,false)&&!Access::failed(data)
+            &&Access::resource(data)&&Access::resource(data)->attdefProfile.complete(),
+            "full 127-byte ASCII/Binary proxy and XDATA chunks qualify without truncation"))return false;
+        const auto& row=*Access::resource(data);
+        if(!check(row.attdefModel->proxyGraphics.size()==2u+chunk.size()/2u
+            &&(!mode||row.attdefModel->mtext->proxyGraphics.size()==2u+chunk.size()/2u),
+            "complete maximum chunk bytes retained on host and nested models"))return false;
+        if(!attdefOriginalSpans(path,binary,tags,ledger,row.attdefProfile,chunkSpans))return false;
+        for(int code:{310,1004})for(std::size_t bytes:{128u,255u}) {
+            auto oversized=ledger.tags;
+            const auto at=std::find_if(oversized.begin(),oversized.end(),[&](const Tag& tag){return tag.code==code&&tag.value==chunk;});
+            if(at==oversized.end())return false;
+            at->value=std::string(bytes*2u,'A');
+            if(code==310) {
+                const auto count=std::find_if(oversized.begin(),oversized.end(),[](const Tag& tag){return tag.code==92||tag.code==160;});
+                count->value=std::to_string(bytes+2u);
+            }
+            if(!write(path,document(version,oversized,block),binary))return false;
+            const auto sourceCalls=reader.sourceCalls,typedCalls=reader.typedCalls;
+            dx_data rejected;
+            if(!check(!reader.fileImport(path.string(),&rejected,false)
+                &&reader.sourceCalls==sourceCalls&&reader.typedCalls==typedCalls
+                &&(!Access::resource(rejected)||!Access::resource(rejected)->attdefProfile.complete()),
+                "oversized physically representable chunk is refused before ATTDEF source/typed publication"))return false;
+            if(!write(path,tags,binary))return false;
+            dx_data retry;
+            if(!check(reader.fileImport(path.string(),&retry,false)&&!Access::failed(retry)
+                &&Access::resource(retry)&&Access::resource(retry)->attdefProfile.complete(),
+                "fresh-import recovery after 128/255-byte chunk refusal"))return false;
+            ++oversizedChunks;
+        }
+        ++chunkProfiles;
+    }
+    unsigned refusals=0u,replayAlone=0u;
+    const auto faults=attdefProfileFaults();
+    for(bool binary:{false,true})for(bool block:{false,true})for(unsigned mode:{0u,1u,2u,3u})
+     for(const auto& fault:faults) {
+        if(!mode&&fault.nestedOnly)continue;
+        const auto clean=attdefLedger(mode,false);auto bad=clean.tags;fault.apply(bad);
+        if(!write(path,document("AC1032",bad,block),binary))return false;
+        CaptureProbe reader;dx_data data;
+        const bool accepted=reader.fileImport(path.string(),&data,false);
+        const auto* row=Access::resource(data);
+        if(!check(!row||!row->attdefProfile.complete(),"fault cannot publish a complete profile")) {
+            std::cerr<<"fault="<<fault.label<<" mode="<<mode<<'\n';return false;
+        }
+        if(accepted&&row&&row->attdefFieldsMatched&&!Access::failed(data)) {
+            ++replayAlone;
+            if(!check(row->attdefProfile.reason==fault.reason&&row->attdefProfile.spans.empty(),
+                "modeled replay cannot launder a refused physical profile")) {
+                std::cerr<<"fault="<<fault.label<<" mode="<<mode<<" reason="<<static_cast<unsigned>(row->attdefProfile.reason)
+                    <<" expected="<<static_cast<unsigned>(fault.reason)<<" group="<<row->attdefProfile.rejectedGroup<<'\n';return false;
+            }
+        } else if(!check(!accepted||Access::failed(data)||!row||!row->attdefFieldsMatched,
+            "earlier production/capture refusal is not promoted"))return false;
+        if(!write(path,document("AC1032",clean.tags,block),binary))return false;
+        dx_data retry;
+        if(!check(reader.fileImport(path.string(),&retry,false)&&!Access::failed(retry)
+            &&Access::resource(retry)&&Access::resource(retry)->attdefProfile.complete(),
+            "same adapter corrected fresh-import profile recovery"))return false;
+        ++refusals;
+    }
+    std::cout<<"ATTDEF source-profile host tail routes="<<tails<<"; ATTRIB host tail routes="<<attribTails
+        <<"; qualified profiles="<<qualified
+        <<"; earlier multiline compatibility profiles="<<compatibility<<"; original physical spans="<<spans
+        <<"; observer corruptions="<<observerFaults<<"; refusal/retry routes="<<refusals
+        <<"; replay-alone false positives refused="<<replayAlone
+        <<"; maximum chunk profiles="<<chunkProfiles<<"; maximum chunk spans="<<chunkSpans
+        <<"; oversized chunk refusals/retries="<<oversizedChunks<<'\n';
+    return tails==48u&&attribTails==48u&&qualified==28u&&compatibility==36u&&observerFaults==112u
+        &&refusals==548u&&replayAlone>0u&&chunkProfiles==28u&&oversizedChunks==112u;
+}
+
 bool immutableCaptureTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
     unsigned profiles=0u,mutations=0u,callbacks=0u,quotas=0u,rawMutations=0u,richProfiles=0u;
@@ -568,6 +734,7 @@ bool immutableCaptureTests(const std::filesystem::path& path) {
         const auto* row=Access::resource(data);
         if(!check(row&&row->attdefModel&&row->raw&&row->attdefPairMatched&&!row->awaitingAttdef
             &&row->attdefFieldsMatched&&!row->attdefFieldMismatch
+            &&row->attdefProfile.complete()==(mode==0u||version=="AC1032")
             &&!row->rawTypedMatched&&!row->model&&Access::pending(data)==0u
             &&reader.sourceCalls==1u&&reader.typedCalls==1u&&row->attdefContext.inBlock==block
             &&!row->attdefContext.applyExtrusion&&row->attdefState.hasNested==(mode!=0u),
@@ -736,7 +903,8 @@ bool immutableCaptureTests(const std::filesystem::path& path) {
         const auto attempt=[&](std::size_t limit) {
             dx_data data;Access::limits(data,kind,limit);CaptureProbe reader;
             return reader.fileImport(path.string(),&data,false)&&!Access::failed(data)
-                &&Access::resource(data)&&Access::resource(data)->attdefFieldsMatched;
+                &&Access::resource(data)&&Access::resource(data)->attdefFieldsMatched
+                &&Access::resource(data)->attdefProfile.complete();
         };
         std::size_t high=1000000u,low=0u;
         if(!check(attempt(high)&&!attempt(low),"capture quota refuses and recovers"))return false;
@@ -757,16 +925,19 @@ bool immutableCaptureTests(const std::filesystem::path& path) {
     replayCalibrate.failTypedAllocation=(std::numeric_limits<long>::max)();
     if(!check(replayCalibrate.fileImport(path.string(),&replayMeasured,false)&&!Access::failed(replayMeasured)
         &&!replayMeasured.typedEntityCaptureFailed&&Access::resource(replayMeasured)->attdefFieldsMatched
+        &&Access::resource(replayMeasured)->attdefProfile.complete()
         &&replayCalibrate.typedAllocations>0&&replayCalibrate.typedAllocations<2000,
         "typed pairing/replay/consumer allocation calibration"))return false;
     for(long failure=0;failure<replayCalibrate.typedAllocations;++failure) {
         dx_data data;CaptureProbe reader;reader.failTypedAllocation=failure;
         if(!check(reader.fileImport(path.string(),&data,false)
-            &&(Access::failed(data)||data.typedEntityCaptureFailed||!Access::resource(data)->attdefFieldsMatched),
+            &&(Access::failed(data)||data.typedEntityCaptureFailed||!Access::resource(data)->attdefFieldsMatched
+                ||!Access::resource(data)->attdefProfile.complete()),
             "pairing/replay/consumer allocation failure cannot yield complete evidence and retained consumer"))return false;
         reader.failTypedAllocation=-1;dx_data fresh;
         if(!check(reader.fileImport(path.string(),&fresh,false)&&!Access::failed(fresh)
-            &&!fresh.typedEntityCaptureFailed&&Access::resource(fresh)->attdefFieldsMatched,
+            &&!fresh.typedEntityCaptureFailed&&Access::resource(fresh)->attdefFieldsMatched
+            &&Access::resource(fresh)->attdefProfile.complete(),
             "typed/replay allocation fresh-import recovery"))return false;
     }
     std::cout<<"ATTDEF immutable capture profiles="<<profiles<<"; rich profiles="<<richProfiles<<"; field faults/retries="<<mutations
@@ -779,12 +950,14 @@ bool immutableCaptureTests(const std::filesystem::path& path) {
 int main(int argc,char** argv) {
     const bool budget=argc==2&&std::string(argv[1])=="--nested-common-budget";
     const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
-    if(argc!=1&&!budget&&!capture)return 2;
+    const bool profile=argc==2&&std::string(argv[1])=="--source-profile";
+    if(argc!=1&&!budget&&!capture&&!profile)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return (capture?immutableCaptureTests(scratch/"generated.dxf"):
+    try {return (profile?sourceProfileTests(scratch/"generated.dxf"):
+        capture?immutableCaptureTests(scratch/"generated.dxf"):
         budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))
         :tests(scratch/"generated.dxf"))?0:1;}
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}

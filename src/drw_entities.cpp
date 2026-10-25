@@ -15192,6 +15192,8 @@ bool DRW_Attrib::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
         case 2:    // tag (ATTRIB-specific; group 1 in MText is text body)
         case 3:    // prompt (ATTDEF-specific)
         case 70:   // ATTRIB flags
+        case 73:   // obsolete field length, not MTEXT line spacing
+        case 74:   // host vertical alignment, not an MTEXT field
         case 280:  // ATTRIB lock-position
             break; // fall through to ATTRIB handling below
         default:
