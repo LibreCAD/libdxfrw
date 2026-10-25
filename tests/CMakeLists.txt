@@ -581,6 +581,18 @@ add_test(NAME dwg2dxf_standard_dwg_binary_transport
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-binary-transport)
 set_tests_properties(dwg2dxf_standard_dwg_binary_transport PROPERTIES
     LABELS "fast;dwg;dxf;objects;xdata;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_native_xrecord_binary_transport
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-binary-transport)
+set_tests_properties(dwg2dxf_native_xrecord_binary_transport PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_native_xrecord_binary_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-binary-faults)
+set_tests_properties(dwg2dxf_native_xrecord_binary_faults PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;transaction;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_xrecord_application_chunk_controls
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-application-chunk-controls)
+set_tests_properties(dwg2dxf_xrecord_application_chunk_controls PROPERTIES
+    LABELS "fast;dxf;objects;xrecord;adapter;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_standard_dwg_profile_isolation
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-profile-isolation)
 set_tests_properties(dwg2dxf_standard_dwg_profile_isolation PROPERTIES

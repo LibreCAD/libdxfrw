@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cg explicit observer profiles and stable write admission (2026-10-24):** a real R2000 legacy binary NOD inspection refusal is fixed by carrying the selected profile through an independent bounded width map. A separately reproduced callback-induced profile change is fixed: admitted public writes retain their writer's profile through validation, typed/common payloads, raw replay and inspection. Private record-level probes keep their pre-existing configured-profile setup outside whole-file attempts. Controls pass 36 initial profile cells plus 36 callback-policy cells, 62 atomic refusal/restored same-codec readback retries, 2,532 hand-encoded legacy token cases, 1,266 standalone binary refusals and 24,026 partial-token refusals. Selected IMAGEDEF/reactor proofs remain required. Final 50 focused, five owning, four reader/consumer and 31 ASan tests pass, with both LibreCAD_3 compile gates. Native/source/semantic qualification and strict admission (**CLOSED**) stay unchanged. [Implementation record](#implementation-progress-rpp-5cg-explicit-observer-profiles-and-stable-write-admission-2026-10-24) · [receipt](docs/research/rpp5cg-explicit-observer-profiles-and-write-admission-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5ch native XRECORD application binary transport (2026-10-24):** a reproduced missing modeled-output fact for a native 128-byte application BINARY value is fixed by matching each source value's exact 127-byte DXF chunks. The comparator preserves field codes, source-value boundaries, order and following mapped references without concatenation or new writer encoding. Forty-two scratch native sources pass 504 projections and 504 actual-import reexports; 168 legacy cells remain unqualified. Controls pass 112 actual late-source atomic refusal/restored-readback retries, 550 copied-model corruption/restoration checks, ten same-byte boundary refusals and six invalid source kind/code refusals. Final 53 focused, five owning, four reader/consumer and 34 ASan tests pass, with both LibreCAD_3 compile gates. Broader selected-record/coordinate/common-metadata closure and independent qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ch-native-xrecord-application-binary-transport-2026-10-24) · [receipt](docs/research/rpp5ch-native-xrecord-application-binary-transport-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5cg explicit observer profiles and stable write admission (2026-10-24):** a real R2000 legacy binary NOD inspection refusal is fixed by carrying the selected profile through an independent bounded width map. A separately reproduced callback-induced profile change is fixed: admitted public writes retain their writer's profile through validation, typed/common payloads, raw replay and inspection. Private record-level probes keep their pre-existing configured-profile setup outside whole-file attempts. Controls pass 36 initial profile cells plus 36 callback-policy cells, 62 atomic refusal/restored same-codec readback retries, 2,532 hand-encoded legacy token cases, 1,266 standalone binary refusals and 24,026 partial-token refusals. Selected IMAGEDEF/reactor proofs remain required. Final 50 focused, five owning, four reader/consumer and 31 ASan tests pass, with both LibreCAD_3 compile gates. Native/source/semantic qualification and strict admission (**CLOSED**) stay unchanged. [Implementation record](#implementation-progress-rpp-5cg-explicit-observer-profiles-and-stable-write-admission-2026-10-24) · [receipt](docs/research/rpp5cg-explicit-observer-profiles-and-write-admission-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5cf rooted XRECORD widths and selected-source guards (2026-10-24):** a reproduced ASCII-to-binary facade reexport refusal is fixed by independently recognizing the existing 100..109 string transport. The observer also recognizes documented 1060..1070 short widths and no longer guesses binary 80..89 as shorts. Twelve public scratch DXF sources pass 144 exports and 144 actual-import cross-encoding reexports, with IMAGE companions in half the sources. A separately reproduced late-source refusal gap is guarded by bounded per-write selected-XRECORD snapshots, checked after emission and at finalization; 80 late-edit, 24 wrong-variant and eight snapshot-budget refusal/restoration retries pass. Independent token controls pass 60 string, 88 short, 1,374 partial-token and 16 unknown-width cases. Final 43 focused, five owning, four reader/consumer and 24 ASan tests pass, with both LibreCAD_3 compile gates. Explicit observer-profile qualification and broader closure remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cf-rooted-xrecord-widths-and-selected-source-guards-2026-10-24) · [receipt](docs/research/rpp5cf-rooted-xrecord-width-and-source-guards-2026-10-24.json).
 
@@ -121578,6 +121580,9 @@ Next executable work, retaining the original complete parity objective:
    comparator coverage of unsupported common tails/data-storage payloads before
    any complete all-field or whole-document immutability claim. Use accepted
    scratch sources before changing production checks.
+   RPP-5ch below resolves the reproduced application-BINARY transport mismatch
+   with actual native imports and failure/restoration controls. This broader
+   item stays open for coordinate, multiple-record and common-metadata closure.
 2. [ ] Extend operation-policy controls to remaining callback phases and real
    incompatible next-operation admission attempts. Keep active/future profile
    distinction and source policy explicit; successful lexical widths cannot
@@ -121604,3 +121609,116 @@ excluded. Earlier receipts and remote state remain unchanged.
 
 Receipt:
 [`rpp5cg-explicit-observer-profiles-and-write-admission-2026-10-24.json`](docs/research/rpp5cg-explicit-observer-profiles-and-write-admission-2026-10-24.json).
+
+## Implementation progress — RPP-5ch native XRECORD application binary transport (2026-10-24)
+
+RPP-5cg is committed as `2714bb603ef4d6d942f8d78bddf4bd23ee60457c`.
+The selected-XRECORD audit exposes and resolves a binary transport comparison
+gap; it does not complete coordinate/multiple-record/common-metadata closure
+or the original full DWG/DXF parity objective.
+
+1. [x] Reproduce with public native author/import before changing production.
+   A typed XRECORD contains one 128-byte application BINARY 310 value, ordinary
+   scalars and a mapped GROUP reference. Native capture, correlation and
+   expected source gates pass. The compatible projection returns, but the
+   first modern-source R2007-to-R2000 ASCII cell lacks the XRECORD modeled
+   output fact (source handle 0xB020, CTest exit 8, 0.79 s). Preceding default
+   strict-policy refusals are expected, not the defect. Do not describe this
+   baseline as an export-generation failure or a complete failing matrix.
+2. [x] Match the actual DXF representation. The existing writer splits one
+   BINARY 310..319 value into fields of at most 127 bytes, and the public
+   reader retains those as separate ordered values. The previous comparator
+   requires equal source/decoded entry counts and therefore misses a valid
+   transport. [Autodesk's numerical group-code reference](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
+   specifies the 127-byte limit for 310..319 (same representation as 1004).
+   This DXF transport fact does not independently qualify a native source,
+   application schema, byte layout or all consumers.
+3. [x] Add a bounded ordered application matcher. For each source BINARY value,
+   require exactly the writer's own chunk count, code, length, byte order and
+   contents; an empty source requires one empty chunk. Do not concatenate
+   adjacent source values, reassign boundaries or accept source HEX strings
+   where the public application writer requires BINARY. Other application
+   values retain the original scalar/handle comparison and mapped-reference
+   checks; raw payload, cloning and exact-coordinate requirements remain.
+   The matcher allocates no joined bytes/models and retains existing value/
+   binary caps. Existing decoder token/node/byte limits are unchanged, not a
+   new claim of whole-process physical-memory accounting.
+4. [x] Register separate fast `dwg2dxf_native_xrecord_binary_transport`. Six
+   source revisions AC1015/18/21/24/27/32 and seven boundary lengths
+   0/1/126/127/128/254/255 produce 42 accepted scratch native sources. Bodies
+   carry code 310 plus adjacent 319 values of 126/127 bytes, mixed ordinary
+   scalars, common EED and GROUP references before/after the binary values.
+   Six DXF targets and both encodings pass 504 projections and 504 actual
+   parsed cross-encoding reexports/readbacks. Check independently constructed
+   exact chunk bytes/order, dictionary ownership/membership, mapped references,
+   common EED and unchanged original source. All 168 legacy-source cells stay
+   unqualified; all 336 modern cells retain the existing three modeled facts.
+   Eighty-four default strict-policy destination-sentinel refusals still pass.
+5. [x] Register `dwg2dxf_native_xrecord_binary_faults`: 14 actual scratch native
+   sources cover R2000/R2018 and all seven lengths. Across both output encodings
+   and after-OBJECTS/before-finalization hooks, 112 real source-edit refusals
+   preserve destination sentinels. Change a byte (or empty value length), or
+   shift a byte between adjacent source values while preserving concatenated
+   bytes. Restore the original public record and retry on the same facade;
+   actual readback and original eligibility/correlation pass. Each facade
+   operation creates its own codec; no private source receipt is refreshed.
+   The exact native-source snapshots remain distinct from output transport
+   normalization, so source edits cannot gain admission through chunk matching.
+6. [x] Register `dwg2dxf_xrecord_application_chunk_controls`. Hand-construct
+   70 source BINARY values across all ten application binary codes and all
+   seven lengths; their expected output has 110 exact chunks. Include following
+   scalars and mapped references before/after the binary block. All 550 copied
+   readback byte/length, removal, duplication, field-code and kind faults refuse,
+   with restored comparisons passing. Ten 126/127-to-127/126 repartitions keep
+   concatenated bytes unchanged but refuse; six invalid source kind/code cases
+   refuse. Negative checks inspect the matcher return itself, not a reference
+   count that could conceal false acceptance. These are model controls, not
+   physical wire-corruption, atomic publication or independent native evidence.
+7. [x] Preserve older selector behavior/counts. The native fixture's new binary
+   positive/fault modes run separately for speedy iteration, while existing
+   binary-EED, application-scope and MATERIAL profile modes retain their work.
+   No native parser/encoder/predicate, writer wire encoding, public API/layout,
+   DRW_Interface callback, strict mask or document composition policy changes.
+8. [x] Final strict affected builds and both LibreCAD_3 compile gates pass.
+   Final 53 focused tests pass 27.58 s, five owning tests pass 9.65 s, four
+   reader/consumer tests pass 2.16 s and 34 scoped ASan tests pass 63.63 s.
+   Normal cohorts run sequentially, parallelism 3 inside cohorts. ASan uses
+   `halt_on_error=1:detect_leaks=0`; no full suite, leak/platform/independent
+   producer qualification or memory/speed benchmark is claimed.
+
+Next implementation-ready work, retaining the full original parity objective:
+
+1. [ ] Continue selected-XRECORD audit with actual accepted coordinate payloads
+   and multiple selected/unselected records. Distinguish native scalar
+   coordinate entries from the DXF reader's tuple representation; reproduce
+   any live output/model mismatch before normalization changes. Preserve exact
+   tuple order, signed/finite scalar rules and following reference roles. Do
+   not invent native grammar or use copied private source evidence as proof.
+2. [ ] Complete supported common-metadata, ownership/generation, alias/order
+   and cumulative snapshot/decoded-owner budget controls. Inspect the actual
+   table-entry representation: DataStorage payload bytes remain in raw carriers,
+   not in the table-entry Boolean, so Boolean equality is not payload proof.
+   Establish accepted source cases and supported replay/explicit refusal routes
+   before claiming all-field or whole-document immutability.
+3. [ ] Extend admitted/future profile checks to remaining callback phases and
+   actual incompatible next-operation admission attempts. Continue independent
+   APPID/LAYER/XRECORD name/body/path/EED evidence, sparse native class
+   cardinality, full IMAGE/common geometry and named-root/document closure.
+   Use the authoritative DWG spec plus real bounded source traces before native
+   predicate/parser/encoder changes; require explicit source ownership,
+   generation and remapping contracts before multi-document composition.
+4. [ ] Self-update plan and a new immutable receipt after every item, self-unblock
+   safe in-scope dependencies, commit verified slices and show progress without
+   avoidable stops. Keep positive/model/fault selectors separate, use fast
+   affected tests first and scoped consumer/sanitizer checkpoints. Retain
+   LibreCAD/LibreCAD_3 compatibility and original 3D/dwg2dxf scope throughout.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Output facts restored for
+already eligible frames do not promote independent semantic/support claims.
+No drawing is committed; all 17 pre-existing untracked drawings and unrelated
+files remain excluded. Earlier receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5ch-native-xrecord-application-binary-transport-2026-10-24.json`](docs/research/rpp5ch-native-xrecord-application-binary-transport-2026-10-24.json).

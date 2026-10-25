@@ -4171,13 +4171,84 @@ bool rasterXrecordScopeFramingControls() {
     return true;
 }
 
-enum class StandardDwgProbe { BinaryTransport, ProfileIsolation, ApplicationScope, ApplicationFaults };
+bool xrecordApplicationChunkControls() {
+    std::vector<DRW_Variant> source{{1,std::string("before-chunks")},{330,static_cast<dint64>(0xD000u)}};
+    std::vector<DRW_Variant> actual{{1,std::string("before-chunks")},{330,static_cast<dint64>(0xD100u)}};
+    std::vector<std::size_t> binaryFields;
+    std::vector<std::pair<std::size_t,std::size_t>> boundaries;
+    for (int code = 310; code <= 319; ++code) {
+        std::size_t left = 0u;
+        for (const auto size : {0u,1u,126u,127u,128u,254u,255u}) {
+            std::vector<std::uint8_t> bytes(size);
+            for (std::size_t n = 0u; n < size; ++n) bytes[n] = static_cast<std::uint8_t>(17u * n + code + size);
+            source.emplace_back(code,bytes);
+            if (size == 126u) left = actual.size();
+            if (size == 127u) boundaries.push_back({left,actual.size()});
+            if (!size) { binaryFields.push_back(actual.size()); actual.emplace_back(code,std::vector<std::uint8_t>{}); }
+            for (std::size_t at = 0u; at < bytes.size(); at += 127u) {
+                const auto end = std::min(bytes.size(),at + 127u);
+                binaryFields.push_back(actual.size());
+                actual.emplace_back(code,std::vector<std::uint8_t>(bytes.begin() + at,bytes.begin() + end));
+            }
+        }
+        source.emplace_back(40,4.25); actual.emplace_back(40,4.25);
+    }
+    source.emplace_back(330,static_cast<dint64>(0xD001u)); actual.emplace_back(330,static_cast<dint64>(0xD101u));
+    const auto compare = [&](const auto& input, const auto& output, bool checkReferences = true) {
+        auto map = [](std::uint32_t value, std::uint32_t& mapped) { mapped = value + 0x100u; return true; };
+        std::vector<std::uint32_t> references;
+        const bool matched = dx_standard_output::xrecordApplicationTransportEqual(input,output,map,references);
+        return matched && (!checkReferences || references == std::vector<std::uint32_t>{0xD100u,0xD101u});
+    };
+    if (!compare(source,actual)) return fail("ordered XRECORD binary transport lost bytes, boundaries, following fields or mapped references");
+    unsigned faults = 0u, repartitions = 0u, invalid = 0u;
+    for (const auto index : binaryFields) for (unsigned mode = 0u; mode != 5u; ++mode) {
+        auto changed = actual;
+        if (mode == 0u) {
+            auto bytes = *changed[index].binary(); if (bytes.empty()) bytes.push_back(0u); else bytes[0] ^= 1u;
+            changed[index] = DRW_Variant(changed[index].code(),std::move(bytes));
+        } else if (mode == 1u) changed.erase(changed.begin() + index);
+        else if (mode == 2u) { const auto duplicate = changed[index]; changed.insert(changed.begin() + index,duplicate); }
+        else if (mode == 3u) changed[index] = DRW_Variant(changed[index].code() + 1,*changed[index].binary());
+        else changed[index] = DRW_Variant(changed[index].code(),std::string("00"));
+        if (compare(source,changed,false) || !compare(source,actual)) return fail("XRECORD chunk copied-readback fault/restoration comparison failed");
+        ++faults;
+    }
+    for (const auto& boundary : boundaries) {
+        auto changed = actual;
+        auto a = *changed[boundary.first].binary(), b = *changed[boundary.second].binary();
+        auto before = a; before.insert(before.end(),b.begin(),b.end());
+        a.push_back(b.front()); b.erase(b.begin());
+        auto after = a; after.insert(after.end(),b.begin(),b.end());
+        if (before != after) return fail("XRECORD repartition control changed concatenated bytes");
+        changed[boundary.first] = DRW_Variant(changed[boundary.first].code(),std::move(a));
+        changed[boundary.second] = DRW_Variant(changed[boundary.second].code(),std::move(b));
+        if (compare(source,changed,false) || !compare(source,actual)) return fail("XRECORD chunk matcher joined adjacent source value boundaries");
+        ++repartitions;
+    }
+    auto unused = [](std::uint32_t, std::uint32_t&) { return false; };
+    for (const int code : {0,1,40,370,1004}) {
+        const std::vector<DRW_Variant> bad{{code,std::vector<std::uint8_t>{0xABu}}}; std::vector<std::uint32_t> references;
+        if (dx_standard_output::xrecordApplicationTransportEqual(bad,bad,unused,references)) return fail("XRECORD binary comparator accepted an invalid binary application code");
+        ++invalid;
+    }
+    const std::vector<DRW_Variant> hex{{310,std::string("AB")}}, bytes{{310,std::vector<std::uint8_t>{0xABu}}}; std::vector<std::uint32_t> references;
+    if (dx_standard_output::xrecordApplicationTransportEqual(hex,bytes,unused,references)) return fail("XRECORD binary comparator coerced an unsupported source HEX string");
+    ++invalid;
+    if (binaryFields.size() != 110u || faults != 550u || repartitions != 10u || invalid != 6u) return fail("XRECORD application chunk controls skipped a case");
+    std::cout << "XRECORD application binary output chunks=" << binaryFields.size() << " copied-readback fault/restoration controls=" << faults
+        << " same-byte source-boundary repartition refusals=" << repartitions << " invalid source kind/code refusals=" << invalid << '\n';
+    return true;
+}
+
+enum class StandardDwgProbe { BinaryTransport, ProfileIsolation, ApplicationScope, ApplicationFaults, BinaryApplication, BinaryApplicationFaults };
 
 bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::BinaryTransport) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const bool profileIsolation = probe == StandardDwgProbe::ProfileIsolation;
-    const bool scopeFaultsOnly = probe == StandardDwgProbe::ApplicationFaults;
+    const bool scopeFaultsOnly = probe == StandardDwgProbe::ApplicationFaults || probe == StandardDwgProbe::BinaryApplicationFaults;
     const bool applicationScopes = scopeFaultsOnly || probe == StandardDwgProbe::ApplicationScope;
+    const bool binaryApplication = probe == StandardDwgProbe::BinaryApplication || probe == StandardDwgProbe::BinaryApplicationFaults;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
     for (unsigned n = 0u; n != 64u; ++n) {
@@ -4215,6 +4286,18 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
         static std::vector<DRW_Variant> application(unsigned scope, std::uint32_t group) {
             std::vector<DRW_Variant> values{{1,std::string("standard-payload")},{330,static_cast<dint64>(group)},
                 {160,static_cast<dint64>(1234567890123LL)}};
+            if (scope >= 6u) {
+                const std::array<unsigned,7> sizes{{0u,1u,126u,127u,128u,254u,255u}};
+                std::vector<std::uint8_t> bytes(sizes.at(scope - 6u));
+                for (std::size_t n = 0u; n < bytes.size(); ++n) bytes[n] = static_cast<std::uint8_t>(0xABu + 17u * n);
+                values.emplace_back(310,std::move(bytes));
+                values.emplace_back(319,std::vector<std::uint8_t>(126u,0x31u));
+                values.emplace_back(319,std::vector<std::uint8_t>(127u,0xE7u));
+                values.emplace_back(40,4.25); values.emplace_back(70,7); values.emplace_back(90,1234567);
+                values.emplace_back(330,static_cast<dint64>(group));
+                values.emplace_back(1,std::string("after-binary-application"));
+                return values;
+            }
             if (scope) {
                 const char* marker = scope == 1u ? "BODY_CONTROL" : scope == 2u ? "{literal" : scope == 3u ? "}"
                     : scope == 4u ? "{ACAD_REACTORS" : "{application-pair";
@@ -4263,8 +4346,23 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
         }
         bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
     };
-    const auto applicationEqual = [](const DRW_XRecord& record, unsigned scope, std::uint32_t group) {
-        const auto values = Author::application(scope,group);
+    const auto applicationEqual = [](const DRW_XRecord& record, unsigned scope, std::uint32_t group, bool dxf = false) {
+        auto values = Author::application(scope,group);
+        if (dxf && scope >= 6u) {
+            // Independent expected public DXF chunks, preserving each
+            // adjacent source value's own boundaries, code and byte order.
+            std::vector<DRW_Variant> projected;
+            for (const auto& value : values) {
+                if (value.type() != DRW_Variant::BINARY) { projected.push_back(value); continue; }
+                const auto& bytes = *value.binary();
+                if (bytes.empty()) projected.emplace_back(value.code(),std::vector<std::uint8_t>{});
+                for (std::size_t at = 0u; at < bytes.size(); at += 127u) {
+                    const auto end = std::min(bytes.size(),at + 127u);
+                    projected.emplace_back(value.code(),std::vector<std::uint8_t>(bytes.begin() + at,bytes.begin() + end));
+                }
+            }
+            values = std::move(projected);
+        }
         if (record.m_dataEntries.size() != values.size() || !record.appData.empty() || !record.reactorHandles.empty() || record.xDictHandle) return false;
         auto identity = [](std::uint32_t source, std::uint32_t& output) { output = source; return true; };
         std::vector<std::uint32_t> references;
@@ -4273,9 +4371,9 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
         return true;
     };
     unsigned sources = 0u, projections = 0u, closedLegacy = 0u, transportFaultRetries = 0u, strictRefusals = 0u, materialCells = 0u, reexports = 0u, lateRetries = 0u;
-    const bool compact = profileIsolation || applicationScopes;
+    const bool compact = profileIsolation || applicationScopes || binaryApplication;
     const auto sizes = compact ? std::vector<unsigned>{128u} : std::vector<unsigned>{0u,127u,128u,254u,255u};
-    const auto scopes = applicationScopes ? std::vector<unsigned>{1u,2u,3u,4u,5u} : std::vector<unsigned>{0u};
+    const auto scopes = binaryApplication ? std::vector<unsigned>{6u,7u,8u,9u,10u,11u,12u} : applicationScopes ? std::vector<unsigned>{1u,2u,3u,4u,5u} : std::vector<unsigned>{0u};
     const auto sourceVersions = scopeFaultsOnly ? std::vector<DRW::Version>{DRW::AC1015,DRW::AC1032}
         : std::vector<DRW::Version>{DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032};
     for (const auto version : sourceVersions)
@@ -4328,7 +4426,7 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
                 return value.m_entries.size() == 1u && value.m_entries.front().m_name == "STD_XRECORD";
             });
             if (dictionary == actual.dictionaries.end()) return fail("standard chunk rooted dictionary lost its XRECORD edge");
-            if (actual.xRecords.front().parentHandle != dictionary->handle || !applicationEqual(actual.xRecords.front(),scope,actual.groups.front().handle))
+            if (actual.xRecords.front().parentHandle != dictionary->handle || !applicationEqual(actual.xRecords.front(),scope,actual.groups.front().handle,true))
                 return fail("XRECORD application fields escaped into common owners/reactors/classes or lost mapped references");
             const std::array<const DRW_TableEntry*,3> decoded{{&*dictionary,&actual.xRecords.front(),&actual.groups.front()}};
             for (std::size_t family = 0u; family < decoded.size(); ++family) {
@@ -4375,11 +4473,11 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             }
             if (!modern) ++closedLegacy;
             ++projections;
-            if (applicationScopes) {
+            if (applicationScopes || binaryApplication) {
                 if (!exporter.fileExport(target.string(),outputVersion,!binary,&actual,false,true)) return fail("actual-import XRECORD application scope reexport refused");
                 dx_data second; dx_iface reread;
                 if (!reread.fileImport(target.string(),&second,false) || second.xRecords.size() != 1u || second.groups.size() != 1u
-                    || !applicationEqual(second.xRecords.front(),scope,second.groups.front().handle) || !Access::unchanged(importer))
+                    || !applicationEqual(second.xRecords.front(),scope,second.groups.front().handle,true) || !Access::unchanged(importer))
                     return fail("actual-import XRECORD reexport/readback or immutable native source check failed");
                 const auto secondDictionary = std::find_if(second.dictionaries.begin(),second.dictionaries.end(),[](const auto& value) {
                     return value.m_entries.size() == 1u && value.m_entries.front().m_name == "STD_XRECORD";
@@ -4398,7 +4496,18 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             const auto original = data.xRecords.front();
             for (const bool binary : {false,true}) for (const bool final : {false,true}) for (const bool scalar : {false,true}) {
                 const auto change = [&]() {
-                    if (scalar) data.xRecords.front().m_dataEntries[5].addInt(280,9);
+                    auto& values = data.xRecords.front().m_dataEntries;
+                    if (binaryApplication) {
+                        if (scalar) {
+                            auto bytes = *values[3].binary();
+                            if (bytes.empty()) bytes.push_back(0); else bytes[0] ^= 1u;
+                            values[3] = DRW_Variant(310,std::move(bytes));
+                        } else {
+                            auto a = *values[4].binary(), b = *values[5].binary();
+                            a.push_back(b.front()); b.erase(b.begin());
+                            values[4] = DRW_Variant(319,std::move(a)); values[5] = DRW_Variant(319,std::move(b));
+                        }
+                    } else if (scalar) data.xRecords.front().m_dataEntries[5].addInt(280,9);
                     else data.xRecords.front().m_dataEntries[3].addString(102,"late-application-text");
                 };
                 if (final) exporter.beforeFinalize = change; else exporter.afterObjects = change;
@@ -4418,17 +4527,19 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
                     return fail("restored native application retry changed source qualification");
                 dx_data readback; dx_iface reread;
                 if (!reread.fileImport(target.string(),&readback,false) || readback.xRecords.size() != 1u || readback.groups.size() != 1u
-                    || !applicationEqual(readback.xRecords.front(),scope,readback.groups.front().handle)
+                    || !applicationEqual(readback.xRecords.front(),scope,readback.groups.front().handle,true)
                     || data.hasStandardDwgObjectCaptureFailure() || data.hasStandardDwgObjectPayloadFailure())
                     return fail("restored native XRECORD retry lost exact application values or poisoned source capture");
                 ++lateRetries;
             }
         }
     }
-    if (sources != (scopeFaultsOnly ? 10u : profileIsolation ? 6u : 30u) || projections != (scopeFaultsOnly ? 0u : profileIsolation ? 72u : 360u)
-        || closedLegacy != (scopeFaultsOnly ? 0u : profileIsolation ? 24u : 120u) || transportFaultRetries != (compact ? 0u : 2160u)
-        || strictRefusals != (scopeFaultsOnly ? 0u : profileIsolation ? 12u : 60u) || materialCells != (profileIsolation ? 32u : 0u)
-        || reexports != (applicationScopes && !scopeFaultsOnly ? 360u : 0u) || lateRetries != (scopeFaultsOnly ? 80u : 0u))
+    if (sources != (scopeFaultsOnly ? binaryApplication ? 14u : 10u : binaryApplication ? 42u : profileIsolation ? 6u : 30u)
+        || projections != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : profileIsolation ? 72u : 360u)
+        || closedLegacy != (scopeFaultsOnly ? 0u : binaryApplication ? 168u : profileIsolation ? 24u : 120u) || transportFaultRetries != (compact ? 0u : 2160u)
+        || strictRefusals != (scopeFaultsOnly ? 0u : binaryApplication ? 84u : profileIsolation ? 12u : 60u) || materialCells != (profileIsolation ? 32u : 0u)
+        || reexports != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : applicationScopes ? 360u : 0u)
+        || lateRetries != (scopeFaultsOnly ? binaryApplication ? 112u : 80u : 0u))
         return fail("standard chunk source matrix skipped a cell");
     std::cout << "Standard native chunk sources=" << sources << " projections=" << projections << " legacy unqualified cells=" << closedLegacy
         << " copied-readback comparison fault/restoration retries=" << transportFaultRetries << " strict refusals=" << strictRefusals
@@ -33707,6 +33818,12 @@ int main(int argc, char** argv) {
         return generatedDictionaryBinaryChunks(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-dwg-binary-transport")
         return standardDwgBinaryTransport() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--native-xrecord-binary-transport")
+        return standardDwgBinaryTransport(StandardDwgProbe::BinaryApplication) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--native-xrecord-binary-faults")
+        return standardDwgBinaryTransport(StandardDwgProbe::BinaryApplicationFaults) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--xrecord-application-chunk-controls")
+        return xrecordApplicationChunkControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-dwg-profile-isolation")
         return standardDwgBinaryTransport(StandardDwgProbe::ProfileIsolation) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--native-xrecord-application-scope")

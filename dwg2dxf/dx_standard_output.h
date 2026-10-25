@@ -588,17 +588,45 @@ template <class Mapper, class LayerVerifier = NoLayerReferences> bool equal(cons
     return true;
 }
 
+template<class Mapper> bool xrecordApplicationTransportEqual(const std::vector<DRW_Variant>& source,
+        const std::vector<DRW_Variant>& actual, Mapper& map, std::vector<std::uint32_t>& references) {
+    if (source.size() > 1000000u || actual.size() > 1000000u) return false;
+    std::size_t next = 0u;
+    for (const auto& value : source) {
+        if (!isDxfXRecordApplicationCode(value.code()) || next >= actual.size()) return false;
+        if (value.code() < 310 || value.code() > 319) {
+            if (value.type() == DRW_Variant::BINARY) return false;
+            if (!valueEqual(value,actual[next++],map,references)) return false;
+            continue;
+        }
+        if (value.type() != DRW_Variant::BINARY || !value.binary() || value.dwgCmColorValue()
+            || value.isLayerRef() || value.rawDwgLayerReference()) return false;
+        const auto& bytes = *value.binary();
+        if (bytes.size() > DRW::kMaxDxfBinaryPayloadBytes) return false;
+        const auto chunks = bytes.empty() ? 1u : (bytes.size() + 126u) / 127u;
+        if (chunks > actual.size() - next) return false;
+        // Match each source value's exact writer chunks independently. Never
+        // concatenate values, repartition boundaries or allocate joined bytes.
+        for (std::size_t n = 0u; n < chunks; ++n) {
+            const auto& output = actual[next++];
+            const auto offset = 127u * n, count = std::min<std::size_t>(127u,bytes.size() - offset);
+            if (output.code() != value.code() || output.type() != DRW_Variant::BINARY || !output.binary()
+                || output.dwgCmColorValue() || output.isLayerRef() || output.rawDwgLayerReference()
+                || output.binary()->size() != count
+                || !std::equal(bytes.begin() + offset,bytes.begin() + offset + count,output.binary()->begin())) return false;
+        }
+    }
+    return next == actual.size();
+}
+
 template <class Mapper, class LayerVerifier = NoLayerReferences> bool equal(const DRW_XRecord& source,
         const DRW_XRecord& actual, Mapper& map, std::vector<std::uint32_t>& references,
         LayerVerifier verifyLayer = {}) {
     if (!commonEqual(source, actual, Family::Xrecord, map, references, verifyLayer)
         || source.m_rawDataValid || source.hasDwgRawDataSourceRecord()
         || !source.hasExactDxfCoordinateTuples() || !actual.hasExactDxfCoordinateTuples()
-        || source.m_cloning != actual.m_cloning || source.m_dataEntries.size() != actual.m_dataEntries.size()) return false;
-    for (std::size_t index = 0; index < source.m_dataEntries.size(); ++index)
-        if (!isDxfXRecordApplicationCode(source.m_dataEntries[index].code())
-            || !valueEqual(source.m_dataEntries[index], actual.m_dataEntries[index], map, references)) return false;
-    return true;
+        || source.m_cloning != actual.m_cloning) return false;
+    return xrecordApplicationTransportEqual(source.m_dataEntries,actual.m_dataEntries,map,references);
 }
 
 } // namespace dx_standard_output
