@@ -488,6 +488,17 @@ add_test(NAME libdxfrw_table_geometry_observer_selftest
 set_tests_properties(libdxfrw_table_geometry_observer_selftest PROPERTIES
     LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 
+add_executable(libdxfrw_attdef_source_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/attdef_source_tests.cpp ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_attdef_source_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_attdef_source_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_attdef_source_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_attdef_source_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_attdef_source_transport COMMAND libdxfrw_attdef_source_tests)
+set_tests_properties(libdxfrw_attdef_source_transport PROPERTIES
+    LABELS "fast;dxf;attdef;source;generated" TIMEOUT 30)
+
 add_executable(libdxfrw_table_content_dxf_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/table_content_dxf_tests.cpp ${_libdxfrw_test_adapter_source})
 target_compile_features(libdxfrw_table_content_dxf_tests PRIVATE cxx_std_17)

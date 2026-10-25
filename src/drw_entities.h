@@ -34,6 +34,7 @@ class dwgBuffer;
 class dwgRW;
 class DRW_Polyline;
 class DRW_MText;
+namespace dxfAttdef { class Decoder; }
 
 struct DRW_MeshPropertyOverride {
     std::int32_t subEntityMarker = 0;
@@ -2543,6 +2544,7 @@ protected:
 */
 class DRW_Attdef : public DRW_Attrib {
     SETENTFRIENDS
+    friend class dxfAttdef::Decoder;
 private:
     std::size_t m_dxfRetainedPromptBytes{0};
 
@@ -2568,6 +2570,7 @@ public:
 */
 class DRW_MText : public DRW_Text {
     SETENTFRIENDS
+    friend class dxfAttdef::Decoder;
     // ATTRIB / ATTDEF embed a DRW_MText for the AcDbMText nested subclass; let
     // them route DXF group codes via the protected parseCode().
     friend class DRW_Attrib;

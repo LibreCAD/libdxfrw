@@ -75,6 +75,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfnumber.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxffield.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfblockrecord.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfattdef.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfwriter.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwg_dxf_output_transaction.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgwriterlayoutvalidation.h"

@@ -752,6 +752,32 @@ public:
                                       const DRW_RawDxfObject& source) = 0;
 };
 
+/** Source interpretation context, not a geometry/support certificate.
+ * applyExtrusion records the read option used for final callback preparation;
+ * its actual effect is defined by the entity's implementation (TEXT is currently
+ * a no-op). inBlock distinguishes BLOCKS children from ENTITIES records. */
+struct DRW_DxfAttdefSourceContext {
+  bool applyExtrusion{false};
+  bool inBlock{false};
+};
+
+/** Opt-in ATTDEF source transport, separate from DRW_Interface's vtable.
+ * Selection is latched before each record. Complete raw bodies exclude the
+ * code-0 marker and accompany the finalized typed view, immediately before
+ * addAttDef. BLOCKS pairs wait for an accepted ENDBLK; invalid/dropped blocks
+ * deliver neither callback. Default false adds no raw copy or source charge.
+ * Callback failure may leave an already delivered prefix: consumers must treat
+ * the whole import as failed. This is not immutable source/target/output proof.
+ */
+class DRW_DxfAttdefSourceHandler {
+public:
+  virtual ~DRW_DxfAttdefSourceHandler() = default;
+  virtual bool wantsDxfAttdefSource() const { return false; }
+  virtual void addDxfAttdefSource(const DRW_Attdef& value,
+                                 const DRW_RawDxfObject& source,
+                                 const DRW_DxfAttdefSourceContext& context) = 0;
+};
+
 /** Optional source-evidence side channel. Does not extend DRW_Interface's
  * established vtable or require existing 2D consumers to retain source bytes.
  * Request once per read; default false performs no source copy. Reports are

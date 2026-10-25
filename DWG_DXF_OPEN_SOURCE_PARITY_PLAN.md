@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dk native block admission and independent string bounds (2026-10-25):** the contradictory null-layout guard is removed, while XREF-owned geometry and nonnull XREF layout associations remain refused. Both previously failing controls now pass with expanded six-version metadata, rollback, destination-preservation and same-facade retry coverage. Independent LAYOUT/dictionary walkers retain exact bit bounds instead of requiring byte-aligned strings and a fixed seven-bit separator; hand-packed positive/corrupt controls cover every alignment and both footer sizes. No production LAYOUT encoding or BL/RL decision changes. Full ATTDEF/block/common/target/live/output and original consumer/semantic/platform parity remain open. [Implementation and next work](#implementation-progress-rpp-5dk-native-block-admission-and-independent-string-bounds-2026-10-25) · [receipt](docs/research/rpp5dk-native-block-admission-and-independent-string-bounds-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dl bounded ATTDEF source transport and application-capture parity (2026-10-25):** a separate opt-in facet carries complete source bodies and explicit read-policy/block context, with source/typed pairs moved through the block-event sink until accepted ENDBLK. Production parsing and replay share required-field/finalization rules. Repeated opaque application code-5 values no longer reserve global identities; typed appData preserves normal semantic decoding while raw spellings remain exact. Ninety-six authored transport routes and 80 allocation schedules pass. The converter's immutable ATTDEF proof and secondary-attribute semantics are still open; this is a transport prerequisite, not another qualified resource family. [Implementation and next work](#implementation-progress-rpp-5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25) · [receipt](docs/research/rpp5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dk native block admission and independent string bounds (2026-10-25):** committed as `9c11183d`. The contradictory null-layout guard is removed, while XREF-owned geometry and nonnull XREF layout associations remain refused. Both previously failing controls now pass with expanded six-version metadata, rollback, destination-preservation and same-facade retry coverage. Independent LAYOUT/dictionary walkers retain exact bit bounds instead of requiring byte-aligned strings and a fixed seven-bit separator; hand-packed positive/corrupt controls cover every alignment and both footer sizes. No production LAYOUT encoding or BL/RL decision changes. Full ATTDEF/block/common/target/live/output and original consumer/semantic/platform parity remain open. [Implementation and next work](#implementation-progress-rpp-5dk-native-block-admission-and-independent-string-bounds-2026-10-25) · [receipt](docs/research/rpp5dk-native-block-admission-and-independent-string-bounds-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dj BLOCK_RECORD source proof and application-scope isolation (2026-10-25):** committed as `8939f7f8`. Its row-source agreement and application-scope isolation remain valid. Its historical 67/69 normal/ASan results and identical pristine-parent native failures are preserved in the immutable receipt; RPP-5dk resolves those two controls without erasing their red history. The known independent peer typed-scalar scope discrepancy remains explicit, not a support claim. [Historical implementation](#implementation-progress-rpp-5dj-block_record-source-proof-and-application-scope-isolation-2026-10-25) · [receipt](docs/research/rpp5dj-block-record-source-proof-and-application-scope-isolation-2026-10-25.json).
 
@@ -125441,3 +125443,133 @@ The support ledger remains **CLOSED**, `outputEligible=false`, and all six J
 items remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
 ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. No remote write is
 included; the full implementation goal remains active and incomplete.
+
+## Implementation progress RPP-5dl bounded ATTDEF source transport and application-capture parity (2026-10-25)
+
+This implements the library transport/production-decoder prerequisite of the
+ATTDEF source/context work, not the converter's complete immutable ATTDEF proof.
+Autodesk's [ATTDEF reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm)
+and [common entity scopes](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm)
+distinguish host fields, application payloads and the additional XRECORD/
+secondary-attribute representation. Existing production decoding is the transport
+policy here; those references do not establish that every optional profile is
+already modeled. No native `parseDwg` body, encoding layout or output guard changes.
+
+Completed:
+
+1. [x] Add separate `DRW_DxfAttdefSourceHandler` and explicit `applyExtrusion`/
+   `inBlock` context without modifying `DRW_Interface` or model layout. Select
+   once before each record. Default false avoids raw construction/copy/charges.
+   Deliver original ordered source groups and ASCII spellings before the typed
+   callback only after accepted boundaries. Context records the requested read
+   option, not proof of a geometry transform: TEXT extrusion remains a no-op.
+2. [x] Share actual required-field admission, embedded MTEXT column validation,
+   angle finalization and extrusion dispatch in noninstalled `dxfattdef.h`,
+   registered in CMake and Automake. Reuse existing ATTRIB/ATTDEF subclass parsing
+   rather than inventing a second interpretation of 101/legacy-100 markers.
+3. [x] Move source and finalized typed owners into one `DxfBlockEventSink` event,
+   with compile-time nothrow-move checks. Flush source immediately before typed
+   only after valid ENDBLK; invalid or dropped blocks deliver neither. Preserve
+   balanced public block scopes on refusal/throw. Do not duplicate a raw vector
+   or independently queue a second typed payload. Container capacity/RSS and all
+   other event families are not thereby fully accounted or bounded.
+4. [x] Preserve the existing host-versus-nested-MTEXT application routing and
+   XDATA cursor reset. A two-record regression exposed global registration of
+   repeated opaque code-5 values before any block pair could flush. Application
+   capture now sets `selfHandle=false`; the raw metadata latch also respects that
+   flag. Such fields remain raw payload, not new drawing identities.
+5. [x] Reproduce an opt-in/opt-out appData mismatch with escaped Unicode inside
+   both host and nested application groups. Keep raw spellings unchanged while
+   using the normal typed string getter for appData, with precharged decode/copy
+   temporaries and transfer into the retained typed owner. The strengthened
+   regression fails before this correction and passes afterward. This is scoped
+   parser-policy parity, not universal application-value or format semantics.
+6. [x] Add a fast authored matrix: four modern revisions, ASCII/binary, BLOCKS/
+   ENTITIES, both extrusion options, classic/101/legacy-100 forms: **96 routes**.
+   Check original groups/order/spellings, revision/context, finalized source/
+   typed callback projections, opt-out and shared-decoder replay agreement.
+   **432 malformed/corrected pairs** cover missing required fields outside opaque
+   groups and invalid ENDBLK owners. Cover delayed request latching, dropped
+   scopes, source/typed exceptions and corrected same-facade reads. These tested
+   projections are not an exhaustive frozen comparison of every public field.
+7. [x] Check raw-node and logical-byte refusal/recovery and exact/below minimum
+   controls. For the authored AC1032 ASCII embedded-MTEXT block, opt-out/opt-in
+   node minima are **22/83** and logical-byte minima **271/734**. Refuse every one
+   of **80 calibrated allocations** from source selection through staging,
+   callback publication and read completion, preserving closed scopes and source-
+   before-typed prefixes. Corrected fresh reads recover. This does not cover all
+   process allocation sites or promise whole-model RSS/CPU bounds.
+
+Opt-in also uses the existing bounded raw-carrier lexical/identity admission;
+it can conservatively refuse ambiguous inputs tolerated by the legacy typed
+path. The 96-route policy comparison is not a claim of universal acceptance
+equivalence. Opt-out consumers retain their established parser admission.
+
+Final owning normal/ASan probes both pass with those exact counts. Strict
+warnings and both LibreCAD_3 source compile gates pass. The expanded affected
+normal cohort passes **89/90 in 73.02 s** and the sequential ASan cohort passes
+**89/90 in 155.46 s**, with leak checks disabled.
+The one failure is required local work, not waived or external-only:
+
+- `dwg_dxf_issue_1410_cross_codec` reaches AC1032 DWG writing and fails with
+  error 2. The improved diagnostic identifies `dwg-block-callback`: a required
+  write failure during the block callback. It reproduces identically (same
+  AC1032/error-2 stage) in a fresh archive/configure/build of exact parent
+  `9c11183d`; the pristine parent did not contain this transport or capture fix.
+  No native fix or root-cause conclusion is claimed from this reproduction.
+
+The [RPP-5dl receipt](docs/research/rpp5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25.json)
+records the final exact selection, parent evidence and limits. No full project
+suite, native FreeCAD application, independent external reader or ACIS/ACDS
+kernel qualification is implied. `build-gcc` remains macOS ARM64 Apple Clang.
+No unrelated external drawing payload is committed.
+
+Next implementation-ready work, preserving the full objective:
+
+1. [ ] **Resolve the native issue-1410 control.** Trace the exact failed ATTDEF/
+   multiline payload write and distinguish a writer defect from unsupported
+   metadata or a bad fixture expectation. Read the authoritative ODA native
+   attribute/MTEXT chapters before any byte-layout change. Keep nested text,
+   colors, defined height, owner links and following geometry; do not make the
+   test green by dropping fields, skipping the case or weakening write failure.
+2. [ ] **Complete converter ATTDEF immutable source proof.** Opt in through the
+   new facet during actual import. Add an owned CLI entity-model snapshot, not
+   a forged `DRW_TableEntry`, to resource state. Reuse existing typed-entity
+   payload estimators and shared source limits; precharge all additional owners.
+   Replay the shared decoder with actual declared revision, encoding and read
+   policy. Compare every exposed/default/native-only common, TEXT/ATTRIB/ATTDEF
+   and nested-MTEXT field, pending state and provenance, not just a writer
+   round-trip or these transport-test projections. Preserve sticky missing/
+   duplicate/late/wrong-family callbacks, aggregate refusal and fresh retries.
+   Require that proof for selected attribute-definition targets; current identity
+   capture alone is not source proof. The CLI does not yet request this facet,
+   and its proved resource-family count remains nine.
+3. [ ] **Prove physical roles and full profiles.** Extend the independent source
+   observer for host/embedded subclass/application/XDATA boundaries and exact
+   reference positions, without re-exporting normalization. Investigate the
+   additional `AcDbXrecord` duplicate/multiline/secondary-attribute representation
+   and repeated tag/flag/lock codes; complete or explicitly refuse an unproved
+   selected profile. Do not infer secondary-target semantics from raw retention
+   or the existing minimal model. Carry actual enclosing block identity/owner
+   evidence; the new `inBlock` boolean alone does not establish that chain.
+4. [ ] **Finish BLOCK/ENDBLK, ATTRIB/SEQEND and APPID/LAYER.** Establish complete
+   begin/end/record/context source agreement, balanced scope and child ordering,
+   then batch-atomic opt-in symbol sources and declared/default/native profiles.
+5. [ ] **Full common/target/live/output and original parity.** Continue the B2b/
+   B3/C worklists, reached families, pre-identity collisions, multiple roots,
+   soft cycles and effective target rules. Finish editable/frozen equality,
+   preplanned compound IDs, exact output fields/references and atomic rollback
+   before opening either export guard. Keep native BL/RL/decimal/bit, complete
+   IMAGE/document, SWEEP/EXTRUSION/carrier/schema/owner and LibreCAD/LibreCAD_3
+   2D plus 3D/dwg2dxf/FreeCAD requirements, with independent semantic/platform
+   evidence where needed. Retain the replay-speed/owner/allocation audits.
+6. [ ] **Self-update/unblock/commit.** Record exact outcomes and unqualified
+   profiles after each item, select the next safe ready dependency, commit/report
+   coherent slices and continue. Prefer owning/affected fast checks and sequential
+   normal/ASan cohorts; full suites remain integration checkpoints. Use only
+   repository-existing or scratch-authored committed fixtures, not external files.
+
+The support ledger remains **CLOSED**, `outputEligible=false`, and J256/J260/
+J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD
+and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+The complete implementation goal remains active; no remote mutation is included.

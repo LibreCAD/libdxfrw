@@ -29,6 +29,7 @@
 #include <cassert>
 #include <chrono>
 #include <string_view>
+#include <type_traits>
 #include <unordered_set>
 #include "handle_allocator.h"
 #include "intern/drw_textcodec.h"
@@ -41,6 +42,7 @@
 #include "intern/dxftablecontent.h"
 #include "intern/dxffield.h"
 #include "intern/dxfblockrecord.h"
+#include "intern/dxfattdef.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
 #include "intern/dwg_dxf_output_transaction.h"
@@ -1983,6 +1985,36 @@ bool appendDxfHexChunk(std::string_view text,
 class DxfBlockEventSink final : public DRW_Interface {
 public:
     explicit DxfBlockEventSink(DRW_Interface& target) : m_target(target) {}
+
+    DRW_DxfAttdefSourceHandler* attdefSourceHandler() const noexcept {
+        return dynamic_cast<DRW_DxfAttdefSourceHandler*>(&m_target);
+    }
+
+    bool stageAttdefSource(DRW_Attdef&& value,DRW_RawDxfObject&& source,
+                          DRW_DxfAttdefSourceContext context,
+                          DRW_DxfAttdefSourceHandler& handler) {
+        static_assert(std::is_nothrow_move_constructible<DRW_Attdef>::value,
+                      "ATTDEF staging must transfer, not copy, payload owners");
+        static_assert(std::is_nothrow_move_constructible<DRW_RawDxfObject>::value,
+                      "ATTDEF raw staging must transfer payload owners");
+        if(m_failed)return false;
+        struct Pair {
+            DRW_Attdef value;
+            DRW_RawDxfObject source;
+            Pair(DRW_Attdef&& v,DRW_RawDxfObject&& s)
+                :value(std::move(v)),source(std::move(s)){}
+        };
+        try {
+            // Transfer both payload owners to one event. Do not clone raw
+            // strings or retain a second independently queued typed value.
+            auto pair=std::make_shared<Pair>(std::move(value),std::move(source));
+            m_events.emplace_back([pair=std::move(pair),context,&handler](DRW_Interface& target) {
+                handler.addDxfAttdefSource(pair->value,pair->source,context);
+                target.addAttDef(pair->value);
+            });
+        } catch (...) {m_failed=true;}
+        return !m_failed;
+    }
 
     bool failed() const noexcept { return m_failed; }
 
@@ -17210,11 +17242,15 @@ bool dxfRW::processAttdef() {
     DRW_DBG("dxfRW::processAttdef");
     int code;
     DRW_Attdef attdef;
-    bool hasText = false;
-    bool hasTag = false;
-    bool hasInsertionX = false;
-    bool hasInsertionY = false;
-    bool hasHeight = false;
+    dxfAttdef::Decoder decoder(attdef);
+    auto* blockEvents=dynamic_cast<DxfBlockEventSink*>(iface);
+    auto* sourceHandler=blockEvents?blockEvents->attdefSourceHandler()
+        :dynamic_cast<DRW_DxfAttdefSourceHandler*>(iface);
+    const bool captureSource=sourceHandler&&sourceHandler->wantsDxfAttdefSource();
+    const DRW_DxfAttdefSourceContext context{applyExt,m_readingBlockEntities};
+    DRW_RawDxfObject raw;
+    if(captureSource&&!copyRawDxfCarrierName(raw,nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
@@ -17223,24 +17259,32 @@ bool dxfRW::processAttdef() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (!acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!hasText || !hasTag || attdef.tag.empty() || !hasInsertionX
-                || !hasInsertionY || !hasHeight
-                || (attdef.mtext
-                    && !attdef.mtext->finalizeDxfColumnObject()))
+            if (!decoder.finish(applyExt))
                 return setError(DRW::BAD_CODE_PARSED);
-            if (attdef.mtext) attdef.mtext->updateAngle();
-            if (applyExt)
-                attdef.applyExtrusion();
+            if(captureSource) {
+                // Embedded/opaque group handles do not define the host row.
+                raw.handle=attdef.handle;raw.parentHandle=attdef.parentHandle;
+                if(!validateCapturedRawDxfObject(raw,binFile,reader->classifierProfile()))
+                    return setError(DRW::BAD_CODE_PARSED);
+                if(blockEvents) {
+                    if(!blockEvents->stageAttdefSource(std::move(attdef),std::move(raw),context,*sourceHandler))
+                        return setError(DRW::BAD_READ_ENTITIES);
+                    return true;
+                }
+                sourceHandler->addDxfAttdefSource(attdef,raw,context);
+            }
             iface->addAttDef(attdef);
             return true;
         }
-        hasText = hasText || code == 1;
-        hasTag = hasTag || code == 2;
-        hasInsertionX = hasInsertionX || code == 10;
-        hasInsertionY = hasInsertionY || code == 20;
-        hasHeight = hasHeight || code == 40;
-
-        if (!attdef.parseCode(code, reader))
+        if(captureSource&&code==102) {
+            auto& entity=decoder.applicationEntity();
+            entity.clearParserCursor();
+            if(!captureRawDxfApplicationGroup(raw,entity))
+                return setError(DRW::BAD_CODE_PARSED);
+            continue;
+        }
+        if ((captureSource&&!captureRawGroup(raw,code,true))
+            || !decoder.parseCode(code, reader))
             return setError(DRW::BAD_CODE_PARSED);
     }
     return setError(DRW::BAD_READ_ENTITIES);
@@ -22156,7 +22200,7 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
             (void)obj.m_retainedTextLease->resizeTo(previousRetainedBytes);
         return false;
     }
-    if (5 == code && obj.handle == 0) {
+    if (5 == code && selfHandle && obj.handle == 0) {
         // The raw group string remains authoritative when the handle does not
         // fit this legacy 32-bit convenience field.
         obj.handle = reader->getHandleString();
@@ -22238,7 +22282,11 @@ bool dxfRW::captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
         int code = 0;
         while (depth > 0 && reader->readRec(&code)) {
             if (code == 0 || pairCount >= DRW::kMaxDxfApplicationGroupPairs
-                || !captureRawGroup(obj, code, /*validateHandles=*/true)
+                // Application payload code 5 is not the enclosing object's
+                // identity. Repeated opaque values across records must not
+                // reserve global self handles or trigger duplicate admission.
+                || !captureRawGroup(obj, code, /*validateHandles=*/true,
+                                    /*selfHandle=*/false)
                 || obj.groups.empty()) {
                 return false;
             }
@@ -22250,13 +22298,24 @@ bool dxfRW::captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                 return false;
             if (!reader->chargeTypedVariantNode())
                 return false;
-            if (group.type() == DRW_Variant::STRING
-                && group.content.s != nullptr
-                && !retainDxfReadBytes(typedLease,
-                                       reader->retainedByteBudget(),
-                                       group.content.s->size()))
-                return false;
-            applicationGroup.push_back(group);
+            if (group.type() == DRW_Variant::STRING && group.content.s != nullptr) {
+                // Raw owns original spellings; typed appData follows the same
+                // semantic text policy as parseDxfGroups/takeString. In
+                // particular XDATA strings inside an application group must
+                // not become undecoded merely because raw capture is enabled.
+                const bool semantic=code==1000||code==1001||code==1003||code==430;
+                const std::size_t size=group.content.s->size();
+                const std::size_t multiplier=semantic?5u:1u;
+                if(size>(std::numeric_limits<std::size_t>::max)()/multiplier)return false;
+                DxfReadRetainedReservation decode(reader->retainedByteBudget(),size*multiplier);
+                if(reader->retainedByteBudget()&&!decode.reserved())return false;
+                std::string text=reader->getString();
+                if(text.size()>size*(semantic?4u:1u))return false;
+                if(!decode.resize(0u)||!retainDxfReadBytes(typedLease,reader->retainedByteBudget(),text.size()))return false;
+                DRW_Variant typed;
+                typed.addString(code,std::move(text));
+                applicationGroup.push_back(std::move(typed));
+            } else applicationGroup.push_back(group);
 
             if (topLevelGroup && isReactors && code == 330) {
                 const std::uint32_t handle = reader->getHandleString();

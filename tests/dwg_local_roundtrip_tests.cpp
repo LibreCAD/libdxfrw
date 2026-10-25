@@ -31778,8 +31778,10 @@ bool runIssue1410CrossCodecRoundTrip() {
         dwgRW writer(dwgPath.string().c_str());
         Issue1410DwgWriter adapter(writer, source);
         if (!writer.write(&adapter, version, false) || !adapter.succeeded()) {
+            const auto diagnostic=writer.getLastDiagnostic();
             std::cerr << suffix << ": DWG write failed (error "
-                      << static_cast<int>(writer.getError()) << ")\n";
+                      << static_cast<int>(writer.getError()) << ", "
+                      << diagnostic.code << ": " << diagnostic.message << ")\n";
             return false;
         }
         dx_data readback;
