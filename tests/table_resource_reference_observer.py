@@ -5,6 +5,9 @@ For STYLE/LTYPE also checks original row flags, per-element text/shape codes and
 STYLE handles against ezdxf's retained pattern tags and observed target kinds.
 FIELD/DATALINK observations cover original handle/name positions and handle
 values only, not complete payloads, context-dependent role or target semantics.
+DICTIONARY/XRECORD add physical entry/handle-range roles; body XRECORD 102/100
+remain data rather than common application/class markers. Application values
+and target/ownership graph closure are not independently qualified.
 It does not certify decoded names, full rich/symbol schema, font/glyph/rendering
 or rotation semantics, common/transitive closure, output, native layouts or
 modeler semantics. Original source tags, never re-exported defaults, own spans.
@@ -20,7 +23,7 @@ import sys
 import tempfile
 
 
-PATTERN = re.compile(r"^(map|style|STYLE|LTYPE|FIELD|DATALINK)-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
+PATTERN = re.compile(r"^(map|style|STYLE|LTYPE|FIELD|DATALINK|DICTIONARY|XRECORD)-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
 ROWS = re.compile(r"^symbol-row handle=([0-9a-f]+) family=(STYLE|LTYPE) flags=(\d+)$", re.M)
 SEGMENTS = re.compile(r"^symbol-segment handle=([0-9a-f]+) index=(\d+) flags=(\d+) shape=(\d+) style=([0-9a-f]+)$", re.M)
 CODES = {0: 5, 1: 330, 2: 330, 3: 360, 4: 340, 5: 340,
@@ -122,7 +125,7 @@ def source_records(records):
         elif family == "ENDTAB":
             table = None
         elif (family in ("STYLE", "LTYPE") and section == "TABLES" and table == family
-              or family in ("TABLESTYLE", "CELLSTYLEMAP", "FIELD", "DATALINK") and section == "OBJECTS"):
+              or family in ("TABLESTYLE", "CELLSTYLEMAP", "FIELD", "DATALINK", "DICTIONARY", "XRECORD") and section == "OBJECTS"):
             if len(record) > 65537:
                 raise ValueError("oversized original resource body")
             handle = next((v for c, v in record[1:] if c == 5), "0").upper()
@@ -230,6 +233,67 @@ def compare_symbol(tags, events, family, projected_flags, projected_segments):
             "shapeElements": sum((s[1] & 6) == 4 for s in segments)}
 
 
+def compare_spine(tags, events, family):
+    """Original scalar handle roles, not decoded application-value semantics."""
+    if not events or len(tags) > 65536 or len(events) > len(tags):
+        raise ValueError("empty/oversized spine projection")
+    expected, names = {}, set()
+    body = xdata = False
+    application = None
+    dictionary = family == "DICTIONARY"
+    previous = -1
+    observed = {}
+    for kind, index, code, value in events:
+        if index <= previous or not 0 <= index < len(tags) or tags[index][0] != code:
+            raise ValueError("reordered/invented spine scalar")
+        previous = index
+        if code in (1001, 1003):
+            if kind != {1001: 8, 1003: 9}[code] or value != 0 or type(tags[index][1]) is not str:
+                raise ValueError("spine named namespace differs")
+        elif not is_handle(code) or int(tags[index][1], 16) != value or not 0 <= value <= 0xFFFFFFFF:
+            raise ValueError("spine handle differs")
+        observed[index] = kind
+    for index, (code, value) in enumerate(tags):
+        if code == 102 and (dictionary or not body):
+            if value == "}" and application is not None:
+                application = None
+            elif type(value) is str and value.startswith("{") and application is None:
+                application = value
+            else:
+                raise ValueError("bad spine common application framing")
+            continue
+        if application is None:
+            if not body and (code, value) == (100, "AcDbDictionary" if dictionary else "AcDbXrecord"):
+                body = True
+            if code == 1001:
+                xdata = True
+            if code in (1001, 1003):
+                expected[index] = {1001: 8, 1003: 9}[code]
+                names.add(index)
+        if not is_handle(code):
+            continue
+        kind = 10
+        if application == "{ACAD_REACTORS" and code == 330:
+            kind = 2
+        elif application == "{ACAD_XDICTIONARY" and code == 360:
+            kind = 3
+        elif application is None:
+            if not body and code in (5, 330):
+                kind = {5: 0, 330: 1}[code]
+            elif xdata and code == 1005:
+                kind = 7
+            elif body and not xdata:
+                if dictionary:
+                    kind = {350: 19, 360: 20}.get(code, 10)
+                elif 320 <= code <= 369:
+                    kind = 21 + (code - 320) // 10
+        expected[index] = kind
+    if not body or application is not None or observed != expected:
+        raise ValueError("omitted/invented/misclassified spine reference")
+    return {"handleSlots": len(expected) - len(names), "localDefinitions": 0,
+            "referenceEvents": len(expected), "bodyHandleSlots": sum(19 <= k <= 25 for k in expected.values())}
+
+
 def observe(source, projection):
     import ezdxf
     if ezdxf.__version__ != "1.4.4":
@@ -262,7 +326,9 @@ def observe(source, projection):
         if {"ACDBFIELD": "FIELD", "ACAD_FIELD": "FIELD"}.get(obj.dxftype(), obj.dxftype()) != family:
             raise ValueError("wrong source resource family")
         tags = original[(family, handle)]
-        if family in ("STYLE", "LTYPE"):
+        if family in ("DICTIONARY", "XRECORD"):
+            details = compare_spine(tags, values, family)
+        elif family in ("STYLE", "LTYPE"):
             row_flags = rows.pop((family, handle))
             parts = segments.pop(handle, [])
             details = compare_symbol(tags, values, family, row_flags, parts)
@@ -285,14 +351,14 @@ def observe(source, projection):
         results.append({"family": family, "handle": handle, **details})
     if rows or segments:
         raise ValueError("unmatched symbol row/element projection")
-    return {"schemaVersion": 4, "status": "SCOPED_RESOURCE_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
+    return {"schemaVersion": 5, "status": "SCOPED_RESOURCE_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
             "ezdxfVersion": ezdxf.__version__, "resources": results,
             "sourceSha256": hashlib.sha256(Path(source).read_bytes()).hexdigest(),
             "projectionSha256": hashlib.sha256(Path(projection).read_bytes()).hexdigest(),
             "limits": __doc__.split("\n\n", 1)[1].strip()}
 
 
-def generated_check(executable, auxiliary=False):
+def generated_check(executable, auxiliary=False, spine=False):
     results = []
     with tempfile.TemporaryDirectory(prefix="libdxfrw-symbol-observer-") as directory:
         root = Path(directory)
@@ -300,7 +366,7 @@ def generated_check(executable, auxiliary=False):
             for encoding in ("ascii", "binary"):
                 source = root / (version + "-" + encoding + ".dxf")
                 projection = source.with_suffix(".log")
-                mode = "--generate-auxiliary-source" if auxiliary else "--generate-symbol-source"
+                mode = "--generate-spine-source" if spine else "--generate-auxiliary-source" if auxiliary else "--generate-symbol-source"
                 subprocess.run([executable, mode, version, encoding, str(source)], check=True)
                 observed = subprocess.run([executable, "--inspect", str(source)], check=True, capture_output=True, text=True)
                 projection.write_text(observed.stdout, encoding="utf-8")
@@ -314,8 +380,12 @@ def generated_check(executable, auxiliary=False):
                     families = {r["family"]: r for r in result["resources"] if r["family"] in ("FIELD", "DATALINK")}
                     if set(families) != {"FIELD", "DATALINK"} or families["FIELD"]["handleSlots"] != 11 or families["DATALINK"]["handleSlots"] != 7:
                         raise ValueError("independent auxiliary handle inventory differs")
+                if spine:
+                    rich = [r for r in result["resources"] if r["handle"] == "E200" and r["family"] == "XRECORD"]
+                    if len(rich) != 1 or rich[0]["bodyHandleSlots"] != 10:
+                        raise ValueError("independent rich XRECORD range roles differ")
                 results.append({"version": version, "encoding": encoding, **result})
-    return {"schemaVersion": 4, "status": "GENERATED_AUXILIARY_OBSERVATIONS_MATCH" if auxiliary else "GENERATED_SYMBOL_OBSERVATIONS_MATCH", "qualificationEligible": False, "routes": results}
+    return {"schemaVersion": 5, "status": "GENERATED_SPINE_OBSERVATIONS_MATCH" if spine else "GENERATED_AUXILIARY_OBSERVATIONS_MATCH" if auxiliary else "GENERATED_SYMBOL_OBSERVATIONS_MATCH", "qualificationEligible": False, "routes": results}
 
 
 def self_test():
@@ -392,7 +462,26 @@ def self_test():
         except ValueError:
             continue
         raise AssertionError("corrupt auxiliary handle observation passed")
-    print("resource reference observer: seven positives, 20 corruptions, appData expansion and original scopes; no eligibility")
+    spine = [(5, "A"), (102, "{ACAD_REACTORS"), (330, "B"), (102, "}"), (330, "B"),
+             (100, "AcDbXrecord"), (280, 1), (102, "{ACAD_REACTORS"), (330, "C"), (102, "}"),
+             (320, "D"), (340, "E"), (350, "F"), (360, "10"), (1001, "APP"), (1005, "11")]
+    spine_events = [(0, 0, 5, 10), (2, 2, 330, 11), (1, 4, 330, 11), (22, 8, 330, 12),
+                    (21, 10, 320, 13), (23, 11, 340, 14), (24, 12, 350, 15), (25, 13, 360, 16),
+                    (8, 14, 1001, 0), (7, 15, 1005, 17)]
+    assert compare_spine(spine, spine_events, "XRECORD")["bodyHandleSlots"] == 5
+    dictionary = [(5, "A"), (330, "B"), (100, "AcDbDictionary"), (3, "soft"), (350, "C"), (3, "hard"), (360, "D")]
+    dictionary_events = [(0, 0, 5, 10), (1, 1, 330, 11), (19, 4, 350, 12), (20, 6, 360, 13)]
+    assert compare_spine(dictionary, dictionary_events, "DICTIONARY")["bodyHandleSlots"] == 2
+    for tags, events, family in [(spine, spine_events[:-1], "XRECORD"),
+                                 (spine, [*spine_events[:3], (2, 8, 330, 12), *spine_events[4:]], "XRECORD"),
+                                 (dictionary, [*dictionary_events[:2], (20, 4, 350, 12), dictionary_events[3]], "DICTIONARY"),
+                                 (spine, [*spine_events, spine_events[-1]], "XRECORD")]:
+        try:
+            compare_spine(tags, events, family)
+        except ValueError:
+            continue
+        raise AssertionError("corrupt spine reference observation passed")
+    print("resource reference observer: nine positives, 24 corruptions, appData expansion and original scopes; no eligibility")
 
 
 if __name__ == "__main__":
@@ -404,6 +493,7 @@ if __name__ == "__main__":
     parser.add_argument("--projection")
     parser.add_argument("--generated-executable")
     parser.add_argument("--generated-auxiliary-executable")
+    parser.add_argument("--generated-spine-executable")
     args = parser.parse_args()
     if args.self_test:
         self_test()
@@ -411,6 +501,8 @@ if __name__ == "__main__":
         print(json.dumps(generated_check(str(Path(args.generated_executable).resolve())), indent=2, allow_nan=False))
     elif args.generated_auxiliary_executable:
         print(json.dumps(generated_check(str(Path(args.generated_auxiliary_executable).resolve()), auxiliary=True), indent=2, allow_nan=False))
+    elif args.generated_spine_executable:
+        print(json.dumps(generated_check(str(Path(args.generated_spine_executable).resolve()), spine=True), indent=2, allow_nan=False))
     elif args.source and args.projection:
         print(json.dumps(observe(args.source, args.projection), indent=2, allow_nan=False))
     else:

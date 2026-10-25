@@ -16851,6 +16851,66 @@ bool fieldSourceEqual(const DRW_Field& a,const DRW_Field& b,DRW::Version version
     return true;
 }
 
+// The normal production parsers own payload decoding. This pass records only
+// physical scalar roles and strict identity/class/entry boundaries. In XRECORD
+// the body, including code 102 and later code 100, is application data, not
+// another common application group or subclass header.
+bool spineSourceReferences(const DRW_RawDxfObject& raw,bool dictionary,
+                           std::vector<dx_tableResourceReference>& refs) {
+    using R=dx_tableResourceRole;
+    bool body=false,xdata=false,pendingKey=false;
+    std::string_view application;
+    unsigned self=0u,owner=0u,objects=0u,hardOwner=0u,cloning=0u;
+    for(std::size_t i=0;i<raw.groups.size();++i) {
+        const auto& value=raw.groups[i];const int code=value.code();
+        const auto text=value.type()==DRW_Variant::STRING&&value.content.s
+            ?std::string_view(*value.content.s):std::string_view{};
+        if(code==102 && (dictionary||!body)) {
+            if(text=="}"){if(application.empty())return false;application={};}
+            else if(!text.empty()&&text.front()=='{'&&application.empty())application=text;
+            else return false;
+            continue;
+        }
+        if(application.empty()) {
+            if(xdata&&code<1000)return false;
+            if(code==100 && (!body||dictionary)) {
+                if(text=="AcDbObject"){if(body||++objects!=1u)return false;}
+                else if(text==(dictionary?"AcDbDictionary":"AcDbXrecord")){if(body)return false;body=true;}
+                else return false;
+            }
+            if(code==1001){xdata=true;refs.push_back({R::AppIdName,i,code,0u});}
+            if(code==1003)refs.push_back({R::LayerName,i,code,0u});
+            if(dictionary && body && !xdata) {
+                if(code==280){if(++hardOwner!=1u||pendingKey)return false;}
+                else if(code==281){if(++cloning!=1u||value.type()!=DRW_Variant::INTEGER||value.i_val()<0||value.i_val()>5)return false;}
+                else if(code==3){if(pendingKey||text.empty())return false;pendingKey=true;}
+                else if(code==350||code==360){if(!pendingKey)return false;pendingKey=false;}
+            }
+        }
+        if(!isDxfHandleCode(code))continue;
+        std::uint64_t handle=0u;if(!dx_standard_output::handleValue(value,handle)||handle>UINT32_MAX)return false;
+        R kind=R::Unknown;
+        if(application=="{ACAD_REACTORS"&&code==330)kind=R::Reactor;
+        else if(application=="{ACAD_XDICTIONARY"&&code==360)kind=R::ExtensionDictionary;
+        else if(application.empty()) {
+            if(code==5&&!body){kind=R::Self;if(++self!=1u||!handle||handle!=raw.handle)return false;}
+            else if(code==330&&!body){kind=R::Owner;if(++owner!=1u||handle!=raw.parentHandle)return false;}
+            else if(code==1005&&xdata)kind=R::XdataObjectId;
+            else if(body&&!xdata) {
+                if(dictionary) {
+                    if(code==350)kind=R::DictionarySoftOwner;
+                    else if(code==360)kind=R::DictionaryHardOwner;
+                } else if(code>=320&&code<=369) {
+                    kind=code<330?R::XRecordHandle:code<340?R::XRecordSoftPointer:
+                        code<350?R::XRecordHardPointer:code<360?R::XRecordSoftOwner:R::XRecordHardOwner;
+                }
+            }
+        }
+        refs.push_back({kind,i,code,static_cast<std::uint32_t>(handle)});
+    }
+    return body&&application.empty()&&!pendingKey&&self==1u&&owner==1u;
+}
+
 bool dataLinkSourceEqual(const DRW_DataLink& a,const DRW_DataLink& b,DRW::Version version) {
     if(!standardDwgCommonEqual(a,b,version)
         || std::tie(a.m_dataAdapter,a.m_description,a.m_tooltip,a.m_connectionString,a.m_option,a.m_updateOption,
@@ -17353,7 +17413,8 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             }
             ++report.symbolProofUses;
         }
-        if(found->second.family==F::Field || found->second.family==F::DataLink) {
+        if(found->second.family==F::Field || found->second.family==F::DataLink
+            || found->second.family==F::Dictionary || found->second.family==F::XRecord) {
             if(!found->second.raw){fail(S::ResourceProofMissing,handle);return nullptr;}
             if(found->second.rawTypedMismatch){fail(S::ResourceRawTypedMismatch,handle);return nullptr;}
             if(!found->second.rawTypedMatched){fail(S::ResourceProofMissing,handle);return nullptr;}
@@ -17361,7 +17422,10 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
             for(const auto& ref:found->second.references)if(ref.kind==dx_tableResourceRole::Unknown&&ref.value!=0u) {
                 ++report.unknownResourceReferences;fail(S::UnknownRole,ref.value);return nullptr;
             }
-            if(found->second.family==F::Field)++report.fieldProofUses;else ++report.dataLinkProofUses;
+            if(found->second.family==F::Field)++report.fieldProofUses;
+            else if(found->second.family==F::DataLink)++report.dataLinkProofUses;
+            else if(found->second.family==F::Dictionary)++report.dictionaryProofUses;
+            else ++report.xRecordProofUses;
         }
         return &found->second;
     };
@@ -17389,8 +17453,15 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         }
     };
     for (const auto& table:source.tables) {
-        if (!work(1u)) return report;
+        if (!work(3u)) return report;
         (void)lookup(table.second.typed.parentHandle,F::BlockRecord);
+        // The structural report established this exact dictionary/wrapper
+        // chain; source payload agreement is an additional binding gate.
+        const auto handle=table.second.typed.xDictHandle;
+        (void)lookup(handle,F::Dictionary);
+        const auto dictionary=source.dictionaries.find(handle);
+        if(dictionary!=source.dictionaries.end()&&dictionary->second.m_entries.size()==1u)
+            (void)lookup(dictionary->second.m_entries.front().m_handle,F::XRecord);
     }
     for (const auto& item:source.contentReferences) {
         if (!work(item.second.size()+1u)) return report;
@@ -17663,6 +17734,18 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
 
 bool dx_iface::wantsDxfSymbolSource() const {return tableSourceCaptureOpen();}
 
+bool dx_iface::wantsDxfRootDictionarySource() const {return tableSourceCaptureOpen();}
+
+void dx_iface::addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_RawDxfObject& raw) {
+    if(!cData)return;
+    if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
+    if(row.handle!=raw.handle||row.parentHandle!=raw.parentHandle||row.parentHandle!=0u
+        ||!asciiIdentifierEquals(raw.name,"DICTIONARY")) {
+        cData->m_tableDxfSource.resourceProofCaptureFailed=true;return;
+    }
+    retainTableResourceSource(raw);
+}
+
 void dx_iface::addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& raw) {
     if(!cData)return;
     if(!tableSourceCaptureOpen()){cData->m_tableDxfSource.contextFailed=true;return;}
@@ -17673,15 +17756,24 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_T
     const bool style=asciiIdentifierEquals(raw.name,"TABLESTYLE");
     const bool field=asciiIdentifierEquals(raw.name,"FIELD")||asciiIdentifierEquals(raw.name,"ACDBFIELD")||asciiIdentifierEquals(raw.name,"ACAD_FIELD");
     const bool dataLink=asciiIdentifierEquals(raw.name,"DATALINK");
+    const bool dictionary=asciiIdentifierEquals(raw.name,"DICTIONARY");
+    const bool xrecord=asciiIdentifierEquals(raw.name,"XRECORD");
     const bool text=symbol && asciiIdentifierEquals(raw.name,"STYLE");
     const bool line=symbol && asciiIdentifierEquals(raw.name,"LTYPE");
-    if (!tableSourceCaptureOpen() || (!symbol && !style && !field && !dataLink && !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP"))) return;
+    if (!tableSourceCaptureOpen()) return;
     auto& source=cData->m_tableDxfSource;
     if (source.resourceProofCaptureFailed) return;
     const auto found=source.resources.find(raw.handle);
+    if(!symbol&&!style&&!field&&!dataLink&&!dictionary&&!xrecord&&!asciiIdentifierEquals(raw.name,"CELLSTYLEMAP")) {
+        // A mismatched-family callback cannot be ignored and then repaired by
+        // an original callback for the same actual-import resource identity.
+        if(found!=source.resources.end())source.resourceProofCaptureFailed=true;
+        return;
+    }
     // Unmatched raw-only records retain their ordinary fallback, not partial proof.
     using F=dx_tableResourceFamily;
-    const auto family=text?F::TextStyle:line?F::LineType:style?F::TableStyle:field?F::Field:dataLink?F::DataLink:F::CellStyleMap;
+    const auto family=text?F::TextStyle:line?F::LineType:style?F::TableStyle:field?F::Field:dataLink?F::DataLink:
+        dictionary?F::Dictionary:xrecord?F::XRecord:F::CellStyleMap;
     if(symbol) {
         if((!text && !line) || symbol->handle!=raw.handle || symbol->parentHandle!=raw.parentHandle
             || (text && (symbol->tType!=DRW::STYLE || !dynamic_cast<const DRW_Textstyle*>(symbol)))
@@ -17689,7 +17781,8 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_T
             || found!=source.resources.end()){source.resourceProofCaptureFailed=true;return;}
         if(!raw.handle)return; // legacy handle-free rows cannot be selected by a modern compound
     } else {
-        if (found==source.resources.end() || found->second.family!=family) return;
+        if(found==source.resources.end())return;
+        if(found->second.family!=family){source.resourceProofCaptureFailed=true;return;}
         if(found->second.raw || found->second.rawTypedMismatch){source.resourceProofCaptureFailed=true;return;}
         found->second.rawTypedMismatch=true;
     }
@@ -17752,13 +17845,20 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
     const bool line=resource.family==dx_tableResourceFamily::LineType;
     const bool field=resource.family==dx_tableResourceFamily::Field;
     const bool dataLink=resource.family==dx_tableResourceFamily::DataLink;
+    const bool dictionary=resource.family==dx_tableResourceFamily::Dictionary;
+    const bool xrecord=resource.family==dx_tableResourceFamily::XRecord;
     try {
         // fileImport publishes data.sourceVersion only after read() returns.
         // During callbacks use the already delivered declared HEADER context.
         if (raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
             || raw.m_version<DRW::AC1021 || raw.m_version>DRW::AC1032) return;
         std::string body;
-        if (!tableResourceSourceBody(raw,source.maxResourceProofBytes,body)) return;
+        if (!tableResourceSourceBody(raw,source.maxResourceProofBytes,body)) {
+            // Scalar transport helpers can report allocation/stream refusal as
+            // false. It is a capture failure, not an ignorable unselected
+            // resource mismatch that could leave the aggregate binding Bound.
+            source.resourceProofCaptureFailed=true;return;
+        }
         dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=raw.m_version;
         view.binary=!raw.hasRawValues;view.codePage="UTF-8";
         dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
@@ -17807,6 +17907,19 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
             if(budget->exceeded()||reader->typedVariantNodeBudgetExceeded()){source.resourceProofCaptureFailed=true;return;}
             if(reader->recordCount()!=raw.groups.size()||!decoder.finish()||!decoder.sourceCorePresent()
                 ||raw.handle!=parsed.handle||raw.parentHandle!=parsed.parentHandle||!fieldSourceEqual(parsed,*model,raw.m_version))return;
+        } else if(dictionary) {
+            struct Replay:DRW_Dictionary{using DRW_Dictionary::parseCode;};
+            Replay parsed;const auto* model=dynamic_cast<const DRW_Dictionary*>(resource.model.get());
+            // Copying a dictionary intentionally clears its private pending
+            // key. Preserve the original callback's completeness verdict;
+            // copying must not sanitize an unfinished source into proof.
+            if(!model||!resource.namespaceComplete||!decode(parsed)||!parsed.hasCompleteDxfEntries()||!model->hasCompleteDxfEntries()
+                ||!standardDwgModelsEqual(parsed,*model,raw.m_version,dwgObjType::DICTIONARY))return;
+        } else if(xrecord) {
+            struct Replay:DRW_XRecord{using DRW_XRecord::parseCode;};
+            Replay parsed;const auto* model=dynamic_cast<const DRW_XRecord*>(resource.model.get());
+            if(!model||!decode(parsed)||!parsed.hasExactDxfCoordinateTuples()
+                ||!standardDwgModelsEqual(parsed,*model,raw.m_version,dwgObjType::XRECORD))return;
         } else if(dataLink) {
             struct Replay:DRW_DataLink{using DRW_DataLink::parseCode;};
             Replay parsed;const auto* model=dynamic_cast<const DRW_DataLink*>(resource.model.get());
@@ -17838,7 +17951,8 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
                 || !retainedCellStyleMapsEqual(parsed,*model,true,true)
                 || !standardDwgCommonEqual(parsed,*model,raw.m_version))return;
         }
-        if(field || dataLink){if(!auxiliarySourceReferences(raw,field,references))return;}
+        if(dictionary||xrecord){if(!spineSourceReferences(raw,dictionary,references))return;}
+        else if(field || dataLink){if(!auxiliarySourceReferences(raw,field,references))return;}
         else if(text || line) {if(!symbolSourceReferences(raw,line,references))return;}
         else if (!tableResourceSourceReferences(raw,style,references)) return;
         if(style && std::count_if(references.begin(),references.end(),[](const auto& ref){return ref.kind==dx_tableResourceRole::TextStyleName;})

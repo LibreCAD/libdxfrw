@@ -259,7 +259,7 @@ source/model mismatches and exhausted shared record/group/byte/work limits stay
 unqualified; later callbacks cannot repair a closed source generation. Exact
 per-record reference positions are published only after complete agreement.
 
-The optional observer now reports JSON schema 4, adding original FIELD/DATALINK
+The optional observer reports JSON schema 5, including original FIELD/DATALINK
 handle/name positions and handle values. These are independent scalar-span
 observations, not independent cached-value or context-dependent role/target
 semantics. No expressions or external connections are evaluated or opened.
@@ -282,6 +282,38 @@ payload, not allocator metadata, container capacity, consumer-created copies or
 edits, whole-model memory or process RSS. Full common/resource-graph, source,
 live-state and output proof remain separate gates; source spans alone do not
 qualify FIELD/CadValue/DATALINK semantics.
+
+DICTIONARY/XRECORD now join the bounded, immutable resource-source proof. The
+production parsers decode their payloads; comparison covers common/exposed state,
+ordered dictionary names/handles/per-entry codes, dictionary completeness/count
+provenance, XRECORD compatibility and ordered views, binary/coordinate/int64
+values, exact tuple state and native raw-data provenance/defaults. The original
+dictionary callback's completeness is latched before copying: copying clears a
+private pending key and cannot turn an unfinished source into proof. Partial
+coordinate tuples remain tolerant-readable but outside this exact proof lane.
+
+The root's legacy raw callback remains suppressed. A separate optional
+`DRW_DxfRootDictionarySourceHandler` latches selection before that record and
+delivers its existing raw view after `addNamedObjectDictionary` at an accepted
+boundary. Default false adds no delivery/source copy; the legacy parser's
+existing internal capture is not removed. No `DRW_Interface` vtable or library
+model layout changes. Converter source capture remains actual-import-only.
+
+Selected table wrapper dictionaries/XRECORDs, style-map dictionaries and selected
+arbitrary object targets need this proof. Source mismatch, known-identity
+wrong-family callback then original callback, duplicate delivery, capture
+exhaustion and scalar-transport refusal cannot earn an aggregate binding verdict.
+Fresh corrected imports on the same adapter remain usable. This does not yet
+prove every callback collision before identity capture or complete graph closure.
+
+Schema 5 additionally corroborates original dictionary entry edges and XRECORD
+handle-range roles/positions. XRECORD body `102` and later `100` strings are data,
+not common application/subclass markers. Autodesk documents the application
+payload and handle ranges in its [XRECORD reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm)
+and [ObjectARX range table](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm).
+Wire labels are not independently established effective ownership/null/target
+rules or application-value semantics. No dictionary graph, application execution,
+complete live equality, native DWG layout or table output is qualified here.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds

@@ -110,7 +110,7 @@ The same opt-in configuration registers `libdxfrw_independent_symbol_source`:
 
 ```sh
 cmake --build build --target libdxfrw_table_content_dxf_tests
-ctest --test-dir build -R '^libdxfrw_independent_(symbol|auxiliary)_source$' --output-on-failure
+ctest --test-dir build -R '^libdxfrw_independent_(symbol|auxiliary|spine)_source$' --output-on-failure
 ```
 
 It checks eight locally authored ASCII/binary STYLE/LTYPE routes against original
@@ -121,6 +121,10 @@ rotation semantics, full resource closure, output or format support.
 The auxiliary test adds eight authored FIELD/DATALINK routes; its independent
 observations cover handle/name positions and handle values, not complete cached
 values, context-dependent reference semantics or external data execution.
+The spine check adds eight authored DICTIONARY/XRECORD routes, including original
+entry-edge and handle-range positions. XRECORD body `102`/`100` strings stay data;
+their resemblance to common markers does not change their reference context.
+These observations do not qualify application data semantics or graph closure.
 
 ### Text decoding and codepage advisories
 
@@ -518,6 +522,14 @@ released on decoder teardown. Copies share the originating logical charge until
 the last owner resets or dies. This is scoped logical-payload accounting, not
 container capacity, consumer-copy/edited-model accounting or a process RSS cap.
 No public model layout or callback changes are introduced by this accounting fix.
+
+Dictionary/XRECORD resources now also require production-decoder source agreement
+when selected by table bindings, including the wrapper and style-map dictionary.
+The optional `DRW_DxfRootDictionarySourceHandler` transports the otherwise
+suppressed root source after its typed callback; existing `DRW_Interface` and
+legacy root-raw suppression are unchanged. Capture/transport refusal and known
+identity family collisions cannot be repaired by a later original callback.
+Complete owner/common/block/live/output closure remains open.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without

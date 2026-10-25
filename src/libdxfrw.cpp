@@ -20435,6 +20435,9 @@ bool dxfRW::processDictionary() {
     DRW_DBG("dxfRW::processDictionary");
     int code;
     DRW_Dictionary dict;
+    auto* rootSourceHandler=dynamic_cast<DRW_DxfRootDictionarySourceHandler*>(iface);
+    const bool captureRootSource=!m_objectsRootPositionPassed && rootSourceHandler
+        && rootSourceHandler->wantsDxfRootDictionarySource();
     // Route non-root named dictionaries through the raw net so they round-trip
     // DXF->DXF (re-attached to the regenerated root via setRootDictEntries).
     // The source root is not routed: fixed handles C/D are regenerated, while
@@ -20459,9 +20462,10 @@ bool dxfRW::processDictionary() {
             // publishing callbacks rather than guessing a later root.
             if (first && raw.parentHandle != 0)
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (first)
+            if (first) {
                 iface->addNamedObjectDictionary(dict);
-            else
+                if(captureRootSource)rootSourceHandler->addDxfRootDictionarySource(dict,raw);
+            } else
                 iface->addDictionary(dict);
             //Skip only the root — the codec regenerates it, and routing it
             //would duplicate the NamedObjectsDictionary / ACAD_GROUP dict.

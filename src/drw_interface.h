@@ -725,6 +725,20 @@ public:
                                  const DRW_RawDxfObject& source) = 0;
 };
 
+/** Opt-in source transport for the first OBJECTS dictionary. Its historical
+ * addRawDxfObject suppression is preserved. Selection is latched before reading
+ * that record; default false adds no callback or source copy. Delivered after
+ * addNamedObjectDictionary, only after the complete record boundary is accepted.
+ * The source excludes its code-0 marker. Transport is not graph/output proof.
+ * Kept separate so DRW_Interface's established vtable does not change. */
+class DRW_DxfRootDictionarySourceHandler {
+public:
+  virtual ~DRW_DxfRootDictionarySourceHandler() = default;
+  virtual bool wantsDxfRootDictionarySource() const { return false; }
+  virtual void addDxfRootDictionarySource(const DRW_Dictionary& dictionary,
+                                         const DRW_RawDxfObject& source) = 0;
+};
+
 /** Optional source-evidence side channel. Does not extend DRW_Interface's
  * established vtable or require existing 2D consumers to retain source bytes.
  * Request once per read; default false performs no source copy. Reports are

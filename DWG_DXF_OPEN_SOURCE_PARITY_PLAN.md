@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dh decoded FIELD payload ownership (2026-10-25):** the shared DXF decoder precharges decoded string/value/binary/container payloads on the existing base lease, moves completed children, and releases unfinished child charges. Exact/below-limit, allocation, sibling/copy/reset and budget-context controls pass. This is scoped logical-payload accounting without model-layout or callback changes, not whole-model/RSS or independent semantic qualification. Remaining source families, full target/common/live/output and original native/consumer parity stay open; table export and support qualification remain closed. [Implementation and next work](#implementation-progress-rpp-5dh-decoded-field-payload-ownership-2026-10-25) · [receipt](docs/research/rpp5dh-decoded-field-payload-ownership-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5di dictionary/XRECORD resource-source proof (2026-10-25):** selected wrapper/style-map dictionaries and XRECORD resources now require production-decoder source agreement. Separate opt-in root source delivery preserves the historical callback contract. Exact ordered payloads, physical handle roles, limits, allocation failures and corrected retries are covered; copying cannot sanitize a pending dictionary entry into proof. Known-identity family collisions and scalar-transport refusal fail aggregate capture. ATTDEF/block/APPID/LAYER/table-owner, complete common/target/live/output and original native/consumer parity remain open; support qualification and table export stay closed. [Implementation and next work](#implementation-progress-rpp-5di-dictionaryxrecord-resource-source-proof-2026-10-25) · [receipt](docs/research/rpp5di-dictionary-xrecord-resource-source-proof-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dh decoded FIELD payload ownership (2026-10-25):** committed as `3320b91a`. Its precharged logical payloads, child moves/cleanup, copy-family lifetime, quota and allocation controls remain valid. RPP-5di adds two resource-source families, not whole-model memory or full graph/output/semantic qualification. [Historical implementation](#implementation-progress-rpp-5dh-decoded-field-payload-ownership-2026-10-25) · [immutable receipt](docs/research/rpp5dh-decoded-field-payload-ownership-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dg FIELD/DATALINK source proof and shared FIELD decoding (2026-10-25):** committed as `586e7d83`. Its selected immutable source proof, documented alias, failure/retry and scoped independent span observations remain valid. RPP-5dh closes the identified decoder-payload owner gap, not full source/target/common/live/output or native/consumer parity. [Historical implementation](#implementation-progress-rpp-5dg-fielddatalink-source-proof-and-shared-field-decoding-2026-10-25) · [immutable receipt](docs/research/rpp5dg-field-datalink-source-proof-and-shared-field-decoding-2026-10-25.json).
 
@@ -125023,3 +125025,114 @@ items J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/
 Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification remain
 **NOT_RUN**. No support claim, push or PR mutation is authorized by this local
 commit/update slice. The full implementation goal remains active.
+
+## Implementation progress RPP-5di dictionary/XRECORD resource-source proof (2026-10-25)
+
+This completes the dictionary/XRECORD source-family portion of B2a, not the full
+source graph or implementation goal. Autodesk's [DICTIONARY reference](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm)
+and [XRECORD reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm),
+with its [ObjectARX range table](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm),
+are the DXF wire-role basis. Arbitrary application values remain inert; these
+sources do not establish a native DWG layout, complete graph or application
+semantics. No native parser layout, global codec or writer guard changes.
+
+Completed:
+
+1. [x] Add immutable DICTIONARY/XRECORD raw/typed source agreement under the
+   existing aggregate 100,000-record/4,000,000-group/64-MiB/4,000,000-work-slot
+   ceilings shared across eight resource families. Reuse production `parseCode`
+   decoding and existing exact common/variant comparisons. Include ordered keys,
+   handle values and per-entry wire codes, count/completeness state; XRECORD
+   ordered and compatibility views, exact int64/double/XYZ/binary state and native
+   raw-data/default provenance. Do not qualify incomplete coordinate projections.
+2. [x] Transport the first OBJECTS dictionary through a separate opt-in root
+   facet, selected before reading and delivered only after its accepted boundary
+   and typed callback. Preserve `DRW_Interface` and library model layout and
+   suppress the legacy root raw callback as before. Opt-out adds neither source
+   delivery nor source copy; it does not remove the parser's pre-existing capture.
+3. [x] Require source proof for selected wrapper dictionary/XRECORD, style-map
+   dictionary and selected arbitrary object resources. Emit exact physical common,
+   dictionary soft/hard entry and five XRECORD handle-range roles. XRECORD body
+   `102` and later `100` strings are application data, not common framing.
+   These role labels do not establish effective ownership/null/target closure.
+4. [x] Make known-identity wrong-family raw callbacks sticky, including unknown
+   families followed by originals. Treat scalar-transport construction/refusal
+   as aggregate capture failure; an allocation control exposed the previous
+   unselected-resource false-return path. Reject the original callback's pending
+   dictionary state even though copying intentionally clears it: a new regression
+   reproduced that sanitization gap before the guard. Preserve corrected fresh-
+   drawing retries on the same adapter; do not publish partial reference proofs.
+5. [x] Add eight authored revision/encoding routes with 296 typed mismatch/recovery
+   pairs, 128 raw pairs, 192 missing/duplicate callback corrections, 48 root-source
+   allocation schedules, 64 exact/below aggregate limits and 32 wire controls.
+   Include selected dictionary/wrapper payload changes, root opt-out/throw/retry,
+   body/common marker disambiguation and known-identity collision repair refusal.
+6. [x] Extend the independent original-tag observer to schema 5 for dictionary/
+   XRECORD physical handle roles. Nine dependency-free positives/24 corruptions
+   cover body-vs-common marker confusion, wrong ownership-wire role, omissions
+   and duplicates. The explicit existing ezdxf 1.4.4 opt-in also registers the
+   generated spine route; no dependency is downloaded automatically. Original
+   tags, never re-exported normalization, own positions. This is not application-
+   value semantics, complete ownership rules or support qualification.
+
+Actual verification scopes, source hashes, independent observations and limits
+are recorded in the [RPP-5di receipt](docs/research/rpp5di-dictionary-xrecord-resource-source-proof-2026-10-25.json).
+The reviewed cohort passes **59/59 normally (56.47 s)** and **59/59 under ASan
+(118.30 s)** with leak checking disabled. Both LibreCAD_3 compile gates pass;
+this remains macOS ARM64 Apple Clang, not native Linux/Windows evidence. The
+schema-5 observer passes eight authored spine routes against both builds and
+the existing symbol/auxiliary routes. Two unchanged external examples retain
+selected `Bound` verdicts with 89/76 observed resources and 424/368 independently
+corroborated events. Those observations do not establish whole-graph semantics.
+The real CLI refuses both examples and the new authored table case without
+creating output files. All three optional observers register under the existing
+tests-plus-CLI/pinned-runtime gate; no extra optional build is claimed.
+Use fast owning controls first and the affected RPP-5dh 58-test selection plus
+the new spine test. Keep normal/ASan runtime cohorts sequential. Strict warnings,
+LibreCAD_3 compile gates and the existing destination-preserving export refusal/
+corrected-readback controls remain required. No full project suite or native
+FreeCAD runtime qualification is substituted by these checks.
+
+Next implementation-ready work, preserving the complete objective:
+
+1. [ ] **Finish B2a ATTDEF/block sources.** Retain bounded exact source/typed
+   records and original physical spans at accepted entity/block/table boundaries;
+   preserve ATTRIB/SEQEND and block owner/identity distinctions. Use a separate
+   opt-in source facet or extend only the appropriate existing facet without
+   changing `DRW_Interface`. Compare all decoded/default/native-only fields and
+   malformed/missing/duplicate/late callbacks, aggregate caps and fresh retries.
+2. [ ] **Finish B2a APPID/LAYER/table-owner sources.** Extend opt-in batch-atomic
+   symbol evidence and typed/default/source-profile comparison, preserving the
+   existing source-name/codepage/callback policies and zero additional capture
+   for opt-out consumers. Bind only actual identities, not normalized aliases.
+3. [ ] **B2b full target/common worklist.** Reuse the now-proved dictionaries,
+   XRECORDs and FIELD/DATALINK payloads to follow all entry/application/child/
+   custom/common edges using independent effective ownership, null and target
+   rules. Bound multiple roots, fan-out, queues and legitimate soft cycles. Close
+   callback-family collisions before identity capture as well as after; this
+   slice's known-identity fix is not universal callback provenance. Require all
+   selected target sources before claiming whole-graph closure, including any
+   reached DICTIONARYWDFLT/DICTIONARYVAR/GROUP or other family outside the regular
+   DICTIONARY/XRECORD source lane implemented here.
+4. [ ] **B3/C complete live equality and atomic output.** Finish TABLE parent/
+   wrapper/cache/common proof and editable/frozen comparisons. Preserve or
+   explicitly refuse ATTRIB/SEQEND. Plan all IDs before writing, prove exact
+   staged/final fields and unique references, repeated conversions, rollback,
+   existing destinations and corrected same-exporter readbacks. Keep both table
+   export guards active until that complete lane is proved.
+5. [ ] **Full native/consumer parity and independent semantics.** Continue
+   nonzero LTYPE angle and FIELD/CadValue/DATALINK semantics, native decimal/bit,
+   SWEEP/EXTRUSION, carrier/schema/owner, complete IMAGE/document, 2D LibreCAD/
+   LibreCAD_3 and 3D/dwg2dxf/FreeCAD requirements. Native Linux/Windows and ACIS/
+   ACDS kernel evidence remain independent obligations, not local-test inference.
+6. [ ] **Self-update/unblock/commit each slice.** Record evidence and limits,
+   choose the next safe ready dependency, commit/report progress and continue
+   implementation. Reuse production decoders, frozen indexes and successful
+   proof; prefer fast owning/affected cohorts, reserving full suites for genuine
+   integration checkpoints. Use repository-existing or scratch-authored fixtures;
+   do not commit unrelated external drawing payloads. No remote write is implied.
+
+The support ledger remains **CLOSED**, `outputEligible=false`, and J256/J260/
+J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and
+independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. The full
+implementation goal remains active.

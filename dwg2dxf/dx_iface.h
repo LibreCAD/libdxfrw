@@ -31,7 +31,7 @@ class DxIfaceExtensionGraphTestAccess;
 
 class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
-                 public DRW_DxfSymbolSourceHandler {
+                 public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler {
 public:
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
@@ -70,6 +70,7 @@ public:
         std::size_t symbolProofUses{0};
         std::size_t lineTypeDependencyRows{0}, complexTextStyleBindings{0}, complexShapeStyleBindings{0};
         std::size_t fieldProofUses{0}, dataLinkProofUses{0};
+        std::size_t dictionaryProofUses{0}, xRecordProofUses{0};
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates.
@@ -81,6 +82,8 @@ public:
                            const DRW_RawDxfObject& source) override;
     bool wantsDxfSymbolSource() const override;
     void addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& source) override;
+    bool wantsDxfRootDictionarySource() const override;
+    void addDxfRootDictionarySource(const DRW_Dictionary& dictionary,const DRW_RawDxfObject& source) override;
     // Converter resource policy, not a DXF nesting/size restriction. Separate
     // limits also provide a small deterministic boundary-test seam.
     struct ExtensionGraphLimits {

@@ -39,6 +39,11 @@ void operator delete[](void* value) noexcept {std::free(value);}
 void operator delete(void* value,std::size_t) noexcept {std::free(value);}
 void operator delete[](void* value,std::size_t) noexcept {std::free(value);}
 
+class DrwObjectEncodeTestAccess {
+public:
+    static void pendingDictionaryEntry(DRW_Dictionary& row) {row.m_pendingEntryName="unfinished";}
+};
+
 class DxIfaceTableSourceTestAccess {
 public:
     static void limits(dx_data& data, std::size_t records, std::size_t groups,
@@ -107,6 +112,13 @@ struct Probe final : dx_iface {
     std::uint32_t skipAuxRaw=0u,duplicateAuxRaw=0u,skipAuxTyped=0u,duplicateAuxTyped=0u;
     std::uint32_t throwAuxTyped=0u;
     unsigned fieldCallbacks=0u,dataLinkCallbacks=0u;
+    std::function<void(DRW_Dictionary&)> alterDictionary;
+    std::function<void(DRW_XRecord&)> alterXRecord;
+    std::function<void(DRW_RawDxfObject&)> alterSpineRaw;
+    std::uint32_t skipSpineRaw=0u,duplicateSpineRaw=0u,skipSpineTyped=0u,duplicateSpineTyped=0u;
+    bool rootOptIn=true,throwRootSource=false,wrongSpineThenOriginal=false;
+    long rootSourceAllocation=-1;
+    unsigned rootSources=0u;
     std::vector<std::string> symbolEvents;
     std::shared_ptr<DRW_TableContentDxfMetadata> mutableAlias;
     std::shared_ptr<DRW_TableStyleContentFormat> mutableFormatAlias;
@@ -128,6 +140,13 @@ struct Probe final : dx_iface {
         content.push_back(copy); dx_iface::addTableContent(copy);
     }
     void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        if(value.name=="DICTIONARY"||value.name=="XRECORD") {
+            if(value.handle==skipSpineRaw)return;
+            if(wrongSpineThenOriginal){auto wrong=value;wrong.name="UNRECOGNIZED_RESOURCE";dx_iface::addRawDxfObject(wrong);}
+            if(alterSpineRaw){auto copy=value;alterSpineRaw(copy);dx_iface::addRawDxfObject(copy);}else dx_iface::addRawDxfObject(value);
+            if(value.handle==duplicateSpineRaw)dx_iface::addRawDxfObject(value);
+            return;
+        }
         if(value.name=="FIELD"||value.name=="ACDBFIELD"||value.name=="ACAD_FIELD"||value.name=="DATALINK") {
             if(skipAuxRaw&&value.handle==skipAuxRaw)return;
             if(alterAuxRaw){auto copy=value;alterAuxRaw(copy);dx_iface::addRawDxfObject(copy);}
@@ -210,6 +229,30 @@ struct Probe final : dx_iface {
     bool wantsDxfSymbolSource() const override {
         return symbolOptIn && (forceSymbols || dx_iface::wantsDxfSymbolSource());
     }
+    bool wantsDxfRootDictionarySource() const override {return rootOptIn&&dx_iface::wantsDxfRootDictionarySource();}
+    void addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_RawDxfObject& raw) override {
+        ++rootSources;
+        if(throwRootSource)throw std::runtime_error("injected root source failure");
+        if(raw.handle==skipSpineRaw)return;
+        if(alterSpineRaw){auto copy=raw;alterSpineRaw(copy);dx_iface::addDxfRootDictionarySource(row,copy);}
+        else {SymbolAllocationFailure failure(rootSourceAllocation);dx_iface::addDxfRootDictionarySource(row,raw);}
+        if(raw.handle==duplicateSpineRaw)dx_iface::addDxfRootDictionarySource(row,raw);
+    }
+    void dictionary(const DRW_Dictionary& row,bool root) {
+        if(row.handle==skipSpineTyped)return;
+        auto copy=row;if(alterDictionary)alterDictionary(copy);
+        if(root)dx_iface::addNamedObjectDictionary(copy);else dx_iface::addDictionary(copy);
+        if(row.handle==duplicateSpineTyped) {
+            if(root)dx_iface::addNamedObjectDictionary(copy);else dx_iface::addDictionary(copy);
+        }
+    }
+    void addNamedObjectDictionary(const DRW_Dictionary& row) override {dictionary(row,true);}
+    void addDictionary(const DRW_Dictionary& row) override {dictionary(row,false);}
+    void addXRecord(const DRW_XRecord& row) override {
+        if(row.handle==skipSpineTyped)return;
+        auto copy=row;if(alterXRecord)alterXRecord(copy);dx_iface::addXRecord(copy);
+        if(row.handle==duplicateSpineTyped)dx_iface::addXRecord(copy);
+    }
     void addDxfSymbolSource(const DRW_TableEntry& row,const DRW_RawDxfObject& source) override {
         if(observeSymbols)symbolEvents.push_back("raw:"+source.name);
         if(skipSymbolRaw)return;
@@ -288,6 +331,7 @@ bool write(const std::filesystem::path& path,const Tags& tags,bool binary) {
         else {
             word(static_cast<unsigned>(tag.code),2u);
             if ((tag.code>=90 && tag.code<=99) || tag.code==420 || tag.code==1071) word(static_cast<std::uint32_t>(std::stoll(tag.value)),4u);
+            else if(tag.code>=160&&tag.code<=169)word(static_cast<std::uint64_t>(std::stoll(tag.value)),8u);
             else if (tag.code==310 || tag.code==1004) {
                 out.put(static_cast<char>(tag.value.size()/2u));
                 for (std::size_t i=0;i<tag.value.size();i+=2u)
@@ -1458,7 +1502,7 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("map proof source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean);
-        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=6u||!frozen.rawTypedMatched
+        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=11u||!frozen.rawTypedMatched
             ||frozen.references.empty()||!frozen.raw)return fail("map canonical proof failed");
         std::array<unsigned,11> roles{};unsigned handles=0u;
         for(const auto& ref:frozen.references) {
@@ -1795,7 +1839,7 @@ bool symbolSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("symbol source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const std::vector<std::string> events{"raw:STYLE","typed:STYLE","raw:STYLE","typed:STYLE","raw:LTYPE","typed:LTYPE"};
-        if(report.state!=S::Bound||report.resourceProofRecords!=7u||report.symbolProofUses==0u||probe.symbolEvents!=events)
+        if(report.state!=S::Bound||report.resourceProofRecords!=12u||report.symbolProofUses==0u||probe.symbolEvents!=events)
             return fail("symbol canonical proof/order failed");
         for(auto handle:{0xC101u,0xC102u,0xC103u}) {
             const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean,handle);
@@ -2059,6 +2103,175 @@ Tags auxiliaryResourceSource(const std::string& revision) {
     return tags;
 }
 
+Tags spineResourceSource(const std::string& revision) {
+    auto tags=auxiliaryResourceSource(revision);
+    const auto check=slot(tags,300,"CHECKSUM");
+    tags[check+3u]={90,"64"};tags[check+4u]={330,"E200"};
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(slot(tags,5,"B1")-1u),{{3,"spine-é"},{350,"E100"}});
+    const Tags extra={{0,"DICTIONARY"},{5,"E100"},{102,"{ACAD_REACTORS"},{330,"C101"},{102,"}"},{330,"C"},
+        {100,"AcDbDictionary"},{280,"0"},{281,"2"},{3,"data-é"},{350,"E200"},{3,"style-é"},{360,"C101"},
+        {1001,"SPINE_APP"},{1000,"dictionary xdata-é"},{1003,"SPINE_LAYER"},{1005,"C101"},
+        {0,"XRECORD"},{5,"E200"},{102,"{ACAD_REACTORS"},{330,"E100"},{102,"}"},
+        {102,"{ACAD_XDICTIONARY"},{360,"E100"},{102,"}"},{330,"E100"},{100,"AcDbXrecord"},{280,"2"},
+        {1,"arbitrary ^J text-é"},{100,"application class string"},{102,"{ACAD_REACTORS"},{330,"C101"},{102,"}"},
+        {280,"4"},{40,"-0.0"},{160,"9007199254740993"},{10,"1"},{20,"2"},{30,"3"},{310,"00FF1080"},
+        {320,"C101"},{329,"0"},{339,"0"},{340,"C101"},{349,"0"},{350,"C101"},{359,"0"},{360,"C101"},{369,"0"},
+        {1001,"SPINE_APP"},{1000,"xrecord xdata-é"},{1003,"SPINE_LAYER"},{1005,"C101"}};
+    tags.insert(tags.end()-2,extra.begin(),extra.end());return tags;
+}
+
+bool spineSourceProofTests(const std::filesystem::path& dir) {
+    using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
+    const auto path=dir/"spine-proof.dxf";
+    const auto fail=[](const std::string& message){std::cerr<<message<<'\n';return false;};
+    std::vector<std::function<void(DRW_Dictionary&)>> dictionaryFaults={
+        [](auto& r){++r.cloning;},[](auto& r){r.hardOwner=1;},[](auto& r){r.countCap.emplace();},
+        [](auto& r){r.m_entries[0].m_name+="changed";},[](auto& r){++r.m_entries[0].m_handle;},
+        [](auto& r){r.m_entries[0].m_dxfHandleCode=DRW_Dictionary::Entry::DxfHandleCode::HardOwner;},
+        [](auto& r){r.m_entries.pop_back();},[](auto& r){std::swap(r.m_entries[0],r.m_entries[1]);},
+        [](auto& r){++r.flags;},[](auto& r){r.name="invented";},[](auto& r){++r.xDictHandle;},
+        [](auto& r){r.reactorHandles.push_back(0xC101u);},[](auto& r){r.setDwgCommonLinkTailValidated(true);},
+        [](auto& r){r.setDwgCommonObjectState(r.reactorCount(),r.extensionDictionaryFlag(),true);},
+        [](auto& r){r.extData[0]->addString(1001,"different-app");}
+    };
+    dictionaryFaults.push_back([](auto& r){DrwObjectEncodeTestAccess::pendingDictionaryEntry(r);});
+    std::vector<std::function<void(DRW_XRecord&)>> xrecordFaults={
+        [](auto& r){++r.m_cloning;},[](auto& r){r.m_values[0].addString(1,"different");},
+        [](auto& r){r.m_values.pop_back();},[](auto& r){r.m_handleValues[0].first=340;},
+        [](auto& r){++r.m_handleValues[0].second;},[](auto& r){r.m_handleValues.pop_back();},
+        [](auto& r){r.m_dataEntries[0].addString(1,"different");},[](auto& r){r.m_dataEntries.pop_back();},
+        [](auto& r){std::swap(r.m_dataEntries[0],r.m_dataEntries[1]);},
+        [](auto& r){for(auto& v:r.m_values)if(v.type()==DRW_Variant::BINARY){v.addBinary(v.code(),{1,2});break;}},
+        [](auto& r){for(auto& v:r.m_dataEntries)if(v.type()==DRW_Variant::COORD){v.setCoordZ(4.0);break;}},
+        [](auto& r){for(auto& v:r.m_dataEntries)if(v.code()==40){v.addDouble(40,0.0);break;}},
+        [](auto& r){for(auto& v:r.m_dataEntries)if(v.code()==160){v.addInt64(160,9007199254740992LL);break;}},
+        [](auto& r){r.m_rawData.push_back(17u);},[](auto& r){r.m_rawDataValid=true;},
+        [](auto& r){++r.flags;},[](auto& r){r.name="invented";},[](auto& r){++r.xDictHandle;},
+        [](auto& r){r.reactorHandles.push_back(0xC101u);},[](auto& r){r.setDwgCommonLinkTailValidated(true);},
+        [](auto& r){r.extData[0]->addString(1001,"different-app");}
+    };
+    const std::vector<std::function<void(DRW_RawDxfObject&)>> rawFaults={
+        [](auto& r){r.m_version=DRW::AC1015;},[](auto& r){r.name="WRONG_FAMILY";},
+        [](auto& r){++r.parentHandle;},[](auto& r){r.groups.front().addString(5,"FFFF");},
+        [](auto& r){if(r.hasRawValues)r.rawValues[0]="inconsistent";else r.hasRawValues=true;},
+        [](auto& r){r.groups.emplace_back(281,std::int32_t{2});if(r.hasRawValues)r.rawValues.emplace_back("2");},
+        [](auto& r){r.groups.front().addCoord(5,DRW_Coord());},
+        [](auto& r){r.groups.front().setLayerRefName("not an original scalar");}
+    };
+    unsigned routes=0u,typed=0u,callbacks=0u,limits=0u,wire=0u,raw=0u,allocations=0u;
+    for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
+        const auto tags=spineResourceSource(revision);if(!write(path,tags,binary))return false;
+        Probe probe;dx_data clean;if(!probe.fileImport(path.string(),&clean,false))return fail("spine import failed");
+        const auto report=dx_iface::tableContentBindingReport(clean);
+        if(report.state!=S::Bound||!report.dictionaryProofUses||!report.xRecordProofUses||probe.rootSources!=1u)
+            return fail("spine canonical binding failed state="+std::to_string(static_cast<int>(report.state)));
+        const auto matched=[&](const dx_data& data,std::uint32_t handle) {
+            const auto& rows=DxIfaceTableSourceTestAccess::resources(data);const auto it=rows.find(handle);
+            return it!=rows.end()&&it->second.rawTypedMatched&&!it->second.rawTypedMismatch;
+        };
+        for(const auto handle:{0xCu,0xB1u,0xB0u,0xC110u,0xE100u,0xE200u})if(!matched(clean,handle))return fail("missing spine proof");
+        const auto& resource=DxIfaceTableSourceTestAccess::mapResource(clean,0xE200u);
+        std::array<unsigned,26> roles{};
+        for(const auto& ref:resource.references) {
+            const auto& tag=resource.raw->groups.at(ref.groupIndex);
+            if(tag.code()!=ref.code)return fail("spine reference position differs");
+            ++roles.at(static_cast<unsigned>(ref.kind));
+        }
+        if(roles[static_cast<unsigned>(R::Reactor)]!=1u||roles[static_cast<unsigned>(R::ExtensionDictionary)]!=1u
+            ||roles[static_cast<unsigned>(R::XRecordSoftPointer)]!=2u||roles[static_cast<unsigned>(R::XRecordHandle)]!=2u
+            ||roles[static_cast<unsigned>(R::XRecordHardPointer)]!=2u||roles[static_cast<unsigned>(R::XRecordSoftOwner)]!=2u
+            ||roles[static_cast<unsigned>(R::XRecordHardOwner)]!=2u||roles[static_cast<unsigned>(R::Unknown)])return fail("spine role census differs");
+        ++routes;
+        for(const auto handle:{0xC110u,0xB0u}) {
+            if(handle==0xC110u)probe.alterDictionary=[](auto& r){if(r.handle==0xC110u)++r.cloning;};
+            else probe.alterXRecord=[](auto& r){if(r.handle==0xB0u)++r.m_cloning;};
+            dx_data mismatch;
+            if(!probe.fileImport(path.string(),&mismatch,false)||dx_iface::tableContentBindingReport(mismatch).state!=S::ResourceRawTypedMismatch)
+                return fail("selected dictionary/wrapper payload lacked binding proof");
+            probe.alterDictionary={};probe.alterXRecord={};
+        }
+        for(unsigned family=0u;family<2u;++family)for(std::size_t i=0;i<(family?xrecordFaults.size():dictionaryFaults.size());++i) {
+            if(family)probe.alterXRecord=[&,i](auto& r){if(r.handle==0xE200u)xrecordFaults[i](r);};
+            else probe.alterDictionary=[&,i](auto& r){if(r.handle==0xE100u)dictionaryFaults[i](r);};
+            dx_data bad;if(!probe.fileImport(path.string(),&bad,false)||matched(bad,family?0xE200u:0xE100u))return fail("typed spine mutation escaped "+std::to_string(family)+"/"+std::to_string(i));
+            const auto& row=DxIfaceTableSourceTestAccess::mapResource(bad,family?0xE200u:0xE100u);
+            if(!row.references.empty())return fail("partial spine receipt");
+            probe.alterDictionary={};probe.alterXRecord={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||!matched(restored,0xE100u)||!matched(restored,0xE200u)
+                ||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("spine corrected retry failed");
+            ++typed;
+        }
+        for(const auto handle:{0xCu,0xB1u,0xB0u,0xC110u,0xE100u,0xE200u})for(unsigned mode=0u;mode<4u;++mode) {
+            probe.skipSpineRaw=mode==0u?handle:0u;probe.duplicateSpineRaw=mode==1u?handle:0u;
+            probe.skipSpineTyped=mode==2u?handle:0u;probe.duplicateSpineTyped=mode==3u?handle:0u;
+            dx_data bad;if(!probe.fileImport(path.string(),&bad,false))return false;
+            const auto failure=dx_iface::tableContentBindingReport(bad);
+            if(mode==0u&&matched(bad,handle))return fail("missing source callback qualified handle="+std::to_string(handle));
+            if(mode==1u&&failure.state==S::Bound)return fail("duplicate source callback qualified");
+            if((handle==0xB1u||handle==0xB0u||handle==0xC110u||handle==0xE200u)&&failure.state==S::Bound)return fail("selected spine callback gap bound");
+            probe.skipSpineRaw=probe.duplicateSpineRaw=probe.skipSpineTyped=probe.duplicateSpineTyped=0u;
+            dx_data restored;if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++callbacks;
+        }
+        probe.wrongSpineThenOriginal=true;dx_data collision;
+        if(!probe.fileImport(path.string(),&collision,false)||dx_iface::tableContentBindingReport(collision).state!=S::CaptureFailed)return fail("mismatched-family then original repaired proof");
+        probe.wrongSpineThenOriginal=false;
+        for(const auto handle:{0xC110u,0xE200u})for(const auto& fault:rawFaults) {
+            probe.alterSpineRaw=[handle,fault](auto& r){if(r.handle==handle)fault(r);};
+            dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||matched(bad,handle)||dx_iface::tableContentBindingReport(bad).state==S::Bound)
+                return fail("raw spine mutation qualified");
+            const auto& row=DxIfaceTableSourceTestAccess::mapResource(bad,handle);
+            if(!row.references.empty())return fail("raw spine mutation published partial references");
+            probe.alterSpineRaw={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++raw;
+        }
+        for(long schedule=0;schedule<6;++schedule) {
+            probe.rootSourceAllocation=schedule;dx_data interrupted;
+            if(!probe.fileImport(path.string(),&interrupted,false))return fail("source allocation refused ordinary import");
+            if(!matched(interrupted,0xCu)&&dx_iface::tableContentBindingReport(interrupted).state==S::Bound)return fail("partial root allocation qualified");
+            probe.rootSourceAllocation=-1;dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||!matched(restored,0xCu)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++allocations;
+        }
+        for(unsigned i=0u;i<8u;++i) {
+            dx_data bounded;DxIfaceTableSourceTestAccess::resourceProofLimits(bounded,
+                i==0?report.resourceProofRecords-1u:i==4?report.resourceProofRecords:100000u,
+                i==1?report.resourceProofGroups-1u:i==5?report.resourceProofGroups:4000000u,
+                i==2?report.resourceProofBytes-1u:i==6?report.resourceProofBytes:64u*1024u*1024u,
+                i==3?report.resourceProofWork-1u:i==7?report.resourceProofWork:4000000u);
+            if(!probe.fileImport(path.string(),&bounded,false)||dx_iface::tableContentBindingReport(bounded).state!=(i<4u?S::CaptureFailed:S::Bound))return fail("spine aggregate bound mismatch");
+            ++limits;
+        }
+        for(unsigned mode=0u;mode<4u;++mode) {
+            auto bad=tags;
+            const auto key=slot(bad,3,"data-é");
+            if(mode==0u)bad[key+1u].code=340;
+            if(mode==1u)bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(key),{100,"AcDbDictionary"});
+            if(mode==2u)bad[slot(bad,160,"9007199254740993")].value="9007199254740992";
+            if(mode==3u)bad[slot(bad,160,"9007199254740993")+2u].code=21;
+            if(!write(path,bad,binary))return false;
+            dx_data data;const bool ok=probe.fileImport(path.string(),&data,false);
+            if(mode==2u) {if(!ok||!matched(data,0xE200u))return fail("valid application scalar change rejected");}
+            else if(ok&&matched(data,mode<2u?0xE100u:0xE200u))return fail("incomplete/duplicate spine source qualified");
+            ++wire;
+        }
+        if(!write(path,tags,binary))return false;
+        Probe optOut;optOut.rootOptIn=false;dx_data noRoot;
+        if(!optOut.fileImport(path.string(),&noRoot,false)||optOut.rootSources||matched(noRoot,0xCu))return fail("root opt-out copied source");
+        probe.throwRootSource=true;dx_data interrupted;bool threw=false;
+        try{(void)probe.fileImport(path.string(),&interrupted,false);}catch(const std::runtime_error&){threw=true;}
+        if(!threw||dx_iface::tableContentBindingReport(interrupted).state==S::Bound)return fail("root source exception qualified");
+        probe.throwRootSource=false;dx_data recovered;
+        if(!probe.fileImport(path.string(),&recovered,false)||dx_iface::tableContentBindingReport(recovered).state!=S::Bound)return false;
+    }
+    std::cout<<"spine source proof: "<<routes<<" routes; "<<typed<<" typed mismatch/recovery pairs; "<<callbacks
+        <<" callback corrections; "<<raw<<" raw mismatch/recovery pairs; "<<allocations<<" allocation schedules; "
+        <<limits<<" exact/below aggregate limits; "<<wire<<" wire controls; root opt-out/throw/retry and mismatched-family recovery refusal\n";
+    return routes==8u&&typed==(dictionaryFaults.size()+xrecordFaults.size())*routes&&callbacks==192u&&raw==128u&&allocations==48u&&limits==64u&&wire==32u;
+}
+
 bool auxiliarySourceProofTests(const std::filesystem::path& dir) {
     using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
     const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
@@ -2128,7 +2341,7 @@ bool auxiliarySourceProofTests(const std::filesystem::path& dir) {
         const auto good=auxiliaryResourceSource(revision);Probe probe;dx_data clean;
         if(!write(path,good,binary)||!probe.fileImport(path.string(),&clean,false))return fail("rich auxiliary source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
-        if(report.state!=S::Bound||report.fieldProofUses==0u||report.dataLinkProofUses==0u||report.resourceProofRecords!=7u)return fail("auxiliary canonical proof failed");
+        if(report.state!=S::Bound||report.fieldProofUses==0u||report.dataLinkProofUses==0u||report.resourceProofRecords!=12u)return fail("auxiliary canonical proof failed");
         const auto& field=DxIfaceTableSourceTestAccess::mapResource(clean,0xF100u);
         const auto& link=DxIfaceTableSourceTestAccess::mapResource(clean,0xF001u);
         if(!field.rawTypedMatched||!link.rawTypedMatched)return false;
@@ -2290,6 +2503,7 @@ int inspect(const char* path) {
         <<" ltype-dependency-rows="<<bindings.lineTypeDependencyRows<<" complex-text-bindings="<<bindings.complexTextStyleBindings
         <<" complex-shape-bindings="<<bindings.complexShapeStyleBindings
         <<" field-proof-uses="<<bindings.fieldProofUses<<" datalink-proof-uses="<<bindings.dataLinkProofUses
+        <<" dictionary-proof-uses="<<bindings.dictionaryProofUses<<" xrecord-proof-uses="<<bindings.xRecordProofUses
         <<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
     std::cout<<"compound-state="<<static_cast<int>(compound.state)<<" tables="<<compound.tables
              <<" contents="<<compound.contents<<" geometries="<<compound.geometries
@@ -2331,6 +2545,8 @@ int inspect(const char* path) {
         if(resource.family==dx_tableResourceFamily::LineType)symbol(*resource.model,"LTYPE",resource);
         if(resource.family==dx_tableResourceFamily::Field)resourceReferences(*resource.model,"FIELD",resource);
         if(resource.family==dx_tableResourceFamily::DataLink)resourceReferences(*resource.model,"DATALINK",resource);
+        if(resource.family==dx_tableResourceFamily::Dictionary)resourceReferences(*resource.model,"DICTIONARY",resource);
+        if(resource.family==dx_tableResourceFamily::XRecord)resourceReferences(*resource.model,"XRECORD",resource);
     }
     if(bindings.sourceStyleMatches)for(const auto& style:data.tableStyles) {
         const auto& resource=DxIfaceTableSourceTestAccess::mapResource(data,style.handle);
@@ -2370,10 +2586,11 @@ int inspect(const char* path) {
 } // namespace
 int main(int argc,char** argv) {
     if (argc==3 && std::string(argv[1])=="--inspect") return inspect(argv[2]);
-    if(argc==5 && (std::string(argv[1])=="--generate-symbol-source"||std::string(argv[1])=="--generate-auxiliary-source")) {
+    if(argc==5 && (std::string(argv[1])=="--generate-symbol-source"||std::string(argv[1])=="--generate-auxiliary-source"||std::string(argv[1])=="--generate-spine-source")) {
         const std::string revision=argv[2],encoding=argv[3];
         if((revision!="AC1021"&&revision!="AC1024"&&revision!="AC1027"&&revision!="AC1032") || (encoding!="ascii"&&encoding!="binary"))return 2;
-        const auto tags=std::string(argv[1])=="--generate-symbol-source"?complexSymbolSource(revision):auxiliaryResourceSource(revision);
+        const auto tags=std::string(argv[1])=="--generate-symbol-source"?complexSymbolSource(revision):
+            std::string(argv[1])=="--generate-spine-source"?spineResourceSource(revision):auxiliaryResourceSource(revision);
         return write(argv[4],tags,encoding=="binary")?0:1;
     }
     const bool compound=argc==2 && std::string(argv[1])=="--compound-source";
@@ -2385,10 +2602,11 @@ int main(int argc,char** argv) {
     const bool symbolProof=argc==2 && std::string(argv[1])=="--symbol-source-proof";
     const bool complexBindings=argc==2 && std::string(argv[1])=="--complex-symbol-bindings";
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof) return 2;
+    const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
+    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }
