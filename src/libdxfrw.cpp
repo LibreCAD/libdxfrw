@@ -38,6 +38,7 @@
 #include "intern/dxfcode.h"
 #include "intern/dxfwriter.h"
 #include "intern/dxftablecapacity.h"
+#include "intern/dxftablecontent.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
 #include "intern/dwg_dxf_output_transaction.h"
@@ -22798,12 +22799,23 @@ bool dxfRW::processRawObject(bool reportUnmodeled) {
             if (requiresDxfSelfHandle(*reader) && !hasRawDxfSelfHandle(obj))
                 return setError(DRW::BAD_READ_OBJECTS);
             DRW_TableGeometry geometry;
+            DRW_TableContentObject content;
+            const bool contentCandidate=reportUnmodeled
+                && (dxfKeywordEquals(obj.name,"TABLECONTENT") || dxfKeywordEquals(obj.name,"ACDBTABLECONTENT"))
+                && obj.m_version>=DRW::AC1021 && obj.m_version<=DRW::AC1032;
+            const bool contentMatched=contentCandidate && dxfTableContent::Decoder(obj,*reader).decode(content);
+            if ((reader->retainedByteBudget() && reader->retainedByteBudget()->exceeded())
+                || reader->typedVariantNodeBudgetExceeded())
+                return setError(DRW::BAD_CODE_PARSED);
             if (reportUnmodeled && captureDxfTableGeometryProjection(obj, geometry)) {
                 // Body 330s are soft pointers, not additional object owners.
                 // Correct the raw convenience field even for an explicit
                 // null header owner followed by a non-null body reference.
                 obj.parentHandle = geometry.parentHandle;
                 iface->addTableGeometry(geometry);
+            } else if (contentMatched) {
+                obj.parentHandle=content.parentHandle;
+                iface->addTableContent(content);
             } else if (reportUnmodeled) {
                 auto* handler =
                     dynamic_cast<DRW_UnmodeledDxfObjectHandler*>(iface);

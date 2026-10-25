@@ -6,7 +6,7 @@ ACLOCAL_AMFLAGS = -I m4
 library_includedir=$(includedir)/libdxfrw$(LIBRARY_AGE)
 library_include_HEADERS = drw_base.h drw_entities.h drw_interface.h \
 	drw_objects.h drw_header.h drw_classes.h libdxfrw.h libdwgr.h
-dist_noinst_HEADERS = intern/dxfreader.h intern/dxfwriter.h intern/drw_dbg.h \
+dist_noinst_HEADERS = intern/dxfreader.h intern/dxfwriter.h intern/dxftablecontent.h intern/drw_dbg.h \
 	intern/dwgutil.h intern/dwgreader.h intern/dwgreader15.h \
 	intern/dwgreader18.h intern/dwgreader21.h intern/dwgreader24.h \
 	intern/dwgreader27.h  intern/dwgbuffer.h intern/drw_cptable932.h \

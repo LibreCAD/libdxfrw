@@ -439,6 +439,12 @@ content positions and cell soft pointers. Other profiles stay raw/unqualified.
 The converter refuses standalone TABLECONTENT/TABLEGEOMETRY in either output
 mode until their complete replay path exists; it does not silently discard them.
 
+Matched DXF TABLECONTENT profiles expose owned custom data, content formats,
+cell styles/borders and embedded geometry through `m_dxfMetadata`, alongside
+the existing minimal core view. That view alone is not lossless: native encoding
+and converter replay remain guarded. Consumers must rebuild for the extended
+`DRW_TableContentObject` layout; callback signatures remain source-compatible.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

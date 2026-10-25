@@ -2046,6 +2046,34 @@ private:
     }
 };
 
+namespace dxfTableContent { class Decoder; }
+
+//! Owned DXF-only companions not representable by the minimal table view.
+//! A decoded source is not a native-DWG encoder or table-rendering certificate.
+struct DRW_TableContentDxfMetadata {
+    struct CustomItem { UTF8STRING m_name; DRW_CadValue m_value; };
+    struct Scope {
+        std::int32_t m_customData = 0;
+        std::vector<CustomItem> m_customItems;
+        DRW_TableStyleCellStyle m_style;
+    };
+    struct Cell {
+        Scope m_scope;
+        // Same ordinals as the core cell's contents; null means no override.
+        std::vector<std::shared_ptr<const DRW_TableStyleContentFormat>> m_contentFormats;
+        std::vector<DRW_TableGeometryContent> m_geometry;
+    };
+    struct Row { Scope m_scope; std::vector<Cell> m_cells; };
+    std::vector<Scope> m_columns;
+    std::vector<Row> m_rows;
+    DRW_TableStyleCellStyle m_tableStyle;
+    // The observed DXF trailer is not established as a field-reference count.
+    std::int32_t m_linkedDataUnknown92 = 0;
+private:
+    friend class dxfTableContent::Decoder;
+    std::shared_ptr<DxfReadRetainedLease> m_retainedTextLease;
+};
+
 //! Class to handle standalone TABLECONTENT (AcDbTableContent) objects.
 class DRW_TableContentObject : public DRW_TableEntry {
     SETOBJFRIENDS
@@ -2056,6 +2084,7 @@ public:
         m_content = DRW_TableContent();
         m_parseComplete = false;
         m_semanticContentComplete = false;
+        m_dxfMetadata.reset();
         DRW_TableEntry::reset();
     }
 protected:
@@ -2068,6 +2097,9 @@ public:
     DRW_TableContent m_content;
     bool m_parseComplete = false;
     bool m_semanticContentComplete = false;
+    // Complete matched DXF schema companions. Copies share immutable metadata;
+    // the legacy m_content view is not independently lossless when this exists.
+    std::shared_ptr<const DRW_TableContentDxfMetadata> m_dxfMetadata;
     [[nodiscard]] bool validateDwgPayload(DRW::Version version) const;
 };
 

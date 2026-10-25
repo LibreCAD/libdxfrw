@@ -24,7 +24,7 @@ are checked before publishing; no partial typed cache is published. Extended
 common metadata, wide references, other versions and unknown/reordered tails
 retain the unmodeled raw callback instead. A full raw companion is delivered
 for matched profiles too. Consumers should copy callback data they need.
-No public layout or callback signature changes in this slice.
+TABLEGEOMETRY delivery does not change its public layout or callback signature.
 
 This is cache data delivery, not table evaluation, cache validity, source/output
 closure or DWG/3D semantic qualification. `dx_iface` has no standalone table
@@ -33,6 +33,34 @@ fallbacks latch a sticky completeness refusal in both compatible and strict
 export, before destination publication. This also prevents silent loss of
 the pre-existing native DWG callbacks. Full table conversion needs its actual
 round-trip XRECORD/dictionary wrapper and content dependencies preserved.
+
+The existing optional `addTableContent` callback now also receives matched
+plain-header DXF TABLECONTENT profiles for AC1021/AC1024/AC1027/AC1032 in both
+encodings. `m_parseComplete` marks complete consumption of the admitted wire
+schema; it does not certify table semantics. `m_content` owns the existing
+minimal rows/columns/values/attributes/link/merged-range view.
+`m_dxfMetadata` shares immutable owned companions for custom-data collections,
+column/row/cell style overrides, per-content formats and all embedded geometry.
+Strings are decoded through the source reader and their additional retained
+copies are charged to its aggregate byte budget. Value variants also charge
+the typed-node budget; exhaustion refuses before typed/raw publication.
+
+The minimal core is not independently lossless: `m_semanticContentComplete`
+stays false for these rich DXF sources. Native encoding rejects an attached
+`m_dxfMetadata` even if a caller forces that legacy flag true. A reset clears
+the metadata; ordinary copies own their core and share the immutable companion.
+The public object layout is extended and consumers must rebuild; no callback
+signature, vtable or pure-virtual requirement changes. Native DWG objects with
+no DXF companion retain their existing path.
+
+The admitted body requires exact marker scopes and bounded count/product/
+geometry/attribute/custom-data collections, finite doubles and complete fields.
+ACI/RGB colors are retained, but unproved named-color/zero-edge-border,
+buffer/result-buffer/general payload and other profiles remain raw/unqualified.
+The observed LinkedTableData group-92 trailer is retained as an unknown scalar,
+not invented as a field-reference count. The raw companion remains available.
+Both converter modes still refuse table dependencies pending complete source,
+wrapper and output closure; typed acceptance does not waive that loss guard.
 
 DWG HEADER admission distinguishes the inner CRC/sentinel-bounded body from
 the section-directory length. A witnessed AC1032 compatibility form excludes

@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cw DXF TABLEGEOMETRY projection and table-dependency loss gate (2026-10-25):** the first external OBJECTS blockers are TABLECONTENT/TABLEGEOMETRY behind an actual table round-trip XRECORD, not SWEEP. Complete bounded plain-header geometry profiles now reach the existing typed callback; other profiles remain raw/unqualified. Both converter modes refuse standalone table dependencies instead of silently dropping them. Independent DXF observation matches two 180-cell/eight-content caches; the paired native peer JSON has ten scalar disagreements, explicitly not waived. Table-content/wrapper transport, broader native/semantic/platform parity remain open; the support qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25) · [receipt](docs/research/rpp5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5cx owned rich DXF TABLECONTENT decoding (2026-10-25):** complete matched marked-body profiles now reach the existing TABLECONTENT callback with owned custom data, format/style/border companions and embedded geometry. The minimal core stays explicitly incomplete and cannot bypass native encoding guards; converter replay remains closed pending wrapper/output proof. Generated controls cover rich profiles, primitive values, raw fallback, budgets and atomic retry. Both external examples now decode their 180-cell/180-checksum content objects; independent source inventory corroborates selected counts only. Consumer rebuilds are required for the extended object layout. The full native/semantic/platform objective remains open and the qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cx-owned-rich-dxf-tablecontent-decoding-2026-10-25) · [receipt](docs/research/rpp5cx-owned-rich-dxf-tablecontent-decoding-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5cw DXF TABLEGEOMETRY projection and table-dependency loss gate (2026-10-25):** committed as `742de35ba56512c799581e4408626b44d6f7286b`. Its cache projection, null-owner fix, explicit loss guard and scoped independent DXF observations remain valid. RPP-5cx adds content decoding but does not resolve the peer's decimal discrepancy or qualify complete table replay. [Historical implementation](#implementation-progress-rpp-5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25) · [immutable receipt](docs/research/rpp5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5cv compatible DIMSTYLE resource remapping (2026-10-25):** committed as `c6d3494d21f236fe01671521269468b2e0aec2f0`. Its tested known STYLE/BLOCK_RECORD/LTYPE binding remaps, repeated conversions, null handling and refusal/retry controls remain valid. RPP-5cw does not broaden that source/target qualification. [Historical implementation](#implementation-progress-rpp-5cv-compatible-dimstyle-resource-remapping-2026-10-25) · [immutable receipt](docs/research/rpp5cv-compatible-dimstyle-resource-remapping-2026-10-25.json).
 
@@ -123577,7 +123579,9 @@ unqualified, not a successful full-drawing conversion.
 Next implementation-ready actions, preserving the complete original objective:
 
 1. [ ] Implement the actual TABLECONTENT DXF source schema and round-trip
-   wrapper before widening strict table admission. Trace LinkedData,
+   wrapper before widening strict table admission. The admitted rich source
+   decoder is implemented by RPP-5cx; broader profiles and wrapper/output
+   closure remain open. Trace LinkedData,
    LinkedTableData, FormattedTableData and TableContent marker scopes, row/cell
    counts, value/format carriers, STYLE/LTYPE/FIELD/DATALINK dependencies, custom
    style IDs and embedded geometry. Preserve both the entity and wrapper views;
@@ -123608,3 +123612,114 @@ J295 stay **DEFERRED_EXTERNAL** and cannot promote support claims. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. Existing immutable receipts and untracked drawings are
 untouched. The full implementation goal stays active; no remote write occurs.
+
+## Implementation progress RPP-5cx owned rich DXF TABLECONTENT decoding (2026-10-25)
+
+Parent checkpoint: `742de35ba56512c799581e4408626b44d6f7286b` (RPP-5cw).
+This implements the content-read prerequisite, not the wrapper or output route.
+
+1. [x] Trace actual LinkedData, LinkedTableData, FormattedTableData and
+   TableContent scopes against ODA 5.4.1 sections 20.4.97–101 (pages 237–246),
+   visually inspecting the relevant layout tables. Cross-check peer declarations
+   and actual source tags rather than copying a peer decoder. The minimal
+   existing DTO cannot retain custom data, multiple formats/styles or multiple
+   geometry records; adding dispatch alone would discard source information.
+2. [x] Add owned `DRW_TableContentDxfMetadata` alongside the core view. Preserve
+   column/row/cell custom integers and key/value collections, cell styles and
+   content overrides (including RGB, margins and borders), multiple contents
+   and attribute ordinals, DATALINK fields, embedded XYZ geometry, base style
+   IDs, merged ranges and final TABLESTYLE reference. Copies own core values
+   and share immutable companions; reset clears them. The existing callback
+   signature/vtable is unchanged, but the public object layout is extended:
+   source consumers must rebuild. LibreCAD/LibreCAD_3 source compatibility
+   remains a mandatory gate; binary ABI compatibility is not claimed.
+3. [x] Decode only a complete admitted plain-header, marked body. Validate exact
+   markers/types/order/count products and remaining groups before reservations;
+   bound columns 1,000, rows 10,000, cells 200,000, cumulative custom items,
+   contents, attributes, geometry and merged ranges 10,000 each. The existing
+   65,536 raw-group cap and public read budgets still apply. Require finite
+   doubles, in-range/ordered nonoverlapping merged ranges, complete fields,
+   and 32-bit handle representability. Other profiles keep the raw fallback;
+   no partial typed object is published.
+4. [x] Use the source reader's semantic text decoder. Precharge input-copy/
+   worst-case UTF8 scratch and the retained decoded copies, including duplicated
+   legacy content text. Value nodes charge the aggregate typed-node budget.
+   Additional owned text is tied to a private lease in the metadata; raw
+   spellings remain separate. Retained-byte and node exhaustion refuse before
+   typed/raw publication and recover on the same public reader with a fresh
+   read. A direct post-capture node control proves partial metadata releases
+   its lease when the decoder lifetime ends.
+5. [x] Follow the ODA first flag bit for CAD value payload suppression. Flags=2
+   checksums still carry double payloads; flags=6 strings still carry text.
+   The pinned LibreDWG declaration's `flags & 3` predicate is not transplanted.
+   Preserve int32/unknown-long, double, string, exact eight-byte date data,
+   2D/3D point widths, object-ID references and suppressed payloads. Unproved
+   general/buffer/result-buffer payload forms remain raw. The witnessed
+   LinkedTableData group-92 trailer remains an unknown scalar, not an invented
+   field-reference count; a peer also labels it unknown.
+6. [x] Keep `m_parseComplete` distinct from semantic/native completeness.
+   `m_semanticContentComplete` stays false for rich DXF sources because their
+   core alone is not lossless. The native validator also explicitly rejects
+   any attached DXF metadata, even if a caller forces the legacy flag true;
+   seeded body/string/handle buffers and bit positions remain unchanged.
+   Both converter modes retain the standalone table loss guard. No root,
+   owner, source-generation or unsupported-profile guard is disabled.
+7. [x] Generate regular controls entirely from scratch: 16 rich revision/
+   encoding/name routes, 288 unsupported-profile fallback/corrected-import
+   pairs, 20 primitive-value routes, 32 atomic output refusals and restored
+   same-exporter LINE readbacks. Cover UTF8 and ASCII-only caret escapes,
+   marker-like text values, style/linetype/field/block/ATTDEF/DATALINK reference
+   slots, distinct XYZ components, copy/reset, forced native bypass and byte/
+   node limits. An initial test checked the byte lease before a temporary
+   decoder's destructor; fix the test lifetime, not production ownership.
+8. [x] Read both pinned external DXFs without changing or committing them.
+   AC1027 E41/E44 and AC1032 9B5/9B8 each expose nine columns, 20 rows,
+   180 cells, 180 checksum items, eight contents, seven cell overrides and eight
+   content-format overrides. A separate ezdxf 1.4.4 source inventory agrees on
+   those selected counts and flags=2 checksum-payload presence. This is not a
+   comparison of every rich typed field, complete table semantics, native
+   producer/kernel qualification or support eligibility. The real CLI now
+   reaches the explicit TABLECONTENT replay refusal and publishes no output.
+
+Exact validation, hashes, logs and limits are in the fresh
+[RPP-5cx receipt](docs/research/rpp5cx-owned-rich-dxf-tablecontent-decoding-2026-10-25.json).
+All 31 affected normal tests pass in 13.22 s and 31 ASan tests pass in 33.34 s
+(`halt_on_error=1:detect_leaks=0`), with sequential owning cohorts. Both
+LibreCAD_3 compile gates pass; CLI static/shared-on/off registration passes in
+2.75 s. Builds retain `-Werror`. The host is macOS ARM64 Apple Clang;
+the `build-gcc` name does not establish Linux/GCC qualification.
+No full suite, fixture payload, remote write or support claim promotion is part
+of this slice. Earlier receipts and all existing untracked drawings are intact.
+
+Next implementation-ready actions:
+
+1. [ ] Implement the actual table round-trip wrapper/source graph: table 4F2
+   -> extension dictionary -> ACAD_XREC_ROUNDTRIP XRECORD, with literal marker,
+   ordered 360 TABLECONTENT and 361 TABLEGEOMETRY hard-owner slots. Correlate
+   both children, their owner, dimensions and entity view without guessing which
+   conflicting representation is authoritative. Preserve unknown wrapper data
+   or refuse. Add bounded raw/typed/import-generation snapshots before output.
+2. [ ] Add complete converter retention and output for the whole table compound,
+   including all rich metadata and references, not only the minimal core.
+   Establish STYLE/LTYPE/TABLESTYLE/CELLSTYLEMAP/custom-ID/FIELD/ATTDEF/block/
+   DATALINK dependencies by role, EED/common metadata and sparse/null cases.
+   Inspect exact staged fields and final unique emitted identities/owners;
+   cover missing/duplicate/aliased/wrong-role children, late callback mutation,
+   rollback and corrected retry before replacing the current refusal.
+3. [ ] Extend independent rich-field comparisons and wider source profiles
+   separately: common metadata, named colors, zero-edge border representation,
+   field-reference trailers, general/buffer payloads, and broader value/version
+   variants need their own source evidence. Resolve native peer decimal/bit
+   differences and native geometry/content writer proof without tolerances or
+   extrapolating DXF field facts into binary layouts.
+4. [ ] Continue the full SWEEP/EXTRUSION, native carrier/schema/owner, IMAGE and
+   document-closure plan; keep LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD
+   interoperability requirements intact. After every item, self-update limits
+   and a fresh immutable receipt, safely unblock the next ready dependency,
+   run fast affected tests, commit/report progress and reserve full suites for
+   meaningful integration checkpoints. Do not guess support to avoid a pause.
+
+The qualification ledger remains **CLOSED**. J256/J260/J268/J284/J293/J295
+remain **DEFERRED_EXTERNAL**; their evidence cannot promote support. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. The original implementation goal stays active.

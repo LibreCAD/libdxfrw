@@ -20157,7 +20157,7 @@ bool hasUnencodedTableCellFields(const DRW_TableCell& cell) {
 bool DRW_TableContentObject::validateDwgPayload(DRW::Version version) const {
     // §20.4.97 defines a standalone object only for R21. Later DWG versions
     // require the enclosing TABLE entity's inline framing and graph.
-    if (version != DRW::AC1021 || !m_semanticContentComplete
+    if (version != DRW::AC1021 || !m_semanticContentComplete || m_dxfMetadata
         || !dwgSafety::validReactorCount(numReactors)
         || static_cast<std::size_t>(numReactors) != reactorHandles.size()
         || extensionDictionaryFlag() > 1u
