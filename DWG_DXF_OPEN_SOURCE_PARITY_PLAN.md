@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5bz standard DWG object XDATA transport comparison (2026-10-24):** the exact chunk matcher is now shared by generated roots and admitted ordinary DICTIONARY/GROUP/typed XRECORD output comparison. A reproduced missing modeled-output fact is fixed without changing actual writer encoding or source qualification. Thirty scratch native sources pass360 actual DXF projections;120 legacy cells stay unqualified. Controls add2,160 copied-readback comparator fault/restoration checks and60 atomic strict-policy refusals followed by compatible readback retries. Final25 focused, five owning, four reader/consumer and nine ASan tests pass, with both LibreCAD_3 compile gates. No independent semantic/support qualification is gained; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5bz-standard-dwg-object-xdata-transport-comparison-2026-10-24) · [receipt](docs/research/rpp5bz-standard-dwg-xdata-transport-comparison-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5ca exact scalar XDATA integer transport (2026-10-24):** a reproduced export refusal for writer-accepted code 1071 INTEGER64 values is fixed with an exact, signed-32-bit-range comparison against decoded INTEGER values. No unchecked narrowing or cross-code/type coercion is allowed. Generated NOD/GROUP/IMAGE dictionary controls pass 504 authored exports and 504 actual-import cross-encoding reexports, plus 24 range, 24 staged-wire, 24 late-source and 30 inspector refusal/restoration retries. Pure comparison controls add five exact and 32 refusal cases. Final 27 focused, five owning, four reader/consumer and 11 ASan tests pass, with both LibreCAD_3 compile gates. Writer encoding and source/support gates remain unchanged; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ca-exact-scalar-xdata-integer-transport-2026-10-24) · [receipt](docs/research/rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5bz standard DWG object XDATA transport comparison (2026-10-24):** the exact chunk matcher is now shared by generated roots and admitted ordinary DICTIONARY/GROUP/typed XRECORD output comparison. A reproduced missing modeled-output fact is fixed without changing actual writer encoding or source qualification. Thirty scratch native sources pass360 actual DXF projections;120 legacy cells stay unqualified. Controls add2,160 copied-readback comparator fault/restoration checks and60 atomic strict-policy refusals followed by compatible readback retries. Final25 focused, five owning, four reader/consumer and nine ASan tests pass, with both LibreCAD_3 compile gates. No independent semantic/support qualification is gained; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5bz-standard-dwg-object-xdata-transport-comparison-2026-10-24) · [receipt](docs/research/rpp5bz-standard-dwg-xdata-transport-comparison-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5by generated-dictionary XDATA binary transport (2026-10-24):** a reproduced128-byte XDATA refusal is fixed by comparing each source1004 value with its exact emitted transport chunks, not requiring equal source/decoded variant counts or joining adjacent values. NOD/GROUP/IMAGE controls pass720 authored exports and720 actual-import cross-encoding reexports, including empty chunks and mixed-case HEX. Separate fault controls cover336 byte/framing retries,12 same-byte repartition refusals,60 inspector retries,96 late-source retries and12 output-budget boundaries. Expanded HEX/node retention is precharged before decoding/copying; frozen sources and support masks remain untouched. Final16 focused, five owning, four reader/consumer and ten ASan checks pass, with both LibreCAD_3 compile gates. Strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5by-generated-dictionary-xdata-binary-transport-2026-10-24) · [receipt](docs/research/rpp5by-generated-dictionary-xdata-binary-transport-2026-10-24.json).
 
@@ -120697,13 +120699,15 @@ Next executable work, with the original parity requirements still intact:
    source loses its eligible modeled-output fact. Share the existing exact
    transport matcher without widening source/class/layer/text qualification,
    manufacturing source receipts or changing immutable joins.
-2. [ ] Audit remaining writer-accepted scalar XDATA representation corners,
+2. [x] Audit remaining writer-accepted scalar XDATA representation corners,
    especially an INTEGER64 source1071 constrained to the writer's32-bit range,
    across these same generated paths and actual import/reexport. A source-type
    versus transport-type mismatch is a code-inspection hypothesis, not yet a
    reproduced failure. Add positive and atomic failure/restoration controls
    before adjusting comparison; do not discount range loss or weaken source
    semantic gates. Retain exact signed-zero/coordinate and handle-role rules.
+   Completed for the specified1071 INTEGER64 corner by RPP-5ca below; that
+   checkpoint supersedes this historical code-inspection hypothesis.
 3. [ ] Continue independent APPID/LAYER/XRECORD source-profile evidence, native
    sparse class cardinality, full IMAGE geometry/common state and broader
    named-root/full-document closure. Successful transport/readback cannot
@@ -120786,13 +120790,14 @@ reproduced comparison gap. It is not native semantic/support qualification.
 
 Implementation-ready remaining work, retaining the original parity scope:
 
-1. [ ] Probe writer-accepted scalar XDATA1071 INTEGER64 values constrained to
+1. [x] Probe writer-accepted scalar XDATA1071 INTEGER64 values constrained to
    the signed32-bit wire range, first through public generated-root authoring
    and actual import/reexport. Cover minimum/maximum/zero, neighboring rejected
    out-of-range values, both encodings and unchanged-destination retries.
    Require reproduction before changing comparison; preserve numeric range,
    signed-zero/coordinate and handle-role rules. This is still a code-inspection
-   hypothesis, not a demonstrated remaining export failure.
+   hypothesis, not a demonstrated remaining export failure. RPP-5ca below now
+   reproduces and fixes that specified corner with range and retry controls.
 2. [ ] Audit standard whole-OBJECTS observation against unrelated accepted
    object profiles without weakening selected-record framing or XRECORD
    application-code scoping. Use a public scratch source or explicitly labeled
@@ -120821,3 +120826,100 @@ remain excluded. Earlier receipts and remote state remain unchanged.
 
 Receipt:
 [`rpp5bz-standard-dwg-xdata-transport-comparison-2026-10-24.json`](docs/research/rpp5bz-standard-dwg-xdata-transport-comparison-2026-10-24.json).
+
+## Implementation progress — RPP-5ca exact scalar XDATA integer transport (2026-10-24)
+
+RPP-5bz is committed as `4a54f2665ebbf2ae7fa93099ed8a36ffa1007949`.
+This implements its next scalar-transport dependency, not the entire parity
+plan or independent source/application-semantic qualification.
+
+1. [x] Inspect the existing writer contract: code 1071 accepts INTEGER and
+   INTEGER64 only when the latter is within the signed 32-bit range; output is
+   Int32 and the shared reader returns INTEGER. Reproduce before changing
+   production code: an authored NOD with INTEGER64(-2147483648) refuses AC1015
+   ASCII export during OBJECTS emission (baseline exit 8, 1.51 s). Narrow-source
+   controls pass before that first failure. Do not claim the baseline exercised
+   every planned cell or independently reproduced all three root kinds.
+2. [x] Add a code-specific internal comparison bridge. For a wide source 1071,
+   require the exact signed 32-bit range, actual INTEGER type, matching code,
+   unchanged value and absence of incompatible layer/color carriers. Compare
+   before narrowing; never truncate or treat arbitrary integer widths/codes,
+   DOUBLEs or numeric strings as interchangeable. Existing handle, floating
+   signed-zero/coordinate and other typed-value rules remain unchanged.
+3. [x] Add fast `dwg2dxf_generated_dictionary_scalar_transport`: three generated
+   dictionary kinds (NOD, ACAD_GROUP, ACAD_IMAGE_DICT), narrow/wide source forms,
+   seven values (-2147483648, -1234567, -1, 0, 1, 1234567, 2147483647), six DXF
+   target revisions and both encodings. All 504 authored exports and 504 actual
+   import/cross-encoding reexports pass actual readback. Check exact INTEGER
+   values, APPID/LAYER names, surrounding marker order, self-reference mapping,
+   dictionary ownership/flags and that authored common comparison is not
+   skipped. Original source variant types remain unchanged.
+4. [x] Add fast `dwg2dxf_generated_dictionary_scalar_faults`. Twenty-four
+   out-of-range source controls cover each adjacent signed-32-bit boundary and
+   the two signed-64-bit extremes; same-facade restored-source retries pass.
+   Twenty-four staged observer-input wire faults change value, code or field
+   cardinality; corrected-byte retries pass on the same codec. Twenty-four
+   late edits cover changed value and identical-value source-type replacement
+   at pre-inspection and pre-finalization phases; immutable-source guards
+   refuse both, then accept the restored source. Thirty inspector exception/
+   reentry/setup guard retries pass. Every refusal preserves the destination
+   sentinel and every corrected retry passes actual readback.
+5. [x] Complement integration controls with five exact and 32 pure comparison
+   refusals: wrong value/code/type, out-of-range source and same-code width
+   mismatches at codes 90/160/1070. These are model checks, not physical source
+   receipts. Use explicitly typed fixed-size test values rather than relying
+   on the platform's int64_t alias for mixed initializer-list deduction.
+6. [x] Preserve generated common-source snapshots and precharges, bounded
+   decoding, final identities/owners/reference cardinality, strict issue masks
+   and native source/text/name/class qualification. The production change
+   allocates no payload, changes no parser/writer encoding, public API/layout,
+   DRW_Interface virtual or document composition policy. Scratch authored DXF
+   and its readback do not establish independent native/semantic support.
+7. [x] Final strict normal/ASan adapter and CLI builds and both LibreCAD_3 compile
+   gates pass. Rebuild affected separately compiled adapters before the final
+   checkpoint. Final 27 focused tests pass 17.73 s, five owning tests pass
+   9.61 s, four reader/consumer tests pass 2.18 s and 11 scoped ASan tests pass
+   37.48 s. Owning and reader cohorts run sequentially, with parallelism 3
+   within each cohort. No full suite, platform qualification, independent
+   producer evidence or throughput/memory benchmark is claimed. Record these
+   final results in a new immutable receipt and commit the verified slice.
+
+Remaining implementation-ready work, retaining the full parity objective:
+
+1. [ ] Audit standard whole-OBJECTS observation against unrelated accepted
+   profiles. First pair an actual admitted native standard-object source with
+   a public scratch source or explicitly labeled observer-only profile probe;
+   inspect whether the generic whole-section reader rejects an unrelated
+   accepted field. Reproduce before changing production logic. If necessary,
+   separate bounded physical framing from selected-record modeled decoding;
+   preserve XRECORD application-code scope (including ordinary application
+   code 102), source identity joins, parser limits and final cardinality. Add
+   positive compatibility plus malformed-selected-record/restored-byte tests.
+   No new unrelated-profile gap is claimed as reproduced by this scalar slice.
+2. [ ] Continue independent APPID/LAYER/XRECORD source profiles and sparse native
+   class cardinality, full IMAGE/common geometry and broader named-root/full-
+   document closure. Derive each native byte/profile decision from observed
+   sources and the authoritative specification; scratch authoring/readback
+   remains a separate projection control, not independent producer semantics.
+3. [ ] Keep multi-document composition closed until explicit ownership,
+   generation isolation and handle-remapping policies are verified. Native
+   Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence
+   remain external qualification requirements, not candidates for model-based
+   support promotion.
+4. [ ] Continue safe local implementation without avoidable stops. After each
+   implemented item, self-update this plan and a new immutable evidence record,
+   resolve in-scope failures, commit a verified slice and show progress. Prefer
+   fast affected tests and shared test/build infrastructure, rebuild consumer
+   contexts at production checkpoints and scope sanitizer/owning/reader runs
+   rather than rerunning full suites after micro-edits. Request direction only
+   for missing authority or a material user decision.
+
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 stay
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification stay **NOT_RUN**. Preserve LibreCAD/LibreCAD_3
+2D compatibility and the original 3D/dwg2dxf scope. No drawing is added or
+committed; all 17 existing untracked drawings and unrelated files remain
+excluded. Earlier receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json`](docs/research/rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json).

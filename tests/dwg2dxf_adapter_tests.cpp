@@ -3595,6 +3595,227 @@ bool standardDwgBinaryTransport() {
     return true;
 }
 
+bool generatedDictionaryScalarTransport(bool faultsOnly = false) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-dictionary-scalars-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("dictionary scalar temporary directory failed");
+    }
+    if (directory.empty()) return fail("dictionary scalar temporary directory exhausted");
+    const auto path = directory / "scalar.dxf";
+    struct Cleanup { std::filesystem::path path, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path,error); std::filesystem::remove(directory,error);
+    } } cleanup{path,directory};
+    const auto configure = [](dx_data& data, unsigned kind, bool wide, std::int64_t scalar) -> DRW_Dictionary* {
+        dx_iface author; author.cData = &data; author.currentBlock = data.mBlock;
+        DRW_AppId app; app.name = "SCALAR_APP"; author.addAppId(app);
+        DRW_Layer layer; layer.name = "SCALAR_LAYER"; author.addLayer(layer);
+        data.hasNamedObjectDictionary = true; data.namedObjectDictionary.handle = 0xA000u;
+        DRW_Dictionary* root = &data.namedObjectDictionary;
+        if (kind) {
+            data.namedObjectDictionary.m_entries = {{kind == 1u ? "ACAD_GROUP" : "ACAD_IMAGE_DICT",0xA010u,DRW_Dictionary::Entry::DxfHandleCode::HardOwner}};
+            DRW_Dictionary target; target.handle = 0xA010u; target.parentHandle = 0xA000u; data.dictionaries.push_back(target);
+            root = &data.dictionaries.back();
+        }
+        root->cloning = 2; root->hardOwner = 1;
+        root->extData.push_back(new DRW_Variant(1001,std::string("SCALAR_APP")));
+        root->extData.push_back(new DRW_Variant(1000,std::string("before-scalar")));
+        root->extData.push_back(wide ? new DRW_Variant(1071,static_cast<dint64>(scalar)) : new DRW_Variant(1071,static_cast<std::int32_t>(scalar)));
+        root->extData.push_back(new DRW_Variant(1000,std::string("after-scalar")));
+        std::ostringstream self; self << std::uppercase << std::hex << root->handle;
+        root->extData.push_back(new DRW_Variant(1005,self.str()));
+        auto* layerName = new DRW_Variant(1003,std::string("SCALAR_LAYER")); layerName->setLayerRefName("SCALAR_LAYER"); root->extData.push_back(layerName);
+        return root;
+    };
+    const auto check = [](const dx_data& data, unsigned kind, std::int64_t scalar) {
+        const DRW_Dictionary* root = data.hasNamedObjectDictionary ? &data.namedObjectDictionary : nullptr;
+        if (kind && root) {
+            const char* key = kind == 1u ? "ACAD_GROUP" : "ACAD_IMAGE_DICT";
+            const auto entry = std::find_if(root->m_entries.begin(),root->m_entries.end(),[&](const auto& value) { return value.m_name == key; });
+            if (entry == root->m_entries.end()) return false;
+            const auto target = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[&](const auto& value) { return value.handle == entry->m_handle; });
+            if (target == data.dictionaries.end() || target->parentHandle != root->handle) return false;
+            root = &*target;
+        }
+        if (!root || root->cloning != 2 || root->hardOwner != 1 || root->extData.size() != 6u) return false;
+        const auto text = [&](std::size_t n, int code, const char* expected) {
+            const auto* value = root->extData[n]; return value && value->code() == code && value->c_str() && std::string_view(value->c_str()) == expected;
+        };
+        std::uint32_t self = 0u;
+        return text(0u,1001,"SCALAR_APP") && text(1u,1000,"before-scalar") && text(3u,1000,"after-scalar")
+            && root->extData[2] && root->extData[2]->code() == 1071 && root->extData[2]->type() == DRW_Variant::INTEGER
+            && root->extData[2]->i_val() == scalar && root->extData[4] && root->extData[4]->code() == 1005
+            && root->extData[4]->c_str() && dx_raster_output::integer(std::string_view(root->extData[4]->c_str()),self,16) && self == root->handle
+            && text(5u,1003,"SCALAR_LAYER");
+    };
+    if (faultsOnly) {
+        class Direct final : public dx_iface {
+        public:
+            std::function<void()> afterObjects, beforeFinalize;
+            void writeObjects() override { if (afterObjects) afterObjects(); }
+            bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
+        };
+        unsigned ranges = 0u, wire = 0u, late = 0u, guards = 0u;
+        const auto minimum = static_cast<std::int64_t>((std::numeric_limits<std::int32_t>::min)());
+        const auto maximum = static_cast<std::int64_t>((std::numeric_limits<std::int32_t>::max)());
+        for (unsigned kind = 0u; kind != 3u; ++kind) for (const bool binary : {false,true}) {
+            dx_data data; auto* root = configure(data,kind,true,minimum); const auto baseline = *root;
+            dx_iface exporter, reader;
+            const auto exportedReadback = [&]() {
+                dx_data actual;
+                return exporter.fileExport(path.string(),DRW::AC1032,binary,&data,false,true)
+                    && reader.fileImport(path.string(),&actual,false) && check(actual,kind,minimum);
+            };
+            const auto atomic = [&](const auto& write) {
+                const std::string sentinel = "DICTIONARY_SCALAR_ATOMIC_DESTINATION";
+                { std::ofstream prior(path,std::ios::binary); prior << sentinel; }
+                const bool wrote = write(); std::ifstream prior(path,std::ios::binary);
+                return !wrote && std::string((std::istreambuf_iterator<char>(prior)),{}) == sentinel;
+            };
+            for (const auto value : {minimum - 1,maximum + 1,(std::numeric_limits<std::int64_t>::min)(),(std::numeric_limits<std::int64_t>::max)()}) {
+                root->extData[2]->addInt64(1071,value);
+                if (!atomic([&]() { return exporter.fileExport(path.string(),DRW::AC1032,binary,&data,false,true); }))
+                    return fail("dictionary scalar out-of-range source was published");
+                *root = baseline;
+                if (!exportedReadback()) return fail("dictionary scalar restored-range retry failed");
+                ++ranges;
+            }
+            Direct direct; direct.cData = &data; direct.currentBlock = data.mBlock;
+            dxfRW codec(path.string().c_str()); direct.dxfW = &codec;
+            std::map<std::uint32_t,std::uint32_t> aliases{{0xA000u,0xCu}};
+            if (kind == 1u) aliases.emplace(0xA010u,0xDu);
+            codec.setHandleRemap(aliases); codec.setDxfWriteRecordInventoryEnabled(true);
+            if (!codec.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(data.namedObjectDictionary),
+                    kind == 1u ? std::make_unique<DRW_Dictionary>(*root) : nullptr,
+                    kind == 2u ? std::make_unique<DRW_Dictionary>(*root) : nullptr,0u)) return fail("dictionary scalar direct plan setup failed");
+            int fault = -1; unsigned guard = 0u; bool applied = false;
+            codec.setDxfObjectsWriteInspector([&](auto view) {
+                if (guard == 1u) throw std::runtime_error("dictionary scalar inspector exception");
+                if (guard == 2u) (void)codec.write(&direct,DRW::AC1032,binary);
+                if (guard == 3u) (void)codec.setDxfObjectsWriteInspector({});
+                if (guard == 4u) (void)codec.read(&direct,false);
+                if (guard == 5u) codec.setDxfWriteRecordInventoryEnabled(false);
+                std::string changed(view.bytes);
+                if (fault >= 0) {
+                    dx_raster_output::Cursor cursor(view.bytes,view.binary); dx_raster_output::Token token;
+                    const auto target = kind == 0u ? 0xCu : kind == 1u ? 0xDu : codec.dxfWriteImageDictionaryHandle();
+                    bool targetRecord = false; unsigned matches = 0u;
+                    std::size_t begin = 0u, end = 0u;
+                    while (!cursor.done()) {
+                        const auto start = cursor.position(); if (!cursor.next(token)) return false;
+                        if (token.code == 0) {
+                            dx_raster_output::Cursor peek(view.bytes.substr(cursor.position()),view.binary); dx_raster_output::Token self; std::uint32_t handle = 0u;
+                            targetRecord = token.text == "DICTIONARY" && peek.next(self) && self.code == 5
+                                && dx_raster_output::integer(self.text,handle,16) && handle == target;
+                        }
+                        if (targetRecord && token.code == 1071) { begin = start; end = cursor.position(); ++matches; }
+                    }
+                    if (matches != 1u) return false;
+                    if (fault == 1) changed.erase(begin,end - begin);
+                    else if (fault == 2) changed.insert(end,changed.substr(begin,end - begin));
+                    else if (fault == 3) {
+                        if (binary) changed[begin] = static_cast<char>(1070u & 255u);
+                        else changed.replace(begin,changed.find('\n',begin) - begin,"1070");
+                    } else if (binary) changed[begin + 2u] ^= 1;
+                    else {
+                        const auto valueStart = changed.find('\n',begin) + 1u;
+                        changed.replace(valueStart,changed.find('\n',valueStart) - valueStart,std::to_string(maximum));
+                    }
+                    applied = true;
+                }
+                view.bytes = changed;
+                return (kind != 2u || Access::rasterObjects(direct,view)) && Access::generatedRoots(direct,view);
+            });
+            if (kind == 2u) codec.setDxfEntitySectionsWriteInspector([&](const auto& view, auto section) { return Access::rasterImages(direct,view,section); });
+            const auto write = [&]() { Access::resetRasterOutput(direct); return codec.write(&direct,DRW::AC1032,binary); };
+            const auto readback = [&]() {
+                dx_data actual;
+                return reader.fileImport(path.string(),&actual,false) && check(actual,kind,minimum)
+                    && Access::generatedRootsFinal(direct,kind == 1u ? 2u : 1u) && (kind != 2u || Access::rasterFinal(direct,0u));
+            };
+            if (!write() || !readback()) return fail("dictionary scalar direct positive/readback failed");
+            for (fault = 0; fault != 4; ++fault) {
+                applied = false; const bool refused = atomic(write); const auto saved = fault; fault = -1;
+                if (!applied || !refused || !write() || !readback()) return fail("dictionary scalar wire refusal/restored-byte retry failed");
+                fault = saved; ++wire;
+            }
+            fault = -1;
+            for (guard = 1u; guard != 6u; ++guard) {
+                const bool refused = atomic(write); const auto saved = guard; guard = 0u;
+                if (!refused || !write() || !readback()) return fail("dictionary scalar inspector guard/exception retry failed");
+                guard = saved; ++guards;
+            }
+            guard = 0u;
+            for (const bool final : {false,true}) for (const bool changeType : {false,true}) {
+                const auto edit = [&]() { if (changeType) root->extData[2]->addInt(1071,static_cast<int>(minimum)); else root->extData[2]->addInt64(1071,minimum + 1); };
+                if (final) direct.beforeFinalize = edit; else direct.afterObjects = edit;
+                if (!atomic(write)) return fail("dictionary scalar late value/type edit was published");
+                direct.beforeFinalize = {}; direct.afterObjects = {}; *root = baseline;
+                if (!write() || !readback()) return fail("dictionary scalar restored frozen-source retry failed");
+                ++late;
+            }
+        }
+        // Pure comparison controls complement actual publication/refusal tests.
+        // No private source-frame receipt is constructed for these checks.
+        auto noMap = [](std::uint32_t, std::uint32_t&) { return false; };
+        std::vector<std::uint32_t> references;
+        unsigned exact = 0u, refused = 0u;
+        for (const auto value : std::array<std::int64_t,5>{{minimum,-1,0,1,maximum}}) {
+            const DRW_Variant source(1071,static_cast<dint64>(value)), actual(1071,static_cast<std::int32_t>(value));
+            if (!dx_standard_output::valueEqual(source,actual,noMap,references)) return fail("dictionary scalar exact pure transport comparison failed");
+            ++exact;
+            for (const auto& wrong : {DRW_Variant(1071,static_cast<std::int32_t>(value == maximum ? value - 1 : value + 1)),
+                    DRW_Variant(1070,static_cast<std::int32_t>(value)),DRW_Variant(1071,static_cast<double>(value)),DRW_Variant(1071,std::to_string(value)),
+                    DRW_Variant(160,static_cast<dint64>(value))}) {
+                if (dx_standard_output::valueEqual(source,wrong,noMap,references)) return fail("dictionary scalar pure comparison accepted wrong value/type/code");
+                ++refused;
+            }
+        }
+        for (const auto value : {minimum - 1,maximum + 1,(std::numeric_limits<std::int64_t>::min)(),(std::numeric_limits<std::int64_t>::max)()}) {
+            const DRW_Variant source(1071,static_cast<dint64>(value)), actual(1071,static_cast<std::int32_t>(value));
+            if (dx_standard_output::valueEqual(source,actual,noMap,references)) return fail("dictionary scalar pure comparison truncated an out-of-range source");
+            ++refused;
+        }
+        for (const auto code : {90,160,1070}) {
+            const DRW_Variant source(code,static_cast<dint64>(1)), actual(code,static_cast<std::int32_t>(1));
+            if (dx_standard_output::valueEqual(source,actual,noMap,references)) return fail("dictionary scalar bridge leaked to another group code");
+            ++refused;
+        }
+        if (ranges != 24u || wire != 24u || late != 24u || guards != 30u || exact != 5u || refused != 32u || !references.empty())
+            return fail("dictionary scalar fault matrix skipped a control");
+        std::cout << "Generated dictionary scalar range retries=" << ranges << " wire retries=" << wire << " late source retries=" << late
+            << " inspector retries=" << guards << " pure exact/refusal controls=" << exact << '/' << refused << '\n';
+        return true;
+    }
+    unsigned cells = 0u, reexports = 0u;
+    const std::array<std::int64_t,7> values{{(std::numeric_limits<std::int32_t>::min)(),-1234567,-1,0,1,1234567,(std::numeric_limits<std::int32_t>::max)()}};
+    for (unsigned kind = 0u; kind != 3u; ++kind) for (const bool wide : {false,true}) for (const auto scalar : values) {
+        dx_data data; const auto* root = configure(data,kind,wide,scalar); dx_iface exporter, reader;
+        for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
+            if (!exporter.fileExport(path.string(),version,binary,&data,false,true))
+                return fail("dictionary scalar export refused kind=" + std::to_string(kind) + " wide=" + std::to_string(wide)
+                    + " value=" + std::to_string(scalar) + " version=" + std::to_string(version) + " binary=" + std::to_string(binary));
+            if ((kind == 2u && !Access::rasterDictionaryCommon(exporter))
+                || (kind != 2u && Access::generatedRootCommonCount(exporter) != (kind == 1u ? 2u : 1u))
+                || root->extData[2]->type() != (wide ? DRW_Variant::INTEGER64 : DRW_Variant::INTEGER)) return fail("dictionary scalar comparison skipped or source representation changed");
+            dx_data first;
+            if (!reader.fileImport(path.string(),&first,false) || !check(first,kind,scalar)) return fail("dictionary scalar output/readback changed exact value");
+            ++cells;
+            if (!exporter.fileExport(path.string(),version,!binary,&first,false,true)) return fail("dictionary scalar actual-import cross-encoding reexport refused");
+            dx_data second;
+            if (!reader.fileImport(path.string(),&second,false) || !check(second,kind,scalar)) return fail("dictionary scalar reexport/readback changed exact value");
+            ++reexports;
+        }
+    }
+    if (cells != 504u || reexports != 504u) return fail("dictionary scalar positive matrix skipped a cell");
+    std::cout << "Generated dictionary scalar authored cells=" << cells << " actual-import cross-encoding reexports=" << reexports << '\n';
+    return true;
+}
+
 bool generatedDictionaryBinaryChunks(bool faultsOnly = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -32645,6 +32866,10 @@ int main(int argc, char** argv) {
         return generatedDictionaryBinaryChunks(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-dwg-binary-transport")
         return standardDwgBinaryTransport() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-scalar-transport")
+        return generatedDictionaryScalarTransport() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-scalar-faults")
+        return generatedDictionaryScalarTransport(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--image-dictionary-imported-common")
         return rootedImageDictionaryUnselectedControls(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--selected-raster-reactor-metadata")

@@ -585,6 +585,14 @@ add_test(NAME dwg2dxf_image_dictionary_imported_common
     COMMAND libdxfrw_dwg2dxf_adapter_tests --image-dictionary-imported-common)
 set_tests_properties(dwg2dxf_image_dictionary_imported_common PROPERTIES
     LABELS "fast;dwg;dxf;image;dictionary;adapter;generated" TIMEOUT 45)
+add_test(NAME dwg2dxf_generated_dictionary_scalar_transport
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-dictionary-scalar-transport)
+set_tests_properties(dwg2dxf_generated_dictionary_scalar_transport PROPERTIES
+    LABELS "fast;dxf;dictionary;xdata;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_generated_dictionary_scalar_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-dictionary-scalar-faults)
+set_tests_properties(dwg2dxf_generated_dictionary_scalar_faults PROPERTIES
+    LABELS "fast;dxf;dictionary;xdata;transaction;adapter;generated" TIMEOUT 60)
 add_test(NAME dwg2dxf_selected_raster_reactor_metadata
     COMMAND libdxfrw_dwg2dxf_adapter_tests --selected-raster-reactor-metadata)
 set_tests_properties(dwg2dxf_selected_raster_reactor_metadata PROPERTIES

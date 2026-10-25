@@ -312,6 +312,17 @@ template <class Mapper> bool valueEqual(const DRW_Variant& source, const DRW_Var
             || b > (std::numeric_limits<std::uint32_t>::max)()) return false;
         return referenceEqual(static_cast<std::uint32_t>(a), static_cast<std::uint32_t>(b), map, references);
     }
+    // The writer accepts a wide source1071 only within the signed32-bit wire
+    // range. The shared reader returns INTEGER; do not narrow before comparing
+    // or generalize this representation bridge to other codes/types.
+    if (source.code() == 1071 && source.type() == DRW_Variant::INTEGER64) {
+        const auto value = source.i64_val();
+        return value >= (std::numeric_limits<std::int32_t>::min)()
+            && value <= (std::numeric_limits<std::int32_t>::max)()
+            && actual.type() == DRW_Variant::INTEGER && actual.dwgCmColorValue() == nullptr
+            && !actual.isLayerRef() && actual.rawDwgLayerReference() == 0u
+            && value == actual.i_val();
+    }
     if (source.type() != actual.type()) return false;
     switch (source.type()) {
     case DRW_Variant::STRING:

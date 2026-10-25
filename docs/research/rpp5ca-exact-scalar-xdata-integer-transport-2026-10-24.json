@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ca exact scalar XDATA integer transport",
+  "date": "2026-10-24",
+  "parentCommit": "4a54f2665ebbf2ae7fa93099ed8a36ffa1007949",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "EXACT_WIDE_1071_TRANSPORT_COMPARISON_FIXED_SOURCE_AND_SEMANTIC_QUALIFICATION_UNCHANGED",
+  "baseline": {
+    "result": "GAP_REPRODUCED",
+    "testExitCode": 8,
+    "wallSeconds": 1.51,
+    "source": "Public scratch authored NOD, INTEGER64 code1071 value -2147483648",
+    "targetRevision": "AC1015",
+    "encoding": "ASCII",
+    "observation": "Export refuses during OBJECTS emission: writer accepts the exact signed32-bit value but output comparison requires identical source/decoded variant type",
+    "allMatrixCellsExercisedBeforeBaselineAbort": false,
+    "otherRootKindBaselineFailuresReached": false,
+    "buildLog": "/tmp/rpp5ca-baseline-build.log",
+    "testLog": "/tmp/rpp5ca-baseline-tests.log"
+  },
+  "implementation": {
+    "contract": "Existing code1071 writer accepts INTEGER or range-checked INTEGER64, emits Int32 and reader returns INTEGER",
+    "comparison": "Require exact signed32-bit range, matching code, INTEGER output, matching value and no incompatible layer/color carrier before accepting wide source1071",
+    "noUncheckedNarrowingOrGeneralNumericCoercion": true,
+    "allocation": "No new payload copy, array or retained allocation; existing generated projection precharges and bounded decoding unchanged",
+    "sourceAndFinalization": "Frozen sources, source/profile/text/name/class gates, actual identity/owner joins, final reference cardinality and strict issue masks remain required",
+    "publicApiDataRecordLayoutOrDrwInterfaceVirtualsChanged": false,
+    "dwgParserGrammarDispatchOrWriterEncodingChanged": false,
+    "documentMergePolicyChanged": false,
+    "issueMasksWaivedOrSupportClaimsPromoted": false
+  },
+  "controls": {
+    "newCTests": [
+      "dwg2dxf_generated_dictionary_scalar_transport",
+      "dwg2dxf_generated_dictionary_scalar_faults"
+    ],
+    "selectors": [
+      "--generated-dictionary-scalar-transport",
+      "--generated-dictionary-scalar-faults"
+    ],
+    "source": "Public scratch DXF authoring followed by actual import and cross-encoding reexport; not independent native producer evidence",
+    "dictionaryKinds": [
+      "NOD",
+      "ACAD_GROUP DICTIONARY",
+      "ACAD_IMAGE_DICT DICTIONARY"
+    ],
+    "sourceTypes": [
+      "INTEGER",
+      "INTEGER64"
+    ],
+    "scalarValues": [
+      -2147483648,
+      -1234567,
+      -1,
+      0,
+      1,
+      1234567,
+      2147483647
+    ],
+    "targetRevisions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "authoredExportReadbackCells": 504,
+    "actualImportCrossEncodingReexportReadbackCells": 504,
+    "readbackAssertions": [
+      "Exact INTEGER1071 value",
+      "APPID/LAYER names",
+      "Surrounding marker order",
+      "Remapped self-reference",
+      "Dictionary flags and ownership"
+    ],
+    "authoredCommonComparisonNotSkipped": true,
+    "authoredSourceVariantTypesUnchanged": true,
+    "outOfRangeAtomicRefusalRestoredSourceReadbackRetries": 24,
+    "outOfRangeValues": [
+      "INT32_MIN-1",
+      "INT32_MAX+1",
+      "INT64_MIN",
+      "INT64_MAX"
+    ],
+    "rangeRetryContext": "Same exporter facade",
+    "stagedObserverInputWireFaultRefusalRestoredByteReadbackRetries": 24,
+    "wireFaults": [
+      "Changed scalar value",
+      "Deleted field",
+      "Duplicated field",
+      "Wrong group code"
+    ],
+    "lateSourceRefusalRestorationReadbackRetries": 24,
+    "lateSourceChanges": [
+      "Changed exact scalar value",
+      "Same numeric value but replaced source variant type"
+    ],
+    "latePhases": [
+      "After OBJECTS callback before inspection",
+      "Before consumer finalization"
+    ],
+    "inspectorExceptionReentrySetupGuardRetries": 30,
+    "wireLateAndGuardRetryContext": "Same codec",
+    "pureExactComparisonControls": 5,
+    "pureRefusalControls": 32,
+    "pureControlsEvidence": "Direct model comparison, no fabricated source-frame receipt or independent physical-source claim",
+    "allRefusalsPreserveDestinationSentinels": true,
+    "independentNativeProducerOrApplicationSemanticQualification": "NOT_RUN"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "strictWarnings": true,
+      "warningSuppression": false,
+      "affectedSeparatelyCompiledAdaptersRebuiltBeforeFinalChecks": true,
+      "normalLog": "/tmp/rpp5ca-final-build.log",
+      "asanLog": "/tmp/rpp5ca-asan-build.log"
+    },
+    "focused": {
+      "result": "PASS",
+      "passed": 27,
+      "total": 27,
+      "wallSeconds": 17.73,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_public_header_hygiene",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_generated_dictionary_metadata_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_material_root_output_compatibility",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "dwg2dxf_generated_root_common_closure",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "dwg2dxf_standard_dwg_binary_transport",
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_generated_dictionary_scalar_faults"
+      ],
+      "log": "/tmp/rpp5ca-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 9.61,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5ca-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS",
+      "passed": 4,
+      "total": 4,
+      "wallSeconds": 2.18,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_dwg_fixtures",
+        "libdxfrw_named_resource_import_evidence",
+        "libdxfrw_3d_consumer_probe"
+      ],
+      "log": "/tmp/rpp5ca-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 11,
+      "total": 11,
+      "wallSeconds": 37.48,
+      "parallelism": 3,
+      "tests": [
+        "dwg2dxf_standard_dwg_binary_transport",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_root_common_closure",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_generated_dictionary_scalar_faults"
+      ],
+      "log": "/tmp/rpp5ca-asan-final.log",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "platformIndependentSemanticOrBenchmarkQualificationClaim": false
+  },
+  "remaining": [
+    "Audit/reproduce unrelated OBJECTS profile interactions before refactoring whole-section observation; preserve selected-record and XRECORD application-code framing",
+    "Independent APPID/LAYER/XRECORD source profiles, native sparse class cardinality, full IMAGE/common geometry and broader named-root/document closure",
+    "Explicit ownership/generation/remapping contract before multi-document composition",
+    "Native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}
