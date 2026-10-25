@@ -1863,6 +1863,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --mtext-column-object-scope)
     set_tests_properties(libdxfrw_mtext_column_object_scope PROPERTIES
         LABELS "fast;dxf;mtext;columns" TIMEOUT 30)
+    add_test(NAME libdxfrw_legacy_mtext_xdata_identity
+        COMMAND libdxfrw_dxf_fixture_tests --legacy-mtext-xdata-identity)
+    set_tests_properties(libdxfrw_legacy_mtext_xdata_identity PROPERTIES
+        LABELS "fast;dxf;mtext;columns;xdata;identity;transaction" TIMEOUT 15)
     add_test(NAME libdxfrw_header_custom_property_roundtrip
         COMMAND libdxfrw_dxf_fixture_tests --header-custom-property-roundtrip)
     set_tests_properties(libdxfrw_header_custom_property_roundtrip PROPERTIES

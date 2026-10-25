@@ -14,6 +14,7 @@
 #include <iterator>
 #include <list>
 #include <limits>
+#include <locale>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -10448,6 +10449,24 @@ void testMTextColumnObjectScope(TestContext& t) {
     testMTextChunkWireBoundaries(t);
 }
 
+struct LegacyMTextWireSpan {
+    std::size_t begin {0}, valueBegin {0}, valueEnd {0}, end {0};
+};
+
+struct LegacyMTextWireProof {
+    std::array<std::uint32_t, 4> handles {};
+    std::array<LegacyMTextWireSpan, 4> handleSpans {};
+    std::array<LegacyMTextWireSpan, 32> xdataSpans {};
+    LegacyMTextWireSpan headText, lineX;
+};
+
+// Defined beside the literal ASCII/Binary scanners below. No dxfReader,
+// DRW parser, writer remapper or normalized re-export is used by this walk.
+bool readLegacyMTextWire(const std::string& bytes, bool binary,
+                        const std::array<std::uint32_t, 3>& expectedHandles,
+                        LegacyMTextWireProof& proof);
+std::string readWholeFile(const std::filesystem::path& path);
+
 void testLegacyMTextColumnXdataPreservation(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto handleText = [](std::uint32_t handle) {
@@ -10522,6 +10541,7 @@ void testLegacyMTextColumnXdataPreservation(TestContext& t) {
             : source(source), reserveHandle(reserveHandle) {}
 
         void writeHeader(DRW_Header& header) override {
+            sourceToEmitted.clear();
             if (reserveHandle && dxfW->allocHandle() == 0)
                 preallocationSucceeded = false;
             if (source.mBlock != nullptr) {
@@ -10536,11 +10556,90 @@ void testLegacyMTextColumnXdataPreservation(TestContext& t) {
             dx_iface::writeHeader(header);
         }
 
+        bool finalizeDxfWrite() override {
+            if (!dx_iface::finalizeDxfWrite() || dxfW == nullptr)
+                return false;
+            const auto* context = dxfW->getWritingContext();
+            if (context == nullptr || source.mBlock == nullptr)
+                return false;
+            std::map<std::uint32_t, std::uint32_t> staged;
+            for (const auto* entity : source.mBlock->ent) {
+                if (dynamic_cast<const DRW_MText*>(entity) == nullptr)
+                    continue;
+                const auto binding = context->sourceHandleToMintedMap.find(entity->handle);
+                if (context->writtenSourceEntityHandles.count(entity->handle) != 1u
+                    || binding == context->sourceHandleToMintedMap.end()
+                    || binding->second == 0u)
+                    return false;
+                staged.emplace(entity->handle, binding->second);
+            }
+            sourceToEmitted.swap(staged);
+            return true;
+        }
+
+        std::uint32_t emittedHandle(std::uint32_t sourceHandle) const {
+            const auto found = sourceToEmitted.find(sourceHandle);
+            return found == sourceToEmitted.end() ? 0u : found->second;
+        }
+
         bool preallocationSucceeded = true;
 
     private:
         dx_data& source;
         bool reserveHandle;
+        std::map<std::uint32_t, std::uint32_t> sourceToEmitted;
+    };
+
+    std::size_t wireControls = 0, observerRefusals = 0, refusedTransactions = 0;
+    const auto checkWire = [&](const std::filesystem::path& path, bool binary,
+                               const std::array<std::uint32_t, 3>& expected) {
+        const std::string bytes = readWholeFile(path);
+        LegacyMTextWireProof proof;
+        const bool accepted = readLegacyMTextWire(bytes, binary, expected, proof);
+        t.expect(accepted, "literal legacy MTEXT wire has exact identities, linked references, XDATA and following geometry");
+        if (!accepted) return false;
+        ++wireControls;
+        std::vector<std::string> corruptions;
+        // All strings are ASCII in this authored fixture; edit physical value
+        // spans, retaining valid group widths/terminators in both encodings.
+        for (const auto span : {proof.handleSpans[0], proof.xdataSpans[25],
+                                proof.xdataSpans[26], proof.headText}) {
+            std::string bad = bytes;
+            bad[span.valueBegin] = bad[span.valueBegin] == 'F' ? 'E' : 'F';
+            corruptions.push_back(std::move(bad));
+        }
+        for (const auto span : {proof.xdataSpans[19], proof.xdataSpans[20], proof.lineX}) {
+            std::string bad = bytes;
+            // The first little-endian byte is significant for these authored
+            // I16/binary64 controls; no production primitive encoder is used.
+            bad[span.valueBegin] ^= 1;
+            corruptions.push_back(std::move(bad));
+        }
+        const auto first = proof.xdataSpans[25], second = proof.xdataSpans[26];
+        std::string duplicate = bytes;
+        duplicate.insert(first.end, bytes.substr(first.begin, first.end - first.begin));
+        corruptions.push_back(std::move(duplicate));
+        std::string missing = bytes;
+        missing.erase(first.begin, first.end - first.begin);
+        corruptions.push_back(std::move(missing));
+        std::string reordered = bytes;
+        reordered.replace(first.begin, second.end - first.begin,
+            bytes.substr(second.begin, second.end - second.begin)
+                + bytes.substr(first.begin, first.end - first.begin));
+        corruptions.push_back(std::move(reordered));
+        std::string duplicateIdentity = bytes;
+        const auto identity = proof.handleSpans[0];
+        duplicateIdentity.insert(identity.end,
+            bytes.substr(identity.begin, identity.end - identity.begin));
+        corruptions.push_back(std::move(duplicateIdentity));
+        corruptions.push_back(bytes.substr(0, bytes.size() - 1u));
+        for (const auto& bad : corruptions) {
+            LegacyMTextWireProof rejected;
+            const bool refused = !readLegacyMTextWire(bad, binary, expected, rejected);
+            t.expect(refused, "literal legacy MTEXT observer rejects physical field/reference corruption");
+            if (refused) ++observerRefusals;
+        }
+        return true;
     };
 
     for (const bool binary : {false, true}) {
@@ -10613,16 +10712,44 @@ void testLegacyMTextColumnXdataPreservation(TestContext& t) {
         source.mBlock->ent.push_back(third);
 
         LinkedMTextWriter sourceWriter(source);
+        const auto originalKey = head->extData[19];
+        const auto invalidKey = std::make_shared<DRW_Variant>(1070, std::string("not-an-integer"));
+        head->extData[19] = invalidKey;
+        const bool absentAccepted = sourceWriter.fileExport(
+            sourcePath.string(), DRW::AC1015, binary, &source, false);
+        const bool absentPublished = std::filesystem::exists(sourcePath);
+        const std::string sentinel = "scratch-authored legacy MTEXT destination";
+        {
+            std::ofstream existing(sourcePath, std::ios::binary);
+            existing << sentinel;
+            t.expect(existing.good(), "legacy MTEXT transaction sentinel is writable");
+        }
+        const bool existingAccepted = sourceWriter.fileExport(
+            sourcePath.string(), DRW::AC1015, binary, &source, false);
+        const bool invalidSourceUnchanged = head->extData[19] == invalidKey
+            && head->handle == 0x31u && interleaved->handle == 0u
+            && second->handle == 0x32u && third->handle == 0x33u;
+        head->extData[19] = originalKey;
+        const bool refused = !absentAccepted && !absentPublished && !existingAccepted
+            && readWholeFile(sourcePath) == sentinel && invalidSourceUnchanged && matchesProfile(source);
+        t.expect(refused, "legacy MTEXT invalid XDATA refuses absent/existing outputs atomically without source identity changes");
+        if (refused) refusedTransactions += 2u;
+        // Reuse the same adapter after the two failed exports. fileExport
+        // creates a fresh codec facade per call; this is not a same-facade test.
         const bool sourceWritten = sourceWriter.fileExport(
             sourcePath.string(), DRW::AC1015, binary, &source, false);
         dx_data parsed;
         dx_iface sourceReader;
         const bool sourceRead = sourceWritten
             && sourceReader.fileImport(sourcePath.string(), &parsed, false);
-        const bool sourceHandlesRemapped = second->handle != 0x32u
-            && third->handle != 0x33u;
-        t.expect(sourceWriter.preallocationSucceeded && sourceHandlesRemapped
-                     && sourceRead,
+        const std::array<std::uint32_t, 3> firstEmitted {{
+            sourceWriter.emittedHandle(0x31u), sourceWriter.emittedHandle(0x32u),
+            sourceWriter.emittedHandle(0x33u)}};
+        const bool sourceUnchanged = head->handle == 0x31u && interleaved->handle == 0u
+            && second->handle == 0x32u && third->handle == 0x33u && matchesProfile(source);
+        t.expect(sourceWriter.preallocationSucceeded && sourceUnchanged
+                     && firstEmitted[1] != 0x32u && firstEmitted[2] != 0x33u
+                     && sourceRead && checkWire(sourcePath, binary, firstEmitted),
                  binary
                      ? "binary legacy MTEXT source remaps linked handles and imports"
                      : "ASCII legacy MTEXT source remaps linked handles and imports");
@@ -10631,11 +10758,14 @@ void testLegacyMTextColumnXdataPreservation(TestContext& t) {
                  binary ? "binary legacy profile keeps linked entities separate"
                         : "ASCII legacy profile keeps linked entities separate");
 
+        const DRW_MText* parsedHead = nullptr;
+        const DRW_Line* parsedLine = nullptr;
         const DRW_MText* parsedSecond = nullptr;
         const DRW_MText* parsedThird = nullptr;
         if (parsed.mBlock != nullptr && parsed.mBlock->ent.size() == 4u) {
             auto parsedEntity = parsed.mBlock->ent.begin();
-            std::advance(parsedEntity, 2);
+            parsedHead = dynamic_cast<const DRW_MText*>(*parsedEntity++);
+            parsedLine = dynamic_cast<const DRW_Line*>(*parsedEntity++);
             parsedSecond = dynamic_cast<const DRW_MText*>(*parsedEntity++);
             parsedThird = dynamic_cast<const DRW_MText*>(*parsedEntity);
         }
@@ -10643,15 +10773,23 @@ void testLegacyMTextColumnXdataPreservation(TestContext& t) {
             ? 0u : parsedSecond->handle;
         const std::uint32_t previousThirdHandle = parsedThird == nullptr
             ? 0u : parsedThird->handle;
+        const std::uint32_t previousHeadHandle = parsedHead == nullptr ? 0u : parsedHead->handle;
+        const std::uint32_t previousLineHandle = parsedLine == nullptr ? 0u : parsedLine->handle;
         LinkedMTextWriter writer(parsed, true);
         dx_data decoded;
         dx_iface outputReader;
         const bool roundTrip = sourceMatches && writer.fileExport(
                 outputPath.string(), DRW::AC1015, binary, &parsed, false)
             && writer.preallocationSucceeded
+            && parsedHead != nullptr && parsedLine != nullptr
             && parsedSecond != nullptr && parsedThird != nullptr
-            && parsedSecond->handle != previousSecondHandle
-            && parsedThird->handle != previousThirdHandle
+            && parsedHead->handle == previousHeadHandle && parsedLine->handle == previousLineHandle
+            && parsedSecond->handle == previousSecondHandle
+            && parsedThird->handle == previousThirdHandle && matchesProfile(parsed)
+            && writer.emittedHandle(previousSecondHandle) != previousSecondHandle
+            && writer.emittedHandle(previousThirdHandle) != previousThirdHandle
+            && checkWire(outputPath, binary, {{writer.emittedHandle(previousHeadHandle),
+                writer.emittedHandle(previousSecondHandle), writer.emittedHandle(previousThirdHandle)}})
             && outputReader.fileImport(outputPath.string(), &decoded, false)
             && matchesProfile(decoded);
         t.expect(roundTrip,
@@ -10662,6 +10800,11 @@ void testLegacyMTextColumnXdataPreservation(TestContext& t) {
             std::filesystem::remove(path, error);
         }
     }
+    t.expect(wireControls == 4u && observerRefusals == 48u && refusedTransactions == 4u,
+             "four legacy output files, 48 observer corruptions and four refused transactions execute");
+    std::cout << "Legacy MTEXT wire controls=" << wireControls
+              << " observer refusals=" << observerRefusals
+              << " refused transactions=" << refusedTransactions << '\n';
 }
 
 void testMTextOrientationPrecedence(TestContext& t) {
@@ -13185,6 +13328,179 @@ bool skipBinaryDxfGroupValue(const std::string& bytes, int code,
     if (length > bytes.size() - offset)
         return false;
     offset += length;
+    return true;
+}
+
+bool readLegacyMTextWire(const std::string& bytes, bool binary,
+                        const std::array<std::uint32_t, 3>& expectedHandles,
+                        LegacyMTextWireProof& proof) {
+    // Scoped literal observer for the authored R2000 four-entity fixture,
+    // not a general DXF parser. Reuse only test-owned lexical/width helpers.
+    proof = {};
+    constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a\0";
+    if (binary && (bytes.size() < 22u || bytes.compare(0, 22u, signature, 22u) != 0))
+        return false;
+    struct Value { int code; std::string text; double number {0.0}; };
+    std::vector<Value> xdata;
+    const std::array<std::string, 4> types {{"MTEXT", "LINE", "MTEXT", "MTEXT"}};
+    const std::array<std::string, 4> texts {{"legacy-head", "", "legacy-2", "legacy-3"}};
+    std::array<bool, 4> hasOwner {}, hasText {};
+    std::array<bool, 6> hasCoordinate {};
+    const std::array<int, 6> coordinates {{10, 20, 30, 11, 21, 31}};
+    std::size_t offset = binary ? 22u : 0u, count = 0u, current = 4u;
+    std::string section;
+    bool expectSection = false, sawEntities = false, sawEof = false;
+    while (offset < bytes.size()) {
+        LegacyMTextWireSpan span;
+        span.begin = offset;
+        int code = 0;
+        std::string_view value;
+        if (binary) {
+            if (bytes.size() - offset < 2u) return false;
+            code = static_cast<unsigned char>(bytes[offset])
+                | (static_cast<int>(static_cast<unsigned char>(bytes[offset + 1u])) << 8);
+            offset += 2u;
+            span.valueBegin = offset;
+            if (!skipBinaryDxfGroupValue(bytes, code, offset, value)) return false;
+            span.valueEnd = value.empty() ? offset : span.valueBegin + value.size();
+        } else {
+            std::string_view codeLine;
+            if (!readAsciiDxfLine(bytes, offset, codeLine)
+                || !parseAsciiDxfGroupCode(codeLine, code)) return false;
+            span.valueBegin = offset;
+            if (!readAsciiDxfLine(bytes, offset, value)) return false;
+            span.valueEnd = span.valueBegin + value.size();
+        }
+        span.end = offset;
+        if (code == 0) {
+            current = 4u;
+            if (value == "SECTION") {
+                if (expectSection || !section.empty()) return false;
+                expectSection = true;
+            } else if (value == "ENDSEC") {
+                if (expectSection || section.empty()) return false;
+                section.clear();
+            } else if (value == "EOF") {
+                sawEof = !expectSection && section.empty() && offset == bytes.size();
+                break;
+            } else if (section == "ENTITIES") {
+                if (count == types.size() || value != types[count]) return false;
+                current = count++;
+            }
+            continue;
+        }
+        if (expectSection) {
+            if (code != 2 || value.empty()) return false;
+            section.assign(value);
+            expectSection = false;
+            if (section == "ENTITIES") {
+                if (sawEntities) return false;
+                sawEntities = true;
+            }
+            continue;
+        }
+        if (current == 4u) continue;
+        const auto realValue = [&](double& number) {
+            if (binary) {
+                if (offset - span.valueBegin != 8u) return false;
+                std::uint64_t bits = 0u;
+                for (unsigned byte = 0; byte < 8u; ++byte)
+                    bits |= static_cast<std::uint64_t>(static_cast<unsigned char>(
+                        bytes[span.valueBegin + byte])) << (8u * byte);
+                static_assert(sizeof(bits) == sizeof(number), "DXF binary64 required");
+                std::memcpy(&number, &bits, sizeof(bits));
+                return std::isfinite(number);
+            }
+            std::istringstream text {std::string(value)};
+            text.imbue(std::locale::classic());
+            text >> number;
+            if (!text || !std::isfinite(number)) return false;
+            text >> std::ws;
+            return text.eof();
+        };
+        if (code == 5 || code == 330) {
+            std::uint32_t handle = 0u;
+            const auto parsed = std::from_chars(value.data(), value.data() + value.size(), handle, 16);
+            if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size() || handle == 0u)
+                return false;
+            if (code == 5) {
+                if (proof.handles[current] != 0u) return false;
+                proof.handles[current] = handle;
+                proof.handleSpans[current] = span;
+            } else {
+                if (hasOwner[current] || handle != 0x1Fu) return false;
+                hasOwner[current] = true;
+            }
+        } else if (code == 101 || code == 75 || code == 3) {
+            return false; // No R2018 aggregation/context or text chunks here.
+        } else if (code == 1) {
+            if (hasText[current] || value != texts[current]) return false;
+            hasText[current] = true;
+            if (current == 0u) proof.headText = span;
+        } else if (code >= 1000) {
+            if (current != 0u || xdata.size() == 32u) return false;
+            Value tag {code, {}, 0.0};
+            if (code == 1000 || code == 1001 || code == 1005) {
+                tag.text.assign(value);
+            } else if (code == 1040) {
+                if (!realValue(tag.number)) return false;
+            } else if (code == 1070) {
+                int integer = 0;
+                if (binary) {
+                    if (offset - span.valueBegin != 2u) return false;
+                    integer = static_cast<unsigned char>(bytes[span.valueBegin])
+                        | (static_cast<int>(static_cast<unsigned char>(bytes[span.valueBegin + 1u])) << 8);
+                    if (integer >= 0x8000) integer -= 0x10000;
+                } else if (!parseAsciiDxfGroupCode(value, integer)) return false;
+                tag.number = integer;
+            } else return false;
+            proof.xdataSpans[xdata.size()] = span;
+            xdata.push_back(std::move(tag));
+        } else if (current == 1u) {
+            const auto found = std::find(coordinates.begin(), coordinates.end(), code);
+            if (found != coordinates.end()) {
+                const auto index = static_cast<std::size_t>(found - coordinates.begin());
+                double number = 0.0;
+                if (hasCoordinate[index] || !realValue(number) || number != 71.0 + index)
+                    return false;
+                hasCoordinate[index] = true;
+                if (index == 0u) proof.lineX = span;
+            }
+        }
+    }
+    if (!sawEof || !sawEntities || count != 4u || xdata.size() != 32u
+        || !hasText[0] || !hasText[2] || !hasText[3]
+        || std::find(hasOwner.begin(), hasOwner.end(), false) != hasOwner.end()
+        || std::find(hasCoordinate.begin(), hasCoordinate.end(), false) != hasCoordinate.end())
+        return false;
+    for (std::size_t i = 0; i < proof.handles.size(); ++i) {
+        if (proof.handles[i] == 0u) return false;
+        for (std::size_t j = i + 1; j < proof.handles.size(); ++j)
+            if (proof.handles[i] == proof.handles[j]) return false;
+    }
+    if (proof.handles[0] != expectedHandles[0] || proof.handles[2] != expectedHandles[1]
+        || proof.handles[3] != expectedHandles[2]) return false;
+    const auto hex = [](std::uint32_t handle) {
+        std::ostringstream text;
+        text << std::uppercase << std::hex << handle;
+        return text.str();
+    };
+    const std::array<Value, 32> expected {{
+        {1001, "ACAD"}, {1000, "ACAD_MTEXT_COLUMN_INFO_BEGIN"},
+        {1070, {}, 75}, {1070, {}, 2}, {1070, {}, 79}, {1070, {}, 0},
+        {1070, {}, 76}, {1070, {}, 9}, {1070, {}, 78}, {1070, {}, 1},
+        {1070, {}, 48}, {1040, {}, 40}, {1070, {}, 49}, {1040, {}, 5},
+        {1070, {}, 50}, {1070, {}, 3}, {1040, {}, 11}, {1040, {}, 12},
+        {1040, {}, 0}, {1070, {}, 99}, {1040, {}, 3.25},
+        {1000, "ACAD_MTEXT_COLUMN_INFO_END"}, {1000, "ACAD_MTEXT_COLUMNS_BEGIN"},
+        {1070, {}, 47}, {1070, {}, 3}, {1005, hex(proof.handles[2])},
+        {1005, hex(proof.handles[3])}, {1000, "ACAD_MTEXT_COLUMNS_END"},
+        {1000, "ACAD_MTEXT_DEFINED_HEIGHT_BEGIN"}, {1070, {}, 46},
+        {1040, {}, 80}, {1000, "ACAD_MTEXT_DEFINED_HEIGHT_END"}
+    }};
+    for (std::size_t i = 0; i < expected.size(); ++i)
+        if (xdata[i].code != expected[i].code || xdata[i].text != expected[i].text
+            || xdata[i].number != expected[i].number) return false;
     return true;
 }
 
@@ -34783,6 +35099,13 @@ int main(int argc, char** argv) {
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--legacy-mtext-xdata-identity") {
+        TestContext context;
+        testLegacyMTextColumnXdataPreservation(context);
+        std::cout << "Legacy MTEXT source identities and physical XDATA links: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--mtext-column-object-scope") {
         TestContext context;
         testMTextColumnObjectScope(context);
@@ -34944,6 +35267,7 @@ int main(int argc, char** argv) {
     testClassicVertexPresenceBoundaries(context);
     testClassicVertexIdentifierRetention(context);
     testMTextColumnObjectScope(context);
+    testLegacyMTextColumnXdataPreservation(context);
     testEntityMaterialHandleRemapping(context);
     testMTextOrientationPrecedence(context);
     testZeroYHatch(context);

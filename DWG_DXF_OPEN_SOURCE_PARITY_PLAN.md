@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dm DXF RGB-to-CMC projection and native retries (2026-10-25):** the native issue-1410 control is fixed without changing DWG layout or weakening retained-native metadata checks. Unmarked DXF models may retain an inactive ACI fallback alongside active RGB; output uses the single C2 RGB value and reserved zero index, without changing the source model. Ninety positive color cells, 216 provenance refusals, four range refusals and both ATTDEF/ATTRIB file rollback/retry paths are covered. Expanded validation also exposes a legacy MTEXT column/XDATA control that must be resolved separately, not waived. Full immutable ATTDEF proof and original consumer/semantic/platform parity remain open. [Implementation and next work](#implementation-progress-rpp-5dm-dxf-rgb-to-cmc-projection-and-native-retries-2026-10-25) · [receipt](docs/research/rpp5dm-dxf-mtext-rgb-cmc-projection-and-native-retry-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dn legacy MTEXT immutable identities and independent XDATA wire proof (2026-10-25):** the remaining legacy control had stale caller-handle mutation expectations. Production already preserves source identities and emits the correct remapped links. The corrected oracle checks those source identities, successful binding maps and original ASCII/binary output directly: four wire profiles, 48 corruption refusals and four failed transactions plus two corrected same-adapter exports per owning invocation. All 32 XDATA values, linked entities and following geometry remain checked. A fast isolated selector and 22/22 normal/ASan affected checks pass; no production code or support gate changes. Full immutable ATTDEF source proof is next. [Implementation and next work](#implementation-progress-rpp-5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25) · [receipt](docs/research/rpp5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dm DXF RGB-to-CMC projection and native retries (2026-10-25):** committed as `09a93b86`. Its native issue-1410 admission fix, strict retained-native guards and rollback/retry coverage remain valid. The historical 95/96 results are retained in its immutable receipt. RPP-5dn resolves the sole legacy control as a stale mutation oracle, with independent physical output checks rather than dropping assertions about emitted identities or links. Full immutable ATTDEF proof and original consumer/semantic/platform parity remain open. [Historical implementation](#implementation-progress-rpp-5dm-dxf-rgb-to-cmc-projection-and-native-retries-2026-10-25) · [receipt](docs/research/rpp5dm-dxf-mtext-rgb-cmc-projection-and-native-retry-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dl bounded ATTDEF source transport and application-capture parity (2026-10-25):** committed as `a9d49d4b`. Its separate opt-in source facet, staged source/typed pairs, shared decoder and application-capture fixes remain valid. The historical native issue-1410 failure is resolved by RPP-5dm; the immutable RPP-5dl receipt retains its original red evidence. The converter's immutable ATTDEF proof and secondary-attribute semantics remain open; transport is not another qualified resource family. [Historical implementation](#implementation-progress-rpp-5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25) · [receipt](docs/research/rpp5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25.json).
 
@@ -125659,7 +125661,9 @@ at runtime. Historical receipts are retained without rewriting their results.
 
 Next implementation-ready work, keeping the complete objective:
 
-1. [ ] **Resolve the legacy MTEXT column/XDATA control.** Isolate ASCII and
+1. [x] **Resolve the legacy MTEXT column/XDATA control.** Resolved by RPP-5dn
+   below; the preceding 95/96 result is the historical RPP-5dm checkpoint.
+   Isolate ASCII and
    binary AC1015 source/output phases in
    `testLegacyMTextColumnXdataPreservation`. Distinguish required wire-level
    linked-handle remapping from this test's expectation that caller handles
@@ -125706,3 +125710,122 @@ remains **CLOSED**, `outputEligible=false`; J256/J260/J268/J284/J293/J295 stay
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. The full goal remains open;
 this slice does not authorize a push or other remote mutation.
+
+## Implementation progress RPP-5dn legacy MTEXT immutable identities and independent XDATA wire proof (2026-10-25)
+
+Parent is `09a93b86c33148ea9399a4e92ba4fa21485f2885`. This resolves the required
+legacy MTEXT control from RPP-5dm **without changing production code**. Existing
+red receipts remain immutable, including the exact-parent reproduction. A fresh
+owning baseline on this parent reproduced the same four failed assertions.
+
+Root cause: `testLegacyMTextColumnXdataPreservation` required that exports
+replace the caller's linked-MTEXT handles with minted IDs. The adapter instead
+explicitly enables `m_preserveGraphSourceIdentities` for every export and uses
+`EntityIdentityScope` to restore borrowed entity/child handles. This protects
+deferred references and repeated exports; restoring mutation to satisfy the
+old oracle would violate that contract. The test's imported XDATA/profile
+checks already passed. Its two mutation assumptions per encoding, not a
+production link-remapping defect, caused the four failures.
+
+Completed work:
+
+1. [x] Keep the authored AC1015 ASCII/binary fixture and all existing exact
+   profile checks. Require original source handles and XDATA profiles to remain
+   unchanged across both exports, while **emitted** linked IDs actually change.
+   Capture only successful, marked-written bindings at `finalizeDxfWrite` and
+   compare them with physical output, not the map alone.
+2. [x] Add a test-owned literal observer, reusing only test-owned ASCII lexical
+   and binary width helpers (no production `dxfReader`, DRW parse path or writer
+   remapper). Walk original emitted bytes through terminal EOF; require the
+   four-entity MTEXT/LINE/MTEXT/MTEXT order, unique nonnull IDs, literal model-space
+   owner values, each MTEXT text, all six following-LINE coordinates and exactly
+   **32 ordered XDATA values**. Match both 1005 references against the actual
+   linked records, retain unknown key 99/value 3.25 and refuse embedded/aggregated
+   R2018 context in this legacy fixture.
+3. [x] Cover **four positive wire profiles per invocation** (two encodings ×
+   two successive exports) and **48 observer refusals**: per file corrupt the
+   head identity, either reference, text, unknown integer/real, following LINE;
+   duplicate/drop/reorder links, duplicate identity or truncate EOF. Mutations
+   operate on physical byte spans, preserving the appropriate encoded value
+   width where applicable. The observer is scoped to this authored profile,
+   not a general DXF parser, external CAD renderer or native DWG reader.
+4. [x] For each encoding, give a legacy 1070 XDATA slot the wrong variant type.
+   Refuse with absent and existing destinations, preserve exact scratch sentinel
+   bytes and source identities, restore the variant and export successfully on
+   the **same adapter**. This checks **four failed transactions and two corrected
+   exports per invocation**. `fileExport` creates a fresh codec facade each time;
+   no same-facade claim is made for these tests.
+5. [x] Add fast `libdxfrw_legacy_mtext_xdata_identity` and retain the case in the
+   broader MTEXT selector; include it in the default fixture-test run too. The
+   isolated selector emits no format-15/error-14 messages. The broader selector
+   still prints six such diagnostics while passing: those come from its expected
+   malformed-input controls, not failed legacy source/output imports.
+
+The [Autodesk group-code reference](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
+identifies entity handles, XDATA handles and integer/real roles. The
+[ezdxf MTEXT internals](https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html)
+describe the pre-R2018 linked-MTEXT XDATA representation. These inform the scoped
+wire checks; they do not establish rendering, automatic column aggregation or
+independent external semantic qualification. No new independent CAD/runtime run
+or native format-layout change is claimed.
+
+Validation is deliberately fast and affected: **22/22 normally in 2.75 s** and
+**22/22 under ASan in 5.48 s**, sequentially, with leak checks disabled. Both
+owning selectors also pass verbosely with the exact per-invocation counters
+above. The test target and `lc3_compat_check` build in both configurations. No
+library/public API/adapter implementation changed, no warning bypass was added,
+and no full suite or replacement 96-case integration result is claimed.
+The RPP-5dm 95/96 history remains unchanged; its sole failed control is now green
+in the current owning/affected selection. Host remains macOS ARM64 Apple Clang
+21, not Linux/GCC or native Windows qualification. The
+[RPP-5dn receipt](docs/research/rpp5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25.json)
+records exact test membership, output counts, limits and hashes. All new drawing
+controls are locally authored at runtime; external fixtures remain excluded.
+
+Next ready dependency: **complete converter immutable ATTDEF source proof**.
+Implementation order and acceptance gates:
+
+1. [ ] Add the separate opt-in facet to `dx_iface`, only during the bounded
+   actual-import capture session. Extend `TableDxfSourceCapture::Resource` with
+   a correctly typed owned ATTDEF entity snapshot and matching raw/context
+   owners; do not cast an entity into its existing table-entry snapshot. Reuse
+   typed entity payload estimators and precharge permanent and temporary owners
+   against shared record/item/byte/work limits. Avoid duplicate raw clones and
+   repeated whole-model scans; preserve opt-out behavior and old vtables.
+2. [ ] Replay through `dxfAttdef::Decoder`, which currently accepts a target
+   model and supplies `parseCode`, `applicationEntity` and `finish(applyExtrusion)`.
+   Supply actual source revision/encoding in the bounded raw reader, not guessed
+   normalized writer settings. Preserve production host/nested application and
+   XDATA routing, required-field admission and final MTEXT angle/column state.
+   Record and check requested extrusion/read context; TEXT extrusion remains a
+   no-op, not independent geometry-transform evidence.
+3. [ ] Freeze and compare every exposed/default/native-only common, TEXT,
+   ATTRIB, ATTDEF and nested-MTEXT field, raw app/XDATA variants, provenance and
+   pending/private parse state relevant to later operations. Add a field census
+   with one-field mutation controls; no round-trip or short projected-field
+   comparison substitutes for that equality. Require source-before-typed pairing,
+   identity/family agreement and sticky missing/duplicate/late/session failures;
+   exercise quotas, allocation faults and corrected retries.
+4. [ ] Require complete proof for selected attribute-definition resource
+   targets. Carry actual enclosing block identity/owner evidence: the facet's
+   `inBlock` boolean alone is not that chain. Extend original-tag reference
+   observations without re-exporting normalization. Qualify or explicitly refuse
+   secondary/duplicate/multiline `AcDbXrecord` attribute profiles, rather than
+   declaring support from raw retention. Do not raise the resource-family count
+   or open either export guard before these gates are actually satisfied.
+5. [ ] Then finish BLOCK/ENDBLK, ATTRIB/SEQEND and APPID/LAYER, B2b/B3/C full
+   common/target/live/output work, compound ID/output/reference and rollback
+   proofs, IMAGE/document and native bit/decimal/carrier/schema/owner work.
+   Preserve the original 2D LibreCAD/LibreCAD_3 and 3D/dwg2dxf/FreeCAD objective,
+   plus speed/ownership/allocation and external semantic/platform requirements.
+6. [ ] After each item, self-update evidence and unqualified profiles, select
+   the next safe ready dependency, commit/report coherent slices and continue.
+   Use owning/affected fast selectors by default; broader normal/ASan integration
+   cohorts remain sequential checkpoints, not a per-edit tax. Keep existing or
+   locally authored committed fixtures only, never downloaded external drawings.
+
+The proved CLI resource-family count remains **nine**. The support ledger stays
+**CLOSED**, `outputEligible=false`, and J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full goal is still open;
+no push, PR mutation or support promotion is included in this slice.
