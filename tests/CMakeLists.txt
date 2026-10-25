@@ -471,6 +471,23 @@ set_tests_properties(dwg2dxf_named_object_callback_storage PROPERTIES
     TIMEOUT 10
 )
 
+add_executable(libdxfrw_table_geometry_dxf_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/table_geometry_dxf_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_table_geometry_dxf_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_table_geometry_dxf_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_table_geometry_dxf_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_table_geometry_dxf_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_table_geometry_dxf_projection COMMAND libdxfrw_table_geometry_dxf_tests)
+set_tests_properties(libdxfrw_table_geometry_dxf_projection PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_table_geometry_observer_selftest
+    COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
+        ${CMAKE_CURRENT_SOURCE_DIR}/table_geometry_source_observer.py --self-test)
+set_tests_properties(libdxfrw_table_geometry_observer_selftest PROPERTIES
+    LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
+
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value
     COMMAND libdxfrw_dwg2dxf_adapter_tests --field-dxf-multichunk-value

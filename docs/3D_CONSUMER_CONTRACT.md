@@ -13,6 +13,27 @@ curve/surface evaluator, or ACIS kernel.
 
 ## Read mode and ownership
 
+The existing optional `addTableGeometry` callback receives a complete bounded
+DXF cache projection for AC1021/AC1024/AC1027/AC1032 in ASCII/binary form when
+the plain self/owner/subclass header and every count, cell and content field
+match the known schema. It owns rows/columns, flags, gap dimensions, cell soft
+pointers, XYZ top-left/center positions, content dimensions and the final int32
+group-95 field. Header owner and body soft-pointer roles remain separate,
+including an explicit null owner. Counts, finite values and exact field order
+are checked before publishing; no partial typed cache is published. Extended
+common metadata, wide references, other versions and unknown/reordered tails
+retain the unmodeled raw callback instead. A full raw companion is delivered
+for matched profiles too. Consumers should copy callback data they need.
+No public layout or callback signature changes in this slice.
+
+This is cache data delivery, not table evaluation, cache validity, source/output
+closure or DWG/3D semantic qualification. `dx_iface` has no standalone table
+dependency writer: typed TABLECONTENT/TABLEGEOMETRY callbacks and their raw
+fallbacks latch a sticky completeness refusal in both compatible and strict
+export, before destination publication. This also prevents silent loss of
+the pre-existing native DWG callbacks. Full table conversion needs its actual
+round-trip XRECORD/dictionary wrapper and content dependencies preserved.
+
 DWG HEADER admission distinguishes the inner CRC/sentinel-bounded body from
 the section-directory length. A witnessed AC1032 compatibility form excludes
 the optional four-byte word from RL; it is admitted only with zero unknown

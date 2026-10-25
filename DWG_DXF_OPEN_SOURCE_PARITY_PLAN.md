@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cv compatible DIMSTYLE resource remapping (2026-10-25):** known source references now follow actual emitted STYLE, BLOCK_RECORD and LTYPE bindings, including deprecated arrow-name aliases. The generated six-version ASCII/binary matrix passes 24 two-pass compatible routes followed by strict readback, 32 compatible unresolved controls, 48 atomic refusals/restored readbacks and four explicit-null routes. Strict dangling/wrong-family refusal remains enabled; already-invalid older replays are not repaired by guessing. Broader native/semantic/platform work remains open and the support qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cv-compatible-dimstyle-resource-remapping-2026-10-25) · [receipt](docs/research/rpp5cv-compatible-dimstyle-resource-remapping-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5cw DXF TABLEGEOMETRY projection and table-dependency loss gate (2026-10-25):** the first external OBJECTS blockers are TABLECONTENT/TABLEGEOMETRY behind an actual table round-trip XRECORD, not SWEEP. Complete bounded plain-header geometry profiles now reach the existing typed callback; other profiles remain raw/unqualified. Both converter modes refuse standalone table dependencies instead of silently dropping them. Independent DXF observation matches two 180-cell/eight-content caches; the paired native peer JSON has ten scalar disagreements, explicitly not waived. Table-content/wrapper transport, broader native/semantic/platform parity remain open; the support qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25) · [receipt](docs/research/rpp5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5cv compatible DIMSTYLE resource remapping (2026-10-25):** committed as `c6d3494d21f236fe01671521269468b2e0aec2f0`. Its tested known STYLE/BLOCK_RECORD/LTYPE binding remaps, repeated conversions, null handling and refusal/retry controls remain valid. RPP-5cw does not broaden that source/target qualification. [Historical implementation](#implementation-progress-rpp-5cv-compatible-dimstyle-resource-remapping-2026-10-25) · [immutable receipt](docs/research/rpp5cv-compatible-dimstyle-resource-remapping-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5cu strict MATERIAL dictionary/history closure (2026-10-25):** committed as `9ba6516698d0bdaf0d865b4122305ee63d98cca3`. Its scoped strict MATERIAL/root, frozen-source, staged-field and history controls remain valid. RPP-5cv closes its next known compatible DIMSTYLE remapping gap only; it does not qualify broader OBJECTS, native DWG or independent modeler semantics. [Historical implementation](#implementation-progress-rpp-5cu-strict-material-dictionary-history-closure-2026-10-25) · [immutable receipt](docs/research/rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json).
 
@@ -123461,7 +123463,10 @@ this localized slice. LibreCAD_3 compile gates check source compatibility only.
 
 Next implementation-ready actions, in priority order:
 
-1. [ ] Inventory the external example's still-rejected OBJECTS, retaining its
+1. [x] Completed by [RPP-5cw](#implementation-progress-rpp-5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25):
+   TABLECONTENT/TABLEGEOMETRY and their table round-trip XRECORD/dictionary
+   chain are the first external OBJECTS dependencies. Inventory the external
+   example's still-rejected OBJECTS, retaining its
    original read-only source/hash and exact first diagnostic. Identify the
    first unsupported family and dependencies; use a minimal locally authored
    control to reproduce it before adding admission. Unknown-profile rejection
@@ -123493,3 +123498,113 @@ FreeCAD and independent ACIS/ACDS semantic/kernel qualification are **NOT_RUN**.
 Earlier immutable receipts and all pre-existing untracked drawings are unchanged.
 No remote mutation is part of this checkpoint; the implementation goal remains
 active with the open work above.
+
+## Implementation progress RPP-5cw DXF TABLEGEOMETRY projection and table dependency loss gate (2026-10-25)
+
+Parent checkpoint: `c6d3494d21f236fe01671521269468b2e0aec2f0` (RPP-5cv).
+This implements typed cache access and prevents lost table dependencies; it
+does not implement their output route or complete the full parity objective.
+
+1. [x] Inventory actual callbacks against the pinned LibreDWG 0.14 external
+   AC1032 example without changing or committing it. The previous reader sends
+   TABLECONTENT `9B5` (6,741 groups) and TABLEGEOMETRY `9B6` (994 groups) through
+   the unmodeled callback. Both are owned by XRECORD `9B8`, not directly by the
+   table. The independent chain is TABLE `4F2` -> extension DICTIONARY `9B7`
+   -> `ACAD_XREC_ROUNDTRIP` XRECORD `9B8`, whose round-trip payload hard-owns
+   content via 360 and geometry via 361. AC1027 uses E43/E44/E41/E42 for the
+   analogous dictionary/wrapper/content/geometry. Keep identities file-specific.
+2. [x] Read and visually inspect ODA 5.4.1 section 20.4.103, pages 246–247,
+   using the cached ACadSharp reference copy because the documented home path
+   is absent. Corroborate DXF field roles with pinned LibreDWG declarations.
+   DXF group 95 is int32 despite the ODA row's BD annotation; do not extrapolate
+   that DXF scalar-width fact into a DWG decoder change. No DWG layout changed.
+3. [x] Publish the existing optional TABLEGEOMETRY callback only for complete
+   plain self/owner/subclass headers and the exact known body schema. Preserve
+   count products, flags, gap sizes, cell soft pointers, every XYZ component,
+   content sizes and int32 95. Bound rows/columns/cells/cumulative contents,
+   compare remaining group capacity before allocation, require finite doubles,
+   and consume the full body. Preserve the raw companion. Extra common metadata,
+   unknown versions, wide handles and malformed/unmodeled profiles keep the
+   prior raw fallback, never a partial typed result. Public types/layouts and
+   callbacks are unchanged; no new pure virtual is added.
+4. [x] Distinguish raw owner-slot presence from a nonzero value. An explicit
+   null/wide header owner may not be replaced by a later body 330. Stop owner
+   rescans at the first depth-zero 330; large null-owned cache records no longer
+   rescan the whole accumulated body for each cell pointer. Known typed
+   geometry also corrects the raw convenience owner from its exact header.
+5. [x] Close the converter's silent-loss gap for existing native standalone
+   TABLECONTENT/TABLEGEOMETRY callbacks and DXF typed/raw forms. Latch private
+   completeness flags; both compatible and strict export refuse before
+   destination replacement until a complete route is implemented. Do not clear
+   an earlier container's flags merely by reusing an importer/exporter facade.
+   This is a deliberate completeness refusal, not table-output qualification.
+6. [x] Generate all regular controls from scratch: 16 version/encoding/name
+   projection routes; 320 unsupported-profile raw fallbacks and 320 corrected
+   same-importer readbacks; 16 typed and 16 raw explicit-null owner controls;
+   four empty/10,000-cell boundary controls. Twenty-four typed-native, direct
+   raw and actual DXF refusal cases preserve a destination sentinel and recover
+   with a clean source on the same exporter, followed by actual LINE readback.
+   The first retry failure was a test setup error (unset currentBlock), fixed
+   without altering production capture rules. Both CTests use isolated scratch
+   state; no drawing fixture is committed.
+7. [x] Add a separate optional ezdxf-based observer, with a dependency-free
+   self-test (one exact positive, nine corruptions and exact float-disagreement
+   detection). Compare every observed field in both external DXFs: 180 cells
+   and eight content records each. Verify their XRECORD hard-owner slots and
+   reciprocal dictionary/table extension chain. Its eligibility is always false.
+8. [x] Keep the native peer disagreement visible. The paired LibreDWG JSON
+   agrees on dimensions/counts but differs in ten width scalars across five
+   cells: DXF `7.599999999999999`, peer JSON `7.6`. No tolerance or guessed
+   normalization is applied; the optional comparison emits a mismatch report
+   and exits nonzero. JSON decimal formatting may explain it, but native bits
+   are not proved equivalent. The peer leaves the companion TABLECONTENT as
+   UNKNOWN_OBJ; it is not independent complete content/schema evidence.
+
+Exact validation, source hashes, local logs and scoped limits are in the fresh
+[RPP-5cw receipt](docs/research/rpp5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25.json).
+All 30 affected normal tests pass in 15.22 s and 30 ASan tests pass in 34.30 s
+(`halt_on_error=1:detect_leaks=0`), with sequential owning cohorts. Both
+LibreCAD_3 compile gates pass; CLI static/shared-on/off registration passes in
+2.88 s. Builds retain `-Werror`. These are macOS ARM64 Apple Clang results,
+not Linux/GCC or native FreeCAD qualification. No full suite or leak check ran.
+Final test-only strengthening additionally verifies actual LINE type, all six
+XYZ coordinates and sticky prior-container flags: two owning tests pass in
+0.73 s normally and 1.29 s under ASan after confirmed successful rebuilds.
+The external full-policy CLI still refuses and publishes no output. This is
+correct while TABLECONTENT, wrapper transport and other dependency roles remain
+unqualified, not a successful full-drawing conversion.
+
+Next implementation-ready actions, preserving the complete original objective:
+
+1. [ ] Implement the actual TABLECONTENT DXF source schema and round-trip
+   wrapper before widening strict table admission. Trace LinkedData,
+   LinkedTableData, FormattedTableData and TableContent marker scopes, row/cell
+   counts, value/format carriers, STYLE/LTYPE/FIELD/DATALINK dependencies, custom
+   style IDs and embedded geometry. Preserve both the entity and wrapper views;
+   determine the authoritative source when they disagree, refusing ambiguity.
+   Author minimal primitive controls first; never copy the external fixture.
+2. [ ] Preserve the XRECORD's literal round-trip marker and ordered 360/361
+   hard-owner roles under the actual table extension dictionary. Add bounded
+   import/retention/source-generation snapshots, correct owner propagation,
+   exact staged fields and final unique targets. Cover missing/duplicate/wrong
+   role/aliased children, callback mutations, rollback and corrected retries.
+   Only then replace the explicit converter refusal with a complete route.
+3. [ ] Extend geometry common metadata and native writer/source proof separately.
+   Resolve the peer's decimal/bit discrepancy through original DWG field spans
+   or a sufficiently precise independent decode, not relaxed comparisons.
+   Keep general cache validity/table rendering/semantic qualification distinct
+   from source value transport and record any unproved equivalence honestly.
+4. [ ] Continue SWEEP/EXTRUSION embedded widths and nested/EED APPID/LAYER/
+   material role proof, complete native carrier/schema/owner and IMAGE/document
+   closure, and LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD interoperability.
+   No table slice replaces that original scope or the external platform gates.
+5. [ ] After every item, self-update evidence, limits and a fresh immutable
+   receipt; safely unblock the next ready dependency, run fast affected tests,
+   commit and report progress. Reserve full suites for integration checkpoints.
+   Never broaden authority or admit an unsupported profile to keep work moving.
+
+The support qualification ledger remains **CLOSED**; J256/J260/J268/J284/J293/
+J295 stay **DEFERRED_EXTERNAL** and cannot promote support claims. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. Existing immutable receipts and untracked drawings are
+untouched. The full implementation goal stays active; no remote write occurs.

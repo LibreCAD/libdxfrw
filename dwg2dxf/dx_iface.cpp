@@ -16479,6 +16479,18 @@ void dx_iface::addObjectContextData(const DRW_ObjectContextData& data) {
         cData->standaloneObjectContextDataPresent = true;
 }
 
+void dx_iface::addTableContent(const DRW_TableContentObject& data) {
+    (void)data;
+    if (cData != nullptr)
+        cData->standaloneTableContentPresent = true;
+}
+
+void dx_iface::addTableGeometry(const DRW_TableGeometry& data) {
+    (void)data;
+    if (cData != nullptr)
+        cData->standaloneTableGeometryPresent = true;
+}
+
 void dx_iface::addRenderSettings(const DRW_RenderSettings& data) {
     if (cData == nullptr || cData->renderSettingsCaptureFailed)
         return;
@@ -18222,9 +18234,15 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
 }
 
 void dx_iface::addUnmodeledDxfObject(const DRW_RawDxfObject& data) {
-    (void)data;
-    if (cData != nullptr)
+    if (cData != nullptr) {
         cData->unmodeledDxfObjectSeen = true;
+        if (asciiIdentifierEquals(data.name, "TABLECONTENT")
+            || asciiIdentifierEquals(data.name, "ACDBTABLECONTENT"))
+            cData->standaloneTableContentPresent = true;
+        if (asciiIdentifierEquals(data.name, "TABLEGEOMETRY")
+            || asciiIdentifierEquals(data.name, "ACDBTABLEGEOMETRY"))
+            cData->standaloneTableGeometryPresent = true;
+    }
 }
 
 void dx_iface::addRawDxfEntity(const DRW_RawDxfObject& data) {
@@ -22821,6 +22839,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     if (requireResolvedOwners && cData->unmodeledDxfObjectSeen) {
         reportPreflightFailure(
             "unmodeled OBJECTS record has no qualified owner/remap/output route");
+        return false;
+    }
+    if (cData->standaloneTableContentPresent
+        || cData->standaloneTableGeometryPresent) {
+        // This is an output completeness failure, not an optional strict
+        // owner policy: neither mode may claim to have preserved the table.
+        std::cerr << "DXF export refused: standalone "
+                  << (cData->standaloneTableContentPresent
+                          ? "TABLECONTENT" : "TABLEGEOMETRY")
+                  << " has no qualified replay path; output would be incomplete\n";
         return false;
     }
     if (cData->standaloneObjectContextDataPresent) {

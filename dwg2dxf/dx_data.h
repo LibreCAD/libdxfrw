@@ -673,6 +673,11 @@ public:
     // adapter route are not retained. Strict conversion must not silently
     // publish a document after observing one of these records.
     bool unmodeledDxfObjectSeen{false};
+    // Standalone table dependencies have typed read callbacks, but no
+    // converter-owned replay/semantic writer yet. Refuse rather than drop
+    // them in either compatible or strict conversion (DXF or native DWG).
+    bool standaloneTableContentPresent{false};
+    bool standaloneTableGeometryPresent{false};
     bool rawDxfEntityCaptureFailed {false}; //fail closed on incomplete capture
     std::size_t rawDxfEntityRetainedRecords{0};
     std::size_t rawDxfEntityRawGroups{0};

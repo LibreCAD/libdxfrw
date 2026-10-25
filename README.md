@@ -433,6 +433,12 @@ ASCII/binary controls cover repeated conversion, explicit nulls and atomic
 failure/retry. Unknown compatible references remain unqualified; strict
 conversion still rejects dangling or wrong-family references.
 
+The existing optional `addTableGeometry` callback also exposes complete bounded
+DXF TABLEGEOMETRY cache profiles (AC1021–AC1032, ASCII/binary), including XYZ
+content positions and cell soft pointers. Other profiles stay raw/unqualified.
+The converter refuses standalone TABLECONTENT/TABLEGEOMETRY in either output
+mode until their complete replay path exists; it does not silently discard them.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

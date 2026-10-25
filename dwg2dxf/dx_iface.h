@@ -233,6 +233,8 @@ public:
     void addDwgGroupMembership(const DRW_DwgGroupMembership& data) override;
     void addObjectContextData(
             const DRW_ObjectContextData& data) override;
+    void addTableContent(const DRW_TableContentObject& data) override;
+    void addTableGeometry(const DRW_TableGeometry& data) override;
     void addUnsupportedObject(const DRW_UnsupportedObject& data) override;
     void addImageDefinitionReactor(const DRW_ImageDefinitionReactor& data) override;
 

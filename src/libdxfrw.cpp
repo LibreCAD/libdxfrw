@@ -21358,6 +21358,97 @@ bool parseRawDxfHandleLexeme(std::string_view text, std::uint64_t& value) {
     return result.ec == std::errc{} && result.ptr == end;
 }
 
+// ODA 5.4.1 section 20.4.103. Decode only a complete, bounded DXF cache
+// profile. Other common metadata or future tails keep the unmodeled raw
+// callback; never publish a partial typed cache as though it were complete.
+bool captureDxfTableGeometryProjection(const DRW_RawDxfObject& raw,
+                                        DRW_TableGeometry& output) {
+    if ((!dxfKeywordEquals(raw.name, "TABLEGEOMETRY")
+         && !dxfKeywordEquals(raw.name, "ACDBTABLEGEOMETRY"))
+        || raw.m_version < DRW::AC1021 || raw.m_version > DRW::AC1032)
+        return false;
+    try {
+        std::size_t index = 0u;
+        const auto next = [&](int code, DRW_Variant::TYPE type)
+                -> const DRW_Variant* {
+            if (index == raw.groups.size() || raw.groups[index].code() != code
+                || raw.groups[index].type() != type)
+                return nullptr;
+            return &raw.groups[index++];
+        };
+        const auto integer = [&](int code, std::int32_t& value) {
+            const auto* group = next(code, DRW_Variant::INTEGER);
+            if (group == nullptr) return false;
+            value = group->i_val();
+            return true;
+        };
+        const auto real = [&](int code, double& value) {
+            const auto* group = next(code, DRW_Variant::DOUBLE);
+            if (group == nullptr || !std::isfinite(group->d_val())) return false;
+            value = group->d_val();
+            return true;
+        };
+        const auto handle = [&](int code, std::uint32_t& value) {
+            const auto* group = next(code, DRW_Variant::STRING);
+            std::uint64_t wide = 0u;
+            if (group == nullptr || group->content.s == nullptr
+                || !parseRawDxfHandleLexeme(*group->content.s, wide)
+                || wide > std::numeric_limits<std::uint32_t>::max()) return false;
+            value = static_cast<std::uint32_t>(wide);
+            return true;
+        };
+        DRW_TableGeometry parsed;
+        if (!handle(5, parsed.handle) || parsed.handle == 0u
+            || !handle(330, parsed.parentHandle)) return false;
+        const auto* subclass = next(100, DRW_Variant::STRING);
+        if (subclass == nullptr || subclass->content.s == nullptr
+            || *subclass->content.s != "AcDbTableGeometry"
+            || !integer(90, parsed.m_rowCount)
+            || !integer(91, parsed.m_columnCount)
+            || !integer(92, parsed.m_cellCount)
+            || parsed.m_rowCount < 0 || parsed.m_rowCount > DRW_TableGeometry::kMaxRows
+            || parsed.m_columnCount < 0 || parsed.m_columnCount > DRW_TableGeometry::kMaxColumns
+            || parsed.m_cellCount < 0 || parsed.m_cellCount > DRW_TableGeometry::kMaxCells
+            || static_cast<std::int64_t>(parsed.m_rowCount) * parsed.m_columnCount
+                != parsed.m_cellCount
+            || static_cast<std::size_t>(parsed.m_cellCount)
+                > (raw.groups.size() - index) / 5u) return false;
+        parsed.m_cells.reserve(static_cast<std::size_t>(parsed.m_cellCount));
+        std::size_t totalContents = 0u;
+        for (std::int32_t cellIndex = 0; cellIndex < parsed.m_cellCount; ++cellIndex) {
+            DRW_TableGeometryCell cell;
+            std::int32_t count = 0;
+            if (!integer(93, cell.m_flags) || !real(40, cell.m_widthWithGap)
+                || !real(41, cell.m_heightWithGap)
+                || !handle(330, cell.m_unknownHandle) || !integer(94, count)
+                || count < 0 || static_cast<std::size_t>(count)
+                    > static_cast<std::size_t>(DRW_TableGeometry::kMaxContentGeometry) - totalContents
+                || static_cast<std::size_t>(count)
+                    > (raw.groups.size() - index) / 11u) return false;
+            totalContents += static_cast<std::size_t>(count);
+            cell.m_contents.reserve(static_cast<std::size_t>(count));
+            for (std::int32_t contentIndex = 0; contentIndex < count; ++contentIndex) {
+                DRW_TableGeometryContent content;
+                if (!real(10, content.m_topLeft.x) || !real(20, content.m_topLeft.y)
+                    || !real(30, content.m_topLeft.z) || !real(11, content.m_center.x)
+                    || !real(21, content.m_center.y) || !real(31, content.m_center.z)
+                    || !real(43, content.m_contentWidth) || !real(44, content.m_contentHeight)
+                    || !real(45, content.m_width) || !real(46, content.m_height)
+                    // DXF 95 is an int32 even though the ODA table labels
+                    // this last DWG field BD. Do not change the DWG decoder.
+                    || !integer(95, content.m_unknown)) return false;
+                cell.m_contents.push_back(content);
+            }
+            parsed.m_cells.push_back(std::move(cell));
+        }
+        if (index != raw.groups.size()) return false;
+        output = std::move(parsed);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 // Group 5 is a self identity in a record header, but an opaque numeric sort
 // key in the SORTENTSTABLE body. Keep this exception record/subclass scoped;
 // changing the global group-code role would break ordinary identity remaps.
@@ -22506,14 +22597,15 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
         // The raw group string remains authoritative when the handle does not
         // fit this legacy 32-bit convenience field.
         obj.handle = reader->getHandleString();
-    } else if (330 == code) {
+    } else if (330 == code && obj.parentHandle == 0) {
         // Latch the OWNER 330 only — the one OUTSIDE any 102 {ACAD_REACTORS/
         // ACAD_XDICTIONARY} control group. Reactor 330s live at 102-group depth
-        // >= 1; the prior code latched the LAST 330 unconditionally, so an object
-        // whose only 330s are reactors (no owner 330) took a reactor handle as
-        // its owner. Compute the depth from the groups captured so far (the
-        // current 330 is the last element) and latch only at depth 0.
+        // >= 1. Presence, not a nonzero decoded value, closes the owner slot:
+        // an explicit null (or wide raw owner) must not be overwritten by a
+        // later body soft pointer. Stop at that first owner, avoiding a full
+        // body rescan for every pointer in large null-owned cache records.
         int depth = 0;
+        bool ownerSeen = false;
         for (std::size_t i = 0; i + 1 < obj.groups.size(); ++i) {
             if (obj.groups[i].code() == 102
                 && obj.groups[i].type() == DRW_Variant::STRING) {
@@ -22521,9 +22613,13 @@ bool dxfRW::captureRawGroup(DRW_RawDxfObject &obj, int code,
                 if (v && v[0] == '{' && v[1] != '\0') ++depth;
                 else if (v && v[0] == '}') --depth;
             }
+            if (depth == 0 && obj.groups[i].code() == 330) {
+                ownerSeen = true;
+                break;
+            }
         }
-        if (depth == 0 && obj.parentHandle == 0)
-        obj.parentHandle = reader->getHandleString();
+        if (!ownerSeen && depth == 0)
+            obj.parentHandle = reader->getHandleString();
     }
     return true;
 }
@@ -22701,7 +22797,14 @@ bool dxfRW::processRawObject(bool reportUnmodeled) {
                 return setError(DRW::BAD_READ_OBJECTS);
             if (requiresDxfSelfHandle(*reader) && !hasRawDxfSelfHandle(obj))
                 return setError(DRW::BAD_READ_OBJECTS);
-            if (reportUnmodeled) {
+            DRW_TableGeometry geometry;
+            if (reportUnmodeled && captureDxfTableGeometryProjection(obj, geometry)) {
+                // Body 330s are soft pointers, not additional object owners.
+                // Correct the raw convenience field even for an explicit
+                // null header owner followed by a non-null body reference.
+                obj.parentHandle = geometry.parentHandle;
+                iface->addTableGeometry(geometry);
+            } else if (reportUnmodeled) {
                 auto* handler =
                     dynamic_cast<DRW_UnmodeledDxfObjectHandler*>(iface);
                 if (handler != nullptr)
