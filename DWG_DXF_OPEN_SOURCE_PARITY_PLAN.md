@@ -1,4 +1,4 @@
-**Newest implementation checkpoint — RPP-5dp immutable ATTDEF capture and modeled replay (2026-10-25):** the converter now opts into the separate facet during known-modern actual imports. It freezes an entity/raw/context pair and observes original parser state before copies reset it, compares the later typed callback, and replays the original source through the shared decoder. Forty-eight base and 16 rich profiles, 296 callback-field faults, eight raw-field faults, seven quota boundaries and calibrated source/replay allocation controls pass. These are modeled-field prerequisites, not complete selected-profile/reference qualification: the ATTDEF `rawTypedMatched` flag remains false and the proved family count remains nine. [Implementation and next work](#implementation-progress-rpp-5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dp immutable ATTDEF capture and modeled replay (2026-10-25):** committed as `9c5e79a`. The converter now opts into the separate facet during known-modern actual imports. It freezes an entity/raw/context pair and observes original parser state before copies reset it, compares the later typed callback, and replays the original source through the shared decoder. Forty-eight base and 16 rich profiles, 296 callback-field faults, eight raw-field faults, seven quota boundaries and calibrated source/replay allocation controls pass. Both affected integration cohorts pass **106/106**, normally and under ASan. These are modeled-field prerequisites, not complete selected-profile/reference qualification: the ATTDEF `rawTypedMatched` flag remains false and the proved family count remains nine. [Implementation and next work](#implementation-progress-rpp-5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5do nested MTEXT common-owner accounting prerequisite (2026-10-25):** committed as `2e4bb6af`. Its corrected nested common-owner charge, 60-cell/32-import coverage and budget/allocation recovery remain valid. RPP-5dp uses that estimator for real immutable capture and records original state separately; full ATTDEF profile/role/block/target and original parity work remain open. [Historical implementation](#implementation-progress-rpp-5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25) · [receipt](docs/research/rpp5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25.json).
 
@@ -125950,6 +125950,10 @@ remain **NOT_RUN**. The full implementation goal stays open. No remote mutation
 or support promotion is included.
 
 ## Implementation progress RPP-5dp immutable ATTDEF capture and modeled replay (2026-10-25)
+
+Implementation, tests, field census, immutable receipt and the initial plan update
+are committed as `9c5e79a`. This follow-up records the committed checkpoint only;
+it does not add support qualification or require another integration run.
 
 Parent is `2e4bb6af6c4dd54d300e0f7e8d6921070de90f6d`. The converter now captures
 immutable ATTDEF evidence and checks **modeled field agreement**, rather than
