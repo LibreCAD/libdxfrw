@@ -741,6 +741,12 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --xrecord-normal-string-codes)
     set_tests_properties(libdxfrw_xrecord_normal_string_codes PROPERTIES
         LABELS "fast;dxf;objects;xrecord;compatibility;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_xrecord_legacy_double_codes
+        COMMAND libdxfrw_dxf_fixture_tests --xrecord-legacy-double-codes)
+    add_test(NAME libdxfrw_xrecord_legacy_boolean_codes
+        COMMAND libdxfrw_dxf_fixture_tests --xrecord-legacy-boolean-codes)
+    set_tests_properties(libdxfrw_xrecord_legacy_double_codes libdxfrw_xrecord_legacy_boolean_codes PROPERTIES
+        LABELS "fast;dxf;objects;xrecord;compatibility;generated" TIMEOUT 30)
     add_test(NAME libdxfrw_xrecord_writer_codepage
         COMMAND libdxfrw_gbk_codepage_tests --xrecord-writer-codepage)
     set_tests_properties(libdxfrw_xrecord_writer_codepage PROPERTIES

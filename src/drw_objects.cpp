@@ -9919,17 +9919,17 @@ bool DRW_XRecord::parseCode(int code,
             m_dxfCoordinateMask = 0;
         return true;
     }
-    // DXF's admitted normal application strings follow the active classifier,
-    // including 103/104/106..109 and explicit legacy string ranges. Keep the
+    // DXF's admitted normal application kinds follow the active classifier,
+    // including explicit legacy string/double/Boolean ranges. Keep the
     // native DWG predicate unchanged: DXF width/type parity is not native
     // source-profile qualification. Reuse the same bounded two-owner path.
-    if (xRecordCodeIsString(code)
-        || (isDxfXRecordApplicationCode(code)
-            && dxfValueKindForCode(code, reader->classifierProfile())
-                == DxfValueKind::Str)) {
+    const DxfValueKind applicationKind = isDxfXRecordApplicationCode(code)
+        ? dxfValueKindForCode(code, reader->classifierProfile())
+        : DxfValueKind::Unknown;
+    if (xRecordCodeIsString(code) || applicationKind == DxfValueKind::Str) {
         return appendStringValue(code);
     }
-    if (xRecordCodeIsDouble(code)) {
+    if (xRecordCodeIsDouble(code) || applicationKind == DxfValueKind::Dbl) {
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
         if (!reader->chargeTypedVariantNode()
@@ -9941,16 +9941,22 @@ bool DRW_XRecord::parseCode(int code,
         return true;
     }
     if (xRecordCodeIsBool(code) || xRecordCodeIsByte(code)
-        || xRecordCodeIsInt16(code) || xRecordCodeIsInt32(code)) {
+        || xRecordCodeIsInt16(code) || xRecordCodeIsInt32(code)
+        || applicationKind == DxfValueKind::Bln) {
+        const int value = reader->getInt32();
+        // Newly admitted legacy Boolean fields must retain a canonical wire
+        // value, not become a lossy truthiness rewrite on their next export.
+        if (applicationKind == DxfValueKind::Bln && !xRecordCodeIsBool(code)
+            && value != 0 && value != 1)
+            return false;
         if (m_values.size() >= dwgSafety::MaxOwnedObjectCount)
             return false;
         if (!reader->chargeTypedVariantNode()
             || !reader->chargeTypedVariantNode())
             return false;
-        DRW_Variant value(code, static_cast<std::int32_t>(
-            reader->getInt32()));
-        m_values.push_back(value);
-        m_dataEntries.push_back(std::move(value));
+        DRW_Variant entry(code, static_cast<std::int32_t>(value));
+        m_values.push_back(entry);
+        m_dataEntries.push_back(std::move(entry));
         return true;
     }
     if (code >= 160 && code <= 169) {

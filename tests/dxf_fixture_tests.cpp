@@ -29855,6 +29855,209 @@ void testXRecordNormalStringCodes(TestContext& t) {
         << " legacy authored/reexport cells=" << legacyCells << '/' << legacyReexports << " profile retries=" << profileRetries << '\n';
 }
 
+void testXRecordLegacyScalarKinds(TestContext& t, bool booleans) {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-xrecord-scalars-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) break;
+    }
+    t.expect(!directory.empty(), "legacy XRECORD scalar controls own an exclusive scratch directory");
+    if (directory.empty()) return;
+    const auto path = directory / "scalar.dxf";
+    struct Cleanup { std::filesystem::path path, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path,error); std::filesystem::remove(directory,error);
+    } } cleanup{path,directory};
+    const auto source = [&]() {
+        DRW_XRecord record; record.handle = 0xA763u; record.parentHandle = 0xCu;
+        record.m_dataEntries.emplace_back(1,std::string("before-scalars"));
+        if (booleans) {
+            for (int code = 260; code <= 269; ++code) for (const int value : {0,1}) record.m_dataEntries.emplace_back(code,value);
+        } else {
+            const std::array<double,7> values{{0.0,-0.0,1.25,-2.5,(std::numeric_limits<double>::min)(),
+                (std::numeric_limits<double>::max)(),std::numeric_limits<double>::denorm_min()}};
+            for (int code = 240; code <= 259; ++code) for (const auto value : values) record.m_dataEntries.emplace_back(code,value);
+        }
+        record.m_dataEntries.emplace_back(1,std::string("after-scalars"));
+        record.extData.push_back(new DRW_Variant(1001,std::string("LEGACY_SCALAR_APP")));
+        record.extData.push_back(new DRW_Variant(1000,std::string("common-after-scalars")));
+        record.extData.push_back(new DRW_Variant(1071,-1234567));
+        return record;
+    };
+    const auto expected = source();
+    const auto check = [&](const DRW_XRecord& value) {
+        if (value.m_dataEntries.size() != expected.m_dataEntries.size() || value.m_values.size() != expected.m_dataEntries.size()
+            || !value.m_handleValues.empty() || value.extData.size() != 3u) return false;
+        for (std::size_t n = 0u; n < expected.m_dataEntries.size(); ++n) {
+            const auto& a = expected.m_dataEntries[n];
+            for (const auto* actual : {&value.m_dataEntries[n],&value.m_values[n]}) {
+                if (actual->code() != a.code() || actual->type() != a.type()) return false;
+                if (a.type() == DRW_Variant::STRING && (!actual->content.s || *actual->content.s != *a.content.s)) return false;
+                if (a.type() == DRW_Variant::INTEGER && actual->i_val() != a.i_val()) return false;
+                if (a.type() == DRW_Variant::DOUBLE) { const double x = actual->d_val(), y = a.d_val(); if (std::memcmp(&x,&y,sizeof(x))) return false; }
+            }
+        }
+        return value.extData[0] && value.extData[0]->code() == 1001 && value.extData[0]->content.s
+            && *value.extData[0]->content.s == "LEGACY_SCALAR_APP" && value.extData[1] && value.extData[1]->code() == 1000
+            && value.extData[1]->content.s && *value.extData[1]->content.s == "common-after-scalars"
+            && value.extData[2] && value.extData[2]->code() == 1071 && value.extData[2]->i_val() == -1234567;
+    };
+    unsigned cells = 0u, reexports = 0u, profileRetries = 0u, budgets = 0u;
+    for (const auto version : {DRW::AC1014,DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
+      for (const bool binary : {false,true}) for (const bool compatibilityValues : {false,true}) {
+        XRecordCoordinateWriter writer; dx_data seed;
+        DRW_AppId app; app.name = "LEGACY_SCALAR_APP"; seed.appIds.push_back(app);
+        writer.cData = &seed; writer.currentBlock = seed.mBlock; writer.value = expected;
+        if (compatibilityValues) { writer.value.m_values = writer.value.m_dataEntries; writer.value.m_dataEntries.clear(); }
+        dxfRW output(path.string().c_str()); writer.dxfW = &output;
+        output.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        const bool wrote = output.write(&writer,version,binary) && writer.wrote;
+        FixtureInterface reader; dx_data data; reader.cData = &data; reader.currentBlock = data.mBlock;
+        dxfRW input(path.string().c_str());
+        const bool refused = wrote && !input.read(&reader,false) && reader.xrecords.empty();
+        input.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        const bool read = wrote && input.read(&reader,false) && reader.xrecords.size() == 1u && check(reader.xrecords.front());
+        t.expect(wrote && refused && read, "explicit legacy scalar writer/readback is exact while standalone stays closed and permits corrected profile retry");
+        if (!wrote || !refused || !read) {
+            std::cerr << "Legacy XRECORD kind=" << (booleans ? "Boolean" : "double") << " version=" << static_cast<int>(version)
+                << " binary=" << binary << " compatibilityValues=" << compatibilityValues << " wrote=" << wrote << " callbackWrote=" << writer.wrote
+                << " standaloneRefused=" << refused << " legacyRead=" << read << " records=" << reader.xrecords.size() << '\n';
+            return;
+        }
+        ++cells; ++profileRetries;
+        if (version == DRW::AC1032 && !compatibilityValues) {
+            const auto admitted = [&](std::size_t cap) {
+                input.setDxfReadTypedVariantNodeBudget(cap);
+                FixtureInterface capture; dx_data captured; capture.cData = &captured; capture.currentBlock = captured.mBlock;
+                const bool success = input.read(&capture,false);
+                t.expect(success || capture.xrecords.empty(), "scalar node-budget refusal publishes no partial XRECORD callback");
+                return success && capture.xrecords.size() == 1u && check(capture.xrecords.front());
+            };
+            std::size_t low = 0u, high = 65536u;
+            t.expect(admitted(high), "legacy scalar public-node budget search has an admitted upper control");
+            while (low < high) { const auto middle = low + (high - low) / 2u; if (admitted(middle)) high = middle; else low = middle + 1u; }
+            t.expect(low != 0u && !admitted(low - 1u) && admitted(low), "computed exact public scalar-node allowance admits and one-node-under retries cleanly");
+            ++budgets;
+        }
+        const auto parsed = reader.xrecords.front(); DRW_XRecord copied(parsed), assigned; assigned = parsed;
+        t.expect(check(copied) && check(assigned), "legacy scalar copies preserve both exact typed payload views and common XDATA");
+        writer.value = assigned; writer.wrote = false;
+        FixtureInterface second; dx_data secondData; second.cData = &secondData; second.currentBlock = secondData.mBlock;
+        dxfRW secondInput(path.string().c_str()); secondInput.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        t.expect(output.write(&writer,version,!binary) && writer.wrote && secondInput.read(&second,false) && second.xrecords.size() == 1u
+            && check(second.xrecords.front()), "actual parsed legacy scalars cross-encode exactly without losing signed zero or common XDATA");
+        ++reexports;
+    }
+    unsigned sourceRetries = 0u, rawRetries = 0u;
+    for (const bool binary : {false,true}) for (const bool compatibilityValues : {false,true}) {
+        XRecordCoordinateWriter writer; dx_data seed;
+        DRW_AppId app; app.name = "LEGACY_SCALAR_APP"; seed.appIds.push_back(app);
+        writer.cData = &seed; writer.currentBlock = seed.mBlock;
+        dxfRW output(path.string().c_str()); writer.dxfW = &output;
+        output.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        const auto restore = [&]() {
+            writer.value = expected;
+            if (compatibilityValues) { writer.value.m_values = writer.value.m_dataEntries; writer.value.m_dataEntries.clear(); }
+        };
+        const auto readback = [&]() {
+            FixtureInterface capture; dx_data captured; capture.cData = &captured; capture.currentBlock = captured.mBlock;
+            dxfRW input(path.string().c_str()); input.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+            return input.read(&capture,false) && capture.xrecords.size() == 1u && check(capture.xrecords.front());
+        };
+        const auto retry = [&]() { restore(); writer.wrote = false; return output.write(&writer,DRW::AC1032,binary) && writer.wrote && readback(); };
+        const auto atomic = [&]() {
+            const std::string sentinel = "LEGACY_SCALAR_SOURCE_DESTINATION_UNCHANGED";
+            { std::ofstream prior(path,std::ios::binary); prior << sentinel; }
+            writer.wrote = false; const bool wrote = output.write(&writer,DRW::AC1032,binary);
+            std::ifstream prior(path,std::ios::binary); const std::string retained((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>());
+            return !wrote && !writer.wrote && retained == sentinel;
+        };
+        for (const int code : {booleans ? 260 : 240, booleans ? 269 : 259}) {
+            for (unsigned fault = 0u; fault < 4u; ++fault) {
+                restore(); auto& values = compatibilityValues ? writer.value.m_values : writer.value.m_dataEntries;
+                if (fault == 0u) values[1].addString(code,"wrong-type");
+                if (fault == 1u) values[1].addInt64(code,17);
+                if (fault == 2u) { if (booleans) values[1].addDouble(code,1.0); else values[1].addInt(code,17); }
+                if (fault == 3u) values[1] = DRW_Variant(code,DRW_Coord(1,2,3));
+                t.expect(atomic() && retry(), "legacy scalar wrong types refuse atomically and corrected source retries on same output codec");
+                ++sourceRetries;
+            }
+            if (!booleans) for (const auto value : {std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()}) {
+                restore(); auto& values = compatibilityValues ? writer.value.m_values : writer.value.m_dataEntries; values[1].addDouble(code,value);
+                t.expect(atomic() && retry(), "legacy scalar nonfinite source refuses atomic publication and permits restored-value retry");
+                ++sourceRetries;
+            }
+        }
+        restore(); output.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::StandaloneSafe);
+        const bool refused = atomic(); output.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        t.expect(refused && retry(), "standalone scalar output cannot guess legacy widths and corrected profile retries on same codec");
+        ++sourceRetries;
+        if (compatibilityValues) continue;
+        std::ifstream published(path,std::ios::binary); const std::string original((std::istreambuf_iterator<char>(published)),std::istreambuf_iterator<char>()); published.close();
+        const std::size_t prefix = binary ? 22u : 0u;
+        std::istringstream bytes(original.substr(prefix),std::ios::in | std::ios::binary);
+        std::unique_ptr<dxfReader> raw = binary ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&bytes)) : std::unique_ptr<dxfReader>(new dxfReaderAscii(&bytes));
+        raw->setVersion("AC1032",true); raw->setClassifierProfile(DxfClassifierProfile::LibreCadMasterLegacy); raw->setIgnoreComments(false);
+        struct Span { int code; std::size_t begin, end; };
+        std::vector<Span> fields; std::size_t recordEnd = 0u; bool selected = false;
+        while (bytes.good()) {
+            const auto position = bytes.tellg(); if (position < 0) break;
+            const auto begin = prefix + static_cast<std::size_t>(position); int code = 0;
+            if (!raw->readRec(&code)) break;
+            if (code == 0) {
+                if (selected) { recordEnd = begin; break; }
+                selected = raw->getStringView() == "XRECORD";
+            }
+            if (selected && (code == (booleans ? 260 : 240) || code == (booleans ? 269 : 259))
+                && std::none_of(fields.begin(),fields.end(),[&](const auto& value) { return value.code == code; }))
+                fields.push_back({code,begin,prefix + static_cast<std::size_t>(bytes.tellg())});
+        }
+        t.expect(fields.size() == 2u && recordEnd > fields.back().end, "raw scalar fault controls locate both boundary fields in actual public output");
+        if (fields.size() != 2u || recordEnd <= fields.back().end) return;
+        dxfRW input(path.string().c_str()); input.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        const auto rawRead = [&](const std::string& sourceBytes, bool expectSuccess) {
+            { std::ofstream file(path,std::ios::binary); file.write(sourceBytes.data(),static_cast<std::streamsize>(sourceBytes.size())); if (!file.good()) return false; }
+            FixtureInterface capture; dx_data captured; capture.cData = &captured; capture.currentBlock = captured.mBlock;
+            const bool read = input.read(&capture,false);
+            return expectSuccess ? read && capture.xrecords.size() == 1u && check(capture.xrecords.front()) : !read && capture.xrecords.empty();
+        };
+        for (const auto& field : fields) {
+            const unsigned malformedValues = booleans ? (binary ? 2u : 3u) : 3u;
+            for (unsigned value = 0u; value < malformedValues; ++value) {
+                std::string changed = original;
+                if (binary) {
+                    if (booleans) changed[field.begin + 2u] = static_cast<char>(value == 0u ? 2u : 255u);
+                    else {
+                        const double invalid = value == 0u ? std::numeric_limits<double>::quiet_NaN()
+                            : value == 1u ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity();
+                        std::uint64_t bits = 0u; std::memcpy(&bits,&invalid,sizeof(bits));
+                        for (unsigned n = 0u; n < 8u; ++n) changed[field.begin + 2u + n] = static_cast<char>((bits >> (8u * n)) & 255u);
+                    }
+                } else {
+                    const auto start = changed.find('\n',field.begin) + 1u;
+                    changed.replace(start,changed.find('\n',start) - start,booleans
+                        ? value == 0u ? "2" : value == 1u ? "255" : "-1"
+                        : value == 0u ? "nan" : value == 1u ? "inf" : "-inf");
+                }
+                t.expect(rawRead(changed,false) && rawRead(original,true), "malformed legacy scalar wire publishes no partial callback and corrected bytes retry on same input codec");
+                ++rawRetries;
+            }
+            std::string reordered = original;
+            const auto tag = reordered.substr(field.begin,field.end - field.begin);
+            reordered.erase(field.begin,field.end - field.begin); reordered.insert(recordEnd - (field.end - field.begin),tag);
+            t.expect(rawRead(reordered,false) && rawRead(original,true), "legacy scalar cannot reopen application payload after common XDATA and corrected bytes retry");
+            ++rawRetries;
+        }
+    }
+    t.expect(cells == 28u && reexports == 28u && profileRetries == 28u && budgets == 2u
+        && sourceRetries == (booleans ? 36u : 60u) && rawRetries == (booleans ? 14u : 16u), "legacy scalar matrix exercises every revision/encoding/carrier/profile and fault control");
+    std::cout << "Legacy XRECORD " << (booleans ? "Boolean" : "double") << " authored=" << cells << " reexports=" << reexports
+        << " standalone/profile retries=" << profileRetries << " node-budget boundaries=" << budgets << " atomic source retries=" << sourceRetries
+        << " malformed-wire/common-boundary retries=" << rawRetries << '\n';
+}
+
 void testXRecordXdataChannels(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto path = std::filesystem::temp_directory_path()
@@ -33678,6 +33881,11 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--xrecord-normal-string-codes") {
         TestContext context;
         testXRecordNormalStringCodes(context);
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && (std::string(argv[1]) == "--xrecord-legacy-double-codes" || std::string(argv[1]) == "--xrecord-legacy-boolean-codes")) {
+        TestContext context;
+        testXRecordLegacyScalarKinds(context,std::string(argv[1]) == "--xrecord-legacy-boolean-codes");
         return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mesh-raw-field-tags") {
