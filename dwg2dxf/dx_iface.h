@@ -53,6 +53,20 @@ public:
         bool outputEligible{false};
     };
     static TableSourceReport tableSourceReport(const dx_data& data) noexcept;
+    enum class TableBindingState {
+        SourceNotReady, CaptureFailed, WorkLimit, MissingTarget, WrongFamily,
+        AmbiguousIdentity, InvalidNamespace, UnknownRole, Bound, WrongOwner
+    };
+    struct TableContentBindingReport {
+        TableBindingState state{TableBindingState::SourceNotReady};
+        std::size_t resourceRecords{0}, resourceItems{0}, retainedBytes{0}, examinedSlots{0};
+        std::size_t boundReferences{0}, nullReferences{0}, localStyleUses{0}, absentStyleUses{0};
+        std::uint32_t firstHandle{0};
+        // Rich-child direct roles/namespace only, not full transitive closure,
+        // editable-state equality, source-field or output qualification.
+        bool outputEligible{false};
+    };
+    static TableContentBindingReport tableContentBindingReport(const dx_data& data) noexcept;
     bool wantsDxfTableSource() const override;
     void addDxfTableSource(const DRW_Table& table,
                            const DRW_RawDxfObject& source) override;
@@ -1493,6 +1507,9 @@ private:
     void retainTableSourceXRecord(const DRW_XRecord& data);
     bool retainTableSourceRaw(const DRW_RawDxfObject& data);
     bool proveTableContentSource(const DRW_RawDxfObject& data);
+    bool chargeTableResource(std::size_t bytes, std::size_t items) noexcept;
+    template<class T> void retainTableResource(dx_tableResourceFamily family,const T& data) noexcept;
+    void retainTableEntityIdentity(const DRW_Entity& data) noexcept;
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};
     std::uint64_t m_classEvidenceReadAttempt{0};
@@ -1637,6 +1654,7 @@ private:
     EntityT* retainTypedEntity(SourceT&& source) noexcept {
         if (cData == nullptr)
             return nullptr;
+        retainTableEntityIdentity(static_cast<const DRW_Entity&>(source));
         if (currentBlock == nullptr
             || cData->typedEntityRetainedRecords
                 >= TypedEntityCaptureMaxRecords) {

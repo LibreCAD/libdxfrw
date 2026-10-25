@@ -33,6 +33,14 @@ public:
         return data.m_tableDxfSource.contentReferences.begin()->second;
     }
     static void proofLimit(dx_data& data,std::size_t limit) {data.m_tableDxfSource.maxContentProofWork=limit;}
+    static void resourceLimits(dx_data& data,std::size_t records,std::size_t items,std::size_t bytes,std::size_t work) {
+        auto& source=data.m_tableDxfSource;
+        source.maxResourceRecords=records;source.maxResourceItems=items;
+        source.maxResourceBytes=bytes;source.maxBindingWork=work;
+    }
+    static const DRW_TableEntry* resource(const dx_data& data,std::uint32_t handle) {
+        return data.m_tableDxfSource.resources.at(handle).model.get();
+    }
 };
 
 namespace {
@@ -48,6 +56,7 @@ struct Probe final : dx_iface {
     std::function<void(DRW_TableContentObject&)> alterContent;
     std::function<void(DRW_RawDxfObject&)> alterContentRaw;
     bool keepMutableAliases=false;
+    bool duplicateStyleCallback=false;
     std::shared_ptr<DRW_TableContentDxfMetadata> mutableAlias;
     std::shared_ptr<DRW_TableStyleContentFormat> mutableFormatAlias;
     void clear() { content.clear(); raw.clear(); unknown=0u; }
@@ -94,6 +103,10 @@ struct Probe final : dx_iface {
         ++tableCallbacks;
         if (mutateTable) const_cast<DRW_Table&>(table).name="mutated-after-source-capture";
         dx_iface::addTable(table);
+    }
+    void addTextStyle(const DRW_Textstyle& style) override {
+        dx_iface::addTextStyle(style);
+        if (duplicateStyleCallback) dx_iface::addTextStyle(style);
     }
 };
 void format(Tags& tags) {
@@ -878,10 +891,219 @@ bool contentProofTests(const std::filesystem::path& dir) {
     return routes==8u && mismatches==faults.size()*routes && wireFailures==40u && valueRoleRoutes==32u && primitiveRoutes==40u;
 }
 
+Tags bindingSource(const std::string& version) {
+    Tags tags=compoundSource(version,false);
+    tags[slot(tags,330,"A700")].value="0"; // do not guess the unknown content geometry role
+    const Tags tables{{0,"SECTION"},{2,"TABLES"},
+        {0,"TABLE"},{2,"BLOCK_RECORD"},{5,"10"},{330,"0"},{100,"AcDbSymbolTable"},{70,"3"},
+        {0,"BLOCK_RECORD"},{5,"1F"},{330,"10"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*Model_Space"},{70,"0"},
+        {0,"BLOCK_RECORD"},{5,"B100"},{330,"10"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"TABLE-BLOCK"},{70,"0"},
+        {0,"BLOCK_RECORD"},{5,"B200"},{330,"10"},{100,"AcDbSymbolTableRecord"},{100,"AcDbBlockTableRecord"},{2,"*T1"},{70,"0"},{0,"ENDTAB"},
+        {0,"TABLE"},{2,"STYLE"},{5,"20"},{330,"0"},{100,"AcDbSymbolTable"},{70,"1"},
+        {0,"STYLE"},{5,"C101"},{330,"20"},{100,"AcDbSymbolTableRecord"},{100,"AcDbTextStyleTableRecord"},
+        {2,"TableFont-é"},{70,"0"},{40,"0"},{41,"1"},{50,"0"},{71,"0"},{42,"1"},{3,"txt"},{4,""},{0,"ENDTAB"},
+        {0,"TABLE"},{2,"LTYPE"},{5,"21"},{330,"0"},{100,"AcDbSymbolTable"},{70,"1"},
+        {0,"LTYPE"},{5,"C102"},{330,"21"},{100,"AcDbSymbolTableRecord"},{100,"AcDbLinetypeTableRecord"},
+        {2,"TABLE-LTYPE"},{70,"0"},{3,"binding line type"},{72,"65"},{73,"0"},{40,"0"},{0,"ENDTAB"},{0,"ENDSEC"}};
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(slot(tags,2,"ENTITIES")-1u),tables.begin(),tables.end());
+    Tags blocks{{0,"SECTION"},{2,"BLOCKS"},{0,"BLOCK"},{5,"30"},{330,"B100"},
+        {100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"TABLE-BLOCK"},{70,"0"},
+        {10,"0"},{20,"0"},{30,"0"},{3,"TABLE-BLOCK"},{1,""}};
+    for (const auto* handle:{"D001","D002"}) blocks.insert(blocks.end(),{
+        {0,"ATTDEF"},{5,handle},{330,"B100"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
+        {10,"0"},{20,"0"},{30,"0"},{40,"1"},{1,"default"},{100,"AcDbAttributeDefinition"},
+        {2,handle},{3,"prompt"},{70,"0"}});
+    blocks.insert(blocks.end(),{{0,"ENDBLK"},{5,"31"},{330,"B100"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},
+        {0,"BLOCK"},{5,"32"},{330,"B200"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},
+        {2,"*T1"},{70,"0"},{10,"0"},{20,"0"},{30,"0"},{3,"*T1"},{1,""},
+        {0,"ENDBLK"},{5,"33"},{330,"B200"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},{0,"ENDSEC"}});
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(slot(tags,2,"ENTITIES")-1u),blocks.begin(),blocks.end());
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(slot(tags,5,"B1")-1u),{{3,"ACAD_TABLESTYLE"},{350,"C130"}});
+    Tags objects{{0,"DICTIONARY"},{5,"C130"},{330,"C"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},
+        {3,"binding-table-style"},{360,"C100"},
+        {0,"TABLESTYLE"},{5,"C100"},{102,"{ACAD_XDICTIONARY"},{360,"C110"},{102,"}"},{330,"C130"},
+        {100,"AcDbTableStyle"},{280,"0"},{3,"binding style description"},{70,"0"},{71,"0"},
+        {40,"1"},{41,"1"},{280,"0"},{281,"0"},
+        {0,"DICTIONARY"},{5,"C110"},{330,"C100"},{100,"AcDbDictionary"},{280,"1"},{281,"1"},
+        {3,"ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP"},{360,"C120"},
+        {0,"CELLSTYLEMAP"},{5,"C120"},{330,"C110"},{100,"AcDbCellStyleMap"},{90,"3"}};
+    for (int id:{1,2,101}) {
+        objects.push_back({300,"CELLSTYLE"});style(objects,1,false);
+        objects.insert(objects.end(),{{1,"CELLSTYLE_BEGIN"},{90,std::to_string(id)},{91,"1"},
+            {300,"local-"+std::to_string(id)},{309,"CELLSTYLE_END"}});
+    }
+    objects.insert(objects.end(),{{0,"FIELD"},{5,"F100"},{330,"A0"},{100,"AcDbField"},{1,"AcExpr"},
+        {2,"1+1"},{90,"0"},{93,"0"},{97,"0"},
+        {0,"DATALINK"},{5,"F001"},{330,"C"},{100,"AcDbDataLink"},{1,"EXCEL"},
+        {300,"binding data link"},{301,"tooltip"},{302,"local.xlsx"},{90,"0"},{91,"0"},{92,"0"},{93,"0"},{94,"0"}});
+    tags.insert(tags.end()-2,objects.begin(),objects.end());
+    return tags;
+}
+
+bool bindingTests(const std::filesystem::path& dir) {
+    using State=dx_iface::TableBindingState;
+    const auto path=dir/"binding.dxf";
+    const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
+    const auto eraseRecord=[](Tags& tags,const std::string& handle) {
+        const auto begin=slot(tags,5,handle)-1u;
+        auto end=begin+1u;while(end<tags.size() && tags[end].code!=0)++end;
+        tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(begin),tags.begin()+static_cast<std::ptrdiff_t>(end));
+    };
+    const auto mapId=[](Tags& tags,int oldId,int newId) {
+        for(std::size_t i=0;i+1u<tags.size();++i)
+            if(tags[i].code==1 && tags[i].value=="CELLSTYLE_BEGIN" && tags[i+1u].value==std::to_string(oldId)) {
+                tags[i+1u].value=std::to_string(newId);return;
+            }
+        throw std::runtime_error("missing map ID");
+    };
+    const auto newStyle=[](Tags& tags,const std::string& handle,const std::string& name) {
+        const auto begin=slot(tags,0,"STYLE");auto end=begin+1u;while(tags[end].code!=0)++end;
+        Tags copy(tags.begin()+static_cast<std::ptrdiff_t>(begin),tags.begin()+static_cast<std::ptrdiff_t>(end));
+        for(auto& tag:copy){if(tag.code==5)tag.value=handle;if(tag.code==2)tag.value=name;}
+        tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(end),copy.begin(),copy.end());
+    };
+    const std::vector<std::pair<std::function<void(Tags&)>,State>> faults{
+        {[eraseRecord](auto& t){eraseRecord(t,"C101");},State::MissingTarget},
+        {[eraseRecord](auto& t){eraseRecord(t,"C102");},State::MissingTarget},
+        {[eraseRecord](auto& t){eraseRecord(t,"C100");},State::MissingTarget},
+        {[eraseRecord](auto& t){eraseRecord(t,"C120");},State::MissingTarget},
+        {[eraseRecord](auto& t){eraseRecord(t,"F100");},State::MissingTarget},
+        {[eraseRecord](auto& t){eraseRecord(t,"F001");},State::MissingTarget},
+        {[eraseRecord](auto& t){eraseRecord(t,"D002");},State::MissingTarget},
+        {[](auto& t){t[slot(t,340,"C101")].value="C102";},State::WrongFamily},
+        {[](auto& t){t[slot(t,340,"C102")].value="C101";},State::WrongFamily},
+        {[](auto& t){t[slot(t,340,"C100")].value="C101";},State::WrongFamily},
+        {[](auto& t){t[slot(t,340,"F100")].value="F001";},State::WrongFamily},
+        {[](auto& t){t[slot(t,340,"B100")].value="C101";},State::WrongFamily},
+        {[](auto& t){t[slot(t,330,"D002")].value="C101";},State::WrongFamily},
+        {[](auto& t){t[slot(t,340,"F001")].value="F100";},State::WrongFamily},
+        {[](auto& t){t[slot(t,330,"1F")].value="C101";},State::WrongFamily},
+        {[](auto& t){t[slot(t,360,"C120")].value="C101";},State::WrongFamily},
+        {[](auto& t){t[slot(t,3,"ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP")].value="WRONG_KEY";},State::InvalidNamespace},
+        {[](auto& t){t[slot(t,330,"C100")].value="B1";},State::InvalidNamespace},
+        {[](auto& t){const auto i=slot(t,5,"C120");t[i+1u].value="B1";},State::InvalidNamespace},
+        {[mapId](auto& t){mapId(t,101,102);},State::InvalidNamespace},
+        {[mapId,newStyle](auto& t){mapId(t,101,102);newStyle(t,"65","object-not-local-id");},State::InvalidNamespace},
+        {[newStyle](auto& t){newStyle(t,"C103","tablefont-é");},State::AmbiguousIdentity},
+        {[](auto& t){const auto i=slot(t,5,"D002");t[i+1u].value="B200";},State::WrongOwner},
+        {[](auto& t){t[slot(t,5,"C101")].value="C102";},State::SourceNotReady}, // duplicate physical self identity
+        {[](auto& t){const auto begin=slot(t,1,"TABLECELL_BEGIN");t[begin+7u].value="C101";},State::UnknownRole},
+        {[](auto& t){t[slot(t,340,"F100")].value="0";},State::MissingTarget},
+        {[](auto& t){t[slot(t,340,"F001")].value="0";},State::MissingTarget},
+        {[](auto& t){t[slot(t,340,"B100")].value="0";},State::MissingTarget},
+        {[](auto& t){t[slot(t,340,"C100")].value="0";},State::MissingTarget},
+        {[](auto& t){const auto i=slot(t,360,"C120")+1u;
+            t.insert(t.begin()+static_cast<std::ptrdiff_t>(i),{{3,"ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP"},{360,"C120"}});},State::InvalidNamespace}
+    };
+    unsigned routes=0u,negative=0u,boundaries=0u,variants=0u,refusals=0u;
+    for (const char* version:{"AC1021","AC1024","AC1027","AC1032"}) for (bool binary:{false,true}) {
+        const auto valid=bindingSource(version);
+        if (!write(path,valid,binary)) return false;
+        Probe probe;dx_data data;
+        if (!probe.fileImport(path.string(),&data,false)) return fail("binding source import failed");
+        const auto report=dx_iface::tableContentBindingReport(data);
+        if (report.state!=State::Bound || report.outputEligible || report.localStyleUses!=3u)
+            return fail("source bindings failed: state="+std::to_string(static_cast<int>(report.state))
+                +" first="+std::to_string(report.firstHandle)+" resources="+std::to_string(report.resourceRecords));
+        ++routes;
+        for(std::size_t index=0;index<faults.size();++index) {
+            auto bad=valid;faults[index].first(bad);
+            if(!write(path,bad,binary))return false;
+            dx_data rejected;(void)probe.fileImport(path.string(),&rejected,false);
+            const auto failed=dx_iface::tableContentBindingReport(rejected);
+            if(failed.state!=faults[index].second || failed.outputEligible)
+                return fail("binding fault index="+std::to_string(index)+" state="+std::to_string(static_cast<int>(failed.state))
+                    +" expected="+std::to_string(static_cast<int>(faults[index].second)));
+            if(!write(path,valid,binary))return false;
+            dx_data corrected;
+            if(!probe.fileImport(path.string(),&corrected,false)
+                ||dx_iface::tableContentBindingReport(corrected).state!=State::Bound) return fail("binding same-facade retry failed");
+            ++negative;
+        }
+        for(unsigned limit=0;limit<8u;++limit) {
+            dx_data limited;
+            DxIfaceTableSourceTestAccess::resourceLimits(limited,
+                limit==0u?report.resourceRecords-1u:limit==4u?report.resourceRecords:100000u,
+                limit==1u?report.resourceItems-1u:limit==5u?report.resourceItems:4000000u,
+                limit==2u?report.retainedBytes-1u:limit==6u?report.retainedBytes:64u*1024u*1024u,
+                limit==3u?report.examinedSlots-1u:limit==7u?report.examinedSlots:4000000u);
+            if(!probe.fileImport(path.string(),&limited,false))return fail("optional resource budget changed import outcome");
+            const auto observed=dx_iface::tableContentBindingReport(limited);
+            if(observed.state!=(limit<3u?State::CaptureFailed:limit==3u?State::WorkLimit:State::Bound))
+                return fail("resource boundary failed index="+std::to_string(limit));
+            ++boundaries;
+        }
+        for(unsigned mode=0;mode<5u;++mode) {
+            auto varied=valid;
+            if(mode==0u)varied[slot(varied,360,"C120")].code=350;
+            if(mode==1u)newStyle(varied,"65","object-not-local-id");
+            if(mode==2u) {
+                const auto begin=slot(varied,301,"DATAMAP_VALUE");varied[begin+2u].value="64";
+                varied[begin+3u]={330,"F001"};
+            }
+            if(mode==3u) {
+                // Explicit null format/linetype references retain slots and inheritance.
+                varied[slot(varied,340,"C101")].value="0";varied[slot(varied,340,"C102")].value="0";
+            }
+            if(mode==4u) {
+                // The existing CELLSTYLEMAP parser uses the codec-normalized
+                // revision (AC1021), so R24's ID 4 is not yet a source profile.
+                const auto cell=slot(varied,1,"TABLECELL_BEGIN");varied[cell+1u].value="3";
+                mapId(varied,101,3);
+            }
+            if(!write(path,varied,binary))return false;
+            dx_data variant;
+            if(!probe.fileImport(path.string(),&variant,false)
+                ||dx_iface::tableContentBindingReport(variant).state!=State::Bound) return fail("positive namespace variant failed mode="+std::to_string(mode));
+            ++variants;
+        }
+        if(!write(path,valid,binary))return false;
+        dx_data frozen;if(!probe.fileImport(path.string(),&frozen,false))return false;
+        const auto* style=dynamic_cast<const DRW_Textstyle*>(DxIfaceTableSourceTestAccess::resource(frozen,0xC101u));
+        frozen.textStyles.front().name="edited live style";frozen.cellStyleMaps.front().m_cellStyles[0].m_id=999;
+        frozen.dictionaries.back().parentHandle=0u;
+        if(!style||style->name!="TableFont-é"||dx_iface::tableContentBindingReport(frozen).state!=State::Bound)
+            return fail("editable state changed frozen resource identities");
+        for(bool strict:{false,true}) {
+            const auto output=dir/"binding-refused.dxf";{std::ofstream out(output);out<<"keep";}
+            dx_iface exporter;
+            if(exporter.fileExport(output.string(),data.sourceVersion,binary,&data,false,strict))return fail("binding certificate enabled output");
+            std::ifstream old(output);if(std::string(std::istreambuf_iterator<char>(old),{})!="keep")return fail("binding refusal replaced destination");
+            dx_data clean;dx_iface author;author.cData=&clean;author.currentBlock=clean.mBlock;
+            DRW_Line line;line.basePoint={1,2,3};line.secPoint={4,5,6};author.addLine(line);
+            if(!exporter.fileExport(output.string(),data.sourceVersion,binary,&clean,false,strict))
+                return fail("binding refusal poisoned same-exporter retry");
+            dx_data readback;dx_iface reader;
+            if(!reader.fileImport(output.string(),&readback,false)||readback.mBlock->ent.size()!=1u)
+                return fail("binding refusal retry readback failed");
+            const auto* actual=dynamic_cast<const DRW_Line*>(readback.mBlock->ent.front());
+            if(!actual||actual->basePoint.z!=3||actual->secPoint.z!=6)
+                return fail("binding refusal retry changed line coordinates");
+            ++refusals;
+        }
+    }
+    if(!write(path,bindingSource("AC1032"),false))return false;
+    Probe duplicate;duplicate.duplicateStyleCallback=true;dx_data repeated;
+    if(!duplicate.fileImport(path.string(),&repeated,false)
+        ||dx_iface::tableContentBindingReport(repeated).state!=State::CaptureFailed) return fail("duplicate callback resource IDs were qualified");
+    duplicate.duplicateStyleCallback=false;dx_data clean;
+    if(!duplicate.fileImport(path.string(),&clean,false)||dx_iface::tableContentBindingReport(clean).state!=State::Bound)return fail("duplicate callback recovery failed");
+    if(!duplicate.fileImport(path.string(),&clean,false)
+        ||dx_iface::tableContentBindingReport(clean).state!=State::SourceNotReady)return fail("appended generation acquired resource bindings");
+    std::cout<<"TABLECONTENT binding: "<<routes<<" resource routes; "<<negative<<" fault/retry pairs; "
+        <<boundaries<<" boundaries; "<<variants<<" positive variants; "<<refusals<<" destination-preserving refusals; frozen/duplicate/generation controls\n";
+    return routes==8u&&negative==faults.size()*routes&&boundaries==64u&&variants==40u&&refusals==16u;
+}
+
 int inspect(const char* path) {
     Probe p; dx_data data;
     const bool ok=p.fileImport(path,&data,false);
     const auto compound=dx_iface::tableSourceReport(data);
+    const auto bindings=dx_iface::tableContentBindingReport(data);
+    std::cout<<"binding-state="<<static_cast<int>(bindings.state)<<" first="<<std::hex<<bindings.firstHandle
+        <<std::dec<<" resources="<<bindings.resourceRecords<<" items="<<bindings.resourceItems
+        <<" bytes="<<bindings.retainedBytes<<" bound="<<bindings.boundReferences
+        <<" null="<<bindings.nullReferences<<" local="<<bindings.localStyleUses<<" absent="<<bindings.absentStyleUses<<'\n';
     std::cout<<"compound-state="<<static_cast<int>(compound.state)<<" tables="<<compound.tables
              <<" contents="<<compound.contents<<" geometries="<<compound.geometries
              <<" compounds="<<compound.compounds<<" records="<<compound.records
@@ -926,10 +1148,11 @@ int main(int argc,char** argv) {
     if (argc==3 && std::string(argv[1])=="--inspect") return inspect(argv[2]);
     const bool compound=argc==2 && std::string(argv[1])=="--compound-source";
     const bool proof=argc==2 && std::string(argv[1])=="--compound-content-proof";
-    if (argc!=1 && !compound && !proof) return 2;
+    const bool bindings=argc==2 && std::string(argv[1])=="--compound-bindings";
+    if (argc!=1 && !compound && !proof && !bindings) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

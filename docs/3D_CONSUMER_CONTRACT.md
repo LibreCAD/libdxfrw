@@ -120,8 +120,43 @@ are integer namespace uses, not handles. Suppressed CAD ObjectID payloads have
 no wire reference slot and do not invent a null event. Geometry references with
 unestablished target classes are labeled unknown; this receipt does not bind
 them by a guessed class. Source-role counts cover TABLECONTENT only, not all
-parent/wrapper/cache/common dependencies. Resource existence/class/namespace
-binding and editable-state comparison remain separate gates.
+parent/wrapper/cache/common dependencies. Full dependency closure and
+editable-state comparison remain separate gates.
+
+`dx_iface::tableContentBindingReport` now checks rich-child direct references
+against private first-import resource snapshots, not editable drawing lists.
+STYLE/LTYPE/TABLESTYLE/FIELD/BLOCK_RECORD/DATALINK and ATTDEF roles are distinct;
+generic CAD ObjectIDs require an observed identity without guessing a narrower
+class. An explicit block-content association additionally checks ATTDEF's block
+owner. TABLE owners must resolve to BLOCK_RECORD. Nonnull unknown geometry roles
+remain unqualified. Null format/linetype inheritance is separate from mandatory
+content, DATALINK and TABLESTYLE targets.
+
+Nonzero local IDs must belong to the selected TABLESTYLE's actual
+`ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP` dictionary entry, with reciprocal
+dictionary/map owners, a declared 350/360 owner edge and unique valid IDs. Zero
+is an absent style use, never an object handle. Named symbol identities use the
+existing bounded Unicode ambiguity key, not a new native CAD collation claim;
+TABLESTYLE's description is not a global symbol name. Duplicate callback IDs,
+missing/wrong families, ambiguous names, incorrect owners and capture/work
+exhaustion stay unqualified.
+
+Resource retention has separate cumulative 100,000-record, 4,000,000-item and
+64-MiB logical ceilings; binding has a 4,000,000-slot work ceiling. Reservations
+precede copies/indexes; failures are sticky but do not change the ordinary
+tolerant import policy. Frozen resource models are typed callback evidence,
+not exact raw-resource field or whole-document identity proof. `Bound` covers
+only these direct roles and the admitted namespace, not transitive dependencies,
+resource/common payloads, editable equality or output. `outputEligible` is always
+false and both export modes retain the table loss guard.
+
+Both pinned external examples currently report `MissingTarget` for their
+CELLSTYLEMAP, although independent ezdxf inspection sees the expected map and
+IDs 1/2/3: their rich map bodies do not match the current typed profile. Also,
+the existing CELLSTYLEMAP parser consults codec-normalized `getVersion()`
+(AC1021 for modern DXF), so R24 built-in ID 4 is not yet admitted. Do not infer
+complete map support from generated no-data styles or change the global codec
+normalization to bypass this remaining source-revision task.
 
 Reference-vector worst-case capacity is precharged alongside the raw record.
 Canonical parsing/comparison has a separate cumulative 4,000,000-slot policy:

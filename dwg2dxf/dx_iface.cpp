@@ -16911,12 +16911,283 @@ dx_iface::TableSourceReport dx_iface::tableSourceReport(const dx_data& data) noe
     return report;
 }
 
+dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
+    using F=dx_tableResourceFamily;
+    using S=TableBindingState;
+    using K=dxfTableContent::ReferenceKind;
+    TableContentBindingReport report;
+    const auto& source=data.m_tableDxfSource;
+    report.resourceRecords=source.resourceRecords;
+    report.resourceItems=source.resourceItems;
+    report.retainedBytes=source.resourceBytes;
+    if (tableSourceReport(data).state!=TableSourceState::StructurallyComplete) return report;
+    if (source.resourceCaptureFailed) {report.state=S::CaptureFailed;return report;}
+    report.state=S::Bound;
+    const auto fail=[&](S state,std::uint32_t handle) {
+        if (report.state==S::Bound) {report.state=state;report.firstHandle=handle;}
+    };
+    const auto work=[&](std::size_t slots) {
+        if (report.examinedSlots>source.maxBindingWork || slots>source.maxBindingWork-report.examinedSlots) {
+            report.state=S::WorkLimit; return false;
+        }
+        report.examinedSlots+=slots; return true;
+    };
+    const auto coreFamily=[&](std::uint32_t handle,F& family) {
+        unsigned count=0u;
+        if (source.tables.count(handle)) {family=F::Table;++count;}
+        if (source.contents.count(handle)) {family=F::TableContent;++count;}
+        if (source.geometries.count(handle)) {family=F::TableGeometry;++count;}
+        if (source.dictionaries.count(handle)) {family=F::Dictionary;++count;}
+        if (source.xrecords.count(handle)) {family=F::XRecord;++count;}
+        return count;
+    };
+    const auto lookup=[&](std::uint32_t handle,F expected,bool any=false)
+            ->const dx_data::TableDxfSourceCapture::Resource* {
+        const auto found=source.resources.find(handle);
+        F core=F::Entity;
+        const unsigned count=coreFamily(handle,core);
+        if (count>1u || (count==1u && found!=source.resources.end() && found->second.family!=core)) {
+            fail(S::AmbiguousIdentity,handle);return nullptr;
+        }
+        if (found==source.resources.end()) {
+            if (!(any && count==1u)) fail(S::MissingTarget,handle);
+            return nullptr;
+        }
+        if (!any && found->second.family!=expected) {fail(S::WrongFamily,handle);return nullptr;}
+        if (found->second.invalidName) {fail(S::InvalidNamespace,handle);return nullptr;}
+        if (found->second.ambiguousName) {fail(S::AmbiguousIdentity,handle);return nullptr;}
+        return &found->second;
+    };
+    for (const auto& table:source.tables) {
+        if (!work(1u)) return report;
+        (void)lookup(table.second.typed.parentHandle,F::BlockRecord);
+    }
+    for (const auto& item:source.contentReferences) {
+        if (!work(item.second.size()+1u)) return report;
+        const auto content=source.contents.find(item.first);
+        if (content==source.contents.end()) {fail(S::MissingTarget,item.first);continue;}
+        const auto styleHandle=content->second.m_content.m_tableStyleHandle;
+        const auto* styleResource=lookup(styleHandle,F::TableStyle);
+        const auto* style=styleResource?dynamic_cast<const DRW_TableStyle*>(styleResource->model.get()):nullptr;
+        if (styleResource && !style) {fail(S::WrongFamily,styleHandle);continue;}
+        const bool usesNamespace=std::any_of(item.second.begin(),item.second.end(),[](const auto& reference) {
+            return reference.kind==K::LocalStyleId && reference.value!=0u;
+        });
+        const dx_data::TableDxfSourceCapture::Resource* namespaceMap=nullptr;
+        if (style && usesNamespace) {
+            if (!work(2u)) return report;
+            const auto* dictionary=lookup(style->xDictHandle,F::Dictionary);
+            if (dictionary && (!dictionary->namespaceComplete || dictionary->owner!=styleHandle
+                || dictionary->cellMapEntries!=1u || !dictionary->cellMapOwnerEdge
+                || dictionary->cellMapTarget==0u)) fail(S::InvalidNamespace,style->xDictHandle);
+            else if (dictionary) {
+                namespaceMap=lookup(dictionary->cellMapTarget,F::CellStyleMap);
+                if (namespaceMap && (!namespaceMap->namespaceComplete || namespaceMap->owner!=style->xDictHandle
+                    || namespaceMap->duplicateStyleId || namespaceMap->invalidStyleId
+                    || (source.version<DRW::AC1024 && namespaceMap->styleIds.count(4)))) {
+                    fail(S::InvalidNamespace,dictionary->cellMapTarget);namespaceMap=nullptr;
+                }
+            }
+        }
+        for (const auto& reference:item.second) {
+            if (reference.kind==K::LocalStyleId) {
+                if (reference.value==0u) {++report.absentStyleUses;continue;}
+                ++report.localStyleUses;
+                if (!namespaceMap || !namespaceMap->styleIds.count(static_cast<int>(reference.value)))
+                    fail(S::InvalidNamespace,reference.value);
+                continue;
+            }
+            if (reference.value==0u) {
+                ++report.nullReferences;
+                // Explicit payload targets and the namespace root cannot be
+                // inherited like a null format text style/linetype can.
+                if (reference.kind==K::Field || reference.kind==K::BlockRecord
+                    || reference.kind==K::DataLink || reference.kind==K::TableStyle)
+                    fail(S::MissingTarget,0u);
+                continue;
+            }
+            F expected=F::Entity;
+            switch (reference.kind) {
+            case K::Self:case K::Owner:++report.boundReferences;continue; // source-chain proof above
+            case K::TextStyle:expected=F::TextStyle;break;
+            case K::LineType:expected=F::LineType;break;
+            case K::TableStyle:expected=F::TableStyle;break;
+            case K::Field:expected=F::Field;break;
+            case K::BlockRecord:expected=F::BlockRecord;break;
+            case K::AttributeDefinition:expected=F::AttributeDefinition;break;
+            case K::DataLink:expected=F::DataLink;break;
+            case K::ObjectId: {
+                const auto* object=lookup(reference.value,F::Entity,true);
+                F core=F::Entity;
+                if (object || (source.resources.count(reference.value)==0u
+                    && coreFamily(reference.value,core)==1u)) ++report.boundReferences;
+                continue;
+            }
+            case K::UnknownGeometry:fail(S::UnknownRole,reference.value);continue;
+            default:fail(S::UnknownRole,reference.value);continue;
+            }
+            if (lookup(reference.value,expected)) ++report.boundReferences;
+        }
+        // Only an explicit block-content association establishes this owner
+        // role. Do not guess one for FIELD/value contents carrying attributes.
+        for (const auto& row:content->second.m_content.m_rows) for (const auto& cell:row.m_cells) {
+            if (!work(cell.m_attributes.size()+1u)) return report;
+            for (const auto& attribute:cell.m_attributes) {
+                if (attribute.m_attdefHandle==0u || attribute.m_contentIndex>=cell.m_contents.size()) continue;
+                const auto& value=cell.m_contents[attribute.m_contentIndex];
+                if (value.m_type!=4 || value.m_handle==0u) continue;
+                const auto* definition=lookup(attribute.m_attdefHandle,F::AttributeDefinition);
+                if (definition && definition->owner!=value.m_handle) fail(S::WrongOwner,attribute.m_attdefHandle);
+            }
+        }
+    }
+    return report;
+}
+
 bool dx_iface::tableSourceCaptureOpen() const noexcept {
     if (!cData || m_tableSourceReadData != cData) return false;
     const auto& source = cData->m_tableDxfSource;
     return source.reader == this && !source.closed && !source.failed
         && !source.contextFailed && source.generation == cData->importGeneration
         && source.generation == 1u && cData->sourceFormat == dx_source_format::DXF;
+}
+
+namespace {
+bool estimateTableResourceBytes(dx_tableResourceFamily family,const DRW_TableEntry& model,
+                                std::size_t& bytes,std::size_t& items) noexcept {
+    using F=dx_tableResourceFamily;
+    items=0u;
+    const auto plain=[&](const auto* value,auto estimate) {
+        return value && estimate(*value,bytes,items);
+    };
+    switch (family) {
+    case F::TextStyle:return model.tType==DRW::STYLE
+        && plain(dynamic_cast<const DRW_Textstyle*>(&model),estimateTextStyleTypedBytes);
+    case F::LineType:return model.tType==DRW::LTYPE
+        && plain(dynamic_cast<const DRW_LType*>(&model),estimateLTypeTypedBytes);
+    case F::AppId:return model.tType==DRW::APPID
+        && plain(dynamic_cast<const DRW_AppId*>(&model),estimateAppIdTypedBytes);
+    case F::Layer:return model.tType==DRW::LAYER
+        && plain(dynamic_cast<const DRW_Layer*>(&model),estimateLayerTypedBytes);
+    case F::BlockRecord:return model.tType==DRW::BLOCK_RECORD
+        && plain(dynamic_cast<const DRW_Block_Record*>(&model),estimateBlockRecordTypedBytes);
+    default:break;
+    }
+    switch (family) {
+    case F::TableStyle: {
+        const auto* value=dynamic_cast<const DRW_TableStyle*>(&model);
+        return value && model.tType==DRW::TABLESTYLE && estimateTableStyleTypedBytes(*value,bytes,items);
+    }
+    case F::CellStyleMap: {
+        const auto* value=dynamic_cast<const DRW_CellStyleMap*>(&model);
+        return value && model.tType==DRW::CELLSTYLEMAP && estimateCellStyleMapTypedBytes(*value,bytes,items);
+    }
+    case F::Field: {
+        const auto* value=dynamic_cast<const DRW_Field*>(&model);
+        return value && model.tType==DRW::FIELD && estimateFieldTypedBytes(*value,bytes,items);
+    }
+    case F::DataLink: {
+        const auto* value=dynamic_cast<const DRW_DataLink*>(&model);
+        return value && model.tType==DRW::DATALINK && estimateDataLinkTypedBytes(*value,bytes,items);
+    }
+    case F::Dictionary: {
+        const auto* value=dynamic_cast<const DRW_Dictionary*>(&model);
+        return value && model.tType==DRW::DICTIONARY && estimateDictionaryTypedBytes(*value,bytes,items);
+    }
+    case F::XRecord: {
+        const auto* value=dynamic_cast<const DRW_XRecord*>(&model);
+        return value && model.tType==DRW::XRECORD && estimateXRecordTypedBytes(*value,bytes,items);
+    }
+    default:return false;
+    }
+}
+} // namespace
+
+bool dx_iface::chargeTableResource(std::size_t bytes,std::size_t items) noexcept {
+    if (!tableSourceCaptureOpen()) return false;
+    auto& source=cData->m_tableDxfSource;
+    if (source.resourceCaptureFailed) return false;
+    if (!addAssociativeRetainedBytes(sizeof(dx_data::TableDxfSourceCapture::Resource)
+            +8u*sizeof(void*),bytes)
+        || source.resourceRecords>=source.maxResourceRecords
+        || source.resourceItems>source.maxResourceItems || items>source.maxResourceItems-source.resourceItems
+        || source.resourceBytes>source.maxResourceBytes || bytes>source.maxResourceBytes-source.resourceBytes) {
+        source.resourceCaptureFailed=true; return false;
+    }
+    ++source.resourceRecords; source.resourceItems+=items; source.resourceBytes+=bytes;
+    return true;
+}
+
+template<class T> void dx_iface::retainTableResource(dx_tableResourceFamily family,const T& data) noexcept {
+    if (!tableSourceCaptureOpen() || data.handle==0u) return;
+    auto& source=cData->m_tableDxfSource;
+    if (source.resourceCaptureFailed) return;
+    if (source.resources.count(data.handle)) {source.resourceCaptureFailed=true;return;}
+    std::size_t bytes=0u,items=0u;
+    const auto* map=dynamic_cast<const DRW_CellStyleMap*>(&data);
+    using F=dx_tableResourceFamily;
+    const bool named=family==F::TextStyle || family==F::LineType || family==F::BlockRecord
+        || family==F::AppId || family==F::Layer;
+    if (!estimateTableResourceBytes(family,data,bytes,items)
+        || !addTableSourceObjectNodeBytes(data,bytes)
+        || (map && !addAssociativeSlotBytes(map->m_cellStyles.size(),sizeof(int)+4u*sizeof(void*),bytes))
+        || (named && (!addAssociativeSlotBytes(data.name.size(),3u,bytes)
+            || !addAssociativeRetainedBytes(sizeof(std::pair<F,UTF8STRING>)+8u*sizeof(void*)+1u,bytes)))) {
+        source.resourceCaptureFailed=true; return;
+    }
+    if (!chargeTableResource(bytes,items)) return;
+    try {
+        dx_data::TableDxfSourceCapture::Resource resource;
+        resource.family=family;resource.owner=data.parentHandle;
+        resource.model=std::make_shared<const T>(data);
+        if (named) {
+            std::string key;
+            resource.invalidName=data.name.empty() || data.name.find('\0')!=std::string::npos
+                || !dx_symbol_output::nameKey(data.name,key);
+            if (!resource.invalidName) {
+                const auto name=source.resourceNames.emplace(std::make_pair(family,std::move(key)),data.handle);
+                if (!name.second) {
+                    resource.ambiguousName=true;
+                    const auto previous=source.resources.find(name.first->second);
+                    if (previous!=source.resources.end()) previous->second.ambiguousName=true;
+                    else source.resourceCaptureFailed=true;
+                }
+            }
+        }
+        if (map) {
+            resource.namespaceComplete=map->finalizeDxf();
+            for (const auto& style:map->m_cellStyles) {
+                if (!resource.styleIds.insert(style.m_id).second) resource.duplicateStyleId=true;
+                if (style.m_id<=0 || (style.m_id>4 && style.m_id<101)) resource.invalidStyleId=true;
+            }
+        }
+        if (const auto* dictionary=dynamic_cast<const DRW_Dictionary*>(&data)) {
+            resource.namespaceComplete=dictionary->hasCompleteDxfEntries();
+            for (const auto& entry:dictionary->m_entries) {
+                if (entry.m_name!="ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP") continue;
+                ++resource.cellMapEntries; resource.cellMapTarget=entry.m_handle;
+                using Role=DRW_Dictionary::Entry::DxfHandleCode;
+                resource.cellMapOwnerEdge=entry.m_dxfHandleCode==Role::SoftOwner
+                    || entry.m_dxfHandleCode==Role::HardOwner;
+            }
+        }
+        if (!source.resources.emplace(data.handle,std::move(resource)).second) source.resourceCaptureFailed=true;
+    } catch (...) {source.resourceCaptureFailed=true;}
+}
+
+void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
+    if (!tableSourceCaptureOpen() || data.handle==0u || data.eType==DRW::TABLE) return;
+    auto& source=cData->m_tableDxfSource;
+    if (source.resourceCaptureFailed) return;
+    if (source.resources.count(data.handle)) {source.resourceCaptureFailed=true;return;}
+    if (!chargeTableResource(0u,0u)) return;
+    try {
+        dx_data::TableDxfSourceCapture::Resource resource;
+        resource.family=dynamic_cast<const DRW_Attdef*>(&data)
+            ?dx_tableResourceFamily::AttributeDefinition:dx_tableResourceFamily::Entity;
+        resource.owner=data.parentHandle;
+        if (!source.resources.emplace(data.handle,std::move(resource)).second) source.resourceCaptureFailed=true;
+    } catch (...) {source.resourceCaptureFailed=true;}
 }
 
 bool dx_iface::wantsDxfTableSource() const {
@@ -17282,6 +17553,7 @@ void dx_iface::addGroup(const DRW_Group& data) {
 }
 
 void dx_iface::addTableStyle(const DRW_TableStyle& data) {
+    retainTableResource(dx_tableResourceFamily::TableStyle,data);
     if (cData == nullptr || cData->tableStylesCaptureFailed)
         return;
     if (cData->tableStylesRetainedRecords >= kMaxAdapterTableStyleRecords) {
@@ -17314,6 +17586,7 @@ void dx_iface::addTableStyle(const DRW_TableStyle& data) {
 }
 
 void dx_iface::addCellStyleMap(const DRW_CellStyleMap& data) {
+    retainTableResource(dx_tableResourceFamily::CellStyleMap,data);
     if (cData == nullptr || cData->cellStyleMapsCaptureFailed)
         return;
     const bool retainDxfBaseline =
@@ -17524,6 +17797,7 @@ void dx_iface::addAcDbPlaceholder(const DRW_AcDbPlaceholder& data) {
 }
 
 void dx_iface::addDataLink(const DRW_DataLink& data) {
+    retainTableResource(dx_tableResourceFamily::DataLink,data);
     if (cData == nullptr || cData->dataLinkCaptureFailed)
         return;
     if (cData->dataLinkRetainedRecords >= kMaxAdapterDataLinkRecords) {
@@ -17556,6 +17830,7 @@ void dx_iface::addDataLink(const DRW_DataLink& data) {
 }
 
 void dx_iface::addDictionary(const DRW_Dictionary& data) {
+    retainTableResource(dx_tableResourceFamily::Dictionary,data);
     retainTableSourceDictionary(data);
     retainDictionaryTyped(cData, data, 2u * sizeof(void*), [this, &data]() {
         cData->dictionaries.push_back(data);
@@ -17844,6 +18119,7 @@ void dx_iface::addUCS(const DRW_UCS& data) {
 }
 
 void dx_iface::addAppId(const DRW_AppId& data) {
+    retainTableResource(dx_tableResourceFamily::AppId,data);
     if (cData == nullptr)
         return;
     const auto previousSize = cData->appIds.size();
@@ -17856,6 +18132,7 @@ void dx_iface::addAppId(const DRW_AppId& data) {
 }
 
 void dx_iface::addLayer(const DRW_Layer& data) {
+    retainTableResource(dx_tableResourceFamily::Layer,data);
     if (cData == nullptr)
         return;
     const auto previousSize = cData->layers.size();
@@ -17867,6 +18144,7 @@ void dx_iface::addLayer(const DRW_Layer& data) {
 }
 
 void dx_iface::addLType(const DRW_LType& data) {
+    retainTableResource(dx_tableResourceFamily::LineType,data);
     if (cData == nullptr)
         return;
     retainBasicTableTyped(cData, cData->lineTypes, data,
@@ -17965,6 +18243,7 @@ void dx_iface::addDataStorage(DRW_DataStorageSection&& data) {
 }
 
 void dx_iface::addBlockRecord(const DRW_Block_Record& data) {
+    retainTableResource(dx_tableResourceFamily::BlockRecord,data);
     if (cData == nullptr)
         return;
     retainBasicTableTyped(cData, cData->blockRecords, data,
@@ -17979,6 +18258,7 @@ void dx_iface::addDimStyle(const DRW_Dimstyle& data) {
 }
 
 void dx_iface::addTextStyle(const DRW_Textstyle& data) {
+    retainTableResource(dx_tableResourceFamily::TextStyle,data);
     if (cData == nullptr)
         return;
     retainBasicTableTyped(cData, cData->textStyles, data,
@@ -17986,6 +18266,7 @@ void dx_iface::addTextStyle(const DRW_Textstyle& data) {
 }
 
 void dx_iface::addNamedObjectDictionary(const DRW_Dictionary& data) {
+    retainTableResource(dx_tableResourceFamily::Dictionary,data);
     if (cData == nullptr)
         return;
     dx_associativeDxfImportReceipt& receipt =
@@ -18000,6 +18281,7 @@ void dx_iface::addNamedObjectDictionary(const DRW_Dictionary& data) {
 }
 
 void dx_iface::addXRecord(const DRW_XRecord& data) {
+    retainTableResource(dx_tableResourceFamily::XRecord,data);
     retainTableSourceXRecord(data);
     retainXRecordTyped(cData, data);
 }
@@ -18031,6 +18313,7 @@ void dx_iface::addVisualStyle(const DRW_VisualStyle& data) {
 }
 
 void dx_iface::addField(const DRW_Field& data) {
+    retainTableResource(dx_tableResourceFamily::Field,data);
     constexpr std::size_t listNodeLinkBytes = 2u * sizeof(void*);
     if (cData == nullptr || cData->fieldCarrierTypedCaptureFailed)
         return;

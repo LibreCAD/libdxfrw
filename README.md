@@ -455,8 +455,14 @@ refusal stays enabled; separate ATTRIB/SEQEND raw records are not yet qualified.
 Rich TABLECONTENT snapshots are now deep-frozen and compared field-for-field
 against their captured source, including ASCII scalar spellings and encoding-
 specific text decoding. A bounded source receipt records exact handle slots and
-keeps style-local IDs in a separate namespace. This is not target binding or
-complete table replay; unknown geometry roles remain explicit and unqualified.
+keeps style-local IDs in a separate namespace. A separately bounded frozen
+resource registry now binds admitted rich-child direct references by callback
+family, and local IDs through the selected TABLESTYLE extension's CELLSTYLEMAP
+membership and owners. This is not complete transitive dependency, resource
+payload, live-state or output proof. The external example maps still lack a
+matching typed source profile, and R2010 built-in ID 4 remains blocked by the
+existing codec-normalized revision check. Unknown geometry roles and table
+replay remain unqualified.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without

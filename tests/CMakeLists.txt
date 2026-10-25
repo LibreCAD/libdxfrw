@@ -511,6 +511,10 @@ add_test(NAME libdxfrw_table_content_reference_observer_selftest
         ${CMAKE_CURRENT_SOURCE_DIR}/table_content_reference_observer.py --self-test)
 set_tests_properties(libdxfrw_table_content_reference_observer_selftest PROPERTIES
     LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
+add_test(NAME libdxfrw_table_content_bindings
+    COMMAND libdxfrw_table_content_dxf_tests --compound-bindings)
+set_tests_properties(libdxfrw_table_content_bindings PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
 
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value

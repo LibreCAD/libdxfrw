@@ -180,6 +180,14 @@ enum class dx_source_format : std::uint8_t {
     DWG
 };
 
+// Converter-private source families. These are callback/model identities,
+// never binary DWG type numbers or output/support qualification.
+enum class dx_tableResourceFamily : std::uint8_t {
+    TextStyle, LineType, TableStyle, CellStyleMap, Field, DataLink,
+    BlockRecord, AppId, Layer, Dictionary, XRecord, AttributeDefinition,
+    Entity, Table, TableContent, TableGeometry
+};
+
 // Binds the visual-style records appended during one successful import to
 // that import's source profile. This is provenance only: it does not certify
 // the decoded payload or make an unsupported profile writable.
@@ -993,6 +1001,25 @@ private:
         std::map<std::uint32_t, DRW_RawDxfObject> rawObjects;
         std::map<std::uint32_t, std::vector<dxfTableContent::Reference>> contentReferences;
         std::size_t contentProofWork{0};
+        struct Resource {
+            dx_tableResourceFamily family{dx_tableResourceFamily::Entity};
+            std::uint32_t owner{0};
+            std::shared_ptr<const DRW_TableEntry> model;
+            std::set<int> styleIds;
+            bool duplicateStyleId{false}, invalidStyleId{false}, namespaceComplete{false};
+            std::uint32_t cellMapTarget{0};
+            unsigned cellMapEntries{0};
+            bool cellMapOwnerEdge{false};
+            bool invalidName{false}, ambiguousName{false};
+        };
+        std::map<std::uint32_t,Resource> resources;
+        std::map<std::pair<dx_tableResourceFamily,UTF8STRING>,std::uint32_t> resourceNames;
+        // Independent from compound callback counters: these freeze inputs
+        // even when TABLE follows the symbol tables/OBJECTS in the source.
+        std::size_t resourceRecords{0}, resourceItems{0}, resourceBytes{0};
+        std::size_t maxResourceRecords{100000u}, maxResourceItems{4000000u};
+        std::size_t maxResourceBytes{64u*1024u*1024u}, maxBindingWork{4000000u};
+        bool resourceCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {
