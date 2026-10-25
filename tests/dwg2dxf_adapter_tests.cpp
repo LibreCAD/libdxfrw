@@ -52,6 +52,8 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static std::size_t xrecordWriteSourceBytes(const dx_iface& iface) { return iface.m_xrecordWriteSourceBytes; }
+    static void xrecordWriteSourceLimit(dx_iface& iface, std::size_t bytes) { iface.m_xrecordWriteSourceByteLimit = bytes; }
     static bool standardSourceEligible(const dx_data& data, std::uint32_t handle) {
         const auto found = data.m_standardDwgObjectFrames.find({data.importGeneration,handle});
         if (found == data.m_standardDwgObjectFrames.end()) return false;
@@ -3556,6 +3558,222 @@ bool standardOutputFramingControls() {
     if (cells != 12u || faults != 44u || profileRefusals != 15u || truncations == 0u) return fail("standard framing controls skipped a case");
     std::cout << "Standard framing profile cells=" << cells << " truncations=" << truncations << " selected faults/restoration=" << faults
         << " unknown profile/width refusals=" << profileRefusals << '\n';
+    return true;
+}
+
+bool rasterTokenWidthControls() {
+    unsigned strings = 0u, shorts = 0u, truncations = 0u, unknowns = 0u;
+    const auto field = [](int code, std::string_view text, bool binary) {
+        if (!binary) return std::to_string(code) + "\n" + std::string(text) + "\n";
+        std::string bytes; bytes.push_back(static_cast<char>(code & 255)); bytes.push_back(static_cast<char>((code >> 8) & 255));
+        bytes.append(text.data(),text.size()); bytes.push_back('\0'); return bytes;
+    };
+    const auto truncated = [&](const std::string& bytes, bool binary) {
+        for (std::size_t n = 0u; n < bytes.size(); ++n) {
+            dx_raster_output::Cursor cursor(std::string_view(bytes).substr(0,n),binary); dx_raster_output::Token token;
+            if (cursor.next(token)) return false;
+            ++truncations;
+        }
+        return true;
+    };
+    // Independently hand-encode the exact transport and expected spans. The
+    // production reader, writer and classifier are not the oracle here.
+    for (const bool binary : {false,true}) for (int code = 100; code <= 109; ++code)
+      for (const auto* value : {"","{literal } 1001","caf\xC3\xA9 string"}) {
+        const auto first = field(code,value,binary), bytes = first + field(0,"DICTIONARY",binary);
+        dx_raster_output::Cursor cursor(bytes,binary); dx_raster_output::Token token;
+        if (!cursor.next(token) || token.code != code || token.type != dx_raster_output::Kind::Text || token.text != value
+            || cursor.position() != first.size() || !cursor.next(token) || token.code != 0 || token.text != "DICTIONARY" || !cursor.done()
+            || !truncated(first,binary)) return fail("independent string token width/span/truncation control failed");
+        ++strings;
+    }
+    for (const bool binary : {false,true}) for (int code = 1060; code <= 1070; ++code) for (const int value : {-32768,-1,0,32767}) {
+        std::string first;
+        if (binary) {
+            for (const auto word : {static_cast<unsigned>(code),static_cast<unsigned>(value) & 65535u}) {
+                first.push_back(static_cast<char>(word & 255u)); first.push_back(static_cast<char>(word >> 8u));
+            }
+        } else first = field(code,std::to_string(value),false);
+        const auto bytes = first + field(0,"DICTIONARY",binary);
+        dx_raster_output::Cursor cursor(bytes,binary); dx_raster_output::Token token;
+        if (!cursor.next(token) || token.code != code || token.type != dx_raster_output::Kind::Integer || token.number != value
+            || cursor.position() != first.size() || !cursor.next(token) || token.code != 0 || token.text != "DICTIONARY" || !cursor.done()
+            || !truncated(first,binary)) return fail("independent short token width/span/truncation control failed");
+        ++shorts;
+    }
+    for (const int code : {80,89,150,159,180,209,240,259,260,269,482,998,1006,1009,1072,65535}) {
+        const auto bytes = field(code,"opaque",true) + field(0,"DICTIONARY",true);
+        dx_raster_output::Cursor cursor(bytes,true); dx_raster_output::Token token;
+        if (cursor.next(token) || dx_raster_output::kind(code) != dx_raster_output::Kind::Invalid)
+            return fail("independent standalone observer guessed an unassigned binary width");
+        ++unknowns;
+    }
+    if (strings != 60u || shorts != 88u || unknowns != 16u || truncations == 0u) return fail("independent width controls skipped a cell");
+    std::cout << "Independent string width cells=" << strings << " short width cells=" << shorts << " partial-token refusals=" << truncations
+        << " unknown binary width refusals=" << unknowns << '\n';
+    return true;
+}
+
+bool rootedXrecordStringWidths(bool faultsOnly = false) {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-rooted-xrecord-widths-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) return fail("rooted XRECORD width scratch directory failed");
+    }
+    if (directory.empty()) return fail("rooted XRECORD width scratch directory exhausted");
+    const auto source = directory / "source.dxf", target = directory / "target.dxf";
+    struct Cleanup { std::filesystem::path a, b, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(a,error); std::filesystem::remove(b,error); std::filesystem::remove(directory,error);
+    } } cleanup{source,target,directory};
+    class Author final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+        void writeEntities() override {
+            if (!withImage) return;
+            DRW_Image image; image.basePoint = {1,2,3}; image.secPoint = {0.5,0,0}; image.vVector = {0,0.25,0};
+            image.sizeu = 8; image.sizev = 4;
+            imageWrote = dxfW->writeImage(&image,"string-widths.png") != nullptr;
+        }
+        void writeObjects() override { wrote = dxfW->writeXRecord(&record); }
+        DRW_XRecord record;
+        bool wrote{false}, withImage{false}, imageWrote{false};
+    } author;
+    dx_data storage; author.cData = &storage; author.currentBlock = storage.mBlock;
+    author.record.handle = 0xA010u; author.record.parentHandle = 0xCu;
+    for (const int code : {103,104,106,107,108,109}) for (const auto* value : {"","literal {string}","caf\xC3\xA9 string"})
+        author.record.m_dataEntries.emplace_back(code,std::string(value));
+    author.record.m_dataEntries.emplace_back(1,std::string("after-string-widths"));
+    const auto check = [&](const dx_data& data) {
+        if (!data.hasNamedObjectDictionary || data.xRecords.size() != 1u) return false;
+        const auto& record = data.xRecords.front();
+        const auto root = std::find_if(data.namedObjectDictionary.m_entries.begin(),data.namedObjectDictionary.m_entries.end(),
+            [](const auto& entry) { return entry.m_name == "STRING_WIDTHS"; });
+        if (root == data.namedObjectDictionary.m_entries.end() || root->m_handle != record.handle
+            || record.parentHandle != data.namedObjectDictionary.handle || !record.appData.empty()
+            || !record.reactorHandles.empty() || record.xDictHandle || record.m_dataEntries.size() != author.record.m_dataEntries.size()) return false;
+        for (std::size_t n = 0u; n < record.m_dataEntries.size(); ++n) {
+            const auto& expected = author.record.m_dataEntries[n]; const auto& actual = record.m_dataEntries[n];
+            if (actual.type() != DRW_Variant::STRING || actual.code() != expected.code() || !actual.content.s || *actual.content.s != *expected.content.s) return false;
+        }
+        if (data.mBlock->ent.size() != (author.withImage ? 1u : 0u)) return false;
+        if (author.withImage) {
+            const auto* image = dynamic_cast<const dx_ifaceImg*>(data.mBlock->ent.front());
+            if (!image || image->path != "string-widths.png" || image->sizeu != 8.0 || image->sizev != 4.0
+                || image->basePoint.x != 1 || image->basePoint.y != 2 || image->basePoint.z != 3
+                || image->secPoint.x != 0.5 || image->vVector.y != 0.25 || !image->ref || !image->m_imageDefReactorHandle
+                || !data.findImageDefinition(image->sourceImportGeneration,image->ref)) return false;
+        }
+        return true;
+    };
+    class Exporter final : public dx_iface {
+    public:
+        std::function<void()> afterObjects, beforeFinalize;
+        void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
+        bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
+    };
+    unsigned sources = 0u, exports = 0u, reexports = 0u, lateRetries = 0u, sourceRetries = 0u, budgetRetries = 0u;
+    for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool sourceBinary : {false,true}) {
+        if (faultsOnly && version != DRW::AC1032) continue;
+        author.withImage = sourceBinary; author.imageWrote = false;
+        dxfRW codec(source.string().c_str()); author.dxfW = &codec;
+        DRW_Dictionary nod; nod.handle = 0xCu; nod.m_entries = {{"STRING_WIDTHS",author.record.handle}};
+        codec.setRootDictEntries({{"STRING_WIDTHS","A010"}});
+        if (!codec.reserveHandle(author.record.handle) || !codec.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(nod),nullptr)
+            || !codec.write(&author,version,sourceBinary) || !author.wrote || (author.withImage && !author.imageWrote)) return fail("public rooted XRECORD source writer failed");
+        author.dxfW = nullptr;
+        dx_data data; dx_iface importer;
+        if (!importer.fileImport(source.string(),&data,false) || !check(data)) return fail("public rooted XRECORD source import/value/owner check failed");
+        ++sources;
+        Exporter exporter;
+        if (faultsOnly) {
+            const auto original = data.xRecords.front();
+            const auto originalGeneration = data.importGeneration;
+            const auto originalVersion = data.sourceVersion;
+            const auto restore = [&]() {
+                data.xRecords.clear(); data.xRecords.push_back(original);
+                data.importGeneration = originalGeneration; data.sourceVersion = originalVersion;
+            };
+            const auto write = [&](bool binary) { return exporter.fileExport(target.string(),DRW::AC1032,binary,&data,false,true); };
+            const auto refused = [&](bool binary) {
+                const std::string sentinel = "ROOTED_XRECORD_STRING_WIDTH_ATOMIC_DESTINATION";
+                { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+                const bool wrote = write(binary); std::ifstream prior(target,std::ios::binary);
+                return !wrote && std::string((std::istreambuf_iterator<char>(prior)),{}) == sentinel;
+            };
+            const auto retry = [&](bool binary) {
+                if (!write(binary)) return false;
+                dx_data actual; dx_iface reader;
+                return reader.fileImport(target.string(),&actual,false) && check(actual) && check(data);
+            };
+            for (const bool binary : {false,true}) {
+                for (unsigned mode = 0u; mode != 10u; ++mode) for (const bool final : {false,true}) {
+                    const auto edit = [&]() {
+                        switch (mode) {
+                        case 0u: data.xRecords.front().m_dataEntries.front().addString(103,"late-replaced-string"); break;
+                        case 1u: data.xRecords.front().m_dataEntries.emplace_back(109,std::string("late-new-string")); break;
+                        case 2u: data.xRecords.clear(); break;
+                        case 3u: data.xRecords.push_back(data.xRecords.front()); break;
+                        case 4u: ++data.xRecords.front().handle; break;
+                        case 5u: ++data.xRecords.front().parentHandle; break;
+                        case 6u: ++data.xRecords.front().m_cloning; break;
+                        case 7u: data.xRecords.front().m_values.front().addString(103,"late-mirror-string"); break;
+                        case 8u: ++data.importGeneration; break;
+                        case 9u: data.sourceVersion = DRW::AC1015; break;
+                        }
+                    };
+                    if (final) exporter.beforeFinalize = edit; else exporter.afterObjects = edit;
+                    if (!refused(binary)) return fail("rooted XRECORD late string edit escaped atomic source checks mode=" + std::to_string(mode));
+                    exporter.beforeFinalize = {}; exporter.afterObjects = {}; restore();
+                    if (!retry(binary)) return fail("rooted XRECORD restored string source did not retry");
+                    ++lateRetries;
+                }
+                for (const int code : {103,104,106,107,108,109}) {
+                    const auto selected = std::find_if(data.xRecords.front().m_dataEntries.begin(),data.xRecords.front().m_dataEntries.end(),
+                        [&](const auto& field) { return field.code() == code; });
+                    if (selected == data.xRecords.front().m_dataEntries.end()) return fail("rooted XRECORD string source fault lacks field");
+                    selected->addInt(code,7);
+                    if (!refused(binary)) return fail("rooted XRECORD wrong string variant was not refused atomically");
+                    data.xRecords.front() = original;
+                    if (!retry(binary)) return fail("rooted XRECORD corrected variant did not retry");
+                    ++sourceRetries;
+                }
+                std::size_t retained = 0u;
+                exporter.afterObjects = [&]() { retained = DxIfaceStandardDwgCaptureTestAccess::xrecordWriteSourceBytes(exporter); };
+                if (!retry(binary) || retained == 0u) return fail("selected XRECORD snapshot exact budget premise failed");
+                exporter.afterObjects = {};
+                for (const auto cap : {std::size_t(0),retained - 1u}) {
+                    DxIfaceStandardDwgCaptureTestAccess::xrecordWriteSourceLimit(exporter,cap);
+                    if (!refused(binary)) return fail("selected XRECORD snapshot under-budget source was published");
+                    DxIfaceStandardDwgCaptureTestAccess::xrecordWriteSourceLimit(exporter,retained);
+                    if (!retry(binary)) return fail("selected XRECORD snapshot exact-budget retry failed");
+                    ++budgetRetries;
+                }
+                DxIfaceStandardDwgCaptureTestAccess::xrecordWriteSourceLimit(exporter,dx_iface::ImageDefinitionCaptureMaxRetainedBytes);
+            }
+            continue;
+        }
+        for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
+            if (!exporter.fileExport(target.string(),targetVersion,binary,&data,false,true))
+                return fail("rooted XRECORD facade width export refused source=" + std::to_string(version) + " sourceBinary=" + std::to_string(sourceBinary)
+                    + " target=" + std::to_string(targetVersion) + " binary=" + std::to_string(binary));
+            if (author.withImage && !DxIfaceStandardDwgCaptureTestAccess::rasterFinal(exporter,2u))
+                return fail("rooted XRECORD string widths bypassed exact IMAGEDEF/reactor output proof");
+            dx_data first; dx_iface reader;
+            if (!reader.fileImport(target.string(),&first,false) || !check(first)) return fail("rooted XRECORD facade width readback failed");
+            ++exports;
+            if (!exporter.fileExport(target.string(),targetVersion,!binary,&first,false,true)) return fail("actual imported XRECORD cross-encoding reexport refused");
+            dx_data second;
+            if (!reader.fileImport(target.string(),&second,false) || !check(second) || !check(data)) return fail("rooted XRECORD reexport changed fields, owners or original source");
+            ++reexports;
+        }
+    }
+    if (sources != (faultsOnly ? 2u : 12u) || exports != (faultsOnly ? 0u : 144u) || reexports != (faultsOnly ? 0u : 144u)
+        || lateRetries != (faultsOnly ? 80u : 0u) || sourceRetries != (faultsOnly ? 24u : 0u) || budgetRetries != (faultsOnly ? 8u : 0u)) return fail("rooted XRECORD width matrix skipped a cell");
+    std::cout << "Rooted XRECORD string sources=" << sources << " facade exports=" << exports << " actual-import reexports=" << reexports
+        << " late-source retries=" << lateRetries << " source-variant retries=" << sourceRetries << " snapshot-budget retries=" << budgetRetries << '\n';
     return true;
 }
 
@@ -33190,6 +33408,12 @@ int main(int argc, char** argv) {
         return standardDwgBinaryTransport(StandardDwgProbe::ApplicationFaults) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--raster-xrecord-scope-framing")
         return rasterXrecordScopeFramingControls() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--rooted-xrecord-string-widths")
+        return rootedXrecordStringWidths() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--rooted-xrecord-string-width-faults")
+        return rootedXrecordStringWidths(true) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--raster-token-width-controls")
+        return rasterTokenWidthControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-output-framing-controls")
         return standardOutputFramingControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-scalar-transport")

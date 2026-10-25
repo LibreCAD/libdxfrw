@@ -14894,6 +14894,51 @@ template<class Mapper> bool generatedDictionaryCommonEqual(const DRW_Dictionary&
 }
 }
 
+bool dx_iface::captureXrecordWriteSources() noexcept {
+    if (!cData || cData->xRecords.size() > kMaxAdapterXRecordRecords
+        || m_extensionXRecordHandles.size() > kMaxAdapterXRecordRecords) return false;
+    try {
+        const auto count = m_extensionXRecordHandles.size();
+        if (count == 0u) return true;
+        if (count > m_xrecordWriteSourceByteLimit / (sizeof(DRW_XRecord) + sizeof(std::uint32_t))) return false;
+        std::size_t bytes = count * (sizeof(DRW_XRecord) + sizeof(std::uint32_t)), items = 0u;
+        m_xrecordWriteSourceHandles = m_extensionXRecordHandles;
+        std::sort(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end());
+        if (std::adjacent_find(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end()) != m_xrecordWriteSourceHandles.end()) return false;
+        m_xrecordWriteSources.reserve(count);
+        for (const auto& record : cData->xRecords) {
+            if (!std::binary_search(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end(),record.handle)) continue;
+            std::size_t retained = 0u, slots = 0u;
+            if (m_xrecordWriteSources.size() >= count || !estimateXRecordTypedBytes(record,retained,slots)
+                || retained < sizeof(DRW_XRecord) || retained - sizeof(DRW_XRecord) > m_xrecordWriteSourceByteLimit - bytes
+                || slots > kMaxAdapterXRecordItems - items) return false;
+            bytes += retained - sizeof(DRW_XRecord); items += slots;
+            // Precharge both vector storage and every selected payload before
+            // copying. Do not bind or refresh native source/semantic receipts.
+            m_xrecordWriteSources.push_back(record);
+        }
+        if (m_xrecordWriteSources.size() != count) return false;
+        m_xrecordWriteSourceBytes = bytes;
+        m_xrecordWriteSourceVersion = cData->sourceVersion;
+        m_xrecordWriteSourceGeneration = cData->importGeneration;
+        m_xrecordWriteSourceOwner = cData;
+        return hasUnchangedXrecordWriteSources();
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasUnchangedXrecordWriteSources() const noexcept {
+    if (!m_xrecordWriteSourceOwner) return true; // Direct codec probes have no facade capture.
+    if (cData != m_xrecordWriteSourceOwner || cData->sourceVersion != m_xrecordWriteSourceVersion
+        || cData->importGeneration != m_xrecordWriteSourceGeneration || cData->xRecords.size() > kMaxAdapterXRecordRecords) return false;
+    std::size_t next = 0u;
+    for (const auto& record : cData->xRecords) {
+        if (!std::binary_search(m_xrecordWriteSourceHandles.begin(),m_xrecordWriteSourceHandles.end(),record.handle)) continue;
+        if (next >= m_xrecordWriteSources.size()
+            || !standardDwgModelsEqual(m_xrecordWriteSources[next++],record,m_xrecordWriteSourceVersion,dwgObjType::XRECORD)) return false;
+    }
+    return next == m_xrecordWriteSources.size();
+}
+
 bool dx_iface::hasUnchangedGeneratedRootSources(bool final) const {
     if (!cData || !dxfW) return false;
     if (!validateNamedObjectRootForExport(*cData, "ACAD_GROUP")) return false;
@@ -21218,6 +21263,7 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 
 bool dx_iface::finalizeDxfWrite() {
     if (m_hatchPlanningFailed
+        || !hasUnchangedXrecordWriteSources()
         || (cData != nullptr && !hasUnchangedStandardDwgObjectSources())
         || (cData != nullptr && !hasUnchangedRasterDwgSources())
         || !finalizeStandardDwgOutputProofs()
@@ -22016,6 +22062,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
+    m_xrecordWriteSources.clear(); m_xrecordWriteSourceHandles.clear(); m_xrecordWriteSourceOwner = nullptr; m_xrecordWriteSourceBytes = 0u;
+    struct XrecordSourceScope {
+        dx_iface& owner;
+        ~XrecordSourceScope() {
+            std::vector<DRW_XRecord>().swap(owner.m_xrecordWriteSources);
+            std::vector<std::uint32_t>().swap(owner.m_xrecordWriteSourceHandles);
+            owner.m_xrecordWriteSourceOwner = nullptr;
+            owner.m_xrecordWriteSourceBytes = 0u;
+        }
+    } xrecordSourceScope{*this};
     resetStandardDwgOutputProofs();
     struct OutputProofScope {
         dx_iface& owner;
@@ -22872,6 +22928,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     // retained handle lists; these graph-collection buffers are staging only.
     std::vector<std::uint32_t>().swap(spatialFilterDictionaryHandles);
     std::vector<std::uint32_t>().swap(spatialFilterXRecordHandles);
+    if (!captureXrecordWriteSources()) {
+        reportPreflightFailure("selected XRECORD immutable write-source capture failed or exceeded budget");
+        return false;
+    }
     if (validateModelDocViewStyles) {
         if (m_extensionDetailViewStyleHandles.size()
                 != cData->detailViewStyles.size()
@@ -24704,7 +24764,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsGeneratedRoots = cData->hasNamedObjectDictionary;
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots)
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots](const auto& view) {
-            return (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
+            return hasUnchangedXrecordWriteSources()
+                && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
                 && (!needsRasterOutput || inspectRasterOutput(view))
                 && (!needsGeneratedRoots || inspectGeneratedRootOutput(view));
         })) {

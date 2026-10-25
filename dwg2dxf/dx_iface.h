@@ -1534,6 +1534,16 @@ private:
     bool inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool hasUnchangedGeneratedRootSources(bool final) const;
     bool finalizeGeneratedRootOutput() noexcept;
+    // Per-write typed snapshots, not independent import/support evidence.
+    std::vector<DRW_XRecord> m_xrecordWriteSources;
+    std::vector<std::uint32_t> m_xrecordWriteSourceHandles;
+    const dx_data* m_xrecordWriteSourceOwner{nullptr};
+    DRW::Version m_xrecordWriteSourceVersion{DRW::UNKNOWNV};
+    std::uint64_t m_xrecordWriteSourceGeneration{0u};
+    std::size_t m_xrecordWriteSourceBytes{0u};
+    std::size_t m_xrecordWriteSourceByteLimit{ImageDefinitionCaptureMaxRetainedBytes};
+    bool captureXrecordWriteSources() noexcept;
+    bool hasUnchangedXrecordWriteSources() const noexcept;
     struct RasterImageEdges {
         std::uint32_t source{0}, emitted{0}, owner{0}, definition{0}, reactor{0};
         dxfRW::ImageDefinitionKey sourceDefinition;

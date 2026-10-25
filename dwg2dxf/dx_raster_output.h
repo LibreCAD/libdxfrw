@@ -17,7 +17,10 @@
 namespace dx_raster_output {
 enum class Kind { Text, Double, Integer, Bytes, Invalid };
 inline Kind kind(int c) {
-    if ((c >= 0 && c <= 9) || c == 100 || c == 102 || c == 105
+    // The standalone/LibreCAD compatible 100..109 string transport includes
+    // ordinary XRECORD application strings, not only the named markers.
+    // This independent width table must not call the production classifier.
+    if ((c >= 0 && c <= 9) || (c >= 100 && c <= 109)
         || (c >= 300 && c <= 309) || (c >= 320 && c <= 369)
         || (c >= 390 && c <= 399) || (c >= 410 && c <= 419)
         || (c >= 430 && c <= 439) || (c >= 470 && c <= 481)
@@ -26,10 +29,10 @@ inline Kind kind(int c) {
         || (c >= 210 && c <= 239) || (c >= 460 && c <= 469)
         || (c >= 1010 && c <= 1059)) return Kind::Double;
     if ((c >= 310 && c <= 319) || c == 1004) return Kind::Bytes;
-    if ((c >= 60 && c <= 99) || (c >= 160 && c <= 179)
+    if ((c >= 60 && c <= 79) || (c >= 90 && c <= 99) || (c >= 160 && c <= 179)
         || (c >= 270 && c <= 299) || (c >= 370 && c <= 389)
         || (c >= 400 && c <= 409) || (c >= 420 && c <= 429)
-        || (c >= 440 && c <= 459) || c == 1070 || c == 1071) return Kind::Integer;
+        || (c >= 440 && c <= 459) || (c >= 1060 && c <= 1071)) return Kind::Integer;
     return Kind::Invalid;
 }
 inline std::string_view trim(std::string_view s) {

@@ -597,6 +597,18 @@ add_test(NAME dwg2dxf_raster_xrecord_scope_framing
     COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-xrecord-scope-framing)
 set_tests_properties(dwg2dxf_raster_xrecord_scope_framing PROPERTIES
     LABELS "fast;dxf;objects;xrecord;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_rooted_xrecord_string_widths
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --rooted-xrecord-string-widths)
+set_tests_properties(dwg2dxf_rooted_xrecord_string_widths PROPERTIES
+    LABELS "fast;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_rooted_xrecord_string_width_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --rooted-xrecord-string-width-faults)
+set_tests_properties(dwg2dxf_rooted_xrecord_string_width_faults PROPERTIES
+    LABELS "fast;dxf;objects;xrecord;transaction;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_raster_token_width_controls
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-token-width-controls)
+set_tests_properties(dwg2dxf_raster_token_width_controls PROPERTIES
+    LABELS "fast;dxf;objects;reader;adapter;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_standard_output_framing_controls
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-output-framing-controls)
 set_tests_properties(dwg2dxf_standard_output_framing_controls PROPERTIES
