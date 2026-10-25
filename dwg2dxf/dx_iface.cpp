@@ -11244,6 +11244,9 @@ bool estimateTableStyleTypedBytes(
     };
     if (!addTableEntryRetainedBytes(style, estimate)
         || !addStringPayloadBytes(style.m_name, estimate)
+        || (style.hasDxfDescriptionBaseline()
+            && (!addStringPayloadBytes(style.dxfOriginalDescription(),estimate)
+                || !addStringPayloadBytes(style.dxfOriginalDescriptionRaw(),estimate)))
         || !addVectorPayloadBytes(style.m_rowStyles, estimate)
         || !addVectorPayloadBytes(style.m_cellStyles, estimate)
         || !addVectorPayloadBytes(style.m_subrecordRanges, estimate)
@@ -16801,11 +16804,43 @@ bool tableResourceSourceBody(const DRW_RawDxfObject& raw,std::size_t cap,std::st
         [](std::uint32_t source,std::uint32_t& target){target=source;return true;},false,cap);
 }
 
-bool tableMapSourceReferences(const DRW_RawDxfObject& raw,std::vector<dx_tableResourceReference>& result) {
+bool tableStyleSourceEqual(const DRW_TableStyle& a,const DRW_TableStyle& b,DRW::Version version) {
+    if (!standardDwgCommonEqual(a,b,version) || a.m_name!=b.m_name || a.m_flowDirection!=b.m_flowDirection
+        || a.m_flags!=b.m_flags || !retainedDoubleEqual(a.m_horizontalCellMargin,b.m_horizontalCellMargin)
+        || !retainedDoubleEqual(a.m_verticalCellMargin,b.m_verticalCellMargin)
+        || a.m_titleSuppressed!=b.m_titleSuppressed || a.m_headerSuppressed!=b.m_headerSuppressed
+        || a.m_unknownHandle!=b.m_unknownHandle || !retainedCellStyleEqual(a.m_tableCellStyle,b.m_tableCellStyle)
+        || a.m_rowStyles.size()!=b.m_rowStyles.size() || a.m_cellStyles.size()!=b.m_cellStyles.size()
+        || a.m_subrecordRanges.size()!=b.m_subrecordRanges.size()
+        || a.hasDxfDescriptionBaseline()!=b.hasDxfDescriptionBaseline()
+        || a.dxfOriginalDescription()!=b.dxfOriginalDescription() || a.dxfOriginalDescriptionRaw()!=b.dxfOriginalDescriptionRaw()) return false;
+    for(std::size_t i=0;i<a.m_rowStyles.size();++i) {
+        const auto& x=a.m_rowStyles[i];const auto& y=b.m_rowStyles[i];
+        if(x.m_textStyleName!=y.m_textStyleName || x.m_textStyleHandle!=y.m_textStyleHandle
+            || !retainedDoubleEqual(x.m_textHeight,y.m_textHeight) || x.m_textAlignment!=y.m_textAlignment
+            || x.m_textColor!=y.m_textColor || x.m_fillColor!=y.m_fillColor
+            || !retainedTableStyleColorEqual(x.m_textColorCmc,y.m_textColorCmc)
+            || !retainedTableStyleColorEqual(x.m_fillColorCmc,y.m_fillColorCmc)
+            || x.m_hasBackgroundColor!=y.m_hasBackgroundColor || x.m_valueDataType!=y.m_valueDataType
+            || x.m_valueUnitType!=y.m_valueUnitType || x.m_valueFormatString!=y.m_valueFormatString
+            || !retainedTableStyleBordersEqual(x.m_borders,y.m_borders)) return false;
+    }
+    for(std::size_t i=0;i<a.m_cellStyles.size();++i)
+        if(!retainedCellStyleEqual(a.m_cellStyles[i],b.m_cellStyles[i]))return false;
+    for(std::size_t i=0;i<a.m_subrecordRanges.size();++i) {
+        const auto& x=a.m_subrecordRanges[i];const auto& y=b.m_subrecordRanges[i];
+        if(x.m_name!=y.m_name || x.m_startBit!=y.m_startBit || x.m_bitSize!=y.m_bitSize
+            || x.m_version!=y.m_version || x.m_count!=y.m_count || x.m_parseComplete!=y.m_parseComplete)return false;
+    }
+    return true;
+}
+
+bool tableResourceSourceReferences(const DRW_RawDxfObject& raw,bool tableStyle,std::vector<dx_tableResourceReference>& result) {
     using R=dx_tableResourceRole;
     enum class Section {None,Table,Content,Grid,Identity};
     Section section=Section::None;std::string_view application;
-    unsigned selves=0u,owners=0u,subclasses=0u;bool xdata=false;
+    unsigned selves=0u,owners=0u,subclasses=0u;bool xdata=false,styleBody=false,styleHeader=false;
+    unsigned core=0u;
     for(std::size_t i=0;i<raw.groups.size();++i) {
         const auto& value=raw.groups[i];const int code=value.code();
         const auto text=value.type()==DRW_Variant::STRING && value.content.s?std::string_view(*value.content.s):std::string_view{};
@@ -16815,21 +16850,36 @@ bool tableMapSourceReferences(const DRW_RawDxfObject& raw,std::vector<dx_tableRe
             else return false;
         } else if(application.empty()) {
             if(code==100) {
-                if(text=="AcDbCellStyleMap") {if(++subclasses!=1u)return false;}
+                if(text==(tableStyle?"AcDbTableStyle":"AcDbCellStyleMap")) {if(++subclasses!=1u)return false;}
                 else if(subclasses || text!="AcDbObject")return false;
-            } else if(code==1) {
+            } else if(tableStyle && subclasses && !xdata) {
+                unsigned bit=0u;
+                if(code==280)bit=styleBody?64u:1u;
+                else if(code==3)bit=2u;
+                else if(code==70)bit=4u;
+                else if(code==71)bit=8u;
+                else if(code==40)bit=16u;
+                else if(code==41)bit=32u;
+                else if(code==281){bit=128u;styleHeader=true;}
+                if(bit) {if(core&bit)return false;core|=bit;}
+                if(code==3 || code==70 || code==71 || code==40 || code==41 || code==281)styleBody=true;
+                if(code==7) {
+                    if(!styleHeader)return false;
+                    result.push_back({R::TextStyleName,i,code,0u});
+                }
+            } else if(!tableStyle && code==1) {
                 if(text=="TABLEFORMAT_BEGIN")section=Section::Table;
                 else if(text=="CONTENTFORMAT_BEGIN")section=Section::Content;
                 else if(text=="GRIDFORMAT_BEGIN")section=Section::Grid;
                 else if(text=="CELLSTYLE_BEGIN")section=Section::Identity;
-            } else if(code==309) {
+            } else if(!tableStyle && code==309) {
                 if(text=="TABLEFORMAT_END" || text=="CELLSTYLE_END")section=Section::None;
                 else if(text=="CONTENTFORMAT_END" || text=="GRIDFORMAT_END")section=Section::Table;
             }
         }
         if(code==1001 && application.empty()) {xdata=true;result.push_back({R::AppIdName,i,code,0u});}
         if(code==1003 && application.empty())result.push_back({R::LayerName,i,code,0u});
-        if(code==90 && application.empty() && section==Section::Identity) {
+        if(!tableStyle && code==90 && application.empty() && section==Section::Identity) {
             if(value.type()!=DRW_Variant::INTEGER || value.i_val()<1)return false;
             result.push_back({R::LocalStyleDefinition,i,code,static_cast<std::uint32_t>(value.i_val())});
         }
@@ -16847,7 +16897,7 @@ bool tableMapSourceReferences(const DRW_RawDxfObject& raw,std::vector<dx_tableRe
         }
         result.push_back({kind,i,code,static_cast<std::uint32_t>(handle)});
     }
-    return application.empty() && selves==1u && owners==1u && subclasses==1u;
+    return application.empty() && selves==1u && owners==1u && subclasses==1u && (!tableStyle || core==255u);
 }
 
 } // namespace
@@ -17083,6 +17133,29 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         if (found->second.ambiguousName) {fail(S::AmbiguousIdentity,handle);return nullptr;}
         return &found->second;
     };
+    const auto resourceSource=[&](const dx_data::TableDxfSourceCapture::Resource& resource,std::uint32_t handle,bool style) {
+        if(resource.rawTypedMismatch){fail(S::ResourceRawTypedMismatch,handle);return;}
+        if(!resource.rawTypedMatched){fail(S::ResourceProofMissing,handle);return;}
+        if(style)++report.sourceStyleMatches;else ++report.sourceMapMatches;
+        if(!work(resource.references.size()))return;
+        std::size_t name=0u;
+        for(const auto& reference:resource.references) {
+            using R=dx_tableResourceRole;
+            if(reference.kind==R::TextStyleName) {
+                if(resource.invalidTextStyleName || name>=resource.referenceNameKeys.size()) {
+                    fail(S::InvalidNamespace,handle);continue;
+                }
+                const auto found=source.resourceNames.find({F::TextStyle,resource.referenceNameKeys[name++]});
+                if(found==source.resourceNames.end()){fail(S::MissingTarget,0u);continue;}
+                if(lookup(found->second,F::TextStyle))++report.boundResourceReferences;
+            } else if(reference.kind==R::TextStyle || reference.kind==R::LineType) {
+                if(reference.value==0u){++report.inheritedResourceReferences;continue;}
+                if(lookup(reference.value,reference.kind==R::TextStyle?F::TextStyle:F::LineType))++report.boundResourceReferences;
+            } else if(reference.kind==R::Unknown && reference.value!=0u) {
+                ++report.unknownResourceReferences;fail(S::UnknownRole,reference.value);
+            }
+        }
+    };
     for (const auto& table:source.tables) {
         if (!work(1u)) return report;
         (void)lookup(table.second.typed.parentHandle,F::BlockRecord);
@@ -17095,6 +17168,8 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
         const auto* styleResource=lookup(styleHandle,F::TableStyle);
         const auto* style=styleResource?dynamic_cast<const DRW_TableStyle*>(styleResource->model.get()):nullptr;
         if (styleResource && !style) {fail(S::WrongFamily,styleHandle);continue;}
+        if(styleResource)resourceSource(*styleResource,styleHandle,true);
+        if(report.state==S::WorkLimit)return report;
         const bool usesNamespace=std::any_of(item.second.begin(),item.second.end(),[](const auto& reference) {
             return reference.kind==K::LocalStyleId && reference.value!=0u;
         });
@@ -17113,17 +17188,8 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
                     fail(S::InvalidNamespace,dictionary->cellMapTarget);namespaceMap=nullptr;
                 }
                 if (namespaceMap) {
-                    if (namespaceMap->rawTypedMismatch) fail(S::ResourceRawTypedMismatch,dictionary->cellMapTarget);
-                    else if (!namespaceMap->rawTypedMatched) fail(S::ResourceProofMissing,dictionary->cellMapTarget);
-                    else {
-                        ++report.sourceMapMatches;
-                        if (!work(namespaceMap->references.size())) return report;
-                        for (const auto& reference:namespaceMap->references)
-                            if (reference.kind==dx_tableResourceRole::Unknown && reference.value!=0u) {
-                                ++report.unknownResourceReferences;
-                                fail(S::UnknownRole,reference.value);
-                            }
-                    }
+                    resourceSource(*namespaceMap,dictionary->cellMapTarget,false);
+                    if(report.state==S::WorkLimit)return report;
                 }
             }
         }
@@ -17277,7 +17343,10 @@ template<class T> void dx_iface::retainTableResource(dx_tableResourceFamily fami
     try {
         dx_data::TableDxfSourceCapture::Resource resource;
         resource.family=family;resource.owner=data.parentHandle;
-        resource.model=std::make_shared<const T>(data);
+        auto model=std::make_shared<T>(data);
+        if(auto* style=dynamic_cast<DRW_TableStyle*>(model.get()))
+            resource.namespaceComplete=style->finalizeDxfNestedStyles();
+        resource.model=std::move(model);
         if (named) {
             std::string key;
             resource.invalidName=data.name.empty() || data.name.find('\0')!=std::string::npos
@@ -17329,34 +17398,56 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
 }
 
 void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
-    if (!tableSourceCaptureOpen() || !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP")) return;
+    const bool style=asciiIdentifierEquals(raw.name,"TABLESTYLE");
+    if (!tableSourceCaptureOpen() || (!style && !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP"))) return;
     auto& source=cData->m_tableDxfSource;
     if (source.resourceProofCaptureFailed) return;
     const auto found=source.resources.find(raw.handle);
-    // Unmatched raw-only maps retain their ordinary fallback, not partial proof.
-    if (found==source.resources.end() || found->second.family!=dx_tableResourceFamily::CellStyleMap) return;
+    // Unmatched raw-only records retain their ordinary fallback, not partial proof.
+    const auto family=style?dx_tableResourceFamily::TableStyle:dx_tableResourceFamily::CellStyleMap;
+    if (found==source.resources.end() || found->second.family!=family) return;
     auto& resource=found->second;
-    if (resource.raw) {source.resourceProofCaptureFailed=true;return;}
+    if (resource.raw || resource.rawTypedMismatch) {source.resourceProofCaptureFailed=true;return;}
+    resource.rawTypedMismatch=true;
+    const auto groups=raw.groups.size();
+    if(source.resourceProofRecords>=source.maxResourceProofRecords
+        || source.resourceProofGroups>source.maxResourceProofGroups || groups>source.maxResourceProofGroups-source.resourceProofGroups
+        || groups>source.maxResourceProofWork/64u
+        || source.resourceProofWork>source.maxResourceProofWork-groups*64u) {
+        source.resourceProofCaptureFailed=true;return;
+    }
+    source.resourceProofWork+=groups*64u;
+    // Raw DXF capture contains scalar variants, never assembled coordinates,
+    // binary owners or native semantic sidecars. Refuse forged carriers before
+    // copying payloads that the raw scalar estimator does not account for.
+    for(const auto& value:raw.groups)
+        if((value.type()!=DRW_Variant::STRING && value.type()!=DRW_Variant::INTEGER
+                && value.type()!=DRW_Variant::INTEGER64 && value.type()!=DRW_Variant::DOUBLE)
+            || (value.type()==DRW_Variant::STRING && !value.content.s)
+            || value.isLayerRef() || value.rawDwgLayerReference()!=0u || value.dwgCmColorValue())return;
     std::size_t bytes=0u;
-    if (!estimateRawDxfObjectBytes(raw,bytes)
+    bool nameBudget=true;
+    if(const auto* model=dynamic_cast<const DRW_TableStyle*>(resource.model.get())) {
+        if(model->m_rowStyles.size()>3u)return; // production DXF profile admits at most three rows
+        nameBudget=addAssociativeSlotBytes(model->m_rowStyles.size(),sizeof(UTF8STRING),bytes);
+        for(const auto& row:model->m_rowStyles)
+            nameBudget=nameBudget && addAssociativeSlotBytes(row.m_textStyleName.size(),3u,bytes)
+                && addAssociativeRetainedBytes(1u,bytes);
+    }
+    std::size_t rawBytes=0u;
+    if (!nameBudget || !estimateRawDxfObjectBytes(raw,rawBytes) || !addAssociativeRetainedBytes(rawBytes,bytes)
         || !addAssociativeRetainedBytes(sizeof(std::vector<dx_tableResourceReference>)+8u*sizeof(void*),bytes)
         || !addAssociativeSlotBytes(raw.groups.size(),sizeof(dx_tableResourceReference),bytes)
-        || source.resourceProofRecords>=source.maxResourceProofRecords
-        || source.resourceProofGroups>source.maxResourceProofGroups || raw.groups.size()>source.maxResourceProofGroups-source.resourceProofGroups
-        || source.resourceProofBytes>source.maxResourceProofBytes || bytes>source.maxResourceProofBytes-source.resourceProofBytes
-        || raw.groups.size()>source.maxResourceProofWork/64u
-        || source.resourceProofWork>source.maxResourceProofWork-raw.groups.size()*64u) {
+        || source.resourceProofBytes>source.maxResourceProofBytes || bytes>source.maxResourceProofBytes-source.resourceProofBytes) {
         source.resourceProofCaptureFailed=true;return;
     }
     ++source.resourceProofRecords;source.resourceProofGroups+=raw.groups.size();source.resourceProofBytes+=bytes;
-    source.resourceProofWork+=raw.groups.size()*64u;
     try {
         resource.raw=std::make_shared<const DRW_RawDxfObject>(raw);
-        const auto* model=dynamic_cast<const DRW_CellStyleMap*>(resource.model.get());
         resource.rawTypedMismatch=true;
         // fileImport publishes data.sourceVersion only after read() returns.
         // During callbacks use the already delivered declared HEADER context.
-        if (!model || raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
+        if (raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
             || raw.m_version<DRW::AC1021 || raw.m_version>DRW::AC1032) return;
         std::string body;
         if (!tableResourceSourceBody(raw,source.maxResourceProofBytes,body)) return;
@@ -17367,22 +17458,44 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
         auto reader=dx_standard_output::readerFor(input,view,budget);
         if (!reader) return;
         reader->setTypedVariantNodeBudget(source.maxResourceProofWork);
-        dx_standard_output::Probe<DRW_CellStyleMap> parsed;
-        int code=0;
-        while(buffer.position()<body.size()) {
-            if (!reader->readRec(&code) || code==0 || !parsed.parseCode(code,reader)) {
-                if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()) source.resourceProofCaptureFailed=true;
-                return;
+        const auto decode=[&](auto& parsed) {
+            int code=0;
+            while(buffer.position()<body.size()) {
+                if (!reader->readRec(&code) || code==0 || !parsed.parseCode(code,reader)) {
+                    if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()) source.resourceProofCaptureFailed=true;
+                    return false;
+                }
             }
+            if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()) {source.resourceProofCaptureFailed=true;return false;}
+            return raw.handle==parsed.handle && raw.parentHandle==parsed.parentHandle;
+        };
+        std::vector<UTF8STRING> nameKeys;
+        bool invalidName=false;
+        if(style) {
+            const auto* model=dynamic_cast<const DRW_TableStyle*>(resource.model.get());
+            dx_standard_output::Probe<DRW_TableStyle> parsed;
+            if(!model || !decode(parsed) || !resource.namespaceComplete || !parsed.finalizeDxfNestedStyles()
+                || !tableStyleSourceEqual(parsed,*model,raw.m_version))return;
+            nameKeys.reserve(parsed.m_rowStyles.size());
+            for(const auto& row:parsed.m_rowStyles) {
+                UTF8STRING key;
+                if(row.m_textStyleName.empty() || row.m_textStyleName.find('\0')!=UTF8STRING::npos
+                    || !dx_symbol_output::nameKey(row.m_textStyleName,key))invalidName=true;
+                nameKeys.push_back(std::move(key));
+            }
+        } else {
+            const auto* model=dynamic_cast<const DRW_CellStyleMap*>(resource.model.get());
+            dx_standard_output::Probe<DRW_CellStyleMap> parsed;
+            if(!model || !decode(parsed) || !parsed.finalizeDxf() || !model->finalizeDxf()
+                || !retainedCellStyleMapsEqual(parsed,*model,true,true)
+                || !standardDwgCommonEqual(parsed,*model,raw.m_version))return;
         }
-        if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()) {source.resourceProofCaptureFailed=true;return;}
-        if (!parsed.finalizeDxf() || !model->finalizeDxf()
-            || raw.handle!=parsed.handle || raw.parentHandle!=parsed.parentHandle
-            || !retainedCellStyleMapsEqual(parsed,*model,true,true)
-            || !standardDwgCommonEqual(parsed,*model,raw.m_version)) return;
         std::vector<dx_tableResourceReference> references;references.reserve(raw.groups.size());
-        if (!tableMapSourceReferences(raw,references)) return;
+        if (!tableResourceSourceReferences(raw,style,references)) return;
+        if(style && std::count_if(references.begin(),references.end(),[](const auto& ref){return ref.kind==dx_tableResourceRole::TextStyleName;})
+            !=static_cast<std::ptrdiff_t>(nameKeys.size()))return;
         resource.references=std::move(references);
+        resource.referenceNameKeys=std::move(nameKeys);resource.invalidTextStyleName=invalidName;
         resource.rawTypedMismatch=false;resource.rawTypedMatched=true;
     } catch (...) {source.resourceProofCaptureFailed=true;}
 }

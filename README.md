@@ -465,11 +465,14 @@ without widening native color emission. Both pinned external example maps now
 reach typed callbacks and direct binding; this does not qualify full resource
 or table replay. Unknown geometry roles remain unqualified.
 
-Selected CELLSTYLEMAPs additionally require a private immutable raw/typed proof
-of every style/common field, including names, classes and IDs. Bounded cached
-receipts retain exact handle/local-definition source positions. Other resource
-families, transitive dependencies, editable equality and compound output remain
-open; same-library source agreement is not independent semantic qualification.
+Selected CELLSTYLEMAP and TABLESTYLE records additionally require private
+immutable raw/typed proof of their exposed style/common fields, including
+names, classes, IDs and default-only native fields. Cached receipts retain exact
+handle, local-definition and legacy font-name positions. Legacy row fonts and
+map format STYLE/LTYPE targets bind through the frozen identity/name indexes;
+null map formats retain explicit inheritance. Other resource families, complete
+transitive dependencies, editable equality and compound output remain open.
+Same-library source agreement is not independent semantic qualification.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without

@@ -145,13 +145,13 @@ Resource retention has separate cumulative 100,000-record, 4,000,000-item and
 64-MiB logical ceilings; binding has a 4,000,000-slot work ceiling. Reservations
 precede copies/indexes; failures are sticky but do not change the ordinary
 tolerant import policy. Frozen resource models are typed callback evidence;
-selected CELLSTYLEMAPs additionally require the exact source proof below.
+selected CELLSTYLEMAP/TABLESTYLE records additionally require the exact source proof below.
 `Bound` is not full transitive closure, all-resource raw/common proof, whole-
 document identity, editable equality or output qualification. `outputEligible`
 is always false and both export modes retain the table loss guard.
 
-The selected map's raw groups/spellings are copied into a separate private
-immutable receipt during actual import. Existing extension-graph raw baselines
+The selected map/style raw groups/spellings are copied into separate private
+immutable receipts during actual import. Existing extension-graph raw baselines
 can be rewritten during export and are not reused as immutable source authority.
 The proof replays production `parseCode`, with captured ASCII/binary text
 context and declared HEADER revision, then requires complete finalization and
@@ -174,6 +174,26 @@ match, recording exact index/code/value and separate local-ID definitions,
 format STYLE/LTYPE and common-link/name roles. Nonnull unknown roles remain
 unqualified. Matching APPID/LAYER/XDATA source fields does not resolve their
 transitive dependencies; that remains a separate worklist gate.
+
+TABLESTYLE proof includes its decoded description and both original description
+baselines, legacy rows and every nested color/border/format field. Native-only
+cell styles, unknown-handle and subrecord fields remain default-only in this
+DXF lane; injecting payload into those fields does not create preservation
+evidence. The known class/header fields require physical presence in the source,
+not just tolerant parser defaults. Both retained description-baseline strings
+are now included in converter copy accounting. These are cumulative resource
+proof limits across families, not a fresh allowance per family.
+
+Legacy row group-7 font names bind to actual frozen STYLE identities through
+precharged Unicode ambiguity keys; the TABLESTYLE description is not used as
+that font name or as a global symbol key. Proved map format STYLE/LTYPE handles
+also require observed targets of the correct family, with explicit null slots
+retaining inheritance. Missing targets, ambiguous names, wrong families and
+nonnull unknown resource roles remain unqualified. This is selected format
+closure only: common owner/reactor/extension and APPID/LAYER/FIELD/DATALINK/block
+recursion, exact source proof of the named target rows, and complete document
+closure remain separate gates. In particular, a TABLESTYLE reactor can target
+both its owner dictionary and a TABLE entity; it is not an owner-only relation.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds

@@ -64,7 +64,8 @@ public:
         std::size_t boundReferences{0}, nullReferences{0}, localStyleUses{0}, absentStyleUses{0};
         std::uint32_t firstHandle{0};
         std::size_t resourceProofRecords{0}, resourceProofGroups{0}, resourceProofBytes{0}, resourceProofWork{0};
-        std::size_t sourceMapMatches{0}, unknownResourceReferences{0};
+        std::size_t sourceMapMatches{0}, sourceStyleMatches{0}, unknownResourceReferences{0};
+        std::size_t boundResourceReferences{0}, inheritedResourceReferences{0};
         // Rich-child direct roles/namespace, with exact selected map source
         // proof. Other resources' raw fields, full transitive/live and output
         // qualification remain separate gates.

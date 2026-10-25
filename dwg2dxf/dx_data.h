@@ -190,7 +190,8 @@ enum class dx_tableResourceFamily : std::uint8_t {
 
 enum class dx_tableResourceRole : std::uint8_t {
     Self, Owner, Reactor, ExtensionDictionary, TextStyle, LineType,
-    LocalStyleDefinition, XdataObjectId, AppIdName, LayerName, Unknown
+    LocalStyleDefinition, XdataObjectId, AppIdName, LayerName, Unknown,
+    TextStyleName
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;
@@ -1024,6 +1025,8 @@ private:
             bool invalidName{false}, ambiguousName{false};
             std::shared_ptr<const DRW_RawDxfObject> raw;
             std::vector<dx_tableResourceReference> references;
+            std::vector<UTF8STRING> referenceNameKeys;
+            bool invalidTextStyleName{false};
             bool rawTypedMatched{false}, rawTypedMismatch{false};
         };
         std::map<std::uint32_t,Resource> resources;

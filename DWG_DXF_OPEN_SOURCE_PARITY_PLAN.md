@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dc exact CELLSTYLEMAP source proof and reference spans (2026-10-25):** selected maps now require a separately bounded immutable raw/typed receipt, full style/common comparison including names/classes/IDs, encoding-aware scalar replay and exact handle/local-definition positions. Missing, mismatched or exhausted proof cannot yield the selected binding verdict. Both unchanged external maps pass, and an independent observer matches all 27 events per map without qualifying target roles or semantics. Other resources, transitive/live/output and the full native/consumer objective remain open; export refusal and the support ledger stay closed. [Implementation and next work](#implementation-progress-rpp-5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25) · [receipt](docs/research/rpp5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dd exact TABLESTYLE source proof and selected format closure (2026-10-25):** the immutable proof path now covers TABLESTYLE's exposed legacy/common fields and default-only native fields, including physical header presence and both description baselines. Legacy row font names and proved map STYLE/LTYPE references bind through frozen indexes with explicit null inheritance. Both external sources retain complete selected style/map proof; the independent observer matches eight TABLESTYLE and 27 map events per source. Other source families, full transitive/live/output and native/consumer parity remain open; export refusal and the support ledger stay closed. [Implementation and next work](#implementation-progress-rpp-5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25) · [receipt](docs/research/rpp5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dc exact CELLSTYLEMAP source proof and reference spans (2026-10-25):** committed as `dbe7b2a4`. Its map source proof, 27 independent spans, limits and refusal/recovery controls remain valid. RPP-5dd adds the selecting style and selected format bindings only, not whole-resource/document or output qualification. [Historical implementation](#implementation-progress-rpp-5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25) · [immutable receipt](docs/research/rpp5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5db rich CELLSTYLEMAP source profiles and declared revisions (2026-10-25):** committed as `2a2f5fa6`. Its declared-revision, rich background, raw fallback and writer/readback controls remain valid. RPP-5dc additionally requires exact selected-map source agreement; it does not qualify all resources, transitive dependencies or output. [Historical implementation](#implementation-progress-rpp-5db-rich-cellstylemap-source-profiles-and-declared-revisions-2026-10-25) · [immutable receipt](docs/research/rpp5db-rich-cellstylemap-source-profiles-and-declared-revisions-2026-10-25.json).
 
@@ -124461,3 +124463,129 @@ The support ledger remains **CLOSED**; J256/J260/J268/J284/J293/J295 stay
 semantic/kernel qualification remain **NOT_RUN**. Prior immutable receipts and
 user/external drawings are unchanged. This checkpoint does not authorize remote
 writes, promote support claims or complete the full implementation goal.
+
+## Implementation progress RPP-5dd exact TABLESTYLE source proof and selected format closure (2026-10-25)
+
+Parent checkpoint: `dbe7b2a4` (RPP-5dc). The previous goal turn made verified
+progress in that commit. This slice advances B2a to TABLESTYLE and B2b to
+selected format edges; it does not replace the remaining original objective.
+
+1. [x] Generalize the existing bounded immutable raw-source capture/read-view
+   path to TABLESTYLE. Use the same cumulative record/group/byte/work policy
+   across both families, not a fresh budget per family. Bind to actual-import
+   HEADER context, preserve ASCII/binary semantics and publish no partial proof.
+2. [x] Compare all exposed TABLESTYLE fields, legacy rows and nested color/
+   border/format fields, common metadata and private description baselines.
+   Native-only table-cell/custom-style/unknown-handle/subrecord data remains
+   default-only in this DXF profile; injecting it cannot earn source evidence.
+   A signed-zero default mutation is included in the controls. Require physical
+   presence of the known class/version/description/flow/flags/margin/suppression
+   fields rather than accepting missing-header tolerant defaults.
+3. [x] Fix copy accounting for both retained original-description strings.
+   The previous estimator counted the visible description but omitted these
+   two independently copied baselines. Eight literal differential accounting
+   controls compare otherwise equal parsed/authored models and require the
+   exact two-string byte difference. Existing caps and tolerant reads remain;
+   no warning suppression, budget increase or native parser changes are used.
+4. [x] Retain exact legacy row font-name source positions separately from
+   object handles. Precharge and cache bounded Unicode ambiguity keys after
+   complete source comparison, without using the TABLESTYLE description as a
+   font/global symbol name. Resolve these names to actual STYLE identities;
+   missing/empty/ambiguous names cannot become guessed or inherited fonts.
+5. [x] Resolve proved map format STYLE/LTYPE handles by family through the
+   frozen actual-import registry. Explicit null map formats retain inheritance;
+   missing targets, wrong families and nonnull unknown roles stay unqualified.
+   These are selected format bindings, not raw-source qualification of the
+   target rows or a complete common/transitive worklist.
+6. [x] Add eight revision/encoding routes, 345 typed mutation kinds and 2,760
+   mismatch/corrected same-facade fresh-drawing pairs. Pass 88 raw corruption/
+   recovery pairs, 64 exact/under-limit checks, 24 missing/duplicate callback
+   recoveries, 88 format/name dependency routes and eight accounting controls.
+   Include map-only target faults so rich-child references cannot mask a
+   missing map dependency check, plus nulls, case closure, ambiguous names,
+   default-only payload injection and immutable/live separation.
+   Final review also reserves work before scalar validation/accounting, refuses
+   unsupported raw variant owners/metadata before copying, and prevents a later
+   raw callback from overwriting that mismatch. The map owning test gains the
+   same early-copy and same-read retry controls (88 raw pairs, 24 callback
+   recoveries). Probe observations are released between mutation pairs to keep
+   caller-side test retention bounded without altering frozen source state.
+7. [x] Extend the optional source-span observer to TABLESTYLE (JSON schema 2),
+   preserving CELLSTYLEMAP support. Two positives, ten corruptions and physical
+   appData expansion pass without ezdxf installed; optimized Python remains
+   refused. Pinned ezdxf 1.4.4 matches eight TABLESTYLE events (five handles and
+   three font-name positions) and 27 map events (24 handles, three local IDs)
+   in each unchanged external source. Named positions are not decoded name-value
+   or native collation proof, and no complete payload/role/output semantics are
+   independently qualified by this observer.
+
+Each external source now has two matched style/map receipts, 421 raw groups,
+90,018 logical proof bytes and 26,944 canonical work slots. Six selected format
+uses bind to observed STYLE identities and 18 explicit null LTYPE slots retain
+inheritance. Unknown resource-handle roles count zero in these selected records.
+Their TABLESTYLE has two reactor references: one to its dictionary and one to
+TABLE `4F2`. Preserve that observed distinction for the upcoming common-link
+worklist; do not impose an owner-only reactor rule or reject a legitimate
+back-reference as an ownership cycle. Common target/source closure is still open.
+
+The actual CLI continues to refuse full table replay and leaves its destination
+absent. `outputEligible` stays false. Exact hashes, validation results, host and
+remaining limits are recorded in the fresh
+[RPP-5dd receipt](docs/research/rpp5dd-exact-tablestyle-source-proof-and-selected-format-closure-2026-10-25.json).
+No native DWG layout/parser/writer, public library model/vtable or global codec
+changes are made; external/user drawings and earlier immutable receipts remain
+unchanged. All new drawing controls are authored locally from scratch.
+
+The main 55-test cohorts pass normally in 57.87 s and under ASan in 131.23 s
+(`halt_on_error=1:detect_leaks=0`). These precede the final scalar-allocation
+guard and test-retention cleanup. On final code, both owning tests pass normally
+in 28.10 s and under ASan in 59.34 s; these targeted reruns replace another broad
+cohort run. The receipt distinguishes pre/post-review code and validation scopes.
+Both normal/ASan LibreCAD_3 compile gates and CLI optional-build
+registration pass (3.31 s). Retain `-Werror`; no full-project suite or leak check
+is repeated. This is macOS ARM64 Apple Clang validation, not Linux/GCC despite
+the build folder name, Windows or native FreeCAD runtime qualification.
+
+Next implementation-ready work, preserving original scope and speed:
+
+1. [ ] **B2a target symbol rows.** Capture complete actual STYLE/LTYPE row
+   sources through a separate opt-in facet, only after an accepted row boundary
+   and without changing the historical callback/vtable or charging opt-out 2D
+   consumers for raw capture. Reuse existing raw-group capture and bounded
+   canonical read views, freeze source context and compare every modeled/default
+   and common field. Require this target source proof in the format worklist;
+   current typed identity/name matching alone must not promote output. Test
+   missing/extra physical fields, Unicode/alias/null/order, late callbacks and
+   exact cumulative row/source limits with corrected retries.
+2. [ ] **B2a remaining object families.** Add exact raw/typed proof for FIELD,
+   DATALINK, dictionary/XRECORD, ATTDEF/block and common dependencies. FIELD's
+   production decoder lives in `processField`, not solely `parseCode`; extract
+   or reuse that bounded production decoder rather than inventing a parallel
+   grammar. Preserve complete raw companions and unmodeled-profile refusal.
+3. [ ] **B2b full transitive/common closure.** Consume proved role slots with a
+   bounded worklist and complete observed identity collision coverage. Bind
+   APPID/LAYER/XDATA, dictionary membership, owner/reactor/extension and FIELD/
+   DATALINK/block dependencies using role-specific null/owner policy. Separate
+   legitimate reactor back-references from ownership cycles. Do not guess a
+   target class from a numeric match or a description spelling.
+4. [ ] **B3/C full compound and output.** Finish TABLE parent/wrapper/cache/common
+   source proof, complete editable/frozen equality and late mutation/alias
+   controls. Preserve or explicitly refuse ATTRIB/SEQEND. Plan all identities,
+   preserve rich companions and inspect exact staged/final fields/references;
+   require repeated conversions, allocation/write rollback, preserved destinations
+   and corrected same-exporter readbacks before enabling a fully proved lane.
+5. [ ] **Full objective and execution loop.** Continue independent rich/native
+   evidence, exact native decimal/bit resolution, SWEEP/EXTRUSION, native carrier/
+   schema/owner, complete IMAGE/document and LibreCAD/LibreCAD_3 2D plus 3D/
+   dwg2dxf/FreeCAD requirements. Reuse cached immutable proof and source indexes
+   with bounded live/output checks. Run affected fast owning tests, then scoped
+   normal/ASan cohorts; reserve full suites for integration checkpoints. After
+   every implemented item, update evidence/limits, safely unblock the next ready
+   dependency and commit/report a coherent slice without waiting on advisory
+   external qualifications.
+
+The support ledger remains **CLOSED**. J256/J260/J268/J284/J293/J295 stay
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support claims or remote
+writes are authorized by this checkpoint. The full implementation goal remains
+active.

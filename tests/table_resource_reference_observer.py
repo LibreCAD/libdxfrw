@@ -1,8 +1,9 @@
-"""Optional CELLSTYLEMAP source-span observation, never support eligibility.
+"""Optional CELLSTYLEMAP/TABLESTYLE source spans, never support eligibility.
 
-Corroborates flat code/scalar positions, all handle slots and local definitions.
-It does not independently certify complete rich payloads, handle-role semantics,
-target classes, dependency closure, output, native layouts or modeler semantics.
+Corroborates handle/local-ID scalar spans and named-reference positions.
+It does not compare decoded name values or independently certify complete rich
+payloads, handle-role semantics, target classes, dependency closure, output,
+native layouts or modeler semantics.
 """
 
 import argparse
@@ -13,16 +14,16 @@ import re
 import sys
 
 
-PATTERN = re.compile(r"^map-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
+PATTERN = re.compile(r"^(map|style)-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
 CODES = {0: 5, 1: 330, 2: 330, 3: 360, 4: 340, 5: 340,
-         6: 90, 7: 1005, 8: 1001, 9: 1003}
+         6: 90, 7: 1005, 8: 1001, 9: 1003, 11: 7}
 
 
 def is_handle(code):
     return code == 5 or 320 <= code <= 369 or 390 <= code <= 399 or code in (480, 481, 1005)
 
 
-def compare(tags, events):
+def compare(tags, events, table_style=False):
     if not events or len(tags) > 65536 or len(events) > len(tags):
         raise ValueError("empty/oversized map projection")
     previous = -1
@@ -38,7 +39,7 @@ def compare(tags, events):
             if type(scalar) is not int or scalar != value or index == 0 or tags[index - 1] != (1, "CELLSTYLE_BEGIN"):
                 raise ValueError("local definition differs")
             definitions.add(index)
-        elif kind in (8, 9):
+        elif kind in (8, 9, 11):
             if type(scalar) is not str or value != 0:
                 raise ValueError("named namespace event differs")
             names.add(index)
@@ -61,9 +62,9 @@ def compare(tags, events):
             else:
                 raise ValueError("bad application framing")
         elif not depth:
-            if (code, scalar) == (1, "CELLSTYLE_BEGIN"):
+            if not table_style and (code, scalar) == (1, "CELLSTYLE_BEGIN"):
                 expected.add(i + 1)
-            if code in (1001, 1003):
+            if code in (1001, 1003) or (table_style and code == 7):
                 expected_names.add(i)
     if depth:
         raise ValueError("unclosed application group")
@@ -103,21 +104,22 @@ def observe(source, projection):
         raise ValueError("oversized advisory input")
     document = ezdxf.readfile(source)
     events = {}
-    for handle, kind, index, code, value in PATTERN.findall(Path(projection).read_text()):
-        events.setdefault(handle.upper(), []).append((int(kind), int(index), int(code), int(value, 16)))
+    for prefix, handle, kind, index, code, value in PATTERN.findall(Path(projection).read_text()):
+        family = "TABLESTYLE" if prefix == "style" else "CELLSTYLEMAP"
+        events.setdefault((family, handle.upper()), []).append((int(kind), int(index), int(code), int(value, 16)))
     if not events or len(events) > 1000:
         raise ValueError("missing/oversized map census")
     results = []
-    for handle, values in events.items():
+    for (family, handle), values in events.items():
         obj = document.entitydb[handle]
-        if obj.dxftype() != "CELLSTYLEMAP":
+        if obj.dxftype() != family:
             raise ValueError("wrong source resource family")
         tags = flatten(obj.xtags)
-        if not tags or tags[0] != (0, "CELLSTYLEMAP"):
+        if not tags or tags[0] != (0, family):
             raise ValueError("unexpected source map framing")
-        results.append({"handle": handle, **compare(tags[1:], values)})
-    return {"schemaVersion": 1, "status": "SCOPED_MAP_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
-            "ezdxfVersion": ezdxf.__version__, "maps": results,
+        results.append({"family": family, "handle": handle, **compare(tags[1:], values, family == "TABLESTYLE")})
+    return {"schemaVersion": 2, "status": "SCOPED_RESOURCE_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
+            "ezdxfVersion": ezdxf.__version__, "resources": results,
             "sourceSha256": hashlib.sha256(Path(source).read_bytes()).hexdigest(),
             "projectionSha256": hashlib.sha256(Path(projection).read_bytes()).hexdigest(),
             "limits": __doc__.split("\n\n", 1)[1].strip()}
@@ -145,7 +147,16 @@ def self_test():
     xtags = SimpleNamespace(subclasses=[[tag(5, "A"), tag(102, 0)]],
                             appdata=[[tag(102, "{APP"), tag(330, "B"), tag(102, "}")]], xdata=[])
     assert flatten(xtags) == [(5, "A"), (102, "{APP"), (330, "B"), (102, "}")]
-    print("map reference observer: one positive, nine corruptions, appData expansion; no eligibility")
+    style = [(5, "A"), (330, "B"), (7, "FONT")]
+    style_events = [(0, 0, 5, 10), (1, 1, 330, 11), (11, 2, 7, 0)]
+    assert compare(style, style_events, True) == {"handleSlots": 2, "localDefinitions": 0, "referenceEvents": 3}
+    try:
+        compare(style, style_events[:-1], True)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("missing TABLESTYLE name slot passed")
+    print("resource reference observer: two positives, ten corruptions, appData expansion; no eligibility")
 
 
 if __name__ == "__main__":

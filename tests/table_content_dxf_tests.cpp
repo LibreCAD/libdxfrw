@@ -66,6 +66,9 @@ struct Probe final : dx_iface {
     std::function<void(DRW_CellStyleMap&)> alterMap;
     std::function<void(DRW_RawDxfObject&)> alterMapRaw;
     bool skipMapRaw=false,duplicateMapRaw=false;
+    std::function<void(DRW_TableStyle&)> alterStyle;
+    std::function<void(DRW_RawDxfObject&)> alterStyleRaw;
+    bool skipStyleRaw=false,duplicateStyleRaw=false;
     bool keepMutableAliases=false;
     bool duplicateStyleCallback=false;
     std::shared_ptr<DRW_TableContentDxfMetadata> mutableAlias;
@@ -88,10 +91,15 @@ struct Probe final : dx_iface {
         content.push_back(copy); dx_iface::addTableContent(copy);
     }
     void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        if(value.name=="TABLESTYLE") {
+            if(skipStyleRaw)return;
+            if(alterStyleRaw){auto copy=value;alterStyleRaw(copy);dx_iface::addRawDxfObject(copy);if(duplicateStyleRaw)dx_iface::addRawDxfObject(value);return;}
+            if(duplicateStyleRaw)dx_iface::addRawDxfObject(value);
+        }
         if (value.name=="CELLSTYLEMAP") ++rawMapCallbacks;
         if (value.name=="CELLSTYLEMAP") {
             if (skipMapRaw) return;
-            if (alterMapRaw) {auto copy=value;alterMapRaw(copy);dx_iface::addRawDxfObject(copy);return;}
+            if (alterMapRaw) {auto copy=value;alterMapRaw(copy);dx_iface::addRawDxfObject(copy);if(duplicateMapRaw)dx_iface::addRawDxfObject(value);return;}
             if (duplicateMapRaw) dx_iface::addRawDxfObject(value);
         }
         if ((value.name=="TABLECONTENT" || value.name=="aCdBtAbLeCoNtEnT") && alterContentRaw) {
@@ -104,6 +112,10 @@ struct Probe final : dx_iface {
         ++mapCallbacks;
         if(alterMap){auto copy=value;alterMap(copy);dx_iface::addCellStyleMap(copy);}
         else dx_iface::addCellStyleMap(value);
+    }
+    void addTableStyle(const DRW_TableStyle& value) override {
+        if(alterStyle){auto copy=value;alterStyle(copy);dx_iface::addTableStyle(copy);}
+        else dx_iface::addTableStyle(value);
     }
     void addUnmodeledDxfObject(const DRW_RawDxfObject& value) override {
         ++unknown; dx_iface::addUnmodeledDxfObject(value);
@@ -207,7 +219,7 @@ bool write(const std::filesystem::path& path,const Tags& tags,bool binary) {
             }
             else if ((tag.code>=60 && tag.code<=79) || tag.code==1070) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
             else if (tag.code>=170 && tag.code<=179) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
-            else if (tag.code>=280 && tag.code<=289) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
+            else if (tag.code>=270 && tag.code<=289) word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
             else if ((tag.code>=10 && tag.code<=59) || tag.code==140 || tag.code==144 || (tag.code>=1010 && tag.code<=1059)) {
                 const double value=std::stod(tag.value); std::uint64_t bits=0u; std::memcpy(&bits,&value,8u); word(bits,8u);
             } else {out<<tag.value; out.put('\0');}
@@ -1355,7 +1367,8 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
         [](auto& r){r.groups[0].addString(5,"C121");},
         [](auto& r){r.groups.emplace_back(100,"UnknownSubclass");r.rawValues.push_back("UnknownSubclass");},
         [](auto& r){r.rawValues[0]="wrong scalar";},
-        [](auto& r){r.groups.emplace_back(10,DRW_Coord(1,2,3));r.rawValues.push_back("1");}
+        [](auto& r){r.groups.emplace_back(10,DRW_Coord(1,2,3));r.rawValues.push_back("1");},
+        [](auto& r){r.groups.front().setLayerRefName("not raw scalar metadata");}
     };
     unsigned routes=0u,negative=0u,rawRefusals=0u,boundaries=0u,sourceControls=0u;
     for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
@@ -1369,7 +1382,7 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("map proof source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean);
-        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.resourceProofRecords!=1u||!frozen.rawTypedMatched
+        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=2u||!frozen.rawTypedMatched
             ||frozen.references.empty()||!frozen.raw)return fail("map canonical proof failed");
         std::array<unsigned,11> roles{};unsigned handles=0u;
         for(const auto& ref:frozen.references) {
@@ -1393,14 +1406,18 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
                 ||!DxIfaceTableSourceTestAccess::mapResource(bad).references.empty())return fail("typed map mutation escaped index="+std::to_string(i));
             probe.alterMap={};dx_data restored;
             if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("map proof same-facade recovery failed");
+            probe.clear(); // Keep repeated proof controls from retaining every callback observation.
             ++negative;
         }
         for(std::size_t i=0;i<rawFaults.size();++i) {
             probe.alterMapRaw=rawFaults[i];dx_data bad;
             if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound
                 ||!DxIfaceTableSourceTestAccess::mapResource(bad).references.empty())return fail("raw map mutation escaped index="+std::to_string(i));
+            if(i+2u>=rawFaults.size() && DxIfaceTableSourceTestAccess::mapResource(bad).raw)
+                return fail("unsupported raw map payload copied before refusal");
             probe.alterMapRaw={};dx_data restored;
             if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("raw map recovery failed");
+            probe.clear();
             ++rawRefusals;
         }
         for(unsigned i=0;i<8u;++i) {
@@ -1414,10 +1431,11 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
                 ||dx_iface::tableContentBindingReport(limited).state!=(i<4?S::CaptureFailed:S::Bound))return fail("map proof boundary failed index="+std::to_string(i));
             ++boundaries;
         }
-        for(unsigned mode=0;mode<2u;++mode) {
-            probe.skipMapRaw=mode==0u;probe.duplicateMapRaw=mode==1u;dx_data bad;
+        for(unsigned mode=0;mode<3u;++mode) {
+            probe.skipMapRaw=mode==0u;probe.duplicateMapRaw=mode!=0u;dx_data bad;
+            if(mode==2u)probe.alterMapRaw=rawFaults.back();
             if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state!=(mode==0u?S::ResourceProofMissing:S::CaptureFailed))return fail("missing/duplicate map source qualified");
-            probe.skipMapRaw=false;probe.duplicateMapRaw=false;dx_data restored;
+            probe.skipMapRaw=false;probe.duplicateMapRaw=false;probe.alterMapRaw={};dx_data restored;
             if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("map source callback recovery failed");
             ++sourceControls;
         }
@@ -1438,7 +1456,200 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
     }
     std::cout<<"CELLSTYLEMAP proof: "<<routes<<" routes; "<<mutations.size()<<" typed mutation kinds; "<<negative<<" mismatch/recovery pairs; "
         <<rawRefusals<<" raw refusals/recoveries; "<<boundaries<<" boundaries; "<<sourceControls<<" callback/recovery controls; exact roles and immutable cache\n";
-    return routes==8u&&negative==mutations.size()*routes&&rawRefusals==80u&&boundaries==64u&&sourceControls==16u;
+    return routes==8u&&negative==mutations.size()*routes&&rawRefusals==rawFaults.size()*routes&&boundaries==64u&&sourceControls==24u;
+}
+
+Tags legacyTableStyleSource(const std::string& revision) {
+    auto tags=richMapSource(revision);
+    const auto begin=slot(tags,5,"C100");auto end=begin+1u;while(tags[end].code!=0)++end;
+    for(auto i=begin;i<end;++i)if(tags[i].code==3)tags[i].value="local table ^J description-é";
+    Tags rows;
+    for(unsigned row=0;row<3u;++row) {
+        rows.insert(rows.end(),{{7,"TableFont-é"},{140,std::to_string(row+2)+".5"},{170,"5"},
+            {62,"256"},{420,"1193046"},{430,"Ink-é"},{431,"Book-é"},
+            {63,"7"},{283,"1"},{90,"512"},{91,"0"},{1,"row ^J format-é"}});
+        for(int edge=0;edge<6;++edge)rows.insert(rows.end(),{{274+edge,std::to_string(17+edge)},
+            {284+edge,std::to_string(edge%2)},{64+edge,"7"},{420,"1193046"}});
+    }
+    rows.insert(rows.end(),{{1001,"STYLE_PROOF_APP"},{1000,"common ^J metadata-é"},{1003,"STYLE_PROOF_LAYER"},{1005,"C101"}});
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(end),rows.begin(),rows.end());
+    return tags;
+}
+
+bool tableStyleProofTests(const std::filesystem::path& dir) {
+    using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
+    const auto fail=[](const std::string& text){std::cerr<<text<<'\n';return false;};
+    const auto path=dir/"table-style-proof.dxf";
+    std::vector<std::function<void(DRW_TableStyle&)>> mutations{
+        [](auto& s){s.m_name+="changed";},[](auto& s){static_cast<DRW_TableEntry&>(s).name="changed";},
+        [](auto& s){++s.flags;},[](auto& s){++s.m_flags;},[](auto& s){++s.m_flowDirection;},
+        [](auto& s){s.m_horizontalCellMargin+=0.5;},[](auto& s){s.m_verticalCellMargin+=0.5;},
+        [](auto& s){s.m_titleSuppressed=!s.m_titleSuppressed;},[](auto& s){s.m_headerSuppressed=!s.m_headerSuppressed;},
+        [](auto& s){++s.m_unknownHandle;},[](auto& s){s.reactorHandles.push_back(0xC110u);},
+        [](auto& s){s.setDwgCommonLinkTailValidated(true);},
+        [](auto& s){s.setDwgCommonObjectState(s.reactorCount(),s.extensionDictionaryFlag(),true);},
+        [](auto& s){s.setDwgCommonObjectState(s.reactorCount()+1,s.extensionDictionaryFlag(),false);},
+        [](auto& s){s.setDwgCommonObjectState(s.reactorCount(),s.extensionDictionaryFlag()^1u,false);},
+        [](auto& s){s.pendingAppIdResolutions.push_back({0u,1u,0u,false});},
+        [](auto& s){s.pendingLayerRefResolutions.push_back({0u,1u,0u,false});},
+        [](auto& s){s.extData[0]->addString(1001,"changed XDATA");},
+        [](auto& s){s.m_tableCellStyle.m_name="unserialized native name";},
+        [](auto& s){s.m_tableCellStyle.m_contentFormat.m_rotation=-0.0;},
+        [](auto& s){s.m_cellStyles.emplace_back();},[](auto& s){s.m_subrecordRanges.emplace_back();},
+        [](auto& s){s.m_rowStyles.pop_back();},
+        [](auto& s){s.m_rowStyles.push_back(s.m_rowStyles.front());}
+    };
+    for(unsigned row=0;row<3u;++row) {
+        mutations.push_back([=](auto& s){s.m_rowStyles[row].m_textStyleName+="changed";});
+        mutations.push_back([=](auto& s){++s.m_rowStyles[row].m_textStyleHandle;});
+        mutations.push_back([=](auto& s){s.m_rowStyles[row].m_textHeight+=0.5;});
+        mutations.push_back([=](auto& s){s.m_rowStyles[row].m_hasBackgroundColor=false;});
+        mutations.push_back([=](auto& s){s.m_rowStyles[row].m_valueFormatString+="changed";});
+        for(auto field:{&DRW_TableStyleRowStyle::m_textAlignment,&DRW_TableStyleRowStyle::m_textColor,&DRW_TableStyleRowStyle::m_fillColor,
+            &DRW_TableStyleRowStyle::m_valueDataType,&DRW_TableStyleRowStyle::m_valueUnitType})
+            mutations.push_back([=](auto& s){++(s.m_rowStyles[row].*field);});
+        for(bool text:{false,true}) {
+            const auto color=[=](DRW_TableStyle& s)->DRW_TableStyleCmcColor& {
+                return text?s.m_rowStyles[row].m_textColorCmc:s.m_rowStyles[row].m_fillColorCmc;
+            };
+            mutations.push_back([=](auto& s){++color(s).m_rgb;});
+            mutations.push_back([=](auto& s){++color(s).m_method;});
+            mutations.push_back([=](auto& s){++color(s).m_flags;});
+            mutations.push_back([=](auto& s){++color(s).m_reservedIndex;});
+            mutations.push_back([=](auto& s){color(s).m_name+="changed";});
+            mutations.push_back([=](auto& s){color(s).m_bookName+="changed";});
+        }
+        for(unsigned edge=0;edge<6u;++edge) {
+            for(auto field:{&DRW_TableStyleBorder::m_edgeFlags,&DRW_TableStyleBorder::m_propertyOverrideFlags,
+                &DRW_TableStyleBorder::m_borderType,&DRW_TableStyleBorder::m_color,&DRW_TableStyleBorder::m_lineWeight,&DRW_TableStyleBorder::m_visible})
+                mutations.push_back([=](auto& s){++(s.m_rowStyles[row].m_borders[edge].*field);});
+            mutations.push_back([=](auto& s){++s.m_rowStyles[row].m_borders[edge].m_lineTypeHandle;});
+            mutations.push_back([=](auto& s){s.m_rowStyles[row].m_borders[edge].m_doubleLineSpacing+=0.5;});
+            mutations.push_back([=](auto& s){++s.m_rowStyles[row].m_borders[edge].m_colorCmc.m_rgb;});
+            mutations.push_back([=](auto& s){++s.m_rowStyles[row].m_borders[edge].m_colorCmc.m_method;});
+            mutations.push_back([=](auto& s){++s.m_rowStyles[row].m_borders[edge].m_colorCmc.m_flags;});
+            mutations.push_back([=](auto& s){++s.m_rowStyles[row].m_borders[edge].m_colorCmc.m_reservedIndex;});
+            mutations.push_back([=](auto& s){s.m_rowStyles[row].m_borders[edge].m_colorCmc.m_name="changed";});
+            mutations.push_back([=](auto& s){s.m_rowStyles[row].m_borders[edge].m_colorCmc.m_bookName="changed";});
+        }
+        mutations.push_back([=](auto& s){s.m_rowStyles[row].m_borders.pop_back();});
+    }
+    const std::vector<std::function<void(DRW_RawDxfObject&)>> rawFaults{
+        [](auto& r){r.rawValues.pop_back();},[](auto& r){r.hasRawValues=!r.hasRawValues;},
+        [](auto& r){r.parentHandle=0;},[](auto& r){r.m_version=DRW::AC1018;},
+        [](auto& r){r.groups[0].addString(5,"C121");},
+        [](auto& r){r.groups.emplace_back(100,"UnknownSubclass");r.rawValues.push_back("UnknownSubclass");},
+        [](auto& r){r.rawValues[0]="different scalar";},
+        [](auto& r){for(std::size_t i=0;i<r.groups.size();++i)if(r.groups[i].code()==281){r.groups.erase(r.groups.begin()+static_cast<std::ptrdiff_t>(i));r.rawValues.erase(r.rawValues.begin()+static_cast<std::ptrdiff_t>(i));break;}},
+        [](auto& r){for(auto& g:r.groups)if(g.code()==3){g.addString(3,"changed description");break;}},
+        [](auto& r){r.groups.emplace_back(10,DRW_Coord(1,2,3));r.rawValues.push_back("1");},
+        [](auto& r){r.groups.front().setLayerRefName("not raw scalar metadata");}
+    };
+    unsigned routes=0u,negative=0u,rawRefusals=0u,boundaries=0u,callbacks=0u,dependencies=0u,accounting=0u;
+    for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
+        const auto good=legacyTableStyleSource(revision);
+        if(!write(path,good,binary))return false;
+        Probe probe;dx_data clean;
+        if(!probe.fileImport(path.string(),&clean,false))return fail("TABLESTYLE source import failed");
+        const auto report=dx_iface::tableContentBindingReport(clean);
+        const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean,0xC100u);
+        const auto* style=dynamic_cast<const DRW_TableStyle*>(frozen.model.get());
+        const std::string description=binary?"local table ^J description-é":"local table \n description-é";
+        if(report.state!=S::Bound||report.sourceStyleMatches!=1u||report.sourceMapMatches!=1u||report.boundResourceReferences!=24u
+            ||!frozen.rawTypedMatched||!style||style->m_rowStyles.size()!=3u||style->m_name!=description
+            ||style->dxfOriginalDescription()!=description||style->dxfOriginalDescriptionRaw()!="local table ^J description-é")return fail("TABLESTYLE canonical source differs");
+        unsigned names=0u;for(const auto& ref:frozen.references) {
+            if(frozen.raw->groups[ref.groupIndex].code()!=ref.code)return false;
+            if(ref.kind==R::TextStyleName)++names;
+        }
+        if(names!=3u||frozen.referenceNameKeys.size()!=3u)return fail("TABLESTYLE name reference census differs");
+        ++routes;
+        for(std::size_t i=0;i<mutations.size();++i) {
+            probe.alterStyle=mutations[i];dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound
+                ||DxIfaceTableSourceTestAccess::mapResource(bad,0xC100u).rawTypedMatched
+                ||!DxIfaceTableSourceTestAccess::mapResource(bad,0xC100u).references.empty())return fail("TABLESTYLE typed mutation escaped index="+std::to_string(i));
+            probe.alterStyle={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("TABLESTYLE mutation recovery failed");
+            probe.clear();
+            ++negative;
+        }
+        for(std::size_t i=0;i<rawFaults.size();++i) {
+            probe.alterStyleRaw=rawFaults[i];dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound
+                ||!DxIfaceTableSourceTestAccess::mapResource(bad,0xC100u).references.empty())return fail("TABLESTYLE raw mutation escaped index="+std::to_string(i));
+            if(i+2u>=rawFaults.size() && DxIfaceTableSourceTestAccess::mapResource(bad,0xC100u).raw)
+                return fail("unsupported raw TABLESTYLE payload copied before refusal");
+            probe.alterStyleRaw={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("TABLESTYLE raw recovery failed");
+            probe.clear();
+            ++rawRefusals;
+        }
+        for(unsigned i=0;i<8u;++i) {
+            dx_data limited;DxIfaceTableSourceTestAccess::resourceProofLimits(limited,
+                i==0?report.resourceProofRecords-1u:i==4?report.resourceProofRecords:100000u,
+                i==1?report.resourceProofGroups-1u:i==5?report.resourceProofGroups:4000000u,
+                i==2?report.resourceProofBytes-1u:i==6?report.resourceProofBytes:64u*1024u*1024u,
+                i==3?report.resourceProofWork-1u:i==7?report.resourceProofWork:4000000u);
+            if(!probe.fileImport(path.string(),&limited,false)||dx_iface::tableContentBindingReport(limited).state!=(i<4u?S::CaptureFailed:S::Bound))return fail("TABLESTYLE proof boundary failed");
+            ++boundaries;
+        }
+        for(unsigned i=0;i<3u;++i) {
+            probe.skipStyleRaw=i==0u;probe.duplicateStyleRaw=i!=0u;dx_data bad;
+            if(i==2u)probe.alterStyleRaw=rawFaults.back();
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state!=(i==0u?S::ResourceProofMissing:S::CaptureFailed))return fail("TABLESTYLE callback gap qualified");
+            probe.skipStyleRaw=false;probe.duplicateStyleRaw=false;probe.alterStyleRaw={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++callbacks;
+        }
+        for(unsigned mode=0;mode<11u;++mode) {
+            auto varied=good;S expected=S::Bound;
+            const auto mapReference=[&](const std::string& handle) {
+                for(auto i=slot(varied,5,"C120");i<varied.size() && varied[i].code!=0;++i)
+                    if(varied[i].code==340 && varied[i].value==handle)return i;
+                throw std::runtime_error("missing map dependency slot");
+            };
+            if(mode==0u){varied[slot(varied,7,"TableFont-é")].value="missing font";expected=S::MissingTarget;}
+            if(mode==1u){varied[slot(varied,7,"TableFont-é")].value="tABLEFONT-é";}
+            if(mode==2u){varied[mapReference("C101")].value="C102";expected=S::WrongFamily;}
+            if(mode==3u){varied[mapReference("C102")].value="C101";expected=S::WrongFamily;}
+            if(mode==4u){const auto s=slot(varied,5,"C101")-1u;auto e=s+1u;while(varied[e].code!=0)++e;
+                varied.erase(varied.begin()+static_cast<std::ptrdiff_t>(s),varied.begin()+static_cast<std::ptrdiff_t>(e));expected=S::MissingTarget;}
+            if(mode==5u){varied[slot(varied,7,"TableFont-é")].value="";expected=S::InvalidNamespace;}
+            if(mode==6u){varied[mapReference("C101")].value="0";}
+            if(mode==7u){varied[mapReference("C102")].value="0";}
+            if(mode==8u){varied[mapReference("C101")].value="FFFF";expected=S::MissingTarget;}
+            if(mode==9u){const auto begin=slot(varied,0,"STYLE");auto end=begin+1u;while(varied[end].code!=0)++end;
+                Tags duplicate(varied.begin()+static_cast<std::ptrdiff_t>(begin),varied.begin()+static_cast<std::ptrdiff_t>(end));
+                for(auto& t:duplicate){if(t.code==5)t.value="C103";if(t.code==2)t.value="tablefont-é";}
+                varied.insert(varied.begin()+static_cast<std::ptrdiff_t>(end),duplicate.begin(),duplicate.end());expected=S::AmbiguousIdentity;}
+            if(mode==10u){const auto i=slot(varied,1001,"STYLE_PROOF_APP");varied.insert(varied.begin()+static_cast<std::ptrdiff_t>(i),{340,"C101"});expected=S::UnknownRole;}
+            if(!write(path,varied,binary))return false;
+            dx_data data;if(!probe.fileImport(path.string(),&data,false)||dx_iface::tableContentBindingReport(data).state!=expected)return fail("resource format dependency mode="+std::to_string(mode));
+            if(!write(path,good,binary))return false;
+            dx_data restored;if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++dependencies;
+        }
+        // Strip only the private description baseline by constructing an
+        // otherwise equal authored model. Its two string copies must be charged.
+        DRW_TableStyle authored;static_cast<DRW_TableEntry&>(authored)=static_cast<const DRW_TableEntry&>(*style);
+        authored.m_name=style->m_name;authored.m_flowDirection=style->m_flowDirection;authored.m_flags=style->m_flags;
+        authored.m_horizontalCellMargin=style->m_horizontalCellMargin;authored.m_verticalCellMargin=style->m_verticalCellMargin;
+        authored.m_titleSuppressed=style->m_titleSuppressed;authored.m_headerSuppressed=style->m_headerSuppressed;
+        authored.m_unknownHandle=style->m_unknownHandle;authored.m_tableCellStyle=style->m_tableCellStyle;
+        authored.m_rowStyles=style->m_rowStyles;authored.m_cellStyles=style->m_cellStyles;authored.m_subrecordRanges=style->m_subrecordRanges;
+        dx_data authoredData;dx_iface author;author.cData=&authoredData;author.addTableStyle(authored);
+        const auto extra=style->dxfOriginalDescription().size()+style->dxfOriginalDescriptionRaw().size()+2u;
+        if(clean.tableStylesRetainedBytes!=authoredData.tableStylesRetainedBytes+extra)return fail("TABLESTYLE baseline strings were not accounted exactly");
+        ++accounting;
+        clean.tableStyles.front().m_rowStyles[0].m_textStyleName="live changed font";
+        clean.rawTableStyles.front().groups.clear();
+        const auto again=dx_iface::tableContentBindingReport(clean);
+        if(again.state!=S::Bound||again.resourceProofWork!=report.resourceProofWork)return fail("mutable TABLESTYLE changed immutable proof");
+    }
+    std::cout<<"TABLESTYLE proof: "<<routes<<" routes; "<<mutations.size()<<" typed mutation kinds; "<<negative<<" mismatch/recovery pairs; "
+        <<rawRefusals<<" raw pairs; "<<boundaries<<" boundaries; "<<callbacks<<" callback recoveries; "<<dependencies<<" dependency routes; "<<accounting<<" baseline accounting controls\n";
+    return routes==8u&&negative==mutations.size()*routes&&rawRefusals==rawFaults.size()*routes&&boundaries==64u&&callbacks==24u&&dependencies==88u&&accounting==8u;
 }
 
 int inspect(const char* path) {
@@ -1452,7 +1663,8 @@ int inspect(const char* path) {
         <<" null="<<bindings.nullReferences<<" local="<<bindings.localStyleUses<<" absent="<<bindings.absentStyleUses<<'\n';
     std::cout<<"resource-proof records="<<bindings.resourceProofRecords<<" groups="<<bindings.resourceProofGroups
         <<" bytes="<<bindings.resourceProofBytes<<" work="<<bindings.resourceProofWork<<" map-matches="<<bindings.sourceMapMatches
-        <<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
+        <<" style-matches="<<bindings.sourceStyleMatches<<" bound-formats="<<bindings.boundResourceReferences
+        <<" inherited-formats="<<bindings.inheritedResourceReferences<<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
     std::cout<<"compound-state="<<static_cast<int>(compound.state)<<" tables="<<compound.tables
              <<" contents="<<compound.contents<<" geometries="<<compound.geometries
              <<" compounds="<<compound.compounds<<" records="<<compound.records
@@ -1473,6 +1685,13 @@ int inspect(const char* path) {
                 <<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
     }
     std::cout<<"imported="<<ok<<" matched="<<p.content.size()<<" unknown="<<p.unknown<<'\n';
+    if(bindings.sourceStyleMatches)for(const auto& style:data.tableStyles) {
+        const auto& resource=DxIfaceTableSourceTestAccess::mapResource(data,style.handle);
+        if(!resource.rawTypedMatched)continue;
+        std::cout<<"TABLESTYLE source-handle="<<std::hex<<style.handle<<std::dec<<" rows="<<style.m_rowStyles.size()<<'\n';
+        for(const auto& ref:resource.references)std::cout<<"style-reference handle="<<std::hex<<style.handle<<std::dec
+            <<" kind="<<static_cast<unsigned>(ref.kind)<<" index="<<ref.groupIndex<<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
+    }
     for(const auto& map:data.cellStyleMaps) {
         std::cout<<"CELLSTYLEMAP handle="<<std::hex<<map.handle<<" owner="<<map.parentHandle<<std::dec
             <<" styles="<<map.m_cellStyles.size()<<" complete="<<map.finalizeDxf()<<'\n';
@@ -1509,10 +1728,11 @@ int main(int argc,char** argv) {
     const bool bindings=argc==2 && std::string(argv[1])=="--compound-bindings";
     const bool maps=argc==2 && std::string(argv[1])=="--cell-style-map-source";
     const bool mapProof=argc==2 && std::string(argv[1])=="--cell-style-map-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof) return 2;
+    const bool styleProof=argc==2 && std::string(argv[1])=="--table-style-proof";
+    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }
