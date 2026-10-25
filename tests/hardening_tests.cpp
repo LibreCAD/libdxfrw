@@ -4171,7 +4171,7 @@ std::string generatedMLineStyleLinetypeOwnerBudgetWire(bool binary) {
     return ok ? stream.str() : std::string{};
 }
 
-std::string generatedXRecordStringOwnerBudgetWire(bool binary) {
+std::string generatedXRecordStringOwnerBudgetWire(bool binary, int finalCode = 1) {
     std::ostringstream stream(std::ios::out | std::ios::binary);
     std::unique_ptr<dxfWriter> writer = binary
         ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
@@ -4180,7 +4180,7 @@ std::string generatedXRecordStringOwnerBudgetWire(bool binary) {
     const std::string finalText(2048u, 'R');
     const bool ok = writer->writeString(100, "AcDbXrecord")
         && writer->writeString(100, firstText)
-        && writer->writeString(1, finalText);
+        && writer->writeString(finalCode, finalText);
     writer.reset();
     return ok ? stream.str() : std::string{};
 }
@@ -13719,8 +13719,8 @@ void testDxfXRecordStringOwnerBudget(TestContext& t) {
     const std::size_t expectedOwnerBytes = priorOwnerBytes
         + 2u * finalText.size();
 
-    for (const bool binary : {false, true}) {
-        const std::string records = generatedXRecordStringOwnerBudgetWire(binary);
+    for (const bool binary : {false, true}) for (const int finalCode : {1,103,104,106,107,108,109}) {
+        const std::string records = generatedXRecordStringOwnerBudgetWire(binary,finalCode);
         t.expect(!records.empty(),
                  "generated XRECORD string-owner records are writable");
         if (records.empty())
@@ -13776,6 +13776,8 @@ void testDxfXRecordStringOwnerBudget(TestContext& t) {
             && admitted.m_values[0].code() == 100
             && std::string(admitted.m_values[0].c_str()) == firstText
             && std::string(admitted.m_dataEntries[0].c_str()) == firstText
+            && admitted.m_values[1].code() == finalCode
+            && admitted.m_dataEntries[1].code() == finalCode
             && std::string(admitted.m_values[1].c_str()) == finalText
             && std::string(admitted.m_dataEntries[1].c_str()) == finalText
             && admittedBudget->used() == expectedOwnerBytes;

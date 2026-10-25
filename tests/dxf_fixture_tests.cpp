@@ -29693,6 +29693,168 @@ bool hasXRecordXdataControl(const DRW_XRecord& record, int cloning = 2) {
         && xdata[10]->code() == 1071 && xdata[10]->i_val() == 1234567;
 }
 
+void testXRecordNormalStringCodes(TestContext& t) {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-xrecord-strings-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) break;
+    }
+    t.expect(!directory.empty(), "XRECORD string controls own an exclusive scratch directory");
+    if (directory.empty()) return;
+    const auto path = directory / "strings.dxf";
+    struct Cleanup { std::filesystem::path path, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path,error); std::filesystem::remove(directory,error);
+    } } cleanup{path,directory};
+    const std::array<int,6> codes{{103,104,106,107,108,109}};
+    const std::array<std::string,3> forms{{"","literal {string}","caf\xC3\xA9 string"}};
+    const auto source = [&]() {
+        auto value = xRecordXdataControl();
+        for (const auto code : codes) for (const auto& text : forms) value.m_dataEntries.emplace_back(code,text);
+        value.m_dataEntries.emplace_back(1,std::string("after-normal-strings"));
+        return value;
+    };
+    const auto check = [&](const DRW_XRecord& record, int cloning) {
+        if (record.m_dataEntries.size() != 25u || record.m_values.size() != 24u || record.m_handleValues.size() != 1u) return false;
+        DRW_XRecord prefix(record);
+        prefix.m_dataEntries.resize(6u); prefix.m_values.resize(5u);
+        if (!hasXRecordXdataControl(prefix,cloning)) return false;
+        std::size_t next = 6u;
+        for (const auto code : codes) for (const auto& text : forms) {
+            const auto& value = record.m_dataEntries[next++];
+            if (value.code() != code || value.type() != DRW_Variant::STRING || !value.content.s || *value.content.s != text) return false;
+        }
+        const auto& last = record.m_dataEntries.back();
+        return last.code() == 1 && last.content.s && *last.content.s == "after-normal-strings";
+    };
+    unsigned cells = 0u, reexports = 0u;
+    for (const auto version : {DRW::AC1014,DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
+      for (const bool binary : {false,true}) for (const bool compatibilityValues : {false,true}) {
+        XRecordCoordinateWriter writer;
+        writer.value = source();
+        const int cloning = version == DRW::AC1014 ? 0 : 2;
+        writer.value.m_cloning = cloning;
+        if (compatibilityValues) { writer.value.m_values = writer.value.m_dataEntries; writer.value.m_dataEntries.clear(); }
+        const bool wrote = writeXRecordXdataControl(path,version,binary,writer);
+        FixtureInterface reader; dx_data data;
+        const bool read = wrote && reader.fileImport(path.string(),&data,false);
+        const bool valid = wrote && writer.wrote && read && reader.xrecords.size() == 1u && check(reader.xrecords.front(),cloning);
+        t.expect(valid, "public XRECORD writer/readback preserves every normal string code in ordered and compatibility payloads");
+        if (!valid) {
+            std::cerr << "XRECORD strings version=" << static_cast<int>(version) << " binary=" << binary << " compatibilityValues=" << compatibilityValues
+                << " wrote=" << wrote << " callbackWrote=" << writer.wrote << " read=" << read << " records=" << reader.xrecords.size() << '\n';
+            return;
+        }
+        ++cells;
+        const auto parsed = reader.xrecords.front();
+        DRW_XRecord copied(parsed), assigned; assigned = parsed;
+        t.expect(check(copied,cloning) && check(assigned,cloning), "normal XRECORD string copies retain both exact owned payload views");
+        writer.value = assigned;
+        FixtureInterface second; dx_data secondData;
+        t.expect(writeXRecordXdataControl(path,version,!binary,writer) && writer.wrote
+            && second.fileImport(path.string(),&secondData,false) && second.xrecords.size() == 1u && check(second.xrecords.front(),cloning),
+            "actual parsed XRECORD strings and common XDATA reexport across encodings without merging channels");
+        ++reexports;
+    }
+    unsigned refusals = 0u, commonRefusals = 0u, legacyCells = 0u, legacyReexports = 0u, profileRetries = 0u;
+    for (const bool binary : {false,true}) for (const bool compatibilityValues : {false,true}) {
+        XRecordCoordinateWriter writer;
+        const auto restore = [&]() {
+            writer.value = source();
+            if (compatibilityValues) { writer.value.m_values = writer.value.m_dataEntries; writer.value.m_dataEntries.clear(); }
+        };
+        const auto retry = [&]() {
+            restore(); FixtureInterface reader; dx_data data;
+            return writeXRecordXdataControl(path,DRW::AC1032,binary,writer) && writer.wrote
+                && reader.fileImport(path.string(),&data,false) && reader.xrecords.size() == 1u && check(reader.xrecords.front(),2);
+        };
+        const auto atomicRefusal = [&]() {
+            const std::string sentinel = "XRECORD_STRING_DOMAIN_DESTINATION_UNCHANGED";
+            { std::ofstream prior(path,std::ios::binary); prior << sentinel; }
+            const bool wrote = writeXRecordXdataControl(path,DRW::AC1032,binary,writer);
+            std::ifstream prior(path,std::ios::binary);
+            const std::string retained((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>());
+            prior.close();
+            return !wrote && !writer.wrote && retained == sentinel;
+        };
+        for (const auto code : codes) for (unsigned type = 0u; type < 3u; ++type) {
+            restore();
+            auto& values = compatibilityValues ? writer.value.m_values : writer.value.m_dataEntries;
+            if (type == 0u) values[6].addInt(code,17);
+            if (type == 1u) values[6].addInt64(code,17);
+            if (type == 2u) values[6].addDouble(code,17.0);
+            t.expect(atomicRefusal() && retry(), "normal string codes reject nonstring variants atomically and permit restored-source retry");
+            ++refusals;
+        }
+        for (const auto code : {5,105}) {
+            restore();
+            auto& values = compatibilityValues ? writer.value.m_values : writer.value.m_dataEntries;
+            values[6].addString(code,"ABCD");
+            t.expect(atomicRefusal() && retry(), "expanded XRECORD strings do not admit self handles as application strings");
+            ++refusals;
+        }
+    }
+    for (const bool binary : {false,true}) {
+        const std::vector<DRW_Variant> common{{1,std::string("body")},{1001,std::string("APP")},{1000,std::string("common")}};
+        FixtureInterface control; dx_data controlData;
+        t.expect(importTemporaryDxf("xrecord-string-common-control",xRecordCoordinateSource(common,binary),control,controlData)
+            && control.xrecords.size() == 1u, "ordinary XRECORD common-XDATA control is valid before adding a late application field");
+        for (const auto code : codes) {
+            auto malformed = common; malformed.emplace_back(code,std::string("late-application-string"));
+            FixtureInterface reader; dx_data data;
+            const bool refused = !importTemporaryDxf("xrecord-string-late-common",xRecordCoordinateSource(malformed,binary),reader,data) && reader.xrecords.empty();
+            XRecordCoordinateWriter writer; writer.value = source();
+            t.expect(refused && writeXRecordXdataControl(path,DRW::AC1032,binary,writer) && writer.wrote
+                && reader.fileImport(path.string(),&data,false) && reader.xrecords.size() == 1u && check(reader.xrecords.front(),2),
+                "normal strings cannot reopen application payload after common XDATA; corrected same-reader import recovers");
+            ++commonRefusals;
+        }
+    }
+    for (const bool binary : {false,true}) {
+        XRecordCoordinateWriter writer; dx_data seed;
+        writer.cData = &seed; writer.currentBlock = seed.mBlock;
+        writer.value.handle = 0xA753u; writer.value.parentHandle = 0xCu;
+        for (const auto range : {std::make_pair(80,89),std::make_pair(150,159),std::make_pair(180,209)})
+            for (int code = range.first; code <= range.second; ++code) writer.value.m_dataEntries.emplace_back(code,"legacy-string-" + std::to_string(code));
+        const auto expected = writer.value.m_dataEntries;
+        const auto legacyCheck = [&](const DRW_XRecord& value) {
+            if (value.m_dataEntries.size() != 50u || value.m_values.size() != 50u || !value.m_handleValues.empty() || !value.extData.empty()) return false;
+            for (std::size_t n = 0u; n < expected.size(); ++n) if (value.m_dataEntries[n].code() != expected[n].code()
+                || value.m_dataEntries[n].type() != DRW_Variant::STRING || !value.m_dataEntries[n].content.s
+                || *value.m_dataEntries[n].content.s != *expected[n].content.s) return false;
+            return true;
+        };
+        dxfRW output(path.string().c_str()); writer.dxfW = &output;
+        output.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        writer.wrote = false;
+        const bool wrote = output.write(&writer,DRW::AC1032,binary) && writer.wrote;
+        t.expect(wrote, "explicit legacy public writer emits its50 allowed normal application string codes");
+        if (!wrote) return;
+        FixtureInterface reader; dx_data data;
+        reader.cData = &data; reader.currentBlock = data.mBlock;
+        dxfRW input(path.string().c_str());
+        const bool refused = !input.read(&reader,false) && reader.xrecords.empty();
+        input.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        const bool read = input.read(&reader,false) && reader.xrecords.size() == 1u && legacyCheck(reader.xrecords.front());
+        t.expect(refused && read, "standalone profile stays closed while corrected explicit legacy profile permits same-codec read retry");
+        if (!read) return;
+        ++profileRetries; ++legacyCells;
+        writer.value = reader.xrecords.front(); writer.wrote = false;
+        FixtureInterface second; dx_data secondData; second.cData = &secondData; second.currentBlock = secondData.mBlock;
+        dxfRW secondInput(path.string().c_str()); secondInput.setDxfCompatibilityProfile(dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy);
+        t.expect(output.write(&writer,DRW::AC1032,!binary) && writer.wrote && secondInput.read(&second,false)
+            && second.xrecords.size() == 1u && legacyCheck(second.xrecords.front()), "explicit legacy string carriers reexport across encodings through public codecs");
+        ++legacyReexports;
+    }
+    t.expect(cells == 28u && reexports == 28u && refusals == 80u && commonRefusals == 12u
+        && legacyCells == 2u && legacyReexports == 2u && profileRetries == 2u, "normal XRECORD string matrix exercises every revision/encoding/payload carrier and guard");
+    std::cout << "XRECORD normal string authored cells=" << cells << " actual-import cross-encoding reexports=" << reexports
+        << " atomic source-domain retries=" << refusals << " common-boundary read retries=" << commonRefusals
+        << " legacy authored/reexport cells=" << legacyCells << '/' << legacyReexports << " profile retries=" << profileRetries << '\n';
+}
+
 void testXRecordXdataChannels(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto path = std::filesystem::temp_directory_path()
@@ -33511,6 +33673,11 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--xrecord-xdata-channels") {
         TestContext context;
         testXRecordXdataChannels(context);
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--xrecord-normal-string-codes") {
+        TestContext context;
+        testXRecordNormalStringCodes(context);
         return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--mesh-raw-field-tags") {

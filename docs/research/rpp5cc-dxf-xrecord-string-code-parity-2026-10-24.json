@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cc DXF XRECORD string-code parity",
+  "date": "2026-10-24",
+  "parentCommit": "6b0a5d65ebe640eee3c196bc9df27f381805b025",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "PUBLIC_DXF_STRING_CODE_PARITY_FIXED_NATIVE_AND_OTHER_VALUE_KIND_QUALIFICATION_UNCHANGED",
+  "baseline": {
+    "result": "GAP_REPRODUCED",
+    "testExitCode": 8,
+    "wallSeconds": 0.35,
+    "revision": "AC1014",
+    "encoding": "ASCII",
+    "observation": "Public facade export and writeXRecord succeed, actual read fails and publishes no XRECORD callback at first newly exercised normal string code103",
+    "allMatrixCellsExercisedBeforeBaselineAbort": false,
+    "allOmittedCodesIndividuallyIsolatedBeforeAbort": false,
+    "buildLog": "/tmp/rpp5cc-baseline-build.log",
+    "testLog": "/tmp/rpp5cc-baseline-tests.log"
+  },
+  "implementation": {
+    "scope": "DRW_XRecord::parseCode only: admit allowed normal application string codes selected by active canonical DXF classifier",
+    "newStandaloneStringCodes": [
+      103,
+      104,
+      106,
+      107,
+      108,
+      109
+    ],
+    "explicitLegacyStringRanges": [
+      [
+        80,
+        89
+      ],
+      [
+        150,
+        159
+      ],
+      [
+        180,
+        209
+      ]
+    ],
+    "ownership": "Reuse existing bounded UTF8 decode, typed-variant node charges, mirrored payload owners and retained-byte lease",
+    "writerDomainSelfHandleAndCommonXdataRulesUnchanged": true,
+    "sharedNativePredicateOrNativeEncoderParserBodiesChanged": false,
+    "sourceEligibilityIssueMasksOrSemanticSupportClaimsPromoted": false,
+    "publicApiDataRecordLayoutOrDrwInterfaceVirtualsChanged": false,
+    "documentMergePolicyChanged": false
+  },
+  "controls": {
+    "newCTest": "libdxfrw_xrecord_normal_string_codes",
+    "selector": "--xrecord-normal-string-codes",
+    "source": "Scratch public DXF writer/readback and actual parsed reexports; no fabricated native source frames or independent producer evidence",
+    "revisions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "sourceCarriers": [
+      "Ordered m_dataEntries",
+      "Compatibility m_values"
+    ],
+    "newCodeTextForms": [
+      "Empty",
+      "Literal/braced",
+      "UTF8 BMP"
+    ],
+    "normalAuthoredReadbackCells": 28,
+    "normalActualImportCrossEncodingReexportCells": 28,
+    "checks": [
+      "Exact ordered payload and compatibility views",
+      "Copy/assignment",
+      "Versioned cloning",
+      "Existing handle/binary/coordinate fields",
+      "Complete common XDATA kept separate"
+    ],
+    "atomicSourceDomainRefusalRestoredReadbackRetries": 80,
+    "sourceFaults": [
+      "INTEGER instead of STRING",
+      "INTEGER64 instead of STRING",
+      "DOUBLE instead of STRING",
+      "Application self codes5/105 remain rejected"
+    ],
+    "sourceRetryContext": "Same facade, fresh internal write operation",
+    "malformedCommonBoundaryNoPartialCallbackReadRetries": 12,
+    "commonBoundaryPositivePremiseControls": 2,
+    "explicitLegacyNewStringCodes": 50,
+    "legacyAuthoredReadbackCells": 2,
+    "legacyParsedCrossEncodingReexportCells": 2,
+    "standaloneRefusalCorrectedSameInputCodecProfileRetries": 2,
+    "ownerBudgetCTest": "libdxfrw_dxf_xrecord_string_owner_budget",
+    "ownerBudgetCells": 14,
+    "ownerBudgetCodes": [
+      1,
+      103,
+      104,
+      106,
+      107,
+      108,
+      109
+    ],
+    "ownerBudgetFinalLogicalRetainedBytes": 4352,
+    "ownerBudgetChecks": [
+      "Computed exact allowance",
+      "One-byte-under refusal preserves prior owners",
+      "Both mirrored final tag values",
+      "Copy/assignment lease lifetime",
+      "Final reset releases charge"
+    ],
+    "processWidePhysicalMemoryQualification": false,
+    "independentNativeProducerOrApplicationSemanticQualification": "NOT_RUN"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "strictWarnings": true,
+      "warningSuppression": false,
+      "affectedConsumersRebuiltOrRelinkedBeforeFinalChecks": true,
+      "normalLog": "/tmp/rpp5cc-final-build.log",
+      "asanLog": "/tmp/rpp5cc-asan-build.log"
+    },
+    "focused": {
+      "result": "PASS",
+      "passed": 35,
+      "total": 35,
+      "wallSeconds": 18.05,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_public_header_hygiene",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_generated_dictionary_metadata_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_material_root_output_compatibility",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "dwg2dxf_generated_root_common_closure",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "dwg2dxf_standard_dwg_binary_transport",
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_generated_dictionary_scalar_faults",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "dwg2dxf_standard_output_framing_controls",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_normal_string_codes",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_xrecord_per_value_codepage"
+      ],
+      "log": "/tmp/rpp5cc-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 9.63,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5cc-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS",
+      "passed": 4,
+      "total": 4,
+      "wallSeconds": 2.23,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_dwg_fixtures",
+        "libdxfrw_named_resource_import_evidence",
+        "libdxfrw_3d_consumer_probe"
+      ],
+      "log": "/tmp/rpp5cc-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 16,
+      "total": 16,
+      "wallSeconds": 31.34,
+      "parallelism": 3,
+      "tests": [
+        "dwg2dxf_standard_dwg_binary_transport",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_root_common_closure",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_generated_dictionary_scalar_faults",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "dwg2dxf_standard_output_framing_controls",
+        "libdxfrw_xrecord_normal_string_codes",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_dxf_xrecord_string_owner_budget"
+      ],
+      "log": "/tmp/rpp5cc-asan-final.log",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "independentProducerPlatformSemanticOrBenchmarkQualificationClaim": false
+  },
+  "remaining": [
+    "Reproduce public explicit-legacy scalar-kind parity for doubles240..259 and Booleans260..269 before changing DXF dispatch; code-inspection hypothesis",
+    "Audit generated-root/raster observers against XRECORD application102/100/280/330 through real facade/native exports",
+    "Independent native XRECORD/string/code profiles, APPID/LAYER evidence, sparse class cardinality, full IMAGE/common geometry and broader named-root/document closure",
+    "Explicit source ownership/generation/remapping contracts before multi-document composition"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

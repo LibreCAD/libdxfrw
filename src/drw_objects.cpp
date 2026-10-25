@@ -9919,7 +9919,14 @@ bool DRW_XRecord::parseCode(int code,
             m_dxfCoordinateMask = 0;
         return true;
     }
-    if (xRecordCodeIsString(code)) {
+    // DXF's admitted normal application strings follow the active classifier,
+    // including 103/104/106..109 and explicit legacy string ranges. Keep the
+    // native DWG predicate unchanged: DXF width/type parity is not native
+    // source-profile qualification. Reuse the same bounded two-owner path.
+    if (xRecordCodeIsString(code)
+        || (isDxfXRecordApplicationCode(code)
+            && dxfValueKindForCode(code, reader->classifierProfile())
+                == DxfValueKind::Str)) {
         return appendStringValue(code);
     }
     if (xRecordCodeIsDouble(code)) {

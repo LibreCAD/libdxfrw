@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cb standard-object profile isolation (2026-10-24):** a live AC1021 ASCII export refusal is fixed: a public callback-emitted MATERIAL no longer gets decoded as signed standard-object metadata. Bounded raw framing uses the active standalone/LibreCAD legacy classifier for binary widths; only selected native standard-object frames undergo the unchanged shape/model checks. Six native scratch sources pass 72 projections, including 32 full MATERIAL-companion readbacks; legacy source qualification stays closed. Framing controls pass 12 profile cells, 4,337 truncations, 44 selected-record fault/restoration checks and 15 unknown-profile/width refusals. Final 31 focused, five owning, four reader/consumer and 13 ASan tests pass, with both LibreCAD_3 compile gates. This is not MATERIAL root/source/semantic qualification; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cb-standard-object-profile-isolation-2026-10-24) · [receipt](docs/research/rpp5cb-standard-object-profile-isolation-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5cc DXF XRECORD string-code parity (2026-10-24):** a public writer/readback failure is fixed for normal application string codes 103/104/106..109. DXF-only dispatch now follows the active canonical classifier through the existing bounded two-owner path; native DWG predicates and qualification stay unchanged. Controls pass 28 authored exports, 28 cross-encoding reexports, 80 atomic source-domain retries, 12 common-XDATA boundary retries, and both encodings of all 50 explicit legacy string codes with profile/refusal retries. Fourteen ownership-budget cells retain exact/one-byte-under and copy/reset controls. Final 35 focused, five owning, four reader/consumer and 16 ASan tests pass, with both LibreCAD_3 compile gates. Other value-kind/observer audits and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cc-dxf-xrecord-string-code-parity-2026-10-24) · [receipt](docs/research/rpp5cc-dxf-xrecord-string-code-parity-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5cb standard-object profile isolation (2026-10-24):** a live AC1021 ASCII export refusal is fixed: a public callback-emitted MATERIAL no longer gets decoded as signed standard-object metadata. Bounded raw framing uses the active standalone/LibreCAD legacy classifier for binary widths; only selected native standard-object frames undergo the unchanged shape/model checks. Six native scratch sources pass 72 projections, including 32 full MATERIAL-companion readbacks; legacy source qualification stays closed. Framing controls pass 12 profile cells, 4,337 truncations, 44 selected-record fault/restoration checks and 15 unknown-profile/width refusals. Final 31 focused, five owning, four reader/consumer and 13 ASan tests pass, with both LibreCAD_3 compile gates. This is not MATERIAL root/source/semantic qualification; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cb-standard-object-profile-isolation-2026-10-24) · [receipt](docs/research/rpp5cb-standard-object-profile-isolation-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5ca exact scalar XDATA integer transport (2026-10-24):** a reproduced export refusal for writer-accepted code 1071 INTEGER64 values is fixed with an exact, signed-32-bit-range comparison against decoded INTEGER values. No unchecked narrowing or cross-code/type coercion is allowed. Generated NOD/GROUP/IMAGE dictionary controls pass 504 authored exports and 504 actual-import cross-encoding reexports, plus 24 range, 24 staged-wire, 24 late-source and 30 inspector refusal/restoration retries. Pure comparison controls add five exact and 32 refusal cases. Final 27 focused, five owning, four reader/consumer and 11 ASan tests pass, with both LibreCAD_3 compile gates. Writer encoding and source/support gates remain unchanged; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ca-exact-scalar-xdata-integer-transport-2026-10-24) · [receipt](docs/research/rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json).
 
@@ -120996,7 +120998,7 @@ not close the full parity plan or independently qualify MATERIAL semantics.
 
 Next executable work, with the full parity objective retained:
 
-1. [ ] Reproduce public DXF XRECORD writer/reader parity for application strings
+1. [x] Reproduce public DXF XRECORD writer/reader parity for application strings
    at codes 103/104/106..109. The generic classifier marks 100..109 as strings,
    while the shared XRECORD string predicate currently stops at 102; self code
    105 remains forbidden in application data. A model-level decode refusal was
@@ -121005,6 +121007,8 @@ Next executable work, with the full parity objective retained:
    5/105 exclusions, typed variant/domain and common-XDATA boundaries. Do not
    broaden native typed-source qualification from a DXF fix; native predicate/
    grammar changes require authoritative specification and real source traces.
+   Completed for DXF string dispatch by RPP-5cc below; other value kinds and
+   native DWG code/profile qualification remain separate work.
 2. [ ] Audit other whole-OBJECTS observers, including generated roots and raster
    framing, with normal XRECORD application 102/100/280/330 values through real
    facade exports. The standard helper's model test is not proof that every
@@ -121034,3 +121038,97 @@ excluded. Earlier receipts and remote state remain unchanged.
 
 Receipt:
 [`rpp5cb-standard-object-profile-isolation-2026-10-24.json`](docs/research/rpp5cb-standard-object-profile-isolation-2026-10-24.json).
+
+## Implementation progress — RPP-5cc DXF XRECORD string-code parity (2026-10-24)
+
+RPP-5cb is committed as `6b0a5d65ebe640eee3c196bc9df27f381805b025`.
+This closes its public DXF string-code mismatch, not all XRECORD/native or
+document/geometry requirements in the full parity plan.
+
+1. [x] Reproduce through public writer/readback APIs before changing production
+   code. An R14 ASCII XRECORD containing the six normal string codes exports
+   successfully (`writeXRecord` also returns true), but reading that file fails
+   and publishes no XRECORD callback (baseline exit 8, 0.35 s). The first newly
+   exercised code is 103. Stop at that failure; do not claim the baseline ran
+   the entire matrix or independently isolated every omitted code.
+2. [x] Extend only `DRW_XRecord::parseCode` string dispatch with allowed normal
+   application codes whose active canonical DXF classifier says STRING. Reuse
+   its existing bounded UTF-8 conversion, typed-node charging, two mirrored
+   payload owners and retained-string lease. Keep the shared native predicate,
+   every `parseDwg`/native encoder body, source framing and eligibility masks
+   unchanged. A DXF reader/writer contract does not qualify native DWG grammar.
+3. [x] Add fast `libdxfrw_xrecord_normal_string_codes`. Seven revisions (R14
+   through R2018), two encodings and ordered/compatibility payload carriers pass
+   28 authored exports and 28 actual-import cross-encoding reexports. Each file
+   exercises all six codes with empty, literal/braced and UTF-8 BMP strings.
+   Verify exact ordered values and compatibility views, copy/assignment,
+   versioned cloning headers, existing handle/binary/coordinate fields and
+   complete common XDATA remaining separate from application payload.
+4. [x] Add 80 atomic source-domain refusal/restoration retries: wrong INTEGER,
+   INTEGER64 or DOUBLE at each new string code, plus existing 5/105 self-handle
+   exclusions, in both carriers and encodings. Preserve destination sentinels
+   and require corrected same-facade write/readback. Twelve malformed-input
+   controls refuse ordinary string fields after common XDATA with no partial
+   XRECORD callback; valid common-only controls establish the input premise,
+   and corrected same-reader imports recover. Do not generalize these checks
+   into an independent semantic/source receipt.
+5. [x] Explicit legacy-profile public codecs cover all 50 additional normal
+   string codes (80..89, 150..159, 180..209), both encodings and actual parsed
+   cross-encoding reexports. The standalone profile still refuses these
+   records without publishing an XRECORD; selecting the explicit legacy
+   profile permits a same-input-codec retry. This is string-profile parity,
+   not blanket legacy value-kind or native-source support.
+6. [x] Expand the existing ownership-budget test from two to 14 cells: original
+   code 1 plus all six new normal codes in ASCII/binary. Check the final tag,
+   both mirrored payload owners, calculated exact/one-byte-under allowance,
+   final logical retained text of 4,352 bytes, preserved prior owners after
+   refusal, copy/assignment lease lifetime and release on final reset. Reuse
+   the existing accounting path, not a relaxed limit or a new allocator policy.
+7. [x] Final strict normal/ASan library, adapter and CLI targets and both
+   LibreCAD_3 compile gates pass. Final 35 focused tests pass 18.05 s, five
+   owning tests pass 9.63 s, four reader/consumer tests pass 2.23 s and 16 scoped
+   ASan tests pass 31.34 s. Owning/reader cohorts run sequentially, parallelism
+   3 inside each. No full suite, independent producer/platform qualification
+   or process-wide memory/throughput benchmark is claimed. Commit the verified
+   implementation, tests, plan and new immutable receipt together.
+
+Next implementation-ready work, with the full parity objective retained:
+
+1. [ ] Reproduce remaining explicit-legacy XRECORD scalar-kind parity through
+   public codecs: the canonical classifier admits doubles at 240..259 and
+   Booleans at 260..269, while the current XRECORD typed predicates omit these
+   ranges. This is code-inspection evidence, not yet an established public
+   failure. Reuse the new profile/read-retry fixture, isolate each kind so a
+   string failure cannot mask it, then add exact finite/signed-zero/Boolean
+   cases, wrong-type/profile refusal and budget controls before changing DXF
+   dispatch. Keep standalone unknown widths and native qualification closed.
+2. [ ] Audit other whole-OBJECTS observers, including generated-root and raster
+   framing, with normal XRECORD application 102/100/280/330 values through real
+   facade exports. Public callback writer/readback and the standard helper's
+   framing test are not proof that every whole-document observer respects
+   application scope. Use actual native authoring/import where applicable,
+   reproduce before changing production logic, and add malformed-common-group
+   and atomic publication/refusal/restoration controls.
+3. [ ] Continue native XRECORD string/code profile qualification separately:
+   use the authoritative DWG specification and actual bounded source traces
+   before changing its native predicate/encoder/parser. Continue independent
+   APPID/LAYER/XRECORD evidence, sparse native class cardinality, full IMAGE/
+   common geometry and broader named-root/full-document closure. Require an
+   explicit source ownership/generation/remapping contract before multi-
+   document composition; scratch readback cannot replace independent semantics.
+4. [ ] Continue safe local implementation without avoidable stops. After each
+   item, self-update this plan and a new immutable receipt, resolve in-scope
+   failures, commit the verified slice and report progress. Prefer shared
+   classifiers and existing bounded ownership paths, fast affected tests and
+   reused fixtures; rebuild affected consumers at production checkpoints and
+   scope sanitizer/owning/reader cohorts rather than full-suite micro-runs.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Preserve LibreCAD/LibreCAD_3
+2D compatibility and the original 3D/dwg2dxf scope. No drawing is added or
+committed; all 17 existing untracked drawings and unrelated files remain
+excluded. Earlier receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5cc-dxf-xrecord-string-code-parity-2026-10-24.json`](docs/research/rpp5cc-dxf-xrecord-string-code-parity-2026-10-24.json).
