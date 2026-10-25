@@ -5616,6 +5616,9 @@ struct DRW_TableStyleBorder {
   int m_color = 0;
   int m_lineWeight = 0;
   std::uint32_t m_lineTypeHandle = 0;
+  // Context-dependent wire integer: legacy row borders use visibility;
+  // rich cell-style group 93 is invisibility (0 visible, 1 invisible).
+  // Do not interpret this shared carrier as a universal semantic bool.
   int m_visible = 0;
   double m_doubleLineSpacing = 0.0;
   DRW_TableStyleCmcColor m_colorCmc;

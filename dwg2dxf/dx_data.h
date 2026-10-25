@@ -16,6 +16,7 @@
 #include "libdwgr.h"
 #include "dx_raster_dwg_wire.h"
 #include "dx_dwg_class_evidence.h"
+#include "intern/dxftablereferences.h"
 
 #include <array>
 #include <cstddef>
@@ -979,15 +980,19 @@ private:
         DRW::Version version{DRW::UNKNOWNV};
         const void* reader{nullptr};
         bool closed{false}, successful{false}, failed{false}, contextFailed{false};
+        bool contentPayloadMismatch{false};
         std::size_t records{0}, groups{0}, bytes{0}, selectionWork{0};
         std::size_t maxRecords{100000u}, maxGroups{4000000u};
         std::size_t maxBytes{64u * 1024u * 1024u}, maxWork{4000000u};
+        std::size_t maxContentProofWork{4000000u};
         std::map<std::uint32_t, Table> tables;
         std::map<std::uint32_t, DRW_TableContentObject> contents;
         std::map<std::uint32_t, DRW_TableGeometry> geometries;
         std::map<std::uint32_t, DRW_Dictionary> dictionaries;
         std::map<std::uint32_t, DRW_XRecord> xrecords;
         std::map<std::uint32_t, DRW_RawDxfObject> rawObjects;
+        std::map<std::uint32_t, std::vector<dxfTableContent::Reference>> contentReferences;
+        std::size_t contentProofWork{0};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

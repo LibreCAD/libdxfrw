@@ -97,6 +97,47 @@ chain; the existing loss refusal remains enabled in both output modes. Full
 resource binding, live/source comparison and atomic emission with exact staged
 and final-field proof are separate remaining implementation gates.
 
+The frozen report now additionally requires complete TABLECONTENT raw/typed
+agreement for the admitted rich profile. The converter independently owns a
+deep copy of its metadata and per-content formats: a mutable alias supplied by
+a callback cannot later modify the frozen baseline. Library/public DTO copies
+retain their existing shared-immutable ownership contract; public layouts and
+`DRW_Interface`'s vtable are unchanged.
+
+The check reparses the captured groups with the source ASCII/binary semantic
+text context and compares every exposed core and metadata field, including
+default-only fields, variants, custom collections, colors, formats, styles,
+borders, merged ranges, attributes and geometry. Doubles compare by exact bit
+pattern, including signed zero. ASCII physical scalar spellings are separately
+decoded and compared to the retained groups; binary raw-value placeholders
+must remain empty. This uses the library's own readers, not an independent
+modeler or semantic oracle. Failure produces `RawTypedMismatch` (or a capture
+limit failure); partial reference observations are not retained as proof.
+
+Internal reference events record exact group index, code, value and schema role
+for every admitted rich-child handle, including explicit nulls. Style-local IDs
+are integer namespace uses, not handles. Suppressed CAD ObjectID payloads have
+no wire reference slot and do not invent a null event. Geometry references with
+unestablished target classes are labeled unknown; this receipt does not bind
+them by a guessed class. Source-role counts cover TABLECONTENT only, not all
+parent/wrapper/cache/common dependencies. Resource existence/class/namespace
+binding and editable-state comparison remain separate gates.
+
+Reference-vector worst-case capacity is precharged alongside the raw record.
+Canonical parsing/comparison has a separate cumulative 4,000,000-slot policy:
+64 slots per source group plus the actual merged-range pair-check allowance,
+reserved before validation. Temporary scalar body, scalar-reader and decoder
+retention phases are separately bounded by the adapter byte cap; this is not a
+whole-model RSS ceiling. Existing read budgets and loss refusals are unchanged.
+The optional ezdxf observer corroborates flat source span/code/scalar identity
+and complete handle-slot coverage only; role labels, targets and rich/output
+semantics remain unqualified. Its eligibility is always false.
+
+The shared `DRW_TableStyleBorder::m_visible` integer is context-dependent:
+legacy row styles carry visibility, while rich cell-style group 93 carries
+invisibility. Its wire value is preserved, not interpreted as a universal
+semantic visibility boolean or a rendering result.
+
 DWG HEADER admission distinguishes the inner CRC/sentinel-bounded body from
 the section-directory length. A witnessed AC1032 compatibility form excludes
 the optional four-byte word from RL; it is admitted only with zero unknown

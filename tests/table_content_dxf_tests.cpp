@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 
@@ -28,6 +29,10 @@ public:
     static const DRW_TableContentObject& content(const dx_data& data) {return data.m_tableDxfSource.contents.begin()->second;}
     static const DRW_TableGeometry& geometry(const dx_data& data) {return data.m_tableDxfSource.geometries.begin()->second;}
     static const DRW_XRecord& wrapper(const dx_data& data) {return data.m_tableDxfSource.xrecords.begin()->second;}
+    static const std::vector<dxfTableContent::Reference>& references(const dx_data& data) {
+        return data.m_tableDxfSource.contentReferences.begin()->second;
+    }
+    static void proofLimit(dx_data& data,std::size_t limit) {data.m_tableDxfSource.maxContentProofWork=limit;}
 };
 
 namespace {
@@ -40,11 +45,32 @@ struct Probe final : dx_iface {
     unsigned tableSources=0u, tableCallbacks=0u;
     bool optIn=true, forceOptIn=false, throwOnTable=false, mutateTable=false, paddedRaw=false;
     std::size_t largestTableSourceString=0u;
+    std::function<void(DRW_TableContentObject&)> alterContent;
+    std::function<void(DRW_RawDxfObject&)> alterContentRaw;
+    bool keepMutableAliases=false;
+    std::shared_ptr<DRW_TableContentDxfMetadata> mutableAlias;
+    std::shared_ptr<DRW_TableStyleContentFormat> mutableFormatAlias;
     void clear() { content.clear(); raw.clear(); unknown=0u; }
     void addTableContent(const DRW_TableContentObject& value) override {
-        content.push_back(value); dx_iface::addTableContent(value);
+        auto copy=value;
+        if (alterContent || keepMutableAliases) {
+            auto metadata=std::make_shared<DRW_TableContentDxfMetadata>(*value.m_dxfMetadata);
+            for (auto& row:metadata->m_rows) for (auto& cell:row.m_cells) for (auto& format:cell.m_contentFormats)
+                if (format) {
+                    auto mutableFormat=std::make_shared<DRW_TableStyleContentFormat>(*format);
+                    if (keepMutableAliases) mutableFormatAlias=mutableFormat;
+                    format=std::move(mutableFormat);
+                }
+            if (keepMutableAliases) mutableAlias=metadata;
+            copy.m_dxfMetadata=std::move(metadata);
+            if (alterContent) alterContent(copy);
+        }
+        content.push_back(copy); dx_iface::addTableContent(copy);
     }
     void addRawDxfObject(const DRW_RawDxfObject& value) override {
+        if ((value.name=="TABLECONTENT" || value.name=="aCdBtAbLeCoNtEnT") && alterContentRaw) {
+            auto copy=value; alterContentRaw(copy); raw.push_back(copy); dx_iface::addRawDxfObject(copy); return;
+        }
         if (value.name=="TABLECONTENT" || value.name=="aCdBtAbLeCoNtEnT") raw.push_back(value);
         dx_iface::addRawDxfObject(value);
     }
@@ -601,6 +627,257 @@ bool compoundTests(const std::filesystem::path& dir) {
     return routes==16u && negative==448u && refusals==32u && budgets==80u && extraRoutes==64u;
 }
 
+DRW_TableContentDxfMetadata& mutableMetadata(DRW_TableContentObject& o) {
+    // Only called on freshly allocated mutable test companions, never on
+    // the adapter's private const baseline or the library's original object.
+    return *const_cast<DRW_TableContentDxfMetadata*>(o.m_dxfMetadata.get());
+}
+
+bool contentProofTests(const std::filesystem::path& dir) {
+    using Kind=dxfTableContent::ReferenceKind;
+    using State=dx_iface::TableSourceState;
+    const auto path=dir/"proof.dxf";
+    const auto fail=[](const std::string& text) {std::cerr<<text<<'\n';return false;};
+    std::vector<std::function<void(DRW_TableContentObject&)>> faults;
+#define OBJECT_INT(member) faults.emplace_back([](DRW_TableContentObject& o){++o.member;})
+#define CORE_INT(member) faults.emplace_back([](DRW_TableContentObject& o){++o.m_content.member;})
+#define CELL_INT(member) faults.emplace_back([](DRW_TableContentObject& o){++o.m_content.m_rows[0].m_cells[0].member;})
+#define CELL_BOOL(member) faults.emplace_back([](DRW_TableContentObject& o){auto& v=o.m_content.m_rows[0].m_cells[0].member;v=!v;})
+    OBJECT_INT(flags); OBJECT_INT(xDictHandle);
+    CORE_INT(m_tableStyleHandle); CORE_INT(m_overrideStyleType);
+    for (const auto& edit:std::vector<std::function<void(DRW_TableContentObject&)>>{
+        [](auto& o){o.m_parseComplete=false;},[](auto& o){o.m_semanticContentComplete=true;},
+        [](auto& o){o.name="injected";},[](auto& o){o.reactorHandles.push_back(1u);},
+        [](auto& o){o.m_content.m_name+="changed";},[](auto& o){o.m_content.m_description+="changed";},
+        [](auto& o){o.m_content.m_fieldHandles.push_back(5u);},[](auto& o){o.m_content.m_subrecordRanges.emplace_back();},
+        [](auto& o){o.m_content.m_columns[0].m_name+="changed";},[](auto& o){++o.m_content.m_columns[0].m_width;},
+        [](auto& o){++o.m_content.m_columns[0].m_styleId;},[](auto& o){++o.m_content.m_columns[0].m_overrideStyleType;},
+        [](auto& o){++o.m_content.m_rows[0].m_height;},[](auto& o){++o.m_content.m_rows[0].m_styleId;},
+        [](auto& o){++o.m_content.m_rows[0].m_overrideStyleType;},[](auto& o){++o.m_content.m_mergedRanges[0].m_rightColumn;},
+        [](auto& o){o.m_content.m_rows[0].m_cells[0].m_toolTip+="changed";},
+        [](auto& o){o.m_content.m_rows[0].m_cells[0].m_textStyleName+="changed";},
+        [](auto& o){o.m_content.m_rows[0].m_cells[0].m_geometryTopLeft.x=-0.0;},
+        [](auto& o){o.m_content.m_rows[0].m_cells[0].m_geometryCenter.z=1;},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_borders[5].m_lineWeight;},
+        [](auto& o){o.m_content.m_rows[0].m_cells[0].m_borders[5].m_visible=false;},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_borders[5].m_colorRgb;},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_borders[5].m_colorMethod;},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_attributes[0].m_attdefHandle;},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_attributes[0].m_index;},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_attributes[0].m_contentIndex;},
+        [](auto& o){o.m_content.m_rows[0].m_cells[0].m_attributes[0].m_text+="changed";},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_contents[0].m_type;},
+        [](auto& o){++o.m_content.m_rows[0].m_cells[0].m_contents[0].m_handle;},
+        [](auto& o){o.m_content.m_rows[0].m_cells[0].m_contents[0].m_text+="changed";},
+        [](auto& o){o.m_dxfMetadata.reset();}}) faults.push_back(edit);
+    CELL_INT(m_flags);CELL_INT(m_type);CELL_INT(m_edgeFlags);CELL_BOOL(m_isMerged);CELL_BOOL(m_autoFit);
+    CELL_INT(m_mergedWidth);CELL_INT(m_mergedHeight);CELL_INT(m_rotation);CELL_INT(m_styleId);CELL_INT(m_overrideStyleType);
+    CELL_INT(m_virtualEdgeFlags);CELL_INT(m_overrideFlags);CELL_INT(m_valueHandle);CELL_INT(m_textStyleHandle);
+    CELL_INT(m_textStyleOverrideHandle);CELL_INT(m_blockHandle);CELL_BOOL(m_hasLinkedData);CELL_INT(m_dataLinkHandle);
+    CELL_INT(m_linkedDataRowCount);CELL_INT(m_linkedDataColumnCount);CELL_INT(m_linkedDataUnknown);CELL_INT(m_blockScale);
+    CELL_INT(m_width);CELL_INT(m_height);CELL_INT(m_geometryFlags);CELL_INT(m_geometryHandle);CELL_INT(m_geometryRecordFlags);
+    CELL_INT(m_contentWidth);CELL_INT(m_contentHeight);CELL_INT(m_geometryWidth);CELL_INT(m_geometryHeight);
+    CELL_INT(m_textColorRgb);CELL_INT(m_textColorMethod);CELL_INT(m_fillColorRgb);CELL_INT(m_fillColorMethod);
+    CELL_BOOL(m_backgroundEnabled);CELL_INT(m_textAlignment);CELL_INT(m_textHeight);
+#undef OBJECT_INT
+#undef CORE_INT
+#undef CELL_INT
+#undef CELL_BOOL
+    using Meta=DRW_TableContentDxfMetadata;
+    const std::vector<std::function<void(Meta&)>> metadataFaults{
+        [](auto& m){++m.m_linkedDataUnknown92;},[](auto& m){++m.m_columns[0].m_customData;},
+        [](auto& m){m.m_columns[0].m_customItems[0].m_name+="changed";},
+        [](auto& m){++m.m_rows[0].m_scope.m_customData;},[](auto& m){++m.m_rows[0].m_cells[0].m_scope.m_customData;},
+        [](auto& m){++m.m_rows[0].m_cells[0].m_geometry[1].m_topLeft.z;},
+        [](auto& m){++m.m_rows[0].m_cells[0].m_geometry[1].m_center.y;},
+        [](auto& m){++m.m_rows[0].m_cells[0].m_geometry[1].m_contentWidth;},
+        [](auto& m){++m.m_rows[0].m_cells[0].m_geometry[1].m_contentHeight;},
+        [](auto& m){++m.m_rows[0].m_cells[0].m_geometry[1].m_width;},
+        [](auto& m){++m.m_rows[0].m_cells[0].m_geometry[1].m_height;},
+        [](auto& m){++m.m_rows[0].m_cells[0].m_geometry[1].m_unknown;},
+        [](auto& m){m.m_rows[0].m_cells[0].m_contentFormats[0].reset();},
+        [](auto& m){m.m_rows[0].m_cells[0].m_contentFormats[1]=std::make_shared<DRW_TableStyleContentFormat>();},
+        [](auto& m){++m.m_tableStyle.m_type;},[](auto& m){m.m_rows[0].m_scope.m_customItems.clear();}
+    };
+    for (const auto& edit:metadataFaults) faults.emplace_back([edit](auto& o){edit(mutableMetadata(o));});
+    const std::vector<std::function<void(DRW_CadValue&)>> valueFaults{
+        [](auto& v){++v.m_formatFlags;},[](auto& v){++v.m_dataType;},[](auto& v){++v.m_dataSize;},
+        [](auto& v){++v.m_unitType;},[](auto& v){v.m_value=DRW_Variant(91,1);},
+        [](auto& v){v.m_formatString+="changed";},[](auto& v){v.m_valueString+="changed";},
+        [](auto& v){++v.m_handle;},[](auto& v){v.m_rawData.push_back(7u);}
+    };
+    for (const auto& edit:valueFaults) {
+        faults.emplace_back([edit](auto& o){edit(o.m_content.m_rows[0].m_cells[0].m_contents[0].m_value);});
+        faults.emplace_back([edit](auto& o){edit(mutableMetadata(o).m_columns[0].m_customItems[0].m_value);});
+    }
+    const std::vector<std::function<void(DRW_TableStyleCellStyle&)>> styleFaults{
+        [](auto& s){++s.m_type;},[](auto& s){s.m_hasData=!s.m_hasData;},
+        [](auto& s){++s.m_propertyOverrideFlags;},[](auto& s){++s.m_mergeFlags;},
+        [](auto& s){++s.m_backgroundColor;},[](auto& s){s.m_backgroundColorCmc.m_name="injected";},
+        [](auto& s){++s.m_contentLayout;},[](auto& s){++s.m_marginOverrideFlags;},
+        [](auto& s){++s.m_verticalMargin;},[](auto& s){++s.m_horizontalMargin;},
+        [](auto& s){++s.m_bottomMargin;},[](auto& s){++s.m_rightMargin;},
+        [](auto& s){++s.m_marginHorizontalSpacing;},[](auto& s){++s.m_marginVerticalSpacing;},
+        [](auto& s){++s.m_id;},[](auto& s){++s.m_styleClass;},[](auto& s){s.m_name="injected";},
+        [](auto& s){++s.m_borders[0].m_edgeFlags;},[](auto& s){++s.m_borders[0].m_propertyOverrideFlags;},
+        [](auto& s){++s.m_borders[0].m_borderType;},[](auto& s){++s.m_borders[0].m_color;},
+        [](auto& s){++s.m_borders[0].m_lineWeight;},[](auto& s){++s.m_borders[0].m_lineTypeHandle;},
+        [](auto& s){s.m_borders[0].m_visible=0;},[](auto& s){++s.m_borders[0].m_doubleLineSpacing;},
+        [](auto& s){s.m_borders[0].m_colorCmc.m_bookName="injected";}
+    };
+    for (const auto& edit:styleFaults) faults.emplace_back([edit](auto& o){edit(mutableMetadata(o).m_columns[0].m_style);});
+    const std::vector<std::function<void(DRW_TableStyleContentFormat&)>> formatFaults{
+        [](auto& f){++f.m_propertyOverrideFlags;},[](auto& f){++f.m_propertyFlags;},
+        [](auto& f){++f.m_valueDataType;},[](auto& f){++f.m_valueUnitType;},
+        [](auto& f){f.m_valueFormatString+="changed";},[](auto& f){++f.m_rotation;},
+        [](auto& f){++f.m_blockScale;},[](auto& f){++f.m_cellAlignment;},[](auto& f){++f.m_contentColor;},
+        [](auto& f){++f.m_textStyleHandle;},[](auto& f){++f.m_textHeight;},
+        [](auto& f){++f.m_contentColorCmc.m_rgb;},[](auto& f){++f.m_contentColorCmc.m_method;},
+        [](auto& f){++f.m_contentColorCmc.m_flags;},[](auto& f){++f.m_contentColorCmc.m_reservedIndex;},
+        [](auto& f){f.m_contentColorCmc.m_name="injected";},[](auto& f){f.m_contentColorCmc.m_bookName="injected";}
+    };
+    for (const auto& edit:formatFaults) {
+        faults.emplace_back([edit](auto& o){edit(mutableMetadata(o).m_columns[0].m_style.m_contentFormat);});
+        faults.emplace_back([edit](auto& o){edit(*const_cast<DRW_TableStyleContentFormat*>(
+            mutableMetadata(o).m_rows[0].m_cells[0].m_contentFormats[0].get()));});
+    }
+    unsigned routes=0u,mismatches=0u,wireFailures=0u,valueRoleRoutes=0u,primitiveRoutes=0u;
+    for (const char* version:{"AC1021","AC1024","AC1027","AC1032"}) for (bool binary:{false,true}) {
+        const auto valid=compoundSource(version,false); if (!write(path,valid,binary)) return false;
+        Probe probe; dx_data baseline;
+        if (!probe.fileImport(path.string(),&baseline,false)) return fail("proof source import failed");
+        const auto report=dx_iface::tableSourceReport(baseline);
+        if (report.state!=State::StructurallyComplete || report.contentRawMatches!=1u
+            || report.nonnullUnknownContentReferences!=1u || report.outputEligible) return fail("canonical proof absent");
+        const auto& refs=DxIfaceTableSourceTestAccess::references(baseline);
+        std::array<unsigned,static_cast<std::size_t>(Kind::Count)> expected{{1,1,3,2,1,1,1,2,1,0,1,3}};
+        if (refs.size()!=17u) return fail("reference roles missing");
+        std::size_t previous=0u;
+        for (std::size_t i=0;i<refs.size();++i) {
+            const auto& r=refs[i];
+            const auto& group=probe.raw[0].groups[r.groupIndex];
+            if ((i && r.groupIndex<=previous) || group.code()!=r.code) return fail("role span order changed");
+            previous=r.groupIndex;
+            if (r.kind==Kind::LocalStyleId && (group.type()!=DRW_Variant::INTEGER
+                    || group.i_val()!=static_cast<int>(r.value))) return fail("local style ID treated as handle");
+        }
+        for (std::size_t k=0;k<expected.size();++k)
+            if (report.contentReferenceSlots[k]!=expected[k]) return fail("role census differs");
+        std::size_t rawHandleSlots=0u;
+        for (const auto& group:probe.raw[0].groups) if (isDxfHandleCode(group.code())) ++rawHandleSlots;
+        if (rawHandleSlots+expected[static_cast<std::size_t>(Kind::LocalStyleId)]!=refs.size())
+            return fail("admitted source has an unclassified handle slot");
+        ++routes;
+        for (const auto& edit:faults) {
+            probe.alterContent=edit; dx_data rejected;
+            if (!probe.fileImport(path.string(),&rejected,false)) return fail("typed mutation changed read outcome");
+            const auto result=dx_iface::tableSourceReport(rejected);
+            if (result.state!=State::RawTypedMismatch || result.contentRawMatches!=0u || result.outputEligible)
+                return fail("typed mutation acquired source proof index="+std::to_string(mismatches%faults.size()));
+            probe.alterContent={}; dx_data restored;
+            if (!probe.fileImport(path.string(),&restored,false)
+                || dx_iface::tableSourceReport(restored).state!=State::StructurallyComplete)
+                return fail("canonical-source same-facade recovery failed");
+            ++mismatches;
+        }
+        const std::vector<std::function<void(DRW_RawDxfObject&)>> wireFaults{
+            [](auto& raw){raw.hasRawValues=!raw.hasRawValues;},
+            [](auto& raw){raw.groups[3]=DRW_Variant(1,std::string("different name"));},
+            [](auto& raw){raw.rawValues[3]="different physical spelling";},
+            [](auto& raw){raw.rawValues[5]="1\n0\nEOF";},
+            [](auto& raw){raw.groups.pop_back();raw.rawValues.pop_back();}
+        };
+        for (const auto& edit:wireFaults) {
+            probe.alterContentRaw=edit; dx_data rejected;
+            if (!probe.fileImport(path.string(),&rejected,false)
+                || dx_iface::tableSourceReport(rejected).state!=State::RawTypedMismatch)
+                return fail("raw/value or encoding mismatch acquired canonical proof");
+            probe.alterContentRaw={}; ++wireFailures;
+        }
+        dx_data limited; DxIfaceTableSourceTestAccess::proofLimit(limited,report.contentProofSlots-1u);
+        if (!probe.fileImport(path.string(),&limited,false)
+            || dx_iface::tableSourceReport(limited).state!=State::CaptureFailed) return fail("proof-work cap bypassed");
+        dx_data exact; DxIfaceTableSourceTestAccess::proofLimit(exact,report.contentProofSlots);
+        if (!probe.fileImport(path.string(),&exact,false)
+            || dx_iface::tableSourceReport(exact).state!=State::StructurallyComplete) return fail("exact proof-work boundary failed");
+        for (unsigned mode=0u;mode<4u;++mode) {
+            Tags variant=valid;
+            if (mode==0u) {
+                const auto start=slot(variant,0,"TABLECONTENT")+1u;
+                for (const auto& r:refs) {
+                    if (r.kind==Kind::Self || r.kind==Kind::Owner) continue;
+                    if (variant[start+r.groupIndex].code!=r.code) return fail("reference span was not exact source slot");
+                    variant[start+r.groupIndex].value="0";
+                }
+            } else {
+                const auto valueStart=slot(variant,301,"DATAMAP_VALUE");
+                variant[valueStart+2u].value="64";
+                variant[valueStart+3u].code=330; variant[valueStart+3u].value=mode==1u?"F001":"0";
+                if (mode==3u) {
+                    variant[valueStart+1u].value="1";
+                    variant.erase(variant.begin()+static_cast<std::ptrdiff_t>(valueStart+3u));
+                }
+            }
+            if (!write(path,variant,binary)) return false;
+            dx_data valueData;
+            if (!probe.fileImport(path.string(),&valueData,false)) return fail("value role control import failed");
+            const auto observed=dx_iface::tableSourceReport(valueData);
+            if (observed.state!=State::StructurallyComplete
+                || observed.contentReferenceSlots[static_cast<std::size_t>(Kind::ObjectId)]!=(mode==1u||mode==2u?1u:0u)
+                || (mode==0u && observed.nonnullUnknownContentReferences!=0u))
+                return fail("null/suppressed/ObjectID/local-ID role differs");
+            ++valueRoleRoutes;
+        }
+        for (int type:{0,2,8,16,32}) {
+            Tags primitive=valid;
+            const auto valueSlot=slot(primitive,1,"TABLEFORMAT_END ^J text-é");
+            primitive[valueSlot-2u].value="0"; primitive[valueSlot-1u].value=std::to_string(type);
+            primitive.erase(primitive.begin()+static_cast<std::ptrdiff_t>(valueSlot));
+            Tags payload;
+            if (type==0) payload={{91,"-1234"}};
+            else if (type==2) payload={{140,"-0.0"}};
+            else if (type==8) payload={{92,"8"},{310,"010203AB04CD05EF"}};
+            else if (type==16) payload={{92,"16"},{11,"1.25"},{21,"-2.5"}};
+            else payload={{92,"24"},{11,"1.25"},{21,"-2.5"},{31,"3.75"}};
+            primitive.insert(primitive.begin()+static_cast<std::ptrdiff_t>(valueSlot),payload.begin(),payload.end());
+            if (!write(path,primitive,binary)) return false;
+            dx_data primitiveData;
+            if (!probe.fileImport(path.string(),&primitiveData,false)
+                || dx_iface::tableSourceReport(primitiveData).state!=State::StructurallyComplete)
+                return fail("primitive exact payload source proof failed type="+std::to_string(type));
+            ++primitiveRoutes;
+        }
+    }
+    if (!write(path,compoundSource("AC1032",false),false)) return false;
+    Probe aliases; aliases.keepMutableAliases=true; dx_data frozen;
+    if (!aliases.fileImport(path.string(),&frozen,false)) return false;
+    aliases.mutableAlias->m_columns[0].m_customData=777;
+    aliases.mutableAlias->m_rows[0].m_cells[0].m_geometry[0].m_topLeft.z=999;
+    aliases.mutableFormatAlias->m_textStyleHandle=0xDEADu;
+    const auto& retained=DxIfaceTableSourceTestAccess::content(frozen);
+    if (retained.m_dxfMetadata.get()==aliases.mutableAlias.get()
+        || retained.m_dxfMetadata->m_columns[0].m_customData!=-11
+        || retained.m_dxfMetadata->m_rows[0].m_cells[0].m_geometry[0].m_topLeft.z!=3
+        || retained.m_dxfMetadata->m_rows[0].m_cells[0].m_contentFormats[0]->m_textStyleHandle!=0xC101u
+        || dx_iface::tableSourceReport(frozen).state!=State::StructurallyComplete)
+        return fail("mutable metadata/format alias changed the frozen source proof");
+    struct RejectingSink final : dxfTableContent::ReferenceSink {
+        unsigned accepted=0u;
+        bool add(const dxfTableContent::Reference&) override {if (accepted==2u)return false; ++accepted;return true;}
+    } sink;
+    std::istringstream stream; dxfReaderAscii decoder(&stream); decoder.setVersion("AC1032",true);
+    auto budget=std::make_shared<DxfReadRetainedBudget>(64u*1024u*1024u); decoder.setRetainedByteBudget(budget);
+    DRW_TableContentObject unpublished; bool decoded=false;
+    {dxfTableContent::Decoder source(aliases.raw[0],decoder,&sink);decoded=source.decode(unpublished);}
+    if (decoded || sink.accepted!=2u || unpublished.m_parseComplete || unpublished.m_dxfMetadata || budget->used()!=0u)
+        return fail("failed reference observer published partial source or leaked text lease");
+    std::cout<<"TABLECONTENT source proof: "<<routes<<" exact role routes; "<<faults.size()<<" typed fault kinds; "
+        <<mismatches<<" mutation/restoration pairs; "<<wireFailures<<" raw/encoding refusals; "<<valueRoleRoutes
+        <<" null/ObjectID/suppressed/local-ID routes; "<<primitiveRoutes
+        <<" primitive payload routes; exact work boundaries; mutable-alias and observer rollback\n";
+    return routes==8u && mismatches==faults.size()*routes && wireFailures==40u && valueRoleRoutes==32u && primitiveRoutes==40u;
+}
+
 int inspect(const char* path) {
     Probe p; dx_data data;
     const bool ok=p.fileImport(path,&data,false);
@@ -610,6 +887,20 @@ int inspect(const char* path) {
              <<" compounds="<<compound.compounds<<" records="<<compound.records
              <<" dictionary-candidates="<<compound.dictionaryCandidates<<" table-wrappers="<<compound.tableWrappers
              <<" groups="<<compound.groups<<" bytes="<<compound.retainedBytes<<'\n';
+    std::cout<<"content-raw-matches="<<compound.contentRawMatches<<" proof-slots="<<compound.contentProofSlots
+             <<" nonnull-unknown-content-references="<<compound.nonnullUnknownContentReferences<<" role-counts=";
+    for (const auto count:compound.contentReferenceSlots) std::cout<<count<<',';
+    std::cout<<'\n';
+    if (compound.contentRawMatches==1u) {
+        std::map<std::pair<unsigned,std::uint32_t>,unsigned> ids;
+        for (const auto& ref:DxIfaceTableSourceTestAccess::references(data))
+            ++ids[{static_cast<unsigned>(ref.kind),ref.value}];
+        for (const auto& id:ids) std::cout<<"source-role="<<id.first.first<<" id="<<std::hex<<id.first.second
+            <<std::dec<<" slots="<<id.second<<'\n';
+        for (const auto& ref:DxIfaceTableSourceTestAccess::references(data))
+            std::cout<<"source-reference kind="<<static_cast<unsigned>(ref.kind)<<" index="<<ref.groupIndex
+                <<" code="<<ref.code<<" value="<<std::hex<<ref.value<<std::dec<<'\n';
+    }
     std::cout<<"imported="<<ok<<" matched="<<p.content.size()<<" unknown="<<p.unknown<<'\n';
     for (const auto& o:p.content) {
         unsigned cells=0u,items=0u,contents=0u,styles=0u,formats=0u;
@@ -634,10 +925,11 @@ int inspect(const char* path) {
 int main(int argc,char** argv) {
     if (argc==3 && std::string(argv[1])=="--inspect") return inspect(argv[2]);
     const bool compound=argc==2 && std::string(argv[1])=="--compound-source";
-    if (argc!=1 && !compound) return 2;
+    const bool proof=argc==2 && std::string(argv[1])=="--compound-content-proof";
+    if (argc!=1 && !compound && !proof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

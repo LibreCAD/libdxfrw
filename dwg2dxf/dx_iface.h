@@ -34,7 +34,8 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
 public:
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
-        InvalidGraph, UnsupportedProfile, WorkLimit, StructurallyComplete
+        InvalidGraph, UnsupportedProfile, WorkLimit, StructurallyComplete,
+        RawTypedMismatch
     };
     struct TableSourceReport {
         // Frozen selected owner-chain/dimensions only. Does not compare
@@ -44,6 +45,10 @@ public:
         std::size_t tables{0}, contents{0}, geometries{0}, compounds{0};
         std::size_t dictionaryCandidates{0}, tableWrappers{0};
         std::size_t records{0}, groups{0}, retainedBytes{0}, examinedSlots{0};
+        std::size_t contentRawMatches{0}, nonnullUnknownContentReferences{0};
+        std::size_t contentProofSlots{0};
+        std::array<std::size_t, static_cast<std::size_t>(dxfTableContent::ReferenceKind::Count)>
+            contentReferenceSlots{};
         // Structural source correlation never authorizes replay/support.
         bool outputEligible{false};
     };
@@ -1487,6 +1492,7 @@ private:
     void retainTableSourceDictionary(const DRW_Dictionary& data);
     void retainTableSourceXRecord(const DRW_XRecord& data);
     bool retainTableSourceRaw(const DRW_RawDxfObject& data);
+    bool proveTableContentSource(const DRW_RawDxfObject& data);
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};
     std::uint64_t m_classEvidenceReadAttempt{0};

@@ -452,6 +452,12 @@ chain and dimensions. This is frozen source evidence only: auxiliary dependencie
 editable-state equivalence and verified compound output remain open. Export
 refusal stays enabled; separate ATTRIB/SEQEND raw records are not yet qualified.
 
+Rich TABLECONTENT snapshots are now deep-frozen and compared field-for-field
+against their captured source, including ASCII scalar spellings and encoding-
+specific text decoding. A bounded source receipt records exact handle slots and
+keeps style-local IDs in a separate namespace. This is not target binding or
+complete table replay; unknown geometry roles remain explicit and unqualified.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

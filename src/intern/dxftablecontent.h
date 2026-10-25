@@ -3,6 +3,7 @@
 
 #include "drw_entities.h"
 #include "dxfreader.h"
+#include "dxftablereferences.h"
 
 #include <charconv>
 #include <cmath>
@@ -16,6 +17,7 @@ class Decoder {
     struct Unmatched {};
     const DRW_RawDxfObject& raw;
     dxfReader& reader;
+    ReferenceSink* references;
     std::size_t position = 0u, customItems = 0u, contents = 0u, attributes = 0u, geometries = 0u;
     DRW_TableContentObject object;
     std::shared_ptr<DRW_TableContentDxfMetadata> metadata;
@@ -41,13 +43,18 @@ class Decoder {
     void marker(int code, std::string_view expected) {
         if (literal(code) != expected) throw Unmatched{};
     }
-    std::uint32_t handle(int code) {
+    void reference(ReferenceKind kind, std::size_t index, int code, std::uint32_t value) {
+        if (references && !references->add({kind,index,code,value})) throw Unmatched{};
+    }
+    std::uint32_t handle(int code, ReferenceKind kind) {
+        const auto index=position;
         const auto text = literal(code);
         std::uint64_t value = 0u;
         const auto parsed = std::from_chars(text.data(), text.data()+text.size(), value, 16);
         if (text.empty() || text.size()>16u || parsed.ec != std::errc{}
             || parsed.ptr != text.data()+text.size() || value>std::numeric_limits<std::uint32_t>::max())
             throw Unmatched{};
+        reference(kind,index,code,static_cast<std::uint32_t>(value));
         return static_cast<std::uint32_t>(value);
     }
     void retain(std::size_t bytes) {
@@ -89,8 +96,10 @@ class Decoder {
         return value==0 || value==1 || value==2 || value==4 || value==8;
     }
     int styleId() {
+        const auto index=position;
         const int id=integer(90);
         if (id<0 || (id>3 && id<101 && (id!=4 || raw.m_version<DRW::AC1024))) throw Unmatched{};
+        reference(ReferenceKind::LocalStyleId,index,90,static_cast<std::uint32_t>(id));
         return id;
     }
     DRW_CadValue value() {
@@ -107,7 +116,7 @@ class Decoder {
                 const double number=real(140); chargeNode(); result.m_value=DRW_Variant(140,number);
             } else if (result.m_dataType==4) {
                 auto decoded=text(1); chargeNode(); result.m_value.addString(1,std::move(decoded));
-            } else if (result.m_dataType==64) result.m_handle=handle(330);
+            } else if (result.m_dataType==64) result.m_handle=handle(330,ReferenceKind::ObjectId);
             else if (result.m_dataType==16 || result.m_dataType==32) {
                 const auto size=count(92,24u,0u);
                 if (size!=(result.m_dataType==16?16u:24u)) throw Unmatched{};
@@ -168,7 +177,7 @@ class Decoder {
         result.m_cellAlignment=integer(94);
         if (result.m_cellAlignment<0 || result.m_cellAlignment>9) throw Unmatched{};
         color(result.m_contentColor,result.m_contentColorCmc);
-        result.m_textStyleHandle=handle(340); result.m_textHeight=real(144);
+        result.m_textStyleHandle=handle(340,ReferenceKind::TextStyle); result.m_textHeight=real(144);
         marker(309,"CONTENTFORMAT_END");
         return result;
     }
@@ -197,7 +206,7 @@ class Decoder {
                 marker(302,"GRIDFORMAT"); marker(1,"GRIDFORMAT_BEGIN");
                 border.m_propertyOverrideFlags=integer(90); border.m_borderType=integer(91);
                 color(border.m_color,border.m_colorCmc); border.m_lineWeight=integer(92);
-                border.m_lineTypeHandle=handle(340); border.m_visible=integer(93);
+                border.m_lineTypeHandle=handle(340,ReferenceKind::LineType); border.m_visible=integer(93);
                 if (border.m_visible!=0 && border.m_visible!=1) throw Unmatched{};
                 border.m_doubleLineSpacing=real(40); marker(309,"GRIDFORMAT_END");
                 result.m_borders.push_back(std::move(border));
@@ -211,7 +220,7 @@ class Decoder {
         cell.m_flags=integer(90); cell.m_toolTip=text(300); custom(detail.m_scope);
         cell.m_hasLinkedData=flag(92);
         if (cell.m_hasLinkedData) {
-            cell.m_dataLinkHandle=handle(340); cell.m_linkedDataRowCount=integer(93);
+            cell.m_dataLinkHandle=handle(340,ReferenceKind::DataLink); cell.m_linkedDataRowCount=integer(93);
             cell.m_linkedDataColumnCount=integer(94); cell.m_linkedDataUnknown=integer(96);
         }
         const auto size=count(95,10000u-contents,8u); contents+=size;
@@ -225,12 +234,13 @@ class Decoder {
                     retain(content.m_value.m_value.content.s->size());
                     content.m_text=*content.m_value.m_value.content.s;
                 }
-            } else if (content.m_type==2 || content.m_type==4) content.m_handle=handle(340);
+            } else if (content.m_type==2 || content.m_type==4)
+                content.m_handle=handle(340,content.m_type==2?ReferenceKind::Field:ReferenceKind::BlockRecord);
             else if (content.m_type!=0) throw Unmatched{};
             const auto attrs=count(91,10000u-attributes,3u); attributes+=attrs;
             for (std::size_t j=0; j<attrs; ++j) {
                 DRW_TableCellAttribute attribute;
-                attribute.m_attdefHandle=handle(330); attribute.m_text=text(301);
+                attribute.m_attdefHandle=handle(330,ReferenceKind::AttributeDefinition); attribute.m_text=text(301);
                 attribute.m_index=integer(92); attribute.m_contentIndex=static_cast<std::uint32_t>(i);
                 if (attribute.m_index<1) throw Unmatched{};
                 cell.m_attributes.push_back(std::move(attribute));
@@ -248,7 +258,7 @@ class Decoder {
         if (cell.m_geometryFlags) {
             cell.m_geometryRecordFlags=word(91); cell.m_width=real(40); cell.m_height=real(41);
             const auto sizeGeometry=count(94,10000u-geometries,11u); geometries+=sizeGeometry;
-            cell.m_geometryHandle=handle(330); detail.m_geometry.reserve(sizeGeometry);
+            cell.m_geometryHandle=handle(330,ReferenceKind::UnknownGeometry); detail.m_geometry.reserve(sizeGeometry);
             for (std::size_t i=0; i<sizeGeometry; ++i) {
                 DRW_TableGeometryContent geometry;
                 geometry.m_topLeft=point(10); geometry.m_center=point(11);
@@ -260,7 +270,7 @@ class Decoder {
         marker(309,"TABLECELL_END");
     }
     void parse() {
-        object.handle=handle(5); object.parentHandle=handle(330);
+        object.handle=handle(5,ReferenceKind::Self); object.parentHandle=handle(330,ReferenceKind::Owner);
         if (object.handle==0u) throw Unmatched{};
         marker(100,"AcDbLinkedData"); object.m_content.m_name=text(1); object.m_content.m_description=text(300);
         marker(100,"AcDbLinkedTableData"); const auto columns=count(90,1000u,14u);
@@ -309,7 +319,7 @@ class Decoder {
                     && range.m_leftColumn<=prior.m_rightColumn && prior.m_leftColumn<=range.m_rightColumn) throw Unmatched{};
             object.m_content.m_mergedRanges.push_back(range);
         }
-        marker(100,"AcDbTableContent"); object.m_content.m_tableStyleHandle=handle(340);
+        marker(100,"AcDbTableContent"); object.m_content.m_tableStyleHandle=handle(340,ReferenceKind::TableStyle);
         if (position!=raw.groups.size()) throw Unmatched{};
         object.m_parseComplete=true;
         // This flag protects the old minimal native encoder. Rich companions
@@ -318,7 +328,8 @@ class Decoder {
         object.m_dxfMetadata=std::move(metadata);
     }
 public:
-    Decoder(const DRW_RawDxfObject& source,dxfReader& input) : raw(source),reader(input),
+    Decoder(const DRW_RawDxfObject& source,dxfReader& input,ReferenceSink* sink=nullptr)
+        : raw(source),reader(input),references(sink),
         metadata(std::make_shared<DRW_TableContentDxfMetadata>()) {}
     bool decode(DRW_TableContentObject& output) {
         try { parse(); output=std::move(object); return true; }

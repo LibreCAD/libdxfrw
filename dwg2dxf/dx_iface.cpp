@@ -23,8 +23,10 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string_view>
 #include <type_traits>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include "dx_iface.h"
@@ -41,6 +43,7 @@
 #include "intern/dwgutil.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgreader.h"
+#include "intern/dxftablecontent.h"
 
 namespace {
 
@@ -16571,6 +16574,163 @@ void dx_iface::addObjectContextData(const DRW_ObjectContextData& data) {
         cData->standaloneObjectContextDataPresent = true;
 }
 
+namespace {
+
+bool tableSourcePointEqual(const DRW_Coord& a, const DRW_Coord& b) noexcept {
+    return retainedDoubleEqual(a.x,b.x) && retainedDoubleEqual(a.y,b.y) && retainedDoubleEqual(a.z,b.z);
+}
+
+bool tableSourceCadValueEqual(const DRW_CadValue& a, const DRW_CadValue& b) noexcept {
+    return a.m_formatFlags==b.m_formatFlags && a.m_dataType==b.m_dataType
+        && a.m_dataSize==b.m_dataSize && a.m_unitType==b.m_unitType
+        && a.m_formatString==b.m_formatString && a.m_valueString==b.m_valueString
+        && a.m_handle==b.m_handle && a.m_rawData==b.m_rawData
+        && retainedVariantEqual(a.m_value,b.m_value)
+        && a.m_value.rawDwgLayerReference()==b.m_value.rawDwgLayerReference();
+}
+
+bool tableSourceCellEqual(const DRW_TableCell& a, const DRW_TableCell& b) noexcept {
+    const auto scalars=[](const DRW_TableCell& c) {
+        return std::tie(c.m_flags,c.m_type,c.m_edgeFlags,c.m_isMerged,c.m_autoFit,c.m_mergedWidth,c.m_mergedHeight,
+            c.m_toolTip,c.m_textStyleName,c.m_styleId,c.m_overrideStyleType,c.m_virtualEdgeFlags,c.m_overrideFlags,
+            c.m_valueHandle,c.m_textStyleHandle,c.m_textStyleOverrideHandle,c.m_blockHandle,c.m_hasLinkedData,
+            c.m_dataLinkHandle,c.m_linkedDataRowCount,c.m_linkedDataColumnCount,c.m_linkedDataUnknown,
+            c.m_geometryFlags,c.m_geometryHandle,c.m_geometryRecordFlags,c.m_textColorRgb,c.m_textColorMethod,
+            c.m_fillColorRgb,c.m_fillColorMethod,c.m_backgroundEnabled,c.m_textAlignment);
+    };
+    if (scalars(a)!=scalars(b) || a.m_attributes.size()!=b.m_attributes.size()
+        || a.m_contents.size()!=b.m_contents.size()
+        || !tableSourcePointEqual(a.m_geometryTopLeft,b.m_geometryTopLeft)
+        || !tableSourcePointEqual(a.m_geometryCenter,b.m_geometryCenter)) return false;
+    const double left[]={a.m_rotation,a.m_blockScale,a.m_width,a.m_height,a.m_contentWidth,a.m_contentHeight,
+        a.m_geometryWidth,a.m_geometryHeight,a.m_textHeight};
+    const double right[]={b.m_rotation,b.m_blockScale,b.m_width,b.m_height,b.m_contentWidth,b.m_contentHeight,
+        b.m_geometryWidth,b.m_geometryHeight,b.m_textHeight};
+    for (std::size_t i=0;i<sizeof(left)/sizeof(left[0]);++i)
+        if (!retainedDoubleEqual(left[i],right[i])) return false;
+    for (std::size_t i=0;i<a.m_borders.size();++i) {
+        const auto& x=a.m_borders[i]; const auto& y=b.m_borders[i];
+        if (std::tie(x.m_lineWeight,x.m_visible,x.m_colorRgb,x.m_colorMethod)
+            !=std::tie(y.m_lineWeight,y.m_visible,y.m_colorRgb,y.m_colorMethod)) return false;
+    }
+    for (std::size_t i=0;i<a.m_attributes.size();++i) {
+        const auto& x=a.m_attributes[i]; const auto& y=b.m_attributes[i];
+        if (std::tie(x.m_attdefHandle,x.m_index,x.m_text,x.m_contentIndex)
+            !=std::tie(y.m_attdefHandle,y.m_index,y.m_text,y.m_contentIndex)) return false;
+    }
+    for (std::size_t i=0;i<a.m_contents.size();++i) {
+        const auto& x=a.m_contents[i]; const auto& y=b.m_contents[i];
+        if (x.m_type!=y.m_type || x.m_text!=y.m_text || x.m_handle!=y.m_handle
+            || !tableSourceCadValueEqual(x.m_value,y.m_value)) return false;
+    }
+    return true;
+}
+
+bool tableSourceContentCoreEqual(const DRW_TableContent& a, const DRW_TableContent& b) noexcept {
+    if (a.m_name!=b.m_name || a.m_description!=b.m_description || a.m_tableStyleHandle!=b.m_tableStyleHandle
+        || a.m_overrideStyleType!=b.m_overrideStyleType || a.m_fieldHandles!=b.m_fieldHandles
+        || a.m_columns.size()!=b.m_columns.size() || a.m_rows.size()!=b.m_rows.size()
+        || a.m_mergedRanges.size()!=b.m_mergedRanges.size() || a.m_subrecordRanges.size()!=b.m_subrecordRanges.size()) return false;
+    for (std::size_t i=0;i<a.m_columns.size();++i) {
+        const auto& x=a.m_columns[i]; const auto& y=b.m_columns[i];
+        if (std::tie(x.m_name,x.m_styleId,x.m_overrideStyleType)!=std::tie(y.m_name,y.m_styleId,y.m_overrideStyleType)
+            || !retainedDoubleEqual(x.m_width,y.m_width)) return false;
+    }
+    for (std::size_t i=0;i<a.m_rows.size();++i) {
+        const auto& x=a.m_rows[i]; const auto& y=b.m_rows[i];
+        if (x.m_styleId!=y.m_styleId || x.m_overrideStyleType!=y.m_overrideStyleType
+            || !retainedDoubleEqual(x.m_height,y.m_height) || x.m_cells.size()!=y.m_cells.size()) return false;
+        for (std::size_t j=0;j<x.m_cells.size();++j)
+            if (!tableSourceCellEqual(x.m_cells[j],y.m_cells[j])) return false;
+    }
+    for (std::size_t i=0;i<a.m_mergedRanges.size();++i) {
+        const auto& x=a.m_mergedRanges[i]; const auto& y=b.m_mergedRanges[i];
+        if (std::tie(x.m_topRow,x.m_leftColumn,x.m_bottomRow,x.m_rightColumn)
+            !=std::tie(y.m_topRow,y.m_leftColumn,y.m_bottomRow,y.m_rightColumn)) return false;
+    }
+    for (std::size_t i=0;i<a.m_subrecordRanges.size();++i) {
+        const auto& x=a.m_subrecordRanges[i]; const auto& y=b.m_subrecordRanges[i];
+        if (std::tie(x.m_name,x.m_startBit,x.m_bitSize,x.m_version,x.m_count,x.m_parseComplete)
+            !=std::tie(y.m_name,y.m_startBit,y.m_bitSize,y.m_version,y.m_count,y.m_parseComplete)) return false;
+    }
+    return true;
+}
+
+bool tableSourceScopeEqual(const DRW_TableContentDxfMetadata::Scope& a,
+                           const DRW_TableContentDxfMetadata::Scope& b) noexcept {
+    if (a.m_customData!=b.m_customData || !retainedCellStyleEqual(a.m_style,b.m_style)
+        || a.m_customItems.size()!=b.m_customItems.size()) return false;
+    for (std::size_t i=0;i<a.m_customItems.size();++i)
+        if (a.m_customItems[i].m_name!=b.m_customItems[i].m_name
+            || !tableSourceCadValueEqual(a.m_customItems[i].m_value,b.m_customItems[i].m_value)) return false;
+    return true;
+}
+
+bool tableSourceGeometryEqual(const DRW_TableGeometryContent& a,
+                              const DRW_TableGeometryContent& b) noexcept {
+    return tableSourcePointEqual(a.m_topLeft,b.m_topLeft) && tableSourcePointEqual(a.m_center,b.m_center)
+        && retainedDoubleEqual(a.m_contentWidth,b.m_contentWidth) && retainedDoubleEqual(a.m_contentHeight,b.m_contentHeight)
+        && retainedDoubleEqual(a.m_width,b.m_width) && retainedDoubleEqual(a.m_height,b.m_height)
+        && a.m_unknown==b.m_unknown;
+}
+
+bool tableSourceMetadataEqual(const DRW_TableContentDxfMetadata& a,
+                              const DRW_TableContentDxfMetadata& b) noexcept {
+    if (a.m_columns.size()!=b.m_columns.size() || a.m_rows.size()!=b.m_rows.size()
+        || a.m_linkedDataUnknown92!=b.m_linkedDataUnknown92 || !retainedCellStyleEqual(a.m_tableStyle,b.m_tableStyle)) return false;
+    for (std::size_t i=0;i<a.m_columns.size();++i)
+        if (!tableSourceScopeEqual(a.m_columns[i],b.m_columns[i])) return false;
+    for (std::size_t i=0;i<a.m_rows.size();++i) {
+        const auto& x=a.m_rows[i]; const auto& y=b.m_rows[i];
+        if (!tableSourceScopeEqual(x.m_scope,y.m_scope) || x.m_cells.size()!=y.m_cells.size()) return false;
+        for (std::size_t j=0;j<x.m_cells.size();++j) {
+            const auto& c=x.m_cells[j]; const auto& d=y.m_cells[j];
+            if (!tableSourceScopeEqual(c.m_scope,d.m_scope) || c.m_contentFormats.size()!=d.m_contentFormats.size()
+                || c.m_geometry.size()!=d.m_geometry.size()) return false;
+            for (std::size_t k=0;k<c.m_contentFormats.size();++k) {
+                const auto& p=c.m_contentFormats[k]; const auto& q=d.m_contentFormats[k];
+                if (static_cast<bool>(p)!=static_cast<bool>(q) || (p && !retainedTableStyleContentEqual(*p,*q))) return false;
+            }
+            for (std::size_t k=0;k<c.m_geometry.size();++k)
+                if (!tableSourceGeometryEqual(c.m_geometry[k],d.m_geometry[k])) return false;
+        }
+    }
+    return true;
+}
+
+std::shared_ptr<const DRW_TableContentDxfMetadata> freezeTableSourceMetadata(
+        const std::shared_ptr<const DRW_TableContentDxfMetadata>& source) {
+    if (!source) return {};
+    auto copy=std::make_shared<DRW_TableContentDxfMetadata>(*source);
+    for (auto& row : copy->m_rows) for (auto& cell : row.m_cells) for (auto& format : cell.m_contentFormats)
+        if (format) format=std::make_shared<const DRW_TableStyleContentFormat>(*format);
+    return copy;
+}
+
+bool tableSourceRawSpellingsEqual(const DRW_RawDxfObject& raw, std::size_t byteCap) {
+    if (raw.groups.size()!=raw.rawValues.size()) return false;
+    if (!raw.hasRawValues) return std::all_of(raw.rawValues.begin(),raw.rawValues.end(),
+        [](const UTF8STRING& value) {return value.empty();});
+    std::size_t bytes=0u;
+    for (const auto& value : raw.rawValues) {
+        if (value.find_first_of("\r\n")!=std::string::npos || value.find('\0')!=std::string::npos
+            || !addAssociativeRetainedBytes(value.size(),bytes)
+            || !addAssociativeRetainedBytes(12u,bytes)) return false;
+    }
+    if (bytes>byteCap) return false;
+    std::string body; body.reserve(bytes);
+    for (std::size_t i=0;i<raw.groups.size();++i) {
+        body+=std::to_string(raw.groups[i].code()); body+='\n';
+        body+=raw.rawValues[i]; body+='\n';
+    }
+    dxfRW::DxfObjectsWriteView view{};
+    view.bytes=body; view.version=raw.m_version; view.binary=false; view.codePage="UTF-8";
+    return dx_standard_output::rawScalarTransportEqual(raw.groups,body,view,
+        [](std::uint32_t source,std::uint32_t& target) {target=source; return true;},false,byteCap);
+}
+
+} // namespace
+
 dx_iface::TableSourceReport dx_iface::tableSourceReport(const dx_data& data) noexcept {
     TableSourceReport report;
     const auto& source = data.m_tableDxfSource;
@@ -16583,10 +16743,12 @@ dx_iface::TableSourceReport dx_iface::tableSourceReport(const dx_data& data) noe
     report.records = source.records;
     report.groups = source.groups;
     report.retainedBytes = source.bytes;
+    report.contentProofSlots = source.contentProofWork;
     if (source.contextFailed) { report.state = TableSourceState::ContextMismatch; return report; }
     if (source.generation == 0u) return report;
     if (!source.closed) { report.state = TableSourceState::Reading; return report; }
     if (source.failed) { report.state = TableSourceState::CaptureFailed; return report; }
+    if (source.contentPayloadMismatch) { report.state = TableSourceState::RawTypedMismatch; return report; }
     if (data.sourceFormat != dx_source_format::DXF) return report;
     if (!source.successful) { report.state = TableSourceState::ImportFailed; return report; }
     if (source.generation != data.importGeneration || source.generation != 1u
@@ -16608,6 +16770,18 @@ dx_iface::TableSourceReport dx_iface::tableSourceReport(const dx_data& data) noe
     // Precharge every retained raw slot, including the uninspected body. No
     // unbounded scan or graph allocation precedes the structural verdict.
     if (!work(source.groups) || !work(source.records)) return report;
+    if (source.contentReferences.size()!=source.contents.size()) return report;
+    for (const auto& item : source.contentReferences) {
+        if (!work(item.second.size())) return report;
+        ++report.contentRawMatches;
+        for (const auto& reference : item.second) {
+            const auto kind=static_cast<std::size_t>(reference.kind);
+            if (kind>=report.contentReferenceSlots.size()) return report;
+            ++report.contentReferenceSlots[kind];
+            if (reference.kind==dxfTableContent::ReferenceKind::UnknownGeometry && reference.value!=0u)
+                ++report.nonnullUnknownContentReferences;
+        }
+    }
     if (source.version < DRW::AC1021 || source.version > DRW::AC1032) {
         report.state = TableSourceState::UnsupportedProfile; return report;
     }
@@ -16848,13 +17022,87 @@ bool dx_iface::retainTableSourceRaw(const DRW_RawDxfObject& data) {
     if (!selected) return false;
     std::size_t bytes = 0u;
     if (!estimateRawDxfObjectBytes(data, bytes)) { source.failed = true; return content || geometry; }
+    const bool contentProof=content && source.contents.count(data.handle)!=0u;
+    if (contentProof && (!addAssociativeRetainedBytes(
+            sizeof(std::vector<dxfTableContent::Reference>)+8u*sizeof(void*),bytes)
+        || !addAssociativeSlotBytes(data.groups.size(),sizeof(dxfTableContent::Reference),bytes))) {
+        source.failed=true; return true;
+    }
     if (!chargeTableSource(bytes, data.groups.size())) return content || geometry;
     try {
         if (!source.rawObjects.emplace(data.handle, data).second) source.failed = true;
+        else if (contentProof) (void)proveTableContentSource(data);
     } catch (...) { source.failed = true; }
     // Wrappers still need their established editable/output lane. Children
     // have no output lane and are retained only in this private source capture.
     return content || geometry;
+}
+
+bool dx_iface::proveTableContentSource(const DRW_RawDxfObject& raw) {
+    auto& source=cData->m_tableDxfSource;
+    // Reserve a conservative scalar-comparison budget and the decoder's
+    // pairwise merged-range checks before reparsing or allocating companions.
+    const auto cap=source.maxContentProofWork;
+    if (raw.groups.size()>cap/64u) {source.failed=true;return false;}
+    const auto slots=raw.groups.size()*64u;
+    if (source.contentProofWork>cap-slots) {source.failed=true;return false;}
+    source.contentProofWork+=slots;
+    std::size_t ranges=0u, end=raw.groups.size()>=2u?raw.groups.size()-2u:0u;
+    while (end>=4u && raw.groups[end-4u].code()==91 && raw.groups[end-3u].code()==92
+            && raw.groups[end-2u].code()==93 && raw.groups[end-1u].code()==94) {
+        ++ranges; end-=4u;
+    }
+    if (ranges>10000u) {source.failed=true; return false;}
+    const auto pairs=ranges*(ranges-std::min(ranges,std::size_t{1}))/2u;
+    if (pairs>cap-source.contentProofWork) {
+        source.failed=true; return false;
+    }
+    source.contentProofWork+=pairs;
+    if (!tableSourceRawSpellingsEqual(raw,source.maxBytes)) {
+        source.contentPayloadMismatch=true; return false;
+    }
+    struct Roles final : dxfTableContent::ReferenceSink {
+        std::vector<dxfTableContent::Reference> values;
+        std::size_t cap;
+        explicit Roles(std::size_t size) : cap(size) {values.reserve(size);}
+        bool add(const dxfTableContent::Reference& value) override {
+            if (values.size()==cap) return false;
+            values.push_back(value); return true;
+        }
+    } roles(raw.groups.size()); // capacity/overhead precharged with raw copy
+    const char* version=nullptr;
+    switch (raw.m_version) {
+    case DRW::AC1021:version="AC1021";break;
+    case DRW::AC1024:version="AC1024";break;
+    case DRW::AC1027:version="AC1027";break;
+    case DRW::AC1032:version="AC1032";break;
+    default:source.contentPayloadMismatch=true;return false;
+    }
+    std::istringstream empty;
+    std::unique_ptr<dxfReader> decoder;
+    if (raw.hasRawValues) decoder=std::make_unique<dxfReaderAscii>(&empty);
+    else decoder=std::make_unique<dxfReaderBinary>(&empty);
+    auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxBytes);
+    decoder->setRetainedByteBudget(budget);
+    decoder->setTypedVariantNodeBudget(cap);
+    decoder->setVersion(version,true);
+    DRW_TableContentObject parsed;
+    const bool decoded=dxfTableContent::Decoder(raw,*decoder,&roles).decode(parsed);
+    const auto original=source.contents.find(raw.handle);
+    if (budget->exceeded() || decoder->typedVariantNodeBudgetExceeded()) {source.failed=true; return false;}
+    if (!decoded || original==source.contents.end()
+        || !standardDwgCommonEqual(parsed,original->second,raw.m_version)
+        || parsed.m_parseComplete!=original->second.m_parseComplete
+        || parsed.m_semanticContentComplete!=original->second.m_semanticContentComplete
+        || !parsed.m_dxfMetadata || !original->second.m_dxfMetadata
+        || !tableSourceContentCoreEqual(parsed.m_content,original->second.m_content)
+        || !tableSourceMetadataEqual(*parsed.m_dxfMetadata,*original->second.m_dxfMetadata)) {
+        source.contentPayloadMismatch=true; return false;
+    }
+    if (!source.contentReferences.emplace(raw.handle,std::move(roles.values)).second) {
+        source.contentPayloadMismatch=true; return false;
+    }
+    return true;
 }
 
 void dx_iface::finishTableSourceRead(bool success) noexcept {
@@ -16879,7 +17127,10 @@ void dx_iface::addTableContent(const DRW_TableContentObject& data) {
     if (!estimateTableContentSourceBytes(data, bytes)) { source.failed = true; return; }
     if (!chargeTableSource(bytes, 0u)) return;
     try {
-        if (!source.contents.emplace(data.handle, data).second) source.failed = true;
+        auto metadata=freezeTableSourceMetadata(data.m_dxfMetadata);
+        const auto captured=source.contents.emplace(data.handle,data);
+        if (!captured.second) source.failed=true;
+        else captured.first->second.m_dxfMetadata=std::move(metadata);
     } catch (...) { source.failed = true; }
 }
 

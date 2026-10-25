@@ -88,10 +88,11 @@ enum class Family { Other, Dictionary, Group, Xrecord };
 template<class Mapper> bool rawScalarTransportEqual(
         const std::vector<DRW_Variant>& source, std::string_view body,
         const dxfRW::DxfObjectsWriteView& view, Mapper&& map,
-        bool materialColors = false) {
+        bool materialColors = false,
+        std::size_t retainedByteBudget = DRW::kMaxDxfBinaryPayloadBytes) {
     InputBuffer buffer(body); std::istream input(&buffer);
     auto reader = readerFor(input, view,
-        std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes));
+        std::make_shared<DxfReadRetainedBudget>(retainedByteBudget));
     if (!reader) return false;
     reader->setMaterialUnsignedColorValues(materialColors);
     for (const auto& value : source) {

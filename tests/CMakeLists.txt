@@ -502,6 +502,15 @@ add_test(NAME libdxfrw_table_compound_source
     COMMAND libdxfrw_table_content_dxf_tests --compound-source)
 set_tests_properties(libdxfrw_table_compound_source PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_table_content_source_proof
+    COMMAND libdxfrw_table_content_dxf_tests --compound-content-proof)
+set_tests_properties(libdxfrw_table_content_source_proof PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_table_content_reference_observer_selftest
+    COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
+        ${CMAKE_CURRENT_SOURCE_DIR}/table_content_reference_observer.py --self-test)
+set_tests_properties(libdxfrw_table_content_reference_observer_selftest PROPERTIES
+    LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value
