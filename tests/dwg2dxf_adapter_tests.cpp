@@ -3796,6 +3796,53 @@ bool rasterObserverProfiles(bool faultsOnly = false) {
     return true;
 }
 
+bool rasterFiniteRealControls() {
+    const std::vector<std::pair<std::string,double>> values{{"0",0.0},{"-0",-0.0},{" \t+1.25",1.25},{".5",0.5},{"-.5",-0.5},{"1.",1.0},
+        {"2.2250738585072014e-308",(std::numeric_limits<double>::min)()},{"-2.2250738585072014e-308",-(std::numeric_limits<double>::min)()},
+        {"1.7976931348623157e+308",(std::numeric_limits<double>::max)()},{"-1.7976931348623157e+308",-(std::numeric_limits<double>::max)()},
+        {"4.9406564584124654e-324",std::numeric_limits<double>::denorm_min()},{"-4.9406564584124654e-324",-std::numeric_limits<double>::denorm_min()}};
+    unsigned cells = 0u, malformed = 0u, nonfinite = 0u, truncated = 0u;
+    const auto word = [](std::string& bytes, std::uint64_t value, unsigned count) {
+        for (unsigned n = 0u; n < count; ++n) bytes.push_back(static_cast<char>((value >> (8u * n)) & 255u));
+    };
+    for (const int code : {18,38,40,1040}) for (const auto& value : values) for (const bool binary : {false,true}) {
+        std::string first;
+        if (binary) { std::uint64_t bits = 0u; std::memcpy(&bits,&value.second,sizeof(bits)); word(first,code,2u); word(first,bits,8u); }
+        else first = std::to_string(code) + "\n" + value.first + "\n";
+        const auto suffix = binary ? std::string("\0\0DICTIONARY\0",13u) : std::string("0\nDICTIONARY\n");
+        const auto bytes = first + suffix;
+        dx_raster_output::Cursor cursor(bytes,binary); dx_raster_output::Token token;
+        if (!cursor.next(token) || token.code != code || token.type != dx_raster_output::Kind::Double
+            || std::memcmp(&token.real,&value.second,sizeof(double)) != 0 || cursor.position() != first.size()
+            || !cursor.next(token) || token.code != 0 || token.text != "DICTIONARY" || !cursor.done()) return fail("independent finite-real exact-bit/span control failed");
+        for (std::size_t n = 0u; n < first.size(); ++n) {
+            dx_raster_output::Cursor partial(std::string_view(first).substr(0,n),binary);
+            if (partial.next(token)) return fail("independent finite-real partial token was accepted");
+            ++truncated;
+        }
+        ++cells;
+    }
+    const std::vector<std::string> invalid{"","+","-",".","+.","--1","+-1","1.0 ","1x","4.9406564584124654e-324x", "4.9406564584124654e-324e+",
+        "4.9406564584124654e-324-1","4.9406564584124654e-324.1","4.9406564584124654e-324e1","1e","1e+","1e-","nan","NaN","inf","infinity","+INF","-INF",
+        "1e309","-1e309","1e-9999","-1e-9999",std::string(129u,'0'),std::string("1\0junk",6u)};
+    for (const auto& value : invalid) {
+        const auto bytes = std::string("40\n") + value + "\n";
+        dx_raster_output::Cursor cursor(bytes,false); dx_raster_output::Token token;
+        if (cursor.next(token)) return fail("independent finite-real observer accepted malformed, overflowing or underflow-to-zero input");
+        ++malformed;
+    }
+    for (const int code : {18,38,40,1040}) for (const auto bits : {UINT64_C(0x7ff0000000000000),UINT64_C(0xfff0000000000000),UINT64_C(0x7ff8000000000001)}) {
+        std::string bytes; word(bytes,code,2u); word(bytes,bits,8u);
+        dx_raster_output::Cursor cursor(bytes,true); dx_raster_output::Token token;
+        if (cursor.next(token)) return fail("independent finite-real observer accepted nonfinite binary bits");
+        ++nonfinite;
+    }
+    if (cells != 96u || malformed != 29u || nonfinite != 12u || truncated == 0u) return fail("independent finite-real matrix skipped a case");
+    std::cout << "Independent finite-real cells=" << cells << " malformed ASCII refusals=" << malformed << " nonfinite binary refusals=" << nonfinite
+        << " partial-token refusals=" << truncated << '\n';
+    return true;
+}
+
 bool rasterProfileTokenControls() {
     using Profile = dx_raster_output::Profile;
     unsigned strings = 0u, doubles = 0u, booleans = 0u, standalone = 0u, invalid = 0u, truncated = 0u;
@@ -4241,14 +4288,15 @@ bool xrecordApplicationChunkControls() {
     return true;
 }
 
-enum class StandardDwgProbe { BinaryTransport, ProfileIsolation, ApplicationScope, ApplicationFaults, BinaryApplication, BinaryApplicationFaults };
+enum class StandardDwgProbe { BinaryTransport, ProfileIsolation, ApplicationScope, ApplicationFaults, BinaryApplication, BinaryApplicationFaults, CoordinateApplication, CoordinateApplicationFaults };
 
 bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::BinaryTransport) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const bool profileIsolation = probe == StandardDwgProbe::ProfileIsolation;
-    const bool scopeFaultsOnly = probe == StandardDwgProbe::ApplicationFaults || probe == StandardDwgProbe::BinaryApplicationFaults;
+    const bool scopeFaultsOnly = probe == StandardDwgProbe::ApplicationFaults || probe == StandardDwgProbe::BinaryApplicationFaults || probe == StandardDwgProbe::CoordinateApplicationFaults;
     const bool applicationScopes = scopeFaultsOnly || probe == StandardDwgProbe::ApplicationScope;
     const bool binaryApplication = probe == StandardDwgProbe::BinaryApplication || probe == StandardDwgProbe::BinaryApplicationFaults;
+    const bool coordinateApplication = probe == StandardDwgProbe::CoordinateApplication || probe == StandardDwgProbe::CoordinateApplicationFaults;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
     for (unsigned n = 0u; n != 64u; ++n) {
@@ -4286,6 +4334,15 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
         static std::vector<DRW_Variant> application(unsigned scope, std::uint32_t group) {
             std::vector<DRW_Variant> values{{1,std::string("standard-payload")},{330,static_cast<dint64>(group)},
                 {160,static_cast<dint64>(1234567890123LL)}};
+            if (scope == 13u) {
+                values.emplace_back(18,DRW_Coord(1.25,-2.5,3.75));
+                values.emplace_back(38,4.25); values.emplace_back(39,-8.5);
+                values.emplace_back(18,DRW_Coord(-0.0,(std::numeric_limits<double>::min)(),(std::numeric_limits<double>::max)()));
+                values.emplace_back(18,DRW_Coord(std::numeric_limits<double>::denorm_min(),-2.5,0.0));
+                values.emplace_back(330,static_cast<dint64>(group));
+                values.emplace_back(1,std::string("after-point18"));
+                return values;
+            }
             if (scope >= 6u) {
                 const std::array<unsigned,7> sizes{{0u,1u,126u,127u,128u,254u,255u}};
                 std::vector<std::uint8_t> bytes(sizes.at(scope - 6u));
@@ -4371,9 +4428,9 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
         return true;
     };
     unsigned sources = 0u, projections = 0u, closedLegacy = 0u, transportFaultRetries = 0u, strictRefusals = 0u, materialCells = 0u, reexports = 0u, lateRetries = 0u;
-    const bool compact = profileIsolation || applicationScopes || binaryApplication;
+    const bool compact = profileIsolation || applicationScopes || binaryApplication || coordinateApplication;
     const auto sizes = compact ? std::vector<unsigned>{128u} : std::vector<unsigned>{0u,127u,128u,254u,255u};
-    const auto scopes = binaryApplication ? std::vector<unsigned>{6u,7u,8u,9u,10u,11u,12u} : applicationScopes ? std::vector<unsigned>{1u,2u,3u,4u,5u} : std::vector<unsigned>{0u};
+    const auto scopes = coordinateApplication ? std::vector<unsigned>{13u} : binaryApplication ? std::vector<unsigned>{6u,7u,8u,9u,10u,11u,12u} : applicationScopes ? std::vector<unsigned>{1u,2u,3u,4u,5u} : std::vector<unsigned>{0u};
     const auto sourceVersions = scopeFaultsOnly ? std::vector<DRW::Version>{DRW::AC1015,DRW::AC1032}
         : std::vector<DRW::Version>{DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032};
     for (const auto version : sourceVersions)
@@ -4473,7 +4530,7 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             }
             if (!modern) ++closedLegacy;
             ++projections;
-            if (applicationScopes || binaryApplication) {
+            if (applicationScopes || binaryApplication || coordinateApplication) {
                 if (!exporter.fileExport(target.string(),outputVersion,!binary,&actual,false,true)) return fail("actual-import XRECORD application scope reexport refused");
                 dx_data second; dx_iface reread;
                 if (!reread.fileImport(target.string(),&second,false) || second.xRecords.size() != 1u || second.groups.size() != 1u
@@ -4497,7 +4554,10 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             for (const bool binary : {false,true}) for (const bool final : {false,true}) for (const bool scalar : {false,true}) {
                 const auto change = [&]() {
                     auto& values = data.xRecords.front().m_dataEntries;
-                    if (binaryApplication) {
+                    if (coordinateApplication) {
+                        if (scalar) values[3] = DRW_Variant(18,DRW_Coord(1.25,-2.5,99.0));
+                        else values[4].addDouble(38,99.0);
+                    } else if (binaryApplication) {
                         if (scalar) {
                             auto bytes = *values[3].binary();
                             if (bytes.empty()) bytes.push_back(0); else bytes[0] ^= 1u;
@@ -4534,12 +4594,12 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             }
         }
     }
-    if (sources != (scopeFaultsOnly ? binaryApplication ? 14u : 10u : binaryApplication ? 42u : profileIsolation ? 6u : 30u)
-        || projections != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : profileIsolation ? 72u : 360u)
-        || closedLegacy != (scopeFaultsOnly ? 0u : binaryApplication ? 168u : profileIsolation ? 24u : 120u) || transportFaultRetries != (compact ? 0u : 2160u)
-        || strictRefusals != (scopeFaultsOnly ? 0u : binaryApplication ? 84u : profileIsolation ? 12u : 60u) || materialCells != (profileIsolation ? 32u : 0u)
-        || reexports != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : applicationScopes ? 360u : 0u)
-        || lateRetries != (scopeFaultsOnly ? binaryApplication ? 112u : 80u : 0u))
+    if (sources != (scopeFaultsOnly ? coordinateApplication ? 2u : binaryApplication ? 14u : 10u : binaryApplication ? 42u : profileIsolation || coordinateApplication ? 6u : 30u)
+        || projections != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : profileIsolation || coordinateApplication ? 72u : 360u)
+        || closedLegacy != (scopeFaultsOnly ? 0u : binaryApplication ? 168u : profileIsolation || coordinateApplication ? 24u : 120u) || transportFaultRetries != (compact ? 0u : 2160u)
+        || strictRefusals != (scopeFaultsOnly ? 0u : binaryApplication ? 84u : profileIsolation || coordinateApplication ? 12u : 60u) || materialCells != (profileIsolation ? 32u : 0u)
+        || reexports != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : coordinateApplication ? 72u : applicationScopes ? 360u : 0u)
+        || lateRetries != (scopeFaultsOnly ? coordinateApplication ? 16u : binaryApplication ? 112u : 80u : 0u))
         return fail("standard chunk source matrix skipped a cell");
     std::cout << "Standard native chunk sources=" << sources << " projections=" << projections << " legacy unqualified cells=" << closedLegacy
         << " copied-readback comparison fault/restoration retries=" << transportFaultRetries << " strict refusals=" << strictRefusals
@@ -33822,6 +33882,10 @@ int main(int argc, char** argv) {
         return standardDwgBinaryTransport(StandardDwgProbe::BinaryApplication) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--native-xrecord-binary-faults")
         return standardDwgBinaryTransport(StandardDwgProbe::BinaryApplicationFaults) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--native-xrecord-coordinates")
+        return standardDwgBinaryTransport(StandardDwgProbe::CoordinateApplication) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--native-xrecord-coordinate-faults")
+        return standardDwgBinaryTransport(StandardDwgProbe::CoordinateApplicationFaults) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--xrecord-application-chunk-controls")
         return xrecordApplicationChunkControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-dwg-profile-isolation")
@@ -33844,6 +33908,8 @@ int main(int argc, char** argv) {
         return rasterObserverProfiles(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--raster-profile-token-controls")
         return rasterProfileTokenControls() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--raster-finite-real-controls")
+        return rasterFiniteRealControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-output-framing-controls")
         return standardOutputFramingControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-scalar-transport")

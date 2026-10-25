@@ -593,6 +593,26 @@ add_test(NAME dwg2dxf_xrecord_application_chunk_controls
     COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-application-chunk-controls)
 set_tests_properties(dwg2dxf_xrecord_application_chunk_controls PROPERTIES
     LABELS "fast;dxf;objects;xrecord;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_native_xrecord_coordinates
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-coordinates)
+set_tests_properties(dwg2dxf_native_xrecord_coordinates PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_native_xrecord_coordinate_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-coordinate-faults)
+set_tests_properties(dwg2dxf_native_xrecord_coordinate_faults PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;transaction;adapter;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_xrecord_point18
+    COMMAND libdxfrw_dxf_fixture_tests --xrecord-point18)
+set_tests_properties(libdxfrw_xrecord_point18 PROPERTIES
+    LABELS "fast;dxf;objects;xrecord;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_xrecord_coordinate_writer_domain
+    COMMAND libdxfrw_dxf_fixture_tests --xrecord-coordinate-writer-domain)
+set_tests_properties(libdxfrw_xrecord_coordinate_writer_domain PROPERTIES
+    LABELS "fast;dxf;objects;xrecord;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_raster_finite_real_controls
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --raster-finite-real-controls)
+set_tests_properties(dwg2dxf_raster_finite_real_controls PROPERTIES
+    LABELS "fast;dxf;objects;reader;adapter;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_standard_dwg_profile_isolation
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-profile-isolation)
 set_tests_properties(dwg2dxf_standard_dwg_profile_isolation PROPERTIES

@@ -29575,7 +29575,7 @@ void testXRecordCoordinateBoundaries(TestContext& t) {
 void testXRecordCoordinateWriterDomain(TestContext& t) {
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch().count();
-    const std::vector<int> invalidCoordinateBases = {18, 20, 30, 38};
+    const std::vector<int> invalidCoordinateBases = {19, 20, 30, 38};
     unsigned index = 0;
     for (const bool binary : {false, true}) {
         for (const int code : invalidCoordinateBases) {
@@ -29631,6 +29631,122 @@ void testXRecordCoordinateWriterDomain(TestContext& t) {
         std::error_code error;
         std::filesystem::remove(validPath, error);
     }
+}
+
+void testXRecordPoint18(TestContext& t) {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-point18-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) break;
+    }
+    t.expect(!directory.empty(),"point18 controls own an exclusive scratch directory");
+    if (directory.empty()) return;
+    const auto path = directory / "point.dxf";
+    struct Cleanup { std::filesystem::path path, directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path,error); std::filesystem::remove(directory,error);
+    } } cleanup{path,directory};
+    const std::vector<DRW_Variant> expected{{38,1.25},{39,-2.5},
+        {18,DRW_Coord(-0.0,(std::numeric_limits<double>::min)(),(std::numeric_limits<double>::max)())},
+        {38,4.25},{39,-8.5},{18,DRW_Coord(std::numeric_limits<double>::denorm_min(),-2.5,0.0)},
+        {18,DRW_Coord(1,2,3)},{1,std::string("after-point18")}};
+    const auto valuesEqual = [&](const auto& values) {
+        if (values.size() != expected.size()) return false;
+        const auto bits = [](double a, double b) { return std::memcmp(&a,&b,sizeof(a)) == 0; };
+        for (std::size_t n = 0u; n < values.size(); ++n) {
+            const auto& a = values[n]; const auto& b = expected[n];
+            if (a.code() != b.code() || a.type() != b.type()) return false;
+            if (a.type() == DRW_Variant::DOUBLE) { if (!bits(a.d_val(),b.d_val())) return false; }
+            else if (a.type() == DRW_Variant::COORD) {
+                if (!a.coord() || !bits(a.coord()->x,b.coord()->x) || !bits(a.coord()->y,b.coord()->y) || !bits(a.coord()->z,b.coord()->z)) return false;
+            } else if (!a.content.s || *a.content.s != *b.content.s) return false;
+        }
+        return true;
+    };
+    const auto check = [&](const DRW_XRecord& record, int cloning) {
+        return record.hasExactDxfCoordinateTuples() && record.m_cloning == cloning && valuesEqual(record.m_dataEntries) && valuesEqual(record.m_values);
+    };
+    unsigned cells = 0u, reexports = 0u, sourceRetries = 0u, budgets = 0u, inexactRetries = 0u;
+    for (const auto version : {DRW::AC1014,DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
+      for (const bool binary : {false,true}) for (const bool compatibilityValues : {false,true}) {
+        XRecordCoordinateWriter writer; dx_data storage;
+        writer.value.handle = 0xA018u; writer.value.m_cloning = version == DRW::AC1014 ? 0 : 2;
+        if (compatibilityValues) writer.value.m_values = expected; else writer.value.m_dataEntries = expected;
+        const auto baseline = writer.value;
+        const auto write = [&]() { writer.wrote = false; return writer.fileExport(path.string(),version,binary,&storage,false) && writer.wrote; };
+        const auto readback = [&](const auto& input) {
+            FixtureInterface reader; dx_data actual;
+            return reader.fileImport(input,&actual,false) && reader.xrecords.size() == 1u && check(reader.xrecords.front(),baseline.m_cloning);
+        };
+        const bool wrote = write();
+        t.expect(wrote && readback(path.string()),"point18 and standalone38/39 preserve order, exact finite bits and both payload views");
+        if (!wrote || !readback(path.string())) return;
+        ++cells;
+        FixtureInterface first; dx_data data;
+        if (!first.fileImport(path.string(),&data,false) || first.xrecords.size() != 1u) { t.expect(false,"point18 actual source import succeeds"); return; }
+        writer.value = first.xrecords.front();
+        const bool reexported = writer.fileExport(path.string(),version,!binary,&storage,false);
+        t.expect(reexported && readback(path.string()),"actual parsed point18 cross-encoding reexport preserves distinct points and standalone scalars");
+        if (!reexported || !readback(path.string())) return;
+        ++reexports; writer.value = baseline;
+        if (version != DRW::AC1032) continue;
+        dxfRW input(path.string().c_str());
+        const auto admitted = [&](std::size_t cap) {
+            input.setDxfReadTypedVariantNodeBudget(cap);
+            FixtureInterface reader; dx_data actual; reader.cData = &actual; reader.currentBlock = actual.mBlock;
+            const bool read = input.read(&reader,false);
+            t.expect(read || reader.xrecords.empty(),"point18 node refusal publishes no partial XRECORD callback");
+            return read && reader.xrecords.size() == 1u && check(reader.xrecords.front(),baseline.m_cloning);
+        };
+        std::size_t low = 0u, high = 65536u;
+        t.expect(admitted(high),"point18 public node-budget upper premise succeeds");
+        while (low < high) { const auto middle = low + (high - low) / 2u; if (admitted(middle)) high = middle; else low = middle + 1u; }
+        t.expect(low != 0u && !admitted(low - 1u) && admitted(low),"point18 exact/one-node-under same-reader retries preserve tuple atomicity");
+        ++budgets;
+        std::vector<DRW_Variant> invalid{{18,std::string("wrong")},{18,7},{18,static_cast<dint64>(7)},{18,std::vector<std::uint8_t>{1}}};
+        for (unsigned axis = 0u; axis != 3u; ++axis) for (const double value : {std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()}) {
+            DRW_Coord point(1,2,3); if (axis == 0u) point.x = value; else if (axis == 1u) point.y = value; else point.z = value;
+            invalid.emplace_back(18,point);
+        }
+        for (const auto& value : invalid) {
+            auto& values = compatibilityValues ? writer.value.m_values : writer.value.m_dataEntries; values[2] = value;
+            const std::string sentinel = "POINT18_ATOMIC_DESTINATION";
+            { std::ofstream prior(path,std::ios::binary); prior << sentinel; }
+            const bool accepted = write(); std::ifstream prior(path,std::ios::binary);
+            const std::string retained((std::istreambuf_iterator<char>(prior)),{}); prior.close();
+            writer.value = baseline;
+            t.expect(!accepted && retained == sentinel && write() && readback(path.string()),"point18 wrong-kind/nonfinite source refuses atomically and restored source retries");
+            ++sourceRetries;
+        }
+    }
+    const std::vector<std::vector<DRW_Variant>> malformed{
+        {{18,1.0},{28,2.0},{1,std::string("interrupt")},{38,3.0}},
+        {{18,1.0},{38,3.0},{28,2.0}},
+        {{18,1.0},{28,2.0},{28,4.0},{38,3.0}},
+        {{18,1.0},{28,2.0}}
+    };
+    for (const bool binary : {false,true}) for (const auto& fields : malformed) {
+        FixtureInterface reader; dx_data data;
+        const bool read = importTemporaryDxf("point18-inexact",xRecordCoordinateSource(fields,binary),reader,data);
+        t.expect(read && reader.xrecords.size() == 1u && !reader.xrecords.front().hasExactDxfCoordinateTuples(),"interrupted/reordered/incomplete point18 remains explicitly inexact");
+        if (!read || reader.xrecords.size() != 1u) continue;
+        XRecordCoordinateWriter writer; dx_data storage; writer.value = reader.xrecords.front();
+        const std::string sentinel = "POINT18_INEXACT_DESTINATION";
+        { std::ofstream prior(path,std::ios::binary); prior << sentinel; }
+        const bool accepted = writer.fileExport(path.string(),DRW::AC1032,binary,&storage,false);
+        std::ifstream prior(path,std::ios::binary); const std::string retained((std::istreambuf_iterator<char>(prior)),{}); prior.close();
+        writer.value.reset(); writer.value.handle = 0xA018u; writer.value.m_cloning = 2; writer.value.m_dataEntries = expected;
+        FixtureInterface restored; dx_data actual;
+        t.expect(!accepted && retained == sentinel && writer.fileExport(path.string(),DRW::AC1032,binary,&storage,false)
+            && restored.fileImport(path.string(),&actual,false) && restored.xrecords.size() == 1u && check(restored.xrecords.front(),2),
+            "inexact point18 refuses typed output and explicit reset reconstruction retries");
+        ++inexactRetries;
+    }
+    t.expect(cells == 28u && reexports == 28u && sourceRetries == 52u && budgets == 4u && inexactRetries == 8u,"point18 matrix covers every planned cell");
+    std::cout << "Point18 authored cells=" << cells << " actual-import reexports=" << reexports << " source retries=" << sourceRetries
+        << " exact node boundaries=" << budgets << " inexact reconstruction retries=" << inexactRetries << '\n';
 }
 
 DRW_XRecord xRecordXdataControl() {
@@ -33878,6 +33994,9 @@ int main(int argc, char** argv) {
         testXRecordXdataChannels(context);
         return context.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--xrecord-point18") {
+        TestContext context; testXRecordPoint18(context); return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--xrecord-normal-string-codes") {
         TestContext context;
         testXRecordNormalStringCodes(context);
@@ -34575,6 +34694,7 @@ int main(int argc, char** argv) {
     testXRecordDataOrder(context);
     testXRecordXdataChannels(context);
     testXRecordCoordinateTuples(context);
+    testXRecordPoint18(context);
     testXRecordCoordinateBoundaries(context);
     testXRecordVersionedHeaderAndPayload(context);
     testLinetypeExtensionGraphRoundTrip(context);

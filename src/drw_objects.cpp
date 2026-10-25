@@ -9764,7 +9764,15 @@ bool DRW_XRecord::parseCode(int code,
                             const std::unique_ptr<dxfReader>& reader) {
     int xCode = 0;
     int component = 0;
-    const bool coordinate = xRecordCoordinateCode(code, xCode, component);
+    bool coordinate = xRecordCoordinateCode(code, xCode, component);
+    // In DXF,38 completes point18 only after its exact18/28 prefix. Keep
+    // ordinary standalone38/39 scalar values and native DWG predicates intact.
+    if (code == 38 && m_dxfBodySeen && !m_dxfXdataSeen && m_dxfCoordinateMask == 3u
+        && !m_values.empty() && !m_dataEntries.empty()
+        && m_values.back().type() == DRW_Variant::COORD && m_values.back().code() == 18
+        && m_dataEntries.back().type() == DRW_Variant::COORD && m_dataEntries.back().code() == 18) {
+        coordinate = true; xCode = 18; component = 2;
+    }
     if (!coordinate) {
         if (m_dxfCoordinateMask != 0)
             m_dxfCoordinatesExact = false;

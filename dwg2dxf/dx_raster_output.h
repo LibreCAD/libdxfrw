@@ -65,6 +65,36 @@ struct Token {
     double real{0};
     std::int64_t number{0};
 };
+inline bool finiteReal(std::string_view text, double& value) {
+    if (text.size() > 128u) return false;
+    std::size_t at = 0u;
+    while (at < text.size() && (text[at] == ' ' || text[at] == '\t' || text[at] == '\r' || text[at] == '\v' || text[at] == '\f')) ++at;
+    if (at < text.size() && (text[at] == '+' || text[at] == '-')) ++at;
+    const auto digits = [&]() {
+        const auto begin = at;
+        while (at < text.size() && text[at] >= '0' && text[at] <= '9') ++at;
+        return at - begin;
+    };
+    auto count = digits();
+    if (at < text.size() && text[at] == '.') { ++at; count += digits(); }
+    if (!count) return false;
+    if (at < text.size() && (text[at] == 'e' || text[at] == 'E')) {
+        ++at;
+        if (at < text.size() && (text[at] == '+' || text[at] == '-')) ++at;
+        if (!digits()) return false;
+    }
+    if (at != text.size()) return false;
+    value = 0.0;
+    std::istringstream input{std::string(text)}; input.imbue(std::locale::classic()); input >> value;
+    // Some standard libraries set failbit for a representable subnormal.
+    // The complete decimal grammar above prevents clearing a syntax failure;
+    // overflow and underflow-to-zero remain refused, without shared parsers.
+    if (input.fail()) {
+        if (std::fpclassify(value) != FP_SUBNORMAL) return false;
+        input.clear();
+    }
+    return input.peek() == std::char_traits<char>::eof() && std::isfinite(value);
+}
 class Cursor {
 public:
     Cursor(std::string_view bytes, bool binary, Profile profile = Profile::StandaloneSafe)
@@ -91,11 +121,7 @@ public:
             if (!readLine(t.text)) return false;
             if (t.type == Kind::Integer) return integer(t.text, t.number);
             if (t.type != Kind::Double) return true;
-            if (t.text.size() > 128u) return false;
-            std::istringstream input{std::string(t.text)};
-            input.imbue(std::locale::classic());
-            input >> t.real;
-            return !input.fail() && input.peek() == std::char_traits<char>::eof() && std::isfinite(t.real);
+            return finiteReal(t.text,t.real);
         }
         if (t.type == Kind::Text) {
             const auto end = bytes.find('\0', at);

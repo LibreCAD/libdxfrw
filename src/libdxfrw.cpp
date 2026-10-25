@@ -1297,6 +1297,9 @@ bool isDxfXRecordPointComponentCode(int code) {
 }
 
 bool isDxfXRecordPointBaseCode(int code) {
+    // Point18's Z component is38, which is also a standalone scalar. The
+    // DXF reader completes it only after an uninterrupted18/28 prefix.
+    if (code == 18) return true;
     // Mirror DRW_XRecord::parseCode's point-family map. A COORD variant
     // represents the first (X) component; the following two component codes
     // must also belong to the same point family.
