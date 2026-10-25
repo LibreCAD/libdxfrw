@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
 #include "intern/dxfattdef.h"
+#include "attdef_source_field_faults.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -37,6 +38,33 @@ public:
     }
     static void attribute(dx_iface& iface,const DRW_Attrib& value) {
         (void)iface.retainTypedEntity<DRW_Attrib>(value);
+    }
+};
+
+class DxIfaceTableSourceTestAccess {
+public:
+    static const auto* resource(const dx_data& data) {
+        const auto& rows=data.m_tableDxfSource.resources;
+        const auto found=rows.find(0xA1u);
+        return found==rows.end()?nullptr:&found->second;
+    }
+    static bool failed(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;
+        return s.resourceCaptureFailed||s.resourceProofCaptureFailed||s.contextFailed;
+    }
+    static std::size_t pending(const dx_data& data) {return data.m_tableDxfSource.attdefPending;}
+    static void limits(dx_data& data,unsigned which,std::size_t value) {
+        auto& s=data.m_tableDxfSource;
+        switch(which) {
+        case 0:s.maxResourceRecords=value;break;
+        case 1:s.maxResourceItems=value;break;
+        case 2:s.maxResourceBytes=value;break;
+        case 3:s.maxResourceProofRecords=value;break;
+        case 4:s.maxResourceProofGroups=value;break;
+        case 5:s.maxResourceProofBytes=value;break;
+        case 6:s.maxResourceProofWork=value;break;
+        default:throw std::runtime_error("unknown capture limit");
+        }
     }
 };
 
@@ -203,8 +231,19 @@ bool write(const std::filesystem::path& path,const Tags& tags,bool binary) {
         if(!binary)out<<tag.code<<'\n'<<tag.value<<'\n';
         else {
             word(static_cast<unsigned>(tag.code),2u);
-            if((tag.code>=60&&tag.code<=79)||(tag.code>=270&&tag.code<=289)||tag.code==1070)
+            if((tag.code>=60&&tag.code<=79)||(tag.code>=170&&tag.code<=179)
+                ||(tag.code>=270&&tag.code<=289)||(tag.code>=370&&tag.code<=389)
+                ||(tag.code>=400&&tag.code<=409)||tag.code==1070)
                 word(static_cast<std::uint16_t>(std::stoi(tag.value)),2u);
+            else if((tag.code>=90&&tag.code<=99)||(tag.code>=420&&tag.code<=429)
+                ||(tag.code>=440&&tag.code<=459)||tag.code==1071)
+                word(static_cast<std::uint32_t>(std::stoll(tag.value)),4u);
+            else if(tag.code>=160&&tag.code<=169)word(std::stoull(tag.value),8u);
+            else if((tag.code>=310&&tag.code<=319)||tag.code==1004) {
+                if(tag.value.size()%2u||tag.value.size()/2u>255u)return false;
+                word(tag.value.size()/2u,1u);
+                for(std::size_t i=0;i<tag.value.size();i+=2u)word(std::stoul(tag.value.substr(i,2u),nullptr,16),1u);
+            }
             else if((tag.code>=10&&tag.code<=59)||(tag.code>=210&&tag.code<=239)
                 ||(tag.code>=1010&&tag.code<=1059)) {
                 const double value=std::stod(tag.value);std::uint64_t bits=0u;
@@ -280,7 +319,7 @@ std::string snapshot(const DRW_Attdef& value) {
     if(value.mtext)applicationData(*value.mtext);
     return out.str();
 }
-class Probe final:public dx_iface,public DRW_DxfAttdefSourceHandler {
+class Probe final:public dx_iface {
 public:
     bool selected=true,disableOnSource=false,throwSource=false,throwTyped=false;
     mutable unsigned selections=0u;
@@ -475,14 +514,278 @@ bool tests(const std::filesystem::path& path) {
     return true;
 }
 }
+
+namespace {
+class CaptureProbe final:public dx_iface {
+public:
+    bool selected=true,skipSource=false,skipTyped=false,duplicateSource=false,duplicateTyped=false,throwSource=false;
+    unsigned sourceCalls=0u,typedCalls=0u;
+    long failSourceAllocation=-1,sourceAllocations=0,failTypedAllocation=-1,typedAllocations=0;
+    std::function<void(DRW_Attdef&)> alterTyped;
+    std::function<void(DRW_RawDxfObject&)> alterRaw;
+    std::function<void(DRW_DxfAttdefSourceContext&)> alterContext;
+    DRW_RawDxfObject mutableRawAlias;
+    bool wantsDxfAttdefSource() const override {return selected&&dx_iface::wantsDxfAttdefSource();}
+    void addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& raw,
+                           const DRW_DxfAttdefSourceContext& context) override {
+        ++sourceCalls;
+        if(skipSource)return;
+        if(throwSource)throw std::runtime_error("injected ATTDEF capture callback failure");
+        mutableRawAlias=raw;if(alterRaw)alterRaw(mutableRawAlias);
+        auto actualContext=context;if(alterContext)alterContext(actualContext);
+        if(failSourceAllocation>=0)allocationRemaining=failSourceAllocation;
+        dx_iface::addDxfAttdefSource(value,mutableRawAlias,actualContext);
+        if(failSourceAllocation>=0) {
+            sourceAllocations=failSourceAllocation-allocationRemaining;
+            allocationRemaining=-1;
+        }
+        if(duplicateSource)dx_iface::addDxfAttdefSource(value,mutableRawAlias,actualContext);
+    }
+    void addAttDef(const DRW_Attdef& value) override {
+        ++typedCalls;if(skipTyped)return;
+        // The parser/staging pair owns a NON-const record; the API borrows it
+        // as const. Fault injection here changes exactly one original field,
+        // without a model copy resetting unrelated cursor/grammar state.
+        if(alterTyped)alterTyped(const_cast<DRW_Attdef&>(value));
+        if(failTypedAllocation>=0)allocationRemaining=failTypedAllocation;
+        dx_iface::addAttDef(value);
+        if(failTypedAllocation>=0) {
+            typedAllocations=failTypedAllocation-allocationRemaining;
+            allocationRemaining=-1;
+        }
+        if(duplicateTyped)dx_iface::addAttDef(value);
+    }
+};
+
+bool immutableCaptureTests(const std::filesystem::path& path) {
+    using Access=DxIfaceTableSourceTestAccess;
+    unsigned profiles=0u,mutations=0u,callbacks=0u,quotas=0u,rawMutations=0u,richProfiles=0u;
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
+     for(bool binary:{false,true})for(bool block:{false,true})for(unsigned mode:{0u,1u,2u}) {
+        if(!write(path,document(version,body(mode),block),binary))return false;
+        dx_data data;CaptureProbe reader;
+        if(!check(reader.fileImport(path.string(),&data,false)&&!Access::failed(data),"actual ATTDEF capture import"))return false;
+        const auto* row=Access::resource(data);
+        if(!check(row&&row->attdefModel&&row->raw&&row->attdefPairMatched&&!row->awaitingAttdef
+            &&row->attdefFieldsMatched&&!row->attdefFieldMismatch
+            &&!row->rawTypedMatched&&!row->model&&Access::pending(data)==0u
+            &&reader.sourceCalls==1u&&reader.typedCalls==1u&&row->attdefContext.inBlock==block
+            &&!row->attdefContext.applyExtrusion&&row->attdefState.hasNested==(mode!=0u),
+            "frozen source/typed pair is captured but not promoted to raw/target proof"))return false;
+        if(block&&!check(row->attdefBlockHandle==0xB1u&&row->attdefBlockRecord==0xB0u
+            &&row->attdefBlockName=="GENERATED","actual enclosing block context is retained"))return false;
+        if(!check(row->attdefState.attributeSubclass
+            &&!dxfAttdef::Decoder::observe(*row->attdefModel).attributeSubclass,
+            "original subclass state survives separately from the sanitized model copy"))return false;
+        const auto rawSize=row->raw->groups.size();const auto frozenText=row->attdefModel->text;
+        reader.mutableRawAlias.groups.clear();reader.mutableRawAlias.rawValues.clear();
+        if(!check(row->raw->groups.size()==rawSize&&row->raw->groups.front().type()==DRW_Variant::STRING
+            &&row->raw->groups.front().content.s&&*row->raw->groups.front().content.s=="A1"
+            &&row->attdefModel->text==frozenText,
+            "mutable callback aliases cannot change frozen carriers"))return false;
+        DRW_Attdef* editable=nullptr;
+        const auto findEditable=[&](dx_ifaceBlock* owner) {
+            if(owner)for(auto* entity:owner->ent)
+                if(auto* candidate=dynamic_cast<DRW_Attdef*>(entity))editable=candidate;
+        };
+        findEditable(data.mBlock);for(auto* owner:data.blocks)findEditable(owner);
+        if(!check(editable&&editable!=row->attdefModel.get()
+            &&editable->extData.front().get()!=row->attdefModel->extData.front().get(),
+            "editable entity and XDATA owners are separate from source evidence"))return false;
+        editable->text="edited";editable->extData.front()->addString(1001,"EDITED_APP");
+        if(!check(row->attdefModel->text==frozenText
+            &&std::string(row->attdefModel->extData.front()->c_str())=="APP",
+            "editable text/XDATA mutation leaves source evidence unchanged"))return false;
+        CaptureProbe optOut;optOut.selected=false;dx_data legacy;
+        if(!check(optOut.fileImport(path.string(),&legacy,false)&&!Access::failed(legacy)
+            &&Access::resource(legacy)&&!Access::resource(legacy)->attdefModel&&optOut.sourceCalls==0u,
+            "opt-out retains identity-only admission without frozen owners"))return false;
+        ++profiles;
+    }
+    for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})
+     for(bool binary:{false,true})for(bool block:{false,true}) {
+        auto row=body(1u);
+        const Tags common{{6,"DASHED"},{347,"123"},{62,"3"},{370,"35"},{48,"1.5"},{60,"1"},
+            {420,"1193046"},{430,"common-color"},{440,"1234"},{390,"456"},{284,"2"},
+            {version=="AC1021"?92:160,"3"},{310,"0102A3"}};
+        auto marker=std::find_if(row.begin(),row.end(),[](const Tag& t){return t.code==101;});
+        row.insert(marker+1,common.begin(),common.end());
+        auto nestedText=std::find_if(row.begin(),row.end(),[](const Tag& t){return t.code==1&&t.value=="LAST-é";});
+        row.insert(nestedText+1,{{90,"1"},{45,"1.5"},{63,"3"},{421,"1193046"},{431,"book$swatch"},{441,"1234"}});
+        row.insert(row.begin()+4,common.begin(),common.end());
+        if(!write(path,document(version,row,block),binary))return false;
+        dx_data data;CaptureProbe reader;
+        if(!check(reader.fileImport(path.string(),&data,false)&&!Access::failed(data)
+            &&Access::resource(data)&&Access::resource(data)->attdefPairMatched&&Access::resource(data)->attdefFieldsMatched,
+            "rich common/proxy/background modeled replay")) {
+            std::cerr<<"version="<<version<<" binary="<<binary<<" block="<<block<<'\n';return false;
+        }
+        ++richProfiles;
+    }
+    for(bool binary:{false,true}) {
+        if(!write(path,document("AC1015",body(0u),true),binary))return false;
+        dx_data data;CaptureProbe reader;
+        if(!check(reader.fileImport(path.string(),&data,false)&&reader.sourceCalls==0u,
+            "legacy declared revisions remain on the existing opt-out path"))return false;
+    }
+    if(!write(path,document("AC1032",body(1u),true),false))return false;
+    const auto faults=attdefSourceFieldFaults();
+    for(const auto& fault:faults) {
+        dx_data data;CaptureProbe reader;reader.alterTyped=fault.second;
+        if(!reader.fileImport(path.string(),&data,false)||!Access::failed(data)
+            ||(Access::resource(data)&&Access::resource(data)->attdefPairMatched)) {
+            std::cerr<<"ATTDEF callback field escaped pairing: "<<fault.first<<'\n';return false;
+        }
+        reader.alterTyped={};dx_data fresh;
+        if(!check(reader.fileImport(path.string(),&fresh,false)&&!Access::failed(fresh)
+            &&Access::resource(fresh)->attdefFieldsMatched,"same adapter fresh-import recovery after field mutation"))return false;
+        ++mutations;
+    }
+    for(unsigned action=0u;action<10u;++action) {
+        dx_data data;CaptureProbe reader;
+        switch(action) {
+        case 0:reader.duplicateSource=true;break;
+        case 1:reader.duplicateTyped=true;break;
+        case 2:reader.skipTyped=true;break;
+        case 3:reader.alterRaw=[](auto& raw){raw.name="LINE";};break;
+        case 4:reader.alterRaw=[](auto& raw){++raw.handle;};break;
+        case 5:reader.alterRaw=[](auto& raw){++raw.parentHandle;};break;
+        case 6:reader.alterRaw=[](auto& raw){raw.rawValues.pop_back();};break;
+        case 7:reader.alterRaw=[](auto& raw){raw.groups[0]=DRW_Variant(5,DRW_Coord{});};break;
+        case 8:reader.alterContext=[](auto& context){context.inBlock=false;};break;
+        case 9:reader.alterContext=[](auto& context){context.applyExtrusion=true;};break;
+        }
+        if(!check(reader.fileImport(path.string(),&data,false)&&Access::failed(data),
+            "duplicate/missing/wrong-family/context capture cannot succeed as evidence"))return false;
+        reader.duplicateSource=false;reader.duplicateTyped=false;reader.skipTyped=false;reader.alterRaw={};reader.alterContext={};
+        dx_data fresh;
+        if(!check(reader.fileImport(path.string(),&fresh,false)&&!Access::failed(fresh)
+            &&Access::resource(fresh)->attdefFieldsMatched,"fresh-import callback recovery"))return false;
+        ++callbacks;
+    }
+    const std::vector<std::pair<int,std::string>> rawFaults{
+        {1,"default-é"},{2,"TAG"},{3,"prompt-é"},{1,"LAST-é"},
+        {1,"not-mtext"},{1000,"opaque-\\U+00E9"},{1070,"11"},{10,"1.25"}};
+    for(const auto& fault:rawFaults) {
+        dx_data data;CaptureProbe reader;
+        reader.alterRaw=[&](auto& raw) {
+            bool changed=false;
+            for(std::size_t i=0;i<raw.groups.size();++i) {
+                auto& value=raw.groups[i];
+                if(value.code()!=fault.first)continue;
+                if(value.type()==DRW_Variant::STRING&&value.content.s&&*value.content.s==fault.second) {
+                    value=DRW_Variant(value.code(),std::string("changed-source"));raw.rawValues[i]="changed-source";changed=true;break;
+                }
+                if(value.type()==DRW_Variant::INTEGER&&fault.second=="11"&&value.i_val()==11) {
+                    value=DRW_Variant(value.code(),12);raw.rawValues[i]="12";changed=true;break;
+                }
+                if(value.type()==DRW_Variant::DOUBLE&&fault.second=="1.25"&&value.d_val()==1.25) {
+                    value=DRW_Variant(value.code(),2.25);raw.rawValues[i]="2.25";changed=true;break;
+                }
+            }
+            if(!changed)throw std::runtime_error("missing raw mutation target");
+        };
+        if(!check(reader.fileImport(path.string(),&data,false)&&Access::resource(data)->attdefPairMatched
+            &&!Access::resource(data)->attdefFieldsMatched&&Access::resource(data)->attdefFieldMismatch,
+            "consistent raw spelling/scalar mutation cannot pass modeled field replay"))return false;
+        reader.alterRaw={};dx_data fresh;
+        if(!check(reader.fileImport(path.string(),&fresh,false)&&Access::resource(fresh)->attdefFieldsMatched,
+            "corrected raw-field replay on a fresh import"))return false;
+        ++rawMutations;
+    }
+    { // The tolerant entity parser retains partial XDATA tuples. A copy
+      // clears their cursor, which must never turn them into qualified input.
+        auto partial=body(1u);
+        partial.erase(std::remove_if(partial.begin(),partial.end(),[](const Tag& t) {
+            return t.code==1030||t.code==1070;
+        }),partial.end());
+        if(!write(path,document("AC1032",partial,true),false))return false;
+        dx_data data;CaptureProbe reader;
+        if(!check(reader.fileImport(path.string(),&data,false)&&Access::resource(data)->attdefPairMatched
+            &&!Access::resource(data)->attdefState.hasNoPendingXdata()
+            &&dxfAttdef::Decoder::observe(*Access::resource(data)->attdefModel).hasNoPendingXdata()
+            &&!Access::resource(data)->attdefFieldsMatched,
+            "original partial-XDATA state is retained and cannot be laundered by a model copy"))return false;
+        if(!write(path,document("AC1032",body(1u),true),false))return false;
+    }
+    { // Missing source remains identity-only; it cannot acquire pairing proof.
+        dx_data data;CaptureProbe reader;reader.skipSource=true;
+        if(!check(reader.fileImport(path.string(),&data,false)&&Access::resource(data)
+            &&!Access::resource(data)->attdefPairMatched&&!Access::resource(data)->attdefModel,
+            "missing source cannot be replaced with a typed-only frozen model"))return false;
+    }
+    { // A raw-only spelling edit is NOT validated by source/typed agreement.
+        dx_data data;CaptureProbe reader;reader.alterRaw=[](auto& raw){raw.rawValues[0]="FFFF";};
+        if(!check(reader.fileImport(path.string(),&data,false)&&Access::resource(data)->attdefPairMatched
+            &&!Access::resource(data)->attdefFieldsMatched&&Access::failed(data)
+            &&!Access::resource(data)->rawTypedMatched,"pairing cannot launder inconsistent raw spellings into replay proof"))return false;
+    }
+    { // A delivered source callback may throw, and later calls are out of session.
+        dx_data data;CaptureProbe reader;reader.throwSource=true;
+        bool accepted=false,threw=false;
+        try {accepted=reader.fileImport(path.string(),&data,false);}catch(const std::runtime_error&){threw=true;}
+        if(!check(!accepted&&threw&&data.dxfReadOutcome.readThrew,
+            "throwing capture callback propagates while recording the failed import"))return false;
+        reader.throwSource=false;dx_data fresh;
+        if(!check(reader.fileImport(path.string(),&fresh,false)&&!Access::failed(fresh),"throw recovery on fresh import"))return false;
+        const auto* row=Access::resource(fresh);
+        reader.dx_iface::addDxfAttdefSource(*row->attdefModel,*row->raw,row->attdefContext);
+        if(!check(Access::failed(fresh),"late source callback is sticky context failure"))return false;
+    }
+    for(unsigned kind=0u;kind<7u;++kind) {
+        const auto attempt=[&](std::size_t limit) {
+            dx_data data;Access::limits(data,kind,limit);CaptureProbe reader;
+            return reader.fileImport(path.string(),&data,false)&&!Access::failed(data)
+                &&Access::resource(data)&&Access::resource(data)->attdefFieldsMatched;
+        };
+        std::size_t high=1000000u,low=0u;
+        if(!check(attempt(high)&&!attempt(low),"capture quota refuses and recovers"))return false;
+        while(low+1u<high){const auto middle=low+(high-low)/2u;if(attempt(middle))high=middle;else low=middle;}
+        if(!check(attempt(high)&&!attempt(high-1u),"exact/below source snapshot quota"))return false;
+        ++quotas;
+    }
+    dx_data measured;CaptureProbe calibrate;calibrate.failSourceAllocation=(std::numeric_limits<long>::max)();
+    if(!check(calibrate.fileImport(path.string(),&measured,false)&&!Access::failed(measured)
+        &&calibrate.sourceAllocations>0&&calibrate.sourceAllocations<2000,"capture allocation calibration"))return false;
+    for(long failure=0;failure<calibrate.sourceAllocations;++failure) {
+        dx_data data;CaptureProbe reader;reader.failSourceAllocation=failure;
+        if(!check(reader.fileImport(path.string(),&data,false)&&Access::failed(data),"snapshot allocation cannot create successful evidence"))return false;
+        reader.failSourceAllocation=-1;dx_data fresh;
+        if(!check(reader.fileImport(path.string(),&fresh,false)&&!Access::failed(fresh),"snapshot allocation fresh-import recovery"))return false;
+    }
+    dx_data replayMeasured;CaptureProbe replayCalibrate;
+    replayCalibrate.failTypedAllocation=(std::numeric_limits<long>::max)();
+    if(!check(replayCalibrate.fileImport(path.string(),&replayMeasured,false)&&!Access::failed(replayMeasured)
+        &&!replayMeasured.typedEntityCaptureFailed&&Access::resource(replayMeasured)->attdefFieldsMatched
+        &&replayCalibrate.typedAllocations>0&&replayCalibrate.typedAllocations<2000,
+        "typed pairing/replay/consumer allocation calibration"))return false;
+    for(long failure=0;failure<replayCalibrate.typedAllocations;++failure) {
+        dx_data data;CaptureProbe reader;reader.failTypedAllocation=failure;
+        if(!check(reader.fileImport(path.string(),&data,false)
+            &&(Access::failed(data)||data.typedEntityCaptureFailed||!Access::resource(data)->attdefFieldsMatched),
+            "pairing/replay/consumer allocation failure cannot yield complete evidence and retained consumer"))return false;
+        reader.failTypedAllocation=-1;dx_data fresh;
+        if(!check(reader.fileImport(path.string(),&fresh,false)&&!Access::failed(fresh)
+            &&!fresh.typedEntityCaptureFailed&&Access::resource(fresh)->attdefFieldsMatched,
+            "typed/replay allocation fresh-import recovery"))return false;
+    }
+    std::cout<<"ATTDEF immutable capture profiles="<<profiles<<"; rich profiles="<<richProfiles<<"; field faults/retries="<<mutations
+        <<"; raw field faults/retries="<<rawMutations<<"; callback faults/retries="<<callbacks<<"; quota boundaries="<<quotas
+        <<"; source allocation faults/retries="<<calibrate.sourceAllocations
+        <<"; typed/replay allocation faults/retries="<<replayCalibrate.typedAllocations<<'\n';
+    return profiles==48u&&richProfiles==16u&&mutations==faults.size()&&callbacks==10u&&quotas==7u;
+}
+}
 int main(int argc,char** argv) {
     const bool budget=argc==2&&std::string(argv[1])=="--nested-common-budget";
-    if(argc!=1&&!budget)return 2;
+    const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
+    if(argc!=1&&!budget&&!capture)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return (budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))
+    try {return (capture?immutableCaptureTests(scratch/"generated.dxf"):
+        budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))
         :tests(scratch/"generated.dxf"))?0:1;}
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

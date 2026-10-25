@@ -80,6 +80,16 @@ public:
         return data.m_tableDxfSource.resources.at(handle);
     }
     static const auto& resources(const dx_data& data) {return data.m_tableDxfSource.resources;}
+    static bool provisionalAttdefs(const dx_data& data) {
+        for(const auto handle:{0xD001u,0xD002u}) {
+            const auto found=data.m_tableDxfSource.resources.find(handle);
+            if(found==data.m_tableDxfSource.resources.end())return false;
+            const auto& row=found->second;
+            if(row.family!=dx_tableResourceFamily::AttributeDefinition||!row.raw||!row.attdefModel
+                ||!row.attdefPairMatched||!row.attdefFieldsMatched||row.rawTypedMatched)return false;
+        }
+        return true;
+    }
     static void resourceProofLimits(dx_data& data,std::size_t records,std::size_t groups,std::size_t bytes,std::size_t work) {
         auto& s=data.m_tableDxfSource;s.maxResourceProofRecords=records;s.maxResourceProofGroups=groups;
         s.maxResourceProofBytes=bytes;s.maxResourceProofWork=work;
@@ -1533,7 +1543,10 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("map proof source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean);
-        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=14u||!frozen.rawTypedMatched
+        // Two additional ATTDEF candidate records are captured, not two new
+        // qualified families. Their modeled fields agree; full profiles do not.
+        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=16u
+            ||!DxIfaceTableSourceTestAccess::provisionalAttdefs(clean)||!frozen.rawTypedMatched
             ||frozen.references.empty()||!frozen.raw)return fail("map canonical proof failed");
         std::array<unsigned,11> roles{};unsigned handles=0u;
         for(const auto& ref:frozen.references) {
@@ -1870,7 +1883,8 @@ bool symbolSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("symbol source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const std::vector<std::string> events{"raw:STYLE","typed:STYLE","raw:STYLE","typed:STYLE","raw:LTYPE","typed:LTYPE"};
-        if(report.state!=S::Bound||report.resourceProofRecords!=15u||report.symbolProofUses==0u||probe.symbolEvents!=events)
+        if(report.state!=S::Bound||report.resourceProofRecords!=17u||!DxIfaceTableSourceTestAccess::provisionalAttdefs(clean)
+            ||report.symbolProofUses==0u||probe.symbolEvents!=events)
             return fail("symbol canonical proof/order failed");
         for(auto handle:{0xC101u,0xC102u,0xC103u}) {
             const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean,handle);
@@ -2514,7 +2528,8 @@ bool auxiliarySourceProofTests(const std::filesystem::path& dir) {
         const auto good=auxiliaryResourceSource(revision);Probe probe;dx_data clean;
         if(!write(path,good,binary)||!probe.fileImport(path.string(),&clean,false))return fail("rich auxiliary source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
-        if(report.state!=S::Bound||report.fieldProofUses==0u||report.dataLinkProofUses==0u||report.resourceProofRecords!=15u)return fail("auxiliary canonical proof failed");
+        if(report.state!=S::Bound||report.fieldProofUses==0u||report.dataLinkProofUses==0u||report.resourceProofRecords!=17u
+            ||!DxIfaceTableSourceTestAccess::provisionalAttdefs(clean))return fail("auxiliary canonical proof failed");
         const auto& field=DxIfaceTableSourceTestAccess::mapResource(clean,0xF100u);
         const auto& link=DxIfaceTableSourceTestAccess::mapResource(clean,0xF001u);
         if(!field.rawTypedMatched||!link.rawTypedMatched)return false;

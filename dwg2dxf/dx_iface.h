@@ -32,7 +32,7 @@ class DxIfaceExtensionGraphTestAccess;
 class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
-                 public DRW_DxfBlockRecordSourceHandler {
+                 public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler {
 public:
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
@@ -88,6 +88,9 @@ public:
     void addDxfRootDictionarySource(const DRW_Dictionary& dictionary,const DRW_RawDxfObject& source) override;
     bool wantsDxfBlockRecordSource() const override;
     void addDxfBlockRecordSource(const DRW_Block_Record& row,const DRW_RawDxfObject& source) override;
+    bool wantsDxfAttdefSource() const override;
+    void addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& source,
+                           const DRW_DxfAttdefSourceContext& context) override;
     // Converter resource policy, not a DXF nesting/size restriction. Separate
     // limits also provide a small deterministic boundary-test seam.
     struct ExtensionGraphLimits {
@@ -1530,6 +1533,7 @@ private:
     void retainTableEntityIdentity(const DRW_Entity& data) noexcept;
     void retainTableResourceSource(const DRW_RawDxfObject& data,const DRW_TableEntry* symbol=nullptr) noexcept;
     void proveTableResourceSource(std::uint32_t handle) noexcept;
+    void proveAttdefSourceFields(std::uint32_t handle) noexcept;
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};
     std::uint64_t m_classEvidenceReadAttempt{0};

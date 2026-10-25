@@ -1,0 +1,233 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+#ifndef ATTDEF_SOURCE_FIELD_FAULTS_H
+#define ATTDEF_SOURCE_FIELD_FAULTS_H
+#include "drw_entities.h"
+#include <functional>
+#include <string>
+#include <utility>
+#include <vector>
+
+// One-field corruption helpers. Accounting leases/capacity/padding are excluded
+// deliberately. These only operate on mutable library-owned test records.
+class DrwEntityEncodeTestAccess {
+public:
+    using CommonFault=std::pair<std::string,std::function<void(DRW_Entity&)>>;
+    static std::vector<CommonFault> nativeFaults() {
+        std::vector<CommonFault> result;
+        result.emplace_back("haveNextLinks",[](DRW_Entity& v){v.haveNextLinks=!v.haveNextLinks;});
+        result.emplace_back("hasDsData",[](DRW_Entity& v){v.hasDsData=!v.hasDsData;});
+        result.emplace_back("plotFlags",[](DRW_Entity& v){v.plotFlags=!v.plotFlags;});
+        result.emplace_back("ltFlags",[](DRW_Entity& v){v.ltFlags=!v.ltFlags;});
+        result.emplace_back("materialFlag",[](DRW_Entity& v){v.materialFlag=!v.materialFlag;});
+        result.emplace_back("shadowFlag",[](DRW_Entity& v){v.shadowFlag=!v.shadowFlag;});
+        result.emplace_back("hasFullVisualStyle",[](DRW_Entity& v){v.hasFullVisualStyle=!v.hasFullVisualStyle;});
+        result.emplace_back("hasFaceVisualStyle",[](DRW_Entity& v){v.hasFaceVisualStyle=!v.hasFaceVisualStyle;});
+        result.emplace_back("hasEdgeVisualStyle",[](DRW_Entity& v){v.hasEdgeVisualStyle=!v.hasEdgeVisualStyle;});
+        result.emplace_back("hasAcDbColorH",[](DRW_Entity& v){v.hasAcDbColorH=!v.hasAcDbColorH;});
+        result.emplace_back("acDbColorHandle",[](DRW_Entity& v){v.acDbColorHandle=!v.acDbColorHandle;});
+        result.emplace_back("nextEntLink",[](DRW_Entity& v){v.nextEntLink=!v.nextEntLink;});
+        result.emplace_back("prevEntLink",[](DRW_Entity& v){v.prevEntLink=!v.prevEntLink;});
+        result.emplace_back("ownerHandle",[](DRW_Entity& v){v.ownerHandle=!v.ownerHandle;});
+        result.emplace_back("xDictFlag",[](DRW_Entity& v){v.xDictFlag=!v.xDictFlag;});
+        result.emplace_back("numReactors",[](DRW_Entity& v){v.numReactors=!v.numReactors;});
+        result.emplace_back("commonLinkTailValidated",[](DRW_Entity& v){v.commonLinkTailValidated=!v.commonLinkTailValidated;});
+        result.emplace_back("objSize",[](DRW_Entity& v){v.objSize=!v.objSize;});
+        result.emplace_back("dwgDataEndBit",[](DRW_Entity& v){v.dwgDataEndBit=!v.dwgDataEndBit;});
+        result.emplace_back("oType",[](DRW_Entity& v){v.oType=!v.oType;});
+        result.emplace_back("dwgEedCodePage",[](DRW_Entity& v){++v.dwgEedCodePage;});
+        result.emplace_back("dwgEedAppIdWriteRefs",[](DRW_Entity& v){v.dwgEedAppIdWriteRefs.push_back({});});
+        result.emplace_back("dwgEedLayerWriteRefs",[](DRW_Entity& v){v.dwgEedLayerWriteRefs.push_back({});});
+        result.emplace_back("lTypeH.code",[](DRW_Entity& v){++v.lTypeH.code;});
+        result.emplace_back("lTypeH.size",[](DRW_Entity& v){++v.lTypeH.size;});
+        result.emplace_back("lTypeH.ref",[](DRW_Entity& v){++v.lTypeH.ref;});
+        result.emplace_back("lTypeH.ref64",[](DRW_Entity& v){++v.lTypeH.ref64;});
+        result.emplace_back("layerH.code",[](DRW_Entity& v){++v.layerH.code;});
+        result.emplace_back("layerH.size",[](DRW_Entity& v){++v.layerH.size;});
+        result.emplace_back("layerH.ref",[](DRW_Entity& v){++v.layerH.ref;});
+        result.emplace_back("layerH.ref64",[](DRW_Entity& v){++v.layerH.ref64;});
+        result.emplace_back("extAxisX.x",[](DRW_Entity& v){v.extAxisX.x+=1.0;});
+        result.emplace_back("extAxisX.y",[](DRW_Entity& v){v.extAxisX.y+=1.0;});
+        result.emplace_back("extAxisX.z",[](DRW_Entity& v){v.extAxisX.z+=1.0;});
+        result.emplace_back("extAxisY.x",[](DRW_Entity& v){v.extAxisY.x+=1.0;});
+        result.emplace_back("extAxisY.y",[](DRW_Entity& v){v.extAxisY.y+=1.0;});
+        result.emplace_back("extAxisY.z",[](DRW_Entity& v){v.extAxisY.z+=1.0;});
+        result.emplace_back("proxy-provenance.origin",[](DRW_Entity& v){v.m_proxyGraphicsProvenance.origin=DRW_ProxyGraphicsOrigin::CallerSupplied;});
+        result.emplace_back("proxy-provenance.encoding",[](DRW_Entity& v){v.m_proxyGraphicsProvenance.encoding=DRW_ProxyGraphicsEncoding::DwgBitStream;});
+        result.emplace_back("proxy-provenance.sourceVersion",[](DRW_Entity& v){v.m_proxyGraphicsProvenance.sourceVersion=DRW::AC1032;});
+        result.emplace_back("proxy-provenance.sourceCodePage",[](DRW_Entity& v){v.m_proxyGraphicsProvenance.sourceCodePage="changed-page";});
+        result.emplace_back("proxy-provenance.countCode",[](DRW_Entity& v){v.m_proxyGraphicsProvenance.countCode=7;});
+        result.emplace_back("proxy-provenance.declaredByteCount",[](DRW_Entity& v){v.m_proxyGraphicsProvenance.declaredByteCount=7u;});
+        result.emplace_back("proxy-provenance.replayAuthorized",[](DRW_Entity& v){v.m_proxyGraphicsProvenance.replayAuthorized=true;});
+        return result;
+    }
+    using Fault=std::pair<std::string,std::function<void(DRW_Attdef&)>>;
+    static std::vector<Fault> parserAndPrivateFaults() {
+        std::vector<Fault> result;
+        result.emplace_back("host.cursor",[](DRW_Attdef& v){v.curr=std::make_shared<DRW_Variant>(1010,DRW_Coord{});});
+        result.emplace_back("host.cursor-mask",[](DRW_Attdef& v){v.currCoordMask=1u;});
+        result.emplace_back("attribute-subclass",[](DRW_Attdef& v){v.dxfInAttributeSubclass=!v.dxfInAttributeSubclass;});
+        result.emplace_back("nested.cursor",[](DRW_Attdef& v){v.mtext->curr=std::make_shared<DRW_Variant>(1010,DRW_Coord{});});
+        result.emplace_back("nested.cursor-mask",[](DRW_Attdef& v){v.mtext->currCoordMask=1u;});
+        result.emplace_back("nested.scope.mode",[](DRW_Attdef& v){auto& mode=v.mtext->m_dxfOrientationScope.mode;mode=static_cast<decltype(v.mtext->m_dxfOrientationScope.mode)>((static_cast<unsigned>(mode)+1u)%3u);});
+        result.emplace_back("nested.scope.directionComponents",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.directionComponents^=1u;});
+        result.emplace_back("nested.scope.insertionComponents",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.insertionComponents^=1u;});
+        result.emplace_back("nested.scope.attachmentSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.attachmentSeen=!v.mtext->m_dxfOrientationScope.attachmentSeen;});
+        result.emplace_back("nested.scope.rectangleWidthSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.rectangleWidthSeen=!v.mtext->m_dxfOrientationScope.rectangleWidthSeen;});
+        result.emplace_back("nested.scope.rectangleHeightSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.rectangleHeightSeen=!v.mtext->m_dxfOrientationScope.rectangleHeightSeen;});
+        result.emplace_back("nested.scope.totalWidthSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.totalWidthSeen=!v.mtext->m_dxfOrientationScope.totalWidthSeen;});
+        result.emplace_back("nested.scope.totalHeightSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.totalHeightSeen=!v.mtext->m_dxfOrientationScope.totalHeightSeen;});
+        result.emplace_back("nested.scope.columnTypeSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.columnTypeSeen=!v.mtext->m_dxfOrientationScope.columnTypeSeen;});
+        result.emplace_back("nested.scope.columnCountSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.columnCountSeen=!v.mtext->m_dxfOrientationScope.columnCountSeen;});
+        result.emplace_back("nested.scope.columnWidthSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.columnWidthSeen=!v.mtext->m_dxfOrientationScope.columnWidthSeen;});
+        result.emplace_back("nested.scope.columnGutterSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.columnGutterSeen=!v.mtext->m_dxfOrientationScope.columnGutterSeen;});
+        result.emplace_back("nested.scope.autoHeightSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.autoHeightSeen=!v.mtext->m_dxfOrientationScope.autoHeightSeen;});
+        result.emplace_back("nested.scope.flowReversedSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationScope.flowReversedSeen=!v.mtext->m_dxfOrientationScope.flowReversedSeen;});
+        result.emplace_back("nested.hasXAxisVec",[](DRW_Attdef& v){v.mtext->hasXAxisVec=!v.mtext->hasXAxisVec;});
+        result.emplace_back("nested.m_dxfOrientationSeen",[](DRW_Attdef& v){v.mtext->m_dxfOrientationSeen=!v.mtext->m_dxfOrientationSeen;});
+        result.emplace_back("nested.m_dxfOrientationSnapshotValid",[](DRW_Attdef& v){v.mtext->m_dxfOrientationSnapshotValid=!v.mtext->m_dxfOrientationSnapshotValid;});
+        result.emplace_back("nested.angle-snapshot",[](DRW_Attdef& v){v.mtext->m_dxfAngleSnapshot+=1.0;});
+        result.emplace_back("nested.direction-snapshot.x",[](DRW_Attdef& v){v.mtext->m_dxfDirectionSnapshot.x+=1.0;});
+        result.emplace_back("nested.direction-snapshot.y",[](DRW_Attdef& v){v.mtext->m_dxfDirectionSnapshot.y+=1.0;});
+        result.emplace_back("nested.direction-snapshot.z",[](DRW_Attdef& v){v.mtext->m_dxfDirectionSnapshot.z+=1.0;});
+        return result;
+    }
+};
+
+inline std::vector<DrwEntityEncodeTestAccess::Fault> attdefSourceFieldFaults() {
+    using Access=DrwEntityEncodeTestAccess;
+    std::vector<Access::Fault> result;
+    std::vector<Access::CommonFault> common=Access::nativeFaults();
+    common.emplace_back("eType",[](DRW_Entity& v){v.eType=DRW::LINE;});
+    common.emplace_back("handle",[](DRW_Entity& v){v.handle=0xABCDEu;});
+    common.emplace_back("parentHandle",[](DRW_Entity& v){v.parentHandle=0xBCDEFu;});
+    common.emplace_back("space",[](DRW_Entity& v){v.space=DRW::PaperSpace;});
+    common.emplace_back("layer",[](DRW_Entity& v){v.layer="changed-layer";});
+    common.emplace_back("lineType",[](DRW_Entity& v){v.lineType="changed-type";});
+    common.emplace_back("material",[](DRW_Entity& v){v.material=0xA123u;});
+    common.emplace_back("color",[](DRW_Entity& v){v.color=2;});
+    common.emplace_back("lWeight",[](DRW_Entity& v){v.lWeight=DRW_LW_Conv::widthByBlock;});
+    common.emplace_back("ltypeScale",[](DRW_Entity& v){v.ltypeScale=-0.0;});
+    common.emplace_back("visible",[](DRW_Entity& v){v.visible=false;});
+    common.emplace_back("numProxyGraph",[](DRW_Entity& v){v.numProxyGraph=1;});
+    common.emplace_back("proxyGraphics",[](DRW_Entity& v){v.proxyGraphics="changed-proxy";});
+    common.emplace_back("color24",[](DRW_Entity& v){v.color24=123;});
+    common.emplace_back("colorName",[](DRW_Entity& v){v.colorName="changed-color";});
+    common.emplace_back("transparency",[](DRW_Entity& v){v.transparency=12;});
+    common.emplace_back("plotStyle",[](DRW_Entity& v){v.plotStyle=0xA234;});
+    common.emplace_back("shadow",[](DRW_Entity& v){v.shadow=DRW::IgnoreShadows;});
+    common.emplace_back("shadowHandle",[](DRW_Entity& v){v.shadowHandle=123u;});
+    common.emplace_back("fullVisualStyleHandle",[](DRW_Entity& v){v.fullVisualStyleHandle=123u;});
+    common.emplace_back("faceVisualStyleHandle",[](DRW_Entity& v){v.faceVisualStyleHandle=123u;});
+    common.emplace_back("edgeVisualStyleHandle",[](DRW_Entity& v){v.edgeVisualStyleHandle=123u;});
+    common.emplace_back("reactorHandles",[](DRW_Entity& v){v.reactorHandles={1u};});
+    common.emplace_back("xDictHandle",[](DRW_Entity& v){v.xDictHandle=123u;});
+    common.emplace_back("hasDataStorageRecord",[](DRW_Entity& v){v.hasDataStorageRecord=true;});
+    common.emplace_back("dataStorageHandle",[](DRW_Entity& v){v.dataStorageHandle=0x100000001ull;});
+    common.emplace_back("dataStorageHandleKey",[](DRW_Entity& v){v.dataStorageHandleKey="changed-key";});
+    common.emplace_back("dataStorageData",[](DRW_Entity& v){v.dataStorageData={1u};});
+    common.emplace_back("dataStorageSegmentIndex",[](DRW_Entity& v){v.dataStorageSegmentIndex=1u;});
+    common.emplace_back("dataStorageSchemaIndex",[](DRW_Entity& v){v.dataStorageSchemaIndex=1u;});
+    common.emplace_back("hasDataStoragePayloadMarker",[](DRW_Entity& v){v.hasDataStoragePayloadMarker=true;});
+    common.emplace_back("dataStoragePayloadMarkerOffset",[](DRW_Entity& v){v.dataStoragePayloadMarkerOffset=1u;});
+    common.emplace_back("dataStoragePayloadMarkerLength",[](DRW_Entity& v){v.dataStoragePayloadMarkerLength=1u;});
+    common.emplace_back("dataStoragePayloadMarkerSection",[](DRW_Entity& v){v.dataStoragePayloadMarkerSection="changed-section";});
+    common.emplace_back("haveExtrusion",[](DRW_Entity& v){v.haveExtrusion=!v.haveExtrusion;});
+    common.emplace_back("pendingAppIdResolutions",[](DRW_Entity& v){v.pendingAppIdResolutions={{1u,2u,3u,true}};});
+    common.emplace_back("pendingLayerRefResolutions",[](DRW_Entity& v){v.pendingLayerRefResolutions={{1u,2u,3u,true}};});
+    common.emplace_back("appData",[](DRW_Entity& v){v.appData.front().front()=DRW_Variant(102,std::string("{CHANGED"));});
+    common.emplace_back("extData",[](DRW_Entity& v){v.extData.push_back(std::make_shared<DRW_Variant>(1070,12));});
+    for(const auto& fault:common) {
+        result.emplace_back("host."+fault.first,[f=fault.second](DRW_Attdef& v){f(v);});
+        result.emplace_back("nested."+fault.first,[f=fault.second](DRW_Attdef& v){f(*v.mtext);});
+    }
+    using TextFault=std::pair<std::string,std::function<void(DRW_Text&)>>;
+    std::vector<TextFault> text;
+    text.emplace_back("height",[](DRW_Text& v){v.height=7.0;});
+    text.emplace_back("text",[](DRW_Text& v){v.text="changed-text";});
+    text.emplace_back("angle",[](DRW_Text& v){v.angle=7.0;});
+    text.emplace_back("widthscale",[](DRW_Text& v){v.widthscale=7.0;});
+    text.emplace_back("oblique",[](DRW_Text& v){v.oblique=7.0;});
+    text.emplace_back("style",[](DRW_Text& v){v.style="changed-style";});
+    text.emplace_back("textgen",[](DRW_Text& v){v.textgen=9;});
+    text.emplace_back("alignH",[](DRW_Text& v){v.alignH=DRW_Text::HCenter;});
+    text.emplace_back("alignV",[](DRW_Text& v){v.alignV=DRW_Text::VTop;});
+    text.emplace_back("thickness",[](DRW_Text& v){v.thickness=7.0;});
+    text.emplace_back("xAxisAngle",[](DRW_Text& v){v.xAxisAngle=7.0;});
+    text.emplace_back("basePoint.x",[](DRW_Text& v){v.basePoint.x+=1.0;});
+    text.emplace_back("basePoint.y",[](DRW_Text& v){v.basePoint.y+=1.0;});
+    text.emplace_back("basePoint.z",[](DRW_Text& v){v.basePoint.z+=1.0;});
+    text.emplace_back("secPoint.x",[](DRW_Text& v){v.secPoint.x+=1.0;});
+    text.emplace_back("secPoint.y",[](DRW_Text& v){v.secPoint.y+=1.0;});
+    text.emplace_back("secPoint.z",[](DRW_Text& v){v.secPoint.z+=1.0;});
+    text.emplace_back("extPoint.x",[](DRW_Text& v){v.extPoint.x+=1.0;});
+    text.emplace_back("extPoint.y",[](DRW_Text& v){v.extPoint.y+=1.0;});
+    text.emplace_back("extPoint.z",[](DRW_Text& v){v.extPoint.z+=1.0;});
+    text.emplace_back("styleH.code",[](DRW_Text& v){++v.styleH.code;});
+    text.emplace_back("styleH.size",[](DRW_Text& v){++v.styleH.size;});
+    text.emplace_back("styleH.ref",[](DRW_Text& v){++v.styleH.ref;});
+    text.emplace_back("styleH.ref64",[](DRW_Text& v){++v.styleH.ref64;});
+    for(const auto& fault:text) {
+        result.emplace_back("host."+fault.first,[f=fault.second](DRW_Attdef& v){f(v);});
+        result.emplace_back("nested."+fault.first,[f=fault.second](DRW_Attdef& v){f(*v.mtext);});
+    }
+    result.emplace_back("prompt",[](DRW_Attdef& v){v.prompt="changed-prompt";});
+    result.emplace_back("tag",[](DRW_Attdef& v){v.tag="changed-tag";});
+    result.emplace_back("attribFlags",[](DRW_Attdef& v){v.attribFlags=1;});
+    result.emplace_back("m_fieldLength",[](DRW_Attdef& v){v.m_fieldLength=12;});
+    result.emplace_back("lockPosition",[](DRW_Attdef& v){v.lockPosition=false;});
+    result.emplace_back("attVersion",[](DRW_Attdef& v){v.attVersion=7;});
+    result.emplace_back("m_attributeType",[](DRW_Attdef& v){v.m_attributeType=1;});
+    result.emplace_back("keepDuplicateRecords",[](DRW_Attdef& v){v.keepDuplicateRecords=7;});
+    result.emplace_back("m_r2018OuterAnnotativeData",[](DRW_Attdef& v){v.m_r2018OuterAnnotativeData={1u};});
+    result.emplace_back("m_r2018OuterAnnotativeUnknown",[](DRW_Attdef& v){v.m_r2018OuterAnnotativeUnknown=7u;});
+    result.emplace_back("m_r2018OuterAnnotativeAppHandle",[](DRW_Attdef& v){v.m_r2018OuterAnnotativeAppHandle=7u;});
+    result.emplace_back("m_r2018OuterAnnotativeAppIdName",[](DRW_Attdef& v){v.m_r2018OuterAnnotativeAppIdName="changed-app";});
+    result.emplace_back("nested-presence",[](DRW_Attdef& v){v.mtext.reset();});
+    result.emplace_back("host.negative-zero-thickness",[](DRW_Attdef& v){v.thickness=-0.0;});
+    result.emplace_back("nested.negative-zero-thickness",[](DRW_Attdef& v){v.mtext->thickness=-0.0;});
+    result.emplace_back("nested.interlin",[](DRW_Attdef& v){v.mtext->interlin=7.0;});
+    result.emplace_back("nested.linespacingStyle",[](DRW_Attdef& v){v.mtext->linespacingStyle=2;});
+    result.emplace_back("nested.m_definedHeight",[](DRW_Attdef& v){v.mtext->m_definedHeight=17.0;});
+    result.emplace_back("nested.m_definedHeightPresent",[](DRW_Attdef& v){v.mtext->m_definedHeightPresent=false;});
+    result.emplace_back("nested.m_backgroundFlags",[](DRW_Attdef& v){v.mtext->m_backgroundFlags=7;});
+    result.emplace_back("nested.m_backgroundScale",[](DRW_Attdef& v){v.mtext->m_backgroundScale=7.0;});
+    result.emplace_back("nested.m_backgroundColor",[](DRW_Attdef& v){v.mtext->m_backgroundColor=7;});
+    result.emplace_back("nested.m_backgroundColorTrue",[](DRW_Attdef& v){v.mtext->m_backgroundColorTrue=123;});
+    result.emplace_back("nested.m_backgroundColorName",[](DRW_Attdef& v){v.mtext->m_backgroundColorName="changed-name";});
+    result.emplace_back("nested.m_backgroundTransparency",[](DRW_Attdef& v){v.mtext->m_backgroundTransparency=123;});
+    result.emplace_back("nested.m_r2018IsNotAnnotative",[](DRW_Attdef& v){v.mtext->m_r2018IsNotAnnotative=true;});
+    result.emplace_back("nested.m_r2018ReallyLocked",[](DRW_Attdef& v){v.mtext->m_r2018ReallyLocked=true;});
+    result.emplace_back("nested.m_r2018Version",[](DRW_Attdef& v){v.mtext->m_r2018Version=7;});
+    result.emplace_back("nested.m_r2018DefaultFlag",[](DRW_Attdef& v){v.mtext->m_r2018DefaultFlag=true;});
+    result.emplace_back("nested.m_r2018AppIdHandle",[](DRW_Attdef& v){v.mtext->m_r2018AppIdHandle=123u;});
+    result.emplace_back("nested.m_r2018Attachment",[](DRW_Attdef& v){v.mtext->m_r2018Attachment=9;});
+    result.emplace_back("nested.m_r2018RectWidth",[](DRW_Attdef& v){v.mtext->m_r2018RectWidth=7.0;});
+    result.emplace_back("nested.m_r2018RectHeight",[](DRW_Attdef& v){v.mtext->m_r2018RectHeight=7.0;});
+    result.emplace_back("nested.m_r2018ExtentsHeight",[](DRW_Attdef& v){v.mtext->m_r2018ExtentsHeight=7.0;});
+    result.emplace_back("nested.m_r2018ExtentsWidth",[](DRW_Attdef& v){v.mtext->m_r2018ExtentsWidth=7.0;});
+    result.emplace_back("nested.m_r2018ColumnType",[](DRW_Attdef& v){v.mtext->m_r2018ColumnType=7;});
+    result.emplace_back("nested.m_r2018ColumnCount",[](DRW_Attdef& v){v.mtext->m_r2018ColumnCount=7;});
+    result.emplace_back("nested.m_r2018ColumnWidth",[](DRW_Attdef& v){v.mtext->m_r2018ColumnWidth=7.0;});
+    result.emplace_back("nested.m_r2018ColumnGutter",[](DRW_Attdef& v){v.mtext->m_r2018ColumnGutter=7.0;});
+    result.emplace_back("nested.m_r2018ColumnAutoHeight",[](DRW_Attdef& v){v.mtext->m_r2018ColumnAutoHeight=true;});
+    result.emplace_back("nested.m_r2018ColumnFlowReversed",[](DRW_Attdef& v){v.mtext->m_r2018ColumnFlowReversed=true;});
+    result.emplace_back("nested.m_r2018ColumnHeights",[](DRW_Attdef& v){v.mtext->m_r2018ColumnHeights={7.0};});
+    result.emplace_back("nested.m_r2018DxfColumnContextPresent",[](DRW_Attdef& v){v.mtext->m_r2018DxfColumnContextPresent=true;});
+    result.emplace_back("nested.m_r2018AnnotativeData",[](DRW_Attdef& v){v.mtext->m_r2018AnnotativeData={1u};});
+    result.emplace_back("nested.m_r2018AnnotativeUnknown",[](DRW_Attdef& v){v.mtext->m_r2018AnnotativeUnknown=7u;});
+    result.emplace_back("nested.m_r2018AnnotativeAppHandle",[](DRW_Attdef& v){v.mtext->m_r2018AnnotativeAppHandle=123u;});
+    result.emplace_back("nested.m_backgroundColorDwgMethod",[](DRW_Attdef& v){v.mtext->m_backgroundColorDwgMethod=0xC2u;});
+    result.emplace_back("nested.m_backgroundColorDwgFlags",[](DRW_Attdef& v){v.mtext->m_backgroundColorDwgFlags=1u;});
+    result.emplace_back("nested.m_backgroundColorDwgIndex",[](DRW_Attdef& v){v.mtext->m_backgroundColorDwgIndex=1u;});
+    result.emplace_back("nested.m_backgroundColorDwgMetadataPresent",[](DRW_Attdef& v){v.mtext->m_backgroundColorDwgMetadataPresent=true;});
+    result.emplace_back("nested.m_r2018XAxisDir.x",[](DRW_Attdef& v){v.mtext->m_r2018XAxisDir.x+=1.0;});
+    result.emplace_back("nested.m_r2018XAxisDir.y",[](DRW_Attdef& v){v.mtext->m_r2018XAxisDir.y+=1.0;});
+    result.emplace_back("nested.m_r2018XAxisDir.z",[](DRW_Attdef& v){v.mtext->m_r2018XAxisDir.z+=1.0;});
+    result.emplace_back("nested.m_r2018InsertionPoint.x",[](DRW_Attdef& v){v.mtext->m_r2018InsertionPoint.x+=1.0;});
+    result.emplace_back("nested.m_r2018InsertionPoint.y",[](DRW_Attdef& v){v.mtext->m_r2018InsertionPoint.y+=1.0;});
+    result.emplace_back("nested.m_r2018InsertionPoint.z",[](DRW_Attdef& v){v.mtext->m_r2018InsertionPoint.z+=1.0;});
+    auto privateFaults=Access::parserAndPrivateFaults();
+    result.insert(result.end(),privateFaults.begin(),privateFaults.end());
+    return result;
+}
+#endif

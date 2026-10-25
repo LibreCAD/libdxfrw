@@ -17788,7 +17788,34 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
     if (!tableSourceCaptureOpen() || data.handle==0u || data.eType==DRW::TABLE) return;
     auto& source=cData->m_tableDxfSource;
     if (source.resourceCaptureFailed) return;
-    if (source.resources.count(data.handle)) {source.resourceCaptureFailed=true;return;}
+    const auto pending=source.resources.find(data.handle);
+    if(pending!=source.resources.end()) {
+        auto& row=pending->second;
+        const auto* definition=dynamic_cast<const DRW_Attdef*>(&data);
+        if(!definition||!row.awaitingAttdef||!row.attdefModel||!row.raw
+            ||row.family!=dx_tableResourceFamily::AttributeDefinition) {
+            source.resourceCaptureFailed=true;return;
+        }
+        row.awaitingAttdef=false;
+        if(!source.attdefPending){source.resourceProofCaptureFailed=true;return;}
+        --source.attdefPending;
+        std::size_t work=0u;
+        if(!dxfAttdef::Decoder::hasNoNativeWriteBindings(*definition)
+            ||!estimateTypedEntityRetainedBytes(*definition,sizeof(DRW_Attdef),work)
+            ||source.resourceProofWork>source.maxResourceProofWork
+            ||work>source.maxResourceProofWork-source.resourceProofWork) {
+            source.resourceProofCaptureFailed=true;return;
+        }
+        source.resourceProofWork+=work;
+        const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {
+            return standardDwgVariantEqual(a,b,row.raw->m_version);
+        };
+        row.attdefPairMatched=dxfAttdef::Decoder::observe(*definition)==row.attdefState
+            &&dxfAttdef::Decoder::sameModel(*definition,*row.attdefModel,equal);
+        if(!row.attdefPairMatched)source.resourceProofCaptureFailed=true;
+        else proveAttdefSourceFields(data.handle);
+        return;
+    }
     if (!chargeTableResource(0u,0u)) return;
     try {
         dx_data::TableDxfSourceCapture::Resource resource;
@@ -17804,6 +17831,73 @@ bool dx_iface::wantsDxfSymbolSource() const {return tableSourceCaptureOpen();}
 bool dx_iface::wantsDxfRootDictionarySource() const {return tableSourceCaptureOpen();}
 
 bool dx_iface::wantsDxfBlockRecordSource() const {return tableSourceCaptureOpen();}
+
+bool dx_iface::wantsDxfAttdefSource() const {
+    if(!tableSourceCaptureOpen())return false;
+    const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);
+    return version>=DRW::AC1021&&version<=DRW::AC1032;
+}
+
+void dx_iface::addDxfAttdefSource(const DRW_Attdef& value,const DRW_RawDxfObject& raw,
+                                 const DRW_DxfAttdefSourceContext& context) {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    if(!tableSourceCaptureOpen()){source.contextFailed=true;return;}
+    if(source.resourceCaptureFailed||source.resourceProofCaptureFailed)return;
+    const auto fail=[&](){source.resourceProofCaptureFailed=true;};
+    if(value.eType!=DRW::ATTDEF||!asciiIdentifierEquals(raw.name,"ATTDEF")
+        ||raw.handle!=value.handle||raw.parentHandle!=value.parentHandle
+        ||raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
+        ||raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032
+        ||!dxfAttdef::Decoder::hasNoNativeWriteBindings(value)
+        // fileImport's actual DXF read option is false, not inferred from
+        // TEXT's currently no-op extrusion implementation.
+        ||context.applyExtrusion||!currentBlock
+        ||context.inBlock!=(currentBlock!=cData->mBlock)) {fail();return;}
+    if(!value.handle)return; // No modern resource can select a handle-free row.
+    if(source.resources.count(value.handle)){fail();return;}
+    const auto groups=raw.groups.size();
+    if(raw.rawValues.size()!=groups||source.resourceProofRecords>=source.maxResourceProofRecords
+        ||source.resourceProofGroups>source.maxResourceProofGroups
+        ||groups>source.maxResourceProofGroups-source.resourceProofGroups
+        ||groups>source.maxResourceProofWork/64u) {fail();return;}
+    for(const auto& field:raw.groups)
+        if((field.type()!=DRW_Variant::STRING&&field.type()!=DRW_Variant::INTEGER
+                &&field.type()!=DRW_Variant::INTEGER64&&field.type()!=DRW_Variant::DOUBLE)
+            ||(field.type()==DRW_Variant::STRING&&!field.content.s)
+            ||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()) {fail();return;}
+    std::size_t modelBytes=0u,rawBytes=0u,proofBytes=0u;
+    const UTF8STRING& blockName=currentBlock->name;
+    if(!estimateTypedEntityRetainedBytes(value,sizeof(DRW_Attdef),modelBytes)
+        ||!estimateRawDxfObjectBytes(raw,rawBytes)
+        ||!addAssociativeRetainedBytes(rawBytes,proofBytes)
+        ||!addAssociativeRetainedBytes(8u*sizeof(void*),proofBytes)
+        ||!addAssociativeRetainedBytes(blockName.size()+1u,modelBytes)) {fail();return;}
+    // Precharge the frozen model plus a conservative complete extra model
+    // allowance for copying temporaries (ATTRIB copies XDATA twice). This is
+    // a logical bound, not allocator/RSS or exhaustive temporary accounting.
+    std::size_t modelAllowance=modelBytes;
+    if(!addAssociativeRetainedBytes(modelBytes,modelAllowance)
+        ||source.resourceProofWork>source.maxResourceProofWork
+        ||groups*64u>source.maxResourceProofWork-source.resourceProofWork
+        ||modelBytes>source.maxResourceProofWork-source.resourceProofWork-groups*64u
+        ||source.resourceProofBytes>source.maxResourceProofBytes
+        ||proofBytes>source.maxResourceProofBytes-source.resourceProofBytes) {fail();return;}
+    if(!chargeTableResource(modelAllowance,groups+1u))return;
+    source.resourceProofWork+=groups*64u+modelBytes;
+    ++source.resourceProofRecords;source.resourceProofGroups+=groups;source.resourceProofBytes+=proofBytes;
+    try {
+        dx_data::TableDxfSourceCapture::Resource row;
+        row.family=dx_tableResourceFamily::AttributeDefinition;row.owner=value.parentHandle;
+        row.attdefState=dxfAttdef::Decoder::observe(value); // BEFORE the copy resets state.
+        row.attdefContext=context;row.attdefBlockHandle=currentBlock->handle;
+        row.attdefBlockRecord=currentBlock->parentHandle;row.attdefBlockName=blockName;
+        row.attdefModel=std::make_shared<const DRW_Attdef>(value);
+        row.raw=std::make_shared<const DRW_RawDxfObject>(raw);row.awaitingAttdef=true;
+        if(!source.resources.emplace(value.handle,std::move(row)).second)fail();
+        else ++source.attdefPending;
+    } catch (...) {fail();}
+}
 
 void dx_iface::addDxfBlockRecordSource(const DRW_Block_Record& row,const DRW_RawDxfObject& raw) {
     if(!cData)return;
@@ -17908,6 +18002,69 @@ void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_T
         }
         found->second.raw=std::move(copy);
         proveTableResourceSource(raw.handle);
+    } catch (...) {source.resourceProofCaptureFailed=true;}
+}
+
+void dx_iface::proveAttdefSourceFields(std::uint32_t handle) noexcept {
+    if(!tableSourceCaptureOpen())return;
+    auto& source=cData->m_tableDxfSource;
+    const auto found=source.resources.find(handle);
+    if(source.resourceProofCaptureFailed||found==source.resources.end())return;
+    auto& row=found->second;
+    if(!row.attdefPairMatched||!row.attdefModel||!row.raw)return;
+    row.attdefFieldMismatch=true;
+    try {
+        std::size_t rawBytes=0u,modelBytes=0u,temporary=0u;
+        if(!estimateRawDxfObjectBytes(*row.raw,rawBytes)
+            ||!estimateTypedEntityRetainedBytes(*row.attdefModel,sizeof(DRW_Attdef),modelBytes)) {
+            source.resourceProofCaptureFailed=true;return;
+        }
+        // Conservative allowances for transport validation/body and decoder
+        // token/model temporaries. Not an allocator-capacity or RSS proof.
+        for(unsigned i=0;i<3u;++i)if(!addAssociativeRetainedBytes(rawBytes,temporary)) {
+            source.resourceProofCaptureFailed=true;return;
+        }
+        std::size_t work=temporary;
+        if(!addAssociativeRetainedBytes(modelBytes,work)
+            ||source.resourceProofBytes>source.maxResourceProofBytes
+            ||temporary>source.maxResourceProofBytes-source.resourceProofBytes
+            ||source.resourceProofWork>source.maxResourceProofWork
+            ||work>source.maxResourceProofWork-source.resourceProofWork) {
+            source.resourceProofCaptureFailed=true;return;
+        }
+        source.resourceProofBytes+=temporary;source.resourceProofWork+=work;
+        std::string body;
+        if(!tableResourceSourceBody(*row.raw,source.maxResourceProofBytes,body)) {
+            source.resourceProofCaptureFailed=true;return;
+        }
+        dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=row.raw->m_version;
+        view.binary=!row.raw->hasRawValues;view.codePage="UTF-8";
+        dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
+        auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxResourceProofBytes);
+        auto reader=dx_standard_output::readerFor(input,view,budget);
+        if(!reader){source.resourceProofCaptureFailed=true;return;}
+        reader->setRecordBudget(row.raw->groups.size());
+        reader->setTypedVariantNodeBudget(source.maxResourceProofWork-source.resourceProofWork);
+        reader->setDecodeWorkBudget(source.maxResourceProofWork-source.resourceProofWork);
+        DRW_Attdef parsed;dxfAttdef::Decoder decoder(parsed);int code=0;
+        bool decoded=true;
+        while(buffer.position()<body.size()) {
+            if(!reader->readRec(&code)||code==0
+                ||!(code==102?decoder.parseApplication(reader):decoder.parseCode(code,reader))) {decoded=false;break;}
+        }
+        source.resourceProofWork+=reader->decodeWorkCount();
+        if(budget->exceeded()||reader->recordBudgetExceeded()||reader->tokenByteBudgetExceeded()
+            ||reader->inputByteBudgetExceeded()||reader->decodeWorkBudgetExceeded()
+            ||reader->typedVariantNodeBudgetExceeded()) {source.resourceProofCaptureFailed=true;return;}
+        if(!decoded||reader->recordCount()!=row.raw->groups.size()||!decoder.finish(row.attdefContext.applyExtrusion)
+            ||!row.attdefState.hasNoPendingXdata()||!(dxfAttdef::Decoder::observe(parsed)==row.attdefState))return;
+        const auto equal=[&](const DRW_Variant& a,const DRW_Variant& b) noexcept {
+            return standardDwgVariantEqual(a,b,row.raw->m_version);
+        };
+        if(!dxfAttdef::Decoder::sameModel(parsed,*row.attdefModel,equal))return;
+        row.attdefFieldMismatch=false;row.attdefFieldsMatched=true;
+        // Deliberately NOT rawTypedMatched: full selected-profile/reference,
+        // enclosing block and secondary-attribute qualification are separate.
     } catch (...) {source.resourceProofCaptureFailed=true;}
 }
 
@@ -18240,6 +18397,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     if (!m_tableSourceReadData) return;
     auto& data = *m_tableSourceReadData;
     auto& source = data.m_tableDxfSource;
+    if(source.attdefPending)source.resourceProofCaptureFailed=true;
     source.closed = true;
     source.successful = success && data.sourceFormat == dx_source_format::DXF
         && data.dxfReadOutcome.operationSucceeded && !data.dxfReadOutcome.readThrew

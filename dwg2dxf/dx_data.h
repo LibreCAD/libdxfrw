@@ -17,6 +17,7 @@
 #include "dx_raster_dwg_wire.h"
 #include "dx_dwg_class_evidence.h"
 #include "intern/dxftablereferences.h"
+#include "intern/dxfattdef.h"
 
 #include <array>
 #include <cstddef>
@@ -1020,6 +1021,15 @@ private:
             dx_tableResourceFamily family{dx_tableResourceFamily::Entity};
             std::uint32_t owner{0};
             std::shared_ptr<const DRW_TableEntry> model;
+            // ATTDEF is an entity, never a forged DRW_TableEntry. Pairing
+            // capture is not raw replay, target/profile or output proof.
+            std::shared_ptr<const DRW_Attdef> attdefModel;
+            dxfAttdef::SourceState attdefState;
+            DRW_DxfAttdefSourceContext attdefContext;
+            std::uint32_t attdefBlockHandle{0},attdefBlockRecord{0};
+            UTF8STRING attdefBlockName;
+            bool awaitingAttdef{false},attdefPairMatched{false};
+            bool attdefFieldsMatched{false},attdefFieldMismatch{false};
             std::set<int> styleIds;
             bool duplicateStyleId{false}, invalidStyleId{false}, namespaceComplete{false};
             std::uint32_t cellMapTarget{0};
@@ -1045,6 +1055,7 @@ private:
         std::size_t maxResourceProofRecords{100000u}, maxResourceProofGroups{4000000u};
         std::size_t maxResourceProofBytes{64u*1024u*1024u}, maxResourceProofWork{4000000u};
         bool resourceProofCaptureFailed{false};
+        std::size_t attdefPending{0};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

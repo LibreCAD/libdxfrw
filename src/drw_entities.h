@@ -181,6 +181,7 @@ class DrwBlockStateTestAccess;       // test-only BLOCK reset-state checks
 */
 class DRW_Entity {
     SETENTFRIENDS
+    friend class dxfAttdef::Decoder;
 public:
     //initializes default values
 	DRW_Entity() = default;
@@ -2482,6 +2483,7 @@ public:
 */
 class DRW_Attrib : public DRW_Text {
     SETENTFRIENDS
+    friend class dxfAttdef::Decoder;
 private:
     std::size_t m_dxfRetainedTagBytes{0};
 

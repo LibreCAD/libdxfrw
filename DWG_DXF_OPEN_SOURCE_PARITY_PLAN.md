@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5do nested MTEXT common-owner accounting prerequisite (2026-10-25):** immutable ATTDEF capture readiness exposed an existing retained-byte gap: nested MTEXT text/formatting was charged, but its common strings, application groups, XDATA and metadata vectors were omitted. Attribute retention now calls the existing common-owner estimator too. Sixty payload/container cells, 120 exact/short boundaries, 60 budget retries, 119 calibrated allocation refusals/retries and 32 actual import routes pass. The fast affected selection passes 24/24 normally and under ASan. This fixes a prerequisite, not the still-open immutable ATTDEF source proof or a new qualified resource family. [Implementation and next work](#implementation-progress-rpp-5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25) · [receipt](docs/research/rpp5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dp immutable ATTDEF capture and modeled replay (2026-10-25):** the converter now opts into the separate facet during known-modern actual imports. It freezes an entity/raw/context pair and observes original parser state before copies reset it, compares the later typed callback, and replays the original source through the shared decoder. Forty-eight base and 16 rich profiles, 296 callback-field faults, eight raw-field faults, seven quota boundaries and calibrated source/replay allocation controls pass. These are modeled-field prerequisites, not complete selected-profile/reference qualification: the ATTDEF `rawTypedMatched` flag remains false and the proved family count remains nine. [Implementation and next work](#implementation-progress-rpp-5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5do nested MTEXT common-owner accounting prerequisite (2026-10-25):** committed as `2e4bb6af`. Its corrected nested common-owner charge, 60-cell/32-import coverage and budget/allocation recovery remain valid. RPP-5dp uses that estimator for real immutable capture and records original state separately; full ATTDEF profile/role/block/target and original parity work remain open. [Historical implementation](#implementation-progress-rpp-5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25) · [receipt](docs/research/rpp5do-nested-mtext-common-owner-accounting-prerequisite-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dn legacy MTEXT immutable identities and independent XDATA wire proof (2026-10-25):** committed as `9bfd7320`. Its corrected source-identity oracle, original-byte link/XDATA checks, corruption controls and failure/recovery coverage remain valid. RPP-5do fixes an additional retained-owner prerequisite before converter ATTDEF snapshots are introduced; it does not reopen support/export gates. Full immutable ATTDEF source proof remains next. [Historical implementation](#implementation-progress-rpp-5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25) · [receipt](docs/research/rpp5dn-legacy-mtext-immutable-identities-and-independent-xdata-wire-proof-2026-10-25.json).
 
@@ -125908,13 +125910,17 @@ Implementation-readiness findings that must guide the next source-proof work:
 
 Next implementation-ready work, with the full objective unchanged:
 
-1. [ ] **Immutable ATTDEF capture and original-state observation.** Opt into
+1. [x] **Immutable ATTDEF capture and original-state observation.** Implemented
+   by RPP-5dp below for known-modern import sessions; complete profile/target and
+   whole-owner/capacity qualification remain separate. Opt into
    the separate source facet only in the real bounded CLI import session. Add
    an entity snapshot owner to `TableDxfSourceCapture::Resource`, not a cast into
    its table-entry owner. Precharge raw/model/temporary owners using the corrected
    estimator and shared limits. Observe original pending/provenance state before
    copies reset it; preserve opt-out behavior and old virtual interfaces.
-2. [ ] **Replay, equality and selected-target gate.** Share the production
+2. [ ] **Replay, equality and selected-target gate.** RPP-5dp implements
+   modeled replay/equality; the complete selected-profile/reference gate remains
+   open. Share the production
    decoder and actual context; compare every exposed/default/native-only common,
    TEXT/ATTRIB/ATTDEF/nested-MTEXT field and original-state observation. Add a
    field census and one-field mutations, sticky missing/duplicate/late/session
@@ -125942,3 +125948,148 @@ resource-family count stays **nine**. The support ledger remains **CLOSED**,
 Native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel work
 remain **NOT_RUN**. The full implementation goal stays open. No remote mutation
 or support promotion is included.
+
+## Implementation progress RPP-5dp immutable ATTDEF capture and modeled replay (2026-10-25)
+
+Parent is `2e4bb6af6c4dd54d300e0f7e8d6921070de90f6d`. The converter now captures
+immutable ATTDEF evidence and checks **modeled field agreement**, rather than
+identity alone. This is not completion of the full source/target/profile plan.
+
+Completed implementation:
+
+1. [x] Opt into existing `DRW_DxfAttdefSourceHandler` only while the actual
+   bounded DXF import session is open and its declared HEADER revision is known
+   AC1021–AC1032. Legacy, unknown-header and explicit opt-out paths retain their
+   identity-only behavior. No installed `DRW_Interface` vtable or DRW model
+   layout changes; the CLI adapter adds the separate facet. Only two friend
+   declarations are added to expose internal read-only model/state inspection.
+2. [x] Retain one correctly typed `shared_ptr<const DRW_Attdef>`, complete raw
+   body, requested read context and actual enclosing block handle/record/name.
+   Never cast the entity into `DRW_TableEntry`. Freeze cursor presence/masks,
+   attribute-subclass routing and every nested grammar field **before copying**.
+   The observed block context is evidence to qualify later, not a complete
+   BLOCK/ENDBLK source certificate.
+3. [x] Precharge record/item/byte/work limits before allocation. Include the
+   corrected nested common payload, a conservative extra model allowance for
+   copying temporaries and raw transport/token/decoder allowances. Refuse native
+   writer-only EED binding vectors before copying them; they are outside the
+   admitted DXF snapshot profile. These are logical conservative allowances,
+   not exact allocator capacity, whole-model RSS or exhaustive temporary peaks.
+4. [x] Require a single ordered source/typed pair and exact retained model plus
+   original-state agreement. A constant-time pending counter catches missing
+   typed publication at session closure; no repeated whole-model scan is added.
+   Duplicate, wrong-family/identity, stale context and out-of-session source
+   calls are sticky failures. Missing source stays identity-only, never becomes
+   a typed-only snapshot. Failed captures may leave conservatively charged
+   counters/prefixes; recovery uses a fresh destination/session, not flag erasure.
+5. [x] Reconstruct bounded original ASCII spellings or exact binary scalar
+   transport and replay through `dxfAttdef::Decoder`. Share required-field,
+   application/XDATA routing, cursor clearing and finalization policy. Use the
+   actual modern declared revision/encoding; validate the converter's actual
+   `applyExtrusion=false` option rather than guessing from TEXT's no-op transform.
+   Compare modeled fields, provenance and original parser state. Incomplete
+   XDATA cannot qualify simply because copying clears its cursor.
+
+Keep these evidence layers distinct:
+
+| Private flag | What it establishes | What it does not establish |
+| --- | --- | --- |
+| `attdefPairMatched` | The two delivered callbacks agree with the frozen model/state. | The raw body agrees or the profile is supported. |
+| `attdefFieldsMatched` | Shared-decoder replay of raw transport agrees with modeled fields/state. | Independent semantics, full physical roles, block/secondary profiles or targets. |
+| `rawTypedMatched` | Existing complete resource-profile gate. | It is deliberately **false** for ATTDEF in this slice. |
+
+The comparator covers current persisted/default/native-only common, point/line,
+TEXT, ATTRIB, ATTDEF and nested-MTEXT fields, proxy provenance, complete handle
+components, variants and pending native references. Doubles/coordinates compare
+bitwise, including signed zero. An [Apple Clang field census](docs/research/rpp5dp-attdef-model-field-census-2026-10-25.json)
+inventories **149 direct fields** across seven classes: **137 persisted comparison
+slots**, **four original-state providers** and **eight accounting-only exclusions**.
+It also checks all 14 nested grammar members. Compiler/name-reference coverage
+is an audit aid, not a semantic theorem; accounting leases/counters, capacity,
+padding and vptrs are deliberately excluded, not hashed as model data.
+
+Owning controls per invocation:
+
+- [x] **48 base profiles**: four modern revisions × ASCII/binary × BLOCKS/
+  ENTITIES × classic/101/legacy-100 embedded forms. Add **16 rich profiles**
+  exercising nondefault common fields, proxy bytes/provenance and nested true-
+  color/background names/transparency. These modeled-value checks do not qualify
+  their referenced resources, renderer behavior or whole drawings.
+- [x] **296 one-field callback faults and fresh-import retries**, including
+  private/native fields, original parser/grammar state, handle components and
+  signed zero. Faults operate on a mutable parser-owned test record without
+  copying away unrelated original state. This is one canonical mutation profile,
+  not every version/profile/field cross-product.
+- [x] **Eight consistent raw scalar/spelling faults** plus a contradictory
+  spelling control: callback pairing cannot launder them into replay agreement.
+  Check raw/model owner independence and subsequent editable text/XDATA changes.
+  A real partial-XDATA input retains its original pending cursor separately from
+  the sanitized clone and remains unqualified for modeled replay.
+- [x] **10 callback-fault/retry routes**, seven exact/below quota dimensions,
+  **37 calibrated source-capture allocation faults/retries** and **79 calibrated
+  typed-pair/replay/consumer allocation faults/retries**. A consumer allocation
+  can fail after valid source evidence was captured; the test requires that the
+  combined evidence/retained-consumer result cannot appear complete. Fresh-data
+  retries use the same adapter, not the same newly created `dxfRW` facade.
+- [x] Preserve the existing callback-exception contract: record `readThrew`,
+  unwind the capture session and propagate the exception; corrected fresh import
+  succeeds. Legacy and explicit opt-out acceptance controls remain separate
+  from source qualification. The raw opt-in may conservatively reject ambiguous
+  input tolerated by plain typed consumers; no universal admission-equivalence
+  claim is made.
+
+The first expanded run passed **103/106**: three old canonical-proof assertions
+counted 14/15 captured records and now observe 16/17 because two ATTDEF candidates
+are additionally retained. Inspection confirmed the existing `Bound`/role
+results and old-family proofs were unchanged. Update only those exact counts
+and additionally require both candidate records to have paired/modeled agreement
+while `rawTypedMatched` remains false. Their initial red log is preserved in the
+receipt; this is not a new qualified-family count or a waiver of changed behavior.
+
+Final exact affected validation passes **106/106 normally in 72.43 s** and
+**106/106 under ASan in 161.74 s**, sequentially, with leak checks disabled.
+The owning probe passes with all counts above in both configurations. Strict
+library/adapter/test builds and `lc3_compat_check` pass; host is macOS ARM64 Apple
+Clang 21.0.0, not Linux/GCC or native Windows qualification. This is an affected
+integration checkpoint, not the full project suite, an independent reader run,
+a renderer test or native FreeCAD/ACIS/ACDS qualification.
+
+The [RPP-5dp receipt](docs/research/rpp5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25.json)
+records immutable outcomes, exact membership, counters and hashes. The public
+model/interface layouts and native DWG parsing/encoding layout are unchanged.
+All new drawing controls are runtime-authored; no external drawing is committed.
+
+Next implementation-ready work, preserving the full objective:
+
+1. [ ] **Complete selected ATTDEF profile/role qualification.** The existing
+   ATTDEF lookup is still identity-based, and its old advisory `Bound` result
+   must not be interpreted as complete ATTDEF source qualification. Require
+   immutable field agreement **plus** a complete admitted source profile before
+   replacing that lookup. Classify exact host/nested/application/XDATA physical
+   roles and reference spans; independently observe original tags, never a
+   normalized re-export. Qualify or explicitly refuse `AcDbXrecord` secondary/
+   duplicate/multiline representations and all unmodeled selected payloads.
+2. [ ] **Finish enclosing block and dependency evidence.** Qualify actual
+   BLOCK/ENDBLK identities, owner/context and ordered children against their
+   BLOCK_RECORD, not just stored callback context or an `inBlock` boolean.
+   Close selected common/style/APPID/LAYER and attribute target dependencies;
+   complete ATTRIB/SEQEND. Add wrong-owner/family, missing/stale/duplicate,
+   independent-role and corrected retry controls before raising the proved
+   family count or opening an export guard.
+3. [ ] **Full live/output and original parity.** Continue B2b/B3/C common/
+   target/live/output closure, editable/frozen equality, compound ID planning,
+   exact output fields/references and atomic rollback. Retain IMAGE/document,
+   native bit/decimal/carrier/schema/owner, speed/ownership/allocation audits,
+   LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD plus independent semantic/platform
+   requirements. No same-parser agreement substitutes for external qualification.
+4. [ ] **Self-update/unblock/commit loop.** After each item record exact results
+   and unqualified profiles, choose the next safe ready dependency, commit/report
+   coherent slices and continue. Prefer fast owning/affected selectors; broader
+   sequential normal/ASan cohorts are integration checkpoints. Commit only
+   existing or locally authored drawings, never downloaded external samples.
+
+The proved resource-family count stays **nine**; the support ledger remains
+**CLOSED**, `outputEligible=false`, and J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel work remain **NOT_RUN**. The full implementation goal is open;
+no remote mutation or support promotion is included.
