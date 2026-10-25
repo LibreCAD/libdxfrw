@@ -3452,7 +3452,114 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
     return true;
 }
 
-bool standardDwgBinaryTransport() {
+bool standardOutputFramingControls() {
+    using namespace dx_standard_output;
+    unsigned cells = 0u, truncations = 0u, faults = 0u, profileRefusals = 0u;
+    for (const auto version : {DRW::AC1014,DRW::AC1021,DRW::AC1032}) for (const bool binary : {false,true})
+      for (const bool legacy : {false,true}) {
+        std::ostringstream stream(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer;
+        if (binary) writer = std::make_unique<dxfWriterBinary>(&stream); else writer = std::make_unique<dxfWriterAscii>(&stream);
+        writer->setClassifierProfile(legacy ? DxfClassifierProfile::LibreCadMasterLegacy : DxfClassifierProfile::StandaloneSafe);
+        writer->setVersion(version == DRW::AC1014 ? "AC1014" : version == DRW::AC1021 ? "AC1021" : "AC1032",true);
+        writer->setCodePage("ANSI_1252");
+        writer->writeString(0,"FOREIGN_FRAME"); writer->writeString(5,"F001"); writer->writeString(330,"C"); writer->writeString(100,"ForeignBody");
+        for (const auto code : {106,107,108,109}) writer->writeString(code,"known-width-string");
+        writer->writeInt16(1063,17); writer->writeInt64(160,1234567890123LL);
+        writer->writeInt32(90,-1); // Unsigned color transport is covered by the live MATERIAL facade below.
+        if (legacy) {
+            writer->writeString(80,"legacy-string"); writer->writeDouble(240,4.25); writer->writeBool(260,true);
+            writer->writeDouble(500,8.5); writer->writeString(1006,"legacy-extended-string");
+        }
+        const auto prefix = stream.str();
+        writer->writeString(0,"XRECORD"); writer->writeString(5,"F010"); writer->writeString(330,"C"); writer->writeString(100,"AcDbXrecord");
+        const auto header = stream.str().size();
+        if (version > DRW::AC1014) writer->writeInt16(280,0);
+        const auto application = stream.str().size();
+        writer->writeString(102,"{ordinary-application-text"); writer->writeInt16(280,7); writer->writeString(330,"F222");
+        writer->writeString(100,"ordinary-application-subclass"); writer->writeString(1,"application-string1");
+        writer->writeString(1001,"APP_FRAME"); writer->writeString(1004,"13A5");
+        if (writer->hasWriteError()) return fail("standard framing scratch writer rejected a requested profile field");
+        const auto bytes = stream.str();
+        DRW_XRecord expected; expected.handle = 0xF010u; expected.parentHandle = 0xCu;
+        expected.m_dataEntries = {{102,std::string("{ordinary-application-text")},{280,7},{330,static_cast<dint64>(0xF222u)},
+            {100,std::string("ordinary-application-subclass")},{1,std::string("application-string1")}};
+        expected.extData.push_back(new DRW_Variant(1001,std::string("APP_FRAME")));
+        expected.extData.push_back(new DRW_Variant(1004,std::vector<std::uint8_t>{0x13u,0xA5u}));
+        const auto profile = legacy ? dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy : dxfRW::DxfCompatibilityProfile::StandaloneSafe;
+        bool explain = false;
+        const auto probe = [&](std::string_view input, bool selected, auto compatibility) {
+            const dxfRW::DxfObjectsWriteView view{input,version,binary,"ANSI_1252",compatibility};
+            Decoder decoder(view); unsigned seen = 0u;
+            auto identity = [](std::uint32_t source, std::uint32_t& actual) { actual = source; return true; };
+            const auto visit = [&](const Shape& shape, std::string_view body) {
+                if (shape.handle != expected.handle) return true;
+                if (++seen != 1u || shape.kind != Family::Xrecord || !shape.complete()) {
+                    if (explain) std::cerr << "framing selected shape valid=" << shape.valid << " complete=" << shape.complete() << " self/owner/subclass=" << shape.self << '/' << shape.owner << '/' << shape.subclass << '\n';
+                    return false;
+                }
+                const bool decoded = decoder.decodeRecord<DRW_XRecord>(body,[&](const auto& actual) {
+                    std::vector<std::uint32_t> references;
+                    const bool same = equal(expected,actual,identity,references);
+                    if (explain && !same) std::cerr << "framing XRECORD equality entries=" << actual.m_dataEntries.size() << '/' << expected.m_dataEntries.size()
+                        << " extData=" << actual.extData.size() << '/' << expected.extData.size() << '\n';
+                    return same;
+                });
+                if (explain && !decoded) std::cerr << "framing selected decode/comparison refused\n";
+                return decoded;
+            };
+            const bool scanned = selected
+                ? inspectSelected(view,[&](std::string_view, std::uint32_t handle) { return handle == expected.handle; },visit)
+                : inspect(view,visit);
+            if (explain) std::cerr << "framing scan=" << scanned << " selected seen=" << seen << '\n';
+            return scanned && seen == 1u;
+        };
+        if (!probe(bytes,true,profile) || !probe(bytes,false,profile)) {
+            explain = true; (void)probe(bytes,true,profile);
+            return fail("standard raw framing changed profile widths or XRECORD application scope version="
+                + std::to_string(version) + " binary=" + std::to_string(binary) + " legacy=" + std::to_string(legacy));
+        }
+        ++cells;
+        for (std::size_t cut = 0u; cut < bytes.size(); ++cut) {
+            if (probe(std::string_view(bytes).substr(0u,cut),true,profile)) return fail("standard raw framing accepted truncated selected fields");
+            ++truncations;
+        }
+        std::vector<std::string> malformed;
+        malformed.push_back(bytes + bytes.substr(prefix.size())); // Duplicate selected identity.
+        if (version > DRW::AC1014) { auto missing = bytes; missing.erase(header,application - header); malformed.push_back(std::move(missing)); }
+        auto changed = bytes;
+        const auto self = binary ? std::string("F010\0",5) : std::string("F010\n");
+        const auto at = changed.find(self,prefix.size());
+        if (at == std::string::npos) return fail("standard framing fault lacks selected self field");
+        changed[at + 3u] = '1'; malformed.push_back(std::move(changed));
+        auto marker = bytes;
+        std::string unbalanced;
+        if (binary) { unbalanced.push_back(102); unbalanced.push_back(0); unbalanced += "}"; unbalanced.push_back(0); }
+        else unbalanced = "102\n}\n";
+        const auto subclass = binary ? std::string("AcDbXrecord\0",12) : std::string("AcDbXrecord\n");
+        const auto classAt = marker.find(subclass,prefix.size());
+        if (classAt == std::string::npos) return fail("standard framing fault lacks subclass");
+        const auto classCode = binary ? classAt - 2u : marker.rfind("100\n",classAt);
+        if (classCode == std::string::npos) return fail("standard framing fault lacks subclass code");
+        marker.insert(classCode,unbalanced); malformed.push_back(std::move(marker));
+        for (const auto& bad : malformed) {
+            if (probe(bad,true,profile) || !probe(bytes,true,profile)) return fail("standard malformed selected record qualified or failed restored-byte retry");
+            ++faults;
+        }
+        if (binary && legacy) {
+            if (probe(bytes,true,dxfRW::DxfCompatibilityProfile::StandaloneSafe)) return fail("standard framing guessed unknown standalone binary field widths");
+            ++profileRefusals;
+        }
+        if (probe(bytes,true,static_cast<dxfRW::DxfCompatibilityProfile>(99))) return fail("standard framing accepted unknown compatibility profile");
+        ++profileRefusals;
+    }
+    if (cells != 12u || faults != 44u || profileRefusals != 15u || truncations == 0u) return fail("standard framing controls skipped a case");
+    std::cout << "Standard framing profile cells=" << cells << " truncations=" << truncations << " selected faults/restoration=" << faults
+        << " unknown profile/width refusals=" << profileRefusals << '\n';
+    return true;
+}
+
+bool standardDwgBinaryTransport(bool profileIsolation = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
@@ -3501,8 +3608,29 @@ bool standardDwgBinaryTransport() {
         bool finalizeDwgWrite() override { return ok; }
         dwgRW& output; dx_data storage; DRW_AppId app; std::vector<std::uint8_t> payload; bool ok{true};
     };
-    unsigned sources = 0u, projections = 0u, closedLegacy = 0u, transportFaultRetries = 0u, strictRefusals = 0u;
-    for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const auto size : {0u,127u,128u,254u,255u}) {
+    class MaterialFacade final : public dx_iface {
+    public:
+        bool enabled{false}, emitted{false};
+        void writeObjects() override {
+            dx_iface::writeObjects();
+            if (!enabled) return;
+            DRW_Material material;
+            material.handle = 0xB050u; material.parentHandle = cData->namedObjectDictionary.handle;
+            material.m_name = "STANDARD_UNRELATED_MATERIAL";
+            material.m_description = "Public writer profile-isolation control";
+            material.m_ambientColorMethod = 0u; material.m_ambientColorFactor = 1.0; material.m_ambientColorValue = 0xFFFFFFFFu;
+            material.m_hasAmbientColorMethod = true; material.m_hasAmbientColorFactor = true; material.m_hasAmbientColorValue = true;
+            material.m_diffuseColorMethod = 1u; material.m_diffuseColorFactor = 0.75; material.m_diffuseColorValue = 0x80000001u;
+            material.m_hasDiffuseColorMethod = true; material.m_hasDiffuseColorFactor = true; material.m_hasDiffuseColorValue = true;
+            material.m_specularGlossFactor = 0.65; material.m_specularColorMethod = 1u; material.m_specularColorFactor = 0.8;
+            material.m_specularColorValue = 0xFEDCBA98u; material.m_hasSpecularGlossFactor = true; material.m_hasSpecularColorMethod = true;
+            material.m_hasSpecularColorFactor = true; material.m_hasSpecularColorValue = true;
+            emitted = dxfW->writeMaterial(&material);
+        }
+    };
+    unsigned sources = 0u, projections = 0u, closedLegacy = 0u, transportFaultRetries = 0u, strictRefusals = 0u, materialCells = 0u;
+    const auto sizes = profileIsolation ? std::vector<unsigned>{128u} : std::vector<unsigned>{0u,127u,128u,254u,255u};
+    for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const auto size : sizes) {
         dwgRW writer(native.string().c_str()); Author author(writer,size);
         dx_data data; dx_iface importer;
         if (!writer.write(&author,version,true) || !importer.fileImport(native.string(),&data,false)
@@ -3516,8 +3644,9 @@ bool standardDwgBinaryTransport() {
         if (originalDictionary == data.dictionaries.end()) return fail("standard chunk native dictionary missing");
         const std::array<const DRW_TableEntry*,3> originals{{&*originalDictionary,&data.xRecords.front(),&data.groups.front()}};
         ++sources;
-        dx_iface exporter;
+        MaterialFacade exporter;
         for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
+            exporter.enabled = profileIsolation && modern && outputVersion > DRW::AC1018; exporter.emitted = false;
             if (outputVersion == DRW::AC1015) {
                 const std::string sentinel = "STANDARD_NATIVE_TRANSPORT_STRICT_GATE_STAYS_CLOSED";
                 { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
@@ -3529,7 +3658,9 @@ bool standardDwgBinaryTransport() {
             }
             if (!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true,
                     dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,
-                    dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial)) return fail("standard chunk compatible projection failed");
+                    dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial))
+                return fail("standard compatible projection failed source=" + std::to_string(version) + " target=" + std::to_string(outputVersion)
+                    + " binary=" + std::to_string(binary) + " materialEmitted=" + std::to_string(exporter.emitted));
             for (const auto handle : {0xB010u,0xB020u,0xB030u}) if (Access::standardOutputHas(exporter,handle) != modern)
                 return fail("standard chunk modeled output proof missing kind-handle=" + std::to_string(handle)
                     + " size=" + std::to_string(size) + " source=" + std::to_string(version) + " target=" + std::to_string(outputVersion)
@@ -3537,6 +3668,12 @@ bool standardDwgBinaryTransport() {
             dx_data actual; dx_iface reader;
             if (!reader.fileImport(target.string(),&actual,false) || actual.groups.size() != 1u || actual.xRecords.size() != 1u)
                 return fail("standard chunk actual output/readback failed");
+            if (exporter.enabled) {
+                if (!exporter.emitted || actual.materials.size() != 1u || actual.materials.front().m_ambientColorValue != 0xFFFFFFFFu
+                    || actual.materials.front().m_diffuseColorValue != 0x80000001u || actual.materials.front().m_specularColorValue != 0xFEDCBA98u)
+                    return fail("standard unrelated MATERIAL public writer/readback changed unsigned color fields");
+                ++materialCells;
+            }
             const auto dictionary = std::find_if(actual.dictionaries.begin(),actual.dictionaries.end(),[](const auto& value) {
                 return value.m_entries.size() == 1u && value.m_entries.front().m_name == "STD_XRECORD";
             });
@@ -3560,7 +3697,7 @@ bool standardDwgBinaryTransport() {
                 }
                 // Fault only a deep-copied readback for the shared comparison;
                 // this neither fabricates source frames nor changes wire data.
-                if (modern && size >= 128u) for (unsigned fault = 0u; fault < 5u; ++fault) {
+                if (!profileIsolation && modern && size >= 128u) for (unsigned fault = 0u; fault < 5u; ++fault) {
                     DRW_Dictionary altered;
                     static_cast<DRW_TableEntry&>(altered) = *value;
                     auto& fields = altered.extData;
@@ -3588,10 +3725,13 @@ bool standardDwgBinaryTransport() {
             ++projections;
         }
     }
-    if (sources != 30u || projections != 360u || closedLegacy != 120u || transportFaultRetries != 2160u || strictRefusals != 60u)
+    if (sources != (profileIsolation ? 6u : 30u) || projections != (profileIsolation ? 72u : 360u)
+        || closedLegacy != (profileIsolation ? 24u : 120u) || transportFaultRetries != (profileIsolation ? 0u : 2160u)
+        || strictRefusals != (profileIsolation ? 12u : 60u) || materialCells != (profileIsolation ? 32u : 0u))
         return fail("standard chunk source matrix skipped a cell");
     std::cout << "Standard native chunk sources=" << sources << " projections=" << projections << " legacy unqualified cells=" << closedLegacy
-        << " copied-readback comparison fault/restoration retries=" << transportFaultRetries << " strict refusals=" << strictRefusals << '\n';
+        << " copied-readback comparison fault/restoration retries=" << transportFaultRetries << " strict refusals=" << strictRefusals
+        << " actual MATERIAL companion/readback cells=" << materialCells << '\n';
     return true;
 }
 
@@ -32866,6 +33006,10 @@ int main(int argc, char** argv) {
         return generatedDictionaryBinaryChunks(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-dwg-binary-transport")
         return standardDwgBinaryTransport() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--standard-dwg-profile-isolation")
+        return standardDwgBinaryTransport(true) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--standard-output-framing-controls")
+        return standardOutputFramingControls() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-scalar-transport")
         return generatedDictionaryScalarTransport() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--generated-dictionary-scalar-faults")

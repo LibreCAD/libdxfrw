@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ca exact scalar XDATA integer transport (2026-10-24):** a reproduced export refusal for writer-accepted code 1071 INTEGER64 values is fixed with an exact, signed-32-bit-range comparison against decoded INTEGER values. No unchecked narrowing or cross-code/type coercion is allowed. Generated NOD/GROUP/IMAGE dictionary controls pass 504 authored exports and 504 actual-import cross-encoding reexports, plus 24 range, 24 staged-wire, 24 late-source and 30 inspector refusal/restoration retries. Pure comparison controls add five exact and 32 refusal cases. Final 27 focused, five owning, four reader/consumer and 11 ASan tests pass, with both LibreCAD_3 compile gates. Writer encoding and source/support gates remain unchanged; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ca-exact-scalar-xdata-integer-transport-2026-10-24) · [receipt](docs/research/rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5cb standard-object profile isolation (2026-10-24):** a live AC1021 ASCII export refusal is fixed: a public callback-emitted MATERIAL no longer gets decoded as signed standard-object metadata. Bounded raw framing uses the active standalone/LibreCAD legacy classifier for binary widths; only selected native standard-object frames undergo the unchanged shape/model checks. Six native scratch sources pass 72 projections, including 32 full MATERIAL-companion readbacks; legacy source qualification stays closed. Framing controls pass 12 profile cells, 4,337 truncations, 44 selected-record fault/restoration checks and 15 unknown-profile/width refusals. Final 31 focused, five owning, four reader/consumer and 13 ASan tests pass, with both LibreCAD_3 compile gates. This is not MATERIAL root/source/semantic qualification; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cb-standard-object-profile-isolation-2026-10-24) · [receipt](docs/research/rpp5cb-standard-object-profile-isolation-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5ca exact scalar XDATA integer transport (2026-10-24):** a reproduced export refusal for writer-accepted code 1071 INTEGER64 values is fixed with an exact, signed-32-bit-range comparison against decoded INTEGER values. No unchecked narrowing or cross-code/type coercion is allowed. Generated NOD/GROUP/IMAGE dictionary controls pass 504 authored exports and 504 actual-import cross-encoding reexports, plus 24 range, 24 staged-wire, 24 late-source and 30 inspector refusal/restoration retries. Pure comparison controls add five exact and 32 refusal cases. Final 27 focused, five owning, four reader/consumer and 11 ASan tests pass, with both LibreCAD_3 compile gates. Writer encoding and source/support gates remain unchanged; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ca-exact-scalar-xdata-integer-transport-2026-10-24) · [receipt](docs/research/rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5bz standard DWG object XDATA transport comparison (2026-10-24):** the exact chunk matcher is now shared by generated roots and admitted ordinary DICTIONARY/GROUP/typed XRECORD output comparison. A reproduced missing modeled-output fact is fixed without changing actual writer encoding or source qualification. Thirty scratch native sources pass360 actual DXF projections;120 legacy cells stay unqualified. Controls add2,160 copied-readback comparator fault/restoration checks and60 atomic strict-policy refusals followed by compatible readback retries. Final25 focused, five owning, four reader/consumer and nine ASan tests pass, with both LibreCAD_3 compile gates. No independent semantic/support qualification is gained; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5bz-standard-dwg-object-xdata-transport-comparison-2026-10-24) · [receipt](docs/research/rpp5bz-standard-dwg-xdata-transport-comparison-2026-10-24.json).
 
@@ -120798,12 +120800,13 @@ Implementation-ready remaining work, retaining the original parity scope:
    signed-zero/coordinate and handle-role rules. This is still a code-inspection
    hypothesis, not a demonstrated remaining export failure. RPP-5ca below now
    reproduces and fixes that specified corner with range and retry controls.
-2. [ ] Audit standard whole-OBJECTS observation against unrelated accepted
+2. [x] Audit standard whole-OBJECTS observation against unrelated accepted
    object profiles without weakening selected-record framing or XRECORD
    application-code scoping. Use a public scratch source or explicitly labeled
    observer-input-only probe, reproduce before refactoring, and retain existing
    allocation/source/final-reference guards. No new profile isolation gap is
-   claimed as reproduced by this slice.
+   claimed as reproduced by this slice. RPP-5cb below now reproduces and fixes
+   the public MATERIAL-companion regression; broader observers stay in scope.
 3. [ ] Continue independent APPID/LAYER/XRECORD source-profile evidence,
    native sparse class cardinality, full IMAGE/common geometry and broader
    named-root/document closure. Separate scratch native/DXF transport checks
@@ -120886,7 +120889,7 @@ plan or independent source/application-semantic qualification.
 
 Remaining implementation-ready work, retaining the full parity objective:
 
-1. [ ] Audit standard whole-OBJECTS observation against unrelated accepted
+1. [x] Audit standard whole-OBJECTS observation against unrelated accepted
    profiles. First pair an actual admitted native standard-object source with
    a public scratch source or explicitly labeled observer-only profile probe;
    inspect whether the generic whole-section reader rejects an unrelated
@@ -120896,6 +120899,8 @@ Remaining implementation-ready work, retaining the full parity objective:
    code 102), source identity joins, parser limits and final cardinality. Add
    positive compatibility plus malformed-selected-record/restored-byte tests.
    No new unrelated-profile gap is claimed as reproduced by this scalar slice.
+   Completed for the specified standard observer by RPP-5cb below; its live
+   MATERIAL regression and explicit profile controls supersede this hypothesis.
 2. [ ] Continue independent APPID/LAYER/XRECORD source profiles and sparse native
    class cardinality, full IMAGE/common geometry and broader named-root/full-
    document closure. Derive each native byte/profile decision from observed
@@ -120923,3 +120928,109 @@ excluded. Earlier receipts and remote state remain unchanged.
 
 Receipt:
 [`rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json`](docs/research/rpp5ca-exact-scalar-xdata-integer-transport-2026-10-24.json).
+
+## Implementation progress — RPP-5cb standard-object profile isolation (2026-10-24)
+
+RPP-5ca is committed as `c2cc5f33eb519b029477aefd98b61af2cc7bdf2c`.
+This fixes a reproduced standard-observer compatibility regression. It does
+not close the full parity plan or independently qualify MATERIAL semantics.
+
+1. [x] Reproduce with a real facade export, not only an observer-only fragment.
+   Public native authoring/import supplies actual correlated DICTIONARY/GROUP/
+   XRECORD source frames. A facade callback additionally emits a full MATERIAL
+   using the public typed writer. AC1021 source to AC1021 ASCII fails during
+   OBJECTS verification even though `writeMaterial` succeeds (baseline exit 8,
+   0.61 s). The generic whole-section reader rejects unsigned color tokens in
+   the unrelated record. Baseline stops at the first MATERIAL cell; it does
+   not exercise every source/target combination or establish MATERIAL support.
+2. [x] Add a bounded borrowed-record framer. Determine binary widths from the
+   active canonical DXF classifier, including the explicit LibreCAD legacy
+   profile, without coercing unrelated numeric fields into signed model values.
+   Keep 256 MiB section, 64 MiB token, 4 Mi physical-field and one-million-object
+   limits, reject unknown binary widths and invalid profiles, and retain the
+   existing selected-reader input/work/retention limits. No section copy,
+   decoded unrelated payload, record inventory or borrowed view escapes.
+3. [x] Identify only common-header self handles for selection; stop at the first
+   outer subclass and respect common application-group scope. Run the original
+   shape observer and modeled decoder only for selected source identities.
+   XRECORD body application 102/100/280/330 values remain application data, not
+   common groups, subclass resets or owners. Keep the all-shapes wrapper for
+   existing callers and the same final identity/owner/reference checks.
+4. [x] Extend the actual native transport fixture via a separate fast selector,
+   `dwg2dxf_standard_dwg_profile_isolation`. Six native sources, each carrying
+   128-byte EED, pass 72 actual DXF projections. Thirty-two modern source/target
+   cells include a callback-emitted MATERIAL with ambient/diffuse/specular
+   unsigned color values FFFFFFFF/80000001/FEDCBA98 and actual readback. Require
+   three standard-object modeled facts for modern sources and none in the 24
+   legacy-source cells. Twelve strict-policy sentinel refusals remain closed
+   before compatible-policy retries. This companion is not a native MATERIAL
+   source, complete ACAD_MATERIAL dictionary graph, replay or semantic receipt.
+5. [x] Add fast `dwg2dxf_standard_output_framing_controls`: 12 cells cover R14,
+   R2007 and R2018, ASCII/binary and both classifier profiles. Validate default
+   and selected inspection; reject 4,337 prefix truncations and 44 selected
+   identity/header/group faults with restored-byte retries. Fifteen unknown-
+   profile/standalone-unknown-binary-width refusals prevent guessed framing.
+   XRECORD application 102/100/280/330 and trailing common XDATA retain exact
+   modeled values/order. These are scratch framing/model controls, not native
+   source receipts, atomic file-fault tests or independent semantic evidence.
+6. [x] Scratch producers assert that no requested field was rejected, and use
+   explicit writer classifier profiles so missing fields cannot make a test
+   accidentally pass. Unselected known-width 106..109 strings test framing;
+   they do not claim XRECORD reader coverage for those codes. A separate model
+   decode using application 106 refused during development; the primary
+   classifier and XRECORD string predicate differ. Public writer/readback
+   reproduction and any reader fix remain explicit next work below.
+7. [x] Source/class/text/name eligibility, nonopaque typed correlations,
+   immutable captures, reference cardinality, strict masks and document merge
+   policy stay unchanged. No DWG parser grammar, writer encoding, public API,
+   data layout or DRW_Interface callback is changed. MATERIAL or foreign-object
+   semantics are not inferred from skipping their model decoding.
+8. [x] Final strict normal/ASan adapter and CLI builds and both LibreCAD_3 compile
+   gates pass. Rebuild affected separately compiled adapters before the final
+   checkpoint. Final 31 focused tests pass 17.98 s, five owning tests pass
+   9.78 s, four reader/consumer tests pass 2.21 s and 13 scoped ASan tests pass
+   29.58 s. Owning/reader cohorts run sequentially, with parallelism 3 inside
+   each cohort. Only these final runs are checkpoint evidence; intermediate
+   fixture-calibration failures are not presented as passes. No full suite,
+   independent producer/platform qualification or benchmark is claimed.
+
+Next executable work, with the full parity objective retained:
+
+1. [ ] Reproduce public DXF XRECORD writer/reader parity for application strings
+   at codes 103/104/106..109. The generic classifier marks 100..109 as strings,
+   while the shared XRECORD string predicate currently stops at 102; self code
+   105 remains forbidden in application data. A model-level decode refusal was
+   observed, not yet a full public writer/readback failure. Add fast public API
+   tests across revisions/encodings before fixing DXF-only coverage. Preserve
+   5/105 exclusions, typed variant/domain and common-XDATA boundaries. Do not
+   broaden native typed-source qualification from a DXF fix; native predicate/
+   grammar changes require authoritative specification and real source traces.
+2. [ ] Audit other whole-OBJECTS observers, including generated roots and raster
+   framing, with normal XRECORD application 102/100/280/330 values through real
+   facade exports. The standard helper's model test is not proof that every
+   observer understands each object's application scope. Use public native
+   authoring/import where applicable, reproduce before changing production
+   logic, and add malformed-common-group and atomic refusal/restoration tests.
+3. [ ] Continue independent APPID/LAYER/XRECORD source profiles, sparse native
+   class cardinality, full IMAGE/common geometry and broader named-root/full-
+   document closure. Keep multi-document composition closed until explicit
+   source ownership, generation isolation and handle-remapping policies are
+   verified. Scratch native/DXF readback is not independent producer, name,
+   body, path, application-semantic or ACIS/ACDS kernel evidence.
+4. [ ] Continue safe local dependencies without avoidable stops. After each
+   implemented item, self-update this plan and a new immutable receipt, resolve
+   in-scope failures, commit the verified slice and show progress. Reuse the
+   canonical classifier and streaming helpers rather than duplicating format
+   ranges; keep validation fast-first, rebuild consumers at production
+   checkpoints and scope sanitizer/owning/reader runs. Request direction only
+   for missing authority or a material user choice.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Preserve LibreCAD/LibreCAD_3
+2D compatibility and the original 3D/dwg2dxf consumer scope. No drawing is added
+or committed; all 17 existing untracked drawings and unrelated files remain
+excluded. Earlier receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5cb-standard-object-profile-isolation-2026-10-24.json`](docs/research/rpp5cb-standard-object-profile-isolation-2026-10-24.json).

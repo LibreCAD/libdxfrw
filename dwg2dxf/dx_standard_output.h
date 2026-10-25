@@ -14,6 +14,7 @@
 #include <memory>
 #include <streambuf>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include "libdxfrw.h"
 #include "intern/dxfreader.h"
@@ -86,6 +87,67 @@ inline Family family(std::string_view name) noexcept {
         : name == "GROUP" ? Family::Group
         : name == "XRECORD" ? Family::Xrecord : Family::Other;
 }
+
+// Raw framing uses the active DXF classifier only for binary field widths.
+// It deliberately does not coerce unrelated numeric values into signed model
+// fields. No decoded strings/payload owners or object models are allocated.
+class RecordCursor {
+public:
+    struct Token { int code{-1}; std::string_view text; };
+    explicit RecordCursor(std::string_view bytes, const dxfRW::DxfObjectsWriteView& view)
+        : bytes(bytes), binary(view.binary), profile(view.compatibilityProfile == dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy
+            ? DxfClassifierProfile::LibreCadMasterLegacy : DxfClassifierProfile::StandaloneSafe) {}
+    std::size_t position() const noexcept { return at; }
+    bool done() const noexcept { return at == bytes.size(); }
+    bool next(Token& token) {
+        token = {};
+        if (++tokens > 4u * 1024u * 1024u) return false;
+        if (!binary) {
+            std::string_view code;
+            if (!line(code)) return false;
+            while (!code.empty() && (code.front() == ' ' || code.front() == '\t')) code.remove_prefix(1);
+            while (!code.empty() && (code.back() == ' ' || code.back() == '\t')) code.remove_suffix(1);
+            if (!code.empty() && code.front() == '+') code.remove_prefix(1);
+            const auto parsed = std::from_chars(code.data(), code.data() + code.size(), token.code);
+            return !code.empty() && parsed.ec == std::errc{} && parsed.ptr == code.data() + code.size()
+                && token.code >= 0 && token.code <= 1071 && line(token.text);
+        }
+        if (bytes.size() - at < 2u) return false;
+        token.code = static_cast<unsigned char>(bytes[at]) | (static_cast<unsigned char>(bytes[at + 1u]) << 8u);
+        at += 2u;
+        const auto kind = dxfValueKindForCode(token.code, profile);
+        if (kind == DxfValueKind::Str) {
+            const auto end = bytes.find('\0', at);
+            if (end == std::string_view::npos || end - at > DRW::kMaxDxfBinaryPayloadBytes) return false;
+            token.text = bytes.substr(at, end - at); at = end + 1u; return true;
+        }
+        std::size_t width = 0u;
+        switch (kind) {
+        case DxfValueKind::Dbl: case DxfValueKind::I64: width = 8u; break;
+        case DxfValueKind::I32: width = 4u; break;
+        case DxfValueKind::I16: width = 2u; break;
+        case DxfValueKind::Bln: width = 1u; break;
+        case DxfValueKind::Bin:
+            if (at == bytes.size()) return false;
+            width = static_cast<unsigned char>(bytes[at++]); break;
+        default: return false; // Unknown binary widths cannot be framed safely.
+        }
+        if (width > bytes.size() - at) return false;
+        token.text = bytes.substr(at, width); at += width; return true;
+    }
+private:
+    bool line(std::string_view& result) {
+        const auto end = bytes.find('\n', at);
+        if (end == std::string_view::npos || end - at > DRW::kMaxDxfBinaryPayloadBytes) return false;
+        result = bytes.substr(at, end - at); at = end + 1u;
+        if (!result.empty() && result.back() == '\r') result.remove_suffix(1);
+        return true;
+    }
+    std::string_view bytes;
+    bool binary;
+    DxfClassifierProfile profile;
+    std::size_t at{0u}, tokens{0u};
+};
 
 struct Shape {
     Family kind{Family::Other};
@@ -217,41 +279,74 @@ private:
     std::unique_ptr<dxfReader> reader;
 };
 
-// Each record is delivered before the next is scanned. No section-sized
-// copy, record-span inventory, decoded-model inventory or borrowed pointer is
-// retained by this helper. The visitor decides which bounded source IDs matter.
-template <class Visitor> bool inspect(
-        const dxfRW::DxfObjectsWriteView& view, Visitor&& visit) {
-    if (view.bytes.size() > static_cast<std::size_t>((std::numeric_limits<std::streamoff>::max)())) return false;
-    InputBuffer buffer(view.bytes);
+// Frame borrowed records without decoding unrelated object profiles through
+// the generic modeled reader (e.g. MATERIAL's unsigned color fields). Identify
+// only the common header for selection: a later XRECORD application102/330 is
+// not common metadata. Selected shapes still use the original strict observer.
+template <class Selector, class Visitor> bool inspectSelected(
+        const dxfRW::DxfObjectsWriteView& view, Selector&& select, Visitor&& visit) {
+    if (view.bytes.size() > 4u * DRW::kMaxDxfBinaryPayloadBytes
+        || view.bytes.size() > static_cast<std::size_t>((std::numeric_limits<std::streamoff>::max)())) return false;
+    InputBuffer buffer;
     std::istream input(&buffer);
     auto budget = std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes);
     auto reader = readerFor(input, view, budget);
     if (!reader) return false;
-    Shape shape;
+    std::string_view name;
     std::size_t bodyStart = 0u, records = 0u;
-    bool haveRecord = false;
-    while (buffer.position() < view.bytes.size()) {
-        const auto start = buffer.position();
-        int code = 0;
-        if (!reader->readRec(&code)) return false;
-        if (code == 0) {
-            const auto name = reader->getStringView();
-            if (name.empty() || name == "SECTION" || name == "ENDSEC" || name == "EOF") return false;
-            if (haveRecord && !visit(shape, view.bytes.substr(bodyStart, start - bodyStart))) return false;
-            if (++records > 1000000u) return false;
-            shape = {};
-            shape.kind = family(reader->getStringView());
-            shape.version = view.version;
-            bodyStart = buffer.position();
-            haveRecord = true;
-        } else {
-            if (!haveRecord) return false;
+    const auto deliver = [&](std::string_view body) {
+        RecordCursor header(body, view);
+        RecordCursor::Token token;
+        std::uint32_t handle = 0u;
+        unsigned depth = 0u, selves = 0u;
+        while (!header.done()) {
+            if (!header.next(token)) return false;
+            if (depth == 0u && token.code == 100) break;
+            if (token.code == 102) {
+                if (!token.text.empty() && token.text.front() == '{') ++depth;
+                else if (token.text == "}" && depth != 0u) --depth;
+                else break; // A selected malformed header cannot earn a shape.
+            } else if (depth == 0u && token.code == 5 && ++selves == 1u) {
+                std::uint32_t candidate = 0u;
+                const auto parsed = std::from_chars(token.text.data(), token.text.data() + token.text.size(), candidate, 16);
+                if (!token.text.empty() && parsed.ec == std::errc{} && parsed.ptr == token.text.data() + token.text.size()) handle = candidate;
+            }
+        }
+        if (!select(name, handle)) return true;
+        Shape shape;
+        shape.kind = family(name);
+        shape.version = view.version;
+        if (shape.kind == Family::Other) { shape.handle = handle; return visit(shape, body); }
+        buffer.reset(body);
+        input.clear();
+        while (buffer.position() < body.size()) {
+            int code = 0;
+            if (!reader->readRec(&code) || code == 0) return false;
             shape.observe(code, *reader);
         }
+        return !budget->exceeded() && visit(shape, body);
+    };
+    RecordCursor cursor(view.bytes, view);
+    RecordCursor::Token token;
+    while (!cursor.done()) {
+        const auto start = cursor.position();
+        if (!cursor.next(token) || token.text.size() > DRW::kMaxDxfBinaryPayloadBytes) return false;
+        if (token.code == 0) {
+            if (token.text.empty() || token.text == "SECTION" || token.text == "ENDSEC" || token.text == "EOF") return false;
+            if (!name.empty() && !deliver(view.bytes.substr(bodyStart, start - bodyStart))) return false;
+            if (++records > 1000000u) return false;
+            name = token.text;
+            bodyStart = cursor.position();
+        } else if (name.empty()) return false;
     }
-    return haveRecord && !budget->exceeded()
-        && visit(shape, view.bytes.substr(bodyStart));
+    return !name.empty() && deliver(view.bytes.substr(bodyStart));
+}
+
+// Default inspection visits all shapes. No section-sized copy, record/model
+// inventory or borrowed view is retained after its synchronous callback.
+template <class Visitor> bool inspect(
+        const dxfRW::DxfObjectsWriteView& view, Visitor&& visit) {
+    return inspectSelected(view, [](std::string_view, std::uint32_t) { return true; }, std::forward<Visitor>(visit));
 }
 
 inline bool handleValue(const DRW_Variant& value, std::uint64_t& result) noexcept {

@@ -581,6 +581,14 @@ add_test(NAME dwg2dxf_standard_dwg_binary_transport
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-binary-transport)
 set_tests_properties(dwg2dxf_standard_dwg_binary_transport PROPERTIES
     LABELS "fast;dwg;dxf;objects;xdata;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_standard_dwg_profile_isolation
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-profile-isolation)
+set_tests_properties(dwg2dxf_standard_dwg_profile_isolation PROPERTIES
+    LABELS "fast;dwg;dxf;objects;material;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_standard_output_framing_controls
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-output-framing-controls)
+set_tests_properties(dwg2dxf_standard_output_framing_controls PROPERTIES
+    LABELS "fast;dxf;objects;compatibility;adapter;generated" TIMEOUT 60)
 add_test(NAME dwg2dxf_image_dictionary_imported_common
     COMMAND libdxfrw_dwg2dxf_adapter_tests --image-dictionary-imported-common)
 set_tests_properties(dwg2dxf_image_dictionary_imported_common PROPERTIES

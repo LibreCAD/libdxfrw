@@ -15635,7 +15635,9 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
         std::set<std::uint32_t> seen;
         std::size_t totalReferences = m_standardDwgOutputNameProofs.size();
         std::size_t bytes = m_standardDwgOutputNameBytes;
-        return dx_standard_output::inspect(view, [&](const dx_standard_output::Shape& shape,
+        return dx_standard_output::inspectSelected(view, [&](std::string_view, std::uint32_t handle) {
+            return expected.find(handle) != expected.end();
+        }, [&](const dx_standard_output::Shape& shape,
                                                     std::string_view body) {
             const auto found = expected.find(shape.handle);
             if (found == expected.end()) return true;
