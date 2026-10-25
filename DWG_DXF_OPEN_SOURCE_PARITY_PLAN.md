@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5db rich CELLSTYLEMAP source profiles and declared revisions (2026-10-25):** fixes the two B1 gaps found in RPP-5da. Version-specific map checks now use the declared source revision, and witnessed rich DXF backgrounds retain no-color value 257 without broadening native CMC emission. Both unchanged external maps reach complete typed callbacks and direct namespace binding. Generated malformed/budget/retry controls and R24+ writer/readback tests pass. Full transitive/raw/live/output closure remains open; export refusal and the support ledger stay closed. [Implementation and next work](#implementation-progress-rpp-5db-rich-cellstylemap-source-profiles-and-declared-revisions-2026-10-25) · [receipt](docs/research/rpp5db-rich-cellstylemap-source-profiles-and-declared-revisions-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dc exact CELLSTYLEMAP source proof and reference spans (2026-10-25):** selected maps now require a separately bounded immutable raw/typed receipt, full style/common comparison including names/classes/IDs, encoding-aware scalar replay and exact handle/local-definition positions. Missing, mismatched or exhausted proof cannot yield the selected binding verdict. Both unchanged external maps pass, and an independent observer matches all 27 events per map without qualifying target roles or semantics. Other resources, transitive/live/output and the full native/consumer objective remain open; export refusal and the support ledger stay closed. [Implementation and next work](#implementation-progress-rpp-5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25) · [receipt](docs/research/rpp5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5db rich CELLSTYLEMAP source profiles and declared revisions (2026-10-25):** committed as `2a2f5fa6`. Its declared-revision, rich background, raw fallback and writer/readback controls remain valid. RPP-5dc additionally requires exact selected-map source agreement; it does not qualify all resources, transitive dependencies or output. [Historical implementation](#implementation-progress-rpp-5db-rich-cellstylemap-source-profiles-and-declared-revisions-2026-10-25) · [immutable receipt](docs/research/rpp5db-rich-cellstylemap-source-profiles-and-declared-revisions-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5da frozen rich TABLECONTENT direct bindings (2026-10-25):** committed as `f802f5e9`. Its bounded actual-import identities, direct role/namespace binding and refusal/recovery controls remain valid. Its two observed map-profile/revision gaps are fixed by RPP-5db, not by relaxing output qualification. Whole-compound resource/raw/live/output closure remains open. [Historical implementation](#implementation-progress-rpp-5da-frozen-rich-tablecontent-direct-bindings-2026-10-25) · [immutable receipt](docs/research/rpp5da-frozen-rich-tablecontent-direct-bindings-2026-10-25.json).
 
@@ -124341,3 +124343,121 @@ The support ledger stays **CLOSED**; J256/J260/J268/J284/J293/J295 remain
 semantic/kernel qualification stay **NOT_RUN**. Historical receipts and user
 drawings are unchanged. No remote write is authorized by this checkpoint, and
 the full implementation goal remains active.
+
+## Implementation progress RPP-5dc exact CELLSTYLEMAP source proof and reference spans (2026-10-25)
+
+Parent checkpoint: `2a2f5fa6` (RPP-5db). The previous goal turn made verified
+progress in that commit. This slice implements B2a's first resource family,
+CELLSTYLEMAP, without redefining B2a or the original full parity objective.
+
+1. [x] Freeze each matched map's raw source in a separate private actual-import
+   receipt, not in editable lists or the older extension-graph baselines that
+   export code can rewrite. Bind source revision to the already delivered
+   HEADER: `data.sourceVersion` is not published until read completion. Closed,
+   failed, direct or appended-generation callbacks cannot gain new source proof.
+2. [x] Reuse `retainedCellStyleMapsEqual` with name and class checks enabled,
+   plus strict common-field equality. Reparse the entire source through the
+   production map parser and require complete finalization. Compare every
+   exposed style field, names/classes/IDs, defaults, nested colors/formats/
+   margins/borders, subrecord metadata, XDATA/appData, pending resolutions,
+   reactor/extension and common state. Doubles compare by exact bits.
+3. [x] Verify ASCII physical value spellings against raw scalars, then replay
+   the validated body with ASCII text semantics. Binary captures require empty
+   spelling placeholders and a checked binary read view preserving exact doubles
+   and binary text/caret semantics. Reuse existing scalar readers/writers and
+   classifier widths; retain a full one-byte binary-chunk length without splitting
+   physical groups through an output writer's smaller chunk cap. This is a
+   source read view, not a new output lane or original native-byte certificate.
+4. [x] Precharge immutable raw copies, worst-case reference capacity and work
+   before allocation/replay. Separate default ceilings are 100,000 proof records,
+   4,000,000 raw groups, 64 MiB logical retention and 4,000,000 canonical work
+   slots (64 per raw group). Temporary body/reader/model phases are separately
+   bounded, not a whole-process RSS cap. Capture/limit/allocation failures stay
+   sticky without changing tolerant ordinary imports. Cache completed proof once
+   in the immutable generation; query-time public edits cannot change it.
+5. [x] Publish exact group index/code/value and schema context only after full
+   source agreement. Keep local style definitions separate from object handles,
+   and distinguish format STYLE/LTYPE, self/owner/reactor/extension, XDATA object
+   and APPID/LAYER name positions. Unestablished common handle roles stay unknown;
+   a nonnull unknown selected-map role cannot acquire binding qualification.
+   APPID/LAYER name positions are not resolved transitive dependencies yet.
+6. [x] Require selected map proof in `tableContentBindingReport`. Missing proof
+   yields `ResourceProofMissing`; canonical mismatch yields
+   `ResourceRawTypedMismatch` unless an earlier identity/namespace failure already
+   explains refusal. No partial reference receipt survives mismatch. `Bound`
+   still does not prove other resources, full transitive/live closure or output;
+   `outputEligible` remains false.
+7. [x] Generate eight revision/encoding source routes with common application
+   metadata and XDATA, 387 typed mutation kinds and 3,096 mismatch/corrected
+   same-facade fresh-drawing pairs. Pass 80 raw-corruption/recovery pairs, 64
+   exact/under-limit controls, 16 missing/duplicate callback recoveries and eight
+   unknown-role controls. Check every handle span, 3 STYLE and 18 LTYPE slots,
+   three local definitions, common namespace roles and immutable/live separation.
+   Existing atomic table refusal and same-exporter LINE retries remain green.
+8. [x] Add an optional independent map-span observer and dependency-free self-
+   test: one positive, nine corruptions and physical appData expansion. Optimized
+   Python is refused. In each pinned source it matches 24 handle slots and three
+   local definitions (27 events), including the expanded reactor group. It does
+   not independently certify complete rich payloads, target-role semantics,
+   dependency closure, output, native layouts or modeler semantics.
+
+Both unchanged external maps still bind successfully. Each freezes 322 raw
+groups with 69,069 logical retained bytes and 20,608 canonical work slots;
+unknown map-handle roles count zero. These figures describe only this map's
+receipt, not a complete drawing or resource graph. The actual CLI continues to
+refuse incomplete table replay and leaves its destination absent. Exact hashes,
+validation results, host and limits are in the fresh
+[RPP-5dc receipt](docs/research/rpp5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25.json).
+No DWG parser/layout, native writer, public library model/vtable or global text
+codec behavior changes, and no external drawing payload is committed.
+
+All 54 affected normal tests pass in 44.99 s and all 54 ASan tests pass in
+99.40 s (`halt_on_error=1:detect_leaks=0`); the owning cohorts run sequentially
+across build trees. The new owning pair also passes in 12.73 s. Both LibreCAD_3
+compile gates pass, and the CLI optional static/shared-on/off registration check
+passes. Builds retain `-Werror`; no full-project suite or leak check is repeated.
+The host remains macOS ARM64 Apple Clang, not Linux/GCC despite the build folder
+name, and no native FreeCAD runtime qualification is inferred.
+
+Next implementation-ready work, preserving original scope and implementation speed:
+
+1. [ ] **Finish B2a across resources.** Apply the reusable checked read-view,
+   comparison and receipt pattern to selected TABLESTYLE, STYLE/LTYPE/FIELD/
+   DATALINK/ATTDEF/block and common dependencies. Preserve full names/classes/
+   defaults rather than copying the older extension-graph comparison opt-outs.
+   Add actual symbol-row source observation through a separate opt-in facet
+   where raw rows are unavailable; do not change the historical interface vtable
+   or promote a mutable list/model copy to source authority. Test each new
+   family's physical presence/order, mismatch/alias and exact budget boundaries.
+2. [ ] **B2b transitive closure.** Consume proved map reference slots through a
+   bounded selected-resource worklist. Bind format STYLE/LTYPE and common/
+   XDATA APPID/LAYER/object dependencies using correct null and owner policies;
+   then FIELD/DATALINK/block/ATTDEF recursion, cycles and complete observed
+   identity collisions. An exact source field does not establish that its target
+   exists, has the right class or belongs to the right owner. Keep unknown or
+   unobserved roles unqualified; do not infer target class from numeric equality.
+3. [ ] **B3 full compound/live authority.** Finish TABLE parent, wrapper,
+   standalone cache and common raw/typed proof plus complete editable/frozen
+   equality, mutable aliases and late-callback controls. Preserve or explicitly
+   refuse separate ATTRIB/SEQEND records; nonnull unknown geometry roles require
+   independent source evidence. Cached map proof cannot waive these gates.
+4. [ ] **C atomic output.** Plan all compound/resource identities before writing,
+   preserve all rich companions, and inspect exact staged/final fields and unique
+   references. Require repeated conversions, allocation/write-fault rollback,
+   destination preservation and corrected same-exporter readbacks before enabling
+   only a completely proved profile in the appropriate output policy.
+5. [ ] **Full parity and self-unblocking.** Continue independent rich/native
+   source and writer evidence, exact native decimal/bit resolution, SWEEP/
+   EXTRUSION, carrier/schema/owner, complete IMAGE/document and LibreCAD/
+   LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD requirements. Reuse frozen indexes and
+   cached successful proof with bounded live/output checks. Run fast owning
+   tests first and affected normal/ASan cohorts next, reserving full suites for
+   integration checkpoints. Self-update evidence/limits and safely unblock the
+   next ready item; commit/report each coherent slice and keep implementation
+   moving without waiting on advisory external qualification.
+
+The support ledger remains **CLOSED**; J256/J260/J268/J284/J293/J295 stay
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. Prior immutable receipts and
+user/external drawings are unchanged. This checkpoint does not authorize remote
+writes, promote support claims or complete the full implementation goal.

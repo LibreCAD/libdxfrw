@@ -519,6 +519,15 @@ add_test(NAME libdxfrw_cellstylemap_source_profiles
     COMMAND libdxfrw_table_content_dxf_tests --cell-style-map-source)
 set_tests_properties(libdxfrw_cellstylemap_source_profiles PROPERTIES
     LABELS "fast;dxf;adapter;table;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_cellstylemap_source_proof
+    COMMAND libdxfrw_table_content_dxf_tests --cell-style-map-proof)
+set_tests_properties(libdxfrw_cellstylemap_source_proof PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_table_resource_reference_observer_selftest
+    COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
+        ${CMAKE_CURRENT_SOURCE_DIR}/table_resource_reference_observer.py --self-test)
+set_tests_properties(libdxfrw_table_resource_reference_observer_selftest PROPERTIES
+    LABELS "fast;dxf;table;independent;selftest" TIMEOUT 10)
 
 add_test(
     NAME dwg2dxf_field_dxf_multichunk_value

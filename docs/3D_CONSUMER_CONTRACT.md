@@ -144,11 +144,36 @@ exhaustion stay unqualified.
 Resource retention has separate cumulative 100,000-record, 4,000,000-item and
 64-MiB logical ceilings; binding has a 4,000,000-slot work ceiling. Reservations
 precede copies/indexes; failures are sticky but do not change the ordinary
-tolerant import policy. Frozen resource models are typed callback evidence,
-not exact raw-resource field or whole-document identity proof. `Bound` covers
-only these direct roles and the admitted namespace, not transitive dependencies,
-resource/common payloads, editable equality or output. `outputEligible` is always
-false and both export modes retain the table loss guard.
+tolerant import policy. Frozen resource models are typed callback evidence;
+selected CELLSTYLEMAPs additionally require the exact source proof below.
+`Bound` is not full transitive closure, all-resource raw/common proof, whole-
+document identity, editable equality or output qualification. `outputEligible`
+is always false and both export modes retain the table loss guard.
+
+The selected map's raw groups/spellings are copied into a separate private
+immutable receipt during actual import. Existing extension-graph raw baselines
+can be rewritten during export and are not reused as immutable source authority.
+The proof replays production `parseCode`, with captured ASCII/binary text
+context and declared HEADER revision, then requires complete finalization and
+full style/common equality. Names, classes, IDs, default-only fields, nested
+colors/formats/margins/borders, XDATA, appData, common flags and pending metadata
+are included; doubles compare by exact bits. ASCII physical value spellings
+must agree with raw scalars; binary placeholders must be empty and its rebuilt
+read view must preserve exact scalar values. This is same-library consistency,
+not independent schema/modeler proof or original native-byte evidence.
+
+Raw snapshot/reference reservations have separate cumulative 100,000-record,
+4,000,000-group and 64-MiB logical limits. Canonical work reserves 64 slots per
+group under a separate 4,000,000-slot cap before copies or replay. Temporary
+body/reader/model phases are separately bounded, not a whole-process RSS limit.
+Resource proof is cached once per captured immutable generation; editable list
+changes cannot alter it and do not earn live-equality evidence. Missing/duplicate
+raw callbacks, capture exhaustion or `ResourceRawTypedMismatch` cannot yield
+the selected binding verdict. Reference events are retained only after the full
+match, recording exact index/code/value and separate local-ID definitions,
+format STYLE/LTYPE and common-link/name roles. Nonnull unknown roles remain
+unqualified. Matching APPID/LAYER/XDATA source fields does not resolve their
+transitive dependencies; that remains a separate worklist gate.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds

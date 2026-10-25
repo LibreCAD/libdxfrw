@@ -188,6 +188,17 @@ enum class dx_tableResourceFamily : std::uint8_t {
     Entity, Table, TableContent, TableGeometry
 };
 
+enum class dx_tableResourceRole : std::uint8_t {
+    Self, Owner, Reactor, ExtensionDictionary, TextStyle, LineType,
+    LocalStyleDefinition, XdataObjectId, AppIdName, LayerName, Unknown
+};
+struct dx_tableResourceReference {
+    dx_tableResourceRole kind;
+    std::size_t groupIndex;
+    int code;
+    std::uint32_t value;
+};
+
 // Binds the visual-style records appended during one successful import to
 // that import's source profile. This is provenance only: it does not certify
 // the decoded payload or make an unsupported profile writable.
@@ -1011,6 +1022,9 @@ private:
             unsigned cellMapEntries{0};
             bool cellMapOwnerEdge{false};
             bool invalidName{false}, ambiguousName{false};
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::vector<dx_tableResourceReference> references;
+            bool rawTypedMatched{false}, rawTypedMismatch{false};
         };
         std::map<std::uint32_t,Resource> resources;
         std::map<std::pair<dx_tableResourceFamily,UTF8STRING>,std::uint32_t> resourceNames;
@@ -1020,6 +1034,10 @@ private:
         std::size_t maxResourceRecords{100000u}, maxResourceItems{4000000u};
         std::size_t maxResourceBytes{64u*1024u*1024u}, maxBindingWork{4000000u};
         bool resourceCaptureFailed{false};
+        std::size_t resourceProofRecords{0}, resourceProofGroups{0}, resourceProofBytes{0}, resourceProofWork{0};
+        std::size_t maxResourceProofRecords{100000u}, maxResourceProofGroups{4000000u};
+        std::size_t maxResourceProofBytes{64u*1024u*1024u}, maxResourceProofWork{4000000u};
+        bool resourceProofCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

@@ -55,15 +55,19 @@ public:
     static TableSourceReport tableSourceReport(const dx_data& data) noexcept;
     enum class TableBindingState {
         SourceNotReady, CaptureFailed, WorkLimit, MissingTarget, WrongFamily,
-        AmbiguousIdentity, InvalidNamespace, UnknownRole, Bound, WrongOwner
+        AmbiguousIdentity, InvalidNamespace, UnknownRole, Bound, WrongOwner,
+        ResourceProofMissing, ResourceRawTypedMismatch
     };
     struct TableContentBindingReport {
         TableBindingState state{TableBindingState::SourceNotReady};
         std::size_t resourceRecords{0}, resourceItems{0}, retainedBytes{0}, examinedSlots{0};
         std::size_t boundReferences{0}, nullReferences{0}, localStyleUses{0}, absentStyleUses{0};
         std::uint32_t firstHandle{0};
-        // Rich-child direct roles/namespace only, not full transitive closure,
-        // editable-state equality, source-field or output qualification.
+        std::size_t resourceProofRecords{0}, resourceProofGroups{0}, resourceProofBytes{0}, resourceProofWork{0};
+        std::size_t sourceMapMatches{0}, unknownResourceReferences{0};
+        // Rich-child direct roles/namespace, with exact selected map source
+        // proof. Other resources' raw fields, full transitive/live and output
+        // qualification remain separate gates.
         bool outputEligible{false};
     };
     static TableContentBindingReport tableContentBindingReport(const dx_data& data) noexcept;
@@ -1510,6 +1514,7 @@ private:
     bool chargeTableResource(std::size_t bytes, std::size_t items) noexcept;
     template<class T> void retainTableResource(dx_tableResourceFamily family,const T& data) noexcept;
     void retainTableEntityIdentity(const DRW_Entity& data) noexcept;
+    void retainTableResourceSource(const DRW_RawDxfObject& data) noexcept;
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};
     std::uint64_t m_classEvidenceReadAttempt{0};

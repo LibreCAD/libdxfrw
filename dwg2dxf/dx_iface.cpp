@@ -38,6 +38,7 @@
 #include "libdxfrw.h"
 #include "intern/dxfparserlimits.h"
 #include "intern/dxfcode.h"
+#include "intern/dxfwriter.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_textcodec.h"
 #include "intern/dwgutil.h"
@@ -16707,7 +16708,8 @@ std::shared_ptr<const DRW_TableContentDxfMetadata> freezeTableSourceMetadata(
     return copy;
 }
 
-bool tableSourceRawSpellingsEqual(const DRW_RawDxfObject& raw, std::size_t byteCap) {
+bool tableSourceRawSpellingsEqual(const DRW_RawDxfObject& raw, std::size_t byteCap,
+                                 std::string* validatedBody=nullptr) {
     if (raw.groups.size()!=raw.rawValues.size()) return false;
     if (!raw.hasRawValues) return std::all_of(raw.rawValues.begin(),raw.rawValues.end(),
         [](const UTF8STRING& value) {return value.empty();});
@@ -16725,8 +16727,127 @@ bool tableSourceRawSpellingsEqual(const DRW_RawDxfObject& raw, std::size_t byteC
     }
     dxfRW::DxfObjectsWriteView view{};
     view.bytes=body; view.version=raw.m_version; view.binary=false; view.codePage="UTF-8";
-    return dx_standard_output::rawScalarTransportEqual(raw.groups,body,view,
+    const bool equal=dx_standard_output::rawScalarTransportEqual(raw.groups,body,view,
         [](std::uint32_t source,std::uint32_t& target) {target=source; return true;},false,byteCap);
+    if (equal && validatedBody) *validatedBody=std::move(body);
+    return equal;
+}
+
+// Recreate only an in-memory read view. This is not an output-admission path.
+// ASCII keeps physical spellings; binary keeps binary text/caret semantics and
+// exact double bits. The first pass bounds all writes before stream allocation.
+bool tableResourceSourceBody(const DRW_RawDxfObject& raw,std::size_t cap,std::string& body) {
+    if (!tableSourceRawSpellingsEqual(raw,cap,&body)) return false;
+    for (const auto& value:raw.groups)
+        if (value.isLayerRef() || value.rawDwgLayerReference()!=0u || value.dwgCmColorValue()) return false;
+    if (raw.hasRawValues) return true;
+    std::size_t bytes=0u;
+    for (const auto& value:raw.groups) {
+        const auto kind=dxfValueKindForCode(value.code(),DxfClassifierProfile::StandaloneSafe);
+        std::size_t size=0u;
+        if (kind==DxfValueKind::Str || kind==DxfValueKind::Bin) {
+            if (value.type()!=DRW_Variant::STRING || !value.content.s
+                || value.content.s->find('\0')!=std::string::npos) return false;
+            size=value.content.s->size()+1u;
+            if (kind==DxfValueKind::Bin && (value.content.s->size()%2u || value.content.s->size()>510u)) return false;
+        } else if (kind==DxfValueKind::Dbl) {
+            if (value.type()!=DRW_Variant::DOUBLE || !std::isfinite(value.d_val())) return false;
+            size=8u;
+        } else if (kind==DxfValueKind::I64) {
+            if (value.type()!=DRW_Variant::INTEGER64) return false;
+            size=8u;
+        } else if (kind==DxfValueKind::I16 || kind==DxfValueKind::I32 || kind==DxfValueKind::Bln) {
+            if (value.type()!=DRW_Variant::INTEGER) return false;
+            const int number=value.i_val();
+            if ((kind==DxfValueKind::I16 && (number<-32768 || number>32767))
+                || (kind==DxfValueKind::Bln && number!=0 && number!=1)) return false;
+            size=kind==DxfValueKind::I16?2u:kind==DxfValueKind::I32?4u:1u;
+        } else return false;
+        if (!addAssociativeRetainedBytes(size,bytes) || !addAssociativeRetainedBytes(2u,bytes) || bytes>cap) return false;
+    }
+    std::ostringstream stream(std::ios::out|std::ios::binary);
+    dxfWriterBinary writer(&stream);
+    for (const auto& value:raw.groups) {
+        const int code=value.code();const auto kind=dxfValueKindForCode(code,DxfClassifierProfile::StandaloneSafe);
+        bool written=false;
+        switch(kind) {
+        case DxfValueKind::Str:written=writer.writeRawString(code,*value.content.s);break;
+        case DxfValueKind::Dbl:written=writer.writeDouble(code,value.d_val());break;
+        case DxfValueKind::I16:written=writer.writeInt16(code,value.i_val());break;
+        case DxfValueKind::I32:written=writer.writeInt32(code,value.i_val());break;
+        case DxfValueKind::I64:written=writer.writeInt64(code,value.i64_val());break;
+        case DxfValueKind::Bln:written=writer.writeBool(code,value.i_val()!=0);break;
+        case DxfValueKind::Bin: {
+            // Captured binary chunks can use the full one-byte length domain;
+            // do not split physical groups through the writer's 127-byte cap.
+            const auto& text=*value.content.s;
+            stream.put(static_cast<char>(code));stream.put(static_cast<char>(code>>8));
+            stream.put(static_cast<char>(text.size()/2u));
+            for(std::size_t i=0;i<text.size();i+=2u) {
+                unsigned byte=0u;const auto parsed=std::from_chars(text.data()+i,text.data()+i+2u,byte,16);
+                if(parsed.ec!=std::errc{} || parsed.ptr!=text.data()+i+2u)return false;
+                stream.put(static_cast<char>(byte));
+            }
+            written=stream.good();break;
+        }
+        default:return false;
+        }
+        if(!written)return false;
+    }
+    body=stream.str();
+    if(body.size()>bytes)return false;
+    dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=raw.m_version;view.binary=true;view.codePage="UTF-8";
+    return dx_standard_output::rawScalarTransportEqual(raw.groups,body,view,
+        [](std::uint32_t source,std::uint32_t& target){target=source;return true;},false,cap);
+}
+
+bool tableMapSourceReferences(const DRW_RawDxfObject& raw,std::vector<dx_tableResourceReference>& result) {
+    using R=dx_tableResourceRole;
+    enum class Section {None,Table,Content,Grid,Identity};
+    Section section=Section::None;std::string_view application;
+    unsigned selves=0u,owners=0u,subclasses=0u;bool xdata=false;
+    for(std::size_t i=0;i<raw.groups.size();++i) {
+        const auto& value=raw.groups[i];const int code=value.code();
+        const auto text=value.type()==DRW_Variant::STRING && value.content.s?std::string_view(*value.content.s):std::string_view{};
+        if(code==102) {
+            if(text=="}") {if(application.empty())return false;application={};}
+            else if(!text.empty() && text.front()=='{' && application.empty())application=text;
+            else return false;
+        } else if(application.empty()) {
+            if(code==100) {
+                if(text=="AcDbCellStyleMap") {if(++subclasses!=1u)return false;}
+                else if(subclasses || text!="AcDbObject")return false;
+            } else if(code==1) {
+                if(text=="TABLEFORMAT_BEGIN")section=Section::Table;
+                else if(text=="CONTENTFORMAT_BEGIN")section=Section::Content;
+                else if(text=="GRIDFORMAT_BEGIN")section=Section::Grid;
+                else if(text=="CELLSTYLE_BEGIN")section=Section::Identity;
+            } else if(code==309) {
+                if(text=="TABLEFORMAT_END" || text=="CELLSTYLE_END")section=Section::None;
+                else if(text=="CONTENTFORMAT_END" || text=="GRIDFORMAT_END")section=Section::Table;
+            }
+        }
+        if(code==1001 && application.empty()) {xdata=true;result.push_back({R::AppIdName,i,code,0u});}
+        if(code==1003 && application.empty())result.push_back({R::LayerName,i,code,0u});
+        if(code==90 && application.empty() && section==Section::Identity) {
+            if(value.type()!=DRW_Variant::INTEGER || value.i_val()<1)return false;
+            result.push_back({R::LocalStyleDefinition,i,code,static_cast<std::uint32_t>(value.i_val())});
+        }
+        if(!isDxfHandleCode(code))continue;
+        std::uint64_t handle=0u;if(!dx_standard_output::handleValue(value,handle) || handle>UINT32_MAX)return false;
+        R kind=R::Unknown;
+        if(application=="{ACAD_REACTORS" && code==330)kind=R::Reactor;
+        else if(application=="{ACAD_XDICTIONARY" && code==360)kind=R::ExtensionDictionary;
+        else if(application.empty()) {
+            if(code==5 && !subclasses) {kind=R::Self;if(++selves!=1u || handle!=raw.handle || !handle)return false;}
+            else if(code==330 && !subclasses) {kind=R::Owner;if(++owners!=1u || handle!=raw.parentHandle)return false;}
+            else if(code==340 && section==Section::Content)kind=R::TextStyle;
+            else if(code==340 && section==Section::Grid)kind=R::LineType;
+            else if(code==1005 && xdata)kind=R::XdataObjectId;
+        }
+        result.push_back({kind,i,code,static_cast<std::uint32_t>(handle)});
+    }
+    return application.empty() && selves==1u && owners==1u && subclasses==1u;
 }
 
 } // namespace
@@ -16920,8 +17041,12 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
     report.resourceRecords=source.resourceRecords;
     report.resourceItems=source.resourceItems;
     report.retainedBytes=source.resourceBytes;
+    report.resourceProofRecords=source.resourceProofRecords;
+    report.resourceProofGroups=source.resourceProofGroups;
+    report.resourceProofBytes=source.resourceProofBytes;
+    report.resourceProofWork=source.resourceProofWork;
     if (tableSourceReport(data).state!=TableSourceState::StructurallyComplete) return report;
-    if (source.resourceCaptureFailed) {report.state=S::CaptureFailed;return report;}
+    if (source.resourceCaptureFailed || source.resourceProofCaptureFailed) {report.state=S::CaptureFailed;return report;}
     report.state=S::Bound;
     const auto fail=[&](S state,std::uint32_t handle) {
         if (report.state==S::Bound) {report.state=state;report.firstHandle=handle;}
@@ -16986,6 +17111,19 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
                     || namespaceMap->duplicateStyleId || namespaceMap->invalidStyleId
                     || (source.version<DRW::AC1024 && namespaceMap->styleIds.count(4)))) {
                     fail(S::InvalidNamespace,dictionary->cellMapTarget);namespaceMap=nullptr;
+                }
+                if (namespaceMap) {
+                    if (namespaceMap->rawTypedMismatch) fail(S::ResourceRawTypedMismatch,dictionary->cellMapTarget);
+                    else if (!namespaceMap->rawTypedMatched) fail(S::ResourceProofMissing,dictionary->cellMapTarget);
+                    else {
+                        ++report.sourceMapMatches;
+                        if (!work(namespaceMap->references.size())) return report;
+                        for (const auto& reference:namespaceMap->references)
+                            if (reference.kind==dx_tableResourceRole::Unknown && reference.value!=0u) {
+                                ++report.unknownResourceReferences;
+                                fail(S::UnknownRole,reference.value);
+                            }
+                    }
                 }
             }
         }
@@ -17188,6 +17326,65 @@ void dx_iface::retainTableEntityIdentity(const DRW_Entity& data) noexcept {
         resource.owner=data.parentHandle;
         if (!source.resources.emplace(data.handle,std::move(resource)).second) source.resourceCaptureFailed=true;
     } catch (...) {source.resourceCaptureFailed=true;}
+}
+
+void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw) noexcept {
+    if (!tableSourceCaptureOpen() || !asciiIdentifierEquals(raw.name,"CELLSTYLEMAP")) return;
+    auto& source=cData->m_tableDxfSource;
+    if (source.resourceProofCaptureFailed) return;
+    const auto found=source.resources.find(raw.handle);
+    // Unmatched raw-only maps retain their ordinary fallback, not partial proof.
+    if (found==source.resources.end() || found->second.family!=dx_tableResourceFamily::CellStyleMap) return;
+    auto& resource=found->second;
+    if (resource.raw) {source.resourceProofCaptureFailed=true;return;}
+    std::size_t bytes=0u;
+    if (!estimateRawDxfObjectBytes(raw,bytes)
+        || !addAssociativeRetainedBytes(sizeof(std::vector<dx_tableResourceReference>)+8u*sizeof(void*),bytes)
+        || !addAssociativeSlotBytes(raw.groups.size(),sizeof(dx_tableResourceReference),bytes)
+        || source.resourceProofRecords>=source.maxResourceProofRecords
+        || source.resourceProofGroups>source.maxResourceProofGroups || raw.groups.size()>source.maxResourceProofGroups-source.resourceProofGroups
+        || source.resourceProofBytes>source.maxResourceProofBytes || bytes>source.maxResourceProofBytes-source.resourceProofBytes
+        || raw.groups.size()>source.maxResourceProofWork/64u
+        || source.resourceProofWork>source.maxResourceProofWork-raw.groups.size()*64u) {
+        source.resourceProofCaptureFailed=true;return;
+    }
+    ++source.resourceProofRecords;source.resourceProofGroups+=raw.groups.size();source.resourceProofBytes+=bytes;
+    source.resourceProofWork+=raw.groups.size()*64u;
+    try {
+        resource.raw=std::make_shared<const DRW_RawDxfObject>(raw);
+        const auto* model=dynamic_cast<const DRW_CellStyleMap*>(resource.model.get());
+        resource.rawTypedMismatch=true;
+        // fileImport publishes data.sourceVersion only after read() returns.
+        // During callbacks use the already delivered declared HEADER context.
+        if (!model || raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
+            || raw.m_version<DRW::AC1021 || raw.m_version>DRW::AC1032) return;
+        std::string body;
+        if (!tableResourceSourceBody(raw,source.maxResourceProofBytes,body)) return;
+        dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=raw.m_version;
+        view.binary=!raw.hasRawValues;view.codePage="UTF-8";
+        dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
+        auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxResourceProofBytes);
+        auto reader=dx_standard_output::readerFor(input,view,budget);
+        if (!reader) return;
+        reader->setTypedVariantNodeBudget(source.maxResourceProofWork);
+        dx_standard_output::Probe<DRW_CellStyleMap> parsed;
+        int code=0;
+        while(buffer.position()<body.size()) {
+            if (!reader->readRec(&code) || code==0 || !parsed.parseCode(code,reader)) {
+                if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()) source.resourceProofCaptureFailed=true;
+                return;
+            }
+        }
+        if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded()) {source.resourceProofCaptureFailed=true;return;}
+        if (!parsed.finalizeDxf() || !model->finalizeDxf()
+            || raw.handle!=parsed.handle || raw.parentHandle!=parsed.parentHandle
+            || !retainedCellStyleMapsEqual(parsed,*model,true,true)
+            || !standardDwgCommonEqual(parsed,*model,raw.m_version)) return;
+        std::vector<dx_tableResourceReference> references;references.reserve(raw.groups.size());
+        if (!tableMapSourceReferences(raw,references)) return;
+        resource.references=std::move(references);
+        resource.rawTypedMismatch=false;resource.rawTypedMatched=true;
+    } catch (...) {source.resourceProofCaptureFailed=true;}
 }
 
 bool dx_iface::wantsDxfTableSource() const {
@@ -18585,6 +18782,7 @@ bool dx_data::hasUnchangedAcdsRawDxfSections() const noexcept {
 void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
     if (cData == nullptr)
         return;
+    retainTableResourceSource(data);
     if (retainTableSourceRaw(data)) return;
     if (data.name.rfind("ACSH_", 0u) == 0u || data.name == "ACAD_EVALUATION_GRAPH") {
         auto& receipt = cData->acdsHistoryDxfImport;
