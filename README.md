@@ -369,6 +369,11 @@ produces DXF for FreeCAD's own importer: it does not extend that importer's
 entity or 3D geometry support. For example, a DXF entity may be preserved
 correctly by `dwg2dxf` while FreeCAD reports it as unsupported.
 
+Explicit target selectors include `-v2013` (AC1027) and `-v2018` (AC1032),
+in positional, `-o`, and batch forms. The default `-o` source-revision policy
+is unchanged. Selecting a version does not grant overwrite permission or relax
+owner, source-text, completeness, or supported-profile checks.
+
 Installed consumers can use either `find_package(libdxfrw CONFIG REQUIRED)` and
 `libdxfrw::libdxfrw`, or `pkg-config --cflags --libs libdxfrw`. The package is
 relocatable and selects compatible package versions with `SameMajorVersion`.

@@ -224,6 +224,12 @@ if(LIBDXFRW_BUILD_TESTS)
                 --converter $<TARGET_FILE:dwg2dxf>)
         set_tests_properties(dwg2dxf_cli_contract PROPERTIES
             LABELS "fast;cli;process" TIMEOUT 30)
+        add_test(NAME dwg2dxf_modern_cli_versions
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf> --modern-versions-only)
+        set_tests_properties(dwg2dxf_modern_cli_versions PROPERTIES
+            LABELS "fast;cli;process;dxf;geometry;consumer" TIMEOUT 30)
         add_test(NAME dwg2dxf_unsupported_source_codepage
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py

@@ -51,6 +51,8 @@ void usage(){
     std::cout << "        -v2004 dxf version 2004" << std::endl;
     std::cout << "        -v2007 dxf version 2007" << std::endl;
     std::cout << "        -v2010 dxf version 2010" << std::endl;
+    std::cout << "        -v2013 dxf version 2013 (AC1027)" << std::endl;
+    std::cout << "        -v2018 dxf version 2018 (AC1032)" << std::endl;
 }
 
 bool convertFile(std::string inName, std::string outName, DRW::Version ver,

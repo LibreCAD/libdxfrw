@@ -97,7 +97,8 @@ def check_options(converter, root):
 
     # The invalid token itself must never confer overwrite authorization.
     for token in ("-yUnexpected", "-bad", "-Bextra", "-dextra", "-Dextra",
-                  "-v2007suffix", "--allow-partial-dwg-read-extra",
+                  "-v2007suffix", "-v20130", "-v2018suffix", "-V2018",
+                  "--allow-partial-dwg-read-extra",
                   "--", "", "-", "-unknown"):
         destination.write_bytes(SENTINEL)
         reject(f"legacy invalid {token!r}",
@@ -135,7 +136,8 @@ def check_options(converter, root):
 
     for token, version in (("-R12", "AC1009"), ("-v2000", "AC1015"),
                            ("-v2004", "AC1018"), ("-v2007", "AC1021"),
-                           ("-v2010", "AC1024")):
+                           ("-v2010", "AC1024"), ("-v2013", "AC1027"),
+                           ("-v2018", "AC1032")):
         output = root / (version + " exact version.dxf")
         result = invoke([source, token, output])
         if result.returncode != 0 or version.encode() not in output.read_bytes()[:2048]:
@@ -176,6 +178,125 @@ def check_options(converter, root):
     if source.read_bytes() != SOURCE or dash_source.read_bytes() != SOURCE:
         raise AssertionError("CLI checks changed their locally generated input")
     return checked
+
+
+def check_modern_versions(converter, root):
+    """Explicit targets share policy across positional, -o, and batch routes."""
+    routes = batches = refused = retries = 0
+    sources = []
+
+    def invoke(arguments):
+        return run_bounded([str(converter), *map(str, arguments)], 5, 131072, cwd=root)
+
+    def verify(path, revision, binary):
+        payload = path.read_bytes()
+        if payload.startswith(BINARY_PREFIX) != binary:
+            raise AssertionError("modern selector changed the requested DXF encoding")
+        if binary:
+            if b"\x09\x00$ACADVER\x00\x01\x00" + revision + b"\x00" not in payload[:2048]:
+                raise AssertionError("modern binary header did not use the requested revision")
+            return
+        lines = payload.splitlines()
+        if len(lines) % 2:
+            raise AssertionError("modern ASCII output lost a physical group/value pair")
+        pairs = [(int(lines[i].strip()), lines[i+1]) for i in range(0, len(lines), 2)]
+        if sum(a == (9, b"$ACADVER") and b == (1, revision) for a, b in zip(pairs, pairs[1:])) != 1:
+            raise AssertionError("modern ASCII header did not use the requested revision")
+        records = []
+        in_entities = False
+        for index, (code, value) in enumerate(pairs):
+            if (code, value) == (0, b"SECTION"):
+                in_entities = pairs[index+1] == (2, b"ENTITIES")
+            elif (code, value) == (0, b"ENDSEC"):
+                in_entities = False
+            elif in_entities:
+                if code == 0:
+                    records.append((value, []))
+                elif records:
+                    records[-1][1].append((code, value))
+        if len(records) != 1 or records[0][0] != b"LINE":
+            raise AssertionError("modern selector changed the entity set")
+        coordinates = [(c, float(v)) for c, v in records[0][1] if c in (10, 20, 30, 11, 21, 31)]
+        if dict(coordinates) != {10: 1., 20: 2., 30: 3., 11: 5., 21: 8., 31: 13.} or len(coordinates) != 6:
+            raise AssertionError("modern target/readback changed the distinct nonzero-Z LINE")
+
+    def accepted(arguments, output, revision, binary):
+        result = invoke(arguments)
+        if result.returncode != 0:
+            raise AssertionError(f"modern target conversion failed: {result!r}")
+        verify(output, revision, binary)
+
+    for source_revision in (b"AC1021", b"AC1027", b"AC1032"):
+        source = root / f"modern source {source_revision.decode()} é.dxf"
+        original = SOURCE.replace(b"AC1021", source_revision, 1)
+        source.write_bytes(original)
+        sources.append((source, original))
+        for token, revision in (("-v2013", b"AC1027"), ("-v2018", b"AC1032")):
+            for freecad in (False, True):
+                for binary in (False, True):
+                    first = root / f"modern first {routes}.dxf"
+                    second = root / f"modern second {routes}.dxf"
+                    normalized = root / f"modern normalized {routes}.dxf"
+                    arguments = ([source, "-o", first, token, "-y"] if freecad
+                                 else [source, token, "-y", first])
+                    if binary:
+                        arguments.insert(len(arguments) if freecad else -1, "-b")
+                    accepted(arguments, first, revision, binary)
+                    before = first.read_bytes()
+                    accepted([first, "-o", second, token, "-y", *([] if binary else ["-b"])],
+                             second, revision, not binary)
+                    # Actually decode whichever pass was binary, then inspect
+                    # its complete ASCII geometry; do not infer it from magic.
+                    accepted([first if binary else second, "-o", normalized, token],
+                             normalized, revision, False)
+                    if first.read_bytes() != before or source.read_bytes() != original:
+                        raise AssertionError("modern conversion changed a source drawing")
+                    routes += 1
+
+    batch_list = root / "modern batch list.txt"
+    listing = b"\r\n".join(str(source).encode() for source, _ in sources) + b"\r\n"
+    batch_list.write_bytes(listing)
+    for token, revision in (("-v2013", b"AC1027"), ("-v2018", b"AC1032")):
+        for binary in (False, True):
+            directory = root / f"modern batch {batches}"
+            directory.mkdir()
+            result = invoke([batch_list, "-B", token, "-y", *(["-b"] if binary else []), directory])
+            if result.returncode != 0 or batch_list.read_bytes() != listing:
+                raise AssertionError(f"modern batch target failed: {result!r}")
+            for source, original in sources:
+                output = directory / source.name
+                verify(output, revision, binary)
+                if binary:
+                    normalized = root / f"modern batch readback {batches}-{source.stem}.dxf"
+                    accepted([output, "-o", normalized, token], normalized, revision, False)
+                if source.read_bytes() != original:
+                    raise AssertionError("modern batch changed a source")
+            batches += 1
+
+    destination = root / "modern protected.dxf"
+    missing_source = root / "missing modern option source.dxf"
+    for versions in (("-v2013", "-v2013"), ("-v2018", "-v2018"),
+                     ("-v2013", "-v2018"), ("-v2018", "-v2013")):
+        for freecad in (False, True):
+            destination.write_bytes(SENTINEL)
+            arguments = ([missing_source, "-o", destination, "-y", *versions] if freecad
+                         else [missing_source, "-y", *versions, destination])
+            result = invoke(arguments)
+            if (result.returncode != 1 or b"Bad options." not in result.stdout
+                    or b"Error can't open" in result.stdout or destination.read_bytes() != SENTINEL):
+                raise AssertionError("duplicate/conflicting modern versions reached I/O or changed output")
+            refused += 1
+    for token, revision in (("-v2013", b"AC1027"), ("-v2018", b"AC1032")):
+        for binary in (False, True):
+            destination.write_bytes(SENTINEL)
+            arguments = [sources[0][0], "-o", destination, token, *(["-b"] if binary else [])]
+            result = invoke(arguments)
+            if result.returncode != 1 or destination.read_bytes() != SENTINEL:
+                raise AssertionError("modern version/encoding granted overwrite authority")
+            refused += 1
+            accepted([*arguments, "-y"], destination, revision, binary)
+            retries += 1
+    return routes, batches, refused, retries
 
 
 def check_batch(converter, root):
@@ -1019,6 +1140,8 @@ def main():
     parser.add_argument("--converter", required=True, type=Path)
     parser.add_argument("--options-only", action="store_true",
                         help="run only fast option-token and overwrite-authority controls")
+    parser.add_argument("--modern-versions-only", action="store_true",
+                        help="run explicit R2013/R2018 CLI route/readback controls")
     parser.add_argument("--target-text-only", action="store_true",
                         help="run only the focused target transport controls while iterating")
     parser.add_argument("--exact-input-only", action="store_true",
@@ -1042,6 +1165,11 @@ def main():
         if args.options_only:
             checked = check_options(converter, root)
             print(f"CLI option contract: PASS ({checked} token/filename/overwrite controls)")
+            return
+        if args.modern_versions_only:
+            modern = check_modern_versions(converter, root)
+            print(f"CLI modern versions: PASS ({modern[0]} two-pass routes/{modern[1]} batches/"
+                  f"{modern[2]} atomic option/overwrite refusals/{modern[3]} corrected retries)")
             return
         if args.exact_input_only:
             policy = check_exact_input_policy(converter, root)

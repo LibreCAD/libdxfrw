@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cs modern CLI targets and history-source readiness",
+  "date": "2026-10-25",
+  "parentCommit": "a646f4f00c6d3cfb54fc8a6769ab1d49c3b6b159",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "EXPLICIT_MODERN_CLI_TARGETS_VERIFIED_IMPORT_CLOSURE_AND_BROADER_HISTORY_PREREQUISITES_OPEN",
+  "implementation": {
+    "exactSelectors": {"-v2013": "AC1027", "-v2018": "AC1032"},
+    "routes": ["positional", "FreeCAD-style -o", "batch -B"],
+    "defaultOutputPolicyChanged": false,
+    "overwriteOrInputAdmissionPolicyChanged": false,
+    "strictCompletenessOrOwnerGuardsRelaxed": false,
+    "nativeByteLayoutChanged": false,
+    "publicLibraryApiAbiCallbacksChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "baseline": {
+    "optionsLog": "/tmp/rpp5cs-modern-options-baseline.log",
+    "routeLog": "/tmp/rpp5cs-modern-matrix-baseline.log",
+    "observed": "Exact -v2013 rejected with Bad options before conversion; shared decoder also lacked -v2018"
+  },
+  "controls": {
+    "authoring": "Temporary DXF source bytes created locally from scratch; no drawing fixture added",
+    "sourceRevisions": ["AC1021", "AC1027", "AC1032"],
+    "targetRevisions": ["AC1027", "AC1032"],
+    "encodings": ["ASCII", "binary"],
+    "twoPassRoutes": 24,
+    "batchRuns": 4,
+    "batchOutputs": 12,
+    "duplicateConflictPreIoRefusals": 8,
+    "overwriteSentinelRefusals": 4,
+    "correctedOverwriteRetries": 4,
+    "normalAndAsanOptionControlsEach": 65,
+    "readback": "Decode binary pass to ASCII; independently inspect physical ACADVER groups, exactly one LINE and six distinct coordinates including nonzero Z",
+    "sourceProtection": "Original source and first-pass bytes remain unchanged; CRLF listing remains unchanged",
+    "malformedModernTokens": ["-v20130", "-v2018suffix", "-V2018"],
+    "dedicatedCTest": "dwg2dxf_modern_cli_versions"
+  },
+  "validation": {
+    "host": "macOS ARM64, Apple Clang; build-gcc is not native Linux/GCC qualification",
+    "normalCliBuild": {"status": "PASS", "log": "/tmp/rpp5cs-normal-cli-build.log"},
+    "asanCliBuild": {"status": "PASS", "log": "/tmp/rpp5cs-asan-cli-build.log"},
+    "focusedTests": ["dwg2dxf_modern_cli_versions", "dwg2dxf_freecad_cli_compat", "dwg2dxf_raw_dxf_section_passthrough"],
+    "normalFocused": {"status": "PASS", "passed": 3, "elapsedSeconds": 5.17, "log": "/tmp/rpp5cs-normal-cli-final.log"},
+    "asanFocused": {"status": "PASS", "passed": 3, "elapsedSeconds": 8.40, "log": "/tmp/rpp5cs-asan-cli-final.log", "ASAN_OPTIONS": "halt_on_error=1:detect_leaks=0"},
+    "normalOptions": {"status": "PASS", "log": "/tmp/rpp5cs-normal-options-tests.log"},
+    "asanOptions": {"status": "PASS", "log": "/tmp/rpp5cs-asan-options-tests.log", "ASAN_OPTIONS": "halt_on_error=1:detect_leaks=0"},
+    "normalAggregateCli": {"status": "PASS", "elapsedSeconds": 28.32, "log": "/tmp/rpp5cs-normal-contract-no-duplicate.log"},
+    "initialAggregateTimeout": {
+      "status": "REPRODUCED_THEN_CORRECTED",
+      "elapsedSeconds": 30.01,
+      "log": "/tmp/rpp5cs-normal-cli-cohort.log",
+      "correction": "Remove redundant modern matrix from aggregate script; retain all its coverage in dedicated CTest and retain all legacy aggregate checks; do not raise timeout",
+      "remainingTimingRisk": "Aggregate remains near its 30-second limit; split disjoint existing groups if timing failure recurs"
+    },
+    "normalOptionalCliBuild": {"status": "PASS", "elapsedSeconds": 2.71, "log": "/tmp/rpp5cs-normal-cli-cohort.log"},
+    "librecad3CompileGates": {"normal": "PASS", "asan": "PASS", "normalLog": "/tmp/rpp5cs-normal-lc3.log", "asanLog": "/tmp/rpp5cs-asan-lc3.log"},
+    "fullProjectSuite": "NOT_RUN",
+    "asanAggregateCliContract": "NOT_RUN",
+    "leakCheck": "NOT_RUN"
+  },
+  "externalSourceResearch": {
+    "qualificationEligible": false,
+    "repository": "https://github.com/LibreDWG/libredwg",
+    "tag": "0.14",
+    "declarations": "https://github.com/LibreDWG/libredwg/blob/0.14/src/dwg2.spec",
+    "localDirectory": "/private/tmp/libdxfrw-rpp5cs-history-sources.O5TTcC",
+    "drawingsCommitted": false,
+    "sourceCodeCopied": false,
+    "independentInventoryTool": "ezdxf 1.4.4",
+    "independentInventory": "/tmp/rpp5cs-independent-example-profiles.json",
+    "peerDwgTool": "LibreDWG 0.14 dwgread",
+    "peerDwgObservation": "/tmp/rpp5cs-peer-example-AC1032.json",
+    "files": [
+      {"file": "example-AC1027.dwg", "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/test/test-data/example_2013.dwg", "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f"},
+      {"file": "example-AC1027.dxf", "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/test/test-data/example_2013.dxf", "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3"},
+      {"file": "example-AC1032.dwg", "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/test/test-data/example_2018.dwg", "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a"},
+      {"file": "example-AC1032.dxf", "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/test/test-data/example_2018.dxf", "sha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997"}
+    ],
+    "candidateClosure": {"modeler": "2E1", "sweep": "2E2", "graph": "2E3", "history": "2E4", "material": "269"},
+    "conclusion": "Paired examples provide actual SWEEP history candidates, not successful libdxfrw roundtrip or complete native/independent semantic evidence. Embedded binary carriers and mismatching peer fields need separate bounded dependency and reference proof before any profile admission. Class counts and peer exit success are insufficient."
+  },
+  "remainingReproductions": [
+    {
+      "gap": "Signed ASCII MATERIAL color spelling rejected",
+      "source": "example-AC1032.dxf",
+      "record": "MATERIAL Golden Sand",
+      "groups": [90, 91, 92],
+      "spelling": "-1027297396",
+      "diagnostic": "First failing group 90; DXF error 12",
+      "log": "/tmp/rpp5cs-example-import-debug.log",
+      "observedReaderCondition": "MATERIAL-only uint32 path rejects parsed values below zero",
+      "status": "NOT_FIXED",
+      "next": "Verify primary color representation; minimal signed/unsigned boundary controls, exact bit pattern/raw spelling, ASCII/binary readback and corrected retry without widening unrelated numbers"
+    },
+    {
+      "gap": "Strict CLI dictionary closure of canonical selected raw BOX history",
+      "source": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/AC1032-retry-ascii.dxf",
+      "diagnostic": "invalid-graph nodes=1 edges=4 staged-handles=1 source-records=18 xrecord-payload-slots=0 detail=dictionary entry target is missing or ambiguous",
+      "log": "/tmp/rpp5cs-canonical-strict-debug.log",
+      "status": "NOT_FIXED",
+      "preciseDictionaryRoleCause": "NOT_YET_TRACED",
+      "next": "Trace actual source/emitted role inventory, unique target and owner mapping; require strict positive and malformed/late-mutated rollback/readback without disabling requireResolvedOwners"
+    }
+  ],
+  "nextOrder": ["Minimal signed MATERIAL color proof and fix if confirmed", "Strict selected-history dictionary closure", "Broader history source profiles with embedded dependency proof", "Remaining full native/consumer parity and external qualification"],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "cqAcisVerifierQualificationRelaxed": false,
+    "fullOriginalGoalComplete": false
+  },
+  "repositorySafety": {
+    "earlierReceiptsModified": false,
+    "preExistingUntrackedDrawingsExcluded": 17,
+    "unrelatedFilesExcluded": true,
+    "remoteMutation": false
+  }
+}

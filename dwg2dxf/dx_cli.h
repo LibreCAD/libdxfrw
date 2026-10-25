@@ -32,6 +32,8 @@ inline DRW::Version versionOption(const std::string& token) {
     if (token == "-v2004") return DRW::AC1018;
     if (token == "-v2007") return DRW::AC1021;
     if (token == "-v2010") return DRW::AC1024;
+    if (token == "-v2013") return DRW::AC1027;
+    if (token == "-v2018") return DRW::AC1032;
     return DRW::UNKNOWNV;
 }
 

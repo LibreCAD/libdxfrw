@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5cr selected raw ACSH history DXF reexport (2026-10-25):** the canonical BOX/history reexport gap is fixed through bounded raw capture, paired typed identities, reciprocal role closure, frozen source context and exact staged/final output proof. Both revisions/encodings pass 88 preflight and 104 late-callback refusals with 192 restored readbacks; an independent reader verifies all 12 retained files. The 29-test normal/ASan cohorts, final extended scalar controls and both LibreCAD_3 gates pass. Other history profiles and native semantic/platform qualification remain open; strict admission stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cr-selected-raw-acsh-history-dxf-reexport-2026-10-25) · [receipt](docs/research/rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5cs modern CLI targets and history-source readiness (2026-10-25):** explicit `-v2013`/`-v2018` now work in positional, FreeCAD-style `-o` and batch forms without changing defaults or safety gates. Fast normal/ASan checks cover 24 two-pass routes, four batches, twelve atomic refusals and four corrected retries; the normal CLI contract and both LibreCAD_3 gates also pass. Research identifies separate signed MATERIAL-color import and strict dictionary-closure failures; broader SWEEP history still needs embedded-carrier/reference evidence. These failures are not fixed by version selection. [Implementation and ready sub-plans](#implementation-progress-rpp-5cs-modern-cli-targets-and-history-source-readiness-2026-10-25) · [receipt](docs/research/rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json). Strict admission stays **CLOSED**; external/platform and independent semantic qualification remain open.
+
+**Previous implementation checkpoint — RPP-5cr selected raw ACSH history DXF reexport (2026-10-25):** committed as `a646f4f00c6d3cfb54fc8a6769ab1d49c3b6b159`. The canonical BOX/history reexport gap is fixed through bounded raw capture, paired typed identities, reciprocal role closure, frozen source context and exact staged/final output proof. Both revisions/encodings pass 88 preflight and 104 late-callback refusals with 192 restored readbacks; an independent reader verifies all 12 retained files. The 29-test normal/ASan cohorts, final extended scalar controls and both LibreCAD_3 gates pass. This proves the selected facade route, not strict CLI document closure: RPP-5cs records that distinct remaining refusal. Other history profiles and native semantic/platform qualification remain open; strict admission stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cr-selected-raw-acsh-history-dxf-reexport-2026-10-25) · [receipt](docs/research/rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5cq historyless 3DSOLID native transport (2026-10-25):** committed as `b077272a59ebad21a45a3edd55671f1ee54c2839`. Its valid-solid transport/advisory observations and 27 normal/27 ASan checks remain recorded. Its then-open mixed raw ACSH graph-owner reexport gap is superseded only for RPP-5cr's explicitly proved canonical BOX profile, not general history/native semantics. [Historical implementation](#implementation-progress-rpp-5cq-historyless-solid-native-transport-2026-10-25) · [immutable receipt](docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json).
 
@@ -123047,3 +123049,119 @@ remain excluded. No remote state is changed.
 
 Receipt:
 [`rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json`](docs/research/rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json).
+
+## Implementation progress RPP-5cs modern CLI targets and history-source readiness (2026-10-25)
+
+RPP-5cr is committed as `a646f4f00c6d3cfb54fc8a6769ab1d49c3b6b159`.
+This slice closes an explicit CLI target-selection gap and makes the next
+history/import work reproducible; it does not qualify additional history or
+native ACIS/ACDS semantics.
+
+1. [x] Reproduce rejected exact `-v2013` and `-v2018` selectors. The existing
+   `-o` source-revision default could already select AC1027/AC1032; explicit
+   selection was missing. Add only the two exact tokens to the shared option
+   decoder and document them in CLI help and README. Default revision,
+   duplicate/conflicting-version rejection, overwrite authorization, strict
+   completeness, owner closure and source-text admission remain unchanged.
+   No native byte layout or public library API/ABI/callback is changed.
+2. [x] Add a dedicated fast `dwg2dxf_modern_cli_versions` CTest. Locally authored
+   AC1021/AC1027/AC1032 sources, Unicode/spaced paths, two targets, positional
+   and `-o` routes and both encodings produce 24 actual two-pass routes. Read
+   binary output back to ASCII and independently inspect physical header
+   groups, one LINE and all six distinct coordinates, including nonzero Z.
+   Preserve source and first-pass bytes. Four CRLF batch runs check twelve
+   outputs. Eight duplicate/conflict refusals occur before missing-input I/O;
+   four overwrite refusals preserve a sentinel and four `-y` retries succeed.
+3. [x] Extend existing exact-token tests with both targets and three malformed
+   modern tokens. Normal/ASan option-only runs each pass 65 controls. Final
+   focused modern/FreeCAD/raw-section cohorts pass 3/3 normally in 5.17 s and
+   3/3 under ASan in 8.40 s. Both CLI builds, both LibreCAD_3 compile gates and
+   normal CLI optional-build registration (2.71 s) pass. The normal aggregate
+   CLI contract initially timed out at 30 s when it redundantly ran the new
+   matrix; keep the matrix solely in its dedicated CTest. The corrected
+   aggregate passes in 28.32 s without raising timeouts or dropping legacy
+   checks. Its timing remains close to the limit: if recurring, split disjoint
+   existing groups rather than duplicate coverage or loosen process bounds.
+   No full project suite or ASan aggregate CLI-contract run is claimed.
+4. [x] Locate paired upstream AC1027/AC1032 DWG/DXF examples outside the repo.
+   Record pinned source URLs and hashes in the new receipt. Independent ezdxf
+   inventory finds a solid/history/EvaluationGraph/SWEEP chain in each pair.
+   These are source candidates, not successful libdxfrw transport or semantic
+   qualification. Do not copy GPL-3.0 LibreDWG code into this GPL-2.0-or-later
+   project. Peer decode success and class presence alone cannot open support.
+5. [x] Inspect the peer's history and operation declarations. SWEEP/EXTRUSION
+   have embedded binary carriers as well as ordinary history/material links;
+   those carriers require their own bounded dependency/handle proof. Native
+   peer observations do not establish agreement with all paired DXF fields.
+   Do not reinterpret differing fields, hide unknown bytes, infer native
+   dispatch numbers, or admit a raw carrier on class/count evidence alone.
+   [Pinned peer field declarations](https://github.com/LibreDWG/libredwg/blob/0.14/src/dwg2.spec).
+6. [x] Reproduce two distinct remaining failures and keep their boundaries:
+
+   - The upstream AC1032 example reaches MATERIAL `Golden Sand`, then fails
+     ASCII group 90 with spelling `-1027297396` (also present in groups 91/92).
+     The MATERIAL-only unsigned-color reader currently rejects every negative
+     spelling. No signed-color or source-wide roundtrip fix is claimed here.
+   - Strict CLI export of the RPP-5cr canonical raw-history control refuses
+     with `dictionary entry target is missing or ambiguous`. Its non-strict
+     facade proof does not prove strict document-root closure. The exact
+     missing/ambiguous dictionary role still needs tracing; do not assert a
+     guessed cause or bypass `requireResolvedOwners`.
+
+Next implementation-ready sub-plans, in dependency order:
+
+1. [ ] **Signed MATERIAL color spellings.** Reproduce with minimal locally
+   authored ASCII records, then consult primary DXF color definitions. If
+   confirmed, accept only the signed-int32 and unsigned-uint32 decimal union
+   for MATERIAL color groups 90/91/92, preserving the uint32 bit pattern and
+   raw source spelling. Keep other numeric groups and objects unchanged.
+   Cover INT32_MIN, -1, 0, INT32_MAX, UINT32_MAX, one-beyond bounds, malformed
+   and overflowing input; verify typed/raw ASCII/binary output, actual import,
+   opposite-encoding readback, source preservation and atomic corrected retry.
+   Start with existing MATERIAL numeric tests, then retry the external source
+   to identify the next true boundary; do not call an import success a complete
+   document or kernel roundtrip. Never commit the external sample.
+2. [ ] **Strict selected-history dictionary closure.** Trace the exact failing
+   source dictionary entry and both emitted identity inventories from the
+   canonical scratch control. Pair each admitted dictionary target with its
+   actual typed/raw record, owner, source generation and final identity;
+   require unique resolved roles and frozen source context. Add a strict CLI
+   positive only after proving actual ASCII/binary reimport/reexport. Test
+   missing, duplicate, ambiguous, wrong-role and late-mutated targets, sentinel
+   rollback, source restoration and same-facade retries. Preserve root and
+   unused-inventory checks; presence of an arbitrary handle is insufficient.
+3. [ ] **Broader history source profiles.** After those import/closure
+   prerequisites, inspect both paired source revisions independently. Separate
+   DXF raw-body authority from native DTO authority; identify embedded binary
+   widths, nested handle roles, APPID/LAYER/material dependencies and common
+   metadata before implementing SWEEP or EXTRUSION admission. Use bounded
+   selected profiles, exact staged/final scalar and reference proof, late
+   mutation controls and actual opposite-encoding readback. Retain unsupported
+   profiles fail-closed and record peer disagreements without normalization.
+   No complete native or independent geometry claim follows from transport.
+4. [ ] **Remaining full parity and qualification.** Continue general native
+   carrier/schema/owner propagation and cumulative limits; owning/common-
+   extension/source-generation aliases; callbacks, names/body/path/EED, sparse
+   native classes, full IMAGE geometry and named-root/document closure. Retain
+   LibreCAD/LibreCAD_3 2D and the complete 3D/dwg2dxf/FreeCAD objective. Obtain
+   independent native schema/payload/owner and producer-paired semantic/kernel
+   evidence plus actual native Linux/Windows FreeCAD qualification.
+5. [ ] **Self-update and fast execution after every item.** Update the plan,
+   evidence, exact limits and next dependency; safely self-unblock in-scope
+   prerequisites, add a new immutable receipt, commit and report each verified
+   slice. Prefer fast affected normal/ASan tests; run aggregate/full suites at
+   meaningful checkpoints, not each edit. Keep owning cross-build cohorts
+   sequential until their legacy fixed temporary paths are isolated. Do not
+   stop on a safely resolvable dependency, but do not invent external authority
+   or evidence. Earlier receipts remain immutable.
+
+Strict admission remains **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**; their evidence cannot promote support claims. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. No general support predicate or external verifier is
+relaxed. Generated/downloaded drawings stay outside this commit; all seventeen
+pre-existing untracked drawings and unrelated files remain excluded. This is
+a local slice only; no push, PR or other remote mutation is performed.
+
+Receipt:
+[`rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json`](docs/research/rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json).
