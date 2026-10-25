@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ct signed MATERIAL color-word transport (2026-10-25):** scoped ASCII import and raw replay now preserve signed/unsigned spellings of MATERIAL's 32-bit color words. The independent staged token observer also accepts a single decimal plus without relaxing hex handles. Two revisions/encodings pass 108 projections, 108 imported reexports, 72 import refusal/recovery pairs and 96 atomic output refusal/readback pairs. Sixteen affected normal/ASan tests, CLI optional-build registration and both LibreCAD_3 gates pass. The real AC1032 example now imports to EOF, then correctly refuses unqualified OBJECTS export. Strict dictionary closure and broader history/native/platform qualification remain open; strict admission stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5ct-signed-material-color-word-transport-2026-10-25) · [receipt](docs/research/rpp5ct-signed-material-color-word-transport-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5cu strict MATERIAL dictionary/history closure (2026-10-25):** the strict graph now indexes validated MATERIAL leaves; their dictionary has one emitter, with frozen source/receipt/common links, complete selected scalar fields, dictionary role checks and final emitted identities. Modern history controls pass 133 preflight and 200 late refusals with 333 restored readbacks; strict color controls repeat all 108 projections/reexports. Four genuine authored controls pass two full-policy CLI passes each, independently read by ezdxf. Older dangling DIMSTYLE/STYLE replays remain refused. Native, broader history/nonprimitive-carrier and external/platform work remains open; the support qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cu-strict-material-dictionary-history-closure-2026-10-25) · [receipt](docs/research/rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5ct signed MATERIAL color-word transport (2026-10-25):** committed as `5806adf9a034799a2f9f16a6a3d787bb04bffa50`. Its scoped signed-color transport, rejection/recovery and 16 normal/ASan checks remain valid. RPP-5cu supersedes only its then-open canonical strict MATERIAL dictionary/history closure; the external example's unmodeled OBJECTS and semantic/platform prerequisites remain open. [Historical implementation](#implementation-progress-rpp-5ct-signed-material-color-word-transport-2026-10-25) · [immutable receipt](docs/research/rpp5ct-signed-material-color-word-transport-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5cs modern CLI targets and history-source readiness (2026-10-25):** committed as `bad481d230499c78f37c4a91d35f224993754e57`. Explicit `-v2013`/`-v2018` work in positional, FreeCAD-style `-o` and batch forms without changing defaults or safety gates. Its modern CLI/readback evidence remains valid. RPP-5ct supersedes only the then-open signed MATERIAL-color failure; its strict dictionary and broader SWEEP prerequisites remain open. [Historical implementation and sub-plans](#implementation-progress-rpp-5cs-modern-cli-targets-and-history-source-readiness-2026-10-25) · [immutable receipt](docs/research/rpp5cs-modern-cli-targets-and-history-source-readiness-2026-10-25.json).
 
@@ -123236,7 +123238,9 @@ OBJECTS/history routes or reducing the full original parity objective.
 
 Next implementation-ready actions, with the full parity objective retained:
 
-1. [ ] Resolve the canonical selected-history strict dictionary closure from
+1. [x] Resolved by [RPP-5cu](#implementation-progress-rpp-5cu-strict-material-dictionary-history-closure-2026-10-25)
+   for the tested source profiles; the original readiness contract follows.
+   Resolve the canonical selected-history strict dictionary closure from
    RPP-5cs. Identify the exact source entry/target role and source/emitted
    inventories; require unique owner/identity mappings and frozen generation.
    Add strict CLI ASCII/binary readback/reexport positives, wrong/missing/
@@ -123272,3 +123276,123 @@ or general support promotion is performed.
 
 Receipt:
 [`rpp5ct-signed-material-color-word-transport-2026-10-25.json`](docs/research/rpp5ct-signed-material-color-word-transport-2026-10-25.json).
+
+## Implementation progress RPP-5cu strict MATERIAL dictionary history closure (2026-10-25)
+
+RPP-5ct is committed as `5806adf9a034799a2f9f16a6a3d787bb04bffa50`.
+Resolve the selected strict MATERIAL/root dependency without removing root,
+owner, source-generation or unsupported-profile checks.
+
+1. [x] Reproduce the strict failure before implementation. The actual source
+   has NOD -> dictionary `72` -> MATERIAL `96`/`97`/`98`; generic traversal did
+   not index MATERIAL targets. The baseline corrected retry still fails, and
+   a separate real CLI trace records the dictionary-target diagnostic. Index
+   uniquely identified DXF MATERIAL leaves in the bounded source inventory;
+   reject cross-family handle collisions, require frozen validated raw/typed
+   pairing, validate their common links and visit them from the rooted graph.
+   Do not add arbitrary raw handle presence to the accepted target set.
+2. [x] Preserve one actual emitter. Generic traversal initially queued the
+   same material dictionary already emitted by the dedicated named-dictionary
+   codec plan. Suppress only that validated dictionary's second emission;
+   its generic graph traversal and output proof stay enabled. The codec still
+   emits its fields/links and publishes its actual source-object binding.
+3. [x] Freeze admitted MATERIAL raw values/spellings, typed name/identity/common
+   links, dictionary fields and one-import receipt. Raw bodies remain the
+   serialization authority; typed visual-body edits are not promoted to an
+   independent semantic certificate. Compare live source before callbacks,
+   section inspection and finalization. Validate raw reserved common links
+   against typed reactor/extension links before admission. Require source
+   generation/version/format, receipt counters and dictionary state to remain
+   unchanged. Corrected same-facade retries start a fresh bounded attempt.
+4. [x] Precharge record/group/string/common/dictionary copies using actual
+   sizes: 100,000 MATERIAL records, 4,000,000 raw groups and the existing 64 MiB
+   retained-byte limit. Candidate dictionary names are bounded before key
+   normalization/copying. Fix shared raw-string accounting to include bytes
+   after embedded NUL rather than `strlen`; a 64 MiB NUL-prefixed adversarial
+   string must refuse before callbacks, preserve the destination and recover
+   after restoration. Unqualified nonprimitive raw-carrier types are refused,
+   not copied speculatively or silently omitted.
+5. [x] Inspect selected actual output. Compare each raw MATERIAL's ordered
+   scalar groups, subclasses, strings, integers/uint32 color words, exact
+   doubles and mapped handle roles. Compare its dictionary's common fields,
+   flags, ordered names, target handles and 350/360 roles. Finally require
+   unique emitted MATERIAL/DICTIONARY identities, actual dictionary binding,
+   reciprocal owners and every non-null actual handle target exactly once.
+   The primitive matcher supports MATERIAL uint32 fields only in explicit
+   material mode; ordinary int64 fields remain width-scoped. This reuses a
+   bounded decoder, not an independent geometry or native schema oracle.
+6. [x] Extend actual-import fault/readback coverage in AC1027/AC1032 and both
+   encodings. Strict history tests pass 133 preflight and 200 late-callback
+   refusals, followed by 333 restored actual readbacks. These include missing,
+   duplicate, aliased and cross-family targets, wrong raw/typed owners, changed
+   dictionary entries, stale receipts, raw body edits and common links. Both
+   post-entities and post-objects callback phases must fire for late controls.
+   Readback checks the root/material dictionary and all three MATERIAL
+   carriers in addition to complete history/graph/BOX fields and the two
+   distinct modeler/payload associations. Marker SAB is not valid geometry.
+7. [x] Repeat the RPP-5ct color matrix under strict owner/root admission: 108
+   projections, 108 imported opposite-encoding reexports, 72 rejected/corrected
+   imports and 96 atomic output refusal/restored-readback pairs. The ordinary
+   non-strict tests remain intact. A separate literal primitive MATERIAL wire
+   corpus, authored without the library serializer, passes four positives and
+   48 corruption/restoration pairs across both revisions/encodings.
+8. [x] Exercise the real CLI with its complete source-text, lossless target,
+   proxy-cache and completeness policies. All four original authored controls
+   pass opposite-encoding conversion and a second strict CLI pass: eight
+   outputs. ezdxf 1.4.4 reads all eight and independently verifies versions,
+   rooted material names/owners, three unique MATERIALs, two solids and the
+   reciprocal history/graph/BOX/material links. This is advisory transport
+   corroboration (`qualificationEligible=false`), not a kernel certificate.
+9. [x] Preserve a newly separated refusal. Four older RPP-5cr retry files have
+   an actually dangling DIMSTYLE 340 after a compatible reexport: STYLE
+   `FC24`, reference `FC25`. Their original authored source has STYLE `FC25`
+   and reference `FC25`. Strict CLI now advances beyond dictionary closure
+   and correctly refuses `unresolved-dimstyle-text-style`; do not reinterpret
+   those older files as valid positives or disable the resource guard. The
+   compatible resource-remap path is the next concrete implementation item.
+
+Validation checkpoint: the final 23 affected normal tests pass in 11.24 s and
+23 ASan tests pass in 24.76 s; both LibreCAD_3 compile gates pass. CLI static/shared-on/off
+registration passes in 2.66 s. Builds retain `-Werror`; ASan uses
+halt_on_error=1:detect_leaks=0. Do not claim a full project suite, leak check,
+Linux/GCC, native FreeCAD, native DWG source-profile or independent ACIS/ACDS
+semantic qualification. Final owning normal/ASan cohorts are sequential.
+
+Next implementation-ready actions, retaining the complete original objective:
+
+1. [ ] Reproduce compatible modern DIMSTYLE/STYLE reexport with a minimal valid
+   source and distinct source/emitted handles. Trace raw resource-variable
+   group 340 versus the actual STYLE row binding; remap known resource roles
+   without treating arbitrary text as a handle or inventing a missing STYLE.
+   Cover both encodings, repeated imports/exports, collisions, explicit null/
+   omitted references, unknown targets, rollback and corrected retry. Preserve
+   the full strict CLI refusal for genuinely dangling input. Verify every
+   emitted 340 with an actual emitted STYLE identity, not a guessed counter.
+2. [ ] Inventory the external example's rejected unmodeled OBJECTS. Establish
+   SWEEP/EXTRUSION embedded binary widths, nested handles and EED APPID/LAYER/
+   material dependencies, raw-vs-native authority and independent field-role
+   evidence before admission. Broaden MATERIAL/common metadata beyond the
+   tested scalar envelope only with bounded source and exact output proof.
+   Preserve unknown-profile refusal and record peer disagreements honestly.
+3. [ ] Complete general native carrier/schema/owner propagation, cumulative
+   retention/decoded-owner controls, source-generation aliases, callbacks,
+   names/body/path/EED, sparse native classes, full IMAGE geometry and complete
+   named-root/document closure. Preserve LibreCAD/LibreCAD_3 2D and the full
+   3D/dwg2dxf/FreeCAD objective, including actual external platform and native
+   producer-paired semantic/kernel qualification. No slice replaces that scope.
+4. [ ] Self-update evidence, limits, dependencies and a fresh immutable receipt
+   after each implemented item; safely self-unblock, commit/report each slice
+   and prefer fast affected tests. Full suites belong at meaningful checkpoints,
+   not every edit. Keep cross-build owning cohorts sequential until their fixed
+   temporary paths are isolated. Never invent authority or promote weak proof.
+
+The support qualification ledger remains **CLOSED** despite the proved local
+strict CLI routes. J256/J260/J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**;
+their evidence cannot promote support claims. Native Linux/Windows FreeCAD
+and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
+Earlier receipts and all seventeen pre-existing untracked drawings remain
+unchanged/excluded. No fixture, remote mutation or general support promotion
+is part of this slice.
+
+Receipt:
+[`rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json`](docs/research/rpp5cu-strict-material-dictionary-history-closure-2026-10-25.json).

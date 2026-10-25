@@ -87,11 +87,13 @@ enum class Family { Other, Dictionary, Group, Xrecord };
 // are inferred. Only the current token is decoded, never a record inventory.
 template<class Mapper> bool rawScalarTransportEqual(
         const std::vector<DRW_Variant>& source, std::string_view body,
-        const dxfRW::DxfObjectsWriteView& view, Mapper&& map) {
+        const dxfRW::DxfObjectsWriteView& view, Mapper&& map,
+        bool materialColors = false) {
     InputBuffer buffer(body); std::istream input(&buffer);
     auto reader = readerFor(input, view,
         std::make_shared<DxfReadRetainedBudget>(DRW::kMaxDxfBinaryPayloadBytes));
     if (!reader) return false;
+    reader->setMaterialUnsignedColorValues(materialColors);
     for (const auto& value : source) {
         int code = 0;
         if (!reader->readRec(&code) || code != value.code()) return false;
@@ -106,6 +108,13 @@ template<class Mapper> bool rawScalarTransportEqual(
             if (!value.content.s || reader->getStringView() != *value.content.s) return false;
         } else if (value.type() == DRW_Variant::INTEGER) {
             if (reader->getInt32() != value.i_val()) return false;
+        } else if (value.type() == DRW_Variant::INTEGER64) {
+            if (materialColors && (code == 90 || code == 91 || code == 92)) {
+                if (value.i64_val() < 0 || value.i64_val() > 4294967295LL
+                    || reader->getUInt32() != static_cast<std::uint32_t>(value.i64_val())) return false;
+            } else if (code >= 160 && code <= 169) {
+                if (reader->getInt64() != value.i64_val()) return false;
+            } else return false;
         } else if (value.type() == DRW_Variant::DOUBLE) {
             const double actual = reader->getDouble(), expected = value.d_val();
             if (std::memcmp(&actual, &expected, sizeof(double)) != 0) return false;

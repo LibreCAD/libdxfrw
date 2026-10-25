@@ -1018,8 +1018,16 @@ if(LIBDXFRW_BUILD_TESTS)
         LABELS "fast;dxf;modeler;acds;history;transaction;generated" TIMEOUT 60)
     add_test(NAME libdxfrw_acds_raw_scalar_wire_controls
         COMMAND libdxfrw_dwg_local_roundtrip --acds-raw-scalar-wire-controls)
+    add_test(NAME dwg2dxf_acds_strict_material_closure
+        COMMAND libdxfrw_dwg_local_roundtrip --acds-strict-material-closure)
+    set_tests_properties(dwg2dxf_acds_strict_material_closure PROPERTIES
+        LABELS "fast;dxf;adapter;material;history;transaction;generated" TIMEOUT 30)
     set_tests_properties(libdxfrw_acds_raw_scalar_wire_controls PROPERTIES
         LABELS "fast;dxf;modeler;acds;wire;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_material_raw_scalar_wire_controls
+        COMMAND libdxfrw_dwg_local_roundtrip --material-raw-scalar-wire-controls)
+    set_tests_properties(libdxfrw_material_raw_scalar_wire_controls PROPERTIES
+        LABELS "fast;dxf;material;wire;generated" TIMEOUT 10)
     add_test(NAME dwg2dxf_modeler_acds_blob_faults
         COMMAND libdxfrw_dwg_local_roundtrip --modeler-acds-blob-faults)
     set_tests_properties(dwg2dxf_modeler_acds_blob_faults PROPERTIES
@@ -1831,6 +1839,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --material-color-lexemes)
     set_tests_properties(libdxfrw_material_color_lexemes PROPERTIES
         LABELS "fast;dxf;reader;writer;material;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_material_strict_color_closure
+        COMMAND libdxfrw_dxf_fixture_tests --material-strict-color-closure)
+    set_tests_properties(libdxfrw_material_strict_color_closure PROPERTIES
+        LABELS "fast;dxf;adapter;material;transaction;generated" TIMEOUT 30)
     add_test(NAME libdxfrw_dxf_consumer_finalization
         COMMAND libdxfrw_dxf_fixture_tests --dxf-consumer-finalization)
     set_tests_properties(libdxfrw_dxf_consumer_finalization PROPERTIES

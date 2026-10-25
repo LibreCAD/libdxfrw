@@ -423,6 +423,10 @@ keeps the original spelling; binary transport preserves the bits. Other
 numeric fields retain their existing bounds. This is color-word transport,
 not material/shading or complete drawing qualification.
 
+For admitted DXF MATERIAL scalar carriers, strict conversion checks the rooted
+dictionary links, frozen replay source, staged fields and final emitted
+identities. Unsupported carriers and unresolved resources still fail closed.
+
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without
 forcing the existing 2D projection policy into library callbacks or changing

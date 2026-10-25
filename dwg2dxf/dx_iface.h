@@ -830,7 +830,7 @@ public:
         if (dxfW == nullptr)
             return;
 
-        if (!hasUnchangedAcdsDxfHistorySources()) {
+        if (!hasUnchangedAcdsDxfHistorySources() || !hasUnchangedDxfMaterialSources()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
         }
@@ -858,6 +858,10 @@ public:
             if (handle == layoutDictionaryHandle
                 || !emittedDictionaryHandles.insert(handle).second)
                 continue;
+            // The graph validates this subtree, but the named-dictionary
+            // codec plan is its sole emitter. Do not emit its root twice.
+            if (std::any_of(m_dxfMaterialWriteDictionaries.begin(), m_dxfMaterialWriteDictionaries.end(),
+                    [handle](const DRW_Dictionary& dictionary) { return dictionary.handle == handle; })) continue;
             for (DRW_Dictionary& dictionary : cData->dictionaries) {
                 if (dictionary.handle != handle)
                     continue;
@@ -1671,6 +1675,18 @@ private:
     std::vector<DRW_EvaluationGraph> m_acdsTypedEvaluationGraphs;
     std::vector<std::uint32_t> m_acdsMaterialHandles;
     std::vector<std::uint32_t> m_dxfMaterialHandles;
+    struct DxfMaterialWriteSource {
+        DRW_RawDxfObject raw;
+        DRW_Material common;
+    };
+    std::vector<DxfMaterialWriteSource> m_dxfMaterialWriteSources;
+    std::vector<DRW_Dictionary> m_dxfMaterialWriteDictionaries;
+    dx_materialImportReceipt m_dxfMaterialWriteReceipt;
+    bool m_dxfMaterialWriteInspected{false};
+    bool m_dxfMaterialWriteRequired{false};
+    bool prepareDxfMaterialSources(DRW::Version version);
+    bool hasUnchangedDxfMaterialSources() const noexcept;
+    bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionDictionaryWithDefaultHandles;

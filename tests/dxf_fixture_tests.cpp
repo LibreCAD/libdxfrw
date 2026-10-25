@@ -26155,7 +26155,7 @@ bool readDxfObjectsRecordOrder(
         && !inObjects && !input.bad();
 }
 
-void testMaterialColorLexemes(TestContext& t) {
+void testMaterialColorLexemes(TestContext& t, bool strict = false) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto directory = std::filesystem::temp_directory_path()
         / ("libdxfrw-material-color-lexemes-" + std::to_string(nonce));
@@ -26234,7 +26234,7 @@ void testMaterialColorLexemes(TestContext& t) {
                 for (const bool binary : {false, true}) {
                     dx_iface exporter, reader, reexporter, rereader;
                     dx_data readback, second;
-                    const bool exported = exporter.fileExport(output.string(), version, binary, &data, false);
+                    const bool exported = exporter.fileExport(output.string(), version, binary, &data, false, strict);
                     const bool read = exported && reader.fileImport(output.string(), &readback, false);
                     t.expect(read && captureMatches(readback, code, value.bits,
                                                    binary ? nullptr : &value.spelling),
@@ -26247,7 +26247,7 @@ void testMaterialColorLexemes(TestContext& t) {
                         continue;
                     ++positives;
                     const auto first = bytes(output);
-                    const bool reexported = reexporter.fileExport(replay.string(), version, !binary, &readback, false);
+                    const bool reexported = reexporter.fileExport(replay.string(), version, !binary, &readback, false, strict);
                     t.expect(reexported && rereader.fileImport(replay.string(), &second, false)
                                  && captureMatches(second, code, value.bits, nullptr)
                                  && bytes(output) == first && bytes(source) == original
@@ -26306,7 +26306,7 @@ void testMaterialColorLexemes(TestContext& t) {
                     raw.groups[index] = DRW_Variant(code, bits);
                 else
                     raw.rawValues[index] = spelling;
-                t.expect(!exporter.fileExport(output.string(), version, binary, &data, false)
+                t.expect(!exporter.fileExport(output.string(), version, binary, &data, false, strict)
                              && bytes(output) == sentinel && bytes(source) == original,
                          "invalid raw color output is atomic and leaves source bytes unchanged");
                 ++outputRefusals;
@@ -26314,7 +26314,7 @@ void testMaterialColorLexemes(TestContext& t) {
                 raw.rawValues[index] = savedSpelling;
                 dx_iface reader;
                 dx_data actual;
-                t.expect(exporter.fileExport(output.string(), version, binary, &data, false)
+                t.expect(exporter.fileExport(output.string(), version, binary, &data, false, strict)
                              && reader.fileImport(output.string(), &actual, false)
                              && captureMatches(actual, code, 0xFFFFFFFFu,
                                                binary ? nullptr : &savedSpelling)
@@ -34488,6 +34488,11 @@ int main(int argc, char** argv) {
         testEntityMaterialHandleRemapping(context);
         std::cout << "Common entity MATERIAL handle remapping: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--material-strict-color-closure") {
+        TestContext context;
+        testMaterialColorLexemes(context, true);
         return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--material-color-lexemes") {

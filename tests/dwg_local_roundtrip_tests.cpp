@@ -15489,11 +15489,16 @@ bool runDxfTypedAcdsBoxRoundTrip(
     return result;
 }
 
-bool acdsRawScalarWireControls() {
-    const std::vector<DRW_Variant> source{{5, std::string("708")}, {330, std::string("700")},
+bool acdsRawScalarWireControls(bool material = false) {
+    std::vector<DRW_Variant> source{{5, std::string("708")}, {330, std::string("700")},
         {100, std::string("AcDbShHistory")}, {90, 33}, {40, 1.5}, {347, std::string("96")}};
-    const std::vector<DRW_Variant> literal{{5, std::string("901")}, {330, std::string("902")},
+    std::vector<DRW_Variant> literal{{5, std::string("901")}, {330, std::string("902")},
         {100, std::string("AcDbShHistory")}, {90, 33}, {40, 1.5}, {347, std::string("903")}};
+    if (material) {
+        source = {{5, std::string("708")}, {330, std::string("700")}, {100, std::string("AcDbMaterial")},
+            {90, std::int64_t(4294967295LL)}, {91, std::int64_t(2147483648LL)}, {92, std::int64_t(0xFEDCBA98LL)}};
+        literal = source; literal[0] = DRW_Variant(5, "901"); literal[1] = DRW_Variant(330, "902");
+    }
     unsigned rejected = 0u;
     for (auto version : {DRW::AC1027, DRW::AC1032}) for (bool binary : {false, true}) {
         const auto encode = [&](const std::vector<DRW_Variant>& fields) {
@@ -15510,6 +15515,11 @@ bool acdsRawScalarWireControls() {
                 } else if (field.type() == DRW_Variant::INTEGER) {
                     if (binary) number(static_cast<std::uint32_t>(field.i_val()), 4u);
                     else out += std::to_string(field.i_val()) + "\n";
+                } else if (field.type() == DRW_Variant::INTEGER64) {
+                    if (binary) number(static_cast<std::uint64_t>(field.i64_val()), 4u);
+                    else if (field.code() == 90 && field.i64_val() == 4294967295LL) out += "-1\n";
+                    else if (field.code() == 91 && field.i64_val() == 2147483648LL) out += "-2147483648\n";
+                    else out += std::to_string(field.i64_val()) + "\n";
                 } else if (field.type() == DRW_Variant::DOUBLE) {
                     if (binary) { const double value = field.d_val(); std::uint64_t bits = 0u;
                         std::memcpy(&bits, &value, sizeof(bits)); number(bits, 8u); }
@@ -15524,7 +15534,7 @@ bool acdsRawScalarWireControls() {
                 [](std::uint32_t key, std::uint32_t& actual) {
                     actual = key == 0x708u ? 0x901u : key == 0x700u ? 0x902u : key == 0x96u ? 0x903u : 0u;
                     return actual != 0u;
-                });
+                }, material);
         };
         if (!check(encode(literal))) return false;
         for (unsigned fault = 1u; fault != 13u; ++fault) {
@@ -15550,7 +15560,7 @@ bool acdsRawScalarWireControls() {
     return true;
 }
 
-bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {}) {
+bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {}, bool strict = false) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto directory = keepDirectory.empty()
         ? std::filesystem::temp_directory_path() / ("libdxfrw-acsh-replay-" + std::to_string(nonce)) : keepDirectory;
@@ -15573,6 +15583,11 @@ bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {})
         const auto shells = source.acshHistoryObjects;
         const auto classes = source.dxfClasses;
         const auto materials = source.materials;
+        const auto rawMaterials = source.rawMaterialObjects;
+        const auto dictionaries = source.dictionaries;
+        const auto nod = source.namedObjectDictionary;
+        const auto materialReceipt = source.materialImport;
+        const auto xrecords = source.xRecords;
         const auto receipt = source.acdsHistoryDxfImport;
         const auto generation = source.importGeneration;
         const auto rawIndex = [&](const char* name) {
@@ -15584,6 +15599,9 @@ bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {})
         const auto restore = [&]() {
             source.rawAcdsHistoryObjects = raw; source.evaluationGraphs = graphs;
             source.acshHistoryObjects = shells; source.dxfClasses = classes; source.materials = materials;
+            source.rawMaterialObjects = rawMaterials; source.dictionaries = dictionaries;
+            source.namedObjectDictionary = nod; source.materialImport = materialReceipt;
+            source.xRecords = xrecords;
             source.acdsHistoryDxfImport = receipt; source.importGeneration = generation;
             source.sourceVersion = version; source.sourceFormat = dx_source_format::DXF;
         };
@@ -15592,6 +15610,39 @@ bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {})
             if (!importer.fileImport(output.string(), &actual, false)
                 || actual.rawAcdsHistoryObjects.size() != raw.size() || actual.evaluationGraphs.size() != 1u
                 || actual.rawDxfSections.size() != 1u || actual.dxfClasses.size() != classes.size()) return false;
+            if (strict) {
+                if (!actual.hasNamedObjectDictionary || actual.materials.size() != materials.size()
+                    || actual.rawMaterialObjects.size() != rawMaterials.size()) return false;
+                const DRW_Dictionary* dictionary = nullptr;
+                unsigned roots = 0u;
+                for (const auto& entry : actual.namedObjectDictionary.m_entries)
+                    if (entry.m_name == "ACAD_MATERIAL") {
+                        ++roots;
+                        for (const auto& candidate : actual.dictionaries) if (candidate.handle == entry.m_handle) {
+                            if (dictionary) return false; dictionary = &candidate;
+                        }
+                    }
+                if (roots != 1u || !dictionary || dictionary->parentHandle != actual.namedObjectDictionary.handle
+                    || dictionary->m_entries.size() != materials.size()) return false;
+                for (const auto& entry : dictionary->m_entries) {
+                    const DRW_Material* typed = nullptr; const DRW_RawDxfObject* carrier = nullptr;
+                    for (const auto& row : actual.materials) if (row.handle == entry.m_handle) { if (typed) return false; typed = &row; }
+                    for (const auto& row : actual.rawMaterialObjects) if (row.handle == entry.m_handle) { if (carrier) return false; carrier = &row; }
+                    if (!typed || !carrier || typed->m_name != entry.m_name
+                        || typed->parentHandle != dictionary->handle || carrier->parentHandle != dictionary->handle) return false;
+                    const auto original = std::find_if(rawMaterials.begin(), rawMaterials.end(),
+                        [&](const auto& row) { return row.handle == entry.m_handle; });
+                    if (original == rawMaterials.end() || carrier->groups.size() != original->groups.size()) return false;
+                    for (std::size_t i = 0u; i != original->groups.size(); ++i) {
+                        const auto& a = original->groups[i]; const auto& b = carrier->groups[i];
+                        if (a.code() != b.code() || a.type() != b.type()) return false;
+                        if (a.code() == 330) {
+                            if (!b.c_str() || std::stoul(b.c_str(), nullptr, 16) != dictionary->handle) return false;
+                        } else if (a.type() != DRW_Variant::STRING || !a.c_str() || !b.c_str()
+                            || std::string(a.c_str()) != b.c_str()) return false;
+                    }
+                }
+            }
             std::uint32_t actualModeler = 0u; unsigned solids = 0u, bare = 0u;
             for (const auto* entity : actual.mBlock->ent) if (entity && entity->eType == DRW::E3DSOLID) {
                 ++solids; const auto* solid = static_cast<const DRW_ModelerGeometry*>(entity);
@@ -15678,16 +15729,39 @@ bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {})
             case 22: rows[b].groups[32] = DRW_Variant(40, 9.0); break;
             case 23: source.dxfClasses.front().appName = "changed after admission"; break;
             case 24: ++source.acdsHistoryDxfImport.bytes; break;
+            case 25: for (auto& dictionary : source.dictionaries) if (dictionary.handle == 0x72u) dictionary.m_entries.front().m_handle = 0xDEADu; break;
+            case 26: source.materials.front().parentHandle = 0xDEADu; break;
+            case 27: source.rawMaterialObjects.front().groups[1] = DRW_Variant(330, "DEAD"); break;
+            case 28: source.materials.push_back(source.materials.front()); break;
+            case 29: { DRW_XRecord collision; collision.handle = source.materials.front().handle; source.xRecords.push_back(collision); break; }
+            case 30: source.namedObjectDictionary.m_entries.push_back(source.namedObjectDictionary.m_entries.back()); break;
+            case 31: for (auto& dictionary : source.dictionaries) if (dictionary.handle == 0x72u) dictionary.m_entries.front().m_name = "changed"; break;
+            case 32: ++source.materialImport.rawGroupCount; break;
+            case 33: source.rawMaterialObjects.front().groups[3] = DRW_Variant(1, "late material name"); break;
+            case 34: source.rawMaterialObjects.pop_back(); break;
+            case 35: for (auto& dictionary : source.dictionaries) if (dictionary.handle == 0x72u) dictionary.parentHandle = 0xDEADu; break;
+            case 36: source.materials.front().xDictHandle = 0xDEADu; break;
+            case 37: source.materials.front().reactorHandles.push_back(0x72u); break;
             }
         };
         dx_iface exporter;
         for (unsigned fault = 0u; fault != 22u; ++fault) {
             mutate(fault);
             if (!save()) return false;
-            const bool refused = !exporter.fileExport(output.string(), version, !binary, &source, false) && preserved();
+            const bool refused = !exporter.fileExport(output.string(), version, !binary, &source, false, strict) && preserved();
             restore();
-            if (!refused || !exporter.fileExport(output.string(), version, !binary, &source, false) || !verify(output)) {
+            if (!refused || !exporter.fileExport(output.string(), version, !binary, &source, false, strict) || !verify(output)) {
                 std::cerr << "Raw ACSH preflight retry failed fault=" << fault << " binary=" << binary << '\n'; return false;
+            }
+            ++refusals; ++retries;
+        }
+        if (strict) for (unsigned fault : {25u,26u,27u,28u,29u,30u,31u,34u,35u,36u,37u}) {
+            mutate(fault);
+            if (!save()) return false;
+            const bool refused = !exporter.fileExport(output.string(), version, !binary, &source, false, true) && preserved();
+            restore();
+            if (!refused || !exporter.fileExport(output.string(), version, !binary, &source, false, true) || !verify(output)) {
+                std::cerr << "Strict MATERIAL preflight retry failed fault=" << fault << '\n'; return false;
             }
             ++refusals; ++retries;
         }
@@ -15697,14 +15771,39 @@ bool acdsHistoryDxfReplayFaults(const std::filesystem::path& keepDirectory = {})
             void writeEntities() override { dx_iface::writeEntities(); if (!afterObjects && edit) { fired = true; edit(); } }
             void writeObjects() override { dx_iface::writeObjects(); if (afterObjects && edit) { fired = true; edit(); } }
         } callback;
+        if (strict && version == DRW::AC1027 && !binary) {
+            // A rejected NUL lexeme can still own a large string allocation.
+            // Its full size must be charged before snapshotting or callbacks.
+            std::string hidden(64u * 1024u * 1024u, 'x'); hidden.front() = '\0';
+            source.rawMaterialObjects.front().groups[3] = DRW_Variant(1, hidden);
+            callback.edit = []() {}; callback.fired = false;
+            if (!save()) return false;
+            const bool refused = !callback.fileExport(output.string(), version, !binary, &source, false, true)
+                && !callback.fired && preserved();
+            restore();
+            if (!refused || !callback.fileExport(output.string(), version, !binary, &source, false, true)
+                || !callback.fired || !verify(output)) return false;
+            callback.edit = {}; ++refusals; ++retries;
+        }
         for (bool after : {false, true}) for (unsigned fault : {1u, 3u, 5u, 7u, 8u, 10u, 13u, 15u, 17u, 19u, 22u, 23u, 24u}) {
             callback.afterObjects = after; callback.fired = false; callback.edit = [&]() { mutate(fault); };
             if (!save()) return false;
-            const bool refused = !callback.fileExport(output.string(), version, !binary, &source, false)
+            const bool refused = !callback.fileExport(output.string(), version, !binary, &source, false, strict)
                 && callback.fired && preserved();
             restore(); callback.edit = {};
-            if (!refused || !callback.fileExport(output.string(), version, !binary, &source, false) || !verify(output)) {
+            if (!refused || !callback.fileExport(output.string(), version, !binary, &source, false, strict) || !verify(output)) {
                 std::cerr << "Raw ACSH late retry failed fault=" << fault << " afterObjects=" << after << '\n'; return false;
+            }
+            ++late; ++retries;
+        }
+        if (strict) for (bool after : {false, true}) for (unsigned fault : {25u,26u,27u,28u,30u,31u,32u,33u,34u,35u,36u,37u}) {
+            callback.afterObjects = after; callback.fired = false; callback.edit = [&]() { mutate(fault); };
+            if (!save()) return false;
+            const bool refused = !callback.fileExport(output.string(), version, !binary, &source, false, true)
+                && callback.fired && preserved();
+            restore(); callback.edit = {};
+            if (!refused || !callback.fileExport(output.string(), version, !binary, &source, false, true) || !verify(output)) {
+                std::cerr << "Strict MATERIAL late retry failed fault=" << fault << " afterObjects=" << after << '\n'; return false;
             }
             ++late; ++retries;
         }
@@ -33910,6 +34009,10 @@ int main(int argc, char** argv) {
         return acdsRecordWireControls() ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--acds-raw-scalar-wire-controls") {
         return acdsRawScalarWireControls() ? 0 : 1;
+    } else if (argc == 2 && std::string(argv[1]) == "--material-raw-scalar-wire-controls") {
+        return acdsRawScalarWireControls(true) ? 0 : 1;
+    } else if (argc == 2 && std::string(argv[1]) == "--acds-strict-material-closure") {
+        return acdsHistoryDxfReplayFaults({}, true) ? 0 : 1;
     } else if ((argc == 2 || argc == 3) && std::string(argv[1]) == "--acds-history-reexport-faults") {
         return acdsHistoryDxfReplayFaults(argc == 3 ? std::filesystem::path(argv[2]) : std::filesystem::path{}) ? 0 : 1;
     } else if (argc == 2 && std::string(argv[1]) == "--acds-typed-historyless-companion") {
@@ -34101,6 +34204,7 @@ int main(int argc, char** argv) {
                      " [--acds-typed-historyless-companion]"
                      " [--acds-history-reexport-faults [EMPTY_DIRECTORY]]"
                      " [--acds-raw-scalar-wire-controls]"
+                     " [--material-raw-scalar-wire-controls] [--acds-strict-material-closure]"
                      " [--acds-record-wire-controls]"
                      " [--modeler-dxf-long-carrier]"
                      " [--modeler-dxf-chunk-boundaries]"

@@ -6720,6 +6720,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_map<std::uint32_t, const DRW_RawDxfObject*>
             rawPlaceholders;
         std::unordered_map<std::uint32_t, const DRW_XRecord*> xrecords;
+        std::unordered_map<std::uint32_t, const DRW_Material*> materials;
         std::unordered_map<std::uint32_t, const DRW_DictionaryVar*> dictionaryVars;
         std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> rawDictionaryVars;
         std::unordered_map<std::uint32_t, const DRW_Scale*> scales;
@@ -6796,6 +6797,17 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "duplicate or ambiguous DICTIONARY handle "
                     + std::to_string(dictionary.handle));
+        }
+        if (data->sourceFormat == dx_source_format::DXF) {
+            inventoryFamily = "MATERIAL identity and common-metadata owners";
+            for (const auto& material : data->materials) {
+                if (!examineSourceRecord()) return false;
+                if (material.handle == 0u || material.handle == DRW::NoHandle
+                    || !sourceHandles.insert(material.handle).second
+                    || !materials.emplace(material.handle, &material).second)
+                    return reject(ExtensionGraphFailure::InvalidGraph,
+                        "invalid or colliding MATERIAL source identity");
+            }
         }
         inventoryFamily = "GROUP common-metadata owners";
         for (const DRW_Group& group : data->groups) {
@@ -7768,6 +7780,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> visitedSectionViewStyles;
         std::unordered_set<std::uint32_t> visitedPlotSettings;
         std::unordered_set<std::uint32_t> visitedRenderSettings;
+        std::unordered_set<std::uint32_t> visitedMaterials;
         enum class Phase {
             Enter, ExtensionDictionary, Reactors, DefaultEntry, Entries, Leave
         };
@@ -7788,9 +7801,16 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const DRW_DictionaryWithDefault* dictionaryWithDefault{nullptr};
             const DRW_DetailViewStyle* detailViewStyle{nullptr};
             const DRW_SectionViewStyle* sectionViewStyle{nullptr};
+            const DRW_Material* material{nullptr};
         };
         std::vector<Frame> frames;
         const auto queueTarget = [&](std::uint32_t handle, bool requireDictionary) {
+            const auto material = materials.find(handle);
+            if (!requireDictionary && material != materials.end()) {
+                Frame frame{handle}; frame.material = material->second;
+                frames.push_back(frame);
+                return true;
+            }
             const auto dictionaryWithDefault =
                 dictionariesWithDefault.find(handle);
             if (dictionaryWithDefault != dictionariesWithDefault.end()) {
@@ -7921,6 +7941,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 addOwner(sectionViewStyles);
                 addOwner(plotSettings);
                 addOwner(renderSettings);
+                addOwner(materials);
                 return owner;
             };
         const auto visit = [&](std::uint32_t handle, bool requireDictionary) {
@@ -7955,6 +7976,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     entryPointer = frame.mleaderStyle;
                 else if (frame.renderSettings != nullptr)
                     entryPointer = frame.renderSettings;
+                else if (frame.material != nullptr)
+                    entryPointer = frame.material;
                 if (entryPointer == nullptr)
                     return reject(ExtensionGraphFailure::InvalidGraph,
                         "extension graph frame has no typed record");
@@ -7987,6 +8010,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                             ? visitedSectionViewStyles.count(frame.handle) != 0
                                         : frame.plotSettings != nullptr
                                             ? visitedPlotSettings.count(frame.handle) != 0
+                                        : frame.material != nullptr
+                                            ? visitedMaterials.count(frame.handle) != 0
                                             : visitedRenderSettings.count(frame.handle) != 0;
                     if (visited) {
                         frames.pop_back();
@@ -7995,7 +8020,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     if (m_extensionGraphStats.visitedNodes >= m_extensionGraphLimits.maxNodes)
                         return reject(ExtensionGraphFailure::NodeLimit);
                     ++m_extensionGraphStats.visitedNodes;
-                    if (frame.dictionary || frame.record) {
+                    if (frame.dictionary || frame.record || frame.material) {
                         if (!preflightEdgeCandidateCount(entry.appData.size(), "typed common-group inventory work limit")) return false;
                         unsigned reactorGroups = 0u, dictionaryGroups = 0u;
                         for (const auto& group : entry.appData) {
@@ -8149,6 +8174,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "standalone PLOTSETTINGS requires a DXF source "
                                 "and a supported mode/reference pair");
+                    } else if (frame.material != nullptr) {
+                        if (m_dxfMaterialWriteSources.empty())
+                            return reject(ExtensionGraphFailure::InvalidGraph,
+                                "MATERIAL target lacks a frozen validated replay source");
                     } else if (frame.renderSettings != nullptr) {
                         const auto raw = rawRenderSettings.find(frame.handle);
                         if (data->sourceFormat != dx_source_format::DXF)
@@ -8207,7 +8236,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         m_extensionPlotSettingsHandles.push_back(frame.handle);
                     else if (frame.renderSettings != nullptr)
                         m_extensionRenderSettingsHandles.push_back(frame.handle);
-                    else
+                    else if (!frame.material)
                         m_extensionTableStyleHandles.push_back(frame.handle);
                     frame.phase = Phase::ExtensionDictionary;
                     break;
@@ -8405,7 +8434,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                                            targetMatches);
                         if (targetMatches != 1u)
                             return reject(ExtensionGraphFailure::InvalidGraph,
-                                "dictionary entry target is missing or ambiguous");
+                                "dictionary entry target is missing or ambiguous: owner="
+                                    + std::to_string(frame.handle) + " target=" + std::to_string(child));
                         if (targetOwner != frame.handle)
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "dictionary entry target does not name its containing dictionary as owner");
@@ -8441,6 +8471,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         visitedPlotSettings.insert(frame.handle);
                     else if (frame.renderSettings != nullptr)
                         visitedRenderSettings.insert(frame.handle);
+                    else if (frame.material != nullptr)
+                        visitedMaterials.insert(frame.handle);
                     else
                         visitedTableStyles.insert(frame.handle);
                     frames.pop_back();
@@ -8596,7 +8628,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 &visitedDetailViewStyles,
                                 &visitedSectionViewStyles,
                                 &visitedPlotSettings,
-                                &visitedRenderSettings,
+                                &visitedRenderSettings, &visitedMaterials,
                                 &linetypeHandles, &backgroundHandles,
                                 &blockDelimiterHandles, &blockRecordHandles,
                                 &sourceEntityHandles, &generatedDictionaryOwners, data,
@@ -8628,7 +8660,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || visitedDetailViewStyles.count(parent) != 0
                 || visitedSectionViewStyles.count(parent) != 0
                 || visitedPlotSettings.count(parent) != 0
-                || visitedRenderSettings.count(parent) != 0;
+                || visitedRenderSettings.count(parent) != 0
+                || visitedMaterials.count(parent) != 0;
         };
 
         std::size_t variableDictionaryRootCount = 0;
@@ -8822,7 +8855,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                  &visitedTableStyles, &visitedDetailViewStyles,
                  &visitedSectionViewStyles, &visitedScales,
                  &visitedMLineStyles, &visitedMLeaderStyles,
-                 &visitedRenderSettings](
+                 &visitedRenderSettings, &visitedMaterials](
                     int code, std::uint64_t target) {
                     if (!isHandleCode(code))
                         return true;
@@ -8846,7 +8879,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         || visitedTableStyles.count(targetHandle) != 0
                         || visitedDetailViewStyles.count(targetHandle) != 0
                         || visitedSectionViewStyles.count(targetHandle) != 0
-                        || visitedRenderSettings.count(targetHandle) != 0;
+                        || visitedRenderSettings.count(targetHandle) != 0
+                        || visitedMaterials.count(targetHandle) != 0;
                 };
             const auto validateHandleValue =
                 [&isHandleCode, &validateHandleTarget, &examineEdge,
@@ -8981,6 +9015,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             return reject(ExtensionGraphFailure::InvalidGraph,
                 "one or more CELLSTYLEMAP records are outside the rooted TABLESTYLE extension-dictionary graph");
 
+        if (includeNamedObjectRoot && visitedMaterials.size() != materials.size())
+            return reject(ExtensionGraphFailure::InvalidGraph,
+                "MATERIAL records are outside the rooted dictionary graph");
         inventoryFamily = "TABLECONTENT base-style ID references";
         std::unordered_map<std::uint32_t,
                            std::unordered_map<std::int32_t, std::size_t>>
@@ -10943,9 +10980,11 @@ bool estimateRawDxfObjectBytes(
         return false;
     for (const DRW_Variant& value : raw.groups) {
         if (value.type() == DRW_Variant::STRING) {
-            const char* text = value.c_str();
-            const std::size_t length = text == nullptr ? 0u
-                : std::char_traits<char>::length(text);
+            // Copying a Variant string retains bytes after an embedded NUL,
+            // even when later wire validation refuses that lexeme. Budget the
+            // actual owned allocation before making any replay snapshot.
+            const auto* text = value.content.s;
+            const std::size_t length = text == nullptr ? 0u : text->size();
             if (!addAssociativeRetainedBytes(
                     length + (text == nullptr ? 0u : 1u), estimate))
                 return false;
@@ -15278,6 +15317,197 @@ bool dx_iface::hasUnchangedXrecordWriteSources() const noexcept {
             || !standardDwgModelsEqual(m_xrecordWriteDictionaries[next++],dictionary,m_xrecordWriteSourceVersion,dwgObjType::DICTIONARY)) return false;
     }
     return next == m_xrecordWriteDictionaries.size();
+}
+
+bool dx_iface::prepareDxfMaterialSources(DRW::Version version) {
+    if (!cData || cData->sourceFormat != dx_source_format::DXF) return true;
+    m_dxfMaterialWriteRequired = true;
+    if (cData->materials.empty() && cData->rawMaterialObjects.empty()) return true;
+    if (cData->materials.size() > kMaxAdapterMaterialRecords
+        || cData->rawMaterialObjects.size() > kMaxAdapterMaterialRecords) return false;
+    std::size_t bytes = 0u, groups = 0u;
+    for (const auto& raw : cData->rawMaterialObjects) {
+        std::size_t retained = 0u;
+        if (raw.groups.size() > kMaxAdapterMaterialRawGroups - groups
+            || !estimateRawDxfObjectBytes(raw, retained)
+            || retained > kMaxAdapterMaterialRetainedBytes - bytes) return false;
+        groups += raw.groups.size(); bytes += retained;
+        for (const auto& value : raw.groups)
+            if (value.type() != DRW_Variant::STRING && value.type() != DRW_Variant::INTEGER
+                && value.type() != DRW_Variant::INTEGER64 && value.type() != DRW_Variant::DOUBLE) return false;
+    }
+    for (const auto& material : cData->materials) {
+        std::size_t retained = 0u;
+        if (!estimateMaterialTypedBytes(material, retained)
+            || retained > kMaxAdapterMaterialRetainedBytes - bytes) return false;
+        bytes += retained;
+    }
+    if (cData->dictionaries.size() > kMaxAdapterDictionaryTypedRecords
+        || cData->namedObjectDictionary.m_entries.size() > DRW_Dictionary::kMaxEntries) return false;
+    // Bound the candidate dictionary/name copies before configure normalizes
+    // keys or copies its selected dictionary. No admission relies on stale
+    // caller-editable capture byte counters.
+    std::size_t dictionaryBytes = 0u, slots = 0u;
+    if (!estimateDictionaryTypedBytes(cData->namedObjectDictionary, dictionaryBytes, slots)
+        || dictionaryBytes > kMaxAdapterMaterialRetainedBytes - bytes) return false;
+    for (const auto& dictionary : cData->dictionaries) {
+        std::size_t retained = 0u;
+        if (dictionary.m_entries.size() > DRW_Dictionary::kMaxEntries
+            || !estimateDictionaryTypedBytes(dictionary, retained, slots)
+            || retained > kMaxAdapterMaterialRetainedBytes - bytes - dictionaryBytes) return false;
+        dictionaryBytes += retained;
+    }
+    std::vector<std::pair<std::string, std::string>> roots;
+    std::vector<std::uint32_t> handles;
+    std::string failure;
+    if (!configureDxfMaterialDictionary(*cData, version, m_dxfMaterialWriteDictionaries,
+            roots, handles, failure)) return false;
+    for (const auto& dictionary : m_dxfMaterialWriteDictionaries) {
+        std::size_t retained = 0u, slots = 0u;
+        if (!estimateDictionaryTypedBytes(dictionary, retained, slots)
+            || retained > kMaxAdapterMaterialRetainedBytes - bytes) return false;
+        bytes += retained;
+    }
+    try {
+        std::unordered_map<std::uint32_t, const DRW_Material*> typed;
+        for (const auto& material : cData->materials) typed.emplace(material.handle, &material);
+        m_dxfMaterialWriteSources.reserve(cData->rawMaterialObjects.size());
+        for (const auto& raw : cData->rawMaterialObjects) {
+            const auto found = typed.find(raw.handle);
+            if (found == typed.end()) return false;
+            const auto& material = *found->second;
+            unsigned depth = 0u, reactors = 0u, extensions = 0u;
+            std::size_t links = 0u;
+            std::string_view application;
+            for (const auto& group : raw.groups) {
+                if (group.code() == 100 && depth == 0u) break;
+                if (group.code() == 102) {
+                    if (group.type() != DRW_Variant::STRING || !group.c_str()) return false;
+                    const std::string_view marker(group.c_str());
+                    if (!marker.empty() && marker.front() == '{') {
+                        if (depth++ == 0u) {
+                            application = marker.substr(1); links = 0u;
+                            if (application == "ACAD_REACTORS" && ++reactors != 1u) return false;
+                            if (application == "ACAD_XDICTIONARY" && ++extensions != 1u) return false;
+                        } else if (application == "ACAD_REACTORS" || application == "ACAD_XDICTIONARY") return false;
+                    } else if (marker == "}" && depth) {
+                        if (--depth == 0u && ((application == "ACAD_REACTORS" && links != material.reactorHandles.size())
+                            || (application == "ACAD_XDICTIONARY" && links != 1u))) return false;
+                    } else return false;
+                } else if (depth && (application == "ACAD_REACTORS" || application == "ACAD_XDICTIONARY")) {
+                    std::uint64_t handle = 0u;
+                    if (depth != 1u || !dx_standard_output::handleValue(group, handle)) return false;
+                    if (application == "ACAD_REACTORS") {
+                        if (group.code() != 330 || links >= material.reactorHandles.size()
+                            || handle != material.reactorHandles[links++]) return false;
+                    } else if (group.code() != 360 || links++ || !material.xDictHandle || handle != material.xDictHandle) return false;
+                }
+            }
+            if (depth || (!reactors && !material.reactorHandles.empty()) || (!extensions && material.xDictHandle)) return false;
+            m_dxfMaterialWriteSources.push_back({raw, *found->second});
+        }
+        m_dxfMaterialWriteReceipt = cData->materialImport;
+        return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
+    if (!m_dxfMaterialWriteRequired) return true;
+    try {
+        if (!cData || cData->sourceFormat != dx_source_format::DXF
+            || cData->materials.size() != m_dxfMaterialWriteSources.size()
+            || cData->rawMaterialObjects.size() != m_dxfMaterialWriteSources.size()) return false;
+        if (m_dxfMaterialWriteSources.empty()) return true;
+        if (!cData->hasSingleSuccessfulMaterialImport()) return false;
+        const auto& a = cData->materialImport; const auto& b = m_dxfMaterialWriteReceipt;
+        if (a.generation != b.generation || a.sourceFormat != b.sourceFormat || a.sourceVersion != b.sourceVersion
+            || a.typedRange.begin != b.typedRange.begin || a.typedRange.end != b.typedRange.end
+            || a.rawRange.begin != b.rawRange.begin || a.rawRange.end != b.rawRange.end
+            || a.rawCallbacks != b.rawCallbacks || a.rawGroupCount != b.rawGroupCount
+            || a.retainedBytes != b.retainedBytes || a.resourceLimitExceeded != b.resourceLimitExceeded
+            || a.captureFailed != b.captureFailed || a.successful != b.successful) return false;
+        std::unordered_map<std::uint32_t, const DRW_Material*> typed;
+        for (const auto& material : cData->materials)
+            if (!typed.emplace(material.handle, &material).second) return false;
+        auto raw = cData->rawMaterialObjects.begin();
+        for (const auto& frozen : m_dxfMaterialWriteSources) {
+            const auto& source = frozen.raw;
+            if (raw->name != source.name || raw->handle != source.handle || raw->parentHandle != source.parentHandle
+                || raw->m_version != source.m_version || raw->hasRawValues != source.hasRawValues
+                || raw->rawValues != source.rawValues || raw->groups.size() != source.groups.size()) return false;
+            for (std::size_t i = 0u; i != raw->groups.size(); ++i)
+                if (!retainedVariantEqual(raw->groups[i], source.groups[i])) return false;
+            const auto found = typed.find(source.handle);
+            if (found == typed.end()) return false;
+            const auto& current = *found->second;
+            if (current.parentHandle != frozen.common.parentHandle || current.m_name != frozen.common.m_name
+                || current.xDictHandle != frozen.common.xDictHandle
+                || current.reactorHandles != frozen.common.reactorHandles
+                || !retainedVariantListsEqual(current.appData, frozen.common.appData)
+                || current.extData.size() != frozen.common.extData.size()) return false;
+            for (std::size_t i = 0u; i != current.extData.size(); ++i)
+                if (!current.extData[i] || !frozen.common.extData[i]
+                    || !retainedVariantEqual(*current.extData[i], *frozen.common.extData[i])) return false;
+            ++raw;
+        }
+        for (const auto& frozen : m_dxfMaterialWriteDictionaries) {
+            const DRW_Dictionary* current = nullptr;
+            for (const auto& dictionary : cData->dictionaries) if (dictionary.handle == frozen.handle) {
+                if (current) return false; current = &dictionary;
+            }
+            if (!current || !current->hasCompleteDxfEntries()
+                || !standardDwgModelsEqual(frozen, *current, cData->sourceVersion, dwgObjType::DICTIONARY)) return false;
+        }
+        return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (!m_dxfMaterialWriteRequired || m_dxfMaterialWriteSources.empty()) return true;
+    if (m_dxfMaterialWriteInspected || !hasUnchangedDxfMaterialSources()) return false;
+    m_dxfMaterialWriteInspected = true;
+    try {
+        std::map<std::uint32_t, const DRW_RawDxfObject*> expected;
+        for (const auto& frozen : m_dxfMaterialWriteSources)
+            if (!expected.emplace(dxfW->remapHandle(frozen.raw.handle), &frozen.raw).second) return false;
+        std::map<std::uint32_t, const DRW_Dictionary*> dictionaries;
+        for (const auto& source : m_dxfMaterialWriteDictionaries)
+            if (expected.count(dxfW->remapHandle(source.handle)) != 0u
+                || !dictionaries.emplace(dxfW->remapHandle(source.handle), &source).second) return false;
+        const auto map = [this](std::uint32_t key, std::uint32_t& actual) {
+            actual = dxfW->remapHandle(key); return key == 0u || (actual != 0u && actual != DRW::NoHandle);
+        };
+        std::unordered_set<std::uint32_t> seen;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view, std::uint32_t handle) { return expected.count(handle) != 0u || dictionaries.count(handle) != 0u; },
+            [&](const auto& shape, std::string_view body) {
+                if (!seen.insert(shape.handle).second) return false;
+                const auto dictionary = dictionaries.find(shape.handle);
+                if (dictionary != dictionaries.end()) {
+                    const auto& source = *dictionary->second;
+                    dx_standard_output::Decoder decoder(view);
+                    return shape.kind == dx_standard_output::Family::Dictionary
+                        && decoder.decodeRecord<DRW_Dictionary>(body, [&](const auto& actual) {
+                            std::vector<std::uint32_t> references;
+                            if (!actual.hasCompleteDxfEntries() || source.hardOwner != actual.hardOwner
+                                || source.cloning != actual.cloning || source.m_entries.size() != actual.m_entries.size()
+                                || !generatedDictionaryCommonEqual(source, actual, map, references, view.binary)) return false;
+                            for (std::size_t i = 0u; i != source.m_entries.size(); ++i) {
+                                const auto& a = source.m_entries[i]; const auto& b = actual.m_entries[i];
+                                const auto role = a.m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                                    ? (source.hardOwner ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                                                       : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner) : a.m_dxfHandleCode;
+                                if (a.m_name != b.m_name || b.m_handle != dxfW->remapHandle(a.m_handle)
+                                    || role != b.m_dxfHandleCode) return false;
+                            }
+                            return true;
+                        });
+                }
+                const auto& source = *expected.at(shape.handle);
+                return dx_standard_output::rawScalarTransportEqual(source.groups, body, view, map, true);
+            });
+        return inspected && seen.size() == expected.size() + dictionaries.size();
+    } catch (...) { return false; }
 }
 
 bool dx_iface::hasUnchangedGeneratedRootSources(bool final) const {
@@ -21634,6 +21864,27 @@ void dx_iface::recordHatchBlockPublication(const std::string& name, bool written
 }
 
 bool dx_iface::finalizeDxfWrite() {
+    if (!hasUnchangedDxfMaterialSources()
+        || (!m_dxfMaterialWriteSources.empty() && !m_dxfMaterialWriteInspected)) return false;
+    for (const auto& source : m_dxfMaterialWriteSources) {
+        const auto& raw = source.raw;
+        const auto emitted = dxfW->remapHandle(raw.handle);
+        if (!dxfW->dxfWriteRecordHasIdentity(emitted, raw.name, "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(emitted, dxfW->remapHandle(raw.parentHandle))) return false;
+        for (const auto& value : raw.groups) if (isDxfHandleCode(value.code())) {
+            std::uint64_t key = 0u;
+            if (!dx_standard_output::handleValue(value, key) || key > 0xFFFFFFFFu) return false;
+            if (key != 0u && dxfW->dxfWriteRecordHandleCount(dxfW->remapHandle(static_cast<std::uint32_t>(key))) != 1u) return false;
+        }
+    }
+    for (const auto& dictionary : m_dxfMaterialWriteDictionaries) {
+        const auto emitted = dxfW->remapHandle(dictionary.handle);
+        if (!dxfW->dxfWriteSourceObjectHasIdentity(dictionary.handle, emitted,
+                "DICTIONARY", "OBJECTS", dxfW->remapHandle(dictionary.parentHandle))) return false;
+        for (const auto& entry : dictionary.m_entries)
+            if (!dxfW->dxfWriteRecordHasIdentity(dxfW->remapHandle(entry.m_handle), "MATERIAL", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(dxfW->remapHandle(entry.m_handle), emitted)) return false;
+    }
     if (!hasUnchangedAcdsDxfHistorySources()
         || (!m_acdsDxfHistoryObjects.empty() && !m_acdsDxfHistoryInspected)) return false;
     for (const auto& row : m_acdsDxfHistoryObjects) {
@@ -22539,6 +22790,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_acdsTypedEvaluationGraphs.clear();
     m_acdsMaterialHandles.clear();
     m_dxfMaterialHandles.clear();
+    m_dxfMaterialWriteSources.clear();
+    m_dxfMaterialWriteDictionaries.clear();
+    m_dxfMaterialWriteReceipt = {};
+    m_dxfMaterialWriteInspected = false;
+    m_dxfMaterialWriteRequired = false;
     m_backgroundHandlesToWrite.clear();
     m_sunHandlesToWrite.clear();
     m_spatialFilterHandlesToWrite.clear();
@@ -23292,6 +23548,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareAcdsDxfHistory(v)) {
         reportPreflightFailure("selected raw ACSH source/role closure");
+        return false;
+    }
+    if (includeNamedObjectRoot && !prepareDxfMaterialSources(v)) {
+        reportPreflightFailure("MATERIAL source/owner replay closure");
         return false;
     }
     if (!prepareExtensionObjectGraph(cData, includeNamedObjectRoot)) {
@@ -25169,6 +25429,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || !m_acdsDxfHistoryObjects.empty())
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots](const auto& view) {
             return hasUnchangedXrecordWriteSources()
+                && inspectDxfMaterialOutput(view)
                 && inspectAcdsDxfHistory(view)
                 && (cData->m_standardDwgObjectFrames.empty() || inspectStandardDwgOutput(view))
                 && (!needsRasterOutput || inspectRasterOutput(view))

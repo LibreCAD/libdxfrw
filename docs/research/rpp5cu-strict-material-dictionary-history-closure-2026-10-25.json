@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cu strict MATERIAL dictionary history closure",
+  "date": "2026-10-25",
+  "parentCommit": "5806adf9a034799a2f9f16a6a3d787bb04bffa50",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "SELECTED_STRICT_DXF_MATERIAL_ROOT_HISTORY_TRANSPORT_CLOSED_COMPATIBLE_RESOURCE_REMAP_AND_BROADER_NATIVE_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "baseline": {
+    "source": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/AC1032-retry-ascii.dxf",
+    "cliLog": "/tmp/rpp5cu-cli-baseline.log",
+    "strictDriverLog": "/tmp/rpp5cu-baseline.log",
+    "observed": "Strict graph cannot resolve dictionary 72 entries to MATERIAL 96/97/98; corrected source retry still fails",
+    "cause": "MATERIAL was absent from generic extension target inventory",
+    "followOnEmissionGap": "After indexing MATERIAL leaves, generic traversal and dedicated named-dictionary codec plan both attempted the same dictionary emission; corrected with one validated emitter"
+  },
+  "scope": {
+    "sourceFormat": "DXF",
+    "testedVersions": [
+      "AC1027",
+      "AC1032"
+    ],
+    "target": "Exact matching source revision; ASCII or binary",
+    "profile": "Validated one-import rooted MATERIAL scalar carriers and selected canonical BOX/history controls",
+    "rawBodyAuthority": "Complete retained raw MATERIAL body; typed names/identities/common links must match admitted role context. Typed visual-body edits are not independent semantic evidence",
+    "nonprimitiveCarrierAdmission": "CLOSED until separately proved",
+    "nativeDwgLayoutChanged": false,
+    "publicLibraryApiAbiCallbacksChanged": false,
+    "converterPrivateStateChanged": true,
+    "strictResourceGuardsDisabled": false,
+    "supportClaimsPromoted": false
+  },
+  "implementation": {
+    "graph": "Index unique DXF MATERIAL identities in source inventory; reject cross-family collisions; follow rooted owners and typed/raw-correlated common links through ordinary bounded graph traversal; no arbitrary raw whitelist",
+    "emitter": "Codec named-dictionary plan is sole emitter of frozen material dictionary. Generic traversal still validates it, but the callback skips its duplicate emission only",
+    "snapshot": "Freeze exact raw records/groups/spellings, typed name/identity/common links, selected dictionary source and receipt; compare generation, version, format, counters and live source before object callback, section inspection and finalization",
+    "budgets": {
+      "materialRecords": 100000,
+      "rawGroups": 4000000,
+      "snapshotRetainedBytes": 67108864,
+      "candidateDictionaryWorkBoundedBeforeCopy": true,
+      "fullOwnedStringSizeIncludingNul": true,
+      "nonprimitiveVariantsRefuseBeforeCopy": true
+    },
+    "stageProof": "Exact ordered raw scalar fields and mapped handles; selected dictionary common fields, flags, ordered entry names/targets and 350/360 roles",
+    "finalProof": "Actual dictionary source-object binding; one MATERIAL/DICTIONARY identity and reciprocal owner for every selected source; each non-null actual handle target emitted once",
+    "materialColorMode": "Explicit scoped uint32 matcher for 90/91/92; ordinary int64 remains width-scoped",
+    "sourceAndCodecGuardsRetained": true
+  },
+  "controls": {
+    "newCTests": [
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_strict_color_closure",
+      "libdxfrw_material_raw_scalar_wire_controls"
+    ],
+    "history": {
+      "originalPreflightRefusals": 88,
+      "addedRolePreflightRefusals": 44,
+      "addedPrecopyBudgetRefusal": 1,
+      "totalPreflightRefusals": 133,
+      "originalLateRefusals": 104,
+      "addedMaterialLateRefusals": 96,
+      "totalLateRefusals": 200,
+      "restoredActualReadbacks": 333,
+      "phases": [
+        "after base writeEntities",
+        "after base writeObjects"
+      ],
+      "lateCallbackFiringRequired": true,
+      "modes": "Missing/duplicate/aliased/cross-family targets; wrong raw/typed owner; changed dictionary entry/name/owner; stale material receipt; raw body edit; missing carrier; typed extension/reactor link mismatch; prior raw history/class/graph mutations",
+      "readback": "Root -> material dictionary -> three unique typed/raw MATERIALs, every canonical raw MATERIAL group/owner, exact history/graph/BOX fields and two distinct marker payload/modeler associations"
+    },
+    "precopyNulControl": {
+      "ownedStringBytes": 67108864,
+      "leadingByte": "NUL",
+      "failureMustPrecedeCallbacks": true,
+      "destinationSentinelPreserved": true,
+      "restoredSameFacadeReadback": true
+    },
+    "strictColorMatrix": {
+      "sourceCells": 54,
+      "outputProjections": 108,
+      "actualOppositeEncodingReexports": 108,
+      "sourceRefusals": 72,
+      "correctedSameImporterRetries": 72,
+      "outputRefusals": 96,
+      "correctedSameExporterActualReadbacks": 96,
+      "nonStrictMatrixRetained": true
+    },
+    "literalMaterialWire": {
+      "authoring": "Primitive physical ASCII/binary fields without library serializer; these are fragments, not valid complete drawing or geometry witnesses",
+      "positives": 4,
+      "corruptionRestorationPairs": 48,
+      "covers": "Self/owner/role, subclass, scalar value, missing/duplicate/reordered/truncated fields, over-wide actual reference; mixed signed/unsigned color word spellings"
+    }
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc does not qualify native Linux/GCC",
+    "finalNormalBuildLogs": [
+      "/tmp/rpp5cu-final-normal-build.log",
+      "/tmp/rpp5cu-final-normal-driver-build.log"
+    ],
+    "finalAsanBuildLogs": [
+      "/tmp/rpp5cu-final-asan-build.log",
+      "/tmp/rpp5cu-final-asan-driver-build.log"
+    ],
+    "affectedCTests": [
+      "libdxfrw_material_color_lexemes",
+      "libdxfrw_material_root_output_compatibility",
+      "libdxfrw_numeric_locale",
+      "dwg2dxf_numeric_locale_ascii_cli",
+      "dwg2dxf_numeric_locale_binary_cli",
+      "dwg2dxf_generated_root_common_closure",
+      "dwg2dxf_raster_finite_real_controls",
+      "dwg2dxf_raster_token_width_controls",
+      "dwg2dxf_raster_observer_profiles",
+      "dwg2dxf_raster_observer_profile_faults",
+      "dwg2dxf_raster_profile_token_controls",
+      "dwg2dxf_standard_output_framing_controls",
+      "libdxfrw_acds_raw_scalar_wire_controls",
+      "dwg2dxf_acds_history_reexport_faults",
+      "libdxfrw_raster_dwg_independent_wire",
+      "dwg2dxf_modern_cli_versions",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_strict_color_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "dwg2dxf_rooted_xrecord_string_widths",
+      "dwg2dxf_rooted_xrecord_string_width_faults",
+      "dwg2dxf_generated_dictionary_scalar_transport",
+      "dwg2dxf_generated_dictionary_scalar_faults"
+    ],
+    "normal": {
+      "status": "PASS",
+      "passed": 23,
+      "elapsedSeconds": 11.24,
+      "log": "/tmp/rpp5cu-final-normal-cohort.log"
+    },
+    "asan": {
+      "status": "PASS",
+      "passed": 23,
+      "elapsedSeconds": 24.76,
+      "ASAN_OPTIONS": "halt_on_error=1:detect_leaks=0",
+      "log": "/tmp/rpp5cu-final-asan-cohort.log"
+    },
+    "finalOwningCrossBuildCohortsSequential": true,
+    "librecad3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS"
+    },
+    "cliOptionalRegistration": {
+      "status": "PASS",
+      "elapsedSeconds": 2.66,
+      "log": "/tmp/rpp5cu-optional-build.log"
+    },
+    "fullProjectSuite": "NOT_RUN",
+    "leakCheck": "NOT_RUN"
+  },
+  "strictCli": {
+    "directory": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH",
+    "cases": [
+      {
+        "version": "AC1027",
+        "encoding": "ascii",
+        "src": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-ascii-historyless-companion.dxf",
+        "target": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-ascii-authored-first.dxf",
+        "exit": 0,
+        "second": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-ascii-authored-second.dxf",
+        "secondExit": 0
+      },
+      {
+        "version": "AC1027",
+        "encoding": "binary",
+        "src": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-binary-historyless-companion.dxf",
+        "target": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-binary-authored-first.dxf",
+        "exit": 0,
+        "second": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-binary-authored-second.dxf",
+        "secondExit": 0
+      },
+      {
+        "version": "AC1032",
+        "encoding": "ascii",
+        "src": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-ascii-AC1032-historyless-companion.dxf",
+        "target": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-ascii-authored-first.dxf",
+        "exit": 0,
+        "second": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-ascii-authored-second.dxf",
+        "secondExit": 0
+      },
+      {
+        "version": "AC1032",
+        "encoding": "binary",
+        "src": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-binary-AC1032-historyless-companion.dxf",
+        "target": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-binary-authored-first.dxf",
+        "exit": 0,
+        "second": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-binary-authored-second.dxf",
+        "secondExit": 0
+      }
+    ],
+    "finalRerun": [
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-ascii-authored-first.dxf",
+        "exit": 0
+      },
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-ascii-authored-second.dxf",
+        "exit": 0
+      },
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-binary-authored-first.dxf",
+        "exit": 0
+      },
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-binary-authored-second.dxf",
+        "exit": 0
+      },
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-ascii-authored-first.dxf",
+        "exit": 0
+      },
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-ascii-authored-second.dxf",
+        "exit": 0
+      },
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-binary-authored-first.dxf",
+        "exit": 0
+      },
+      {
+        "destination": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-binary-authored-second.dxf",
+        "exit": 0
+      }
+    ],
+    "sourceAuthoring": "Previously retained local typed source author controls; no external drawing payload used",
+    "fullPolicies": [
+      "requireResolvedOwners=true",
+      "RequireValidSource",
+      "RequireLossless target text",
+      "FailIfNotPreserved proxy graphics",
+      "RequireComplete"
+    ],
+    "twoPassRoutes": 4,
+    "outputs": 8,
+    "allExitCodes": 0,
+    "artifacts": [
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-ascii-authored-first.dxf",
+        "sha256": "1f436d5e66fda4886208eda4183ae4558ee2f05a6cc039a4b3367436f16d493c"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-ascii-authored-second.dxf",
+        "sha256": "661c69e4f8a170f6878fe7f4621d1500ac3f4abdfe5221c8fa4ffd203cf6ad85"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-binary-authored-first.dxf",
+        "sha256": "661c69e4f8a170f6878fe7f4621d1500ac3f4abdfe5221c8fa4ffd203cf6ad85"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1027-binary-authored-second.dxf",
+        "sha256": "1f436d5e66fda4886208eda4183ae4558ee2f05a6cc039a4b3367436f16d493c"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-ascii-authored-first.dxf",
+        "sha256": "c4a6ab3ec5c69567c14adde45ab8db48b245cc20ee1bcf4d9412e58b7873a01d"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-ascii-authored-second.dxf",
+        "sha256": "188e85620037b0c1241a41b37b5563244dc33a48b76add3a5d574a0f0a58eaeb"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-binary-authored-first.dxf",
+        "sha256": "188e85620037b0c1241a41b37b5563244dc33a48b76add3a5d574a0f0a58eaeb"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/AC1032-binary-authored-second.dxf",
+        "sha256": "c4a6ab3ec5c69567c14adde45ab8db48b245cc20ee1bcf4d9412e58b7873a01d"
+      }
+    ],
+    "validGeometry": false,
+    "markerSabOnly": true
+  },
+  "independentReadback": {
+    "qualificationEligible": false,
+    "tool": "ezdxf 1.4.4",
+    "finalLog": "/tmp/rpp5cu-independent-final-readback.log",
+    "filesRead": 8,
+    "result": "PASS",
+    "proof": "Both versions; NOD -> material dictionary owner; exact ByLayer/ByBlock/Global names and three unique MATERIAL owners; two solids; reciprocal history -> graph -> BOX -> material links",
+    "notClaimed": [
+      "all overwritten retry intermediates independently parsed",
+      "valid SAB/kernel geometry",
+      "native DWG schema/source-producer equivalence",
+      "broad material shading semantics"
+    ]
+  },
+  "remainingNewEvidence": {
+    "gap": "Compatible DIMSTYLE/STYLE resource remap after reexport",
+    "oldRetrySource": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/AC1032-retry-ascii.dxf",
+    "oldRetryStyleSelf": "FC24",
+    "oldRetryDimstyle340": "FC25",
+    "originalValidStyleAndReference": "FC25",
+    "cliNegatives": 4,
+    "outputPublished": false,
+    "diagnostic": "unresolved-dimstyle-text-style: DIMSTYLE group-340 source handle has no emitted STYLE row",
+    "negativeLogs": "/private/tmp/libdxfrw-rpp5cu-cli.hGGxAH/*-first.log (non-authored retry inputs)",
+    "status": "NOT_FIXED",
+    "interpretation": "Strict refusal of truly dangling old replay is correct. Investigate the compatible dynamic resource-variable reexport path; do not bypass guard or promote invalid retry files to positives"
+  },
+  "nextActions": [
+    "Minimal compatible modern DIMSTYLE/STYLE remap proof, actual STYLE binding, both encodings/repeated exports/collisions/null and dangling cases, atomic refusal/restoration; retain strict true-dangling refusal",
+    "Inventory external example unmodeled OBJECTS and obtain SWEEP/EXTRUSION embedded carrier/dependency role proof before admission",
+    "General native carrier/schema/owner, cumulative bounds, generations, common metadata/EED, sparse classes, full IMAGE and document closure, 2D/3D consumers and external/native semantic/platform qualification",
+    "Self-update evidence and immutable receipt after each item; safely self-unblock dependencies; commit/report verified slices; fast affected tests first"
+  ],
+  "supportBoundary": {
+    "qualificationLedger": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "cqAcisVerifierQualificationRelaxed": false,
+    "fullOriginalGoalComplete": false
+  },
+  "repositorySafety": {
+    "drawingFixturesCommitted": false,
+    "earlierReceiptsModified": false,
+    "preExistingUntrackedDrawingsExcluded": 17,
+    "unrelatedFilesExcluded": true,
+    "remoteMutation": false
+  }
+}
