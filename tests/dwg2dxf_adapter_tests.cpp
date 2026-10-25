@@ -4512,6 +4512,271 @@ bool multipleSelectedXrecords(bool faultsOnly = false, bool branches = false) {
     return true;
 }
 
+bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for (unsigned n = 0u; n != 64u; ++n) {
+        const auto candidate = std::filesystem::temp_directory_path() / ("libdxfrw-xrecord-extension-" + std::to_string(stamp) + "-" + std::to_string(n));
+        std::error_code error;
+        if (std::filesystem::create_directory(candidate,error)) { directory = candidate; break; }
+        if (error && error != std::errc::file_exists) break;
+    }
+    if (directory.empty()) return fail("XRECORD-owned extension scratch directory failed");
+    const auto dxf = directory / "source.dxf", dwg = directory / "source.dwg", target = directory / "target.dxf";
+    struct Cleanup { std::filesystem::path a,b,c,directory; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(a,error); std::filesystem::remove(b,error); std::filesystem::remove(c,error); std::filesystem::remove(directory,error);
+    } } cleanup{dxf,dwg,target,directory};
+    class Author final : public dx_iface {
+    public:
+        dwgRW* native{nullptr}; bool ok{true};
+        void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+        void writeEntities() override {}
+        void writeAppId() override {}
+        void collectDwgAppIds() override {}
+        void writeDwgClasses() override { ok = native && native->registerDwgNamedObjectDictionaryEntry("XRECORD_EXTENSIONS",0xE010u) && ok; }
+        bool finalizeDwgWrite() override { return ok; }
+        static void common(DRW_TableEntry& row) {
+            row.reactorHandles = {row.parentHandle}; row.setDwgCommonObjectState(1,row.xDictHandle ? 0 : 1,false);
+        }
+        void writeObjects() override {
+            DRW_Dictionary outer; outer.handle = 0xE010u; outer.parentHandle = 0xCu; outer.cloning = 2; outer.hardOwner = 1;
+            outer.m_entries = {{"SECOND",0xE050u},{"OWNER",0xE020u}}; common(outer);
+            DRW_Dictionary inner; inner.handle = 0xE030u; inner.parentHandle = 0xE020u; inner.cloning = 2; inner.hardOwner = 0;
+            inner.m_entries = {{"CHILD",0xE040u}}; common(inner);
+            for (auto* row : {&outer,&inner}) ok = (native ? native->writeDictionary(row) : dxfW->writeDictionary(row)) && ok;
+            for (unsigned n = 0u; n != 4u; ++n) {
+                const std::array<std::uint32_t,4> handles{{0xE020u,0xE040u,0xE050u,0xE060u}};
+                const std::array<const char*,4> labels{{"OWNER","CHILD","SECOND","UNSELECTED"}};
+                const std::array<std::uint32_t,4> references{{0xE040u,0xE020u,0xE040u,0xE020u}};
+                DRW_XRecord record; record.handle = handles[n]; record.parentHandle = n == 1u ? inner.handle : outer.handle;
+                record.xDictHandle = n == 0u ? inner.handle : 0u; record.m_cloning = 2; common(record);
+                if (!native && n == 0u) record.appData.push_back({{102,std::string("EXTENSION_APP_META")},
+                    {1,std::string("literal {metadata}")},{330,std::string("E040")},{102,std::string("}")}});
+                record.m_dataEntries = {{1,std::string(labels[n])},{330,static_cast<dint64>(references[n])},{40,1.25 * (n + 1u)}};
+                ok = (native ? native->writeXRecord(&record) : dxfW->writeXRecord(&record)) && ok;
+            }
+        }
+    } author;
+    dx_data storage; author.cData = &storage; author.currentBlock = storage.mBlock;
+    class Exporter final : public dx_iface {
+    public:
+        std::function<void()> afterObjects,beforeFinalize;
+        void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
+        bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
+    };
+    bool sourceHasCustomMetadata = false;
+    const auto check = [&](const dx_data& data, bool original) {
+        if (!data.hasNamedObjectDictionary || data.xRecords.size() != (original ? 4u : 3u)) return false;
+        const auto root = std::find_if(data.namedObjectDictionary.m_entries.begin(),data.namedObjectDictionary.m_entries.end(),
+            [](const auto& entry) { return entry.m_name == "XRECORD_EXTENSIONS"; });
+        if (root == data.namedObjectDictionary.m_entries.end()) return false;
+        const auto findDictionary = [&](std::uint32_t h) { return std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[&](const auto& row) { return row.handle == h; }); };
+        const auto findRecord = [&](std::uint32_t h) { return std::find_if(data.xRecords.begin(),data.xRecords.end(),[&](const auto& row) { return row.handle == h; }); };
+        const auto outer = findDictionary(root->m_handle);
+        if (outer == data.dictionaries.end() || outer->m_entries.size() != 2u || outer->m_entries[0].m_name != "SECOND"
+            || outer->m_entries[1].m_name != "OWNER" || outer->hardOwner != 1 || outer->cloning != 2) return false;
+        const auto owner = findRecord(outer->m_entries[1].m_handle), second = findRecord(outer->m_entries[0].m_handle);
+        if (owner == data.xRecords.end() || second == data.xRecords.end() || owner == second || !owner->xDictHandle) return false;
+        const auto inner = findDictionary(owner->xDictHandle);
+        if (inner == data.dictionaries.end() || inner == outer || inner->m_entries.size() != 1u || inner->m_entries.front().m_name != "CHILD"
+            || inner->hardOwner != 0 || inner->cloning != 2) return false;
+        const auto child = findRecord(inner->m_entries.front().m_handle);
+        if (child == data.xRecords.end() || child == owner || child == second) return false;
+        const bool native = original && data.sourceFormat == dx_source_format::DWG;
+        const auto common = [&](const DRW_TableEntry& row, std::uint32_t parent, std::uint32_t extension) {
+            if (row.parentHandle != parent || row.xDictHandle != extension || row.reactorHandles != std::vector<std::uint32_t>{parent}
+                || !row.extData.empty() || row.hasDataStorageBinaryData()) return false;
+            if (native) return row.appData.empty() && row.reactorCount() == 1;
+            if (row.appData.size() != (extension ? sourceHasCustomMetadata ? 3u : 2u : 1u)) return false;
+            auto group = row.appData.begin();
+            for (unsigned n = 0u; n != (extension ? 2u : 1u); ++n,++group) {
+                if (group->size() != 3u) return false;
+                auto field = group->begin();
+                if (field->code() != 102 || field->type() != DRW_Variant::STRING || !field->content.s
+                    || *field->content.s != (n ? "ACAD_XDICTIONARY" : "ACAD_REACTORS")) return false;
+                ++field;
+                if (field->code() != (n ? 360 : 330) || field->type() != DRW_Variant::STRING || !field->content.s) return false;
+                const auto& text = *field->content.s; std::uint32_t handle = 0u;
+                const auto parsed = std::from_chars(text.data(),text.data() + text.size(),handle,16);
+                if (text.empty() || parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() || handle != (n ? extension : parent)) return false;
+                ++field;
+                if (field->code() != 102 || field->type() != DRW_Variant::STRING || !field->content.s || *field->content.s != "}") return false;
+            }
+            if (extension && sourceHasCustomMetadata) {
+                if (group == row.appData.end() || group->size() != 4u) return false;
+                auto field = group->begin();
+                if (field->code() != 102 || !field->content.s || *field->content.s != "EXTENSION_APP_META") return false;
+                ++field;
+                if (field->code() != 1 || !field->content.s || *field->content.s != "literal {metadata}") return false;
+                ++field;
+                if (field->code() != 330 || field->type() != DRW_Variant::STRING || !field->content.s) return false;
+                const auto& text = *field->content.s; std::uint32_t handle = 0u;
+                const auto parsed = std::from_chars(text.data(),text.data() + text.size(),handle,16);
+                if (text.empty() || parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() || handle != child->handle) return false;
+                ++field;
+                if (field->code() != 102 || !field->content.s || *field->content.s != "}") return false;
+            }
+            return true;
+        };
+        if (!common(*outer,data.namedObjectDictionary.handle,0u) || !common(*inner,owner->handle,0u)) return false;
+        if (!native) {
+            using Role = DRW_Dictionary::Entry::DxfHandleCode;
+            if (outer->m_entries[0].m_dxfHandleCode != Role::HardOwner || outer->m_entries[1].m_dxfHandleCode != Role::HardOwner
+                || inner->m_entries[0].m_dxfHandleCode != Role::SoftOwner) return false;
+        }
+        for (const auto& record : data.xRecords) {
+            const bool isOwner = &record == &*owner, isChild = &record == &*child, isSecond = &record == &*second;
+            if (!original && !isOwner && !isChild && !isSecond) return false;
+            const auto expectedReference = isOwner || isSecond ? child->handle : owner->handle;
+            const auto number = isOwner ? 1.25 : isChild ? 2.5 : isSecond ? 3.75 : 5.0;
+            const auto label = isOwner ? "OWNER" : isChild ? "CHILD" : isSecond ? "SECOND" : "UNSELECTED";
+            if (!common(record,isChild ? inner->handle : outer->handle,isOwner ? inner->handle : 0u) || record.m_cloning != 2
+                || record.m_dataEntries.size() != 3u || record.m_values.size() != 2u || record.m_handleValues.size() != 1u
+                || record.m_handleValues.front() != std::make_pair(330,expectedReference)) return false;
+            const auto& fields = record.m_dataEntries;
+            if (fields[0].code() != 1 || fields[0].type() != DRW_Variant::STRING || !fields[0].content.s || *fields[0].content.s != label
+                || fields[1].code() != 330 || fields[1].type() != DRW_Variant::INTEGER64 || fields[1].i64_val() != expectedReference
+                || fields[2].code() != 40 || fields[2].type() != DRW_Variant::DOUBLE || fields[2].d_val() != number
+                || record.m_values[0].code() != 1 || !record.m_values[0].content.s || *record.m_values[0].content.s != label
+                || record.m_values[1].code() != 40 || record.m_values[1].type() != DRW_Variant::DOUBLE || record.m_values[1].d_val() != number) return false;
+        }
+        return true;
+    };
+    unsigned sources = 0u, exports = 0u, reexports = 0u, strict = 0u, preflightRetries = 0u, lateRetries = 0u, snapshotBudgets = 0u, edgeBudgets = 0u;
+    for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
+        const bool native = format == 2u;
+        if (faultsOnly && (native ? version != DRW::AC1015 && version != DRW::AC1032 : version != DRW::AC1032)) continue;
+        sourceHasCustomMetadata = !native;
+        dxfRW dxfCodec(dxf.string().c_str()); dwgRW dwgCodec(dwg.string().c_str());
+        author.native = native ? &dwgCodec : nullptr; author.dxfW = native ? nullptr : &dxfCodec; author.ok = true;
+        for (const auto h : {0xE010u,0xE020u,0xE030u,0xE040u,0xE050u,0xE060u})
+            if (!(native ? dwgCodec.reserveHandle(h) : dxfCodec.reserveHandle(h))) return fail("XRECORD extension author reservation failed");
+        DRW_Dictionary nod; nod.handle = 0xCu; nod.m_entries = {{"XRECORD_EXTENSIONS",0xE010u}};
+        dxfCodec.setRootDictEntries({{"XRECORD_EXTENSIONS","E010"}});
+        if (!(native ? dwgCodec.write(&author,version,true)
+                : dxfCodec.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(nod),nullptr) && dxfCodec.write(&author,version,format == 1u))
+            || !author.ok) return fail("XRECORD extension public source writer failed");
+        author.native = nullptr; author.dxfW = nullptr;
+        dx_data data; dx_iface importer;
+        if (!importer.fileImport((native ? dwg : dxf).string(),&data,false) || !check(data,true)) return fail("XRECORD extension actual source checks failed");
+        ++sources; Exporter exporter;
+        const auto write = [&](DRW::Version outputVersion, bool binary) {
+            return native ? exporter.fileExport(target.string(),outputVersion,binary,&data,false,true,
+                dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial)
+                : exporter.fileExport(target.string(),outputVersion,binary,&data,false,true);
+        };
+        const auto readback = [&]() { dx_data actual; dx_iface reader; return reader.fileImport(target.string(),&actual,false) && check(actual,false); };
+        std::size_t retained = 0u; bool captured = false;
+        exporter.afterObjects = [&]() {
+            retained = Access::xrecordWriteSourceBytes(exporter);
+            captured = Access::xrecordWriteSourceCounts(exporter) == std::make_pair(std::size_t(3),std::size_t(2));
+        };
+        if (!faultsOnly) for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
+            if (native && outputVersion == DRW::AC1015) {
+                const std::string sentinel = "XRECORD_EXTENSION_STRICT_GATE_CLOSED";
+                { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+                const bool accepted = exporter.fileExport(target.string(),outputVersion,binary,&data,false,true);
+                std::ifstream prior(target,std::ios::binary); const std::string bytes((std::istreambuf_iterator<char>(prior)),{});
+                if (accepted || bytes != sentinel) return fail("XRECORD extension source bypassed strict admission");
+                ++strict;
+            }
+            if (!write(outputVersion,binary) || !captured || !retained || !readback()) return fail("XRECORD extension facade projection/readback failed");
+            if (native) for (const auto h : {0xE010u,0xE020u,0xE030u,0xE040u,0xE050u,0xE060u})
+                if (Access::standardSourceEligible(data,h) != (version > DRW::AC1018)
+                    || Access::standardOutputHas(exporter,h) != (version > DRW::AC1018 && h != 0xE060u)) return fail("XRECORD extension source/output proof gate changed");
+            ++exports;
+            dx_data actual; dx_iface reader;
+            if (!reader.fileImport(target.string(),&actual,false) || !exporter.fileExport(target.string(),outputVersion,!binary,&actual,false,true)
+                || !readback() || !check(data,true) || (native && !Access::unchanged(importer))) return fail("XRECORD extension actual-import reexport failed");
+            ++reexports;
+        }
+        if (!faultsOnly) continue;
+        if (!write(DRW::AC1032,false) || !captured || !retained || !readback()) return fail("XRECORD extension fault premise failed");
+        exporter.afterObjects = {};
+        const auto records = data.xRecords; const auto dictionaries = data.dictionaries;
+        const auto refused = [&](bool binary) {
+            const std::string sentinel = "XRECORD_EXTENSION_ATOMIC_DESTINATION";
+            { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+            const bool accepted = write(DRW::AC1032,binary);
+            std::ifstream prior(target,std::ios::binary); const std::string bytes((std::istreambuf_iterator<char>(prior)),{});
+            return !accepted && bytes == sentinel;
+        };
+        const auto retry = [&](bool binary) {
+            return write(DRW::AC1032,binary) && readback() && check(data,true) && (!native || Access::unchanged(importer));
+        };
+        for (const bool binary : {false,true}) for (unsigned mode = 0u; mode != 12u; ++mode) {
+            const auto owner = std::find_if(data.xRecords.begin(),data.xRecords.end(),[](const auto& row) { return row.handle == 0xE020u; });
+            const auto inner = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& row) { return row.handle == 0xE030u; });
+            if (mode == 0u) inner->parentHandle = 0xE050u;
+            if (mode == 1u) inner->parentHandle = 0xE010u;
+            if (mode == 2u) owner->xDictHandle = 0xE070u;
+            if (mode == 3u) owner->xDictHandle = 0xE040u;
+            if (mode == 4u) inner->parentHandle = 0u;
+            if (mode == 5u) inner->handle = 0xE010u;
+            if (mode == 6u) owner->xDictHandle = 0xE010u;
+            if (mode == 7u) owner->appData = {{{102,std::string("ACAD_REACTORS")},{330,std::string("E010")},{102,std::string("}")}},
+                {{102,std::string("ACAD_XDICTIONARY")},{360,std::string("E010")},{102,std::string("}")}}};
+            if (mode == 8u) owner->appData = {{{102,std::string("ACAD_REACTORS")},{330,std::string("E030")},{102,std::string("}")}}};
+            if (mode == 9u) owner->appData.push_back({{102,std::string("ACAD_REACTORS")},{330,std::string("E010")},{102,std::string("}")}});
+            if (mode == 10u) owner->appData = {{{102,std::string("ACAD_XDICTIONARY")},{330,std::string("E030")},{102,std::string("}")}}};
+            if (mode == 11u) inner->reactorHandles.clear();
+            if (!refused(binary)) return fail("XRECORD extension invalid reciprocal/common link published mode=" + std::to_string(mode)
+                + " native=" + std::to_string(native) + " binary=" + std::to_string(binary));
+            data.xRecords = records; data.dictionaries = dictionaries;
+            if (!retry(binary)) return fail("XRECORD extension restored preflight source did not retry");
+            ++preflightRetries;
+        }
+        for (const bool binary : {false,true}) for (const bool final : {false,true}) for (unsigned mode = 0u; mode != 8u; ++mode) {
+            const auto edit = [&]() {
+                auto owner = std::find_if(data.xRecords.begin(),data.xRecords.end(),[](const auto& row) { return row.handle == 0xE020u; });
+                auto child = std::find_if(data.xRecords.begin(),data.xRecords.end(),[](const auto& row) { return row.handle == 0xE040u; });
+                auto inner = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& row) { return row.handle == 0xE030u; });
+                if (mode == 0u) owner->xDictHandle = 0xE010u;
+                if (mode == 1u) inner->parentHandle = 0xE050u;
+                if (mode == 2u) owner->reactorHandles[0] = child->handle;
+                if (mode == 3u) owner->appData.push_back({{102,std::string("LATE_APP_META")},{1,std::string("late")},{102,std::string("}")}});
+                if (mode == 4u) child->m_dataEntries[1].addInt64(330,0xE010u);
+                if (mode == 5u) child->parentHandle = 0xE010u;
+                if (mode == 6u) data.dictionaries.erase(inner);
+                if (mode == 7u) inner->setDwgCommonObjectState(1,1,true);
+            };
+            if (final) exporter.beforeFinalize = edit; else exporter.afterObjects = edit;
+            if (!refused(binary)) return fail("late XRECORD extension source edit was published mode=" + std::to_string(mode));
+            exporter.afterObjects = {}; exporter.beforeFinalize = {}; data.xRecords = records; data.dictionaries = dictionaries;
+            if (!retry(binary)) return fail("restored late XRECORD extension source did not retry");
+            ++lateRetries;
+        }
+        for (const bool binary : {false,true}) {
+            for (const auto cap : {std::size_t(0),retained - 1u}) {
+                Access::xrecordWriteSourceLimit(exporter,cap);
+                if (!refused(binary)) return fail("XRECORD extension snapshot under-budget write succeeded");
+                Access::xrecordWriteSourceLimit(exporter,retained);
+                if (!retry(binary)) return fail("XRECORD extension exact snapshot budget did not retry");
+                ++snapshotBudgets;
+            }
+            Access::xrecordWriteSourceLimit(exporter,dx_iface::ImageDefinitionCaptureMaxRetainedBytes);
+            if (!DxIfaceExtensionGraphTestAccess::prepare(exporter,data,true)) return fail("XRECORD extension graph work premise failed");
+            const auto edges = exporter.extensionGraphStats().examinedEdges;
+            if (edges == 0u) return fail("XRECORD extension graph work was uncharged");
+            dx_iface::ExtensionGraphLimits limits; limits.maxEdges = edges - 1u; exporter.setExtensionGraphLimits(limits);
+            if (!refused(binary)) return fail("XRECORD extension field/edge work crossed budget");
+            limits.maxEdges = edges; exporter.setExtensionGraphLimits(limits);
+            if (!retry(binary)) return fail("XRECORD extension exact field/edge work budget did not retry");
+            exporter.setExtensionGraphLimits({}); ++edgeBudgets;
+        }
+        if (Access::xrecordWriteSourceBytes(exporter) || Access::xrecordWriteSourceCounts(exporter) != std::make_pair(std::size_t(0),std::size_t(0)))
+            return fail("XRECORD extension snapshots remained retained after write attempt");
+    }
+    if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 216u) || reexports != (faultsOnly ? 0u : 216u)
+        || strict != (faultsOnly ? 0u : 12u) || preflightRetries != (faultsOnly ? 96u : 0u) || lateRetries != (faultsOnly ? 128u : 0u)
+        || snapshotBudgets != (faultsOnly ? 16u : 0u) || edgeBudgets != (faultsOnly ? 8u : 0u)) return fail("XRECORD extension matrix skipped a cell");
+    std::cout << "XRECORD extension sources=" << sources << " exports=" << exports << " reexports=" << reexports
+        << " strict refusals=" << strict << " preflight restoration retries=" << preflightRetries << " late-source retries=" << lateRetries
+        << " snapshot budget retries=" << snapshotBudgets << " field/edge work retries=" << edgeBudgets << '\n';
+    return true;
+}
+
 bool rasterXrecordScopeFramingControls() {
     unsigned positives = 0u, refusals = 0u, families = 0u, modeledRefusals = 0u;
     const std::array<const char*,5> markers{{"BODY_CONTROL","{literal","}","{ACAD_REACTORS","{application-pair"}};
@@ -34276,6 +34541,10 @@ int main(int argc, char** argv) {
         return multipleSelectedXrecords() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--branched-xrecord-common")
         return multipleSelectedXrecords(false,true) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-extension")
+        return xrecordOwnedExtensionClosure() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-extension-faults")
+        return xrecordOwnedExtensionClosure(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--branched-xrecord-common-faults")
         return multipleSelectedXrecords(true,true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--multiple-selected-xrecord-faults")

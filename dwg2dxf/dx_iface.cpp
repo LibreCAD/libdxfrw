@@ -7721,6 +7721,24 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     if (m_extensionGraphStats.visitedNodes >= m_extensionGraphLimits.maxNodes)
                         return reject(ExtensionGraphFailure::NodeLimit);
                     ++m_extensionGraphStats.visitedNodes;
+                    if (frame.dictionary || frame.record) {
+                        if (!preflightEdgeCandidateCount(entry.appData.size(), "typed common-group inventory work limit")) return false;
+                        unsigned reactorGroups = 0u, dictionaryGroups = 0u;
+                        for (const auto& group : entry.appData) {
+                            if (!examineEdge()) return false;
+                            const auto name = dx_standard_output::appName(group);
+                            const bool reactors = name == "ACAD_REACTORS", extension = name == "ACAD_XDICTIONARY";
+                            if (!reactors && !extension) continue;
+                            if (!preflightEdgeCandidateCount(group.size(), "typed reserved common-group field work limit")) return false;
+                            // Charge the bounded field scan before comparing; the
+                            // later graph-edge traversal is separate actual work.
+                            m_extensionGraphStats.examinedEdges += group.size();
+                            if ((reactors ? ++reactorGroups : ++dictionaryGroups) != 1u
+                                || !dx_standard_output::reservedGroupExact(group, entry, reactors))
+                                return reject(ExtensionGraphFailure::InvalidGraph,
+                                    "typed DICTIONARY/XRECORD reserved common group disagrees with its links");
+                        }
+                    }
                     if (frame.dictionaryWithDefault != nullptr) {
                         const DRW_DictionaryWithDefault& dictionary =
                             *frame.dictionaryWithDefault;
@@ -7922,9 +7940,14 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 }
                 case Phase::ExtensionDictionary:
                     frame.phase = Phase::Reactors;
-                    if (entry.xDictHandle != 0
-                        && (!examineEdge() || !queueTarget(entry.xDictHandle, true)))
-                        return false;
+                    if (entry.xDictHandle != 0) {
+                        if (!examineEdge()) return false;
+                        const auto extension = dictionaries.find(entry.xDictHandle);
+                        if (extension == dictionaries.end() || extension->second->parentHandle != entry.handle)
+                            return reject(ExtensionGraphFailure::InvalidGraph,
+                                "extension dictionary is missing, wrong-kind, or not owned by its referencing object");
+                        if (!queueTarget(entry.xDictHandle, true)) return false;
+                    }
                     break;
                 case Phase::Reactors:
                     if (frame.index < entry.reactorHandles.size()) {
