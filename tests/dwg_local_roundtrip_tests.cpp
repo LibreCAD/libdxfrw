@@ -31775,6 +31775,62 @@ bool runIssue1410CrossCodecRoundTrip() {
             return false;
         }
 
+        if (version == DRW::AC1032) {
+            for (const bool instance : {false, true}) {
+                DRW_MText* nested = nullptr;
+                if (instance) {
+                    for (auto* entity : source.mBlock->ent) {
+                        auto* insert = dynamic_cast<DRW_Insert*>(entity);
+                        if (insert != nullptr && !insert->attlist.empty())
+                            nested = insert->attlist.front()->mtext.get();
+                    }
+                } else {
+                    for (auto* block : source.blocks) if (block != nullptr) {
+                        for (auto* entity : block->ent) {
+                            auto* definition = dynamic_cast<DRW_Attdef*>(entity);
+                            if (definition != nullptr) nested = definition->mtext.get();
+                        }
+                    }
+                }
+                if (nested == nullptr) return false;
+                const auto rejectedPath = scratch / (instance ? "invalid-attrib.dwg" : "invalid-attdef.dwg");
+                dwgRW retryWriter(rejectedPath.string().c_str());
+                const auto originalRgb = nested->m_backgroundColorTrue;
+                nested->m_backgroundColorTrue = 0x01000000;
+                Issue1410DwgWriter absent(retryWriter, source);
+                const bool absentAccepted = retryWriter.write(&absent, version, false);
+                const bool absentPublished = std::filesystem::exists(rejectedPath);
+                const std::string sentinel = "scratch-authored existing destination";
+                {
+                    std::ofstream stream(rejectedPath, std::ios::binary);
+                    stream << sentinel;
+                    if (!stream.good()) return false;
+                }
+                Issue1410DwgWriter existing(retryWriter, source);
+                const bool existingAccepted = retryWriter.write(&existing, version, false);
+                nested->m_backgroundColorTrue = originalRgb;
+                std::ifstream preserved(rejectedPath, std::ios::binary);
+                const std::string contents((std::istreambuf_iterator<char>(preserved)),
+                                           std::istreambuf_iterator<char>());
+                preserved.close();
+                if (absentAccepted || absentPublished || absent.succeeded() || existingAccepted || existing.succeeded()
+                    || contents != sentinel) {
+                    std::cerr << "invalid nested RGB was not refused atomically\n";
+                    return false;
+                }
+                Issue1410DwgWriter corrected(retryWriter, source);
+                dx_data retryData;
+                dx_iface retryReader;
+                if (!retryWriter.write(&corrected, version, false) || !corrected.succeeded()
+                    || !retryReader.fileImport(rejectedPath.string(), &retryData, false)
+                    || !issue1410ModelMatches(retryData, version, true)
+                    || !issue1410ModelMatches(source, version, false)) {
+                    std::cerr << "corrected nested RGB same-facade retry/readback failed\n";
+                    return false;
+                }
+            }
+        }
+
         dwgRW writer(dwgPath.string().c_str());
         Issue1410DwgWriter adapter(writer, source);
         if (!writer.write(&adapter, version, false) || !adapter.succeeded()) {

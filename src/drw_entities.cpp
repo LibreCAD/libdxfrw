@@ -6454,7 +6454,12 @@ bool prepareMTextBackgroundCmc(DRW::Version version, dwgBufferW *body,
 
   std::uint8_t canonicalMethod = 0;
   if (rgb24 >= 0) {
-    if (colorIndex != 256)
+    // DXF retains both its ACI fallback (63) and active true color (421).
+    // An unmarked/authored model may project that pair to DWG's single RGB
+    // CMC value; its reserved index is still zero. Do not mutate the source
+    // fallback, or relax consistency for explicitly retained native CMC state.
+    if (colorIndex != 256
+        && (sourceMethod != 0xFFu || sourceMetadataPresent))
       return false;
     canonicalMethod = dwgColor::RGB;
   } else if (colorIndex == 256) {

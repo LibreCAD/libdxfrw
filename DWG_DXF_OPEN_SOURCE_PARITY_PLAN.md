@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dl bounded ATTDEF source transport and application-capture parity (2026-10-25):** a separate opt-in facet carries complete source bodies and explicit read-policy/block context, with source/typed pairs moved through the block-event sink until accepted ENDBLK. Production parsing and replay share required-field/finalization rules. Repeated opaque application code-5 values no longer reserve global identities; typed appData preserves normal semantic decoding while raw spellings remain exact. Ninety-six authored transport routes and 80 allocation schedules pass. The converter's immutable ATTDEF proof and secondary-attribute semantics are still open; this is a transport prerequisite, not another qualified resource family. [Implementation and next work](#implementation-progress-rpp-5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25) · [receipt](docs/research/rpp5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dm DXF RGB-to-CMC projection and native retries (2026-10-25):** the native issue-1410 control is fixed without changing DWG layout or weakening retained-native metadata checks. Unmarked DXF models may retain an inactive ACI fallback alongside active RGB; output uses the single C2 RGB value and reserved zero index, without changing the source model. Ninety positive color cells, 216 provenance refusals, four range refusals and both ATTDEF/ATTRIB file rollback/retry paths are covered. Expanded validation also exposes a legacy MTEXT column/XDATA control that must be resolved separately, not waived. Full immutable ATTDEF proof and original consumer/semantic/platform parity remain open. [Implementation and next work](#implementation-progress-rpp-5dm-dxf-rgb-to-cmc-projection-and-native-retries-2026-10-25) · [receipt](docs/research/rpp5dm-dxf-mtext-rgb-cmc-projection-and-native-retry-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dl bounded ATTDEF source transport and application-capture parity (2026-10-25):** committed as `a9d49d4b`. Its separate opt-in source facet, staged source/typed pairs, shared decoder and application-capture fixes remain valid. The historical native issue-1410 failure is resolved by RPP-5dm; the immutable RPP-5dl receipt retains its original red evidence. The converter's immutable ATTDEF proof and secondary-attribute semantics remain open; transport is not another qualified resource family. [Historical implementation](#implementation-progress-rpp-5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25) · [receipt](docs/research/rpp5dl-bounded-attdef-source-transport-and-application-capture-parity-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dk native block admission and independent string bounds (2026-10-25):** committed as `9c11183d`. The contradictory null-layout guard is removed, while XREF-owned geometry and nonnull XREF layout associations remain refused. Both previously failing controls now pass with expanded six-version metadata, rollback, destination-preservation and same-facade retry coverage. Independent LAYOUT/dictionary walkers retain exact bit bounds instead of requiring byte-aligned strings and a fixed seven-bit separator; hand-packed positive/corrupt controls cover every alignment and both footer sizes. No production LAYOUT encoding or BL/RL decision changes. Full ATTDEF/block/common/target/live/output and original consumer/semantic/platform parity remain open. [Implementation and next work](#implementation-progress-rpp-5dk-native-block-admission-and-independent-string-bounds-2026-10-25) · [receipt](docs/research/rpp5dk-native-block-admission-and-independent-string-bounds-2026-10-25.json).
 
@@ -125526,7 +125528,9 @@ No unrelated external drawing payload is committed.
 
 Next implementation-ready work, preserving the full objective:
 
-1. [ ] **Resolve the native issue-1410 control.** Trace the exact failed ATTDEF/
+1. [x] **Resolve the native issue-1410 control.** Resolved in RPP-5dm below;
+   the preceding failure/result text is the historical RPP-5dl checkpoint.
+   Trace the exact failed ATTDEF/
    multiline payload write and distinguish a writer defect from unsupported
    metadata or a bad fixture expectation. Read the authoritative ODA native
    attribute/MTEXT chapters before any byte-layout change. Keep nested text,
@@ -125573,3 +125577,132 @@ The support ledger remains **CLOSED**, `outputEligible=false`, and J256/J260/
 J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD
 and independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**.
 The complete implementation goal remains active; no remote mutation is included.
+
+## Implementation progress RPP-5dm DXF RGB-to-CMC projection and native retries (2026-10-25)
+
+This slice resolves the required native issue-1410 control identified by
+RPP-5dl, not full ATTDEF source proof or general DWG/DXF attribute parity.
+Parent is `a9d49d4bd4aaec3de82f31ebb0357b1f05dfeaf6`. Its immutable receipt and
+the earlier native failure history remain unchanged.
+
+The defect was an admission mismatch in `prepareMTextBackgroundCmc`: DXF
+retains background ACI (63) and active RGB (421) together, but the helper
+accepted RGB only when the scalar ACI was 256. The authored AC1032 ATTDEF and
+ATTRIB input uses ACI 3/4 with RGB `0x123456`/`0x654321`. The existing native
+oracle already expected scalar 256 on readback, plus exact active RGB, names,
+defined height, scale, transparency, text, owners and following geometry.
+Those assertions are unchanged.
+
+The authoritative ODA v5.4.1 CMC section (§2.11, PDF page 14) specifies the
+reserved zero BS index and method-tagged BL payload. The attribute/embedded
+MTEXT and standalone MTEXT chapters (PDF pages 112–114 and 153–155) were
+reviewed/rendered before selecting the fix. The [Autodesk MTEXT DXF reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm)
+documents the separate indexed/true-color/name groups; [ezdxf v1.4.4 source](https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/mtext.py)
+also retains the required-but-inactive indexed field beside true color.
+This is source/spec comparison, not a new independent native-reader run.
+No BL/BD scale choice, native parser, wire field layout or version dispatch is
+changed. In particular, **the inactive DXF ACI fallback is not preserved inside
+DWG's single active C2 color**; the original caller model retains it unchanged.
+
+Completed bounded work:
+
+1. [x] Reproduce **72 failed color cells** with the strengthened matrix before
+   the admission fix; the already accepted fallback-256 cells remain controls.
+2. [x] Permit the DXF pair only for unmarked/authored state (`method=0xFF`,
+   native-metadata flag absent). Keep ACI/RGB ranges, finite scale, native
+   method agreement, reserved index, flags/name and detached-stream guards.
+   Explicit retained-native state is not silently normalized or weakened.
+3. [x] Exercise **90 positive cells**: AC1024/AC1032 × five ACI fallbacks ×
+   three RGB values (including black/white) × no/color/book-plus-color names.
+   Check source nonmutation, literal CMC index/method/payload/flags/name fields,
+   following transparency, native active-color/height/name readback, following
+   handle sentinel and native re-encoding. This field walk shares library bit
+   primitives and a generated prefix boundary; it is **not an independent
+   full-file reader** or external semantic qualification.
+4. [x] Refuse **216 explicit-provenance mismatches** and **four out-of-range
+   ACI controls** before any body/string/handle bytes are emitted. Existing
+   foreground/unknown-method/index/flags/name refusals remain in the selection.
+5. [x] For both actual AC1032 ATTDEF and ATTRIB nested payloads, corrupt RGB
+   past 24 bits: refuse with an absent destination and publish nothing; refuse
+   with an existing scratch-authored destination and preserve its exact bytes.
+   Restore RGB, retry through the same facade and require complete native
+   readback and unchanged source assertions. This adds **four refused file
+   transactions and two corrected same-facade retries/readbacks**. ATTDEF and
+   ATTRIB exercise failures before/after a valid block callback respectively.
+6. [x] Add a fast selector/CTest for the existing R2018 outer-annotation
+   vectors and copy/reset controls. Keep them in the default vector suite too;
+   validation need not rerun that entire suite for this narrow shared helper.
+
+The strict library build (`-Wall -Wextra -pedantic -Werror`), adapter/consumer
+targets and `lc3_compat_check` pass in both configurations. The exact expanded
+affected selection passes **95/96 normally in 77.84 s** and **95/96 under ASan
+in 194.79 s**, with leak checks disabled. All 90 tests in the RPP-5dl selection
+now pass, including issue-1410; five of the six added controls pass. The new
+outer-annotation selector, RGB CMC matrix and destination/retry assertions pass
+in both configurations. These are macOS ARM64 Apple Clang 21 runs (`build-gcc`
+is not Linux/GCC); no full suite or native CAD application run is claimed.
+
+The remaining failure is `libdxfrw_mtext_column_object_scope`: four assertions
+in the ASCII/binary legacy linked-MTEXT handle-remap/XDATA round-trip controls.
+It reproduces with the **same four assertion texts and six format-15/error-14
+diagnostics** in a fresh archive/configure/strict build of exact parent
+`a9d49d4b` (0/1, 1.40 s). The original fixture code is unchanged. This establishes
+pre-existing failure, **not** a root-cause conclusion or permission to waive it.
+The test includes expectations of caller-handle mutation; whether the actual
+serialized links or those expectations are wrong remains to be established.
+It is required local follow-up item 1 below, not `DEFERRED_EXTERNAL` work.
+
+The [RPP-5dm receipt](docs/research/rpp5dm-dxf-mtext-rgb-cmc-projection-and-native-retry-2026-10-25.json)
+records the exact selection, hashes, red-before-fix matrix and parent control.
+No external drawing payload is committed; all new controls are scratch-authored
+at runtime. Historical receipts are retained without rewriting their results.
+
+Next implementation-ready work, keeping the complete objective:
+
+1. [ ] **Resolve the legacy MTEXT column/XDATA control.** Isolate ASCII and
+   binary AC1015 source/output phases in
+   `testLegacyMTextColumnXdataPreservation`. Distinguish required wire-level
+   linked-handle remapping from this test's expectation that caller handles
+   mutate: serialization must preserve current nonmutation guarantees. Inspect
+   original emitted entity handles and every XDATA 1005 target, not just a
+   normalized re-export. If the oracle is stale, replace only its incorrect
+   mutation assumption with exact source-nonmutation and wire/reference proof;
+   if production is wrong, fix the narrow owner/remap path. Preserve all 32
+   XDATA values, unknown key 99, interleaved following LINE, separate linked
+   MTEXT entities, names, no column aggregation, ASCII/binary parity and
+   failure/retry boundaries. Do not skip the test or label it external-only.
+2. [ ] **Complete converter immutable ATTDEF proof.** The CLI still does not
+   request the new `DRW_DxfAttdefSourceHandler` facet. Its resource snapshot is
+   `shared_ptr<const DRW_TableEntry>`; add a correctly owned entity snapshot,
+   never a forged table-entry cast. `retainTableEntityIdentity` currently proves
+   only family/handle/owner identity, not source/model agreement. Precharge
+   snapshot/raw/temporary owners under shared limits, replay `dxfAttdef::Decoder`
+   using actual declared version/encoding/requested extrusion context, compare
+   all exposed/default/native-only common/TEXT/ATTRIB/ATTDEF/nested-MTEXT fields
+   and pending/provenance state, then require proof for selected targets. Keep
+   sticky missing/duplicate/late/wrong-family failures and corrected retries.
+3. [ ] **Close physical profiles and context.** Carry actual enclosing block
+   identity/owner evidence; `inBlock` alone is insufficient. Extend independent
+   original-tag observers for outer/embedded/application/XDATA roles and exact
+   references. Qualify or explicitly refuse `AcDbXrecord` secondary/duplicate/
+   multiline attribute forms instead of treating raw retention as semantics.
+4. [ ] **Continue source, graph and output closure.** Complete BLOCK/ENDBLK,
+   ATTRIB/SEQEND and APPID/LAYER batch/source/default profiles, then B2b/B3/C
+   common/target/live/output work, effective target roles, cycles/roots,
+   editable/frozen equality, preplanned compound IDs and exact native output
+   field/reference proof. Complete IMAGE/document, native BL/RL/decimal/bit,
+   SWEEP/EXTRUSION/carrier/schema/owner and speed/ownership/allocation work.
+   Preserve LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD consumer obligations.
+5. [ ] **Self-update, unblock and report each committed slice.** Retain red
+   history, record exact owning/affected results and remaining profiles, select
+   the next safe ready dependency, and report commit/progress. Prefer fast
+   selectors and affected cohorts; normal/ASan cohorts run sequentially and full
+   suites stay integration checkpoints. Commit only existing repository fixtures
+   or locally scratch-authored data; exclude external DWG/DXF samples.
+
+The CLI's proved resource-family count stays **nine**. No public interface/model
+layout changes or new pure virtual callbacks are introduced. The support ledger
+remains **CLOSED**, `outputEligible=false`; J256/J260/J268/J284/J293/J295 stay
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full goal remains open;
+this slice does not authorize a push or other remote mutation.

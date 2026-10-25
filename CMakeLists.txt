@@ -1477,6 +1477,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dwg_object_vectors_tests --mtext-background-cmc)
     set_tests_properties(libdxfrw_mtext_background_cmc PROPERTIES
         LABELS "fast;dwg;object-vectors;cmc;mtext" TIMEOUT 10)
+    add_test(NAME libdxfrw_r2018_attribute_outer_annotative
+        COMMAND libdxfrw_dwg_object_vectors_tests --r2018-attribute-outer)
+    set_tests_properties(libdxfrw_r2018_attribute_outer_annotative PROPERTIES
+        LABELS "fast;dwg;object-vectors;attrib" TIMEOUT 30)
     add_test(NAME libdxfrw_field_oversized_child_value_count
         COMMAND libdxfrw_dwg_object_vectors_tests
             --field-oversized-child-value-count)

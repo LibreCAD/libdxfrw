@@ -14380,6 +14380,117 @@ void testMTextBackgroundCmcRoundTrip(TestContext &t) {
            "MTEXT requires detached stream for flagged empty CMC name");
 }
 
+void testMTextDxfBackgroundTrueColor(TestContext& t) {
+  // DXF stores both an ACI fallback (63) and active RGB (421). It has no
+  // parsed native CMC provenance. DWG C2 has one RGB value and a reserved
+  // zero index, not a second active ACI. Preserve the caller's fallback.
+  for (const auto version : {DRW::AC1024, DRW::AC1032}) {
+    DRW_TextCodec codec;
+    codec.setVersion(version, false);
+    for (const int fallback : {0, 3, 42, 255, 256}) {
+      for (const std::int32_t rgb : {0, 0x123456, 0xFFFFFF}) {
+        for (const std::string name : {"", "swatch", "book$swatch"}) {
+          MTextCodecProbe source;
+          source.handle = 0xA880u;
+          source.text = "DXF_RGB_BACKGROUND";
+          source.height = 2.5;
+          source.m_definedHeight = 7.25;
+          source.m_backgroundFlags = 1;
+          source.m_backgroundScale = 1.75;
+          source.m_backgroundColor = fallback;
+          source.m_backgroundColorTrue = rgb;
+          source.m_backgroundColorName = name;
+          source.m_backgroundTransparency = 1234;
+          MTextFrame frame;
+          const bool encoded = makeMTextFrame(version, source, frame);
+          t.expect(encoded, "DXF MTEXT RGB with independent ACI fallback encodes");
+          if (!encoded) continue;
+          t.expect(source.m_backgroundColor == fallback
+                       && source.m_backgroundColorTrue == rgb
+                       && source.m_backgroundColorName == name
+                       && source.m_backgroundColorDwgMethod == 0xFFu
+                       && !source.m_backgroundColorDwgMetadataPresent,
+                   "native color projection leaves DXF source color fields unchanged");
+
+          dwgBuffer wire(frame.bodyBytes.data(), frame.bodyBytes.size(), &codec);
+          dwgBuffer strings(frame.stringBytes.data(), frame.stringBytes.size(), &codec);
+          bool positioned = wire.setPosition(frame.commonPrefixBits >> 3u)
+              && strings.setPosition(frame.commonPrefixStringBits >> 3u);
+          wire.setBitPos(static_cast<std::uint8_t>(frame.commonPrefixBits & 7u));
+          strings.setBitPos(static_cast<std::uint8_t>(frame.commonPrefixStringBits & 7u));
+          for (int i = 0; i < 3; ++i) (void)wire.get3BitDouble();
+          for (int i = 0; i < 3; ++i) (void)wire.getBitDouble();
+          (void)wire.getBitShort(); (void)wire.getBitShort();
+          (void)wire.getBitDouble(); (void)wire.getBitDouble();
+          const auto text = strings.getVariableText(version, false);
+          (void)wire.getBitShort(); (void)wire.getBitDouble(); (void)wire.getBit();
+          const auto background = wire.getBitLong();
+          const auto scale = wire.getBitDouble();
+          // Inspect the CMC envelope literally, not through getCmColor's
+          // projection: reserved BS 0, method-tagged BL, RC flags and names.
+          const auto index = wire.getBitShort();
+          const auto packed = static_cast<std::uint32_t>(wire.getBitLong());
+          const auto flags = wire.getRawChar8();
+          const auto colorName = (flags & 1u) ? strings.getVariableText(version, false) : UTF8STRING{};
+          const auto bookName = (flags & 2u) ? strings.getVariableText(version, false) : UTF8STRING{};
+          const auto transparency = wire.getBitLong();
+          const auto expectedFlags = name.empty() ? 0u : name.find('$') == std::string::npos ? 1u : 3u;
+          t.expect(positioned && wire.isGood() && strings.isGood()
+                       && text == source.text && background == 1 && scale == 1.75
+                       && index == 0 && packed == (0xC2000000u | static_cast<std::uint32_t>(rgb))
+                       && flags == expectedFlags
+                       && colorName == (name.empty() ? "" : "swatch")
+                       && bookName == (expectedFlags == 3u ? "book" : "")
+                       && transparency == 1234,
+                   "DXF RGB projection emits exact C2 CMC and following transparency");
+
+          dwgBuffer input(frame.bytes.data(), frame.bytes.size(), &codec);
+          MTextCodecProbe parsed;
+          const bool read = parsed.parseDwg(version, &input, frame.handleBits);
+          t.expect(read && parsed.text == source.text && parsed.m_definedHeight == 7.25
+                       && parsed.m_backgroundColor == 256 && parsed.m_backgroundColorTrue == rgb
+                       && parsed.m_backgroundColorName == name && parsed.m_backgroundScale == 1.75
+                       && parsed.m_backgroundTransparency == 1234
+                       && parsed.m_backgroundColorDwgMethod == dwgColor::RGB
+                       && parsed.m_backgroundColorDwgMetadataPresent
+                       && parsed.m_backgroundColorDwgIndex == 0u,
+                   "native parse preserves active RGB, names, height and transparency");
+          const auto sentinel = input.getHandle();
+          t.expect(read && input.isGood() && sentinel.ref == 0xCAFEu,
+                   "RGB projection preserves following-handle alignment");
+          MTextFrame repeated;
+          t.expect(read && makeMTextFrame(version, parsed, repeated),
+                   "canonical native C2 state can be written again");
+
+          if (fallback != 256) {
+            for (unsigned provenance = 0u; provenance < 3u; ++provenance) {
+              MTextCodecProbe inconsistent(source);
+              inconsistent.m_backgroundColorDwgMethod = provenance == 0u ? 0xFFu : dwgColor::RGB;
+              inconsistent.m_backgroundColorDwgMetadataPresent = provenance != 1u;
+              inconsistent.m_backgroundColorDwgFlags = static_cast<std::uint8_t>(expectedFlags);
+              dwgBufferW body(&codec), stringOutput(&codec), handles(&codec);
+              const bool ok = inconsistent.encodeDwg(version, &body, 0, &stringOutput, &handles);
+              t.expect(!ok && body.bitCount() == 0u && stringOutput.bitCount() == 0u
+                           && handles.bitCount() == 0u,
+                       "explicit native CMC provenance still rejects inconsistent ACI/RGB state before output");
+            }
+          }
+        }
+      }
+    }
+    for (const int fallback : {-1, 257}) {
+      MTextCodecProbe invalid;
+      invalid.m_backgroundFlags = 1;
+      invalid.m_backgroundColor = fallback;
+      invalid.m_backgroundColorTrue = 0x123456;
+      dwgBufferW body(&codec), strings(&codec), handles(&codec);
+      t.expect(!invalid.encodeDwg(version, &body, 0, &strings, &handles)
+                   && body.bitCount() == 0u && strings.bitCount() == 0u && handles.bitCount() == 0u,
+               "out-of-range ACI remains invalid even with active RGB");
+    }
+  }
+}
+
 struct MLeaderRootFrame {
   std::vector<std::uint8_t> bytes;
   std::vector<std::uint8_t> stringBytes;
@@ -16687,7 +16798,16 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--mtext-background-cmc") {
       TestContext context;
       testMTextBackgroundCmcRoundTrip(context);
+      testMTextDxfBackgroundTrueColor(context);
       std::cout << "MTEXT background CMC preservation: "
+                << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+      return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--r2018-attribute-outer") {
+      TestContext context;
+      testR2018AttributeOuterAnnotativeVectors(context);
+      testR2018OuterAnnotativeStateCopyReset(context);
+      std::cout << "R2018 attribute outer annotative state: "
                 << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
       return context.failures == 0 ? 0 : 1;
     }
@@ -17067,6 +17187,7 @@ int main(int argc, char** argv) {
     testSectionObjectCmcRgbRetention(context);
     testMTextFrameFlagVersionVectors(context);
     testMTextBackgroundCmcRoundTrip(context);
+    testMTextDxfBackgroundTrueColor(context);
     testMLeaderRootFlagFieldOrder(context);
     testMLeaderAnnotContextCmcRgbRetention(context);
     testDimstyleDimclrCmc(context);
