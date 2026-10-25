@@ -548,6 +548,10 @@ add_test(NAME libdxfrw_spine_source_proof
     COMMAND libdxfrw_table_content_dxf_tests --spine-source-proof)
 set_tests_properties(libdxfrw_spine_source_proof PROPERTIES
     LABELS "fast;dxf;adapter;table;dictionary;xrecord;generated" TIMEOUT 90)
+add_test(NAME libdxfrw_block_record_source_proof
+    COMMAND libdxfrw_table_content_dxf_tests --block-record-source-proof)
+set_tests_properties(libdxfrw_block_record_source_proof PROPERTIES
+    LABELS "fast;dxf;adapter;table;block-record;generated" TIMEOUT 90)
 add_executable(libdxfrw_field_retained_budget_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/field_retained_budget_tests.cpp)
 target_link_libraries(libdxfrw_field_retained_budget_tests PRIVATE dxfrw)
@@ -577,6 +581,12 @@ if(LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE)
             --generated-spine-executable $<TARGET_FILE:libdxfrw_table_content_dxf_tests>)
     set_tests_properties(libdxfrw_independent_spine_source PROPERTIES
         LABELS "advisory;independent;dxf;table;dictionary;xrecord;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_independent_block_record_source
+        COMMAND "${LIBDXFRW_EZDXF_PYTHON_EXECUTABLE}" -I -B
+            ${CMAKE_CURRENT_SOURCE_DIR}/table_resource_reference_observer.py
+            --generated-block-record-executable $<TARGET_FILE:libdxfrw_table_content_dxf_tests>)
+    set_tests_properties(libdxfrw_independent_block_record_source PROPERTIES
+        LABELS "advisory;independent;dxf;table;block-record;generated" TIMEOUT 30)
 endif()
 
 add_test(

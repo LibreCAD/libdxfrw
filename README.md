@@ -110,7 +110,7 @@ The same opt-in configuration registers `libdxfrw_independent_symbol_source`:
 
 ```sh
 cmake --build build --target libdxfrw_table_content_dxf_tests
-ctest --test-dir build -R '^libdxfrw_independent_(symbol|auxiliary|spine)_source$' --output-on-failure
+ctest --test-dir build -R '^libdxfrw_independent_(symbol|auxiliary|spine|block_record)_source$' --output-on-failure
 ```
 
 It checks eight locally authored ASCII/binary STYLE/LTYPE routes against original
@@ -125,6 +125,10 @@ The spine check adds eight authored DICTIONARY/XRECORD routes, including origina
 entry-edge and handle-range positions. XRECORD body `102`/`100` strings stay data;
 their resemblance to common markers does not change their reference context.
 These observations do not qualify application data semantics or graph closure.
+The block-record check adds original BLKREFS/layout spans and selected scalar
+observations. Its poisoned application-group control records an ezdxf 1.4.4
+typed-view scope difference separately; mismatched peer values are not scalar
+parity evidence. Original records are never re-exported to infer source fields.
 
 ### Text decoding and codepage advisories
 
@@ -530,6 +534,14 @@ suppressed root source after its typed callback; existing `DRW_Interface` and
 legacy root-raw suppression are unchanged. Capture/transport refusal and known
 identity family collisions cannot be repaired by a later original callback.
 Complete owner/common/block/live/output closure remains open.
+
+`DRW_DxfBlockRecordSourceHandler` separately opts into complete BLOCK_RECORD
+source rows, delivered immediately before typed callbacks after a valid ENDTAB.
+Import and converter proof share the internal body decoder. Application-group
+payloads no longer overwrite enclosing row names, handles, units or previews.
+Selected table-owner/block records require source agreement; BLOCK/ENDBLK and
+ATTDEF entity-source/context proof remain separate work. Existing consumers
+without the facet gain no source callbacks or source-capture charges.
 
 The 3D consumer lane exposes typed XYZ, OCS/elevation, topology, placement, and
 selected surface-reference data through the opt-in `ext=false` path, without

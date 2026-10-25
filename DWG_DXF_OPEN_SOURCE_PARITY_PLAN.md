@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5di dictionary/XRECORD resource-source proof (2026-10-25):** selected wrapper/style-map dictionaries and XRECORD resources now require production-decoder source agreement. Separate opt-in root source delivery preserves the historical callback contract. Exact ordered payloads, physical handle roles, limits, allocation failures and corrected retries are covered; copying cannot sanitize a pending dictionary entry into proof. Known-identity family collisions and scalar-transport refusal fail aggregate capture. ATTDEF/block/APPID/LAYER/table-owner, complete common/target/live/output and original native/consumer parity remain open; support qualification and table export stay closed. [Implementation and next work](#implementation-progress-rpp-5di-dictionaryxrecord-resource-source-proof-2026-10-25) · [receipt](docs/research/rpp5di-dictionary-xrecord-resource-source-proof-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5dj BLOCK_RECORD source proof and application-scope isolation (2026-10-25):** import and source proof share the production row decoder; opaque application fields no longer overwrite row metadata. A separate opt-in facet delivers complete source/typed batches after ENDTAB, and selected block/table-owner rows require immutable agreement. Eight authored routes pass source/budget/failure/retry controls. Broader normal/ASan runs each pass 67/69; both native failures reproduce unchanged on parent `e0848ddc` and remain required follow-ups. The independent rich control reports, rather than hides, a peer typed-scalar scope discrepancy. BLOCK/ENDBLK/ATTDEF, APPID/LAYER, full common/target/live/output and native/consumer parity stay open. [Implementation and next work](#implementation-progress-rpp-5dj-block_record-source-proof-and-application-scope-isolation-2026-10-25) · [receipt](docs/research/rpp5dj-block-record-source-proof-and-application-scope-isolation-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5di dictionary/XRECORD resource-source proof (2026-10-25):** committed as `e0848ddc`. Its immutable source families, root facet, copied-pending-state guard, failure/retry and independent spans remain valid. RPP-5dj adds BLOCK_RECORD source rows, not full block entities, target closure, semantic/output or native qualification. [Historical implementation](#implementation-progress-rpp-5di-dictionaryxrecord-resource-source-proof-2026-10-25) · [immutable receipt](docs/research/rpp5di-dictionary-xrecord-resource-source-proof-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dh decoded FIELD payload ownership (2026-10-25):** committed as `3320b91a`. Its precharged logical payloads, child moves/cleanup, copy-family lifetime, quota and allocation controls remain valid. RPP-5di adds two resource-source families, not whole-model memory or full graph/output/semantic qualification. [Historical implementation](#implementation-progress-rpp-5dh-decoded-field-payload-ownership-2026-10-25) · [immutable receipt](docs/research/rpp5dh-decoded-field-payload-ownership-2026-10-25.json).
 
@@ -125136,3 +125138,128 @@ The support ledger remains **CLOSED**, `outputEligible=false`, and J256/J260/
 J268/J284/J293/J295 remain **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and
 independent ACIS/ACDS semantic/kernel qualification remain **NOT_RUN**. The full
 implementation goal remains active.
+
+## Implementation progress RPP-5dj BLOCK_RECORD source proof and application-scope isolation (2026-10-25)
+
+This implements the BLOCK_RECORD/table-owner source prerequisite for B2a. It does
+not finish BLOCK/ENDBLK/ATTDEF source/context, complete graph, output or original
+native/consumer parity. Autodesk's [BLOCK_RECORD field table](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm)
+and [common symbol-table entry scopes](https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-5926A569-3E40-4ED2-AE06-6ACCE0EFC813.htm)
+support the DXF roles and application isolation. Native byte layouts are not
+changed or inferred from these references.
+
+Completed:
+
+1. [x] Reproduce enclosing-row corruption from opaque application-group fields.
+   The new poisoned control failed four existing exact-owner/context/retry
+   assertions before the fix. Isolate opaque groups and the BLKREFS/extension
+   reference scopes from row metadata. Existing default/handle/preview/BLKREFS
+   bounds and corrected-read behavior remain, without new source charges for
+   consumers that have not opted in.
+2. [x] Extract the complete production BLOCK_RECORD body decoder into the
+   noninstalled `intern/dxfblockrecord.h`, registered in both source manifests.
+   Import and bounded replay share this grammar, including quota owners and
+   lexical insert-index accounting. Preserve context-map/name/preview/insert
+   admission and batch publication in the library parser. Add no model member,
+   `DRW_Interface` virtual or native parser/writer layout change.
+3. [x] Add a separate opt-in row-source facet, selected per table batch and
+   delivered before typed rows only after accepted ENDTAB. Freeze raw/typed
+   agreement under the existing shared record/group/byte/logical-work ceilings
+   across nine resource families. Compare exposed/default/native-only fields,
+   exact preview/insert payloads, common state and absence of private native
+   block/entity-map links. Selected table-owner/content block references require
+   source proof. Emit exact BLKREFS/layout/common physical positions; do not
+   infer effective ownership/null/target closure from their wire labels.
+4. [x] Add eight authored revision/encoding routes, 264 typed and 56 raw mismatch/
+   corrected pairs, 32 missing/duplicate/late callback controls, 96 raw-stage/
+   typed-capture allocation schedules, 64 exact/below aggregate caps and 32
+   malformed-batch refusals with zero premature callbacks. Cover opt-out,
+   latched requests, throwing callbacks, private/native-only injections and
+   same-facade corrected reads. No unrelated external fixture is committed.
+5. [x] Extend the observer to schema 6: original row-reference spans and selected
+   scalar fields are checked separately from independent typed projections.
+   Twelve positives/29 corruptions cover scope, field, omission, duplication and
+   unexplained-peer-mismatch behavior. Eight rich routes pass with both normal
+   and ASan probes. The poisoned application control observes pinned ezdxf
+   1.4.4 projecting `99/1/0` rather than source-scoped `4/0/1` into three typed
+   fields. Preserve that known peer discrepancy explicitly; it is not scalar
+   parity or support evidence. Load original typed records before document
+   layout repair, never re-export source to manufacture a field observation.
+
+Verification: the final affected normal cohort passes **67/69 in 74.64 s**;
+ASan passes **67/69 in 166.37 s** with leak checks disabled. All source-proof,
+application-scope, budget, compatibility, block-owner CLI and refusal/retry checks
+in these cohorts pass. Both LibreCAD_3 compile gates and affected targets build
+with strict warnings. The two failures are **not green, waived or external-only**:
+
+- `libdxfrw_dwg_block_record_xref_roundtrip`: `dwg-block-callback` required-write
+  failure in its first loaded case.
+- `dwg_block_record_layout_association`: independent LAYOUT DATA cursor mismatch
+  reported for version enum 15.
+
+Both reproduce with identical diagnostics in an isolated archive/build of parent
+`e0848ddc` on this host. They are recorded as required native-control follow-ups,
+not attributed to the DXF changes or used to promote support. Actual scopes,
+hashes, parent controls and independent observations are in the
+[RPP-5dj receipt](docs/research/rpp5dj-block-record-source-proof-and-application-scope-isolation-2026-10-25.json).
+No full project suite or native Linux/Windows/FreeCAD run is implied; `build-gcc`
+remains macOS ARM64 Apple Clang.
+
+Both unchanged external examples retain selected `Bound` results. Each adds
+16 original BLOCK_RECORD observations; total observed resources/events are
+105/484 and 92/428, with no typed-scalar discrepancy on those external rows.
+This does not establish full block semantics or native layout evidence. The
+real CLI refuses both examples and the authored rich block-record table case,
+creating no destination. All four independent source checks register under the
+existing pinned-runtime/tests/CLI opt-in; no extra optional build is claimed.
+
+Next ready work, preserving the full implementation objective:
+
+1. [ ] **Resolve the two native controls.** First separate the XREF fixture's
+   deliberate rejected content-scope probe from its positive transaction and
+   verify the actual sticky-write/rollback contract without admitting XREF-owned
+   geometry. Then reconcile the LAYOUT independent DATA cursor against the
+   authoritative cached ODA specification and real/sample evidence before any
+   native parser/writer or byte-walk change. Preserve independent roles/spans;
+   do not copy production parsing into an oracle merely to make it pass. These
+   are local required work, not DEFERRED_EXTERNAL or support qualification.
+2. [ ] **ATTDEF source/context.** Reuse production parsing and finalization for
+   classic and embedded MTEXT forms, including 101/legacy-100 markers, tag/prompt/
+   flags, XDATA and column/angle finalization. Add an opt-in source facet without
+   changing `DRW_Interface`. Teach `DxfBlockEventSink` to stage owned source and
+   typed companions until valid ENDBLK; test bad footer, throw, quota, allocation,
+   opt-out and corrected retries. Carry the actual projection/encoding context;
+   do not equate source geometry with a normalized 2D callback by assumption.
+3. [ ] **BLOCK/ENDBLK context proof.** Keep begin/end IDs and BLOCK_RECORD owners
+   distinct. Prove the raw begin/end fields and context-derived name/units/preview
+   against the proved table row, including name override and empty/drop scopes.
+   Preserve ATTRIB/SEQEND and child ordering; verify balanced callback scope on
+   every failed or throwing path before claiming a complete block source graph.
+4. [ ] **APPID/LAYER and full target/common worklist.** Add opt-in batch sources
+   and compare declared profiles/default/native-only state. Follow proved FIELD,
+   DATALINK, dictionary, XRECORD and block slots with independent effective
+   ownership/null/target rules. Include reached WDFLT/VAR/GROUP/other families,
+   pre-identity callback collisions, multiple roots, queues, fan-out and legitimate
+   soft cycles. Opaque/common raw preservation is not yet full typed semantics.
+5. [ ] **Replay speed/ownership audit.** Audit shared binary/preview chunk growth,
+   repeated replay and remaining owner/container charges. Current work counters
+   are logical admission limits, not strict CPU-time/RSS bounds. Preserve exact
+   quotas, exception rollback and consumer behavior while removing unnecessary
+   copies/quadratic growth; reuse frozen indexes and successful proof.
+6. [ ] **B3/C and original parity.** Finish TABLE parent/wrapper/cache/common and
+   editable/frozen equality, all compound IDs, exact staged/final fields and
+   unique references, destination-preserving rollback and corrected readbacks.
+   Keep both export guards closed until the complete lane is proved. Continue
+   native decimal/bit, SWEEP/EXTRUSION, carrier/schema/owner, complete IMAGE/
+   document and LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD obligations, with
+   independent semantic/kernel and native platform evidence where required.
+7. [ ] **Self-update/unblock/commit each slice.** Record exact evidence and open
+   failures, choose the next safe ready dependency, commit/report progress and
+   continue. Prefer owning tests then affected normal/ASan cohorts; full suites
+   remain integration checkpoints. Use existing or scratch-authored fixtures,
+   not unrelated external drawings; no remote mutation is implied.
+
+The support ledger stays **CLOSED**, `outputEligible=false`, and J256/J260/J268/
+J284/J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and
+independent ACIS/ACDS semantic/kernel qualification stay **NOT_RUN**. The full
+implementation goal remains active and incomplete.

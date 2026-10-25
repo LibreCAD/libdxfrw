@@ -8,6 +8,12 @@ values only, not complete payloads, context-dependent role or target semantics.
 DICTIONARY/XRECORD add physical entry/handle-range roles; body XRECORD 102/100
 remain data rather than common application/class markers. Application values
 and target/ownership graph closure are not independently qualified.
+BLOCK_RECORD adds original BLKREFS/layout/common spans and selected units,
+explodability/scalability/layout scalars. The unmodified independent typed view
+is reported separately: a known application-scope flattening difference does
+not corroborate those mismatched scalars or earn semantic/support eligibility.
+Preview bytes, block entities/children and effective target closure are not
+independently qualified by this observer.
 It does not certify decoded names, full rich/symbol schema, font/glyph/rendering
 or rotation semantics, common/transitive closure, output, native layouts or
 modeler semantics. Original source tags, never re-exported defaults, own spans.
@@ -23,7 +29,8 @@ import sys
 import tempfile
 
 
-PATTERN = re.compile(r"^(map|style|STYLE|LTYPE|FIELD|DATALINK|DICTIONARY|XRECORD)-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
+PATTERN = re.compile(r"^(map|style|STYLE|LTYPE|FIELD|DATALINK|DICTIONARY|XRECORD|BLOCK_RECORD)-reference handle=([0-9a-f]+) kind=(\d+) index=(\d+) code=(\d+) value=([0-9a-f]+)$", re.M)
+BLOCK_ROWS = re.compile(r"^BLOCK_RECORD-row handle=([0-9a-f]+) units=(-?\d+) explode=(\d+) scale=(\d+) layout=([0-9a-f]+)$", re.M)
 ROWS = re.compile(r"^symbol-row handle=([0-9a-f]+) family=(STYLE|LTYPE) flags=(\d+)$", re.M)
 SEGMENTS = re.compile(r"^symbol-segment handle=([0-9a-f]+) index=(\d+) flags=(\d+) shape=(\d+) style=([0-9a-f]+)$", re.M)
 CODES = {0: 5, 1: 330, 2: 330, 3: 360, 4: 340, 5: 340,
@@ -124,7 +131,7 @@ def source_records(records):
             table = next((v for c, v in record[1:] if c == 2), None)
         elif family == "ENDTAB":
             table = None
-        elif (family in ("STYLE", "LTYPE") and section == "TABLES" and table == family
+        elif (family in ("STYLE", "LTYPE", "BLOCK_RECORD") and section == "TABLES" and table == family
               or family in ("TABLESTYLE", "CELLSTYLEMAP", "FIELD", "DATALINK", "DICTIONARY", "XRECORD") and section == "OBJECTS"):
             if len(record) > 65537:
                 raise ValueError("oversized original resource body")
@@ -294,6 +301,81 @@ def compare_spine(tags, events, family):
             "referenceEvents": len(expected), "bodyHandleSlots": sum(19 <= k <= 25 for k in expected.values())}
 
 
+def compare_block_record(tags, events, scalars):
+    """Physical context and selected scalar agreement, not block graph proof."""
+    if not events or len(tags) > 65536 or len(events) > len(tags):
+        raise ValueError("empty/oversized block record projection")
+    expected, observed, names = {}, {}, set()
+    applications = []
+    xdata = False
+    previous = -1
+    actual = {70: 0, 280: 1, 281: 0, 340: 0}
+    seen = set()
+    for kind, index, code, value in events:
+        if index <= previous or not 0 <= index < len(tags) or tags[index][0] != code:
+            raise ValueError("reordered/invented block scalar")
+        previous = index
+        if code in (1001, 1003):
+            if kind != {1001: 8, 1003: 9}[code] or value != 0:
+                raise ValueError("block named namespace differs")
+        elif not is_handle(code) or int(tags[index][1], 16) != value or not 0 <= value <= 0xFFFFFFFF:
+            raise ValueError("block handle differs")
+        observed[index] = kind
+    for index, (code, value) in enumerate(tags):
+        if code == 102:
+            if value == "}" and applications:
+                applications.pop()
+            elif type(value) is str and value.startswith("{") and len(applications) < 64:
+                applications.append(value)
+            else:
+                raise ValueError("bad block application framing")
+            continue
+        if not applications:
+            if code == 1001:
+                xdata = True
+            if code in (1001, 1003):
+                expected[index] = {1001: 8, 1003: 9}[code]
+                names.add(index)
+            if code in actual:
+                if code in seen:
+                    raise ValueError("duplicate block scalar")
+                seen.add(code)
+                actual[code] = int(value, 16) if code == 340 else value
+        if not is_handle(code):
+            continue
+        kind = 10
+        if len(applications) == 1:
+            kind = {("{BLKREFS", 331): 26, ("{ACAD_XDICTIONARY", 360): 3,
+                    ("{ACAD_REACTORS", 330): 2}.get((applications[0], code), 10)
+        elif not applications:
+            if not xdata:
+                kind = {5: 0, 330: 1, 340: 27}.get(code, 10)
+            elif code == 1005:
+                kind = 7
+        expected[index] = kind
+    if applications or expected != observed or tuple(actual[c] for c in (70, 280, 281, 340)) != scalars:
+        raise ValueError("block context/scalars differ")
+    return {"handleSlots": len(expected) - len(names), "localDefinitions": 0, "referenceEvents": len(expected),
+            "insertHandleSlots": sum(k == 26 for k in expected.values()), "layoutHandleSlots": sum(k == 27 for k in expected.values()),
+            "units": scalars[0], "explode": scalars[1], "scale": scalars[2], "layout": scalars[3]}
+
+
+def block_peer_status(tags, independent, projected):
+    if independent == projected:
+        return "MATCH"
+    # Recognize only the observed 1.4.4 unscoped-last-scalar projection. The
+    # original context-aware comparison has already required exact source
+    # agreement. Do not strip application data or substitute a repaired input
+    # to manufacture independent parity; retain the disagreement explicitly.
+    flattened = {70: 0, 280: 1, 281: 0, 340: 0}
+    for code, value in tags:
+        if code in flattened:
+            flattened[code] = int(value, 16) if code == 340 else value
+    if independent == tuple(flattened[c] for c in (70, 280, 281, 340)):
+        return "KNOWN_APPLICATION_SCOPE_DIFFERENCE"
+    raise ValueError(f"unexplained independent block scalar difference: {independent} != {projected}")
+
+
 def observe(source, projection):
     import ezdxf
     if ezdxf.__version__ != "1.4.4":
@@ -321,12 +403,34 @@ def observe(source, projection):
     segments = {}
     for handle, index, flags, shape, style in SEGMENTS.findall(text):
         segments.setdefault(handle.upper(), []).append((int(index), int(flags), int(shape), int(style, 16)))
+    blocks = {}
+    for handle, units, explode, scale, layout in BLOCK_ROWS.findall(text):
+        if handle.upper() in blocks:
+            raise ValueError("duplicate block scalar projection")
+        blocks[handle.upper()] = (int(units), int(explode), int(scale), int(layout, 16))
     for (family, handle), values in events.items():
         obj = document.entitydb[handle]
         if {"ACDBFIELD": "FIELD", "ACAD_FIELD": "FIELD"}.get(obj.dxftype(), obj.dxftype()) != family:
             raise ValueError("wrong source resource family")
         tags = original[(family, handle)]
-        if family in ("DICTIONARY", "XRECORD"):
+        if family == "BLOCK_RECORD":
+            projected = blocks.pop(handle)
+            details = compare_block_record(tags, values, projected)
+            # Document setup may synthesize/repair model/paper LAYOUT links.
+            # Load this original record independently before those document
+            # mutations; never re-export it to infer source scalar positions.
+            from ezdxf.entities import factory
+            from ezdxf.lldxf.extendedtags import ExtendedTags
+            from ezdxf.lldxf.tagger import tag_compiler
+            from ezdxf.lldxf.types import DXFTag, DXFBinaryTag
+            original_tags = [DXFTag(0, family)]
+            original_tags.extend(DXFBinaryTag(c, bytes(v)) if 310 <= c <= 319 and isinstance(v, (bytes, bytearray))
+                                 else DXFTag(c, v) for c, v in tags)
+            parsed = factory.load(ExtendedTags(tag_compiler(iter(original_tags))))
+            independent = (parsed.dxf.units, parsed.dxf.explode, parsed.dxf.scale, int(parsed.dxf.layout, 16))
+            details["typedScalarStatus"] = block_peer_status(tags, independent, projected)
+            details["independentTypedScalars"] = list(independent)
+        elif family in ("DICTIONARY", "XRECORD"):
             details = compare_spine(tags, values, family)
         elif family in ("STYLE", "LTYPE"):
             row_flags = rows.pop((family, handle))
@@ -349,16 +453,16 @@ def observe(source, projection):
         else:
             details = compare(tags, values, family == "TABLESTYLE", family == "CELLSTYLEMAP")
         results.append({"family": family, "handle": handle, **details})
-    if rows or segments:
+    if rows or segments or blocks:
         raise ValueError("unmatched symbol row/element projection")
-    return {"schemaVersion": 5, "status": "SCOPED_RESOURCE_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
+    return {"schemaVersion": 6, "status": "SCOPED_RESOURCE_REFERENCE_SPANS_MATCH", "qualificationEligible": False,
             "ezdxfVersion": ezdxf.__version__, "resources": results,
             "sourceSha256": hashlib.sha256(Path(source).read_bytes()).hexdigest(),
             "projectionSha256": hashlib.sha256(Path(projection).read_bytes()).hexdigest(),
             "limits": __doc__.split("\n\n", 1)[1].strip()}
 
 
-def generated_check(executable, auxiliary=False, spine=False):
+def generated_check(executable, auxiliary=False, spine=False, block=False):
     results = []
     with tempfile.TemporaryDirectory(prefix="libdxfrw-symbol-observer-") as directory:
         root = Path(directory)
@@ -366,7 +470,7 @@ def generated_check(executable, auxiliary=False, spine=False):
             for encoding in ("ascii", "binary"):
                 source = root / (version + "-" + encoding + ".dxf")
                 projection = source.with_suffix(".log")
-                mode = "--generate-spine-source" if spine else "--generate-auxiliary-source" if auxiliary else "--generate-symbol-source"
+                mode = "--generate-block-record-source" if block else "--generate-spine-source" if spine else "--generate-auxiliary-source" if auxiliary else "--generate-symbol-source"
                 subprocess.run([executable, mode, version, encoding, str(source)], check=True)
                 observed = subprocess.run([executable, "--inspect", str(source)], check=True, capture_output=True, text=True)
                 projection.write_text(observed.stdout, encoding="utf-8")
@@ -384,8 +488,14 @@ def generated_check(executable, auxiliary=False, spine=False):
                     rich = [r for r in result["resources"] if r["handle"] == "E200" and r["family"] == "XRECORD"]
                     if len(rich) != 1 or rich[0]["bodyHandleSlots"] != 10:
                         raise ValueError("independent rich XRECORD range roles differ")
+                if block:
+                    rich = [r for r in result["resources"] if r["handle"] == "B100" and r["family"] == "BLOCK_RECORD"]
+                    if (len(rich) != 1 or rich[0]["insertHandleSlots"] != 3 or rich[0]["layoutHandleSlots"] != 1
+                            or rich[0]["units"] != 4 or rich[0]["explode"] != 0 or rich[0]["scale"] != 1
+                            or rich[0]["typedScalarStatus"] != "KNOWN_APPLICATION_SCOPE_DIFFERENCE"):
+                        raise ValueError("independent rich block record scalars/roles differ")
                 results.append({"version": version, "encoding": encoding, **result})
-    return {"schemaVersion": 5, "status": "GENERATED_SPINE_OBSERVATIONS_MATCH" if spine else "GENERATED_AUXILIARY_OBSERVATIONS_MATCH" if auxiliary else "GENERATED_SYMBOL_OBSERVATIONS_MATCH", "qualificationEligible": False, "routes": results}
+    return {"schemaVersion": 6, "status": "GENERATED_BLOCK_RECORD_OBSERVATIONS_MATCH" if block else "GENERATED_SPINE_OBSERVATIONS_MATCH" if spine else "GENERATED_AUXILIARY_OBSERVATIONS_MATCH" if auxiliary else "GENERATED_SYMBOL_OBSERVATIONS_MATCH", "qualificationEligible": False, "routes": results}
 
 
 def self_test():
@@ -481,7 +591,28 @@ def self_test():
         except ValueError:
             continue
         raise AssertionError("corrupt spine reference observation passed")
-    print("resource reference observer: nine positives, 24 corruptions, appData expansion and original scopes; no eligibility")
+    block = [(5, "A"), (330, "B"), (100, "AcDbBlockTableRecord"), (70, 4), (280, 0), (281, 1),
+             (340, "C"), (102, "{BLKREFS"), (331, "D"), (102, "}"), (102, "{APP"), (70, 99), (102, "}")]
+    block_events = [(0, 0, 5, 10), (1, 1, 330, 11), (27, 6, 340, 12), (26, 8, 331, 13)]
+    assert compare_block_record(block, block_events, (4, 0, 1, 12))["insertHandleSlots"] == 1
+    for tags, events, scalars in [(block, block_events[:-1], (4, 0, 1, 12)),
+                                 (block, block_events, (99, 0, 1, 12)),
+                                 (block, [*block_events[:3], (2, 8, 331, 13)], (4, 0, 1, 12)),
+                                 (block, [*block_events, block_events[-1]], (4, 0, 1, 12))]:
+        try:
+            compare_block_record(tags, events, scalars)
+        except ValueError:
+            continue
+        raise AssertionError("corrupt block record observation passed")
+    assert block_peer_status(block, (4, 0, 1, 12), (4, 0, 1, 12)) == "MATCH"
+    assert block_peer_status(block, (99, 0, 1, 12), (4, 0, 1, 12)) == "KNOWN_APPLICATION_SCOPE_DIFFERENCE"
+    try:
+        block_peer_status(block, (5, 0, 1, 12), (4, 0, 1, 12))
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("unexplained independent scalar mismatch passed")
+    print("resource reference observer: twelve positives, 29 corruptions, appData expansion and original scopes; no eligibility")
 
 
 if __name__ == "__main__":
@@ -494,6 +625,7 @@ if __name__ == "__main__":
     parser.add_argument("--generated-executable")
     parser.add_argument("--generated-auxiliary-executable")
     parser.add_argument("--generated-spine-executable")
+    parser.add_argument("--generated-block-record-executable")
     args = parser.parse_args()
     if args.self_test:
         self_test()
@@ -503,6 +635,8 @@ if __name__ == "__main__":
         print(json.dumps(generated_check(str(Path(args.generated_auxiliary_executable).resolve()), auxiliary=True), indent=2, allow_nan=False))
     elif args.generated_spine_executable:
         print(json.dumps(generated_check(str(Path(args.generated_spine_executable).resolve()), spine=True), indent=2, allow_nan=False))
+    elif args.generated_block_record_executable:
+        print(json.dumps(generated_check(str(Path(args.generated_block_record_executable).resolve()), block=True), indent=2, allow_nan=False))
     elif args.source and args.projection:
         print(json.dumps(observe(args.source, args.projection), indent=2, allow_nan=False))
     else:

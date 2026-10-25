@@ -42,6 +42,13 @@ void operator delete[](void* value,std::size_t) noexcept {std::free(value);}
 class DrwObjectEncodeTestAccess {
 public:
     static void pendingDictionaryEntry(DRW_Dictionary& row) {row.m_pendingEntryName="unfinished";}
+    static void nativeBlockLinks(DRW_Block_Record& row,unsigned field) {
+        if(field==0u)row.block=1u;
+        else if(field==1u)row.endBlock=1u;
+        else if(field==2u)row.firstEH=1u;
+        else if(field==3u)row.lastEH=1u;
+        else row.entMap.push_back(1u);
+    }
 };
 
 class DxIfaceTableSourceTestAccess {
@@ -119,6 +126,13 @@ struct Probe final : dx_iface {
     bool rootOptIn=true,throwRootSource=false,wrongSpineThenOriginal=false;
     long rootSourceAllocation=-1;
     unsigned rootSources=0u;
+    bool blockSourceOptIn=true,forceBlockSources=false,throwBlockSource=false,disableBlockSourceInCallback=false;
+    std::uint32_t skipBlockSource=0u,duplicateBlockSource=0u,skipBlockTyped=0u,duplicateBlockTyped=0u;
+    long blockSourceAllocation=-1,blockTypedAllocation=-1;
+    std::function<void(DRW_RawDxfObject&)> alterBlockSource;
+    std::function<void(DRW_Block_Record&)> alterBlockRecord;
+    unsigned blockSources=0u,blockTyped=0u;
+    std::vector<std::string> blockEvents;
     std::vector<std::string> symbolEvents;
     std::shared_ptr<DRW_TableContentDxfMetadata> mutableAlias;
     std::shared_ptr<DRW_TableStyleContentFormat> mutableFormatAlias;
@@ -230,6 +244,23 @@ struct Probe final : dx_iface {
         return symbolOptIn && (forceSymbols || dx_iface::wantsDxfSymbolSource());
     }
     bool wantsDxfRootDictionarySource() const override {return rootOptIn&&dx_iface::wantsDxfRootDictionarySource();}
+    bool wantsDxfBlockRecordSource() const override {return blockSourceOptIn&&(forceBlockSources||dx_iface::wantsDxfBlockRecordSource());}
+    void addDxfBlockRecordSource(const DRW_Block_Record& row,const DRW_RawDxfObject& raw) override {
+        ++blockSources;blockEvents.push_back("source:"+std::to_string(row.handle));
+        if(disableBlockSourceInCallback)blockSourceOptIn=false;
+        if(row.handle==skipBlockSource)return;
+        if(alterBlockSource){auto copy=raw;alterBlockSource(copy);dx_iface::addDxfBlockRecordSource(row,copy);}
+        else {SymbolAllocationFailure failure(blockSourceAllocation);dx_iface::addDxfBlockRecordSource(row,raw);}
+        if(row.handle==duplicateBlockSource)dx_iface::addDxfBlockRecordSource(row,raw);
+        if(throwBlockSource)throw std::runtime_error("injected BLOCK_RECORD source failure");
+    }
+    void addBlockRecord(const DRW_Block_Record& row) override {
+        ++blockTyped;blockEvents.push_back("typed:"+std::to_string(row.handle));
+        if(row.handle==skipBlockTyped)return;
+        if(alterBlockRecord){auto copy=row;alterBlockRecord(copy);dx_iface::addBlockRecord(copy);}
+        else {SymbolAllocationFailure failure(blockTypedAllocation);dx_iface::addBlockRecord(row);}
+        if(row.handle==duplicateBlockTyped)dx_iface::addBlockRecord(row);
+    }
     void addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_RawDxfObject& raw) override {
         ++rootSources;
         if(throwRootSource)throw std::runtime_error("injected root source failure");
@@ -1502,7 +1533,7 @@ bool mapSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("map proof source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean);
-        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=11u||!frozen.rawTypedMatched
+        if(report.state!=S::Bound||report.sourceMapMatches!=1u||report.sourceStyleMatches!=1u||report.resourceProofRecords!=14u||!frozen.rawTypedMatched
             ||frozen.references.empty()||!frozen.raw)return fail("map canonical proof failed");
         std::array<unsigned,11> roles{};unsigned handles=0u;
         for(const auto& ref:frozen.references) {
@@ -1839,7 +1870,7 @@ bool symbolSourceProofTests(const std::filesystem::path& dir) {
         if(!probe.fileImport(path.string(),&clean,false))return fail("symbol source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
         const std::vector<std::string> events{"raw:STYLE","typed:STYLE","raw:STYLE","typed:STYLE","raw:LTYPE","typed:LTYPE"};
-        if(report.state!=S::Bound||report.resourceProofRecords!=12u||report.symbolProofUses==0u||probe.symbolEvents!=events)
+        if(report.state!=S::Bound||report.resourceProofRecords!=15u||report.symbolProofUses==0u||probe.symbolEvents!=events)
             return fail("symbol canonical proof/order failed");
         for(auto handle:{0xC101u,0xC102u,0xC103u}) {
             const auto& frozen=DxIfaceTableSourceTestAccess::mapResource(clean,handle);
@@ -2120,6 +2151,148 @@ Tags spineResourceSource(const std::string& revision) {
     tags.insert(tags.end()-2,extra.begin(),extra.end());return tags;
 }
 
+Tags blockRecordResourceSource(const std::string& revision) {
+    auto tags=spineResourceSource(revision);
+    const auto start=slot(tags,5,"B100");auto end=start+1u;
+    while(tags[end].code!=0)++end;
+    for(auto i=start;i<end;++i)if(tags[i].code==70)tags[i].value="4";
+    const Tags extra={{280,"0"},{281,"1"},{340,"EE01"},{310,"00FF1080"},{310,"80010203"},
+        {102,"{BLKREFS"},{331,"E001"},{331,"0"},{2,"not-the-block-name"},{331,"E002"},{102,"}"},
+        {102,"{ACAD_XDICTIONARY"},{360,"C110"},{102,"}"},
+        {102,"{OPAQUE_BLOCK_APP"},{2,"not-the-block-name"},{70,"99"},{280,"1"},{281,"0"},
+        {102,"{NESTED"},{310,"FFFF"},{102,"}"},{102,"}"},
+        {1001,"BLOCK_APP"},{1000,"block xdata-é"},{1003,"BLOCK_LAYER"},{1005,"C101"}};
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(end),extra.begin(),extra.end());return tags;
+}
+
+bool blockRecordSourceProofTests(const std::filesystem::path& dir) {
+    using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
+    const auto path=dir/"block-record-source.dxf";
+    const auto fail=[](const std::string& message){std::cerr<<message<<'\n';return false;};
+    std::vector<std::function<void(DRW_Block_Record&)>> faults={
+        [](auto& r){r.name+="changed";},[](auto& r){++r.insUnits;},[](auto& r){++r.flags;},
+        [](auto& r){r.canExplode=true;},[](auto& r){r.blockScaling=0;},[](auto& r){++r.layoutHandle;},
+        [](auto& r){r.previewData[0]^=1u;},[](auto& r){r.previewData.pop_back();},
+        [](auto& r){++r.insertHandles[0];},[](auto& r){r.insertHandles.pop_back();},
+        [](auto& r){std::reverse(r.insertHandles.begin(),r.insertHandles.end());},
+        [](auto& r){r.xrefUnloaded=true;},[](auto& r){r.basePoint.x=-0.0;},[](auto& r){r.basePoint.y=1.0;},
+        [](auto& r){r.basePoint.z=1.0;},[](auto& r){r.xrefIndex=2;},[](auto& r){r.xrefPath="injected";},
+        [](auto& r){r.description="injected";},[](auto& r){r.xrefBlockHandle.ref=5u;},
+        [](auto& r){r.xrefBlockHandle.ref64=5u;},[](auto& r){r.xrefBlockHandle.code=3u;},
+        [](auto& r){r.xrefBlockHandle.size=1u;},[](auto& r){r.insertCount=2u;},
+        [](auto& r){++r.xDictHandle;},[](auto& r){r.reactorHandles.push_back(1u);},
+        [](auto& r){r.setDwgCommonLinkTailValidated(true);},
+        [](auto& r){r.setDwgCommonObjectState(r.reactorCount(),r.extensionDictionaryFlag(),true);},
+        [](auto& r){r.extData[0]->addString(1001,"different-app");}
+    };
+    for(unsigned i=0;i<5u;++i)faults.push_back([i](auto& r){DrwObjectEncodeTestAccess::nativeBlockLinks(r,i);});
+    const std::vector<std::function<void(DRW_RawDxfObject&)>> rawFaults={
+        [](auto& r){r.m_version=DRW::AC1015;},[](auto& r){r.name="STYLE";},[](auto& r){++r.parentHandle;},
+        [](auto& r){r.groups.front().addString(5,"FFFF");},
+        [](auto& r){if(r.hasRawValues)r.rawValues[0]="inconsistent";else r.hasRawValues=true;},
+        [](auto& r){r.groups.front().setLayerRefName("not raw");},
+        [](auto& r){r.groups.emplace_back(100,"WrongClass");if(r.hasRawValues)r.rawValues.push_back("WrongClass");}
+    };
+    unsigned routes=0u,typed=0u,raw=0u,callbacks=0u,limits=0u,allocations=0u,wire=0u;
+    for(const char* revision:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
+        const auto tags=blockRecordResourceSource(revision);if(!write(path,tags,binary))return false;
+        Probe probe;dx_data clean;
+        if(!probe.fileImport(path.string(),&clean,false))return fail("block source import failed");
+        const auto report=dx_iface::tableContentBindingReport(clean);
+        if(report.state!=S::Bound||!report.blockRecordProofUses||probe.blockSources!=3u||probe.blockTyped!=3u)
+            return fail("canonical block source failed state="+std::to_string(static_cast<int>(report.state)));
+        const std::vector<std::string> events={"source:31","typed:31","source:45312","typed:45312","source:45568","typed:45568"};
+        if(probe.blockEvents!=events)return fail("block source callback order differs");
+        const auto& row=DxIfaceTableSourceTestAccess::mapResource(clean,0xB100u);
+        const auto* model=dynamic_cast<const DRW_Block_Record*>(row.model.get());
+        if(!row.rawTypedMatched||!model||model->name!="TABLE-BLOCK"||model->insUnits!=4||model->canExplode||model->blockScaling!=1u
+            ||model->previewData!=std::vector<std::uint8_t>({0,255,16,128,128,1,2,3})
+            ||model->insertHandles!=std::vector<std::uint32_t>({0xE001u,0xE002u}))return fail("application groups changed row payload");
+        std::array<unsigned,28> roles{};
+        for(const auto& ref:row.references) {
+            if(row.raw->groups.at(ref.groupIndex).code()!=ref.code)return false;
+            ++roles.at(static_cast<unsigned>(ref.kind));
+        }
+        if(roles[static_cast<unsigned>(R::BlockInsert)]!=3u||roles[static_cast<unsigned>(R::BlockLayout)]!=1u
+            ||roles[static_cast<unsigned>(R::ExtensionDictionary)]!=1u)return fail("block reference census differs");
+        ++routes;
+        for(const auto& fault:faults) {
+            probe.alterBlockRecord=[fault](auto& value){if(value.handle==0xB100u)fault(value);};dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("typed block mutation qualified index="+std::to_string(typed%faults.size()));
+            const auto& changed=DxIfaceTableSourceTestAccess::mapResource(bad,0xB100u);
+            if(changed.rawTypedMatched||!changed.references.empty())return fail("partial block source receipt");
+            probe.alterBlockRecord={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return fail("typed block corrected retry failed");
+            ++typed;
+        }
+        for(const auto& fault:rawFaults) {
+            probe.alterBlockSource=[fault](auto& source){if(source.handle==0xB100u)fault(source);};dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("raw block mutation qualified");
+            probe.alterBlockSource={};dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++raw;
+        }
+        for(unsigned mode=0u;mode<4u;++mode) {
+            probe.skipBlockSource=mode==0u?0xB100u:0u;probe.duplicateBlockSource=mode==1u?0xB100u:0u;
+            probe.skipBlockTyped=mode==2u?0xB100u:0u;probe.duplicateBlockTyped=mode==3u?0xB100u:0u;dx_data bad;
+            if(!probe.fileImport(path.string(),&bad,false)||dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("block callback gap qualified");
+            probe.addDxfBlockRecordSource(*model,*row.raw);
+            if(dx_iface::tableContentBindingReport(bad).state==S::Bound)return fail("late block source repaired failure");
+            probe.skipBlockSource=probe.duplicateBlockSource=probe.skipBlockTyped=probe.duplicateBlockTyped=0u;dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++callbacks;
+        }
+        for(unsigned phase=0u;phase<2u;++phase)for(long schedule=0;schedule<6;++schedule) {
+            probe.blockSourceAllocation=phase? -1:schedule;probe.blockTypedAllocation=phase?schedule:-1;dx_data interrupted;
+            if(!probe.fileImport(path.string(),&interrupted,false))return fail("block allocation control interrupted ordinary import");
+            const auto result=dx_iface::tableContentBindingReport(interrupted);
+            if(result.state==S::Bound) {
+                if(result.resourceProofRecords!=report.resourceProofRecords)return fail("partial block allocation receipt qualified");
+                for(const auto handle:{0x1Fu,0xB100u,0xB200u})if(!DxIfaceTableSourceTestAccess::mapResource(interrupted,handle).rawTypedMatched)
+                    return fail("missing block allocation receipt qualified");
+            }
+            probe.blockSourceAllocation=probe.blockTypedAllocation=-1;dx_data restored;
+            if(!probe.fileImport(path.string(),&restored,false)||dx_iface::tableContentBindingReport(restored).state!=S::Bound)return false;
+            ++allocations;
+        }
+        for(unsigned i=0u;i<8u;++i) {
+            dx_data bounded;DxIfaceTableSourceTestAccess::resourceProofLimits(bounded,
+                i==0u?report.resourceProofRecords-1u:i==4u?report.resourceProofRecords:100000u,
+                i==1u?report.resourceProofGroups-1u:i==5u?report.resourceProofGroups:4000000u,
+                i==2u?report.resourceProofBytes-1u:i==6u?report.resourceProofBytes:64u*1024u*1024u,
+                i==3u?report.resourceProofWork-1u:i==7u?report.resourceProofWork:4000000u);
+            if(!probe.fileImport(path.string(),&bounded,false)||dx_iface::tableContentBindingReport(bounded).state!=(i<4u?S::CaptureFailed:S::Bound))return fail("block shared proof bound differs");
+            ++limits;
+        }
+        for(unsigned mode=0u;mode<4u;++mode) {
+            auto malformed=tags;
+            if(mode==0u)malformed.erase(malformed.begin()+static_cast<std::ptrdiff_t>(slot(malformed,0,"ENDTAB")));
+            if(mode==1u)malformed[slot(malformed,331,"E002")].value="E001";
+            if(mode==2u)malformed[slot(malformed,102,"{BLKREFS")].value="}";
+            if(mode==3u)malformed[slot(malformed,280,"0")].value="2";
+            if(!write(path,malformed,binary))return false;
+            Probe broken;dx_data bad;
+            if(broken.fileImport(path.string(),&bad,false)||broken.blockSources||broken.blockTyped)return fail("invalid BLOCK_RECORD batch published callbacks");
+            ++wire;
+        }
+        if(!write(path,tags,binary))return false;
+        Probe disabled;disabled.blockSourceOptIn=false;dx_data without;
+        if(!disabled.fileImport(path.string(),&without,false)||disabled.blockSources||disabled.blockTyped!=3u
+            ||dx_iface::tableContentBindingReport(without).state==S::Bound)return fail("block source opt-out not preserved");
+        Probe latched;latched.disableBlockSourceInCallback=true;dx_data all;
+        if(!latched.fileImport(path.string(),&all,false)||latched.blockSources!=3u||latched.blockTyped!=3u)return fail("block source opt-in not batch-latched");
+        probe.throwBlockSource=true;dx_data interrupted;bool threw=false;
+        try{(void)probe.fileImport(path.string(),&interrupted,false);}catch(const std::runtime_error&){threw=true;}
+        if(!threw||dx_iface::tableContentBindingReport(interrupted).state==S::Bound)return fail("block source callback exception qualified");
+        probe.throwBlockSource=false;dx_data corrected;
+        if(!probe.fileImport(path.string(),&corrected,false)||dx_iface::tableContentBindingReport(corrected).state!=S::Bound)return false;
+    }
+    std::cout<<"BLOCK_RECORD source proof: "<<routes<<" routes; "<<typed<<" typed + "<<raw<<" raw mismatch/corrected pairs; "
+        <<callbacks<<" callback controls; "<<allocations<<" allocation schedules; "<<limits<<" exact/below aggregate caps; "
+        <<wire<<" atomic batch refusals; opt-out/latched request/throw/retry\n";
+    return routes==8u&&typed==faults.size()*routes&&raw==56u&&callbacks==32u&&allocations==96u&&limits==64u&&wire==32u;
+}
+
 bool spineSourceProofTests(const std::filesystem::path& dir) {
     using S=dx_iface::TableBindingState;using R=dx_tableResourceRole;
     const auto path=dir/"spine-proof.dxf";
@@ -2341,7 +2514,7 @@ bool auxiliarySourceProofTests(const std::filesystem::path& dir) {
         const auto good=auxiliaryResourceSource(revision);Probe probe;dx_data clean;
         if(!write(path,good,binary)||!probe.fileImport(path.string(),&clean,false))return fail("rich auxiliary source import failed");
         const auto report=dx_iface::tableContentBindingReport(clean);
-        if(report.state!=S::Bound||report.fieldProofUses==0u||report.dataLinkProofUses==0u||report.resourceProofRecords!=12u)return fail("auxiliary canonical proof failed");
+        if(report.state!=S::Bound||report.fieldProofUses==0u||report.dataLinkProofUses==0u||report.resourceProofRecords!=15u)return fail("auxiliary canonical proof failed");
         const auto& field=DxIfaceTableSourceTestAccess::mapResource(clean,0xF100u);
         const auto& link=DxIfaceTableSourceTestAccess::mapResource(clean,0xF001u);
         if(!field.rawTypedMatched||!link.rawTypedMatched)return false;
@@ -2504,6 +2677,7 @@ int inspect(const char* path) {
         <<" complex-shape-bindings="<<bindings.complexShapeStyleBindings
         <<" field-proof-uses="<<bindings.fieldProofUses<<" datalink-proof-uses="<<bindings.dataLinkProofUses
         <<" dictionary-proof-uses="<<bindings.dictionaryProofUses<<" xrecord-proof-uses="<<bindings.xRecordProofUses
+        <<" block-record-proof-uses="<<bindings.blockRecordProofUses
         <<" unknown-references="<<bindings.unknownResourceReferences<<'\n';
     std::cout<<"compound-state="<<static_cast<int>(compound.state)<<" tables="<<compound.tables
              <<" contents="<<compound.contents<<" geometries="<<compound.geometries
@@ -2547,6 +2721,13 @@ int inspect(const char* path) {
         if(resource.family==dx_tableResourceFamily::DataLink)resourceReferences(*resource.model,"DATALINK",resource);
         if(resource.family==dx_tableResourceFamily::Dictionary)resourceReferences(*resource.model,"DICTIONARY",resource);
         if(resource.family==dx_tableResourceFamily::XRecord)resourceReferences(*resource.model,"XRECORD",resource);
+        if(resource.family==dx_tableResourceFamily::BlockRecord) {
+            const auto& row=dynamic_cast<const DRW_Block_Record&>(*resource.model);
+            std::cout<<"BLOCK_RECORD-row handle="<<std::hex<<row.handle<<std::dec<<" units="<<row.insUnits
+                <<" explode="<<row.canExplode<<" scale="<<static_cast<unsigned>(row.blockScaling)
+                <<" layout="<<std::hex<<row.layoutHandle<<std::dec<<'\n';
+            resourceReferences(row,"BLOCK_RECORD",resource);
+        }
     }
     if(bindings.sourceStyleMatches)for(const auto& style:data.tableStyles) {
         const auto& resource=DxIfaceTableSourceTestAccess::mapResource(data,style.handle);
@@ -2586,11 +2767,12 @@ int inspect(const char* path) {
 } // namespace
 int main(int argc,char** argv) {
     if (argc==3 && std::string(argv[1])=="--inspect") return inspect(argv[2]);
-    if(argc==5 && (std::string(argv[1])=="--generate-symbol-source"||std::string(argv[1])=="--generate-auxiliary-source"||std::string(argv[1])=="--generate-spine-source")) {
+    if(argc==5 && (std::string(argv[1])=="--generate-symbol-source"||std::string(argv[1])=="--generate-auxiliary-source"||std::string(argv[1])=="--generate-spine-source"||std::string(argv[1])=="--generate-block-record-source")) {
         const std::string revision=argv[2],encoding=argv[3];
         if((revision!="AC1021"&&revision!="AC1024"&&revision!="AC1027"&&revision!="AC1032") || (encoding!="ascii"&&encoding!="binary"))return 2;
         const auto tags=std::string(argv[1])=="--generate-symbol-source"?complexSymbolSource(revision):
-            std::string(argv[1])=="--generate-spine-source"?spineResourceSource(revision):auxiliaryResourceSource(revision);
+            std::string(argv[1])=="--generate-spine-source"?spineResourceSource(revision):
+            std::string(argv[1])=="--generate-block-record-source"?blockRecordResourceSource(revision):auxiliaryResourceSource(revision);
         return write(argv[4],tags,encoding=="binary")?0:1;
     }
     const bool compound=argc==2 && std::string(argv[1])=="--compound-source";
@@ -2603,10 +2785,11 @@ int main(int argc,char** argv) {
     const bool complexBindings=argc==2 && std::string(argv[1])=="--complex-symbol-bindings";
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
-    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof) return 2;
+    const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
+    if (argc!=1 && !compound && !proof && !bindings && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto dir=std::filesystem::temp_directory_path()/("libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::error_code error; if (!std::filesystem::create_directory(dir,error) || error) return 1;
-    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):tests(dir);
+    const bool ok=compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

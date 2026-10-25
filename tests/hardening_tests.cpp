@@ -13163,7 +13163,8 @@ void testDxfBlockRecordParserRetainedBudget(TestContext& t) {
     const std::string longUnknownApplicationMarker(32u * 1024u, 'U');
     const std::string unknownApplicationGroup =
         "102\n{" + longUnknownApplicationMarker
-        + "\n1\nignored-value\n102\n}\n";
+        + "\n1\nignored-value\n2\nspoofed-name\n5\nFFFF\n330\nDEAD\n"
+          "70\n24\n280\n0\n281\n1\n340\nABCD\n310\nFFFF\n102\n}\n";
     const auto previewGroups = [](const std::string& hex) {
         constexpr std::size_t MaxHexChars = 254u;
         std::string groups;

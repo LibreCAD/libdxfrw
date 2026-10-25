@@ -194,7 +194,7 @@ enum class dx_tableResourceRole : std::uint8_t {
     TextStyleName, LTypeTextStyle, LTypeShapeStyle,
     FieldChild, FieldObject, FieldValueObject, DataLinkCustomTarget, DataLinkHardOwner,
     DictionarySoftOwner, DictionaryHardOwner, XRecordHandle, XRecordSoftPointer,
-    XRecordHardPointer, XRecordSoftOwner, XRecordHardOwner
+    XRecordHardPointer, XRecordSoftOwner, XRecordHardOwner, BlockInsert, BlockLayout
 };
 struct dx_tableResourceReference {
     dx_tableResourceRole kind;

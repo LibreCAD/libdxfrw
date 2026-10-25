@@ -40,6 +40,7 @@
 #include "intern/dxftablecapacity.h"
 #include "intern/dxftablecontent.h"
 #include "intern/dxffield.h"
+#include "intern/dxfblockrecord.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
 #include "intern/dwg_dxf_output_transaction.h"
@@ -15226,60 +15227,35 @@ bool dxfRW::processBlockRecord() {
     DRW_DBG("dxfRW::processBlockRecord\n");
     int code = 0;
     bool reading = false;
-    bool readingBlkRefs = false;
-    bool readingXDictionary = false;
-    bool xDictionarySeen = false;
-    int ignoredApplicationDepth = 0;
-    std::uint32_t handle = DRW::NoHandle;
     DRW_Block_Record publicRecord;
-    std::unordered_set<std::uint32_t> recordInsertHandles;
+    dxfBlockRecord::Decoder decoder(publicRecord,reader);
     std::vector<DRW_Block_Record> pendingPublicBlockRecords;
-    std::size_t activeInsertIndexBytes = 0u;
-    std::size_t activeInsertOwnerBytes = 0u;
-    std::size_t activePreviewOwnerBytes = 0u;
-    DxfReadRetainedReservation activeInsertIndexReservation(
-        reader->retainedByteBudget(), 0u);
-    auto growRetainedBytes = [this](DxfReadRetainedReservation& reservation,
-                                    std::size_t& currentBytes,
-                                    std::size_t addedBytes) {
-        const std::size_t maxSize =
-            (std::numeric_limits<std::size_t>::max)();
-        if (addedBytes > maxSize - currentBytes)
-            return failDxfReadRetainedBudget();
-        const std::size_t nextBytes = currentBytes + addedBytes;
-        if (!reservation.resize(nextBytes))
-            return failDxfReadRetainedBudget();
-        currentBytes = nextBytes;
-        return true;
-    };
+    auto* sourceHandler=dynamic_cast<DRW_DxfBlockRecordSourceHandler*>(iface);
+    const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockRecordSource();
+    DRW_RawDxfObject raw;
+    std::vector<DRW_RawDxfObject> pendingSources;
 
-    auto finishRecord = [&]() -> bool {
+    const auto finishRecord = [&]() -> bool {
         if (!reading)
             return true;
-        if (readingBlkRefs || readingXDictionary
-            || ignoredApplicationDepth != 0)
+        if (!decoder.finish(reader->getSourceVersion()))
             return false;
-        const DRW::Version sourceVersion = reader->getSourceVersion();
-        if (publicRecord.name.empty()
-            || (sourceVersion != DRW::UNKNOWNV
-                && sourceVersion > DRW::AC1009
-                && handle == DRW::NoHandle))
-            return false;
-        // Keep the full table entry, including XDATA, available to consumers
-        // without folding it into the BLOCK entity.  The latter is a distinct
-        // DXF record and must retain its own entity-level metadata. This move
-        // is the only staged public owner; the internal context projection is
-        // copied once, under its own retained-byte reservation at publication.
-        publicRecord.handle = handle;
+        if(captureSource) {
+            // Application payloads can carry code 5/330 without defining the
+            // enclosing row. Its decoder, not those opaque tags, owns metadata.
+            raw.handle=publicRecord.handle;raw.parentHandle=publicRecord.parentHandle;
+            pendingSources.push_back(std::move(raw));
+        }
+        // One staged public owner; context copies are admitted at publication.
         pendingPublicBlockRecords.push_back(std::move(publicRecord));
-        if (!activeInsertIndexReservation.resize(0u))
-            return failDxfReadRetainedBudget();
-        activeInsertIndexBytes = 0u;
-        activeInsertOwnerBytes = 0u;
-        activePreviewOwnerBytes = 0u;
-        return true;
+        return decoder.reset();
     };
     const auto publishBlockRecords = [&]() -> bool {
+        if(captureSource) {
+            if(pendingSources.size()!=pendingPublicBlockRecords.size())return false;
+            for(const auto& source:pendingSources)
+                if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return false;
+        }
         std::size_t contextRecordCount = 0u;
         std::size_t contextCopyBytes = 0u;
         const std::size_t maxSize =
@@ -15346,197 +15322,41 @@ bool dxfRW::processBlockRecord() {
         stagedContextRecords.clear();
         contextCopyReservation.transfer();
 
-        for (const DRW_Block_Record &entry : pendingPublicBlockRecords)
-            iface->addBlockRecord(entry);
+        for (std::size_t i=0;i<pendingPublicBlockRecords.size();++i) {
+            if(captureSource)sourceHandler->addDxfBlockRecordSource(pendingPublicBlockRecords[i],pendingSources[i]);
+            iface->addBlockRecord(pendingPublicBlockRecords[i]);
+        }
         return true;
     };
+
 
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (code == 0) {
             if (!finishRecord())
                 return setError(DRW::BAD_CODE_PARSED);
-            const std::string_view sectionstr = reader->getStringView();
-            DRW_DBG(sectionstr.data()); DRW_DBG("\n");
-            if (dxfKeywordEquals(sectionstr, "BLOCK_RECORD")) {
-                reading = true;
-                readingBlkRefs = false;
-                readingXDictionary = false;
-                xDictionarySeen = false;
-                ignoredApplicationDepth = 0;
-                handle = DRW::NoHandle;
+            const auto sectionstr=reader->getStringView();
+            if (dxfKeywordEquals(sectionstr,"BLOCK_RECORD")) {
+                reading=true;
                 publicRecord.reset();
-                recordInsertHandles.clear();
-            } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
+                if(captureSource) {
+                    raw=DRW_RawDxfObject{};
+                    if(!copyRawDxfCarrierName(raw,std::string(sectionstr)))return setError(DRW::BAD_CODE_PARSED);
+                }
+            } else if (dxfKeywordEquals(sectionstr,"ENDTAB")) {
                 if (!publishBlockRecords())
                     return setError(DRW::BAD_CODE_PARSED);
                 return true;
-            } else {
-                return setError(DRW::BAD_READ_TABLES);
-            }
+            } else return setError(DRW::BAD_READ_TABLES);
         } else if (reading) {
-            switch (code) {
-            case 102: {
-                const std::string_view control = reader->getStringView();
-                if (readingBlkRefs) {
-                    if (control != "}")
-                        return setError(DRW::BAD_CODE_PARSED);
-                    readingBlkRefs = false;
-                } else if (readingXDictionary) {
-                    if (control != "}" || !xDictionarySeen)
-                        return setError(DRW::BAD_CODE_PARSED);
-                    readingXDictionary = false;
-                } else if (ignoredApplicationDepth != 0) {
-                    if (control == "}") {
-                        --ignoredApplicationDepth;
-                    } else if (!control.empty() && control.front() == '{') {
-                        if (ignoredApplicationDepth ==
-                                DRW::kMaxDxfApplicationGroupNesting)
-                            return setError(DRW::BAD_CODE_PARSED);
-                        ++ignoredApplicationDepth;
-                    } else {
-                        return setError(DRW::BAD_CODE_PARSED);
-                    }
-                } else {
-                    if (control == "{BLKREFS") {
-                        if (reader->getSourceVersion() != DRW::UNKNOWNV
-                            && reader->getSourceVersion() <= DRW::AC1014)
-                            return setError(DRW::BAD_CODE_PARSED);
-                        readingBlkRefs = true;
-                    } else if (control == "{ACAD_XDICTIONARY") {
-                        readingXDictionary = true;
-                        xDictionarySeen = false;
-                    } else if (!control.empty() && control.front() == '{') {
-                        ignoredApplicationDepth = 1;
-                    } else if (control == "}") {
-                        return setError(DRW::BAD_CODE_PARSED);
-                    }
-                }
-                break;
-            }
-            case 331:
-                if (ignoredApplicationDepth != 0)
-                    break;
-                if (!readingBlkRefs || !reader->isValidHandleString())
-                    return setError(DRW::BAD_CODE_PARSED);
-                if (recordInsertHandles.size()
-                        >= DRW::kMaxDxfBlockRecordInsertHandles)
-                    return setError(DRW::BAD_CODE_PARSED);
-                {
-                    const std::uint32_t insertHandle =
-                        reader->getHandleString();
-                    if (insertHandle == DRW::NoHandle)
-                        break;
-                    if (recordInsertHandles.find(insertHandle)
-                        != recordInsertHandles.end())
-                        return setError(DRW::BAD_CODE_PARSED);
-                    if (!growRetainedBytes(
-                            activeInsertIndexReservation,
-                            activeInsertIndexBytes,
-                            sizeof(std::uint32_t)))
-                        return false;
-                    if (!publicRecord.retainDxfRetainedStringBytes(
-                            reader, activeInsertOwnerBytes,
-                            sizeof(std::uint32_t)))
-                        return failDxfReadRetainedBudget();
-                    recordInsertHandles.insert(insertHandle);
-                    publicRecord.insertHandles.push_back(insertHandle);
-                }
-                break;
-            case 360:
-                if (ignoredApplicationDepth != 0)
-                    break;
-                if (!readingXDictionary || xDictionarySeen
-                    || !reader->isValidHandleString())
-                    return setError(DRW::BAD_CODE_PARSED);
-                publicRecord.xDictHandle = reader->getHandleString();
-                if (publicRecord.xDictHandle == 0
-                    || publicRecord.xDictHandle == DRW::NoHandle)
-                    return setError(DRW::BAD_CODE_PARSED);
-                xDictionarySeen = true;
-                break;
-            case 340:
-                if (!reader->isValidHandleString())
-                    return setError(DRW::BAD_CODE_PARSED);
-                publicRecord.layoutHandle = reader->getHandleString();
-                break;
-            case 330:
-                if (!reader->isValidHandleString())
-                    return setError(DRW::BAD_CODE_PARSED);
-                publicRecord.parentHandle = reader->getHandleString();
-                break;
-            case 2:
-                if (!publicRecord.parseCode(code, reader))
-                    return setError(DRW::BAD_CODE_PARSED);
-                break;
-            case 5:
-                if (!reader->isValidHandleString())
-                    return setError(DRW::BAD_CODE_PARSED);
-                handle = reader->getHandleString();
-                publicRecord.handle = handle;
-                break;
-            case 70:
-                publicRecord.insUnits = reader->getInt32();
-                publicRecord.flags = publicRecord.insUnits;
-                break;
-            case 280: {
-                const std::int32_t canExplode = reader->getInt32();
-                if (canExplode < 0 || canExplode > 1)
-                    return setError(DRW::BAD_CODE_PARSED);
-                publicRecord.canExplode = canExplode != 0;
-                break;
-            }
-            case 281: {
-                const std::int32_t blockScaling = reader->getInt32();
-                if (blockScaling < 0 || blockScaling > 1)
-                    return setError(DRW::BAD_CODE_PARSED);
-                publicRecord.blockScaling = static_cast<std::uint8_t>(blockScaling);
-                break;
-            }
-            case 310: {
-                const std::string_view chunk = reader->getStringView();
-                if ((chunk.size() & 1u) != 0u)
-                    return setError(DRW::BAD_CODE_PARSED);
-                const std::size_t decodedBytes = chunk.size() / 2u;
-                if (!publicRecord.retainDxfRetainedStringBytes(
-                        reader, activePreviewOwnerBytes, decodedBytes))
+            if(captureSource&&!captureRawGroup(raw,code,true,!decoder.inApplication()))return setError(DRW::BAD_CODE_PARSED);
+            if(!decoder.parseCode(code,reader)) {
+                if (reader->retainedByteBudget() && reader->retainedByteBudget()->exceeded())
                     return failDxfReadRetainedBudget();
-                if (!appendDxfHexChunk(chunk, publicRecord.previewData))
-                    return setError(DRW::BAD_CODE_PARSED);
-                break;
-            }
-            case 1000:
-            case 1001:
-            case 1002:
-            case 1003:
-            case 1004:
-            case 1005:
-            case 1010:
-            case 1011:
-            case 1012:
-            case 1013:
-            case 1020:
-            case 1021:
-            case 1022:
-            case 1023:
-            case 1030:
-            case 1031:
-            case 1032:
-            case 1033:
-            case 1040:
-            case 1041:
-            case 1042:
-            case 1070:
-            case 1071:
-                if (!publicRecord.parseCode(code, reader))
-                    return setError(DRW::BAD_CODE_PARSED);
-                break;
-            default:
-                break;
+                return setError(DRW::BAD_CODE_PARSED);
             }
         }
     }
-
     return setError(DRW::BAD_READ_TABLES);
 }
 

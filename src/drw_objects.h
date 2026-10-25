@@ -45,6 +45,7 @@ class dxfReader;
 class dxfWriter;
 class DxfReadRetainedLease;
 namespace dxfField { class Decoder; }
+namespace dxfBlockRecord { class Decoder; }
 class dwgBuffer;
 class dwgRW;
 
@@ -206,6 +207,7 @@ private:
 class DRW_TableEntry {
   SETOBJFRIENDS
   friend class dxfField::Decoder;
+  friend class dxfBlockRecord::Decoder;
 public:
   static constexpr std::size_t kMaxExtendedDataItems = 1000000u;
 
@@ -2577,6 +2579,7 @@ private:
  */
 class DRW_Block_Record : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfBlockRecord::Decoder;
 public:
   DRW_Block_Record() { reset(); }
   void reset() {
@@ -2622,7 +2625,7 @@ public:
   std::uint8_t blockScaling =
       0; /*!< block scaling flag (DXF 281); R2007+ DWG */
   std::uint32_t layoutHandle =
-      0; /*!< soft ptr to the owning LAYOUT (DXF 340); DWG read */
+      0; /*!< hard pointer to associated LAYOUT (DXF 340); DWG read */
   dwgHandle xrefBlockHandle; /*!< external-reference block handle (DWG common
                                 table stream) */
   std::uint32_t insertCount = 0; /*!< number of DWG INSERT reference slots */

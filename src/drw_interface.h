@@ -739,6 +739,19 @@ public:
                                          const DRW_RawDxfObject& source) = 0;
 };
 
+/** Opt-in BLOCK_RECORD source rows. Selection is latched per table batch;
+ * default false adds no source copy/charging. Complete rows are delivered after
+ * valid ENDTAB, immediately before their typed callbacks. The source excludes
+ * its code-0 marker and table control. No DRW_Interface vtable change, block
+ * entity/child/source projection, target-closure or output claim is implied. */
+class DRW_DxfBlockRecordSourceHandler {
+public:
+  virtual ~DRW_DxfBlockRecordSourceHandler() = default;
+  virtual bool wantsDxfBlockRecordSource() const { return false; }
+  virtual void addDxfBlockRecordSource(const DRW_Block_Record& row,
+                                      const DRW_RawDxfObject& source) = 0;
+};
+
 /** Optional source-evidence side channel. Does not extend DRW_Interface's
  * established vtable or require existing 2D consumers to retain source bytes.
  * Request once per read; default false performs no source copy. Reports are

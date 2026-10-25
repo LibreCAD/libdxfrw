@@ -259,7 +259,7 @@ source/model mismatches and exhausted shared record/group/byte/work limits stay
 unqualified; later callbacks cannot repair a closed source generation. Exact
 per-record reference positions are published only after complete agreement.
 
-The optional observer reports JSON schema 5, including original FIELD/DATALINK
+The optional observer reports JSON schema 6, including original FIELD/DATALINK
 handle/name positions and handle values. These are independent scalar-span
 observations, not independent cached-value or context-dependent role/target
 semantics. No expressions or external connections are evaluated or opened.
@@ -306,7 +306,7 @@ exhaustion and scalar-transport refusal cannot earn an aggregate binding verdict
 Fresh corrected imports on the same adapter remain usable. This does not yet
 prove every callback collision before identity capture or complete graph closure.
 
-Schema 5 additionally corroborates original dictionary entry edges and XRECORD
+The observer additionally corroborates original dictionary entry edges and XRECORD
 handle-range roles/positions. XRECORD body `102` and later `100` strings are data,
 not common application/subclass markers. Autodesk documents the application
 payload and handle ranges in its [XRECORD reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm)
@@ -314,6 +314,36 @@ and [ObjectARX range table](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-De
 Wire labels are not independently established effective ownership/null/target
 rules or application-value semantics. No dictionary graph, application execution,
 complete live equality, native DWG layout or table output is qualified here.
+
+BLOCK_RECORD adds a separate `DRW_DxfBlockRecordSourceHandler`, selected once per
+symbol-table batch. Default false creates no source copy or extra source charge.
+Accepted rows are delivered immediately before their typed callbacks only after
+valid ENDTAB. The established `DRW_Interface` vtable and library model layout do
+not change. Failed/truncated batches publish neither row-source nor typed row
+callbacks; failed/throwing imports cannot qualify an aggregate binding.
+
+Normal import and proof replay share `intern/dxfblockrecord.h`. Application
+payloads cannot clobber the enclosing row's identity/name/scalars/preview; only
+BLKREFS insert slots and extension-dictionary slots are interpreted in those
+controlled groups. Existing context-map/name/preview/insert ownership and quota
+publication remain in the table parser. Exact comparison covers exposed/default
+and native-only state, including private native block/entity links, not BLOCK
+entity context enrichment or complete common/opaque application semantics.
+Selected table-owner and content block references now require this source proof.
+Their layout/insert/common targets still need effective null/ownership/closure
+qualification. Opaque application fields remain in raw source even when the
+historical typed projection ignores them; this is not complete lossless output.
+
+Schema 6 adds original BLOCK_RECORD BLKREFS/layout/common spans and selected
+units/explode/scale/layout scalar observations, using original tags as field
+authority. Independent typed records are loaded before document LAYOUT repair,
+never re-exported. The rich authored control observes ezdxf 1.4.4 projecting the
+application payload `99/1/0` into units/explode/scale instead of the outer row's
+`4/0/1`. The observer reports `KNOWN_APPLICATION_SCOPE_DIFFERENCE`, retaining the
+unmodified peer values; they do not count as independent scalar parity. Only
+this exact observed unscoped-last-scalar pattern is classified; unexplained
+disagreements still fail. Preview decoding, BLOCK/ENDBLK/ATTDEF context, target
+closure and format support are not independently qualified by these checks.
 
 Both pinned external examples now reach complete typed CELLSTYLEMAP callbacks
 and `Bound` for the direct child/namespace report. Their rich map backgrounds
