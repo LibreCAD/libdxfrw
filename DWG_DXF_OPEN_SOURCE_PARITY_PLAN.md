@@ -1,3 +1,5 @@
+**Current commit/plan checkpoint (2026-10-25):** RPP-5cx is committed as `b657ef17ef2a5e37d21b0541ddc6f225786f90af`. The tracked implementation is clean; the next table-compound source-capture slice is **PLANNED, NOT IMPLEMENTED**. Three fast table checks pass again (0.90 s). [Committed state and implementation-ready sequence](#commit-checkpoint-rpp-5cx-and-table-compound-readiness-2026-10-25).
+
 **Newest implementation checkpoint — RPP-5cx owned rich DXF TABLECONTENT decoding (2026-10-25):** complete matched marked-body profiles now reach the existing TABLECONTENT callback with owned custom data, format/style/border companions and embedded geometry. The minimal core stays explicitly incomplete and cannot bypass native encoding guards; converter replay remains closed pending wrapper/output proof. Generated controls cover rich profiles, primitive values, raw fallback, budgets and atomic retry. Both external examples now decode their 180-cell/180-checksum content objects; independent source inventory corroborates selected counts only. Consumer rebuilds are required for the extended object layout. The full native/semantic/platform objective remains open and the qualification ledger stays **CLOSED**. [Implementation and next work](#implementation-progress-rpp-5cx-owned-rich-dxf-tablecontent-decoding-2026-10-25) · [receipt](docs/research/rpp5cx-owned-rich-dxf-tablecontent-decoding-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5cw DXF TABLEGEOMETRY projection and table-dependency loss gate (2026-10-25):** committed as `742de35ba56512c799581e4408626b44d6f7286b`. Its cache projection, null-owner fix, explicit loss guard and scoped independent DXF observations remain valid. RPP-5cx adds content decoding but does not resolve the peer's decimal discrepancy or qualify complete table replay. [Historical implementation](#implementation-progress-rpp-5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25) · [immutable receipt](docs/research/rpp5cw-dxf-tablegeometry-projection-and-table-dependency-loss-gate-2026-10-25.json).
@@ -123723,3 +123725,126 @@ The qualification ledger remains **CLOSED**. J256/J260/J268/J284/J293/J295
 remain **DEFERRED_EXTERNAL**; their evidence cannot promote support. Native
 Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
 remain **NOT_RUN**. The original implementation goal stays active.
+
+## Commit checkpoint RPP-5cx and table compound readiness (2026-10-25)
+
+RPP-5cx is committed as `b657ef17ef2a5e37d21b0541ddc6f225786f90af`
+(`Decode rich DXF TABLECONTENT with owned metadata`). Its immutable
+[receipt](docs/research/rpp5cx-owned-rich-dxf-tablecontent-decoding-2026-10-25.json)
+remains unchanged. This is a plan-only checkpoint, not another implemented
+table route, semantic qualification or completion of the original goal.
+
+Read-only inspection confirms the remaining implementation boundary:
+
+- `dxfRW::processTable` publishes the finalized typed TABLE but does not retain
+  its complete parent DXF record. Its ATTRIB/SEQEND sequence is parsed separately.
+- `dx_iface::addTable` retains a typed TABLE and preserves the existing INSERT
+  projection for 2D consumers. It does not establish a complete compound source.
+- `dx_iface::addTableContent` and `addTableGeometry` currently latch loss flags,
+  not retained child payloads. Both compatible and strict export still refuse
+  these standalone dependencies. Decoding success is not replay readiness.
+
+Implement the following slices in dependency order. All checkboxes below are
+**open**; names describe planned work, not support already delivered.
+
+### A. Next slice: bounded compound source capture and structural correlation
+
+1. [ ] Add an opt-in TABLE source facet separate from the `DRW_Interface`
+   vtable. Reuse existing bounded raw-group capture; preserve the normal typed
+   TABLE/INSERT callback path and avoid duplicate raw entity publication.
+   Deliver a frozen source baseline before a consumer can mutate its typed
+   view. Consumers that do not opt in must not incur full raw-copy overhead.
+   Parent-record capture alone must not claim exact ATTRIB/SEQEND preservation:
+   retain and prove those records separately or exclude that profile explicitly.
+2. [ ] Retain paired typed and raw TABLECONTENT/TABLEGEOMETRY sources, including
+   rich metadata, and the selected DICTIONARY/XRECORD wrapper baselines.
+   Precharge actual string lengths, nested arrays, variant payloads, shared
+   metadata footprints and container overhead before copies. Bound cumulative
+   records, groups, bytes and graph work with checked arithmetic. Capture
+   exhaustion or an exception must remain sticky and unqualified, not silently
+   publish partial snapshots or clear a prior container's loss flags.
+3. [ ] Bind capture to an actual import receipt: generation, source format,
+   version, completion and failure state. Close it on every return/exception
+   path. Reject stale/mixed generations, repeated imports into accumulated
+   state, direct callback fabrication and failed imports as qualification
+   sources. A clean corrected import on the same facade with fresh drawing
+   state must recover without laundering earlier retained state.
+4. [ ] Correlate TABLE -> extension DICTIONARY -> `ACAD_XREC_ROUNDTRIP`
+   XRECORD -> ordered 360 TABLECONTENT / 361 TABLEGEOMETRY hard-owner roles.
+   Preserve the literal `ACAD_ROUNDTRIP_2008_TABLE_ENTITY` marker as XRECORD
+   data, not a brace-delimited application group. Require unique identities,
+   reciprocal owners, exact child types and compatible dimensions. Do not
+   assign guessed meaning to unknown wrapper scalars or choose an authoritative
+   representation when the source views conflict. Report structural readiness
+   separately from semantic completeness and output eligibility.
+5. [ ] Generate minimal complete source graphs locally from scratch. Exercise
+   missing/duplicate/aliased/wrong-class children, reversed or wrong handle
+   roles, marker/order changes, reciprocal-owner/dimension mismatches, source
+   mutation, import-generation failures and byte/node/group limits. Include
+   embedded-NUL byte accounting, failed-read recovery and non-opt-in 2D
+   callback controls. Keep the existing export refusal enabled throughout
+   this slice, even for structurally complete graphs.
+
+### B. Following slice: complete dependency and immutable-source closure
+
+1. [ ] Enumerate every retained handle and local identifier by role across the
+   parent, wrapper, rich content, styles, CAD values and geometry. Resolve
+   STYLE/LTYPE/TABLESTYLE/CELLSTYLEMAP/FIELD/ATTDEF/BLOCK_RECORD/DATALINK and
+   EED APPID/LAYER dependencies against actual source records. Preserve explicit
+   nulls; reject missing, ambiguous, wrong-family and unsupported wide references.
+   Classify style-local IDs separately from object handles; never remap them
+   merely because their integer values coincide.
+2. [ ] Compare the live selected source against its immutable baseline, including
+   nested metadata and wrapper entry order. Bound comparison work and cover
+   preflight and late-callback edits. Reuse established resource binding and
+   graph-validation infrastructure where its family/ownership contracts match;
+   do not weaken another family's checks or use mutable convenience maps as
+   proof. Keep unknown common metadata and unproved wrapper profiles closed.
+
+### C. Following slice: atomic compound emission and exact output proof
+
+1. [ ] Plan/reserve all compound identities and dependency bindings together,
+   then emit the complete admitted parent/child/wrapper profile with correct
+   common metadata, reference roles and reciprocal owners. Preserve rich
+   companions, ordered wrapper data and all admitted attribute/footer records;
+   never substitute the minimal content core or a lossy INSERT for the compound.
+2. [ ] Inspect every staged field and reference against frozen source values
+   and planned remaps; verify unique final targets and actual readback. Cover
+   both encodings and each admitted source/target revision explicitly, including
+   repeated conversions. Inject allocation/write/validation failures and late
+   mutations; preserve destination sentinels, roll back reservations and recover
+   on corrected same-exporter retries. Remove the loss refusal only for the
+   complete, proved profile after these gates pass; all other profiles refuse.
+3. [ ] Corroborate emitted rich fields and ownership with a separate eligible
+   observer when available. Keep self-read, structural graph checks, exact
+   source transport, rendering and independent modeler semantics distinct.
+   Native DWG layouts/writers and the peer's decimal/bit discrepancy remain
+   separate evidence tasks, not permissions to relax exact comparisons.
+
+### Delivery cadence and validation budget
+
+After each completed item, update status, exact evidence, limits and the next
+safe unblocking action. After each coherent slice, write a fresh immutable
+receipt, commit explicit intended files and report progress. Use generated
+controls first and existing read-only external sources only as scoped evidence;
+do not commit external DWG/DXF payloads. Existing untracked files are untouched.
+Do not stop at a locally resolvable failure: use bounded controls or the next
+independent in-scope ready item. Missing authority or external qualification
+must be reported honestly; neither justifies guessed admission.
+
+For speed, first run the owning fast test, then its affected table/adapter/graph
+cohort. Rebuild consumer gates for public-header changes. Run owning ASan
+checks after code stabilizes, sequentially with normal owning cohorts where
+scratch paths are shared; reserve full suites for integration checkpoints.
+This documentation-only checkpoint reran exactly
+`libdxfrw_table_geometry_dxf_projection`,
+`libdxfrw_table_geometry_observer_selftest` and
+`libdxfrw_table_content_dxf_projection`: **3/3 passed in 0.90 s** on the existing
+macOS ARM64 Apple Clang build. No new ASan/full-suite/platform result is claimed.
+
+The full SWEEP/EXTRUSION, native carrier/schema/owner, IMAGE and document-closure
+work remains open, with LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD requirements
+unchanged. The qualification ledger is **CLOSED**; J256/J260/J268/J284/J293/J295
+stay **DEFERRED_EXTERNAL** and cannot promote support claims. Native
+Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel qualification
+remain **NOT_RUN**. No remote mutation is authorized by this checkpoint.
