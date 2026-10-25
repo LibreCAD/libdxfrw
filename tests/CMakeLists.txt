@@ -510,6 +510,10 @@ add_test(NAME libdxfrw_attdef_source_profile
     COMMAND libdxfrw_attdef_source_tests --source-profile)
 set_tests_properties(libdxfrw_attdef_source_profile PROPERTIES
     LABELS "fast;dxf;attdef;source;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_block_source_capture
+    COMMAND libdxfrw_attdef_source_tests --block-source)
+set_tests_properties(libdxfrw_block_source_capture PROPERTIES
+    LABELS "fast;dxf;block;source;resource-budget;generated" TIMEOUT 60)
 
 add_executable(libdxfrw_table_content_dxf_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/table_content_dxf_tests.cpp ${_libdxfrw_test_adapter_source})

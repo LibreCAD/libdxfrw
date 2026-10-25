@@ -218,6 +218,8 @@ public:
   /**
    * Called for every block. Note: all entities added after this
    * command go into this block until endBlock() is called.
+   * The DXF reader attempts endBlock() once if this callback throws; a cleanup
+   * exception does not replace the original exception. The import has failed.
    *
    * @see endBlock()
    */
@@ -750,6 +752,27 @@ public:
   virtual bool wantsDxfBlockRecordSource() const { return false; }
   virtual void addDxfBlockRecordSource(const DRW_Block_Record& row,
                                       const DRW_RawDxfObject& source) = 0;
+};
+
+/** Optional BLOCK/ENDBLK source transport, separate from DRW_Interface.
+ * Selection is latched once per BLOCK. Begin is the original parsed model,
+ * before absent-name clearing and BLOCK_RECORD name/units/preview reconciliation;
+ * it is delivered before addBlock. End is delivered immediately before
+ * addBlockEnd, after the footer boundary is accepted but BEFORE staged children
+ * are replayed. Both raw bodies exclude code 0. Dropped blocks emit neither.
+ * Begin alone is preliminary: a bad footer or throwing callback can leave a
+ * delivered prefix. Require paired typed callbacks, balanced scope and whole
+ * import success before using it; this is not child/graph/output qualification.
+ * Default false adds no raw capture/charging and no established vtable slot.
+ */
+class DRW_DxfBlockSourceHandler {
+public:
+  virtual ~DRW_DxfBlockSourceHandler() = default;
+  virtual bool wantsDxfBlockSource() const { return false; }
+  virtual void addDxfBlockBeginSource(const DRW_Block& original,
+                                      const DRW_RawDxfObject& source) = 0;
+  virtual void addDxfBlockEndSource(const DRW_Block& footer,
+                                    const DRW_RawDxfObject& source) = 0;
 };
 
 /** Source interpretation context, not a geometry/support certificate.

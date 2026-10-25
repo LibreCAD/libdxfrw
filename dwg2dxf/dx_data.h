@@ -1058,6 +1058,20 @@ private:
         std::size_t maxResourceProofBytes{64u*1024u*1024u}, maxResourceProofWork{4000000u};
         bool resourceProofCaptureFailed{false};
         std::size_t attdefPending{0};
+        // Original BLOCK versus reconciled callback and distinct ENDBLK.
+        // Closure/pairing are transport facts, NOT raw/profile/child/graph proof.
+        struct BlockSource {
+            std::shared_ptr<const DRW_Block> original,effective,footer;
+            std::shared_ptr<const DRW_RawDxfObject> beginRaw,endRaw;
+            dxfAttdef::SourceState::Cursor originalCursor,footerCursor;
+            bool beginPaired{false},footerPaired{false},closed{false};
+        };
+        std::map<std::uint32_t,BlockSource> blockSources;
+        std::uint32_t blockSourceActive{0};
+        std::size_t blockSourcePending{0},blockSourceBytes{0},blockSourceGroups{0},blockSourceWork{0};
+        std::size_t maxBlockSourceRecords{100000u},maxBlockSourceBytes{64u*1024u*1024u};
+        std::size_t maxBlockSourceGroups{4000000u},maxBlockSourceWork{4000000u};
+        bool blockSourceCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

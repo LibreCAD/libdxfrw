@@ -16013,6 +16013,12 @@ bool dxfRW::processBlock() {
     bool blockPublished = false;
     bool hasStagedBlockRecord = false;
     DRW_ParsingContext::BlockRecordInfo stagedBlockRecord;
+    auto* sourceHandler=dynamic_cast<DRW_DxfBlockSourceHandler*>(iface);
+    const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockSource();
+    bool beginSourceDelivered=false;
+    DRW_RawDxfObject beginSource;
+    if(captureSource&&!copyRawDxfCarrierName(beginSource,nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
 
     // addBlock() establishes the destination for subsequent entity callbacks.
     // Once that scope is visible, every failure path must balance it so a
@@ -16041,6 +16047,8 @@ bool dxfRW::processBlock() {
     auto consumeEndBlock = [&]() -> bool {
         DRW_Block footer;
         footer.setIsEnd(true);
+        DRW_RawDxfObject endSource;
+        if(beginSourceDelivered&&!copyRawDxfCarrierName(endSource,"ENDBLK"))return false;
         bool hasEndHandle = false;
         bool hasEndOwner = false;
         bool hasLayer = false;
@@ -16072,6 +16080,14 @@ bool dxfRW::processBlock() {
         };
 
         while (reader->readRec(&code)) {
+            if(beginSourceDelivered&&code!=0) {
+                if(code==102) {
+                    footer.clearParserCursor();
+                    if(!captureRawDxfApplicationGroup(endSource,footer))return false;
+                    continue;
+                }
+                if(!captureRawGroup(endSource,code,true))return false;
+            }
             if (code == DRW::dxfCode::HANDLE) {
                 // Code 5 is deliberately not validated by readRec(): a few
                 // table records use it as a name.  ENDBLK is an object
@@ -16140,6 +16156,11 @@ bool dxfRW::processBlock() {
             if (boundary != DxfEntityBoundary::NextEntity
                 && boundary != DxfEntityBoundary::EndSection)
                 return false;
+            if(beginSourceDelivered) {
+                endSource.handle=footer.handle;endSource.parentHandle=footer.parentHandle;
+                if(!validateCapturedRawDxfObject(endSource,binFile,reader->classifierProfile()))return false;
+                sourceHandler->addDxfBlockEndSource(footer,endSource);
+            }
             iface->addBlockEnd(footer);
             return true;
         }
@@ -16161,8 +16182,6 @@ bool dxfRW::processBlock() {
                                     || block.handle == DRW::NoHandle)) {
                 return setError(DRW::BAD_READ_BLOCKS);
             }
-            if (!hasName)
-                block.name.clear();
             if (block.handle != DRW::NoHandle
                 && m_readingContext.blockRecordMap.find(block.handle)
                        != m_readingContext.blockRecordMap.end()) {
@@ -16171,8 +16190,19 @@ bool dxfRW::processBlock() {
                 // resolution entry or publish a second scope with the same id.
                 return setError(DRW::BAD_READ_BLOCKS);
             }
+            const auto recordName=block.parentHandle!=DRW::NoHandle
+                ?m_readingContext.resolveBlockRecordName(block.parentHandle):UTF8STRING{};
+            const bool dropBlock=recordName.empty()&&(!hasName||block.name.empty());
+            if(captureSource&&!dropBlock) {
+                beginSource.handle=block.handle;beginSource.parentHandle=block.parentHandle;
+                if(!validateCapturedRawDxfObject(beginSource,binFile,reader->classifierProfile()))
+                    return setError(DRW::BAD_CODE_PARSED);
+                sourceHandler->addDxfBlockBeginSource(block,beginSource);
+                beginSourceDelivered=true;
+            }
+            if (!hasName)
+                block.name.clear();
             if (block.parentHandle != DRW::NoHandle) {
-                const auto recordName = m_readingContext.resolveBlockRecordName(block.parentHandle);
                 if (!recordName.empty())
                     block.name = recordName;
                 block.insUnits = m_readingContext.resolveBlockRecordInsUnits(block.parentHandle);
@@ -16185,15 +16215,14 @@ bool dxfRW::processBlock() {
                 stagedBlockRecord.previewData = block.previewData;
                 hasStagedBlockRecord = true;
             }
-            const bool dropBlock = block.name.empty();
-            if (!dropBlock) {
-                iface->addBlock(block);
-                blockPublished = true;
-            }
-            // Every throwing operation after addBlock has established a
-            // public scope must balance it, including footer parsing and
-            // BLOCK_RECORD publication, not only queued callback replay.
+            // Entering addBlock exposes the public scope even when that
+            // callback throws after establishing consumer state. Guard the
+            // invocation itself, footer parsing/publication and child replay.
             try {
+                if (!dropBlock) {
+                    blockPublished = true;
+                    iface->addBlock(block);
+                }
                 if (boundary == DxfEntityBoundary::EndBlock) {
                     if (!consumeEndBlock()) {
                         closePublishedBlock();
@@ -16248,7 +16277,12 @@ bool dxfRW::processBlock() {
             hasName = true;
         else if (code == DRW::dxfCode::HANDLE)
             hasHandle = true;
-        if (!block.parseCode(code, reader)) {
+        if(captureSource&&code==102) {
+            block.clearParserCursor();
+            if(!captureRawDxfApplicationGroup(beginSource,block))return setError(DRW::BAD_CODE_PARSED);
+            continue;
+        }
+        if ((captureSource&&!captureRawGroup(beginSource,code,true))||!block.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
 }

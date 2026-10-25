@@ -17832,6 +17832,132 @@ bool dx_iface::wantsDxfRootDictionarySource() const {return tableSourceCaptureOp
 
 bool dx_iface::wantsDxfBlockRecordSource() const {return tableSourceCaptureOpen();}
 
+namespace {
+bool blockSourceModelEqual(const DRW_Block& a,const DRW_Block& b,DRW::Version version,bool reconciled) noexcept {
+    const auto real=[](double x,double y){return std::memcmp(&x,&y,sizeof(x))==0;};
+    const auto point=[&](const DRW_Coord& x,const DRW_Coord& y){return real(x.x,y.x)&&real(x.y,y.y)&&real(x.z,y.z);};
+    const auto variant=[&](const DRW_Variant& x,const DRW_Variant& y){return standardDwgVariantEqual(x,y,version);};
+    return dxfAttdef::Decoder::sameEntityModel(a,b,variant)
+        &&point(a.basePoint,b.basePoint)&&point(a.extPoint,b.extPoint)
+        &&real(a.thickness,b.thickness)&&real(a.xAxisAngle,b.xAxisAngle)
+        &&a.flags==b.flags&&a.xrefUnloaded==b.xrefUnloaded&&a.xrefPath==b.xrefPath
+        &&a.description==b.description&&a.hasDescription==b.hasDescription&&a.getIsEnd()==b.getIsEnd()
+        &&(reconciled||(a.name==b.name&&a.insUnits==b.insUnits&&a.previewData==b.previewData));
+}
+}
+
+bool dx_iface::wantsDxfBlockSource() const {
+    if(!tableSourceCaptureOpen())return false;
+    const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);
+    return version>=DRW::AC1021&&version<=DRW::AC1032;
+}
+
+bool dx_iface::chargeDxfBlockSource(const DRW_Block& value,const DRW_RawDxfObject* raw) noexcept {
+    auto& source=cData->m_tableDxfSource;
+    std::size_t model=0u,bytes=0u,rawBytes=0u,work=0u;
+    const auto groups=raw?raw->groups.size():0u;
+    if(!dxfAttdef::Decoder::hasNoNativeEntityWriteBindings(value)
+        ||!estimateTypedBlockRetainedBytes(value,false,model)
+        ||!addAssociativeRetainedBytes(sizeof(DRW_Block)+8u*sizeof(void*),model)
+        ||!addAssociativeSlotBytes(model,2u,bytes) // copy temporaries plus owned snapshot
+        ||!addAssociativeRetainedBytes(sizeof(dx_data::TableDxfSourceCapture::BlockSource)+8u*sizeof(void*),bytes)
+        ||(raw&&!estimateRawDxfObjectBytes(*raw,rawBytes))
+        ||!addAssociativeRetainedBytes(rawBytes,bytes)
+        ||!addAssociativeRetainedBytes(bytes,work)
+        ||source.blockSourceBytes>source.maxBlockSourceBytes||bytes>source.maxBlockSourceBytes-source.blockSourceBytes
+        ||source.blockSourceGroups>source.maxBlockSourceGroups||groups>source.maxBlockSourceGroups-source.blockSourceGroups
+        ||source.blockSourceWork>source.maxBlockSourceWork||work>source.maxBlockSourceWork-source.blockSourceWork) {
+        source.blockSourceCaptureFailed=true;return false;
+    }
+    source.blockSourceBytes+=bytes;source.blockSourceGroups+=groups;source.blockSourceWork+=work;
+    return true;
+}
+
+void dx_iface::addDxfBlockBeginSource(const DRW_Block& value,const DRW_RawDxfObject& raw) {
+    retainDxfBlockSource(value,raw,false);
+}
+void dx_iface::addDxfBlockEndSource(const DRW_Block& value,const DRW_RawDxfObject& raw) {
+    retainDxfBlockSource(value,raw,true);
+}
+
+void dx_iface::retainDxfBlockSource(const DRW_Block& value,const DRW_RawDxfObject& raw,bool footer) noexcept {
+    if(!cData)return;
+    auto& source=cData->m_tableDxfSource;
+    const auto fail=[&](){source.blockSourceCaptureFailed=true;};
+    if(!tableSourceCaptureOpen()){fail();return;}
+    if(source.blockSourceCaptureFailed)return;
+    if(value.eType!=DRW::BLOCK||value.getIsEnd()!=footer||!value.handle
+        ||!asciiIdentifierEquals(raw.name,footer?"ENDBLK":"BLOCK")
+        ||raw.handle!=value.handle||raw.parentHandle!=value.parentHandle
+        ||raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
+        ||raw.m_version<DRW::AC1021||raw.m_version>DRW::AC1032
+        ||raw.rawValues.size()!=raw.groups.size()) {fail();return;}
+    if(!footer&&(source.blockSourceActive||source.blockSources.count(value.handle)
+        ||source.blockSources.size()>=source.maxBlockSourceRecords)) {fail();return;}
+    auto existing=source.blockSources.find(source.blockSourceActive);
+    if(footer&&(existing==source.blockSources.end()||!existing->second.beginPaired||existing->second.footer
+        ||!currentBlock||currentBlock==cData->mBlock||currentBlock->handle!=source.blockSourceActive)) {fail();return;}
+    const auto groups=raw.groups.size();
+    if(source.blockSourceGroups>source.maxBlockSourceGroups||groups>source.maxBlockSourceGroups-source.blockSourceGroups
+        ||groups>source.maxBlockSourceWork/64u||source.blockSourceWork>source.maxBlockSourceWork-groups*64u) {fail();return;}
+    source.blockSourceWork+=groups*64u; // charge scalar inspection BEFORE visiting it
+    for(const auto& field:raw.groups)
+        if((field.type()!=DRW_Variant::STRING&&field.type()!=DRW_Variant::INTEGER
+                &&field.type()!=DRW_Variant::INTEGER64&&field.type()!=DRW_Variant::DOUBLE)
+            ||(field.type()==DRW_Variant::STRING&&!field.content.s)
+            ||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()) {fail();return;}
+    if(!chargeDxfBlockSource(value,&raw))return;
+    try {
+        const auto cursor=dxfAttdef::Decoder::entityCursor(value); // original, before copying
+        auto model=std::make_shared<const DRW_Block>(value);
+        auto body=std::make_shared<const DRW_RawDxfObject>(raw);
+        if(footer) {
+            existing->second.footerCursor=cursor;existing->second.footer=std::move(model);
+            existing->second.endRaw=std::move(body);
+        } else {
+            dx_data::TableDxfSourceCapture::BlockSource row;
+            row.originalCursor=cursor;row.original=std::move(model);row.beginRaw=std::move(body);
+            if(!source.blockSources.emplace(value.handle,std::move(row)).second){fail();return;}
+            source.blockSourceActive=value.handle;++source.blockSourcePending;
+        }
+    } catch(...) {fail();}
+}
+
+void dx_iface::pairDxfBlockSource(const DRW_Block& value,bool footer) noexcept {
+    if(!tableSourceCaptureOpen())return;
+    auto& source=cData->m_tableDxfSource;
+    if(source.blockSourceCaptureFailed||!source.blockSourceActive)return;
+    const auto found=source.blockSources.find(source.blockSourceActive);
+    if(found==source.blockSources.end()){source.blockSourceCaptureFailed=true;return;}
+    auto& row=found->second;
+    const auto* original=footer?row.footer.get():row.original.get();
+    const auto cursor=footer?row.footerCursor:row.originalCursor;
+    const auto version=row.beginRaw->m_version;
+    if(!original||(footer?row.footerPaired:row.beginPaired)
+        ||!(cursor==dxfAttdef::Decoder::entityCursor(value))
+        ||!blockSourceModelEqual(*original,value,version,!footer)
+        ||!chargeDxfBlockSource(value,nullptr)) {source.blockSourceCaptureFailed=true;return;}
+    if(footer) {row.footerPaired=true;return;}
+    try {row.effective=std::make_shared<const DRW_Block>(value);row.beginPaired=true;}
+    catch(...) {source.blockSourceCaptureFailed=true;}
+}
+
+void dx_iface::closeDxfBlockSource() noexcept {
+    if(!tableSourceCaptureOpen())return;
+    auto& source=cData->m_tableDxfSource;
+    if(!source.blockSourceActive)return;
+    const auto found=source.blockSources.find(source.blockSourceActive);
+    if(found==source.blockSources.end()||!currentBlock||currentBlock==cData->mBlock
+        ||currentBlock->handle!=source.blockSourceActive)source.blockSourceCaptureFailed=true;
+    if(found!=source.blockSources.end()) {
+        auto& row=found->second;
+        if(row.closed||!row.beginPaired||!row.footerPaired)source.blockSourceCaptureFailed=true;
+        row.closed=true;
+        if(source.blockSourcePending)--source.blockSourcePending;else source.blockSourceCaptureFailed=true;
+    }
+    source.blockSourceActive=0u;
+}
+
 bool dx_iface::wantsDxfAttdefSource() const {
     if(!tableSourceCaptureOpen())return false;
     const auto version=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV);
@@ -18412,6 +18538,7 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     auto& data = *m_tableSourceReadData;
     auto& source = data.m_tableDxfSource;
     if(source.attdefPending)source.resourceProofCaptureFailed=true;
+    if(source.blockSourcePending||source.blockSourceActive)source.blockSourceCaptureFailed=true;
     source.closed = true;
     source.successful = success && data.sourceFormat == dx_source_format::DXF
         && data.dxfReadOutcome.operationSucceeded && !data.dxfReadOutcome.readThrew

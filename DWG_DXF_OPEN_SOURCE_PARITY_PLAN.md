@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dq ATTDEF physical-source profiles and host-tail routing (2026-10-25):** a reproduced ATTRIB/ATTDEF group-73/74 routing bug is fixed. Original-tag auditing now distinguishes retained host/nested/application/XDATA fields, exact reference roles, documented computed fields and explicitly refused unmodeled forms. Twenty-eight admitted profiles have 3,032 independently observed original-file spans; earlier-version multiline compatibility remains unqualified. This is source evidence, not block/target/output or independent CAD semantics: ATTDEF `rawTypedMatched` remains false and the proved family count remains nine. [Implementation and next work](#implementation-progress-rpp-5dq-attdef-physical-source-profiles-and-host-tail-routing-2026-10-25).
+**Newest implementation checkpoint — RPP-5dr pre-reconciled BLOCK/ENDBLK capture and callback cleanup (2026-10-25):** actual modern CLI imports now freeze original BLOCK, effective reconciled callback and distinct ENDBLK models/raw bodies through a separate opt-in source facet. A reproduced throwing-`addBlock` scope leak is fixed. Source pairing and callback closure remain preliminary transport facts, not complete raw/profile/ordered-child/BLOCK_RECORD/target/output proof. [Implementation and next work](#implementation-progress-rpp-5dr-pre-reconciled-blockendblk-capture-and-callback-cleanup-2026-10-25).
+
+**Previous implementation checkpoint — RPP-5dq ATTDEF physical-source profiles and host-tail routing (2026-10-25):** committed as `d69c2eaf`. Its routing fix, independent original-tag audit, chunk boundaries and failure/retry controls remain valid. RPP-5dr adds necessary block source owners and fixes callback cleanup; full block/target/output and external qualification remain open. [Historical implementation](#implementation-progress-rpp-5dq-attdef-physical-source-profiles-and-host-tail-routing-2026-10-25).
 
 **Previous implementation checkpoint — RPP-5dp immutable ATTDEF capture and modeled replay (2026-10-25):** committed as `9c5e79a`; its commit checkpoint is `30bf9333`. Its original-state observation, frozen callback pair, modeled replay and 106/106 normal/ASan affected results remain valid. RPP-5dq adds a distinct physical-source audit and corrects host field routing; full enclosing-block/dependency/selected-target qualification remains open. [Historical implementation](#implementation-progress-rpp-5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5dp-immutable-attdef-capture-and-modeled-replay-2026-10-25.json).
 
@@ -126209,7 +126211,10 @@ from this self-contained original-byte observer and local compile/runtime gates.
 
 Next implementation-ready sequence (do not narrow the full goal):
 
-1. [ ] **BLOCK/ENDBLK source evidence.** Reuse the existing `addBlock`,
+1. [ ] **BLOCK/ENDBLK source evidence.** RPP-5dr below implements bounded
+   pre-reconciled/effective/footer capture, pairing and cleanup prerequisites;
+   complete profile, raw replay, BLOCK_RECORD and child proof remain open.
+   Reuse the existing `addBlock`,
    `addBlockEnd`, `endBlock` scope and staged `DxfBlockEventSink` behavior.
    Add bounded opt-in raw source evidence for begin/footer without another
    mandatory `DRW_Interface` callback. Freeze original begin/footer fields and
@@ -126249,3 +126254,139 @@ raise the proved resource-family count above **nine**. The ledger remains
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. No remote mutation or support
 promotion is included, and the full implementation goal stays open.
+
+## Implementation progress RPP-5dr pre-reconciled BLOCK/ENDBLK capture and callback cleanup (2026-10-25)
+
+Parent is `d69c2eaf`. This implements the block-source transport/owner prerequisite
+in the real converter, not a replacement for the complete selected-resource goal.
+
+Completed implementation:
+
+1. [x] Add separate `DRW_DxfBlockSourceHandler`, not another `DRW_Interface`
+   vtable slot or mandatory consumer callback. Latch selection once per BLOCK;
+   default false performs no raw source capture/charge. Complete scalar bodies
+   exclude code 0. Original begin is delivered **before** absent-name clearing
+   and BLOCK_RECORD name/units/preview reconciliation, then legacy `addBlock`.
+   Source end is delivered after footer-boundary validation, immediately before
+   legacy `addBlockEnd`, still before staged child replay and `endBlock`.
+   Dropped blocks deliver neither source endpoint. Invalid later input or a
+   throwing callback may leave a preliminary prefix; whole import failure must
+   invalidate it, not be described as an atomic callback transaction.
+2. [x] Actual known-modern, generation-1 CLI imports freeze distinct original,
+   effective and footer `shared_ptr<const DRW_Block>` owners plus both complete
+   raw carriers. Observe original common XDATA cursors **before** model copies
+   clear them. Reuse read-only common-entity comparison, plus all retained
+   public BLOCK/POINT values. Effective pairing allows the three reconciled
+   fields to differ, while retaining their actual callback values; matching
+   those values to independently proven BLOCK_RECORD evidence is still required.
+   No forged ATTDEF or `DRW_TableEntry` cast, model layout or DWG layout change.
+3. [x] Precharge scalar visits before inspection and model/raw/control-node/
+   copy-temporary allowances before allocation. Independent block-record,
+   group, logical-byte and work caps do not inflate the nine resource-family
+   proofs or their resource counters. Refuse unaccounted native writer-binding
+   sidecars before copying. Capture failures are sticky; charged prefixes may
+   remain. Missing/duplicate/mutated/out-of-session callbacks cannot become a
+   clean transport candidate. Source facts and consumer retention failure stay
+   distinct; combined candidate checks also require successful, unambiguous
+   whole-import context and no typed-consumer capture failure. Appending into a
+   previously imported destination cannot refresh old source snapshots.
+4. [x] Fix a reproduced existing callback-scope leak: `addBlock` established
+   consumer state and then threw, leaving `depth=1`, `ends=0`. The callback now
+   enters the guarded scope, marked visible before invocation. Cleanup is
+   attempted once; a secondary throwing cleanup cannot replace the original
+   exception. A source-begin exception before legacy `addBlock` still requires
+   no legacy scope close. Existing success ordering remains unchanged.
+
+Owning evidence and limits:
+
+- [x] **48** modern actual-import profiles and **48** opt-outs: four versions ×
+  ASCII/Binary × with/without BLOCK_RECORD reconciliation × zero/one/two ATTDEF
+  children. Verify distinct original/effective names, units and preview bytes,
+  opaque application handles, frozen/editable owner independence, exact endpoint
+  raw values and the unchanged legacy/staged-child callback sequence.
+- [x] Independent original-file byte walker verifies **2,064** begin/footer
+  scalar spans; **192** body/family/order/metadata corruption controls fail.
+  This observes original ASCII/Binary records and values, not a normalized
+  export. It is not a complete handle-role or external CAD semantic proof.
+- [x] **18** callback-fault/corrected fresh-data routes, **24** exception routes
+  with/without secondary cleanup failure, **10** malformed-footer retries,
+  **16** dropped/empty/absent-name, pending-XDATA, tolerated-owner-mismatch and
+  legacy contexts, four exact/below snapshot quotas and two late-callback routes.
+  Pending cursor masks and original defaults remain separate from sanitized
+  copies/effective names. A tolerated owner mismatch is preserved, not qualified.
+- [x] **79** calibrated snapshot/effective/footer/consumer allocation faults
+  and fresh-data retries. **Eight** raw-reader logical-byte/node exact/below
+  boundaries verify extra opt-in charges and opt-out behavior in both encodings.
+  **242** source-selection-through-read-completion allocation schedules, each
+  with same-codec corrected retry, cover raw capture, staging and public callback
+  cleanup. The latter includes terminal no-failure controls; it is not a claim
+  that every schedule must fail or that every process allocation was instrumented.
+- [x] Keep the real red throwing-begin regression separate from a test-driver
+  error: the first standalone budget probe invoked CLI adapter callbacks with
+  no destination. Its header callback dereferenced null; the standalone test
+  receiver now supplies the appropriate header/cleanup behavior. No unrelated
+  product null-destination contract change is claimed.
+
+Final affected cohorts pass **16/16 normally in 25.32 s** and **16/16 under ASan
+in 53.05 s**, sequentially, with no failures/skips/disabled cases. The owning
+source probe passes with all counters above in **0.36 s normal / 0.72 s ASan**.
+Strict library/CLI/adapter/test builds and `lc3_compat_check` pass on macOS ARM64
+Apple Clang 21.0.0; leak checks are disabled for ASan. These are targeted affected
+checks, not another full suite or native Linux/Windows FreeCAD qualification.
+The [RPP-5dr receipt](docs/research/rpp5dr-block-source-capture-and-callback-cleanup-2026-10-25.json)
+records exact membership, hashes, red regression and test-harness diagnosis.
+
+Read-only inspection of the actual local LibreCAD `RS_FilterDXFRW::endBlock`
+and LibreCAD_3 `DXFimpl::endBlock` confirms defensive/reset behavior when a begin
+callback fails partway through establishing state. This source inspection and
+the mirrored consumer compile gate are not execution of either CAD application,
+a formal binary ABI test or a new platform qualification.
+
+Qualification remains deliberately distinct:
+
+| Fact | Proven by this slice | Still required before selected support |
+| --- | --- | --- |
+| Original/effective/footer owners | Real callback/source lifetime and bounded independent storage | Exact raw replay, admitted grammar, original field/reference spans |
+| `beginPaired` / `footerPaired` | Original state and unchanged callback fields agree, apart from declared reconciliation fields | Expected reconciliation against proven BLOCK_RECORD source |
+| `closed` | The legacy callback scope has closed | Successful whole import, retained consumer, complete original child order/ownership |
+| Raw endpoints | Complete captured scalar carriers | Strict semantic roles/common dependencies; unknown/dropped child accounting |
+
+The primary [BLOCK reference](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm)
+and [ENDBLK reference](https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-27F7CC8A-E340-4C7F-A77F-5AF139AD502D.htm)
+describe distinct endpoints and application/common metadata. Current source
+also demonstrates reconciliation and staging; source identity cannot be inferred
+only from the effective block name or an `inBlock` boolean.
+
+Next implementation-ready sequence, retaining the full objective:
+
+1. [ ] **Complete BLOCK/ENDBLK source proof.** Share production/replay grammar
+   rather than adding a divergent decoder. Compare every retained/default/common
+   field, original parser state and complete raw transport; qualify or explicitly
+   refuse redundant-name conflicts, unmodeled selected fields and partial XDATA.
+   Classify independent original-tag roles and exact reference spans, then match
+   the effective name/units/preview and owner to immutable proven BLOCK_RECORD
+   evidence. Snapshot pairing alone is not raw agreement or reconciliation proof.
+2. [ ] **Complete child/space and selected ATTDEF closure.** Prove actual
+   original ordered children, including unknown/dropped events, not just the
+   delivered typed subset. Match ATTDEF context/owner/order to its block. Prove
+   ENTITIES model/paper-space association separately without inventing an explicit
+   BLOCK envelope. Close selected common/style/APPID/LAYER/object dependencies,
+   defaults and opaque-reference qualification/refusal; complete ATTRIB/SEQEND.
+   Only then replace the old identity-only ATTDEF lookup/advisory `Bound` result.
+3. [ ] **Full live/output and original parity.** Continue B2b/B3/C graph/live/
+   output, immutable/editable comparisons, compound identities and exact emitted
+   field/reference plus atomic rollback/retry proofs. Preserve IMAGE/document,
+   native bit/decimal/carrier/schema/owner, speed/ownership/allocation work,
+   LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD compatibility and independent
+   semantic/platform qualification. No local transport check substitutes for it.
+4. [ ] **Self-updating execution loop.** Record exact outcomes/limits after
+   each item, pick the next safe ready dependency, commit/report coherent slices
+   and continue. Prefer owning/affected fast checks; broader sequential normal/
+   ASan cohorts remain integration checkpoints. Commit only existing repository
+   drawings or locally authored controls, never downloaded external drawings.
+
+The proved resource-family count stays **nine**; ATTDEF `rawTypedMatched` remains
+**false**. The ledger is **CLOSED**, `outputEligible=false`; J256/J260/J268/J284/
+J293/J295 stay **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent
+ACIS/ACDS semantic/kernel work remain **NOT_RUN**. The full goal is open; no remote
+mutation or support promotion is included.

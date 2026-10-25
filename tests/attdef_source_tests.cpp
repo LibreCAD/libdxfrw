@@ -53,6 +53,25 @@ public:
         return s.resourceCaptureFailed||s.resourceProofCaptureFailed||s.contextFailed;
     }
     static std::size_t pending(const dx_data& data) {return data.m_tableDxfSource.attdefPending;}
+    static const auto* block(const dx_data& data) {
+        const auto& rows=data.m_tableDxfSource.blockSources;const auto at=rows.find(0xB1u);
+        return at==rows.end()?nullptr:&at->second;
+    }
+    static bool blockFailed(const dx_data& data) {return data.m_tableDxfSource.blockSourceCaptureFailed;}
+    static bool blockTransport(const dx_data& data) {
+        const auto* row=block(data);return row&&row->beginPaired&&row->footerPaired&&row->closed
+            &&data.m_tableDxfSource.successful&&data.m_tableDxfSource.closed
+            &&!data.m_tableDxfSource.contextFailed&&!data.m_tableDxfSource.failed
+            &&!blockFailed(data)&&!data.typedEntityCaptureFailed;
+    }
+    static std::array<std::size_t,4> blockUsage(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;return {s.blockSources.size(),s.blockSourceBytes,s.blockSourceGroups,s.blockSourceWork};
+    }
+    static void blockLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;
+        switch(which) {case 0:s.maxBlockSourceRecords=n;break;case 1:s.maxBlockSourceBytes=n;break;
+        case 2:s.maxBlockSourceGroups=n;break;case 3:s.maxBlockSourceWork=n;break;default:throw std::runtime_error("bad block quota");}
+    }
     static void limits(dx_data& data,unsigned which,std::size_t value) {
         auto& s=data.m_tableDxfSource;
         switch(which) {
@@ -558,6 +577,7 @@ public:
 };
 
 #include "attdef_source_profile_controls.h"
+#include "block_source_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -951,12 +971,14 @@ int main(int argc,char** argv) {
     const bool budget=argc==2&&std::string(argv[1])=="--nested-common-budget";
     const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
     const bool profile=argc==2&&std::string(argv[1])=="--source-profile";
-    if(argc!=1&&!budget&&!capture&&!profile)return 2;
+    const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return (profile?sourceProfileTests(scratch/"generated.dxf"):
+    try {return (blocks?blockSourceTests(scratch/"generated.dxf"):
+        profile?sourceProfileTests(scratch/"generated.dxf"):
         capture?immutableCaptureTests(scratch/"generated.dxf"):
         budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))
         :tests(scratch/"generated.dxf"))?0:1;}

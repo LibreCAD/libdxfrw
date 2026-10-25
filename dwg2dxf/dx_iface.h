@@ -32,7 +32,8 @@ class DxIfaceExtensionGraphTestAccess;
 class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
-                 public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler {
+                 public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler,
+                 public DRW_DxfBlockSourceHandler {
 public:
     enum class TableSourceState {
         NotCaptured, Reading, ImportFailed, CaptureFailed, ContextMismatch,
@@ -249,6 +250,9 @@ public:
     virtual void addTextStyle(const DRW_Textstyle& data) override;
     virtual void addAppId(const DRW_AppId& data) override;
     void addBlockRecord(const DRW_Block_Record& data) override;
+    bool wantsDxfBlockSource() const override;
+    void addDxfBlockBeginSource(const DRW_Block&,const DRW_RawDxfObject&) override;
+    void addDxfBlockEndSource(const DRW_Block&,const DRW_RawDxfObject&) override;
     void addLayout(const DRW_Layout& data) override;
     void addDictionary(const DRW_Dictionary& data) override;
     void addSortEntsTable(const DRW_SortEntsTable& data) override;
@@ -299,6 +303,7 @@ public:
 
     //blocks
     virtual void addBlock(const DRW_Block& data) override{
+        pairDxfBlockSource(data,false);
         if (cData == nullptr || cData->blocks.size()
                 >= TypedEntityCaptureMaxRecords) {
             if (cData != nullptr)
@@ -326,6 +331,7 @@ public:
         }
     }
     void addBlockEnd(const DRW_Block& data) override {
+        pairDxfBlockSource(data,true);
         if (currentBlock == nullptr || cData == nullptr)
             return;
         std::size_t estimatedBytes = 0u;
@@ -346,6 +352,7 @@ public:
         }
     }
     virtual void endBlock() override{
+        closeDxfBlockSource();
         currentBlock = cData->mBlock;
     }
 
@@ -1534,6 +1541,10 @@ private:
     void retainTableResourceSource(const DRW_RawDxfObject& data,const DRW_TableEntry* symbol=nullptr) noexcept;
     void proveTableResourceSource(std::uint32_t handle) noexcept;
     void proveAttdefSourceFields(std::uint32_t handle) noexcept;
+    void retainDxfBlockSource(const DRW_Block&,const DRW_RawDxfObject&,bool footer) noexcept;
+    void pairDxfBlockSource(const DRW_Block&,bool footer) noexcept;
+    void closeDxfBlockSource() noexcept;
+    bool chargeDxfBlockSource(const DRW_Block&,const DRW_RawDxfObject*) noexcept;
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};
     std::uint64_t m_classEvidenceReadAttempt{0};

@@ -52,6 +52,18 @@ class Decoder {
     bool hasText=false,hasTag=false,hasX=false,hasY=false,hasHeight=false;
 public:
     explicit Decoder(DRW_Attdef& target):value(target){}
+    // Shared read-only entity inspection for converter source envelopes. These
+    // helpers take the real entity type; no forged ATTDEF/table-entry cast.
+    static SourceState::Cursor entityCursor(const DRW_Entity& value) noexcept {
+        return {static_cast<bool>(value.curr),value.currCoordMask};
+    }
+    static bool hasNoNativeEntityWriteBindings(const DRW_Entity& value) noexcept {
+        return value.dwgEedAppIdWriteRefs.empty()&&value.dwgEedLayerWriteRefs.empty();
+    }
+    template<class Equal>
+    static bool sameEntityModel(const DRW_Entity& a,const DRW_Entity& b,Equal equal) noexcept {
+        return sameCommon(a,b,equal);
+    }
     static SourceState observe(const DRW_Attdef& value) noexcept {
         SourceState state;
         state.host={static_cast<bool>(value.curr),value.currCoordMask};
