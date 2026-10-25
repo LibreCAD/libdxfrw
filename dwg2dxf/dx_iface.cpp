@@ -17954,8 +17954,90 @@ void dx_iface::closeDxfBlockSource() noexcept {
         if(row.closed||!row.beginPaired||!row.footerPaired)source.blockSourceCaptureFailed=true;
         row.closed=true;
         if(source.blockSourcePending)--source.blockSourcePending;else source.blockSourceCaptureFailed=true;
+        if(row.beginPaired&&row.footerPaired&&!source.blockSourceCaptureFailed)proveDxfBlockSource(found->first);
     }
     source.blockSourceActive=0u;
+}
+
+void dx_iface::proveDxfBlockSource(std::uint32_t handle) noexcept {
+    auto& source=cData->m_tableDxfSource;
+    const auto found=source.blockSources.find(handle);
+    if(found==source.blockSources.end()||source.blockSourceCaptureFailed)return;
+    auto& row=found->second;
+    if(!row.original||!row.effective||!row.footer||!row.beginRaw||!row.endRaw)return;
+    try {
+        for(bool footer:{false,true}) {
+            const auto& raw=footer?*row.endRaw:*row.beginRaw;
+            const auto& model=footer?*row.footer:*row.original;
+            const auto cursor=footer?row.footerCursor:row.originalCursor;
+            auto& matched=footer?row.footerFieldsMatched:row.beginFieldsMatched;
+            auto& profile=footer?row.endProfile:row.beginProfile;
+            std::size_t rawBytes=0u,modelBytes=0u,bytes=0u,work=8192u;
+            if(!estimateRawDxfObjectBytes(raw,rawBytes)||!estimateTypedBlockRetainedBytes(model,false,modelBytes)
+                ||!addAssociativeRetainedBytes(sizeof(DRW_Block),modelBytes)
+                ||!addAssociativeSlotBytes(rawBytes,3u,bytes)
+                ||!addAssociativeRetainedBytes(modelBytes,bytes)
+                ||!addAssociativeSlotBytes(raw.groups.size(),sizeof(dx_attdef_source::Span),bytes)
+                ||!addAssociativeRetainedBytes(bytes,work)||!addAssociativeSlotBytes(raw.groups.size(),64u,work)
+                ||source.blockSourceBytes>source.maxBlockSourceBytes||bytes>source.maxBlockSourceBytes-source.blockSourceBytes
+                ||source.blockSourceWork>source.maxBlockSourceWork||work>source.maxBlockSourceWork-source.blockSourceWork) {
+                source.blockSourceCaptureFailed=true;return;
+            }
+            source.blockSourceBytes+=bytes;source.blockSourceWork+=work;
+            std::string body;
+            if(!tableResourceSourceBody(raw,source.maxBlockSourceBytes,body)){source.blockSourceCaptureFailed=true;return;}
+            dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=raw.m_version;
+            view.binary=!raw.hasRawValues;view.codePage="UTF-8";
+            dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
+            auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxBlockSourceBytes);
+            auto reader=dx_standard_output::readerFor(input,view,budget);
+            if(!reader){source.blockSourceCaptureFailed=true;return;}
+            reader->setRecordBudget(raw.groups.size());
+            // One typed variant per physical group is already covered by the
+            // precharged group work. Do not require unpaid work headroom for
+            // those nodes again at an otherwise exact aggregate boundary.
+            reader->setTypedVariantNodeBudget(raw.groups.size());
+            reader->setDecodeWorkBudget(source.maxBlockSourceWork-source.blockSourceWork);
+            DRW_Block parsed;dxfBlock::Decoder decoder(parsed,footer);
+            bool decoded=true,redundant=true;int code=0;
+            while(buffer.position()<body.size()) {
+                if(!reader->readRec(&code)||code==0){decoded=false;break;}
+                // Opaque application group 3 is consumed inside the shared
+                // parser and cannot impersonate the outer redundant name.
+                if(!footer&&code==3)redundant=redundant&&reader->getUtf8String()==model.name;
+                if(!decoder.parseCode(code,reader)){decoded=false;break;}
+            }
+            source.blockSourceWork+=reader->decodeWorkCount();
+            if(budget->exceeded()||reader->recordBudgetExceeded()||reader->tokenByteBudgetExceeded()
+                ||reader->inputByteBudgetExceeded()||reader->decodeWorkBudgetExceeded()
+                ||reader->typedVariantNodeBudgetExceeded()){source.blockSourceCaptureFailed=true;return;}
+            // Typed parsers can soften allocation failure into false without
+            // a budget flag. An undecodable captured carrier is therefore a
+            // sticky capture failure, not an ignorable field mismatch.
+            if(!decoded||reader->recordCount()!=raw.groups.size()
+                ||!decoder.finish(raw.m_version,true,row.original->parentHandle)) {source.blockSourceCaptureFailed=true;return;}
+            if(!(cursor==dxfAttdef::Decoder::entityCursor(parsed))
+                ||!blockSourceModelEqual(model,parsed,raw.m_version,false))continue;
+            matched=true;
+            profile=dx_block_source::audit(raw,footer,redundant);
+        }
+        using R=dx_data::TableDxfSourceCapture::BlockSource::Reconciliation;
+        if(!row.beginFieldsMatched||!row.footerFieldsMatched||!row.beginProfile.complete()||!row.endProfile.complete()
+            ||row.originalCursor.present||row.originalCursor.coordinateMask||row.footerCursor.present||row.footerCursor.coordinateMask)return;
+        if(!row.original->parentHandle||row.original->parentHandle!=row.footer->parentHandle) {row.reconciliation=R::WrongOwner;return;}
+        const auto record=source.resources.find(row.original->parentHandle);
+        if(record==source.resources.end()||record->second.family!=dx_tableResourceFamily::BlockRecord) {row.reconciliation=R::MissingBlockRecord;return;}
+        const auto& resource=record->second;
+        const auto* model=dynamic_cast<const DRW_Block_Record*>(resource.model.get());
+        if(source.resourceCaptureFailed||source.resourceProofCaptureFailed||!model||!resource.raw
+            ||!resource.rawTypedMatched||resource.rawTypedMismatch||resource.awaitingSymbol||resource.invalidName||resource.ambiguousName
+            ||resource.raw->m_version!=row.beginRaw->m_version
+            ||row.effective->name!=(model->name.empty()?row.original->name:model->name)
+            ||row.effective->insUnits!=model->insUnits||row.effective->previewData!=model->previewData) {row.reconciliation=R::SourceMismatch;return;}
+        row.reconciliation=R::Matched;
+        // Not whole-block/ATTDEF eligibility: original child order, common
+        // targets, live state and exact output proof still remain necessary.
+    } catch(...) {source.blockSourceCaptureFailed=true;}
 }
 
 bool dx_iface::wantsDxfAttdefSource() const {

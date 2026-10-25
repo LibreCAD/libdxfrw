@@ -21,18 +21,18 @@ namespace dx_attdef_source {
 enum class Scope : std::uint8_t { Host, Nested };
 enum class Field : std::uint8_t {
     Identity, Subclass, Common, Text, Attribute, EmbeddedMarker, MText,
-    ComputedIgnored, Application, Xdata, ReservedDefault
+    ComputedIgnored, Application, Xdata, ReservedDefault, Block
 };
 enum class Role : std::uint8_t {
     None, Self, Owner, LayerName, LineTypeName, TextStyleName, Material,
     FullVisualStyle, PlotStyle, Reactor, ExtensionDictionary, AppIdName,
-    XdataLayerName, XdataObjectId, OpaqueHandle
+    XdataLayerName, XdataObjectId, OpaqueHandle, BlockName, RedundantBlockName, XrefPath
 };
 enum class Form : std::uint8_t { Classic, Embedded101, EmbeddedLegacy100 };
 enum class Reason : std::uint8_t {
     NotChecked, Complete, Revision, Identity, Subclass, UnknownField,
     DuplicateField, InvalidValue, IncompletePoint, Application, Xdata,
-    ProxyGraphics, UnmodeledSecondary, AmbiguousVersion
+    ProxyGraphics, UnmodeledSecondary, AmbiguousVersion, RedundantName
 };
 struct Span {
     std::size_t groupIndex;

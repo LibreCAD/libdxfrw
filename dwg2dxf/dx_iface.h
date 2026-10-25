@@ -1544,6 +1544,7 @@ private:
     void retainDxfBlockSource(const DRW_Block&,const DRW_RawDxfObject&,bool footer) noexcept;
     void pairDxfBlockSource(const DRW_Block&,bool footer) noexcept;
     void closeDxfBlockSource() noexcept;
+    void proveDxfBlockSource(std::uint32_t handle) noexcept;
     bool chargeDxfBlockSource(const DRW_Block&,const DRW_RawDxfObject*) noexcept;
     friend class DxIfaceDwgClassSourceTestAccess;
     dx_data* m_classEvidenceReadData{nullptr};

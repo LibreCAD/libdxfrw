@@ -41,6 +41,7 @@ public:
     std::vector<std::string> events;
     DRW_RawDxfObject beginAlias,endAlias;
     std::function<void(DRW_Block&)> alterBegin,alterEnd;
+    std::function<void(DRW_RawDxfObject&)> alterBeginRaw,alterEndRaw;
     void addHeader(const DRW_Header* header) override {if(cData)dx_iface::addHeader(header);}
     bool wantsDxfBlockSource() const override {
         if(injectOnSelect>=0)allocationRemaining=injectOnSelect;
@@ -53,6 +54,7 @@ public:
     }
     void addDxfBlockBeginSource(const DRW_Block& value,const DRW_RawDxfObject& raw) override {
         ++sourceBegins;events.push_back("S");beginAlias=raw;
+        if(alterBeginRaw)alterBeginRaw(beginAlias);
         if(!skipBegin)allocating(0,[&](){dx_iface::addDxfBlockBeginSource(value,beginAlias);});
         if(duplicateBegin)dx_iface::addDxfBlockBeginSource(value,beginAlias);
         if(disableOnBegin)selected=false;
@@ -60,6 +62,7 @@ public:
     }
     void addDxfBlockEndSource(const DRW_Block& value,const DRW_RawDxfObject& raw) override {
         ++sourceEnds;events.push_back("T");endAlias=raw;
+        if(alterEndRaw)alterEndRaw(endAlias);
         if(!skipEnd)allocating(2,[&](){dx_iface::addDxfBlockEndSource(value,endAlias);});
         if(duplicateEnd)dx_iface::addDxfBlockEndSource(value,endAlias);
         if(throwPhase==2)throw std::runtime_error("block end source fault");
@@ -80,7 +83,7 @@ public:
         if(throwPhase==4)throw std::runtime_error("block child fault");
     }
     void endBlock() override {
-        --depth;++ends;events.push_back("E");if(cData)dx_iface::endBlock();
+        --depth;++ends;events.push_back("E");if(cData)allocating(4,[&](){dx_iface::endBlock();});
         if(throwPhase==5)throw std::runtime_error("block cleanup fault");
         if(throwCleanupAlso)throw std::logic_error("secondary block cleanup fault");
     }

@@ -43,6 +43,7 @@ public:
 
 class DxIfaceTableSourceTestAccess {
 public:
+    using BlockReconciliation=dx_data::TableDxfSourceCapture::BlockSource::Reconciliation;
     static const auto* resource(const dx_data& data) {
         const auto& rows=data.m_tableDxfSource.resources;
         const auto found=rows.find(0xA1u);
@@ -63,6 +64,11 @@ public:
             &&data.m_tableDxfSource.successful&&data.m_tableDxfSource.closed
             &&!data.m_tableDxfSource.contextFailed&&!data.m_tableDxfSource.failed
             &&!blockFailed(data)&&!data.typedEntityCaptureFailed;
+    }
+    static bool blockEndpointProof(const dx_data& data) {
+        const auto* row=block(data);return blockTransport(data)&&row->beginFieldsMatched&&row->footerFieldsMatched
+            &&row->beginProfile.complete()&&row->endProfile.complete()
+            &&row->reconciliation==decltype(row->reconciliation)::Matched;
     }
     static std::array<std::size_t,4> blockUsage(const dx_data& data) {
         const auto& s=data.m_tableDxfSource;return {s.blockSources.size(),s.blockSourceBytes,s.blockSourceGroups,s.blockSourceWork};
@@ -578,6 +584,7 @@ public:
 
 #include "attdef_source_profile_controls.h"
 #include "block_source_controls.h"
+#include "block_source_proof_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -972,12 +979,14 @@ int main(int argc,char** argv) {
     const bool capture=argc==2&&std::string(argv[1])=="--immutable-capture";
     const bool profile=argc==2&&std::string(argv[1])=="--source-profile";
     const bool blocks=argc==2&&std::string(argv[1])=="--block-source";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks)return 2;
+    const bool blockProof=argc==2&&std::string(argv[1])=="--block-proof";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
     struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{scratch};
-    try {return (blocks?blockSourceTests(scratch/"generated.dxf"):
+    try {return (blockProof?blockSourceProofTests(scratch/"generated.dxf"):
+        blocks?blockSourceTests(scratch/"generated.dxf"):
         profile?sourceProfileTests(scratch/"generated.dxf"):
         capture?immutableCaptureTests(scratch/"generated.dxf"):
         budget?(nestedCommonBudgetTests()&&nestedCommonImportTests(scratch/"generated.dxf"))

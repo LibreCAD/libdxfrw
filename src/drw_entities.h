@@ -35,6 +35,7 @@ class dwgRW;
 class DRW_Polyline;
 class DRW_MText;
 namespace dxfAttdef { class Decoder; }
+namespace dxfBlock { class Decoder; }
 
 struct DRW_MeshPropertyOverride {
     std::int32_t subEntityMarker = 0;
@@ -1701,6 +1702,7 @@ public:
 */
 class DRW_Block : public DRW_Point {
     SETENTFRIENDS
+    friend class dxfBlock::Decoder;
     friend class DrwBlockStateTestAccess;
 private:
     std::size_t m_dxfRetainedXrefPathBytes{0};

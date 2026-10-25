@@ -43,6 +43,7 @@
 #include "intern/dxffield.h"
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfattdef.h"
+#include "intern/dxfblock.h"
 #include "intern/drw_dbg.h"
 #include "intern/drw_reserve.h"
 #include "intern/dwg_dxf_output_transaction.h"
@@ -16008,8 +16009,7 @@ bool dxfRW::processBlock() {
     DRW_DBG("dxfRW::processBlock");
     int code;
     DRW_Block block;
-    bool hasName = false;
-    bool hasHandle = false;
+    dxfBlock::Decoder beginDecoder(block,false);
     bool blockPublished = false;
     bool hasStagedBlockRecord = false;
     DRW_ParsingContext::BlockRecordInfo stagedBlockRecord;
@@ -16046,94 +16046,20 @@ bool dxfRW::processBlock() {
 
     auto consumeEndBlock = [&]() -> bool {
         DRW_Block footer;
-        footer.setIsEnd(true);
+        dxfBlock::Decoder endDecoder(footer,true);
         DRW_RawDxfObject endSource;
         if(beginSourceDelivered&&!copyRawDxfCarrierName(endSource,"ENDBLK"))return false;
-        bool hasEndHandle = false;
-        bool hasEndOwner = false;
-        bool hasLayer = false;
-        bool hasEntitySubclass = false;
-        bool hasBlockEndSubclass = false;
-        std::uint32_t endOwner = DRW::NoHandle;
-
-        const auto isXdataCode = [](int value) {
-            return value == 1000 || value == 1001 || value == 1002
-                || value == 1003 || value == 1004 || value == 1005
-                || (value >= 1010 && value <= 1013)
-                || (value >= 1020 && value <= 1023)
-                || (value >= 1030 && value <= 1033)
-                || (value >= 1040 && value <= 1042)
-                || value == 1070 || value == 1071;
-        };
-        const auto isCommonEntityCode = [](int value) {
-            return value == 6 || value == 48 || value == 60 || value == 62
-                || value == 67 || value == 284 || value == 347 || value == 348
-                || value == 360 || value == 370 || value == 390 || value == 420
-                || value == 430 || value == 440;
-        };
-        const auto isAllowedCode = [isXdataCode, isCommonEntityCode](int value) {
-            return value == DRW::dxfCode::HANDLE
-                || value == DRW::dxfCode::OWNER_HANDLE
-                || value == DRW::dxfCode::LAYER
-                || value == 100 || value == 102 || isXdataCode(value)
-                || isCommonEntityCode(value);
-        };
-
         while (reader->readRec(&code)) {
             if(beginSourceDelivered&&code!=0) {
                 if(code==102) {
-                    footer.clearParserCursor();
+                    endDecoder.prepareCapturedApplication();
                     if(!captureRawDxfApplicationGroup(endSource,footer))return false;
                     continue;
                 }
                 if(!captureRawGroup(endSource,code,true))return false;
             }
-            if (code == DRW::dxfCode::HANDLE) {
-                // Code 5 is deliberately not validated by readRec(): a few
-                // table records use it as a name.  ENDBLK is an object
-                // record, so its handle is a real drawing-wide identity.
-                if (hasEndHandle || !reader->isValidHandleString())
-                    return false;
-                const std::uint32_t handle = reader->getHandleString();
-                if (handle == DRW::NoHandle || !reader->registerSelfHandle())
-                    return false;
-                footer.handle = handle;
-                hasEndHandle = true;
-                continue;
-            }
-            if (code == DRW::dxfCode::OWNER_HANDLE) {
-                if (hasEndOwner || !reader->isValidHandleString())
-                    return false;
-                endOwner = reader->getHandleString();
-                if (endOwner == DRW::NoHandle)
-                    return false;
-                footer.parentHandle = endOwner;
-                hasEndOwner = true;
-                continue;
-            }
             if (code != 0) {
-                if (!isAllowedCode(code))
-                    return false;
-                if (code == DRW::dxfCode::LAYER) {
-                    if (hasLayer)
-                        return false;
-                    hasLayer = true;
-                } else if (code == 100) {
-                    const std::string_view marker = reader->getStringView();
-                    if (marker == "AcDbEntity") {
-                        if (hasEntitySubclass)
-                            return false;
-                        hasEntitySubclass = true;
-                    } else if (marker == "AcDbBlockEnd") {
-                        if (hasBlockEndSubclass)
-                            return false;
-                        hasBlockEndSubclass = true;
-                    } else {
-                        return false;
-                    }
-                }
-                if (code != 100 && !footer.parseCode(code, reader))
-                    return false;
+                if(!endDecoder.parseCode(code,reader))return false;
                 continue;
             }
 
@@ -16142,17 +16068,7 @@ bool dxfRW::processBlock() {
                 || boundary == DxfEntityBoundary::EndBlock)
                 return false;
 
-            const DRW::Version sourceVersion = reader->getSourceVersion();
-            const bool requiresHandle =
-                sourceVersion != DRW::UNKNOWNV && sourceVersion > DRW::AC1009;
-            // ENDBLK needs an owner when BLOCK carries a BLOCK_RECORD owner,
-            // but legacy writers may use a different (model-space) owner.
-            const bool requiresOwner = reader->hasSourceVersion()
-                && sourceVersion > DRW::AC1014
-                && block.parentHandle != DRW::NoHandle;
-            if ((requiresHandle && !hasEndHandle)
-                || (requiresOwner && !hasEndOwner))
-                return false;
+            if(!endDecoder.finish(reader->getSourceVersion(),reader->hasSourceVersion(),block.parentHandle))return false;
             if (boundary != DxfEntityBoundary::NextEntity
                 && boundary != DxfEntityBoundary::EndSection)
                 return false;
@@ -16175,11 +16091,7 @@ bool dxfRW::processBlock() {
                 boundary == DxfEntityBoundary::EndSection) {
                 return setError(DRW::BAD_READ_BLOCKS);
             }
-            const bool requiresHandle =
-                reader->getSourceVersion() != DRW::UNKNOWNV
-                && reader->getSourceVersion() > DRW::AC1009;
-            if (requiresHandle && (!hasHandle
-                                    || block.handle == DRW::NoHandle)) {
+            if(!beginDecoder.finish(reader->getSourceVersion(),reader->hasSourceVersion())) {
                 return setError(DRW::BAD_READ_BLOCKS);
             }
             if (block.handle != DRW::NoHandle
@@ -16192,7 +16104,7 @@ bool dxfRW::processBlock() {
             }
             const auto recordName=block.parentHandle!=DRW::NoHandle
                 ?m_readingContext.resolveBlockRecordName(block.parentHandle):UTF8STRING{};
-            const bool dropBlock=recordName.empty()&&(!hasName||block.name.empty());
+            const bool dropBlock=recordName.empty()&&(!beginDecoder.hasDeclaredName()||block.name.empty());
             if(captureSource&&!dropBlock) {
                 beginSource.handle=block.handle;beginSource.parentHandle=block.parentHandle;
                 if(!validateCapturedRawDxfObject(beginSource,binFile,reader->classifierProfile()))
@@ -16200,7 +16112,7 @@ bool dxfRW::processBlock() {
                 sourceHandler->addDxfBlockBeginSource(block,beginSource);
                 beginSourceDelivered=true;
             }
-            if (!hasName)
+            if (!beginDecoder.hasDeclaredName())
                 block.name.clear();
             if (block.parentHandle != DRW::NoHandle) {
                 if (!recordName.empty())
@@ -16273,16 +16185,12 @@ bool dxfRW::processBlock() {
             }
         }
 
-        if (code == 2)
-            hasName = true;
-        else if (code == DRW::dxfCode::HANDLE)
-            hasHandle = true;
         if(captureSource&&code==102) {
-            block.clearParserCursor();
+            beginDecoder.prepareCapturedApplication();
             if(!captureRawDxfApplicationGroup(beginSource,block))return setError(DRW::BAD_CODE_PARSED);
             continue;
         }
-        if ((captureSource&&!captureRawGroup(beginSource,code,true))||!block.parseCode(code, reader)) {
+        if ((captureSource&&!captureRawGroup(beginSource,code,true))||!beginDecoder.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
 }

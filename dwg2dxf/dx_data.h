@@ -19,6 +19,7 @@
 #include "intern/dxftablereferences.h"
 #include "intern/dxfattdef.h"
 #include "dx_attdef_source_profile.h"
+#include "dx_block_source_profile.h"
 
 #include <array>
 #include <cstddef>
@@ -1065,6 +1066,10 @@ private:
             std::shared_ptr<const DRW_RawDxfObject> beginRaw,endRaw;
             dxfAttdef::SourceState::Cursor originalCursor,footerCursor;
             bool beginPaired{false},footerPaired{false},closed{false};
+            bool beginFieldsMatched{false},footerFieldsMatched{false};
+            dx_attdef_source::Audit beginProfile,endProfile;
+            enum class Reconciliation : std::uint8_t { NotChecked, MissingBlockRecord, SourceMismatch, WrongOwner, Matched };
+            Reconciliation reconciliation{Reconciliation::NotChecked};
         };
         std::map<std::uint32_t,BlockSource> blockSources;
         std::uint32_t blockSourceActive{0};
