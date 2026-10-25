@@ -4134,7 +4134,7 @@ bool rootedXrecordStringWidths(bool faultsOnly = false) {
     return true;
 }
 
-bool multipleSelectedXrecords(bool faultsOnly = false) {
+bool multipleSelectedXrecords(bool faultsOnly = false, bool branches = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
@@ -4157,16 +4157,32 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
         void writeAppId() override {}
         void writeDwgClasses() override { ok = native && native->registerDwgNamedObjectDictionaryEntry("MULTIPLE_XRECORDS",0xD010u); }
         bool finalizeDwgWrite() override { return ok; }
+        void common(DRW_TableEntry& value) {
+            if (!branches) return;
+            value.reactorHandles = {value.parentHandle};
+            value.setDwgCommonObjectState(1,1,false);
+        }
         void writeObjects() override {
             DRW_Dictionary ancestor; ancestor.handle = 0xD010u; ancestor.parentHandle = 0xCu;
             ancestor.cloning = 2; ancestor.hardOwner = 1; ancestor.m_entries = {{"LEAVES",0xD050u}};
+            if (branches) ancestor.m_entries = {{"SECOND_BRANCH",0xD060u},{"FIRST_BRANCH",0xD050u}};
+            common(ancestor);
             ok = native ? native->writeDictionary(&ancestor) : dxfW->writeDictionary(&ancestor);
             DRW_Dictionary dictionary; dictionary.handle = 0xD050u; dictionary.parentHandle = ancestor.handle;
             dictionary.cloning = 2; dictionary.hardOwner = 1;
             dictionary.m_entries = {{"SECOND",0xD030u},{"FIRST",0xD020u}};
+            if (branches) dictionary.m_entries = {{"FIRST",0xD020u}};
+            common(dictionary);
             ok = (native ? native->writeDictionary(&dictionary) : dxfW->writeDictionary(&dictionary)) && ok;
+            if (branches) {
+                DRW_Dictionary second; second.handle = 0xD060u; second.parentHandle = ancestor.handle;
+                second.cloning = 2; second.hardOwner = 0; second.m_entries = {{"SECOND",0xD030u}}; common(second);
+                ok = (native ? native->writeDictionary(&second) : dxfW->writeDictionary(&second)) && ok;
+            }
             for (const auto handle : {0xD020u,0xD040u,0xD030u}) {
                 DRW_XRecord record; record.handle = handle; record.parentHandle = dictionary.handle; record.m_cloning = 2;
+                if (branches && handle == 0xD030u) record.parentHandle = 0xD060u;
+                common(record);
                 const std::string label = handle == 0xD020u ? "FIRST" : handle == 0xD030u ? "SECOND" : "UNSELECTED";
                 record.m_dataEntries = {{1,label},{102,std::string("{application-literal")},{100,std::string("AcDbXrecord")},{280,7},
                     {18,DRW_Coord(-0.0,std::numeric_limits<double>::denorm_min(),3.75)},{38,4.25},
@@ -4176,8 +4192,9 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
                 ok = (native ? native->writeXRecord(&record) : dxfW->writeXRecord(&record)) && ok;
             }
         }
-        dwgRW* native{nullptr}; bool ok{false};
+        dwgRW* native{nullptr}; bool ok{false}, branches{false};
     } author;
+    author.branches = branches;
     dx_data storage; author.cData = &storage; author.currentBlock = storage.mBlock;
     class Exporter final : public dx_iface {
     public:
@@ -4185,29 +4202,65 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
         void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
         bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
     };
-    const auto dictionary = [](auto& data) {
-        return std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) {
+    const auto dictionary = [&](auto& data) {
+        return std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[&](const auto& value) {
+            if (branches) return value.m_entries.size() == 1u && value.m_entries.front().m_name == "FIRST";
             return value.m_entries.size() == 2u && value.m_entries[0].m_name == "SECOND" && value.m_entries[1].m_name == "FIRST";
         });
     };
     const auto check = [&](const dx_data& data, bool original) {
+        const bool nativeSource = original && data.sourceFormat == dx_source_format::DWG;
+        const auto common = [&](const DRW_TableEntry& value, std::uint32_t reactor) {
+            if (!value.extData.empty() || value.xDictHandle || value.hasDataStorageBinaryData()) return false;
+            if (!branches) return value.appData.empty() && value.reactorHandles.empty();
+            if (value.reactorHandles != std::vector<std::uint32_t>{reactor}) return false;
+            if (nativeSource) return value.appData.empty() && value.reactorCount() == 1;
+            if (value.appData.size() != 1u || value.appData.front().size() != 3u) return false;
+            const auto& group = value.appData.front();
+            auto field = group.begin();
+            if (field->code() != 102 || field->type() != DRW_Variant::STRING || !field->content.s || *field->content.s != "ACAD_REACTORS") return false;
+            ++field;
+            if (field->code() != 330 || field->type() != DRW_Variant::STRING || !field->content.s) return false;
+            std::uint32_t handle = 0u;
+            const auto& text = *field->content.s;
+            const auto parsed = std::from_chars(text.data(),text.data() + text.size(),handle,16);
+            if (text.empty() || parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() || handle != reactor) return false;
+            ++field;
+            return field->code() == 102 && field->type() == DRW_Variant::STRING && field->content.s && *field->content.s == "}";
+        };
         const auto owner = dictionary(data);
         if (!data.hasNamedObjectDictionary || owner == data.dictionaries.end()
             || owner->hardOwner != 1 || owner->cloning != 2 || data.xRecords.size() != (original ? 3u : 2u)) return false;
-        const auto ancestor = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) {
+        const auto ancestor = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[&](const auto& value) {
+            if (branches) return value.m_entries.size() == 2u && value.m_entries[0].m_name == "SECOND_BRANCH" && value.m_entries[1].m_name == "FIRST_BRANCH";
             return value.m_entries.size() == 1u && value.m_entries.front().m_name == "LEAVES";
         });
         if (ancestor == data.dictionaries.end() || ancestor->parentHandle != data.namedObjectDictionary.handle
-            || owner->parentHandle != ancestor->handle || ancestor->m_entries.front().m_handle != owner->handle) return false;
+            || owner->parentHandle != ancestor->handle || ancestor->m_entries[branches ? 1u : 0u].m_handle != owner->handle) return false;
+        const auto other = branches ? std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) {
+            return value.m_entries.size() == 1u && value.m_entries.front().m_name == "SECOND";
+        }) : owner;
+        if (other == data.dictionaries.end()) return false;
+        if (branches) {
+            if (other == owner || other->hardOwner != 0 || other->cloning != 2 || other->parentHandle != ancestor->handle
+                || ancestor->m_entries[0].m_handle != other->handle || !common(*owner,ancestor->handle)
+                || !common(*other,ancestor->handle) || !common(*ancestor,data.namedObjectDictionary.handle)) return false;
+            if (!nativeSource) {
+                using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                if (owner->m_entries.front().m_dxfHandleCode != Role::HardOwner || other->m_entries.front().m_dxfHandleCode != Role::SoftOwner
+                    || ancestor->m_entries[0].m_dxfHandleCode != Role::HardOwner || ancestor->m_entries[1].m_dxfHandleCode != Role::HardOwner) return false;
+            }
+        }
         const auto root = std::find_if(data.namedObjectDictionary.m_entries.begin(),data.namedObjectDictionary.m_entries.end(),
             [](const auto& entry) { return entry.m_name == "MULTIPLE_XRECORDS"; });
         if (root == data.namedObjectDictionary.m_entries.end() || root->m_handle != ancestor->handle) return false;
-        const auto first = owner->m_entries[1].m_handle, second = owner->m_entries[0].m_handle;
+        if (branches && data.namedObjectDictionary.handle != (original && !nativeSource ? 0xA000u : 0xCu)) return false;
+        const auto first = owner->m_entries[branches ? 0u : 1u].m_handle, second = other->m_entries[0].m_handle;
         for (const auto& record : data.xRecords) {
             const bool selected = record.handle == first || record.handle == second;
             if (!selected && !original) return false;
-            if (record.parentHandle != owner->handle || record.m_cloning != 2 || !record.hasExactDxfCoordinateTuples()
-                || !record.appData.empty() || !record.extData.empty() || record.xDictHandle || !record.reactorHandles.empty()) return false;
+            const auto parent = branches && record.handle == second ? other->handle : owner->handle;
+            if (record.parentHandle != parent || record.m_cloning != 2 || !record.hasExactDxfCoordinateTuples() || !common(record,parent)) return false;
             const std::string label = !selected ? "UNSELECTED" : record.handle == first ? "FIRST" : "SECOND";
             const auto& values = record.m_dataEntries;
             const bool native = original && data.sourceFormat == dx_source_format::DWG;
@@ -4240,7 +4293,7 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
         }
         return first != second;
     };
-    unsigned sources = 0u, exports = 0u, reexports = 0u, lateRetries = 0u, budgetRetries = 0u, isolation = 0u, strictRefusals = 0u;
+    unsigned sources = 0u, exports = 0u, reexports = 0u, lateRetries = 0u, budgetRetries = 0u, isolation = 0u, strictRefusals = 0u, rootAliases = 0u, ownershipRetries = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
         const bool native = format == 2u, sourceBinary = format == 1u;
         if (faultsOnly && (native ? version != DRW::AC1015 && version != DRW::AC1032 : version != DRW::AC1032)) continue;
@@ -4250,22 +4303,73 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
         codec.setRootDictEntries({{"MULTIPLE_XRECORDS","D010"}});
         for (const auto handle : {0xD010u,0xD020u,0xD030u,0xD040u,0xD050u})
             if (!(native ? nativeCodec.reserveHandle(handle) : codec.reserveHandle(handle))) return fail("multiple source handle reservation failed");
+        if (branches && !(native ? nativeCodec.reserveHandle(0xD060u) : codec.reserveHandle(0xD060u))) return fail("second branch source reservation failed");
         if (!(native ? nativeCodec.write(&author,version,true)
                 : codec.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(nod),nullptr) && codec.write(&author,version,sourceBinary))
             || !author.ok) return fail("multiple public source authoring failed native=" + std::to_string(native));
         author.dxfW = nullptr; author.native = nullptr;
+        if (branches && !native) {
+            // Author a distinct physical DXF NOD identity, not a private
+            // import receipt or a remap installed after facade planning.
+            // Preserve every unrelated byte of this scratch-produced file.
+            std::ifstream input(source,std::ios::binary);
+            const std::string bytes((std::istreambuf_iterator<char>(input)),{}); input.close();
+            const std::size_t prefix = sourceBinary ? 22u : 0u;
+            if (bytes.size() < prefix) return fail("branch source binary sentinel was truncated");
+            const std::string_view fields(bytes.data() + prefix,bytes.size() - prefix);
+            dx_raster_output::Cursor cursor(fields,sourceBinary); dx_raster_output::Token token;
+            std::string output = bytes.substr(0,prefix);
+            std::size_t copied = 0u; unsigned selves = 0u, references = 0u;
+            while (!cursor.done()) {
+                const auto start = cursor.position();
+                if (!cursor.next(token)) return fail("branch root-identity scratch framing failed");
+                if ((token.code != 5 && token.code != 330) || token.type != dx_raster_output::Kind::Text || token.text != "C") continue;
+                output.append(fields.data() + copied,start - copied);
+                if (sourceBinary) {
+                    if (cursor.position() - start != 4u) return fail("branch root-identity binary span mismatch");
+                    output.append(fields.data() + start,2u); output.append("A000\0",5u);
+                } else {
+                    const auto value = fields.find('\n',start) + 1u;
+                    if (!value || value >= cursor.position()) return fail("branch root-identity ASCII span mismatch");
+                    output.append(fields.data() + start,value - start); output += "A000";
+                    output += fields[cursor.position() - 2u] == '\r' ? "\r\n" : "\n";
+                }
+                copied = cursor.position();
+                if (token.code == 5) ++selves; else ++references;
+            }
+            output.append(fields.data() + copied,fields.size() - copied);
+            if (selves != 1u || references < 2u) return fail("branch scratch root identity/reference rewrite skipped an occurrence");
+            std::ofstream changed(source,std::ios::binary | std::ios::trunc); changed.write(output.data(),static_cast<std::streamsize>(output.size())); changed.close();
+            if (!changed) return fail("branch scratch root identity write failed");
+            ++rootAliases;
+        }
         dx_data data; dx_iface importer;
-        if (!importer.fileImport((native ? nativeSource : source).string(),&data,false) || !check(data,true))
-            return fail("multiple actual source import/closure failed native=" + std::to_string(native));
+        const bool imported = importer.fileImport((native ? nativeSource : source).string(),&data,false);
+        if (!imported || !check(data,true)) {
+            if (branches) {
+                const auto show = [](const auto& value) {
+                    std::cerr << "Branch source handle=" << value.handle << " parent=" << value.parentHandle << " reactors=" << value.reactorHandles.size()
+                        << " common-groups=" << value.appData.size() << '\n';
+                    for (const auto& group : value.appData) for (const auto& field : group)
+                        std::cerr << " common-code=" << field.code() << " kind=" << field.type() << " text=" << (field.c_str() ? field.c_str() : "<not-text>") << '\n';
+                };
+                for (const auto& value : data.dictionaries) { show(value); std::cerr << " hardOwner=" << value.hardOwner << " cloning=" << value.cloning << '\n'; }
+                for (const auto& value : data.xRecords) show(value);
+            }
+            return fail("multiple actual source import/closure failed native=" + std::to_string(native) + " imported=" + std::to_string(imported));
+        }
         ++sources; Exporter exporter;
         const auto write = [&](DRW::Version targetVersion, bool binary) {
-            return native ? exporter.fileExport(target.string(),targetVersion,binary,&data,false,true,
+            const bool result = native ? exporter.fileExport(target.string(),targetVersion,binary,&data,false,true,
                 dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial)
                 : exporter.fileExport(target.string(),targetVersion,binary,&data,false,true);
+            if (!result && branches && exporter.extensionGraphFailure() != dx_iface::ExtensionGraphFailure::None)
+                std::cerr << "Branch graph refusal=" << exporter.extensionGraphFailureName() << " detail=" << exporter.extensionGraphFailureDetail() << '\n';
+            return result;
         };
         const auto readback = [&]() { dx_data actual; dx_iface reader; return reader.fileImport(target.string(),&actual,false) && check(actual,false); };
         std::size_t retained = 0u; bool captured = false;
-        exporter.afterObjects = [&]() { retained = Access::xrecordWriteSourceBytes(exporter); captured = Access::xrecordWriteSourceCounts(exporter) == std::make_pair(std::size_t(2),std::size_t(2)); };
+        exporter.afterObjects = [&]() { retained = Access::xrecordWriteSourceBytes(exporter); captured = Access::xrecordWriteSourceCounts(exporter) == std::make_pair(std::size_t(2),std::size_t(branches ? 3 : 2)); };
         if (!faultsOnly) for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
             if (native && targetVersion == DRW::AC1015) {
                 const std::string sentinel = "MULTIPLE_NATIVE_STRICT_GATE_CLOSED";
@@ -4281,6 +4385,8 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
                 if (Access::standardSourceEligible(data,handle) != modern
                     || Access::standardOutputHas(exporter,handle) != (modern && handle != 0xD040u)) return fail("multiple native selected/unselected proof qualification changed");
             }
+            if (native && branches && (Access::standardSourceEligible(data,0xD060u) != (version > DRW::AC1018)
+                || Access::standardOutputHas(exporter,0xD060u) != (version > DRW::AC1018))) return fail("second native dictionary branch proof missing or upgraded");
             ++exports;
             dx_data actual; dx_iface reader;
             if (!reader.fileImport(target.string(),&actual,false) || !exporter.fileExport(target.string(),targetVersion,!binary,&actual,false,true)
@@ -4294,12 +4400,29 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
         const auto originalDictionaries = data.dictionaries;
         const auto generation = data.importGeneration;
         const auto sourceVersion = data.sourceVersion;
-        for (const bool binary : {false,true}) for (const bool final : {false,true}) for (unsigned mode = 0u; mode != 24u; ++mode) {
+        if (branches) for (const bool binary : {false,true}) for (unsigned mode = 0u; mode != 3u; ++mode) {
+            auto first = std::find_if(data.xRecords.begin(),data.xRecords.end(),[](const auto& row) { return row.handle == 0xD020u; });
+            auto owner = dictionary(data);
+            auto other = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& row) { return row.handle == 0xD060u; });
+            if (mode == 0u) other->m_entries[0].m_handle = first->handle;
+            if (mode == 1u) first->parentHandle = other->handle;
+            if (mode == 2u) owner->m_entries.push_back({"SECOND_KEY",first->handle});
+            const std::string sentinel = "BRANCH_OWNERSHIP_ALIAS_ATOMIC_DESTINATION";
+            { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+            const bool accepted = write(DRW::AC1032,binary);
+            std::ifstream prior(target,std::ios::binary); const std::string bytes((std::istreambuf_iterator<char>(prior)),{}); prior.close();
+            data.xRecords = originalRecords; data.dictionaries = originalDictionaries;
+            if (accepted || bytes != sentinel || !write(DRW::AC1032,binary) || !readback()
+                || (native && !Access::unchanged(importer))) return fail("branched cross-owner/same-target alias admission did not refuse and retry mode=" + std::to_string(mode));
+            ++ownershipRetries;
+        }
+        for (const bool binary : {false,true}) for (const bool final : {false,true}) for (unsigned mode = 0u; mode != (branches ? 32u : 24u); ++mode) {
             const auto edit = [&]() {
                 const auto find = [&](std::uint32_t handle) { return std::find_if(data.xRecords.begin(),data.xRecords.end(),[&](const auto& record) { return record.handle == handle; }); };
                 auto first = find(0xD020u), last = find(0xD030u), unselected = find(0xD040u);
                 auto owner = dictionary(data);
                 auto ancestor = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) { return value.handle == 0xD010u; });
+                auto other = std::find_if(data.dictionaries.begin(),data.dictionaries.end(),[](const auto& value) { return value.handle == 0xD060u; });
                 switch (mode) {
                 case 0u: first->m_dataEntries.front().addString(1,"late-selected-body"); break;
                 case 1u: data.xRecords.erase(last); break;
@@ -4309,9 +4432,9 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
                 case 5u: ++last->parentHandle; break;
                 case 6u: ++data.importGeneration; break;
                 case 7u: data.sourceVersion = sourceVersion == DRW::AC1015 ? DRW::AC1032 : DRW::AC1015; break;
-                case 8u: std::swap(owner->m_entries[0].m_handle,owner->m_entries[1].m_handle); break;
+                case 8u: if (branches) owner->m_entries[0].m_handle = last->handle; else std::swap(owner->m_entries[0].m_handle,owner->m_entries[1].m_handle); break;
                 case 9u: owner->m_entries[0].m_name = "RENAMED"; break;
-                case 10u: std::swap(owner->m_entries[0],owner->m_entries[1]); break;
+                case 10u: if (branches) std::swap(ancestor->m_entries[0],ancestor->m_entries[1]); else std::swap(owner->m_entries[0],owner->m_entries[1]); break;
                 case 11u: ++owner->parentHandle; break;
                 case 12u: owner->extData.push_back(new DRW_Variant(1000,std::string("late-metadata"))); break;
                 case 13u: unselected->handle = owner->handle; break;
@@ -4329,6 +4452,14 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
                 }
                 case 22u: owner->cloning = 3; break;
                 case 23u: owner->hardOwner = 0; break;
+                case 24u: first->reactorHandles[0] = other->handle; break;
+                case 25u: owner->reactorHandles[0] = last->handle; break;
+                case 26u: ancestor->reactorHandles.clear(); break;
+                case 27u: owner->m_entries.push_back({"SECOND_KEY",first->handle}); break;
+                case 28u: other->m_entries[0].m_handle = first->handle; break;
+                case 29u: other->handle = owner->handle; break;
+                case 30u: other->setDwgCommonObjectState(1,1,true); break;
+                case 31u: first->appData = {{{102,std::string("{ACAD_REACTORS")},{330,std::string("D060")},{102,std::string("}")}}}; break;
                 }
             };
             if (final) exporter.beforeFinalize = edit; else exporter.afterObjects = edit;
@@ -4372,10 +4503,12 @@ bool multipleSelectedXrecords(bool faultsOnly = false) {
             return fail("multiple per-write snapshots retained after facade attempt");
     }
     if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 216u) || reexports != (faultsOnly ? 0u : 216u)
-        || lateRetries != (faultsOnly ? 384u : 0u) || budgetRetries != (faultsOnly ? 16u : 0u) || isolation != (faultsOnly ? 16u : 0u)
-        || strictRefusals != (faultsOnly ? 0u : 12u)) return fail("multiple XRECORD matrix skipped a cell");
+        || lateRetries != (faultsOnly ? branches ? 512u : 384u : 0u) || budgetRetries != (faultsOnly ? 16u : 0u) || isolation != (faultsOnly ? 16u : 0u)
+        || strictRefusals != (faultsOnly ? 0u : 12u) || rootAliases != (branches ? faultsOnly ? 2u : 12u : 0u)
+        || ownershipRetries != (branches && faultsOnly ? 24u : 0u)) return fail("multiple XRECORD matrix skipped a cell");
     std::cout << "Multiple XRECORD sources=" << sources << " exports=" << exports << " reexports=" << reexports << " late closure retries=" << lateRetries
-        << " cumulative snapshot retries=" << budgetRetries << " unselected isolation=" << isolation << " strict refusals=" << strictRefusals << '\n';
+        << " cumulative snapshot retries=" << budgetRetries << " unselected isolation=" << isolation << " strict refusals=" << strictRefusals
+        << " actual source-root aliases=" << rootAliases << " ownership/alias admission retries=" << ownershipRetries << '\n';
     return true;
 }
 
@@ -8075,12 +8208,19 @@ bool xrecordGroupReferenceAdmission() {
         if (fault == 0u) {
             const auto stats = iface.extensionGraphStats();
             dx_iface::ExtensionGraphLimits limits;
-            if (stats.sourceRecords != 3u || stats.examinedEdges == 0u)
+            // DICTIONARY, XRECORD and GROUP inventory plus the included
+            // generated NOD's validated incoming-reference binding.
+            if (stats.sourceRecords != 4u || stats.examinedEdges == 0u)
                 return fail("GROUP reference indexing did not charge source/edge work");
             limits.maxSourceRecords = stats.sourceRecords - 1u;
             iface.setExtensionGraphLimits(limits);
             if (DxIfaceExtensionGraphTestAccess::prepare(iface, data, true))
                 return fail("GROUP reference indexing crossed source-record work limit");
+            limits.maxSourceRecords = stats.sourceRecords;
+            iface.setExtensionGraphLimits(limits);
+            if (!DxIfaceExtensionGraphTestAccess::prepare(iface, data, true)
+                || iface.extensionGraphStats().sourceRecords != stats.sourceRecords)
+                return fail("GROUP reference exact source-record budget did not retry");
         }
     }
     return true;
@@ -34134,6 +34274,10 @@ int main(int argc, char** argv) {
         return standardDwgBinaryTransport(StandardDwgProbe::CoordinateApplication) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--multiple-selected-xrecords")
         return multipleSelectedXrecords() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--branched-xrecord-common")
+        return multipleSelectedXrecords(false,true) ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--branched-xrecord-common-faults")
+        return multipleSelectedXrecords(true,true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--multiple-selected-xrecord-faults")
         return multipleSelectedXrecords(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--native-xrecord-coordinate-faults")

@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ck typed DataStorage loss guards (2026-10-24):** reproduced direct XRECORD and planned GROUP writes accepted unmodeled native DataStorage-present state and published without a preservation diagnostic. Shared typed-record preflight and common emission now refuse that state atomically, leaving modeler ACDS and raw-DXF routes separate. Seventy cases across five families, seven target revisions and both encodings preserve destination sentinels and pass explicitly corrected same-codec readback retries. Final 73 focused, five owning, four reader/consumer and 54 ASan tests pass, including existing single/multiple/block modeler ACDS controls and both LibreCAD_3 compile gates. This is a negative typed-write contract, not native DataStorage byte/schema preservation or independent semantic qualification. Branch/common/raw-carrier work remains open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ck-typed-datastorage-loss-guards-2026-10-24) · [receipt](docs/research/rpp5ck-typed-datastorage-loss-guards-2026-10-24.json).
+**Newest implementation checkpoint — RPP-5cl branched XRECORD common-link parity (2026-10-24):** an included generated NOD with no outgoing common links is now recognized as a validated incoming reactor target. This fixes a reproduced refusal for valid child-to-owner back-references without relaxing owner/completeness checks or work limits. Eighteen scratch DWG/DXF sources pass 216 projections and 216 actual-import reexports through independent owner branches; twelve DXF sources prove physical NOD `A000 → C` owner/reactor remapping. Controls pass 512 late-source atomic retries, 24 preflight ownership/alias retries, 16 cumulative-budget retries and 16 unselected isolation cases. Final 75 focused, five owning, four reader/consumer and 57 ASan tests pass, with both LibreCAD_3 compile gates. Broader owning-family/generation/raw-carrier/document work remains open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cl-branched-xrecord-common-link-parity-2026-10-24) · [receipt](docs/research/rpp5cl-branched-xrecord-common-links-2026-10-24.json).
+
+**Previous implementation checkpoint — RPP-5ck typed DataStorage loss guards (2026-10-24):** reproduced direct XRECORD and planned GROUP writes accepted unmodeled native DataStorage-present state and published without a preservation diagnostic. Shared typed-record preflight and common emission now refuse that state atomically, leaving modeler ACDS and raw-DXF routes separate. Seventy cases across five families, seven target revisions and both encodings preserve destination sentinels and pass explicitly corrected same-codec readback retries. Final 73 focused, five owning, four reader/consumer and 54 ASan tests pass, including existing single/multiple/block modeler ACDS controls and both LibreCAD_3 compile gates. This is a negative typed-write contract, not native DataStorage byte/schema preservation or independent semantic qualification. Branch/common/raw-carrier work remains open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5ck-typed-datastorage-loss-guards-2026-10-24) · [receipt](docs/research/rpp5ck-typed-datastorage-loss-guards-2026-10-24.json).
 
 **Previous implementation checkpoint — RPP-5cj selected XRECORD dictionary-route and source-context guards (2026-10-24):** two reproduced late-source publication gaps are fixed by freezing the selecting ordinary-dictionary closure and source-format identity alongside selected XRECORD payloads. Eighteen actual scratch DWG/DXF sources pass 216 projections and 216 parsed cross-encoding reexports through nested dictionary routes; 384 atomic source-edit retries, 16 cumulative-budget retries and 16 unselected isolation controls pass. All 24 legacy native-source cells stay unqualified; unselected records earn no output fact. Final 64 focused, five owning, four reader/consumer and 45 ASan tests pass, with both LibreCAD_3 compile gates. Broader alias/common/raw-carrier/document closure and external qualifications remain open; strict admission stays **CLOSED**. [Implementation record](#implementation-progress-rpp-5cj-selected-xrecord-dictionary-route-and-source-context-guards-2026-10-24) · [receipt](docs/research/rpp5cj-selected-xrecord-dictionary-route-guards-2026-10-24.json).
 
@@ -122034,7 +122036,7 @@ Research/readiness update, not a new support claim:
 
 Next implementation-ready work, with the full original parity objective intact:
 
-1. [ ] Build accepted unique-owner branched source controls: one NOD-owned
+1. [x] Build accepted unique-owner branched source controls: one NOD-owned
    ancestor, two independently owned leaf dictionaries, cross-referencing
    XRECORDs, and owner-backed persistent reactors. Exercise both owner-reference
    roles, actual native/DXF imports, staged output, final-source comparison,
@@ -122042,6 +122044,8 @@ Next implementation-ready work, with the full original parity objective intact:
    do not manufacture shared ownership or infer native qualification from API
    documentation/self-roundtrips. Keep source-generation aliases and more
    owning families open until actual cases prove the intended contract.
+   RPP-5cl below completes the bounded branch/role/reactor/remap and tested
+   ownership/alias refusal matrix; additional families/generations remain open.
 2. [ ] Complete DataStorage raw-carrier/source-schema/owner evidence and
    cumulative decoded-owner/retention accounting. The new 70 negative controls
    do not compare native payload bytes, qualify a raw replay lane, or satisfy
@@ -122073,3 +122077,131 @@ remain excluded. Earlier receipts and remote state remain unchanged.
 
 Receipt:
 [`rpp5ck-typed-datastorage-loss-guards-2026-10-24.json`](docs/research/rpp5ck-typed-datastorage-loss-guards-2026-10-24.json).
+
+## Implementation progress — RPP-5cl branched XRECORD common-link parity (2026-10-24)
+
+RPP-5ck is committed as `2d5c6770298c41931e14f8e0a62c474d4eeccaa1`.
+The planned unique-owner branch case is implemented and closes a real generated-
+root back-reference gap. This is bounded full-root projection/readback evidence,
+not completion of all common metadata, alias shapes, source generations,
+DataStorage preservation or the full DWG/DXF parity objective.
+
+1. [x] Author actual accepted sources before changing production. One NOD-owned
+   ancestor contains separate FIRST/SECOND leaf dictionaries; each leaf owns
+   its own XRECORD and each record points across the branches through application
+   330. Owner-backed persistent reactors occur on the ancestor, both leaves and
+   all three authored XRECORDs (one remains unselected). Hard-owner and soft-owner
+   leaf entries remain distinct. Correct the control's assumption about common
+   APPDATA: the public DXF reader stores the canonical reactor opener without
+   its opening brace. This setup correction is not a production parser defect.
+2. [x] Reproduce the real refusal after source checks pass. R2000 ASCII DXF
+   source-to-R2000 ASCII projection and a R2000 native source's initial R2018
+   projection both fail extension-graph preflight (each first test 0.38 s,
+   CTest exit 8). The displayed `IMAGEDEF extension/reactor roots` detail is
+   the stale traversal-family label, not evidence of an IMAGEDEF layout defect.
+   Before the fix, generated NOD/GROUP owners are indexed only when those roots
+   have outgoing common links. A legitimate incoming child reactor reference
+   to an included NOD with no outgoing links therefore cannot resolve.
+3. [x] Register included generated roots for incoming links too. The existing
+   bounded identity/header/completeness validation and source-record charge now
+   apply when `commonReferences || includeNamedObjectRoot`. Keep the generated
+   records outside ordinary DFS and preserve the non-owning reactor back-edge
+   distinction. No guessed handle, unsupported target or source receipt is
+   admitted; default root-exclusion policy is not broadened. No native parser/
+   encoder/layout, public API/layout, callbacks, support masks or composition
+   rules change.
+4. [x] Register separate fast branch positive/fault selectors while retaining
+   the original multiple-record selectors and counts. Six native revisions
+   AC1015/18/21/24/27/32 and both DXF encodings of those six revisions produce
+   eighteen sources. Six DXF targets and both encodings pass 216 projections
+   and 216 actual parsed cross-encoding reexports/readbacks. Check distinct
+   owners, ancestor/branch key order, explicit 350/360 roles in actual DXF,
+   physical common reactor groups and targets, cross-branch 330 values and
+   trailing fields, point18 signed zero/subnormal, standalone 38, exact 128-to-
+   127+1 BINARY transport, compatibility value/handle views and unchanged sources.
+   Active capture contains two XRECORDs and three ordinary dictionaries.
+5. [x] Exercise real nonidentity root remapping rather than only equal handles.
+   For all twelve DXF sources, rewrite only this scratch producer's NOD self 5
+   and incoming 330 fields from C to A000, preserving every unrelated byte and
+   binary sentinel. Require one rewritten identity and multiple references,
+   then import the actual resulting file normally; no private import receipt
+   is fabricated or remap installed after facade planning. Original source NODs
+   remain A000 while output/readback uses C. Both ancestor owner and reactor
+   targets follow the remap. Native sources retain their actual native NOD.
+6. [x] Keep support qualification separate. All 24 legacy native-source projection
+   cells remain unqualified. All 48 modern native-source cells retain the existing
+   modeled facts for the five selected framed records (three dictionaries/two
+   XRECORDs); the unselected record gains no output fact. Twelve default strict-
+   policy sentinel refusals pass. Explicit compatible/AllowPartial projection
+   and self-authored native readback do not qualify an independent producer,
+   application schema, kernel or support claim.
+7. [x] Verify 512 actual late-source atomic refusal/restored-readback retries:
+   four representative sources (R2018 ASCII/binary DXF and R2000/R2018 native),
+   both output encodings, two phases (after OBJECTS/before finalization), and
+   32 edits. In addition to payload/list/identity/context/route/role/count-cap
+   changes, cover record/leaf/ancestor reactors, repeated keys to one target,
+   cross-owner targets, branch identities, DataStorage presence and conflicting
+   reserved common groups. Twenty-four separate preflight model-edit refusals
+   cover cross-owner references, wrong owners and same-target duplicate-key
+   aliases; restoring public state retries actual readback on the same facade.
+   These are the tested projection contracts, not proof that every possible
+   same-target alias is invalid in every producer/file format.
+8. [x] Retain 16 cumulative zero/one-byte-under snapshot refusals with exact-
+   budget readback retries and 16 DXF-only unselected payload/reorder isolation
+   cases. Each facade export creates its own codec; private source receipts
+   stay frozen and native source correlation remains valid after restoration.
+   Snapshots are bounded modeled retention, not whole-document/physical-memory
+   accounting or DataStorage byte preservation.
+9. [x] Preserve work accounting explicitly. The first broader 75-test checkpoint
+   passes 74 tests but catches an old GROUP-reference test expecting three source
+   records. Included NOD validation now adds one real accounted record. Require
+   exactly four (DICTIONARY/XRECORD/GROUP inventory plus NOD binding), reject a
+   three-record budget and prove an exact-four retry on the same graph facade.
+   Do not weaken production caps or describe this stale assertion as a new
+   production defect. Add this strengthened control to the sanitizer cohort.
+10. [x] Final strict affected builds and both LibreCAD_3 compile gates pass.
+   Final 75 focused tests pass 35.80 s, five owning tests
+   pass 11.05 s, four reader/consumer tests pass 1.87 s
+   and 57 scoped ASan tests pass 71.66 s, parallelism 3 inside cohorts.
+   Normal cohorts run sequentially. ASan uses `halt_on_error=1:detect_leaks=0`.
+   No full suite, leak/platform/independent-source/kernel qualification or
+   speed/physical-memory benchmark is claimed.
+
+Next implementation-ready work, retaining the original full parity objective:
+
+1. [ ] Extend other owning families, source-generation aliases and supported
+   common metadata/extension routes with actual imports, staged/final output
+   proof, atomic refusal and restored readback. Qualify root inclusion/exclusion
+   policies explicitly while preserving legacy 2D consumer behavior; this slice
+   proves the declared full-root mode, not a blanket change to legacy projection.
+   Keep arbitrary/shared-owner aliases and multi-document composition closed
+   until explicit ownership/generation/remapping contracts and evidence exist.
+2. [ ] Complete DataStorage raw-carrier/source-schema/owner evidence and cumulative
+   decoded-owner/retention controls. The typed presence-state refusals from
+   RPP-5ck and this slice's common snapshots do not preserve/qualify opaque
+   native payload bytes. Use the authoritative DWG spec plus bounded actual
+   traces; implement a supported byte/reference route with exact/under-budget
+   failures and restored readback. Do not replace that capability with permanent
+   refusal or promote semantic support from Boolean equality/self-roundtrips.
+3. [ ] Continue remaining admitted/future-profile callback phases and incompatible
+   next-operation attempts; independent APPID/LAYER/XRECORD names/body/path/EED;
+   sparse native classes; full IMAGE/common geometry and named-root/document
+   closure. Native point19/component-coded 20/30 remain unqualified and require
+   authoritative specification and bounded real-source proof before grammar/
+   layout changes. Keep 2D LibreCAD/LibreCAD_3 and original 3D/dwg2dxf/FreeCAD scope.
+4. [ ] Self-update evidence/status/limits/next action and a new immutable receipt
+   after each item, self-unblock safe dependencies, commit verified slices and
+   show progress. Use fast affected controls during iteration and scoped owning/
+   consumer/sanitizer checkpoints without full-suite repetition per edit.
+   Continue safe authorized work without avoidable stops; request input only
+   for new authority or a material user choice.
+
+Strict admission stays **CLOSED**. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No support claim is promoted.
+This local checkpoint includes implementation/tests/plan/new receipt, not
+drawing fixtures. All 17 pre-existing untracked drawings and unrelated files
+remain excluded. Earlier receipts and remote state remain unchanged.
+
+Receipt:
+[`rpp5cl-branched-xrecord-common-links-2026-10-24.json`](docs/research/rpp5cl-branched-xrecord-common-links-2026-10-24.json).

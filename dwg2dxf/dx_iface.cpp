@@ -7331,7 +7331,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             }
             const bool commonReferences = nod.xDictHandle || !nod.reactorHandles.empty()
                 || (groupDictionary && (groupDictionary->xDictHandle || !groupDictionary->reactorHandles.empty()));
-            if (commonReferences) {
+            // An included generated root is also a valid incoming reactor
+            // target when it has no outgoing common links of its own. Keep
+            // the same bounded identity/completeness checks for that binding.
+            if (commonReferences || includeNamedObjectRoot) {
                 inventoryFamily = "generated NOD/GROUP common owners";
                 if (!examineSourceRecord() || !validateNamedObjectRootForExport(*data, "ACAD_GROUP")
                     || !nod.hasCompleteDwgEntries() || !nod.hasCompleteDxfEntries()

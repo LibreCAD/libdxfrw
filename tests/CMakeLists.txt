@@ -601,6 +601,14 @@ add_test(NAME dwg2dxf_multiple_selected_xrecords
     COMMAND libdxfrw_dwg2dxf_adapter_tests --multiple-selected-xrecords)
 set_tests_properties(dwg2dxf_multiple_selected_xrecords PROPERTIES
     LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_branched_xrecord_common
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --branched-xrecord-common)
+set_tests_properties(dwg2dxf_branched_xrecord_common PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
+add_test(NAME dwg2dxf_branched_xrecord_common_faults
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --branched-xrecord-common-faults)
+set_tests_properties(dwg2dxf_branched_xrecord_common_faults PROPERTIES
+    LABELS "fast;dwg;dxf;objects;xrecord;transaction;adapter;generated" TIMEOUT 60)
 add_test(NAME dwg2dxf_multiple_selected_xrecord_faults
     COMMAND libdxfrw_dwg2dxf_adapter_tests --multiple-selected-xrecord-faults)
 set_tests_properties(dwg2dxf_multiple_selected_xrecord_faults PROPERTIES
