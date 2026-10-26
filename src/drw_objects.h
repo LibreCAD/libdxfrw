@@ -46,6 +46,7 @@ class dxfWriter;
 class DxfReadRetainedLease;
 namespace dxfField { class Decoder; }
 namespace dxfBlockRecord { class Decoder; }
+namespace dxfLayout { class Decoder; }
 class dwgBuffer;
 class dwgRW;
 
@@ -208,6 +209,7 @@ class DRW_TableEntry {
   SETOBJFRIENDS
   friend class dxfField::Decoder;
   friend class dxfBlockRecord::Decoder;
+  friend class dxfLayout::Decoder;
 public:
   static constexpr std::size_t kMaxExtendedDataItems = 1000000u;
 
@@ -5887,6 +5889,7 @@ private:
  */
 class DRW_Layout : public DRW_TableEntry {
   SETOBJFRIENDS
+  friend class dxfLayout::Decoder;
 public:
   static constexpr std::int32_t kMaxViewportCount = 10000;
 

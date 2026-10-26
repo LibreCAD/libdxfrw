@@ -754,6 +754,21 @@ public:
                                       const DRW_RawDxfObject& source) = 0;
 };
 
+/** Optional original LAYOUT body, separate from DRW_Interface's vtable.
+ * Selection is latched before each record. Default false adds no source copy
+ * or charging. Delivered after the accepted object boundary immediately before
+ * addLayout, with the same typed object; source excludes code 0. A delivered
+ * prefix is not whole-import success, field/target or output qualification.
+ * Retained callers must bound/copy borrowed arguments; ordinary callback order
+ * and the historical absence of an addRawDxfObject(LAYOUT) call are preserved. */
+class DRW_DxfLayoutSourceHandler {
+public:
+  virtual ~DRW_DxfLayoutSourceHandler() = default;
+  virtual bool wantsDxfLayoutSource() const { return false; }
+  virtual void addDxfLayoutSource(const DRW_Layout& layout,
+                                  const DRW_RawDxfObject& source) = 0;
+};
+
 /** Optional BLOCK/ENDBLK source transport, separate from DRW_Interface.
  * Selection is latched once per BLOCK. Begin is the original parsed model,
  * before absent-name clearing and BLOCK_RECORD name/units/preview reconciliation;

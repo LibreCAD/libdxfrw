@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5ei original POINT/LINE source-body proof (2026-10-26):** shared production/replay admission now covers POINT/LINE without changing their required-coordinate or ordinary callback rules. The real ENTITIES audit captures original root parser states and compares modeled geometry/common fields with opt-in original scalar/reference-role profiles. A separate primary-subset report keeps compound, target, dependency and output claims distinct. Final exact affected cohorts pass 62/62 normally and 62/62 under ASan. Other primary families, actual owner/layout targets, dependencies, live/output and external qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ei-original-pointline-source-body-proof-2026-10-26) · [receipt](docs/research/rpp5ei-original-point-line-source-body-proof-2026-10-26.json).
+**Newest implementation checkpoint — RPP-5ej original LAYOUT source proof and render-preset reservation (2026-10-26; verified before local commit):** a separate opt-in source facet and actual reader-owned publication view bind original LAYOUT model/raw/context inputs to their real typed callback. Shared replay and an independent scalar/subclass/reference-role audit distinguish the PlotSettings prefix, structural owner and associated block record. A reproduced opaque-handle capture incompatibility and a parent-confirmed render-preset ID reservation gap are fixed. Final exact affected cohorts pass 68/68 normally and 68/68 under ASan. Whole-import owner/layout/dependency/live/output and native/kernel qualification remain open. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26) · [receipt](docs/research/rpp5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26.json).
+
+**Previous implementation checkpoint — RPP-5ei original POINT/LINE source-body proof (2026-10-26; committed as `e0178bfe`):** shared production/replay admission covers POINT/LINE without changing required-coordinate or ordinary callback rules. The ENTITIES audit captures original parser states and compares modeled fields with opt-in original scalar/reference-role profiles. Its separate primary-subset report does not promote other bodies, actual targets or output. Final exact affected cohorts pass 62/62 normally and 62/62 under ASan. RPP-5ej adds original LAYOUT body evidence, not whole-import owner/layout/dependency/live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5ei-original-pointline-source-body-proof-2026-10-26) · [receipt](docs/research/rpp5ei-original-point-line-source-body-proof-2026-10-26.json).
 
 **Previous implementation checkpoint — RPP-5eh original ENTITIES compound replay and scope context (2026-10-26; committed as `a5d138b4`):** the converter captures original compound parser states before copies and freezes actual codec/declaration/read options per scope. Its bounded ENTITIES audit checks POLYLINE/INSERT modeled replay, scalar profiles, chain identities and linked 67/410 consistency without fabricating BLOCK ownership. Completed empty POLYLINE chains retain their real SEQEND; missing footers fail before parent delivery. Final exact affected cohorts pass 61/61 normally and 61/61 under ASan. RPP-5ei adds selected POINT/LINE bodies, not all primaries, actual owner/layout targets, dependencies, live/output or external qualification. [Historical implementation](#implementation-progress-rpp-5eh-original-entities-compound-replay-and-scope-context-2026-10-26) · [receipt](docs/research/rpp5eh-original-entities-compound-replay-and-scope-context-2026-10-26.json).
 
@@ -128801,6 +128803,169 @@ Next implementation-ready sequence (full objective retained):
    verified slice. Available LAYOUT/body/target work does not require native
    external qualification to start. Preserve unrelated samples and commit no
    external drawing fixtures.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. The full goal stays active;
+no remote mutation is included.
+
+## Implementation progress — RPP-5ej original LAYOUT source proof and render-preset reservation (2026-10-26)
+
+This implements the original LAYOUT body prerequisite from RPP-5ei and repairs
+two reproduced compatibility/output prerequisites. It is not the whole-import
+identity/owner/layout namespace, dependency, editable/live/output or independent
+semantic/native qualification. A body/source report is not another qualified
+resource family or a certificate for the targets named by its references.
+
+Implemented:
+
+1. [x] Add a separate optional `DRW_DxfLayoutSourceHandler`. Selection is latched
+   before each LAYOUT; default false adds no source copy/charging or established
+   DRW_Interface slot. After an accepted object boundary, the original typed/raw
+   pair is delivered immediately before the normal addLayout. No additional
+   addRawDxfObject(LAYOUT) is invented. Raw capture uses existing read byte/token/
+   variant budgets and preserves non-comment scalar order/types/ASCII spellings.
+2. [x] Publish a read-only, short-lived source/typed phase view with the actual
+   object and immutable moved raw-body addresses. Converter capture/pairing
+   requires those exact pointers and phases during an actual import. Copied raw
+   inputs, copied typed callbacks, missing/duplicate deliveries and late calls
+   cannot borrow the genuine publication. A scope guard clears the view on
+   return/exception. State lives in the internal dxfReader, not in dxfRW: existing
+   public facade/drawing-model object layouts and established callback vtables
+   are unchanged. This source-level audit is not formal ABI certification.
+3. [x] Share LAYOUT production/replay field admission through its existing model
+   parser, without another payload decoder or a new ordinary-read rejection
+   policy. Observe original subclass and pending XDATA state before copies reset
+   them. Freeze actual source/codec/declaration/read-policy context and immutable
+   model/raw inputs under actual container instance identity and generation.
+   Pair the real typed callback separately; only successful whole imports publish
+   immutable audit owners. Model/raw/input/audit substitutions cannot qualify an
+   equal-looking cache or a copied container.
+4. [x] Add a distinct original scalar/subclass/reference-role inventory. It
+   separates Header/Plot/Layout/Application/XDATA and the repeated 1/70/76/330
+   fields. Structural owner 330 is not the later associated BLOCK_RECORD 330;
+   opaque application 100/1/330 values cannot impersonate either subclass or
+   owner. Same-value dual ShadePlot 333 spelling is accounted for, while
+   contradictory values refuse. Unknown/duplicate/misplaced fields, invalid
+   identities/names and incomplete XDATA remain unqualified. All modeled plot/
+   layout/common/native fields covered by the shared exact equality are compared.
+5. [x] Retain modern shade modes 4 (VisualStyle) and 5 (RenderPreset) as known
+   source field values. The older
+   [DXF PlotSettings table](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm)
+   lists only modes 0..3, while the official
+   [ObjectARX enum](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbPlotSettings__ShadePlotType.html)
+   includes 4/5 and its
+   [setShadePlot contract](https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__OVERLOADED_setShadePlot_AcDbPlotSettings.html)
+   requires corresponding typed targets. Field admission does not resolve those
+   targets or make inconsistent/unused graph metadata exportable. The official
+   [LAYOUT reference](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm)
+   supplies the distinct subclass/owner/block/UCS/viewport roles.
+6. [x] Precharge independent converter input/audit allowances: 100,000 records,
+   4,000,000 groups, 64 MiB logical bytes and 64 Mi logical work units. Include
+   original state, string/Variant payloads, immutable clones, field-role spans,
+   serialization and replay workspace before allocating. Quota/allocation failure
+   softens this evidence without invalidating compatible ordinary import. These
+   are logical bounds, not every allocator/capacity, RSS, strict CPU or leak proof.
+   Source/header distribution lists include the two new internal/private headers;
+   a full Autotools/dist build has not been run.
+7. [x] Fix captured application-handle compatibility. The first owning input
+   reproduced rejection of a wide opaque application 330 that the uncaptured
+   typed path can retain. The shared raw application collector now uses the same
+   opaque lexeme scope; reserved reactor and extension-dictionary references
+   still require supported native width. Do not widen/truncate structural IDs
+   or reinterpret arbitrary application handles as target roles. The red log
+   is retained separately; existing owning application/resource tests remain in
+   the affected cohort rather than being relaxed.
+8. [x] Fix a parent-confirmed output ID reservation gap. Enabling the existing
+   layout/NOD/UCS/shade graph selector exposed two mode-5 export failures for an
+   unchanged render-preset handle 0x703 (ASCII and Binary). A pristine archive of
+   parent `e0178bfe` with matched project configuration fails the same assertions.
+   Selected render-preset IDs were remapped for fixed collisions but not reserved
+   before generated handles advanced the allocator. Reserve these identities
+   alongside other selected object types. Both unchanged and fixed-collision
+   routes now pass the existing graph/readback and rejection/destination checks.
+   Diagnostic output was added without weakening assertions. This is not an
+   external consumer result or a DWG byte-encoding change.
+
+Owning evidence per configuration (final integration cohorts verified):
+
+- [x] **12** rich actual-import routes: four modern revisions x LF/CRLF/Binary,
+  plus **four** modern shade-mode variants. Independent literal assertions cover
+  all **40** modeled real values, **12** integer fields, names and reference IDs,
+  including signed zero, UCS vectors and overlapping subclass codes. An
+  independent byte/scalar walker checks **2,624** original non-comment group
+  spans and **352** reference-role observations. They are repeated observations,
+  not independently qualified targets or a native CAD/kernel geometry oracle.
+- [x] **132** modeled field/native-vector/common-reactor mutation/corrected-import
+  pairs and **14** unknown/duplicate/class/name/null-block/conflicting-ShadePlot/
+  incomplete-XDATA source refusal/retry pairs. Original subclass state differs
+  from the reset copied model; pending original XDATA cannot be sanitized by
+  copying. Ordinary parsed values/callback order remain available on body refusal.
+- [x] **16** exact/one-under record/group/byte/work controls and **210** observed
+  source-copy/isolated-audit allocation faults recover with bounded genuine
+  successful-import inputs and fresh actual imports. Counts are local allocator
+  schedules, not portable thresholds or every allocation site. **24** context/
+  missing/copy/duplicate/owner/live-edit/public-lifetime/latched-selection controls
+  and **12** exception/late-failure/native-wide-reference rejection/retry cases
+  pass. Failed imports publish no completed body audits.
+- [x] The newly registered existing layout graph selector preserves all original
+  assertions: typed model/paper/NOD/UCS/shade-target closure, unchanged and fixed-
+  collision targets, versioned exports/readback and fail-closed destination
+  preservation. Its initial two failures and matching pristine-parent failures
+  remain historical evidence; the allocator repair passes that selector.
+
+Final normal/ASan builds pass. The exact affected cohorts pass **68/68 normally
+in 83.09 s** and **68/68 under ASan in 178.09 s**, with no failed/skipped/disabled
+cases and matching membership/order. The cohort includes the prior 62 tests plus
+the new source test, the newly registered existing graph selector and four
+existing layout/block/plot capture/shade/DPI controls. Normal runtime completed
+before ASan runtime (`halt_on_error=1:detect_leaks=0`); only ASan compilation
+overlapped normal runtime. These times are not paired benchmarks. Earlier 67/68
+normal evidence stays red and is not relabeled as a passing checkpoint. The
+failed graph selector was fixed, not removed. Strict library,
+owning resource/adapter and compatibility TUs use C++17 and
+`-Wall -Wextra -pedantic -Werror`; the existing broad fixture runner uses its
+configured C++17 flags and is not claimed to be globally warning-clean. A first
+parent-comparison attempt added nonmatching global strict flags and hit an
+existing unused fixture helper; the matched-configuration pristine comparison
+retains unchanged source and the project's own target warning policies. No
+warning suppression, full suite per item, native consumer execution, formal ABI,
+benchmark, external drawing fixture or support promotion is claimed. The
+[RPP-5ej receipt](docs/research/rpp5ej-original-layout-source-proof-and-render-preset-reservation-2026-10-26.json)
+records exact controls, membership, unchanged tested-source hashes and terminal
+normal/ASan logs, including retained red and pristine-parent evidence.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Actual owner/space/layout targets.** Build one bounded whole-import
+   original identity index across ENTITIES scopes/BLOCKS/OBJECTS, including
+   observable raw/no-callback IDs without promoting body semantics. Join pinned
+   BLOCK_RECORD rows, original LAYOUT bodies and owning DICTIONARY entries with
+   unique reciprocal target roles. Resolve original 330/67/410, absent/defaults,
+   conflicts and multiple paper layouts; do not infer targets from cData storage,
+   literal same-name agreement, paper suffixes or mere handle existence. Account
+   for unknown/unobserved identities rather than silently assuming uniqueness.
+   Add cross-scope collisions, substituted owners, quota/allocation, failed-tail
+   and actual-import retry controls before consuming these facts as a gate.
+2. [ ] **Remaining bodies/common/specialized targets.** Complete original TABLE/
+   ATTDEF and other required primary family source/state/profile proofs using
+   their shared decoders. Finish common STYLE/APPID/LAYER/object/default/
+   application/proxy/codepage dependencies and INSERT-name expansion through
+   the existing bounded BLOCK graph. Exact/ASCII key matches are not native
+   collation proof. Keep opaque 320..329 identities separate from remappable IDs.
+3. [ ] **Full original live/output and native parity.** Complete B2b/B3/C source/
+   live/editable/output identities, full fields/name/reference roles/remapping/
+   readback and atomic rollback/retry/destination preservation. Retain IMAGE/
+   document/native-bit/decimal/carrier/schema/owner, performance/memory,
+   LibreCAD/LibreCAD_3 2D, 3D, dwg2dxf/FreeCAD and independent/native platform/
+   ACIS/ACDS semantic/kernel qualification. Body source facts do not imply these.
+4. [ ] **Self-update and continue available work.** Fast owning tests during
+   edits; exact fresh affected cohorts at integration boundaries only. Preserve
+   actual failures/limits and immutable receipts, update the plan and commit/report
+   verified slices. Continue safe local owner/body/dependency work while external
+   qualifications remain deferred. Preserve unrelated samples; commit no external
+   drawing fixtures.
 
 Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
 remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain

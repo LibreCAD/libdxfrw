@@ -19,10 +19,12 @@
 #include "intern/dxftablereferences.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfcompound.h"
+#include "intern/dxflayout.h"
 #include "dx_attdef_source_profile.h"
 #include "dx_block_source_profile.h"
 #include "dx_block_membership.h"
 #include "dx_compound_source_profile.h"
+#include "dx_layout_source_profile.h"
 
 #include <array>
 #include <atomic>
@@ -1237,6 +1239,28 @@ private:
         std::size_t entitiesCompoundRecords{0},entitiesCompoundBytes{0},entitiesCompoundWork{0};
         std::size_t maxEntitiesCompoundRecords{100000u},maxEntitiesCompoundBytes{64u*1024u*1024u},maxEntitiesCompoundWork{64u*1024u*1024u};
         bool entitiesCompoundCaptureFailed{false};
+        struct LayoutInput {
+            const void* container{nullptr};std::uint64_t generation{0},containerId{0};
+            std::shared_ptr<const DRW_Layout> model;
+            std::shared_ptr<const DRW_RawDxfObject> raw;
+            std::shared_ptr<const EntitiesReadContext> context;
+            dxfLayout::SourceState state;
+        };
+        enum class LayoutPair : std::uint8_t {Pending,Matched,ModelMismatch,StateMismatch};
+        struct LayoutCaptured {std::shared_ptr<const LayoutInput> input;LayoutPair pair{LayoutPair::Pending};};
+        struct LayoutAudit {
+            enum class State : std::uint8_t {DecodeFailed,PairMismatch,StateMismatch,ModelMismatch,ProfileMismatch,Matched};
+            State state{State::DecodeFailed};std::size_t index{0};
+            std::shared_ptr<const LayoutInput> input;dx_layout_source::Audit profile;dxfLayout::SourceState replayState;
+            bool modeledMatched{false},profilesMatched{false};
+        };
+        std::map<std::uint32_t,LayoutCaptured> layoutInputs;
+        std::map<std::uint32_t,std::shared_ptr<const LayoutAudit>> layoutAudits;
+        std::vector<std::shared_ptr<const LayoutAudit>> layoutAuditOwners;
+        const DRW_Layout* layoutPendingModel{nullptr};std::uint32_t layoutPendingHandle{0};
+        std::size_t layoutRecords{0},layoutGroups{0},layoutBytes{0},layoutWork{0};
+        std::size_t maxLayoutRecords{100000u},maxLayoutGroups{4000000u},maxLayoutBytes{64u*1024u*1024u},maxLayoutWork{64u*1024u*1024u};
+        bool layoutCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

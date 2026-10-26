@@ -992,6 +992,18 @@ public:
      * independently. Callers retaining it must make their own bounded copy.
      * No interface/model layout or established callback vtable change. */
     bool getDxfReadContext(DxfReadContext&) const noexcept;
+    struct DxfLayoutSourceView {
+        enum class Phase : std::uint8_t {None,Source,Typed};
+        Phase phase{Phase::None};
+        const DRW_Layout* model{nullptr};
+        const DRW_RawDxfObject* source{nullptr};
+    };
+    /** Borrowed identity of the actual opted-in LAYOUT publication. Available
+     * only inside its source/typed callbacks; false clears the view elsewhere.
+     * All pointers expire when that publication returns/throws. Not writable
+     * historical evidence, target qualification or an additional callback.
+     * Publication state lives in the internal reader, not the public facade. */
+    bool getDxfLayoutSourceView(DxfLayoutSourceView&) const noexcept;
     DRW::error getError() const;
     /// Snapshot the first failure and bounded cleanup evidence from the most
     /// recent read/write operation.  The legacy getError() value remains the

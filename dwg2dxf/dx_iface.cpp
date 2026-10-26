@@ -17529,6 +17529,31 @@ dx_iface::EntitiesPrimaryReport dx_iface::entitiesPrimaryReport(const dx_data& d
     r.state=!r.primaries?S::NoPrimaries:r.primaries==r.matched?S::ProofsReady:S::Unqualified;return r;
 }
 
+dx_iface::LayoutSourceReport dx_iface::layoutSourceReport(const dx_data& data) noexcept {
+    using S=LayoutSourceState;using A=dx_data::TableDxfSourceCapture::LayoutAudit;LayoutSourceReport r;const auto& s=data.m_tableDxfSource;
+    r.records=s.layoutRecords;r.groups=s.layoutGroups;r.bytes=s.layoutBytes;r.work=s.layoutWork;
+    if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
+    if(!s.closed){r.state=S::Reading;return r;}
+    if(!s.successful){r.state=S::ImportFailed;return r;}
+    if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput
+        ||data.sourceFormat!=dx_source_format::DXF||data.dxfReadOutcome.readThrew||!data.dxfReadOutcome.operationSucceeded){r.state=S::ContextMismatch;return r;}
+    if(s.failed||s.layoutCaptureFailed||s.layoutPendingHandle||s.layoutPendingModel){r.state=S::CaptureFailed;return r;}
+    if(s.layoutInputs.empty())return r;
+    if(s.layoutAudits.size()!=s.layoutInputs.size()||s.layoutAuditOwners.size()!=s.layoutInputs.size()){r.state=S::CaptureFailed;return r;}
+    const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
+    for(const auto& row:s.layoutAudits) {
+        const auto& a=row.second;const auto input=s.layoutInputs.find(row.first);
+        if(!a||input==s.layoutInputs.end()||a->index>=s.layoutAuditOwners.size()||!same(a,s.layoutAuditOwners[a->index])
+            ||!a->input||!same(a->input,input->second.input)||a->input->container!=&data||a->input->generation!=s.generation
+            ||!a->input->containerId||a->input->containerId!=data.m_entitiesContainerIdentity.value||!a->input->model||!a->input->raw||!a->input->context
+            ||a->input->model->handle!=row.first||a->input->raw->handle!=row.first||a->input->context->sourceVersion!=s.version){r.state=S::ContextMismatch;return r;}
+        if(input->second.pair==dx_data::TableDxfSourceCapture::LayoutPair::Matched)++r.paired;
+        if(a->modeledMatched)++r.modeledMatched;if(a->profilesMatched)++r.profilesMatched;
+        if(a->state==A::State::Matched)++r.matched;else if(!r.firstHandle)r.firstHandle=row.first;
+    }
+    r.state=r.matched==s.layoutInputs.size()?S::ProofsReady:S::Unqualified;return r;
+}
+
 dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx_data& data) noexcept {
     using F=dx_tableResourceFamily;
     using S=TableBindingState;
@@ -20074,6 +20099,9 @@ void dx_iface::finishTableSourceRead(bool success) noexcept {
     source.entitiesReadInput = nullptr;
     m_tableSourceReadData = nullptr;
     if(source.successful)finishEntitiesCompoundAudits(data);
+    if(source.layoutPendingHandle||source.layoutPendingModel)source.layoutCaptureFailed=true;
+    source.layoutPendingHandle=0u;source.layoutPendingModel=nullptr;
+    if(source.successful)finishLayoutSourceAudits(data);
 }
 
 void dx_iface::addTableContent(const DRW_TableContentObject& data) {
@@ -20841,7 +20869,116 @@ void dx_iface::addLType(const DRW_LType& data) {
 void dx_iface::addLayout(const DRW_Layout& data) {
     if (cData == nullptr)
         return;
+    pairLayoutSource(data);
     retainBasicTableTyped(cData, cData->layouts, data, estimateLayoutTypedBytes);
+}
+
+bool dx_iface::wantsDxfLayoutSource() const {
+    if(!tableSourceCaptureOpen())return false;
+    const auto* input=cData->m_tableDxfSource.entitiesReadInput;dxfRW::DxfReadContext context;
+    return input&&input->getDxfReadContext(context)&&context.sourceVersion>=DRW::AC1021&&context.sourceVersion<=DRW::AC1032;
+}
+
+bool dx_iface::chargeLayoutSource(std::size_t bytes,std::size_t groups,std::size_t work) noexcept {
+    auto& s=cData->m_tableDxfSource;
+    if(s.layoutBytes>s.maxLayoutBytes||bytes>s.maxLayoutBytes-s.layoutBytes||s.layoutGroups>s.maxLayoutGroups||groups>s.maxLayoutGroups-s.layoutGroups
+        ||s.layoutWork>s.maxLayoutWork||work>s.maxLayoutWork-s.layoutWork){s.layoutCaptureFailed=true;return false;}
+    s.layoutBytes+=bytes;s.layoutGroups+=groups;s.layoutWork+=work;return true;
+}
+
+void dx_iface::addDxfLayoutSource(const DRW_Layout& value,const DRW_RawDxfObject& raw) {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;const auto fail=[&](){s.layoutCaptureFailed=true;};
+    if(s.layoutCaptureFailed)return;
+    dxfRW::DxfReadContext live;dxfRW::DxfLayoutSourceView publication;
+    if(!tableSourceCaptureOpen()||!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)
+        ||!s.entitiesReadInput->getDxfLayoutSourceView(publication)||publication.phase!=dxfRW::DxfLayoutSourceView::Phase::Source
+        ||publication.model!=&value||publication.source!=&raw||s.layoutPendingModel||s.layoutPendingHandle
+        ||s.layoutRecords>=s.maxLayoutRecords||!value.handle||typeid(value)!=typeid(DRW_Layout)||value.tType!=DRW::LAYOUT
+        ||raw.handle!=value.handle||raw.parentHandle!=value.parentHandle||!asciiIdentifierEquals(raw.name,"LAYOUT")||raw.groups.size()!=raw.rawValues.size()
+        ||raw.m_version!=live.sourceVersion||raw.hasRawValues==live.binary||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032
+        ||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u||s.layoutInputs.count(value.handle)){fail();return;}
+    const auto groups=raw.groups.size();std::size_t bytes=sizeof(dx_data::TableDxfSourceCapture::LayoutInput)+sizeof(dx_data::TableDxfSourceCapture::LayoutCaptured)+32u*sizeof(void*);
+    std::size_t model=0u,items=0u,rawBytes=sizeof(raw),work=0u;
+    if(!addAssociativeSlotBytes(groups,64u,work)||!chargeLayoutSource(0u,0u,work))return;
+    if(!estimateLayoutTypedBytes(value,model,items)||!addAssociativeRetainedBytes(raw.name.size(),rawBytes)
+        ||!addAssociativeSlotBytes(groups,sizeof(DRW_Variant)+sizeof(UTF8STRING),rawBytes)){fail();return;}
+    for(std::size_t i=0;i<groups;++i) {
+        std::size_t payload=0u;
+        if(raw.groups[i].code()==0||!dx_compound_source::scalarType(raw.groups[i])||!raw.groups[i].estimateRetainedPayloadBytes(s.maxLayoutBytes,payload)
+            ||!addAssociativeRetainedBytes(payload,rawBytes)||!addAssociativeRetainedBytes(raw.rawValues[i].size(),rawBytes)){fail();return;}
+    }
+    if(!addAssociativeSlotBytes(model,2u,bytes)||!addAssociativeSlotBytes(rawBytes,2u,bytes)
+        ||!addAssociativeRetainedBytes(sizeof(dx_data::TableDxfSourceCapture::EntitiesReadContext)+live.codecCodePage.size(),bytes)
+        ||!addAssociativeRetainedBytes(live.declaration.size(),bytes)||!chargeLayoutSource(bytes,groups,bytes)){fail();return;}
+    ++s.layoutRecords;
+    try {
+        using Input=dx_data::TableDxfSourceCapture::LayoutInput;using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
+        auto context=std::make_shared<Context>();context->sourceVersion=live.sourceVersion;context->codecVersion=live.codecVersion;
+        context->codecCodePage=live.codecCodePage;context->declaration=live.declaration;context->hasDeclaration=live.hasDeclaration;
+        context->compatibilityProfile=live.compatibilityProfile;context->textEncoding=live.textEncoding;context->codePagePolicy=live.codePagePolicy;
+        context->binary=live.binary;context->applyExtrusion=live.applyExtrusion;context->captured=true;
+        auto input=std::make_shared<Input>();input->container=cData;input->generation=s.generation;input->containerId=cData->m_entitiesContainerIdentity.value;
+        input->state=dxfLayout::Decoder::observe(value);input->context=std::move(context);
+        input->model=std::make_shared<const DRW_Layout>(value);input->raw=std::make_shared<const DRW_RawDxfObject>(raw);
+        if(!s.layoutInputs.emplace(value.handle,dx_data::TableDxfSourceCapture::LayoutCaptured{std::move(input)}).second){fail();return;}
+        s.layoutPendingModel=&value;s.layoutPendingHandle=value.handle;
+    }catch(...){fail();}
+}
+
+void dx_iface::pairLayoutSource(const DRW_Layout& value) noexcept {
+    if(!cData)return;auto& s=cData->m_tableDxfSource;if(s.layoutCaptureFailed)return;
+    dxfRW::DxfLayoutSourceView publication;
+    const bool publishing=s.entitiesReadInput&&s.entitiesReadInput->getDxfLayoutSourceView(publication);
+    if(!s.layoutPendingHandle&&!s.layoutPendingModel) {
+        if(publishing&&publication.phase==dxfRW::DxfLayoutSourceView::Phase::Typed)s.layoutCaptureFailed=true;
+        return;
+    }
+    const auto pending=s.layoutInputs.find(s.layoutPendingHandle);using Pair=dx_data::TableDxfSourceCapture::LayoutPair;
+    if(!tableSourceCaptureOpen()||!publishing||publication.phase!=dxfRW::DxfLayoutSourceView::Phase::Typed||publication.model!=&value
+        ||s.layoutPendingModel!=&value||pending==s.layoutInputs.end()||pending->second.pair!=Pair::Pending||value.handle!=s.layoutPendingHandle) {
+        s.layoutCaptureFailed=true;s.layoutPendingHandle=0u;s.layoutPendingModel=nullptr;return;
+    }
+    auto& row=pending->second;const auto& input=*row.input;
+    row.pair=!(dxfLayout::Decoder::observe(value)==input.state)?Pair::StateMismatch:
+        dxfLayout::Decoder::sameModel(*input.model,value,[&](const auto& a,const auto& b){return standardDwgCommonEqual(a,b,input.context->sourceVersion);})
+        ?Pair::Matched:Pair::ModelMismatch;
+    s.layoutPendingHandle=0u;s.layoutPendingModel=nullptr;
+}
+
+void dx_iface::finishLayoutSourceAudits(dx_data& data) noexcept {
+    auto& s=data.m_tableDxfSource;using A=dx_data::TableDxfSourceCapture::LayoutAudit;using Pair=dx_data::TableDxfSourceCapture::LayoutPair;
+    if(s.layoutCaptureFailed||!s.successful)return;
+    try {for(const auto& row:s.layoutInputs) {
+        const auto& source=*row.second.input;const auto& raw=*source.raw;const auto& context=*source.context;
+        std::size_t rawBytes=0u,modelBytes=0u,items=0u,bytes=sizeof(A)+32u*sizeof(void*),work=0u;
+        if(!estimateRawDxfObjectBytes(raw,rawBytes)||!estimateLayoutTypedBytes(*source.model,modelBytes,items)
+            ||!addAssociativeSlotBytes(rawBytes,6u,bytes)||!addAssociativeSlotBytes(modelBytes,3u,bytes)
+            ||!addAssociativeSlotBytes(raw.groups.size(),sizeof(dx_layout_source::Span),bytes)
+            ||!addAssociativeSlotBytes(raw.groups.size(),128u,work)||!addAssociativeRetainedBytes(bytes,work)||!chargeLayoutSource(bytes,0u,work))return;
+        auto audit=std::make_shared<A>();audit->input=row.second.input;audit->index=s.layoutAuditOwners.size();
+        audit->profile=dx_layout_source::audit(raw);audit->profilesMatched=audit->profile.complete();
+        if(row.second.pair!=Pair::Matched)audit->state=A::State::PairMismatch;
+        else {
+            std::string wire;if(!tableResourceSourceBody(raw,s.maxLayoutBytes,wire)){s.layoutCaptureFailed=true;return;}
+            dxfRW::DxfObjectsWriteView view{};view.bytes=wire;view.version=context.sourceVersion;view.binary=context.binary;
+            view.codePage=context.codecCodePage;view.compatibilityProfile=context.compatibilityProfile;
+            dx_standard_output::InputBuffer buffer(wire);std::istream input(&buffer);auto budget=std::make_shared<DxfReadRetainedBudget>(s.maxLayoutBytes);
+            auto reader=dx_standard_output::readerFor(input,view,budget);if(!reader){s.layoutCaptureFailed=true;return;}
+            reader->setDxfCodePagePolicy(context.codePagePolicy);reader->setDxfTextEncoding(context.textEncoding);reader->setSemanticStringMode(true);
+            reader->setRecordBudget(raw.groups.size());reader->setTypedVariantNodeBudget(raw.groups.size());reader->setDecodeWorkBudget(s.maxLayoutWork-s.layoutWork);
+            DRW_Layout parsed;dxfLayout::Decoder decoder(parsed);int code=0;bool decoded=true;
+            while(buffer.position()<wire.size())if(!reader->readRec(&code)||code==0||!decoder.parseCode(code,reader)){decoded=false;break;}
+            if(!chargeLayoutSource(0u,0u,reader->decodeWorkCount()))return;
+            if(!decoded||reader->recordCount()!=raw.groups.size()||budget->exceeded()||reader->recordBudgetExceeded()||reader->tokenByteBudgetExceeded()
+                ||reader->inputByteBudgetExceeded()||reader->decodeWorkBudgetExceeded()||reader->typedVariantNodeBudgetExceeded()){s.layoutCaptureFailed=true;return;}
+            audit->replayState=dxfLayout::Decoder::observe(parsed);
+            audit->modeledMatched=dxfLayout::Decoder::sameModel(parsed,*source.model,[&](const auto& a,const auto& b){return standardDwgCommonEqual(a,b,context.sourceVersion);});
+            if(!source.state.complete()||!audit->replayState.complete()||!(source.state==audit->replayState))audit->state=A::State::StateMismatch;
+            else if(!audit->modeledMatched)audit->state=A::State::ModelMismatch;
+            else audit->state=audit->profilesMatched?A::State::Matched:A::State::ProfileMismatch;
+        }
+        s.layoutAuditOwners.push_back(audit);s.layoutAudits.emplace(row.first,std::move(audit));
+    }}catch(...){s.layoutCaptureFailed=true;}
 }
 
 void dx_iface::addPlotSettings(const DRW_PlotSettings* data) {
@@ -28674,6 +28811,17 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     for (const DRW_VisualStyle& style : cData->visualStyles) {
         if (!dxfW->reserveHandle(style.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
+    // Reserve selected render-preset identities before generated BLOCK/table
+    // handles advance the allocator. Collision remapping alone only covers
+    // fixed low handles; an unchanged source ID can otherwise be allocated
+    // first to generated output and fail when its raw preset is emitted.
+    for (const std::uint32_t handle : m_extensionRenderSettingsHandles) {
+        if (!dxfW->reserveHandle(handle)) {
             delete dxfW;
             dxfW = nullptr;
             return false;

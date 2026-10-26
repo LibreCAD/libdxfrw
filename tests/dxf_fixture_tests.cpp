@@ -2716,6 +2716,13 @@ void testLayoutShadePlotClosure(TestContext& t) {
                 && readbackSheet->shadePlotHandle.ref == emittedTarget
                 && emittedTarget != 0
                 && (!collidingHandle || emittedTarget != sourceTarget);
+            if(!remappedGraphClosed) {
+                std::cerr<<"LAYOUT shade graph: encoding="<<encoding<<" mode="<<shadeMode<<" source="<<sourceTargetHandle
+                    <<" exported="<<exported<<" verified="<<verified<<" typed="<<emittedTypeRetained<<" target="<<emittedTarget
+                    <<" layouts="<<readback.layouts.size()<<" render="<<readback.renderSettings.size()<<" raw-render="<<readback.rawRenderSettingsObjects.size();
+                if(readbackSheet!=readback.layouts.end())std::cerr<<" sheet-mode="<<readbackSheet->shadePlotMode<<" sheet-target="<<readbackSheet->shadePlotHandle.ref;
+                std::cerr<<'\n';
+            }
             t.expect(remappedGraphClosed,
                      std::string(encoding + " LAYOUT mode "
                          + std::to_string(shadeMode)

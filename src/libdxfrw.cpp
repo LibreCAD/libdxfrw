@@ -44,6 +44,7 @@
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfattdef.h"
 #include "intern/dxfcompound.h"
+#include "intern/dxflayout.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfentitiessource.h"
@@ -20805,17 +20806,37 @@ bool dxfRW::processLayout() {
     DRW_DBG("dxfRW::processLayout");
     int code;
     DRW_Layout layout;
+    dxfLayout::Decoder decoder(layout);
+    auto* sourceHandler=dynamic_cast<DRW_DxfLayoutSourceHandler*>(iface);
+    const bool captureSource=sourceHandler&&sourceHandler->wantsDxfLayoutSource();
+    DRW_RawDxfObject raw;
+    if(captureSource&&!copyRawDxfCarrierName(raw,nextentity))return setError(DRW::BAD_CODE_PARSED);
+    if(captureSource){raw.m_version=reader->getSourceVersion();raw.hasRawValues=!binFile;}
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
             DRW_DBG(nextentity); DRW_DBG("\n");
+            if(captureSource) {
+                // The later AcDbLayout 330 is a block pointer, not its owner.
+                raw.handle=layout.handle;raw.parentHandle=layout.parentHandle;
+                const DRW_RawDxfObject original(std::move(raw));
+                struct Publication {
+                    DxfLayoutPublication& view;
+                    ~Publication(){view={};}
+                } publication{reader->layoutPublication()};
+                reader->layoutPublication()={1u,&layout,&original};
+                sourceHandler->addDxfLayoutSource(layout,original);
+                reader->layoutPublication().phase=2u;
+                iface->addLayout(layout);
+                return true;
+            }
             iface->addLayout(layout);
             return true;  //found new entity or ENDSEC, terminate
         }
 
-        if (!layout.parseCode(code, reader)) {
+        if(captureSource?!captureAndParseRawDxfGroup(raw,code,layout):!decoder.parseCode(code,reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }
@@ -22286,6 +22307,10 @@ bool dxfRW::captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                                           std::vector<std::uint32_t> &reactorHandles,
                                           std::uint32_t &xDictHandle,
                                           std::shared_ptr<DxfReadRetainedLease> &typedLease) {
+    // Match the uncaptured typed application parser: arbitrary application
+    // handle lexemes are opaque, not necessarily 32-bit native references.
+    // Reserved reactor/dictionary roles are checked separately below.
+    DxfRawHandleLexemeScope handleLexemes(*reader);
     DxfReadRetainedLeaseCheckpoint typedCheckpoint(typedLease);
     if (!captureRawGroup(obj, 102, /*validateHandles=*/true)
         || obj.groups.empty()
@@ -22368,6 +22393,7 @@ bool dxfRW::captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
             } else applicationGroup.push_back(group);
 
             if (topLevelGroup && isReactors && code == 330) {
+                if(!reader->isValidHandleString())return false;
                 const std::uint32_t handle = reader->getHandleString();
                 if (handle != 0) {
                     if (reactors.size() >= dwgSafety::MaxReactorCount)
@@ -22376,6 +22402,7 @@ bool dxfRW::captureRawDxfApplicationGroup(DRW_RawDxfObject &obj,
                 }
             } else if (topLevelGroup && isXDictionary && code == 360
                        && xDictionary == 0) {
+                if(!reader->isValidHandleString())return false;
                 xDictionary = reader->getHandleString();
             }
         }
@@ -26723,6 +26750,13 @@ bool dxfRW::getDxfReadContext(DxfReadContext& out) const noexcept {
     out.compatibilityProfile=reader->classifierProfile()==DxfClassifierProfile::LibreCadMasterLegacy
         ?DxfCompatibilityProfile::LibreCadMasterLegacy:DxfCompatibilityProfile::StandaloneSafe;
     return true;
+}
+
+bool dxfRW::getDxfLayoutSourceView(DxfLayoutSourceView& out) const noexcept {
+    out={};
+    if(!m_readTextObservationsActive||!reader)return false;
+    const auto& view=reader->layoutPublication();if(!view.phase||view.phase>2u)return false;
+    out={static_cast<DxfLayoutSourceView::Phase>(view.phase),view.model,view.source};return true;
 }
 
 DRW::error dxfRW::getError() const{

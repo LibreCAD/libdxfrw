@@ -603,6 +603,14 @@ add_test(NAME libdxfrw_entities_primary_source
     COMMAND libdxfrw_table_content_dxf_tests --entities-primaries)
 set_tests_properties(libdxfrw_entities_primary_source PROPERTIES
     LABELS "fast;dxf;adapter;source;entities;primary;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_layout_source_proof
+    COMMAND libdxfrw_table_content_dxf_tests --layout-source)
+set_tests_properties(libdxfrw_layout_source_proof PROPERTIES
+    LABELS "fast;dxf;adapter;source;layout;independent;generated" TIMEOUT 60)
+add_test(NAME libdxfrw_layout_graph_read_contract
+    COMMAND libdxfrw_dxf_fixture_tests --layout-graph-read-contract)
+set_tests_properties(libdxfrw_layout_graph_read_contract PROPERTIES
+    LABELS "fast;dxf;adapter;layout;graph;compatibility" TIMEOUT 60)
 add_test(NAME libdxfrw_cellstylemap_source_profiles
     COMMAND libdxfrw_table_content_dxf_tests --cell-style-map-source)
 set_tests_properties(libdxfrw_cellstylemap_source_profiles PROPERTIES

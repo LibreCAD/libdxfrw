@@ -38,8 +38,18 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfBlockRecordSourceHandler, public DRW_DxfAttdefSourceHandler,
                  public DRW_DxfBlockSourceHandler, public DRW_DxfBlockChildrenSourceHandler,
                  public DRW_DxfBlockDeliveryHandler, public DRW_DxfEntitiesSourceHandler,
-                 public DRW_DxfEntitiesDeliveryHandler {
+                 public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler {
 public:
+    enum class LayoutSourceState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,ProofsReady,Unqualified};
+    struct LayoutSourceReport {
+        LayoutSourceState state{LayoutSourceState::NotCaptured};
+        std::size_t records{0},groups{0},bytes{0},work{0},matched{0},paired{0},modeledMatched{0},profilesMatched{0};
+        std::uint32_t firstHandle{0};
+        bool outputEligible{false},ownerTargetsResolved{false};
+    };
+    static LayoutSourceReport layoutSourceReport(const dx_data&) noexcept;
+    bool wantsDxfLayoutSource() const override;
+    void addDxfLayoutSource(const DRW_Layout&,const DRW_RawDxfObject&) override;
     enum class EntitiesCompoundState {NotCaptured,Reading,ImportFailed,SourceNotReady,CaptureFailed,ContextMismatch,NoCompounds,ProofsReady,Unqualified};
     struct EntitiesCompoundReport {
         // ProofsReady covers only the selected compound subset. Other bodies
@@ -1616,6 +1626,9 @@ private:
     void finishEntitiesCompoundAudits(dx_data&) noexcept;
     bool chargeEntitiesCompound(std::size_t,std::size_t,std::size_t=0u) noexcept;
     bool replayEntitiesCompound(EntitiesCompoundAudit&,EntitiesCompoundProof&);
+    bool chargeLayoutSource(std::size_t,std::size_t,std::size_t) noexcept;
+    void pairLayoutSource(const DRW_Layout&) noexcept;
+    void finishLayoutSourceAudits(dx_data&) noexcept;
     template<class Model,class Value>void observeDxfEntitiesTyped(const Value& value,
                             DRW_DxfEntitiesCallback route=DRW_DxfEntitiesCallback::Count) noexcept {
         auto* observed=observeDxfEntitiesValue(static_cast<std::int32_t>(value.eType),value.handle,value.parentHandle,route);

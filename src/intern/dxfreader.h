@@ -26,6 +26,16 @@
 #include "dxfparserlimits.h"
 #include "drw_textcodec.h"
 
+class DRW_Layout;
+struct DRW_RawDxfObject;
+struct DxfLayoutPublication {
+    // 0 none, 1 source callback, 2 typed callback. Internal reader-owned state,
+    // so the public dxfRW facade gains no object-layout fields.
+    std::uint8_t phase{0};
+    const DRW_Layout* model{nullptr};
+    const DRW_RawDxfObject* source{nullptr};
+};
+
 // Shared by one public DXF read operation so independently retained buffers
 // can use one aggregate logical-byte ceiling. This deliberately measures
 // logical lengths, not std::string/vector capacity or process RSS.
@@ -275,6 +285,9 @@ private:
 };
 
 class dxfReader {
+    friend class dxfRW;
+    DxfLayoutPublication m_layoutPublication{};
+    DxfLayoutPublication& layoutPublication() noexcept {return m_layoutPublication;}
 public:
     enum TYPE {
         STRING,
