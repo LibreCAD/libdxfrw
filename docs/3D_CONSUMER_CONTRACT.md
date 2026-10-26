@@ -119,6 +119,25 @@ observations may retain unfinished XDATA with this flag false. Modeled/profile,
 target and output qualification stay false. Whole TABLE body/schema/reference
 and dependency closure remain required before support or export claims.
 
+The separate bounded `tableBodyReport` now replays the exact original TABLE
+parent and linked ATTRIB/SEQEND interval through shared production decoders,
+using the captured text/options context. It compares all modeled common,
+INSERT, TABLE, grid/cell/content/value/color/attribute fields and original
+private/common/linked parser observations against both real callback snapshots.
+This comparison does not use the adapter's 2D INSERT projection or sanitized
+model-copy state. Unknown concrete subclasses and original pending XDATA cannot
+qualify a body. Raw parent stubs can match their modeled stub without acquiring
+table content; `semanticComplete` counts the existing parser flag, not external
+semantic or geometric qualification.
+
+`ModeledMatched` describes only the selected original modeled bodies. The
+independent physical scalar/subclass/reference profile, original namespace and
+target joins, whole-document census, dependencies, editable/live/output proof
+and native/independent semantics remain separate prerequisites. The existing
+role reports still list TABLE as unsupported; `tableInputReport.modeledMatched`
+also remains false because it is an input/state report, not the body report.
+No existing resource/support/output gate is opened by this additional evidence.
+
 These are original selected source roles only. TABLE/other required bodies,
 common dependencies, editable/live state, complete emitted fields/remapping,
 native consumers and independent semantics remain separate. `wholeDocumentMatched`,

@@ -1243,6 +1243,21 @@ private:
         std::size_t tableInputRecords{0},tableInputBytes{0},tableInputWork{0},tableInputUnavailable{0};
         std::size_t maxTableInputRecords{100000u},maxTableInputBytes{64u*1024u*1024u},maxTableInputWork{64u*1024u*1024u};
         bool tableInputCaptureFailed{false},tableInputIncomplete{false};
+        struct TableBody {
+            enum class State : std::uint8_t {EnclosureUnavailable,ContextMismatch,SourceMismatch,SequenceMismatch,SourceStateMismatch,DecodeFailed,ModelMismatch,Matched};
+            State state{State::EnclosureUnavailable};
+            std::shared_ptr<const TableInput> source,typed;
+            std::shared_ptr<const DRW_DxfEntitiesSource> entitiesPhysical;
+            std::shared_ptr<const DRW_DxfEntitiesDeliverySource> entitiesDelivery;
+            std::size_t dispatch{0},first{0},next{0},failedRecord{0};
+            dxfTable::SourceState replay;
+            std::vector<dxfCompound::SourceState> linked;
+            bool sourceMatched{false},typedMatched{false},semanticComplete{false};
+        };
+        std::map<std::uint32_t,std::shared_ptr<const TableBody>> tableBodies,tableBodyOwners;
+        std::size_t tableBodyRecords{0},tableBodyBytes{0},tableBodyWork{0};
+        std::size_t maxTableBodyRecords{100000u},maxTableBodyBytes{64u*1024u*1024u},maxTableBodyWork{64u*1024u*1024u};
+        bool tableBodyCaptureFailed{false};
         struct EntitiesCompoundProof {
             enum class State : std::uint8_t {OtherPrimary,Raw,NoCallback,ModelUnavailable,Identity,Sequence,Owner,DuplicateIdentity,
                 Callback,FollowFlag,DecodeFailed,SourceStateMismatch,ModelMismatch,ProfileMismatch,SpaceMismatch,LayoutUnresolved,Matched};

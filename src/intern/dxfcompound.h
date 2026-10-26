@@ -87,14 +87,7 @@ public:
         }
         case DRW::INSERT: {
             const auto* x=dynamic_cast<const DRW_Insert*>(&a);const auto* y=dynamic_cast<const DRW_Insert*>(&b);
-            if(!x||!y||!samePoint(*x,*y,equal)||x->name!=y->name||x->colcount!=y->colcount||x->rowcount!=y->rowcount
-                ||!real(x->xscale,y->xscale)||!real(x->yscale,y->yscale)||!real(x->zscale,y->zscale)||!real(x->angle,y->angle)
-                ||!real(x->colspace,y->colspace)||!real(x->rowspace,y->rowspace)||!handle(x->blockRecH,y->blockRecH)
-                ||!handle(x->seqendH,y->seqendH)||x->attribHandles.size()!=y->attribHandles.size()
-                ||x->attlist.size()!=y->attlist.size()||!child(x->seqEndEntity,y->seqEndEntity,equal))return false;
-            for(std::size_t i=0;i<x->attribHandles.size();++i)if(!handle(x->attribHandles[i],y->attribHandles[i]))return false;
-            for(std::size_t i=0;i<x->attlist.size();++i)if(!child(x->attlist[i],y->attlist[i],equal))return false;
-            return true;
+            return x&&y&&sameInsertModel(*x,*y,equal);
         }
         case DRW::VERTEX: {
             const auto* x=dynamic_cast<const DRW_Vertex*>(&a);const auto* y=dynamic_cast<const DRW_Vertex*>(&b);
@@ -111,6 +104,18 @@ public:
             &&dxfAttdef::Decoder::sameEntityModel(a,b,equal);
         default:return false;
         }
+    }
+    // Compare the INSERT base without slicing a TABLE or changing its eType.
+    template<class Equal>
+    static bool sameInsertModel(const DRW_Insert& a,const DRW_Insert& b,Equal equal) noexcept {
+        if(!samePoint(a,b,equal)||a.name!=b.name||a.colcount!=b.colcount||a.rowcount!=b.rowcount
+            ||!real(a.xscale,b.xscale)||!real(a.yscale,b.yscale)||!real(a.zscale,b.zscale)||!real(a.angle,b.angle)
+            ||!real(a.colspace,b.colspace)||!real(a.rowspace,b.rowspace)||!handle(a.blockRecH,b.blockRecH)
+            ||!handle(a.seqendH,b.seqendH)||a.attribHandles.size()!=b.attribHandles.size()
+            ||a.attlist.size()!=b.attlist.size()||!child(a.seqEndEntity,b.seqEndEntity,equal))return false;
+        for(std::size_t i=0;i<a.attribHandles.size();++i)if(!handle(a.attribHandles[i],b.attribHandles[i]))return false;
+        for(std::size_t i=0;i<a.attlist.size();++i)if(!child(a.attlist[i],b.attlist[i],equal))return false;
+        return true;
     }
 private:
     static bool real(double a,double b) noexcept {return std::memcmp(&a,&b,sizeof(a))==0;}

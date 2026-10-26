@@ -50,6 +50,15 @@ public:
         bool originalPairsMatched{false},cleanStates{false},modeledMatched{false},profilesMatched{false},ownerTargetsResolved{false},outputEligible{false};
     };
     static TableInputReport tableInputReport(const dx_data&) noexcept;
+    enum class TableBodyState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,NoInputs,ModeledMatched,Unqualified};
+    struct TableBodyReport {
+        TableBodyState state{TableBodyState::NotCaptured};
+        std::size_t selected{0},matched{0},records{0},bytes{0},work{0},semanticComplete{0};
+        // Selected modeled bodies only; physical profiles and actual target,
+        // whole-document, geometry and output qualification remain separate.
+        bool modeledMatched{false},profilesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+    };
+    static TableBodyReport tableBodyReport(const dx_data&) noexcept;
     using BlockRoleState=dx_data::TableDxfSourceCapture::BlockRoleAudit::State;
     struct BlockRoleReport {
         BlockRoleState state{BlockRoleState::NotCaptured};
@@ -1673,6 +1682,11 @@ public:
 
 private:
     void captureTableInput(const DRW_Table&,const DRW_RawDxfObject*,bool typed) noexcept;
+    using TableBody=dx_data::TableDxfSourceCapture::TableBody;
+    void finishTableBodies(dx_data&) noexcept;
+    bool replayTableBody(dx_data&,TableBody&,bool entitiesReady);
+    static bool sameTableBodyModel(const DRW_Table&,const DRW_Table&,DRW::Version) noexcept;
+    static bool chargeTableBody(dx_data&,std::size_t,std::size_t,std::size_t=0u) noexcept;
     dx_data* m_tableSourceReadData{nullptr};
     bool m_entitiesTableProjection{false};
     bool chargeEntitiesDelivery(std::size_t,std::size_t) noexcept;
