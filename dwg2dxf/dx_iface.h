@@ -1543,6 +1543,10 @@ private:
     void captureDxfBlockMembership(AttdefOriginBlock&) noexcept;
     void observeDxfBlockMembership(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
     static bool hasMatchedBlockMembership(const dx_data&,std::uint32_t) noexcept;
+    using CompoundBody=dx_data::TableDxfSourceCapture::CompoundBody;
+    void captureDxfCompoundBody(AttdefOriginBlock&,const DRW_DxfBlockDeliveryEvent&,const DRW_Entity*) noexcept;
+    bool replayDxfCompoundBody(CompoundBody&);
+    static bool hasMatchedCompoundBody(const dx_data&,std::uint32_t,std::size_t) noexcept;
     bool chargeAttdefOrigin(std::size_t,std::size_t,bool) noexcept;
     void captureAttdefOrigin(AttdefOriginResource&) noexcept;
     void pairAttdefOrigin(AttdefOriginResource&,const DRW_Attdef&) noexcept;

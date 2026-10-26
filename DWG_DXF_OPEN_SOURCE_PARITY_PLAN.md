@@ -1,4 +1,6 @@
-**Newest implementation checkpoint — RPP-5dz original common identities and compound structural roles (2026-10-25):** the CLI now audits original scoped self/owner fields, distinct logical/physical ownership, parser routes, compound membership/order/termination and actual delivered child identities. Immutable physical/delivery/endpoint owners and the actual data container are pinned; selected ATTDEF origins require successful structural membership. These are structural facts, not complete body/target/live/output or kernel proof. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5dz-original-common-identities-and-compound-structural-roles-2026-10-25) · [receipt](docs/research/rpp5dz-original-common-identities-and-compound-structural-roles-2026-10-25.json).
+**Newest implementation checkpoint — RPP-5ea immutable compound bodies and original modeled replay (2026-10-25):** actual POLYLINE/INSERT trees now have bounded immutable snapshots and original-scalar replay through shared production decoders, with separate delivered/reconstructed parser-state observations. The 84-profile owning matrix and final 38/38 normal / 38/38 ASan affected checks pass. This is modeled agreement, not complete physical scalar profiles, dependency/live/output or external semantic qualification. Resource families stay nine, ATTDEF `rawTypedMatched=false`, the ledger CLOSED and `outputEligible=false`. [Implementation and next work](#implementation-progress-rpp-5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25) · [receipt](docs/research/rpp5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25.json).
+
+**Previous implementation checkpoint — RPP-5dz original common identities and compound structural roles (2026-10-25):** committed as `0d751175`. Its scoped identities, structural roles and immutable context guards remain valid. RPP-5ea adds modeled compound bodies, not complete physical-field, dependency/live/output or kernel proof. [Historical implementation](#implementation-progress-rpp-5dz-original-common-identities-and-compound-structural-roles-2026-10-25) · [receipt](docs/research/rpp5dz-original-common-identities-and-compound-structural-roles-2026-10-25.json).
 
 **Previous implementation checkpoint — RPP-5dy immutable ATTDEF resource-to-origin binding (2026-10-25):** committed as `3edcba12`. Its scope/dispatch/event/physical and immutable owner bindings remain valid. RPP-5dz additionally requires original structural membership and pins actual container context; modeled child bodies, dependency/live/output and external qualification remain open. [Historical implementation](#implementation-progress-rpp-5dy-immutable-attdef-resource-to-origin-binding-2026-10-25) · [receipt](docs/research/rpp5dy-immutable-attdef-resource-origin-binding-2026-10-25.json).
 
@@ -127469,3 +127471,128 @@ remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 rem
 **DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
 semantic/kernel qualification remain **NOT_RUN**. No support promotion, remote
 mutation or full-goal completion is included in this checkpoint.
+
+## Implementation progress — RPP-5ea immutable compound bodies and original modeled replay (2026-10-25)
+
+This implements the modeled-body portion of RPP-5dz's first next item. It does
+not declare that item fully complete: complete physical scalar coverage and
+whole-block dependency/live/output closure remain required. The original full
+DWG/DXF, 2D/3D consumer and semantic/platform objective is unchanged.
+
+Implemented:
+
+1. [x] Share production/replay field admission and finalizers for POLYLINE,
+   VERTEX, INSERT/MINSERT, ATTRIB and SEQEND. Reuse ATTDEF's exact attribute,
+   embedded-MTEXT and common/native model comparisons instead of introducing
+   a second parser. Preserve mandatory-field admission, polyface ignored face
+   coordinates, defaults, aliases, attribute finalization and sequence handling.
+   The public entity headers add only private friend declarations; no installed
+   model layout, callback vtable, DWG byte parser/encoder or output writer changes.
+2. [x] Freeze actual delivered known-concrete parent/child/footer models under
+   existing nested-owner estimates. Pin the immutable structural audit and
+   dispatch; compare original replayed coordinates, widths, bulges, flags,
+   mesh/face indices, transforms, spacings, attribute/embedded text, common
+   metadata and native-only retained state. Refuse derived concrete classes
+   rather than silently slicing additional state. Ordinary compatible import
+   remains separate from refusal of this private evidence.
+3. [x] Retain actual delivered state and reconstructed original pre-copy grammar
+   state separately. BLOCK staging has already copied models and reset ATTRIB
+   subclass/cursor state: compare delivered state with a real copy of the replay,
+   not an invented clean original state. Original incomplete host/nested XDATA
+   refuses proof even when a staged copy cleared its cursor. Preserve the
+   header's static compatibility codepage selection for proxy provenance;
+   this is not full declaration-identity or legacy-codepage qualification.
+4. [x] Precharge aggregate member count, logical bytes/work, both state vectors,
+   nested model copies, raw/wire/replay temporaries and map/control allowances.
+   Defaults are 100,000 members and 64 MiB each for byte/work allowances.
+   Observed decode work is additional; typed variant visits are bounded by
+   physical groups already precharged, not double-reserved from unused work.
+   New-path exact-budget controls reproduced and corrected that over-refusal.
+   Limits are logical attempt allowances, not RSS/all-allocator/CPU theorems.
+5. [x] Require a successful first-generation actual-container DXF import, full
+   structural replay, pinned audit/dispatch and complete modeled states for the
+   private body query. Premature, stale/copied, later-input failure, opt-out,
+   capture-limit and callback-exception contexts cannot borrow earlier matches.
+   Editable public drawing data remains independent of frozen historical facts.
+   No support/output gate is relaxed; an unknown physical VERTEX scalar can
+   still agree on modeled fields and therefore is explicitly not a profile fact.
+6. [x] List the new private shared decoder in CMake's pinned source manifest and
+   Autotools distribution headers. Only locally authored runtime scratch DXFs
+   are used; no downloaded/external drawing fixtures are added or committed.
+
+Owning evidence per configuration:
+
+- [x] **84** four-version (AC1021/24/27/32) × ASCII LF/CRLF/Binary × seven-body
+  profiles. Cases cover classic/3D polylines, polygon meshes, signed-index
+  polyfaces with partial ignored face coordinates, 101/legacy-100 embedded
+  attributes, and rich common/native metadata, proxy bytes, XDATA and application
+  groups. The independent original scalar/span walker checks **19,524** scalar
+  spans across the whole generated BLOCK-child inventory; it is not independent
+  semantic or kernel verification of the production/shared decoded fields.
+- [x] **80** same-ID field-corruption/corrected fresh-import retries keep
+  structural membership distinct from body agreement and leave the unrelated
+  compound's body matched. **14** derived-class refusal/retry cases prevent
+  parent, child, footer and nested-MTEXT slicing. **Two** editable-alias controls
+  retain immutable historical values after public drawing edits.
+- [x] **Six** exact/one-under quota/corrected-import controls; **474** observed
+  allocation-failure/corrected fresh-import retries on this macOS/libc++ build
+  across ASCII/Binary POLYLINE and embedded-attribute INSERT capture/replay.
+  The four calibrated thresholds are 78/148/89/159 allocations. Each sweep
+  reaches an exact successful threshold and verifies weak-owner teardown.
+  Thresholds are recorded per environment, not hardcoded as a portable STL
+  allocation count. Synthetic recapture uses actual immutable owners but an
+  intentionally unqualified phase; this is not all-allocator or leak proof.
+- [x] **Two** stale snapshot refusals/restorations, **six** standalone/explicit
+  empty/MINSERT positive variants, **four** original unfinished-XDATA refusals,
+  **two** modeled-versus-unknown-profile boundaries, **eight** copied/later/
+  opt-out contexts and **four** callback exception/corrected-import retries.
+
+Final validation: strict normal/ASan affected library/CLI, local polyface/MTEXT
+and consumer probe builds plus `lc3_compat_check` pass. The selected affected
+cohorts pass **38/38 normally in 18.59 s** and **38/38 under ASan in 33.30 s**,
+sequentially, without failures/skips/disabled cases. The first ASan 38/38 result
+(38.43 s) briefly overlapped an extra normal owning-count capture; the final
+non-overlapping ASan run supersedes it. ASan uses
+`halt_on_error=1:detect_leaks=0`; the host is macOS ARM64 Apple Clang 21.0.0,
+C++17 with warnings as errors. No full project/distribution suite is repeated;
+local API/CLI checks are not native LibreCAD/FreeCAD execution or formal ABI
+certification. The [RPP-5ea receipt](docs/research/rpp5ea-immutable-compound-bodies-and-original-modeled-replay-2026-10-25.json)
+records exact scope, counts, test membership, source/log hashes and limitations.
+
+Next implementation-ready sequence (full objective retained):
+
+1. [ ] **Complete physical compound profiles.** Reuse original member indices,
+   immutable scalar spans and the existing ATTDEF/common scoped-profile helpers.
+   Classify every POLYLINE/VERTEX/INSERT-or-MINSERT/ATTRIB/SEQEND scalar by actual
+   body/embedded/application/XDATA/proxy role, version and occurrence; distinguish
+   modeled fields, grammar/structural tokens, explicitly retained opaque data
+   and unsupported/unclaimed fields. Preserve original spellings, defaults,
+   signed/ignored coordinates, duplicate/conflicting fields and implicit sequence
+   boundaries. Unknown fields must refuse profile completeness without changing
+   compatible reader admission. Add profile/field corruption and retry controls;
+   modeled replay alone cannot set ATTDEF `rawTypedMatched` or output eligibility.
+2. [ ] **Space and transitive targets.** Finish ENTITIES model/paper/BLOCK_RECORD
+   associations and selected common/style/APPID/LAYER/object/absent-default/
+   opaque dependencies, names versus handles/local IDs, remapping, proxy text
+   and codepages. Bind selected block resources to complete physical membership,
+   modeled bodies and target owners; extend actual-container guards where a
+   source proof can otherwise be borrowed. Do not qualify unsupported/no-callback
+   or unresolved transitive records by an unrelated positive body.
+3. [ ] **Live/output and original parity.** Finish all B2b/B3/C graph/live/output/
+   immutable/editable/compound identities, complete common/body fields, exact
+   emitted references and atomic rollback/retry/destination preservation. Retain
+   original IMAGE/document/native bit/decimal/carrier/schema/owner, speed/memory,
+   LibreCAD/LibreCAD_3 2D, 3D consumers and dwg2dxf/FreeCAD requirements. Native
+   consumer and independent semantic/platform evidence remain separate gates.
+4. [ ] **Self-update and continue safely.** Use fast owning checks during edits
+   and the exact freshly built affected normal/ASan shortlist at integration
+   boundaries, not full suites per item. Record actual failures and limits,
+   update this plan and its receipt, commit/report each coherent verified slice
+   and continue available local work. Keep external drawing fixtures out of
+   commits and do not turn local green tests into external support claims.
+
+Resource families remain **nine**, ATTDEF `rawTypedMatched=false`, the ledger
+remains **CLOSED** and `outputEligible=false`. J256/J260/J268/J284/J293/J295 remain
+**DEFERRED_EXTERNAL**. Native Linux/Windows FreeCAD and independent ACIS/ACDS
+semantic/kernel qualification remain **NOT_RUN**. No remote mutation or full-goal
+completion is included in this checkpoint.

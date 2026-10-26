@@ -66,6 +66,31 @@ public:
     static bool deliveryFailed(const dx_data& data) {return data.m_tableDxfSource.blockDeliveryCaptureFailed;}
     static bool membershipMatched(const dx_data& data) {return dx_iface::hasMatchedBlockMembership(data,0xB1u);}
     static bool membershipFailed(const dx_data& data) {return data.m_tableDxfSource.blockMembershipCaptureFailed;}
+    using CompoundBody=dx_data::TableDxfSourceCapture::CompoundBody;
+    static bool compoundMatched(const dx_data& data,std::size_t dispatch) {return dx_iface::hasMatchedCompoundBody(data,0xB1u,dispatch);}
+    static const auto* compoundBody(const dx_data& data,std::size_t dispatch) {
+        const auto* owner=block(data);if(!owner)return static_cast<const CompoundBody*>(nullptr);
+        const auto at=owner->compoundBodies.find(dispatch);return at==owner->compoundBodies.end()?nullptr:at->second.get();
+    }
+    static bool compoundFailed(const dx_data& data) {return data.m_tableDxfSource.compoundBodyCaptureFailed;}
+    static std::array<std::size_t,3> compoundUsage(const dx_data& data) {
+        const auto& s=data.m_tableDxfSource;return {s.compoundBodyRecords,s.compoundBodyBytes,s.compoundBodyWork};
+    }
+    static void compoundLimit(dx_data& data,unsigned which,std::size_t n) {
+        auto& s=data.m_tableDxfSource;if(which==0u)s.maxCompoundBodyRecords=n;
+        else if(which==1u)s.maxCompoundBodyBytes=n;else s.maxCompoundBodyWork=n;
+    }
+    static bool recaptureCompound(dx_iface& iface,dx_data& data,std::size_t dispatch,long fault,long& allocations) {
+        auto& source=data.m_tableDxfSource;auto& owner=source.blockSources.at(0xB1u);
+        const auto saved=owner.compoundBodies.at(dispatch);owner.compoundBodies.erase(dispatch);
+        source.closed=false;source.successful=false;source.reader=&iface;
+        source.compoundBodyRecords=source.compoundBodyBytes=source.compoundBodyWork=0u;source.compoundBodyCaptureFailed=false;
+        const auto event=owner.delivery->events[owner.delivery->dispatches[dispatch].firstEvent];
+        allocationRemaining=fault;iface.captureDxfCompoundBody(owner,event,saved->model.get());
+        allocations=fault-allocationRemaining;allocationRemaining=-1;
+        const auto at=owner.compoundBodies.find(dispatch);
+        return at!=owner.compoundBodies.end()&&at->second->state==CompoundBody::State::ModeledReplayMatched&&!source.compoundBodyCaptureFailed;
+    }
     static void copyMembershipContext(dx_data& target,const dx_data& source) {
         // Copy only evidence/public outcome, not dx_data's owning raw block
         // pointers: this safely isolates a borrowed successful-source context.
@@ -677,6 +702,7 @@ public:
 #include "block_delivery_controls.h"
 #include "attdef_origin_controls.h"
 #include "block_membership_controls.h"
+#include "compound_body_controls.h"
 
 bool sourceProfileTests(const std::filesystem::path& path) {
     using Access=DxIfaceTableSourceTestAccess;
@@ -1083,7 +1109,8 @@ int main(int argc,char** argv) {
     const bool polymorphic=argc==2&&std::string(argv[1])=="--block-polymorphic";
     const bool attdefOrigin=argc==2&&std::string(argv[1])=="--attdef-origin";
     const bool blockMembership=argc==2&&std::string(argv[1])=="--block-membership";
-    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership)return 2;
+    const bool compoundBody=argc==2&&std::string(argv[1])=="--compound-body";
+    if(argc!=1&&!budget&&!capture&&!profile&&!blocks&&!blockProof&&!blockChildren&&!rawIdentity&&!rawMissing&&!proxyScope&&!rawWriter&&!rawShell&&!acshScope&&!blockDelivery&&!polymorphic&&!attdefOrigin&&!blockMembership&&!compoundBody)return 2;
     const auto scratch=std::filesystem::temp_directory_path()/("libdxfrw-attdef-source-"
         +std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     if(!std::filesystem::create_directory(scratch))return 1;
@@ -1092,6 +1119,7 @@ int main(int argc,char** argv) {
     try {return (polymorphic?blockPolymorphicDeliveryTests(scratch/"generated.dxf",polymorphicProfiles):
         attdefOrigin?attdefOriginTests(scratch/"generated.dxf"):
         blockMembership?blockMembershipTests(scratch/"generated.dxf"):
+        compoundBody?compoundBodyTests(scratch/"generated.dxf"):
         (rawIdentity||rawMissing)?rawApplicationIdentityTests(scratch/"generated.dxf",rawMissing):
         blockDelivery?blockDeliveryTests(scratch/"generated.dxf"):
         rawShell?rawShellScopeTests(scratch/"generated.dxf"):

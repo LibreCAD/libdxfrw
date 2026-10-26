@@ -43,6 +43,7 @@
 #include "intern/dxffield.h"
 #include "intern/dxfblockrecord.h"
 #include "intern/dxfattdef.h"
+#include "intern/dxfcompound.h"
 #include "intern/dxfblock.h"
 #include "intern/dxfblockchildren.h"
 #include "intern/dxfblockdelivery.h"
@@ -16057,7 +16058,7 @@ dxfRW::DxfEntityBoundary dxfRW::consumeEntityFooter(DRW_SeqEnd *footer) {
     int code;
     while (reader->readRec(&code)) {
         if (code != 0) {
-            if (footer != nullptr && !footer->parseCode(code, reader))
+            if (footer != nullptr && !dxfCompound::Decoder::parseEntity(*footer, code, reader))
                 return DxfEntityBoundary::Error;
             continue;
         }
@@ -17145,12 +17146,7 @@ bool dxfRW::processInsert() {
     DRW_DBG("dxfRW::processInsert");
     int code;
     DRW_Insert insert;
-    bool hasName = false;
-    bool hasInsertionX = false;
-    bool hasInsertionY = false;
-    const auto validInsert = [&]() {
-        return hasName && !insert.name.empty() && hasInsertionX && hasInsertionY;
-    };
+    dxfCompound::Decoder decoder(insert);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -17158,7 +17154,7 @@ bool dxfRW::processInsert() {
             DRW_DBG(nextentity); DRW_DBG("\n");
             if (boundary == DxfEntityBoundary::Error)
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!validInsert())
+            if (!decoder.finish())
                 return setError(DRW::BAD_CODE_PARSED);
             // Attribute flag (66=1) signals trailing ATTRIB entities; mirror
             // the POLYLINE/VERTEX/SEQEND pattern and gate on the next entity
@@ -17183,11 +17179,7 @@ bool dxfRW::processInsert() {
             return true;
         }
 
-        hasName = hasName || code == 2;
-        hasInsertionX = hasInsertionX || code == 10;
-        hasInsertionY = hasInsertionY || code == 20;
-
-        if (!insert.parseCode(code, reader)) {
+        if (!decoder.parseCode(code, reader)) {
             return setError( DRW::BAD_CODE_PARSED);
         }
     }
@@ -17251,16 +17243,7 @@ bool dxfRW::processAttrib(DRW_Insert *insert) {
     DRW_DBG("dxfRW::processAttrib");
     int code;
     auto att = std::make_shared<DRW_Attrib>();
-    bool hasText = false;
-    bool hasTag = false;
-    bool hasInsertionX = false;
-    bool hasInsertionY = false;
-    bool hasHeight = false;
-    const auto validAttribute = [&]() {
-        return hasText && hasTag && !att->tag.empty() && hasInsertionX
-            && hasInsertionY && hasHeight
-            && (!att->mtext || att->mtext->finalizeDxfColumnObject());
-    };
+    dxfCompound::Decoder decoder(*att);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -17269,35 +17252,23 @@ bool dxfRW::processAttrib(DRW_Insert *insert) {
             if (boundary != DxfEntityBoundary::NextEntity)
                 return setError(DRW::BAD_READ_ENTITIES);
             if (dxfKeywordEquals(nextentity, "SEQEND")) {
-                if (!validAttribute())
+                if (!decoder.finish())
                     return setError(DRW::BAD_CODE_PARSED);
-                if (att->mtext) att->mtext->updateAngle();
                 insert->attlist.push_back(att);
                 return true;  //found SEQEND, no more attribs, terminate
             }
             if (dxfKeywordEquals(nextentity, "ATTRIB")) {
-                if (!validAttribute())
+                if (!decoder.finish())
                     return setError(DRW::BAD_CODE_PARSED);
-                if (att->mtext) att->mtext->updateAngle();
                 insert->attlist.push_back(att);
                 att = std::make_shared<DRW_Attrib>(); //another attrib
-                hasText = false;
-                hasTag = false;
-                hasInsertionX = false;
-                hasInsertionY = false;
-                hasHeight = false;
+                decoder.reset(*att);
                 continue;
             }
             return setError(DRW::BAD_READ_ENTITIES);
         }
 
-        hasText = hasText || code == 1;
-        hasTag = hasTag || code == 2;
-        hasInsertionX = hasInsertionX || code == 10;
-        hasInsertionY = hasInsertionY || code == 20;
-        hasHeight = hasHeight || code == 40;
-
-        if (!att->parseCode(code, reader)) { //members of att are reinitialized here
+        if (!decoder.parseCode(code, reader)) { //members of att are reinitialized here
             return setError(DRW::BAD_CODE_PARSED);
         }
     }
@@ -17389,6 +17360,7 @@ bool dxfRW::processPolyline() {
     DRW_DBG("dxfRW::processPolyline");
     int code;
     DRW_Polyline pl;
+    dxfCompound::Decoder decoder(pl);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
@@ -17410,13 +17382,13 @@ bool dxfRW::processPolyline() {
                     == DxfEntityBoundary::Error
                 || !acceptEntityCallbackBoundary())
                 return setError(DRW::BAD_READ_ENTITIES);
-            if (!pl.validatePolyfaceDxf())
+            if (!decoder.finish())
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addPolyline(pl);
             return true;
         }
 
-        if (!pl.parseCode(code, reader)) { //parseCode just initialize the members of pl
+        if (!decoder.parseCode(code, reader)) { //parseCode just initialize the members of pl
             return setError(DRW::BAD_CODE_PARSED);
         }
     }
@@ -17428,8 +17400,7 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
     DRW_DBG("dxfRW::processVertex");
     int code;
     auto v = std::make_shared<DRW_Vertex>();
-    bool hasInsertionX = false;
-    bool hasInsertionY = false;
+    dxfCompound::Decoder decoder(*v);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if(0 == code)  {
@@ -17441,11 +17412,7 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
             // signed indices define the primitive. Tolerate omitted/partial
             // ignored coordinates consistently, including a face-first file.
             // Coordinate children retain the existing paired-X/Y read policy.
-            const bool ignoredFaceLocation = (pl->flags & 64) != 0
-                && DRW_Polyline::polyfaceVertexRole(*v)
-                    == DRW_Polyline::PolyfaceVertexRole::Face;
-            if ((!ignoredFaceLocation && (!hasInsertionX || !hasInsertionY))
-                || !v->validatePayloadFields())
+            if (!decoder.finish(pl))
                 return setError(DRW::BAD_CODE_PARSED);
             if (dxfKeywordEquals(nextentity, "SEQEND")) {
                 pl->appendVertex(v);
@@ -17454,17 +17421,13 @@ bool dxfRW::processVertex(DRW_Polyline *pl) {
             if (dxfKeywordEquals(nextentity, "VERTEX")){
                 pl->appendVertex(v);
                 v = std::make_shared<DRW_Vertex>(); //another vertex
-                hasInsertionX = false;
-                hasInsertionY = false;
+                decoder.reset(*v);
                 continue;
             }
             return setError(DRW::BAD_READ_ENTITIES);
         }
 
-        hasInsertionX = hasInsertionX || code == 10;
-        hasInsertionY = hasInsertionY || code == 20;
-
-        if (!v->parseCode(code, reader)) { //the members of v are reinitialized here
+        if (!decoder.parseCode(code, reader)) { //the members of v are reinitialized here
             return setError(DRW::BAD_CODE_PARSED);
         }
     }

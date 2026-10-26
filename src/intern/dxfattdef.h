@@ -64,7 +64,7 @@ public:
     static bool sameEntityModel(const DRW_Entity& a,const DRW_Entity& b,Equal equal) noexcept {
         return sameCommon(a,b,equal);
     }
-    static SourceState observe(const DRW_Attdef& value) noexcept {
+    static SourceState observeAttribute(const DRW_Attrib& value) noexcept {
         SourceState state;
         state.host={static_cast<bool>(value.curr),value.currCoordMask};
         state.attributeSubclass=value.dxfInAttributeSubclass;
@@ -79,6 +79,12 @@ public:
         }
         return state;
     }
+    static SourceState observe(const DRW_Attdef& value) noexcept {return observeAttribute(value);}
+    static bool finishAttribute(DRW_Attrib& value) {
+        if(value.mtext&&!value.mtext->finalizeDxfColumnObject())return false;
+        if(value.mtext)value.mtext->updateAngle();
+        return true;
+    }
     static bool hasNoNativeWriteBindings(const DRW_Attdef& value) noexcept {
         const auto empty=[](const DRW_Entity& entity) {
             return entity.dwgEedAppIdWriteRefs.empty()&&entity.dwgEedLayerWriteRefs.empty();
@@ -91,8 +97,11 @@ public:
     // persisted model semantics. Native-only values are otherwise included.
     template<class VariantEqual>
     static bool sameModel(const DRW_Attdef& a,const DRW_Attdef& b,VariantEqual equal) noexcept {
-        return sameText(a,b,equal)&&a.prompt==b.prompt
-            &&std::tie(a.tag,a.attribFlags,a.m_fieldLength,a.lockPosition,a.attVersion,
+        return a.prompt==b.prompt&&sameAttributeModel(a,b,equal);
+    }
+    template<class VariantEqual>
+    static bool sameAttributeModel(const DRW_Attrib& a,const DRW_Attrib& b,VariantEqual equal) noexcept {
+        return sameText(a,b,equal)&&std::tie(a.tag,a.attribFlags,a.m_fieldLength,a.lockPosition,a.attVersion,
                 a.m_attributeType,a.keepDuplicateRecords,a.m_r2018OuterAnnotativeData,
                 a.m_r2018OuterAnnotativeUnknown,a.m_r2018OuterAnnotativeAppHandle,
                 a.m_r2018OuterAnnotativeAppIdName)
@@ -124,9 +133,7 @@ public:
         return entity.parseDxfGroups(102,reader);
     }
     bool finish(bool applyExtrusion) {
-        if(!hasText||!hasTag||value.tag.empty()||!hasX||!hasY||!hasHeight
-            ||(value.mtext&&!value.mtext->finalizeDxfColumnObject()))return false;
-        if(value.mtext)value.mtext->updateAngle();
+        if(!hasText||!hasTag||value.tag.empty()||!hasX||!hasY||!hasHeight||!finishAttribute(value))return false;
         if(applyExtrusion)value.applyExtrusion();
         return true;
     }

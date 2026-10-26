@@ -18,6 +18,7 @@
 #include "dx_dwg_class_evidence.h"
 #include "intern/dxftablereferences.h"
 #include "intern/dxfattdef.h"
+#include "intern/dxfcompound.h"
 #include "dx_attdef_source_profile.h"
 #include "dx_block_source_profile.h"
 #include "dx_block_membership.h"
@@ -1077,6 +1078,16 @@ private:
         std::size_t maxResourceProofBytes{64u*1024u*1024u}, maxResourceProofWork{4000000u};
         bool resourceProofCaptureFailed{false};
         std::size_t attdefPending{0};
+        struct CompoundBody {
+            enum class State : std::uint8_t { Captured, ModeledReplayMatched, ModelMismatch, SourceStateMismatch, DecodeFailed };
+            std::shared_ptr<const DRW_Entity> model;
+            std::shared_ptr<const dx_block_membership::Audit> membership;
+            std::size_t dispatch{0};
+            const char* codePage{"UTF-8"}; // static compatibility selection, not raw declaration identity
+            std::vector<dxfCompound::SourceState> sourceStates;
+            std::vector<dxfCompound::SourceState> replayStates;
+            State state{State::Captured};
+        };
         // Original BLOCK versus reconciled callback and distinct ENDBLK.
         // Closure/pairing are transport facts, NOT raw/profile/child/graph proof.
         struct BlockSource {
@@ -1094,6 +1105,7 @@ private:
             bool deliveryExpected{false},deliveryPending{false},deliveryObserved{false},deliveryFinished{false};
             std::shared_ptr<const dx_block_membership::Audit> membership;
             std::size_t membershipObserved{0};
+            std::map<std::size_t,std::shared_ptr<const CompoundBody>> compoundBodies;
             std::vector<std::uint32_t> attdefOrigins;
         };
         std::map<std::uint32_t,BlockSource> blockSources;
@@ -1116,6 +1128,9 @@ private:
         std::size_t blockMembershipRecords{0},blockMembershipBytes{0},blockMembershipWork{0};
         std::size_t maxBlockMembershipRecords{100000u},maxBlockMembershipBytes{64u*1024u*1024u},maxBlockMembershipWork{64u*1024u*1024u};
         bool blockMembershipCaptureFailed{false};
+        std::size_t compoundBodyRecords{0},compoundBodyBytes{0},compoundBodyWork{0};
+        std::size_t maxCompoundBodyRecords{100000u},maxCompoundBodyBytes{64u*1024u*1024u},maxCompoundBodyWork{64u*1024u*1024u};
+        bool compoundBodyCaptureFailed{false};
     } m_tableDxfSource;
     friend class DxIfaceTableSourceTestAccess;
     struct ClassEvidenceImport {

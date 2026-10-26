@@ -35,6 +35,7 @@ class dwgRW;
 class DRW_Polyline;
 class DRW_MText;
 namespace dxfAttdef { class Decoder; }
+namespace dxfCompound { class Decoder; }
 namespace dxfBlock { class Decoder; }
 
 struct DRW_MeshPropertyOverride {
@@ -183,6 +184,7 @@ class DrwBlockStateTestAccess;       // test-only BLOCK reset-state checks
 class DRW_Entity {
     SETENTFRIENDS
     friend class dxfAttdef::Decoder;
+    friend class dxfCompound::Decoder;
 public:
     //initializes default values
 	DRW_Entity() = default;
@@ -2841,6 +2843,7 @@ private:
 */
 class DRW_Vertex : public DRW_Point {
     SETENTFRIENDS
+    friend class dxfCompound::Decoder;
 public:
     enum class DwgSubtype {
         Auto,
@@ -2945,6 +2948,7 @@ protected:
 */
 class DRW_Polyline : public DRW_Point {
     SETENTFRIENDS
+    friend class dxfCompound::Decoder;
 public:
     DRW_Polyline() {
         eType = DRW::POLYLINE;
